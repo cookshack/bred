@@ -1,0 +1,101 @@
+.dir-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  padding-left: 0;
+
+  font-family: monospace;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.dir-h {
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+
+  display: flex;
+}
+
+.dir-w {
+  --line-height: 1.5rem; /* includes vertical padding */
+
+  width: 100%;
+  height: min-content;
+  overflow-y: auto;
+
+  display: grid;
+  grid-template-columns: 1rem minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content);
+}
+
+.bred-gap {
+  grid-column: 1 / span 7;
+}
+
+.dir-w > div {
+  height: var(--line-height);
+  padding-left: 0.8rem;
+}
+
+div.dir-mark {
+  padding-left: 0;
+}
+
+.dir-mark {
+  position: relative;
+  right: -0.3rem;
+  background: var(--clr-fill);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dir-mark > img {
+  display: none;
+  pointer-events: none;
+  width: 100%;
+}
+
+.dir-mark.on > img {
+  display: flex;
+}
+
+.dir-w > div.on {
+  background: var(--clr-fill);
+}
+
+.dir-size {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dir-size .dir-size-thou {
+  color: var(--clr-syntax1);
+}
+
+.dir-mode,
+.dir-date {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.dir-name-w {
+  display: flex;
+}
+
+.dir-name {
+  cursor: pointer;
+}
+
+.dir-name[data-type="f"] {
+  color: var(--clr-syntax0);
+}
+
+div.dir-h-dir,
+.dir-name[data-type="d"] {
+  color: var(--clr-syntax1);
+}
+
+.dir-name[data-type="l"] {
+  color: var(--clr-syntax3);
+}

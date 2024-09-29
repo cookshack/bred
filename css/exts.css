@@ -1,0 +1,49 @@
+.bred-exts-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  padding-top: 0;
+
+  display: flex;
+}
+
+.bred-exts-w {
+  width: 100%;
+  max-width: 50rem;
+  height: min-content;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.bred-exts-h {
+  width: 100%;
+  font-size: 1.4rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+}
+
+.bred-exts-all {
+  width: 100%;
+
+  display: grid;
+  grid-gap: 0.5rem;
+  grid-template-columns: minmax(min-content, max-content) auto;
+}
+
+.bred-exts-val {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.bred-exts-bred-exts {
+  padding-top: 0.5rem;
+  display: flex;
+}
+
+.bred-exts-note {
+  margin-top: 2rem;
+  display: flex;
+}

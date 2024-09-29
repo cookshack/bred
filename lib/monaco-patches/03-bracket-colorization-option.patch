@@ -1,0 +1,70 @@
+--- vs/editor/standalone/browser/standaloneServices.js	2024-05-18 04:14:29.185996233 +0200
++++ vs/editor/standalone/browser/standaloneServices.js	2024-05-18 04:20:55.381960889 +0200
+@@ -516,9 +521,22 @@
+     }
+     const toUpdate = [];
+     Object.keys(source).forEach((key) => {
+-        if (isEditorConfigurationKey(key)) {
++        let type
++
++        type = isEditorConfigurationKey(key);
++        if (type == 1) {
++            // This is a single schema contribution
+             toUpdate.push([`editor.${key}`, source[key]]);
+         }
++        else if (type == 2) {
++            let subsource;
++            subsource = source[key];
++            for (const subkey in subsource) {
++                if (isEditorConfigurationKey(`${key}.${subkey}`))
++                    toUpdate.push([`editor.${key}.${subkey}`, subsource[subkey]]);
++            }
++        }
++
+         if (isDiffEditor && isDiffEditorConfigurationKey(key)) {
+             toUpdate.push([`diffEditor.${key}`, source[key]]);
+         }
+
+--- vs/editor/common/config/editorConfigurationSchema.js	2024-05-18 04:14:29.245996953 +0200
++++ vs/editor/common/config/editorConfigurationSchema.js	2024-05-18 04:17:49.440197608 +0200
+@@ -250,6 +250,7 @@
+ function isConfigurationPropertySchema(x) {
+     return (typeof x.type !== 'undefined' || typeof x.anyOf !== 'undefined');
+ }
++let multiProperties = {}
+ // Add properties from the Editor Option Registry
+ for (const editorOption of editorOptionsRegistry) {
+     const schema = editorOption.schema;
+@@ -259,6 +260,7 @@
+             editorConfiguration.properties[`editor.${editorOption.name}`] = schema;
+         }
+         else {
++            multiProperties[`editor.${editorOption.name}`] = 1
+             for (const key in schema) {
+                 if (Object.hasOwnProperty.call(schema, key)) {
+                     editorConfiguration.properties[key] = schema[key];
+@@ -272,18 +274,21 @@
+     if (cachedEditorConfigurationKeys === null) {
+         cachedEditorConfigurationKeys = Object.create(null);
+         Object.keys(editorConfiguration.properties).forEach((prop) => {
+-            cachedEditorConfigurationKeys[prop] = true;
++            cachedEditorConfigurationKeys[prop] = 1;
++        });
++        Object.keys(multiProperties).forEach((prop) => {
++            cachedEditorConfigurationKeys[prop] = 2;
+         });
+     }
+     return cachedEditorConfigurationKeys;
+ }
+ export function isEditorConfigurationKey(key) {
+     const editorConfigurationKeys = getEditorConfigurationKeys();
+-    return (editorConfigurationKeys[`editor.${key}`] || false);
++    return (editorConfigurationKeys[`editor.${key}`] || 0);
+ }
+ export function isDiffEditorConfigurationKey(key) {
+     const editorConfigurationKeys = getEditorConfigurationKeys();
+-    return (editorConfigurationKeys[`diffEditor.${key}`] || false);
++    return (editorConfigurationKeys[`diffEditor.${key}`] || 0);
+ }
+ const configurationRegistry = Registry.as(Extensions.Configuration);
+ configurationRegistry.registerConfiguration(editorConfiguration);

@@ -1,0 +1,141 @@
+.test_buffer-ww {
+  width: 100%;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.test_buffer-w {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.test_buffer-1 {
+  border: 4px solid var(--clr-fill);
+  margin: 1rem;
+  padding: 1rem 2rem 1rem 2rem;
+}
+
+.test_buffer-1 > ol > li {
+  padding: 0.5rem 0.5rem 0 0.5rem;
+}
+
+.test_buffer-w > div {
+  margin-bottom: 1rem;
+}
+
+.test_buffer-2 {
+  position: relative;
+  font-size: 2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.test_buffer-circle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background-color: var(--clr-syntax3);
+  border: 2px solid var(--clr-text);
+}
+
+.test_buffer-circle:hover {
+  background-color: var(--clr-syntax2);
+}
+
+.test_buffer-3 {
+  display: flex;
+}
+
+.test_buffer-3 > div {
+  padding: 1rem;
+  background-color: var(--clr-fill);
+  resize: both;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.test_buffer-4 {
+  margin-left: auto;
+  margin-right: auto;
+  width: 22rem;
+  display: flex;
+  padding: 1rem;
+  background-color: var(--clr-fill);
+}
+
+.test_buffer-4 > div {
+  cursor: pointer;
+  padding: 1rem;
+  width: 10rem;
+  display: flex;
+  background-color: var(--clr-light);
+}
+
+.test_buffer-4 > div.test_buffer-right {
+  margin-left: auto;
+}
+
+.test_buffer-des {
+  width: 100%;
+  max-width: 40rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.test_buffer-des-h {
+  width: 100%;
+  font-size: 1.4rem;
+  display: flex;
+  justify-content: center;
+}
+
+.test_buffer-des-section {
+  padding: 1rem;
+}
+
+.test_buffer-des-section.dark {
+  background: var(--clr-fill);
+}
+
+.test_buffer-des-section > div {
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.test_buffer-des-section .mini-icon {
+  margin-left: 0.5rem;
+  max-height: 1.2rem;
+}
+
+.test_buffer-des-section .mini-panel {
+  background: var(--clr-light);
+}
+
+.test_buffer-des-section.dark .mini-panel {
+  background: var(--clr-fill);
+}
+
+.test_buffer-alpha {
+  width: 100%;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.test_buffer-alpha-ch {
+  font-size: 2rem;
+}
+
+.test_buffer-end {
+  display: flex;
+  justify-content: center;
+}

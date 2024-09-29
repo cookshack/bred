@@ -1,0 +1,29 @@
+.recent-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+
+  font-family: monospace;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-h {
+  margin-bottom: 0.5rem;
+
+  display: flex;
+}
+
+.recent-w {
+  width: 100%;
+  height: min-content;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-item {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}

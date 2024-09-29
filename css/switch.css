@@ -1,0 +1,73 @@
+.switch-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  padding-top: 0.2rem;
+  padding-right: 0;
+
+  font-family: monospace;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.switch-hw {
+  grid-column: 1 / span 3;
+  display: flex;
+}
+
+.switch-h {
+  padding: 0.2rem;
+  margin-bottom: 0.3rem;
+}
+
+.switch-list {
+  position: relative; /* for .switch-needle */
+  width: 100%;
+  height: min-content;
+
+  display: grid;
+  grid-template-columns: minmax(min-content, max-content) minmax(min-content, max-content) auto;
+  grid-gap: 0.5rem;
+}
+
+.switch-needle {
+  white-space: pre;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: var(--clr-transparent);
+  color: var(--clr-nb0);
+}
+
+.switch-needle.switch-zero {
+  color: var(--clr-nb3);
+}
+
+.switch-name {
+  position: relative; /* for .switch-needle */
+}
+
+div.switch-name {
+  color: var(--clr-text);
+}
+
+.switch-name:nth-child(2) {
+  background-color: var(--clr-fill);
+}
+
+.switch-mode {
+  margin-left: 0.5rem;
+}
+
+.switch-name.selected {
+  background: var(--clr-light);
+}
+
+.switch-sep {
+  margin-top: 1rem;
+}
+
+.switch-sep.top {
+  margin-top: 0;
+}

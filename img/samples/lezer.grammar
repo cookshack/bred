@@ -1,0 +1,23 @@
+// Lezer example
+
+@detectDelim
+@precedence {
+  high
+  low
+}
+
+@top Eg { node* }
+
+node { Fn | Call }
+
+Fn { ':' Name }
+
+@tokens {
+  space { $[\s]+ }
+  Name { $[A-Za-z] $[A-Za-z0-9]* }
+
+  // literal tokens
+  ':'
+}
+
+@external propSource highlighting from "./highlight"

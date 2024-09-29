@@ -1,0 +1,51 @@
+.mess-ww {
+  width: 100%;
+  height: 100%;
+  max-width: 50rem;
+  padding: 0.5rem;
+
+  font-family: monospace;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.mess-h {
+  margin-bottom: 0.5rem;
+
+  display: flex;
+}
+
+.mess-w {
+  width: 100%;
+  height: min-content;
+
+  display: grid;
+  grid-template-columns: minmax(min-content, max-content) min-content min-content auto;
+  grid-gap: 0.5rem;
+}
+
+.mess-date {
+  color: var(--clr-text-light);
+  white-space: nowrap;
+}
+
+.mess-text {
+  white-space: pre;
+}
+
+.mess-text.mess-yell {
+  color: var(--clr-nb3);
+}
+
+.mess-text.mess-say {
+  color: var(--clr-emph);
+}
+
+.mess-text.mess-debug {
+  color: var(--clr-text-light);
+}
+
+.mess-loc {
+  color: var(--clr-text-light);
+}

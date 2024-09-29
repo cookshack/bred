@@ -1,0 +1,6 @@
+#!/bin/bash
+SCOPE=$1
+PREFIX=$2
+rm -rf lib/@${SCOPE} \
+&& mkdir -p lib/@${SCOPE} \
+&& for DIR in ${PREFIX}node_modules/@${SCOPE}/*; do cp ${DIR}/dist/index.js lib/@${SCOPE}/$(basename ${DIR}).js; done

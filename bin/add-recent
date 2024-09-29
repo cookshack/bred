@@ -1,0 +1,40 @@
+#!/usr/bin/env gjs
+
+imports.gi.versions.GLib = "2.0"
+const { GLib } = imports.gi
+
+function add
+(uri, mtype) {
+  // similar to https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/main/js/ui/screenshot.js#L2245
+
+  try {
+    let xbel, bmf
+
+    xbel = GLib.build_filenamev([ GLib.get_user_data_dir(), 'recently-used.xbel' ])
+
+    bmf = new GLib.BookmarkFile()
+    bmf.load_from_file(xbel)
+
+    bmf.add_application(uri, "Bred", 'bred %u')
+    bmf.set_mime_type(uri, mtype)
+    if (bmf.set_visited_date_time)
+      bmf.set_visited_date_time(uri, GLib.DateTime.new_now_utc())
+    else
+      bmf.set_visited(uri, -1)
+
+    bmf.to_file(xbel)
+  }
+  catch (err) {
+    console.error(err.message)
+  }
+}
+
+function usage
+() {
+  console.error('Usage: add-recent <filename> <mime-type>')
+}
+
+if (ARGV.length == 2)
+  add(ARGV[0], ARGV[1])
+else
+  usage()

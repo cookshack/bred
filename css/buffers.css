@@ -1,0 +1,26 @@
+.buffers-ww {
+  width: 100%;
+  height: 100%;
+  max-width: 50rem;
+  padding: 0.5rem;
+
+  font-family: monospace;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.buffers-h {
+  margin-bottom: 0.5rem;
+
+  display: flex;
+}
+
+.buffers-w {
+  width: 100%;
+  height: min-content;
+
+  display: grid;
+  grid-template-columns: minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) auto;
+  grid-gap: 0.5rem;
+}

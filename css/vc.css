@@ -1,0 +1,24 @@
+.vc_log-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  padding-top: 0;
+
+  font-family: monospace;
+
+  display: flex;
+}
+
+.vc_log-w {
+  width: 100%;
+  height: min-content;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.vc_log-line {
+  white-space: pre;
+  padding-top: 0.5rem;
+  display: flex;
+}

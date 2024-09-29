@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
+   sodipodi:docname="open2.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="true"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="false"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="false"
+     borderlayer="true"
+     shape-rendering="auto"
+     inkscape:zoom="3.720597"
+     inkscape:cx="81.169769"
+     inkscape:cy="134.7902"
+     inkscape:window-width="2241"
+     inkscape:window-height="1959"
+     inkscape:window-x="334"
+     inkscape:window-y="116"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       id="rect320"
+       style="fill:none;stroke:#000000;stroke-width:18.8317;stroke-linecap:round;stroke-linejoin:round"
+       d="m 176.15623,24.308754 46.06703,1e-6 V 231.69125 l -46.06703,-1e-5 z"
+       sodipodi:nodetypes="ccccc" />
+    <path
+       style="fill:#000000;stroke:#000000;stroke-width:18.8317;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       d="M 176.15623,24.308754 V 231.69124"
+       id="path1147" />
+    <path
+       sodipodi:type="star"
+       style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1"
+       id="path1201"
+       inkscape:flatsided="false"
+       sodipodi:sides="3"
+       sodipodi:cx="188.05852"
+       sodipodi:cy="18.21657"
+       sodipodi:r1="97.321243"
+       sodipodi:r2="48.660625"
+       sodipodi:arg1="-3.1415927"
+       sodipodi:arg2="-2.0943951"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 90.737274,18.216574 72.990926,-42.141342 72.99094,-42.141333 0,84.282671 0,84.28267 -72.99094,-42.141332 z"
+       inkscape:transform-center-x="18.668973"
+       transform="matrix(0.76731338,0,0,0.76731338,-41.911928,114.02218)"
+       inkscape:transform-center-y="-6.3404898e-06" />
+  </g>
+  <metadata
+     id="metadata256">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Matt Mundell</dc:title>
+          </cc:Agent>
+        </dc:creator>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
+    <!-- style-src for codemirror, blob for ace, script-src unsafe eval for Evaluate Line -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; img-src 'self' data:;">
+    <title>Bred</title>
+  </head>
+  <body id="body">
+    <button id="restartForError">restart</button>
+    <script src="./safety.mjs" type="module"></script>
+    <script src="./lib/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+    <script src="./lib/ace/ext-modelist.js" type="text/javascript" charset="utf-8"></script>
+    <script src="./lib/ace/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+    <script src="./lib/ace-linters/ace-linters.js" type="text/javascript" charset="utf-8"></script>
+    <script src="./init.mjs" type="module"></script>
+  </body>
+</html>

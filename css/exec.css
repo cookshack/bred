@@ -1,0 +1,40 @@
+.execute-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  padding-top: 0;
+  overflow: hidden;
+
+  font-family: monospace;
+
+  display: flex;
+}
+
+.execute-w {
+  position: relative; /* for .execute-needle */
+  height: min-content;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.execute-cmd {
+  display: flex;
+}
+
+div[data-run].execute-cmd {
+  color: var(--clr-text);
+}
+
+.execute-cmd-current {
+  background-color: var(--clr-fill);
+}
+
+.execute-needle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: var(--clr-transparent);
+  color: var(--clr-nb0);
+  white-space: pre;
+}

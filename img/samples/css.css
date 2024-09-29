@@ -1,0 +1,60 @@
+/* Bred */
+
+:root {
+  --scrollbar-size: 14px;
+  --height-menu: 1.6rem;
+
+  --z-context: 200;
+
+  --clr-eg0: white;
+  --clr-eg1: #red;
+  --clr-eg2: #ff0000;
+  --clr-eg3: #007f00;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  border-spacing: 0;
+  scrollbar-color: var(--clr-text) var(--clr-light);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--clr-scroll);
+  border-radius: 9px;       /* roundness of the scroll thumb */
+  border: 4px solid var(--clr-scroll-fill);  /* creates padding around scroll thumb */
+}
+
+div[data-run],
+span[data-run] {
+  cursor: pointer;
+  color: var(--clr-emph);
+}
+
+#mini {
+  position: relative;
+  --height-mini: 1.6rem;
+  --font-size-mini: 1.2rem;
+  --font-size-mini-yell: 1.2rem;
+  font-size: var(--font-size-mini);
+  width: 100%;
+  height: var(--height-mini);
+
+  display: grid;
+  grid-template-columns: minmax(min-content, max-content) auto minmax(min-content, max-content);
+}
+
+.bred-close {
+  pointer-events: auto;
+  position: absolute;
+  right: calc(0.2rem + var(--scrollbar-size));
+  top: calc(3px + 0.2rem); /* paneWW pad + (--height-ml - 1.2rem) */
+  width: 1.2rem;
+  height: 1.2rem;
+  display: none;
+  z-index: var(--z-close);
+}
+
+.bred-context-item:first-child {
+  border-top-right-radius: 0.25rem;
+}

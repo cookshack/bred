@@ -1,0 +1,85 @@
+.edWW {
+  height: 100%;
+  width: 100%;
+  overflow-y: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--clr-fill);
+}
+
+.edWW.bred-qr-ww {
+  display: grid;
+  grid-gap: 0.2rem;
+  grid-template-columns: minmax(min-content, max-content) 1fr;
+}
+
+.edWW.bred-qr-ww > div {
+  height: 19px; /* match ace */
+}
+
+.edMl {
+  width: 100%;
+  height: var(--height-ml);
+  min-height: var(--height-ml);
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  background-color: var(--clr-fill);
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.edMl-mod,
+.edMl-type {
+  margin-left: 0.2rem;
+  margin-right: 0.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  display: flex;
+}
+
+.edMl-mod > img,
+.edMl-type > img {
+  pointer-events: none;
+  width: 100%;
+}
+
+.edMl-dir {
+  margin-left: auto;
+  margin-right: 0.5rem;
+}
+
+.edMl-file {
+  margin-left: 0.3rem;
+  margin-right: 0.2rem;
+  color: var(--clr-emph);
+}
+
+.edMl-dir > span {
+  padding-left: 0.15rem;
+  padding-right: 0.15rem;
+}
+
+.edMl > div[data-run]:hover {
+  background-color: var(--clr-light);
+}
+
+.edMl > div[data-run]:active {
+  background-color: var(--clr-fill);
+  color: var(--clr-emph);
+}
+
+.edW {
+  width: 100%;
+  max-height: 100%;
+  min-height: var(--height-ml);
+  display: flex;
+  /* override ace */
+  font-size: 1rem;
+  font-family: monospace;
+}
+
+.edWW.fillParent .edW {
+  height: 100%;
+}

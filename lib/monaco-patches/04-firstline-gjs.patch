@@ -1,0 +1,11 @@
+--- vs/basic-languages/javascript/javascript.contribution.js	2024-06-11 15:14:40.484947890 +0200
++++ vs/basic-languages/javascript/javascript.contribution.js	2024-06-11 15:16:39.398558353 +0200
+@@ -11,7 +11,7 @@
+ registerLanguage({
+   id: "javascript",
+   extensions: [".js", ".es6", ".jsx", ".mjs", ".cjs"],
+-  firstLine: "^#!.*\\bnode",
++  firstLine: "^#!.*\\b(node|gjs)",
+   filenames: ["jakefile"],
+   aliases: ["JavaScript", "javascript", "js"],
+   mimetypes: ["text/javascript"],

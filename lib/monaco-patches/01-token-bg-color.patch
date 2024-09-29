@@ -1,0 +1,34 @@
+diff --git vs/editor/common/encodedTokenAttributes.js vs/editor/common/encodedTokenAttributes.js
+index c0f2fad70f1..55f2d855527 100644
+--- vs/editor/common/encodedTokenAttributes.js
++++ vs/editor/common/encodedTokenAttributes.js
+@@ -124,6 +124,13 @@ export class TokenMetadata {
+ 
+     static getClassNameFromMetadata(metadata) {
+         const foreground = this.getForeground(metadata);
++        const background = this.getBackground(metadata);
+         let className = 'mtk' + foreground;
+         const fontStyle = this.getFontStyle(metadata);
++        if (background == 2 /* ColorId.DefaultBackground */) {
++          // Skip redundant background class that would interfere with selection etc.
++        }
++        else if (background) {
++            className += ' mtkbg' + background;
++        }
+         if (fontStyle & 1 /* FontStyle.Italic */) {
+
+diff --git src/vs/editor/common/languages/supports/tokenization.js src/vs/editor/common/languages/supports/tokenization.js
+index 7fa14b20a5c..0b2857cec7b 100644
+--- vs/editor/common/languages/supports/tokenization.js
++++ vs/editor/common/languages/supports/tokenization.js
+@@ -415,6 +415,10 @@ export function generateTokensCSSForColorMap(colorMap: readonly Color[]): string
+     const color = colorMap[i];
+         rules[i] = `.mtk${i} { color: ${color}; }`;
+     }
++    for (let i = 1, len = colorMap.length; i < len; i++) {
++        const color = colorMap[i];
++        rules.push(`.mtkbg${i} { background: ${color}; }`);
++    }
+     rules.push('.mtki { font-style: italic; }');
+     rules.push('.mtkb { font-weight: bold; }');
+     rules.push('.mtku { text-decoration: underline; text-underline-position: under; }');

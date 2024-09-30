@@ -12,8 +12,12 @@ missing = {}
 
 export
 function load
-() {
+(cb) { // (err)
   Tron.cmd('brood.load', 'opt', (err, data) => {
+    if (err) {
+      console.warn('Error loading options: ' + err.message)
+      console.warn('Error loading options: (continuing anyway)')
+    }
     Object.entries(data.data).forEach(kv => {
       if ((typeof kv[1] == 'object')
           && !Array.isArray(kv[1]))
@@ -21,6 +25,7 @@ function load
       d('opt ' + kv[0] + ': ' + kv[1])
       values[kv[0]] = kv[1]
     })
+    cb()
   })
 }
 

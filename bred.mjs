@@ -1964,44 +1964,44 @@ function init
 
   globalThis.bred = {}
 
-  Opt.load() // async
+  Opt.load(() => {
+    if (0)
+      globalThis.onerror = (e, source, lineno, colno, err) => {
+        Mess.trace(source + ':' + lineno + ' ' + err?.message)
+        Mess.yell(source + ':' + lineno + ' ' + err?.message)
+        // cancel err
+        return true
+      }
 
-  if (0)
-    globalThis.onerror = (e, source, lineno, colno, err) => {
-      Mess.trace(source + ':' + lineno + ' ' + err?.message)
-      Mess.yell(source + ':' + lineno + ' ' + err?.message)
-      // cancel err
-      return true
+    initMouse()
+
+    // closest to onclose/onexit
+    globalThis.document.onvisibilitychange = () => {
+      let tab
+
+      tab = Tab.current(area)
+      Tron.cmd1('brood.set', [ 'frame', 'frameLeft', Css.has(tab.frameLeft.el, 'retracted') ? 0 : 1 ], err => {
+        if (err)
+          Mess.warn('Failed to save state of frameLeft')
+      })
+      Tron.cmd1('brood.set', [ 'frame', 'frameRight', Css.has(tab.frameRight.el, 'retracted') ? 0 : 1 ], err => {
+        if (err)
+          Mess.warn('Failed to save state of frameRight')
+      })
+      Buf.savePoss()
+      Hist.save()
     }
 
-  initMouse()
+    d('get paths')
 
-  // closest to onclose/onexit
-  globalThis.document.onvisibilitychange = () => {
-    let tab
+    Tron.cmd1('paths', [], (err, d) => {
+      if (err) {
+        Mess.yell('Err getting dirs: ', err.message)
+        return
+      }
 
-    tab = Tab.current(area)
-    Tron.cmd1('brood.set', [ 'frame', 'frameLeft', Css.has(tab.frameLeft.el, 'retracted') ? 0 : 1 ], err => {
-      if (err)
-        Mess.warn('Failed to save state of frameLeft')
+      // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
+      setTimeout(() => start1(d))
     })
-    Tron.cmd1('brood.set', [ 'frame', 'frameRight', Css.has(tab.frameRight.el, 'retracted') ? 0 : 1 ], err => {
-      if (err)
-        Mess.warn('Failed to save state of frameRight')
-    })
-    Buf.savePoss()
-    Hist.save()
-  }
-
-  d('get paths')
-
-  Tron.cmd1('paths', [], (err, d) => {
-    if (err) {
-      Mess.yell('Err getting dirs: ', err.message)
-      return
-    }
-
-    // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
-    setTimeout(() => start1(d))
   })
 }

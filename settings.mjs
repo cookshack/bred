@@ -82,7 +82,6 @@ onChanges = []
 spec = {
   closeBrackets: { name: 'closeBrackets', type: 'bool', init: 1 },
   highlightSyntax: { name: 'highlightSyntax', type: 'bool', init: 1 },
-  minimap: { name: 'minimap', type: 'bool', init: 1 },
   showWelcome: { name: 'showWelcome', type: 'bool', init: 1 },
   throwOnWarn: { name: 'throwOnWarn', type: 'bool', init: 0 },
   wrap: { name: 'wrap', type: 'bool', init: 0 },
@@ -104,13 +103,6 @@ settings = {
   },
   set highlightSyntax(val) {
     return set('highlightSyntax', val)
-  },
-
-  get minimap() {
-    return spec.minimap.val
-  },
-  set minimap(val) {
-    return set('minimap', val)
   },
 
   get showWelcome() {
@@ -145,5 +137,6 @@ Opt.declare('core.highlightSyntax.enabled', 'bool', 1)
 Opt.declare('core.line.numbers.show', 'bool', 1)
 Opt.declare('core.lint.enabled', 'bool', 1)
 Opt.declare('core.lint.gutter.show', 'bool', 1)
+Opt.declare('core.minimap.enabled', 'bool', 1)
 
 export { settings as default }

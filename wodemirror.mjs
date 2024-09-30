@@ -726,9 +726,7 @@ function viewInit
   else
     opts.push(view.wode.showTrailingWhitespace.of([]))
 
-  if (buf.vars('ed').minimap === undefined)
-    buf.vars('ed').minimap = settings.minimap
-  if (buf.vars('ed').minimap)
+  if (buf.opt('core.minimap.enabled'))
     opts.push(view.wode.minimap.of(makeMinimap()))
   else
     opts.push(view.wode.minimap.of([]))
@@ -3774,14 +3772,11 @@ function reconfigureHighlightTrailing
 
 function reconfigureLineNums
 (buf, view) {
-  let effects
-
   if (buf.opt('core.line.numbers.show'))
     view.ed.dispatch({ effects: [ view.wode.lineNums.reconfigure([ CMView.highlightActiveLineGutter(),
                                                                    CMView.lineNumbers() ]) ] })
   else
     view.ed.dispatch({ effects: [ view.wode.lineNums.reconfigure([]) ] })
-  view.ed.dispatch({ effects: effects })
 }
 
 function reconfigureLinter
@@ -3798,6 +3793,14 @@ function reconfigureLinter
       effects.push(view.wode.lintGutter.reconfigure([]))
   }
   view.ed.dispatch({ effects: effects })
+}
+
+function reconfigureMinimap
+(buf, view) {
+  if (buf.opt('core.minimap.enabled'))
+    view.ed.dispatch({ effects: view.wode.minimap.reconfigure(makeMinimap()) })
+  else
+    view.ed.dispatch({ effects: view.wode.minimap.reconfigure([]) })
 }
 
 function initEslint
@@ -3834,21 +3837,11 @@ function initOpt
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
   on('core.line.numbers.show', reconfigureLineNums)
+  on('core.minimap.enabled', reconfigureMinimap)
 }
 
 function initSettings
 () {
-  Settings.onChange('minimap', (name, val) => {
-    d('initSettings minimap')
-    Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed)
-        if (val)
-          view.ed.dispatch({ effects: view.wode.minimap.reconfigure(makeMinimap()) })
-        else
-          view.ed.dispatch({ effects: view.wode.minimap.reconfigure([]) })
-    }))
-  })
-
   Settings.onChange('wrap', (name, val) => {
     Buf.forEach(buf => buf.views.forEach(view => {
       if (view.ed)

@@ -4,7 +4,8 @@
 I'm playing with CodeMirror, Monaco and Ace inside Electron.
 
 ## Install
-```
+
+```sh
 mkdir -p ~/src/
 cd ~/src
 git clone XXX:bred
@@ -13,13 +14,22 @@ npm install
 make prep
 ```
 
-## Run
+### Optional: Install Icons
+
+```sh
+cd ~/src && git clone git@github.com:domtronn/all-the-icons.el.git
+cd ~/src/bred/lib
+ln -s ../../all-the-icons.el/svg svg
 ```
+
+## Run
+
+```sh
 cd ~/src/bred/ && npm start
 ```
 
 ## Update
-```
+```sh
 cd ~/src/bred
 git pull
 npm install
@@ -27,6 +37,7 @@ make prep
 ```
 
 ## CLI
+
 Create ~/bin/bred with:
 ```
 #!/bin/bash
@@ -34,6 +45,7 @@ cd ~/src/bred/ && npm start -- $*
 ```
 
 ## Gnome Launcher
+
 1. Create ~/.local/share/applications/userapp-bred.desktop with:
 
     ```

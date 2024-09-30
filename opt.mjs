@@ -153,9 +153,8 @@ function buf
 
   function set
   (name, val) {
-    vals[name] = clean(name, val)
-    if (vals[name] == val)
-      return
+    val = clean(name, val)
+    vals[name] = val
     d('BUF OPT ' + name + ' SET TO ' + val)
     onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
   }

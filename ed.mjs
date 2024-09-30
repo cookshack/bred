@@ -10,6 +10,7 @@ import * as Hist from './hist.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
+import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as theme from './theme-solarized.js'
@@ -1376,6 +1377,14 @@ function selfInsertIndent
   Backend.indentLine()
 }
 
+function showTrailingWhiteSpace
+(u) {
+  if (u == 4)
+    Opt.set('core.highlight.trailingWhiteSpace.enabled', 0)
+  else
+    Opt.set('core.highlight.trailingWhiteSpace.enabled', 1)
+}
+
 export
 function init
 (backend, cb) { // (err)
@@ -1491,6 +1500,7 @@ function init
     Cmd.add('select all', () => Backend.selectAll(), mo)
     Cmd.add('goto line', () => Backend.gotoLine(), mo)
     Cmd.add('open lint panel', () => Backend.openLint(), mo)
+    Cmd.add('show trailing whitespace', showTrailingWhiteSpace, mo)
 
     Cmd.add('yank', () => Backend.yank(), mo)
     Cmd.add('yank roll', () => Backend.yankRoll(), mo)

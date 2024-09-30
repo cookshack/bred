@@ -473,6 +473,22 @@ function diagnose
   Css.hide(elements.diag)
 }
 
+function tip
+(diags) {
+  if (diags) {
+    let diag
+
+    diag = diags.filter(d => d).at(0)
+    if (diag) {
+      elements.tip.lastElementChild.firstElementChild.innerText = diag.message
+      elements.tip.lastElementChild.lastElementChild.innerText = diag.source
+      Css.add(elements.tip, 'bred-' + diag.severity)
+      Css.show(elements.tip)
+    }
+    return
+  }
+}
+
 export
 function viewInit
 (view, text, modeWhenText, lineNum,
@@ -3736,10 +3752,11 @@ eslintConfig = {
   rules: EslintConfig.rules
 }
 
-function handleDiag
-(diags) {
-  d({ diags })
-  diagnose(diags.filter(d => d).at(0))
+function handleTooltipLint
+() {
+  //d({ diags })
+  //diagnose(diags.filter(d => d).at(0))
+  //tip(diags)
   return []
 }
 
@@ -3748,21 +3765,21 @@ function makeLinter
   if (Eslint)
     return CMLint.linter(CMJS.esLint(new Eslint.Linter(),
                                      eslintConfig),
-                         { tooltipFilter: handleDiag })
+                         { tooltipFilter: handleTooltipLint })
   return []
 }
 
-function handleDiag2
+function handleTooltipLintGutter
 (diags) {
-  d({ diags })
-  diagnose(diags.filter(d => d).at(0))
+  //d({ diags })
+  //diagnose(diags.filter(d => d).at(0))
   //diagnose({ message: 'test', severity: 'error' })
   return diags
 }
 
 function makeLintGutter
 () {
-  return CMLint.lintGutter({ tooltipFilter: handleDiag2 })
+  return CMLint.lintGutter({ tooltipFilter: handleTooltipLintGutter })
 }
 
 function reconfigureAutocomplete

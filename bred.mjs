@@ -395,6 +395,17 @@ function initDoc
     append(area.el, elements.diag)
     area.show()
 
+    area = Area.add('bred-tip-w')
+    elements.tip = divCl('bred-tip')
+    Css.hide(elements.tip)
+    append(elements.tip, divCl('bred-tip-icon',
+                               img(Ed.iconPath('diagnostic'), 'Tip', 'filter-clr-text')))
+    append(elements.tip, divCl('bred-tip-text-w',
+                               [ divCl('bred-tip-text'),
+                                 divCl('bred-tip-source') ]))
+    append(area.el, elements.tip)
+    area.show()
+
     area = Area.add('bred-main')
     area.show()
 

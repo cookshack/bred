@@ -25,7 +25,6 @@ import * as Pane from './pane.mjs'
 import * as Place from './place.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
-import * as Sett from './sett.mjs'
 import * as Settings from './settings.mjs'
 import * as Shell from './shell.mjs'
 import * as Switch from './switch.mjs'
@@ -99,7 +98,6 @@ function initPackages
     Prompt.init()
     Switch.init()
     Tab.init()
-    Sett.init()
     Ext.init()
     Place.init()
     OptUi.init()
@@ -291,7 +289,6 @@ function initDoc
                                   item('Save'),
                                   item('Save As...'),
                                   line(),
-                                  item('Settings'),
                                   item('Extensions'),
                                   item('Options'),
                                   line(),

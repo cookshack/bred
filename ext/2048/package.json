@@ -1,0 +1,15 @@
+{
+  "name": "bred-ext-2048",
+  "version": "0.1.0",
+  "description": "2048 game.",
+  "main": "2048.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "mkdir -p lib && cp node_modules/2048-webcomponent/dist/custom-element.js lib/2048-webcomponent.js && touch .READY"
+  },
+  "author": "Matt Mundell",
+  "license": "CC0-1.0",
+  "dependencies": {
+    "2048-webcomponent": "^1.1.0"
+  }
+}

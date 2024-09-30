@@ -1,0 +1,20 @@
+.clock-ww {
+  width: 100%;
+  padding: 0.5rem;
+  padding-top: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.clock-w {
+  width: 100%;
+  max-width: 50rem;
+  display: flex;
+}
+
+.clock-time {
+  width: 100%;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: center;
+}

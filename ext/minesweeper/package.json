@@ -1,0 +1,15 @@
+{
+  "name": "bred-ext-minesweeper",
+  "version": "0.1.0",
+  "description": "Minesweeper.",
+  "main": "minesweeper.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "mkdir -p lib && cp node_modules/minesweeper-for-web/dist/custom-element.js lib/minesweeper-for-web.js && touch .READY"
+  },
+  "author": "Matt Mundell",
+  "license": "CC0-1.0",
+  "dependencies": {
+    "minesweeper-for-web": "^3.0.4"
+  }
+}

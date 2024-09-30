@@ -1,0 +1,98 @@
+button {
+  min-width: 1.4rem;
+  min-height: 1.4rem;
+}
+
+.ascii-outer {
+  width: 100%;
+  padding: 0.5rem;
+  padding-top: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.ascii-w {
+  max-width: 50rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr 1fr 1fr 1fr);
+  grid-gap: 0;
+  border-right: solid 1rem var(--clr-fill);
+}
+
+.ascii-w.verbose {
+  max-width: none;
+  grid-template-columns: repeat(4, 1fr 1fr 1fr 1fr 1fr 1fr 1fr minmax(min-content, max-content));
+}
+
+.ascii-w > * {
+  padding: 0.2rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ascii-w > .ascii-bar,
+.ascii-w > .ascii-foot {
+  height: 1rem;
+  min-height: 1rem;
+  grid-column: 1 / span 16;
+  display: flex;
+  justify-content: center;
+}
+
+.ascii-foot {
+  background: var(--clr-fill);
+}
+
+.ascii-w.verbose > .ascii-bar,
+.ascii-w.verbose > .ascii-foot {
+  grid-column: 1 / span 32;
+}
+
+.ascii-h {
+  color: var(--clr-emph-light);
+  background-color: var(--clr-fill);
+  position: sticky;
+  top: 0;
+}
+
+.ascii-col-d {
+  color: var(--clr-emph);
+  border-left: solid 1rem var(--clr-fill);
+}
+
+.ascii-col-c {
+  color: var(--clr-syntax0); /* same as string */
+}
+
+.ascii-col-b,
+.ascii-col-c,
+.ascii-col-ctrl,
+.ascii-col-spec {
+  font-family: monospace;
+}
+
+div.ascii-col-long {
+  justify-content: flex-start;
+}
+
+div.ascii-col-b,
+div.ascii-col-ctrl,
+div.ascii-col-long,
+div.ascii-col-spec,
+div.ascii-h-b,
+div.ascii-h-ctrl,
+div.ascii-h-long,
+div.ascii-h-spec {
+  display: none;
+}
+
+.ascii-w.verbose > div.ascii-col-b,
+.ascii-w.verbose > div.ascii-col-ctrl,
+.ascii-w.verbose > div.ascii-col-long,
+.ascii-w.verbose > div.ascii-col-spec,
+.ascii-w.verbose > div.ascii-h-b,
+.ascii-w.verbose > div.ascii-h-ctrl,
+.ascii-w.verbose > div.ascii-h-long,
+.ascii-w.verbose > div.ascii-h-spec {
+  display: flex;
+}

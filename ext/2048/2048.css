@@ -1,0 +1,43 @@
+.two048-outer {
+  width: 100%;
+  padding: 0.5rem;
+  padding-top: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.two048-w {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.two048-head {
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.two048-top {
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+#two048-restart {
+  font-size: 1.4rem;
+}
+
+.two048-under {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.two048-under > button {
+  margin: 0.25rem;
+}
+
+.two048-under.retracted {
+  display: none;
+}

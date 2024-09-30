@@ -1,0 +1,15 @@
+{
+  "name": "bred-ext-ruler",
+  "version": "0.1.0",
+  "description": "Vertical ruler.",
+  "main": "ruler.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "bin/postinstall && touch .READY"
+  },
+  "author": "Matt Mundell",
+  "license": "CC0-1.0",
+  "dependencies": {
+    "@cookshack/codemirror-ruler": "file:../../../codemirror-ruler"
+  }
+}

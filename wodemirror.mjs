@@ -308,6 +308,20 @@ function makeHighlightBracket
   return CMLang.bracketMatching({ afterCursor: buf.opt('core.highlight.bracket.afterCursor') })
 }
 
+function makeHighlightIndent
+() {
+  return indentationMarkers({ highlightActiveBlock: true,
+                              hideFirstIndent: true,
+                              markerType: 'codeOnly',
+                              thickness: 2,
+                              activeThickness: 1,
+                              colors: {
+                                light: 'var(--clr-fill)',
+                                dark: 'var(--clr-fill)',
+                                activeLight: 'var(--clr-nb1)',
+                                activeDark: 'var(--clr-nb1)' } })
+}
+
 function makeHighlightOccur
 (buf) {
   return CMSearch.highlightSelectionMatches({ highlightWordAroundCursor: buf.opt('core.highlight.occurrences.wordAroundCursor'),
@@ -521,6 +535,7 @@ function viewInit
   view.wode.drawSelection = new CMState.Compartment
   view.wode.highlightActive = new CMState.Compartment
   view.wode.highlightBracket = new CMState.Compartment
+  view.wode.highlightIndent = new CMState.Compartment
   view.wode.highlightOccur = new CMState.Compartment
   view.wode.highlightSpecials = new CMState.Compartment
   view.wode.highlightSyntax = new CMState.Compartment
@@ -700,16 +715,6 @@ function viewInit
            bredView.of(view),
 
            colorPicker,
-           indentationMarkers({ highlightActiveBlock: true,
-                                hideFirstIndent: true,
-                                markerType: 'codeOnly',
-                                thickness: 2,
-                                activeThickness: 1,
-                                colors: {
-                                  light: 'var(--clr-fill)',
-                                  dark: 'var(--clr-fill)',
-                                  activeLight: 'var(--clr-nb1)',
-                                  activeDark: 'var(--clr-nb1)' } }),
            themeHighlighting,
 
            view.wode.decorMode.of([]),
@@ -731,6 +736,11 @@ function viewInit
     opts.push(view.wode.highlightBracket.of(makeHighlightBracket(buf)))
   else
     opts.push(view.wode.highlightBracket.of([]))
+
+  if (buf.opt('core.highlight.indent.enabled'))
+    opts.push(view.wode.highlightIndent.of(makeHighlightIndent(buf)))
+  else
+    opts.push(view.wode.highlightIndent.of([]))
 
   if (buf.opt('core.highlight.occurrences.enabled'))
     opts.push(view.wode.highlightOccur.of(makeHighlightOccur(buf)))
@@ -3810,6 +3820,14 @@ function reconfigureHighlightBracket
     view.ed.dispatch({ effects: view.wode.highlightBracket.reconfigure([]) })
 }
 
+function reconfigureHighlightIndent
+(buf, view) {
+  if (buf.opt('core.highlight.indent.enabled'))
+    view.ed.dispatch({ effects: view.wode.highlightIndent.reconfigure(makeHighlightIndent(buf)) })
+  else
+    view.ed.dispatch({ effects: view.wode.highlightIndent.reconfigure([]) })
+}
+
 function reconfigureHighlightOccur
 (buf, view) {
   if (buf.opt('core.highlight.occurrences.enabled'))
@@ -3915,6 +3933,7 @@ function initOpt
   on('core.highlight.activeLine.enabled', reconfigureHighlightActive)
   on('core.highlight.bracket.enabled', reconfigureHighlightBracket)
   on('core.highlight.bracket.afterCursor', reconfigureHighlightBracket)
+  on('core.highlight.indent.enabled', reconfigureHighlightIndent)
   on('core.highlight.occurrences.enabled', reconfigureHighlightOccur)
   on('core.highlight.occurrences.wholeWords', reconfigureHighlightOccur)
   on('core.highlight.occurrences.wordAroundCursor', reconfigureHighlightOccur)

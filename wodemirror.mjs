@@ -17,8 +17,6 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
-import * as Settings from './settings.mjs'
-import settings from './settings.mjs'
 import { d } from './mess.mjs'
 
 import * as CMAuto from './lib/@codemirror/autocomplete.js'
@@ -3844,10 +3842,6 @@ function initOpt
   on('core.minimap.enabled', reconfigureMinimap)
 }
 
-function initSettings
-() {
-}
-
 function handleCustomTags
 (m) {
   if (m.customTags) {
@@ -4047,6 +4041,5 @@ function init
 
   initEslint()
   initOpt()
-  initSettings()
   initActiveLine()
 }

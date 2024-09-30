@@ -9,12 +9,11 @@ import * as Em from './em.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
+import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
-import * as Settings from './settings.mjs'
-import settings from './settings.mjs'
 import { d } from './mess.mjs'
 
 const ace = globalThis.ace
@@ -60,8 +59,8 @@ function viewInit
   ed.setKeyboardHandler('ace/keyboard/emacs')
   ed.setOption('enableMultiselect', 0) // messes with cursor on alt
   ed.setOption('enableBlockSelect', 0) // messes with cursor on alt
-  setBlink(ed, settings.blinkCursor)
-  ed.setOption('cursorStyle', settings.blinkCursor ? 'slim' : 'wide') // wide prevents blink, css sets width
+  setBlink(ed, buf.opt('core.cursor.blink'))
+  ed.setOption('cursorStyle', buf.opt('core.cursor.blink') ? 'slim' : 'wide') // wide prevents blink, css sets width
   ed.setOption('wrap', 1)
   ed.session.setWrapLimitRange()
   ed.setOption('scrollPastEnd', 0.5)
@@ -1888,19 +1887,32 @@ function initLsp
   globalThis.bred.provider = provider
 }
 
-function initSettings
+function reconfigureCursorBlink
+(buf, view) {
+  setBlink(view.ed, buf.opt('core.cursor.blink'))
+}
+
+function initOpt
 () {
-  Settings.onChange('blinkCursor', (name, val) => {
-    Buf.forEach(buf => buf.views.forEach(view => {
+  function on
+  (name, cb) {
+    Opt.onSet(name, () => Buf.forEach(buf => buf.views.forEach(view => {
       if (view.ed)
-        setBlink(view.ed, val)
+        cb(buf, view)
+    })))
+
+    Opt.onSetBuf(name, buf => buf.views.forEach(view => {
+      if (view.ed)
+        cb(buf, view)
     }))
-  })
+  }
+
+  on('core.cursor.blink', reconfigureCursorBlink)
 }
 
 export
 function init
 () {
   initLsp()
-  initSettings()
+  initOpt()
 }

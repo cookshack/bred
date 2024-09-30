@@ -447,7 +447,7 @@ function onLoadInit
         e.sender.send(ch, { err: err })
         return
       }
-      js = '(function (C,Cmd,Dom,Ed,Em,Hist,Loc,Opt,Pane,Mess,Mode,settings,Dir,Place,menu) { "use strict"; Mess.log("Loading your init.js...");\n' + js + ';\nMess.log("Loading your init.js... done"); })(window.bred.C,window.bred.Cmd,window.bred.Dom,window.bred.Ed,window.bred.Em,window.bred.Hist,window.bred.Loc,window.bred.Opt,window.bred.Pane,window.bred.Mess,window.bred.Mode,window.bred.settings,window.bred.Dir,window.bred.Place,window.bred.menu)'
+      js = '(function (C,Cmd,Dom,Ed,Em,Hist,Loc,Opt,Pane,Mess,Mode,Dir,Place,menu) { "use strict"; Mess.log("Loading your init.js...");\n' + js + ';\nMess.log("Loading your init.js... done"); })(window.bred.C,window.bred.Cmd,window.bred.Dom,window.bred.Ed,window.bred.Em,window.bred.Hist,window.bred.Loc,window.bred.Opt,window.bred.Pane,window.bred.Mess,window.bred.Mode,window.bred.Dir,window.bred.Place,window.bred.menu)'
       win.webContents.executeJavaScript(js).then(() => {
         console.log('Loading ' + file + ': done.')
         d('Loading ' + file + ': done.')

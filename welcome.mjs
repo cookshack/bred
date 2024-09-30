@@ -75,7 +75,7 @@ function init
                                      'buttonN' + (Opt.get('core.welcome.enabled') ? '' : ' on'),
                                      { 'data-run': 'hide welcome on start' }) ]),
                       divCl('bred-welcome-more',
-                            [ div('More settings.', { 'data-run': 'settings' } ) ]) ]))
+                            [ div('More options.', { 'data-run': 'options' } ) ]) ]))
 
     Recent.get((err, recents) => {
       let count

@@ -25,7 +25,6 @@ import * as Pane from './pane.mjs'
 import * as Place from './place.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
-import * as Settings from './settings.mjs'
 import * as Shell from './shell.mjs'
 import * as Switch from './switch.mjs'
 import * as Tab from './tab.mjs'
@@ -34,7 +33,6 @@ import * as Vc from './vc.mjs'
 import * as ViewMode from './view-mode.mjs'
 import { importCss } from './json.mjs'
 import { d } from './mess.mjs'
-import settings from './settings.mjs'
 
 //import * as Linters from "./lib/ace-linters/ace-linters.js"
 
@@ -75,7 +73,7 @@ function initPackages
 (backend, cb) { // (err)
   // order is important
   d('init packages')
-  // settings,Opt already happened
+  // Opt already happened
   Hist.init()
   Area.init()
   Cmd.init()
@@ -117,8 +115,7 @@ function initPackages
                         Cut,
                         Dir,
                         Exec,
-                        Shell,
-                        settings }
+                        Shell }
 
     cb()
   })
@@ -1841,7 +1838,6 @@ function initCss
             './css/switch.css',
             './css/cut.css',
             './css/exec.css',
-            './css/settings.css',
             './css/test-buffer.css',
             './css/manpage.css',
             './css/options.css',
@@ -1967,7 +1963,6 @@ function init
   globalThis.bred = {}
 
   Opt.load() // async
-  Settings.load() // async
 
   if (0)
     globalThis.onerror = (e, source, lineno, colno, err) => {

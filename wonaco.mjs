@@ -13,9 +13,7 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
-import * as Settings from './settings.mjs'
 import { Vonaco } from './json.mjs'
-import settings from './settings.mjs'
 import { d } from './mess.mjs'
 
 /*
@@ -2299,7 +2297,7 @@ function reconfigureCursorBlink
   view.ed.updateOptions({ cursorBlinking: buf.opt('core.minimap.enabled') ? 'blink' : 'solid' })
 }
 
-function initSettings
+function initOpt
 () {
   function on
   (name, cb) {
@@ -2369,5 +2367,5 @@ function init
     }
   }
 
-  initSettings()
+  initOpt()
 }

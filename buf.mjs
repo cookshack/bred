@@ -321,6 +321,11 @@ function make
     return val
   }
 
+  function anyView
+  () {
+    return b.views.find(view => view.ele)
+  }
+
   if (name) {
     let old, suffix
 
@@ -338,32 +343,29 @@ function make
 
   let ml
 
-  function anyView
-  () {
-    return b.views.find(view => view.ele)
-  }
+  {
+    function set
+    (name, co) {
+      b.views.forEach(view => {
+        if (view.ele) {
+          let line
 
-  function set
-  (name, co) {
-    b.views.forEach(view => {
-      if (view.ele) {
-        let line
+          line = view.ele.querySelector('.ml')
+          if (line) {
+            let field
 
-        line = view.ele.querySelector('.ml')
-        if (line) {
-          let field
-
-          field = line.querySelector('.ml-' + name)
-          if (field) {
-            field.innerHTML = ''
-            Dom.append(field, co)
+            field = line.querySelector('.ml-' + name)
+            if (field) {
+              field.innerHTML = ''
+              Dom.append(field, co)
+            }
           }
         }
-      }
-    })
-  }
+      })
+    }
 
-  ml = { set: set }
+    ml = { set: set }
+  }
 
   b = { id: id,
         //

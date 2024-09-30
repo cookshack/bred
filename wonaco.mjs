@@ -251,9 +251,7 @@ function viewInit
   ed.updateOptions(opts)
   Mon.editor.setModelLanguage(ed.getModel(), 'text/plain')
   ed.getModel().updateOptions({ tabSize: 2 })
-  if (buf.vars('ed').showGutter === undefined)
-    buf.vars('ed').showGutter = 1
-  if (buf.vars('ed').showGutter) {
+  if (buf.opt('core.line.numbers.show')) {
   }
   else
     ed.updateOptions({ lineNumbers: 'off',

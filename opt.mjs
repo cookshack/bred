@@ -13,18 +13,25 @@ missing = {}
 export
 function load
 (cb) { // (err)
+  function load1
+  (prefix, data) {
+    Object.entries(data).forEach(kv => {
+      if ((typeof kv[1] == 'object')
+          && !Array.isArray(kv[1])) {
+        load1(prefix + kv[0] + '.', kv[1])
+        return
+      }
+      //d('opt ' + prefix + kv[0] + ': ' + kv[1])
+      values[prefix + kv[0]] = kv[1]
+    })
+  }
+
   Tron.cmd('brood.load', 'opt', (err, data) => {
     if (err) {
       console.warn('Error loading options: ' + err.message)
       console.warn('Error loading options: (continuing anyway)')
     }
-    Object.entries(data.data).forEach(kv => {
-      if ((typeof kv[1] == 'object')
-          && !Array.isArray(kv[1]))
-        return
-      d('opt ' + kv[0] + ': ' + kv[1])
-      values[kv[0]] = kv[1]
-    })
+    load1('', data.data)
     cb()
   })
 }

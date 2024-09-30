@@ -80,7 +80,6 @@ function onChange
 onChanges = []
 
 spec = {
-  closeBrackets: { name: 'closeBrackets', type: 'bool', init: 1 },
   highlightSyntax: { name: 'highlightSyntax', type: 'bool', init: 1 },
   showWelcome: { name: 'showWelcome', type: 'bool', init: 1 },
   throwOnWarn: { name: 'throwOnWarn', type: 'bool', init: 0 },
@@ -90,13 +89,6 @@ for (let sp in spec)
   spec[sp].val = spec[sp].init
 
 settings = {
-  get closeBrackets() {
-    return spec.closeBrackets.val
-  },
-  set closeBrackets(val) {
-    return set('closeBrackets', val)
-  },
-
   get highlightSyntax() {
     return spec.highlightSyntax.val
   },
@@ -122,6 +114,7 @@ settings = {
 Opt.declare('core.cursor.blink', 'bool', 1)
 
 Opt.declare('core.autocomplete.enabled', 'bool', 1)
+Opt.declare('core.brackets.close.enabled', 'bool', 1)
 Opt.declare('core.folding.enabled', 'bool', 1)
 Opt.declare('core.folding.gutter.show', 'bool', 1)
 Opt.declare('core.highlight.trailingWhiteSpace.enabled', 'bool', 1)

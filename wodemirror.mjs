@@ -2658,8 +2658,7 @@ function selfInsert
   p = Pane.current()
   u = u || 1
 
-  if (((p.buf.vars('ed').closeBrackets === undefined) && settings.closeBrackets)
-      || p.buf.vars('ed').closeBrackets)
+  if (p.buf.opt('core.brackets.close.enabled'))
     bracket = isOpenBracket(char)
 
   if (bracket && (u == 1))

@@ -3757,15 +3757,36 @@ function handleTooltipLint
   //d({ diags })
   //diagnose(diags.filter(d => d).at(0))
   //tip(diags)
-  return []
+  return [] // turn off std tooltip
+}
+
+function maybeLintTooltip
+(ed, pos, side) {
+  let diags, start, end
+
+  diags = []
+  CMLint.forEachDiagnostic(ed.state, (diag, from, to) => {
+    // between
+    diags.push(diag)
+    start = from
+    end = to
+    return false
+  })
+  if (diags.length)
+    return { pos: start,
+             end: end,
+             create() {
+               return { dom: divCl('tttest') }
+             } }
 }
 
 function makeLinter
 () {
   if (Eslint)
-    return CMLint.linter(CMJS.esLint(new Eslint.Linter(),
-                                     eslintConfig),
-                         { tooltipFilter: handleTooltipLint })
+    return [ CMLint.linter(CMJS.esLint(new Eslint.Linter(),
+                                       eslintConfig),
+                           { tooltipFilter: handleTooltipLint }),
+             CMView.hoverTooltip(maybeLintTooltip, { hideOn: CMLint.hideTooltip }) ]
   return []
 }
 

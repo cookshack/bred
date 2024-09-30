@@ -331,6 +331,18 @@ textarea:focus-visible {
   align-self: flex-start;
 }
 
+.tttest {
+  background: red;
+  width: 4rem;
+  height: 4rem;
+  min-width: 4rem;
+  min-height: 4rem;
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .bred-area.bred-diag-w,
 .bred-area.bred-tip-w {
   pointer-events: none;

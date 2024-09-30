@@ -35,6 +35,7 @@ cd ~/src/bred/ && npm start -- $*
 
 ## Gnome Launcher
 1. Create ~/.local/share/applications/userapp-bred.desktop with:
+
     [Desktop Entry]
     Encoding=UTF-8
     Version=1.0
@@ -46,6 +47,7 @@ cd ~/src/bred/ && npm start -- $*
     Terminal=false
 
 2. Run:
+
     update-desktop-database ~/.local/share/applications
 
 ## Issues

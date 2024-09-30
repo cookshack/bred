@@ -39,7 +39,7 @@ make prep
 ## CLI
 
 Create ~/bin/bred with:
-```
+```bash
 #!/bin/bash
 cd ~/src/bred/ && npm start -- $*
 ```
@@ -62,7 +62,7 @@ cd ~/src/bred/ && npm start -- $*
 
 2. Run:
 
-    ```
+    ```sh
     update-desktop-database ~/.local/share/applications
     ```
 
@@ -76,7 +76,7 @@ The SUID sandbox helper binary was found, but is not configured
 correctly. Rather than run without sandboxing I'm aborting now.
 ```
 then add `--no-sandbox` to the start command, for example:
-```
+```sh
 cd ~/src/bred/ && npm start -- --no-sandbox
 ```
 See https://github.com/electron/electron/issues/17972.
@@ -89,10 +89,14 @@ sudo: The "no new privileges" flag is set, which prevents sudo from running as r
 sudo: If sudo is running in a container, you may need to adjust the container configuration to disable the flag.
 ```
 then add `--no-setuid-sandbox` to the start command, for example:
-```
+```sh
 cd ~/src/bred/ && npm start -- --no-setuid-sandbox
 ```
 
 #### 3. "node-pty" errors on startup
 
-Run `make fix-node-pty`.
+Run:
+```sh
+make fix-node-pty
+
+```

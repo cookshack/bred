@@ -303,6 +303,11 @@ function makeAutocomplete
                                  defaultKeymap: false })
 }
 
+function makeHighlightBracket
+() {
+  return CMLang.bracketMatching()
+}
+
 function makeHighlightOccur
 (buf) {
   return CMSearch.highlightSelectionMatches({ highlightWordAroundCursor: buf.opt('core.highlight.occurrences.wordAroundCursor'),
@@ -515,6 +520,7 @@ function viewInit
   view.wode.decorMode = new CMState.Compartment
   view.wode.drawSelection = new CMState.Compartment
   view.wode.highlightActive = new CMState.Compartment
+  view.wode.highlightBracket = new CMState.Compartment
   view.wode.highlightOccur = new CMState.Compartment
   view.wode.highlightSpecials = new CMState.Compartment
   view.wode.highlightSyntax = new CMState.Compartment
@@ -681,7 +687,6 @@ function viewInit
 
            CMView.EditorView.domEventHandlers(domEventHandlers),
 
-           CMLang.bracketMatching(),
            CMLang.indentOnInput(),
 
            //CMSearch.search(), // for searchHighlighter, see lib/@codemirror/search.js
@@ -721,6 +726,11 @@ function viewInit
     opts.push(view.wode.highlightActive.of(CMView.highlightActiveLine()))
   else
     opts.push(view.wode.highlightActive.of([]))
+
+  if (buf.opt('core.highlight.bracket.enabled'))
+    opts.push(view.wode.highlightBracket.of(makeHighlightBracket()))
+  else
+    opts.push(view.wode.highlightBracket.of([]))
 
   if (buf.opt('core.highlight.occurrences.enabled'))
     opts.push(view.wode.highlightOccur.of(makeHighlightOccur(buf)))
@@ -3792,6 +3802,14 @@ function reconfigureHighlightActive
     view.ed.dispatch({ effects: view.wode.highlightActive.reconfigure([]) })
 }
 
+function reconfigureHighlightBracket
+(buf, view) {
+  if (buf.opt('core.highlight.bracket.enabled'))
+    view.ed.dispatch({ effects: view.wode.highlightBracket.reconfigure(makeHighlightBracket()) })
+  else
+    view.ed.dispatch({ effects: view.wode.highlightBracket.reconfigure([]) })
+}
+
 function reconfigureHighlightOccur
 (buf, view) {
   if (buf.opt('core.highlight.occurrences.enabled'))
@@ -3895,6 +3913,7 @@ function initOpt
 
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.activeLine.enabled', reconfigureHighlightActive)
+  on('core.highlight.bracket.enabled', reconfigureHighlightBracket)
   on('core.highlight.occurrences.enabled', reconfigureHighlightOccur)
   on('core.highlight.occurrences.wholeWords', reconfigureHighlightOccur)
   on('core.highlight.occurrences.wordAroundCursor', reconfigureHighlightOccur)

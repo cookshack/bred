@@ -80,8 +80,6 @@ function onChange
 onChanges = []
 
 spec = {
-  highlightSyntax: { name: 'highlightSyntax', type: 'bool', init: 1 },
-  showWelcome: { name: 'showWelcome', type: 'bool', init: 1 },
   throwOnWarn: { name: 'throwOnWarn', type: 'bool', init: 0 },
 }
 
@@ -89,13 +87,6 @@ for (let sp in spec)
   spec[sp].val = spec[sp].init
 
 settings = {
-  get showWelcome() {
-    return spec.showWelcome.val
-  },
-  set showWelcome(val) {
-    return set('showWelcome', val)
-  },
-
   get throwOnWarn() {
     return spec.throwOnWarn.val
   },
@@ -105,6 +96,7 @@ settings = {
 }
 
 Opt.declare('core.cursor.blink', 'bool', 1)
+Opt.declare('core.welcome.enabled', 'bool', 1)
 
 Opt.declare('core.autocomplete.enabled', 'bool', 1)
 Opt.declare('core.brackets.close.enabled', 'bool', 1)

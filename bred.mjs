@@ -1946,7 +1946,7 @@ function init
       d('INSERT')
       view.insert(scratchMessage())
     })
-    if (settings.showWelcome)
+    if (Opt.get('core.welcome.enabled'))
       Cmd.run('welcome')
     Pane.top(tab.frame1).focus()
 

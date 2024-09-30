@@ -5,10 +5,9 @@ import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
+import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Recent from './recent.mjs'
-import * as Settings from './settings.mjs'
-import settings from './settings.mjs'
 //import { d } from './mess.mjs'
 
 export
@@ -70,10 +69,10 @@ function init
                       divCl('bred-welcome-sett',
                             [ 'Show Welcome on start? ',
                               button('yes',
-                                     'buttonY' + (settings.showWelcome ? ' on' : ''),
+                                     'buttonY' + (Opt.get('core.welcome.enabled') ? ' on' : ''),
                                      { 'data-run': 'show welcome on start' }),
                               button('no',
-                                     'buttonN' + (settings.showWelcome ? '' : ' on'),
+                                     'buttonN' + (Opt.get('core.welcome.enabled') ? '' : ' on'),
                                      { 'data-run': 'hide welcome on start' }) ]),
                       divCl('bred-welcome-more',
                             [ div('More settings.', { 'data-run': 'settings' } ) ]) ]))
@@ -131,7 +130,7 @@ function init
   }
 
   Cmd.add('show welcome on start', () => {
-    Settings.set('showWelcome', 1)
+    Opt.set('core.welcome.enabled', 1)
     if (buf)
       buf.views.forEach(view => {
         if (view.ele) {
@@ -146,7 +145,7 @@ function init
   })
 
   Cmd.add('hide welcome on start', () => {
-    Settings.set('showWelcome', 0)
+    Opt.set('core.welcome.enabled', 0)
     if (buf)
       buf.views.forEach(view => {
         if (view.ele) {

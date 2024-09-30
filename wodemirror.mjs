@@ -757,9 +757,7 @@ function viewInit
   else
     opts.push(view.wode.linter.of([]))
 
-  if (buf.vars('ed').wrap === undefined)
-    buf.vars('ed').wrap = settings.wrap
-  if (buf.vars('ed').wrap)
+  if (buf.opt('core.line.wrap.enabled'))
     opts.push(view.wode.wrap.of(CMView.EditorView.lineWrapping))
   else
     opts.push(view.wode.wrap.of([]))
@@ -3779,6 +3777,14 @@ function reconfigureLineNums
     view.ed.dispatch({ effects: [ view.wode.lineNums.reconfigure([]) ] })
 }
 
+function reconfigureLineWrap
+(buf, view) {
+  if (buf.opt('core.line.wrap.enabled'))
+    view.ed.dispatch({ effects: view.wode.wrap.reconfigure(CMView.EditorView.lineWrapping) })
+  else
+    view.ed.dispatch({ effects: view.wode.wrap.reconfigure([]) })
+}
+
 function reconfigureLinter
 (buf, view) {
   let effects
@@ -3837,20 +3843,12 @@ function initOpt
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
   on('core.line.numbers.show', reconfigureLineNums)
+  on('core.line.wrap.enabled', reconfigureLineWrap)
   on('core.minimap.enabled', reconfigureMinimap)
 }
 
 function initSettings
 () {
-  Settings.onChange('wrap', (name, val) => {
-    Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed)
-        if (val)
-          view.ed.dispatch({ effects: view.wode.wrap.reconfigure(CMView.EditorView.lineWrapping) })
-        else
-          view.ed.dispatch({ effects: view.wode.wrap.reconfigure([]) })
-    }))
-  })
 }
 
 function handleCustomTags

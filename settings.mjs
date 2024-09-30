@@ -84,7 +84,6 @@ spec = {
   highlightSyntax: { name: 'highlightSyntax', type: 'bool', init: 1 },
   showWelcome: { name: 'showWelcome', type: 'bool', init: 1 },
   throwOnWarn: { name: 'throwOnWarn', type: 'bool', init: 0 },
-  wrap: { name: 'wrap', type: 'bool', init: 0 },
 }
 
 for (let sp in spec)
@@ -118,13 +117,6 @@ settings = {
   set throwOnWarn(val) {
     return set('throwOnWarn', val)
   },
-
-  get wrap() {
-    return spec.wrap.val
-  },
-  set wrap(val) {
-    return set('wrap', val)
-  },
 }
 
 Opt.declare('core.cursor.blink', 'bool', 1)
@@ -135,6 +127,7 @@ Opt.declare('core.folding.gutter.show', 'bool', 1)
 Opt.declare('core.highlight.trailingWhiteSpace.enabled', 'bool', 1)
 Opt.declare('core.highlightSyntax.enabled', 'bool', 1)
 Opt.declare('core.line.numbers.show', 'bool', 1)
+Opt.declare('core.line.wrap.enabled', 'bool', 1)
 Opt.declare('core.lint.enabled', 'bool', 1)
 Opt.declare('core.lint.gutter.show', 'bool', 1)
 Opt.declare('core.minimap.enabled', 'bool', 1)

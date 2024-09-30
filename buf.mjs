@@ -314,10 +314,10 @@ function make
     let val
 
     val = b.opts.get(name)
-    d('OPT ' + name + ' VAL: ' + val)
+    d('BUF.OPT ' + name + ' VAL: ' + val)
     if (val === undefined)
       return Opt.get(name)
-    d('OPT ' + name + ' VAL 2: ' + val)
+    d('BUF.OPT ' + name + ' VAL 2: ' + val)
     return val
   }
 

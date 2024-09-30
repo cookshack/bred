@@ -304,8 +304,8 @@ function makeAutocomplete
 }
 
 function makeHighlightBracket
-() {
-  return CMLang.bracketMatching()
+(buf) {
+  return CMLang.bracketMatching({ afterCursor: buf.opt('core.highlight.bracket.afterCursor') })
 }
 
 function makeHighlightOccur
@@ -728,7 +728,7 @@ function viewInit
     opts.push(view.wode.highlightActive.of([]))
 
   if (buf.opt('core.highlight.bracket.enabled'))
-    opts.push(view.wode.highlightBracket.of(makeHighlightBracket()))
+    opts.push(view.wode.highlightBracket.of(makeHighlightBracket(buf)))
   else
     opts.push(view.wode.highlightBracket.of([]))
 
@@ -3805,7 +3805,7 @@ function reconfigureHighlightActive
 function reconfigureHighlightBracket
 (buf, view) {
   if (buf.opt('core.highlight.bracket.enabled'))
-    view.ed.dispatch({ effects: view.wode.highlightBracket.reconfigure(makeHighlightBracket()) })
+    view.ed.dispatch({ effects: view.wode.highlightBracket.reconfigure(makeHighlightBracket(buf)) })
   else
     view.ed.dispatch({ effects: view.wode.highlightBracket.reconfigure([]) })
 }
@@ -3914,6 +3914,7 @@ function initOpt
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.activeLine.enabled', reconfigureHighlightActive)
   on('core.highlight.bracket.enabled', reconfigureHighlightBracket)
+  on('core.highlight.bracket.afterCursor', reconfigureHighlightBracket)
   on('core.highlight.occurrences.enabled', reconfigureHighlightOccur)
   on('core.highlight.occurrences.wholeWords', reconfigureHighlightOccur)
   on('core.highlight.occurrences.wordAroundCursor', reconfigureHighlightOccur)

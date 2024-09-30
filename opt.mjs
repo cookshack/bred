@@ -44,18 +44,27 @@ function declare
   types[name] = type
   d('OPT ' + name + ' DECLARED ' + type)
   if (get(name) === undefined)
-    return setMem(name, value)
+    return setMem(name, clean(name, value))
   return get(name)
 }
 
 export
 function get
 (name) {
+  d('OPT ' + name + ': ' + values[name])
   return values[name]
 }
 
+function clean
+(name, val) {
+  if (types[name] == 'bool')
+    return val ? true : false
+  return val
+}
+
 function setMem
-(name, value) {
+(name,
+ value) { // must be clean
   values[name] = value
   d('OPT ' + name + ' SET TO ' + value)
   onSets[name]?.forEach(cb => cb(value, name))
@@ -66,6 +75,7 @@ function setMem
 export
 function set
 (name, value) {
+  value = clean(name, value)
   Tron.cmd1('brood.set', [ 'opt', name, value ], () => {
   })
   return setMem(name, value)
@@ -143,9 +153,9 @@ function buf
 
   function set
   (name, val) {
+    vals[name] = clean(name, val)
     if (vals[name] == val)
       return
-    vals[name] = val
     d('BUF OPT ' + name + ' SET TO ' + val)
     onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
   }
@@ -173,6 +183,7 @@ declare('core.folding.enabled', 'bool', 1)
 declare('core.folding.gutter.show', 'bool', 1)
 declare('core.highlight.activeLine.enabled', 'bool', 1)
 declare('core.highlight.bracket.enabled', 'bool', 1)
+declare('core.highlight.bracket.afterCursor', 'bool', 1)
 declare('core.highlight.occurrences.enabled', 'bool', 1)
 declare('core.highlight.occurrences.wholeWords', 'bool', 0)
 declare('core.highlight.occurrences.wordAroundCursor', 'bool', 1)

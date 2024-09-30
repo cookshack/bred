@@ -141,10 +141,12 @@ function initCommit
       buf.vars('Commit').hist = hist
     }
 
-    buf.vars('ed').autocomplete = 0
     buf.vars('ed').fillParent = 0
-    buf.vars('ed').minimap = 0
-    buf.vars('ed').showGutter = 0
+    buf.opts.set('core.autocomplete.enabled', 0)
+    buf.opts.set('core.folding.enabled', 0)
+    buf.opts.set('core.line.numbers.show', 0)
+    buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('core.minimap.enabled', 0)
     p.buf = buf
     buf.clear()
 
@@ -309,6 +311,7 @@ function initEqual
     }
     b.mode = Ed.patchModeName()
     b.name = name
+    b.opts.set('core.lint.enabled', 0)
     b.addMode('equal')
     b.addMode('view')
   }
@@ -491,8 +494,8 @@ function initLog
       buf.icon = 'log'
       //buf.addMode("view") // overrides n,p
     }
-    //buf.vars("ed").showGutter = 0
-    buf.vars('ed').minimap = 0
+    buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('core.minimap.enabled', 0)
     p.buf = buf
     refresh(p.view)
     buf.lang = 'git log'
@@ -822,8 +825,8 @@ function initAnnotate
       buf.icon = 'log'
       //buf.addMode("view") // overrides n,p
     }
-    //buf.vars("ed").showGutter = 0
-    buf.vars('ed').minimap = 0
+    buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('core.minimap.enabled', 0)
     buf.vars('vc').file = p.buf.path
     p.buf = buf
     refresh(p.view)

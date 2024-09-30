@@ -1675,10 +1675,12 @@ function initFile
       buf.icon = 'prompt'
     }
 
-    buf.vars('ed').autocomplete = 0
     buf.vars('ed').fillParent = 0
-    buf.vars('ed').minimap = 0
-    buf.vars('ed').showGutter = 0
+    buf.opts.set('core.autocomplete.enabled', 0)
+    buf.opts.set('core.folding.enabled', 0)
+    buf.opts.set('core.line.numbers.show', 0)
+    buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('core.minimap.enabled', 0)
     hist.reset()
     buf.off('change', onChange)
     buf.clear()

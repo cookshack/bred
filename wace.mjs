@@ -73,9 +73,7 @@ function viewInit
   //ed.setOption("customScrollbar", 1)
   //ed.setOption("fontSize", "1rem")
   ed.setHighlightActiveLine(0)
-  if (buf.vars('ed').showGutter === undefined)
-    buf.vars('ed').showGutter = 1
-  ed.setOption('showGutter', buf.vars('ed').showGutter ? 1 : 0)
+  ed.setOption('showGutter', buf.opt('core.line.numbers.show') ? 1 : 0)
   ed.setOption('displayIndentGuides', 1)
   ed.setOption('minLines', 1)
   //ed.setOption("maxLines", Infinity) // breaks v scroll

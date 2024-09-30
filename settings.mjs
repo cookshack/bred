@@ -80,7 +80,6 @@ function onChange
 onChanges = []
 
 spec = {
-  blinkCursor: { name: 'blinkCursor', type: 'bool', init: 0 },
   closeBrackets: { name: 'closeBrackets', type: 'bool', init: 1 },
   highlightSyntax: { name: 'highlightSyntax', type: 'bool', init: 1 },
   showTrailingWhitespace: { name: 'showTrailingWhitespace', type: 'bool', init: 0 },
@@ -94,13 +93,6 @@ for (let sp in spec)
   spec[sp].val = spec[sp].init
 
 settings = {
-  get blinkCursor() {
-    return spec.blinkCursor.val
-  },
-  set blinkCursor(val) {
-    return set('blinkCursor', val)
-  },
-
   get closeBrackets() {
     return spec.closeBrackets.val
   },
@@ -150,6 +142,8 @@ settings = {
     return set('wrap', val)
   },
 }
+
+Opt.declare('core.cursor.blink', 'bool', 1)
 
 Opt.declare('core.autocomplete.enabled', 'bool', 1)
 Opt.declare('core.folding.enabled', 'bool', 1)

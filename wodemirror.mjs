@@ -680,7 +680,7 @@ function viewInit
            //stateHighlighters,
            CMState.Prec.low(decorator),
 
-           view.wode.drawSelection.of(makeDrawSelection(settings.blinkCursor)),
+           view.wode.drawSelection.of(makeDrawSelection(buf.opt('core.cursor.blink'))),
            CMView.highlightActiveLine(),
            //CMView.keymap.of(CMComm.defaultKeymap),
            CMView.scrollPastEnd(),
@@ -3733,6 +3733,11 @@ function reconfigureAutocomplete
     view.ed.dispatch({ effects: view.wode.autocomplete.reconfigure([]) })
 }
 
+function reconfigureCursorBlink
+(buf, view) {
+  view.ed.dispatch({ effects: view.wode.drawSelection.reconfigure(makeDrawSelection(buf.opt('core.cursor.blink'))) })
+}
+
 function reconfigureFolding
 (buf, view) {
   let effects
@@ -3813,6 +3818,8 @@ function initOpt
     }))
   }
 
+  on('core.cursor.blink', reconfigureCursorBlink)
+
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlightSyntax.enabled', reconfigureHighlightSyntax)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
@@ -3822,14 +3829,6 @@ function initOpt
 
 function initSettings
 () {
-  Settings.onChange('blinkCursor', (name, val) => {
-    d('initSettings blinkCursor')
-    Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed)
-        view.ed.dispatch({ effects: view.wode.drawSelection.reconfigure(makeDrawSelection(val)) })
-    }))
-  })
-
   Settings.onChange('showTrailingWhitespace', (name, val) => {
     Buf.forEach(buf => buf.views.forEach(view => {
       if (view.ed)

@@ -88,20 +88,4 @@ for (let sp in spec)
 settings = {
 }
 
-Opt.declare('core.cursor.blink', 'bool', 1)
-Opt.declare('core.throwOnWarn.enabled', 'bool', 0)
-Opt.declare('core.welcome.enabled', 'bool', 1)
-
-Opt.declare('core.autocomplete.enabled', 'bool', 1)
-Opt.declare('core.brackets.close.enabled', 'bool', 1)
-Opt.declare('core.folding.enabled', 'bool', 1)
-Opt.declare('core.folding.gutter.show', 'bool', 1)
-Opt.declare('core.highlight.syntax.enabled', 'bool', 1)
-Opt.declare('core.highlight.trailingWhiteSpace.enabled', 'bool', 1)
-Opt.declare('core.line.numbers.show', 'bool', 1)
-Opt.declare('core.line.wrap.enabled', 'bool', 1)
-Opt.declare('core.lint.enabled', 'bool', 1)
-Opt.declare('core.lint.gutter.show', 'bool', 1)
-Opt.declare('core.minimap.enabled', 'bool', 1)
-
 export { settings as default }

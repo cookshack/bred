@@ -154,4 +154,20 @@ onSets = {}
 onSetAlls = []
 onSetBufs = {}
 
+declare('core.cursor.blink', 'bool', 1)
+declare('core.throwOnWarn.enabled', 'bool', 0)
+declare('core.welcome.enabled', 'bool', 1)
+
+declare('core.autocomplete.enabled', 'bool', 1)
+declare('core.brackets.close.enabled', 'bool', 1)
+declare('core.folding.enabled', 'bool', 1)
+declare('core.folding.gutter.show', 'bool', 1)
+declare('core.highlight.syntax.enabled', 'bool', 1)
+declare('core.highlight.trailingWhiteSpace.enabled', 'bool', 1)
+declare('core.line.numbers.show', 'bool', 1)
+declare('core.line.wrap.enabled', 'bool', 1)
+declare('core.lint.enabled', 'bool', 1)
+declare('core.lint.gutter.show', 'bool', 1)
+declare('core.minimap.enabled', 'bool', 1)
+
 export const _internals = { values, types, onSets, onSetAlls, onSetBufs }

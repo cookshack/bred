@@ -719,9 +719,7 @@ function viewInit
     opts.push(view.wode.themeExtension.of([]))
   }
 
-  if (buf.vars('ed').showTrailingWhitespace === undefined)
-    buf.vars('ed').showTrailingWhitespace = settings.showTrailingWhitespace
-  if (buf.vars('ed').showTrailingWhitespace)
+  if (buf.opt('core.highlight.trailingWhiteSpace.enabled'))
     opts.push(view.wode.showTrailingWhitespace.of(CMView.highlightTrailingWhitespace()))
   else
     opts.push(view.wode.showTrailingWhitespace.of([]))

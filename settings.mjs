@@ -80,22 +80,16 @@ function onChange
 onChanges = []
 
 spec = {
-  throwOnWarn: { name: 'throwOnWarn', type: 'bool', init: 0 },
 }
 
 for (let sp in spec)
   spec[sp].val = spec[sp].init
 
 settings = {
-  get throwOnWarn() {
-    return spec.throwOnWarn.val
-  },
-  set throwOnWarn(val) {
-    return set('throwOnWarn', val)
-  },
 }
 
 Opt.declare('core.cursor.blink', 'bool', 1)
+Opt.declare('core.throwOnWarn.enabled', 'bool', 0)
 Opt.declare('core.welcome.enabled', 'bool', 1)
 
 Opt.declare('core.autocomplete.enabled', 'bool', 1)

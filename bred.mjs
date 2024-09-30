@@ -759,8 +759,9 @@ function initCmds
       Mess.say('Target missing path')
   })
 
-  Cmd.add('say', () => Mess.say('Test of command Say'))
-  Cmd.add('yell', () => Mess.yell('Test of command Yell'))
+  Cmd.add('say', () => Mess.say('Test of Mess.say'))
+  Cmd.add('warn', () => Mess.warn('Test of Mess.warn'))
+  Cmd.add('yell', () => Mess.yell('Test of Mess.yell'))
 
   Cmd.add('cancel', () => {
     menu.close()

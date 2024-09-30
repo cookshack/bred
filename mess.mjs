@@ -1,8 +1,8 @@
 import * as Css from './css.mjs'
-import * as Loc from './loc.mjs'
 import elements from './elements.mjs'
 import * as Ev from './ev.mjs'
-import settings from './settings.mjs'
+import * as Loc from './loc.mjs'
+import * as Opt from './opt.mjs'
 
 import callsites from './lib/callsites.mjs'
 
@@ -78,7 +78,7 @@ export
 function warn
 (arg) {
   console.warn(arg)
-  if (settings.throwOnWarn)
+  if (Opt.get('core.throwOnWarn.enabled'))
     throw new Error(arg)
 }
 

@@ -304,9 +304,9 @@ function makeAutocomplete
 }
 
 function makeHighlightOccur
-() {
-  return CMSearch.highlightSelectionMatches({ highlightWordAroundCursor: false,
-                                              wholeWords: false })
+(buf) {
+  return CMSearch.highlightSelectionMatches({ highlightWordAroundCursor: buf.opt('core.highlight.occurrences.wordAroundCursor'),
+                                              wholeWords: buf.opt('core.highlight.occurrences.wholeWords') })
 }
 
 function makeHighlightSyntax
@@ -723,7 +723,7 @@ function viewInit
     opts.push(view.wode.highlightActive.of([]))
 
   if (buf.opt('core.highlight.occurrences.enabled'))
-    opts.push(view.wode.highlightOccur.of(makeHighlightOccur()))
+    opts.push(view.wode.highlightOccur.of(makeHighlightOccur(buf)))
   else
     opts.push(view.wode.highlightOccur.of([]))
 
@@ -3795,7 +3795,7 @@ function reconfigureHighlightActive
 function reconfigureHighlightOccur
 (buf, view) {
   if (buf.opt('core.highlight.occurrences.enabled'))
-    view.ed.dispatch({ effects: view.wode.highlightOccur.reconfigure(makeHighlightOccur()) })
+    view.ed.dispatch({ effects: view.wode.highlightOccur.reconfigure(makeHighlightOccur(buf)) })
   else
     view.ed.dispatch({ effects: view.wode.highlightOccur.reconfigure([]) })
 }
@@ -3896,6 +3896,8 @@ function initOpt
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.activeLine.enabled', reconfigureHighlightActive)
   on('core.highlight.occurrences.enabled', reconfigureHighlightOccur)
+  on('core.highlight.occurrences.wholeWords', reconfigureHighlightOccur)
+  on('core.highlight.occurrences.wordAroundCursor', reconfigureHighlightOccur)
   on('core.highlight.specials.enabled', reconfigureHighlightSpecials)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
   on('core.highlight.trailingWhitespace.enabled', reconfigureHighlightTrailing)

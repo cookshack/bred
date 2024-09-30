@@ -144,7 +144,8 @@ function initHelp
     () {
       return [ divCl('bold twoCol', 'Options'),
                Opt.map((name, value) => {
-                 if (name.startsWith('core.')) {
+                 if (name.startsWith('core.')
+                     || callerBuf.minors.find(mo => name.startsWith(mo.key))) {
                    let type, run
 
                    type = Opt.type(name)

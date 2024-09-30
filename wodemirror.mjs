@@ -710,7 +710,7 @@ function viewInit
 
   opts.push(view.wode.autocomplete.of([]))
 
-  if (buf.opt('core.highlightSyntax.enabled')) {
+  if (buf.opt('core.highlight.syntax.enabled')) {
     opts.push(view.wode.highlightSyntax.of(makeHighlightSyntax()))
     opts.push(view.wode.themeExtension.of(themeExtension))
   }
@@ -3751,7 +3751,7 @@ function reconfigureFolding
 
 function reconfigureHighlightSyntax
 (buf, view) {
-  if (buf.opt('core.highlightSyntax.enabled'))
+  if (buf.opt('core.highlight.syntax.enabled'))
     view.ed.dispatch({ effects: [ view.wode.highlightSyntax.reconfigure(makeHighlightSyntax()),
                                   view.wode.themeExtension.reconfigure(themeExtension) ] })
   else
@@ -3837,8 +3837,8 @@ function initOpt
   on('core.cursor.blink', reconfigureCursorBlink)
 
   on('core.autocomplete', reconfigureAutocomplete)
+  on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
   on('core.highlight.trailingWhiteSpace.enabled', reconfigureHighlightTrailing)
-  on('core.highlightSyntax.enabled', reconfigureHighlightSyntax)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
   on('core.line.numbers.show', reconfigureLineNums)
@@ -3860,12 +3860,9 @@ function handleCustomTags
     highlightStyle = CMLang.HighlightStyle.define(themeStyles(themeTags))
     themeExtension = CMLang.syntaxHighlighting(highlightStyle)
     Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed) {
-        if (buf.vars('ed').highlightSyntax === undefined)
-          buf.vars('ed').highlightSyntax = settings.highlightSyntax
-        if (buf.vars('ed').highlightSyntax)
+      if (view.ed)
+        if (buf.opt('core.highlight.syntax.enabled'))
           view.ed.dispatch({ effects: view.wode.themeExtension.reconfigure(themeExtension) })
-      }
     }))
   }
 }

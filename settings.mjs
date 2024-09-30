@@ -89,13 +89,6 @@ for (let sp in spec)
   spec[sp].val = spec[sp].init
 
 settings = {
-  get highlightSyntax() {
-    return spec.highlightSyntax.val
-  },
-  set highlightSyntax(val) {
-    return set('highlightSyntax', val)
-  },
-
   get showWelcome() {
     return spec.showWelcome.val
   },
@@ -117,8 +110,8 @@ Opt.declare('core.autocomplete.enabled', 'bool', 1)
 Opt.declare('core.brackets.close.enabled', 'bool', 1)
 Opt.declare('core.folding.enabled', 'bool', 1)
 Opt.declare('core.folding.gutter.show', 'bool', 1)
+Opt.declare('core.highlight.syntax.enabled', 'bool', 1)
 Opt.declare('core.highlight.trailingWhiteSpace.enabled', 'bool', 1)
-Opt.declare('core.highlightSyntax.enabled', 'bool', 1)
 Opt.declare('core.line.numbers.show', 'bool', 1)
 Opt.declare('core.line.wrap.enabled', 'bool', 1)
 Opt.declare('core.lint.enabled', 'bool', 1)

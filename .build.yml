@@ -1,0 +1,16 @@
+image: alpine/edge
+secrets:
+  - e2e843cf-6f7e-4b74-989f-819a97ca70b8
+sources:
+  - git+ssh://git@git.sr.ht/~mattmundell/bred
+tasks:
+  - check: |
+      cd bred
+      if [ "$(git rev-parse origin/main)" != "$(git rev-parse HEAD)" ]; then \
+        complete-build; \
+      fi
+  - mirror: |
+      cd bred
+      git remote add github git@github.com:cookshack/bred.git
+      ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+      git push github main

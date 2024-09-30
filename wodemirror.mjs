@@ -3764,6 +3764,14 @@ function reconfigureHighlightSyntax
                                   view.wode.themeExtension.reconfigure([]) ] })
 }
 
+function reconfigureHighlightTrailing
+(buf, view) {
+  if (buf.opt('core.highlight.trailingWhiteSpace.enabled'))
+    view.ed.dispatch({ effects: view.wode.showTrailingWhitespace.reconfigure(CMView.highlightTrailingWhitespace()) })
+  else
+    view.ed.dispatch({ effects: view.wode.showTrailingWhitespace.reconfigure([]) })
+}
+
 function reconfigureLineNums
 (buf, view) {
   let effects
@@ -3821,6 +3829,7 @@ function initOpt
   on('core.cursor.blink', reconfigureCursorBlink)
 
   on('core.autocomplete', reconfigureAutocomplete)
+  on('core.highlight.trailingWhiteSpace.enabled', reconfigureHighlightTrailing)
   on('core.highlightSyntax.enabled', reconfigureHighlightSyntax)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
@@ -3829,16 +3838,6 @@ function initOpt
 
 function initSettings
 () {
-  Settings.onChange('showTrailingWhitespace', (name, val) => {
-    Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed)
-        if (val)
-          view.ed.dispatch({ effects: view.wode.showTrailingWhitespace.reconfigure(CMView.highlightTrailingWhitespace()) })
-        else
-          view.ed.dispatch({ effects: view.wode.showTrailingWhitespace.reconfigure([]) })
-    }))
-  })
-
   Settings.onChange('minimap', (name, val) => {
     d('initSettings minimap')
     Buf.forEach(buf => buf.views.forEach(view => {

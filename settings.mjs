@@ -82,7 +82,6 @@ onChanges = []
 spec = {
   closeBrackets: { name: 'closeBrackets', type: 'bool', init: 1 },
   highlightSyntax: { name: 'highlightSyntax', type: 'bool', init: 1 },
-  showTrailingWhitespace: { name: 'showTrailingWhitespace', type: 'bool', init: 0 },
   minimap: { name: 'minimap', type: 'bool', init: 1 },
   showWelcome: { name: 'showWelcome', type: 'bool', init: 1 },
   throwOnWarn: { name: 'throwOnWarn', type: 'bool', init: 0 },
@@ -105,13 +104,6 @@ settings = {
   },
   set highlightSyntax(val) {
     return set('highlightSyntax', val)
-  },
-
-  get showTrailingWhitespace() {
-    return spec.showTrailingWhitespace.val
-  },
-  set showTrailingWhitespace(val) {
-    return set('showTrailingWhitespace', val)
   },
 
   get minimap() {
@@ -148,6 +140,7 @@ Opt.declare('core.cursor.blink', 'bool', 1)
 Opt.declare('core.autocomplete.enabled', 'bool', 1)
 Opt.declare('core.folding.enabled', 'bool', 1)
 Opt.declare('core.folding.gutter.show', 'bool', 1)
+Opt.declare('core.highlight.trailingWhiteSpace.enabled', 'bool', 1)
 Opt.declare('core.highlightSyntax.enabled', 'bool', 1)
 Opt.declare('core.line.numbers.show', 'bool', 1)
 Opt.declare('core.lint.enabled', 'bool', 1)

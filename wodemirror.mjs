@@ -509,6 +509,7 @@ function viewInit
   view.wode.decorMode = new CMState.Compartment
   view.wode.drawSelection = new CMState.Compartment
   view.wode.highlightSyntax = new CMState.Compartment
+  view.wode.highlightWhitespace = new CMState.Compartment
   view.wode.showTrailingWhitespace = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
@@ -717,7 +718,12 @@ function viewInit
     opts.push(view.wode.themeExtension.of([]))
   }
 
-  if (buf.opt('core.highlight.trailingWhiteSpace.enabled'))
+  if (buf.opt('core.highlight.whitespace.enabled'))
+    opts.push(view.wode.highlightWhitespace.of(CMView.highlightWhitespace()))
+  else
+    opts.push(view.wode.highlightWhitespace.of([]))
+
+  if (buf.opt('core.highlight.trailingWhitespace.enabled'))
     opts.push(view.wode.showTrailingWhitespace.of(CMView.highlightTrailingWhitespace()))
   else
     opts.push(view.wode.showTrailingWhitespace.of([]))
@@ -3757,10 +3763,18 @@ function reconfigureHighlightSyntax
 
 function reconfigureHighlightTrailing
 (buf, view) {
-  if (buf.opt('core.highlight.trailingWhiteSpace.enabled'))
+  if (buf.opt('core.highlight.trailingWhitespace.enabled'))
     view.ed.dispatch({ effects: view.wode.showTrailingWhitespace.reconfigure(CMView.highlightTrailingWhitespace()) })
   else
     view.ed.dispatch({ effects: view.wode.showTrailingWhitespace.reconfigure([]) })
+}
+
+function reconfigureHighlightWhitespace
+(buf, view) {
+  if (buf.opt('core.highlight.whitespace.enabled'))
+    view.ed.dispatch({ effects: view.wode.highlightWhitespace.reconfigure(CMView.highlightWhitespace()) })
+  else
+    view.ed.dispatch({ effects: view.wode.highlightWhitespace.reconfigure([]) })
 }
 
 function reconfigureLineNums
@@ -3834,7 +3848,8 @@ function initOpt
 
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
-  on('core.highlight.trailingWhiteSpace.enabled', reconfigureHighlightTrailing)
+  on('core.highlight.trailingWhitespace.enabled', reconfigureHighlightTrailing)
+  on('core.highlight.whitespace.enabled', reconfigureHighlightWhitespace)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
   on('core.line.numbers.show', reconfigureLineNums)

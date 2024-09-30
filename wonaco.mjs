@@ -8,6 +8,7 @@ import * as Ed from './ed.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
+import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
@@ -215,9 +216,9 @@ function viewInit
   opts = { autoDetectHighContrast: false,
            automaticLayout: true,
            bracketPairColorization: { enabled: false },
-           //'bracketPairColorization.enabled': false, // needed pre 03-bracket-colorization-option.patch
+           //'bracketPairColorization.enabled': false, // needed pre 03-bracket-colorization-opti((on.patch
            contextmenu: false,
-           cursorBlinking: settings.blinkCursor ? 'blink' : 'solid',
+           cursorBlinking: Opt.get('core.cursor.blink') ? 'blink' : 'solid',
            cursorStyle: 'line',
            fixedOverflowWidgets: false,
            fontSize: 16, // must be px
@@ -232,9 +233,7 @@ function viewInit
            theme: 'solarized-light',
            wordWrap: 'on' }
 
-  if (buf.vars('ed').minimap === undefined)
-    buf.vars('ed').minimap = settings.minimap
-  if (buf.vars('ed').minimap)
+  if (buf.opt('core.minimap.enabled'))
     opts.minimap = { enabled: true }
   else
     opts.minimap = { enabled: false }
@@ -2290,21 +2289,33 @@ function addModes
   d('Ed modes.')
 }
 
+function reconfigureMinimap
+(buf, view) {
+  view.ed.updateOptions({ minimap: { enabled: buf.opt('core.cursor.blink') ? true : false } })
+}
+
+function reconfigureCursorBlink
+(buf, view) {
+  view.ed.updateOptions({ cursorBlinking: buf.opt('core.minimap.enabled') ? 'blink' : 'solid' })
+}
+
 function initSettings
 () {
-  Settings.onChange('blinkCursor', (name, val) => {
-    Buf.forEach(buf => buf.views.forEach(view => {
+  function on
+  (name, cb) {
+    Opt.onSet(name, () => Buf.forEach(buf => buf.views.forEach(view => {
       if (view.ed)
-        view.ed.updateOptions({ cursorBlinking: val ? 'blink' : 'solid' })
-    }))
-  })
+        cb(buf, view)
+    })))
 
-  Settings.onChange('minimap', (name, val) => {
-    Buf.forEach(buf => buf.views.forEach(view => {
+    Opt.onSetBuf(name, buf => buf.views.forEach(view => {
       if (view.ed)
-        view.ed.updateOptions({ minimap: { enabled: val ? true : false } })
+        cb(buf, view)
     }))
-  })
+  }
+
+  on('core.cursor.blink', reconfigureCursorBlink)
+  on('core.minimap.enabled', reconfigureMinimap)
 }
 
 export

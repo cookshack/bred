@@ -303,6 +303,12 @@ function makeAutocomplete
                                  defaultKeymap: false })
 }
 
+function makeHighlightOccur
+() {
+  return CMSearch.highlightSelectionMatches({ highlightWordAroundCursor: false,
+                                              wholeWords: false })
+}
+
 function makeHighlightSyntax
 () {
   return CMLang.syntaxHighlighting(CMLang.defaultHighlightStyle, { fallback: true })
@@ -509,6 +515,7 @@ function viewInit
   view.wode.decorMode = new CMState.Compartment
   view.wode.drawSelection = new CMState.Compartment
   view.wode.highlightActive = new CMState.Compartment
+  view.wode.highlightOccur = new CMState.Compartment
   view.wode.highlightSpecials = new CMState.Compartment
   view.wode.highlightSyntax = new CMState.Compartment
   view.wode.highlightWhitespace = new CMState.Compartment
@@ -714,6 +721,11 @@ function viewInit
     opts.push(view.wode.highlightActive.of(CMView.highlightActiveLine()))
   else
     opts.push(view.wode.highlightActive.of([]))
+
+  if (buf.opt('core.highlight.occurrences.enabled'))
+    opts.push(view.wode.highlightOccur.of(makeHighlightOccur()))
+  else
+    opts.push(view.wode.highlightOccur.of([]))
 
   if (buf.opt('core.highlight.specials.enabled'))
     opts.push(view.wode.highlightSpecials.of(CMView.highlightSpecialChars()))
@@ -3780,6 +3792,14 @@ function reconfigureHighlightActive
     view.ed.dispatch({ effects: view.wode.highlightActive.reconfigure([]) })
 }
 
+function reconfigureHighlightOccur
+(buf, view) {
+  if (buf.opt('core.highlight.occurrences.enabled'))
+    view.ed.dispatch({ effects: view.wode.highlightOccur.reconfigure(makeHighlightOccur()) })
+  else
+    view.ed.dispatch({ effects: view.wode.highlightOccur.reconfigure([]) })
+}
+
 function reconfigureHighlightSpecials
 (buf, view) {
   if (buf.opt('core.highlight.specials.enabled'))
@@ -3875,6 +3895,7 @@ function initOpt
 
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.activeLine.enabled', reconfigureHighlightActive)
+  on('core.highlight.occurrences.enabled', reconfigureHighlightOccur)
   on('core.highlight.specials.enabled', reconfigureHighlightSpecials)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
   on('core.highlight.trailingWhitespace.enabled', reconfigureHighlightTrailing)

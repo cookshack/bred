@@ -318,11 +318,12 @@ function charForInsert
     let code
 
     code = char.charCodeAt(0)
-    if ((code >= 'a'.charCodeAt(0)) && (code <= 'z'.charCodeAt(0)))
-      char = String.fromCharCode(code - 'a'.charCodeAt(0))
-    else if ((code >= 'A'.charCodeAt(0)) && (code <= 'Z'.charCodeAt(0)))
-      char = String.fromCharCode(code - 'A'.charCodeAt(0))
-    // [ / ] ^ _ ?
+    if (code == '@'.charCodeAt(0))
+      char = String.fromCharCode(0)
+    else if ((code >= 'a'.charCodeAt(0)) && (code <= 'z'.charCodeAt(0)))
+      char = String.fromCharCode(code - 'a'.charCodeAt(0) + 1)
+    else if ((code >= 'A'.charCodeAt(0)) && (code <= '_'.charCodeAt(0))) // A .. Z [ / ] ^ _
+      char = String.fromCharCode(code - '_'.charCodeAt(0) + 1)
   }
   else if (char == 'Tab')
     char = String.fromCharCode(9) // ^I \t

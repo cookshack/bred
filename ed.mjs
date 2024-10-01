@@ -1378,20 +1378,12 @@ function selfInsertIndent
   Backend.indentLine()
 }
 
-function showTrailingWhiteSpace
-(u) {
+function enable
+(u, name) {
   if (u == 4)
-    Opt.set('core.highlight.trailingWhiteSpace.enabled', 0)
+    Opt.set(name, 0)
   else
-    Opt.set('core.highlight.trailingWhiteSpace.enabled', 1)
-}
-
-function enableLint
-(u) {
-  if (u == 4)
-    Opt.set('core.lint.enabled', 0)
-  else
-    Opt.set('core.lint.enabled', 1)
+    Opt.set(name, 1)
 }
 
 export
@@ -1509,8 +1501,9 @@ function init
     Cmd.add('select all', () => Backend.selectAll(), mo)
     Cmd.add('goto line', () => Backend.gotoLine(), mo)
     Cmd.add('open lint panel', () => Backend.openLint(), mo)
-    Cmd.add('show trailing whitespace', showTrailingWhiteSpace, mo)
-    Cmd.add('enable lint', enableLint, mo)
+    Cmd.add('show trailing whitespace', u => enable(u, 'core.highlight.trailingWhitespace.enabled'), mo)
+    Cmd.add('enable lint', u => enable(u, 'core.lint.enabled'), mo)
+    Cmd.add('enable minimap', u => enable(u, 'core.minimap.enabled'), mo)
 
     Cmd.add('yank', () => Backend.yank(), mo)
     Cmd.add('yank roll', () => Backend.yankRoll(), mo)

@@ -332,7 +332,12 @@ function onExtAdd
       res = spawn('npm', [ 'install' ], { cwd: dir, encoding: 'utf-8' })
       if (res.error)
         throw res.error
-      add()
+      res.on('close', code => {
+        if (code)
+          e.sender.send(ch, errMsg('npm install failed: ' + code))
+        else
+          add()
+      })
       return
     }
     // already installed

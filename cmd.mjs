@@ -195,7 +195,9 @@ export
 function canon
 (name) {
   // buffer end => Buffer End
-  return name.trim().split(' ').map(w => Buf.capitalize(w)).join(' ')
+  if (name)
+    return name.trim().split(' ').map(w => Buf.capitalize(w)).join(' ')
+  return ''
 }
 
 export

@@ -163,13 +163,13 @@ function init
 
   mo = Mode.add('Execute', { viewInit: viewInit })
 
-  Cmd.add('execute', () => {
+  Cmd.add('execute', (u) => {
     let p
 
     p = Pane.current()
     callerBuf = p?.buf
     p.buf = Buf.make('Execute', 'Execute', divW(), p.dir)
-    p.buf.vars('execute').cb = (name, buf) => Cmd.exec(name, buf)
+    p.buf.vars('execute').cb = (name, buf) => Cmd.exec(name, buf, u)
   })
 
   Cmd.add('next line', () => next(), mo)

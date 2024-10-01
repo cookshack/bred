@@ -13,3 +13,10 @@
   grid-template-columns: minmax(min-content, max-content) auto;
   grid-gap: 0.5rem;
 }
+
+.langs-end {
+  grid-column: 1 / span 2;
+  background-color: var(--clr-fill);
+  height: 2rem;
+  min-height: 2rem;
+}

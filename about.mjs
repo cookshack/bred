@@ -578,6 +578,7 @@ function initLangs
                  && div(lang.module,
                         { 'data-run': 'open externally',
                           'data-url': 'http://npmjs.com/package/' + lang.module }))))
+    append(frag, divCl('langs-end'))
     append(w, frag)
   }
 

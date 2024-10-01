@@ -1386,6 +1386,14 @@ function showTrailingWhiteSpace
     Opt.set('core.highlight.trailingWhiteSpace.enabled', 1)
 }
 
+function enableLint
+(u) {
+  if (u == 4)
+    Opt.set('core.lint.enabled', 0)
+  else
+    Opt.set('core.lint.enabled', 1)
+}
+
 export
 function init
 (backend, cb) { // (err)
@@ -1502,6 +1510,7 @@ function init
     Cmd.add('goto line', () => Backend.gotoLine(), mo)
     Cmd.add('open lint panel', () => Backend.openLint(), mo)
     Cmd.add('show trailing whitespace', showTrailingWhiteSpace, mo)
+    Cmd.add('enable lint', enableLint, mo)
 
     Cmd.add('yank', () => Backend.yank(), mo)
     Cmd.add('yank roll', () => Backend.yankRoll(), mo)

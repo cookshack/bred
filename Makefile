@@ -54,7 +54,7 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	bin/fix-scope codemirror/legacy-modes/mode
 	cd lib/@codemirror/ && find . -type f -name language-data.js | xargs sed -i "s/import('\([^']*\)')/import\('..\/\\1.js'\)/g"
 	cd lib/@codemirror/ && echo 'let bredHackImport = (x) => x.replace(/^(.*)$$/, "../$$1.js")' >> language-data.js
-	cd lib/@codemirror/ && sed -i "s/import(spec.module)/import(bredHackImport(spec.module))/g" language-data.js
+	cd lib/@codemirror/ && sed -i "s/import(\([^)]\+[^\"']\))/import(bredHackImport(\\1))/g" language-data.js
 	bin/fix-scope lezer
 	bin/fix-scope replit
 	sed -i "s/zIndex: '-1',/zIndex: 'var(--z-indent-marker)',/g" lib/@replit/codemirror-indentation-markers.js

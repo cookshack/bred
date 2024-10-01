@@ -3777,17 +3777,32 @@ function handleTooltipLint
   return [] // turn off std tooltip
 }
 
+function between
+(pos, from, to, side) {
+  if (from == to)
+    return pos == from
+  if ((pos >= from) && (pos <= to)) {
+    if (side > 0)
+      return pos > from
+    if (side < 0)
+      return pos < to
+    return 1
+  }
+  return 0
+}
+
 function maybeLintTooltip
 (ed, pos, side) {
   let diags, start, end
 
   diags = []
   CMLint.forEachDiagnostic(ed.state, (diag, from, to) => {
-    // between
-    diags.push(diag)
-    start = from
-    end = to
-    return false
+    if (between(pos, from, to, side)) {
+      diags.push(diag)
+      start = from
+      end = to
+      return false
+    }
   })
   if (diags.length)
     return { pos: start,

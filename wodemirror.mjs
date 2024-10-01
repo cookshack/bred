@@ -489,6 +489,23 @@ function tip
   }
 }
 
+function diagTip
+(diags) {
+  if (diags) {
+    let diag
+
+    diag = diags.filter(d => d).at(0)
+    if (diag)
+      return divCl('bred-tooltip bred-open bred-' + diag.severity,
+                   [ divCl('bred-diag-icon',
+                           img(Ed.iconPath('diagnostic'), 'Diagnostic', 'filter-clr-text')),
+                     divCl('bred-diag-text-w',
+                           [ divCl('bred-diag-text', diag.message),
+                             divCl('bred-diag-source', diag.source) ]) ])
+    return
+  }
+}
+
 export
 function viewInit
 (view, text, modeWhenText, lineNum,
@@ -3776,7 +3793,7 @@ function maybeLintTooltip
     return { pos: start,
              end: end,
              create() {
-               return { dom: divCl('tttest') }
+               return { dom: diagTip(diags) }
              } }
 }
 
@@ -3786,7 +3803,8 @@ function makeLinter
     return [ CMLint.linter(CMJS.esLint(new Eslint.Linter(),
                                        eslintConfig),
                            { tooltipFilter: handleTooltipLint }),
-             CMView.hoverTooltip(maybeLintTooltip, { hideOn: CMLint.hideTooltip }) ]
+             CMView.hoverTooltip(maybeLintTooltip, { hideOn: CMLint.hideTooltip,
+                                                     hideOnChange: false }) ]
   return []
 }
 

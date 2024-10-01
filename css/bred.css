@@ -331,18 +331,6 @@ textarea:focus-visible {
   align-self: flex-start;
 }
 
-.tttest {
-  background: red;
-  width: 4rem;
-  height: 4rem;
-  min-width: 4rem;
-  min-height: 4rem;
-  display: flex;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
 .bred-area.bred-diag-w,
 .bred-area.bred-tip-w {
   pointer-events: none;
@@ -370,22 +358,26 @@ textarea:focus-visible {
 }
 
 .bred-diag.bred-error,
-.bred-tip.bred-error {
+.bred-tip.bred-error,
+.bred-tooltip.bred-error {
   border-left: 4px solid var(--clr-nb3);
 }
 
 .bred-diag.bred-warning,
-.bred-tip.bred-warning {
+.bred-tip.bred-warning,
+.bred-tooltip.bred-warning {
   border-left: 4px solid var(--clr-nb2);
 }
 
 .bred-diag.bred-hint,
-.bred-tip.bred-hint {
+.bred-tip.bred-hint,
+.bred-tooltip.bred-hint {
   border-left: 4px solid var(--clr-nb1);
 }
 
 .bred-diag.bred-info,
-.bred-tip.bred-info {
+.bred-tip.bred-info,
+.bred-tooltip.bred-info {
   border-left: 4px solid var(--clr-nb1);
 }
 
@@ -612,17 +604,28 @@ div.bred-menu1-item {
   transform: none;
 }
 
+.bred-tooltip,
 .bred-context {
-  position: absolute;
-  top: 0;
-  left: 0;
   background: var(--clr-fill);
   border: 1px solid var(--clr-text);
   box-shadow: 2px 2px 5px var(--clr-fill);
 
+  z-index: var(--z-context);
+}
+
+.bred-tooltip {
+  display: flex;
+  padding-top: 0.3rem;
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.bred-context {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: none;
   flex-direction: column;
-  z-index: var(--z-context);
 }
 
 .bred-context.bred-open {

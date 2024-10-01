@@ -491,19 +491,14 @@ function tip
 
 function diagTip
 (diags) {
-  if (diags) {
-    let diag
-
-    diag = diags.filter(d => d).at(0)
-    if (diag)
-      return divCl('bred-tooltip bred-open bred-' + diag.severity,
-                   [ divCl('bred-diag-icon',
-                           img(Ed.iconPath('diagnostic'), 'Diagnostic', 'filter-clr-text')),
-                     divCl('bred-diag-text-w',
-                           [ divCl('bred-diag-text', diag.message),
-                             divCl('bred-diag-source', diag.source) ]) ])
-    return
-  }
+  if (diags && diags.length)
+    return divCl('bred-tooltip-w bred-open',
+                 diags.map(diag => divCl('bred-tooltip bred-' + diag.severity,
+                                         [ divCl('bred-diag-icon',
+                                                 img(Ed.iconPath('diagnostic'), 'Diagnostic', 'filter-clr-text')),
+                                           divCl('bred-diag-text-w',
+                                                 [ divCl('bred-diag-text', diag.message),
+                                                   divCl('bred-diag-source', diag.source) ]) ])))
 }
 
 export
@@ -3795,13 +3790,14 @@ function maybeLintTooltip
 (ed, pos, side) {
   let diags, start, end
 
+  start = 2e8
+  end = 0
   diags = []
   CMLint.forEachDiagnostic(ed.state, (diag, from, to) => {
     if (between(pos, from, to, side)) {
       diags.push(diag)
-      start = from
-      end = to
-      return false
+      start = Math.min(start, from)
+      end = Math.max(to, end)
     }
   })
   if (diags.length)

@@ -1,0 +1,22 @@
+--- @codemirror/view.js.orig	2024-10-01 17:09:53.461721791 +0200
++++ @codemirror/view.js	2024-10-01 17:13:04.561331237 +0200
+@@ -10966,8 +10966,8 @@
+     eq(other) { return this.number == other.number; }
+     toDOM() { return document.createTextNode(this.number); }
+ }
+-function formatNumber(view, number) {
+-    return view.state.facet(lineNumberConfig).formatNumber(number, view.state);
++function formatNumber(view, line) {
++    return view.state.facet(lineNumberConfig).formatNumber(line.number, view.state, line, view);
+ }
+ const lineNumberGutter = /*@__PURE__*/activeGutters.compute([lineNumberConfig], state => ({
+     class: "cm-lineNumbers",
+@@ -10976,7 +10976,7 @@
+     lineMarker(view, line, others) {
+         if (others.some(m => m.toDOM))
+             return null;
+-        return new NumberMarker(formatNumber(view, view.state.doc.lineAt(line.from).number));
++        return new NumberMarker(formatNumber(view, view.state.doc.lineAt(line.from)));
+     },
+     widgetMarker: (view, widget, block) => {
+         for (let m of view.state.facet(lineNumberWidgetMarker)) {

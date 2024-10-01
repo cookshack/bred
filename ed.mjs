@@ -1378,6 +1378,7 @@ function selfInsertIndent
   Backend.indentLine()
 }
 
+export
 function enable
 (u, name) {
   if (u == 4)

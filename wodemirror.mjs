@@ -333,6 +333,26 @@ function makeHighlightSyntax
   return CMLang.syntaxHighlighting(CMLang.defaultHighlightStyle, { fallback: true })
 }
 
+function formatLineNumber
+(num, state, line, view) {
+  if (0) {
+    let el
+
+    // ERR seems too early to access view
+    el = view?.domAtPos(line?.from)
+    if (Css.has(el, 'cm-blank-line'))
+      return ''
+    return String(num)
+  }
+  return line.length ? String(num) : ''
+}
+
+function makeLineNums
+(buf) {
+  return [ CMView.highlightActiveLineGutter(),
+           CMView.lineNumbers({ formatNumber: buf.opt('blankLines.enabled') ? formatLineNumber : String }) ]
+}
+
 function makeMinimap
 () {
   let minimap
@@ -805,8 +825,7 @@ function viewInit
     opts.push(view.wode.minimap.of([]))
 
   if (buf.opt('core.line.numbers.show'))
-    opts.push(view.wode.lineNums.of([ CMView.highlightActiveLineGutter(),
-                                      CMView.lineNumbers() ]))
+    opts.push(view.wode.lineNums.of(makeLineNums(buf)))
   else
     opts.push(view.wode.lineNums.of([]))
 
@@ -3930,8 +3949,7 @@ function reconfigureHighlightWhitespace
 function reconfigureLineNums
 (buf, view) {
   if (buf.opt('core.line.numbers.show'))
-    view.ed.dispatch({ effects: [ view.wode.lineNums.reconfigure([ CMView.highlightActiveLineGutter(),
-                                                                   CMView.lineNumbers() ]) ] })
+    view.ed.dispatch({ effects: [ view.wode.lineNums.reconfigure(makeLineNums(buf)) ] })
   else
     view.ed.dispatch({ effects: [ view.wode.lineNums.reconfigure([]) ] })
 }
@@ -4010,7 +4028,7 @@ function initOpt
   on('core.highlight.whitespace.enabled', reconfigureHighlightWhitespace)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
-  on('core.line.numbers.show', reconfigureLineNums)
+  on([ 'core.line.numbers.show', 'blankLines.enabled' ], reconfigureLineNums)
   on('core.line.wrap.enabled', reconfigureLineWrap)
   on('core.minimap.enabled', reconfigureMinimap)
 }

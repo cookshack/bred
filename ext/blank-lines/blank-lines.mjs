@@ -11,27 +11,28 @@ import * as CMState from '../../lib/@codemirror/state.js'
 export
 function init
 () {
-  let mode, part
+  let part
 
   part = new CMState.Compartment
 
   Opt.declare('blankLines.enabled', 'bool', 0)
-  mode = Mode.add('Blank Lines', { minor: 1 })
 
   Cmd.add('enable blank lines', u => Ed.enable(u, 'blankLines.enabled'))
 
   if (0) {
     let p, ext
 
+    // every existing ed must get one
     p = Pane.current()
-    if (p) {
+    if (p?.buf) {
       if (p.buf.opt('blankLines.enabled'))
         ext = part.of(blankLines())
       else
         ext = part.of([])
-      p?.buf.addExt({ cm: ext })
-      p?.buf.addMode(mode)
+      p.buf.addExt({ cm: ext })
     }
+    // any new ed must get one
+    //Ed.when('blankLines.enabled', opts => addPart(opts))
   }
 }
 

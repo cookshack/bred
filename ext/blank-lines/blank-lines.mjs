@@ -6,6 +6,7 @@ import * as Opt from '../../opt.mjs'
 
 import { blankLines } from './lib/@cookshack/codemirror-blank-lines.js'
 import * as CMState from '../../lib/@codemirror/state.js'
+import * as CMView from '../../lib/@codemirror/view.js'
 
 export
 function init
@@ -22,15 +23,23 @@ function init
   part = new CMState.Compartment
 
   Opt.declare('blankLines.enabled', 'bool', 0)
+  Opt.declare('blankLines.background', 'string', 'var(--clr-fill)')
 
-  Cmd.add('enable blank lines', u => Ed.enable(u, 'blankLines.enabled'))
-  Cmd.add('buffer enable blank lines', u => Ed.enableBuf(u, 'blankLines.enabled'))
-
-  // any new ed must get one
   Ed.register({ backend: 'cm',
                 make,
                 part,
                 reconfOpts: [ 'blankLines.enabled' ] })
+
+  Ed.register({ backend: 'cm',
+                make(view) {
+                  return CMView.EditorView.theme({ '.cm-blank-line': { lineHeight: '0.9',
+                                                                       background: view.buf.opt('blankLines.background') ?? 'inherit' } })
+                },
+                part: new CMState.Compartment,
+                reconfOpts: [ 'blankLines.background' ] })
+
+  Cmd.add('enable blank lines', u => Ed.enable(u, 'blankLines.enabled'))
+  Cmd.add('buffer enable blank lines', u => Ed.enableBuf(u, 'blankLines.enabled'))
 }
 
 export

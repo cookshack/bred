@@ -1388,6 +1388,18 @@ function enable
 }
 
 export
+function enableBuf
+(u, name) {
+  let p
+
+  p = Pane.current()
+  if (u == 4)
+    p?.buf?.opts.set(name, 0)
+  else
+    p?.buf?.opts.set(name, 1)
+}
+
+export
 function init
 (backend, cb) { // (err)
   let mo

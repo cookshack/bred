@@ -33,6 +33,7 @@ function init
   Opt.declare('blankLines.enabled', 'bool', 0)
 
   Cmd.add('enable blank lines', u => Ed.enable(u, 'blankLines.enabled'))
+  Cmd.add('buffer enable blank lines', u => Ed.enableBuf(u, 'blankLines.enabled'))
 
   // every existing ed must get a compartment
   add()

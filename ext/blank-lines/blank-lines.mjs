@@ -11,8 +11,6 @@ import * as CMView from '../../lib/@codemirror/view.js'
 export
 function init
 () {
-  let part
-
   function make
   (view) {
     if (view.buf.opt('blankLines.enabled'))
@@ -20,15 +18,13 @@ function init
     return []
   }
 
-  part = new CMState.Compartment
-
   Opt.declare('blankLines.enabled', 'bool', 0)
   Opt.declare('blankLines.background', 'string', 'var(--clr-fill)')
   Opt.declare('blankLines.lineHeight', 'decimal', '0.9')
 
   Ed.register({ backend: 'cm',
                 make,
-                part,
+                part: new CMState.Compartment,
                 reconfOpts: [ 'blankLines.enabled' ] })
 
   Ed.register({ backend: 'cm',

@@ -10,6 +10,6 @@
   "author": "Matt Mundell",
   "license": "CC0-1.0",
   "dependencies": {
-    "@cookshack/codemirror-blank-lines": "file:../../../codemirror-blank-lines/latest.tgz"
+    "@cookshack/codemirror-blank-lines": "^0.1.0"
   }
 }

@@ -606,23 +606,32 @@ div.bred-menu1-item {
 
 .bred-tooltip-w,
 .bred-context {
-  background: var(--clr-fill);
-  border: 1px solid var(--clr-text);
   box-shadow: 2px 2px 5px var(--clr-fill);
-
   z-index: var(--z-context);
 }
 
+.bred-context {
+  background: var(--clr-fill);
+}
+
 .bred-tooltip-w {
-  padding-top: 0.3rem;
-  border-bottom-left-radius: 0.25rem;
-  border-bottom-right-radius: 0.25rem;
+  background: var(--clr-fill);
   display: flex;
   flex-direction: column;
 }
 
 .bred-tooltip {
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--clr-text);
+  border-left: 1px solid var(--clr-text);
+  border-right: 1px solid var(--clr-text);
   display: flex;
+}
+
+.bred-tooltip:last-child {
+  border-bottom: 1px solid var(--clr-text);
+  border-bottom-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
 }
 
 .bred-context {

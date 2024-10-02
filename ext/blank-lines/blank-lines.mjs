@@ -14,18 +14,19 @@ function init
   function make
   (view) {
     if (view.buf.opt('blankLines.enabled'))
-      return blankLines()
+      return blankLines({ includeActiveLine: view.buf.opt('blankLines.includeActiveLine') })
     return []
   }
 
   Opt.declare('blankLines.enabled', 'bool', 0)
   Opt.declare('blankLines.background', 'string', 'var(--clr-fill)')
+  Opt.declare('blankLines.includeActiveLine', 'bool', 0)
   Opt.declare('blankLines.lineHeight', 'decimal', '0.9')
 
   Ed.register({ backend: 'cm',
                 make,
                 part: new CMState.Compartment,
-                reconfOpts: [ 'blankLines.enabled' ] })
+                reconfOpts: [ 'blankLines.enabled', 'blankLines.includeActiveLine' ] })
 
   Ed.register({ backend: 'cm',
                 make(view) {

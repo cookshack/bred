@@ -24,6 +24,7 @@ function init
 
   Opt.declare('blankLines.enabled', 'bool', 0)
   Opt.declare('blankLines.background', 'string', 'var(--clr-fill)')
+  Opt.declare('blankLines.lineHeight', 'decimal', '0.9')
 
   Ed.register({ backend: 'cm',
                 make,
@@ -32,11 +33,11 @@ function init
 
   Ed.register({ backend: 'cm',
                 make(view) {
-                  return CMView.EditorView.theme({ '.cm-blank-line': { lineHeight: '0.9',
-                                                                       background: view.buf.opt('blankLines.background') ?? 'inherit' } })
+                  return CMView.EditorView.theme({ '.cm-blank-line': { background: view.buf.opt('blankLines.background') ?? 'inherit',
+                                                                       lineHeight: view.buf.opt('blankLines.lineHeight') ?? 'inherit' } })
                 },
                 part: new CMState.Compartment,
-                reconfOpts: [ 'blankLines.background' ] })
+                reconfOpts: [ 'blankLines.background', 'blankLines.lineHeight' ] })
 
   Cmd.add('enable blank lines', u => Ed.enable(u, 'blankLines.enabled'))
   Cmd.add('buffer enable blank lines', u => Ed.enableBuf(u, 'blankLines.enabled'))

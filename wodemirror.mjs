@@ -539,6 +539,13 @@ function register
   if (spec.backend == 'cm') {
     brexts.push(spec)
 
+    if (spec.part && spec.make)
+      // every existing ed must get a compartment
+      Buf.forEach(buf => buf.views.forEach(view => {
+        if (view.ele && view.ed)
+          view.ed.dispatch({ effects: CMState.StateEffect.appendConfig.of(spec.part.of(spec.make(view))) })
+      }))
+
     spec.reconfOpts?.forEach(name => {
       if (registeredOpts.has(name))
         return

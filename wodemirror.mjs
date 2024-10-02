@@ -41,6 +41,7 @@ export let langs
 
 let theme, themeTags, themeExtension, themeHighlighting, Eslint, eslintConfig
 let completionNextLine, completionPreviousLine, tagHighlighting, bredView, spRe
+let brexts
 
 export
 function version
@@ -522,6 +523,13 @@ function diagTip
 }
 
 export
+function register
+(spec) {
+  if (spec.backend == 'cm')
+    brexts.push(spec)
+}
+
+export
 function viewInit
 (view, text, modeWhenText, lineNum,
  // only called if buf has a file.
@@ -774,6 +782,8 @@ function viewInit
            view.wode.tabSize.of(CMState.EditorState.tabSize.of(2)) ]
 
   opts.push(view.wode.autocomplete.of([]))
+
+  brexts.forEach(spec => spec.part && spec.make && opts.push(spec.part.of(spec.make(buf))))
 
   if (buf.opt('core.highlight.activeLine.enabled'))
     opts.push(view.wode.highlightActive.of(CMView.highlightActiveLine()))
@@ -4069,6 +4079,7 @@ function init
 () {
   let languages
 
+  brexts = []
   bredView = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
 
   completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run

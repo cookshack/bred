@@ -1603,6 +1603,12 @@ function init
   })
 }
 
+export
+function register
+(spec) {
+  Backend.register && Backend.register(spec)
+}
+
 /// Utils
 
 export

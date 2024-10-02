@@ -13,18 +13,18 @@ function init
 () {
   let part
 
+  function make
+  (buf) {
+    if (buf.opt('blankLines.enabled'))
+      return blankLines()
+    return []
+  }
+
   function add
   () {
     Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ele && view.ed) {
-        let ext
-
-        if (buf.opt('blankLines.enabled'))
-          ext = part.of(blankLines())
-        else
-          ext = part.of([])
-        buf.addExt({ cm: ext })
-      }
+      if (view.ele && view.ed)
+        buf.addExt({ cm: part.of(make(buf)) })
     }))
   }
 
@@ -38,7 +38,10 @@ function init
   add()
 
   // any new ed must get one
-  //Ed.when('blankLines.enabled', opts => addPart(opts))
+  Ed.register({ backend: 'cm',
+                make,
+                part,
+                reconfOpts: 'blankLines.enabled' })
 }
 
 export

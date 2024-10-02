@@ -41,7 +41,7 @@ export let langs
 
 let theme, themeTags, themeExtension, themeHighlighting, Eslint, eslintConfig
 let completionNextLine, completionPreviousLine, tagHighlighting, bredView, spRe
-let brexts
+let brexts, registeredOpts
 
 export
 function version
@@ -494,7 +494,7 @@ function diagnose
   Css.hide(elements.diag)
 }
 
-function tip
+0 && function tip
 (diags) {
   if (diags) {
     let diag
@@ -524,9 +524,31 @@ function diagTip
 
 export
 function register
-(spec) {
-  if (spec.backend == 'cm')
+(spec) { // { backend, make, part, reconfOpts }
+  function reconfigure
+  (buf, name) {
+    buf.views.forEach(view => {
+      if (view.ed)
+        brexts.forEach(brext => {
+          if (brext.part && brext.make && brext.reconfOpts && brext.reconfOpts.includes(name))
+            view.ed.dispatch({ effects: brext.part.reconfigure(brext.make(view)) })
+        })
+    })
+  }
+
+  if (spec.backend == 'cm') {
     brexts.push(spec)
+
+    spec.reconfOpts?.forEach(name => {
+      if (registeredOpts.has(name))
+        return
+      registeredOpts.add(name)
+      // these will just listen forever, which is ok
+      //   could get handles and free them when the brext is freed
+      Opt.onSet(name, () => Buf.forEach(buf => reconfigure(buf, name)))
+      Opt.onSetBuf(name, buf => reconfigure(buf, name))
+    })
+  }
 }
 
 export
@@ -783,7 +805,7 @@ function viewInit
 
   opts.push(view.wode.autocomplete.of([]))
 
-  brexts.forEach(spec => spec.part && spec.make && opts.push(spec.part.of(spec.make(buf))))
+  brexts.forEach(spec => spec.part && spec.make && opts.push(spec.part.of(spec.make(view))))
 
   if (buf.opt('core.highlight.activeLine.enabled'))
     opts.push(view.wode.highlightActive.of(CMView.highlightActiveLine()))
@@ -4080,6 +4102,7 @@ function init
   let languages
 
   brexts = []
+  registeredOpts = new Set()
   bredView = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
 
   completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run

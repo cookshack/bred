@@ -614,10 +614,11 @@ div.bred-menu1-item {
 }
 
 .bred-tooltip-w {
-  display: flex;
   padding-top: 0.3rem;
   border-bottom-left-radius: 0.25rem;
   border-bottom-right-radius: 0.25rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .bred-tooltip {

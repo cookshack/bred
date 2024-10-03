@@ -7,7 +7,6 @@ import * as Opt from '../../opt.mjs'
 
 import { showMinimap } from './lib/@replit/codemirror-minimap.js'
 import * as CMState from '../../lib/@codemirror/state.js'
-import * as CMView from '../../lib/@codemirror/view.js'
 
 let brexts
 

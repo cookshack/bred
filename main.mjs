@@ -302,6 +302,11 @@ function onBrowse
   e.sender.send(ch, {})
 }
 
+function mandatoryExt
+(name) {
+  return [ 'core', 'ed' ].includes(name)
+}
+
 function onExtAdd
 (e, ch, onArgs) {
   let [ name ] = onArgs
@@ -322,6 +327,11 @@ function onExtAdd
           e.sender.send(ch, {})
       })
     })
+  }
+
+  if (mandatoryExt(name)) {
+    e.sender.send(ch, errMsg("That's a mandatory extension"))
+    return
   }
 
   dir = Path.join(app.getAppPath(), 'ext', name)
@@ -352,6 +362,10 @@ function onExtRemove
   let [ name ] = onArgs
   let flag
 
+  if (mandatoryExt(name)) {
+    e.sender.send(ch, errMsg("That's a mandatory extension"))
+    return
+  }
   flag = Path.join(app.getAppPath(), 'ext', name, '.ADDED')
   fs.unlinkSync(flag)
   e.sender.send(ch, {})
@@ -370,6 +384,8 @@ function onExtAll
 
   function added
   (dir, name) {
+    if (mandatoryExt(name))
+      return 1
     if (fs.statSync(Path.join(dir, name, '.ADDED'),
                     { throwIfNoEntry: false }))
       return 1
@@ -393,6 +409,7 @@ function onExtAll
                          { throwIfNoEntry: false })
       if (stat && isDir(stat))
         exts.push({ name: name,
+                    mandatory: mandatoryExt(name),
                     added: added(dir, name) })
     })
     e.sender.send(ch, { exts: exts })

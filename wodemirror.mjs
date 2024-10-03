@@ -7,7 +7,6 @@ import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import elements from './elements.mjs'
 import * as Em from './em.mjs'
-import * as Ext from './ext.mjs'
 import * as Loc from './loc.mjs'
 import * as Lsp from './lsp.mjs'
 import * as Mess from './mess.mjs'
@@ -334,26 +333,6 @@ function makeHighlightSyntax
   return CMLang.syntaxHighlighting(CMLang.defaultHighlightStyle, { fallback: true })
 }
 
-function formatLineNumber
-(num, state, line, view) {
-  if (0) {
-    let el
-
-    // ERR seems too early to access view
-    el = view?.domAtPos(line?.from)
-    if (Css.has(el, 'cm-blank-line'))
-      return ''
-    return String(num)
-  }
-  return line.length ? String(num) : ''
-}
-
-function makeLineNums
-(buf) {
-  return [ CMView.highlightActiveLineGutter(),
-           CMView.lineNumbers({ formatNumber: (Ext.get('blankLines') && buf.opt('blankLines.enabled')) ? formatLineNumber : String }) ]
-}
-
 function markFromDec
 (dec) {
   let m
@@ -637,7 +616,6 @@ function viewInit
   view.wode.foldGutter = new CMState.Compartment
   view.wode.lang = new CMState.Compartment
   view.wode.language = 'text'
-  view.wode.lineNums = new CMState.Compartment
   view.wode.linter = new CMState.Compartment
   view.wode.lintGutter = new CMState.Compartment
   view.wode.tabSize = new CMState.Compartment
@@ -861,11 +839,6 @@ function viewInit
     opts.push(view.wode.showTrailingWhitespace.of(CMView.highlightTrailingWhitespace()))
   else
     opts.push(view.wode.showTrailingWhitespace.of([]))
-
-  if (buf.opt('core.line.numbers.show'))
-    opts.push(view.wode.lineNums.of(makeLineNums(buf)))
-  else
-    opts.push(view.wode.lineNums.of([]))
 
   if (buf.opt('core.folding.enabled')) {
     opts.push(view.wode.folding.of(CMLang.codeFolding()))
@@ -3984,14 +3957,6 @@ function reconfigureHighlightWhitespace
     view.ed.dispatch({ effects: view.wode.highlightWhitespace.reconfigure([]) })
 }
 
-function reconfigureLineNums
-(buf, view) {
-  if (buf.opt('core.line.numbers.show'))
-    view.ed.dispatch({ effects: [ view.wode.lineNums.reconfigure(makeLineNums(buf)) ] })
-  else
-    view.ed.dispatch({ effects: [ view.wode.lineNums.reconfigure([]) ] })
-}
-
 function reconfigureLineWrap
 (buf, view) {
   if (buf.opt('core.line.wrap.enabled'))
@@ -4058,7 +4023,6 @@ function initOpt
   on('core.highlight.whitespace.enabled', reconfigureHighlightWhitespace)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
-  on([ 'core.line.numbers.show', 'blankLines.enabled' ], reconfigureLineNums)
   on('core.line.wrap.enabled', reconfigureLineWrap)
 }
 

@@ -63,6 +63,8 @@ function loadAll
     return 1
   }
 
+  setTimeout(() => load(dir, 'core'))
+
   dir = Loc.appDir()
   dir.join('ext')
   dir.ensureSlash()
@@ -125,7 +127,9 @@ function init
       all = data.exts?.map(ext => {
         let b
 
-        if (ext.added)
+        if (ext.mandatory)
+          b = []
+        else if (ext.added)
           b = button('Remove', '', { 'data-run': 'Remove Extension',
                                      'data-name': ext.name })
         else
@@ -158,7 +162,7 @@ function init
 
         d({ data })
         if (err)
-          Mess.toss('Error adding extension')
+          Mess.toss('Error: ' + err.message)
 
         dir = Loc.appDir()
         dir.join('ext')

@@ -1,0 +1,13 @@
+{
+  "name": "@cookshack/bred-ext-core",
+  "version": "0.1.0",
+  "description": "Bred core",
+  "main": "core.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Matt Mundell",
+  "license": "CC0-1.0",
+  "dependencies": {
+  }
+}

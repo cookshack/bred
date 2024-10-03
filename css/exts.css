@@ -47,3 +47,9 @@
   margin-top: 2rem;
   display: flex;
 }
+
+.bred-exts-name {
+  min-height: 1.8rem;
+  display: flex;
+  align-items: center;
+}

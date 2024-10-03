@@ -88,6 +88,18 @@ function loadAll
   })
 }
 
+function canon
+(name) {
+  // 'blank-lines' => 'blankLines'
+  return name.split('-').map((w,i) => i ? Buf.capitalize(w) : w).join('')
+}
+
+export
+function get
+(name) {
+  return exts[canon(name)]
+}
+
 export
 function init
 () {

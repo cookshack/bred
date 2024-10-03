@@ -7,6 +7,7 @@ import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import elements from './elements.mjs'
 import * as Em from './em.mjs'
+import * as Ext from './ext.mjs'
 import * as Loc from './loc.mjs'
 import * as Lsp from './lsp.mjs'
 import * as Mess from './mess.mjs'
@@ -351,7 +352,7 @@ function formatLineNumber
 function makeLineNums
 (buf) {
   return [ CMView.highlightActiveLineGutter(),
-           CMView.lineNumbers({ formatNumber: buf.opt('blankLines.enabled') ? formatLineNumber : String }) ]
+           CMView.lineNumbers({ formatNumber: (Ext.get('blankLines') && buf.opt('blankLines.enabled')) ? formatLineNumber : String }) ]
 }
 
 function makeMinimap
@@ -564,6 +565,8 @@ function register
       //   could get handles and free them when the brext is freed
       Opt.onSet(name, () => Buf.forEach(buf => reconfigureOpt(buf, name)))
       Opt.onSetBuf(name, buf => reconfigureOpt(buf, name))
+      // reconfigure the opt on all bufs, in case any other extensions use the opt
+      Buf.forEach(buf => reconfigureOpt(buf, name))
     })
 
     brext = { spec,

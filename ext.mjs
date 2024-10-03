@@ -39,7 +39,12 @@ function load
   loc = Loc.make(dir)
   loc.join(name)
   loc.join(name + '.css')
-  Bred.initCss1(loc.path)
+  Tron.cmd('file.exists', loc.path, (err, data) => {
+    if (err)
+      return
+    if (data.exists)
+      Bred.initCss1(loc.path)
+  })
 }
 
 export

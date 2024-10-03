@@ -106,7 +106,6 @@ sync-codemirror:
 	cp node_modules/@replit/codemirror-lang-csharp/dist/index.js lib/@replit/codemirror-lang-csharp.js
 	cp node_modules/@replit/codemirror-lang-nix/dist/index.js lib/@replit/codemirror-lang-nix.js
 	cp node_modules/@replit/codemirror-css-color-picker/dist/index.js lib/@replit/codemirror-css-color-picker.js
-	cp node_modules/@replit/codemirror-minimap/dist/index.js lib/@replit/codemirror-minimap.js
 	cp node_modules/@orgajs/cm-lang/index.js lib/@orgajs/codemirror-lang-org.js
 	cp node_modules/@orgajs/lezer/lib/*.js lib/@orgajs/
 	cp node_modules/eslint-linter-browserify/linter.mjs lib/eslint-linter-browserify.mjs

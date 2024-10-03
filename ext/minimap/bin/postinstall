@@ -1,0 +1,2 @@
+#!/bin/bash
+../../bin/sync-scope replit && ../../bin/fix-scope replit ../../../../lib/

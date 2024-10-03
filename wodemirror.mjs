@@ -1,4 +1,4 @@
-import { button, div, divCl, span, img } from './dom.mjs'
+import { button, divCl, span, img } from './dom.mjs'
 
 import * as Buf from './buf.mjs'
 import * as Cut from './cut.mjs'
@@ -34,7 +34,6 @@ import * as Theme from './theme-solarized.js'
 import { colorPicker } from './lib/@replit/codemirror-css-color-picker.js'
 import { indentationMarkers } from './lib/@replit/codemirror-indentation-markers.js'
 import * as EslintConfig from './lib/@cookshack/eslint-config.js'
-import { showMinimap } from './lib/@replit/codemirror-minimap.js'
 import * as LZHighlight from './lib/@lezer/highlight.js'
 import { Vode } from './json.mjs'
 
@@ -355,24 +354,6 @@ function makeLineNums
            CMView.lineNumbers({ formatNumber: (Ext.get('blankLines') && buf.opt('blankLines.enabled')) ? formatLineNumber : String }) ]
 }
 
-function makeMinimap
-() {
-  let minimap
-
-  minimap = showMinimap.compute([ 'doc' ], () => {
-    return {
-      create: () => {
-        return { dom: div() }
-      },
-      //create,
-      displayText: 'blocks',
-      showOverlay: 'always',
-      gutters: [ { 1: '#00FF00', 2: '#00FF00' } ],
-    }
-  })
-  return minimap
-}
-
 function markFromDec
 (dec) {
   let m
@@ -659,7 +640,6 @@ function viewInit
   view.wode.lineNums = new CMState.Compartment
   view.wode.linter = new CMState.Compartment
   view.wode.lintGutter = new CMState.Compartment
-  view.wode.minimap = new CMState.Compartment
   view.wode.tabSize = new CMState.Compartment
   view.wode.themeExtension = new CMState.Compartment
   view.wode.wrap = new CMState.Compartment
@@ -881,11 +861,6 @@ function viewInit
     opts.push(view.wode.showTrailingWhitespace.of(CMView.highlightTrailingWhitespace()))
   else
     opts.push(view.wode.showTrailingWhitespace.of([]))
-
-  if (buf.opt('core.minimap.enabled'))
-    opts.push(view.wode.minimap.of(makeMinimap()))
-  else
-    opts.push(view.wode.minimap.of([]))
 
   if (buf.opt('core.line.numbers.show'))
     opts.push(view.wode.lineNums.of(makeLineNums(buf)))
@@ -4041,14 +4016,6 @@ function reconfigureLinter
   view.ed.dispatch({ effects: effects })
 }
 
-function reconfigureMinimap
-(buf, view) {
-  if (buf.opt('core.minimap.enabled'))
-    view.ed.dispatch({ effects: view.wode.minimap.reconfigure(makeMinimap()) })
-  else
-    view.ed.dispatch({ effects: view.wode.minimap.reconfigure([]) })
-}
-
 function initEslint
 () {
   import('./lib/eslint-linter-browserify.mjs').then(m => {
@@ -4093,7 +4060,6 @@ function initOpt
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
   on([ 'core.line.numbers.show', 'blankLines.enabled' ], reconfigureLineNums)
   on('core.line.wrap.enabled', reconfigureLineWrap)
-  on('core.minimap.enabled', reconfigureMinimap)
 }
 
 function handleCustomTags

@@ -1516,7 +1516,6 @@ function init
     Cmd.add('open lint panel', () => Backend.openLint(), mo)
     Cmd.add('show trailing whitespace', u => enable(u, 'core.highlight.trailingWhitespace.enabled'), mo)
     Cmd.add('enable lint', u => enable(u, 'core.lint.enabled'), mo)
-    Cmd.add('enable minimap', u => enable(u, 'core.minimap.enabled'), mo)
 
     Cmd.add('yank', () => Backend.yank(), mo)
     Cmd.add('yank roll', () => Backend.yankRoll(), mo)

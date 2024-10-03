@@ -1,0 +1,15 @@
+{
+  "name": "@cookshack/bred-ext-minimap",
+  "version": "0.1.0",
+  "description": "Minimap",
+  "main": "minimap.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "bin/postinstall && touch .READY"
+  },
+  "author": "Matt Mundell",
+  "license": "CC0-1.0",
+  "dependencies": {
+    "@replit/codemirror-minimap": "^0.5.2"
+  }
+}

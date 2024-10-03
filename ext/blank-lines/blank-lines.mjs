@@ -1,6 +1,5 @@
 import * as Cmd from '../../cmd.mjs'
 import * as Ed from '../../ed.mjs'
-import * as Mode from '../../mode.mjs'
 import * as Opt from '../../opt.mjs'
 //import { d } from '../../mess.mjs'
 
@@ -45,7 +44,7 @@ function init
 export
 function free
 () {
-  Mode.remove('Blank Lines')
-  Cmd.remove('blank lines mode')
+  Cmd.remove('enable blank lines')
+  Cmd.remove('buffer enable blank lines')
   brexts.forEach(b => b?.free())
 }

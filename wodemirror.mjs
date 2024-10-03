@@ -526,7 +526,7 @@ function reconfigureOpt
 (buf, name) {
   buf.views.forEach(view => {
     if (view.ed)
-      brexts.forEach(brext => {
+      brexts.forEach(b => {
         if (b.spec.part && b.spec.make && b.spec.reconfOpts && b.spec.reconfOpts.includes(name))
           view.ed.dispatch({ effects: b.spec.part.reconfigure(b.spec.make(view)) })
       })

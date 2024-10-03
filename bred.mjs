@@ -105,6 +105,7 @@ function initPackages
                         Dom,
                         Ed,
                         Em,
+                        Ext,
                         Hist,
                         Loc,
                         Opt,

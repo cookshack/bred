@@ -29,9 +29,14 @@ function init
 
   function make
   (view) {
+    let format
+
+    format = String
+    if (Ext.get('blankLines') && view.buf.opt('blankLines.enabled'))
+      format = formatLineNumber
     if (view.buf.opt('core.line.numbers.show'))
       return [ CMView.highlightActiveLineGutter(),
-               CMView.lineNumbers({ formatNumber: (Ext.get('blankLines') && view.buf.opt('blankLines.enabled')) ? formatLineNumber : String }) ]
+               CMView.lineNumbers({ formatNumber: format }) ]
     return []
   }
 

@@ -541,8 +541,10 @@ function register
 
     function free
     () {
-      d('F')
       brexts = brexts.filter(b => b.id !== brext.id)
+      // remove from existing views
+      if (spec.part)
+        Buf.forEach(buf => buf.views.forEach(v => v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
     }
 
     id = ++brextIds

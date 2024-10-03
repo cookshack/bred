@@ -1,0 +1,31 @@
+#+title: Org Sample
+#+date:  2024-06-01
+
+* Header 1
+
+** Style
+
+This is a sentence with /italic/ and *bold* text.
+
+** Links
+
+Go to the [[file:./verilog.v][Verilog]] sample.
+
+** Code
+
+#+begin_src javascript
+function f
+(a) {
+  return a + 3
+}
+if (f(4) == 7)
+  console.log("OK")
+#+end_src
+
+** Table
+
+| X | Y | Z
+| 0 | 0 | 0
+| 0 | 1 | 1
+| 1 | 0 | 1
+| 1 | 1 | 1

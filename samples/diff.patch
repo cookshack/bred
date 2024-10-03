@@ -1,0 +1,29 @@
+commit 86a062f3f96b73d29c25f080ebb805961b6fddec
+Author: Joe Example <example@example.org>
+Date:   Wed Jun 5 13:07:03 2024 +0200
+
+    filler under commit
+
+diff --git vc.mjs vc.mjs
+index c1fceff..b939e4b 100644
+--- vc.mjs
++++ vc.mjs
+@@ -9,6 +9,8 @@
+ // along with this software. If not, see
+ // <http://creativecommons.org/publicdomain/zero/1.0/>.
+ 
++import {append, div, divCl, divId, span, img} from './dom.mjs'
++
+ import * as Buf from './buf.mjs'
+ import * as Cmd from './cmd.mjs'
+ import * as Ed from './ed.mjs'
+@@ -110,7 +112,8 @@ function initCommit
+   function divW
+   () {
+     return Ed.divW(0, 0, { extraWWCss: "commit-ww",
+-                           extraWCss: "commit-w" })
++                           extraWCss: "commit-w",
++                           extraCo: divCl("bred-filler")  })
+   }
+ 
+   function commit

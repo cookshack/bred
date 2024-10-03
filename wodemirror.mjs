@@ -771,6 +771,7 @@ function viewInit
 
            CMView.EditorView.domEventHandlers(domEventHandlers),
 
+           CMAuto.closeBrackets(), // needed for CMAuto.insertBracket to work
            CMLang.indentOnInput(),
 
            //CMSearch.search(), // for searchHighlighter, see lib/@codemirror/search.js
@@ -2772,8 +2773,12 @@ function selfInsert
         let tr
 
         tr = CMAuto.insertBracket(view.ed.state, char)
-        if (tr)
+        if (tr) {
+          d('AUTO INSERT ' + char + ' in view:')
+          d(view)
+          d({ tr })
           view.ed.dispatch(tr)
+        }
         else
           vinsert(view, u, char)
       }

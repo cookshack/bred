@@ -42,7 +42,7 @@ function init
 
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
-    all = Opt.map((name, value) => {
+    all = Opt.sort().map(([ name, value ]) => {
       let type, run
 
       type = Opt.type(name)

@@ -147,6 +147,12 @@ function map
 }
 
 export
+function sort
+() {
+  return Object.entries(values).sort((kv1, kv2) => kv1[0].localeCompare(kv2[0]))
+}
+
+export
 function buf
 (buffer) {
   let opts, vals

@@ -506,6 +506,8 @@ function register
       // remove from existing views
       if (spec.part)
         Buf.forEach(buf => buf.views.forEach(v => v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
+      // reconfigure exts opts on all bufs, in case any other extensions use the opt
+      spec.reconfOpts?.forEach(name => Buf.forEach(buf => reconfigureOpt(buf, name)))
     }
 
     id = ++brextIds

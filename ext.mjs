@@ -199,14 +199,16 @@ function init
 
     if (name) {
       Css.disable(target)
-      Tron.cmd('ext.remove', [ name ], (err, data) => {
+      Tron.cmd('ext.remove', [ name ], err => {
+        let free
+
         Css.enable(target)
-        d({ data })
         if (err)
           Mess.toss('Error removing extension: ' + err.message)
 
-        if (exts[name].free)
-          exts[name].free()
+        free = exts[name].free
+        delete exts[name]
+        free && free()
 
         target.innerText = 'Add'
         target.dataset.run = 'Add Extension'

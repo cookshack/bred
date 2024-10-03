@@ -20,6 +20,10 @@ test('canon', 'blankLines',
      () => equal(canon('blankLines'),
                  'blank-lines'))
 
+test('canon', 'blank-lines',
+     () => equal(canon('blank-lines'),
+                 'blank-lines'))
+
 test('canon', 'co/re1_23-eg.mjs',
      () => equal(canon('co/re1_23-eg.mjs'),
                  'co/re1_23-eg.mjs'))

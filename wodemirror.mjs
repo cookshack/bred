@@ -518,13 +518,13 @@ function register
       }))
 
     spec.reconfOpts?.forEach(name => {
-      if (registeredOpts.has(name))
-        return
-      registeredOpts.add(name)
-      // these will just listen forever, which is ok
-      //   could get handles and free them when the brext is freed
-      Opt.onSet(name, () => Buf.forEach(buf => reconfigureOpt(buf, name)))
-      Opt.onSetBuf(name, buf => reconfigureOpt(buf, name))
+      if (!registeredOpts.has(name)) {
+        registeredOpts.add(name)
+        // these will just listen forever, which is ok
+        //   could get handles and free them when the brext is freed
+        Opt.onSet(name, () => Buf.forEach(buf => reconfigureOpt(buf, name)))
+        Opt.onSetBuf(name, buf => reconfigureOpt(buf, name))
+      }
       // reconfigure the opt on all bufs, in case any other extensions use the opt
       Buf.forEach(buf => reconfigureOpt(buf, name))
     })

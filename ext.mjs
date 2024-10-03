@@ -3,6 +3,7 @@ import { append, button, divCl } from './dom.mjs'
 import * as Bred from './bred.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
+import * as Css from './css.mjs'
 import * as Em from './em.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
@@ -156,10 +157,12 @@ function init
     else
       Mess.toss('Need an extension')
 
-    if (name)
+    if (name) {
+      Css.disable(target)
       Tron.cmd('ext.add', [ name ], (err, data) => {
         let dir
 
+        Css.enable(target)
         d({ data })
         if (err)
           Mess.toss('Error: ' + err.message)
@@ -172,6 +175,7 @@ function init
           target.dataset.run = 'Remove Extension'
         })
       })
+    }
   }
 
   function remove
@@ -185,8 +189,10 @@ function init
     else
       Mess.toss('Need an extension')
 
-    if (name)
+    if (name) {
+      Css.disable(target)
       Tron.cmd('ext.remove', [ name ], (err, data) => {
+        Css.enable(target)
         d({ data })
         if (err)
           Mess.toss('Error removing extension: ' + err.message)
@@ -197,6 +203,7 @@ function init
         target.innerText = 'Add'
         target.dataset.run = 'Add Extension'
       })
+    }
   }
 
   exts = {}

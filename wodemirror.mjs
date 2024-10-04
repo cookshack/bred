@@ -698,12 +698,8 @@ function viewInit
     if (posChanged(update)) {
       let p, col
 
-      d('posChanged')
-
       p = Pane.holdingView(view)
-      d({ p })
       col = p?.foot?.querySelector('.bred-foot-col')
-      d({ col })
       if (col)
         col.innerText = 'C' + (bepCol(view, update.state.selection.main.head))
 
@@ -1142,7 +1138,7 @@ function vsetOff
 (view, off, reveal, keepSelection) {
   let tr
 
-  d('vsetOff ' + off)
+  //d('vsetOff ' + off)
   if (keepSelection && view.markActive)
     tr = { selection: { anchor: view.ed.state.selection.main.anchor,
                         head: off } }
@@ -1241,8 +1237,6 @@ function bepCol
   let line
 
   line = view.ed.state.doc.lineAt(bep)
-  d({ bep })
-  d({ line })
   return bep - line.from
 }
 
@@ -1255,7 +1249,7 @@ function vgetBepEnd
 export
 function vsetBep
 (view, bep, reveal, keepSelection) {
-  d('vsetBep ' + bep)
+  //d('vsetBep ' + bep)
   return vsetOff(view, bep, reveal, keepSelection)
 }
 

@@ -964,6 +964,8 @@ function viewInit
   }
 
   if ((typeof text == 'string') || text instanceof String) {
+    if (Ed.defined(lineNum))
+      vgotoLine(view, lineNum)
   }
   else if (buf.file) {
     let path

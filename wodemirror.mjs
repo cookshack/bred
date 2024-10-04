@@ -4221,7 +4221,7 @@ function init
                                   caret: Theme.meanings.pointCurrent,
                                   //selection: 'rgb(38 139 210 / 20%)', //'rgb(238 232 213 / 45%)', //Theme.clrs.yellow,
                                   selection: Theme.meanings.nb0Light,
-                                  selectionMatch: '#036dd626',
+                                  selectionMatch: 'var(--clr-fill-aux)',
                                   lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
                                   gutterBorder: '1px solid #ffffff10',
                                   gutterBackground: Theme.meanings.fill,

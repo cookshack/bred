@@ -927,33 +927,12 @@ function initCmds
     Pane.bury()
   })
 
-  Cmd.add('remove buffer', () => {
-    Prompt.close()
-    Pane.removeBuf()
-  })
-
-  Cmd.add('save and remove buffer', () => {
-    Cmd.runMo('save', 'ed', 1, {}, err => {
-      if (err)
-        Mess.toss(err)
-      Cmd.run('remove buffer')
-    })
-  })
-
-  closeEm = Em.make('Save Buffer')
-  closeEm.on('y', 'save and remove buffer')
-  closeEm.on('n', 'remove buffer')
-  closeEm.on('c', 'close demand')
-  Em.on('C-g', 'close demand', closeEm)
-  Em.on('Escape', 'close demand', closeEm)
-
   Cmd.add('close buffer', (u, we) => {
     let p
 
     function remove
     () {
       p.buf.remove()
-      p.buf = Buf.top()
     }
 
     if (we?.e && (we?.e instanceof globalThis.MouseEvent))
@@ -1051,7 +1030,7 @@ function initCmds
   quitEm.on('n', 'exit')
   quitEm.on('c', 'close demand')
   Em.on('C-g', 'close demand', quitEm)
-  Em.on('Escape', 'close demand', closeEm)
+  Em.on('Escape', 'close demand', quitEm)
 
   function quitOrRestart
   (quit) {

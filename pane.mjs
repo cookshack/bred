@@ -353,22 +353,6 @@ function holdingView
 }
 
 export
-function removeBuf
-() {
-  let p, frame
-
-  frame = Frame.current()
-  p = current(frame)
-  if (p.buf) {
-    p.buf.remove()
-    frame.panes.forEach(p2 => {
-      if (p2.buf && (p2.buf.id == p.buf.id))
-        p2.buf = Buf.top()
-    })
-  }
-}
-
-export
 function bury
 (pane) {
   let b, t

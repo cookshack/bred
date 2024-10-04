@@ -73,8 +73,16 @@ function make
 
   function remove
   () {
+    let id, buf
+
+    id = Pane.current().buf?.id
     buffers = buffers.filter(e => e !== b)
     ring = ring.filter(e => e !== b)
+    buf = top()
+    Pane.forEach(p2 => {
+      if (p2.buf && (p2.buf.id == id))
+        p2.buf = buf
+    })
   }
 
   function setMode

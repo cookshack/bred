@@ -611,6 +611,7 @@ div.bred-menu1-item {
 }
 
 .bred-context {
+  border: 1px solid var(--clr-text);
   background: var(--clr-fill);
 }
 

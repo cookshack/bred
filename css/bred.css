@@ -954,7 +954,7 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
 
 .cm-ruler-w > div.cm-ruler-vert {
   border-left-width: 3px;
-  border-left-color: var(--clr-fill);
+  border-left-color: var(--clr-fill-aux);
 }
 
 .showLink,

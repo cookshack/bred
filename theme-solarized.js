@@ -95,7 +95,10 @@ clrs = { base03: '#002b36',
          //
          blueLight: '#cbe1df', // blue 20% on meanings.light
          blueVeryLight: '#e4ebe2',
-         blueVeryLightTranslucent: 'rgb(38 139 210 / 10%)' }
+         blueVeryLightTranslucent: 'rgb(38 139 210 / 10%)',
+         //cyanLight:  '#cedbcb', // cyan 38% on meanings.light
+         cyanLight:  '#e8ead8', // cyan 18% on meanings.light
+         cyanVeryLight:  '#f3f0de' } // cyan 9% on meanings.light
 
 filters = { base02: 'invert(15%) sepia(24%) saturate(2855%) hue-rotate(156deg) brightness(93%) contrast(94%)',
             base01: 'invert(44%) sepia(9%) saturate(914%) hue-rotate(148deg) brightness(89%) contrast(85%)',
@@ -110,6 +113,8 @@ meanings = { text: clrs.base00,
              fill: clrs.base2,
              fillLight: clrs.base2Light,
              light: clrs.base3,
+             fillAux: clrs.cyanLight,
+             fillAuxLight: clrs.cyanVeryLight,
              //
              nb3: clrs.red,
              nb2: clrs.magenta,

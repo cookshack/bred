@@ -374,7 +374,7 @@ function initDoc
                                               img('img/split.svg', 'Split', 'filter-clr-text'),
                                               { 'data-run': 'easy split' }),
                                         divCl('mini-icon onfill',
-                                              img(Ed.iconPath('handwave'), 'Welcome', 'filter-clr-text'),
+                                              img(Ed.iconPath('welcome'), 'Welcome', 'filter-clr-text'),
                                               { 'data-run': 'welcome' }),
                                         frameToggleR ]) ])
     append(area.el,

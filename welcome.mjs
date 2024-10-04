@@ -124,7 +124,7 @@ function init
   function addBuf
   () {
     buf = Buf.add('Welcome', 0, divW(), Loc.home())
-    buf.icon = 'handwave'
+    buf.icon = 'welcome'
     buf.addMode('view')
     return buf
   }

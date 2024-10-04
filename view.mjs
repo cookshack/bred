@@ -274,7 +274,7 @@ function make
 
   v = views.find(v1 => v1.active == 0)
   if (v) {
-    //d('reusing view')
+    d('VIEW reusing view')
     v.reopen(ele, lineNum, whenReady)
     return v
   }
@@ -377,13 +377,12 @@ function make
         vars
   }
 
-  //d('new view')
+  d('VIEW new view')
   ele.innerHTML = ''
   ready = 0
   if (views.length) {
     // use content from existing view
-    if (0)
-      d('reuse content')
+    d('VIEW reuse content')
     if (mode && mode.viewCopy) {
       if (b.co)
         append(ele, b.co.cloneNode(1))
@@ -395,7 +394,8 @@ function make
     }
   }
   else {
-    //d('fresh content')
+    if (1)
+      d('VIEW fresh content')
     if (b.co) {
       append(ele, b.co.cloneNode(1))
       if (mode && mode.viewInit)

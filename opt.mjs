@@ -42,7 +42,7 @@ function declare
  type,
  value) {
   types[name] = type
-  d('OPT ' + name + ' DECLARED ' + type)
+  //d('OPT ' + name + ' DECLARED ' + type)
   if (get(name) === undefined)
     return setMem(name, clean(name, value))
   return get(name)
@@ -51,7 +51,7 @@ function declare
 export
 function get
 (name) {
-  d('OPT ' + name + ': ' + values[name])
+  //d('OPT ' + name + ': ' + values[name])
   return values[name]
 }
 
@@ -66,7 +66,7 @@ function setMem
 (name,
  value) { // must be clean
   values[name] = value
-  d('OPT ' + name + ' SET TO ' + value)
+  //d('OPT ' + name + ' SET TO ' + value)
   onSets[name]?.forEach(cb => cb(value, name))
   onSetAlls.forEach(cb => cb(value, name))
   return value
@@ -161,7 +161,8 @@ function buf
   (name, val) {
     val = clean(name, val)
     vals[name] = val
-    d('BUF OPT ' + name + ' SET TO ' + val)
+    if (0)
+      d('BUF OPT ' + name + ' SET TO ' + val)
     onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
   }
 

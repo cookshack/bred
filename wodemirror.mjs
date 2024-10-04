@@ -594,6 +594,7 @@ function viewInit
   }
 
   d('================== viewInit')
+  d({ text })
 
   buf = view.buf
   buf.modified = 0
@@ -962,7 +963,9 @@ function viewInit
     return
   }
 
-  if (buf.file) {
+  if ((typeof text == 'string') || text instanceof String) {
+  }
+  else if (buf.file) {
     let path
 
     path = buf.path

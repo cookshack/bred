@@ -1371,14 +1371,17 @@ function line
 
 function excur
 (view, cb) {
-  let off
+  let bep
 
-  off = vgetOff(view)
+  bep = vgetBep(view)
   try {
     cb()
   }
   finally {
-    vsetOff(view, off)
+    if (bep > view.ed.state.doc.length)
+      vsetBep(view, view.ed.state.doc.length)
+    else
+      vsetBep(view, bep)
   }
 }
 
@@ -1831,6 +1834,28 @@ function pexec
 function exec
 (cmd, markCmd, args) {
   return vexec(Pane.current().view, cmd, markCmd, args)
+}
+
+function execAll
+(cmd, markCmd, args) {
+  let p
+
+  p = Pane.current()
+  if (p.buf) {
+    let bep
+
+    bep = vgetBep(p.view)
+    vexec(p.view, cmd, markCmd, args)
+    p.buf.views.forEach(view => {
+      if (view == p.view)
+        return
+      excur(view,
+            () => {
+              vsetBep(view, bep)
+              vexec(view, cmd, markCmd, args)
+            })
+    })
+  }
 }
 
 function utimes
@@ -2894,28 +2919,22 @@ function capitalizeWord() {
 export
 function newline
 () {
-  exec(CMComm.insertNewlineAndIndent)
-  /*
-  let p
-  p = Pane.current()
-  vinsert(p.view, u, "\n")
-  vforward(p.view)
-  */
+  execAll(CMComm.insertNewlineAndIndent)
 }
 
 export
 function openLine() {
-  exec(CMComm.splitLine)
+  execAll(CMComm.splitLine)
 }
 
 export
 function delPrevChar() {
-  exec(CMComm.deleteCharBackward)
+  execAll(CMComm.deleteCharBackward)
 }
 
 export
 function delNextChar() {
-  exec(CMComm.deleteCharForward)
+  execAll(CMComm.deleteCharForward)
 }
 
 export
@@ -3112,7 +3131,7 @@ function insertTwoSpaces() {
 
 export
 function transposeChars() {
-  exec(CMComm.transposeChars)
+  execAll(CMComm.transposeChars)
 }
 
 spRe = /^\s+/g

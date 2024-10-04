@@ -623,7 +623,6 @@ function viewInit
   view.wode.lintGutter = new CMState.Compartment
   view.wode.tabSize = new CMState.Compartment
   view.wode.themeExtension = new CMState.Compartment
-  view.wode.wrap = new CMState.Compartment
 
   let decorator
 
@@ -859,11 +858,6 @@ function viewInit
   }
   else
     opts.push(view.wode.linter.of([]))
-
-  if (buf.opt('core.line.wrap.enabled'))
-    opts.push(view.wode.wrap.of(CMView.EditorView.lineWrapping))
-  else
-    opts.push(view.wode.wrap.of([]))
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')
@@ -3982,14 +3976,6 @@ function reconfigureHighlightWhitespace
     view.ed.dispatch({ effects: view.wode.highlightWhitespace.reconfigure([]) })
 }
 
-function reconfigureLineWrap
-(buf, view) {
-  if (buf.opt('core.line.wrap.enabled'))
-    view.ed.dispatch({ effects: view.wode.wrap.reconfigure(CMView.EditorView.lineWrapping) })
-  else
-    view.ed.dispatch({ effects: view.wode.wrap.reconfigure([]) })
-}
-
 function reconfigureLinter
 (buf, view) {
   let effects
@@ -4048,7 +4034,6 @@ function initOpt
   on('core.highlight.whitespace.enabled', reconfigureHighlightWhitespace)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
-  on('core.line.wrap.enabled', reconfigureLineWrap)
 }
 
 function handleCustomTags

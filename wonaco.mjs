@@ -620,15 +620,19 @@ function line
 
 function excur
 (view, cb) {
-  let pos
+  let bep, ret
 
-  pos = vgetPos(view)
+  bep = vgetBep(view)
   try {
-    cb()
+    ret = cb()
   }
   finally {
-    view.ed.setPosition(pos)
+    if (bep > view.ed.state.doc.length)
+      vsetBep(view, view.ed.state.doc.length)
+    else
+      vsetBep(view, bep)
   }
+  return ret
 }
 
 export

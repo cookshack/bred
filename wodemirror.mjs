@@ -1365,11 +1365,11 @@ function line
 
 function excur
 (view, cb) {
-  let bep
+  let bep, ret
 
   bep = vgetBep(view)
   try {
-    cb()
+    ret = cb()
   }
   finally {
     if (bep > view.ed.state.doc.length)
@@ -1377,6 +1377,12 @@ function excur
     else
       vsetBep(view, bep)
   }
+  return ret
+}
+
+function excurWithSel
+(view, cb) {
+  return excur(view, cb)
 }
 
 export
@@ -1843,11 +1849,11 @@ function execAll
     p.buf.views.forEach(view => {
       if (view == p.view)
         return
-      excur(view,
-            () => {
-              vsetBep(view, bep)
-              vexec(view, cmd, markCmd, args)
-            })
+      excurWithSel(view,
+                   () => {
+                     vsetBep(view, bep)
+                     vexec(view, cmd, markCmd, args)
+                   })
     })
   }
 }

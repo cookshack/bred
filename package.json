@@ -48,7 +48,6 @@
     "@fluentui/svg-icons": "^1.1.240",
     "@orgajs/cm-lang": "^1.1.4",
     "@replit/codemirror-css-color-picker": "^6.1.1",
-    "@replit/codemirror-indentation-markers": "^6.5.2",
     "@replit/codemirror-lang-csharp": "^6.2.0",
     "@replit/codemirror-lang-nix": "^6.0.1",
     "@uiw/codemirror-themes": "^4.22.1",

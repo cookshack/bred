@@ -3205,7 +3205,7 @@ function vcutOrCopy
   str = vrangeText(view, range)
   if (str && str.length) {
     if (cut)
-      remove(view.ed, range)
+      view.buf.views.forEach(v => remove(v.ed, range))
     Cut.add(str)
   }
   if (cut)

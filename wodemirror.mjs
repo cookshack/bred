@@ -3072,6 +3072,11 @@ function indentLine
 
   p.view.ed.dispatch({ changes: changes,
                        selection: { anchor: anchor, head: anchor } })
+  p.buf.views.forEach(view => {
+    if (view == p.view)
+      return
+    view.ed.dispatch({ changes: changes })
+  })
 }
 
 export
@@ -3098,7 +3103,7 @@ function indentRegion
       to = from
 
     changes = CMLang.indentRange(p.view.ed.state, from, to)
-    changes.empty || p.view.ed.dispatch({ changes: changes })
+    changes.empty || p.buf.views.forEach(view => view.ed.dispatch({ changes: changes }))
     clearSelection(p.view)
   }
   else

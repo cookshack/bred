@@ -107,7 +107,7 @@ function initCommit
 
       h = p.buf.vars('Commit').hist
       b64 = globalThis.btoa(cm)
-      rbuf = Shell.shell1('check-and-commit-64 ' + b64, 1, 1, [])
+      rbuf = Shell.shell1(Loc.appDir().join('bin/check-and-commit-64') + ' ' + b64, 1, 1, [])
       h.add(cm)
       rbuf.mode = 'commit result'
     }

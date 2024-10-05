@@ -3140,14 +3140,16 @@ function trim() {
   l = p.view.ed.state.doc.lineAt(start)
   spRe.lastIndex = 0
   if (spRe.exec(l.text.slice(start - l.from)))
-    remove(p.view.ed, { from: start,
-                        to: start + spRe.lastIndex })
+    p.buf.views.forEach(view => remove(view.ed,
+                                       { from: start,
+                                         to: start + spRe.lastIndex }))
   if (start > l.from) {
     str = [ ...l.text.slice(0, start - l.from) ].reverse().join('')
     spRe.lastIndex = 0
     if (spRe.exec(str))
-      remove(p.view.ed, { from: start - spRe.lastIndex,
-                          to: start })
+      p.buf.views.forEach(view => remove(view.ed,
+                                         { from: start - spRe.lastIndex,
+                                           to: start }))
   }
 }
 

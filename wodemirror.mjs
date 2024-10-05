@@ -2836,23 +2836,6 @@ function quotedInsert
   }
 }
 
-function atPos
-(cmd, args) {
-  let p, off
-
-  p = Pane.current()
-  off = vgetOff(p.view)
-  vexec(p.view, cmd, cmd, args)
-  p.view.sync(view => {
-    if (view.ed)
-      excur(view, () => {
-        vsetOff(off)
-        vexec(view, cmd, cmd, args)
-      })
-  })
-  return p
-}
-
 export
 function caseWord(cb) {
   let p, range, origHead, origAnch, sel, off, str
@@ -2964,8 +2947,6 @@ function delNextWordBound
 (n) {
   let p, start, end, text, range
 
-  if (0)
-    atPos('deleteWordRight')
   p = Pane.current()
   clearSelection(p.view)
   start = vgetOff(p.view)

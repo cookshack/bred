@@ -184,7 +184,6 @@ onSetBufs = {}
 
 declare('core.autocomplete.enabled', 'bool', 1)
 declare('core.brackets.close.enabled', 'bool', 1)
-declare('core.cursor.blink', 'bool', 1)
 declare('core.folding.enabled', 'bool', 1)
 declare('core.folding.gutter.show', 'bool', 1)
 declare('core.highlight.activeLine.enabled', 'bool', 1)

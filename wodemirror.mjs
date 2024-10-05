@@ -215,12 +215,6 @@ let highlighters, stateHighlighters
   }
 }
 
-function makeDrawSelection
-(blink) {
-  d('makeDrawSelection ' + blink)
-  return CMView.drawSelection({ cursorBlinkRate: blink ? 1200 : 0 })
-}
-
 function makeAutocomplete
 (view) {
   let autocomplete
@@ -589,7 +583,6 @@ function viewInit
 
   view.wode.autocomplete = new CMState.Compartment
   view.wode.decorMode = new CMState.Compartment
-  view.wode.drawSelection = new CMState.Compartment
   view.wode.highlightActive = new CMState.Compartment
   view.wode.highlightBracket = new CMState.Compartment
   view.wode.highlightOccur = new CMState.Compartment
@@ -758,7 +751,6 @@ function viewInit
            //stateHighlighters,
            CMState.Prec.low(decorator),
 
-           view.wode.drawSelection.of(makeDrawSelection(buf.opt('core.cursor.blink'))),
            //CMView.keymap.of(CMComm.defaultKeymap),
            CMView.scrollPastEnd(),
 
@@ -3873,11 +3865,6 @@ function reconfigureAutocomplete
     view.ed.dispatch({ effects: view.wode.autocomplete.reconfigure([]) })
 }
 
-function reconfigureCursorBlink
-(buf, view) {
-  view.ed.dispatch({ effects: view.wode.drawSelection.reconfigure(makeDrawSelection(buf.opt('core.cursor.blink'))) })
-}
-
 function reconfigureFolding
 (buf, view) {
   let effects
@@ -3993,8 +3980,6 @@ function initOpt
         cb(buf, view)
     }))
   }
-
-  on('core.cursor.blink', reconfigureCursorBlink)
 
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.activeLine.enabled', reconfigureHighlightActive)

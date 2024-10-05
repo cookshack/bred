@@ -3649,7 +3649,7 @@ function initComplete
 
       r = makeRange(last.orig, posToBep(p.view, last.end))
       d('remove from ' + r.from + ' to ' + r.to)
-      remove(p.view.ed, r)
+      p.buf.views.forEach(view => remove(view.ed, r))
     }
     if (rest) {
       let point

@@ -18,6 +18,7 @@ import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
 import { wordChars } from './lib/unicode.mjs'
+import escapeStringRegexp from './lib/escape-string-regexp.js'
 
 import { mbe } from './json.mjs'
 
@@ -355,7 +356,7 @@ function supports
 export
 function escapeForRe
 (s) {
-  return s.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&')
+  return escapeStringRegexp(s)
 }
 
 function initLML

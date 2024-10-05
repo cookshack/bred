@@ -57,7 +57,6 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	cd lib/@codemirror/ && sed -i "s/import(\([^)]\+[^\"']\))/import(bredHackImport(\\1))/g" language-data.js
 	bin/fix-scope lezer
 	bin/fix-scope replit
-	sed -i "s/zIndex: '-1',/zIndex: 'var(--z-indent-marker)',/g" lib/@replit/codemirror-indentation-markers.js
 	cd lib/@orgajs/ && find . -type f -name \*.js | xargs sed -i "s/^\(import .* from\) '\([^.'][^']*\)'.*/\\1 '..\/\\2.js';/g"
 	cd lib/@orgajs/ && find . -type f -name \*.js | xargs sed -i "s/ from '\@\([^']\+\)'.*/ from '..\/\@\\1.js';/g"
 	cp lib/@orgajs/index.js lib/@orgajs/lezer.js
@@ -77,6 +76,7 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	sed -i "s\exports.parser = parser;\export { parser };\g" lib/@lezer/php.js
 
 sync-others:
+	cp node_modules/escape-string-regexp/index.js lib/escape-string-regexp.js
 	cp node_modules/get-current-line/edition-es2022-esm/index.js lib/get-current-line.js
 	mkdir -p lib/typescript-language-server/lib/
 	cp node_modules/typescript-language-server/lib/cli.mjs lib/typescript-language-server/lib/cli.mjs
@@ -102,7 +102,6 @@ sync-codemirror:
 	cp node_modules/codemirror-lang-elixir/dist/index.js lib/codemirror-lang-elixir.js
 	if [ -e node_modules/codemirror-lang-git-log ]; then cp node_modules/codemirror-lang-git-log/dist/index.js lib/codemirror-lang-git-log.js; fi
 	cp node_modules/codemirror-lang-makefile/dist/index.js lib/codemirror-lang-makefile.js
-	cp node_modules/@replit/codemirror-indentation-markers/dist/index.js lib/@replit/codemirror-indentation-markers.js
 	cp node_modules/@replit/codemirror-lang-csharp/dist/index.js lib/@replit/codemirror-lang-csharp.js
 	cp node_modules/@replit/codemirror-lang-nix/dist/index.js lib/@replit/codemirror-lang-nix.js
 	cp node_modules/@replit/codemirror-css-color-picker/dist/index.js lib/@replit/codemirror-css-color-picker.js

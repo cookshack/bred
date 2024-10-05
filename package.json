@@ -63,6 +63,7 @@
     "commander": "^12.1.0",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^9.0.0",
+    "escape-string-regexp": "^5.0.0",
     "eslint-linter-browserify": "^9.4.0",
     "get-current-line": "^7.4.0",
     "lezer-utils": "^0.1.0",

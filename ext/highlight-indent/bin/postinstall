@@ -1,2 +1,3 @@
 #!/bin/bash
 ../../bin/sync-scope replit && ../../bin/fix-scope replit ../../../../lib/
+sed -i "s/zIndex: '-1',/zIndex: 'var(--z-indent-marker)',/g" ./lib/@replit/codemirror-indentation-markers.js

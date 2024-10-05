@@ -3015,9 +3015,9 @@ export
 function commentRegion
 (u) {
   if (u == 4)
-    exec(CMComm.lineUncomment)
+    execAll(CMComm.lineUncomment)
   else
-    exec(CMComm.lineComment)
+    execAll(CMComm.lineComment)
 }
 
 export

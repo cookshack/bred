@@ -1073,6 +1073,8 @@ function vlineStart
 (view, off) {
   let l
 
+  if (off < 0)
+    off = 0
   l = view.ed.state.doc.lineAt(off)
   return l.from
 }

@@ -1382,7 +1382,16 @@ function excur
 
 function excurWithSel
 (view, cb) {
-  return excur(view, cb)
+  let range, ret
+
+  range = regionRange(view)
+  try {
+    ret = excur(view, cb)
+  }
+  finally {
+    setSelection(view, range)
+  }
+  return ret
 }
 
 export
@@ -1842,16 +1851,16 @@ function execAll
 
   p = Pane.current()
   if (p.buf) {
-    let bep
+    let sel
 
-    bep = vgetBep(p.view)
+    sel = regionRange(p.view)
     vexec(p.view, cmd, markCmd, args)
     p.buf.views.forEach(view => {
       if (view == p.view)
         return
       excurWithSel(view,
                    () => {
-                     vsetBep(view, bep)
+                     setSelection(view, sel)
                      vexec(view, cmd, markCmd, args)
                    })
     })

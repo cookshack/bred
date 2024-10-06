@@ -9,6 +9,7 @@ import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
+import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
@@ -396,6 +397,13 @@ function initEqual
   Em.on('<', 'Previous Commit', mo)
 
   Cmd.add('vc equal', () => equal())
+}
+
+function reset
+() {
+  Prompt.demandYN('Reset Git dir?',
+                  'warning',
+                  yes => yes && git('git reset HEAD~1'))
 }
 
 function showHash
@@ -895,6 +903,7 @@ function init
   Cmd.add('vc branch', () => git('git branch', 'branch'))
   Cmd.add('vc pull', () => git('git-pull-with-name'))
   Cmd.add('vc push', () => git('git push origin HEAD'))
+  Cmd.add('vc reset', () => reset())
   Cmd.add('vc show', () => showHash())
   Cmd.add('vc stash', () => git('git stash'))
   Cmd.add('vc stash apply', () => Shell.shell1('git-stash-apply', 1))
@@ -911,6 +920,7 @@ function init
   Em.on('C-x v l', 'vc log')
   Em.on('C-x v o', 'vc stash pop')
   Em.on('C-x v p', 'vc push')
+  Em.on('C-x v r', 'vc reset')
   Em.on('C-x v s', 'vc status')
   Em.on('C-x v u', 'vc pull')
   Em.on('C-x v w', 'vc stash')

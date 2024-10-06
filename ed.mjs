@@ -511,7 +511,7 @@ function initQR
                                  [ button([ span('y', 'key'), 'es' ], { 'data-run': 'yes' }),
                                    button([ span('n', 'key'), 'o' ], { 'data-run': 'next' }),
                                    button([ span('a', 'key'), 'll' ], { 'data-run': 'all' }),
-                                   button([ span('c', 'key'), 'ancel' ], { 'data-run': 'close demand' }) ]) ]),
+                                   button([ span('c', 'key'), 'ancel' ], { 'data-run': 'close qr' }) ]) ]),
                    divCl('bred-qr-text', 'With'),
                    divCl('bred-qr-with', '', { 'data-run': 'next' }) ])
   }
@@ -524,12 +524,20 @@ function initQR
     st = {}
     st.view = p.view
     hist.reset()
+    st.occur = st.view.buf.opts.get('core.highlight.occurrences.enabled')
+    st.view.buf.opts.set('core.highlight.occurrences.enabled', 0)
     st.p = Prompt.demandBuf(divW())
+  }
+
+  function closeQr
+  () {
+    st.view.buf.opts.set('core.highlight.occurrences.enabled', st.occur)
+    Prompt.close()
   }
 
   function closeAndPassThrough
   (u, we) {
-    Prompt.close()
+    closeQr()
 
     if (we.mouse) {
       let target
@@ -549,7 +557,8 @@ function initQR
 
   hist = Hist.ensure('QR')
 
-  Cmd.add('close demand and pass through', closeAndPassThrough, moQr)
+  Cmd.add('close qr', () => closeQr(), mo)
+  Cmd.add('close qr and pass through', closeAndPassThrough, moQr)
 
   Cmd.add('other', () => other(), moQr)
   Cmd.add('next', () => next(), moQr)
@@ -561,8 +570,8 @@ function initQR
   Em.on('ArrowDown', 'next history item', moQr)
   Em.on('A-p', 'previous history item', moQr)
   Em.on('A-n', 'next history item', moQr)
-  Em.on('C-g', 'close demand', moQr)
-  Em.on('Escape', 'close demand', moQr)
+  Em.on('C-g', 'close qr', moQr)
+  Em.on('Escape', 'close qr', moQr)
   Em.on('C-o', 'other', moQr)
   Em.on('Enter', 'next', moQr)
 
@@ -574,10 +583,10 @@ function initQR
   em.on('n', 'next')
   em.on('a', 'all')
   em.on('!', 'all')
-  em.on('c', 'close demand')
-  Em.on('C-g', 'close demand', em)
-  Em.on('Escape', 'close demand', em)
-  em.otherwise = 'close demand and pass through'
+  em.on('c', 'close qr')
+  Em.on('C-g', 'close qr', em)
+  Em.on('Escape', 'close qr', em)
+  em.otherwise = 'close qr and pass through'
 
   Cmd.add('query replace', () => qr(), mo)
   Cmd.add('find and replace', () => qr(), mo)

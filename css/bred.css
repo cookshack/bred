@@ -78,7 +78,7 @@
   --z-close: 90;
   --z-indent-marker: 50; /* above line */
   --z-below-selection: -3; /* cm selection is -2 */
-  --z-activeLine: var(--z-below-selection);
+  --z-activeLine: 0;
   --z-below-activeLine: calc(var(--z-activeLine) - 1);
 }
 

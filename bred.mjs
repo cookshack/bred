@@ -465,7 +465,6 @@ function initCmds
 
   Cmd.add('click', click)
   Cmd.add('click aux', clickAux)
-  d('test')
 
   Cmd.add('universal argument', () => Cmd.setUniversal())
 

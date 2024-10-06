@@ -580,7 +580,6 @@ function viewInit
   view.wode.decorMode = new CMState.Compartment
   view.wode.highlightActive = new CMState.Compartment
   view.wode.highlightOccur = new CMState.Compartment
-  view.wode.highlightSpecials = new CMState.Compartment
   view.wode.highlightSyntax = new CMState.Compartment
   view.wode.highlightWhitespace = new CMState.Compartment
   view.wode.showTrailingWhitespace = new CMState.Compartment
@@ -774,11 +773,6 @@ function viewInit
     opts.push(view.wode.highlightOccur.of(makeHighlightOccur(buf)))
   else
     opts.push(view.wode.highlightOccur.of([]))
-
-  if (buf.opt('core.highlight.specials.enabled'))
-    opts.push(view.wode.highlightSpecials.of(CMView.highlightSpecialChars()))
-  else
-    opts.push(view.wode.highlightSpecials.of([]))
 
   if (buf.opt('core.highlight.syntax.enabled')) {
     opts.push(view.wode.highlightSyntax.of(makeHighlightSyntax()))
@@ -3915,14 +3909,6 @@ function reconfigureHighlightOccur
     view.ed.dispatch({ effects: view.wode.highlightOccur.reconfigure([]) })
 }
 
-function reconfigureHighlightSpecials
-(buf, view) {
-  if (buf.opt('core.highlight.specials.enabled'))
-    view.ed.dispatch({ effects: view.wode.highlightSpecials.reconfigure(CMView.highlightSpecialChars()) })
-  else
-    view.ed.dispatch({ effects: view.wode.highlightSpecials.reconfigure([]) })
-}
-
 function reconfigureHighlightTrailing
 (buf, view) {
   if (buf.opt('core.highlight.trailingWhitespace.enabled'))
@@ -3986,7 +3972,6 @@ function initOpt
   on('core.highlight.occurrences.enabled', reconfigureHighlightOccur)
   on('core.highlight.occurrences.wholeWords', reconfigureHighlightOccur)
   on('core.highlight.occurrences.wordAroundCursor', reconfigureHighlightOccur)
-  on('core.highlight.specials.enabled', reconfigureHighlightSpecials)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
   on('core.highlight.trailingWhitespace.enabled', reconfigureHighlightTrailing)
   on('core.highlight.whitespace.enabled', reconfigureHighlightWhitespace)

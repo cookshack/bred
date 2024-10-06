@@ -1495,7 +1495,12 @@ span.bred-search-all {
   background: var(--clr-nb0-light);
 }
 
-span.bred-search-match {
+span.bred-search-all > span.bred-search-match > div,
+span.bred-search-all > span.bred-search-match > span,
+span.bred-search-all > span.bred-search-match,
+span.bred-search-match > span.bred-search-all,
+span.bred-search-match > span.bred-search-all > div,
+span.bred-search-match > span.bred-search-all > span {
   background: var(--clr-nb0);
   color: var(--clr-light);
 }

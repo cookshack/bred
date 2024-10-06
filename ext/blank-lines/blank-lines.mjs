@@ -15,14 +15,15 @@ function init
   function make
   (view) {
     if (view.buf.opt('blankLines.enabled'))
-      return blankLines()
+      return blankLines({ includeActiveLine: view.buf.opt('blankLines.includeActiveLine') })
     return []
   }
 
   brexts = []
   Opt.declare('blankLines.enabled', 'bool', 0)
+  Opt.declare('blankLines.includeActiveLine', 'bool', 1)
   Opt.declare('blankLines.background', 'string', 'var(--clr-fill-aux-very-light)')
-  Opt.declare('blankLines.lineHeight', 'decimal', '0.9')
+  Opt.declare('blankLines.lineHeight', 'decimal', '0.5')
 
   brexts.push(Ed.register({ backend: 'cm',
                             make,

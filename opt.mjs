@@ -57,6 +57,8 @@ function get
 
 function clean
 (name, val) {
+  if (val === undefined)
+    return val
   if (types[name] == 'bool')
     return val ? true : false
   return val
@@ -161,13 +163,14 @@ function buf
   (name, val) {
     val = clean(name, val)
     vals[name] = val
-    if (0)
-      d('BUF OPT ' + name + ' SET TO ' + val)
+    //d('BUF OPT ' + name + ' SET TO ' + val)
     onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
   }
 
   function get
   (name) {
+    if (0)
+      d('BUF OPT ' + name + ': ' + vals[name])
     return vals[name]
   }
 

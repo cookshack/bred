@@ -590,6 +590,7 @@ function initSearch
 
   function cleanup
   () {
+    s.st.view.buf.opts.set('core.highlight.occurrences.enabled', s.st.occur)
     Backend.clearDecorMatch(s.st.view, s.st)
     Backend.clearDecorAll(s.st.view, s.st)
 
@@ -837,6 +838,8 @@ function initSearch
     let wes
 
     wes = []
+    s.st.occur = s.st.view.buf.opts.get('core.highlight.occurrences.enabled')
+    s.st.view.buf.opts.set('core.highlight.occurrences.enabled', 0)
     globalThis.onkeydown = e => {
       let we
 

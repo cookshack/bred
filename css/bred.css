@@ -1546,11 +1546,15 @@ div.cm-line.cm-activeLine::before,
   content: " ";
   position: absolute;
   top: 0;
+  /* want to somehow match left pad on .ͼN > .cm-line */
+  left: 6px;
+  /* this looks better anyway */
   left: 0;
-  background-color: var(--background-color);
   width: 100%;
   height: 100%;
   display: flex;
+  opacity: 0.5;
+  box-shadow: inset 0 -1px 0 0 var(--clr-nb3);
   z-index: var(--z-index);
 }
 

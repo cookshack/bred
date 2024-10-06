@@ -461,10 +461,11 @@ function initMouse
 
 function initCmds
 () {
-  let closeEm, quitEm, lastContext
+  let quitEm, lastContext
 
   Cmd.add('click', click)
   Cmd.add('click aux', clickAux)
+  d('test')
 
   Cmd.add('universal argument', () => Cmd.setUniversal())
 

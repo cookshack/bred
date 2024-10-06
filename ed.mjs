@@ -253,6 +253,9 @@ function iconPath
     if (name == 'tree')
       return 'lib/svg/material-icons/account_tree/materialiconsoutlined/24px.svg'
 
+    if (name == 'warning')
+      return 'lib/svg/material-icons/warning_amber/materialicons/24px.svg'
+
     if (name == 'welcome')
       return 'lib/svg/fluentui-system-icons/ic_fluent_hand_wave_24_regular.svg'
 

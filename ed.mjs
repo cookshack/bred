@@ -618,6 +618,7 @@ function initSearch
   (keepPos) {
     cleanup()
     if (keepPos) {
+      s.st.view.marks.push(Backend.posToBep(s.st.view, s.st.start))
       if (s.st.needle.length)
         lastNeedle = s.st.needle
     }

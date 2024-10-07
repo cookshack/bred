@@ -870,15 +870,8 @@ function initCmds
 
   }
 
-  Cmd.add('zoom in', () => {
-    d('zi')
-    incrFont()
-  })
-
-  Cmd.add('zoom out', () => {
-    d('zo')
-    incrFont(-1)
-  })
+  Cmd.add('zoom in', () => incrFont())
+  Cmd.add('zoom out', () => incrFont(-1))
 
   Cmd.add('easy split', () => {
     if (Pane.length() < 2) {

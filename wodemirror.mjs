@@ -581,7 +581,6 @@ function viewInit
   view.wode.highlightActive = new CMState.Compartment
   view.wode.highlightOccur = new CMState.Compartment
   view.wode.highlightSyntax = new CMState.Compartment
-  view.wode.highlightWhitespace = new CMState.Compartment
   view.wode.showTrailingWhitespace = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
@@ -782,11 +781,6 @@ function viewInit
     opts.push(view.wode.highlightSyntax.of([]))
     opts.push(view.wode.themeExtension.of([]))
   }
-
-  if (buf.opt('core.highlight.whitespace.enabled'))
-    opts.push(view.wode.highlightWhitespace.of(CMView.highlightWhitespace()))
-  else
-    opts.push(view.wode.highlightWhitespace.of([]))
 
   if (buf.opt('core.highlight.trailingWhitespace.enabled'))
     opts.push(view.wode.showTrailingWhitespace.of(CMView.highlightTrailingWhitespace()))
@@ -3917,14 +3911,6 @@ function reconfigureHighlightTrailing
     view.ed.dispatch({ effects: view.wode.showTrailingWhitespace.reconfigure([]) })
 }
 
-function reconfigureHighlightWhitespace
-(buf, view) {
-  if (buf.opt('core.highlight.whitespace.enabled'))
-    view.ed.dispatch({ effects: view.wode.highlightWhitespace.reconfigure(CMView.highlightWhitespace()) })
-  else
-    view.ed.dispatch({ effects: view.wode.highlightWhitespace.reconfigure([]) })
-}
-
 function reconfigureLinter
 (buf, view) {
   let effects
@@ -3974,7 +3960,6 @@ function initOpt
   on('core.highlight.occurrences.wordAroundCursor', reconfigureHighlightOccur)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
   on('core.highlight.trailingWhitespace.enabled', reconfigureHighlightTrailing)
-  on('core.highlight.whitespace.enabled', reconfigureHighlightWhitespace)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
 }

@@ -635,9 +635,7 @@ function initSearch
       lastNeedle = s.st.needle
 
     bep = Backend.vgetBep(s.st.view)
-    Backend.vsetPos(s.st.view, s.st.start)
-    s.st.view.marks.push(bep)
-    s.st.view.markActive = 1
+    s.st.view.marks.push(Backend.posToBep(s.st.view, s.st.start))
     Backend.vsetBep(s.st.view, bep)
 
     cleanup()

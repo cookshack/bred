@@ -857,6 +857,29 @@ function initCmds
                    behavior: 'auto' })
   })
 
+  function incrFont
+  (incr) { // in px
+    let px
+
+    incr = incr || 1
+
+    px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
+    //d('px: ' + px)
+    globalThis.document.documentElement.style.fontSize = (px + incr) + 'px'
+    //d('new size: ' + parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize))
+
+  }
+
+  Cmd.add('zoom in', () => {
+    d('zi')
+    incrFont()
+  })
+
+  Cmd.add('zoom out', () => {
+    d('zo')
+    incrFont(-1)
+  })
+
   Cmd.add('easy split', () => {
     if (Pane.length() < 2) {
       Pane.split()
@@ -1082,6 +1105,9 @@ function initBindings
   Em.on('PageUp', 'scroll up')
   Em.on('PageDown', 'scroll down')
 
+  Em.on('C-+', 'zoom in')
+  Em.on('C-=', 'zoom in')
+  Em.on('C--', 'zoom out')
   Em.on('C-a', 'line start')
   Em.on('C-b', 'backward character')
   Em.on('C-e', 'line end')

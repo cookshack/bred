@@ -867,7 +867,7 @@ function initCmds
     //d('px: ' + px)
     globalThis.document.documentElement.style.fontSize = (px + incr) + 'px'
     //d('new size: ' + parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize))
-
+    Opt.set('core.fontSize', (px + incr))
   }
 
   Cmd.add('zoom in', () => incrFont())
@@ -1180,11 +1180,24 @@ function initHandlers
       handleMouse('click.aux', e)
   }
 
+  function handleWheel
+  (e) {
+    //handleMouse('wheel', e)
+    if (e.ctrlKey) {
+      e.preventDefault()
+      if (e.deltaY < 0)
+        Cmd.run('zoom in')
+      else
+        Cmd.run('zoom out')
+    }
+  }
+
   globalThis.onauxclick = handleClick
   globalThis.onclick = handleClick
   globalThis.oncontextmenu = e => handleMouse('context', e)
   globalThis.onkeydown = handleKeyDown
   globalThis.onpaste = handleClick
+  globalThis.onwheel = handleWheel
 }
 
 export
@@ -1876,6 +1889,16 @@ function scratchMessage
 `
 }
 
+function initFontSize
+() {
+  let px
+
+  px = Opt.get('core.fontSize')
+  if (px === undefined)
+    return
+  globalThis.document.documentElement.style.fontSize = px + 'px'
+}
+
 export
 function init
 () {
@@ -1978,6 +2001,8 @@ function init
   globalThis.bred = {}
 
   Opt.load(() => {
+    initFontSize()
+
     if (0)
       globalThis.onerror = (e, source, lineno, colno, err) => {
         Mess.trace(source + ':' + lineno + ' ' + err?.message)

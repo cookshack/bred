@@ -629,14 +629,10 @@ function initSearch
 
   function done
   () {
-    let bep
-
     if (s.st.needle.length)
       lastNeedle = s.st.needle
 
-    bep = Backend.vgetBep(s.st.view)
     s.st.view.marks.push(Backend.posToBep(s.st.view, s.st.start))
-    Backend.vsetBep(s.st.view, bep)
 
     cleanup()
     s.st = 0

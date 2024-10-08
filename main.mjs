@@ -1135,6 +1135,24 @@ function createWindow
 
   win.setBounds(options.bounds || stores.state.get('bounds'))
 
+  win.webContents.setWindowOpenHandler(details => {
+    if (details.url === 'about:blank')
+      return { action: 'allow',
+               outlivesOpener: true,
+               overrideBrowserWindowOptions: { backgroundColor: '#fdf6e3' } } // --color-primary-light
+    return { action: 'deny' }
+  })
+
+  win.webContents.on('did-create-window', ch => {
+    let bounds
+
+    bounds = stores.state.get('bounds')
+    bounds.x = 0
+    bounds.y = 0
+    ch.removeMenu()
+    ch.setBounds(bounds)
+  })
+
   win.on('close', () => {
     stores.state.set('isDevToolsOpened', win.webContents.isDevToolsOpened())
     stores.state.set('bounds', win.getBounds())

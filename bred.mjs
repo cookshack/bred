@@ -281,7 +281,9 @@ function initDoc
 
     menu = { ele: divCl('bred-menu',
                         [ menu0('File',
-                                [ item('Open File'),
+                                [ item('New Window'),
+                                  line(),
+                                  item('Open File'),
                                   item('Open Recent'),
                                   line(),
                                   item('Save'),
@@ -937,6 +939,16 @@ function initCmds
       return
     }
     Pane.max()
+  })
+
+  Cmd.add('new window', () => {
+    let win
+
+    win = globalThis.window.open('')
+    if (win)
+      append(win.document.body, div('hi'))
+    else
+      Mess.yell('Error')
   })
 
   Cmd.add('bury', () => {

@@ -1150,6 +1150,8 @@ function createWindow
     bounds.x = 0
     bounds.y = 0
     ch.removeMenu()
+    ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
+                                  title: 'Developer Tools - Bred' })
     ch.setBounds(bounds)
   })
 

@@ -945,10 +945,12 @@ function initCmds
     let win
 
     win = globalThis.window.open('')
-    if (win)
+    if (win) {
+      win.bred = globalThis.bred
       append(win.document.body, div('hi'))
-    else
-      Mess.yell('Error')
+      return
+    }
+    Mess.yell('Error')
   })
 
   Cmd.add('bury', () => {

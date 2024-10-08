@@ -6,6 +6,7 @@ import * as Opt from '../../opt.mjs'
 //import { d } from '../../mess.mjs'
 
 import * as CMLang from '../../lib/@codemirror/language.js'
+import * as CMSearch from '../../lib/@codemirror/search.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 
@@ -55,11 +56,22 @@ function init
     return []
   }
 
+  function makeOccur
+  (view) {
+    if (view.buf.opt('core.highlight.occurrences.enabled'))
+      return CMSearch.highlightSelectionMatches({ highlightWordAroundCursor: view.buf.opt('core.highlight.occurrences.wordAroundCursor'),
+                                                  wholeWords: view.buf.opt('core.highlight.occurrences.wholeWords') })
+    return []
+  }
+
   brexts = []
   Opt.declare('core.cursor.blink.enabled', 'bool', 0)
   Opt.declare('core.cursor.blink.rate', 'integer', 1200)
   Opt.declare('core.highlight.bracket.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.afterCursor', 'bool', 1)
+  Opt.declare('core.highlight.occurrences.enabled', 'bool', 1)
+  Opt.declare('core.highlight.occurrences.wholeWords', 'bool', 0)
+  Opt.declare('core.highlight.occurrences.wordAroundCursor', 'bool', 1)
   Opt.declare('core.highlight.specials.enabled', 'bool', 1)
   Opt.declare('core.highlight.whitespace.enabled', 'bool', 0)
   Opt.declare('core.line.numbers.show', 'bool', 1)
@@ -73,6 +85,12 @@ function init
                             make: view => view.buf.opt('core.highlight.specials.enabled') ? CMView.highlightSpecialChars() : [],
                             part: new CMState.Compartment,
                             reconfOpts: [ 'core.highlight.specials.enabled' ] }))
+  brexts.push(Ed.register({ backend: 'cm',
+                            make: makeOccur,
+                            part: new CMState.Compartment,
+                            reconfOpts: [ 'core.highlight.occurrences.enabled',
+                                          'core.highlight.occurrences.wholeWords',
+                                          'core.highlight.occurrences.wordAroundCursor' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.whitespace.enabled') ? CMView.highlightWhitespace() : [],
                             part: new CMState.Compartment,
@@ -94,6 +112,7 @@ function init
   Cmd.add('enable cursor blink', u => Ed.enable(u, 'core.cursor.blink.enabled'))
   Cmd.add('enable highlight bracket', u => Ed.enable(u, 'core.cursor.highlight.bracket.enabled'))
   Cmd.add('highlight bracket', u => Ed.enable(u, 'core.cursor.highlight.bracket.enabled'))
+  Cmd.add('highlight occurrences', u => Ed.enable(u, 'core.highlight.occurrences.enabled'))
   Cmd.add('enable highlight specials', u => Ed.enable(u, 'core.highlight.specials.enabled'))
   Cmd.add('highlight specials', u => Ed.enable(u, 'core.highlight.specials.enabled'))
   Cmd.add('enable highlight whitespace', u => Ed.enable(u, 'core.highlight.whitespace.enabled'))
@@ -103,6 +122,7 @@ function init
   Cmd.add('buffer enable cursor blink', u => Ed.enableBuf(u, 'core.cursor.blink.enabled'))
   Cmd.add('buffer enable highlight bracket', u => Ed.enableBuf(u, 'core.highlight.bracket.enabled'))
   Cmd.add('buffer highlight bracket', u => Ed.enableBuf(u, 'core.highlight.bracket.enabled'))
+  Cmd.add('buffer highlight occurrences', u => Ed.enableBuf(u, 'core.highlight.occurrences.enabled'))
   Cmd.add('buffer enable highlight specials', u => Ed.enableBuf(u, 'core.highlight.specials.enabled'))
   Cmd.add('buffer highlight specials', u => Ed.enableBuf(u, 'core.highlight.specials.enabled'))
   Cmd.add('buffer enable highlight whitespace', u => Ed.enableBuf(u, 'core.highlight.whitespace.enabled'))
@@ -118,6 +138,7 @@ function free
   Cmd.remove('enable highlight bracket')
   Cmd.remove('highlight bracket')
   Cmd.remove('enable highlight specials')
+  Cmd.remove('highlight occurrences')
   Cmd.remove('highlight specials')
   Cmd.remove('enable highlight whitespace')
   Cmd.remove('highlight whitespace')
@@ -127,6 +148,7 @@ function free
   Cmd.remove('buffer enable highlight bracket')
   Cmd.remove('buffer highlight bracket')
   Cmd.remove('buffer enable highlight specials')
+  Cmd.remove('buffer highlight occurrences')
   Cmd.remove('buffer highlight specials')
   Cmd.remove('buffer enable highlight whitespace')
   Cmd.remove('buffer highlight whitespace')

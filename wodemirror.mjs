@@ -296,12 +296,6 @@ function makeAutocomplete
                                  defaultKeymap: false })
 }
 
-function makeHighlightOccur
-(buf) {
-  return CMSearch.highlightSelectionMatches({ highlightWordAroundCursor: buf.opt('core.highlight.occurrences.wordAroundCursor'),
-                                              wholeWords: buf.opt('core.highlight.occurrences.wholeWords') })
-}
-
 function makeHighlightSyntax
 () {
   return CMLang.syntaxHighlighting(CMLang.defaultHighlightStyle, { fallback: true })
@@ -579,7 +573,6 @@ function viewInit
   view.wode.autocomplete = new CMState.Compartment
   view.wode.decorMode = new CMState.Compartment
   view.wode.highlightActive = new CMState.Compartment
-  view.wode.highlightOccur = new CMState.Compartment
   view.wode.highlightSyntax = new CMState.Compartment
   view.wode.showTrailingWhitespace = new CMState.Compartment
   view.wode.exts = new Set()
@@ -767,11 +760,6 @@ function viewInit
     opts.push(view.wode.highlightActive.of(CMView.highlightActiveLine()))
   else
     opts.push(view.wode.highlightActive.of([]))
-
-  if (buf.opt('core.highlight.occurrences.enabled'))
-    opts.push(view.wode.highlightOccur.of(makeHighlightOccur(buf)))
-  else
-    opts.push(view.wode.highlightOccur.of([]))
 
   if (buf.opt('core.highlight.syntax.enabled')) {
     opts.push(view.wode.highlightSyntax.of(makeHighlightSyntax()))
@@ -3895,14 +3883,6 @@ function reconfigureHighlightActive
     view.ed.dispatch({ effects: view.wode.highlightActive.reconfigure([]) })
 }
 
-function reconfigureHighlightOccur
-(buf, view) {
-  if (buf.opt('core.highlight.occurrences.enabled'))
-    view.ed.dispatch({ effects: view.wode.highlightOccur.reconfigure(makeHighlightOccur(buf)) })
-  else
-    view.ed.dispatch({ effects: view.wode.highlightOccur.reconfigure([]) })
-}
-
 function reconfigureHighlightTrailing
 (buf, view) {
   if (buf.opt('core.highlight.trailingWhitespace.enabled'))
@@ -3955,9 +3935,6 @@ function initOpt
 
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.activeLine.enabled', reconfigureHighlightActive)
-  on('core.highlight.occurrences.enabled', reconfigureHighlightOccur)
-  on('core.highlight.occurrences.wholeWords', reconfigureHighlightOccur)
-  on('core.highlight.occurrences.wordAroundCursor', reconfigureHighlightOccur)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
   on('core.highlight.trailingWhitespace.enabled', reconfigureHighlightTrailing)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)

@@ -900,7 +900,7 @@ function init
   initEqual()
   initStash()
 
-  Cmd.add('vc branch', () => git('git branch', 'branch'))
+  Cmd.add('vc branch', () => git('git branch --all', 'branch'))
   Cmd.add('vc pull', () => git('git-pull-with-name'))
   Cmd.add('vc push', () => git('git push origin HEAD'))
   Cmd.add('vc reset', () => reset())

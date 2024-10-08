@@ -7,7 +7,6 @@ import * as Opt from '../../opt.mjs'
 
 import * as CMLang from '../../lib/@codemirror/language.js'
 import * as CMSearch from '../../lib/@codemirror/search.js'
-import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 
 let brexts
@@ -79,34 +78,27 @@ function init
 
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeBrck,
-                            part: new CMState.Compartment,
                             reconfOpts: [ 'core.highlight.bracket.enabled', 'core.highlight.bracket.afterCursor' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.specials.enabled') ? CMView.highlightSpecialChars() : [],
-                            part: new CMState.Compartment,
                             reconfOpts: [ 'core.highlight.specials.enabled' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeOccur,
-                            part: new CMState.Compartment,
                             reconfOpts: [ 'core.highlight.occurrences.enabled',
                                           'core.highlight.occurrences.wholeWords',
                                           'core.highlight.occurrences.wordAroundCursor' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.whitespace.enabled') ? CMView.highlightWhitespace() : [],
-                            part: new CMState.Compartment,
                             reconfOpts: [ 'core.highlight.whitespace.enabled' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeCursor,
-                            part: new CMState.Compartment,
                             reconfOpts: [ 'core.cursor.blink.enabled', 'core.cursor.blink.rate' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeNums,
-                            part: new CMState.Compartment,
                             reconfOpts: [ 'core.line.numbers.show', 'blankLines.enabled' ] }))
 
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.line.wrap.enabled') ? CMView.EditorView.lineWrapping : [],
-                            part: new CMState.Compartment,
                             reconfOpts: [ 'core.line.wrap.enabled' ] }))
 
   Cmd.add('enable cursor blink', u => Ed.enable(u, 'core.cursor.blink.enabled'))

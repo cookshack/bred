@@ -456,7 +456,7 @@ function reconfigureOpt
   buf.views.forEach(view => {
     if (view.ed)
       brexts.forEach(b => {
-        if (b.spec.part && b.spec.make && b.spec.reconfOpts && b.spec.reconfOpts.includes(name))
+        if (b.spec.make && b.spec.reconfOpts && b.spec.reconfOpts.includes(name))
           view.ed.dispatch({ effects: b.spec.part.reconfigure(b.spec.make(view)) })
       })
   })
@@ -472,15 +472,16 @@ function register
     () {
       brexts = brexts.filter(b => b.id !== brext.id)
       // remove from existing views
-      if (spec.part)
-        Buf.forEach(buf => buf.views.forEach(v => v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
+      Buf.forEach(buf => buf.views.forEach(v => v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
       // reconfigure exts opts on all bufs, in case any other extensions use the opt
       spec.reconfOpts?.forEach(name => Buf.forEach(buf => reconfigureOpt(buf, name)))
     }
 
     id = ++brextIds
 
-    if (spec.part && spec.make)
+    spec.part = spec.part || new CMState.Compartment
+
+    if (spec.make)
       // every existing ed must get a compartment
       Buf.forEach(buf => buf.views.forEach(view => {
         if (view.ele && view.ed)
@@ -754,7 +755,7 @@ function viewInit
 
   opts.push(view.wode.autocomplete.of([]))
 
-  brexts.forEach(b => b.spec.part && b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
+  brexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
 
   if (buf.opt('core.highlight.activeLine.enabled'))
     opts.push(view.wode.highlightActive.of(CMView.highlightActiveLine()))

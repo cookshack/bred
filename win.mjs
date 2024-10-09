@@ -194,7 +194,7 @@ export
 function add
 (window, devtools) {
   let win, areas, menu
-  let echo, el, outer, frameToggleL, frameToggleR, mini
+  let echo, el, outer, frameToggleL, frameToggleR, hover, mini
 
   function addArea
   (area) {
@@ -205,6 +205,7 @@ function add
   areas = []
   echo = divIdCl('echo', 'mini-echo mini-em', [], { 'data-run': 'messages' })
   el = divCl('bred-areas')
+
   frameToggleL = divCl('mini-frame mini-icon onfill mini-frame-open mini-frame-left',
                        img('img/open.svg', 'Open', 'filter-clr-text'),
                        { 'data-run': 'toggle frame left' })
@@ -212,6 +213,8 @@ function add
   frameToggleR = divCl('mini-frame mini-icon onfill mini-frame-open',
                        img('img/open.svg', 'Open', 'filter-clr-text'),
                        { 'data-run': 'toggle frame right' })
+
+  hover = divCl('bred-hover')
 
   mini = divIdCl('mini', 'top',
                  [ divIdCl('mini-panel-l', 'mini-panel', frameToggleL),
@@ -248,6 +251,9 @@ function add
           get frameToggleR() {
             return frameToggleR
           },
+          get hover() {
+            return hover
+          },
           get menu() {
             return menu
           },
@@ -275,6 +281,11 @@ function add
     append(area.el,
            [ win.menu.ele,
              win.mini ])
+    area.show()
+
+    area = Area.add(win, 'bred-hoverW')
+    Css.hide(hover)
+    append(area.el, hover)
     area.show()
   }
 

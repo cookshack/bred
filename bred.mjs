@@ -185,12 +185,6 @@ function initDoc
   win = Win.add(globalThis, devtools)
 
   {
-    area = Area.add(win, 'bred-hoverW')
-    elements.hover = divCl('bred-hover')
-    Css.hide(elements.hover)
-    append(area.el, elements.hover)
-    area.show()
-
     area = Area.add(win, 'bred-diag-w')
     elements.diag = divCl('bred-diag')
     Css.hide(elements.diag)
@@ -241,22 +235,25 @@ function initMouse
   globalThis.document.addEventListener('mouseenter', xy)
 
   function xy(e) {
+    let win
+
+    win = Win.current()
     x = e.pageX
     y = e.pageY
     if (e.target?.dataset?.run) {
       if (e.target?.dataset?.run == 'open link')
-        elements.hover.innerText = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.path
+        win.hover.innerText = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.path
       else if (e.target?.dataset?.run == 'open externally')
-        elements.hover.innerText = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.url
+        win.hover.innerText = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.url
       else
-        elements.hover.innerText = Cmd.canon(e.target?.dataset?.run)
+        win.hover.innerText = Cmd.canon(e.target?.dataset?.run)
       if (hover)
         return
-      Css.show(elements.hover)
+      Css.show(win.hover)
       hover = 1
     }
     else if (hover) {
-      Css.hide(elements.hover)
+      Css.hide(win.hover)
       hover = 0
     }
   }

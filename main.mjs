@@ -1247,6 +1247,7 @@ async function whenReady
     .option('--skip-init', 'Skip loading of your init.js file')
     .addOption(new Commander.Option('--devtools <state>', 'Initial state of devtools').choices([ 'auto', 'on', 'off' ]).default('auto'))
     .option('--wait-for-devtools', 'Wait for devtools to load before starting. Slower, but useful for debugging startup.')
+    .option('--wait', 'Same as --wait-for-devtools.')
     .addOption(new Commander.Option('--backend <name>', 'Editing backend').choices([ 'ace', 'codemirror', 'monaco' ]).default('codemirror'))
     .option('--bounds <spec>', 'Set geometry of window (format: "x,y,width-in-px,height-in-px", default: previous geometry)')
     .option('--logfile <file>', 'file to write logs to (default: stdout)')

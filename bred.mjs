@@ -570,13 +570,13 @@ function initCmds
         Css.retract(tab.frameLeft.el)
       })
       tab.frame1.focus()
-      Css.remove(tab.frameToggleL, 'mini-frame-open')
+      Css.remove(frameToggleL, 'mini-frame-open')
     }
     else {
       Tab.forEach(area, tab => {
         Css.expand(tab.frameLeft.el)
       })
-      Css.add(tab.frameToggleL, 'mini-frame-open')
+      Css.add(frameToggleL, 'mini-frame-open')
     }
   })
 

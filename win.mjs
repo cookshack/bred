@@ -108,7 +108,7 @@ function makeMenu
                         map ])
              } }
 
-  devtoolsToggle = divCl('bred-devtools onfill' + (devtools.open ? ' bred-open' : ''),
+  devtoolsToggle = divCl('bred-devtools onfill' + (devtools?.open ? ' bred-open' : ''),
                          img('img/open2.svg', 'Toggle Devtools', 'filter-clr-text'),
                          { 'data-run': 'toggle devtools' })
 

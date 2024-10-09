@@ -670,12 +670,12 @@ function initCmds
   })
 
   Cmd.add('new window', () => {
-    let win
+    let window
 
-    win = globalThis.window.open('')
-    if (win) {
-      win.bred = globalThis.bred
-      append(win.document.body, div('hi'))
+    window = globalThis.window.open('')
+    if (window) {
+      window.bred = globalThis.bred
+      Win.add(window)
       return
     }
     Mess.yell('Error')

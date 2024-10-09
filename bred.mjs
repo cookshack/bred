@@ -1769,7 +1769,6 @@ function start0
 export
 function init
 () {
-
   globalThis.bred = {}
 
   Opt.load(() => {
@@ -1809,7 +1808,12 @@ function init
 export
 function initNewWindow
 () {
-  console.log('inw')
-  start0()
-  initCss(globalThis)
+  globalThis.bred = {}
+
+  Opt.load(() => {
+    initFontSize()
+
+    start0()
+    initCss(globalThis)
+  })
 }

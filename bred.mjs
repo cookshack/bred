@@ -1,4 +1,4 @@
-import { append, button, div, divCl, divId, divIdCl, span, img } from './dom.mjs'
+import { append, button, div, divCl, divIdCl, span, img } from './dom.mjs'
 
 import * as About from './about.mjs'
 import * as Area from './area.mjs'
@@ -351,10 +351,6 @@ function initDoc
   win = Win.add(globalThis)
 
   {
-    elements.outer = divId('outer')
-
-    append(win.body, elements.outer)
-
     elements.echo = divIdCl('echo', 'mini-echo mini-em', [], { 'data-run': 'messages' })
 
     frameToggleL = divCl('mini-frame mini-icon onfill mini-frame-open mini-frame-left',
@@ -418,7 +414,7 @@ function initDoc
 
     Tab.add(area)
 
-    append(elements.outer,
+    append(win.outer,
            context.el,
            win.el)
 

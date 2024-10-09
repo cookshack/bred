@@ -1,11 +1,11 @@
-import { append, divCl } from './dom.mjs'
+import { append, divCl, divId } from './dom.mjs'
 
 let wins, id
 
 export
 function add
 (window) {
-  let win, areas, el
+  let win, areas, el, outer
 
   function addArea
   (area) {
@@ -15,6 +15,7 @@ function add
 
   areas = []
   el = divCl('bred-areas')
+  outer = divId('outer')
 
   win = { id: id,
           //
@@ -27,10 +28,14 @@ function add
           get el() {
             return el
           },
+          get outer() {
+            return outer
+          },
           //
           add: addArea }
 
   id++
+  append(win.body, win.outer)
   wins.push(win)
   window.bredWin = win
   return win

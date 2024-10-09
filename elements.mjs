@@ -6,7 +6,6 @@ vals.echo = globalThis.echo
 vals.diag = globalThis.diag
 vals.hover = globalThis.hover
 vals.mini = globalThis.mini
-vals.outer = globalThis.outer
 vals.tip = globalThis.tip
 
 elements = {
@@ -21,9 +20,6 @@ elements = {
   },
   get mini() {
     return vals.mini
-  },
-  get outer() {
-    return vals.outer
   },
   get tip() {
     return vals.tip
@@ -40,9 +36,6 @@ elements = {
   },
   set mini(v) {
     return vals.mini = v
-  },
-  set outer(v) {
-    return vals.outer = v
   },
   set tip(v) {
     return vals.tip = v

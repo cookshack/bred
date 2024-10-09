@@ -251,7 +251,7 @@ function makeContext
 
 export
 function add
-(window, devtools) {
+(window, spec) { // { devtools, initCss }
   let win
   let areas, context, main, menu
   let diag, echo, el, outer, frameToggleL, frameToggleR, hover, mini, tip
@@ -260,6 +260,16 @@ function add
   (area) {
     areas.push(area)
     append(el, area.el)
+  }
+
+  function init
+  () {
+    d('try init')
+    if (globalThis === window) {
+      d('Win init')
+      if (spec?.initCss)
+        spec.initCss(window)
+    }
   }
 
   areas = []
@@ -337,14 +347,21 @@ function add
           get outer() {
             return outer
           },
+          get parent() {
+            return spec?.parent
+          },
           get tip() {
             return tip
           },
+          get window() {
+            return window
+          },
           //
-          add: addArea }
+          add: addArea,
+          init }
 
   context = makeContext(win)
-  menu = makeMenu(devtools, win)
+  menu = makeMenu(spec?.devtools, win)
 
   id++
   append(win.body, win.outer)
@@ -421,3 +438,5 @@ function init
   wins = []
   id = 1
 }
+
+export const _internals = { id, wins }

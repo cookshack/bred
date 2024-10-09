@@ -123,7 +123,8 @@ function initPackages
                         Cut,
                         Dir,
                         Exec,
-                        Shell }
+                        Shell,
+                        Win }
 
     cb()
   })
@@ -132,7 +133,7 @@ function initPackages
 function initDoc
 (devtools) {
   Mess.say('Building...')
-  Win.add(globalThis, devtools)
+  Win.add(globalThis, { devtools: devtools })
   globalThis.restartForError.remove()
 }
 
@@ -674,8 +675,17 @@ function initCmds
 
     window = globalThis.window.open('')
     if (window) {
-      window.bred = globalThis.bred
-      Win.add(window)
+      let script
+
+      //window.bred = globalThis.bred
+      Win.add(window, { initCss: initCss,
+                        parent: globalThis })
+      window.name = 'xxx'
+      script = window.document.createElement('script')
+      //script.text = "import * as Bred from './bred.mjs'"
+      script.src = './init-new-window.mjs'
+      script.type = 'module'
+      window.document.head.appendChild(script)
       return
     }
     Mess.yell('Error')
@@ -1584,16 +1594,18 @@ function initRecent
 
 export
 function initCss1
-(file) {
+(window, file) {
+  d('initCss1: ' + file)
   importCss(file)
     .then(m => {
-      globalThis.document.adoptedStyleSheets = [ ...globalThis.document.adoptedStyleSheets, m.default ]
+      d('initCss1: ' + file + ': done')
+      window.document.adoptedStyleSheets = [ ...window.document.adoptedStyleSheets, m.default ]
     },
           err => Mess.yell('Failed to load  ' + file + ': ' + err.message))
 }
 
 function initCss
-() {
+(window) {
   let files, file
 
   files = [ './css/bred.css',
@@ -1613,12 +1625,12 @@ function initCss
             './css/options.css',
             './css/recent.css',
             './css/vc.css' ]
-  files.forEach(initCss1)
+  files.forEach(f => initCss1(window, f))
 
   file = './lib/sheets.mjs'
   import(file)
     .then(m => {
-      m.sheets.forEach(initCss1)
+      m.sheets.forEach(f => initCss1(window, f))
     },
           err => Mess.yell('Failed to load  ' + file + ': ' + err.message))
 }
@@ -1682,7 +1694,7 @@ function init
     })
 
     d('initCss')
-    initCss()
+    initCss(globalThis)
   }
 
   function start2
@@ -1784,4 +1796,11 @@ function init
       setTimeout(() => start1(d))
     })
   })
+}
+
+export
+function initNewWindow
+() {
+  console.log('inw')
+  initCss(globalThis)
 }

@@ -3,7 +3,6 @@ import { divCl, img } from './dom.mjs'
 import * as Buf from './buf.mjs'
 import * as Css from './css.mjs'
 import * as Dir from './dir.mjs'
-import elements from './elements.mjs'
 import * as Em from './em.mjs'
 import * as Ed from './ed.mjs'
 import * as Frame from './frame.mjs'
@@ -387,7 +386,7 @@ function cancel
 () {
   Em.cancel()
   Mess.say()
-  Css.remove(elements.mini, 'active')
+  Css.remove(Win.current().mini, 'active')
 }
 
 export

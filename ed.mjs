@@ -4,7 +4,6 @@ import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Cut from './cut.mjs'
-import elements from './elements.mjs'
 import * as Em from './em.mjs'
 import * as Hist from './hist.mjs'
 import * as Loc from './loc.mjs'
@@ -608,8 +607,8 @@ function initSearch
 
     Css.show(s.st.win.echo)
     s.st.mini.remove()
-    Css.remove(elements.mini, 'active')
-    Css.remove(elements.mini, 'search')
+    Css.remove(s.st.win.mini, 'active')
+    Css.remove(s.st.win.mini, 'search')
     globalThis.onkeydown = s.st.oldOnKeyDown
     Backend.cancel()
   }
@@ -808,21 +807,21 @@ function initSearch
       return
     }
 
-    if (Css.has(elements.mini, 'active'))
+    p = Pane.current()
+    if (Css.has(p.win.mini, 'active'))
       return
 
     s.st = { stack: [],
              caseSensitive: 0,
              regExp: 0 }
-    p = Pane.current()
     s.st.win = p.win
     s.st.view = p.view
     s.st.needle = ''
     s.st.start = s.st.view.pos
     s.st.backward = backward
 
-    Css.add(elements.mini, 'active')
-    Css.add(elements.mini, 'search')
+    Css.add(s.st.win.mini, 'active')
+    Css.add(s.st.win.mini, 'search')
     s.st.echo = divCl('mini-echo')
     Css.hide(s.st.win.echo)
     s.st.mini = divCl('mini-search-w',
@@ -839,7 +838,7 @@ function initSearch
                               img('img/search.svg', 'Search', 'filter-clr-nb0'),
                               { 'data-run': 'search done' }),
                         s.st.echo ])
-    elements.mini.firstElementChild.after(s.st.mini)
+    s.st.win.mini.firstElementChild.after(s.st.mini)
 
     oldOnKeyDown = globalThis.onkeydown
     s.st.oldOnKeyDown = oldOnKeyDown

@@ -1,5 +1,4 @@
 import * as Css from './css.mjs'
-import elements from './elements.mjs'
 import * as Ev from './ev.mjs'
 import * as Loc from './loc.mjs'
 import * as Opt from './opt.mjs'
@@ -188,7 +187,7 @@ function echoMore
   msg = msg || ''
   win = Win.current()
   if (win?.echo) {
-    Css.remove(elements.mini, 'yell')
+    Css.remove(win.mini, 'yell')
     win.echo.innerText = msg
   }
   return msg
@@ -210,7 +209,7 @@ function yell
   win = Win.current()
   if (msg && msg.length) {
     if (win?.echo) {
-      Css.add(elements.mini, 'yell')
+      Css.add(win.mini, 'yell')
       win.echo.innerText = msg
     }
     push('yell', msg)

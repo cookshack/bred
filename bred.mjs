@@ -352,23 +352,10 @@ function initDoc
 
   {
     area = Area.add(win, 'bred-top')
-    elements.mini = divIdCl('mini', 'top',
-                            [ divIdCl('mini-panel-l', 'mini-panel', win.frameToggleL),
-                              win.echo,
-                              divIdCl('mini-execute', 'mini-execute mini-em', [], { 'data-run': 'execute' }),
-                              divIdCl('mini-panel',
-                                      'mini-panel',
-                                      [ divCl('mini-icon onfill',
-                                              img('img/split.svg', 'Split', 'filter-clr-text'),
-                                              { 'data-run': 'easy split' }),
-                                        divCl('mini-icon onfill',
-                                              img(Ed.iconPath('welcome'), 'Welcome', 'filter-clr-text'),
-                                              { 'data-run': 'welcome' }),
-                                        win.frameToggleR ]) ])
 
     append(area.el,
            [ menu.ele,
-             elements.mini ])
+             win.mini ])
     area.show()
 
     area = Area.add(win, 'bred-hoverW')

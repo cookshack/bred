@@ -6,7 +6,6 @@ import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Exec from './exec.mjs'
-import elements from './elements.mjs'
 import * as Em from './em.mjs'
 import * as Ev from './ev.mjs'
 import * as Loc from './loc.mjs'
@@ -314,8 +313,8 @@ function initDescribeKey
       d('cancel')
       Css.show(st.win.echo)
       st.mini.remove()
-      Css.remove(elements.mini, 'active')
-      Css.remove(elements.mini, 'search')
+      Css.remove(st.win.mini, 'active')
+      Css.remove(st.win.mini, 'search')
       globalThis.onkeydown = st.oldOnKeyDown
     }
 
@@ -386,20 +385,21 @@ function initDescribeKey
       return
     }
 
-    if (Css.has(elements.mini, 'active'))
-      return
-
-    st = {}
     {
       let p
 
       p = Pane.current()
+
+      if (Css.has(p.win.mini, 'active'))
+        return
+
+      st = {}
       st.win = p.win
       st.view = p.view
     }
 
-    Css.add(elements.mini, 'active')
-    Css.add(elements.mini, 'search')
+    Css.add(st.win.mini, 'active')
+    Css.add(st.win.mini, 'search')
     st.echo = divCl('mini-echo')
     Css.hide(st.win.echo)
     st.mini = divCl('mini-search-w',
@@ -416,7 +416,7 @@ function initDescribeKey
                             img('img/search.svg', 'Search', 'filter-clr-nb0'),
                             { 'data-run': 'search done' }),
                       st.echo ])
-    elements.mini.firstElementChild.after(st.mini)
+    st.win.mini.firstElementChild.after(st.mini)
 
     st.oldOnKeyDown = globalThis.onkeydown
 

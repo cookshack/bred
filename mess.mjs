@@ -3,6 +3,7 @@ import elements from './elements.mjs'
 import * as Ev from './ev.mjs'
 import * as Loc from './loc.mjs'
 import * as Opt from './opt.mjs'
+import * as Win from './win.mjs'
 
 import callsites from './lib/callsites.mjs'
 
@@ -182,10 +183,13 @@ function push
 export
 function echoMore
 (msg) {
+  let win
+
   msg = msg || ''
-  if ((typeof elements.echo !== 'undefined') && elements.echo) {
+  win = Win.current()
+  if (win?.echo) {
     Css.remove(elements.mini, 'yell')
-    elements.echo.innerText = msg
+    win.echo.innerText = msg
   }
   return msg
 }
@@ -201,10 +205,13 @@ function say
 export
 function yell
 (msg) {
+  let win
+
+  win = Win.current()
   if (msg && msg.length) {
-    if ((typeof elements.echo !== 'undefined') && elements.echo) {
+    if (win?.echo) {
       Css.add(elements.mini, 'yell')
-      elements.echo.innerText = msg
+      win.echo.innerText = msg
     }
     push('yell', msg)
     console.info('yell: ' + msg)

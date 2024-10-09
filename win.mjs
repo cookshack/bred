@@ -1,11 +1,11 @@
-import { append, divCl, divId } from './dom.mjs'
+import { append, divCl, divId, divIdCl } from './dom.mjs'
 
 let wins, id
 
 export
 function add
 (window) {
-  let win, areas, el, outer
+  let win, areas, echo, el, outer
 
   function addArea
   (area) {
@@ -14,6 +14,7 @@ function add
   }
 
   areas = []
+  echo = divIdCl('echo', 'mini-echo mini-em', [], { 'data-run': 'messages' })
   el = divCl('bred-areas')
   outer = divId('outer')
 
@@ -24,6 +25,9 @@ function add
           },
           get body() {
             return window.document.body
+          },
+          get echo() {
+            return echo
           },
           get el() {
             return el

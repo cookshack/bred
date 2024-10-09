@@ -312,7 +312,7 @@ function initDescribeKey
     function cancel
     () {
       d('cancel')
-      Css.show(elements.echo)
+      Css.show(st.win.echo)
       st.mini.remove()
       Css.remove(elements.mini, 'active')
       Css.remove(elements.mini, 'search')
@@ -390,12 +390,18 @@ function initDescribeKey
       return
 
     st = {}
-    st.view = Pane.current().view
+    {
+      let p
+
+      p = Pane.current()
+      st.win = p.win
+      st.view = p.view
+    }
 
     Css.add(elements.mini, 'active')
     Css.add(elements.mini, 'search')
     st.echo = divCl('mini-echo')
-    Css.hide(elements.echo)
+    Css.hide(st.win.echo)
     st.mini = divCl('mini-search-w',
                     [ divCl('mini-icon icon-ed-search',
                             img('img/up.svg', 'Previous', 'filter-clr-nb0'),

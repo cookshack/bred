@@ -606,7 +606,7 @@ function initSearch
     Backend.clearDecorMatch(s.st.view, s.st)
     Backend.clearDecorAll(s.st.view, s.st)
 
-    Css.show(elements.echo)
+    Css.show(s.st.win.echo)
     s.st.mini.remove()
     Css.remove(elements.mini, 'active')
     Css.remove(elements.mini, 'search')
@@ -801,7 +801,7 @@ function initSearch
 
   function search
   (backward) {
-    let oldOnKeyDown
+    let oldOnKeyDown, p
 
     if (s.st) {
       s.st = 0
@@ -814,7 +814,9 @@ function initSearch
     s.st = { stack: [],
              caseSensitive: 0,
              regExp: 0 }
-    s.st.view = Pane.current().view
+    p = Pane.current()
+    s.st.win = p.win
+    s.st.view = p.view
     s.st.needle = ''
     s.st.start = s.st.view.pos
     s.st.backward = backward
@@ -822,7 +824,7 @@ function initSearch
     Css.add(elements.mini, 'active')
     Css.add(elements.mini, 'search')
     s.st.echo = divCl('mini-echo')
-    Css.hide(elements.echo)
+    Css.hide(s.st.win.echo)
     s.st.mini = divCl('mini-search-w',
                       [ divCl('mini-icon icon-ed-search',
                               img('img/up.svg', 'Previous', 'filter-clr-nb0'),

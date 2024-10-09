@@ -351,8 +351,6 @@ function initDoc
   win = Win.add(globalThis)
 
   {
-    elements.echo = divIdCl('echo', 'mini-echo mini-em', [], { 'data-run': 'messages' })
-
     frameToggleL = divCl('mini-frame mini-icon onfill mini-frame-open mini-frame-left',
                          img('img/open.svg', 'Open', 'filter-clr-text'),
                          { 'data-run': 'toggle frame left' })
@@ -364,7 +362,7 @@ function initDoc
     area = Area.add(win, 'bred-top')
     elements.mini = divIdCl('mini', 'top',
                             [ divIdCl('mini-panel-l', 'mini-panel', frameToggleL),
-                              elements.echo,
+                              win.echo,
                               divIdCl('mini-execute', 'mini-execute mini-em', [], { 'data-run': 'execute' }),
                               divIdCl('mini-panel',
                                       'mini-panel',

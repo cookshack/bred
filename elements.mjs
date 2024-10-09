@@ -2,16 +2,12 @@ let vals, elements
 
 vals = {}
 
-vals.echo = globalThis.echo
 vals.diag = globalThis.diag
 vals.hover = globalThis.hover
 vals.mini = globalThis.mini
 vals.tip = globalThis.tip
 
 elements = {
-  get echo() {
-    return vals.echo
-  },
   get diag() {
     return vals.diag
   },
@@ -25,9 +21,6 @@ elements = {
     return vals.tip
   },
 
-  set echo(v) {
-    return vals.echo = v
-  },
   set diag(v) {
     return vals.diag = v
   },

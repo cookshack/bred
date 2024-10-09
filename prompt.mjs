@@ -8,6 +8,7 @@ import * as Em from './em.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Tab from './tab.mjs'
+import * as Win from './win.mjs'
 
 let buf, $callerView, ynEm, ynCb
 
@@ -38,11 +39,12 @@ function demandYN
 export
 function demand
 (em, co) {
-  let area
+  let p, area
 
-  $callerView = Pane.current().view
-  Area.getByName('bred-float')?.close()
-  area = Area.add('bred-float')
+  p = Pane.current()
+  $callerView = p.view
+  Area.getByName(p.win, 'bred-float')?.close()
+  area = Area.add(p.win, 'bred-float')
   if (em)
     Em.replace(() => [ em ])
   append(area.el, co)
@@ -53,10 +55,11 @@ function demand
 export
 function demandBuf
 (w) {
-  let p, buf, area, ml
+  let win, p, buf, area, ml
 
-  Area.getByName('bred-float')?.close()
-  area = Area.add('bred-float')
+  win = Win.current()
+  Area.getByName(win, 'bred-float')?.close()
+  area = Area.add(win, 'bred-float')
   Tab.add(area, { singleFrame: 1 })
 
   p = Pane.current()
@@ -80,9 +83,12 @@ function demandBuf
 export
 function close
 () {
-  Area.hide('bred-float')
+  let win
+
+  win = Win.current()
+  Area.hide(win, 'bred-float')
   Em.replace()
-  Area.show('bred-main')
+  Area.show(win, 'bred-main')
 }
 
 function divW

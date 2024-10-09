@@ -1,6 +1,5 @@
 import { divCl, img } from './dom.mjs'
 
-import * as Area from './area.mjs'
 import * as Buf from './buf.mjs'
 import * as Css from './css.mjs'
 import * as Dir from './dir.mjs'
@@ -11,6 +10,7 @@ import * as Frame from './frame.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Tron from './tron.mjs'
+import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
 let id, bootBuf
@@ -240,6 +240,9 @@ function add
         get view() {
           return view
         },
+        get win() {
+          return frame.tab.area.win
+        },
         //
         set buf(b2) {
           setBuf(b2)
@@ -429,9 +432,9 @@ function top
   return frame.panes.find(p => p.w == frame.startMarker.nextElementSibling)
 }
 
-// all panes on all frames on all tabs on all areas
+// all panes on all frames on all tabs on all areas on all wins
 export
 function forEach
 (cb) {
-  Area.forEach(area => area.tabs.forEach(tab => tab.frames.forEach(frame => frame.panes.forEach(pane => cb(pane)))))
+  Win.forEach(win => win.areas.forEach(area => area.tabs.forEach(tab => tab.frames.forEach(frame => frame.panes.forEach(pane => cb(pane))))))
 }

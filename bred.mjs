@@ -38,7 +38,7 @@ import { d } from './mess.mjs'
 //import * as Linters from "./lib/ace-linters/ace-linters.js"
 
 let $version, mouse, context, menu, recents, frameToggleL, frameToggleR
-let devtoolsToggle, areas, area
+let devtoolsToggle, area
 
 export
 function version
@@ -365,11 +365,7 @@ function initDoc
                          img('img/open.svg', 'Open', 'filter-clr-text'),
                          { 'data-run': 'toggle frame right' })
 
-    areas = divCl('bred-areas')
-
-    Area.setContainer(areas)
-
-    area = Area.add('bred-top')
+    area = Area.add(win, 'bred-top')
     elements.mini = divIdCl('mini', 'top',
                             [ divIdCl('mini-panel-l', 'mini-panel', frameToggleL),
                               elements.echo,
@@ -383,18 +379,19 @@ function initDoc
                                               img(Ed.iconPath('welcome'), 'Welcome', 'filter-clr-text'),
                                               { 'data-run': 'welcome' }),
                                         frameToggleR ]) ])
+
     append(area.el,
            [ menu.ele,
              elements.mini ])
     area.show()
 
-    area = Area.add('bred-hoverW')
+    area = Area.add(win, 'bred-hoverW')
     elements.hover = divCl('bred-hover')
     Css.hide(elements.hover)
     append(area.el, elements.hover)
     area.show()
 
-    area = Area.add('bred-diag-w')
+    area = Area.add(win, 'bred-diag-w')
     elements.diag = divCl('bred-diag')
     Css.hide(elements.diag)
     append(elements.diag, divCl('bred-diag-icon',
@@ -405,7 +402,7 @@ function initDoc
     append(area.el, elements.diag)
     area.show()
 
-    area = Area.add('bred-tip-w')
+    area = Area.add(win, 'bred-tip-w')
     elements.tip = divCl('bred-tip')
     Css.hide(elements.tip)
     append(elements.tip, divCl('bred-tip-icon',
@@ -416,14 +413,14 @@ function initDoc
     append(area.el, elements.tip)
     area.show()
 
-    area = Area.add('bred-main')
+    area = Area.add(win, 'bred-main')
     area.show()
 
     Tab.add(area)
 
     append(elements.outer,
            context.el,
-           areas)
+           win.el)
 
     globalThis.restartForError.remove()
   }

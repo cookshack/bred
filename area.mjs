@@ -1,47 +1,41 @@
-import { append, divCl } from './dom.mjs'
+import { divCl } from './dom.mjs'
 
 import * as Css from './css.mjs'
 import * as Frame from './frame.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './pane.mjs'
 import * as Tab from './tab.mjs'
+import * as Win from './win.mjs'
 
-let areas, $current, lastId, container
+let lastId
 
 export
 function init
 () {
   lastId = 0
-  areas = []
-}
-
-export
-function setContainer
-(el) {
-  return container = el
 }
 
 export
 function add
-(name, cssId) {
+(win, name, cssId) {
   let area, id, tabs, tabbar
 
   function close
   () {
     let i, next
 
-    if (areas.length <= 1)
+    if (win.areas.length <= 1)
       return 1
-    i = areas.indexOf(area)
+    i = win.areas.indexOf(area)
     if (i < 0)
       Mess.toss('area missing')
-    if (i > (areas.length - 2))
-      next = areas.at(-2)
+    if (i > (win.areas.length - 2))
+      next = win.areas.at(-2)
     else
-      next = areas.at(i + 1)
+      next = win.areas.at(i + 1)
     next.show()
     area.el.remove()
-    areas.splice(i, 1)
+    win.areas.splice(i, 1)
     return 0
   }
 
@@ -52,7 +46,7 @@ function add
 
   function show
   () {
-    $current = area
+    win.currentArea = area
     Css.expand(area.el)
   }
 
@@ -69,7 +63,7 @@ function add
   }
 
   if (name)
-    areas.forEach(a => (a.name == name) && Mess.toss('Duplicate name'))
+    win.areas.forEach(a => (a.name == name) && Mess.toss('Duplicate name'))
 
   id = ++lastId
   tabs = []
@@ -92,6 +86,9 @@ function add
            get tabbar() {
              return tabbar
            },
+           get win() {
+             return win
+           },
            //
            set name(n) {
              return setName(n)
@@ -102,56 +99,36 @@ function add
            pane,
            show }
 
-  areas.push(area)
-  append(container, area.el)
+  win.add(area)
 
   return area
 }
 
 export
-function get
-(id) {
-  id = parseInt(id)
-  return areas.find(a => a.id == id)
-}
-
-export
-function getByIndex
-(i) {
-  i = parseInt(i)
-  return areas[i]
-}
-
-export
 function getByName
-(name) {
-  return areas.find(a => a.name == name)
+(win, name) {
+  return win.areas.find(a => a.name == name)
 }
 
 export
 function current
-() {
-  return $current
-}
-
-export
-function forEach
-(cb) {
-  return areas.forEach(cb)
+(win) {
+  win = win || Win.current()
+  return win?.currentArea
 }
 
 export
 function hide
-(name) {
-  getByName(name)?.hide()
+(win, name) {
+  getByName(win, name)?.hide()
 }
 
 export
 function show
-(name) {
+(win, name) {
   let a
 
-  a = getByName(name)
+  a = getByName(win, name)
   if (a) {
     a.show()
     a.tab.frame?.pane?.focus()

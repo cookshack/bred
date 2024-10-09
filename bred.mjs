@@ -31,6 +31,7 @@ import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
 import * as Vc from './vc.mjs'
 import * as ViewMode from './view-mode.mjs'
+import * as Win from './win.mjs'
 import { importCss } from './json.mjs'
 import { d } from './mess.mjs'
 
@@ -78,6 +79,7 @@ function initPackages
   Area.init()
   Cmd.init()
   Em.init()
+  Win.init()
   Buf.init()
   Frame.init()
   Pane.init()
@@ -124,7 +126,7 @@ function initPackages
 
 function initDoc
 (devtools) {
-  let places
+  let places, win
 
   function menu0
   (name, co) {
@@ -346,10 +348,12 @@ function initDoc
 
   Mess.say('Building...')
 
+  win = Win.add(globalThis)
+
   {
     elements.outer = divId('outer')
 
-    append(globalThis.document.body, elements.outer)
+    append(win.body, elements.outer)
 
     elements.echo = divIdCl('echo', 'mini-echo mini-em', [], { 'data-run': 'messages' })
 

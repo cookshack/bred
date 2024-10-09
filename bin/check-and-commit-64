@@ -8,12 +8,13 @@ cd $ROOT
 
 u="$(git ls-files --exclude-standard --others --full-name)" && test -z "$u"
 if [ "$?" -ne 0 ]; then
-  echo FIRST add these:
-  git ls-files --exclude-standard --others --full-name
-  echo
   echo -n "cd $ROOT && git add"
   #git ls-files --exclude-standard --others --full-name | tr '\n' ' ' | sed 's/.$/\n/'
   git ls-files --exclude-standard --others --full-name -z | xargs -0 -I '$' echo -n ' "$"'
+  echo
+  echo
+  echo FIRST run that ↑ to add these:
+  git ls-files --exclude-standard --others --full-name
   cd $CURR
   exit 1
 fi

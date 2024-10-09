@@ -1124,10 +1124,13 @@ function createWindow
     //frame: false,
     //titleBarStyle: 'hidden',
     //titleBarOverlay: true,
+    show: false,
     webPreferences: {
       preload: Path.join(import.meta.dirname, 'preload.js'),
     }
   })
+
+  win.once('ready-to-show', () => win.show())
 
   lsp.win = win
 

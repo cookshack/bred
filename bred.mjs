@@ -131,16 +131,8 @@ function initPackages
 
 function initDoc
 (devtools) {
-  let win
-
   Mess.say('Building...')
-
-  win = Win.add(globalThis, devtools)
-
-  append(win.outer,
-         win.context.el,
-         win.el)
-
+  Win.add(globalThis, devtools)
   globalThis.restartForError.remove()
 }
 

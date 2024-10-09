@@ -394,6 +394,10 @@ function add
     main = Area.add(win, 'bred-main')
     main.show()
     Tab.add(main)
+
+    append(outer,
+           context.el,
+           el)
   }
 
   return win

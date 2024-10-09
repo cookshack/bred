@@ -10,7 +10,6 @@ import * as Dir from './dir.mjs'
 import * as Dom from './dom.mjs'
 import * as Exec from './exec.mjs'
 import * as Ed from './ed.mjs'
-import elements from './elements.mjs'
 import * as Em from './em.mjs'
 import * as Ext from './ext.mjs'
 import * as Frame from './frame.mjs'
@@ -185,17 +184,6 @@ function initDoc
   win = Win.add(globalThis, devtools)
 
   {
-    area = Area.add(win, 'bred-tip-w')
-    elements.tip = divCl('bred-tip')
-    Css.hide(elements.tip)
-    append(elements.tip, divCl('bred-tip-icon',
-                               img(Icon.path('diagnostic'), 'Tip', 'filter-clr-text')))
-    append(elements.tip, divCl('bred-tip-text-w',
-                               [ divCl('bred-tip-text'),
-                                 divCl('bred-tip-source') ]))
-    append(area.el, elements.tip)
-    area.show()
-
     area = Area.add(win, 'bred-main')
     area.show()
 

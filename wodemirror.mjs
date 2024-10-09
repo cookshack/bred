@@ -5,7 +5,6 @@ import * as Cut from './cut.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
-import elements from './elements.mjs'
 import * as Em from './em.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
@@ -425,16 +424,16 @@ function diagnose
 }
 
 0 && function tip
-(diags) {
+(win, diags) {
   if (diags) {
     let diag
 
     diag = diags.filter(d => d).at(0)
     if (diag) {
-      elements.tip.lastElementChild.firstElementChild.innerText = diag.message
-      elements.tip.lastElementChild.lastElementChild.innerText = diag.source
-      Css.add(elements.tip, 'bred-' + diag.severity)
-      Css.show(elements.tip)
+      win.tip.lastElementChild.firstElementChild.innerText = diag.message
+      win.tip.lastElementChild.lastElementChild.innerText = diag.source
+      Css.add(win.tip, 'bred-' + diag.severity)
+      Css.show(win.tip)
     }
     return
   }
@@ -3776,7 +3775,7 @@ function handleTooltipLint
 () {
   //d({ diags })
   //diagnose(win, diags.filter(d => d).at(0))
-  //tip(diags)
+  //tip(win, diags)
   return [] // turn off std tooltip
 }
 

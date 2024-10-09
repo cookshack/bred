@@ -194,7 +194,7 @@ export
 function add
 (window, devtools) {
   let win, areas, menu
-  let diag, echo, el, outer, frameToggleL, frameToggleR, hover, mini
+  let diag, echo, el, outer, frameToggleL, frameToggleR, hover, mini, tip
 
   function addArea
   (area) {
@@ -231,6 +231,7 @@ function add
                                    { 'data-run': 'welcome' }),
                              frameToggleR ]) ])
   outer = divId('outer')
+  tip = divCl('bred-tip')
 
   win = { id: id,
           //
@@ -266,6 +267,9 @@ function add
           },
           get outer() {
             return outer
+          },
+          get tip() {
+            return tip
           },
           //
           add: addArea }
@@ -303,6 +307,17 @@ function add
                        [ divCl('bred-diag-text'),
                          divCl('bred-diag-source') ]))
     append(area.el, diag)
+    area.show()
+
+    // tooltip
+    area = Area.add(win, 'bred-tip-w')
+    Css.hide(tip)
+    append(tip, divCl('bred-tip-icon',
+                      img(Icon.path('diagnostic'), 'Tip', 'filter-clr-text')))
+    append(tip, divCl('bred-tip-text-w',
+                      [ divCl('bred-tip-text'),
+                        divCl('bred-tip-source') ]))
+    append(area.el, tip)
     area.show()
   }
 

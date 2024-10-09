@@ -38,7 +38,6 @@ import { d } from './mess.mjs'
 //import * as Linters from "./lib/ace-linters/ace-linters.js"
 
 let $version, mouse, context, recents
-let area
 
 export
 function version
@@ -184,11 +183,6 @@ function initDoc
   win = Win.add(globalThis, devtools)
 
   {
-    area = Area.add(win, 'bred-main')
-    area.show()
-
-    Tab.add(area)
-
     append(win.outer,
            context.el,
            win.el)
@@ -264,7 +258,7 @@ function initCmds
       let tab
 
       d(we.e.target.dataset.id)
-      tab = Tab.get(area, we.e.target.dataset.id)
+      tab = Tab.get(Win.current().main, we.e.target.dataset.id)
       if (tab)
         tab.show()
       else
@@ -277,16 +271,17 @@ function initCmds
 
     p = Pane.current()
     buf = p.buf
-    tab = Tab.add(area)
-    Css.expand(area.tabbar)
+    tab = Tab.add(p.win.main)
+    Css.expand(p.win.main.tabbar)
     p = tab.pane()
     p.buf = buf
   })
 
   Cmd.add('close tab', (u, we) => {
-    let id, tab
+    let id, tab, area
 
     id = we.e?.dataset?.tabid
+    area = Win.current().main
     if (id)
       tab = Tab.get(area, id) || Mess('Tab missing')
     else
@@ -299,7 +294,7 @@ function initCmds
   (i) {
     let t
 
-    t = Tab.getByIndex(area, i)
+    t = Tab.getByIndex(Win.current().main, i)
     if (t)
       t.show()
   }
@@ -326,10 +321,10 @@ function initCmds
   Cmd.add('toggle frame right', () => {
     let win, tab
 
-    tab = Tab.current(area)
-    win = tab.area.win
+    win = Win.current()
+    tab = Tab.current(win.main)
     if (Css.toggle(tab.frameRight.el, 'retracted')) {
-      Tab.forEach(area, tab => {
+      Tab.forEach(win.main, tab => {
         tab.frame1.focus()
         Css.retract(tab.frameRight.el)
       })
@@ -337,7 +332,7 @@ function initCmds
       Css.remove(win.frameToggleR, 'mini-frame-open')
     }
     else {
-      Tab.forEach(area, tab => {
+      Tab.forEach(win.main, tab => {
         Css.expand(tab.frameRight.el)
       })
       Css.add(win.frameToggleR, 'mini-frame-open')
@@ -347,10 +342,10 @@ function initCmds
   Cmd.add('toggle frame left', () => {
     let win, tab
 
-    tab = Tab.current(area)
-    win = tab.area.win
+    win = Win.current()
+    tab = Tab.current(win.main)
     if (Css.toggle(tab.frameLeft.el, 'retracted')) {
-      Tab.forEach(area, tab => {
+      Tab.forEach(win.main, tab => {
         tab.frame1.focus()
         Css.retract(tab.frameLeft.el)
       })
@@ -358,7 +353,7 @@ function initCmds
       Css.remove(win.frameToggleL, 'mini-frame-open')
     }
     else {
-      Tab.forEach(area, tab => {
+      Tab.forEach(win.main, tab => {
         Css.expand(tab.frameLeft.el)
       })
       Css.add(win.frameToggleL, 'mini-frame-open')
@@ -675,17 +670,17 @@ function initCmds
   Cmd.add('pane close', () => {
     let win, f
 
-    win = area.win
-    f = Frame.current(Tab.current(area))
+    win = Win.current()
+    f = Frame.current(Tab.current(win.main))
     if (f.panes.length <= 1) {
       if (f == f.tab.frameLeft) {
-        Tab.forEach(area, tab => Css.retract(tab.frameLeft.el))
+        Tab.forEach(win.main, tab => Css.retract(tab.frameLeft.el))
         Css.remove(win.frameToggleL, 'mini-frame-open')
         f.tab.frame1.focus()
         return
       }
       if (f == f.tab.frameRight) {
-        Tab.forEach(area, tab => Css.retract(tab.frameRight.el))
+        Tab.forEach(win.main, tab => Css.retract(tab.frameRight.el))
         Css.remove(win.frameToggleR, 'mini-frame-open')
         f.tab.frame1.focus()
         return
@@ -699,8 +694,8 @@ function initCmds
   Cmd.add('pane max', () => {
     let win, f, tab
 
-    win = area.win
-    tab = Tab.current(area)
+    win = Win.current()
+    tab = Tab.current(win.main)
     f = Frame.current(tab)
     if (f.panes.length <= 1) {
       if (Css.has(tab.frameLeft.el, 'retracted')
@@ -714,8 +709,8 @@ function initCmds
         })
         return
       }
-      Tab.forEach(area, tab => Css.retract(tab.frameLeft.el))
-      Tab.forEach(area, tab => Css.retract(tab.frameRight.el))
+      Tab.forEach(win.main, tab => Css.retract(tab.frameLeft.el))
+      Tab.forEach(win.main, tab => Css.retract(tab.frameRight.el))
       Css.remove(win.frameToggleL, 'mini-frame-open')
       Css.remove(win.frameToggleR, 'mini-frame-open')
       return
@@ -1757,7 +1752,7 @@ function init
     initRecent()
     Ext.loadAll() // async
 
-    tab = Tab.current(area)
+    tab = Tab.current(Win.current().main)
     if (frames.left == 0)
       Css.retract(tab.frameLeft.el)
     if (frames.right == 0)
@@ -1813,7 +1808,7 @@ function init
     globalThis.document.onvisibilitychange = () => {
       let tab
 
-      tab = Tab.current(area)
+      tab = Tab.current(Win.current().main)
       Tron.cmd1('brood.set', [ 'frame', 'frameLeft', Css.has(tab.frameLeft.el, 'retracted') ? 0 : 1 ], err => {
         if (err)
           Mess.warn('Failed to save state of frameLeft')

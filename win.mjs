@@ -193,7 +193,7 @@ function makeMenu
 export
 function add
 (window, devtools) {
-  let win, areas, menu
+  let win, areas, main, menu
   let diag, echo, el, outer, frameToggleL, frameToggleR, hover, mini, tip
 
   function addArea
@@ -259,6 +259,9 @@ function add
           get hover() {
             return hover
           },
+          get main() {
+            return main
+          },
           get menu() {
             return menu
           },
@@ -319,6 +322,11 @@ function add
                         divCl('bred-tip-source') ]))
     append(area.el, tip)
     area.show()
+
+    // main
+    main = Area.add(win, 'bred-main')
+    main.show()
+    Tab.add(main)
   }
 
   return win

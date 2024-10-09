@@ -10,6 +10,7 @@ import * as Pane from './pane.mjs'
 import * as Place from './place.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
+import * as Shell from './shell.mjs'
 import { d } from './mess.mjs'
 
 let wins, id
@@ -190,10 +191,69 @@ function makeMenu
   return menu
 }
 
+function context0
+(name, cmd) {
+  cmd = cmd || name.toLowerCase()
+  return divCl('bred-context-item onfill', name, { 'data-run': cmd })
+}
+
+function contextLine
+() {
+  return divCl('bred-context-line')
+}
+
+function appendContextMode
+(context, p) {
+  p.buf.mode.context?.forEach(item =>
+    append(context.el,
+           context0(item.name || item.cmd, item.cmd)))
+  if (p.buf.mode.context)
+    append(context.el,
+           contextLine())
+}
+
+function makeContext
+(win) {
+  let context
+
+  context = { el: divCl('bred-context'),
+              close() {
+                Css.remove(context.el, 'bred-open')
+              },
+              open(we) {
+                let target, p
+
+                context.el.innerHTML = ''
+
+                target = win.document.elementFromPoint(we.e.clientX, we.e.clientY)
+                p = Pane.holding(target) // FIX uses current win
+                if (p && (p.buf?.fileType == 'file'))
+                  Shell.runToString(p.dir, 'git', [ 'ls-files', '--error-unmatch', p.buf.path ], false, (str, code) => {
+                    if (code == 0)
+                      append(context.el,
+                             context0('Annotate', 'Vc Annotate'),
+                             contextLine())
+                    p && appendContextMode(context, p)
+                    append(context.el,
+                           context0('Inspect Element'))
+                    Css.add(context.el, 'bred-open')
+                  })
+                else {
+                  p && appendContextMode(context, p)
+                  append(context.el,
+                         context0('Inspect Element'))
+                  Css.add(context.el, 'bred-open')
+                }
+              } }
+
+  return context
+}
+
 export
 function add
 (window, devtools) {
-  let win, areas, main, menu
+  let win
+  let areas, context, main, menu
   let diag, echo, el, outer, frameToggleL, frameToggleR, hover, mini, tip
 
   function addArea
@@ -241,8 +301,14 @@ function add
           get body() {
             return window.document.body
           },
+          get context() {
+            return context
+          },
           get diag() {
             return diag
+          },
+          get document() {
+            return window.document
           },
           get echo() {
             return echo
@@ -277,6 +343,7 @@ function add
           //
           add: addArea }
 
+  context = makeContext(win)
   menu = makeMenu(devtools, win)
 
   id++

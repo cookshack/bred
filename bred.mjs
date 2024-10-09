@@ -37,7 +37,7 @@ import { d } from './mess.mjs'
 
 //import * as Linters from "./lib/ace-linters/ace-linters.js"
 
-let $version, mouse, context, recents
+let $version, mouse, recents
 
 export
 function version
@@ -57,15 +57,21 @@ function focus
 
 function click
 (u, we) {
-  context.close()
-  Win.current().menu.close()
+  let win
+
+  win = Win.current()
+  win.context.close()
+  win.menu.close()
   focus(we)
 }
 
 function clickAux
 (u, we) {
-  context.close()
-  Win.current().menu.close()
+  let win
+
+  win = Win.current()
+  win.context.close()
+  win.menu.close()
   focus(we)
 }
 
@@ -127,63 +133,12 @@ function initDoc
 (devtools) {
   let win
 
-  function context0
-  (name, cmd) {
-    cmd = cmd || name.toLowerCase()
-    return divCl('bred-context-item onfill', name, { 'data-run': cmd })
-  }
-
-  function contextLine
-  () {
-    return divCl('bred-context-line')
-  }
-
-  function appendContextMode
-  (context, p) {
-    p.buf.mode.context?.forEach(item =>
-      append(context.el,
-             context0(item.name || item.cmd, item.cmd)))
-    if (p.buf.mode.context)
-      append(context.el,
-             contextLine())
-  }
-
-  context = { el: divCl('bred-context'),
-              close() {
-                Css.remove(context.el, 'bred-open')
-              },
-              open(we) {
-                let target, p
-
-                context.el.innerHTML = ''
-
-                target = globalThis.document.elementFromPoint(we.e.clientX, we.e.clientY)
-                p = Pane.holding(target)
-                if (p && (p.buf?.fileType == 'file'))
-                  Shell.runToString(p.dir, 'git', [ 'ls-files', '--error-unmatch', p.buf.path ], false, (str, code) => {
-                    if (code == 0)
-                      append(context.el,
-                             context0('Annotate', 'Vc Annotate'),
-                             contextLine())
-                    p && appendContextMode(context, p)
-                    append(context.el,
-                           context0('Inspect Element'))
-                    Css.add(context.el, 'bred-open')
-                  })
-                else {
-                  p && appendContextMode(context, p)
-                  append(context.el,
-                         context0('Inspect Element'))
-                  Css.add(context.el, 'bred-open')
-                }
-              } }
-
   Mess.say('Building...')
 
   win = Win.add(globalThis, devtools)
 
   append(win.outer,
-         context.el,
+         win.context.el,
          win.el)
 
   globalThis.restartForError.remove()
@@ -230,7 +185,7 @@ function initMouse
 
 function initCmds
 () {
-  let quitEm, lastContext
+  let quitEm
 
   Cmd.add('click', click)
   Cmd.add('click aux', clickAux)
@@ -389,19 +344,25 @@ function initCmds
   })
 
   Cmd.add('context menu', (u, we) => {
+    let win
+
     we.e.preventDefault()
-    context.open(we)
-    lastContext = { x: we.e.x, y: we.e.y }
-    context.el.style.left = we.e.x + 'px'
-    context.el.style.top = we.e.y + 'px'
+    win = Win.current()
+    win.context.open(we)
+    win.lastContext = { x: we.e.x, y: we.e.y }
+    win.context.el.style.left = we.e.x + 'px'
+    win.context.el.style.top = we.e.y + 'px'
   })
 
   Cmd.add('inspect element', (u, we) => {
     let x, y
 
     if (we?.e) {
-      x = lastContext.x
-      y = lastContext.y
+      let win
+
+      win = Win.current()
+      x = win.lastContext?.x ?? 0
+      y = win.lastContext?.y ?? 0
     }
     else {
       x = mouse.x

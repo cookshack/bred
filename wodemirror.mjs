@@ -2266,7 +2266,6 @@ function xBep
       rect.y = 0
     }
 
-
   //d(rect)
   off = view.ed.posAtCoords({ x: xEdge, y: yEdge }) || 0
   off = vlineStart(view, off)
@@ -2578,7 +2577,6 @@ function vfind
         // wrapped
         return 0
 
-
     //view.ed.setSelection(ret.range)
     if (decorParent) {
       if (decorParent.decorAll)
@@ -2732,7 +2730,6 @@ function selfInsert
   (view, char, bep) {
     if (view.ele) {
       let tr
-
 
       vsetBep(view, bep)
       tr = CMAuto.insertBracket(view.ed.state, char)

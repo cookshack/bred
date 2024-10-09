@@ -258,7 +258,6 @@ function make
     else
       path = path.path
 
-
   return { get dirname() {
     return dirname()
   },

@@ -21,7 +21,6 @@ function create
       classes = ''
     }
 
-
   if (svgs.includes(nodeName))
     ele = globalThis.document.createElementNS('http://www.w3.org/2000/svg', nodeName)
   else
@@ -36,7 +35,6 @@ function create
       ele.setAttributeNS(null, attr, attrs[attr])
     else
       ele.setAttribute(attr, attrs[attr])
-
 
   return ele
 }

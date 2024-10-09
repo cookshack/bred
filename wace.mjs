@@ -329,7 +329,6 @@ function viewInit
         //ed.renderer.once("afterRender", () => recenter(view))
         //setTimeout(() => recenter(view))
 
-
       ed.session.getUndoManager().reset()
 
       ed.on('input', () => {

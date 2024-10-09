@@ -35,7 +35,6 @@ function init
                             part: new CMState.Compartment,
                             reconfOpts: [ 'highlightIndent.enabled' ] }))
 
-
   Cmd.add('highlight indent', u => Ed.enable(u, 'highlightIndent.enabled'))
   Cmd.add('buffer highlight indent', u => Ed.enableBuf(u, 'highlightIndent.enabled'))
   Cmd.add('enable highlight indent', u => Ed.enable(u, 'highlightIndent.enabled'))

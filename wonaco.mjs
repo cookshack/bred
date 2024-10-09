@@ -402,7 +402,6 @@ function viewInit
       if (whenReady)
         whenReady(view)
 
-
       //ed.session.getUndoManager().reset()
 
       /*
@@ -1425,7 +1424,6 @@ function vfind
     if (decorParent)
       setDecorAll(decorParent, view, needle, opts)
 
-
   initialPos = vgetPos(view)
   if (view.markActive)
     initialSel = view.ed.getSelection()
@@ -1447,12 +1445,10 @@ function vfind
         // wrapped
         return 0
 
-
     //view.ed.setSelection(ret.range)
     if (decorParent)
       setDecorMatch(decorParent, view, ret.range)
       //d(decorParent.decorMatch)
-
 
     if (opts.stayInPlace)
       return ret.range

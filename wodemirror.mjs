@@ -413,15 +413,15 @@ function decorate
 }
 
 function diagnose
-(diag) {
+(win, diag) {
   if (diag) {
-    elements.diag.lastElementChild.firstElementChild.innerText = diag.message
-    elements.diag.lastElementChild.lastElementChild.innerText = diag.source
-    Css.add(elements.diag, 'bred-' + diag.severity)
-    Css.show(elements.diag)
+    win.diag.lastElementChild.firstElementChild.innerText = diag.message
+    win.diag.lastElementChild.lastElementChild.innerText = diag.source
+    Css.add(win.diag, 'bred-' + diag.severity)
+    Css.show(win.diag)
     return
   }
-  Css.hide(elements.diag)
+  Css.hide(win.diag)
 }
 
 0 && function tip
@@ -667,14 +667,14 @@ function viewInit
       if (col)
         col.innerText = 'C' + (bepCol(view, update.state.selection.main.head))
 
-      diagnose()
+      diagnose(p.win)
       CMLint.forEachDiagnostic(view.ed.state, (diag, from, to) => {
         let bep, line
 
         bep = update.state.selection.main.head
         line = view.ed.state.doc.lineAt(bep)
         if ((from >= line.from) && (to <= line.to))
-          diagnose(diag)
+          diagnose(p.win, diag)
       })
     }
 
@@ -3775,7 +3775,7 @@ eslintConfig = {
 function handleTooltipLint
 () {
   //d({ diags })
-  //diagnose(diags.filter(d => d).at(0))
+  //diagnose(win, diags.filter(d => d).at(0))
   //tip(diags)
   return [] // turn off std tooltip
 }
@@ -3830,8 +3830,8 @@ function makeLinter
 function handleTooltipLintGutter
 (diags) {
   //d({ diags })
-  //diagnose(diags.filter(d => d).at(0))
-  //diagnose({ message: 'test', severity: 'error' })
+  //diagnose(win, diags.filter(d => d).at(0))
+  //diagnose(win, { message: 'test', severity: 'error' })
   return diags
 }
 

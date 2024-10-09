@@ -185,17 +185,6 @@ function initDoc
   win = Win.add(globalThis, devtools)
 
   {
-    area = Area.add(win, 'bred-diag-w')
-    elements.diag = divCl('bred-diag')
-    Css.hide(elements.diag)
-    append(elements.diag, divCl('bred-diag-icon',
-                                img(Icon.path('diagnostic'), 'Diagnostic', 'filter-clr-text')))
-    append(elements.diag, divCl('bred-diag-text-w',
-                                [ divCl('bred-diag-text'),
-                                  divCl('bred-diag-source') ]))
-    append(area.el, elements.diag)
-    area.show()
-
     area = Area.add(win, 'bred-tip-w')
     elements.tip = divCl('bred-tip')
     Css.hide(elements.tip)

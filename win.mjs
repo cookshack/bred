@@ -194,7 +194,7 @@ export
 function add
 (window, devtools) {
   let win, areas, menu
-  let echo, el, outer, frameToggleL, frameToggleR, hover, mini
+  let diag, echo, el, outer, frameToggleL, frameToggleR, hover, mini
 
   function addArea
   (area) {
@@ -203,6 +203,7 @@ function add
   }
 
   areas = []
+  diag = divCl('bred-diag')
   echo = divIdCl('echo', 'mini-echo mini-em', [], { 'data-run': 'messages' })
   el = divCl('bred-areas')
 
@@ -238,6 +239,9 @@ function add
           },
           get body() {
             return window.document.body
+          },
+          get diag() {
+            return diag
           },
           get echo() {
             return echo
@@ -276,6 +280,7 @@ function add
   {
     let area
 
+    // top
     area = Area.add(win, 'bred-top')
 
     append(area.el,
@@ -283,9 +288,21 @@ function add
              win.mini ])
     area.show()
 
+    // hover
     area = Area.add(win, 'bred-hoverW')
     Css.hide(hover)
     append(area.el, hover)
+    area.show()
+
+    // diagnosis
+    area = Area.add(win, 'bred-diag-w')
+    Css.hide(diag)
+    append(diag, divCl('bred-diag-icon',
+                       img(Icon.path('diagnostic'), 'Diagnostic', 'filter-clr-text')))
+    append(diag, divCl('bred-diag-text-w',
+                       [ divCl('bred-diag-text'),
+                         divCl('bred-diag-source') ]))
+    append(area.el, diag)
     area.show()
   }
 

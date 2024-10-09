@@ -35,13 +35,13 @@ function toggle
 export
 function hide
 (el) {
-  add(el, 'invisible')
+  add(el, 'hidden')
 }
 
 export
 function show
 (el) {
-  remove(el, 'invisible')
+  remove(el, 'hidden')
 }
 
 export

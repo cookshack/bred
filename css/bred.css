@@ -1568,7 +1568,7 @@ div.cm-line.cm-activeLine::before,
   color: var(--clr-emph);
 }
 
-*.invisible {
+*.hidden {
   visibility: hidden;
 }
 

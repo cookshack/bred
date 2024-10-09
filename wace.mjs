@@ -6,6 +6,7 @@ import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
@@ -260,7 +261,7 @@ function viewInit
     d('given mode: ' + modeWhenText)
     mode = modeFromFirstLine(text) || modeWhenText
     d('chose mode: ' + ed.getOption('mode'))
-    Ed.setIcon(buf, '.edMl-type', Ed.modeIcon(mode.split('/').pop())?.name, 'describe buffer')
+    Ed.setIcon(buf, '.edMl-type', Icon.mode(mode.split('/').pop())?.name, 'describe buffer')
     ed.session.setMode(mode)
     if (ed.getOption('mode') == 'ace/mode/javascript')
       ed.session.$worker?.send('changeOptions', [ { asi: true } ]) // lint allow trailing ;
@@ -300,7 +301,7 @@ function viewInit
 
       ed.session.setMode(mode)
       d('chose mode: ' + mode)
-      Ed.setIcon(buf, '.edMl-type', Ed.modeIcon(mode.split('/').pop())?.name, 'describe buffer')
+      Ed.setIcon(buf, '.edMl-type', Icon.mode(mode.split('/').pop())?.name, 'describe buffer')
 
       {
         let mtype
@@ -600,9 +601,9 @@ function divW
   return divCl('edWW' + (opts.extraWWCss ? (' ' + opts.extraWWCss) : ''),
                [ divCl('ml edMl' + (opts.hideMl ? ' retracted' : ''),
                        [ divCl('edMl-type',
-                               img(Ed.iconPath(opts.icon || 'blank'), 'Blank', 'filter-clr-text')),
+                               img(Icon.path(opts.icon || 'blank'), 'Blank', 'filter-clr-text')),
                          divCl('edMl-mod',
-                               img(Ed.iconPath('blank'), 'Modified', 'filter-clr-text')),
+                               img(Icon.path('blank'), 'Modified', 'filter-clr-text')),
                          divCl('edMl-file', name || ''),
                          divCl('edMl-dir', Ed.makeMlDir(dir)),
                          divCl('ml-close') ]),
@@ -983,7 +984,7 @@ function revert
     if (p.view.buf.modified) {
       Prompt.demand(Ed.emRevert,
                     divCl('float-h',
-                          [ divCl('float-icon', img(Ed.iconPath('trash'), 'Trash', 'filter-clr-nb3')),
+                          [ divCl('float-icon', img(Icon.path('trash'), 'Trash', 'filter-clr-nb3')),
                             divCl('float-text', 'Buffer is modified. Discard changes?'),
                             button([ span('y', 'key'), 'es' ], '', { 'data-run': 'discard and revert' }),
                             button([ span('n', 'key'), 'o' ], '', { 'data-run': 'close demand' }) ]))
@@ -1869,7 +1870,7 @@ function addModes
       Cmd.add('insert }', (u,we) => insertClose(u, we, mode), mode)
       Em.on('}', 'insert }', mode)
     }
-    mode.icon = Ed.modeIcon(mode.key)
+    mode.icon = Icon.mode(mode.key)
   })
   //d("Ed modes.")
 }

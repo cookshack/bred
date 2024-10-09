@@ -7,6 +7,7 @@ import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import elements from './elements.mjs'
 import * as Em from './em.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Lsp from './lsp.mjs'
 import * as Mess from './mess.mjs'
@@ -445,7 +446,7 @@ function diagTip
     return divCl('bred-tooltip-w bred-open',
                  diags.map(diag => divCl('bred-tooltip bred-' + diag.severity,
                                          [ divCl('bred-diag-icon',
-                                                 img(Ed.iconPath('diagnostic'), 'Diagnostic', 'filter-clr-text')),
+                                                 img(Icon.path('diagnostic'), 'Diagnostic', 'filter-clr-text')),
                                            divCl('bred-diag-text-w',
                                                  [ divCl('bred-diag-text', diag.message),
                                                    divCl('bred-diag-source', diag.source) ]) ])))
@@ -882,7 +883,7 @@ function viewInit
     mode = modeFromFirstLine(text) || modeWhenText
     mode = mode || 'text'
     d('chose mode 1: ' + mode)
-    Ed.setIcon(buf, '.edMl-type', Ed.modeIcon(mode)?.name, 'describe buffer')
+    Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
     vsetLang(view, modeLang(mode))
     if (Ed.defined(lineNum))
       //ed.renderer.once('afterRender', () => recenter(ed))
@@ -935,7 +936,7 @@ function viewInit
       mode = mode || 'text'
       vsetLang(view, modeLang(mode))
       d('chose mode 2: ' + mode)
-      Ed.setIcon(buf, '.edMl-type', Ed.modeIcon(mode)?.name, 'describe buffer')
+      Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
       decorate(view, buf.mode)
 
       {
@@ -1745,10 +1746,10 @@ function divW
   return divCl('edWW' + (opts.extraWWCss ? (' ' + opts.extraWWCss) : ''),
                [ divCl('ml edMl' + (opts.hideMl ? ' retracted' : ''),
                        [ divCl('edMl-type',
-                               img(Ed.iconPath(opts.icon || 'blank'), 'Blank', 'filter-clr-text'),
+                               img(Icon.path(opts.icon || 'blank'), 'Blank', 'filter-clr-text'),
                                { 'data-run': 'describe buffer' }),
                          divCl('edMl-mod',
-                               img(Ed.iconPath('blank'), 'Modified', 'filter-clr-text')),
+                               img(Icon.path('blank'), 'Modified', 'filter-clr-text')),
                          divCl('edMl-file', name || ''),
                          divCl('edMl-dir', Ed.makeMlDir(dir)),
                          divCl('ml-close') ]),
@@ -2437,7 +2438,7 @@ function revert
     if (p.view.buf.modified) {
       Prompt.demand(Ed.emRevert,
                     divCl('float-h',
-                          [ divCl('float-icon', img(Ed.iconPath('trash'), 'Trash', 'filter-clr-nb3')),
+                          [ divCl('float-icon', img(Icon.path('trash'), 'Trash', 'filter-clr-nb3')),
                             divCl('float-text', 'Buffer is modified. Discard changes?'),
                             button([ span('y', 'key'), 'es' ], '', { 'data-run': 'discard and revert' }),
                             button([ span('n', 'key'), 'o' ], '', { 'data-run': 'close demand' }) ]))
@@ -3702,7 +3703,7 @@ function addMode
   }
   if ([ 'javascript', 'css', 'cpp' ].includes(lang.id))
     Em.on('}', 'self insert and indent', mode)
-  mode.icon = Ed.modeIcon(mode.key)
+  mode.icon = Icon.mode(mode.key)
 }
 
 export

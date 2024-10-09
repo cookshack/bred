@@ -8,6 +8,7 @@ import * as Ed from './ed.mjs'
 import * as Exec from './exec.mjs'
 import * as Em from './em.mjs'
 import * as Ev from './ev.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Man from './man.mjs'
 import * as Mess from './mess.mjs'
@@ -201,8 +202,8 @@ function initHelp
 
     function icon
     (mode) {
-      return mode.icon?.name && span(img(Ed.iconPath(mode.icon.name),
-                                         Ed.iconAlt(mode.icon.name),
+      return mode.icon?.name && span(img(Icon.path(mode.icon.name),
+                                         Icon.alt(mode.icon.name),
                                          'filter-clr-text'),
                                      'bred-help-heading-icon')
     }

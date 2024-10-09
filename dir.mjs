@@ -6,6 +6,7 @@ import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Hist from './hist.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
@@ -49,7 +50,7 @@ function dirW
   hco = []
 
   hco.push([ divCl('edMl-type',
-                   img(Ed.modeIconPath('dir'), 'Dir', 'filter-clr-text')) ])
+                   img(Icon.modePath('dir'), 'Dir', 'filter-clr-text')) ])
 
   hco.push(nav(path))
 
@@ -566,7 +567,7 @@ function add
     dir.removeSlash()
 
   b = Buf.add(dir.filename, 'Dir', 0, dir.dirname, dir.filename)
-  b.icon = Ed.modeIcon('dir').name
+  b.icon = Icon.mode('dir').name
   b.fileType = 'dir'
   b.addMode('view')
   p.buf = b

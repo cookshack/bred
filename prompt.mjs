@@ -5,6 +5,7 @@ import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
+import * as Icon from './icon.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Tab from './tab.mjs'
@@ -28,7 +29,7 @@ function demandYN
                  divCl('float-w',
                        [ divCl('float-h',
                                [ divCl('float-icon',
-                                       img(Ed.iconPath(icon), Ed.iconAlt(icon), 'filter-clr-nb3')),
+                                       img(Icon.path(icon), Icon.alt(icon), 'filter-clr-nb3')),
                                  divCl('float-text', content),
                                  button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
                                  button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }),

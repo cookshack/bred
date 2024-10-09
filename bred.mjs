@@ -15,6 +15,7 @@ import * as Em from './em.mjs'
 import * as Ext from './ext.mjs'
 import * as Frame from './frame.mjs'
 import * as Hist from './hist.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Lsp from './lsp.mjs'
 import * as Mess from './mess.mjs'
@@ -368,7 +369,7 @@ function initDoc
     elements.diag = divCl('bred-diag')
     Css.hide(elements.diag)
     append(elements.diag, divCl('bred-diag-icon',
-                                img(Ed.iconPath('diagnostic'), 'Diagnostic', 'filter-clr-text')))
+                                img(Icon.path('diagnostic'), 'Diagnostic', 'filter-clr-text')))
     append(elements.diag, divCl('bred-diag-text-w',
                                 [ divCl('bred-diag-text'),
                                   divCl('bred-diag-source') ]))
@@ -379,7 +380,7 @@ function initDoc
     elements.tip = divCl('bred-tip')
     Css.hide(elements.tip)
     append(elements.tip, divCl('bred-tip-icon',
-                               img(Ed.iconPath('diagnostic'), 'Tip', 'filter-clr-text')))
+                               img(Icon.path('diagnostic'), 'Tip', 'filter-clr-text')))
     append(elements.tip, divCl('bred-tip-text-w',
                                [ divCl('bred-tip-text'),
                                  divCl('bred-tip-source') ]))
@@ -1054,7 +1055,7 @@ function initCmds
                   [ divCl('float-ww',
                           divCl('float-w',
                                 [ divCl('float-h',
-                                        [ divCl('float-icon', img(Ed.iconPath('save'), 'Save', 'filter-clr-nb3')),
+                                        [ divCl('float-icon', img(Icon.path('save'), 'Save', 'filter-clr-nb3')),
                                           divCl('float-text',
                                                 'Save these files before ' + (quit ? 'quitting' : 'restarting') + '?'),
                                           button([ span('y', 'key'), 'es' ],
@@ -1270,7 +1271,7 @@ function initTest
                                                 { 'data-run': 'easy split' })) ]),
                div([ 'An icon: ', divCl('mini-panel',
                                         divCl('mini-icon' + (dark ? ' onfill' : ''),
-                                              img(Ed.modeIconPath('dir'), 'Dir', 'filter-clr-text'))) ]),
+                                              img(Icon.modePath('dir'), 'Dir', 'filter-clr-text'))) ]),
                div([ 'Dir nav: ', divCl('nav-dir', Dir.nav(Loc.home(), 'select dir')) ]) ]
     }
 
@@ -1918,14 +1919,14 @@ function init
     Loc.shellSet(data.shell)
 
     Ed.initCTags()
-    Ed.setHaveIcons(1)
-    path = Ed.iconPath('javascript')
+    Icon.setHave(1)
+    path = Icon.path('javascript')
     Mess.say('Checking for icons...')
     Tron.cmd('file.stat', path, err => {
       if (err) {
         Mess.log(err.message)
         Mess.say('Checking for icons... failed, will use letters')
-        Ed.setHaveIcons(0)
+        Icon.setHave(0)
       }
       else
         Mess.say('Checking for icons... found')

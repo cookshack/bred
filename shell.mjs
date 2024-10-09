@@ -5,6 +5,7 @@ import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Hist from './hist.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
@@ -191,7 +192,7 @@ function shellOrSpawn1
         if (ml) {
           ml.innerText = ''
           append(ml,
-                 divCl('edMl-type', img(Ed.iconPath('shell'), 'Shell', 'filter-clr-text')),
+                 divCl('edMl-type', img(Icon.path('shell'), 'Shell', 'filter-clr-text')),
                  divCl('ml-name', name + (args ? (' ' + args.join(' ')) : '')),
                  divCl('ml-busy'),
                  divCl('ml-close'))

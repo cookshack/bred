@@ -1,6 +1,6 @@
 import { append, divCl, divId, divIdCl, img } from './dom.mjs'
 
-import * as Ed from './ed.mjs'
+import * as Icon from './icon.mjs'
 
 let wins, id
 
@@ -36,7 +36,7 @@ function add
                                    img('img/split.svg', 'Split', 'filter-clr-text'),
                                    { 'data-run': 'easy split' }),
                              divCl('mini-icon onfill',
-                                   img(Ed.iconPath('welcome'), 'Welcome', 'filter-clr-text'),
+                                   img(Icon.path('welcome'), 'Welcome', 'filter-clr-text'),
                                    { 'data-run': 'welcome' }),
                              frameToggleR ]) ])
   outer = divId('outer')

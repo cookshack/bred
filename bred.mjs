@@ -182,13 +182,11 @@ function initDoc
 
   win = Win.add(globalThis, devtools)
 
-  {
-    append(win.outer,
-           context.el,
-           win.el)
+  append(win.outer,
+         context.el,
+         win.el)
 
-    globalThis.restartForError.remove()
-  }
+  globalThis.restartForError.remove()
 }
 
 function initMouse

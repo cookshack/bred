@@ -1813,6 +1813,7 @@ function initNewWindow
   Opt.load(() => {
     initFontSize()
 
+    initMouse()
     start0()
     initCss(globalThis)
   })

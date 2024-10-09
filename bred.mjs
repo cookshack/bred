@@ -1,4 +1,4 @@
-import { append, button, div, divCl, divIdCl, span, img } from './dom.mjs'
+import { append, button, div, divCl, span, img } from './dom.mjs'
 
 import * as About from './about.mjs'
 import * as Area from './area.mjs'
@@ -38,8 +38,8 @@ import { d } from './mess.mjs'
 
 //import * as Linters from "./lib/ace-linters/ace-linters.js"
 
-let $version, mouse, context, menu, recents
-let devtoolsToggle, area
+let $version, mouse, context, recents
+let area
 
 export
 function version
@@ -60,14 +60,14 @@ function focus
 function click
 (u, we) {
   context.close()
-  menu.close()
+  Win.current().menu.close()
   focus(we)
 }
 
 function clickAux
 (u, we) {
   context.close()
-  menu.close()
+  Win.current().menu.close()
   focus(we)
 }
 
@@ -127,33 +127,7 @@ function initPackages
 
 function initDoc
 (devtools) {
-  let places, win
-
-  function menu0
-  (name, co) {
-    let lower
-
-    lower = name.toLowerCase()
-    return divCl('bred-menu-item onfill',
-                 [ name,
-                   divIdCl('bred-menu1-' + lower, 'bred-menu1', co) ],
-                 { 'data-run': 'open menu item', 'data-menu': 'bred-menu1-' + lower })
-  }
-
-  function item
-  (name, cmd, attr) {
-    cmd = cmd || name.toLowerCase()
-    return divCl('bred-menu1-item onfill',
-                 [ div(name), divCl('bred-menu-kb') ],
-                 { 'data-run': cmd,
-                   'data-after': 'close menu',
-                   ...(attr || {}) })
-  }
-
-  function line
-  () {
-    return divCl('bred-menu1-line')
-  }
+  let win
 
   function context0
   (name, cmd) {
@@ -175,26 +149,6 @@ function initDoc
       append(context.el,
              contextLine())
   }
-
-  places = { el: menu0('Places'),
-             //
-             update() {
-               let menu1, map
-
-               d(places.el)
-               menu1 = places.el.firstElementChild
-               menu1.innerHTML = ''
-               map = Place.map(p => item(p.name, 'open link', { 'data-path': p.path }))
-               append(menu1,
-                      [ item('Home', 'goto home'),
-                        item('Bred', 'goto bred'),
-                        item('Scratch', 'goto scratch'),
-                        line(),
-                        item('/', 'root'),
-                        item('/tmp', 'open link', { 'data-path': '/tmp/' }),
-                        map.length && line(),
-                        map ])
-             } }
 
   context = { el: divCl('bred-context'),
               close() {
@@ -226,139 +180,11 @@ function initDoc
                 }
               } }
 
-  {
-    function fill
-    (el) {
-      let buf
-
-      buf = Pane.current().buf
-      el.querySelectorAll('.bred-menu1-item').forEach(el => {
-        if (Cmd.get(el.dataset.run, buf)) {
-          Css.enable(el)
-          //el.children[1].innerText = Cmd.get(el.dataset.run, buf).seq() || ""
-          el.children[1].innerText = Em.seq(el.dataset.run, buf) || ''
-        }
-        else
-          Css.disable(el)
-      })
-    }
-
-    function clear
-    () {
-      for (let i = 0; i < menu.ele.children.length; i++)
-        Css.remove(menu.ele.children[i], 'bred-open')
-    }
-
-    function close
-    () {
-      Css.remove(menu.ele, 'bred-open')
-      clear()
-      for (let i = 0; i < menu.ele.children.length; i++)
-        menu.ele.children[i].onmouseover = null
-    }
-
-    function open
-    () {
-      Css.add(menu.ele, 'bred-open')
-      clear()
-      for (let i = 0; i < menu.ele.children.length; i++)
-        menu.ele.children[i].onmouseover = () => {
-          if (Css.has(menu.ele.children[i], 'bred-open'))
-            return
-          clear()
-          Css.add(menu.ele.children[i], 'bred-open')
-        }
-    }
-
-    devtoolsToggle = divCl('bred-devtools onfill' + (devtools.open ? ' bred-open' : ''),
-                           img('img/open2.svg', 'Toggle Devtools', 'filter-clr-text'),
-                           { 'data-run': 'toggle devtools' })
-
-    Tron.on('devtools', (err, d) => {
-      if (d.open)
-        Css.add(devtoolsToggle, 'bred-open')
-      else
-        Css.remove(devtoolsToggle, 'bred-open')
-      Css.enable(devtoolsToggle)
-    })
-
-    menu = { ele: divCl('bred-menu',
-                        [ menu0('File',
-                                [ item('New Window'),
-                                  line(),
-                                  item('Open File'),
-                                  item('Open Recent'),
-                                  line(),
-                                  item('Save'),
-                                  item('Save As...'),
-                                  line(),
-                                  item('Extensions'),
-                                  item('Options'),
-                                  line(),
-                                  item('Restart', 'restart'),
-                                  item('Quit') ]),
-                          menu0('Edit',
-                                [ item('Undo'),
-                                  item('Redo'),
-                                  line(),
-                                  item('Cut'),
-                                  item('Copy'),
-                                  item('Paste'),
-                                  line(),
-                                  item('Select All'),
-                                  item('Clipboard', 'cuts'),
-                                  line(),
-                                  item('Find'),
-                                  item('Find and Replace') ]),
-                          menu0('Buffer',
-                                [ item('Close', 'close buffer'),
-                                  item('Switch', 'switch to buffer'),
-                                  item('List', 'buffers'),
-                                  line() ]),
-                          menu0('Pane',
-                                [ item('Split', 'split'),
-                                  item('Maximize', 'pane max'),
-                                  item('Close', 'pane close') ]),
-                          places.el,
-                          menu0('Help',
-                                [ item('Welcome', 'welcome'),
-                                  item('View Log', 'messages'),
-                                  item('Describe Current Buffer', 'describe buffer'),
-                                  line(),
-                                  item('Language Samples', 'samples'),
-                                  item('Toggle Devtools', 'toggle devtools'),
-                                  item('Open Test Buffer', 'test buffer'),
-                                  line(),
-                                  item('About Bred', 'about') ]),
-                          divCl('menu-panel',
-                                [ divCl('bred-add-tab onfill',
-                                        img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
-                                        { 'data-run': 'add tab' }),
-                                  divCl('bred-restart onfill',
-                                        img('img/restart.svg', 'Restart', 'filter-clr-text'),
-                                        { 'data-run': 'restart' }),
-                                  devtoolsToggle ]) ]),
-             close: close,
-             fill: fill,
-             open: open,
-             places: places }
-
-    globalThis.bred.menu = menu
-    menu.places.update()
-  }
-
   Mess.say('Building...')
 
-  win = Win.add(globalThis)
+  win = Win.add(globalThis, devtools)
 
   {
-    area = Area.add(win, 'bred-top')
-
-    append(area.el,
-           [ menu.ele,
-             win.mini ])
-    area.show()
-
     area = Area.add(win, 'bred-hoverW')
     elements.hover = divCl('bred-hover')
     Css.hide(elements.hover)
@@ -446,10 +272,13 @@ function initCmds
   Cmd.add('universal argument', () => Cmd.setUniversal())
 
   Cmd.add('toggle devtools', () => {
-    Css.disable(devtoolsToggle)
+    let win
+
+    win = Win.current()
+    Css.disable(win.menu?.devtoolsToggle)
     Tron.cmd1('devtools.toggle', [], err => {
       if (err) {
-        Css.enable(devtoolsToggle)
+        Css.enable(win.menu?.devtoolsToggle)
         Mess.toss(err)
       }
     })
@@ -563,7 +392,7 @@ function initCmds
   })
 
   Cmd.add('close menu', () => {
-    menu.close()
+    Win.current().menu.close()
   })
 
   Cmd.add('open menu item', (u, we) => {
@@ -574,14 +403,14 @@ function initCmds
       if (el) {
         let parent
 
-        menu.fill(el)
+        Win.current().menu.fill(el)
         parent = el.parentNode
         if (Css.has(parent, 'bred-open')) {
-          menu.close()
+          Win.current().menu.close()
           Css.remove(parent, 'bred-open')
         }
         else {
-          menu.open()
+          Win.current().menu.open()
           Css.add(parent, 'bred-open')
         }
       }
@@ -752,7 +581,7 @@ function initCmds
   Cmd.add('yell', () => Mess.yell('Test of Mess.yell'))
 
   Cmd.add('cancel', () => {
-    menu.close()
+    Win.current().menu.close()
     Pane.cancel()
   })
 
@@ -902,10 +731,10 @@ function initCmds
     if (f.panes.length <= 1) {
       if (Css.has(tab.frameLeft.el, 'retracted')
           && Css.has(tab.frameRight.el, 'retracted')) {
-        Css.disable(devtoolsToggle)
+        Css.disable(win.menu?.devtoolsToggle)
         Tron.cmd1('devtools.close', [], err => {
           if (err) {
-            Css.enable(devtoolsToggle)
+            Css.enable(win.menu?.devtoolsToggle)
             Mess.yell(err.message)
           }
         })

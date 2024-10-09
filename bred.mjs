@@ -678,6 +678,7 @@ function initCmds
       let script
 
       //window.bred = globalThis.bred
+      window.tron = globalThis.tron
       Win.add(window, { initCss: initCss,
                         parent: globalThis })
       window.name = 'xxx'
@@ -1653,104 +1654,121 @@ function initFontSize
   globalThis.document.documentElement.style.fontSize = px + 'px'
 }
 
+function start1
+(data, start2) {
+  let path
+
+  d('start1')
+  Mess.log('backend: ' + data.backend)
+  initPackages(data.backend, err => {
+    err && Mess.toss('Init error: ' + err.message)
+    if (start2)
+      // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
+      setTimeout(() => start2(data.devtools, data.frames))
+  })
+
+  Mess.log('home: ' + data.home)
+  Mess.log(' app: ' + data.app)
+  Mess.log('user: ' + data.user)
+  Mess.log(' cwd: ' + data.cwd)
+  Loc.appDirSet(data.app)
+  Loc.homeSet(data.home || data.app)
+  Loc.iwdSet(data.cwd || data.app) // initial working dir
+  $version = data.version
+  Loc.configDirSet(data.user)
+  Loc.shellSet(data.shell)
+
+  Ed.initCTags()
+  Icon.setHave(1)
+  path = Icon.path('javascript')
+  Mess.say('Checking for icons...')
+  Tron.cmd('file.stat', path, err => {
+    if (err) {
+      Mess.log(err.message)
+      Mess.say('Checking for icons... failed, will use letters')
+      Icon.setHave(0)
+    }
+    else
+      Mess.say('Checking for icons... found')
+  })
+
+  d('initCss')
+  initCss(globalThis)
+}
+
+function start2
+(devtools, frames) {
+  let p, tab
+
+  d('start2 (backend is loaded)')
+
+  initCmds()
+  initBindings()
+  initDoc(devtools)
+  initHandlers()
+  initTest()
+  initBrowse()
+  initFile()
+  initEvalLine()
+
+  initRecent()
+  Ext.loadAll() // async
+
+  tab = Tab.current(Win.current().main)
+  if (frames.left == 0)
+    Css.retract(tab.frameLeft.el)
+  if (frames.right == 0)
+    Css.retract(tab.frameRight.el)
+  p = Pane.current(tab.frameLeft)
+  p.focus()
+  Cmd.run('home')
+  p = Pane.current(tab.frameRight)
+  p.focus()
+  Cmd.run('messages')
+  p = Pane.current(tab.frame1)
+  p.focus()
+  Ed.make(p, 'Scratch.js', p.dir, 0, 0, view => {
+    d('INSERT')
+    view.insert(scratchMessage())
+  })
+  if (Opt.get('core.welcome.enabled'))
+    Cmd.run('welcome')
+  Pane.top(tab.frame1).focus()
+
+  if (1) {
+    Mess.say('Loading init...')
+    Tron.cmd('init.load', [], (err, data) => {
+      if (data.exist == 0)
+        Mess.say("Loading init: missing, that's OK")
+      else if (err)
+        Mess.yell('Error loading init: ', err.message)
+
+      Mess.yell('Ready!')
+    })
+  }
+  else
+    Ed.make(Pane.current(), 'Main', ':')
+  //Pane.open(':tmp/home.js')//Mess.yell("Ready!")
+}
+
+function start0
+(start2) {
+  d('get paths')
+
+  Tron.cmd1('paths', [], (err, d) => {
+    if (err) {
+      Mess.yell('Err getting dirs: ', err.message)
+      return
+    }
+
+    // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
+    setTimeout(() => start1(d, start2))
+  })
+}
+
 export
 function init
 () {
-  let path
-
-  function start1
-  (data) {
-    d('start1')
-    Mess.log('backend: ' + data.backend)
-    initPackages(data.backend, err => {
-      err && Mess.toss('Init error: ' + err.message)
-      // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
-      setTimeout(() => start2(data.devtools, data.frames))
-    })
-
-    Mess.log('home: ' + data.home)
-    Mess.log(' app: ' + data.app)
-    Mess.log('user: ' + data.user)
-    Mess.log(' cwd: ' + data.cwd)
-    Loc.appDirSet(data.app)
-    Loc.homeSet(data.home || data.app)
-    Loc.iwdSet(data.cwd || data.app)
-    $version = data.version
-    Loc.configDirSet(data.user)
-    Loc.shellSet(data.shell)
-
-    Ed.initCTags()
-    Icon.setHave(1)
-    path = Icon.path('javascript')
-    Mess.say('Checking for icons...')
-    Tron.cmd('file.stat', path, err => {
-      if (err) {
-        Mess.log(err.message)
-        Mess.say('Checking for icons... failed, will use letters')
-        Icon.setHave(0)
-      }
-      else
-        Mess.say('Checking for icons... found')
-    })
-
-    d('initCss')
-    initCss(globalThis)
-  }
-
-  function start2
-  (devtools, frames) {
-    let p, tab
-
-    d('start2 (backend is loaded)')
-
-    initCmds()
-    initBindings()
-    initDoc(devtools)
-    initHandlers()
-    initTest()
-    initBrowse()
-    initFile()
-    initEvalLine()
-
-    initRecent()
-    Ext.loadAll() // async
-
-    tab = Tab.current(Win.current().main)
-    if (frames.left == 0)
-      Css.retract(tab.frameLeft.el)
-    if (frames.right == 0)
-      Css.retract(tab.frameRight.el)
-    p = Pane.current(tab.frameLeft)
-    p.focus()
-    Cmd.run('home')
-    p = Pane.current(tab.frameRight)
-    p.focus()
-    Cmd.run('messages')
-    p = Pane.current(tab.frame1)
-    p.focus()
-    Ed.make(p, 'Scratch.js', p.dir, 0, 0, view => {
-      d('INSERT')
-      view.insert(scratchMessage())
-    })
-    if (Opt.get('core.welcome.enabled'))
-      Cmd.run('welcome')
-    Pane.top(tab.frame1).focus()
-
-    if (1) {
-      Mess.say('Loading init...')
-      Tron.cmd('init.load', [], (err, data) => {
-        if (data.exist == 0)
-          Mess.say("Loading init: missing, that's OK")
-        else if (err)
-          Mess.yell('Error loading init: ', err.message)
-
-        Mess.yell('Ready!')
-      })
-    }
-    else
-      Ed.make(Pane.current(), 'Main', ':')
-      //Pane.open(':tmp/home.js')//Mess.yell("Ready!")
-  }
 
   globalThis.bred = {}
 
@@ -1784,17 +1802,7 @@ function init
       Hist.save()
     }
 
-    d('get paths')
-
-    Tron.cmd1('paths', [], (err, d) => {
-      if (err) {
-        Mess.yell('Err getting dirs: ', err.message)
-        return
-      }
-
-      // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
-      setTimeout(() => start1(d))
-    })
+    start0(start2)
   })
 }
 
@@ -1802,5 +1810,6 @@ export
 function initNewWindow
 () {
   console.log('inw')
+  start0()
   initCss(globalThis)
 }

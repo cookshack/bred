@@ -37,7 +37,7 @@ import { d } from './mess.mjs'
 
 //import * as Linters from "./lib/ace-linters/ace-linters.js"
 
-let $version, mouse, context, menu, recents, frameToggleL, frameToggleR
+let $version, mouse, context, menu, recents
 let devtoolsToggle, area
 
 export
@@ -351,17 +351,9 @@ function initDoc
   win = Win.add(globalThis)
 
   {
-    frameToggleL = divCl('mini-frame mini-icon onfill mini-frame-open mini-frame-left',
-                         img('img/open.svg', 'Open', 'filter-clr-text'),
-                         { 'data-run': 'toggle frame left' })
-
-    frameToggleR = divCl('mini-frame mini-icon onfill mini-frame-open',
-                         img('img/open.svg', 'Open', 'filter-clr-text'),
-                         { 'data-run': 'toggle frame right' })
-
     area = Area.add(win, 'bred-top')
     elements.mini = divIdCl('mini', 'top',
-                            [ divIdCl('mini-panel-l', 'mini-panel', frameToggleL),
+                            [ divIdCl('mini-panel-l', 'mini-panel', win.frameToggleL),
                               win.echo,
                               divIdCl('mini-execute', 'mini-execute mini-em', [], { 'data-run': 'execute' }),
                               divIdCl('mini-panel',
@@ -372,7 +364,7 @@ function initDoc
                                         divCl('mini-icon onfill',
                                               img(Ed.iconPath('welcome'), 'Welcome', 'filter-clr-text'),
                                               { 'data-run': 'welcome' }),
-                                        frameToggleR ]) ])
+                                        win.frameToggleR ]) ])
 
     append(area.el,
            [ menu.ele,
@@ -541,42 +533,44 @@ function initCmds
   })
 
   Cmd.add('toggle frame right', () => {
-    let tab
+    let win, tab
 
     tab = Tab.current(area)
+    win = tab.area.win
     if (Css.toggle(tab.frameRight.el, 'retracted')) {
       Tab.forEach(area, tab => {
         tab.frame1.focus()
         Css.retract(tab.frameRight.el)
       })
       tab.frame1.focus()
-      Css.remove(frameToggleR, 'mini-frame-open')
+      Css.remove(win.frameToggleR, 'mini-frame-open')
     }
     else {
       Tab.forEach(area, tab => {
         Css.expand(tab.frameRight.el)
       })
-      Css.add(frameToggleR, 'mini-frame-open')
+      Css.add(win.frameToggleR, 'mini-frame-open')
     }
   })
 
   Cmd.add('toggle frame left', () => {
-    let tab
+    let win, tab
 
     tab = Tab.current(area)
+    win = tab.area.win
     if (Css.toggle(tab.frameLeft.el, 'retracted')) {
       Tab.forEach(area, tab => {
         tab.frame1.focus()
         Css.retract(tab.frameLeft.el)
       })
       tab.frame1.focus()
-      Css.remove(frameToggleL, 'mini-frame-open')
+      Css.remove(win.frameToggleL, 'mini-frame-open')
     }
     else {
       Tab.forEach(area, tab => {
         Css.expand(tab.frameLeft.el)
       })
-      Css.add(frameToggleL, 'mini-frame-open')
+      Css.add(win.frameToggleL, 'mini-frame-open')
     }
   })
 
@@ -888,19 +882,20 @@ function initCmds
   })
 
   Cmd.add('pane close', () => {
-    let f
+    let win, f
 
+    win = area.win
     f = Frame.current(Tab.current(area))
     if (f.panes.length <= 1) {
       if (f == f.tab.frameLeft) {
         Tab.forEach(area, tab => Css.retract(tab.frameLeft.el))
-        Css.remove(frameToggleL, 'mini-frame-open')
+        Css.remove(win.frameToggleL, 'mini-frame-open')
         f.tab.frame1.focus()
         return
       }
       if (f == f.tab.frameRight) {
         Tab.forEach(area, tab => Css.retract(tab.frameRight.el))
-        Css.remove(frameToggleR, 'mini-frame-open')
+        Css.remove(win.frameToggleR, 'mini-frame-open')
         f.tab.frame1.focus()
         return
       }
@@ -911,8 +906,9 @@ function initCmds
   })
 
   Cmd.add('pane max', () => {
-    let f, tab
+    let win, f, tab
 
+    win = area.win
     tab = Tab.current(area)
     f = Frame.current(tab)
     if (f.panes.length <= 1) {
@@ -929,8 +925,8 @@ function initCmds
       }
       Tab.forEach(area, tab => Css.retract(tab.frameLeft.el))
       Tab.forEach(area, tab => Css.retract(tab.frameRight.el))
-      Css.remove(frameToggleL, 'mini-frame-open')
-      Css.remove(frameToggleR, 'mini-frame-open')
+      Css.remove(win.frameToggleL, 'mini-frame-open')
+      Css.remove(win.frameToggleR, 'mini-frame-open')
       return
     }
     Pane.max()

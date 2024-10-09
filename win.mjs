@@ -1,11 +1,12 @@
-import { append, divCl, divId, divIdCl } from './dom.mjs'
+import { append, divCl, divId, divIdCl, img } from './dom.mjs'
 
 let wins, id
 
 export
 function add
 (window) {
-  let win, areas, echo, el, outer
+  let win, areas
+  let echo, el, outer, frameToggleL, frameToggleR
 
   function addArea
   (area) {
@@ -16,6 +17,14 @@ function add
   areas = []
   echo = divIdCl('echo', 'mini-echo mini-em', [], { 'data-run': 'messages' })
   el = divCl('bred-areas')
+  frameToggleL = divCl('mini-frame mini-icon onfill mini-frame-open mini-frame-left',
+                       img('img/open.svg', 'Open', 'filter-clr-text'),
+                       { 'data-run': 'toggle frame left' })
+
+  frameToggleR = divCl('mini-frame mini-icon onfill mini-frame-open',
+                       img('img/open.svg', 'Open', 'filter-clr-text'),
+                       { 'data-run': 'toggle frame right' })
+
   outer = divId('outer')
 
   win = { id: id,
@@ -31,6 +40,12 @@ function add
           },
           get el() {
             return el
+          },
+          get frameToggleL() {
+            return frameToggleL
+          },
+          get frameToggleR() {
+            return frameToggleR
           },
           get outer() {
             return outer

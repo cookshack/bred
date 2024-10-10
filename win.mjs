@@ -433,6 +433,12 @@ function forEach
 }
 
 export
+function root
+() {
+  return globalThis.opener ? 0 : 1
+}
+
+export
 function shared
 () {
   return globalThis.bred._shared()

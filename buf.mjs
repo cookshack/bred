@@ -583,7 +583,8 @@ function init
                               divCl('buffers-path', b.path) ]))
   }
 
-  Win.shared().buffers = []
+  if (Win.root())
+    Win.shared().buffers = []
   ring = []
   id = 1
 

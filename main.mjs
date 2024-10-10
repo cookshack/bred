@@ -730,6 +730,7 @@ function onDirRm
 function onDirWatch
 (e, ch, onArgs) {
   let [ path ] = onArgs
+  let watcher
 
   function handle
   (type, name) {
@@ -744,12 +745,14 @@ function onDirWatch
                       name: name })
     }
     catch (err) {
-      console.log(err.message)
+      err.message.includes('Object has been destroyed')
+        || console.log(err.message)
+      watcher.close()
     }
   }
 
   if (path.startsWith('/'))
-    fs.watch(path, { recursive: false }, handle)
+    watcher = fs.watch(path, { recursive: false }, handle)
   else
     e.sender.send(ch, errMsg('Path must be absolute'))
 }

@@ -1142,7 +1142,9 @@ function createWindow
     if (details.url === 'about:blank')
       return { action: 'allow',
                outlivesOpener: true,
-               overrideBrowserWindowOptions: { backgroundColor: '#fdf6e3' } } // --color-primary-light
+               overrideBrowserWindowOptions: { backgroundColor: '#fdf6e3', // --color-primary-light
+                                               webPreferences: { preload: Path.join(import.meta.dirname,
+                                                                                    'preload.js') } } }
     return { action: 'deny' }
   })
 

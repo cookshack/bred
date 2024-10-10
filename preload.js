@@ -8,13 +8,3 @@ contextBridge.exposeInMainWorld('tron', {
   receive: (ch, cb) => ipcRenderer.once(ch, (e, d) => cb(d)),
   on: (ch, cb) => ipcRenderer.on(ch, (e, d) => cb(d))
 })
-
-globalThis.addEventListener('DOMContentLoaded', () => {
-  const replaceText = (selector, text) => {
-    const element = globalThis.document.getElementById(selector)
-    if (element) element.innerText = text
-  }
-
-  for (const dependency of [ 'chrome', 'node', 'electron' ])
-    replaceText(`${dependency}-version`, process.versions[ dependency ])
-})

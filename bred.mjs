@@ -681,7 +681,7 @@ function initCmds
       let script
 
       //window.bred = globalThis.bred
-      window.tron = globalThis.tron
+      //window.tron = globalThis.tron
       Win.add(window, { initCss: initCss,
                         parent: globalThis })
       window.name = 'xxx'

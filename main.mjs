@@ -733,14 +733,19 @@ function onDirWatch
 
   function handle
   (type, name) {
-    //d('--- handle ---')
-    //d('type: ' + type)
-    //d('name: ' + name)
-    e.sender.send(ch,
-                  { type: type,
-                    bak: name.endsWith('~'),
-                    hidden: Path.basename(name).startsWith('.'),
-                    name: name })
+    try {
+      //d('--- handle ---')
+      //d('type: ' + type)
+      //d('name: ' + name)
+      e.sender.send(ch,
+                    { type: type,
+                      bak: name.endsWith('~'),
+                      hidden: Path.basename(name).startsWith('.'),
+                      name: name })
+    }
+    catch (err) {
+      console.log(err.message)
+    }
   }
 
   if (path.startsWith('/'))

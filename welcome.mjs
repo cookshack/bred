@@ -8,13 +8,12 @@ import * as Mess from './mess.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Recent from './recent.mjs'
+import * as Win from './win.mjs'
 //import { d } from './mess.mjs'
 
 export
 function init
 () {
-  let buf
-
   function divW
   () {
     let w, rcs, rds, rfs
@@ -106,7 +105,7 @@ function init
       })
 
       // creating a view copies the buf content, so also add the files to contents of any open views
-      buf.views.forEach(view => {
+      Win.shared().welcome.buf.views.forEach(view => {
         if (view.ele) {
           let ele
 
@@ -123,13 +122,22 @@ function init
 
   function addBuf
   () {
-    buf = Buf.add('Welcome', 0, divW(), Loc.home())
-    buf.icon = 'welcome'
-    buf.addMode('view')
-    return buf
+    let sh
+
+    sh = Win.shared().welcome
+    sh.buf = Buf.add('Welcome', 0, divW(), Loc.home())
+    sh.buf.icon = 'welcome'
+    sh.buf.addMode('view')
+    return sh.buf
   }
 
+  if (Win.root())
+    Win.shared().welcome = {}
+
   Cmd.add('show welcome on start', () => {
+    let buf
+
+    buf = Win.shared().welcome.buf
     Opt.set('core.welcome.enabled', 1)
     if (buf)
       buf.views.forEach(view => {
@@ -145,6 +153,9 @@ function init
   })
 
   Cmd.add('hide welcome on start', () => {
+    let buf
+
+    buf = Win.shared().welcome.buf
     Opt.set('core.welcome.enabled', 0)
     if (buf)
       buf.views.forEach(view => {
@@ -163,6 +174,6 @@ function init
     let p
 
     p = Pane.current()
-    p.buf = buf || addBuf(p)
+    p.buf = Win.shared().welcome.buf || addBuf(p)
   })
 }

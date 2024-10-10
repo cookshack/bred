@@ -3,6 +3,7 @@ import { append } from './dom.mjs'
 import * as Css from './css.mjs'
 import * as Mess from './mess.mjs'
 import * as Point from './point.mjs'
+import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
 export
@@ -18,7 +19,7 @@ function make
   let v, active, ready, point, modeVars
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
-  let reserved
+  let reserved, win
 
   function sync
   (cb) {
@@ -272,7 +273,8 @@ function make
     return modeVars
   }
 
-  v = views.find(v1 => v1.active == 0)
+  win = Win.current()
+  v = views.find(v1 => (v1.win == win) && (v1.active == 0))
   if (v) {
     d('VIEW reusing view')
     v.reopen(ele, lineNum, whenReady)
@@ -347,6 +349,9 @@ function make
         },
         get region() {
           return region()
+        },
+        get win() {
+          return win
         },
         //
         addExt,

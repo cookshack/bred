@@ -11,7 +11,7 @@ import { fork, spawn, spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 import * as Pty from 'node-pty'
 
-let version, options, stores, dirUserData, html, lsp, shell
+let version, options, stores, dirUserData, lsp, shell
 
 function lspMake
 () {
@@ -440,6 +440,17 @@ function cmdDevtoolsToggle
   win.webContents.openDevTools({ activate: 0, // keeps main focus when detached
                                  title: 'Developer Tools - Bred' })
   return { open: 1 }
+}
+
+function cmdWinNew
+() {
+  let html
+
+  html = 'bred-new-window.html'
+  if (options.backend == 'ace')
+    html = 'bred-ace-new-window.html'
+  createWindow(html)
+  return {}
 }
 
 function onLoadInit
@@ -1111,12 +1122,15 @@ async function onCmd
   if (name == 'file.touch')
     return wrapOn(e, ch, args, onFileTouch)
 
+  if (name == 'win.new')
+    return cmdWinNew(e, ch, args)
+
   setTimeout(() => e.sender.send(ch, { err: { message: 'bogus cmd' } }))
   return ch
 }
 
 function createWindow
-() {
+(html) {
   let win
 
   win = new BrowserWindow({
@@ -1132,8 +1146,6 @@ function createWindow
 
   win.once('ready-to-show', () => win.show())
 
-  lsp.win = win
-
   win.removeMenu()
 
   win.setBounds(options.bounds || stores.state.get('bounds'))
@@ -1143,6 +1155,7 @@ function createWindow
       return { action: 'allow',
                outlivesOpener: true,
                overrideBrowserWindowOptions: { backgroundColor: '#fdf6e3', // --color-primary-light
+                                               show: false,
                                                webPreferences: { preload: Path.join(import.meta.dirname,
                                                                                     'preload.js') } } }
     return { action: 'deny' }
@@ -1198,6 +1211,19 @@ function createWindow
     stores.state.set('isDevToolsOpened', 0)
     win.webContents.send('devtools', { open: 0 })
   })
+
+  return win
+}
+
+function createMainWindow
+() {
+  let html
+
+  html = 'bred.html'
+  if (options.backend == 'ace')
+    html = 'bred-ace.html'
+
+  lsp.win = createWindow(html)
 }
 
 function setVersion
@@ -1315,10 +1341,6 @@ async function whenReady
 
   lsp = lspMake()
 
-  html = 'bred.html'
-  if (options.backend == 'ace')
-    html = 'bred-ace.html'
-
   stores = { frame: new Store({ name: 'frame', cwd: 'brood' }),
              poss: new Store({ name: 'poss', cwd: 'brood' }),
              state: new Store({ name: 'state', cwd: 'brood' }) }
@@ -1362,7 +1384,7 @@ async function whenReady
   }
 
   d('creating window')
-  createWindow()
+  createMainWindow()
 
   d('setting app handlers')
 
@@ -1373,7 +1395,7 @@ async function whenReady
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0)
-      createWindow()
+      createMainWindow()
   })
 }
 

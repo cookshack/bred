@@ -674,25 +674,10 @@ function initCmds
   })
 
   Cmd.add('new window', () => {
-    let window
-
-    window = globalThis.window.open('')
-    if (window) {
-      let script
-
-      //window.bred = globalThis.bred
-      //window.tron = globalThis.tron
-      Win.add(window, { initCss: initCss,
-                        parent: globalThis })
-      window.name = 'xxx'
-      script = window.document.createElement('script')
-      //script.text = "import * as Bred from './bred.mjs'"
-      script.src = './init-new-window.mjs'
-      script.type = 'module'
-      window.document.head.appendChild(script)
-      return
-    }
-    Mess.yell('Error')
+    Tron.cmd1('win.new', [], err => {
+      if (err)
+        Mess.yell(err.message)
+    })
   })
 
   Cmd.add('bury', () => {

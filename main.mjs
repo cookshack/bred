@@ -764,7 +764,12 @@ async function wrapOn
       await cb(e, ch, onArgs)
     }
     catch (err) {
-      e.sender.send(ch, makeErr(err))
+      try {
+        e.sender.send(ch, makeErr(err))
+      }
+      catch (err2) {
+        console.log('wrapOn: ' + err2.message)
+      }
     }
   })
   return ch

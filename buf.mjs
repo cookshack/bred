@@ -14,7 +14,7 @@ import * as View from './view.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
-let ring, id
+let id
 
 export
 function shared
@@ -25,7 +25,7 @@ function shared
 export
 function getRing
 () {
-  return ring
+  return shared().ring
 }
 
 export
@@ -85,7 +85,7 @@ function make
     id = Pane.current().buf?.id
     sh = shared()
     sh.buffers = sh.buffers.filter(e => e !== b)
-    ring = ring.filter(e => e !== b)
+    sh.ring = sh.ring.filter(e => e !== b)
     buf = top()
     Pane.forEach(p2 => {
       if (p2.buf && (p2.buf.id == id))
@@ -167,11 +167,12 @@ function make
 
   function bury
   () {
-    let i
+    let i, sh
 
-    i = ring.findIndex(b2 => b2.id == b.id)
+    sh = shared()
+    i = sh.ring.findIndex(b2 => b2.id == b.id)
     if (i > -1)
-      ring.push(ring.splice(i, 1)[0])
+      sh.ring.push(sh.ring.splice(i, 1)[0])
   }
 
   function clear
@@ -475,7 +476,7 @@ function add
   b = make(name, modeName, content, dir, file, lineNum)
   sh = shared()
   sh.buffers.push(b)
-  ring.unshift(b)
+  shared().ring.unshift(b)
   return b
 }
 
@@ -483,33 +484,38 @@ function add
 export
 function queue
 (buf) {
-  let i
+  let i, sh
 
-  i = ring.findIndex(b2 => b2.id == buf.id)
+  sh = shared()
+  i = sh.ring.findIndex(b2 => b2.id == buf.id)
   if (i > -1)
-    ring.unshift(ring.splice(i, 1)[0])
+    sh.ring.unshift(sh.ring.splice(i, 1)[0])
 }
 
 export
 function top
 (buf) {
-  if (ring.length == 1)
-    return ring[0]
-  if (buf && (ring[0].id == buf.id))
-    return ring[1]
-  return ring[0]
+  let sh
+
+  sh = shared()
+  if (sh.ring.length == 1)
+    return sh.ring[0]
+  if (buf && (sh.ring[0].id == buf.id))
+    return sh.ring[1]
+  return sh.ring[0]
 }
 
 export
 function after
 (buf) {
-  let i
+  let i, sh
 
-  i = ring.indexOf(b => b.id == buf.id)
+  sh = shared()
+  i = sh.ring.indexOf(b => b.id == buf.id)
   if ((i == -1)
-      || (i >= ring.length))
-    return ring[0]
-  return ring[i + 1]
+      || (i >= sh.ring.length))
+    return sh.ring[0]
+  return sh.ring[i + 1]
 }
 
 export
@@ -569,7 +575,7 @@ function init
   (view) {
     let all
 
-    all = ring
+    all = shared().ring
     if (all.length > 1) {
       let bufs
 
@@ -590,8 +596,8 @@ function init
   }
 
   if (Win.root())
-    Win.shared().buf = { buffers: [] }
-  ring = []
+    Win.shared().buf = { buffers: [],
+                         ring: [] }
   id = 1
 
   mo = Mode.add('Buffers', { viewInit: refresh })

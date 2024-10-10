@@ -14,8 +14,6 @@ import * as View from './view.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
-let id
-
 export
 function shared
 () {
@@ -385,7 +383,7 @@ function make
     ml = { set: set }
   }
 
-  b = { id: id,
+  b = { id: shared().id,
         //
         co: content,
         minors: [],
@@ -464,7 +462,7 @@ function make
   b.opts = Opt.buf(b)
   b.dir = dir
 
-  id++
+  shared().id = shared().id + 1
   return b
 }
 
@@ -597,8 +595,8 @@ function init
 
   if (Win.root())
     Win.shared().buf = { buffers: [],
-                         ring: [] }
-  id = 1
+                         ring: [],
+                         id: 1 }
 
   mo = Mode.add('Buffers', { viewInit: refresh })
 

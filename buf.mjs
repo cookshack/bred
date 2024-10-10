@@ -17,6 +17,12 @@ import { d } from './mess.mjs'
 let ring, id
 
 export
+function shared
+() {
+  return Win.shared().buf
+}
+
+export
 function getRing
 () {
   return ring
@@ -74,11 +80,11 @@ function make
 
   function remove
   () {
-    let shared, id, buf
+    let sh, id, buf
 
     id = Pane.current().buf?.id
-    shared = Win.shared()
-    shared.buffers = shared.buffers.filter(e => e !== b)
+    sh = shared()
+    sh.buffers = sh.buffers.filter(e => e !== b)
     ring = ring.filter(e => e !== b)
     buf = top()
     Pane.forEach(p2 => {
@@ -337,12 +343,12 @@ function make
   }
 
   if (name) {
-    let old, suffix, shared
+    let old, suffix, sh
 
-    shared = Win.shared()
+    sh = shared()
     suffix = 1
     old = name
-    while (shared.buffers.find(b => b.name == name))
+    while (sh.buffers.find(b => b.name == name))
       name = old + '<' + suffix++ + '>'
   }
 
@@ -464,11 +470,11 @@ function make
 export
 function add
 (name, modeName, content, dir, file, lineNum) {
-  let b, shared
+  let b, sh
 
   b = make(name, modeName, content, dir, file, lineNum)
-  shared = Win.shared()
-  shared.buffers.push(b)
+  sh = shared()
+  sh.buffers.push(b)
   ring.unshift(b)
   return b
 }
@@ -517,25 +523,25 @@ function clear
 export
 function find
 (fn) { // (b)
-  return Win.shared().buffers.find(fn)
+  return shared().buffers.find(fn)
 }
 
 export
 function map
 (fn) { // (b)
-  return Win.shared().buffers.map(fn)
+  return shared().buffers.map(fn)
 }
 
 export
 function filter
 (fn) { // (b)
-  return Win.shared().buffers.filter(fn)
+  return shared().buffers.filter(fn)
 }
 
 export
 function forEach
 (fn) { // (b)
-  return Win.shared().buffers.forEach(fn)
+  return shared().buffers.forEach(fn)
 }
 
 export
@@ -584,7 +590,7 @@ function init
   }
 
   if (Win.root())
-    Win.shared().buffers = []
+    Win.shared().buf = { buffers: [] }
   ring = []
   id = 1
 

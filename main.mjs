@@ -1150,7 +1150,7 @@ function createWindow
 
   win.webContents.setWindowOpenHandler(details => {
     if ((details.url == 'about:blank')
-        && (details.frameName.match(/bred:win\/[0-9]+/)))
+        && (details.frameName.match(/bred:win\/[-0-9a-f]+/)))
       return { action: 'allow',
                outlivesOpener: true,
                overrideBrowserWindowOptions: { backgroundColor: '#fdf6e3', // --color-primary-light

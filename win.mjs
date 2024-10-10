@@ -13,8 +13,6 @@ import * as Tron from './tron.mjs'
 import * as Shell from './shell.mjs'
 import { d } from './mess.mjs'
 
-let wins, id
-
 function menu0
 (name, co) {
   let lower
@@ -303,7 +301,7 @@ function add
   outer = divId('outer')
   tip = divCl('bred-tip')
 
-  win = { id: id,
+  win = { id: shared().win.id,
           //
           get areas() {
             return areas
@@ -363,9 +361,10 @@ function add
   context = makeContext(win)
   menu = makeMenu(spec?.devtools, win)
 
-  id++
+  shared().win.id = shared().win.id + 1
+
   append(win.body, win.outer)
-  wins.push(win)
+  shared().win.wins.push(win)
   window.bredWin = win
 
   {
@@ -429,7 +428,7 @@ function current
 export
 function forEach
 (cb) {
-  return wins.forEach(cb)
+  return shared().win.wins.forEach(cb)
 }
 
 export
@@ -447,8 +446,7 @@ function shared
 export
 function init
 () {
-  wins = []
-  id = 1
+  if (root())
+    shared().win = { wins: [],
+                     id: 1 }
 }
-
-export const _internals = { id, wins }

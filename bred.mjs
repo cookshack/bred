@@ -1606,9 +1606,10 @@ function initCss1
 }
 
 function initCss
-(window) {
-  let files, file
+() {
+  let files, file, window
 
+  window = globalThis
   files = [ './css/bred.css',
             './css/dir.css',
             './css/describe-cmd.css',
@@ -1693,7 +1694,7 @@ function start1
   })
 
   d('initCss')
-  initCss(globalThis)
+  initCss()
 }
 
 function start2
@@ -1815,6 +1816,5 @@ function initNewWindow
 
     initMouse()
     start0()
-    initCss(globalThis)
   })
 }

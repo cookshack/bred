@@ -133,6 +133,8 @@ function initPackages
 function initDoc
 (devtools) {
   Mess.say('Building...')
+  if (globalThis.bredWin)
+    return
   Win.add(globalThis, { devtools: devtools })
   globalThis.restartForError.remove()
 }
@@ -1595,21 +1597,20 @@ function initRecent
 
 export
 function initCss1
-(window, file) {
+(file) {
   d('initCss1: ' + file)
   importCss(file)
     .then(m => {
       d('initCss1: ' + file + ': done')
-      window.document.adoptedStyleSheets = [ ...window.document.adoptedStyleSheets, m.default ]
+      globalThis.document.adoptedStyleSheets = [ ...globalThis.document.adoptedStyleSheets, m.default ]
     },
           err => Mess.yell('Failed to load  ' + file + ': ' + err.message))
 }
 
 function initCss
 () {
-  let files, file, window
+  let files, file
 
-  window = globalThis
   files = [ './css/bred.css',
             './css/dir.css',
             './css/describe-cmd.css',
@@ -1627,12 +1628,12 @@ function initCss
             './css/options.css',
             './css/recent.css',
             './css/vc.css' ]
-  files.forEach(f => initCss1(window, f))
+  files.forEach(f => initCss1(f))
 
   file = './lib/sheets.mjs'
   import(file)
     .then(m => {
-      m.sheets.forEach(f => initCss1(window, f))
+      m.sheets.forEach(f => initCss1(f))
     },
           err => Mess.yell('Failed to load  ' + file + ': ' + err.message))
 }
@@ -1815,6 +1816,6 @@ function initNewWindow
     initFontSize()
 
     initMouse()
-    start0()
+    start0(start2)
   })
 }

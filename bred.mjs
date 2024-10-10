@@ -108,6 +108,7 @@ function initPackages
     OptUi.init()
 
     globalThis.bred = { ...globalThis.bred,
+                        Buf,
                         Cmd,
                         Dom,
                         Ed,

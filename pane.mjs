@@ -437,3 +437,5 @@ function forEach
 (cb) {
   Win.forEach(win => win.areas.forEach(area => area.tabs.forEach(tab => tab.frames.forEach(frame => frame.panes.forEach(pane => cb(pane))))))
 }
+
+export const _internals = { id, bootBuf }

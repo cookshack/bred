@@ -433,6 +433,12 @@ function forEach
 }
 
 export
+function shared
+() {
+  return globalThis.bred._shared()
+}
+
+export
 function init
 () {
   wins = []

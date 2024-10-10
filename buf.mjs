@@ -11,9 +11,10 @@ import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
 import * as View from './view.mjs'
+import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
-let buffers, ring, id
+let ring, id
 
 export
 function getRing
@@ -73,10 +74,11 @@ function make
 
   function remove
   () {
-    let id, buf
+    let shared, id, buf
 
     id = Pane.current().buf?.id
-    buffers = buffers.filter(e => e !== b)
+    shared = Win.shared()
+    shared.buffers = shared.buffers.filter(e => e !== b)
     ring = ring.filter(e => e !== b)
     buf = top()
     Pane.forEach(p2 => {
@@ -335,11 +337,12 @@ function make
   }
 
   if (name) {
-    let old, suffix
+    let old, suffix, shared
 
+    shared = Win.shared()
     suffix = 1
     old = name
-    while (buffers.find(b => b.name == name))
+    while (shared.buffers.find(b => b.name == name))
       name = old + '<' + suffix++ + '>'
   }
 
@@ -461,10 +464,11 @@ function make
 export
 function add
 (name, modeName, content, dir, file, lineNum) {
-  let b
+  let b, shared
 
   b = make(name, modeName, content, dir, file, lineNum)
-  buffers.push(b)
+  shared = Win.shared()
+  shared.buffers.push(b)
   ring.unshift(b)
   return b
 }
@@ -513,25 +517,25 @@ function clear
 export
 function find
 (fn) { // (b)
-  return buffers.find(fn)
+  return Win.shared().buffers.find(fn)
 }
 
 export
 function map
 (fn) { // (b)
-  return buffers.map(fn)
+  return Win.shared().buffers.map(fn)
 }
 
 export
 function filter
 (fn) { // (b)
-  return buffers.filter(fn)
+  return Win.shared().buffers.filter(fn)
 }
 
 export
 function forEach
 (fn) { // (b)
-  return buffers.forEach(fn)
+  return Win.shared().buffers.forEach(fn)
 }
 
 export
@@ -579,7 +583,7 @@ function init
                               divCl('buffers-path', b.path) ]))
   }
 
-  buffers = []
+  Win.shared().buffers = []
   ring = []
   id = 1
 
@@ -607,5 +611,3 @@ function init
 
   Em.on('g', 'refresh', mo)
 }
-
-export const _internals = { buffers, ring, id }

@@ -1770,9 +1770,32 @@ function start0
 }
 
 export
+function initShared
+() {
+  let window
+
+  window = globalThis
+  window.bred = {}
+  if (window.opener) {
+    let root
+
+    root = window.opener
+    while (root.opener)
+      root = root.opener
+    window.bred._shared = () => root.bred._shared()
+  }
+  else {
+    let shared
+
+    shared = {}
+    window.bred._shared = () => shared
+  }
+}
+
+export
 function init
 () {
-  globalThis.bred = {}
+  initShared()
 
   Opt.load(() => {
     initFontSize()
@@ -1811,7 +1834,7 @@ function init
 export
 function initNewWindow
 () {
-  globalThis.bred = {}
+  initShared()
 
   Opt.load(() => {
     initFontSize()

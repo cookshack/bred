@@ -35,6 +35,8 @@ import * as Win from './win.mjs'
 import { importCss } from './json.mjs'
 import { d } from './mess.mjs'
 
+import { v4 as uuidv4 } from './lib/uuid/index.js'
+
 //import * as Linters from "./lib/ace-linters/ace-linters.js"
 
 let $version, mouse, recents
@@ -674,10 +676,10 @@ function initCmds
   })
 
   Cmd.add('new window', () => {
-    Tron.cmd1('win.new', [], err => {
-      if (err)
-        Mess.yell(err.message)
-    })
+    let windowProxy
+
+    windowProxy = globalThis.window.open('', 'bred:win/' + uuidv4())
+    windowProxy || Mess.yell('Error')
   })
 
   Cmd.add('bury', () => {

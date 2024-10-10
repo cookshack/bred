@@ -81,6 +81,8 @@ sync-others:
 	mkdir -p lib/typescript-language-server/lib/
 	cp node_modules/typescript-language-server/lib/cli.mjs lib/typescript-language-server/lib/cli.mjs
 	cp node_modules/typescript-language-server/package.json lib/typescript-language-server/package.json # cli.mjs reads version from here
+	mkdir -p lib/uuid/
+	cp node_modules/uuid/dist/esm-browser/* lib/uuid/
 
 sync-codemirror:
 	rm -rf lib/@codemirror

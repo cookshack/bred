@@ -442,17 +442,6 @@ function cmdDevtoolsToggle
   return { open: 1 }
 }
 
-function cmdWinNew
-() {
-  let html
-
-  html = 'bred-new-window.html'
-  if (options.backend == 'ace')
-    html = 'bred-ace-new-window.html'
-  createWindow(html)
-  return {}
-}
-
 function onLoadInit
 (e, ch) {
   let win
@@ -1135,27 +1124,23 @@ async function onCmd
   if (name == 'file.touch')
     return wrapOn(e, ch, args, onFileTouch)
 
-  if (name == 'win.new')
-    return cmdWinNew(e, ch, args)
-
   setTimeout(() => e.sender.send(ch, { err: { message: 'bogus cmd' } }))
   return ch
 }
 
 function createWindow
-(html) {
+(html, opts) {
   let win
 
-  win = new BrowserWindow({
-    backgroundColor: '#fdf6e3', // --color-primary-light
-    //frame: false,
-    //titleBarStyle: 'hidden',
-    //titleBarOverlay: true,
-    show: false,
-    webPreferences: {
-      preload: Path.join(import.meta.dirname, 'preload.js'),
-    }
-  })
+  opts = opts || { backgroundColor: '#fdf6e3', // --color-primary-light
+                   //frame: false,
+                   //titleBarStyle: 'hidden',
+                   //titleBarOverlay: true,
+                   show: false,
+                   webPreferences: {
+                     preload: Path.join(import.meta.dirname, 'preload.js'),
+                   } }
+  win = new BrowserWindow(opts)
 
   win.once('ready-to-show', () => win.show())
 
@@ -1164,13 +1149,23 @@ function createWindow
   win.setBounds(options.bounds || stores.state.get('bounds'))
 
   win.webContents.setWindowOpenHandler(details => {
-    if (details.url === 'about:blank')
+    if ((details.url == 'about:blank')
+        && (details.frameName.match(/bred:win\/[0-9]+/)))
       return { action: 'allow',
                outlivesOpener: true,
                overrideBrowserWindowOptions: { backgroundColor: '#fdf6e3', // --color-primary-light
                                                show: false,
                                                webPreferences: { preload: Path.join(import.meta.dirname,
-                                                                                    'preload.js') } } }
+                                                                                    'preload.js') } },
+               createWindow: opts => {
+                 let html, win
+
+                 html = 'bred-new-window.html'
+                 if (options.backend == 'ace')
+                   html = 'bred-ace-new-window.html'
+                 win = createWindow(html, opts)
+                 return win?.webContents
+               } }
     return { action: 'deny' }
   })
 

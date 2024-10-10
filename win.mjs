@@ -247,10 +247,19 @@ function makeContext
   return context
 }
 
+function id
+() {
+  let ident
+
+  ident = shared().win.id
+  shared().win.id = ident + 1
+  return ident
+}
+
 export
 function add
 (window, spec) { // { devtools, initCss }
-  let win
+  let win, ident
   let areas, context, main, menu
   let diag, echo, el, outer, frameToggleL, frameToggleR, hover, mini, tip
 
@@ -260,15 +269,7 @@ function add
     append(el, area.el)
   }
 
-  function init
-  () {
-    d('try init')
-    if (globalThis === window) {
-      d('Win init')
-      if (spec?.initCss)
-        spec.initCss(window)
-    }
-  }
+  ident = id()
 
   areas = []
   diag = divCl('bred-diag')
@@ -301,7 +302,7 @@ function add
   outer = divId('outer')
   tip = divCl('bred-tip')
 
-  win = { id: shared().win.id,
+  win = { id: ident,
           //
           get areas() {
             return areas
@@ -355,13 +356,10 @@ function add
             return window
           },
           //
-          add: addArea,
-          init }
+          add: addArea }
 
   context = makeContext(win)
   menu = makeMenu(spec?.devtools, win)
-
-  shared().win.id = shared().win.id + 1
 
   append(win.body, win.outer)
   shared().win.wins.push(win)

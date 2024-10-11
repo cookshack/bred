@@ -1368,7 +1368,6 @@ function init
     Cmd.add('select all', () => Backend.selectAll(), mo)
     Cmd.add('goto line', () => Backend.gotoLine(), mo)
     Cmd.add('open lint panel', () => Backend.openLint(), mo)
-    Cmd.add('show trailing whitespace', u => enable(u, 'core.highlight.trailingWhitespace.enabled'), mo)
     Cmd.add('enable lint', u => enable(u, 'core.lint.enabled'), mo)
 
     Cmd.add('yank', () => Backend.yank(), mo)

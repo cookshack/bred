@@ -72,6 +72,7 @@ function init
   Opt.declare('core.highlight.occurrences.wholeWords', 'bool', 0)
   Opt.declare('core.highlight.occurrences.wordAroundCursor', 'bool', 1)
   Opt.declare('core.highlight.specials.enabled', 'bool', 1)
+  Opt.declare('core.highlight.trailingWhitespace.enabled', 'bool', 1)
   Opt.declare('core.highlight.whitespace.enabled', 'bool', 0)
   Opt.declare('core.line.numbers.show', 'bool', 1)
   Opt.declare('core.line.wrap.enabled', 'bool', 1)
@@ -87,6 +88,9 @@ function init
                             reconfOpts: [ 'core.highlight.occurrences.enabled',
                                           'core.highlight.occurrences.wholeWords',
                                           'core.highlight.occurrences.wordAroundCursor' ] }))
+  brexts.push(Ed.register({ backend: 'cm',
+                            make: view => view.buf.opt('core.highlight.trailingWhitespace.enabled') ? CMView.highlightTrailingWhitespace() : [],
+                            reconfOpts: [ 'core.highlight.trailingWhitespace.enabled' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.whitespace.enabled') ? CMView.highlightWhitespace() : [],
                             reconfOpts: [ 'core.highlight.whitespace.enabled' ] }))
@@ -105,6 +109,7 @@ function init
   Cmd.add('highlight bracket', u => Ed.enable(u, 'core.cursor.highlight.bracket.enabled'))
   Cmd.add('highlight occurrences', u => Ed.enable(u, 'core.highlight.occurrences.enabled'))
   Cmd.add('highlight specials', u => Ed.enable(u, 'core.highlight.specials.enabled'))
+  Cmd.add('highlight trailing whitespace', u => Ed.enable(u, 'core.highlight.trailingWhitespace.enabled'))
   Cmd.add('highlight whitespace', u => Ed.enable(u, 'core.highlight.whitespace.enabled'))
   Cmd.add('enable line numbers', u => Ed.enable(u, 'core.line.numbers.show'))
   Cmd.add('enable line wrap', u => Ed.enable(u, 'core.line.wrap.enabled'))
@@ -112,6 +117,7 @@ function init
   Cmd.add('buffer highlight bracket', u => Ed.enableBuf(u, 'core.highlight.bracket.enabled'))
   Cmd.add('buffer highlight occurrences', u => Ed.enableBuf(u, 'core.highlight.occurrences.enabled'))
   Cmd.add('buffer highlight specials', u => Ed.enableBuf(u, 'core.highlight.specials.enabled'))
+  Cmd.add('buffer highlight trailing whitespace', u => Ed.enableBuf(u, 'core.highlight.trailingWhitespace.enabled'))
   Cmd.add('buffer highlight whitespace', u => Ed.enableBuf(u, 'core.highlight.whitespace.enabled'))
   Cmd.add('buffer enable line numbers', u => Ed.enableBuf(u, 'core.line.numbers.show'))
   Cmd.add('buffer enable line wrap', u => Ed.enableBuf(u, 'core.line.wrap.enabled'))
@@ -126,6 +132,7 @@ function free
   Cmd.remove('highlight bracket')
   Cmd.remove('highlight occurrences')
   Cmd.remove('highlight specials')
+  Cmd.remove('highlight trailing whitespace')
   Cmd.remove('highlight whitespace')
   Cmd.remove('buffer enable cursor blink')
   Cmd.remove('buffer enable line numbers')
@@ -133,6 +140,7 @@ function free
   Cmd.remove('buffer highlight bracket')
   Cmd.remove('buffer highlight occurrences')
   Cmd.remove('buffer highlight specials')
+  Cmd.remove('buffer highlight trailing whitespace')
   Cmd.remove('buffer highlight whitespace')
   brexts.forEach(b => b?.free())
 }

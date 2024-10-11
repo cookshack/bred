@@ -16,6 +16,7 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
+import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
 import * as CMAuto from './lib/@codemirror/autocomplete.js'
@@ -4019,7 +4020,7 @@ function initEslint
   import('./lib/eslint-linter-browserify.mjs').then(m => {
     Eslint = m
     Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed)
+      if (view.ed && (view.win == Win.current()))
         reconfigureLinter(buf, view)
     }))
   })

@@ -2748,6 +2748,14 @@ function vfind
   return 0
 }
 
+function vinsert1
+(view, u, text) {
+  let off
+
+  off = vgetOff(view)
+  vinsertAt(view, off, u, text, 1)
+}
+
 function vinsert
 (view, u, text) {
   let off
@@ -2862,17 +2870,18 @@ function selfInsert
     tr = CMAuto.insertBracket(p.view.ed.state, char)
     if (tr) {
       p.view.ed.dispatch(tr)
-      p.view.buf.views.forEach(view => {
-        if (view == p.view)
-          return
-        excur(view, () => insertBracket(view, char, bep))
-      })
+      if (0)
+        p.view.buf.views.forEach(view => {
+          if (view == p.view)
+            return
+          excur(view, () => insertBracket(view, char, bep))
+        })
     }
     else
-      vinsert(p.view, u, char)
+      vinsert1(p.view, u, char)
   }
   else
-    vinsert(p.view, u, char)
+    vinsert1(p.view, u, char)
 
   if (char == ' ')
     return

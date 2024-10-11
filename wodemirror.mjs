@@ -949,7 +949,7 @@ function viewInit
 
     d('peer.get ok')
     d({ data })
-    view.ed.dispatch({ effects: view.wode.peer(makePeer(buf.id, data.version)) })
+    view.ed.dispatch({ effects: view.wode.peer.reconfigure(makePeer(buf.id, data.version)) })
   })
 
   //// load file

@@ -19,6 +19,7 @@ import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
 import * as CMAuto from './lib/@codemirror/autocomplete.js'
+import * as CMCollab from './lib/@codemirror/collab.js'
 import * as CMComm from './lib/@codemirror/commands.js'
 import * as CMData from './lib/@codemirror/language-data.js'
 import * as CMJS from './lib/@codemirror/lang-javascript.js'
@@ -30,6 +31,7 @@ import * as CMState from './lib/@codemirror/state.js'
 import * as CMView from './lib/@codemirror/view.js'
 import * as CMTheme from './lib/@uiw/codemirror-themes/index.js'
 import * as Theme from './theme-solarized.js'
+import { v4 as uuidv4 } from './lib/uuid/index.js'
 import { colorPicker } from './lib/@replit/codemirror-css-color-picker.js'
 import * as EslintConfig from './lib/@cookshack/eslint-config.js'
 import * as LZHighlight from './lib/@lezer/highlight.js'
@@ -299,6 +301,87 @@ function makeAutocomplete
 function makeHighlightSyntax
 () {
   return CMLang.syntaxHighlighting(CMLang.defaultHighlightStyle, { fallback: true })
+}
+
+function pushUpdates
+(id, version, updates, cb) {
+  updates = updates?.map(u => ({ id: id,
+                                 clientId: u.clientID,
+                                 changes: u.changes.toJSON() }))
+  Tron.cmd('peer.push', [ id, version, updates ], () => {
+    cb()
+  })
+}
+
+function makePeer
+(id, startVersion) {
+  let plugin
+
+  plugin = CMView.ViewPlugin.fromClass(class {
+    constructor
+    () {
+      let version
+
+      version = CMCollab.getSyncedVersion(this.view.state)
+      this.ch = 'peer.pull/' + uuidv4()
+      Tron.on(this.ch, this.pull)
+      Tron.cmd('peer.pull', [ id, version, this.ch ], (err) => {
+        if (err) {
+          d('peer.pull: ' + err.message)
+          return
+        }
+      })
+    }
+
+    update
+    (update) {
+      if (update.docChanged)
+        this.push()
+    }
+
+    push
+    () {
+      let updates, version
+
+      updates = CMCollab.sendableUpdates(this.view.state)
+      if (this.pushing || !updates.length)
+        return
+      this.pushing = true
+      version = CMCollab.getSyncedVersion(this.view.state)
+      pushUpdates(id, version, updates, () => {
+        this.pushing = false
+        // Regardless of whether the push failed or new updates came in
+        // while it was running, try again if there's updates remaining
+        if (CMCollab.sendableUpdates(this.view.state).length)
+          setTimeout(() => this.push(), 100)
+      })
+    }
+
+    pull
+    (err, data) {
+      let updates
+
+      if (err) {
+        d('makePeer pull: ' + err.message)
+        return
+      }
+
+      if (this.done)
+        return
+
+      updates = JSON.parse(data.updates)
+      updates = updates.map(u => ({ changes: CMCollab.ChangeSet.fromJSON(u.changes),
+                                    clientID: u.clientID }))
+      this.view.dispatch(CMCollab.receiveUpdates(this.view.state,
+                                                 updates))
+    }
+
+    destroy() {
+      this.done = true
+      Tron.off(this.ch, this.pull)
+    }
+  })
+  return [ CMCollab.collab({ startVersion }), plugin ]
 }
 
 function markFromDec
@@ -586,6 +669,7 @@ function viewInit
   view.wode.lintGutter = new CMState.Compartment
   view.wode.tabSize = new CMState.Compartment
   view.wode.themeExtension = new CMState.Compartment
+  view.wode.peer = new CMState.Compartment
 
   let decorator
 
@@ -751,7 +835,8 @@ function viewInit
 
            view.wode.comp.exts.of([]),
            view.wode.lang.of([]),
-           view.wode.tabSize.of(CMState.EditorState.tabSize.of(2)) ]
+           view.wode.tabSize.of(CMState.EditorState.tabSize.of(2)),
+           view.wode.peer.of([]) ]
 
   opts.push(view.wode.autocomplete.of([]))
 
@@ -854,6 +939,19 @@ function viewInit
     ed.onDidChangeModelLanguageConfiguration(clearHandlers) // first init
     ed.onDidLayoutChange(clearHandlers) // every init
   }
+
+  //// collab
+
+  Tron.cmd('peer.get', [ buf.id ], (err, data) => {
+    if (err) {
+      Mess.toss('peer.get: ' + err.message)
+      return
+    }
+
+    d('peer.get ok')
+    d({ data })
+    view.ed.dispatch({ effects: view.wode.peer(makePeer(buf.id, data.version)) })
+  })
 
   //// load file
 

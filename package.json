@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.24.6",
+    "@codemirror/collab": "^6.1.1",
     "@codemirror/commands": "^6.5.0",
     "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-lezer": "^6.0.1",

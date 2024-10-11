@@ -48,3 +48,10 @@ function on
   // setTimeout so that it runs outside the weird tron context, so that backtraces are available
   globalThis.tron.on(ch, d => setTimeout(() => cb(d.err, d)))
 }
+
+// remove cb from ch listeners
+export
+function off
+(ch, cb) {
+  globalThis.tron.off(ch, cb)
+}

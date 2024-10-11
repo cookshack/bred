@@ -3,6 +3,7 @@ import * as Chmod from './main-chmod.mjs'
 import { d } from './main-log.mjs'
 import { makeErr, errMsg } from './main-err.mjs'
 import Path from 'node:path'
+import * as Peer from './main-peer.mjs'
 import process from 'node:process'
 import fs from 'node:fs'
 import Store from 'electron-store'
@@ -1123,6 +1124,15 @@ async function onCmd
 
   if (name == 'file.touch')
     return wrapOn(e, ch, args, onFileTouch)
+
+  if (name == 'peer.get')
+    return wrapOn(e, ch, args, Peer.onPeerGet)
+
+  if (name == 'peer.pull')
+    return wrapOn(e, ch, args, Peer.onPeerPull)
+
+  if (name == 'peer.push')
+    return wrapOn(e, ch, args, Peer.onPeerPush)
 
   setTimeout(() => e.sender.send(ch, { err: { message: 'bogus cmd' } }))
   return ch

@@ -1,5 +1,5 @@
 import * as CMState from '@codemirror/state'
-//import * as CMCollab from '@codemirror/collab'
+import * as CMCollab from '@codemirror/collab'
 
 let bufs
 
@@ -12,7 +12,7 @@ function get
     return buf
 
   buf = { id: id,
-          pending: [],
+          chs: [],
           text: CMState.Text.of([ 'xx' ]),
           //
           get updates() {
@@ -48,7 +48,33 @@ function onPeerPull
     if (version < buf.version)
       e.sender.send(pullCh,
                     { updates: JSON.stringify(buf.updates.slice(version)) })
+    buf.chs.push(pullCh)
   })
+  e.sender.send(ch, {})
+}
+
+export
+function onPeerPush
+(e, ch, onArgs) {
+  const [ id, version, updates ] = onArgs
+  let received, buf
+
+  buf = get(id)
+  received = updates.map(u => ({ clientID: u.clientID,
+                                 changes: CMState.ChangeSet.fromJSON(u.changes) }))
+  if (version != buf.version)
+    received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
+  received.forEach(update => {
+    buf.updates.push(update)
+    buf.text = update.changes.apply(buf.text)
+  })
+  if (received.length && buf.chs.length) {
+    let push
+
+    push = received.map(u => ({ clientID: u.clientID,
+                                changes: u.changes.toJSON() }))
+    buf.chs.forEach(pullCh => e.sender.send(pullCh, push))
+  }
   e.sender.send(ch, {})
 }
 

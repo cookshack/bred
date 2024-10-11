@@ -305,8 +305,7 @@ function makeHighlightSyntax
 
 function pushUpdates
 (id, version, updates, cb) {
-  updates = updates?.map(u => ({ id: id,
-                                 clientId: u.clientID,
+  updates = updates?.map(u => ({ clientId: u.clientID,
                                  changes: u.changes.toJSON() }))
   Tron.cmd('peer.push', [ id, version, updates ], () => {
     cb()
@@ -344,14 +343,14 @@ function makePeer
       let updates, version
 
       updates = CMCollab.sendableUpdates(this.view.state)
-      if (this.pushing || !updates.length)
+      if (this.pushing || (updates.length == 0))
         return
       this.pushing = true
       version = CMCollab.getSyncedVersion(this.view.state)
       pushUpdates(id, version, updates, () => {
         this.pushing = false
         // Regardless of whether the push failed or new updates came in
-        // while it was running, try again if there's updates remaining
+        // while it was running, try again if there are updates remaining
         if (CMCollab.sendableUpdates(this.view.state).length)
           setTimeout(() => this.push(), 100)
       })

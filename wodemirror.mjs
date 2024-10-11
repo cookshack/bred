@@ -4059,7 +4059,7 @@ function handleCustomTags
     highlightStyle = CMLang.HighlightStyle.define(themeStyles(themeTags))
     themeExtension = CMLang.syntaxHighlighting(highlightStyle)
     Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed)
+      if (view.ed && (view.win == Win.current()))
         if (buf.opt('core.highlight.syntax.enabled'))
           view.ed.dispatch({ effects: view.wode.themeExtension.reconfigure(themeExtension) })
     }))
@@ -4200,7 +4200,9 @@ function init
   loadLang('./lib/codemirror-lang-diff.js', 'Diff', { ext: [ 'diff', 'patch' ] })
   loadLang('./lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
   loadLang('./lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ], module: '@codemirror/lang-lezer' })
-  loadLang('./lib/codemirror-lang-git-log.js', 'Git Log', { ed: 0 /* ??? */, module: 'codemirror-lang-git-log' })
+  loadLang('./lib/codemirror-lang-git-log.js', 'Git Log',
+           { ed: 0, // prevent mode creation, already have VC Log mode
+             module: 'codemirror-lang-git-log' })
   loadLang('./lib/@cookshack/codemirror-lang-ini.js', 'Ini',
            { exts: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
              path: /\.git\/config$/ })

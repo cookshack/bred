@@ -11,6 +11,7 @@ function get
   if (buf)
     return buf
 
+  updates = []
   buf = { id: id,
           chs: [],
           text: CMState.Text.of([ 'xx' ]),
@@ -33,7 +34,7 @@ function onPeerGet
 
   buf = get(id)
   e.sender.send(ch, { version: buf.version,
-                      text: buf.tex.toString() })
+                      text: buf.text.toString() })
 }
 
 export

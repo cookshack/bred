@@ -2835,24 +2835,6 @@ function selfInsert
 (u, we) {
   let char, p, bracket
 
-  function insertBracket
-  (view, char, bep) {
-    if (view.ele) {
-      let tr
-
-      vsetBep(view, bep)
-      tr = CMAuto.insertBracket(view.ed.state, char)
-      if (tr)
-        d('AUTO INSERT ' + char)
-      else
-        tr = { changes: { from: bep,
-                          to: bep,
-                          insert: char } }
-      d({ tr })
-      view.ed.dispatch(tr)
-    }
-  }
-
   if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(we.key))
     return
 
@@ -2865,19 +2847,11 @@ function selfInsert
     bracket = isOpenBracket(char)
 
   if (bracket && (u == 1)) {
-    let bep, tr
+    let tr
 
-    bep = vgetBep(p.view)
     tr = CMAuto.insertBracket(p.view.ed.state, char)
-    if (tr) {
+    if (tr)
       p.view.ed.dispatch(tr)
-      if (0)
-        p.view.buf.views.forEach(view => {
-          if (view == p.view)
-            return
-          excur(view, () => insertBracket(view, char, bep))
-        })
-    }
     else
       vinsert1(p.view, u, char)
   }

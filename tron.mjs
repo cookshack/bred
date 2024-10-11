@@ -45,8 +45,12 @@ function cmd
 export
 function on
 (ch, cb) { // (err, data)
+  let w
+
   // setTimeout so that it runs outside the weird tron context, so that backtraces are available
-  globalThis.tron.on(ch, d => setTimeout(() => cb(d.err, d)))
+  w = d => setTimeout(() => cb(d.err, d))
+  globalThis.tron.on(ch, w)
+  return w
 }
 
 // remove cb from ch listeners

@@ -305,7 +305,7 @@ function makeHighlightSyntax
 
 function pushUpdates
 (id, version, updates, cb) {
-  updates = updates?.map(u => ({ clientId: u.clientID,
+  updates = updates?.map(u => ({ clientID: u.clientID,
                                  changes: u.changes.toJSON() }))
   Tron.cmd('peer.push', [ id, version, updates ], () => {
     cb()
@@ -324,7 +324,7 @@ function makePeer
       this.view = view
       version = CMCollab.getSyncedVersion(this.view.state)
       this.ch = 'peer.pull/' + uuidv4()
-      Tron.on(this.ch, this.pull)
+      this.pullCb = Tron.on(this.ch, this.pull.bind(this))
       Tron.cmd('peer.pull', [ id, version, this.ch ], (err) => {
         if (err) {
           d('peer.pull: ' + err.message)
@@ -359,7 +359,9 @@ function makePeer
 
     pull
     (err, data) {
-      let updates
+      let updates, tr
+
+      d('PULL ' + this.ch)
 
       if (err) {
         d('makePeer pull: ' + err.message)
@@ -369,18 +371,18 @@ function makePeer
       if (this.done)
         return
 
-      updates = JSON.parse(data.updates)
-      updates = updates.map(u => ({ changes: CMCollab.ChangeSet.fromJSON(u.changes),
-                                    clientID: u.clientID }))
-      this.view.dispatch(CMCollab.receiveUpdates(this.view.state,
-                                                 updates))
+      updates = data.updates.map(u => ({ changes: CMState.ChangeSet.fromJSON(u.changes),
+                                         clientID: u.clientID }))
+      tr = CMCollab.receiveUpdates(this.view.state, updates)
+      this.view.dispatch(tr)
     }
 
     destroy() {
       this.done = true
-      Tron.off(this.ch, this.pull)
+      Tron.off(this.ch, this.pullCb)
     }
   })
+
   return [ CMCollab.collab({ startVersion }), plugin ]
 }
 

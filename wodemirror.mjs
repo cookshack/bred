@@ -318,9 +318,10 @@ function makePeer
 
   plugin = CMView.ViewPlugin.fromClass(class {
     constructor
-    () {
+    (view) {
       let version
 
+      this.view = view
       version = CMCollab.getSyncedVersion(this.view.state)
       this.ch = 'peer.pull/' + uuidv4()
       Tron.on(this.ch, this.pull)

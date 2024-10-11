@@ -109,6 +109,9 @@ function path
     if (name == 'x')
       return 'lib/svg/vscode-codicons/close.svg'
 
+    if (name == 'zig')
+      return 'lib/svg/file-icons/Zig.svg'
+
     if (name.startsWith('letter-'))
       return 'img/letter/' + name + '.svg'
     return 'img/blank.svg'
@@ -151,6 +154,7 @@ function mode
     if (name == 'sh') return { name: 'sh' }
     if (name == 'tex') return { name: 'tex' }
     if (name == 'text') return { name: 'text' }
+    if (name == 'zig') return { name: 'zig' }
     if (name.length) return { name: 'letter-' + name.slice(0, 1) }
   }
   return 0

@@ -107,11 +107,13 @@ function make
                      file,
                      lineNum),
              lineNum,
-             whenReady)
-    p.buf.icon = icon
-    if (file)
-      return
-    p.buf.file = name
+             whenReady,
+             () => {
+               p.buf.icon = icon
+               if (file)
+                 return
+               p.buf.file = name
+             })
   }
 
   if (file)

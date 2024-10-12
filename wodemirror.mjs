@@ -605,7 +605,9 @@ function viewInit
  // only called if buf has a file.
  // may cause issues eg if call v.insert then the view must already have been added to the buf (which happens after viewInit).
  //   (probably it's fine because probably the Tron file.get cb below always runs after the current event).
- whenReady) {
+ whenReady,
+ // called after _viewInit runs, but before the file.get cb
+ cb) {
   d('peer.get ' + view.buf.id)
   view.buf.modified = 0
   view.ready = 0
@@ -622,6 +624,8 @@ function viewInit
               modeWhenText,
               lineNum,
               whenReady)
+    if (cb)
+      cb()
   })
 }
 

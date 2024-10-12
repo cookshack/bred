@@ -2540,28 +2540,12 @@ function revert
 
 // modify
 
-function handleChange
-(pview, update) {
-  pview.sync(view => {
-    if (view.ed)
-      view.ed.dispatch({ changes: update.changes })
-
-  })
-}
-
 export
 function undo
 () {
   let pview
 
-  function onChange (update) {
-    handleChange(pview, update)
-    // is it garaunteed that one change event will happen per undo?
-    voffChange(pview, onChange)
-  }
-
   pview = Pane.current().view
-  vonChange(pview, onChange)
   if (exec(CMComm.undo)) {
     if (CMComm.undoDepth(pview.ed.state) > 0)
       // there's more to undo
@@ -2576,16 +2560,6 @@ function undo
 export
 function redo
 () {
-  let pview
-
-  function onChange (e) {
-    handleChange(pview, e)
-    // is it garaunteed that one change event will happen per undo?
-    voffChange(pview, onChange)
-  }
-
-  pview = Pane.current().view
-  vonChange(pview, onChange)
   exec(CMComm.redo)
 }
 

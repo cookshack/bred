@@ -21,6 +21,7 @@ function make
   // Required to preserve content when buffer out of all panes.
   let reserved, win
 
+  // used by wace,won  remove when they do peer
   function sync
   (cb) {
     if (v.ready)

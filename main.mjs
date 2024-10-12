@@ -1296,6 +1296,7 @@ async function whenReady
     .option('--wait', 'Same as --wait-for-devtools.')
     .addOption(new Commander.Option('--backend <name>', 'Editing backend').choices([ 'ace', 'codemirror', 'monaco' ]).default('codemirror'))
     .option('--bounds <spec>', 'Set geometry of window (format: "x,y,width-in-px,height-in-px", default: previous geometry)')
+    .option('--inspect', 'listen for inspector messages on 9229')
     .option('--logfile <file>', 'file to write logs to (default: stdout)')
     .option('--no-sandbox', 'Turn off Chromium sandboxing')
     .option('--no-setuid-sandbox', 'Turn off UID sandboxing (eg if you want to run sudo)')

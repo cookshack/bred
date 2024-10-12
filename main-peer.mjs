@@ -10,12 +10,15 @@ function get
   let buf, updates
 
   buf = bufs[id]
-  if (buf)
+  if (buf) {
+    buf.fresh = 0
     return buf
+  }
 
   updates = []
   buf = { id: id,
           chs: [],
+          fresh: 1,
           text: CMState.Text.of([ '' ]),
           //
           get updates() {
@@ -35,7 +38,9 @@ function onPeerGet
   let buf
 
   buf = get(id)
+  d('PEER ' + id + ' GET')
   e.sender.send(ch, { version: buf.version,
+                      fresh: buf.fresh,
                       text: buf.text.toString() })
 }
 

@@ -606,6 +606,25 @@ function viewInit
  // may cause issues eg if call v.insert then the view must already have been added to the buf (which happens after viewInit).
  //   (probably it's fine because probably the Tron file.get cb below always runs after the current event).
  whenReady) {
+  d('peer.get ' + view.buf.id)
+  Tron.cmd('peer.get', [ view.buf.id ], (err, data) => {
+    if (err) {
+      Mess.toss('peer.get: ' + err.message)
+      return
+    }
+    d('peer.get ok')
+    d({ data })
+    _viewInit(makePeer(view.buf.id, data.version),
+              view,
+              data.fresh ? 0 : data.text,
+              modeWhenText,
+              lineNum,
+              whenReady)
+  })
+}
+
+function _viewInit
+(peer, view, text, modeWhenText, lineNum, whenReady) {
   let ed, buf, edWW, edW, opts, domEventHandlers
 
   function removeAllKeyBindings
@@ -836,12 +855,16 @@ function viewInit
 
            view.wode.comp.exts.of([]),
            view.wode.lang.of([]),
-           view.wode.tabSize.of(CMState.EditorState.tabSize.of(2)),
-           view.wode.peer.of([]) ]
+           view.wode.tabSize.of(CMState.EditorState.tabSize.of(2)) ]
 
   opts.push(view.wode.autocomplete.of([]))
 
   brexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
+
+  if (peer)
+    opts.push(view.wode.peer.of([ peer ]))
+  else
+    opts.push(view.wode.peer.of([]))
 
   if (buf.opt('core.highlight.syntax.enabled')) {
     opts.push(view.wode.highlightSyntax.of(makeHighlightSyntax()))
@@ -930,19 +953,6 @@ function viewInit
     ed.onDidChangeModelLanguageConfiguration(clearHandlers) // first init
     ed.onDidLayoutChange(clearHandlers) // every init
   }
-
-  //// collab
-
-  Tron.cmd('peer.get', [ buf.id ], (err, data) => {
-    if (err) {
-      Mess.toss('peer.get: ' + err.message)
-      return
-    }
-
-    d('peer.get ok')
-    d({ data })
-    view.ed.dispatch({ effects: view.wode.peer.reconfigure(makePeer(buf.id, data.version)) })
-  })
 
   //// load file
 
@@ -1194,11 +1204,13 @@ function vsetSel
 export
 function ensurePointVisible
 (view) {
-  let tr
+  if (view.ed) {
+    let tr
 
-  tr = {}
-  tr.effects = CMView.EditorView.scrollIntoView(vgetBep(view))
-  view.ed.dispatch(tr)
+    tr = {}
+    tr.effects = CMView.EditorView.scrollIntoView(vgetBep(view))
+    view.ed.dispatch(tr)
+  }
 }
 
 export

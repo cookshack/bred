@@ -35,6 +35,7 @@ function make
 
   function close
   () {
+    d('VIEW closing ' + vid)
     ready = 0
     active = 0
     if (ele) {
@@ -277,7 +278,7 @@ function make
   win = Win.current()
   v = views.find(v1 => (v1.win == win) && (v1.active == 0))
   if (v) {
-    d('VIEW reusing view')
+    d('VIEW reusing view ' + v.vid)
     v.reopen(ele, lineNum, whenReady)
     return v
   }
@@ -380,10 +381,9 @@ function make
         reopen,
         close,
         sync,
-        vars
-  }
+        vars }
 
-  d('VIEW new view')
+  d('VIEW new view ' + v.vid)
   ele.innerHTML = ''
   ready = 0
   if (views.length) {

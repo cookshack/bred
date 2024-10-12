@@ -49,6 +49,7 @@ function getBootBuf
   // delayed til needed, so that iwd is set
   if (bootBuf)
     return bootBuf
+  d('Making boot buf')
   return bootBuf = Buf.make(0, 0, 0, Loc.iwd().path)
 }
 
@@ -147,7 +148,8 @@ function add
     if (b)
       Buf.queue(b)
     b = b2
-    if (view)
+    if (view
+        && view.ready) // else there may be a peer/fs callback about to access this view
       view.close()
     if (b) {
       view = b.view(ele, elePoint, lineNum, whenReady)

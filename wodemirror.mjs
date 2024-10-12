@@ -607,12 +607,14 @@ function viewInit
  //   (probably it's fine because probably the Tron file.get cb below always runs after the current event).
  whenReady) {
   d('peer.get ' + view.buf.id)
+  view.buf.modified = 0
+  view.ready = 0
   Tron.cmd('peer.get', [ view.buf.id ], (err, data) => {
     if (err) {
       Mess.toss('peer.get: ' + err.message)
       return
     }
-    d('peer.get ok')
+    d('peer.get ' + view.buf.id + ' ok (' + view.buf.name + ')')
     d({ data })
     _viewInit(makePeer(view.buf.id, data.version),
               view,

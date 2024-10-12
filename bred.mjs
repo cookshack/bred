@@ -1717,10 +1717,12 @@ function start2
   Cmd.run('messages')
   p = Pane.current(tab.frame1)
   p.focus()
+  d('creating Scratch.js')
   Ed.make(p, 'Scratch.js', p.dir, 0, 0, view => {
     d('INSERT')
     view.insert(scratchMessage())
   })
+  d('running welcome')
   if (Opt.get('core.welcome.enabled'))
     Cmd.run('welcome')
   Pane.top(tab.frame1).focus()

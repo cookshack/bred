@@ -66,6 +66,7 @@ function init
   brexts = []
   Opt.declare('core.cursor.blink.enabled', 'bool', 0)
   Opt.declare('core.cursor.blink.rate', 'integer', 1200)
+  Opt.declare('core.highlight.activeLine.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.afterCursor', 'bool', 1)
   Opt.declare('core.highlight.occurrences.enabled', 'bool', 1)
@@ -77,6 +78,9 @@ function init
   Opt.declare('core.line.numbers.show', 'bool', 1)
   Opt.declare('core.line.wrap.enabled', 'bool', 1)
 
+  brexts.push(Ed.register({ backend: 'cm',
+                            make: view => view.buf.opt('core.highlight.activeLine.enabled') ? CMView.highlightActiveLine() : [],
+                            reconfOpts: [ 'core.highlight.activeLine.enabled' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeBrck,
                             reconfOpts: [ 'core.highlight.bracket.enabled', 'core.highlight.bracket.afterCursor' ] }))
@@ -106,7 +110,8 @@ function init
                             reconfOpts: [ 'core.line.wrap.enabled' ] }))
 
   Cmd.add('enable cursor blink', u => Ed.enable(u, 'core.cursor.blink.enabled'))
-  Cmd.add('highlight bracket', u => Ed.enable(u, 'core.cursor.highlight.bracket.enabled'))
+  Cmd.add('highlight active line', u => Ed.enable(u, 'core.highlight.activeLine.enabled'))
+  Cmd.add('highlight bracket', u => Ed.enable(u, 'core.highlight.bracket.enabled'))
   Cmd.add('highlight occurrences', u => Ed.enable(u, 'core.highlight.occurrences.enabled'))
   Cmd.add('highlight specials', u => Ed.enable(u, 'core.highlight.specials.enabled'))
   Cmd.add('highlight trailing whitespace', u => Ed.enable(u, 'core.highlight.trailingWhitespace.enabled'))
@@ -114,6 +119,7 @@ function init
   Cmd.add('enable line numbers', u => Ed.enable(u, 'core.line.numbers.show'))
   Cmd.add('enable line wrap', u => Ed.enable(u, 'core.line.wrap.enabled'))
   Cmd.add('buffer enable cursor blink', u => Ed.enableBuf(u, 'core.cursor.blink.enabled'))
+  Cmd.add('buffer highlight active line', u => Ed.enableBuf(u, 'core.highlight.activeLine.enabled'))
   Cmd.add('buffer highlight bracket', u => Ed.enableBuf(u, 'core.highlight.bracket.enabled'))
   Cmd.add('buffer highlight occurrences', u => Ed.enableBuf(u, 'core.highlight.occurrences.enabled'))
   Cmd.add('buffer highlight specials', u => Ed.enableBuf(u, 'core.highlight.specials.enabled'))
@@ -129,6 +135,7 @@ function free
   Cmd.remove('enable cursor blink')
   Cmd.remove('enable line numbers')
   Cmd.remove('enable line wrap')
+  Cmd.remove('highlight active line')
   Cmd.remove('highlight bracket')
   Cmd.remove('highlight occurrences')
   Cmd.remove('highlight specials')
@@ -137,6 +144,7 @@ function free
   Cmd.remove('buffer enable cursor blink')
   Cmd.remove('buffer enable line numbers')
   Cmd.remove('buffer enable line wrap')
+  Cmd.remove('buffer highlight active line')
   Cmd.remove('buffer highlight bracket')
   Cmd.remove('buffer highlight occurrences')
   Cmd.remove('buffer highlight specials')

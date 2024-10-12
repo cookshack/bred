@@ -659,7 +659,6 @@ function viewInit
 
   view.wode.autocomplete = new CMState.Compartment
   view.wode.decorMode = new CMState.Compartment
-  view.wode.highlightActive = new CMState.Compartment
   view.wode.highlightSyntax = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
@@ -843,11 +842,6 @@ function viewInit
   opts.push(view.wode.autocomplete.of([]))
 
   brexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
-
-  if (buf.opt('core.highlight.activeLine.enabled'))
-    opts.push(view.wode.highlightActive.of(CMView.highlightActiveLine()))
-  else
-    opts.push(view.wode.highlightActive.of([]))
 
   if (buf.opt('core.highlight.syntax.enabled')) {
     opts.push(view.wode.highlightSyntax.of(makeHighlightSyntax()))
@@ -3951,14 +3945,6 @@ function reconfigureHighlightSyntax
                                   view.wode.themeExtension.reconfigure([]) ] })
 }
 
-function reconfigureHighlightActive
-(buf, view) {
-  if (buf.opt('core.highlight.activeLine.enabled'))
-    view.ed.dispatch({ effects: view.wode.highlightActive.reconfigure(CMView.highlightActiveLine()) })
-  else
-    view.ed.dispatch({ effects: view.wode.highlightActive.reconfigure([]) })
-}
-
 function reconfigureLinter
 (buf, view) {
   let effects
@@ -4002,7 +3988,6 @@ function initOpt
   }
 
   on('core.autocomplete', reconfigureAutocomplete)
-  on('core.highlight.activeLine.enabled', reconfigureHighlightActive)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
   on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)

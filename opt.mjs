@@ -206,7 +206,6 @@ function init
   declare('core.folding.enabled', 'bool', 1)
   declare('core.folding.gutter.show', 'bool', 1)
   declare('core.fontSize', 'float', undefined)
-  declare('core.highlight.activeLine.enabled', 'bool', 1)
   declare('core.highlight.syntax.enabled', 'bool', 1)
   declare('core.lint.enabled', 'bool', 1)
   declare('core.lint.gutter.show', 'bool', 1)

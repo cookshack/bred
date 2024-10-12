@@ -6,13 +6,21 @@ import * as Dom from './dom.mjs'
 import * as Em from './em.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
+import * as Win from './win.mjs'
 //import { d } from './mess.mjs'
 
-let ring, buf
+export
+function shared
+() {
+  return Win.shared().cut
+}
 
 export
 function nth
 (n) {
+  let ring
+
+  ring = shared().ring
   if (n >= ring.length)
     return 0
   return ring[0]
@@ -21,6 +29,9 @@ function nth
 export
 function roll
 () {
+  let ring
+
+  ring = shared().ring
   if (ring.length) {
     let t
 
@@ -32,24 +43,24 @@ function roll
 
 function grow
 (cut) {
-  if (buf)
-    buf.views.forEach(view => {
-      if (view.ele) {
-        let w, el
+  shared().buf?.views.forEach(view => {
+    if (view.ele) {
+      let w, el
 
-        w = view.ele.firstElementChild.firstElementChild
-        el = w.firstElementChild
-        el.innerText = el.innerText + cut
-      }
-    })
+      w = view.ele.firstElementChild.firstElementChild
+      el = w.firstElementChild
+      el.innerText = el.innerText + cut
+    }
+  })
 }
 
 export
 function add
 (s) {
   if (s && s.length) {
-    let last
+    let last, ring
 
+    ring = shared().ring
     last = Cmd.last()
     if ([ 'Cut Line' ].includes(last)
         && ring.length) {
@@ -69,12 +80,11 @@ function divW
 
 function prepend
 (cut) {
-  if (buf)
-    buf.views.forEach(view => {
-      if (view.ele)
-        Dom.prepend(view.ele.firstElementChild.firstElementChild,
-                    divCl('cuts-cut', cut))
-    })
+  shared().buf?.views.forEach(view => {
+    if (view.ele)
+      Dom.prepend(view.ele.firstElementChild.firstElementChild,
+                  divCl('cuts-cut', cut))
+  })
 }
 
 export
@@ -86,18 +96,20 @@ function init
   (view) {
     view.ele.firstElementChild.firstElementChild.innerHTML = ''
     append(view.ele.firstElementChild.firstElementChild,
-           ring.map(cut => divCl('cuts-cut', cut)))
+           shared().ring.map(cut => divCl('cuts-cut', cut)))
   }
 
-  ring = []
+  if (Win.root())
+    Win.shared().cut = { ring: [] }
 
   mo = Mode.add('Cuts', { viewInit: refresh })
 
   Cmd.add('refresh', () => refresh(Pane.current().view), mo)
 
   Cmd.add('cuts', () => {
-    let p
+    let p, buf
 
+    buf = shared().buf
     p = Pane.current()
     if (buf) {
       p.buf = buf
@@ -105,6 +117,7 @@ function init
     }
     else {
       buf = Buf.add('Cuts', 'Cuts', divW(), p.dir)
+      shared().buf = buf
       buf.icon = 'clipboard'
       buf.addMode('view')
       p.buf = buf

@@ -2,7 +2,7 @@ import * as Tron from './tron.mjs'
 
 export let inherit, missing
 
-let values, types, onSets, onSetAlls, onSetBufs, d
+let shared, d
 
 d = console.log // too early for Mess
 
@@ -15,6 +15,9 @@ function load
 (cb) { // (err)
   function load1
   (prefix, data) {
+    let values
+
+    values = shared().values
     Object.entries(data).forEach(kv => {
       if ((typeof kv[1] == 'object')
           && !Array.isArray(kv[1])) {
@@ -41,7 +44,7 @@ function declare
 (name,
  type,
  value) {
-  types[name] = type
+  shared().types[name] = type
   //d('OPT ' + name + ' DECLARED ' + type)
   if (get(name) === undefined)
     return setMem(name, clean(name, value))
@@ -52,14 +55,14 @@ export
 function get
 (name) {
   //d('OPT ' + name + ': ' + values[name])
-  return values[name]
+  return shared().values[name]
 }
 
 function clean
 (name, val) {
   if (val === undefined)
     return val
-  if (types[name] == 'bool')
+  if (shared().types[name] == 'bool')
     return val ? true : false
   return val
 }
@@ -67,10 +70,10 @@ function clean
 function setMem
 (name,
  value) { // must be clean
-  values[name] = value
+  shared().values[name] = value
   //d('OPT ' + name + ' SET TO ' + value)
-  onSets[name]?.forEach(cb => cb(value, name))
-  onSetAlls.forEach(cb => cb(value, name))
+  shared().onSets[name]?.forEach(cb => cb(value, name))
+  shared().onSetAlls.forEach(cb => cb(value, name))
   return value
 }
 
@@ -96,18 +99,18 @@ function toggle
 export
 function type
 (name) {
-  return types[name]
+  return shared().types[name]
 }
 
 export
 function onSet1
 (name, cb) { // (val, name)
   if (name) {
-    onSets[name] = onSets[name] ?? []
-    onSets[name].push(cb)
+    shared().onSets[name] = shared().onSets[name] ?? []
+    shared().onSets[name].push(cb)
     return
   }
-  onSetAlls.push(cb)
+  shared().onSetAlls.push(cb)
 }
 
 // for example, the Options page auto updates when the global opt value changes
@@ -122,8 +125,8 @@ function onSet
 
 function onSetBuf1
 (name, cb) { // (buf, val, name)
-  onSetBufs[name] = onSetBufs[name] ?? []
-  onSetBufs[name].push(cb)
+  shared().onSetBufs[name] = shared().onSetBufs[name] ?? []
+  shared().onSetBufs[name].push(cb)
 }
 
 // for example, you have a mode that wants to update the buf's ext when the opt is changed on any buf.
@@ -139,19 +142,19 @@ function onSetBuf
 export
 function forEach
 (cb) { // (name, value)
-  Object.entries(values).forEach(kv => cb(kv[0], kv[1]))
+  Object.entries(shared().values).forEach(kv => cb(kv[0], kv[1]))
 }
 
 export
 function map
 (cb) { // (name, value)
-  return Object.entries(values).map(kv => cb(kv[0], kv[1]))
+  return Object.entries(shared().values).map(kv => cb(kv[0], kv[1]))
 }
 
 export
 function sort
 () {
-  return Object.entries(values).sort((kv1, kv2) => kv1[0].localeCompare(kv2[0]))
+  return Object.entries(shared().values).sort((kv1, kv2) => kv1[0].localeCompare(kv2[0]))
 }
 
 export
@@ -164,7 +167,7 @@ function buf
     val = clean(name, val)
     vals[name] = val
     //d('BUF OPT ' + name + ' SET TO ' + val)
-    onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
+    shared().onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
   }
 
   function get
@@ -179,22 +182,34 @@ function buf
   return opts
 }
 
-values = {}
-types = {}
-onSets = {}
-onSetAlls = []
-onSetBufs = {}
+export
+function init
+() {
+  // runs too early for Win.shared()
+  shared = () => globalThis.bred._shared().opt
 
-declare('core.autocomplete.enabled', 'bool', 1)
-declare('core.brackets.close.enabled', 'bool', 1)
-declare('core.folding.enabled', 'bool', 1)
-declare('core.folding.gutter.show', 'bool', 1)
-declare('core.fontSize', 'float', undefined)
-declare('core.highlight.activeLine.enabled', 'bool', 1)
-declare('core.highlight.syntax.enabled', 'bool', 1)
-declare('core.lint.enabled', 'bool', 1)
-declare('core.lint.gutter.show', 'bool', 1)
-declare('core.throwOnWarn.enabled', 'bool', 0)
-declare('core.welcome.enabled', 'bool', 1)
+  // runs too early for Win.root()
+  if (globalThis.opener)
+    return
 
-export const _internals = { values, types, onSets, onSetAlls, onSetBufs }
+  // Root window
+
+  globalThis.bred._shared().opt = {}
+  shared().values = {}
+  shared().types = {}
+  shared().onSets = {}
+  shared().onSetAlls = []
+  shared().onSetBufs = {}
+
+  declare('core.autocomplete.enabled', 'bool', 1)
+  declare('core.brackets.close.enabled', 'bool', 1)
+  declare('core.folding.enabled', 'bool', 1)
+  declare('core.folding.gutter.show', 'bool', 1)
+  declare('core.fontSize', 'float', undefined)
+  declare('core.highlight.activeLine.enabled', 'bool', 1)
+  declare('core.highlight.syntax.enabled', 'bool', 1)
+  declare('core.lint.enabled', 'bool', 1)
+  declare('core.lint.gutter.show', 'bool', 1)
+  declare('core.throwOnWarn.enabled', 'bool', 0)
+  declare('core.welcome.enabled', 'bool', 1)
+}

@@ -5,6 +5,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
+import * as Win from './win.mjs'
 //import { d } from './mess.mjs'
 
 import { append, divCl } from './dom.mjs'
@@ -65,7 +66,7 @@ function init
   Opt.onSet(0, (val, name) => {
     if (buf)
       buf.views.forEach(view => {
-        if (view.ele) {
+        if (view.ele && (view.win == Win.current())) {
           let w, el
 
           w = view.ele.firstElementChild.firstElementChild

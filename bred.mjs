@@ -1783,6 +1783,7 @@ export
 function init
 () {
   initShared()
+  Opt.init()
 
   Opt.load(() => {
     initFontSize()
@@ -1822,6 +1823,7 @@ export
 function initNewWindow
 () {
   initShared()
+  Opt.init()
 
   Opt.load(() => {
     initFontSize()

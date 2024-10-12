@@ -30,6 +30,20 @@ function roll
   }
 }
 
+function grow
+(cut) {
+  if (buf)
+    buf.views.forEach(view => {
+      if (view.ele) {
+        let w, el
+
+        w = view.ele.firstElementChild.firstElementChild
+        el = w.firstElementChild
+        el.innerText = el.innerText + cut
+      }
+    })
+}
+
 export
 function add
 (s) {
@@ -51,20 +65,6 @@ function add
 function divW
 () {
   return divCl('cuts-ww', divCl('cuts-w bred-surface', ''))
-}
-
-function grow
-(cut) {
-  if (buf)
-    buf.views.forEach(view => {
-      if (view.ele) {
-        let w, el
-
-        w = view.ele.firstElementChild.firstElementChild
-        el = w.firstElementChild
-        el.innerText = el.innerText + cut
-      }
-    })
 }
 
 function prepend

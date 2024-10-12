@@ -240,7 +240,7 @@ function add
           return view
         },
         get win() {
-          return frame.tab.area.win
+          return frame?.tab?.area?.win
         },
         //
         set buf(b2) {

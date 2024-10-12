@@ -499,14 +499,14 @@ function decorate
 
 function diagnose
 (win, diag) {
-  if (diag) {
+  if (win && diag) {
     win.diag.lastElementChild.firstElementChild.innerText = diag.message
     win.diag.lastElementChild.lastElementChild.innerText = diag.source
     Css.add(win.diag, 'bred-' + diag.severity)
     Css.show(win.diag)
     return
   }
-  Css.hide(win.diag)
+  Css.hide(win?.diag)
 }
 
 0 && function tip
@@ -752,14 +752,14 @@ function viewInit
       if (col)
         col.innerText = 'C' + (bepCol(view, update.state.selection.main.head))
 
-      diagnose(p.win)
+      diagnose(p?.win)
       CMLint.forEachDiagnostic(view.ed.state, (diag, from, to) => {
         let bep, line
 
         bep = update.state.selection.main.head
         line = view.ed.state.doc.lineAt(bep)
         if ((from >= line.from) && (to <= line.to))
-          diagnose(p.win, diag)
+          diagnose(p?.win, diag)
       })
     }
 

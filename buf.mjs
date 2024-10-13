@@ -596,6 +596,7 @@ function init
   Cmd.add('buffers', () => {
     let p, bBuffers
 
+    // ERR mode is from root globalThis  eg Buffers in root then in child, child missing mode
     bBuffers = shared().bBuffers
     p = Pane.current()
     if (bBuffers)

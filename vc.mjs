@@ -149,10 +149,7 @@ function initCommit
     buf.opts.set('core.line.numbers.show', 0)
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('core.minimap.enabled', 0)
-    p.buf = buf
-    buf.clear()
-
-    return p.view
+    p.setBuf(buf, null, 0, () => buf.clear())
   }
 
   mo = Mode.add('Commit', { viewInit: Ed.viewInit,
@@ -506,9 +503,10 @@ function initLog
     }
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('core.minimap.enabled', 0)
-    p.buf = buf
-    refresh(p.view)
-    buf.lang = 'git log'
+    p.setBuf(buf, null, 0, view => {
+      refresh(view)
+      buf.lang = 'git log'
+    })
   })
 
   Cmd.add('click', click, mo)
@@ -569,10 +567,8 @@ function initLogBadIdea
     let p
 
     p = Pane.current()
-    if (buf) {
-      p.buf = buf
-      refresh(p.view)
-    }
+    if (buf)
+      p.setBuf(buf, null, 0, view => refresh(view))
     else {
       buf = Buf.add('Bad Idea', 'Bad Idea', divW(), p.dir)
       buf.icon = 'log'
@@ -838,9 +834,10 @@ function initAnnotate
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('core.minimap.enabled', 0)
     buf.vars('vc').file = p.buf.path
-    p.buf = buf
-    refresh(p.view)
-    //buf.lang = 'git log'
+    p.setBuf(buf, null, 0, view => {
+      refresh(view)
+      //buf.lang = 'git log'
+    })
   })
 
   // should use view mode

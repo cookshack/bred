@@ -244,7 +244,7 @@ function shell1
 export
 function spawn1
 (sc, end, afterEndPoint, args, hist, cb) { // (buf)
-  shellOrSpawn1(sc, end, afterEndPoint, args, hist, 0, cb)
+  shellOrSpawn1(sc, end, afterEndPoint, args, hist, 0, 0, 0, cb)
 }
 
 export

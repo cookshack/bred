@@ -140,8 +140,10 @@ function add
 
   function setBuf
   (b2, lineNum,
-   whenReady, // FIX called when file loaded
-   cb) { // called when buf ready to use
+   // FIX called when file loaded
+   whenReady,
+   // called when buf ready to use
+   cb) { // (view)
     if (view?.buf == b2) {
       d('setBuf to same buf')
       b = b2

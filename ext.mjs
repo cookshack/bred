@@ -10,6 +10,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
+import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
 let exts
@@ -114,7 +115,7 @@ function get
 export
 function init
 () {
-  let buf, mo
+  let mo
 
   function divW
   () {
@@ -216,6 +217,9 @@ function init
     }
   }
 
+  if (Win.root())
+    Win.shared().exts = {}
+
   exts = {}
 
   mo = Mode.add('Exts', { viewInit: refresh })
@@ -224,15 +228,15 @@ function init
   Cmd.add('remove extension', remove, mo)
 
   Cmd.add('extensions', () => {
-    let p
+    let p, buf
 
+    buf = Win.shared().exts.buf
     p = Pane.current()
-    if (buf) {
-      p.buf = buf
-      refresh(p.view)
-    }
+    if (buf)
+      p.setBuf(buf, null, 0, view => refresh(view))
     else {
       buf = Buf.add('Extensions', 'Exts', divW(), p.dir)
+      Win.shared().exts.buf = buf
       buf.icon = 'clipboard'
       buf.addMode('view')
       p.buf = buf

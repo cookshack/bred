@@ -13,7 +13,7 @@ import { append, divCl } from './dom.mjs'
 export
 function init
 () {
-  let buf, mo
+  let mo
 
   function setOpt
   () {
@@ -64,31 +64,33 @@ function init
   }
 
   Opt.onSet(0, (val, name) => {
-    if (buf)
-      buf.views.forEach(view => {
-        if (view.ele && (view.win == Win.current())) {
-          let w, el
+    Win.shared().options.buf?.views.forEach(view => {
+      if (view.ele && (view.win == Win.current())) {
+        let w, el
 
-          w = view.ele.firstElementChild.firstElementChild
-          el = w.querySelector('.options-val[data-name="' + name + '"]')
-          if (el)
-            el.innerText = clean(val, Opt.type(name))
-        }
-      })
+        w = view.ele.firstElementChild.firstElementChild
+        el = w.querySelector('.options-val[data-name="' + name + '"]')
+        if (el)
+          el.innerText = clean(val, Opt.type(name))
+      }
+    })
   })
+
+  if (Win.root())
+    Win.shared().options = {}
 
   mo = Mode.add('Options', { viewInit: refresh })
 
   Cmd.add('options', () => {
-    let p
+    let p, buf
 
+    buf = Win.shared().options.buf
     p = Pane.current()
-    if (buf) {
-      p.buf = buf
-      refresh(p.view)
-    }
+    if (buf)
+      p.setBuf(buf, view => refresh(view))
     else {
       buf = Buf.add('Options', 'Options', divW(), p.dir)
+      Win.shared().options.buf = buf
       buf.icon = 'clipboard'
       buf.addMode('view')
       p.buf = buf

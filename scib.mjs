@@ -65,7 +65,7 @@ function runText
 
 export
 function scib
-() {
+(cb) { // (view)
   let p, w, ml, mlDir, mlText
 
   function divW
@@ -117,18 +117,20 @@ function scib
   buf.opts.set('core.line.numbers.show', 0)
   buf.opts.set('core.lint.enabled', 0)
   buf.opts.set('core.minimap.enabled', 0)
-  p.buf = buf
-  buf.clear()
+  p.setBuf(buf, null, 0, view => {
+    buf.clear()
 
-  if (p.dir == mlDir) {
-    // good
-  }
-  else {
-    p.dir = mlDir
-    Mess.yell('Take care: buffer dir got out of sync with Modeline dir')
-  }
+    if (p.dir == mlDir) {
+      // good
+    }
+    else {
+      p.dir = mlDir
+      Mess.yell('Take care: buffer dir got out of sync with Modeline dir')
+    }
 
-  return p.view
+    if (cb)
+      cb(view)
+  })
 }
 
 function initRTL

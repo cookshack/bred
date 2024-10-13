@@ -1006,14 +1006,12 @@ function init
     let el
 
     el = current()
-    if (el && el.dataset.path) {
-      let view
-
-      view = Scib.scib()
-      view.buf.append(' ' + el.dataset.path)
-      //view.point.bufStart() // two points
-      Cmd.runMo('buffer start', 'Ed', 1)
-    }
+    if (el && el.dataset.path)
+      Scib.scib(view => {
+        view.buf.append(' ' + el.dataset.path)
+        //view.point.bufStart() // two points
+        Cmd.runMo('buffer start', 'Ed', 1)
+      })
     else
       Mess.say('Move to a file first')
   }

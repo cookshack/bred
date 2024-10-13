@@ -18,6 +18,7 @@ import * as Pane from './pane.mjs'
 import { Vace } from './json.mjs'
 import { Vode } from './json.mjs'
 import { Vonaco } from './json.mjs'
+import * as Win from './win.mjs'
 
 import * as Welcome from './welcome.mjs'
 import { d } from './mess.mjs'
@@ -625,7 +626,7 @@ function initLangs
 export
 function init
 () {
-  let mo, buf
+  let mo
 
   function appendM
   (frag, m) {
@@ -650,17 +651,15 @@ function init
 
   function add
   (mess) {
-    //console.log(mess)
-    if (buf)
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let w
+    Win.shared().messages.buf?.views.forEach(view => {
+      if (view.ele) {
+        let w
 
-          w = view.ele.firstElementChild.firstElementChild
-          appendM(w, mess)
-          w.scrollIntoView({ block: 'end', inline: 'nearest' })
-        }
-      })
+        w = view.ele.firstElementChild.firstElementChild
+        appendM(w, mess)
+        w.scrollIntoView({ block: 'end', inline: 'nearest' })
+      }
+    })
   }
 
   function refresh
@@ -679,20 +678,27 @@ function init
 
   function addBuf
   (p) {
+    let buf
+
     buf = Buf.add('Messages', 'Messages', divW(), p.dir)
+    Win.shared().messages.buf = buf
     buf.icon = 'log'
     buf.addMode('view')
     return buf
   }
+
+  if (Win.root())
+    Win.shared().messages = {}
 
   Ev.on('Mess.push', e => add(e.detail))
 
   mo = Mode.add('Messages', { viewInit: refresh })
 
   Cmd.add('messages', () => {
-    let p
+    let p, buf
 
     p = Pane.current()
+    buf = Win.shared().messages.buf
     if (buf)
       p.setBuf(buf, null, 0, () => refresh(p.view))
     else

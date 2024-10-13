@@ -15,16 +15,6 @@ function init
 () {
   let mo
 
-  function setOpt
-  () {
-    Opt.set('ruler.col', 80)
-  }
-
-  function setBufOpt
-  () {
-    Pane.current().buf.opts.set('ruler.col', 20)
-  }
-
   function divW
   () {
     return divCl('options-ww', divCl('options-w bred-surface', ''))
@@ -114,7 +104,4 @@ function init
           mo)
 
   Em.on('g', 'refresh', mo)
-
-  Cmd.add('set option', () => setOpt())
-  Cmd.add('set buffer option', () => setBufOpt())
 }

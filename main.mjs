@@ -1304,6 +1304,8 @@ async function whenReady
     .parse()
 
   options = program.opts()
+  if (options.wait)
+    options.waitForDevtools = true
 
   shell = process.env.SHELL || 'sh'
 

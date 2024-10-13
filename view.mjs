@@ -49,6 +49,7 @@ function make
 
   function reopen
   (newPaneEle, lineNum, whenReady, cb) {
+    d('VIEW reopen ' + vid)
     ready = 0
     active = 1
     ele = newPaneEle

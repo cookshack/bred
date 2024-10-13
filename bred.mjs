@@ -1737,6 +1737,7 @@ function start2
 
   if (1) {
     Mess.say('Loading init...')
+    d('loading init')
     Tron.cmd('init.load', [], (err, data) => {
       if (data.exist == 0)
         Mess.say("Loading init: missing, that's OK")

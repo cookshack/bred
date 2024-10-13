@@ -631,3 +631,14 @@ function view
   mode = Mode.get(buf.mode?.key) // want the one in current globalThis
   return View.make(buf, buf.vid, mode, buf.views, ele, elePoint, lineNum, whenReady, cb)
 }
+
+export
+function print
+() {
+  d('-- BUFS')
+  shared().buffers.forEach(buf => {
+    d('-- VIEWS in buf ' + buf.id + ' ' + buf.name)
+    buf.views?.forEach(view => d('-- ' + view.vid + ', ele: ' + view.ele.innerHTML))
+  })
+  d('-- end')
+}

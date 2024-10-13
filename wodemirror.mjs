@@ -609,6 +609,7 @@ function viewInit
  // called after _viewInit runs, but before the file.get cb
  cb) { // (view)
   d('peer.get ' + view.buf.id)
+  d('vi vid: ' + view.vid)
   view.buf.modified = 0
   view.ready = 0
   Tron.cmd('peer.get', [ view.buf.id ], (err, data) => {

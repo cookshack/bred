@@ -752,18 +752,16 @@ function initSearchFiles
       buf.file = 0
       //buf.dir = 0
       dir = p.dir
-      p.buf = buf
-      buf.dir = dir
-
-      ml = p.view.ele.querySelector('.edMl')
-      under = p.view.ele.querySelector('.bred-search_files-under')
-      if (under)
-        refresh()
-
-      else
-        Mess.toss('under missing')
+      p.setBuf(buf, null, 0, () => {
+        buf.dir = dir
+        ml = p.view.ele.querySelector('.edMl')
+        under = p.view.ele.querySelector('.bred-search_files-under')
+        if (under)
+          refresh()
+        else
+          Mess.toss('under missing')
+      })
     }
-
   }
 
   hist = Hist.ensure('search files')

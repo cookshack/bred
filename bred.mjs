@@ -1709,6 +1709,7 @@ function start2
   initRecent()
   Ext.loadAll() // async
 
+  d('filling panes')
   tab = Tab.current(Win.current().main)
   if (frames.left == 0)
     Css.retract(tab.frameLeft.el)

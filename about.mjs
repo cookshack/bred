@@ -693,10 +693,8 @@ function init
     let p
 
     p = Pane.current()
-    if (buf) {
-      p.buf = buf
-      refresh(p.view)
-    }
+    if (buf)
+      p.setBuf(buf, null, 0, () => refresh(p.view))
     else
       p.buf = addBuf(p)
   })

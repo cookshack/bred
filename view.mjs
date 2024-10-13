@@ -395,7 +395,7 @@ function make
   ready = 0
   if (views.length) {
     // use content from existing view
-    d('VIEW reuse content')
+    d('VIEW   reuse content')
     if (mode && mode.viewCopy) {
       if (b.co)
         append(ele, b.co.cloneNode(1))
@@ -408,7 +408,7 @@ function make
   }
   else {
     if (1)
-      d('VIEW fresh content')
+      d('VIEW   fresh content')
     if (b.co) {
       append(ele, b.co.cloneNode(1))
       if (mode && mode.viewInit)

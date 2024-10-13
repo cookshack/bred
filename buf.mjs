@@ -544,7 +544,7 @@ function forEach
 export
 function init
 () {
-  let mo, bBuffers
+  let mo
 
   function divW
   () {
@@ -594,15 +594,15 @@ function init
   mo = Mode.add('Buffers', { viewInit: refresh })
 
   Cmd.add('buffers', () => {
-    let p
+    let p, bBuffers
 
+    bBuffers = shared().bBuffers
     p = Pane.current()
-    if (bBuffers) {
-      p.buf = bBuffers
-      refresh(p.view)
-    }
+    if (bBuffers)
+      p.setBuf(bBuffers, null, 0, view => refresh(view))
     else {
       bBuffers = add('Buffers', 'Buffers', divW(), p.dir)
+      shared().bBuffers = bBuffers
       bBuffers.icon = 'list'
       bBuffers.addMode('view')
       p.buf = bBuffers

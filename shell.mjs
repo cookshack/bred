@@ -218,7 +218,7 @@ function shellOrSpawn1
       setMl(w)
     }
 
-    p.setBuf(b, null, null, cb)
+    p.setBuf(b, null, null, () => cb(b))
   }
 
   if (hist)
@@ -228,10 +228,10 @@ function shellOrSpawn1
   dir.ensureSlash()
   dir = dir.path || Loc.home()
   addBuf(p, dir, sc,
-         () => {
-           run(p.buf, p.dir, sc, end, afterEndPoint, args, shell, 0, 0, multi, onClose)
+         buf => {
+           run(buf, dir, sc, end, afterEndPoint, args, shell, 0, 0, multi, onClose)
            if (cb)
-             cb(p.buf)
+             cb(buf)
          })
 }
 

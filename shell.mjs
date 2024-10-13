@@ -347,11 +347,12 @@ function initCompile
     buf.opts.set('core.line.numbers.show', 0)
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('core.minimap.enabled', 0)
-    p.buf = buf
-    buf.clear()
-    hist = buf.vars('SC').hist
-    if (hist.length)
-      p.view.insert(hist.to(0))
+    p.setBuf(buf, null, 0, () => {
+      buf.clear()
+      hist = buf.vars('SC').hist
+      if (hist.length)
+        p.view.insert(hist.to(0))
+    })
   }
 
   compileHist = Hist.ensure('compile')

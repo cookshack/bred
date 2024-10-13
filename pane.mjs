@@ -138,9 +138,13 @@ function add
   }
 
   function setBuf
-  (b2, lineNum, whenReady) {
+  (b2, lineNum,
+   whenReady, // FIX called when file loaded
+   cb) { // called when buf ready to use
     if (view?.buf == b2) {
       b = b2
+      if (cb)
+        cb(view)
       if (whenReady)
         whenReady(view)
       return
@@ -151,13 +155,15 @@ function add
     if (view
         && view.ready) // else there may be a peer/fs callback about to access this view
       view.close()
-    if (b) {
-      view = b.view(ele, elePoint, lineNum, whenReady)
-      if (view.ed)
-        Css.add(ele?.parentNode, 'ed')
-      else
-        Css.remove(ele?.parentNode, 'ed')
-    }
+    if (b)
+      view = b.view(ele, elePoint, lineNum, whenReady, view => {
+        if (view.ed)
+          Css.add(ele?.parentNode, 'ed')
+        else
+          Css.remove(ele?.parentNode, 'ed')
+        if (cb)
+          cb(view)
+      })
     p.frame.tab.name = b?.name || 'Empty'
     p.frame.tab.icon = b?.icon
   }

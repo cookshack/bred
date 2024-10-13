@@ -15,7 +15,8 @@ function make
  ele, // pane element
  elePoint,
  lineNum,
- whenReady) {
+ whenReady, // called when file loaded (FIX also ready1)
+ cb) { // called when buf ready to use
   let v, active, ready, point, modeVars
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
@@ -23,13 +24,13 @@ function make
 
   // used by wace,won  remove when they do peer
   function sync
-  (cb) {
+  (cb2) {
     if (v.ready)
       views.forEach(v2 => {
         if (v == v2)
           return
         if (v2.ready)
-          cb(v2)
+          cb2(v2)
       })
   }
 
@@ -47,7 +48,7 @@ function make
   }
 
   function reopen
-  (newPaneEle, lineNum, whenReady) {
+  (newPaneEle, lineNum, whenReady, cb) {
     ready = 0
     active = 1
     ele = newPaneEle
@@ -55,9 +56,13 @@ function make
     append(ele, reserved)
     reserved = 0
     if (mode && mode.viewReopen)
-      mode.viewReopen(v, lineNum, whenReady)
-    else
+      mode.viewReopen(v, lineNum, whenReady, cb)
+    else {
       ready = 1
+      if (cb)
+        cb(v)
+      // whenready?
+    }
   }
 
   function region
@@ -188,9 +193,9 @@ function make
   }
 
   function excur
-  (cb) {
+  (cb2) {
     if (b.mode?.excur)
-      b.mode.excur(v, cb)
+      b.mode.excur(v, cb2)
     else
       Mess.toss('buf.add: excur missing')
   }
@@ -261,6 +266,8 @@ function make
   function ready1
   () {
     ready = 1
+    if (cb)
+      cb(v)
     if (whenReady)
       whenReady(v)
   }
@@ -279,7 +286,7 @@ function make
   v = views.find(v1 => (v1.win == win) && (v1.active == 0))
   if (v) {
     d('VIEW reusing view ' + v.vid)
-    v.reopen(ele, lineNum, whenReady)
+    v.reopen(ele, lineNum, whenReady, cb)
     return v
   }
   modeVars = []
@@ -392,7 +399,7 @@ function make
     if (mode && mode.viewCopy) {
       if (b.co)
         append(ele, b.co.cloneNode(1))
-      mode.viewCopy(v, views[0], lineNum, whenReady)
+      mode.viewCopy(v, views[0], lineNum, whenReady, cb)
     }
     else {
       append(ele, [ ...views[0].ele.children ].map(e => e.cloneNode(1)))
@@ -405,7 +412,7 @@ function make
     if (b.co) {
       append(ele, b.co.cloneNode(1))
       if (mode && mode.viewInit)
-        mode.viewInit(v, 0, 0, lineNum, whenReady)
+        mode.viewInit(v, 0, 0, lineNum, whenReady, cb)
       else
         ready1()
     }

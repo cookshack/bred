@@ -605,9 +605,9 @@ function viewInit
  // only called if buf has a file.
  // may cause issues eg if call v.insert then the view must already have been added to the buf (which happens after viewInit).
  //   (probably it's fine because probably the Tron file.get cb below always runs after the current event).
- whenReady,
+ whenReady, // (view)
  // called after _viewInit runs, but before the file.get cb
- cb) {
+ cb) { // (view)
   d('peer.get ' + view.buf.id)
   view.buf.modified = 0
   view.ready = 0
@@ -625,7 +625,7 @@ function viewInit
               lineNum,
               whenReady)
     if (cb)
-      cb()
+      cb(view)
   })
 }
 
@@ -1109,22 +1109,24 @@ function _viewInit
 
 export
 function viewReopen
-(view, lineNum, whenReady) {
+(view, lineNum, whenReady, cb) {
   d('================== viewReopen')
   view.ready = 1
   //view.ed.resize()
   view.ed.focus()
   if (Ed.defined(lineNum))
     vgotoLine(view, lineNum)
+  if (cb)
+    cb(view)
   if (whenReady)
     whenReady(view)
 }
 
 export
 function viewCopy
-(to, from, lineNum, whenReady) {
+(to, from, lineNum, whenReady, cb) {
   d('================== viewCopy')
-  viewInit(to, from.ed.state.doc.toString(), from.wode.language, lineNum, whenReady)
+  viewInit(to, from.ed.state.doc.toString(), from.wode.language, lineNum, whenReady, cb)
 }
 
 function charAt

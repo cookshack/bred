@@ -280,8 +280,9 @@ function make
   (ele, // pane element
    elePoint,
    lineNum,
-   whenReady) {
-    return View.make(b, vid++, mode, views, ele, elePoint, lineNum, whenReady)
+   whenReady, // FIX called when file loaded
+   cb) { // called when buf ready to use
+    return View.make(b, vid++, mode, views, ele, elePoint, lineNum, whenReady, cb)
   }
 
   function getDir

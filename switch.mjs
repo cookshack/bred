@@ -310,20 +310,22 @@ function init
     buf.file = 0
     //buf.dir = 0
     dir = p.dir
-    p.buf = buf
-    buf.dir = dir
+    p.setBuf(buf, null, null, () => {
+      // view has been created
+      buf.dir = dir
 
-    ml = p.view.ele.querySelector('.edMl')
-    under = p.view.ele.querySelector('.switch-under')
-    if (under) {
-      refresh(p.view)
-      if (needOn)
-        buf.on('change', () => {
-          refresh(p.view)
-        })
-    }
-    else
-      Mess.toss('under missing')
+      ml = p.view.ele.querySelector('.edMl')
+      under = p.view.ele.querySelector('.switch-under')
+      if (under) {
+        refresh(p.view)
+        if (needOn)
+          buf.on('change', () => {
+            refresh(p.view)
+          })
+      }
+      else
+        Mess.toss('under missing')
+    })
   }
 
   hist = Hist.ensure('switch')

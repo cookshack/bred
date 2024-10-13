@@ -152,9 +152,10 @@ function init
         let cb
 
         cb = p.buf.vars('execute').cb
-        p.buf = callerBuf
-        if (cb)
-          cb(current.dataset.name, p.buf)
+        p.setBuf(callerBuf, null, 0, () => {
+          if (cb)
+            cb(current.dataset.name, callerBuf)
+        })
       }
     }
   }
@@ -164,12 +165,13 @@ function init
   mo = Mode.add('Execute', { viewInit: viewInit })
 
   Cmd.add('execute', (u) => {
-    let p
+    let p, buf
 
     p = Pane.current()
     callerBuf = p?.buf
-    p.buf = Buf.make('Execute', 'Execute', divW(), p.dir)
-    p.buf.vars('execute').cb = (name, buf) => Cmd.exec(name, buf, u)
+    buf = Buf.make('Execute', 'Execute', divW(), p.dir)
+    buf.vars('execute').cb = (name, b) => Cmd.exec(name, b, u)
+    p.buf = buf
   })
 
   Cmd.add('next line', () => next(), mo)

@@ -390,7 +390,7 @@ function make
         sync,
         vars }
 
-  d('VIEW new view ' + v.vid)
+  d('VIEW new view ' + v.vid + ' for ' + (b.name || '??'))
   ele.innerHTML = ''
   ready = 0
   if (views.length) {

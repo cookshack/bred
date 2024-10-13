@@ -136,6 +136,7 @@ function initPackages
 function initDoc
 (devtools) {
   Mess.say('Building...')
+  d('building')
   if (globalThis.bredWin)
     return
   Win.add(globalThis, { devtools: devtools })
@@ -827,6 +828,8 @@ function initCmds
 
 function initBindings
 () {
+  d('init bindings')
+
   Em.on('click', 'click')
   Em.on('click.aux', 'click aux')
   Em.on('context', 'context menu')
@@ -935,6 +938,7 @@ function initHandlers
     }
   }
 
+  d('init handlers')
   globalThis.onauxclick = handleClick
   globalThis.onclick = handleClick
   globalThis.oncontextmenu = e => handleMouse('context', e)

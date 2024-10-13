@@ -47,6 +47,7 @@ function focusView
 function getBootBuf
 () {
   // delayed til needed, so that iwd is set
+  d('using boot buf')
   if (bootBuf)
     return bootBuf
   d('Making boot buf')
@@ -267,10 +268,8 @@ function add
         text }
   id++
 
-  if (b)
-    p.setBuf(b, lineNum)
-  else
-    Mess.toss('buffer required')
+  b || Mess.toss('buffer required')
+  p.setBuf(b, lineNum)
 
   curr = current(frame)
   if (curr && curr.w) {

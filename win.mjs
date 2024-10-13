@@ -368,6 +368,8 @@ function add
   {
     let area
 
+    d('setting up win')
+
     // top
     area = Area.add(win, 'bred-top')
 
@@ -377,12 +379,14 @@ function add
     area.show()
 
     // hover
+    d('adding hover')
     area = Area.add(win, 'bred-hoverW')
     Css.hide(hover)
     append(area.el, hover)
     area.show()
 
     // diagnosis
+    d('adding diag')
     area = Area.add(win, 'bred-diag-w')
     Css.hide(diag)
     append(diag, divCl('bred-diag-icon',
@@ -394,6 +398,7 @@ function add
     area.show()
 
     // tooltip
+    d('adding tooltip')
     area = Area.add(win, 'bred-tip-w')
     Css.hide(tip)
     append(tip, divCl('bred-tip-icon',
@@ -405,10 +410,13 @@ function add
     area.show()
 
     // main
+    d('adding main area')
     main = Area.add(win, 'bred-main')
     main.show()
+    d('adding main tab')
     Tab.add(main)
 
+    d('appending to outer')
     append(outer,
            context.el,
            el)

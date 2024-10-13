@@ -143,6 +143,7 @@ function add
    whenReady, // FIX called when file loaded
    cb) { // called when buf ready to use
     if (view?.buf == b2) {
+      d('setBuf to same buf')
       b = b2
       if (cb)
         cb(view)

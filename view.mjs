@@ -397,8 +397,16 @@ function make
     // use content from existing view
     d('VIEW   reuse content')
     if (mode && mode.viewCopy) {
-      if (b.co)
-        append(ele, b.co.cloneNode(1))
+      d('VIEW     mode has viewCopy')
+      if (b.co) {
+        let clone
+
+        d('VIEW     buf has co')
+
+        clone = b.co.cloneNode(1)
+        d('  clone: ' + clone.innerHTML)
+        append(ele, clone)
+      }
       mode.viewCopy(v, views[0], lineNum, whenReady, cb)
     }
     else {
@@ -410,6 +418,7 @@ function make
     if (1)
       d('VIEW   fresh content')
     if (b.co) {
+      d('VIEW     buffer has co')
       append(ele, b.co.cloneNode(1))
       if (mode && mode.viewInit)
         mode.viewInit(v, 0, 0, lineNum, whenReady, cb)

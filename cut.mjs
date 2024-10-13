@@ -111,10 +111,8 @@ function init
 
     buf = shared().buf
     p = Pane.current()
-    if (buf) {
-      p.buf = buf
-      refresh(p.view)
-    }
+    if (buf)
+      p.setBuf(buf, view => refresh(view))
     else {
       buf = Buf.add('Cuts', 'Cuts', divW(), p.dir)
       shared().buf = buf

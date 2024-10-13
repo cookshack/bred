@@ -20,7 +20,7 @@ function make
   let v, active, ready, point, modeVars
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
-  let reserved, win
+  let reserved, win, existing
 
   // used by wace,won  remove when they do peer
   function sync
@@ -394,7 +394,8 @@ function make
   d('VIEW new view ' + v.vid + ' for ' + (b.name || '??'))
   ele.innerHTML = ''
   ready = 0
-  if (views.length) {
+  existing = views.find(v2 => v2.ele && (v2.win == b.win))
+  if (existing) {
     // use content from existing view
     d('VIEW   reuse content')
     if (mode && mode.viewCopy) {

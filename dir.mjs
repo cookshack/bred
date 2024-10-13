@@ -694,13 +694,12 @@ function initSearchFiles
     p = Pane.current()
     needle = p.text()
     if (needle && needle.length) {
-      let b
-
       hist.add(needle)
       // find . -type f -not -name \*.BAK -not -name \*.CKP -not -name \*~ -maxdepth 1 2>/dev/null | xargs grep --ignore-case --fixed-strings --line-number "$1" -H -I 2>/dev/null # -I -e -H 2>/dev/null
-      b = Shell.spawn1(Loc.appDir().join('bin/sr'), 1, 1, [ needle ])
-      b.mode = 'sr'
-      b.addMode('view')
+      Shell.spawn1(Loc.appDir().join('bin/sr'), 1, 1, [ needle ], 0, b => {
+        b.mode = 'sr'
+        b.addMode('view')
+      })
     }
     else if (typeof needle === 'string')
       Mess.say('Empty')

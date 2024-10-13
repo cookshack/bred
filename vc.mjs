@@ -18,12 +18,12 @@ let clrs
 
 function git
 (cmd, mode) {
-  let b
-
   // these use shell1 instead of spawn1 so that .bashrc is loaded (needed eg for nvm init)
-  b = Shell.shell1(cmd, 1)
-  if (mode)
-    b.mode = mode
+  Shell.shell1(cmd, 1, 0, 0, 0, 0, 0,
+               b => {
+                 if (mode)
+                   b.mode = mode
+               })
 }
 
 export
@@ -104,13 +104,14 @@ function initCommit
     if (cm == null)
       Mess.toss('Commit message missing')
     else {
-      let h, b64, rbuf
+      let h, b64
 
       h = p.buf.vars('Commit').hist
       b64 = globalThis.btoa(cm)
-      rbuf = Shell.shell1(Loc.appDir().join('bin/check-and-commit-64') + ' ' + b64, 1, 1, [])
+      Shell.shell1(Loc.appDir().join('bin/check-and-commit-64') + ' ' + b64,
+                   1, 1, [], 0, 0, 0,
+                   rbuf => rbuf.mode = 'commit result')
       h.add(cm)
-      rbuf.mode = 'commit result'
     }
   }
 
@@ -299,22 +300,25 @@ function initEqual
 
   function equal
   (num) {
-    let b, name
+    let name
+
+    function finish
+    (b) {
+      b.mode = Ed.patchModeName()
+      b.name = name
+      b.opts.set('core.lint.enabled', 0)
+      b.addMode('equal')
+      b.addMode('view')
+    }
 
     if ((num == null) || (num < 0)) {
-      //b = Shell.spawn1('git', 1, 1, [ 'diff', '--no-prefix' ])
-      b = Shell.spawn1('git-eq', 1, 1, [])
+      Shell.spawn1('git-eq', 1, 1, [], 0, finish)
       name = 'git diff'
     }
     else {
-      b = Shell.spawn1('git', 1, 1, [ 'show', '--no-prefix', 'HEAD~' + num ])
+      Shell.spawn1('git', 1, 1, [ 'show', '--no-prefix', 'HEAD~' + num ], 0, finish)
       name = 'git show HEAD~' + num
     }
-    b.mode = Ed.patchModeName()
-    b.name = name
-    b.opts.set('core.lint.enabled', 0)
-    b.addMode('equal')
-    b.addMode('view')
   }
 
   function goto
@@ -408,14 +412,13 @@ function reset
 
 function showHash
 (hash) {
-  let b
-
-  b = Shell.shell1('git show --no-prefix' + (hash ? (' ' + hash) : ''),
-                   1,
-                   1)
-  b.mode = Ed.patchModeName()
-  b.addMode('equal')
-  b.addMode('view')
+  Shell.shell1('git show --no-prefix' + (hash ? (' ' + hash) : ''),
+               1, 1, 0, 0, 0, 0,
+               b => {
+                 b.mode = Ed.patchModeName()
+                 b.addMode('equal')
+                 b.addMode('view')
+               })
 }
 
 function initLog
@@ -449,7 +452,6 @@ function initLog
     dir = Loc.make(p.buf.dir)
     dir.ensureSlash()
     dir = dir.path || Loc.home()
-    //Shell.shell1("git log", 1)
     Shell.run(buf, p.dir, 'git', 1, 1, [ 'log' ], 0)
   }
 

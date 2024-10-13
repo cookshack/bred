@@ -36,25 +36,26 @@ function runText
   p = Pane.current()
   sc = p.text()
   if (sc && sc.length) {
-    let buf, modes
+    let modes
 
     modes = p.buf.vars('SC').modes
 
-    buf = Shell.shell1(sc,
-                       p.buf.vars('SC').end ?? 1,
-                       p.buf.vars('SC').afterEndPoint ?? 0,
-                       0,
-                       p.buf.vars('SC').hist,
-                       0,
-                       p.buf.vars('SC').onClose)
-
-    d({ modes })
-    if (modes && modes.length) {
-      buf.mode = modes[0]
-      if (modes.length > 1)
-        for (let i = 1; i < modes.length; i++)
-          buf.addMode(modes[i])
-    }
+    Shell.shell1(sc,
+                 p.buf.vars('SC').end ?? 1,
+                 p.buf.vars('SC').afterEndPoint ?? 0,
+                 0,
+                 p.buf.vars('SC').hist,
+                 0,
+                 p.buf.vars('SC').onClose,
+                 buf => {
+                   d({ modes })
+                   if (modes && modes.length) {
+                     buf.mode = modes[0]
+                     if (modes.length > 1)
+                       for (let i = 1; i < modes.length; i++)
+                         buf.addMode(modes[i])
+                   }
+                 })
   }
   else if (typeof sc === 'string')
     Mess.say('Empty')
@@ -138,12 +139,8 @@ function initRTL
 
     p = Pane.current()
     l = p.line()
-    if (l && l.length) {
-      let buf
-
-      buf = Shell.shell1(l, 1, 0, 0, hist)
-      buf.addMode('ansi')
-    }
+    if (l && l.length)
+      Shell.shell1(l, 1, 0, 0, hist, 0, 0, buf => buf.addMode('ansi'))
     else if (typeof l === 'string')
       Mess.say('Line empty')
     else

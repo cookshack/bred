@@ -176,11 +176,12 @@ function shellOrSpawn1
  afterEndPoint, // see run
  args, hist, shell,
  multi, // keep listening for more commands
- onClose) { // (buf, code)
+ onClose, // (buf, code)
+ cb) { // (buf)
   let p, dir
 
   function addBuf
-  (p, dir, sc) {
+  (p, dir, sc, cb) {
     let b, re, name
 
     function setMl
@@ -217,7 +218,7 @@ function shellOrSpawn1
       setMl(w)
     }
 
-    p.buf = b
+    p.setBuf(b, null, null, cb)
   }
 
   if (hist)
@@ -226,21 +227,24 @@ function shellOrSpawn1
   dir = Loc.make(p.buf.dir)
   dir.ensureSlash()
   dir = dir.path || Loc.home()
-  addBuf(p, dir, sc)
-  run(p.buf, p.dir, sc, end, afterEndPoint, args, shell, 0, 0, multi, onClose)
-  return p.buf
+  addBuf(p, dir, sc,
+         () => {
+           run(p.buf, p.dir, sc, end, afterEndPoint, args, shell, 0, 0, multi, onClose)
+           if (cb)
+             cb(p.buf)
+         })
 }
 
 export
 function shell1
-(sc, end, afterEndPoint, args, hist, multi, onClose) {
-  return shellOrSpawn1(sc, end, afterEndPoint, args, hist, 1, multi, onClose)
+(sc, end, afterEndPoint, args, hist, multi, onClose, cb) { // (buf)
+  shellOrSpawn1(sc, end, afterEndPoint, args, hist, 1, multi, onClose, cb)
 }
 
 export
 function spawn1
-(sc, end, afterEndPoint, args, hist) {
-  return shellOrSpawn1(sc, end, afterEndPoint, args, hist, 0)
+(sc, end, afterEndPoint, args, hist, cb) { // (buf)
+  shellOrSpawn1(sc, end, afterEndPoint, args, hist, 0, cb)
 }
 
 export

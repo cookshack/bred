@@ -63,9 +63,19 @@ function init
     return []
   }
 
+  function makeFold
+  (view) {
+    if (view.buf.opt('core.folding.enabled'))
+      return [ CMLang.codeFolding(),
+               ...(view.buf.opt('core.folding.gutter.enabled') ? [ CMLang.foldGutter() ] : []) ]
+    return []
+  }
+
   brexts = []
   Opt.declare('core.cursor.blink.enabled', 'bool', 0)
   Opt.declare('core.cursor.blink.rate', 'integer', 1200)
+  Opt.declare('core.folding.enabled', 'bool', 1)
+  Opt.declare('core.folding.gutter.enabled', 'bool', 1)
   Opt.declare('core.highlight.activeLine.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.afterCursor', 'bool', 1)
@@ -84,6 +94,9 @@ function init
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeBrck,
                             reconfOpts: [ 'core.highlight.bracket.enabled', 'core.highlight.bracket.afterCursor' ] }))
+  brexts.push(Ed.register({ backend: 'cm',
+                            make: makeFold,
+                            reconfOpts: [ 'core.folding.enabled', 'core.folding.gutter.enabled' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.specials.enabled') ? CMView.highlightSpecialChars() : [],
                             reconfOpts: [ 'core.highlight.specials.enabled' ] }))
@@ -110,6 +123,8 @@ function init
                             reconfOpts: [ 'core.line.wrap.enabled' ] }))
 
   Cmd.add('enable cursor blink', u => Ed.enable(u, 'core.cursor.blink.enabled'))
+  Cmd.add('enable folding', u => Ed.enable(u, 'core.folding.enabled'))
+  Cmd.add('enable fold gutter', u => Ed.enable(u, 'core.folding.gutter.enabled'))
   Cmd.add('highlight active line', u => Ed.enable(u, 'core.highlight.activeLine.enabled'))
   Cmd.add('highlight bracket', u => Ed.enable(u, 'core.highlight.bracket.enabled'))
   Cmd.add('highlight occurrences', u => Ed.enable(u, 'core.highlight.occurrences.enabled'))
@@ -119,6 +134,8 @@ function init
   Cmd.add('enable line numbers', u => Ed.enable(u, 'core.line.numbers.show'))
   Cmd.add('enable line wrap', u => Ed.enable(u, 'core.line.wrap.enabled'))
   Cmd.add('buffer enable cursor blink', u => Ed.enableBuf(u, 'core.cursor.blink.enabled'))
+  Cmd.add('buffer enable folding', u => Ed.enableBuf(u, 'core.folding.enabled'))
+  Cmd.add('buffer enable fold gutter', u => Ed.enableBuf(u, 'core.folding.gutter.enabled'))
   Cmd.add('buffer highlight active line', u => Ed.enableBuf(u, 'core.highlight.activeLine.enabled'))
   Cmd.add('buffer highlight bracket', u => Ed.enableBuf(u, 'core.highlight.bracket.enabled'))
   Cmd.add('buffer highlight occurrences', u => Ed.enableBuf(u, 'core.highlight.occurrences.enabled'))
@@ -133,6 +150,7 @@ export
 function free
 () {
   Cmd.remove('enable cursor blink')
+  Cmd.remove('enable folding')
   Cmd.remove('enable line numbers')
   Cmd.remove('enable line wrap')
   Cmd.remove('highlight active line')
@@ -142,6 +160,7 @@ function free
   Cmd.remove('highlight trailing whitespace')
   Cmd.remove('highlight whitespace')
   Cmd.remove('buffer enable cursor blink')
+  Cmd.remove('buffer enable folding')
   Cmd.remove('buffer enable line numbers')
   Cmd.remove('buffer enable line wrap')
   Cmd.remove('buffer highlight active line')

@@ -203,8 +203,6 @@ function init
 
   declare('core.autocomplete.enabled', 'bool', 1)
   declare('core.brackets.close.enabled', 'bool', 1)
-  declare('core.folding.enabled', 'bool', 1)
-  declare('core.folding.gutter.show', 'bool', 1)
   declare('core.fontSize', 'float', undefined)
   declare('core.highlight.syntax.enabled', 'bool', 1)
   declare('core.lint.enabled', 'bool', 1)

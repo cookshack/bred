@@ -687,8 +687,6 @@ function _viewInit
   view.wode.highlightSyntax = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
-  view.wode.folding = new CMState.Compartment
-  view.wode.foldGutter = new CMState.Compartment
   view.wode.lang = new CMState.Compartment
   view.wode.language = 'text'
   view.wode.linter = new CMState.Compartment
@@ -880,16 +878,6 @@ function _viewInit
     opts.push(view.wode.highlightSyntax.of([]))
     opts.push(view.wode.themeExtension.of([]))
   }
-
-  if (buf.opt('core.folding.enabled')) {
-    opts.push(view.wode.folding.of(CMLang.codeFolding()))
-    if (buf.opt('core.folding.gutter.show'))
-      opts.push(view.wode.foldGutter.of(CMLang.foldGutter()))
-    else
-      opts.push(view.wode.foldGutter.of([]))
-  }
-  else
-    opts.push(view.wode.folding.of([]))
 
   if (buf.opt('core.lint.enabled')) {
     opts.push(view.wode.linter.of(makeLinter()))
@@ -3913,22 +3901,6 @@ function reconfigureAutocomplete
     view.ed.dispatch({ effects: view.wode.autocomplete.reconfigure([]) })
 }
 
-function reconfigureFolding
-(buf, view) {
-  let effects
-
-  effects = [ view.wode.folding.reconfigure([]),
-              view.wode.foldGutter.reconfigure([]) ]
-  if (buf.opt('core.folding.enabled')) {
-    effects = [ view.wode.folding.reconfigure(CMLang.codeFolding()) ]
-    if (buf.opt('core.folding.gutter.show'))
-      effects.push(view.wode.foldGutter.reconfigure(CMLang.foldGutter()))
-    else
-      effects.push(view.wode.foldGutter.reconfigure([]))
-  }
-  view.ed.dispatch({ effects: effects })
-}
-
 function reconfigureHighlightSyntax
 (buf, view) {
   if (buf.opt('core.highlight.syntax.enabled'))
@@ -3984,7 +3956,6 @@ function initOpt
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
   on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
-  on([ 'core.folding.enabled', 'core.folding.gutter.show' ], reconfigureFolding)
 }
 
 function handleCustomTags

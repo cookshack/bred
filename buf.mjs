@@ -276,15 +276,6 @@ function make
     return modeVars
   }
 
-  function view
-  (ele, // pane element
-   elePoint,
-   lineNum,
-   whenReady, // FIX called when file loaded
-   cb) { // called when buf ready to use
-    return View.make(b, vid++, mode, views, ele, elePoint, lineNum, whenReady, cb)
-  }
-
   function getDir
   () {
     if (fileType == 'dir') {
@@ -385,6 +376,7 @@ function make
   }
 
   b = { id: shared().id,
+        vid: vid,
         //
         co: content,
         minors: [],
@@ -622,4 +614,20 @@ function init
   Cmd.add('refresh', () => refresh(Pane.current().view), mo)
 
   Em.on('g', 'refresh', mo)
+}
+
+// was inside buf, but then runs in globalThis of buf
+export
+function view
+(buf,
+ ele, // pane element
+ elePoint,
+ lineNum,
+ whenReady, // FIX called when file loaded
+ cb) { // called when buf ready to use
+  let mode
+
+  buf.vid++
+  mode = Mode.get(buf.mode?.key) // want the one in current globalThis
+  return View.make(buf, buf.vid, mode, buf.views, ele, elePoint, lineNum, whenReady, cb)
 }

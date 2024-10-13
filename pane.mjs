@@ -158,7 +158,7 @@ function add
         && view.ready) // else there may be a peer/fs callback about to access this view
       view.close()
     if (b)
-      view = b.view(ele, elePoint, lineNum, whenReady, v => {
+      view = Buf.view(b, ele, elePoint, lineNum, whenReady, v => {
         view = v
         if (view.ed)
           Css.add(ele?.parentNode, 'ed')

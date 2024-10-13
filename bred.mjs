@@ -1456,15 +1456,16 @@ function initFile
     buf.file = 0
     //buf.dir = 0
     dir = p.dir
-    p.buf = buf
-    buf.dir = dir
+    p.setBuf(buf, null, null, () => {
+      buf.dir = dir
 
-    ml = p.view.ele.querySelector('.edMl')
-    under = p.view.ele.querySelector('.bred-open-under') || Mess.toss('under missing')
-    if (under) {
-      refresh()
-      buf.on('change', onChange)
-    }
+      ml = p.view.ele.querySelector('.edMl')
+      under = p.view.ele.querySelector('.bred-open-under') || Mess.toss('under missing')
+      if (under) {
+        refresh()
+        buf.on('change', onChange)
+      }
+    })
   }
 
   hist = Hist.ensure('open')

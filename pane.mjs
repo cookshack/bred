@@ -256,9 +256,7 @@ function add
           return frame?.tab?.area?.win
         },
         //
-        set buf(b2) {
-          setBuf(b2)
-        },
+        //set buf(b2) {... see setBuf below
         //
         close,
         line,
@@ -266,6 +264,7 @@ function add
         openDir,
         openFile,
         pos,
+        // always use this to set the buf, because it's nb to use a cb if you want to access the view after.
         setBuf,
         focus,
         text }

@@ -391,11 +391,6 @@ function initDescribeKey
       p.setBuf(buf, null, 0, view => refresh(view, to, wes))
     }
 
-    if (st) {
-      st = 0
-      return
-    }
-
     {
       let p
 

@@ -545,12 +545,13 @@ function initDescribeCmd
 
   function describeCmd
   () {
-    let p
+    let p, buf
 
     p = Pane.current()
     callerBuf = p.buf
-    p.buf = Buf.make('Execute', 'Execute', Exec.divW(), p.dir)
-    p.buf.vars('execute').cb = name => describe(name)
+    buf = Buf.make('Execute', 'Execute', Exec.divW(), p.dir)
+    buf.vars('execute').cb = name => describe(name)
+    p.setBuf(buf)
   }
 
   mo = Mode.add('Describe Cmd')

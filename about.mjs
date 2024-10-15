@@ -30,8 +30,6 @@ function divW
 
 function initAbout
 () {
-  let buf
-
   function divW
   () {
     let v
@@ -85,17 +83,23 @@ function initAbout
 
   function addBuf
   (p) {
+    let buf
+
     buf = Buf.add('About', 0, divW(), p.dir)
+    Win.shared().about.buf = buf
     buf.addMode('view')
     buf.icon = 'bred'
     return buf
   }
 
+  if (Win.root())
+    Win.shared().about = {}
+
   Cmd.add('about', () => {
     let p
 
     p = Pane.current()
-    p.buf = buf || addBuf(p)
+    p.setBuf(Win.shared().about.buf || addBuf(p))
   })
   Em.on('C-h C-a', 'about')
 }

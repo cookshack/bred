@@ -106,7 +106,7 @@ function initAbout
 
 function initHelp
 () {
-  let mo, buf, callerBuf
+  let mo
 
   function divW
   (p) {
@@ -147,17 +147,20 @@ function initHelp
 
     function opts
     () {
+      let callerBuf
+
+      callerBuf = Win.shared().helpBuffer.callerBuf
       return [ divCl('bold twoCol', 'Options'),
                Opt.map((name, value) => {
                  if (name.startsWith('core.')
-                     || callerBuf.minors.find(mo => name.startsWith(mo.key))) {
+                     || callerBuf?.minors.find(mo => name.startsWith(mo.key))) {
                    let type, run
 
                    type = Opt.type(name)
                    run = {}
                    if (type == 'bool')
                      run = { 'data-run': 'toggle option' }
-                   value = clean(callerBuf.opts.get(name), value, type)
+                   value = clean(callerBuf?.opts.get(name), value, type)
                    return [ divCl('options-name', name),
                             divCl('bred-help-option',
                                   [ divCl('options-val',
@@ -253,10 +256,11 @@ function initHelp
 
   function addBuf
   () {
-    let p
+    let p, buf
 
     p = Pane.current()
     buf = Buf.add('Help: Buffer', 'Help: Buffer', divW(p), p.dir)
+    Win.shared().helpBuffer.buf = buf
     buf.icon = 'help'
     buf.addMode('view')
     return buf
@@ -265,24 +269,29 @@ function initHelp
   function toggle
   (u, we) {
     if (we.e.target.dataset.name) {
-      let name
+      let name, callerBuf
 
       name = we.e.target.dataset.name
-      callerBuf.opts.set(name, !callerBuf.opt(name))
+      callerBuf = Win.shared().helpBuffer
+      callerBuf?.opts.set(name, !callerBuf.opt(name))
     }
     else
       Mess.toss('missing name')
   }
+
+  if (Win.root())
+    Win.shared().helpBuffer = {}
 
   mo = Mode.add('Help: Buffer')
 
   Cmd.add('toggle option', toggle, mo)
 
   Cmd.add('describe buffer', () => {
-    let p
+    let p, buf
 
     p = Pane.current()
-    callerBuf = p.buf
+    Win.shared().helpBuffer.callerBuf = p.buf
+    buf = Win.shared().helpBuffer.buf
     if (buf) {
       buf.clear()
       buf.content = divW(p)
@@ -291,7 +300,7 @@ function initHelp
       buf = addBuf(p)
       buf.icon = 'help'
     }
-    p.buf = buf
+    p.setBuf(buf)
   })
 
   Em.on('C-h b', 'describe buffer')

@@ -539,8 +539,7 @@ function initDescribeCmd
       //buf.vars("SC").hist = compileHist
       buf.addMode('view')
     }
-    p.buf = buf
-    refresh(p.view, name, mode)
+    p.setBuf(buf, null, 0, view => refresh(view, name, mode))
   }
 
   function describeCmd

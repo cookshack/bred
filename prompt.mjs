@@ -131,8 +131,7 @@ function ask
   }
   buf.vars('prompt').run = cb
   buf.vars('prompt').orig = p.buf
-  p.buf = buf
-  p.buf.views.forEach(view => setMl(view))
+  p.setBuf(buf, null, 0, view => view.buf.views.forEach(v => setMl(v)))
 }
 
 export

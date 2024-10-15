@@ -9,6 +9,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Shell from './shell.mjs'
+import * as Win from './win.mjs'
 //import { d } from './mess.mjs'
 
 function initManpage
@@ -31,7 +32,7 @@ function initManpage
 export
 function init
 () {
-  let mo, buf, hist
+  let mo, hist
 
   function next
   () {
@@ -66,19 +67,19 @@ function init
       b = Buf.add('Man Page', 'Man Page', divW(), p.dir)
       b.icon = 'manpage'
       b.addMode('view')
-      p.buf = b
-      Shell.runToString(p.dir, 'man', [ '-Thtml', topic ], 0, (str) => {
-        buf.vars('Man').hist.add(topic)
-        b.views.forEach(view => {
-          let w, el
+      p.setBuf(b, null, 0, () =>
+        Shell.runToString(p.dir, 'man', [ '-Thtml', topic ], 0, (str) => {
+          Win.shared().man.buf?.vars('Man').hist.add(topic)
+          b.views.forEach(view => {
+            let w, el
 
-          w = view.ele.firstElementChild.firstElementChild
-          w.innerHTML = ''
-          el = div('manpage-p')
-          el.innerHTML = str
-          append(w, el)
-        })
-      })
+            w = view.ele.firstElementChild.firstElementChild
+            w.innerHTML = ''
+            el = div('manpage-p')
+            el.innerHTML = str
+            append(w, el)
+          })
+        }))
     }
     else
       Mess.toss('Topic missing')
@@ -92,7 +93,7 @@ function init
 
   function man
   () {
-    let p, w, ml
+    let p, w, ml, buf
 
     p = Pane.current()
 
@@ -101,11 +102,12 @@ function init
     if (ml)
       ml.innerText = 'Man Page:'
 
+    buf = Win.shared().man.buf
     if (buf)
       buf.vars('Man').hist.reset()
-
     else {
       buf = Buf.make('Man', 'Man', w, p.dir)
+      Win.shared().man.buf = buf
       hist.reset()
       buf.vars('Man').hist = hist
     }
@@ -121,6 +123,9 @@ function init
 
     return p.view
   }
+
+  if (Win.root())
+    Win.shared().man = {}
 
   mo = Mode.add('Man', { viewInit: Ed.viewInit,
                          viewCopy: Ed.viewCopy,

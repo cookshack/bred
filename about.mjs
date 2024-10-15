@@ -710,7 +710,7 @@ function init
     if (buf)
       p.setBuf(buf, null, 0, () => refresh(p.view))
     else
-      p.buf = addBuf(p)
+      p.setBuf(addBuf(p))
   })
 
   Em.on('C-h s', 'messages')

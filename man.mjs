@@ -118,10 +118,7 @@ function init
     buf.opts.set('core.line.numbers.show', 0)
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('core.minimap.enabled', 0)
-    p.buf = buf
-    buf.clear()
-
-    return p.view
+    p.setBuf(buf, null, 0, () => buf.clear())
   }
 
   if (Win.root())

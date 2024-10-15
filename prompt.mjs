@@ -141,17 +141,24 @@ function init
 
   function run
   () {
-    let p, cb, text, orig
+    let p, text, orig
+
+    function run1
+    () {
+      let cb
+
+      cb = buf.vars('Prompt').run
+      if (cb)
+        cb(p, text)
+    }
 
     p = Pane.current()
     text = p.text()
     orig = buf.vars('Prompt').orig
     if (orig)
-      p.buf = orig
-    cb = buf.vars('Prompt').run
-    if (cb)
-      cb(p, text)
-
+      p.setBuf(orig, null, 0, () => run1())
+    else
+      run1()
   }
 
   Cmd.add('yes', () => {

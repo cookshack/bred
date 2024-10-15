@@ -325,7 +325,6 @@ function initDescribeKey
   () {
     function cancel
     () {
-      d('cancel')
       Css.show(st.win.echo)
       st.mini.remove()
       Css.remove(st.win.mini, 'active')
@@ -389,11 +388,8 @@ function initDescribeKey
         //buf.vars("SC").hist = compileHist
         buf.addMode('view')
       }
-      p.buf = buf
-      refresh(p.view, to, wes)
+      p.setBuf(buf, null, 0, view => refresh(view, to, wes))
     }
-
-    d('dk')
 
     if (st) {
       st = 0

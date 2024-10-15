@@ -83,7 +83,7 @@ function init
       Win.shared().options.buf = buf
       buf.icon = 'clipboard'
       buf.addMode('view')
-      p.buf = buf
+      p.setBuf(buf)
     }
   })
 

@@ -75,9 +75,11 @@ function demandBuf
   buf.opts.set('core.lint.enabled', 0)
   buf.opts.set('core.minimap.enabled', 0)
   buf.icon = 'prompt'
-  area.tab.frame.pane.buf = buf
-  area.show()
-  area.tab.frame.pane.focus()
+  area.tab.frame.pane.setBuf(buf, null, 0,
+                             () => {
+                               area.show()
+                               area.tab.frame.pane.focus()
+                             })
   return p
 }
 

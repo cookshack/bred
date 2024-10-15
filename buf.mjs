@@ -87,7 +87,7 @@ function make
     buf = top()
     Pane.forEach(p2 => {
       if (p2.buf && (p2.buf.id == id))
-        p2.buf = buf
+        p2.setBuf(buf)
     })
   }
 
@@ -557,7 +557,7 @@ function init
 
     b = we.e.target.dataset.id && find(b => b.id == we.e.target.dataset.id)
     if (b)
-      Pane.current().buf = b
+      Pane.current().setBuf(b)
     else
       Mess.say('Missing target ID')
   }
@@ -606,7 +606,7 @@ function init
       shared().bBuffers = bBuffers
       bBuffers.icon = 'list'
       bBuffers.addMode('view')
-      p.buf = bBuffers
+      p.setBuf(bBuffers)
     }
   })
   Em.on('C-x A-b', 'buffers')

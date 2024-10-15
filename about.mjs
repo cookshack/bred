@@ -565,7 +565,7 @@ function initDescribeCmd
 
 function initLangs
 () {
-  let mo, buf
+  let mo
 
   function source
   () {
@@ -602,23 +602,27 @@ function initLangs
 
   function langs
   () {
-    let p, w
+    let p, w, buf
 
     p = Pane.current()
 
     w = divW()
 
+    buf = Win.shared().langs.buf
     if (buf) {
       //buf.vars("SC").hist.reset()
     }
     else {
       buf = Buf.make('Langs', 'Langs', w, p.dir)
+      Win.shared().langs.buf = buf
       //buf.vars("SC").hist = compileHist
       buf.addMode('view')
     }
-    p.buf = buf
-    refresh(p.view)
+    p.setBuf(buf, null, 0, view => refresh(view))
   }
+
+  if (Win.root())
+    Win.shared().langs = {}
 
   mo = Mode.add('Langs')
 

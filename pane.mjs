@@ -375,9 +375,10 @@ function bury
   if (t == pane.buf)
     return
   b = pane.buf
-  pane.buf = t
-  // after, because assigning to pane.buf will move the existing buf (b) to the top
-  b.bury()
+  pane.setBuf(t, null, 0, () => {
+    // after, because setBuf will move the existing buf (b) to the top
+    b.bury()
+  })
 }
 
 export

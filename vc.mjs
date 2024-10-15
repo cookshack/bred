@@ -573,7 +573,7 @@ function initLogBadIdea
       buf = Buf.add('Bad Idea', 'Bad Idea', divW(), p.dir)
       buf.icon = 'log'
       buf.addMode('view')
-      p.buf = buf
+      p.setBuf(buf)
     }
   })
 }

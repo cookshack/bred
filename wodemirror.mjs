@@ -821,7 +821,7 @@ function _viewInit
         if (event.clipboardData) {
           str = event.clipboardData.getData('text/plain') || event.clipboardData.getData('text/uri-list')
           if (str?.length) {
-            vinsert(view, 1, str || '')
+            vinsert1(view, 1, str || '')
             // have to do this after otherwise the insert moves the mark
             addMarkAt(view, bep)
           }
@@ -2662,14 +2662,6 @@ function vinsert1
   vinsertAt(view, off, u, text, 1)
 }
 
-function vinsert
-(view, u, text) {
-  let off
-
-  off = vgetOff(view)
-  vinsertAtAll(view, off, u, text)
-}
-
 export
 function vinsertAt
 (v, off, u, text, setOff, to) {
@@ -2695,14 +2687,6 @@ function vinsertAt
                                  insert: text } })
     }
   }
-}
-
-function vinsertAtAll
-(view, off, u, text) {
-  view.buf.views.forEach(v => {
-    if (v.ele)
-      vinsertAt(v, off, u, text, v == view)
-  })
 }
 
 function vinsertAll
@@ -2786,7 +2770,7 @@ function quotedInsert
       let char
 
       char = Ed.charForInsert({ e: e })
-      vinsert(p.view, u, char)
+      vinsert1(p.view, u, char)
     }
     finally {
       globalThis.onkeydown = oldOnKeyDown
@@ -3065,7 +3049,7 @@ function indentBuffer
 
 export
 function insertTwoSpaces() {
-  vinsert(Pane.current().view, 1, '  ')
+  vinsert1(Pane.current().view, 1, '  ')
 }
 
 export
@@ -3107,7 +3091,7 @@ function yank() {
     let bep
 
     bep = vgetBep(p.view)
-    vinsert(p.view, 1, str || '')
+    vinsert1(p.view, 1, str || '')
     // have to do this after otherwise the insert moves the mark
     addMarkAt(p.view, bep)
   }
@@ -3601,7 +3585,7 @@ function initComplete
       d(rest)
       point = vgetPos(p.view)
       vsetBep(p.view, orig)
-      vinsert(p.view, 1, rest.text)
+      vinsert1(p.view, 1, rest.text)
       tries.push(rest.text)
       if (rest.ctag)
         ctags++

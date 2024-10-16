@@ -1417,20 +1417,6 @@ function excur
   return ret
 }
 
-function excurWithSel
-(view, cb) {
-  let range, ret
-
-  range = regionRange(view)
-  try {
-    ret = excur(view, cb)
-  }
-  finally {
-    setSelection(view, range)
-  }
-  return ret
-}
-
 export
 function vgotoLine
 (view, num) { // 1 indexed
@@ -1850,28 +1836,6 @@ function pexec
 function exec
 (cmd, markCmd, args) {
   return vexec(Pane.current().view, cmd, markCmd, args)
-}
-
-function execAll
-(cmd, markCmd, args) {
-  let p
-
-  p = Pane.current()
-  if (p.buf) {
-    let sel
-
-    sel = regionRange(p.view)
-    vexec(p.view, cmd, markCmd, args)
-    p.buf.views.forEach(view => {
-      if (view == p.view)
-        return
-      excurWithSel(view,
-                   () => {
-                     setSelection(view, sel)
-                     vexec(view, cmd, markCmd, args)
-                   })
-    })
-  }
 }
 
 function utimes
@@ -2891,22 +2855,22 @@ function capitalizeWord() {
 export
 function newline
 () {
-  execAll(CMComm.insertNewlineAndIndent)
+  exec(CMComm.insertNewlineAndIndent)
 }
 
 export
 function openLine() {
-  execAll(CMComm.splitLine)
+  exec(CMComm.splitLine)
 }
 
 export
 function delPrevChar() {
-  execAll(CMComm.deleteCharBackward)
+  exec(CMComm.deleteCharBackward)
 }
 
 export
 function delNextChar() {
-  execAll(CMComm.deleteCharForward)
+  exec(CMComm.deleteCharForward)
 }
 
 export
@@ -2991,9 +2955,9 @@ export
 function commentRegion
 (u) {
   if (u == 4)
-    execAll(CMComm.lineUncomment)
+    exec(CMComm.lineUncomment)
   else
-    execAll(CMComm.lineComment)
+    exec(CMComm.lineComment)
 }
 
 export
@@ -3106,7 +3070,7 @@ function insertTwoSpaces() {
 
 export
 function transposeChars() {
-  execAll(CMComm.transposeChars)
+  exec(CMComm.transposeChars)
 }
 
 spRe = /^\s+/g

@@ -23,7 +23,6 @@ import * as CMAuto from './lib/@codemirror/autocomplete.js'
 import * as CMCollab from './lib/@codemirror/collab.js'
 import * as CMComm from './lib/@codemirror/commands.js'
 import * as CMData from './lib/@codemirror/language-data.js'
-import * as CMJS from './lib/@codemirror/lang-javascript.js'
 import * as CMLang from './lib/@codemirror/language.js'
 import * as CMLangLezerTree from './lib/@cookshack/codemirror-lang-lezer-tree.js'
 import * as CMLint from './lib/@codemirror/lint.js'
@@ -34,13 +33,12 @@ import * as CMTheme from './lib/@uiw/codemirror-themes/index.js'
 import * as Theme from './theme-solarized.js'
 import { v4 as uuidv4 } from './lib/uuid/index.js'
 import { colorPicker } from './lib/@replit/codemirror-css-color-picker.js'
-import * as EslintConfig from './lib/@cookshack/eslint-config.js'
 import * as LZHighlight from './lib/@lezer/highlight.js'
 import { Vode } from './json.mjs'
 
 export let langs
 
-let theme, themeTags, themeExtension, themeHighlighting, Eslint, eslintConfig
+let theme, themeTags, themeExtension, themeHighlighting
 let completionNextLine, completionPreviousLine, tagHighlighting, bredView, spRe
 let brexts, brextIds, registeredOpts
 
@@ -525,18 +523,6 @@ function diagnose
   }
 }
 
-function diagTip
-(diags) {
-  if (diags && diags.length)
-    return divCl('bred-tooltip-w bred-open',
-                 diags.map(diag => divCl('bred-tooltip bred-' + diag.severity,
-                                         [ divCl('bred-diag-icon',
-                                                 img(Icon.path('diagnostic'), 'Diagnostic', 'filter-clr-text')),
-                                           divCl('bred-diag-text-w',
-                                                 [ divCl('bred-diag-text', diag.message),
-                                                   divCl('bred-diag-source', diag.source) ]) ])))
-}
-
 function reconfigureOpt
 (buf, name) {
   buf.views.forEach(view => {
@@ -690,8 +676,6 @@ function _viewInit
   view.wode.comp.exts = new CMState.Compartment
   view.wode.lang = new CMState.Compartment
   view.wode.language = 'text'
-  view.wode.linter = new CMState.Compartment
-  view.wode.lintGutter = new CMState.Compartment
   view.wode.tabSize = new CMState.Compartment
   view.wode.themeExtension = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
@@ -879,16 +863,6 @@ function _viewInit
     opts.push(view.wode.highlightSyntax.of([]))
     opts.push(view.wode.themeExtension.of([]))
   }
-
-  if (buf.opt('core.lint.enabled')) {
-    opts.push(view.wode.linter.of(makeLinter()))
-    if (buf.opt('core.lint.gutter.show'))
-      opts.push(view.wode.lintGutter.of(makeLintGutter()))
-    else
-      opts.push(view.wode.lintGutter.of([]))
-  }
-  else
-    opts.push(view.wode.linter.of([]))
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')
@@ -3720,79 +3694,6 @@ function themeStyles
   return styles
 }
 
-eslintConfig = {
-  languageOptions: EslintConfig.languageOptions,
-  rules: EslintConfig.rules
-}
-
-function handleTooltipLint
-() {
-  //d({ diags })
-  //diagnose(win, diags.filter(d => d).at(0))
-  //tip(win, diags)
-  return [] // turn off std tooltip
-}
-
-function between
-(pos, from, to, side) {
-  if (from == to)
-    return pos == from
-  if ((pos >= from) && (pos <= to)) {
-    if (side > 0)
-      return pos > from
-    if (side < 0)
-      return pos < to
-    return 1
-  }
-  return 0
-}
-
-function maybeLintTooltip
-(ed, pos, side) {
-  let diags, start, end
-
-  start = 2e8
-  end = 0
-  diags = []
-  CMLint.forEachDiagnostic(ed.state, (diag, from, to) => {
-    if (between(pos, from, to, side)) {
-      diags.push(diag)
-      start = Math.min(start, from)
-      end = Math.max(to, end)
-    }
-  })
-  if (diags.length)
-    return { pos: start,
-             end: end,
-             create() {
-               return { dom: diagTip(diags) }
-             } }
-}
-
-function makeLinter
-() {
-  if (Eslint)
-    return [ CMLint.linter(CMJS.esLint(new Eslint.Linter(),
-                                       eslintConfig),
-                           { tooltipFilter: handleTooltipLint }),
-             CMView.hoverTooltip(maybeLintTooltip, { hideOn: CMLint.hideTooltip,
-                                                     hideOnChange: false }) ]
-  return []
-}
-
-function handleTooltipLintGutter
-(diags) {
-  //d({ diags })
-  //diagnose(win, diags.filter(d => d).at(0))
-  //diagnose(win, { message: 'test', severity: 'error' })
-  return diags
-}
-
-function makeLintGutter
-() {
-  return CMLint.lintGutter({ tooltipFilter: handleTooltipLintGutter })
-}
-
 function reconfigureAutocomplete
 (buf, view) {
   if (buf.opt('core.autocomplete.enabled'))
@@ -3809,33 +3710,6 @@ function reconfigureHighlightSyntax
   else
     view.ed.dispatch({ effects: [ view.wode.highlightSyntax.reconfigure([]),
                                   view.wode.themeExtension.reconfigure([]) ] })
-}
-
-function reconfigureLinter
-(buf, view) {
-  let effects
-
-  effects = [ view.wode.linter.reconfigure([]),
-              view.wode.lintGutter.reconfigure([]) ]
-  if (buf.opt('core.lint.enabled')) {
-    effects = [ view.wode.linter.reconfigure(makeLinter()) ]
-    if (buf.opt('core.lint.gutter.show'))
-      effects.push(view.wode.lintGutter.reconfigure(makeLintGutter()))
-    else
-      effects.push(view.wode.lintGutter.reconfigure([]))
-  }
-  view.ed.dispatch({ effects: effects })
-}
-
-function initEslint
-() {
-  import('./lib/eslint-linter-browserify.mjs').then(m => {
-    Eslint = m
-    Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed && (view.win == Win.current()))
-        reconfigureLinter(buf, view)
-    }))
-  })
 }
 
 function initOpt
@@ -3855,7 +3729,6 @@ function initOpt
 
   on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
-  on([ 'core.lint.enabled', 'core.lint.gutter.show' ], reconfigureLinter)
 }
 
 function handleCustomTags
@@ -4061,7 +3934,6 @@ function init
     })
   */
 
-  initEslint()
   initOpt()
   initActiveLine()
 }

@@ -9,6 +9,8 @@ import * as CMLang from '../../lib/@codemirror/language.js'
 import * as CMSearch from '../../lib/@codemirror/search.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 
+import * as Lint from './lint.mjs'
+
 let brexts
 
 export
@@ -144,6 +146,8 @@ function init
   Cmd.add('buffer highlight whitespace', u => Ed.enableBuf(u, 'core.highlight.whitespace.enabled'))
   Cmd.add('buffer enable line numbers', u => Ed.enableBuf(u, 'core.line.numbers.show'))
   Cmd.add('buffer enable line wrap', u => Ed.enableBuf(u, 'core.line.wrap.enabled'))
+
+  Lint.init()
 }
 
 export
@@ -151,6 +155,7 @@ function free
 () {
   Cmd.remove('enable cursor blink')
   Cmd.remove('enable folding')
+  Cmd.remove('enable fold gutter')
   Cmd.remove('enable line numbers')
   Cmd.remove('enable line wrap')
   Cmd.remove('highlight active line')
@@ -161,6 +166,7 @@ function free
   Cmd.remove('highlight whitespace')
   Cmd.remove('buffer enable cursor blink')
   Cmd.remove('buffer enable folding')
+  Cmd.remove('buffer enable fold gutter')
   Cmd.remove('buffer enable line numbers')
   Cmd.remove('buffer enable line wrap')
   Cmd.remove('buffer highlight active line')
@@ -170,4 +176,5 @@ function free
   Cmd.remove('buffer highlight trailing whitespace')
   Cmd.remove('buffer highlight whitespace')
   brexts.forEach(b => b?.free())
+  Lint.free()
 }

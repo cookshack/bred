@@ -1370,7 +1370,6 @@ function init
     Cmd.add('select all', () => Backend.selectAll(), mo)
     Cmd.add('goto line', () => Backend.gotoLine(), mo)
     Cmd.add('open lint panel', () => Backend.openLint(), mo)
-    Cmd.add('enable lint', u => enable(u, 'core.lint.enabled'), mo)
 
     Cmd.add('yank', () => Backend.yank(), mo)
     Cmd.add('yank roll', () => Backend.yankRoll(), mo)

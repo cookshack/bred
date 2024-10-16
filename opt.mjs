@@ -205,8 +205,6 @@ function init
   declare('core.brackets.close.enabled', 'bool', 1)
   declare('core.fontSize', 'float', undefined)
   declare('core.highlight.syntax.enabled', 'bool', 1)
-  declare('core.lint.enabled', 'bool', 1)
-  declare('core.lint.gutter.show', 'bool', 1)
   declare('core.throwOnWarn.enabled', 'bool', 0)
   declare('core.welcome.enabled', 'bool', 1)
 }

@@ -338,10 +338,10 @@ function initCompile
     }
     buf.vars('SC').afterEndPoint = 1 // initial command output goes after point if point at end
     modes = [ 'compile' /*, 'view' */ ]
-    modes.push('ansi')
     buf.vars('SC').modes = modes
     buf.vars('SC').onClose = onClose
     buf.vars('ed').fillParent = 0
+    buf.opts.set('ansi.enabled', 1)
     buf.opts.set('core.autocomplete.enabled', 0)
     buf.opts.set('core.folding.enabled', 0)
     buf.opts.set('core.line.numbers.show', 0)

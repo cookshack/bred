@@ -107,11 +107,11 @@ function scib
     hist.reset()
     buf.vars('SC').hist = hist
     modes = [ 'text' ]
-    modes.push('ansi')
     buf.vars('SC').modes = modes
   }
 
   buf.vars('ed').fillParent = 0
+  buf.opts.set('ansi.enabled', 1)
   buf.opts.set('core.autocomplete.enabled', 0)
   buf.opts.set('core.folding.enabled', 0)
   buf.opts.set('core.line.numbers.show', 0)
@@ -142,7 +142,7 @@ function initRTL
     p = Pane.current()
     l = p.line()
     if (l && l.length)
-      Shell.shell1(l, 1, 0, 0, hist, 0, 0, buf => buf.addMode('ansi'))
+      Shell.shell1(l, 1, 0, 0, hist, 0, 0, buf => buf.opts.set('ansi.enabled', 1))
     else if (typeof l === 'string')
       Mess.say('Line empty')
     else

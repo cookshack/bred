@@ -2787,10 +2787,11 @@ function caseWord(cb) {
   str = cb(str, p.view)
   vsetOff(p.view, off)
 
-  // case range in each view
-  p.buf.views.forEach(view => {
-    let vorigHead, vorigAnch
+  // case range in current view
+  {
+    let view, vorigHead, vorigAnch
 
+    view = p.view
     vorigHead = view.ed.state.selection.head
     vorigAnch = view.ed.state.selection.anchor
     clearSelection(view)
@@ -2798,7 +2799,7 @@ function caseWord(cb) {
     vinsertAt(view, off, 1, str)
     view.ed.state.selection.head = vorigHead
     view.ed.state.selection.anchor = vorigAnch
-  })
+  }
 
   // move point in current pane
   p.view.ed.state.selection.head = origHead

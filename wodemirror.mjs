@@ -540,7 +540,7 @@ function diagTip
 function reconfigureOpt
 (buf, name) {
   buf.views.forEach(view => {
-    if (view.ed)
+    if (view.ed && (view.win == Win.current()))
       brexts.forEach(b => {
         if (b.spec.make && b.spec.reconfOpts && b.spec.reconfOpts.includes(name))
           view.ed.dispatch({ effects: b.spec.part.reconfigure(b.spec.make(view)) })
@@ -558,7 +558,7 @@ function register
     () {
       brexts = brexts.filter(b => b.id !== brext.id)
       // remove from existing views
-      Buf.forEach(buf => buf.views.forEach(v => v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
+      Buf.forEach(buf => buf.views.forEach(v => (v.win == Win.current()) && v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
       // reconfigure exts opts on all bufs, in case any other extensions use the opt
       spec.reconfOpts?.forEach(name => Buf.forEach(buf => reconfigureOpt(buf, name)))
     }
@@ -570,7 +570,7 @@ function register
     if (spec.make)
       // every existing ed must get a compartment
       Buf.forEach(buf => buf.views.forEach(view => {
-        if (view.ele && view.ed)
+        if (view.ele && view.ed && (view.win == Win.current()))
           view.ed.dispatch({ effects: CMState.StateEffect.appendConfig.of(spec.part.of(spec.make(view))) })
       }))
 
@@ -1506,7 +1506,7 @@ function seize
 (b, mode) {
   d('ed seizing ' + b.name + ' for ' + mode.name)
   b.views.forEach(v => {
-    if (v.ed)
+    if (v.ed && (v.win == Win.current()))
       decorate(v, b.mode)
   })
 }

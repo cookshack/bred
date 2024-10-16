@@ -2690,16 +2690,14 @@ function vinsertAt
 }
 
 export
-function vreplaceAtAll
+function vreplaceAt
 (view, range, text,
  more) { // [ { range, text }* ]  Must order desc by position, and 'more' ranges must come after range in arg 2.
-  view.buf.views.forEach(v => {
-    if (v.ele) {
-      vinsertAt(v, range.from, 1, text, v == view, range.to)
-      if (more)
-        more.forEach(m => vinsertAt(v, m.range.from, 1, m.text, v == view, m.range.to))
-    }
-  })
+  if (view.ele) {
+    vinsertAt(view, range.from, 1, text, 1, range.to)
+    if (more)
+      more.forEach(m => vinsertAt(view, m.range.from, 1, m.text, 1, m.range.to))
+  }
 }
 
 function isOpenBracket
@@ -3101,7 +3099,7 @@ function yankRoll() {
       let r
 
       r = regionRange(p.view)
-      vreplaceAtAll(p.view, r, str || '')
+      vreplaceAt(p.view, r, str || '')
     }
     else
       Mess.say('Cut list empty')
@@ -3177,7 +3175,7 @@ function replace
                                    wholeWord: 0,
                                    regExp: 0 })
   if (r) {
-    vreplaceAtAll(st.view, r, st.to) // 'All' here means all views
+    vreplaceAt(st.view, r, st.to) // 'All' here means all views
     d('got one')
     if (all)
       return 1

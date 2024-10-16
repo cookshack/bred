@@ -1789,7 +1789,7 @@ function initModeFns
   mo.syntaxTreeStr = syntaxTreeStr
   mo.text = text
   mo.viewReopen = viewReopen
-  mo.vinsertAll = vinsertAll
+  mo.vinsertAll = vinsert1
 }
 
 export
@@ -2687,17 +2687,6 @@ function vinsertAt
                                  insert: text } })
     }
   }
-}
-
-function vinsertAll
-(view, u, text) {
-  let off
-
-  off = vgetOff(view)
-  view.buf.views.forEach(v => {
-    if (v.ele)
-      vinsertAt(v, off, u, text, v == view)
-  })
 }
 
 export

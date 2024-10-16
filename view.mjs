@@ -234,22 +234,6 @@ function make
     return 0
   }
 
-  function addExt
-  (ext) {
-    if (b.mode?.key
-        && b.mode?.vaddExt)
-      return b.mode.vaddExt(v, ext)
-    return 0
-  }
-
-  function removeExt
-  (ext) {
-    if (b.mode?.key
-        && b.mode?.vremoveExt)
-      return b.mode.vremoveExt(v, ext)
-    return 0
-  }
-
   function bufStart
   () {
     if (b.mode?.bufStart)
@@ -364,7 +348,6 @@ function make
           return win
         },
         //
-        addExt,
         backwardChar: () => point.backward(),
         forwardChar: () => point.forward(),
         ensurePointVisible,
@@ -385,7 +368,6 @@ function make
         lineNext,
         linePrev,
         insert,
-        removeExt,
         reopen,
         close,
         sync,

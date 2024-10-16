@@ -108,14 +108,6 @@ function make
       Mess.warn('setMode: missing ' + key)
   }
 
-  function addExt
-  (ext) {
-    if (b.mode?.key
-        && b.mode?.addExt)
-      return b.mode.addExt(b, ext)
-    return 0
-  }
-
   function getMo
   (modeOrKey) {
     let mo
@@ -235,14 +227,6 @@ function make
       b.mode.on(b, name, cb)
     else
       Mess.say('buf.add: on missing: ' + b.mode.key)
-  }
-
-  function removeExt
-  (ext) {
-    if (b.mode?.key
-        && b.mode?.removeExt)
-      return b.mode.removeExt(b, ext)
-    return 0
   }
 
   function save
@@ -432,7 +416,6 @@ function make
           setMode(key)
         },
         //
-        addExt,
         addMode,
         append,
         anyView,
@@ -441,7 +424,6 @@ function make
         clearLine,
         line,
         remove,
-        removeExt,
         insert,
         off,
         on,

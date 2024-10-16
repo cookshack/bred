@@ -1700,32 +1700,6 @@ function vregion
 export
 function initModeFns
 (mo) {
-  function vaddExt
-  (view, ext) {
-    if (view.ed) {
-      view.wode.exts.add(ext.cm)
-      view.ed.dispatch({ effects: view.wode.comp.exts.reconfigure([ ...view.wode.exts ]) })
-    }
-  }
-
-  function addExt
-  (buf, ext) {
-    buf.views.forEach(view => vaddExt(view, ext))
-  }
-
-  function vremoveExt
-  (view, ext) {
-    if (view.ed) {
-      view.wode.exts.delete(ext.cm)
-      view.ed.dispatch({ effects: view.wode.comp.exts.reconfigure([ ...view.wode.exts ]) })
-    }
-  }
-
-  function removeExt
-  (buf, ext) {
-    buf.views.forEach(view => vremoveExt(view, ext))
-  }
-
   function clear
   (b) {
     b.views.forEach(view => {
@@ -1808,7 +1782,6 @@ function initModeFns
     return 'ERR'
   }
 
-  mo.addExt = addExt
   mo.clear = clear
   mo.clearLine = clearLine
   mo.gotoLine = vgotoLine
@@ -1823,17 +1796,14 @@ function initModeFns
   mo.on = on
   mo.prevLine = prevLine
   mo.region = vregion
-  mo.removeExt = removeExt
   mo.nextLine = nextLine
   mo.seize = mo.seize || (b => seize(b, mo))
   mo.setBep = vsetBep
   mo.setLang = setLang
   mo.syntaxTreeStr = syntaxTreeStr
   mo.text = text
-  mo.vaddExt = vaddExt
   mo.viewReopen = viewReopen
   mo.vinsertAll = vinsertAll
-  mo.vremoveExt = vremoveExt
 }
 
 export

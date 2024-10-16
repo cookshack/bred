@@ -2855,7 +2855,7 @@ function cutLine() {
   range = { from: off, to: line.to }
   str = vrangeText(p.view, range)
   if (str.length) {
-    p.buf.views.forEach(view => remove(view.ed, range))
+    remove(p.view.ed, range)
     Cut.add(str)
   }
   else {

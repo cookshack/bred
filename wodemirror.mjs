@@ -3114,7 +3114,7 @@ function vcutOrCopy
   str = vrangeText(view, range)
   if (str && str.length) {
     if (cut)
-      view.buf.views.forEach(v => remove(v.ed, range))
+      remove(view.ed, range)
     Cut.add(str)
   }
   if (cut)
@@ -3169,7 +3169,7 @@ function replace
                                    wholeWord: 0,
                                    regExp: 0 })
   if (r) {
-    vreplaceAt(st.view, r, st.to) // 'All' here means all views
+    vreplaceAt(st.view, r, st.to)
     d('got one')
     if (all)
       return 1

@@ -2892,9 +2892,7 @@ function delNextWordBound
     range = { from: end, to: start }
   text = vrangeText(p.view, range)
   if (text && text.length) {
-    p.buf.views.forEach(view => {
-      remove(view.ed, range)
-    })
+    remove(p.view.ed, range)
     Cut.add(text)
   }
   return p
@@ -2988,11 +2986,6 @@ function indentLine
 
   p.view.ed.dispatch({ changes: changes,
                        selection: { anchor: anchor, head: anchor } })
-  p.buf.views.forEach(view => {
-    if (view == p.view)
-      return
-    view.ed.dispatch({ changes: changes })
-  })
 }
 
 export
@@ -3019,7 +3012,7 @@ function indentRegion
       to = from
 
     changes = CMLang.indentRange(p.view.ed.state, from, to)
-    changes.empty || p.buf.views.forEach(view => view.ed.dispatch({ changes: changes }))
+    changes.empty || p.view.ed.dispatch({ changes: changes })
     clearSelection(p.view)
   }
   else
@@ -3056,16 +3049,16 @@ function trim() {
   l = p.view.ed.state.doc.lineAt(start)
   spRe.lastIndex = 0
   if (spRe.exec(l.text.slice(start - l.from)))
-    p.buf.views.forEach(view => remove(view.ed,
-                                       { from: start,
-                                         to: start + spRe.lastIndex }))
+    remove(p.view.ed,
+           { from: start,
+             to: start + spRe.lastIndex })
   if (start > l.from) {
     str = [ ...l.text.slice(0, start - l.from) ].reverse().join('')
     spRe.lastIndex = 0
     if (spRe.exec(str))
-      p.buf.views.forEach(view => remove(view.ed,
-                                         { from: start - spRe.lastIndex,
-                                           to: start }))
+      remove(p.view.ed,
+             { from: start - spRe.lastIndex,
+               to: start })
   }
 }
 

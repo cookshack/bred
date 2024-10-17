@@ -586,14 +586,10 @@ function register
 }
 
 export
-function viewInit
-(view, text, modeWhenText, lineNum,
- // only called if buf has a file.
- // may cause issues eg if call v.insert then the view must already have been added to the buf (which happens after viewInit).
- //   (probably it's fine because probably the Tron file.get cb below always runs after the current event).
- whenReady, // (view)
- // called after _viewInit runs, but before the file.get cb
- cb) { // (view)
+function viewInitSpec
+(view,
+ spec, // { text, modeWhenText, lineNum, whenReady, forceFresh }
+ cb) {
   d('peer.get ' + view.buf.id)
   d('vi vid: ' + view.vid)
   view.buf.modified = 0
@@ -607,13 +603,30 @@ function viewInit
     d({ data })
     _viewInit(makePeer(view.buf.id, data.version),
               view,
-              data.fresh ? 0 : data.text,
-              modeWhenText,
-              lineNum,
-              whenReady)
+              (spec.forceFresh || data.fresh) ? 0 : data.text,
+              spec.modeWhenText,
+              spec.lineNum,
+              spec.whenReady)
     if (cb)
       cb(view)
   })
+}
+
+export
+function viewInit
+(view, text, modeWhenText, lineNum,
+ // only called if buf has a file.
+ // may cause issues eg if call v.insert then the view must already have been added to the buf (which happens after viewInit).
+ //   (probably it's fine because probably the Tron file.get cb below always runs after the current event).
+ whenReady, // (view)
+ // called after _viewInit runs, but before the file.get cb
+ cb) { // (view)
+  viewInitSpec(view,
+               { text: text,
+                 modeWhenText: modeWhenText,
+                 lineNum: lineNum,
+                 whenReady: whenReady },
+               cb)
 }
 
 function _viewInit
@@ -2422,15 +2435,18 @@ function vsave
 export
 function revertV
 (view) {
-  let bep
+  let lineNum
 
   Css.disable(view.ele)
-  bep = vgetBep(view)
+  lineNum = bepRow(view, vgetBep(view)) + 1
 
   view.ready = 0 // limit onChange handler
-  setValue(view.ed, '', false) //view.ed.setState(EditorState.create({doc: text, extensions: ...}))
-
-  viewInit(view, 0, 0, bepRow(bep) + 1)
+  // dispatch so that peers get the same
+  view.ed.dispatch({ changes: { from: 0,
+                                to: view.ed.state.doc.length,
+                                insert: '' } })
+  viewInitSpec(view, { forceFresh: 1, // consider peer fresh so will reread file
+                       lineNum: lineNum })
 }
 
 export

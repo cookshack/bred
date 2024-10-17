@@ -1710,14 +1710,6 @@ function initModeFns
     return view.wode.language?.language?.name
   }
 
-  function setLang
-  (b, id) {
-    b.views.forEach(view => {
-      if (view.ed)
-        vsetLang(view, id)
-    })
-  }
-
   function langData
   (view) {
     let data
@@ -1773,7 +1765,6 @@ function initModeFns
   mo.nextLine = nextLine
   mo.seize = mo.seize || (b => seize(b, mo))
   mo.setBep = vsetBep
-  mo.setLang = setLang
   mo.syntaxTreeStr = syntaxTreeStr
   mo.text = text
   mo.viewReopen = viewReopen

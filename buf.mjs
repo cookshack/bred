@@ -280,16 +280,6 @@ function make
     return dir
   }
 
-  function setLang
-  (id) {
-    if (b.mode?.key) {
-      if (b.mode?.setLang)
-        return b.mode.setLang(b, id)
-      Mess.say('buf.add: setLang missing: ' + b.mode.key)
-    }
-    return 0
-  }
-
   function syntaxTreeStr
   () {
     if (b.mode?.key) {
@@ -408,9 +398,6 @@ function make
         },
         set icon(name) {
           return icon = name
-        },
-        set lang(id) {
-          return setLang(id)
         },
         set mode(key) {
           setMode(key)

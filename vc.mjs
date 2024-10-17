@@ -503,9 +503,9 @@ function initLog
     }
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('core.minimap.enabled', 0)
+    buf.opts.set('core.lang', 'git log')
     p.setBuf(buf, null, 0, view => {
       refresh(view)
-      buf.lang = 'git log'
     })
   })
 
@@ -833,10 +833,10 @@ function initAnnotate
     }
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('core.minimap.enabled', 0)
+    //buf.opts.set('core.lang', 'git log')
     buf.vars('vc').file = p.buf.path
     p.setBuf(buf, null, 0, view => {
       refresh(view)
-      //buf.lang = 'git log'
     })
   })
 

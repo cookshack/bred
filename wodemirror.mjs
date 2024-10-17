@@ -3508,7 +3508,7 @@ function addMode
   (b) {
     d(lang.id + ' seizing ' + b.name)
     seize(b, mode)
-    b.opts.set('core.lang', lang.language)
+    b.opts.set('core.lang', lang.id)
   }
 
   function minfo

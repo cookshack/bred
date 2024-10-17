@@ -1683,20 +1683,21 @@ function initModeFns
 
   function clearLine
   (b) {
-    b.views.forEach(view => {
-      if (view.ed) {
-        let start, r, l
+    let view
 
-        start = vgetPos(view)
-        l = lineAt(view, start)
-        if (l.length) {
-          r = rangeFromPoints(view,
-                              Ed.makePos(start.row, 0),
-                              Ed.makePos(start.row, l.length))
-          remove(view.ed, r)
-        }
+    view = b.anyView()
+    if (view.ed) {
+      let start, r, l
+
+      start = vgetPos(view)
+      l = lineAt(view, start)
+      if (l.length) {
+        r = rangeFromPoints(view,
+                            Ed.makePos(start.row, 0),
+                            Ed.makePos(start.row, l.length))
+        remove(view.ed, r)
       }
-    })
+    }
   }
 
   function text

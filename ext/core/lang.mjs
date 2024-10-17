@@ -99,8 +99,8 @@ function makeLang
   id = view.buf.opt('core.lang') || 'text'
 
   lang = Ed.findLang(id)
-  if (lang)
-    return [ view.wode.lang.reconfigure(lang.language || []),
+  if (lang?.language)
+    return [ lang.language,
              ...(view.buf.opt('core.autocomplete.enabled') ? [ makeAutocomplete(view) ] : []) ]
   Mess.log('missing lang: ' + id)
   return []

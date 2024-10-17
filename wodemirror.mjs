@@ -2422,15 +2422,15 @@ function vsave
 export
 function revertV
 (view) {
-  let pos
+  let bep
 
   Css.disable(view.ele)
-  pos = vgetPos(view)
+  bep = vgetBep(view)
 
   view.ready = 0 // limit onChange handler
   setValue(view.ed, '', false) //view.ed.setState(EditorState.create({doc: text, extensions: ...}))
 
-  viewInit(view, 0, 0, posRow(pos) + 1)
+  viewInit(view, 0, 0, bepRow(bep) + 1)
 }
 
 export

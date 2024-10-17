@@ -7,6 +7,7 @@ import * as Icon from '../../icon.mjs'
 import * as Mess from '../../mess.mjs'
 import * as Opt from '../../opt.mjs'
 import * as Win from '../../win.mjs'
+//import { d } from '../../mess.mjs'
 
 import * as CMJS from '../../lib/@codemirror/lang-javascript.js'
 import * as CMLint from '../../lib/@codemirror/lint.js'
@@ -133,7 +134,7 @@ function init
 
   brexts.push(Ed.register({ backend: 'cm',
                             part,
-                            makeEffects,
+                            make: makeEffects,
                             reconfOpts: [ 'core.lint.enabled', 'core.lint.gutter.enabled' ] }))
 
   Cmd.add('enable lint', u => Ed.enable(u, 'core.lint.enabled'))

@@ -1675,10 +1675,10 @@ function initModeFns
 (mo) {
   function clear
   (b) {
-    b.views.forEach(view => {
-      if (view.ed)
-        setValue(view.ed, '', true)
-    })
+    let view
+
+    view = b.anyView()
+    setValue(view.ed, '', true)
   }
 
   function clearLine

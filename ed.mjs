@@ -1469,6 +1469,12 @@ function init
 }
 
 export
+function findLang
+(id) {
+  return Backend.findLang && Backend.findLang(id)
+}
+
+export
 function register
 (spec) {
   return Backend.register && Backend.register(spec)

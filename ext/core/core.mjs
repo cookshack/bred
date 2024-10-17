@@ -9,6 +9,7 @@ import * as CMLang from '../../lib/@codemirror/language.js'
 import * as CMSearch from '../../lib/@codemirror/search.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 
+import * as Lang from './lang.mjs'
 import * as Lint from './lint.mjs'
 
 let brexts
@@ -147,6 +148,7 @@ function init
   Cmd.add('buffer enable line numbers', u => Ed.enableBuf(u, 'core.line.numbers.show'))
   Cmd.add('buffer enable line wrap', u => Ed.enableBuf(u, 'core.line.wrap.enabled'))
 
+  Lang.init()
   Lint.init()
 }
 
@@ -176,5 +178,6 @@ function free
   Cmd.remove('buffer highlight trailing whitespace')
   Cmd.remove('buffer highlight whitespace')
   brexts.forEach(b => b?.free())
+  Lang.free()
   Lint.free()
 }

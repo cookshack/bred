@@ -8,7 +8,6 @@ import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
-import * as Lsp from './lsp.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
@@ -138,29 +137,12 @@ function setValue
                 annotations: [ CMState.Transaction.addToHistory.of(addToHistory) ] })
 }
 
-function vsetLanguage
-(view, language) {
-  let effects
-
-  view.wode.language = language
-  effects = [ view.wode.lang.reconfigure(language || []) ]
-
-  if (view.buf.opt('core.autocomplete.enabled'))
-    effects.push(view.wode.autocomplete.reconfigure(makeAutocomplete(view)))
-  else
-    effects.push(view.wode.autocomplete.of([]))
-
-  view.ed.dispatch({ effects: effects })
-}
-
 function vsetLang
 (view, id) {
-  let lang
-
   id = id || 'text'
-  lang = langs.find(l => l.id == id) || Mess.toss('missing lang: ' + id)
+  langs.find(l => l.id == id) || Mess.toss('missing lang: ' + id)
   d('vsetLang ' + id)
-  vsetLanguage(view, lang.language)
+  view.buf.opts.set('core.lang', id)
 }
 
 let highlighters, stateHighlighters
@@ -214,87 +196,6 @@ let highlighters, stateHighlighters
     })
     d({ stateHighlighters })
   }
-}
-
-function makeAutocomplete
-(view) {
-  let autocomplete
-
-  function autocompleteTags
-  (context) {
-    let word, options, p
-
-    d('ac')
-
-    word = context.matchBefore(/\w*/)
-    if (word.from == word.to && !context.explicit)
-      return null
-
-    options = []
-
-    p = Pane.current()
-    word.view = p.view
-
-    return new Promise(resolve => {
-      for (let count = 0, i = 0; i < Ed.ctags.length; i++)
-        if (Ed.ctags[i].name.startsWith(word.text)) {
-          options.push({ label: Ed.ctags[i].name, type: Ed.ctags[i].kind })
-          if (count++ > 10)
-            break
-        }
-      resolve({ from: word.from,
-                options: options || [] })
-    })
-  }
-
-  function autocompleteLsp
-  (context) {
-    let word, options, p
-
-    d('ac')
-
-    word = context.matchBefore(/\w*/)
-    if (word.from == word.to && !context.explicit)
-      return null
-
-    options = []
-
-    p = Pane.current()
-    word.view = p.view
-
-    return new Promise(resolve => {
-      Lsp.complete(p.buf.path, word, words => {
-        d({ words })
-        if (words.length)
-          options = words.map(w => {
-            return { label: w.name, type: w.kind }
-          })
-        else if (0) {
-          for (let count = 0, i = 0; i < Ed.ctags.length; i++)
-            if (Ed.ctags[i].name.startsWith(word.text)) {
-              options.push({ label: Ed.ctags[i].name, type: Ed.ctags[i].kind })
-              if (count++ > 10)
-                break
-            }
-          if (0)
-            options = [ { label: 'match', type: 'keyword' },
-                        { label: 'hello', type: 'variable', info: '(World)' },
-                        { label: 'magic', type: 'text', apply: '⠁⭒*.✩.*⭒⠁', detail: 'macro' } ]
-        }
-        resolve({ from: word.from,
-                  options: options || [] })
-      })
-    })
-  }
-
-  0 && (autocomplete = autocompleteTags)
-  if ([ 'javascript', 'typescript' ].includes(view.wode.language?.language?.name))
-    autocomplete = autocompleteLsp
-
-  return CMAuto.autocompletion({ activateOnTyping: false, // would be overridden by bred handlers anyway
-                                 ...(autocomplete ? { override: [ autocomplete ] } : {}),
-                                 closeOnBlur: false,
-                                 defaultKeymap: false })
 }
 
 function makeHighlightSyntax
@@ -535,6 +436,12 @@ function reconfigureOpt
 }
 
 export
+function findLang
+(id) {
+  return langs.find(l => l.id == id)
+}
+
+export
 function register
 (spec) { // { backend, make, part, reconfOpts }
   if (spec.backend == 'cm') {
@@ -682,7 +589,6 @@ function _viewInit
   view.marks = []
   view.wode = { comp: {} }
 
-  view.wode.autocomplete = new CMState.Compartment
   view.wode.decorMode = new CMState.Compartment
   view.wode.highlightSyntax = new CMState.Compartment
   view.wode.exts = new Set()
@@ -858,8 +764,6 @@ function _viewInit
            view.wode.comp.exts.of([]),
            view.wode.lang.of([]),
            view.wode.tabSize.of(CMState.EditorState.tabSize.of(2)) ]
-
-  opts.push(view.wode.autocomplete.of([]))
 
   brexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
 
@@ -3604,10 +3508,7 @@ function addMode
   (b) {
     d(lang.id + ' seizing ' + b.name)
     seize(b, mode)
-    b.views.forEach(v => {
-      if (v.ed)
-        vsetLanguage(v, lang.language)
-    })
+    b.opts.set('core.lang', lang.language)
   }
 
   function minfo
@@ -3703,14 +3604,6 @@ function themeStyles
   return styles
 }
 
-function reconfigureAutocomplete
-(buf, view) {
-  if (buf.opt('core.autocomplete.enabled'))
-    view.ed.dispatch({ effects: view.wode.autocomplete.reconfigure(makeAutocomplete(view)) })
-  else
-    view.ed.dispatch({ effects: view.wode.autocomplete.reconfigure([]) })
-}
-
 function reconfigureHighlightSyntax
 (buf, view) {
   if (buf.opt('core.highlight.syntax.enabled'))
@@ -3736,7 +3629,6 @@ function initOpt
     }))
   }
 
-  on('core.autocomplete', reconfigureAutocomplete)
   on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
 }
 

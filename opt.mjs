@@ -201,7 +201,6 @@ function init
   shared().onSetAlls = []
   shared().onSetBufs = {}
 
-  declare('core.autocomplete.enabled', 'bool', 1)
   declare('core.brackets.close.enabled', 'bool', 1)
   declare('core.fontSize', 'float', undefined)
   declare('core.highlight.syntax.enabled', 'bool', 1)

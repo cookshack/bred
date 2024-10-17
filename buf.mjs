@@ -304,7 +304,7 @@ function make
 
   function anyView
   () {
-    return b.views.find(view => view.ele)
+    return b.views.find(view => view.ready && view.ele)
   }
 
   if (name) {

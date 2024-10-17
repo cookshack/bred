@@ -1678,7 +1678,8 @@ function initModeFns
     let view
 
     view = b.anyView()
-    setValue(view.ed, '', true)
+    if (view)
+      setValue(view.ed, '', true)
   }
 
   function clearLine
@@ -1686,7 +1687,7 @@ function initModeFns
     let view
 
     view = b.anyView()
-    if (view.ed) {
+    if (view?.ed) {
       let start, r, l
 
       start = vgetPos(view)

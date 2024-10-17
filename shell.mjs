@@ -97,7 +97,7 @@ function run
   let ch, bep
 
   ch = nextCh()
-  bep = b && b.anyView().bep
+  bep = b && (b.anyView()?.bep || 0)
 
   d("run '" + sc + "' [" + args + '] in ' + dir)
 

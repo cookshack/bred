@@ -3392,7 +3392,7 @@ function initComplete
     return 0
   }
 
-  // the complete command, similar to emacs dabbrev-expand
+  // the complete command, on a-/, similar to emacs dabbrev-expand
   //
   function complete
   () {
@@ -3445,7 +3445,7 @@ function initComplete
 
       r = makeRange(last.orig, posToBep(p.view, last.end))
       d('remove from ' + r.from + ' to ' + r.to)
-      p.buf.views.forEach(view => remove(view.ed, r))
+      remove(p.view.ed, r)
     }
     if (rest) {
       let point

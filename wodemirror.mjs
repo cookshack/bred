@@ -595,7 +595,6 @@ function _viewInit
   view.wode.comp.exts = new CMState.Compartment
   view.wode.lang = new CMState.Compartment
   view.wode.language = 'text'
-  view.wode.tabSize = new CMState.Compartment
   view.wode.themeExtension = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
 
@@ -762,8 +761,7 @@ function _viewInit
            updateListener,
 
            view.wode.comp.exts.of([]),
-           view.wode.lang.of([]),
-           view.wode.tabSize.of(CMState.EditorState.tabSize.of(2)) ]
+           view.wode.lang.of([]) ]
 
   brexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
 

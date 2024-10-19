@@ -7,6 +7,7 @@ import * as Opt from '../../opt.mjs'
 
 import * as CMLang from '../../lib/@codemirror/language.js'
 import * as CMSearch from '../../lib/@codemirror/search.js'
+import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 
 import * as Lang from './lang.mjs'
@@ -90,6 +91,7 @@ function init
   Opt.declare('core.highlight.whitespace.enabled', 'bool', 0)
   Opt.declare('core.line.numbers.show', 'bool', 1)
   Opt.declare('core.line.wrap.enabled', 'bool', 1)
+  Opt.declare('core.tab.width', 'integer', 2)
 
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.activeLine.enabled') ? CMView.highlightActiveLine() : [],
@@ -124,6 +126,10 @@ function init
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.line.wrap.enabled') ? CMView.EditorView.lineWrapping : [],
                             reconfOpts: [ 'core.line.wrap.enabled' ] }))
+
+  brexts.push(Ed.register({ backend: 'cm',
+                            make: view => CMState.EditorState.tabSize.of(view.buf.opt('core.tab.width') || 2),
+                            reconfOpts: [ 'core.tab.width' ] }))
 
   Cmd.add('enable cursor blink', u => Ed.enable(u, 'core.cursor.blink.enabled'))
   Cmd.add('enable folding', u => Ed.enable(u, 'core.folding.enabled'))

@@ -138,19 +138,17 @@ function add
       p.view.ed.focus()
   }
 
-  function setBuf
-  (b2, lineNum,
-   // FIX called when file loaded
-   whenReady,
-   // called when buf ready to use
+  function setBuf2
+  (b2,
+   spec, // { lineNum, whenReady, bury }
    cb) { // (view)
     if (view?.buf == b2) {
       d('setBuf to same buf')
       b = b2
       if (cb)
         cb(view)
-      if (whenReady)
-        whenReady(view)
+      if (spec.whenReady)
+        spec.whenReady(view)
       return
     }
     if (b)
@@ -160,7 +158,7 @@ function add
         && view.ready) // else there may be a peer/fs callback about to access this view
       view.close()
     if (b)
-      view = Buf.view(b, ele, elePoint, lineNum, whenReady, v => {
+      view = Buf.view(b, ele, elePoint, spec.lineNum, spec.whenReady, v => {
         view = v
         if (view.ed)
           Css.add(ele?.parentNode, 'ed')
@@ -171,6 +169,19 @@ function add
       })
     p.frame.tab.name = b?.name || 'Empty'
     p.frame.tab.icon = b?.icon
+  }
+
+  function setBuf
+  (b2, lineNum,
+   // FIX called when file loaded
+   whenReady,
+   // called when buf ready to use
+   cb) { // (view)
+    d('PANE setBuf')
+    setBuf2(b2,
+            { lineNum: lineNum,
+              whenReady: whenReady },
+            cb)
   }
 
   function openFile

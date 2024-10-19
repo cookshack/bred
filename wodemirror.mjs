@@ -593,7 +593,6 @@ function _viewInit
   view.wode.highlightSyntax = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
-  view.wode.lang = new CMState.Compartment
   view.wode.language = 'text'
   view.wode.themeExtension = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
@@ -760,8 +759,7 @@ function _viewInit
 
            updateListener,
 
-           view.wode.comp.exts.of([]),
-           view.wode.lang.of([]) ]
+           view.wode.comp.exts.of([]) ]
 
   brexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
 

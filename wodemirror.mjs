@@ -593,7 +593,6 @@ function _viewInit
   view.wode.highlightSyntax = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
-  view.wode.language = 'text'
   view.wode.themeExtension = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
 
@@ -1002,7 +1001,7 @@ export
 function viewCopy
 (to, from, lineNum, whenReady, cb) {
   d('================== viewCopy')
-  viewInit(to, from.ed.state.doc.toString(), from.wode.language, lineNum, whenReady, cb)
+  viewInit(to, from.ed.state.doc.toString(), from.buf.opt('core.lang'), lineNum, whenReady, cb)
 }
 
 function charAt
@@ -1608,7 +1607,7 @@ function initModeFns
 
   function lang
   (view) {
-    return view.wode.language?.language?.name
+    return view.buf.opt('core.lang')
   }
 
   function langData

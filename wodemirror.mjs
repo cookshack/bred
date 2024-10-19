@@ -35,9 +35,9 @@ import { colorPicker } from './lib/@replit/codemirror-css-color-picker.js'
 import * as LZHighlight from './lib/@lezer/highlight.js'
 import { Vode } from './json.mjs'
 
-export let langs
+export let langs, themeExtension
 
-let theme, themeTags, themeExtension, themeHighlighting
+let theme, themeTags, themeHighlighting
 let completionNextLine, completionPreviousLine, tagHighlighting, bredView, spRe
 let brexts, brextIds, registeredOpts
 
@@ -196,11 +196,6 @@ let highlighters, stateHighlighters
     })
     d({ stateHighlighters })
   }
-}
-
-function makeHighlightSyntax
-() {
-  return CMLang.syntaxHighlighting(CMLang.defaultHighlightStyle, { fallback: true })
 }
 
 function pushUpdates
@@ -590,7 +585,6 @@ function _viewInit
   view.wode = { comp: {} }
 
   view.wode.decorMode = new CMState.Compartment
-  view.wode.highlightSyntax = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
   view.wode.themeExtension = new CMState.Compartment
@@ -766,15 +760,6 @@ function _viewInit
     opts.push(view.wode.peer.of([ peer ]))
   else
     opts.push(view.wode.peer.of([]))
-
-  if (buf.opt('core.highlight.syntax.enabled')) {
-    opts.push(view.wode.highlightSyntax.of(makeHighlightSyntax()))
-    opts.push(view.wode.themeExtension.of(themeExtension))
-  }
-  else {
-    opts.push(view.wode.highlightSyntax.of([]))
-    opts.push(view.wode.themeExtension.of([]))
-  }
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')
@@ -3599,34 +3584,6 @@ function themeStyles
   return styles
 }
 
-function reconfigureHighlightSyntax
-(buf, view) {
-  if (buf.opt('core.highlight.syntax.enabled'))
-    view.ed.dispatch({ effects: [ view.wode.highlightSyntax.reconfigure(makeHighlightSyntax()),
-                                  view.wode.themeExtension.reconfigure(themeExtension) ] })
-  else
-    view.ed.dispatch({ effects: [ view.wode.highlightSyntax.reconfigure([]),
-                                  view.wode.themeExtension.reconfigure([]) ] })
-}
-
-function initOpt
-() {
-  function on
-  (name, cb) {
-    Opt.onSet(name, () => Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed)
-        cb(buf, view)
-    })))
-
-    Opt.onSetBuf(name, buf => buf.views.forEach(view => {
-      if (view.ed)
-        cb(buf, view)
-    }))
-  }
-
-  on('core.highlight.syntax.enabled', reconfigureHighlightSyntax)
-}
-
 function handleCustomTags
 (m) {
   if (m.customTags) {
@@ -3830,6 +3787,5 @@ function init
     })
   */
 
-  initOpt()
   initActiveLine()
 }

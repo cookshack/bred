@@ -272,7 +272,7 @@ function initHelp
       let name, callerBuf
 
       name = we.e.target.dataset.name
-      callerBuf = Win.shared().helpBuffer
+      callerBuf = Win.shared().helpBuffer.callerBuf
       callerBuf?.opts.set(name, !callerBuf.opt(name))
     }
     else

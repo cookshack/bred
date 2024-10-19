@@ -82,6 +82,12 @@ function posRowIncr
 }
 
 export
+function themeExtension
+() {
+  return Backend.themeExtension
+}
+
+export
 function langs
 () {
   return Backend.langs || []

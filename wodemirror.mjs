@@ -1611,7 +1611,8 @@ function initModeFns
   (b, name, cb) {
     if (name == 'change')
       b.views.forEach(view => {
-        voffChange(view, cb)
+        if (view.win == Win.current())
+          voffChange(view, cb)
       })
   }
 
@@ -1619,7 +1620,8 @@ function initModeFns
   (b, name, cb) {
     if (name == 'change')
       b.views.forEach(view => {
-        vonChange(view, cb)
+        if (view.win == Win.current())
+          vonChange(view, cb)
       })
   }
 

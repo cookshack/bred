@@ -116,10 +116,8 @@ function ask
   }
 
   p = Pane.current()
-  if (buf) {
-    buf.clear()
+  if (buf)
     buf.dir = p.dir
-  }
   else {
     buf = Buf.make('Prompt', 'Prompt', divW(), p.dir)
     buf.vars('ed').fillParent = 0
@@ -131,7 +129,10 @@ function ask
   }
   buf.vars('prompt').run = cb
   buf.vars('prompt').orig = p.buf
-  p.setBuf(buf, null, 0, view => view.buf.views.forEach(v => setMl(v)))
+  p.setBuf(buf, null, 0, view => {
+    buf.clear()
+    view.buf.views.forEach(v => setMl(v))
+  })
 }
 
 export

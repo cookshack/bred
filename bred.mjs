@@ -1454,11 +1454,11 @@ function initFile
     buf.opts.set('core.minimap.enabled', 0)
     hist.reset()
     buf.off('change', onChange)
-    buf.clear()
     buf.file = 0
     //buf.dir = 0
     dir = p.dir
     p.setBuf(buf, null, null, () => {
+      buf.clear()
       buf.dir = dir
 
       ml = p.view.ele.querySelector('.edMl')

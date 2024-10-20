@@ -492,10 +492,8 @@ function initLog
     let p
 
     p = Pane.current()
-    if (buf) {
-      buf.clear()
+    if (buf)
       buf.dir = p.dir
-    }
     else {
       buf = Buf.add('VC Log', 'VC Log', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
       buf.icon = 'log'
@@ -505,6 +503,7 @@ function initLog
     buf.opts.set('core.minimap.enabled', 0)
     buf.opts.set('core.lang', 'git log')
     p.setBuf(buf, null, 0, view => {
+      buf.clear()
       refresh(view)
     })
   })
@@ -819,10 +818,8 @@ function initAnnotate
     p = Pane.current()
     p.buf.path || Mess.toss('buffer path missing')
     name = 'Annotate: ' + p.buf.path
-    if (buf) {
-      buf.clear()
+    if (buf)
       buf.dir = p.dir
-    }
     else {
       buf = Buf.add(name,
                     'VC Annotate',
@@ -836,6 +833,7 @@ function initAnnotate
     //buf.opts.set('core.lang', 'git log')
     buf.vars('vc').file = p.buf.path
     p.setBuf(buf, null, 0, view => {
+      buf.clear()
       refresh(view)
     })
   })

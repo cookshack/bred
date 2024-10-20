@@ -306,12 +306,12 @@ function init
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('core.minimap.enabled', 0)
     hist.reset()
-    buf.clear()
     buf.file = 0
     //buf.dir = 0
     dir = p.dir
     p.setBuf(buf, null, null, () => {
       // view has been created
+      buf.clear()
       buf.dir = dir
 
       ml = p.view.ele.querySelector('.edMl')

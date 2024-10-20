@@ -745,11 +745,11 @@ function initSearchFiles
       buf.opts.set('core.lint.enabled', 0)
       buf.opts.set('core.minimap.enabled', 0)
       hist.reset()
-      buf.clear()
       buf.file = 0
       //buf.dir = 0
       dir = p.dir
       p.setBuf(buf, null, 0, () => {
+        buf.clear()
         buf.dir = dir
         ml = p.view.ele.querySelector('.edMl')
         under = p.view.ele.querySelector('.bred-search_files-under')

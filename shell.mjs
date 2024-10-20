@@ -205,7 +205,6 @@ function shellOrSpawn1
     re = new RegExp(`^${Ed.escapeForRe(name)}(<[0-9]+>)?$`)
     b = Buf.find(b2 => re.test(b2.name))
     if (b) {
-      b.clear()
       b.dir = dir
       b.views.forEach(view => setMl(view.ele))
     }
@@ -218,7 +217,11 @@ function shellOrSpawn1
       setMl(w)
     }
 
-    p.setBuf(b, null, null, () => cb(b))
+    p.setBuf(b, null, null, () => {
+      b.clear()
+      if (cb)
+        cb(b)
+    })
   }
 
   if (hist)

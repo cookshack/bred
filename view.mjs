@@ -259,8 +259,7 @@ function make
         cb(v)
       if (whenReady)
         whenReady(v)
-    },
-               1000)
+    })
   }
 
   function vars

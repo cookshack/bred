@@ -12,6 +12,9 @@ function init
 
   Cmd.add('enable samples', u => Ed.enable(u, 'samples.enabled'))
   Cmd.add('samples', () => Pane.open(Loc.appDir().join('ext/samples/samples')))
+
+  //Win.forEach(win => win.menu.add('help', 'Language Samples', 'samples'))
+  //Menu.add('help', 'Language Samples', 'samples')
 }
 
 export

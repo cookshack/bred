@@ -59,6 +59,13 @@ function makeMenu
     })
   }
 
+  function add
+  (parent, spec) {
+    d('add')
+    d(parent)
+    d(spec)
+  }
+
   function clear
   () {
     for (let i = 0; i < menu.ele.children.length; i++)
@@ -118,7 +125,54 @@ function makeMenu
     Css.enable(devtoolsToggle)
   })
 
-  menu = { ele: divCl('bred-menu',
+  menu = { spec: [ { name: 'File',
+                     items: [ 'New Window',
+                              { line: 1 },
+                              'Open File',
+                              'Open Recent',
+                              { line: 1 },
+                              'Save',
+                              'Save As...',
+                              { line: 1 },
+                              'Extensions',
+                              'Options',
+                              { line: 1 },
+                              'Restart',
+                              'Quit' ] },
+                   { name: 'Edit',
+                     items: [ 'Undo',
+                              'Redo',
+                              { line: 1 },
+                              'Cut',
+                              'Copy',
+                              'Paste',
+                              { line: 1 },
+                              'Select All',
+                              { name: 'Clipboard', cmd: 'cuts' },
+                              { line: 1 },
+                              'Find',
+                              'Find and Replace' ] },
+                   { name: 'Buffer',
+                     items: [ { name: 'Close', cmd: 'close buffer' },
+                              { name: 'Switch', cmd: 'switch to buffer' },
+                              { name: 'List', cmd: 'buffers' },
+                              { line: 1 } ] },
+                   { name: 'Pane',
+                     items: [ 'Split',
+                              { name: 'Maximize', cmd: 'pane max' },
+                              { name: 'Close', cmd: 'pane close' } ] },
+                   //places.el,
+                   { name: 'Help',
+                     items: [ 'Welcome',
+                              { name: 'View Log', cmd: 'messages' },
+                              { name: 'Describe Current Buffer', cmd: 'describe buffer' },
+                              { line: 1 },
+                              //{ name: 'Language Samples', cmd: 'samples' },
+                              { name: 'Toggle Devtools', cmd: 'toggle devtools' },
+                              { name: 'Open Test Buffer', cmd: 'test buffer' },
+                              { line: 1 },
+                              { name: 'About Bred', cmd: 'about' } ] } ],
+           ele: divCl('bred-menu',
                       [ menu0('File',
                               [ item('New Window'),
                                 line(),
@@ -179,10 +233,11 @@ function makeMenu
              return devtoolsToggle
            },
            //
-           close: close,
-           fill: fill,
-           open: open,
-           places: places }
+           add,
+           close,
+           fill,
+           open,
+           places }
 
   menu.places.update()
 

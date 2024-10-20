@@ -72,8 +72,7 @@ function init
                                            + (i == 0 ? ' execute-cmd-current' : ''),
                                            name,
                                            { 'data-name': name,
-                                             'data-run': 'bury',
-                                             'data-after': name })) ])
+                                             'data-run': 'select' })) ])
   }
 
   function viewInit
@@ -139,24 +138,32 @@ function init
   }
 
   function select
-  () {
-    let p, w
+  (u, we) {
+    let p, w, cb
 
     p = Pane.current()
+    cb = p.buf.vars('execute').cb
+    if (we?.e && (we.e.button == 0)) {
+      let name
+
+      name = we.e.target.dataset.name
+      p.setBuf(callerBuf, null, 0, () => {
+        if (cb)
+          cb(name, callerBuf)
+      })
+      return
+    }
+
     w = p.ele.firstElementChild.firstElementChild
     if (Css.has(w, 'execute-w')) {
       let current
 
       current = w.querySelector('.execute-cmd-current')
-      if (current) {
-        let cb
-
-        cb = p.buf.vars('execute').cb
+      if (current)
         p.setBuf(callerBuf, null, 0, () => {
           if (cb)
             cb(current.dataset.name, callerBuf)
         })
-      }
     }
   }
 

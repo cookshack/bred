@@ -31,6 +31,7 @@ div[data-run].execute-cmd {
 }
 
 .execute-needle {
+  pointer-events: none;
   position: absolute;
   top: 0;
   left: 0;

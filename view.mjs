@@ -58,12 +58,14 @@ function make
     reserved = 0
     if (mode && mode.viewReopen)
       mode.viewReopen(v, lineNum, whenReady, cb)
-    else {
-      ready = 1
-      if (cb)
-        cb(v)
-      // whenready?
-    }
+    else
+      // timeout so behaves like viewReopen
+      setTimeout(() => {
+        ready = 1
+        if (cb)
+          cb(v)
+        // whenready?
+      })
   }
 
   function region
@@ -250,11 +252,15 @@ function make
 
   function ready1
   () {
-    ready = 1
-    if (cb)
-      cb(v)
-    if (whenReady)
-      whenReady(v)
+    // timeout so behaves like viewinit,viewcopy
+    setTimeout(() => {
+      ready = 1
+      if (cb)
+        cb(v)
+      if (whenReady)
+        whenReady(v)
+    },
+               1000)
   }
 
   function vars

@@ -971,15 +971,18 @@ export
 function viewReopen
 (view, lineNum, whenReady, cb) {
   d('================== viewReopen')
-  view.ready = 1
-  //view.ed.resize()
-  view.ed.focus()
-  if (Ed.defined(lineNum))
-    vgotoLine(view, lineNum)
-  if (cb)
-    cb(view)
-  if (whenReady)
-    whenReady(view)
+  // timeout so behaves like viewInit
+  setTimeout(() => {
+    view.ready = 1
+    //view.ed.resize()
+    view.ed.focus()
+    if (Ed.defined(lineNum))
+      vgotoLine(view, lineNum)
+    if (cb)
+      cb(view)
+    if (whenReady)
+      whenReady(view)
+  })
 }
 
 export

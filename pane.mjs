@@ -143,7 +143,7 @@ function add
    spec, // { lineNum, whenReady, bury }
    cb) { // (view)
     if (view?.buf == b2) {
-      d('setBuf to same buf')
+      d('setBuf2 to same buf')
       b = b2
       if (cb)
         cb(view)
@@ -151,8 +151,13 @@ function add
         spec.whenReady(view)
       return
     }
-    if (b)
+    if (b) {
       Buf.queue(b)
+      // this was done in the cb in the Bury cmd, but then if you do Bury in dataset.run and eg Options in dataset.after
+      // then Options runs before the Bury cb because it's async.
+      if (spec.bury)
+        b.bury()
+    }
     b = b2
     if (view
         && view.ready) // else there may be a peer/fs callback about to access this view
@@ -177,7 +182,6 @@ function add
    whenReady,
    // called when buf ready to use
    cb) { // (view)
-    d('PANE setBuf')
     setBuf2(b2,
             { lineNum: lineNum,
               whenReady: whenReady },
@@ -277,6 +281,7 @@ function add
         pos,
         // always use this to set the buf, because it's nb to use a cb if you want to access the view after.
         setBuf,
+        setBuf2,
         focus,
         text }
   id++
@@ -378,17 +383,13 @@ function holdingView
 export
 function bury
 (pane) {
-  let b, t
+  let t
 
   pane = pane || current()
   t = Buf.top(pane.buf)
   if (t == pane.buf)
     return
-  b = pane.buf
-  pane.setBuf(t, null, 0, () => {
-    // after, because setBuf will move the existing buf (b) to the top
-    b.bury()
-  })
+  pane.setBuf2(t, { bury: 1 })
 }
 
 export

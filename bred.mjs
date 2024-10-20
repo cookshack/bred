@@ -465,8 +465,6 @@ function initCmds
     Ed.make(p, 'Scratch.js', p.dir)
   })
 
-  Cmd.add('samples', () => Pane.open(Loc.appDir().join('samples')))
-
   Cmd.add('evaluate expression', () => {
     d('ee')
   })

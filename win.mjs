@@ -161,7 +161,7 @@ function makeMenu
                                 item('View Log', 'messages'),
                                 item('Describe Current Buffer', 'describe buffer'),
                                 line(),
-                                item('Language Samples', 'samples'),
+                                //item('Language Samples', 'samples'),
                                 item('Toggle Devtools', 'toggle devtools'),
                                 item('Open Test Buffer', 'test buffer'),
                                 line(),

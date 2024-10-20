@@ -68,28 +68,28 @@ function makeMenu
 
   function clear
   () {
-    for (let i = 0; i < menu.ele.children.length; i++)
-      Css.remove(menu.ele.children[i], 'bred-open')
+    for (let i = 0; i < menu.el.children.length; i++)
+      Css.remove(menu.el.children[i], 'bred-open')
   }
 
   function close
   () {
-    Css.remove(menu.ele, 'bred-open')
+    Css.remove(menu.el, 'bred-open')
     clear()
-    for (let i = 0; i < menu.ele.children.length; i++)
-      menu.ele.children[i].onmouseover = null
+    for (let i = 0; i < menu.el.children.length; i++)
+      menu.el.children[i].onmouseover = null
   }
 
   function open
   () {
-    Css.add(menu.ele, 'bred-open')
+    Css.add(menu.el, 'bred-open')
     clear()
-    for (let i = 0; i < menu.ele.children.length; i++)
-      menu.ele.children[i].onmouseover = () => {
-        if (Css.has(menu.ele.children[i], 'bred-open'))
+    for (let i = 0; i < menu.el.children.length; i++)
+      menu.el.children[i].onmouseover = () => {
+        if (Css.has(menu.el.children[i], 'bred-open'))
           return
         clear()
-        Css.add(menu.ele.children[i], 'bred-open')
+        Css.add(menu.el.children[i], 'bred-open')
       }
   }
 
@@ -172,62 +172,62 @@ function makeMenu
                               { name: 'Open Test Buffer', cmd: 'test buffer' },
                               { line: 1 },
                               { name: 'About Bred', cmd: 'about' } ] } ],
-           ele: divCl('bred-menu',
-                      [ menu0('File',
-                              [ item('New Window'),
-                                line(),
-                                item('Open File'),
-                                item('Open Recent'),
-                                line(),
-                                item('Save'),
-                                item('Save As...'),
-                                line(),
-                                item('Extensions'),
-                                item('Options'),
-                                line(),
-                                item('Restart', 'restart'),
-                                item('Quit') ]),
-                        menu0('Edit',
-                              [ item('Undo'),
-                                item('Redo'),
-                                line(),
-                                item('Cut'),
-                                item('Copy'),
-                                item('Paste'),
-                                line(),
-                                item('Select All'),
-                                item('Clipboard', 'cuts'),
-                                line(),
-                                item('Find'),
-                                item('Find and Replace') ]),
-                        menu0('Buffer',
-                              [ item('Close', 'close buffer'),
-                                item('Switch', 'switch to buffer'),
-                                item('List', 'buffers'),
-                                line() ]),
-                        menu0('Pane',
-                              [ item('Split', 'split'),
-                                item('Maximize', 'pane max'),
-                                item('Close', 'pane close') ]),
-                        places.el,
-                        menu0('Help',
-                              [ item('Welcome', 'welcome'),
-                                item('View Log', 'messages'),
-                                item('Describe Current Buffer', 'describe buffer'),
-                                line(),
-                                //item('Language Samples', 'samples'),
-                                item('Toggle Devtools', 'toggle devtools'),
-                                item('Open Test Buffer', 'test buffer'),
-                                line(),
-                                item('About Bred', 'about') ]),
-                        divCl('menu-panel',
-                              [ divCl('bred-add-tab onfill',
-                                      img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
-                                      { 'data-run': 'add tab' }),
-                                divCl('bred-restart onfill',
-                                      img('img/restart.svg', 'Restart', 'filter-clr-text'),
-                                      { 'data-run': 'restart' }),
-                                devtoolsToggle ]) ]),
+           el: divCl('bred-menu',
+                     [ menu0('File',
+                             [ item('New Window'),
+                               line(),
+                               item('Open File'),
+                               item('Open Recent'),
+                               line(),
+                               item('Save'),
+                               item('Save As...'),
+                               line(),
+                               item('Extensions'),
+                               item('Options'),
+                               line(),
+                               item('Restart', 'restart'),
+                               item('Quit') ]),
+                       menu0('Edit',
+                             [ item('Undo'),
+                               item('Redo'),
+                               line(),
+                               item('Cut'),
+                               item('Copy'),
+                               item('Paste'),
+                               line(),
+                               item('Select All'),
+                               item('Clipboard', 'cuts'),
+                               line(),
+                               item('Find'),
+                               item('Find and Replace') ]),
+                       menu0('Buffer',
+                             [ item('Close', 'close buffer'),
+                               item('Switch', 'switch to buffer'),
+                               item('List', 'buffers'),
+                               line() ]),
+                       menu0('Pane',
+                             [ item('Split', 'split'),
+                               item('Maximize', 'pane max'),
+                               item('Close', 'pane close') ]),
+                       places.el,
+                       menu0('Help',
+                             [ item('Welcome', 'welcome'),
+                               item('View Log', 'messages'),
+                               item('Describe Current Buffer', 'describe buffer'),
+                               line(),
+                               //item('Language Samples', 'samples'),
+                               item('Toggle Devtools', 'toggle devtools'),
+                               item('Open Test Buffer', 'test buffer'),
+                               line(),
+                               item('About Bred', 'about') ]),
+                       divCl('menu-panel',
+                             [ divCl('bred-add-tab onfill',
+                                     img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
+                                     { 'data-run': 'add tab' }),
+                               divCl('bred-restart onfill',
+                                     img('img/restart.svg', 'Restart', 'filter-clr-text'),
+                                     { 'data-run': 'restart' }),
+                               devtoolsToggle ]) ]),
            //
            get devtoolsToggle() {
              return devtoolsToggle
@@ -429,7 +429,7 @@ function add
     area = Area.add(win, 'bred-top')
 
     append(area.el,
-           [ win.menu.ele,
+           [ win.menu.el,
              win.mini ])
     area.show()
 

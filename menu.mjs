@@ -40,9 +40,20 @@ function line
   return divCl('bred-menu1-line')
 }
 
+function itemsEl
+(items) {
+  return items.map(it => {
+    if (it.line)
+      return line()
+    if ((typeof it == 'string') || it instanceof String)
+      return item(it)
+    return item(it.name, it.cmd)
+  })
+}
+
 export
 function makeEl
-(devtools, places) {
+(spec, devtools, places) {
   let el, devtoolsToggle
 
   devtoolsToggle = divCl('bred-devtools onfill' + (devtools?.open ? ' bred-open' : ''),
@@ -58,53 +69,10 @@ function makeEl
   })
 
   el = divCl('bred-menu',
-             [ menu0('File',
-                     [ item('New Window'),
-                       line(),
-                       item('Open File'),
-                       item('Open Recent'),
-                       line(),
-                       item('Save'),
-                       item('Save As...'),
-                       line(),
-                       item('Extensions'),
-                       item('Options'),
-                       line(),
-                       item('Restart', 'restart'),
-                       item('Quit') ]),
-               menu0('Edit',
-                     [ item('Undo'),
-                       item('Redo'),
-                       line(),
-                       item('Cut'),
-                       item('Copy'),
-                       item('Paste'),
-                       line(),
-                       item('Select All'),
-                       item('Clipboard', 'cuts'),
-                       line(),
-                       item('Find'),
-                       item('Find and Replace') ]),
-               menu0('Buffer',
-                     [ item('Close', 'close buffer'),
-                       item('Switch', 'switch to buffer'),
-                       item('List', 'buffers'),
-                       line() ]),
-               menu0('Pane',
-                     [ item('Split', 'split'),
-                       item('Maximize', 'pane max'),
-                       item('Close', 'pane close') ]),
+             [ spec.map(item0 => menu0(item0.name,
+                                       itemsEl(item0.items))),
                places.el,
-               menu0('Help',
-                     [ item('Welcome', 'welcome'),
-                       item('View Log', 'messages'),
-                       item('Describe Current Buffer', 'describe buffer'),
-                       line(),
-                       //item('Language Samples', 'samples'),
-                       item('Toggle Devtools', 'toggle devtools'),
-                       item('Open Test Buffer', 'test buffer'),
-                       line(),
-                       item('About Bred', 'about') ]),
+               //item('Language Samples', 'samples'),
                divCl('menu-panel',
                      [ divCl('bred-add-tab onfill',
                              img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
@@ -250,7 +218,7 @@ function make
            open,
            places }
 
-  ;[ menu.el, devtoolsToggle ] = makeEl(devtools, places)
+  ;[ menu.el, devtoolsToggle ] = makeEl(menu.spec, devtools, places)
   menu.places.update()
 
   return menu

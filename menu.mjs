@@ -9,6 +9,7 @@ import * as Pane from './pane.mjs'
 import * as Place from './place.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
+import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
 export
@@ -52,40 +53,6 @@ function itemsEl
 }
 
 export
-function makeEl
-(spec, devtools, places) {
-  let el, devtoolsToggle
-
-  devtoolsToggle = divCl('bred-devtools onfill' + (devtools?.open ? ' bred-open' : ''),
-                         img('img/open2.svg', 'Toggle Devtools', 'filter-clr-text'),
-                         { 'data-run': 'toggle devtools' })
-
-  Tron.on('devtools', (err, d) => {
-    if (d.open)
-      Css.add(devtoolsToggle, 'bred-open')
-    else
-      Css.remove(devtoolsToggle, 'bred-open')
-    Css.enable(devtoolsToggle)
-  })
-
-  el = divCl('bred-menu',
-             [ spec.map(item0 => menu0(item0.name,
-                                       itemsEl(item0.items))),
-               places.el,
-               //item('Language Samples', 'samples'),
-               divCl('menu-panel',
-                     [ divCl('bred-add-tab onfill',
-                             img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
-                             { 'data-run': 'add tab' }),
-                       divCl('bred-restart onfill',
-                             img('img/restart.svg', 'Restart', 'filter-clr-text'),
-                             { 'data-run': 'restart' }),
-                       devtoolsToggle ]) ])
-
-  return [ el, devtoolsToggle ]
-}
-
-export
 function make
 (devtools, win) {
   let places, menu, devtoolsToggle
@@ -108,9 +75,32 @@ function make
 
   function add
   (parent, spec) {
-    d('add')
-    d(parent)
-    d(spec)
+    let m0
+
+    m0 = menu.spec.find(s => s.name == parent)
+    d({ m0 })
+    if (m0) {
+      m0.items = m0.items || []
+      m0.items.push(spec)
+      build()
+    }
+  }
+
+  function build
+  () {
+    menu.el.innerHTML = ''
+    append(menu.el,
+           menu.spec.map(item0 => menu0(item0.name,
+                                        itemsEl(item0.items))),
+           places.el,
+           divCl('menu-panel',
+                 [ divCl('bred-add-tab onfill',
+                         img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
+                         { 'data-run': 'add tab' }),
+                   divCl('bred-restart onfill',
+                         img('img/restart.svg', 'Restart', 'filter-clr-text'),
+                         { 'data-run': 'restart' }),
+                   devtoolsToggle ]))
   }
 
   function clear
@@ -218,8 +208,28 @@ function make
            open,
            places }
 
-  ;[ menu.el, devtoolsToggle ] = makeEl(menu.spec, devtools, places)
+  devtoolsToggle = divCl('bred-devtools onfill' + (devtools?.open ? ' bred-open' : ''),
+                         img('img/open2.svg', 'Toggle Devtools', 'filter-clr-text'),
+                         { 'data-run': 'toggle devtools' })
+
+  Tron.on('devtools', (err, d) => {
+    if (d.open)
+      Css.add(devtoolsToggle, 'bred-open')
+    else
+      Css.remove(devtoolsToggle, 'bred-open')
+    Css.enable(devtoolsToggle)
+  })
+
+  menu.el = divCl('bred-menu')
+  build()
   menu.places.update()
 
   return menu
+}
+
+export
+function add
+(parent, spec) {
+  d('Ma')
+  Win.current().menu.add(parent, spec)
 }

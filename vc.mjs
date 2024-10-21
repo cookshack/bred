@@ -869,6 +869,10 @@ function init
 () {
   let moB
 
+  Cmd.add('branch update', () => {
+    git('git fetch --all --tags --prune')
+  })
+
   Cmd.add('branch switch', () => {
     let line
 
@@ -890,6 +894,7 @@ function init
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })
 
+  Em.on('u', 'branch update', moB)
   Em.on('s', 'branch switch', moB)
   Em.on('Enter', 'branch switch', moB)
 

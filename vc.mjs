@@ -869,7 +869,7 @@ function init
 () {
   let moB
 
-  Cmd.add('branch checkout', () => {
+  Cmd.add('branch switch', () => {
     let line
 
     line = Pane.current().line()
@@ -877,8 +877,12 @@ function init
       Mess.say("That's the current branch")
     else if (line.trim().length == 0)
       Mess.say('Empty line')
-    else
-      git('git checkout ' + line)
+    else {
+      let br
+
+      br = line.split('/').at(-1)
+      git('git switch ' + br)
+    }
   })
 
   moB = Mode.add('branch', { viewInit: Ed.viewInit,
@@ -886,8 +890,8 @@ function init
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })
 
-  Em.on('c', 'branch checkout', moB)
-  Em.on('Enter', 'branch checkout', moB)
+  Em.on('s', 'branch switch', moB)
+  Em.on('Enter', 'branch switch', moB)
 
   initClrs()
   initAnnotate()

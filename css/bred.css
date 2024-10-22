@@ -1555,9 +1555,11 @@ div.cm-line.cm-activeLine::before,
   width: 100%;
   height: 100%;
   display: flex;
-  opacity: 0.5;
-  box-shadow: inset 0 -1px 0 0 var(--clr-nb3);
+}
+
+div.cm-line.cm-activeLine::before {
   z-index: var(--z-activeLine);
+  box-shadow: inset 0 -1px 0 0 var(--clr-nb3);
 }
 
 .bred-bg::before {

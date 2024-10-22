@@ -23,6 +23,7 @@ function git
                b => {
                  if (mode)
                    b.mode = mode
+                 b.addMode('view')
                  minors?.forEach(minor => b.addMode(minor))
                })
 }
@@ -839,7 +840,7 @@ function initAnnotate
     })
   })
 
-  // should use view mode
+  // should use view mode but want n,p
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
@@ -907,7 +908,7 @@ function init
   initEqual()
   initStash()
 
-  Cmd.add('vc branch', () => git('git branch --all', 'branch', [ 'view' ]))
+  Cmd.add('vc branch', () => git('git branch --all', 'branch'))
   Cmd.add('vc pull', () => git('git-pull-with-name'))
   Cmd.add('vc push', () => git('git push origin HEAD'))
   Cmd.add('vc reset', () => reset())

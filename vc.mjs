@@ -17,12 +17,13 @@ import { d } from './mess.mjs'
 let clrs
 
 function git
-(cmd, mode) {
+(cmd, mode, minors) {
   // these use shell1 instead of spawn1 so that .bashrc is loaded (needed eg for nvm init)
   Shell.shell1(cmd, 1, 0, 0, 0, 0, 0,
                b => {
                  if (mode)
                    b.mode = mode
+                 minors?.forEach(minor => b.addMode(minor))
                })
 }
 
@@ -906,7 +907,7 @@ function init
   initEqual()
   initStash()
 
-  Cmd.add('vc branch', () => git('git branch --all', 'branch'))
+  Cmd.add('vc branch', () => git('git branch --all', 'branch', [ 'view' ]))
   Cmd.add('vc pull', () => git('git-pull-with-name'))
   Cmd.add('vc push', () => git('git push origin HEAD'))
   Cmd.add('vc reset', () => reset())

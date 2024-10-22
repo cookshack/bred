@@ -23,8 +23,8 @@ function git
                b => {
                  if (mode)
                    b.mode = mode
-                 b.addMode('view')
                  minors?.forEach(minor => b.addMode(minor))
+                 b.addMode('view')
                })
 }
 
@@ -44,7 +44,7 @@ function initStash
 
       st = /[^@]+@{([^}]+)/.exec(line)[1]
       if (st && st.length)
-        git('git stash show -p ' + st, Ed.patchModeName())
+        git('git stash show -p ' + st, Ed.patchModeName(), [ 'equal' ])
       else
         Mess.warn('Failed to extract stash num: ' + line)
     }

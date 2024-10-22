@@ -767,7 +767,7 @@ function initSearchFiles
                           initFns: Ed.initModeFns,
                           parentsForEm: 'ed',
                           decorators: [ { regex: /^([^:]+:[0-9]+:).*$/d,
-                                          decor: [ { attr: { style: 'color: var(--clr-emph-light); --background-color: var(--clr-fill); --z-index: var(--z-below-activeLine);',
+                                          decor: [ { attr: { style: 'color: var(--clr-emph-light); --background-color: var(--clr-fill);',
                                                              class: 'bred-bg',
                                                              'data-run': 'select' } } ] } ] })
 

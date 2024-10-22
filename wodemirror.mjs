@@ -3612,8 +3612,6 @@ function initActiveLine
 
   css = `
 div.cm-line.cm-activeLine {
-  --background-color: ${Theme.meanings.nb0VeryLightTranslucent};
-  --z-index: var(--z-activeLine);
   position: relative;
   background: inherit;
 }`

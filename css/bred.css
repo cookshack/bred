@@ -62,6 +62,7 @@
   --clr-scroll-fill: var(--clr-fill);
 */
 
+  --background-color: inherit;
   --scrollbar-size: 14px;
   --height-ml: 1.6rem;
   --height-menu: 1.6rem;
@@ -78,7 +79,7 @@
   --z-close: 90;
   --z-indent-marker: 50; /* above line */
   --z-below-selection: -3; /* cm selection is -2 */
-  --z-activeLine: 0;
+  --z-activeLine: -1; /* for the :before of the activeLine, eg to set a background */
   --z-below-activeLine: calc(var(--z-activeLine) - 1);
 }
 
@@ -1543,6 +1544,7 @@ span.bred-search-match > span.bred-search-all > span {
 
 div.cm-line.cm-activeLine::before,
 .bred-bg::before {
+  pointer-events: none;
   content: " ";
   position: absolute;
   top: 0;
@@ -1555,7 +1557,12 @@ div.cm-line.cm-activeLine::before,
   display: flex;
   opacity: 0.5;
   box-shadow: inset 0 -1px 0 0 var(--clr-nb3);
-  z-index: var(--z-index);
+  z-index: var(--z-activeLine);
+}
+
+.bred-bg::before {
+  z-index: var(--z-below-activeLine);
+  background-color: var(--background-color);
 }
 
 .disabled {

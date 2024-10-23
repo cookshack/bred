@@ -706,6 +706,20 @@ function _viewInit
   })
 
   domEventHandlers = {
+    contextmenu() {
+      // prevent right click from moving point
+      return true
+    },
+    mousedown(event) {
+      // prevent right click from moving point
+      if (event.button == 2)
+        return true
+    },
+    mouseup(event) {
+      // prevent right click from moving point
+      if (event.button == 2)
+        return true
+    },
     paste(event, ed) {
       try {
         let bep, str, view

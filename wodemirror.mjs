@@ -1014,6 +1014,9 @@ function viewReopen
     view.ed.focus()
     if (Ed.defined(lineNum))
       vgotoLine(view, lineNum)
+    else
+      view.ed.dispatch({ effects: CMView.EditorView.scrollIntoView(view.ed.state.selection.main.head,
+                                                                   { y: 'center' }) })
     if (cb)
       cb(view)
     if (whenReady)

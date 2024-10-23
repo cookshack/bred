@@ -706,6 +706,28 @@ function _viewInit
   })
 
   domEventHandlers = {
+    click(e) {
+      let run, target
+
+      // duplicated from Em.handle
+      // Required for data-run eg of file name in A-x Search Files when core.highlight.occurrences.enabled.
+      // In Em.handle the target is the activeLine instead of the activeLine > selectionMatch which has the data-run.
+
+      target = globalThis.document.elementFromPoint(e.clientX, e.clientY)
+      run = target?.dataset?.run
+      if (run) {
+        let p
+
+        p = Pane.holding(target)
+        if (p)
+          p.focus()
+        Mess.say('')
+
+        d('wode cmd on data-run: ' + run)
+        d(run)
+        Cmd.run(run, buf, Cmd.universal(run), { mouse: 1, name: 'click', e: e, buf: p?.buf })
+      }
+    },
     contextmenu() {
       // prevent right click from moving point
       return true

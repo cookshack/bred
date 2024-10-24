@@ -34,7 +34,7 @@ function init
     name = callerBuf.file + '.leztree'
     found = Buf.find(b => (b.mode.name == 'lezer tree') && (b.name == name))
     if (found)
-      p.buf = found
+      p.setBuf(found)
     else
       make(p, callerBuf.dir, name)
     fill(p.view)

@@ -41,7 +41,7 @@ function init
                 divCl('clock-ww', divCl('clock-w bred-surface')),
                 p.dir)
     b.addMode('view')
-    p.buf = b
+    p.setBuf(b)
   }
 
   function updateTime
@@ -60,7 +60,7 @@ function init
     p = Pane.current()
     found = Buf.find(b => b.mode.key == 'clock')
     if (found)
-      p.buf = found
+      p.setBuf(found)
     else
       make(p)
   })

@@ -100,7 +100,7 @@ function init
                 divCl('calendar-ww', divCl('calendar-w bred-surface')),
                 p.dir)
     b.addMode('view')
-    p.buf = b
+    p.setBuf(b)
   }
 
   mode = Mode.add('Calendar', { viewInit: refresh })
@@ -117,7 +117,7 @@ function init
     p = Pane.current()
     found = Buf.find(b => b.mode.key == 'calendar')
     if (found)
-      p.buf = found
+      p.setBuf(found)
     else
       make(p)
   })

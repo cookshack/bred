@@ -22,7 +22,7 @@ function make
 
   b = Buf.add('ASCII', 'ASCII', divW(), p.dir)
   b.addMode('view')
-  p.buf = b
+  p.setBuf(b)
 }
 
 export
@@ -138,7 +138,7 @@ function init
     p = Pane.current()
     found = Buf.find(b => b.mode.name == 'ascii')
     if (found)
-      p.buf = found
+      p.setBuf(found)
     else
       make(p)
   }

@@ -24,7 +24,7 @@ function init
     let b, restart
 
     b = Buf.add('Minesweeper', 'minesweeper', divW(), p.dir)
-    p.buf = b
+    p.setBuf(b)
 
     sweeper = globalThis.document.getElementById('minesweeper')
 
@@ -98,7 +98,7 @@ function init
     p = Pane.current()
     found = Buf.find(b => b.mode.name == 'minesweeper')
     if (found)
-      p.buf = found
+      p.setBuf(found)
     else
       make(p)
   }

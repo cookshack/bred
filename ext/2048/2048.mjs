@@ -24,7 +24,7 @@ function init
     let b, restart
 
     b = Buf.add('2048', '2048', divW(), p.dir)
-    p.buf = b
+    p.setBuf(b)
 
     game = globalThis.document.getElementById('two048')
 
@@ -98,7 +98,7 @@ function init
     p = Pane.current()
     found = Buf.find(b => b.mode.name == '2048')
     if (found)
-      p.buf = found
+      p.setBuf(found)
     else
       make(p)
   }

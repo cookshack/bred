@@ -671,7 +671,7 @@ function initLangs
 
   function refresh
   (view) {
-    let w, frag
+    let w, frag, langs
 
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''

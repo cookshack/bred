@@ -14,6 +14,18 @@
   grid-gap: 0.25rem;
 }
 
+.langs-h {
+  grid-column: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.langs-title {
+  font-size: 1.6rem;
+  color: var(--clr-emph);
+}
+
+
 .langs-w > div {
   display: flex;
   padding: 0.25rem;

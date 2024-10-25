@@ -583,6 +583,10 @@ function initLangs
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
     frag = new globalThis.DocumentFragment()
+    append(frag,
+           divCl('langs-h',
+                 [ divCl('langs-title', 'Langs'),
+                   div('') ]))
     Ed.langs().forEach(lang =>
       append(frag,
              div(lang.name || 'ERR'),

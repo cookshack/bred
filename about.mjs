@@ -578,7 +578,7 @@ function initLang
 
   function refresh
   (view) {
-    let w, frag, name
+    let w, frag, name, lang
 
     name = view.buf.vars('lang').name
     w = view.ele.firstElementChild.firstElementChild
@@ -588,9 +588,29 @@ function initLang
            divCl('lang-h',
                  [ divCl('lang-title', 'Lang'),
                    div() ]))
+
     append(frag,
            div('Name'),
            div(name || '??'))
+
+    lang = Ed.langs().find(l => l.name == name)
+    if (lang)
+      append(frag,
+             div('Id'),
+             div(lang.id),
+             div('Module'),
+             div(lang.module
+                 && div(lang.module,
+                        { 'data-run': 'open externally',
+                          'data-url': 'http://npmjs.com/package/' + lang.module })),
+             div('Extensions'),
+             div(lang.extensions.join(' ')),
+             div('Matches Filenames'),
+             div(lang.filenames?.join(', ')),
+             div('Matches Path Regex'),
+             div(lang.filename?.toString()),
+             div('Type'),
+             div(lang.legacy ? 'legacy' : 'lezer'))
 
     append(frag, divCl('lang-end'))
     append(w, frag)
@@ -656,11 +676,13 @@ function initLangs
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
     frag = new globalThis.DocumentFragment()
+    langs = Ed.langs().slice(0) // copy
+    langs = langs.sort((a,b) => ('' + a.id).localeCompare(b.id))
     append(frag,
            divCl('langs-h',
                  [ divCl('langs-title', 'Langs'),
-                   div(String(Ed.langs().length + ' languages (' + Ed.langs().filter(l => l.legacy).length + ' legacy)')) ]))
-    Ed.langs().forEach(lang =>
+                   div(String(langs.length + ' languages (' + Ed.langs().filter(l => l.legacy).length + ' legacy)')) ]))
+    langs.forEach(lang =>
       append(frag,
              lang.name ? div(lang.name, { 'data-run': 'lang', 'data-name': lang.name }) : div('ERR'),
              div(lang.module

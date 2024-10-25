@@ -1606,6 +1606,7 @@ function initCss
             './css/describe-key.css',
             './css/ed.css',
             './css/exts.css',
+            './css/lang.css',
             './css/langs.css',
             './css/mess.css',
             './css/buffers.css',

@@ -1,0 +1,41 @@
+.lang-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+  display: flex;
+}
+
+.lang-w {
+  width: 100%;
+  height: min-content;
+
+  display: grid;
+  grid-template-columns: minmax(min-content, max-content) auto;
+  grid-gap: 0.25rem;
+}
+
+.lang-h {
+  grid-column: 1 / span 2;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.lang-title {
+  font-size: 1.6rem;
+  color: var(--clr-emph);
+  margin-bottom: 0.5rem;
+}
+
+
+.lang-w > div {
+  display: flex;
+  padding: 0.25rem;
+}
+
+.lang-end {
+  grid-column: 1 / span 2;
+  background-color: var(--clr-fill);
+  height: 2rem;
+  min-height: 2rem;
+}

@@ -562,6 +562,79 @@ function initDescribeCmd
   Em.on('C-h c', 'describe command')
 }
 
+function initLang
+() {
+  let mo
+
+  function source
+  () {
+    let p, file, line
+
+    p = Pane.current()
+    file = p.view.ele.querySelector('.describe_cmd-file').innerText
+    line = p.view.ele.querySelector('.describe_cmd-line').innerText
+    Pane.open(file, line)
+  }
+
+  function refresh
+  (view) {
+    let w, frag, name
+
+    name = view.buf.vars('lang').name
+    w = view.ele.firstElementChild.firstElementChild
+    w.innerHTML = ''
+    frag = new globalThis.DocumentFragment()
+    append(frag,
+           divCl('lang-h',
+                 [ divCl('lang-title', 'Lang'),
+                   div() ]))
+    append(frag,
+           div('Name'),
+           div(name || '??'))
+
+    append(frag, divCl('lang-end'))
+    append(w, frag)
+  }
+
+  function divW
+  () {
+    return divCl('lang-ww', divCl('lang-w bred-surface', ''))
+  }
+
+  function lang
+  (u, we) {
+    if (we?.e && (we.e.button == 0)) {
+      let p, w, buf, name
+
+      name = we.e.target.dataset.name || Mess.toss('Missing lang name')
+      p = Pane.current()
+      w = divW()
+
+      buf = Win.shared().lang.buf
+      if (buf) {
+        //buf.vars("SC").hist.reset()
+      }
+      else {
+        buf = Buf.make('Lang', 'Lang', w, p.dir)
+        Win.shared().lang.buf = buf
+        buf.addMode('view')
+      }
+      buf.vars('lang').name = name
+      p.setBuf(buf, null, 0, view => refresh(view))
+    }
+  }
+
+  if (Win.root())
+    Win.shared().lang = {}
+
+  mo = Mode.add('Lang')
+
+  Cmd.add('source', () => source(), mo)
+  Em.on('s', 'source', mo)
+
+  Cmd.add('lang', lang)
+}
+
 function initLangs
 () {
   let mo
@@ -589,7 +662,7 @@ function initLangs
                    div(String(Ed.langs().length + ' languages (' + Ed.langs().filter(l => l.legacy).length + ' legacy)')) ]))
     Ed.langs().forEach(lang =>
       append(frag,
-             div(lang.name || 'ERR'),
+             lang.name ? div(lang.name, { 'data-run': 'lang', 'data-name': lang.name }) : div('ERR'),
              div(lang.module
                  && div(lang.module,
                         { 'data-run': 'open externally',
@@ -633,6 +706,8 @@ function initLangs
   Em.on('s', 'source', mo)
 
   Cmd.add('langs', () => langs())
+
+  initLang()
 }
 
 export

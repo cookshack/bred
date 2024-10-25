@@ -16,6 +16,7 @@
 
 .langs-h {
   grid-column: 1 / span 2;
+  margin-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
 }
@@ -23,6 +24,7 @@
 .langs-title {
   font-size: 1.6rem;
   color: var(--clr-emph);
+  margin-bottom: 0.5rem;
 }
 
 

@@ -586,7 +586,7 @@ function initLangs
     append(frag,
            divCl('langs-h',
                  [ divCl('langs-title', 'Langs'),
-                   div('') ]))
+                   div(String(Ed.langs().length + ' languages (' + Ed.langs().filter(l => l.legacy).length + ' legacy)')) ]))
     Ed.langs().forEach(lang =>
       append(frag,
              div(lang.name || 'ERR'),

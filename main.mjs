@@ -1,4 +1,4 @@
-import { app, BrowserView, BrowserWindow, ipcMain, shell as Shell /*, protocol, net*/ } from 'electron'
+import { app, WebContentsView, BrowserWindow, ipcMain, shell as Shell /*, protocol, net*/ } from 'electron'
 import * as Chmod from './main-chmod.mjs'
 import { d } from './main-log.mjs'
 import { makeErr, errMsg } from './main-err.mjs'
@@ -285,12 +285,11 @@ function onBrowse
   const [ x, y, width, height, page ] = onArgs
   let view, win
 
-  view = new BrowserView()
+  view = new WebContentsView()
   win = BrowserWindow.fromWebContents(e.sender)
-  //win.setBrowserView(view)
-  win.addBrowserView(view)
-  view.setBounds({ x: x, y: y, width: width, height: height }) // safeDialogs, autoplayPolicy, navigateOnDragDrop, spellcheck
   view.webContents.loadURL(page)
+  win.contentView.addChildView(view)
+  view.setBounds({ x: x, y: y, width: width, height: height }) // safeDialogs, autoplayPolicy, navigateOnDragDrop, spellcheck
   view.setBackgroundColor('white')
   //view.setAutoResize({ width: true, height: true })
 

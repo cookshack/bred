@@ -287,6 +287,23 @@ function onBrowse
 
   view = new WebContentsView()
   win = BrowserWindow.fromWebContents(e.sender)
+  view.webContents.on('context-menu', () => {
+    d('context-menu')
+    //win.webContents.sendInputEvent({ type: 'contextMenu', x: 0, y: 0 })
+    win.webContents.sendInputEvent({ type: 'mouseDown', x: 0, y: 0, button: 'left', clickCount: 1 })
+  })
+  view.webContents.on('input-event', (event, input) => {
+    //d('input-event')
+    //d(input.type)
+    if (input.type == 'mouseDown') {
+      d('mouseDown')
+      d(event.button)
+      d(JSON.stringify(event))
+    }
+    if ((input.type == 'contextMenu')
+        || ((input.type == 'mouseDown') && (event.button == 2)))
+      d('context')
+  })
   view.webContents.loadURL(page)
   win.contentView.addChildView(view)
   view.setBounds({ x: x, y: y, width: width, height: height }) // safeDialogs, autoplayPolicy, navigateOnDragDrop, spellcheck

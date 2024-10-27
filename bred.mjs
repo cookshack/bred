@@ -1099,6 +1099,37 @@ function initTest
 
 function initBrowse
 () {
+  let mo
+
+  function divW
+  () {
+    return divCl('web-ww', divCl('web-w bred-surface', ''))
+  }
+
+  function vinit
+  (view) {
+    let w
+
+    w = view.ele.firstElementChild.firstElementChild
+    w.innerHTML = ''
+
+    append(w,
+           div('xx'))
+  }
+
+  mo = Mode.add('Web', { viewInit: vinit })
+  d(mo)
+
+  Cmd.add('web', () => {
+    let b, p
+
+    p = Pane.current()
+    b = Buf.add('Web', 'Web', divW(), p.dir)
+    b.icon = 'help'
+    b.addMode('view')
+    p.setBuf(b)
+  })
+
   Cmd.add('browse', () => {
     let p, r
 

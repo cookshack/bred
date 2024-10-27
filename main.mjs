@@ -295,6 +295,10 @@ function onBrowse
   view.webContents.on('input-event', (event, input) => {
     //d('input-event')
     //d(input.type)
+    if ((input.type == 'keyDown') || (input.type == 'rawKeyDown')) {
+      d(input.type)
+      d(e.key)
+    }
     if (input.type == 'mouseDown') {
       d('mouseDown')
       d(event.button)

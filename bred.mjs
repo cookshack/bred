@@ -1108,13 +1108,30 @@ function initBrowse
 
   function refresh
   (view) {
-    let w
+    let w, wv, preload
 
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
+    preload = 'file://' + Loc.appDir().join('preload-web.js')
+    d({ preload })
+    wv = Dom.create('webview', [], '',
+                    { src: 'https://en.wikipedia.org/wiki/Edvard_Munch',
+                      preload: preload })
 
-    append(w,
-           Dom.create('webview', [], '', { src: 'https://en.wikipedia.org/wiki/Edvard_Munch' }))
+    append(w, wv)
+    wv.addEventListener('context-menu', e => {
+      d('context menu')
+      e.clientX = e.params.x
+      e.clientY = e.params.y
+      e.x = e.params.x
+      e.y = e.params.y
+      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e: e })
+    })
+    wv.addEventListener('dom-ready', () => {
+      d('dom-ready')
+      //wv.executeJavascript('console.log("OK")')
+    })
+    //wv.executeJavascript('console.log("OK")')
   }
 
   mo = Mode.add('Web', { viewInit: refresh })

@@ -1106,7 +1106,7 @@ function initBrowse
     return divCl('web-ww', divCl('web-w bred-surface', ''))
   }
 
-  function vinit
+  function refresh
   (view) {
     let w
 
@@ -1114,10 +1114,10 @@ function initBrowse
     w.innerHTML = ''
 
     append(w,
-           div('xx'))
+           Dom.create('webview', [], '', { src: 'https://en.wikipedia.org/wiki/Edvard_Munch' }))
   }
 
-  mo = Mode.add('Web', { viewInit: vinit })
+  mo = Mode.add('Web', { viewInit: refresh })
   d(mo)
 
   Cmd.add('web', () => {
@@ -1648,7 +1648,8 @@ function initCss
             './css/manpage.css',
             './css/options.css',
             './css/recent.css',
-            './css/vc.css' ]
+            './css/vc.css',
+            './css/web.css' ]
   files.forEach(f => initCss1(f))
 
   file = './lib/sheets.mjs'

@@ -10,6 +10,6 @@
   "author": "Matt Mundell",
   "license": "CC0-1.0",
   "dependencies": {
-    "@cookshack/codemirror-ruler": "file:../../../codemirror-ruler/latest.tgz"
+    "@cookshack/codemirror-ruler": "^0.2.1"
   }
 }

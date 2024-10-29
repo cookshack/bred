@@ -48,6 +48,8 @@ function runText
                  0,
                  p.buf.vars('SC').onClose,
                  buf => {
+                   buf.opts.set('ansi.enabled', 1)
+                   buf.opts.set('core.highlight.specials.enabled', 0)
                    d({ modes })
                    if (modes && modes.length) {
                      buf.mode = modes[0]

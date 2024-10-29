@@ -151,24 +151,20 @@ function initHelp
 
       callerBuf = Win.shared().helpBuffer.callerBuf
       return [ divCl('bold twoCol', 'Options'),
-               Opt.map((name, value) => {
-                 if (name.startsWith('core.')
-                     || callerBuf?.minors.find(mo => name.startsWith(mo.key))) {
-                   let type, run
+               Opt.sort().map(([ name, value ]) => {
+                 let type, run
 
-                   type = Opt.type(name)
-                   run = {}
-                   if (type == 'bool')
-                     run = { 'data-run': 'toggle option' }
-                   value = clean(callerBuf?.opts.get(name), value, type)
-                   return [ divCl('options-name', name),
-                            divCl('bred-help-option',
-                                  [ divCl('options-val',
-                                          value,
-                                          { 'data-name': name, ...run }),
-                                    divCl('options-type', type) ]) ]
-                 }
-                 return []
+                 type = Opt.type(name)
+                 run = {}
+                 if (type == 'bool')
+                   run = { 'data-run': 'toggle option' }
+                 value = clean(callerBuf?.opts.get(name), value, type)
+                 return [ divCl('options-name', name),
+                          divCl('bred-help-option',
+                                [ divCl('options-val',
+                                        value,
+                                        { 'data-name': name, ...run }),
+                                  divCl('options-type', type) ]) ]
                }) ]
     }
 

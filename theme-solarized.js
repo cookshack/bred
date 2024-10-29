@@ -108,8 +108,8 @@ filters = { base02: 'invert(15%) sepia(24%) saturate(2855%) hue-rotate(156deg) b
             red: 'invert(20%) sepia(50%) saturate(6419%) hue-rotate(351deg) brightness(96%) contrast(79%)',
             blue: 'invert(52%) sepia(82%) saturate(2190%) hue-rotate(179deg) brightness(86%) contrast(91%)' }
 
-meanings = { text: clrs.base00,
-             textLight: clrs.base1,
+meanings = { text: clrs.base01,
+             textLight: clrs.base00,
              fill: clrs.base2,
              fillLight: clrs.base2Light,
              light: clrs.base3,
@@ -126,8 +126,8 @@ meanings = { text: clrs.base00,
              nb0VeryLight: clrs.blueVeryLight,
              nb0VeryLightTranslucent: clrs.blueVeryLightTranslucent,
              //
-             emph: clrs.base02,
-             emphLight: clrs.base01,
+             emph: clrs.base03,
+             emphLight: clrs.base02,
              //
              syntax5: clrs.orange,
              syntax4: clrs.yellow,
@@ -146,10 +146,10 @@ meanings.pointCurrent = meanings.nb3
 meanings.scroll = meanings.textLight
 meanings.scrollFill = meanings.fill
 
-filterMeanings = { text: filters.base00,
+filterMeanings = { text: filters.base01,
                    nb3: filters.red,
                    nb0: filters.blue,
-                   emph: filters.base02 }
+                   emph: filters.base03 }
 
 rules = []
 

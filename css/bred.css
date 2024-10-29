@@ -1358,6 +1358,7 @@ div.bred-open-under-f {
 }
 
 .bred-foot-col {
+  display: none;
   background: var(--clr-fill);
   margin-left: auto;
   margin-right: 0.2rem;
@@ -1392,10 +1393,6 @@ div.bred-open-under-f {
 }
 
 .paneW.ed > .bred-overlay-w > .bred-overlay > .bred-point {
-  display: none;
-}
-
-.bred-foot-col {
   display: none;
 }
 

@@ -12,7 +12,7 @@ modes = []
 export
 function add
 (key, opts) {
-  let m
+  let m, viewInit
 
   function getParentEms
   () {
@@ -63,6 +63,18 @@ function add
     modes.push(m)
   }
 
+  if (opts.viewInit) {
+    opts.viewInit2 && Mess.toss('Both viewInit and viewInit2 given')
+    viewInit = opts.viewInit
+  }
+  else if (opts.viewInit2)
+    viewInit = (view, text, modeWhenText, lineNum, whenReady, cb) => opts.viewInit2(view,
+                                                                                    { text: text,
+                                                                                      modeWhenText: modeWhenText,
+                                                                                      lineNum: lineNum,
+                                                                                      whenReady: whenReady },
+                                                                                    cb)
+
   m.key = key
   m.name = key ? (opts.name || Buf.capitalize(key)) : ''
   m.minor = opts.minor ? 1 : 0
@@ -77,7 +89,7 @@ function add
   m.stop = stop
   m.seize = opts.seize
   m.viewCopy = opts.viewCopy
-  m.viewInit = opts.viewInit
+  m.viewInit = viewInit
   m.viewReopen = opts.viewReopen
   m.parentsForEm = (typeof opts.parentsForEm == 'string') ? [ opts.parentsForEm ] : opts.parentsForEm
   //

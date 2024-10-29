@@ -956,7 +956,7 @@ function initTest
   }
 
   function vinit
-  (view) {
+  (view, spec, cb) {
     let w, alpha
 
     function clrs
@@ -1066,6 +1066,9 @@ function initTest
                                         alpha.map(ch => divCl('test_buffer-alpha-ch', ch)),
                                         Dom.create('hr') ]),
            divCl('test_buffer-end', 'The End.'))
+
+    if (cb)
+      cb(view)
   }
 
   function move
@@ -1083,7 +1086,7 @@ function initTest
     })
   }
 
-  mo = Mode.add('Test Buffer', { viewInit: vinit })
+  mo = Mode.add('Test Buffer', { viewInit2: vinit })
   Cmd.add('test buffer', () => {
     let b, p
 
@@ -1107,7 +1110,7 @@ function initBrowse
   }
 
   function refresh
-  (view) {
+  (view, spec, cb) {
     let w, wv, preload
 
     w = view.ele.firstElementChild.firstElementChild
@@ -1132,9 +1135,12 @@ function initBrowse
       //wv.executeJavascript('console.log("OK")')
     })
     //wv.executeJavascript('console.log("OK")')
+
+    if (cb)
+      cb(view)
   }
 
-  mo = Mode.add('Web', { viewInit: refresh })
+  mo = Mode.add('Web', { viewInit2: refresh })
   d(mo)
 
   Cmd.add('web', () => {

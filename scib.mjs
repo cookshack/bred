@@ -144,7 +144,10 @@ function initRTL
     p = Pane.current()
     l = p.line()
     if (l && l.length)
-      Shell.shell1(l, 1, 0, 0, hist, 0, 0, buf => buf.opts.set('ansi.enabled', 1))
+      Shell.shell1(l, 1, 0, 0, hist, 0, 0, buf => {
+        buf.opts.set('ansi.enabled', 1)
+        buf.opts.set('core.highlight.specials.enabled', 0)
+      })
     else if (typeof l === 'string')
       Mess.say('Line empty')
     else

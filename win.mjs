@@ -30,6 +30,13 @@ function appendContextMode
            contextLine())
 }
 
+function hasSel
+(win, p) {
+  if (p.view.ed)
+    return p.view.region?.chars > 0
+  return win.selection?.toString().length > 0
+}
+
 function makeContext
 (win) {
   let context
@@ -52,7 +59,7 @@ function makeContext
                              context0('Annotate', 'Vc Annotate'),
                              contextLine())
                     p && appendContextMode(context, p)
-                    if (p.view.region?.chars > 0)
+                    if (hasSel(win, p))
                       append(context.el,
                              context0('Copy'),
                              contextLine())
@@ -62,7 +69,7 @@ function makeContext
                   })
                 else {
                   p && appendContextMode(context, p)
-                  if (win.selection?.toString().length > 0)
+                  if (hasSel(win, p))
                     append(context.el,
                            context0('Copy'),
                            contextLine())

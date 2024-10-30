@@ -1422,7 +1422,7 @@ function init
     Em.on('C-s', 'search forward', mo)
     Em.on('C-w', 'cut', mo)
     Em.on('C- ', 'mark set', mo)
-    Em.on('C-y', 'yank', mo)
+    Em.on('C-y', 'paste', mo) // aka Yank
     Em.on('C-z', 'undo', mo)
     Em.on('C-/', 'undo', mo)
 

@@ -2,6 +2,7 @@ import { append, divCl, divId, divIdCl, img } from './dom.mjs'
 
 import * as Area from './area.mjs'
 import * as Css from './css.mjs'
+import * as Cut from './cut.mjs'
 import * as Icon from './icon.mjs'
 import * as Menu from './menu.mjs'
 import * as Pane from './pane.mjs'
@@ -10,9 +11,11 @@ import * as Shell from './shell.mjs'
 import { d } from './mess.mjs'
 
 function context0
-(name, cmd) {
+(name, cmd, spec) {
   cmd = cmd || name.toLowerCase()
-  return divCl('bred-context-item onfill', name, { 'data-run': cmd })
+  return divCl('bred-context-item onfill' + (spec?.disable ? ' disabled' : ''),
+               name,
+               { 'data-run': cmd })
 }
 
 function contextLine
@@ -43,10 +46,16 @@ function makeContext
 
   function addCopy
   (p) {
-    if (hasSel(win, p))
-      append(context.el,
-             context0('Copy'),
-             contextLine())
+    let sel, cut
+
+    cut = Cut.nth(0)
+    sel = hasSel(win, p)
+
+    append(context.el, context0('Copy', 0, { disable: !sel }))
+
+    append(context.el, context0('Paste', 0, { disable: !cut }))
+
+    append(context.el, contextLine())
   }
 
   context = { el: divCl('bred-context'),
@@ -67,14 +76,14 @@ function makeContext
                              context0('Annotate', 'Vc Annotate'),
                              contextLine())
                     p && appendContextMode(context, p)
-                    addCopy(p)
+                    p && addCopy(p)
                     append(context.el,
                            context0('Inspect Element'))
                     Css.add(context.el, 'bred-open')
                   })
                 else {
                   p && appendContextMode(context, p)
-                  addCopy(p)
+                  p && addCopy(p)
                   append(context.el,
                          context0('Inspect Element'))
                   Css.add(context.el, 'bred-open')

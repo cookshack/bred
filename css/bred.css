@@ -94,6 +94,11 @@
   scrollbar-color: var(--clr-text) var(--clr-light);
 }
 
+::selection {
+  color: inherit;
+  background-color: var(--rule-clr-selection);
+}
+
 *::-webkit-scrollbar {
   width: var(--scrollbar-size);
   height: var(--scrollbar-size);

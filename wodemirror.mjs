@@ -3684,6 +3684,8 @@ function init
     lang.path = opt.path
     if (lang.id == 'cmake')
       lang.filenames = [ ...(lang.filenames || []), 'CMakeLists.txt' ]
+    else if (lang.id == 'ruby')
+      lang.filenames = [ ...(lang.filenames || []), 'Vagrantfile' ]
     if (lang.load)
       lang.load().then(l => lang.language = l)
     langs.push(lang)

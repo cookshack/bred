@@ -62,6 +62,10 @@ function makeContext
                   })
                 else {
                   p && appendContextMode(context, p)
+                  if (win.selection?.toString().length > 0)
+                    append(context.el,
+                           context0('Copy'),
+                           contextLine())
                   append(context.el,
                          context0('Inspect Element'))
                   Css.add(context.el, 'bred-open')
@@ -172,6 +176,9 @@ function add
           },
           get parent() {
             return spec?.parent
+          },
+          get selection() {
+            return window.getSelection()
           },
           get tip() {
             return tip

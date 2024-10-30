@@ -191,6 +191,14 @@ function initCmds
 
   Cmd.add('universal argument', () => Cmd.setUniversal())
 
+  Cmd.add('copy', () => {
+    let text
+
+    text = Win.current().selection.toString()
+    if (text.length)
+      Cut.add(text)
+  })
+
   Cmd.add('toggle devtools', () => {
     let win
 

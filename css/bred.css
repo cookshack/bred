@@ -642,6 +642,7 @@ div.bred-menu1-item {
 }
 
 .bred-context {
+  user-select: none; /* prevent clearing selection when clicked */
   position: absolute;
   top: 0;
   left: 0;

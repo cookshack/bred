@@ -52,6 +52,10 @@ function makeContext
                              context0('Annotate', 'Vc Annotate'),
                              contextLine())
                     p && appendContextMode(context, p)
+                    if (p.view.region?.chars > 0)
+                      append(context.el,
+                             context0('Copy'),
+                             contextLine())
                     append(context.el,
                            context0('Inspect Element'))
                     Css.add(context.el, 'bred-open')

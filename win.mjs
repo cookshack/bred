@@ -41,6 +41,14 @@ function makeContext
 (win) {
   let context
 
+  function addCopy
+  (p) {
+    if (hasSel(win, p))
+      append(context.el,
+             context0('Copy'),
+             contextLine())
+  }
+
   context = { el: divCl('bred-context'),
               close() {
                 Css.remove(context.el, 'bred-open')
@@ -59,20 +67,14 @@ function makeContext
                              context0('Annotate', 'Vc Annotate'),
                              contextLine())
                     p && appendContextMode(context, p)
-                    if (hasSel(win, p))
-                      append(context.el,
-                             context0('Copy'),
-                             contextLine())
+                    addCopy(p)
                     append(context.el,
                            context0('Inspect Element'))
                     Css.add(context.el, 'bred-open')
                   })
                 else {
                   p && appendContextMode(context, p)
-                  if (hasSel(win, p))
-                    append(context.el,
-                           context0('Copy'),
-                           contextLine())
+                  addCopy(p)
                   append(context.el,
                          context0('Inspect Element'))
                   Css.add(context.el, 'bred-open')

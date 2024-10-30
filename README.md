@@ -88,9 +88,9 @@ If you want to run privileged commands from the editor, and you're getting an er
 sudo: The "no new privileges" flag is set, which prevents sudo from running as root.
 sudo: If sudo is running in a container, you may need to adjust the container configuration to disable the flag.
 ```
-then add `--no-setuid-sandbox` to the start command, for example:
+then add `--disable-setuid-sandbox` to the start command, for example:
 ```sh
-cd ~/src/bred/ && npm start -- --no-setuid-sandbox
+cd ~/src/bred/ && npm start -- --disable-setuid-sandbox
 ```
 
 #### 3. "node-pty" errors on startup

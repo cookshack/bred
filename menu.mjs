@@ -179,6 +179,7 @@ function make
                               'Find and Replace' ] },
                    { name: 'Buffer',
                      items: [ { name: 'Close', cmd: 'close buffer' },
+                              'Bury',
                               { name: 'Switch', cmd: 'switch to buffer' },
                               { name: 'List', cmd: 'buffers' },
                               { line: 1 } ] },

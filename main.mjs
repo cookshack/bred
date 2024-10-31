@@ -1,6 +1,6 @@
 import { app, WebContentsView, BrowserWindow, ipcMain, shell as Shell /*, protocol, net*/ } from 'electron'
 import * as Chmod from './main-chmod.mjs'
-import { d } from './main-log.mjs'
+import { d, log } from './main-log.mjs'
 import { makeErr, errMsg } from './main-err.mjs'
 import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
@@ -24,7 +24,7 @@ function lspMake
   function dbg
   (msg) {
     if (0)
-      console.log(msg)
+      log(msg)
   }
 
   function bconcat
@@ -200,8 +200,8 @@ function lspMake
                 { cwd: import.meta.dirname,
                   stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ] })
 
-  tsproc.on('exit', code => console.log('EXIT ' + code))
-  tsproc.on('error', code => console.log('ERROR ' + code))
+  tsproc.on('exit', code => log('EXIT ' + code))
+  tsproc.on('error', code => log('ERROR ' + code))
   tsproc.stdout && tsproc.stdout.setEncoding('utf-8')
 
   tsproc.stdout.on('data',
@@ -215,7 +215,7 @@ function lspMake
 
   tsproc.stderr.on('data',
                    data => {
-                     console.log('STDERR: ')
+                     log('STDERR: ')
                      process.stderr.write(data)
                    })
 
@@ -470,36 +470,36 @@ function onLoadInit
   win = BrowserWindow.fromWebContents(e.sender)
 
   if (options.skipInit) {
-    console.log('Skipping load of your init.js.')
+    log('Skipping load of your init.js.')
     e.sender.send(ch, { skip: 1 })
   }
   else if (dirUserData) {
     let file
 
     file = Path.join(dirUserData, 'init.js')
-    console.log('Loading ' + file + '...')
+    log('Loading ' + file + '...')
     d('Loading ' + file + '...')
     fs.readFile(file, 'utf8', (err, js) => {
       if (err) {
         if (err.code === 'ENOENT') {
-          console.log('Loading ' + file + ": missing, that's OK")
+          log('Loading ' + file + ": missing, that's OK")
           e.sender.send(ch, { exist: 0 })
           return
         }
-        console.log('Loading ' + file + ': ' + err.message)
+        log('Loading ' + file + ': ' + err.message)
         e.sender.send(ch, { err: err })
         return
       }
       js = '(function (C,Cmd,Dom,Ed,Em,Hist,Loc,Opt,Pane,Mess,Mode,Dir,Place,Win) { "use strict"; Mess.log("Loading your init.js...");\n' + js + ';\nMess.log("Loading your init.js... done"); })(window.bred.C,window.bred.Cmd,window.bred.Dom,window.bred.Ed,window.bred.Em,window.bred.Hist,window.bred.Loc,window.bred.Opt,window.bred.Pane,window.bred.Mess,window.bred.Mode,window.bred.Dir,window.bred.Place,window.bred.Win)'
       win.webContents.executeJavaScript(js).then(() => {
-        console.log('Loading ' + file + ': done.')
+        log('Loading ' + file + ': done.')
         d('Loading ' + file + ': done.')
         setTimeout(() => e.sender.send(ch, { exist: 1 })) // timeout because wtf slow
       })
     })
   }
   else {
-    console.log('Path userData missing, skipping load of your init.js')
+    log('Path userData missing, skipping load of your init.js')
     e.sender.send(ch, { err: new Error('Path userData missing') })
   }
 }
@@ -756,7 +756,7 @@ function onDirWatch
     }
     catch (err) {
       err.message.includes('Object has been destroyed')
-        || console.log(err.message)
+        || log(err.message)
       watcher.close()
     }
   }
@@ -786,7 +786,7 @@ async function wrapOn
         e.sender.send(ch, makeErr(err))
       }
       catch (err2) {
-        console.log('wrapOn: ' + err2.message)
+        log('wrapOn: ' + err2.message)
       }
     }
   })
@@ -1342,7 +1342,7 @@ async function whenReady
     file = fs.createWriteStream(options.logfile,
                                 { flags: 'w',
                                   flush: true })
-    console.log = d => {
+    log = d => {
       file.write(Util.format(d) + '\n')
     }
   }
@@ -1389,11 +1389,11 @@ async function whenReady
              poss: new Store({ name: 'poss', cwd: 'brood' }),
              state: new Store({ name: 'state', cwd: 'brood' }) }
 
-  console.log('Bred ' + version)
-  console.log('    Node: ' + process.versions.node)
-  console.log('    Electron: ' + process.versions.electron)
-  console.log('    Chrome: ' + process.versions.chrome)
-  console.log('    Backend: ' + options.backend)
+  log('Bred ' + version)
+  log('    Node: ' + process.versions.node)
+  log('    Electron: ' + process.versions.electron)
+  log('    Chrome: ' + process.versions.chrome)
+  log('    Backend: ' + options.backend)
   d('printed version')
 
   /* see bf above

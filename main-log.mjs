@@ -1,3 +1,14 @@
+function use
+() {
+}
+
+export
+function log
+(msg) {
+  if (process.stdout?.writable)
+    console.log(msg)
+}
+
 export
 function d
 (msg) {
@@ -10,11 +21,16 @@ function d
 
   date = new Date
   now = Date.now()
-  if (0)
-    console.log(Math.floor(now / 1000) + '.' + String(Math.floor(now % 1000)).padStart(3, '0') + ': ' + msg)
-  console.log(pad(date.getHours())
-              + ':' + pad(date.getMinutes())
-              + ':' + pad(date.getSeconds())
-              + ':' + pad(date.getMilliseconds(), 3)
-              + ' ' + msg)
+  try {
+    if (0)
+      console.log(Math.floor(now / 1000) + '.' + String(Math.floor(now % 1000)).padStart(3, '0') + ': ' + msg)
+    console.log(pad(date.getHours())
+                + ':' + pad(date.getMinutes())
+                + ':' + pad(date.getSeconds())
+                + ':' + pad(date.getMilliseconds(), 3)
+                + ' ' + msg)
+  }
+  catch (err) {
+    use(err)
+  }
 }

@@ -23,12 +23,12 @@ function d
   now = Date.now()
   try {
     if (0)
-      console.log(Math.floor(now / 1000) + '.' + String(Math.floor(now % 1000)).padStart(3, '0') + ': ' + msg)
-    console.log(pad(date.getHours())
-                + ':' + pad(date.getMinutes())
-                + ':' + pad(date.getSeconds())
-                + ':' + pad(date.getMilliseconds(), 3)
-                + ' ' + msg)
+      log(Math.floor(now / 1000) + '.' + String(Math.floor(now % 1000)).padStart(3, '0') + ': ' + msg)
+    log(pad(date.getHours())
+        + ':' + pad(date.getMinutes())
+        + ':' + pad(date.getSeconds())
+        + ':' + pad(date.getMilliseconds(), 3)
+        + ' ' + msg)
   }
   catch (err) {
     use(err)

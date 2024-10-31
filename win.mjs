@@ -13,7 +13,9 @@ import { d } from './mess.mjs'
 function context0
 (name, cmd, spec) {
   cmd = cmd || name.toLowerCase()
-  return divCl('bred-context-item onfill' + (spec?.disable ? ' disabled' : ''),
+  spec = spec || {}
+  spec.enable = Object.hasOwn(spec, 'enable') ? spec.enable : 1
+  return divCl('bred-context-item onfill' + (spec.enable ? '' : ' disabled'),
                name,
                { 'data-run': cmd })
 }
@@ -46,14 +48,19 @@ function makeContext
 
   function addCopy
   (p) {
-    let sel, cut
+    let copy, cut, paste
 
-    cut = Cut.nth(0)
-    sel = hasSel(win, p)
+    if (p.view.ed)
+      paste = Cut.nth(0)
+    if (hasSel(win, p)) {
+      copy = 1
+      if (p.view.ed)
+        cut = 1
+    }
 
-    append(context.el, context0('Copy', 0, { disable: !sel }))
-
-    append(context.el, context0('Paste', 0, { disable: !cut }))
+    append(context.el, context0('Cut', 0, { enable: cut }))
+    append(context.el, context0('Copy', 0, { enable: copy }))
+    append(context.el, context0('Paste', 0, { enable: paste }))
 
     append(context.el, contextLine())
   }

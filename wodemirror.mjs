@@ -872,6 +872,8 @@ function _viewInit
         return 'sh'
       if (text.startsWith('#!/usr/bin/env bash'))
         return 'sh'
+      if (text.startsWith('#!/usr/bin/make'))
+        return 'makefile'
     }
     return 0
   }

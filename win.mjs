@@ -1,8 +1,10 @@
 import { append, divCl, divId, divIdCl, img } from './dom.mjs'
 
 import * as Area from './area.mjs'
+import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Cut from './cut.mjs'
+import * as Em from './em.mjs'
 import * as Icon from './icon.mjs'
 import * as Menu from './menu.mjs'
 import * as Pane from './pane.mjs'
@@ -11,12 +13,20 @@ import * as Shell from './shell.mjs'
 import { d } from './mess.mjs'
 
 function context0
-(name, cmd, spec) {
+(buf, name, cmd, spec) {
+  let key
+
   cmd = cmd || name.toLowerCase()
   spec = spec || {}
   spec.enable = Object.hasOwn(spec, 'enable') ? spec.enable : 1
+
+  if (Cmd.get(cmd, buf))
+    key = Em.seq(cmd, buf) || ''
+  else
+    spec.enable = 0
+
   return divCl('bred-context-item onfill' + (spec.enable ? '' : ' disabled'),
-               name,
+               [ name, divCl('bred-context-kb', key) ],
                { 'data-run': cmd })
 }
 
@@ -29,7 +39,7 @@ function appendContextMode
 (context, p) {
   p.buf.mode.context?.forEach(item =>
     append(context.el,
-           context0(item.name || item.cmd, item.cmd)))
+           context0(p.buf, item.name || item.cmd, item.cmd)))
   if (p.buf.mode.context)
     append(context.el,
            contextLine())
@@ -58,9 +68,9 @@ function makeContext
         cut = 1
     }
 
-    append(context.el, context0('Cut', 0, { enable: cut }))
-    append(context.el, context0('Copy', 0, { enable: copy }))
-    append(context.el, context0('Paste', 0, { enable: paste }))
+    append(context.el, context0(p.buf, 'Cut', 0, { enable: cut }))
+    append(context.el, context0(p.buf, 'Copy', 0, { enable: copy }))
+    append(context.el, context0(p.buf, 'Paste', 0, { enable: paste }))
 
     append(context.el, contextLine())
   }
@@ -80,19 +90,19 @@ function makeContext
                   Shell.runToString(p.dir, 'git', [ 'ls-files', '--error-unmatch', p.buf.path ], false, (str, code) => {
                     if (code == 0)
                       append(context.el,
-                             context0('Annotate', 'Vc Annotate'),
+                             context0(p.buf, 'Annotate', 'Vc Annotate'),
                              contextLine())
                     p && appendContextMode(context, p)
                     p && addCopy(p)
                     append(context.el,
-                           context0('Inspect Element'))
+                           context0(p.buf, 'Inspect Element'))
                     Css.add(context.el, 'bred-open')
                   })
                 else {
                   p && appendContextMode(context, p)
                   p && addCopy(p)
                   append(context.el,
-                         context0('Inspect Element'))
+                         context0(p?.buf, 'Inspect Element'))
                   Css.add(context.el, 'bred-open')
                 }
               } }

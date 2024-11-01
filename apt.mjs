@@ -94,7 +94,7 @@ function initSearch
     b.vars('apt search').hist.prev(b)
   }
 
-  function runGit
+  function runApt
   () {
     let p, term
 
@@ -158,7 +158,7 @@ function initSearch
 
   Cmd.add('next', () => next(), mo)
   Cmd.add('previous', () => prev(), mo)
-  Cmd.add('run', () => runGit(), mo)
+  Cmd.add('run', () => runApt(), mo)
 
   Em.on('Enter', 'run', mo)
 
@@ -186,14 +186,11 @@ function initSearch
                                                        decor: [ { attr: { style: 'color: var(--rule-clr-comment);',
                                                                           'data-run': 'edit' } } ] } ] })
 
-  Cmd.add('next error', () => Shell.nextErr(1), mo)
-  Cmd.add('previous error', () => Shell.nextErr(-1), mo)
-
-  Em.on('n', 'next error', mo)
-  Em.on('p', 'previous error', mo)
   Em.on('Enter', 'edit', mo)
 
   // should use view mode
+  Em.on('n', 'next line', mo)
+  Em.on('p', 'previous line', mo)
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)

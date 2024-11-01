@@ -151,6 +151,19 @@ function initSearch
     p.setBuf(buf, null, 0, () => buf.clear())
   }
 
+  function info
+  () {
+    let p, psn, text, name
+
+    p = Pane.current()
+    psn = p.view.psn
+    psn.lineStart()
+
+    text = psn.text
+    name = text.split(' ')[0]
+    apt('apt-cache show ' + name, 'apt info')
+  }
+
   mo = Mode.add('apt search', { viewInit: Ed.viewInit,
                                 viewCopy: Ed.viewCopy,
                                 initFns: Ed.initModeFns,
@@ -184,9 +197,12 @@ function initSearch
                                        parentsForEm: 'ed',
                                        decorators: [ { regex: reLine,
                                                        decor: [ { attr: { style: 'color: var(--rule-clr-comment);',
-                                                                          'data-run': 'edit' } } ] } ] })
+                                                                          'data-run': 'info' } } ] } ] })
 
-  Em.on('Enter', 'edit', mo)
+  Cmd.add('info', () => info(), mo)
+
+  Em.on('Enter', 'info', mo)
+  Em.on('e', 'info', mo)
 
   // should use view mode
   Em.on('n', 'next line', mo)
@@ -194,6 +210,13 @@ function initSearch
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
+
+  Mode.add('Apt Info', { viewInit: Ed.viewInit,
+                         viewCopy: Ed.viewCopy,
+                         initFns: Ed.initModeFns,
+                         parentsForEm: 'ed',
+                         decorators: [ { regex: /^([^ ]+:) .*$/d,
+                                         decor: [ { attr: { style: 'color: var(--clr-emph-light); background-color: var(--clr-fill);' } } ] } ] })
 }
 
 0 && function reset

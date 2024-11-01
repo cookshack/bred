@@ -75,7 +75,7 @@ function initStash
 export
 function initSearch
 () {
-  let mo, buf, hist, reErr, reFile
+  let mo, buf, hist, reLine
 
   function next
   () {
@@ -172,20 +172,14 @@ function initSearch
 
   //
 
-  reErr = /^([^:]+):([0-9]+):([0-9]+):.*$/d
-  reFile = /^([^:\s]+):([^0-9]+.*)?$/d
+  reLine = /^([^ ]+) - .*$/d
 
   mo = Mode.add('Apt Search Result', { viewInit: Ed.viewInit,
                                        viewCopy: Ed.viewCopy,
                                        initFns: Ed.initModeFns,
                                        parentsForEm: 'ed',
-                                       decorators: [ { regex: reErr,
+                                       decorators: [ { regex: reLine,
                                                        decor: [ { attr: { style: 'color: var(--rule-clr-comment);',
-                                                                          'data-run': 'edit' } },
-                                                                { attr: { style: 'color: var(--rule-clr-comment);' } },
-                                                                { attr: { style: 'color: var(--rule-clr-comment);' } } ] },
-                                                     { regex: reFile,
-                                                       decor: [ { attr: { style: 'color: var(--rule-clr-entity);',
                                                                           'data-run': 'edit' } } ] } ] })
 
   Cmd.add('next error', () => Shell.nextErr(1), mo)

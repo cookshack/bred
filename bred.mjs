@@ -2,6 +2,7 @@ import { append, button, div, divCl, span, img } from './dom.mjs'
 
 import * as About from './about.mjs'
 import * as Area from './area.mjs'
+import * as Apt from './apt.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Cut from './cut.mjs'
@@ -100,6 +101,7 @@ function initPackages
     Cut.init()
     Exec.init()
     Shell.init()
+    Apt.init()
     Vc.init()
     About.init(),
     Prompt.init()

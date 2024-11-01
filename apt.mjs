@@ -5,6 +5,7 @@ import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Hist from './hist.mjs'
+import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
@@ -102,10 +103,13 @@ function initSearch
     if (term == null)
       Mess.toss('Missing search term')
     else {
-      let h
+      let h, b64
 
       h = p.buf.vars('apt search').hist
-      apt('apt-cache search ' + term, 'apt search result')
+      b64 = globalThis.btoa(term)
+      Shell.shell1(Loc.appDir().join('bin/apt-search-64') + ' ' + b64,
+                   1, 1, [], 0, 0, 0,
+                   rbuf => rbuf.mode = 'apt search result')
       h.add(term)
     }
   }

@@ -151,6 +151,19 @@ function initSearch
     p.setBuf(buf, null, 0, () => buf.clear())
   }
 
+  function contents
+  () {
+    let p, psn, text, name
+
+    p = Pane.current()
+    psn = p.view.psn
+    psn.lineStart()
+
+    text = psn.text
+    name = text.split(' ')[0]
+    apt('dpkg --listfiles ' + name, 'apt contents')
+  }
+
   function info
   () {
     let p, psn, text, name
@@ -190,6 +203,15 @@ function initSearch
     apt('sudo apt-get remove --yes ' + name)
   }
 
+  function open
+  () {
+    let p
+
+    p = Pane.current()
+    if (p.view.line.length)
+      Pane.open(p.view.line)
+  }
+
   mo = Mode.add('apt search', { viewInit: Ed.viewInit,
                                 viewCopy: Ed.viewCopy,
                                 initFns: Ed.initModeFns,
@@ -225,13 +247,16 @@ function initSearch
                                                        decor: [ { attr: { style: 'color: var(--rule-clr-comment);',
                                                                           'data-run': 'info' } } ] } ] })
 
+  Cmd.add('contents', () => contents(), mo)
   Cmd.add('info', () => info(), mo)
   Cmd.add('install', () => install(), mo)
   Cmd.add('remove', () => remove(), mo)
 
   Em.on('Enter', 'info', mo)
+  Em.on('c', 'contents', mo)
   Em.on('e', 'info', mo)
   Em.on('i', 'install', mo)
+  Em.on('l', 'contents', mo)
   Em.on('r', 'remove', mo)
 
   // should use view mode
@@ -252,6 +277,13 @@ function initSearch
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
+
+  mo = Mode.add('Apt Contents', { viewInit: Ed.viewInit,
+                                  viewCopy: Ed.viewCopy,
+                                  initFns: Ed.initModeFns,
+                                  parentsForEm: 'ed' })
+  Cmd.add('open', () => open(), mo)
+  Em.on('Enter', 'open', mo)
 }
 
 0 && function reset

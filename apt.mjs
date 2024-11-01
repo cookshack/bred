@@ -177,6 +177,19 @@ function initSearch
     apt('sudo apt-get install --yes ' + name, 'apt install')
   }
 
+  function remove
+  () {
+    let p, psn, text, name
+
+    p = Pane.current()
+    psn = p.view.psn
+    psn.lineStart()
+
+    text = psn.text
+    name = text.split(' ')[0]
+    apt('sudo apt-get remove --yes ' + name)
+  }
+
   mo = Mode.add('apt search', { viewInit: Ed.viewInit,
                                 viewCopy: Ed.viewCopy,
                                 initFns: Ed.initModeFns,
@@ -214,10 +227,12 @@ function initSearch
 
   Cmd.add('info', () => info(), mo)
   Cmd.add('install', () => install(), mo)
+  Cmd.add('remove', () => remove(), mo)
 
   Em.on('Enter', 'info', mo)
   Em.on('e', 'info', mo)
   Em.on('i', 'install', mo)
+  Em.on('r', 'remove', mo)
 
   // should use view mode
   Em.on('n', 'next line', mo)

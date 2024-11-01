@@ -164,6 +164,19 @@ function initSearch
     apt('apt-cache show ' + name, 'apt info')
   }
 
+  function install
+  () {
+    let p, psn, text, name
+
+    p = Pane.current()
+    psn = p.view.psn
+    psn.lineStart()
+
+    text = psn.text
+    name = text.split(' ')[0]
+    apt('sudo apt-get install --yes ' + name, 'apt install')
+  }
+
   mo = Mode.add('apt search', { viewInit: Ed.viewInit,
                                 viewCopy: Ed.viewCopy,
                                 initFns: Ed.initModeFns,
@@ -200,9 +213,11 @@ function initSearch
                                                                           'data-run': 'info' } } ] } ] })
 
   Cmd.add('info', () => info(), mo)
+  Cmd.add('install', () => install(), mo)
 
   Em.on('Enter', 'info', mo)
   Em.on('e', 'info', mo)
+  Em.on('i', 'install', mo)
 
   // should use view mode
   Em.on('n', 'next line', mo)
@@ -217,6 +232,11 @@ function initSearch
                          parentsForEm: 'ed',
                          decorators: [ { regex: /^([^ ]+:) .*$/d,
                                          decor: [ { attr: { style: 'color: var(--clr-emph-light); background-color: var(--clr-fill);' } } ] } ] })
+
+  Mode.add('Apt Install', { viewInit: Ed.viewInit,
+                            viewCopy: Ed.viewCopy,
+                            initFns: Ed.initModeFns,
+                            parentsForEm: 'ed' })
 }
 
 0 && function reset

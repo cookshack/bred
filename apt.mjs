@@ -204,12 +204,16 @@ function initSearch
   }
 
   function open
-  () {
-    let p
+  (u, we) {
+    let p, path
 
     p = Pane.current()
-    if (p.view.line.length)
-      Pane.open(p.view.line)
+    if (we?.e && (we.e.button == 0))
+      path = we.e.target.innerText
+    else
+      path = p.view.line
+    if (path.length)
+      Pane.open(path)
   }
 
   mo = Mode.add('apt search', { viewInit: Ed.viewInit,
@@ -278,11 +282,14 @@ function initSearch
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
 
-  mo = Mode.add('Apt Contents', { viewInit: Ed.viewInit,
-                                  viewCopy: Ed.viewCopy,
-                                  initFns: Ed.initModeFns,
-                                  parentsForEm: 'ed' })
-  Cmd.add('open', () => open(), mo)
+  mo = Mode.add('Apt Contents',
+                { viewInit: Ed.viewInit,
+                  viewCopy: Ed.viewCopy,
+                  initFns: Ed.initModeFns,
+                  parentsForEm: 'ed',
+                  decorators: [ { regex: /^(.*)$/d,
+                                  decor: [ { attr: { 'data-run': 'open' } } ] } ] })
+  Cmd.add('open', open, mo)
   Em.on('Enter', 'open', mo)
 }
 

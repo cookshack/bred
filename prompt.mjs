@@ -212,6 +212,7 @@ function initPrompt2
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })
 
+  Cmd.add('close buffer', () => close(), mo)
   Cmd.add('next history item', () => prevHist(-1), mo)
   Cmd.add('previous history item', () => prevHist(), mo)
   Cmd.add('ok', () => ok(), mo)

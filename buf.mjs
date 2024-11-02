@@ -74,7 +74,19 @@ function savePoss
 export
 function make
 (name, modeName, content, dir, file) {
+  return make2({ name: name,
+                 modeName: modeName,
+                 content: content,
+                 dir: dir,
+                 file: file })
+}
+
+export
+function make2
+(spec = {}) {
+  let { name, modeName, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon
+
 
   function remove
   () {

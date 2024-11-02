@@ -151,7 +151,11 @@ function promptBuf
   ml = spec.w.querySelector('.edMl')
   if (ml)
     ml.innerText = spec.text || 'Enter text'
-  buf = Buf.make('Prompt2', 'Prompt2', spec.w, p.dir)
+  buf = Buf.make2({ name: 'Prompt2',
+                    modeName: 'Prompt2',
+                    content: spec.w,
+                    dir: p.dir,
+                    placeholder: 'xxx' })
   buf.vars('ed').fillParent = 0
   buf.opts.set('core.autocomplete.enabled', 0)
   buf.opts.set('core.folding.enabled', 0)

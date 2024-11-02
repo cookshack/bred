@@ -9,7 +9,6 @@ import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
-import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
 //import { d } from './mess.mjs'
 
@@ -23,54 +22,6 @@ function apt
                  minors?.forEach(minor => b.addMode(minor))
                  b.addMode('view')
                })
-}
-
-export
-function initStash
-() {
-  let moS
-
-  Cmd.add('stash open', () => {
-    let line
-
-    line = Pane.current().line()
-    if (line.trim().length == 0)
-      Mess.say('Empty line')
-    else {
-      let st
-
-      st = /[^@]+@{([^}]+)/.exec(line)[1]
-      if (st && st.length)
-        apt('git stash show -p ' + st, Ed.patchModeName(), [ 'equal' ])
-      else
-        Mess.warn('Failed to extract stash num: ' + line)
-    }
-  })
-
-  Cmd.add('stash apply', () => {
-    let line
-
-    line = Pane.current().line()
-    if (line.trim().length == 0)
-      Mess.say('Empty line')
-    else {
-      let st
-
-      st = /[^@]+@{([^}]+)/.exec(line)[1]
-      if (st && st.length)
-        apt('git-stash-apply ' + st)
-      else
-        Mess.warn('Failed to extract stash num: ' + line)
-    }
-  })
-
-  moS = Mode.add('stash', { viewInit: Ed.viewInit,
-                            viewCopy: Ed.viewCopy,
-                            initFns: Ed.initModeFns,
-                            parentsForEm: 'ed' })
-
-  Em.on('a', 'stash apply', moS)
-  Em.on('Enter', 'stash open', moS)
 }
 
 export
@@ -293,50 +244,8 @@ function initSearch
   Em.on('Enter', 'open', mo)
 }
 
-0 && function reset
-() {
-  Prompt.demandYN('Reset Git dir?',
-                  'warning',
-                  yes => yes && apt('git reset HEAD~1'))
-}
-
-0 && function showHash
-(hash) {
-  Shell.shell1('git show --no-prefix' + (hash ? (' ' + hash) : ''),
-               1, 1, 0, 0, 0, 0,
-               b => {
-                 b.mode = Ed.patchModeName()
-                 b.addMode('equal')
-                 b.addMode('view')
-               })
-}
-
 export
 function init
 () {
-  Cmd.add('branch update', () => {
-    apt('git fetch --all --tags --prune')
-  })
-
-  Cmd.add('branch switch', () => {
-    let line
-
-    line = Pane.current().line()
-    if (line.startsWith('*'))
-      Mess.say("That's the current branch")
-    else if (line.trim().length == 0)
-      Mess.say('Empty line')
-    else {
-      let br
-
-      br = line.split('/').at(-1)
-      apt('git switch ' + br)
-    }
-  })
-
   initSearch()
-  initStash()
-
-  Cmd.add('vc pull', () => apt('git-pull-with-name'))
-  Cmd.add('vc status', () => Shell.shell1('git status', 1))
 }

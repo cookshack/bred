@@ -602,16 +602,21 @@ function init
 export
 function view
 (buf,
- ele, // pane element
- elePoint,
- lineNum,
- whenReady, // FIX called when file loaded
+ spec, // { ele /* pane element */, elePoint, lineNum, whenReady /* FIX called when file loaded */ }
  cb) { // called when buf ready to use
   let mode
 
   buf.vid++
   mode = Mode.get(buf.mode?.key) // want the one in current globalThis
-  return View.make(buf, buf.vid, mode, buf.views, ele, elePoint, lineNum, whenReady, cb)
+  return View.make(buf,
+                   { vid: buf.vid,
+                     mode: mode,
+                     views: buf.views,
+                     ele: spec.ele,
+                     elePoint: spec.elePoint,
+                     lineNum: spec.lineNum,
+                     whenReady: spec.whenReady },
+                   cb)
 }
 
 export

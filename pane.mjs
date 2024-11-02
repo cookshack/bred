@@ -163,15 +163,20 @@ function add
         && view.ready) // else there may be a peer/fs callback about to access this view
       view.close()
     if (b)
-      view = Buf.view(b, ele, elePoint, spec.lineNum, spec.whenReady, v => {
-        view = v
-        if (view.ed)
-          Css.add(ele?.parentNode, 'ed')
-        else
-          Css.remove(ele?.parentNode, 'ed')
-        if (cb)
-          cb(view)
-      })
+      view = Buf.view(b,
+                      { ele: ele,
+                        elePoint: elePoint,
+                        lineNum: spec.lineNum,
+                        whenReady: spec.whenReady },
+                      v => {
+                        view = v
+                        if (view.ed)
+                          Css.add(ele?.parentNode, 'ed')
+                        else
+                          Css.remove(ele?.parentNode, 'ed')
+                        if (cb)
+                          cb(view)
+                      })
     p.frame.tab.name = b?.name || 'Empty'
     p.frame.tab.icon = b?.icon
   }

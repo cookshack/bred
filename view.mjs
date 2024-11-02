@@ -9,14 +9,16 @@ import { d } from './mess.mjs'
 export
 function make
 (b,
- vid,
- mode,
- views,
- ele, // pane element
- elePoint,
- lineNum,
- whenReady, // called when file loaded (FIX also ready1)
+ spec,
  cb) { // called when buf ready to use
+  let { vid,
+        mode,
+        views,
+        ele, // pane element
+        elePoint,
+        lineNum,
+        whenReady } // called when file loaded (FIX also ready1)
+    = spec
   let v, active, ready, point, modeVars
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.

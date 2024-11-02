@@ -1096,7 +1096,7 @@ function initTest
     })
   }
 
-  mo = Mode.add('Test Buffer', { viewInit2: vinit })
+  mo = Mode.add('Test Buffer', { viewInitSpec: vinit })
   Cmd.add('test buffer', () => {
     let b, p
 
@@ -1150,7 +1150,7 @@ function initBrowse
       cb(view)
   }
 
-  mo = Mode.add('Web', { viewInit2: refresh })
+  mo = Mode.add('Web', { viewInitSpec: refresh })
   d(mo)
 
   Cmd.add('web', () => {

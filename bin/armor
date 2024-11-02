@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+DIR_SCRIPT=$(dirname "$0")
+DIR_BRED=$(realpath "$DIR_SCRIPT/..")
+
+if test -f /etc/apparmor.d/abi/4.0; then
+  cat << EOF > /etc/apparmor.d/bred
+abi <abi/4.0>,
+include <tunables/global>
+
+profile bred $DIR_BRED/node_modules/electron/dist/electron flags=(unconfined) {
+  userns,
+}
+EOF
+
+  apparmor_parser -r /etc/apparmor.d/bred
+fi

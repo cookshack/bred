@@ -75,11 +75,11 @@ If you see an error like this on startup:
 The SUID sandbox helper binary was found, but is not configured
 correctly. Rather than run without sandboxing I'm aborting now.
 ```
-then add `--no-sandbox` to the start command, for example:
+then create an AppArmor profile:
 ```sh
-cd ~/src/bred/ && npm start -- --no-sandbox
+sudo ~/src/bred/bin/armor
 ```
-See https://github.com/electron/electron/issues/17972.
+See: https://github.com/electron/electron/issues/42510#issuecomment-2332919348
 
 #### 2. "no new privileges" error
 
@@ -88,10 +88,10 @@ If you want to run privileged commands from the editor, and you're getting an er
 sudo: The "no new privileges" flag is set, which prevents sudo from running as root.
 sudo: If sudo is running in a container, you may need to adjust the container configuration to disable the flag.
 ```
-then add `--disable-setuid-sandbox` to the start command, for example:
-```sh
-cd ~/src/bred/ && npm start -- --disable-setuid-sandbox
-```
+then create an AppArmor profile, as in 1 above.
+
+Note that there's an error somewhere, so if you `A-x Restart` (or click the restart icon) then the
+permission will be lost, and you'll have to close the app and start it again to run sudo commands.
 
 #### 3. "node-pty" errors on startup
 

@@ -414,7 +414,8 @@ function make
       if (mode && mode.viewInitSpec)
         mode.viewInitSpec(v,
                           { lineNum: lineNum,
-                            whenReady: whenReady },
+                            whenReady: whenReady,
+                            placeholder: b.placeholder },
                           cb)
       else if (mode && mode.viewInit) // remove when ace,mon have viewInitSpec
         mode.viewInit(v, 0, 0, lineNum, whenReady, cb)

@@ -388,6 +388,9 @@ function make2
         get path() {
           return dir ? (dir + (file || '')) : file
         },
+        get placeholder() {
+          return spec.placeholder
+        },
         get syntaxTreeStr() {
           return syntaxTreeStr(b)
         },

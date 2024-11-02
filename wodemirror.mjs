@@ -508,7 +508,8 @@ function viewInitSpec
               (spec.forceFresh || data.fresh) ? 0 : data.text,
               spec.modeWhenText,
               spec.lineNum,
-              spec.whenReady)
+              spec.whenReady,
+              spec.placeholder)
     if (cb)
       cb(view)
   })
@@ -532,7 +533,7 @@ function viewInit
 }
 
 function _viewInit
-(peer, view, text, modeWhenText, lineNum, whenReady) {
+(peer, view, text, modeWhenText, lineNum, whenReady, placeholder) {
   let ed, buf, edWW, edW, opts, domEventHandlers
 
   function removeAllKeyBindings
@@ -796,6 +797,9 @@ function _viewInit
     opts.push(view.wode.peer.of([ peer ]))
   else
     opts.push(view.wode.peer.of([]))
+
+  if (placeholder && placeholder.length)
+    opts.push(CMView.placeholder(placeholder))
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')

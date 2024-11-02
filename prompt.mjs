@@ -3,7 +3,6 @@ import { append, button, divCl, img, span } from './dom.mjs'
 import * as Area from './area.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
-import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Icon from './icon.mjs'
@@ -184,14 +183,8 @@ function initPrompt2
     if (hist) {
       prev = nth < 0 ? hist.next() : hist.prev()
       if (prev) {
-        let ww
-
-        ww = p.view.ele.firstElementChild
         p.buf.clear()
-        if (Css.has(ww.children[5], 'retracted'))
-          p.view.insert(prev.to)
-        else
-          p.view.insert(prev.from)
+        p.view.insert(prev)
       }
     }
   }

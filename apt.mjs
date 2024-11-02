@@ -46,7 +46,8 @@ function init
 
   function search
   () {
-    Prompt.promptBuf({ text: 'Search Apt packages' },
+    Prompt.promptBuf({ text: 'Search Apt',
+                       hist: hist },
                      runApt)
   }
 

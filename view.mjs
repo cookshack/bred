@@ -411,12 +411,14 @@ function make
     if (b.co) {
       d('VIEW     buffer has co')
       append(ele, b.co.cloneNode(1))
-      if (mode && mode.viewInitSpec)
+      if (mode && mode.viewInitSpec) {
+        d('VIEW  placeholder: ' + b.placeholder)
         mode.viewInitSpec(v,
                           { lineNum: lineNum,
                             whenReady: whenReady,
                             placeholder: b.placeholder },
                           cb)
+      }
       else if (mode && mode.viewInit) // remove when ace,mon have viewInitSpec
         mode.viewInit(v, 0, 0, lineNum, whenReady, cb)
       else

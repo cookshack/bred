@@ -125,6 +125,7 @@ function init
     Win.shared().man = {}
 
   mo = Mode.add('Man', { viewInit: Ed.viewInit,
+                         viewInitSpec: Ed.viewInitSpec,
                          viewCopy: Ed.viewCopy,
                          initFns: Ed.initModeFns,
                          parentsForEm: 'ed' })

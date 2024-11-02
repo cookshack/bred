@@ -764,6 +764,7 @@ function initSearchFiles
   hist = Hist.ensure('search files')
 
   moSr = Mode.add('Sr', { viewInit: Ed.viewInit,
+                          viewInitSpec: Ed.viewInitSpec,
                           initFns: Ed.initModeFns,
                           parentsForEm: 'ed',
                           decorators: [ { regex: /^([^:]+:[0-9]+:).*$/d,
@@ -775,6 +776,7 @@ function initSearchFiles
   Cmd.add('select', () => follow(), moSr)
 
   mo = Mode.add('Search Files', { hidePoint: 1,
+                                  viewInitSpec: Ed.viewInitSpec,
                                   viewInit: Ed.viewInit,
                                   initFns: Ed.initModeFns,
                                   parentsForEm: 'ed' })

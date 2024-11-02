@@ -1537,6 +1537,7 @@ function initFile
   hist = Hist.ensure('open')
 
   mo = Mode.add('Open', { hidePoint: 1,
+                          viewInitSpec: Ed.viewInitSpec,
                           viewInit: Ed.viewInit,
                           initFns: Ed.initModeFns,
                           parentsForEm: 'ed' })

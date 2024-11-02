@@ -90,6 +90,7 @@ function add
   m.seize = opts.seize
   m.viewCopy = opts.viewCopy
   m.viewInit = viewInit
+  m.viewInitSpec = opts.viewInitSpec
   m.viewReopen = opts.viewReopen
   m.parentsForEm = (typeof opts.parentsForEm == 'string') ? [ opts.parentsForEm ] : opts.parentsForEm
   //

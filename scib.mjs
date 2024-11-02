@@ -163,6 +163,7 @@ function init
   let mo
 
   mo = Mode.add('SC', { viewInit: Ed.viewInit,
+                        viewInitSpec: Ed.viewInitSpec,
                         viewCopy: Ed.viewCopy,
                         initFns: Ed.initModeFns,
                         parentsForEm: 'ed' })

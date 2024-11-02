@@ -68,6 +68,7 @@ function initStash
   })
 
   moS = Mode.add('stash', { viewInit: Ed.viewInit,
+                            viewInitSpec: Ed.viewInitSpec,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
@@ -155,6 +156,7 @@ function initCommit
   }
 
   mo = Mode.add('Commit', { viewInit: Ed.viewInit,
+                            viewInitSpec: Ed.viewInitSpec,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
@@ -183,6 +185,7 @@ function initCommit
   reFile = /^([^:\s]+):([^0-9]+.*)?$/d
 
   mo = Mode.add('Commit Result', { viewInit: Ed.viewInit,
+                                   viewInitSpec: Ed.viewInitSpec,
                                    viewCopy: Ed.viewCopy,
                                    initFns: Ed.initModeFns,
                                    parentsForEm: 'ed',
@@ -482,6 +485,7 @@ function initLog
   }
 
   mo = Mode.add('VC Log', { viewInit: Ed.viewInit,
+                            viewInitSpec: Ed.viewInitSpec,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
@@ -794,6 +798,7 @@ function initAnnotate
   decorInfoJoin = Ed.makeDecor({ attr: { style: 'visibility: hidden;' } })
 
   mo = Mode.add('VC Annotate', { viewInit: Ed.viewInit,
+                                 viewInitSpec: Ed.viewInitSpec,
                                  viewCopy: Ed.viewCopy,
                                  initFns: Ed.initModeFns,
                                  parentsForEm: 'ed',
@@ -892,6 +897,7 @@ function init
   })
 
   moB = Mode.add('branch', { viewInit: Ed.viewInit,
+                             viewInitSpec: Ed.viewInitSpec,
                              viewCopy: Ed.viewCopy,
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })

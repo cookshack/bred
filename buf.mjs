@@ -87,7 +87,6 @@ function make2
   let { name, modeName, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon
 
-
   function remove
   () {
     let sh, id, buf

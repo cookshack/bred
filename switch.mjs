@@ -332,6 +332,7 @@ function init
 
   mo = Mode.add('Switch', { hidePoint: 1,
                             viewInit: Ed.viewInit,
+                            viewInitSpec: Ed.viewInitSpec,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
 

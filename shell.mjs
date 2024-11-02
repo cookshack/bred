@@ -363,6 +363,7 @@ function initCompile
 
   mo = Mode.add('Compile',
                 { viewInit: Ed.viewInit,
+                  viewInitSpec: Ed.viewInitSpec,
                   viewCopy: Ed.viewCopy,
                   initFns: Ed.initModeFns,
                   parentsForEm: 'ed',
@@ -494,6 +495,7 @@ function init
   hist = Hist.ensure('shell')
 
   mo = Mode.add('Shell', { viewInit: Ed.viewInit,
+                           viewInitSpec: Ed.viewInitSpec,
                            viewCopy: Ed.viewCopy,
                            initFns: Ed.initModeFns,
                            parentsForEm: 'ed' })

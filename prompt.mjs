@@ -207,6 +207,7 @@ function initPrompt2
 
   mo = Mode.add('Prompt2', { hidePoint: 1,
                              viewInit: Ed.viewInit,
+                             viewInitSpec: Ed.viewInitSpec,
                              viewCopy: Ed.viewCopy,
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })
@@ -272,6 +273,7 @@ function init
   Em.on('Escape', 'close yes/no', ynEm)
 
   mo = Mode.add('Prompt', { viewInit: Ed.viewInit,
+                            viewInitSpec: Ed.viewInitSpec,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })

@@ -125,6 +125,7 @@ function init
   reLine = /^([^ ]+) - .*$/d
 
   mo = Mode.add('Apt Search Result', { viewInit: Ed.viewInit,
+                                       viewInitSpec: Ed.viewInitSpec,
                                        viewCopy: Ed.viewCopy,
                                        initFns: Ed.initModeFns,
                                        parentsForEm: 'ed',
@@ -152,6 +153,7 @@ function init
   Em.on(' ', 'scroll down', mo)
 
   Mode.add('Apt Info', { viewInit: Ed.viewInit,
+                         viewInitSpec: Ed.viewInitSpec,
                          viewCopy: Ed.viewCopy,
                          initFns: Ed.initModeFns,
                          parentsForEm: 'ed',
@@ -159,12 +161,14 @@ function init
                                          decor: [ { attr: { style: 'color: var(--clr-emph-light); background-color: var(--clr-fill);' } } ] } ] })
 
   Mode.add('Apt Install', { viewInit: Ed.viewInit,
+                            viewInitSpec: Ed.viewInitSpec,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
 
   mo = Mode.add('Apt Contents',
                 { viewInit: Ed.viewInit,
+                  viewInitSpec: Ed.viewInitSpec,
                   viewCopy: Ed.viewCopy,
                   initFns: Ed.initModeFns,
                   parentsForEm: 'ed',

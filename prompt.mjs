@@ -3,6 +3,7 @@ import { append, button, divCl, img, span } from './dom.mjs'
 import * as Area from './area.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
+import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Icon from './icon.mjs'
@@ -136,6 +137,97 @@ function ask
 }
 
 export
+function promptBuf
+(spec, cb) {
+  let win, p, buf, area, tab, ml
+
+  spec = spec || {}
+  spec.w = spec.w || Ed.divW(0, 0, { extraWWCss: 'bred-prompt-buf-ww' })
+  win = Win.current()
+  Area.getByName(win, 'bred-float')?.close()
+  area = Area.add(win, 'bred-float')
+  tab = Tab.add(area, { singleFrame: 1 })
+
+  p = Pane.current()
+  ml = spec.w.querySelector('.edMl')
+  if (ml)
+    ml.innerText = spec.text || 'Enter text'
+  buf = Buf.make('Prompt2', 'Prompt2', spec.w, p.dir)
+  buf.vars('ed').fillParent = 0
+  buf.opts.set('core.autocomplete.enabled', 0)
+  buf.opts.set('core.folding.enabled', 0)
+  buf.opts.set('core.highlight.activeLine.enabled', 0)
+  buf.opts.set('core.line.numbers.show', 0)
+  buf.opts.set('core.lint.enabled', 0)
+  buf.opts.set('core.minimap.enabled', 0)
+  buf.icon = 'prompt'
+  buf.vars('prompt').run = cb
+  buf.vars('prompt').hist = spec.hist
+  tab.frame.pane.setBuf(buf, null, 0,
+                        () => {
+                          area.show()
+                          tab.frame.pane.focus()
+                        })
+  return p
+}
+
+function initPrompt2
+() {
+  let mo
+
+  function prevHist
+  (nth) {
+    let p, prev, hist
+
+    p = Pane.current()
+    hist = p.buf.vars('prompt').hist
+    if (hist) {
+      prev = nth < 0 ? hist.next() : hist.prev()
+      if (prev) {
+        let ww
+
+        ww = p.view.ele.firstElementChild
+        p.buf.clear()
+        if (Css.has(ww.children[5], 'retracted'))
+          p.view.insert(prev.to)
+        else
+          p.view.insert(prev.from)
+      }
+    }
+  }
+
+  function ok
+  () {
+    let p, cb, term
+
+    p = Pane.current()
+    term = p.text()
+    cb = p.buf.vars('prompt').run
+    close()
+    if (cb)
+      cb(term)
+  }
+
+  mo = Mode.add('Prompt2', { hidePoint: 1,
+                             viewInit: Ed.viewInit,
+                             viewCopy: Ed.viewCopy,
+                             initFns: Ed.initModeFns,
+                             parentsForEm: 'ed' })
+
+  Cmd.add('next history item', () => prevHist(-1), mo)
+  Cmd.add('previous history item', () => prevHist(), mo)
+  Cmd.add('ok', () => ok(), mo)
+
+  Em.on('ArrowUp', 'previous history item', mo)
+  Em.on('ArrowDown', 'next history item', mo)
+  Em.on('A-p', 'previous history item', mo)
+  Em.on('A-n', 'next history item', mo)
+  Em.on('C-g', 'close demand', mo)
+  Em.on('Escape', 'close demand', mo)
+  Em.on('Enter', 'ok', mo)
+}
+
+export
 function init
 () {
   let mo
@@ -194,4 +286,6 @@ function init
   Em.on('C-g', 'close buffer', mo)
   Em.on('Escape', 'close buffer', mo)
   Em.on('C-c', 'run', mo)
+
+  initPrompt2()
 }

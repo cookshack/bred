@@ -17,6 +17,10 @@
   height: 19px; /* match ace */
 }
 
+.edWW.bred-prompt-buf-ww {
+  height: 4rem;
+}
+
 .edMl {
   width: 100%;
   height: var(--height-ml);

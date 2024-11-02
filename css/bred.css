@@ -1264,6 +1264,7 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   margin-top: 0.25rem;
 }
 
+.bred-prompt-buf-ww,
 .bred-opener-ww,
 .bred-qr-ww {
   padding: 0.5rem;

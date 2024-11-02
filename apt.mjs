@@ -28,7 +28,7 @@ function init
   let mo, hist, reLine
 
   function runApt
-  (p, term) {
+  (term) {
     if (term == null)
       Mess.toss('Missing search term')
     else if (term.length == 0)
@@ -46,7 +46,8 @@ function init
 
   function search
   () {
-    Prompt.ask('Package:', (p, name) => runApt(p, name))
+    Prompt.promptBuf({ text: 'Search Apt packages' },
+                     runApt)
   }
 
   function contents

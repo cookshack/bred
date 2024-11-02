@@ -406,7 +406,7 @@ function initQR
 
   hist = Hist.ensure('QR')
 
-  Cmd.add('close qr', () => closeQr(), mo)
+  Cmd.add('close qr', () => closeQr(), moQr)
   Cmd.add('close qr and pass through', closeAndPassThrough, moQr)
 
   Cmd.add('other', () => other(), moQr)

@@ -23,7 +23,7 @@ function apt
 }
 
 export
-function initSearch
+function init
 () {
   let mo, hist, reLine
 
@@ -170,10 +170,4 @@ function initSearch
                                   decor: [ { attr: { 'data-run': 'open' } } ] } ] })
   Cmd.add('open', open, mo)
   Em.on('Enter', 'open', mo)
-}
-
-export
-function init
-() {
-  initSearch()
 }

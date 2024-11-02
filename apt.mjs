@@ -1,6 +1,3 @@
-import { divCl } from './dom.mjs'
-
-import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
@@ -9,6 +6,7 @@ import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
+import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
 //import { d } from './mess.mjs'
 
@@ -27,79 +25,28 @@ function apt
 export
 function initSearch
 () {
-  let mo, buf, hist, reLine
-
-  function next
-  () {
-    let b
-
-    b = Pane.current().buf
-    b.vars('apt search').hist.next(b)
-  }
-
-  function prev
-  () {
-    let b
-
-    b = Pane.current().buf
-    b.vars('apt search').hist.prev(b)
-  }
+  let mo, hist, reLine
 
   function runApt
-  () {
-    let p, term
-
-    p = Pane.current()
-    term = p.text()?.trim()
+  (p, term) {
     if (term == null)
       Mess.toss('Missing search term')
+    else if (term.length == 0)
+      Mess.toss('Empty search term')
     else {
-      let h, b64
+      let b64
 
-      h = p.buf.vars('apt search').hist
       b64 = globalThis.btoa(term)
       Shell.shell1(Loc.appDir().join('bin/apt-search-64') + ' ' + b64,
                    1, 1, [], 0, 0, 0,
                    rbuf => rbuf.mode = 'apt search result')
-      h.add(term)
+      hist.add(term)
     }
-  }
-
-  function divW
-  () {
-    return Ed.divW(0, 0, { extraWWCss: 'apt-search-ww',
-                           extraWCss: 'apt-search-w',
-                           extraCo: divCl('bred-filler') })
   }
 
   function search
   () {
-    let p, w, ml
-
-    p = Pane.current()
-
-    w = divW()
-    ml = w.querySelector('.edMl')
-    if (ml)
-      ml.innerText = 'Package:'
-
-    if (buf) {
-      buf.vars('apt search').hist.reset()
-      buf.dir = p.dir
-    }
-    else {
-      buf = Buf.make('Apt Search', 'apt search', w, p.dir)
-      hist.reset()
-      buf.vars('apt search').hist = hist
-    }
-
-    buf.vars('ed').fillParent = 0
-    buf.opts.set('core.autocomplete.enabled', 0)
-    buf.opts.set('core.folding.enabled', 0)
-    buf.opts.set('core.line.numbers.show', 0)
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('core.minimap.enabled', 0)
-    p.setBuf(buf, null, 0, () => buf.clear())
+    Prompt.ask('Package:', (p, name) => runApt(p, name))
   }
 
   function contents
@@ -166,25 +113,6 @@ function initSearch
     if (path.length)
       Pane.open(path)
   }
-
-  mo = Mode.add('apt search', { viewInit: Ed.viewInit,
-                                viewCopy: Ed.viewCopy,
-                                initFns: Ed.initModeFns,
-                                parentsForEm: 'ed' })
-
-  Cmd.add('next', () => next(), mo)
-  Cmd.add('previous', () => prev(), mo)
-  Cmd.add('run', () => runApt(), mo)
-
-  Em.on('Enter', 'run', mo)
-
-  Em.on('A-n', 'Next', mo)
-  Em.on('A-p', 'Previous', mo)
-
-  Em.on('C-g', 'Close Buffer', mo)
-  Em.on('Escape', 'Close Buffer', mo)
-
-  Em.on('C-c C-c', 'run', mo)
 
   hist = Hist.ensure('apt search')
 

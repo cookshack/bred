@@ -102,7 +102,7 @@ function divW
 
 export
 function ask
-(mlText, cb) {
+(mlText, cb) { // (pane, text)
   let p
 
   function setMl

@@ -85,7 +85,7 @@ export
 function make2
 (spec = {}) {
   let { name, modeName, content, dir, file } = spec
-  let b, mode, modeVars, views, vid, fileType, icon
+  let b, mode, modeVars, views, vid, fileType, icon, onRemoves
 
   function remove
   () {
@@ -100,6 +100,7 @@ function make2
       if (p2.buf && (p2.buf.id == id))
         p2.setBuf(buf)
     })
+    onRemoves.forEach(cb => cb(b))
   }
 
   function setMode
@@ -331,6 +332,7 @@ function make2
   modeVars = {}
   views = []
   vid = 1
+  onRemoves = []
 
   mode = Mode.getOrAdd(modeName)
 
@@ -428,6 +430,9 @@ function make2
         insert,
         off,
         on,
+        onRemove(cb) {
+          onRemoves.push(cb)
+        },
         opt,
         save,
         text,

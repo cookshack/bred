@@ -76,7 +76,8 @@ function runToString
 
 export
 function run
-(b, dir, sc,
+(b, // optional
+ dir, sc,
  // Insert at end. Only used if b.
  end,
  // For the first insert/append: if inserting at point
@@ -100,6 +101,10 @@ function run
   bep = b && (b.anyView()?.bep || 0)
 
   d("run '" + sc + "' [" + args + '] in ' + dir)
+
+  b && b.onRemove(() => {
+    d('RUN remove ch ' + ch)
+  })
 
   Tron.on(ch, (err, data) => {
     let decoder

@@ -553,13 +553,6 @@ function onPaths
                       v8: process.versions.v8 } }
 }
 
-function onShellOpen
-(e, ch, onArgs) {
-  let [ url ] = onArgs
-
-  Shell.openExternal(url)
-}
-
 function onShell
 (e, ch, onArgs) {
   let proc, closedProc, closedErr, closedOut, sender
@@ -662,12 +655,20 @@ function onShell
       d(ch + ': on: ' + JSON.stringify(data))
       if (data.input && data.input.length)
         proc.write(data.input)
+      process.kill(proc.pid, 'SIGHUP')
     })
   }
   catch (err) {
     d(`${ch}: child process caught err ${err}`)
     sender.send(ch, { err: err })
   }
+}
+
+function onShellOpen
+(e, ch, onArgs) {
+  let [ url ] = onArgs
+
+  Shell.openExternal(url)
 }
 
 function onDirGet
@@ -1101,11 +1102,11 @@ async function onCmd
   if (name == 'paths')
     return onPaths(e)
 
-  if (name == 'shell.open')
-    return wrapOn(e, ch, args, onShellOpen)
-
   if (name == 'shell')
     return wrapOn(e, args[0] /* clientCh */, args, onShell)
+
+  if (name == 'shell.open')
+    return wrapOn(e, ch, args, onShellOpen)
 
   if (name == 'quit') {
     app.quit()

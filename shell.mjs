@@ -104,6 +104,7 @@ function run
 
   b && b.onRemove(() => {
     d('RUN remove ch ' + ch)
+    Tron.send(ch, { exit: 1 })
   })
 
   Tron.on(ch, (err, data) => {

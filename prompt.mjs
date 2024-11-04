@@ -199,6 +199,8 @@ function initPrompt2
 
     p = Pane.current()
     term = p.text()
+    if (term.length == 0)
+      term = p.buf.placeholder
     cb = p.buf.vars('prompt').run
     close()
     if (cb)

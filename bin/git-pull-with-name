@@ -1,0 +1,11 @@
+#!/bin/sh
+
+BRANCH=`git rev-parse --abbrev-ref HEAD | tr -d '\n'`
+export BRANCH
+
+REMOTE=`git for-each-ref --format='%(upstream:remotename)' "$(git symbolic-ref -q HEAD)"`
+export REMOTE
+
+echo git pull $REMOTE $BRANCH
+
+git pull $REMOTE $BRANCH

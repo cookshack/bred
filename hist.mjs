@@ -2,7 +2,7 @@ import * as Mess from './mess.mjs'
 import * as Tron from './tron.mjs'
 //import { d } from './mess.mjs'
 
-let hists
+let hists, needSave
 
 function get
 (name) {
@@ -138,13 +138,23 @@ function make
              return setItems(array)
            },
            //
-           add: it => items.unshift(it),
+           add: it => {
+             items.unshift(it)
+             needSave = 1
+           },
            at: i => items[i],
            next,
            nth,
            prev,
            reset,
            to }
+}
+
+export
+function saveIfNeeded
+() {
+  if (needSave)
+    save()
 }
 
 export
@@ -171,4 +181,7 @@ function init
       h.items = kv[1]
     })
   })
+
+  setInterval(() => saveIfNeeded(),
+              10 * 1000)
 }

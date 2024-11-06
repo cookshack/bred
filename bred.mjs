@@ -832,6 +832,15 @@ function initCmds
 
   Cmd.add('quit', () => quitOrRestart(1))
   Cmd.add('restart', () => quitOrRestart())
+
+  Cmd.add('throw', () => {
+    Tron.cmd1('test.throw', [], err => {
+      if (err) {
+        Mess.yell('test.throw: ' + err.message)
+        return
+      }
+    })
+  })
 }
 
 function initBindings

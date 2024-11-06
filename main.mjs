@@ -463,6 +463,14 @@ function cmdDevtoolsToggle
   return { open: 1 }
 }
 
+function cmdTestThrow
+() {
+  setTimeout(() => {
+    throw new Error ('test err')
+  })
+  return {}
+}
+
 function onLoadInit
 (e, ch) {
   let win
@@ -1154,6 +1162,9 @@ async function onCmd
 
   if (name == 'peer.push')
     return wrapOn(e, ch, args, Peer.onPeerPush)
+
+  if (name == 'test.throw')
+    return cmdTestThrow(e, ch, args)
 
   setTimeout(() => e.sender.send(ch, { err: { message: 'bogus cmd' } }))
   return ch

@@ -1214,11 +1214,14 @@ function bottomOfPane
 export
 function gotoLine
 () {
+  let p
+
   function go
-  (p, text) {
+  (text) {
     vgotoLine(p.view, text)
   }
 
+  p = Pane.current()
   Prompt.ask('Goto line:', go)
 }
 

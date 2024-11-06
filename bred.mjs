@@ -1223,7 +1223,7 @@ function initMakeDir
     let pane
 
     function make
-    (p, name, dir) {
+    (name, dir) {
       let abs
 
       if (name.startsWith('/'))
@@ -1240,7 +1240,7 @@ function initMakeDir
     }
 
     pane = Pane.current()
-    Prompt.ask('Make Dir:', (p, name) => make(p, name, pane.dir))
+    Prompt.ask('Make Dir:', name => make(name, pane.dir))
   }
 
   Cmd.add('make dir', () => makeDir())

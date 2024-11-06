@@ -94,50 +94,17 @@ function close
   Area.show(win, 'bred-main')
 }
 
-function divW
-() {
-  return Ed.divW(0, 0, { extraWWCss: 'prompt-ww',
-                         extraWCss: 'prompt-w' })
-}
-
 export
 function ask
-(mlText, cb) { // (pane, text)
-  let p
-
-  function setMl
-  (view) {
-    let w, ml
-
-    w = view.ele.firstElementChild
-    ml = w.querySelector('.edMl')
-    if (ml)
-      ml.innerText = mlText
-  }
-
-  p = Pane.current()
-  if (buf)
-    buf.dir = p.dir
-  else {
-    buf = Buf.make('Prompt', 'Prompt', divW(), p.dir)
-    buf.vars('ed').fillParent = 0
-    buf.opts.set('core.autocomplete.enabled', 0)
-    buf.opts.set('core.folding.enabled', 0)
-    buf.opts.set('core.line.numbers.show', 0)
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('core.minimap.enabled', 0)
-  }
-  buf.vars('prompt').run = cb
-  buf.vars('prompt').orig = p.buf
-  p.setBuf(buf, null, 0, view => {
-    buf.clear()
-    view.buf.views.forEach(v => setMl(v))
-  })
+(mlText, cb) { // (text)
+  promptBuf({ text: mlText },
+            cb)
 }
 
 export
 function promptBuf
-(spec, cb) {
+(spec, // { hist, mlText, w }
+ cb) { // (text)
   let win, p, buf, area, tab, ml
 
   spec = spec || {}
@@ -165,6 +132,7 @@ function promptBuf
   buf.opts.set('core.minimap.enabled', 0)
   buf.icon = 'prompt'
   buf.vars('prompt').run = cb
+  buf.vars('prompt').orig = p.buf
   buf.vars('prompt').hist = spec.hist
   tab.frame.pane.setBuf(buf, null, 0,
                         () => {

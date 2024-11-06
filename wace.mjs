@@ -891,11 +891,14 @@ function bottomOfPane
 export
 function gotoLine
 () {
+  let p
+
   function go
-  (p, text) {
+  (text) {
     p.view.ed.gotoLine(parseInt(text))
   }
 
+  p = Pane.current()
   Prompt.ask('Goto line:', go)
 }
 

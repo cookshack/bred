@@ -833,7 +833,7 @@ function init
     let p, el, path
 
     function run
-    (p, mode, dir) {
+    (mode, dir) {
       let absPath
 
       absPath = abs(path, dir)
@@ -861,7 +861,7 @@ function init
     }
 
     Prompt.ask('Update mode for ' + path,
-               (p, mode) => run(p, mode, p.dir))
+               mode => run(mode, p.dir))
   }
 
   function del
@@ -895,7 +895,7 @@ function init
     let p, el, target
 
     function run
-    (p, from, target, dir) {
+    (from, target, dir) {
       let absTarget
 
       absTarget = abs(target, dir)
@@ -924,7 +924,7 @@ function init
       return
     }
 
-    Prompt.ask('Link from:', (p, name) => run(p, name, target, p.dir))
+    Prompt.ask('Link from:', name => run(name, target, p.dir))
   }
 
   function rename
@@ -932,7 +932,7 @@ function init
     let p, marked, files, dir
 
     function run
-    (p, from, to, dir) {
+    (from, to, dir) {
       d('run from: ' + from)
       to = abs(to, dir)
       from = abs(from, dir)
@@ -966,7 +966,7 @@ function init
       }
 
       d({ file })
-      Prompt.ask('Rename to:', (p, name) => run(p, file, name, p.dir))
+      Prompt.ask('Rename to:', name => run(file, name, p.dir))
     }
   }
 

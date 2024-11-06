@@ -26,6 +26,7 @@ function ensure
     return h
   h = make(name)
   hists.push(h)
+  d('HIST added ' + name)
   return h
 }
 
@@ -139,8 +140,11 @@ function make
            },
            //
            add: it => {
-             if (items.length && (it == items[0]))
+             if (items.length && (it == items[0])) {
+               d('HIST already have ' + it)
                return
+             }
+             d('HIST add ' + it)
              items.unshift(it)
              needSave = 1
            },
@@ -168,7 +172,7 @@ function saveIfNeeded
 export
 function save
 (cb) { // (err)
-  d('hist.save')
+  d('HIST save')
   if (hists.length)
     Tron.cmd1('brood.save', [ 'hists-v1', hists.map(h => [ h.name, h.items ]) ], cb)
   else

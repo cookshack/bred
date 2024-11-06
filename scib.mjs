@@ -11,10 +11,7 @@ let hist
 export
 function runText
 (sc, spec) {
-  let p
-
   spec = spec || {}
-  p = Pane.current()
   if (sc && sc.length) {
     let modes
 
@@ -24,7 +21,7 @@ function runText
                  spec.end ?? 1,
                  spec.afterEndPoint ?? 0,
                  0,
-                 p.buf.vars('Prompt').hist,
+                 spec.hist,
                  0,
                  spec.onClose,
                  buf => {
@@ -54,7 +51,7 @@ function scib
   Prompt.ask({ text: 'Shell Command in ' + p.dir,
                hist: hist,
                onReady: cb },
-             runText)
+             sc => runText(sc, { hist: hist }))
 }
 
 function initRTL

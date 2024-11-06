@@ -330,6 +330,7 @@ function initCompile
   (text) {
     Scib.runText(text,
                  { afterEndPoint: 1, // initial command output goes after point if point at end
+                   hist: compileHist,
                    modes: [ 'compile' /*, 'view' */ ],
                    onClose: onClose })
   }

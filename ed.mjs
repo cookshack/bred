@@ -244,9 +244,9 @@ function initGotoLine
     }
 
     p = Pane.current()
-    Prompt.promptBuf({ text: 'goto line:',
-                       hist: hist },
-                     go)
+    Prompt.ask({ text: 'goto line:',
+                 hist: hist },
+               go)
   }
 
   hist = Hist.ensure('goto line')

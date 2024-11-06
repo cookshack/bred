@@ -1249,8 +1249,8 @@ function initMakeDir
     }
 
     pane = Pane.current()
-    Prompt.promptBuf({ text: 'Make Dir:' },
-                     name => make(name, pane.dir))
+    Prompt.ask({ text: 'Make Dir:' },
+               name => make(name, pane.dir))
   }
 
   Cmd.add('make dir', () => makeDir())

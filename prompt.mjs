@@ -95,7 +95,7 @@ function close
 }
 
 export
-function promptBuf
+function ask
 (spec, // { hist, text, w }
  cb) { // (text)
   let win, p, buf, area, tab, ml

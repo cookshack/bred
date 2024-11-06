@@ -139,6 +139,8 @@ function make
            },
            //
            add: it => {
+             if (items.length && (it == items[0]))
+               return
              items.unshift(it)
              needSave = 1
            },

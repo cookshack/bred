@@ -249,7 +249,7 @@ function initGotoLine
                      go)
   }
 
-  hist = Hist.ensure('Goto line')
+  hist = Hist.ensure('goto line')
 
   Cmd.add('goto line', () => gotoLine(), mo)
 }

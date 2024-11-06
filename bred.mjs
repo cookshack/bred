@@ -1726,6 +1726,11 @@ function start1
   let path
 
   d('start1')
+
+  Tron.on('thrown', err => {
+    Mess.yell(err.message)
+  })
+
   Mess.log('backend: ' + data.backend)
   initPackages(data.backend, err => {
     err && Mess.toss('Init error: ' + err.message)

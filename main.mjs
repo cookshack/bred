@@ -1277,6 +1277,11 @@ function createMainWindow
     html = 'bred-ace.html'
 
   lsp.win = createWindow(html)
+
+  process.on('uncaughtException', err => {
+    console.log(err.message)
+    lsp.win.webContents.send('thrown', makeErr(err))
+  })
 }
 
 function setVersion

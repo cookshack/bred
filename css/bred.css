@@ -1287,7 +1287,6 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   display: flex;
 }
 
-.bred-search_files-under,
 .switch-under,
 .bred-open-under {
   position: relative; /* for > img */
@@ -1299,7 +1298,6 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   scrollbar-color: var(--clr-text) var(--clr-fill);
 }
 
-.bred-search_files-under-icon,
 .switch-under-icon,
 .bred-open-under-icon {
   height: var(--height-ml);
@@ -1310,7 +1308,6 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   transform: translateY(calc(var(--height-ml) + var(--padding-top-opener)));
 }
 
-.bred-search_files-under-icon > img,
 .switch-under-icon > img,
 .bred-open-under-icon > img {
   height: 100%;

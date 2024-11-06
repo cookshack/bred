@@ -1315,8 +1315,15 @@ function textFromRange
 }
 
 function line
-(view) {
-  return lineAt(view, vgetPos(view))
+(view, n) {
+  let l, bep
+
+  if (n == -1)
+    bep = view.ed.state.doc.length
+  else
+    bep = vgetBep(view)
+  l = view.ed.state.doc.lineAt(bep)
+  return l.text
 }
 
 function excur

@@ -128,6 +128,8 @@ function run
         b.append(decoder.decode(data.stdout), afterEndPoint)
       else
         b.insert(decoder.decode(data.stdout), bep, afterEndPoint)
+      b.vars('Shell').lastLineText = b.line(-1)
+      d('lastLineText: ' + b.vars('Shell').lastLineText)
       afterEndPoint = 0
     }
 
@@ -467,26 +469,23 @@ function init
 
   function enter
   () {
-    let ch, p, l, match
+    let ch, p, l, last, input
 
     p = Pane.current()
     ch = p.buf.vars('Shell').ch
+    last = p.buf.vars('Shell').lastLineText
+    //d('last: [' + last + ']')
     l = p.view.line
+    //d('l: [' + l + ']')
 
-    // hack for prompt
-    match = l.match(/^[^$#]*[$#] (.*)$/)
-    if (match)
-      l = match[1]
-    else if (l.startsWith('> '))
-      l = l.slice(2)
-
-    l = l.trim()
+    input = l.slice(last.length).trim()
 
     p.view.insert('\n')
     if (ch) {
       if (hist)
-        hist.add(l)
-      Tron.send(ch, { input: l + '\n' })
+        hist.add(input)
+      d('sending to ch ' + ch + ': ' + input)
+      Tron.send(ch, { input: input + '\n' })
     }
   }
 

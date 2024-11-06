@@ -198,10 +198,10 @@ function make2
   }
 
   function line
-  (p) {
+  (n) {
     if (b.mode?.key)
       if (b.mode?.line)
-        return b.mode.line(p)
+        return b.mode.line(anyView(), n)
 
     Mess.say('buf.add: line missing: ' + b.mode.key)
     return 0

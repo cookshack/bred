@@ -97,8 +97,6 @@ function scib
     })
   }
   else {
-    let modes
-
     w = divW()
     ml = w.querySelector('.edMl')
     if (ml)
@@ -108,8 +106,6 @@ function scib
     buf.icon = 'prompt'
     hist.reset()
     buf.vars('SC').hist = hist
-    modes = [ 'text' ]
-    buf.vars('SC').modes = modes
   }
 
   buf.vars('ed').fillParent = 0

@@ -1,31 +1,12 @@
 import * as Cmd from './cmd.mjs'
-import * as Ed from './ed.mjs'
-import * as Em from './em.mjs'
 import * as Hist from './hist.mjs'
 import * as Mess from './mess.mjs'
-import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
 import { d } from './mess.mjs'
 
 let hist
-
-function next
-() {
-  let b
-
-  b = Pane.current().buf
-  b.vars('SC').hist.next(b)
-}
-
-function prev
-() {
-  let b
-
-  b = Pane.current().buf
-  b.vars('SC').hist.prev(b)
-}
 
 export
 function runText
@@ -101,27 +82,6 @@ function initRTL
 export
 function init
 () {
-  let mo
-
-  mo = Mode.add('SC', { viewInit: Ed.viewInit,
-                        viewInitSpec: Ed.viewInitSpec,
-                        viewCopy: Ed.viewCopy,
-                        initFns: Ed.initModeFns,
-                        parentsForEm: 'ed' })
-
-  Cmd.add('next', () => next(), mo)
-  Cmd.add('previous', () => prev(), mo)
-
-  Em.on('Enter', 'run', mo)
-
-  Em.on('ArrowUp', 'Previous', mo)
-  Em.on('ArrowDown', 'Next', mo)
-  Em.on('A-p', 'Previous', mo)
-  Em.on('A-n', 'Next', mo)
-
-  Em.on('C-g', 'Close Buffer', mo)
-  Em.on('Escape', 'Close Buffer', mo)
-
   Cmd.add('shell command in buffer', () => scib())
 
   hist = Hist.ensure('shell')

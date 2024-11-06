@@ -122,7 +122,7 @@ function promptBuf
                     modeName: 'Prompt2',
                     content: spec.w,
                     dir: p.dir,
-                    placeholder: spec.hist?.nth(0) })
+                    placeholder: spec.hist?.nth(0)?.toString() })
   buf.vars('ed').fillParent = 0
   buf.opts.set('core.autocomplete.enabled', 0)
   buf.opts.set('core.folding.enabled', 0)

@@ -1,6 +1,3 @@
-import { divCl } from './dom.mjs'
-
-import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
@@ -8,10 +5,11 @@ import * as Hist from './hist.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
+import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
 import { d } from './mess.mjs'
 
-let buf, hist
+let hist
 
 function next
 () {
@@ -30,11 +28,10 @@ function prev
 }
 
 function runText
-() {
-  let p, sc
+(sc) {
+  let p
 
   p = Pane.current()
-  sc = p.text()
   if (sc && sc.length) {
     let modes
 
@@ -67,68 +64,14 @@ function runText
 
 export
 function scib
-(cb) { // (view)
-  let p, w, ml, mlDir, mlText
-
-  function divW
-  () {
-    return Ed.divW(0, 0, { extraWWCss: 'shell-ww',
-                           extraWCss: 'shell-w',
-                           extraCo: [ divCl('bred-filler') ] })
-  }
+(cb) { // (pane)
+  let p
 
   p = Pane.current()
-
-  mlDir = p.dir
-  mlText = 'Shell Command in ' + p.dir
-
-  if (buf) {
-    buf.vars('SC').hist.reset()
-
-    buf.dir = p.dir
-
-    buf.views.forEach(view => {
-      if (view.content)
-        view.content.forEach(ch => {
-          ml = ch.querySelector('.edMl')
-          if (ml)
-            ml.innerText = mlText
-        })
-    })
-  }
-  else {
-    w = divW()
-    ml = w.querySelector('.edMl')
-    if (ml)
-      ml.innerText = mlText
-
-    buf = Buf.make('Enter Shell Command', 'SC', w, p.dir)
-    buf.icon = 'prompt'
-    hist.reset()
-    buf.vars('SC').hist = hist
-  }
-
-  buf.vars('ed').fillParent = 0
-  buf.opts.set('ansi.enabled', 1)
-  buf.opts.set('core.autocomplete.enabled', 0)
-  buf.opts.set('core.folding.enabled', 0)
-  buf.opts.set('core.line.numbers.show', 0)
-  buf.opts.set('core.lint.enabled', 0)
-  buf.opts.set('core.minimap.enabled', 0)
-  p.setBuf(buf, null, 0, view => {
-    buf.clear()
-
-    if (p.dir == mlDir) {
-      // good
-    }
-    else {
-      p.dir = mlDir
-      Mess.yell('Take care: buffer dir got out of sync with Modeline dir')
-    }
-
-    if (cb)
-      cb(view)
-  })
+  Prompt.ask({ text: 'Shell Command in ' + p.dir,
+               hist: hist,
+               onReady: cb },
+             runText)
 }
 
 function initRTL
@@ -166,7 +109,6 @@ function init
 
   Cmd.add('next', () => next(), mo)
   Cmd.add('previous', () => prev(), mo)
-  Cmd.add('run', () => runText(), mo)
 
   Em.on('Enter', 'run', mo)
 

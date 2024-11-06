@@ -96,7 +96,7 @@ function close
 
 export
 function ask
-(spec, // { hist, text, w }
+(spec, // { hist, text, onReady, w }
  cb) { // (text)
   let win, p, buf, area, tab, ml
 
@@ -131,6 +131,7 @@ function ask
                         () => {
                           area.show()
                           tab.frame.pane.focus()
+                          spec.onReady && spec.onReady(tab.frame.pane)
                         })
   return p
 }

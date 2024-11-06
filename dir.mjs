@@ -1012,9 +1012,9 @@ function init
 
     el = current()
     if (el && el.dataset.path)
-      Scib.scib(view => {
-        view.buf.append(' ' + el.dataset.path)
-        //view.point.bufStart() // two points
+      Scib.scib(pane => {
+        pane.view.buf.append(' ' + el.dataset.path)
+        //pane.view.point.bufStart() // two points
         Cmd.runMo('buffer start', 'Ed', 1)
       })
     else

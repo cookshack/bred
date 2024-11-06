@@ -1730,6 +1730,8 @@ function start1
 
   Tron.on('thrown', err => {
     Mess.yell(err.message)
+    if (err.stack)
+      Mess.log(err.stack)
   })
 
   Mess.log('backend: ' + data.backend)

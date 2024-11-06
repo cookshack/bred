@@ -2,7 +2,8 @@ export
 function makeErr
 (err) {
   return { err: { message: err.message,
-                  code: err.code } }
+                  code: err.code,
+                  stack: err.stack } }
 }
 
 export

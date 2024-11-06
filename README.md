@@ -70,10 +70,16 @@ cd ~/src/bred/ && npm start -- $*
 
 #### 1. Sandbox error
 
-If you see an error like this on startup:
+On startup, if you see an error like
 ```
 The SUID sandbox helper binary was found, but is not configured
 correctly. Rather than run without sandboxing I'm aborting now.
+```
+or like this
+```
+No usable sandbox! Update your kernel or see https://... for more information on
+developing with the SUID sandbox. If you want to live dangerously and need an
+immediate workaround, you can try using --no-sandbox.
 ```
 then create an AppArmor profile:
 ```sh

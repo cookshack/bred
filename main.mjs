@@ -1033,6 +1033,17 @@ function onFileTouch
   e.sender.send(ch, {})
 }
 
+function quit
+() {
+  try {
+    app.quit()
+  }
+  catch (err) {
+    console.log(err.message)
+    lsp.win.webContents.send('thrown', makeErr(err))
+  }
+}
+
 let onCmdCount
 
 onCmdCount = 0
@@ -1117,13 +1128,13 @@ async function onCmd
     return wrapOn(e, ch, args, onShellOpen)
 
   if (name == 'quit') {
-    app.quit()
+    quit()
     return ch
   }
 
   if (name == 'restart') {
     app.relaunch()
-    app.quit()
+    quit()
     return ch
   }
 

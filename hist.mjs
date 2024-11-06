@@ -1,6 +1,6 @@
 import * as Mess from './mess.mjs'
 import * as Tron from './tron.mjs'
-//import { d } from './mess.mjs'
+import { d } from './mess.mjs'
 
 let hists, needSave
 
@@ -154,12 +154,19 @@ export
 function saveIfNeeded
 () {
   if (needSave)
-    save()
+    save(err => {
+      if (err) {
+        Mess.log(err.message)
+        return
+      }
+      needSave = 0
+    })
 }
 
 export
 function save
 (cb) { // (err)
+  d('hist.save')
   if (hists.length)
     Tron.cmd1('brood.save', [ 'hists-v1', hists.map(h => [ h.name, h.items ]) ], cb)
   else

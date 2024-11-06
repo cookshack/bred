@@ -225,6 +225,35 @@ function initComplete
   Em.on('A-/', 'complete')
 }
 
+function initGotoLine
+(mo) {
+  let hist
+
+  function gotoLine
+  () {
+    let p
+
+    function go
+    (text) {
+      let num
+
+      num = parseInt(text)
+      isNaN(num) && Mess.toss('Must be a number')
+      Backend.vgotoLine(p.view, num)
+      hist.add(num)
+    }
+
+    p = Pane.current()
+    Prompt.promptBuf({ text: 'goto line:',
+                       hist: hist },
+                     go)
+  }
+
+  hist = Hist.ensure('Goto line')
+
+  Cmd.add('goto line', () => gotoLine(), mo)
+}
+
 function initQR
 (mo) {
   let moQr, st, em, hist
@@ -1243,21 +1272,6 @@ function selfInsertIndent
 }
 
 export
-function gotoLine
-() {
-  let p
-
-  function go
-  (text) {
-    Backend.vgotoLine(p.view, text)
-  }
-
-  p = Pane.current()
-  Prompt.promptBuf({ text: 'Goto line:' },
-                   go)
-}
-
-export
 function enable
 (u, name) {
   if (u == 4)
@@ -1393,7 +1407,6 @@ function init
     Cmd.add('top of pane', () => Backend.topOfPane(), mo)
     Cmd.add('bottom of pane', () => Backend.bottomOfPane(), mo)
     Cmd.add('select all', () => Backend.selectAll(), mo)
-    Cmd.add('goto line', () => gotoLine(), mo)
     Cmd.add('open lint panel', () => Backend.openLint(), mo)
 
     Cmd.add('yank', () => Backend.yank(), mo)
@@ -1486,6 +1499,7 @@ function init
 
     initLML(mo)
     initComplete()
+    initGotoLine(mo)
     initQR(mo)
     initSearch(mo)
 

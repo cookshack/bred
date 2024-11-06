@@ -546,11 +546,6 @@ function initModeFns
     })
   }
 
-  function gotoLine
-  (view, n) {
-    view.ed.gotoLine(n, 0)
-  }
-
   function text
   (view) {
     return view.ed.getValue()
@@ -579,7 +574,7 @@ function initModeFns
 
   mo.clear = clear
   mo.clearLine = clearLine
-  mo.gotoLine = gotoLine
+  mo.gotoLine = vgotoLine
   mo.lang = lang
   mo.line = line
   mo.lineAt = lineAt

@@ -2580,6 +2580,8 @@ function vinsertAt
 (v, off, u, text, setOff, to) {
   if (v.ele) {
     clearSelection(v)
+    if (typeof text == 'number')
+      text = text.toString()
     for (let i = 0; i < u; i++) {
       if (setOff) {
         d('insertAt ' + off + ' replace')

@@ -1253,7 +1253,8 @@ function gotoLine
   }
 
   p = Pane.current()
-  Prompt.ask('Goto line:', go)
+  Prompt.promptBuf({ text: 'Goto line:' },
+                   go)
 }
 
 export

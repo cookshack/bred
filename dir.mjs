@@ -663,7 +663,7 @@ function showHid
 
 function initSearchFiles
 () {
-  let mo, moSr, buf
+  let moSr
   let hist
 
   function follow
@@ -685,11 +685,10 @@ function initSearchFiles
   }
 
   function searchFiles
-  () {
-    let p, needle
+  (needle) {
+    let p
 
     p = Pane.current()
-    needle = p.text()
     if (needle && needle.length) {
       hist.add(needle)
       // find . -type f -not -name \*.BAK -not -name \*.CKP -not -name \*~ -maxdepth 1 2>/dev/null | xargs grep --ignore-case --fixed-strings --line-number "$1" -H -I 2>/dev/null # -I -e -H 2>/dev/null
@@ -706,60 +705,9 @@ function initSearchFiles
 
   function search
   () {
-    let under, ml
-
-    function divW
-    () {
-      return Ed.divW(0, 0, { extraWWCss: 'bred-search_files-ww bred-opener-ww',
-                             extraWCss: 'bred-search_files-w bred-opener-w',
-                             extraCo: [ divCl('bred-search_files-under'),
-                                        divCl('bred-search_files-under-icon', img('img/prompt.svg', '>', 'filter-clr-nb0')) ] })
-    }
-
-    function refresh
-    () {
-      under.innerHTML = ''
-      if (ml)
-        ml.innerText = 'Search files in ' + Loc.make(buf.dir).ensureSlash()
-    }
-
-    {
-      let p, w, dir
-
-      p = Pane.current()
-
-      w = divW()
-      ml = w.querySelector('.edMl')
-      if (ml)
-        ml.innerText = 'Search files'
-
-      if (buf)
-        buf = buf
-      else
-        buf = Buf.make('Search Files', 'Search Files', w, p.dir)
-
-      buf.vars('ed').fillParent = 0
-      buf.opts.set('core.autocomplete.enabled', 0)
-      buf.opts.set('core.brackets.close.enabled', 0)
-      buf.opts.set('core.folding.enabled', 0)
-      buf.opts.set('core.line.numbers.show', 0)
-      buf.opts.set('core.lint.enabled', 0)
-      buf.opts.set('core.minimap.enabled', 0)
-      hist.reset()
-      buf.file = 0
-      //buf.dir = 0
-      dir = p.dir
-      p.setBuf(buf, null, 0, () => {
-        buf.clear()
-        buf.dir = dir
-        ml = p.view.ele.querySelector('.edMl')
-        under = p.view.ele.querySelector('.bred-search_files-under')
-        if (under)
-          refresh()
-        else
-          Mess.toss('under missing')
-      })
-    }
+    Prompt.ask({ text: 'Search files',
+                 hist: hist },
+               searchFiles)
   }
 
   hist = Hist.ensure('search files')
@@ -775,28 +723,6 @@ function initSearchFiles
 
   Em.on('Enter', 'select', moSr)
   Cmd.add('select', () => follow(), moSr)
-
-  mo = Mode.add('Search Files', { hidePoint: 1,
-                                  viewInitSpec: Ed.viewInitSpec,
-                                  viewInit: Ed.viewInit,
-                                  initFns: Ed.initModeFns,
-                                  parentsForEm: 'ed' })
-
-  Cmd.add('next', () => hist.next(buf), mo)
-  Cmd.add('previous', () => hist.prev(buf), mo)
-  Cmd.add('select', () => searchFiles(), mo)
-
-  Em.on('Enter', 'select', mo)
-
-  Em.on('A-n', 'Next', mo)
-  Em.on('A-p', 'Previous', mo)
-
-  Em.on('C-g', 'Close Buffer', mo)
-  Em.on('Escape', 'Close Buffer', mo)
-  Em.on('C-n', 'Next Selection', mo)
-  Em.on('C-p', 'Previous Selection', mo)
-  Em.on('C-s', 'Idle', mo)
-  Em.on('C-r', 'Idle', mo)
 
   Cmd.add('search files', () => search())
 }

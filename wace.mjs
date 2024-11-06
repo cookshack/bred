@@ -889,17 +889,9 @@ function bottomOfPane
 }
 
 export
-function gotoLine
-() {
-  let p
-
-  function go
-  (text) {
-    p.view.ed.gotoLine(parseInt(text))
-  }
-
-  p = Pane.current()
-  Prompt.ask('Goto line:', go)
+function vgotoLine
+(view, num) { // 1 indexed
+  view.ed.gotoLine(parseInt(num))
 }
 
 export

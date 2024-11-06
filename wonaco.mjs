@@ -1212,20 +1212,6 @@ function bottomOfPane
 }
 
 export
-function gotoLine
-() {
-  let p
-
-  function go
-  (text) {
-    vgotoLine(p.view, text)
-  }
-
-  p = Pane.current()
-  Prompt.ask('Goto line:', go)
-}
-
-export
 function recenter
 (view) {
   if (view?.ed) {

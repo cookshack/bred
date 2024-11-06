@@ -1243,6 +1243,20 @@ function selfInsertIndent
 }
 
 export
+function gotoLine
+() {
+  let p
+
+  function go
+  (text) {
+    Backend.vgotoLine(p.view, text)
+  }
+
+  p = Pane.current()
+  Prompt.ask('Goto line:', go)
+}
+
+export
 function enable
 (u, name) {
   if (u == 4)
@@ -1378,7 +1392,7 @@ function init
     Cmd.add('top of pane', () => Backend.topOfPane(), mo)
     Cmd.add('bottom of pane', () => Backend.bottomOfPane(), mo)
     Cmd.add('select all', () => Backend.selectAll(), mo)
-    Cmd.add('goto line', () => Backend.gotoLine(), mo)
+    Cmd.add('goto line', () => gotoLine(), mo)
     Cmd.add('open lint panel', () => Backend.openLint(), mo)
 
     Cmd.add('yank', () => Backend.yank(), mo)

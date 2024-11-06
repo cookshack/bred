@@ -95,15 +95,8 @@ function close
 }
 
 export
-function ask
-(mlText, cb) { // (text)
-  promptBuf({ text: mlText },
-            cb)
-}
-
-export
 function promptBuf
-(spec, // { hist, mlText, w }
+(spec, // { hist, text, w }
  cb) { // (text)
   let win, p, buf, area, tab, ml
 

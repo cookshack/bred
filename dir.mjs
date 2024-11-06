@@ -861,8 +861,8 @@ function init
       return
     }
 
-    Prompt.ask('Update mode for ' + path,
-               mode => run(mode, p.dir))
+    Prompt.promptBuf({ text: 'Update mode for ' + path },
+                     mode => run(mode, p.dir))
   }
 
   function del
@@ -925,7 +925,8 @@ function init
       return
     }
 
-    Prompt.ask('Link from:', name => run(name, target, p.dir))
+    Prompt.promptBuf({ text: 'Link from:' },
+                     name => run(name, target, p.dir))
   }
 
   function rename
@@ -967,7 +968,8 @@ function init
       }
 
       d({ file })
-      Prompt.ask('Rename to:', name => run(file, name, p.dir))
+      Prompt.promptBuf({ text: 'Rename to:' },
+                       name => run(file, name, p.dir))
     }
   }
 

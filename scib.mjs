@@ -27,23 +27,25 @@ function prev
   b.vars('SC').hist.prev(b)
 }
 
+export
 function runText
-(sc) {
+(sc, spec) {
   let p
 
+  spec = spec || {}
   p = Pane.current()
   if (sc && sc.length) {
     let modes
 
-    modes = p.buf.vars('SC').modes
+    modes = spec.modes
 
     Shell.shell1(sc,
-                 p.buf.vars('SC').end ?? 1,
-                 p.buf.vars('SC').afterEndPoint ?? 0,
+                 spec.end ?? 1,
+                 spec.afterEndPoint ?? 0,
                  0,
-                 p.buf.vars('SC').hist,
+                 p.buf.vars('Prompt').hist,
                  0,
-                 p.buf.vars('SC').onClose,
+                 spec.onClose,
                  buf => {
                    buf.opts.set('ansi.enabled', 1)
                    buf.opts.set('core.highlight.specials.enabled', 0)

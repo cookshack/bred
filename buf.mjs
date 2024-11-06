@@ -200,8 +200,14 @@ function make2
   function line
   (n) {
     if (b.mode?.key)
-      if (b.mode?.line)
-        return b.mode.line(anyView(), n)
+      if (b.mode?.line) {
+        let view
+
+        view = anyView()
+        if (view)
+          return b.mode.line(view, n)
+        return 0
+      }
 
     Mess.say('buf.add: line missing: ' + b.mode.key)
     return 0

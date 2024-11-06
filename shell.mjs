@@ -10,6 +10,7 @@ import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
+import * as Prompt from './prompt.mjs'
 import * as Scib from './scib.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
@@ -315,7 +316,7 @@ function edit
 
 function initCompile
 () {
-  let mo, buf, compileHist
+  let mo, compileHist
 
   function onClose
   (buf, code) {
@@ -325,46 +326,19 @@ function initCompile
     buf.append('\n=== Compile exit with ' + code + ' on ' + now.toLocaleString() + '\n')
   }
 
+  function runText
+  (text) {
+    Scib.runText(text,
+                 { afterEndPoint: 1, // initial command output goes after point if point at end
+                   modes: [ 'compile' /*, 'view' */ ],
+                   onClose: onClose })
+  }
+
   function compile
   () {
-    let p, w, ml, hist, modes
-
-    p = Pane.current()
-
-    w = Ed.divW(0, 0, { extraWWCss: 'shell-ww',
-                        extraWCss: 'shell-w',
-                        extraCo: divCl('bred-filler') })
-    ml = w.querySelector('.edMl')
-    if (ml)
-      ml.innerText = 'Compile Command:'
-
-    if (buf) {
-      buf.vars('SC').hist.reset()
-      buf.dir = p.dir
-    }
-    else {
-      buf = Buf.make('Enter Compile Command', 'SC', w, p.dir)
-      compileHist.reset()
-      buf.vars('SC').hist = compileHist
-    }
-    buf.vars('SC').afterEndPoint = 1 // initial command output goes after point if point at end
-    modes = [ 'compile' /*, 'view' */ ]
-    buf.vars('SC').modes = modes
-    buf.vars('SC').onClose = onClose
-    buf.vars('ed').fillParent = 0
-    buf.opts.set('ansi.enabled', 1)
-    buf.opts.set('core.highlight.specials.enabled', 0)
-    buf.opts.set('core.autocomplete.enabled', 0)
-    buf.opts.set('core.folding.enabled', 0)
-    buf.opts.set('core.line.numbers.show', 0)
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('core.minimap.enabled', 0)
-    p.setBuf(buf, null, 0, () => {
-      buf.clear()
-      hist = buf.vars('SC').hist
-      if (hist.length)
-        p.view.insert(hist.to(0))
-    })
+    Prompt.ask({ text: 'Compile Command:',
+                 hist: compileHist },
+               runText)
   }
 
   compileHist = Hist.ensure('compile')

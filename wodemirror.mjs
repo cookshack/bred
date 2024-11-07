@@ -1731,6 +1731,8 @@ function divW
                          divCl('edMl-dir', Ed.makeMlDir(dir)),
                          divCl('ml-close') ]),
                  opts.extraBefore,
+                 divCl('bred-info-ww',
+                       [ divCl('bred-info-w', 'xx') ]),
                  divCl('edW' + (opts.extraWCss ? (' ' + opts.extraWCss) : '')),
                  opts.extraCo ])
 }

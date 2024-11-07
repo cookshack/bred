@@ -80,6 +80,7 @@
   --z-hover: 98; /* bottom area with cmd on hover */
   --z-diag: 97;
   --z-close: 90;
+  --z-info: 80;
   --z-indent-marker: 50; /* above line */
   --z-below-selection: -3; /* cm selection is -2 */
   --z-activeLine: -1; /* for the :before of the activeLine, eg to set a background */
@@ -1387,6 +1388,26 @@ div.bred-open-under-f {
 .bred-close > img {
   pointer-events: none;
   width: 70%;
+}
+
+.bred-info-ww {
+  position: relative;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bred-info-w {
+  position: absolute;
+  border: 1px solid var(--clr-nb1);
+  color: var(--clr-nb1);
+  background: var(--clr-fill);
+  padding: 0.2rem;
+  display: flex;
+  z-index: var(--z-info);
 }
 
 .paneWW.current > .bred-close,

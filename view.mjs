@@ -359,7 +359,7 @@ function make
         forwardChar: () => point.forward(),
         ensurePointVisible,
         excur,
-        gotoLine: (n) => {
+        gotoLine: n => {
           if (b.mode?.key)
             if (b.mode?.gotoLine)
               b.mode.gotoLine(v, n)

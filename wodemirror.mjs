@@ -220,7 +220,7 @@ function makePeer
       version = CMCollab.getSyncedVersion(this.view.state)
       this.ch = 'peer.pull/' + uuidv4()
       this.pullCb = Tron.on(this.ch, this.pull.bind(this))
-      Tron.cmd('peer.pull', [ id, version, this.ch ], (err) => {
+      Tron.cmd('peer.pull', [ id, version, this.ch ], err => {
         if (err) {
           d('peer.pull: ' + err.message)
           return
@@ -2512,7 +2512,7 @@ function vfind
               10)
         })
       },
-                                              (data) => { // update
+                                              data => { // update
                                                 needle = data.needle
                                                 init()
                                               })
@@ -2529,7 +2529,7 @@ function vfind
             CMView.Decoration.mark({ class: 'bred-search-match' + (selected ? ' bred-search-selected' : '') }),
             11)
       },
-                                                (data) => { // update
+                                                data => { // update
                                                   d('decor match update')
                                                   if (0) {
                                                     needle = data.needle

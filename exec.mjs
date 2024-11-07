@@ -171,7 +171,7 @@ function init
 
   mo = Mode.add('Execute', { viewInit: viewInit })
 
-  Cmd.add('execute', (u) => {
+  Cmd.add('execute', u => {
     let p, buf
 
     p = Pane.current()

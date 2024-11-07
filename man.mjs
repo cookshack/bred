@@ -68,7 +68,7 @@ function init
       b.icon = 'manpage'
       b.addMode('view')
       p.setBuf(b, null, 0, () =>
-        Shell.runToString(p.dir, 'man', [ '-Thtml', topic ], 0, (str) => {
+        Shell.runToString(p.dir, 'man', [ '-Thtml', topic ], 0, str => {
           Win.shared().man.buf?.vars('Man').hist.add(topic)
           b.views.forEach(view => {
             let w, el

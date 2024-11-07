@@ -377,7 +377,7 @@ function initCmds
       x = mouse.x
       y = mouse.y
     }
-    Tron.cmd('devtools.inspect', [ x, y ], (err) => {
+    Tron.cmd('devtools.inspect', [ x, y ], err => {
       if (err) {
         Mess.yell('inspect element: ' + err.message)
         return
@@ -438,7 +438,7 @@ function initCmds
       d(ctag)
       d('def: ' + def)
       d('opening: ' + ctag.loc.path)
-      Pane.open(ctag.loc, 1, (view) => {
+      Pane.open(ctag.loc, 1, view => {
         let ret
 
         d('going to line: ' + ctag.regex)
@@ -481,7 +481,7 @@ function initCmds
 
   Cmd.add('open externally', (u, we) => {
     if (we.e.target.dataset.url)
-      Tron.cmd('shell.open', [ we.e.target.dataset.url ], (err) => {
+      Tron.cmd('shell.open', [ we.e.target.dataset.url ], err => {
         if (err) {
           Mess.yell('shell.open: ' + err.message)
           return
@@ -577,7 +577,7 @@ function initCmds
     pos = pos.col
     url = urlAt(l, pos)
     if (url)
-      Tron.cmd('shell.open', [ url ], (err) => err && Mess.yell('shell.open: ' + err.message))
+      Tron.cmd('shell.open', [ url ], err => err && Mess.yell('shell.open: ' + err.message))
     else
       Mess.say('Point must be over an URL')
   })
@@ -746,7 +746,7 @@ function initCmds
   })
 
   Cmd.add('exit', () => {
-    Tron.cmd('quit', [], (err) => {
+    Tron.cmd('quit', [], err => {
       if (err) {
         Mess.yell('quit: ' + err.message)
         return

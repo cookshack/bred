@@ -645,7 +645,7 @@ function onShell
       else
         proc.write(runInShell + ' && exit 2>/dev/null || exit 2>/dev/null\n')
 
-    proc.onData((data) => {
+    proc.onData(data => {
       d(`${ch}: data: ${data}`)
       sender.send(ch, { stdout: data })
       closedOut = 1
@@ -980,7 +980,7 @@ function onFileRm
 
 function onFileSave
 (e, ch, onArgs) {
-  fs.writeFile(onArgs[0], onArgs[1], { encoding: 'utf8' }, (err) => {
+  fs.writeFile(onArgs[0], onArgs[1], { encoding: 'utf8' }, err => {
     if (err)
       e.sender.send(ch, { err: err })
     else

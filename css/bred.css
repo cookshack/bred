@@ -1390,22 +1390,27 @@ div.bred-open-under-f {
   width: 70%;
 }
 
-.bred-info-ww {
+.bred-info-www {
   position: relative;
   width: 100%;
   padding: 0;
   margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+.bred-info-ww {
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .bred-info-w {
-  position: absolute;
-  border: 1px solid var(--clr-nb1);
+  border: 2px solid var(--clr-nb1);
   color: var(--clr-nb1);
   background: var(--clr-fill);
-  padding: 0.2rem;
+  padding: 0.3rem;
   display: flex;
   z-index: var(--z-info);
 }

@@ -85,7 +85,7 @@ export
 function make2
 (spec = {}) {
   let { name, modeName, content, dir, file } = spec
-  let b, mode, modeVars, views, vid, fileType, icon, onRemoves
+  let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk
 
   function remove
   () {
@@ -392,6 +392,9 @@ function make2
         get mode() {
           return mode
         },
+        get modifiedOnDisk() {
+          return modifiedOnDisk
+        },
         get path() {
           return dir ? (dir + (file || '')) : file
         },
@@ -423,6 +426,24 @@ function make2
         },
         set mode(key) {
           setMode(key)
+        },
+        set modifiedOnDisk(val) {
+          d('modifiedOnDisk: ' + val)
+          modifiedOnDisk = val ? 1 : 0
+          if (modifiedOnDisk)
+            b.views.forEach(view => {
+              let ww
+
+              ww = view.ele.querySelector('.bred-info-ww')
+              if (ww)
+                Dom.append(ww,
+                           divCl('bred-info-w bred-info-disk', 'Buffer modified on disk'))
+
+            })
+          else
+            b.views.forEach(view => {
+              view.ele.querySelectorAll('.bred-info-w.bred-info-disk').forEach(w => w.remove())
+            })
         },
         //
         addMode,

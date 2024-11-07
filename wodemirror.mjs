@@ -39,7 +39,7 @@ export let langs, themeExtension
 
 let theme, themeTags, themeHighlighting
 let completionNextLine, completionPreviousLine, tagHighlighting, bredView, spRe
-let brexts, brextIds, registeredOpts
+let brexts, brextIds, registeredOpts, watching
 
 export
 function version
@@ -487,6 +487,28 @@ function register
   }
 }
 
+function watch
+(buf, path) {
+  if (watching.has(path))
+    return
+  watching.add(path)
+  Tron.cmd1('dir.watch', [ path ], (err, ch) => {
+    if (err) {
+      Mess.log('watch failed on ' + path)
+      watching.delete(path)
+      return
+    }
+    Tron.on(ch, (err, data) => {
+      // NB Beware of doing anything in here that modifies the file being watched,
+      //    because that may cause recursive behaviour.
+      d('--- file watch ev ---')
+      d({ data })
+      if (data.type == 'change')
+        buf.modifiedOnDisk = 1
+    })
+  })
+}
+
 export
 function viewInitSpec
 (view,
@@ -926,6 +948,7 @@ function _viewInit
 
       buf.stat = data.stat
       d(buf.stat)
+      watch(buf, path)
 
       if (data.realpath) {
         let real
@@ -3750,6 +3773,7 @@ function init
     })
   }
 
+  watching = new Set()
   langs = []
   languages.forEach(l => addLang(langs, l, 1))
   langs.unshift({ id: 'text',

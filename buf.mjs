@@ -440,7 +440,8 @@ function make2
               if (ww)
                 Dom.append(ww,
                            divCl('bred-info-w bred-info-disk',
-                                 [ 'Buffer modified on disk',
+                                 [ divCl('bred-info-marker'),
+                                   'Buffer modified on disk',
                                    button('Revert', '', { 'data-run': 'Revert Buffer' }),
                                    button('Overwrite', '', { 'data-run': 'Save' }) ]))
             })

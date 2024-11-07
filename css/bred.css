@@ -1407,7 +1407,8 @@ div.bred-open-under-f {
 }
 
 .bred-info-w {
-  border: 2px solid var(--clr-nb1);
+  border-top: 1px solid var(--clr-nb1);
+  border-left: 6px solid var(--clr-nb1);
   color: var(--clr-nb1);
   background: var(--clr-fill);
   padding: 0.3rem;
@@ -1418,6 +1419,14 @@ div.bred-open-under-f {
 
 .bred-info-w > button {
   margin-left: 1rem;
+}
+
+.bred-info-marker {
+  background-color: var(--clr-nb1);
+  width: 1rem;
+  height: 1rem;
+  margin-right: 0.5rem;
+  display: none;
 }
 
 .paneWW.current > .bred-close,

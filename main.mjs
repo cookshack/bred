@@ -981,11 +981,13 @@ function onFileRm
 
 function onFileSave
 (e, ch, onArgs) {
-  fs.writeFile(onArgs[0], onArgs[1], { encoding: 'utf8' }, err => {
+  let [ path, text ] = onArgs
+
+  fs.writeFile(path, text, { encoding: 'utf8' }, err => {
     if (err)
       e.sender.send(ch, { err: err })
     else
-      e.sender.send(ch, {})
+      e.sender.send(ch, { stat: fs.statSync(path, { throwIfNoEntry: false }) })
   })
 }
 

@@ -2331,7 +2331,7 @@ function vsave
   if (view?.ed)
     if (view.buf.path) {
       Css.disable(view.ele)
-      Tron.cmd('file.save', [ Loc.make(view.buf.path).expand(), view.ed.state.doc.toString() ], err => {
+      Tron.cmd('file.save', [ Loc.make(view.buf.path).expand(), view.ed.state.doc.toString() ], (err, data) => {
         Css.enable(view.ele)
         view.ed.focus()
         if (err) {
@@ -2342,6 +2342,7 @@ function vsave
           return
         }
         view.buf.modified = 0
+        view.buf.stat = data.stat
         Ed.setIcon(view.buf, '.edMl-mod', 'blank')
         if (cb)
           cb()

@@ -1271,7 +1271,6 @@ function save
 
   function error
   (msg) {
-    Css.enable(p.view.ele)
     if (cb)
       cb(new Error(msg))
     else
@@ -1281,7 +1280,6 @@ function save
   p = Pane.current()
 
   path = Loc.make(p.view.buf.path).expand()
-  Css.disable(p.view.ele)
   Tron.cmd('file.stat', path, (err, data) => {
     if (err) {
       error(err.message)
@@ -1294,8 +1292,6 @@ function save
                         yes => {
                           if (yes)
                             Backend.vsave(p.view, cb)
-                          else
-                            Css.enable(p.view.ele)
                         })
       else
         Backend.vsave(p.view, cb)

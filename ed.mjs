@@ -1265,6 +1265,42 @@ function countRegion
   Mess.say('Region has ' + lines + ' lines, ' + region.chars + ' characters')
 }
 
+function save
+(u, we, cb) {
+  let p, path
+
+  function error
+  (msg) {
+    Css.enable(p.view.ele)
+    if (cb)
+      cb(new Error(msg))
+    else
+      Mess.toss(msg)
+  }
+
+  p = Pane.current()
+
+  path = Loc.make(p.view.buf.path).expand()
+  Css.disable(p.view.ele)
+  Tron.cmd('file.stat', path, (err, data) => {
+    if (err) {
+      error(err.message)
+      return
+    }
+    if (p.view.buf.stat) {
+      if (p.view.buf.stat?.mtimeMs < data.data.mtimeMs) {
+        error('File has changed on disk')
+        return
+      }
+    }
+    else {
+      error('Buffer missing stat')
+      return
+    }
+    Backend.vsave(p.view, cb)
+  })
+}
+
 function selfInsertIndent
 (u, we) {
   Backend.selfInsert(u, we)
@@ -1397,7 +1433,7 @@ function init
     Cmd.add('indent line', () => Backend.indentLine(), mo)
     Cmd.add('indent rigidly', indentRigidly, mo)
     Cmd.add('insert two spaces', () => Backend.insertTwoSpaces(), mo)
-    Cmd.add('save', (u, we, cb) => Backend.vsave(Pane.current()?.view, cb), mo)
+    Cmd.add('save', save, mo)
     Cmd.add('save as', () => Backend.vsaveAs(Pane.current()?.view), mo)
     Cmd.add('transpose chars', () => Backend.transposeChars(), mo)
     Cmd.add('transpose words', () => transposeWords(), mo)

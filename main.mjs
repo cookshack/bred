@@ -1036,6 +1036,36 @@ function onFileTouch
   e.sender.send(ch, {})
 }
 
+function onFileWatch
+(e, ch, onArgs) {
+  let [ path ] = onArgs
+  let watcher
+
+  function handle
+  (type, name) {
+    try {
+      //d('--- handle ---')
+      //d('type: ' + type)
+      //d('name: ' + name)
+      e.sender.send(ch,
+                    { type: type,
+                      bak: name.endsWith('~'),
+                      hidden: Path.basename(name).startsWith('.'),
+                      name: name })
+    }
+    catch (err) {
+      err.message.includes('Object has been destroyed')
+        || log(err.message)
+      watcher.close()
+    }
+  }
+
+  if (path.startsWith('/'))
+    watcher = fs.watch(path, { recursive: false }, handle)
+  else
+    e.sender.send(ch, errMsg('Path must be absolute'))
+}
+
 function quit
 () {
   try {
@@ -1167,6 +1197,9 @@ async function onCmd
 
   if (name == 'file.touch')
     return wrapOn(e, ch, args, onFileTouch)
+
+  if (name == 'file.watch')
+    return wrapOn(e, ch, args, onFileWatch)
 
   if (name == 'peer.get')
     return wrapOn(e, ch, args, Peer.onPeerGet)

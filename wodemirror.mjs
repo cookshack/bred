@@ -492,7 +492,7 @@ function watch
   if (watching.has(path))
     return
   watching.add(path)
-  Tron.cmd1('dir.watch', [ path ], (err, ch) => {
+  Tron.cmd1('file.watch', [ path ], (err, ch) => {
     if (err) {
       Mess.log('watch failed on ' + path)
       watching.delete(path)

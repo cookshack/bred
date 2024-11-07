@@ -1275,7 +1275,7 @@ function save
     if (cb)
       cb(new Error(msg))
     else
-      Mess.toss(msg)
+      Mess.yell(msg)
   }
 
   p = Pane.current()
@@ -1288,16 +1288,20 @@ function save
       return
     }
     if (p.view.buf.stat) {
-      if (p.view.buf.stat?.mtimeMs < data.data.mtimeMs) {
-        error('File has changed on disk')
-        return
-      }
-    }
-    else {
-      error('Buffer missing stat')
+      if (p.view.buf.stat?.mtimeMs < data.data.mtimeMs)
+        Prompt.demandYN('File has changed on disk. Overwrite?',
+                        'save',
+                        yes => {
+                          if (yes)
+                            Backend.vsave(p.view, cb)
+                          else
+                            Css.enable(p.view.ele)
+                        })
+      else
+        Backend.vsave(p.view, cb)
       return
     }
-    Backend.vsave(p.view, cb)
+    error('Buffer missing stat')
   })
 }
 

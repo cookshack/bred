@@ -1,4 +1,4 @@
-import { divCl } from './dom.mjs'
+import { divCl, button } from './dom.mjs'
 
 import * as Cmd from './cmd.mjs'
 import * as Dom from './dom.mjs'
@@ -437,8 +437,9 @@ function make2
               ww = view.ele.querySelector('.bred-info-ww')
               if (ww)
                 Dom.append(ww,
-                           divCl('bred-info-w bred-info-disk', 'Buffer modified on disk'))
-
+                           divCl('bred-info-w bred-info-disk',
+                                 [ 'Buffer modified on disk',
+                                   button('Revert', '', { 'data-run': 'Revert Buffer' }) ]))
             })
           else
             b.views.forEach(view => {

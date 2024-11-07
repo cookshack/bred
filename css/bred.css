@@ -1412,7 +1412,12 @@ div.bred-open-under-f {
   background: var(--clr-fill);
   padding: 0.3rem;
   display: flex;
+  align-items: center;
   z-index: var(--z-info);
+}
+
+.bred-info-w > button {
+  margin-left: 1rem;
 }
 
 .paneWW.current > .bred-close,

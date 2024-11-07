@@ -581,6 +581,7 @@ function _viewInit
 
   buf = view.buf
   buf.modified = 0
+  buf.modifiedOnDisk = 0
   view.ready = 0
   view.marks = []
   view.wode = { comp: {} }

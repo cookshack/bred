@@ -407,9 +407,9 @@ function initEqual
 
 function reset
 () {
-  Prompt.demandYN('Reset Git dir?',
-                  'warning',
-                  yes => yes && git('git reset HEAD~1'))
+  Prompt.yn('Reset Git dir?',
+            'warning',
+            yes => yes && git('git reset HEAD~1'))
 }
 
 function showHash

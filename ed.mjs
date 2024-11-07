@@ -1287,12 +1287,12 @@ function save
     }
     if (p.view.buf.stat) {
       if (p.view.buf.stat?.mtimeMs < data.data.mtimeMs)
-        Prompt.demandYN('File has changed on disk. Overwrite?',
-                        'save',
-                        yes => {
-                          if (yes)
-                            Backend.vsave(p.view, cb)
-                        })
+        Prompt.yn('File has changed on disk. Overwrite?',
+                  'save',
+                  yes => {
+                    if (yes)
+                      Backend.vsave(p.view, cb)
+                  })
       else
         Backend.vsave(p.view, cb)
       return

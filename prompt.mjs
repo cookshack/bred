@@ -20,7 +20,7 @@ function callerView
 }
 
 export
-function demandYN
+function yn
 (content, icon, cb) { // (yes)
   icon = icon || 'letter-question'
   ynCb = cb

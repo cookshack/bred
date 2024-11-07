@@ -803,7 +803,7 @@ function init
       dir = el.dataset.type == 'd'
       msg = div([ 'Delete ' + (dir ? 'dir' : 'file') + ' ',
                   span(el.dataset.path, 'bold'), '?' ])
-      Prompt.demandYN(msg, 'trash', yes =>
+      Prompt.yn(msg, 'trash', yes =>
         yes && Tron.cmd(dir ? 'dir.rm' : 'file.rm', [ el.dataset.path ], err => {
           if (err) {
             Mess.yell('Error deleting: ' + err.message)

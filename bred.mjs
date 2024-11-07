@@ -713,18 +713,18 @@ function initCmds
 
     if (p.buf)
       if (p.buf.file && p.buf.modified)
-        Prompt.demandYN('Save buffer before closing?',
-                        'save',
-                        yes => {
-                          if (yes)
-                            Cmd.runMo('save', 'ed', 1, {}, err => {
-                              if (err)
-                                Mess.toss(err)
-                              remove()
-                            })
-                          else
-                            remove()
-                        })
+        Prompt.yn('Save buffer before closing?',
+                  'save',
+                  yes => {
+                    if (yes)
+                      Cmd.runMo('save', 'ed', 1, {}, err => {
+                        if (err)
+                          Mess.toss(err)
+                        remove()
+                      })
+                    else
+                      remove()
+                  })
       else
         remove()
   })

@@ -442,7 +442,7 @@ function make2
                            divCl('bred-info-w bred-info-disk',
                                  [ 'Buffer modified on disk',
                                    button('Revert', '', { 'data-run': 'Revert Buffer' }),
-                                   button('Save', '', { 'data-run': 'Save' }) ]))
+                                   button('Overwrite', '', { 'data-run': 'Save' }) ]))
             })
           else
             b.views.forEach(view => {

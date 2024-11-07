@@ -500,11 +500,15 @@ function watch
     }
     Tron.on(ch, (err, data) => {
       // NB Beware of doing anything in here that modifies the file being watched,
-      //    because that may cause recursive behaviour.
-      d('--- file watch ev ---')
-      d({ data })
-      if (data.type == 'change')
+      //    because that may cause recursive behaviour. Eg d when --logfile and
+      //    log file is open in a buffer.
+      //d('--- file watch ev ---')
+      //d({ data })
+      if (data.type == 'change') {
+        if (buf.stat.mtimeMs == data.stat.mtimeMs)
+          return
         buf.modifiedOnDisk = 1
+      }
     })
   })
 }
@@ -2368,6 +2372,7 @@ function vsave
           return
         }
         view.buf.modified = 0
+        view.buf.modifiedOnDisk = 0
         view.buf.stat = data.stat
         Ed.setIcon(view.buf, '.edMl-mod', 'blank')
         if (cb)

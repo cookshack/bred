@@ -1049,9 +1049,8 @@ function onFileWatch
       //d('name: ' + name)
       e.sender.send(ch,
                     { type: type,
-                      bak: name.endsWith('~'),
-                      hidden: Path.basename(name).startsWith('.'),
-                      name: name })
+                      name: name,
+                      stat: fs.statSync(path, { throwIfNoEntry: false }) })
     }
     catch (err) {
       err.message.includes('Object has been destroyed')

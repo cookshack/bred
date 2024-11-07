@@ -434,6 +434,8 @@ function make2
             b.views.forEach(view => {
               let ww
 
+              if (view.ele.querySelector('.bred-info-w.bred-info-disk'))
+                return
               ww = view.ele.querySelector('.bred-info-ww')
               if (ww)
                 Dom.append(ww,

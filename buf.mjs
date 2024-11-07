@@ -441,7 +441,8 @@ function make2
                 Dom.append(ww,
                            divCl('bred-info-w bred-info-disk',
                                  [ 'Buffer modified on disk',
-                                   button('Revert', '', { 'data-run': 'Revert Buffer' }) ]))
+                                   button('Revert', '', { 'data-run': 'Revert Buffer' }),
+                                   button('Save', '', { 'data-run': 'Save' }) ]))
             })
           else
             b.views.forEach(view => {

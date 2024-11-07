@@ -923,6 +923,9 @@ function _viewInit
 
       d('got file')
 
+      buf.stat = data.stat
+      d(buf.stat)
+
       if (data.realpath) {
         let real
 

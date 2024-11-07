@@ -813,6 +813,7 @@ function onFileGet
     else {
       lsp.open(path, 'javascript', data)
       e.sender.send(ch, { data: data,
+                          stat: fs.statSync(path, { throwIfNoEntry: false }),
                           realpath: fs.realpathSync(path) })
     }
   })

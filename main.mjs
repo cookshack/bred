@@ -1,4 +1,4 @@
-import { app, WebContentsView, BrowserWindow, ipcMain, shell as Shell /*, protocol, net*/ } from 'electron'
+import { app, clipboard as Clipboard, WebContentsView, BrowserWindow, ipcMain, shell as Shell /*, protocol, net*/ } from 'electron'
 import * as Chmod from './main-chmod.mjs'
 import { d, log } from './main-log.mjs'
 import { makeErr, errMsg } from './main-err.mjs'
@@ -461,6 +461,14 @@ function cmdDevtoolsToggle
   win.webContents.openDevTools({ activate: 0, // keeps main focus when detached
                                  title: 'Developer Tools - Bred' })
   return { open: 1 }
+}
+
+function cmdSelect
+(e, ch, onArgs) {
+  let [ text ] = onArgs
+
+  Clipboard.writeText(text, 'selection')
+  return {}
 }
 
 function cmdTestThrow
@@ -1152,6 +1160,9 @@ async function onCmd
 
   if (name == 'paths')
     return onPaths(e)
+
+  if (name == 'select')
+    return cmdSelect(e, ch, args)
 
   if (name == 'shell')
     return wrapOn(e, args[0] /* clientCh */, args, onShell)

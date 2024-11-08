@@ -688,6 +688,27 @@ function _viewInit
       return 1
     }
 
+    // HACK: Past a certain line in big buffers CM has the right window.getSelection()
+    //       but the text is missing from the OS primary selection buffer. Maybe due
+    //       to timing or something because CM is tracking its own selection in
+    //       DOMObserver in lib/@codemirror/view.js.
+    //       Same thing works OK in CM homepage demo in Chromium, so it's related to
+    //       running under electron.
+    if (update.selectionSet) {
+      let sel, range, str
+
+      sel = view.ed.state.selection.main
+      if (sel.head > sel.anchor)
+        range = { from: sel.anchor, to: sel.head }
+      else
+        range = { from: sel.head, to: sel.anchor }
+      str = vrangeText(view, range)
+      if (str && str.length) {
+        0 && d('SELECT ' + str)
+        Tron.cmd1('select', [ str ])
+      }
+    }
+
     //d('update')
     if (posChanged(update)) {
       let col, p

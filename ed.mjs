@@ -1282,9 +1282,15 @@ function save
   path = Loc.make(p.view.buf.path).expand()
   Tron.cmd('file.stat', path, (err, data) => {
     if (err) {
+      if (err.code === 'ENOENT') {
+        // new file
+        Backend.vsave(p.view, cb)
+        return
+      }
       error(err.message)
       return
     }
+    // existing file
     if (p.view.buf.stat) {
       if (p.view.buf.stat?.mtimeMs < data.data.mtimeMs)
         Prompt.yn('File has changed on disk. Overwrite?',

@@ -693,7 +693,7 @@ function _viewInit
       let p, col
 
       p = Pane.holdingView(view)
-      col = p?.foot?.querySelector('.bred-foot-col')
+      col = p?.foot?.querySelector('.bred-head-col')
       if (col)
         col.innerText = 'C' + (bepCol(view, update.state.selection.main.head))
 

@@ -234,8 +234,8 @@ function add
               { 'data-id': frame.panes.length })
 
   elePoint = divCl('bred-point')
-  eleFoot = divCl('bred-foot',
-                  divCl('bred-foot-col', 'C1'))
+  eleFoot = divCl('bred-head',
+                  divCl('bred-head-col', 'C1'))
 
   paneW = divCl('paneW',
                 [ ele,

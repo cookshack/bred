@@ -1365,7 +1365,7 @@ div.bred-open-under-f {
   background: var(--clr-point);
 }
 
-.bred-foot {
+.bred-head {
   position: absolute;
   top: var(--height-ml);
   left: 0;
@@ -1373,7 +1373,7 @@ div.bred-open-under-f {
   display: flex;
 }
 
-.bred-foot-col {
+.bred-head-col {
   display: none;
   background: var(--clr-fill);
   margin-left: auto;
@@ -1451,7 +1451,7 @@ div.bred-open-under-f {
   display: none;
 }
 
-.paneW.ed > .bred-overlay-w > .bred-overlay > .bred-foot > .bred-foot-col {
+.paneW.ed > .bred-overlay-w > .bred-overlay > .bred-head > .bred-head-col {
   display: flex;
 }
 

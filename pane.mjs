@@ -57,7 +57,7 @@ function getBootBuf
 export
 function add
 (frame, b, lineNum) {
-  let p, curr, view, ele, elePoint, eleHead, paneW
+  let p, curr, view, ele, elePoint, eleHead, eleLint, paneW
 
   function line
   () {
@@ -225,6 +225,14 @@ function add
     })
   }
 
+  function showLint
+  (count) {
+    if (count)
+      Css.show(eleLint)
+    else
+      Css.hide(eleLint)
+  }
+
   frame = frame || Frame.current()
 
   b = b || Buf.top() || getBootBuf()
@@ -234,11 +242,12 @@ function add
               { 'data-id': frame.panes.length })
 
   elePoint = divCl('bred-point')
+  eleLint = divCl('bred-head-ed bred-head-lint hidden',
+                  divCl('bred-lint-marker'))
   eleHead = divCl('bred-head',
                   [ divCl('bred-head-ed bred-head-col',
                           'C1'),
-                    divCl('bred-head-ed bred-head-lint',
-                          divCl('bred-lint-marker')) ])
+                    eleLint ])
 
   paneW = divCl('paneW',
                 [ ele,
@@ -290,6 +299,7 @@ function add
         // always use this to set the buf, because it's nb to use a cb if you want to access the view after.
         setBuf,
         setBuf2,
+        showLint,
         focus,
         text }
   id++

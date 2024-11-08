@@ -1376,6 +1376,10 @@ div.bred-open-under-f {
 .bred-head {
   margin-left: auto;
   background: var(--clr-fill);
+  border: 1px solid var(--clr-nb1);
+  border-top: none;
+  border-right: none;
+  padding: 0.1rem;
   display: flex;
 }
 

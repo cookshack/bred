@@ -1377,6 +1377,7 @@ div.bred-open-under-f {
   background-color: var(--clr-nb3);
   width: 1rem;
   height: 1rem;
+  border-radius: 50%;
 }
 
 .bred-head-ed {

@@ -678,7 +678,14 @@ function _viewInit
   },
                                           { decorations: v => v.decorations })
 
-  let updateListener
+  let updateListener, selectTimeout
+
+  function tronSelect
+  (str) {
+    selectTimeout = 0
+    //d('SELECT ' + str)
+    Tron.cmd1('select', [ str ])
+  }
 
   updateListener = CMView.EditorView.updateListener.of(update => {
     function posChanged
@@ -689,11 +696,11 @@ function _viewInit
     }
 
     // HACK: Past a certain line in big buffers CM has the right window.getSelection()
-    //       but the text is missing from the OS primary selection buffer. Maybe due
+    //       but the text is missing from the X primary selection buffer. Maybe due
     //       to timing or something because CM is tracking its own selection in
     //       DOMObserver in lib/@codemirror/view.js.
     //       Same thing works OK in CM homepage demo in Chromium, so it's related to
-    //       running under electron.
+    //       running under Electron.
     if (update.selectionSet) {
       let sel, range, str
 
@@ -704,8 +711,10 @@ function _viewInit
         range = { from: sel.head, to: sel.anchor }
       str = vrangeText(view, range)
       if (str && str.length) {
-        0 && d('SELECT ' + str)
-        Tron.cmd1('select', [ str ])
+        if (selectTimeout)
+          clearTimeout(selectTimeout)
+        selectTimeout = setTimeout(() => tronSelect(str),
+                                   100)
       }
     }
 

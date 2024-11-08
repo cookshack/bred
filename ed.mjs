@@ -1444,6 +1444,7 @@ function init
     Cmd.add('bottom of pane', () => Backend.bottomOfPane(), mo)
     Cmd.add('select all', () => Backend.selectAll(), mo)
     Cmd.add('open lint panel', () => Backend.openLint(), mo)
+    Cmd.add('first diagnostic', (u, we) => Backend.firstDiagnostic && Backend.firstDiagnostic(u, we), mo)
 
     Cmd.add('yank', () => Backend.yank(), mo)
     Cmd.add('yank roll', () => Backend.yankRoll(), mo)

@@ -3088,6 +3088,24 @@ function openLint() {
 }
 
 export
+function firstDiagnostic(u, we) {
+  let p, done
+
+  if (we?.e && (we.e.button == 0))
+    p = Pane.holding(we.e.target.parentNode.querySelector('.pane'))
+  p = p || Pane.current()
+  CMLint.forEachDiagnostic(p.view.ed.state,
+                           diag => {
+                             if (done)
+                               return
+                             done = 1
+                             d(diag)
+                             vsetBep(p.view, diag.from)
+                             p.focus()
+                           })
+}
+
+export
 function find
 (st) {
   let r

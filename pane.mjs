@@ -245,7 +245,7 @@ function add
   eleLint = divCl('bred-head-ed bred-head-lint hidden',
                   divCl('bred-lint-marker',
                         [],
-                        { 'data-run': 'yell' }))
+                        { 'data-run': 'first diagnostic' }))
   eleHead = divCl('bred-head',
                   [ divCl('bred-head-ed bred-head-col',
                           'C1'),
@@ -385,7 +385,7 @@ function holding
   if (el) {
     let ele
 
-    ele = el.closest('.pane')
+    ele = el.closest('.paneW')?.querySelector('.pane')
     Frame.find(frame => {
       p = frame.panes.find(p1 => p1.ele == ele)
       if (p)

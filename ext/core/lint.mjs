@@ -6,6 +6,7 @@ import * as Ed from '../../ed.mjs'
 import * as Icon from '../../icon.mjs'
 import * as Mess from '../../mess.mjs'
 import * as Opt from '../../opt.mjs'
+import * as Pane from '../../pane.mjs'
 import * as Win from '../../win.mjs'
 //import { d } from '../../mess.mjs'
 
@@ -91,21 +92,36 @@ function makeLintGutter
   return CMLint.lintGutter({ tooltipFilter: handleTooltipLintGutter })
 }
 
+function updateListener
+(view) {
+  return CMView.EditorView.updateListener.of(update => {
+    //d('lint update')
+    if (update.docChanged) {
+      let p
+
+      //d('docChanged')
+      p = p || Pane.holdingView(view)
+      p?.showLint(CMLint.diagnosticCount(update.state))
+    }
+  })
+}
+
 function makeLinter
-() {
+(view) {
   if (Eslint)
     return [ CMLint.linter(CMJS.esLint(new Eslint.Linter(),
                                        eslintConfig),
                            { tooltipFilter: handleTooltipLint }),
              CMView.hoverTooltip(maybeLintTooltip, { hideOn: CMLint.hideTooltip,
-                                                     hideOnChange: false }) ]
+                                                     hideOnChange: false }),
+             updateListener(view) ]
   return []
 }
 
 function makeEffects
 (view) {
   if (Eslint && view.buf.opt('core.lint.enabled'))
-    return [ makeLinter(),
+    return [ makeLinter(view),
              ...(view.buf.opt('core.lint.gutter.enabled') ? [ makeLintGutter() ] : []) ]
   return []
 }

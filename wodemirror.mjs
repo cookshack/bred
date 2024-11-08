@@ -681,8 +681,6 @@ function _viewInit
   let updateListener
 
   updateListener = CMView.EditorView.updateListener.of(update => {
-    let p
-
     function posChanged
     () {
       if (update.state.selection.main.head == update.startState.selection.main.head)
@@ -692,7 +690,7 @@ function _viewInit
 
     //d('update')
     if (posChanged(update)) {
-      let col
+      let col, p
 
       p = Pane.holdingView(view)
       col = p?.head?.querySelector('.bred-head-col')
@@ -711,9 +709,6 @@ function _viewInit
     }
 
     if (update.docChanged) {
-      p = p || Pane.holdingView(view)
-      p?.showLint(CMLint.diagnosticCount(update.state))
-
       //d('docChanged')
       if (view.onChanges)
         view.onChanges.forEach(on => {

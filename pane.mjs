@@ -263,7 +263,7 @@ function add
         get dir() {
           return view?.buf ? view.buf.dir : Loc.home()
         },
-        get foot() {
+        get head() {
           return eleHead
         },
         get frame() {

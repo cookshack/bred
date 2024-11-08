@@ -591,6 +591,12 @@ div.bred-menu1-item {
   align-items: center;
 }
 
+#menu-panel-mid {
+  left: 50%;
+  right: inherit;
+  transform: translateX(-50%);
+}
+
 .bred-add-tab,
 .bred-devtools,
 .bred-restart {

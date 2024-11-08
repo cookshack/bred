@@ -93,14 +93,16 @@ function make
            menu.spec.map(item0 => menu0(item0.name,
                                         itemsEl(item0.items))),
            places.el,
-           divCl('menu-panel',
-                 [ divCl('bred-add-tab onfill',
-                         img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
-                         { 'data-run': 'add tab' }),
-                   divCl('bred-restart onfill',
-                         img('img/restart.svg', 'Restart', 'filter-clr-text'),
-                         { 'data-run': 'restart' }),
-                   devtoolsToggle ]))
+           divIdCl('menu-panel-mid', 'menu-panel',
+                   'test with some words'),
+           divIdCl('menu-panel-end', 'menu-panel',
+                   [ divCl('bred-add-tab onfill',
+                           img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
+                           { 'data-run': 'add tab' }),
+                     divCl('bred-restart onfill',
+                           img('img/restart.svg', 'Restart', 'filter-clr-text'),
+                           { 'data-run': 'restart' }),
+                     devtoolsToggle ]))
   }
 
   function clear

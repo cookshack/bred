@@ -1234,7 +1234,8 @@ function vgetBepEnd
 
 export
 function vsetBep
-(view, bep, reveal, keepSelection) {
+(view, bep, reveal, // 1 nearest, 2 center
+ keepSelection) {
   //d('vsetBep ' + bep)
   return vsetOff(view, bep, reveal, keepSelection)
 }
@@ -3100,7 +3101,7 @@ function firstDiagnostic(u, we) {
                                return
                              done = 1
                              d(diag)
-                             vsetBep(p.view, diag.from)
+                             vsetBep(p.view, diag.from, 2)
                              p.focus()
                            })
 }

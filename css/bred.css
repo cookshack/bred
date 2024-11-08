@@ -1365,12 +1365,22 @@ div.bred-open-under-f {
   background: var(--clr-point);
 }
 
-.bred-head {
+.bred-head-w {
   position: absolute;
   top: var(--height-ml);
   left: 0;
   right: var(--scrollbar-size);
   display: flex;
+}
+
+.bred-head {
+  margin-left: auto;
+  background: var(--clr-fill);
+  display: flex;
+}
+
+.bred-head-ed {
+  display: none;
 }
 
 .bred-lint-marker {
@@ -1380,17 +1390,11 @@ div.bred-open-under-f {
   border-radius: 50%;
 }
 
-.bred-head-ed {
-  display: none;
-}
-
 .bred-head-lint {
   margin-right: 0.2rem;
 }
 
 .bred-head-col {
-  background: var(--clr-fill);
-  margin-left: auto;
   margin-right: 0.3rem;
 }
 
@@ -1465,7 +1469,7 @@ div.bred-open-under-f {
   display: none;
 }
 
-.paneW.ed > .bred-overlay-w > .bred-overlay > .bred-head > .bred-head-ed {
+.paneW.ed > .bred-overlay-w > .bred-overlay > .bred-head-w > .bred-head > .bred-head-ed {
   display: flex;
 }
 

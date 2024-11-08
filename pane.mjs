@@ -252,7 +252,9 @@ function add
   paneW = divCl('paneW',
                 [ ele,
                   divCl('bred-overlay-w',
-                        divCl('bred-overlay', [ elePoint, eleHead ])) ])
+                        divCl('bred-overlay',
+                              [ elePoint,
+                                divCl('bred-head-w', eleHead) ])) ])
 
   paneW.onscroll = () => {
     if (p.view.ed)

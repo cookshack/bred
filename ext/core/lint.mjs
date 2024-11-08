@@ -96,7 +96,7 @@ function updateListener
 (view) {
   return CMView.EditorView.updateListener.of(update => {
     //d('lint update')
-    if (update.docChanged) {
+    if (update.docChanged || update.changes) {
       let p
 
       //d('docChanged')

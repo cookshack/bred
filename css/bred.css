@@ -1384,6 +1384,7 @@ div.bred-open-under-f {
 }
 
 .bred-head-ed {
+  pointer-events: auto;
   display: none;
 }
 
@@ -1392,6 +1393,17 @@ div.bred-open-under-f {
   width: 1rem;
   height: 1rem;
   border-radius: 50%;
+}
+
+
+div.bred-lint-marker:hover {
+  background-color: var(--clr-nb3);
+  opacity: 0.7;
+}
+
+div.bred-lint-marker:active {
+  background-color: var(--clr-nb3);
+  opacity: 1;
 }
 
 .bred-head-lint {

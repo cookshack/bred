@@ -243,7 +243,9 @@ function add
 
   elePoint = divCl('bred-point')
   eleLint = divCl('bred-head-ed bred-head-lint hidden',
-                  divCl('bred-lint-marker'))
+                  divCl('bred-lint-marker',
+                        [],
+                        { 'data-run': 'yell' }))
   eleHead = divCl('bred-head',
                   [ divCl('bred-head-ed bred-head-col',
                           'C1'),

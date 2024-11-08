@@ -1384,13 +1384,13 @@ div.bred-open-under-f {
 }
 
 .bred-head-lint {
-  margin-left: auto;
-  margin-right: 0.3rem;
+  margin-right: 0.2rem;
 }
 
 .bred-head-col {
   background: var(--clr-fill);
-  margin-right: 0.2rem;
+  margin-left: auto;
+  margin-right: 0.3rem;
 }
 
 .bred-close {

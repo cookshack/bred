@@ -235,10 +235,10 @@ function add
 
   elePoint = divCl('bred-point')
   eleHead = divCl('bred-head',
-                  [ divCl('bred-head-ed bred-head-lint',
-                          divCl('bred-lint-marker')),
-                    divCl('bred-head-ed bred-head-col',
-                          'C1') ])
+                  [ divCl('bred-head-ed bred-head-col',
+                          'C1'),
+                    divCl('bred-head-ed bred-head-lint',
+                          divCl('bred-lint-marker')) ])
 
   paneW = divCl('paneW',
                 [ ele,

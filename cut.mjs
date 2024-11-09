@@ -4,6 +4,7 @@ import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Dom from './dom.mjs'
 import * as Em from './em.mjs'
+import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
@@ -127,4 +128,12 @@ function init
   Em.on('g', 'refresh', mo)
 
   Em.on('C-c C-r', 'cuts')
+
+  Tron.on('clip.new', (err, data) => {
+    if (err) {
+      Mess.log('clip.new: ' + err.message)
+      return
+    }
+    add(data.text)
+  })
 }

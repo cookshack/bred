@@ -1385,6 +1385,28 @@ function setVersion
     console.warn('setVersion: appPath missing, assuming this is a release')
 }
 
+function watchClip
+() {
+  let last
+
+  function check
+  () {
+    let text
+
+    //d('check')
+    text = Clipboard.readText('clipboard')
+    if (text && text.length) {
+      if (text == last)
+        return
+      //d('clip.new ' + text)
+      last = text
+      lsp.win.webContents.send('clip.new', { text: text })
+    }
+  }
+
+  setInterval(check, 1 * 1000)
+}
+
 // attempt to speed up load using Cache-Control. seems the same.
 //protocol.registerSchemesAsPrivileged([ { scheme: 'bf',
 //                                         privileges: { bypassCSP: true } } ])
@@ -1514,6 +1536,9 @@ async function whenReady
 
   d('creating window')
   createMainWindow()
+
+  d('setting up clipboard watcher')
+  watchClip()
 
   d('setting app handlers')
 

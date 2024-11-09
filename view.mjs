@@ -435,6 +435,17 @@ function make
   else
     Css.show(point.ele)
 
+  {
+    let head
+
+    head = ele?.parentNode.querySelector('.bred-head')
+    if (head)
+      if (b.opt('core.head.enabled'))
+        Css.show(head)
+      else
+        Css.hide(head)
+  }
+
   views.push(v)
 
   return v

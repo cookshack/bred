@@ -88,6 +88,7 @@ function init
   Opt.declare('core.cursor.blink.rate', 'integer', 1200)
   Opt.declare('core.folding.enabled', 'bool', 1)
   Opt.declare('core.folding.gutter.enabled', 'bool', 1)
+  Opt.declare('core.head.enabled', 'bool', 1)
   Opt.declare('core.highlight.activeLine.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.afterCursor', 'bool', 1)

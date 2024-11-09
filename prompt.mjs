@@ -120,6 +120,7 @@ function ask
   buf.opts.set('core.autocomplete.enabled', 0)
   buf.opts.set('core.folding.enabled', 0)
   buf.opts.set('core.highlight.activeLine.enabled', 0)
+  buf.opts.set('core.head.enabled', 0)
   buf.opts.set('core.line.numbers.show', 0)
   buf.opts.set('core.lint.enabled', 0)
   buf.opts.set('core.minimap.enabled', 0)

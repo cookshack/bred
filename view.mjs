@@ -264,6 +264,18 @@ function make
     })
   }
 
+  function reconfHead
+  () {
+    let head
+
+    head = (ele || null)?.parentNode.querySelector('.bred-head')
+    if (head)
+      if (b.opt('core.head.enabled'))
+        Css.show(head)
+      else
+        Css.hide(head)
+  }
+
   function vars
   (modeName) {
     if (modeName) {
@@ -375,6 +387,7 @@ function make
         lineNext,
         linePrev,
         insert,
+        reconfHead,
         reopen,
         close,
         sync,
@@ -435,16 +448,7 @@ function make
   else
     Css.show(point.ele)
 
-  {
-    let head
-
-    head = ele?.parentNode.querySelector('.bred-head')
-    if (head)
-      if (b.opt('core.head.enabled'))
-        Css.show(head)
-      else
-        Css.hide(head)
-  }
+  reconfHead()
 
   views.push(v)
 

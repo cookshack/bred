@@ -1,3 +1,4 @@
+import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
 import * as Css from '../../css.mjs'
 import * as Ed from '../../ed.mjs'
@@ -14,6 +15,18 @@ import * as Lang from './lang.mjs'
 import * as Lint from './lint.mjs'
 
 let brexts
+
+function register
+(spec) {
+  if (spec.reconf)
+    spec.reconfOpts?.forEach(name => {
+      // these will just listen forever, which is ok
+      Opt.onSet(name, () => Buf.forEach(buf => spec.reconf(buf, name)))
+      Opt.onSetBuf(name, buf => spec.reconf(buf, name))
+      // reconfigure the opt on all bufs, in case any other extensions use the opt
+      Buf.forEach(buf => spec.reconf(buf, name))
+    })
+}
 
 export
 function init
@@ -112,6 +125,8 @@ function init
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeFold,
                             reconfOpts: [ 'core.folding.enabled', 'core.folding.gutter.enabled' ] }))
+  register({ reconfOpts: [ 'core.head.enabled' ],
+             reconf: buf => buf.views.forEach(v => v.reconfHead()) })
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.specials.enabled') ? CMView.highlightSpecialChars() : [],
                             reconfOpts: [ 'core.highlight.specials.enabled' ] }))

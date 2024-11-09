@@ -123,6 +123,7 @@ function ask
   buf.opts.set('core.line.numbers.show', 0)
   buf.opts.set('core.lint.enabled', 0)
   buf.opts.set('core.minimap.enabled', 0)
+  buf.opts.set('ruler.enabled', 0)
   buf.icon = 'prompt'
   buf.vars('prompt').run = cb
   buf.vars('prompt').orig = p.buf

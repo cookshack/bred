@@ -463,7 +463,7 @@ function cmdDevtoolsToggle
   return { open: 1 }
 }
 
-function cmdSelect
+function cmdClipSelect
 (e, ch, onArgs) {
   let [ text ] = onArgs
 
@@ -1161,8 +1161,8 @@ async function onCmd
   if (name == 'paths')
     return onPaths(e)
 
-  if (name == 'select')
-    return cmdSelect(e, ch, args)
+  if (name == 'clip.select')
+    return cmdClipSelect(e, ch, args)
 
   if (name == 'shell')
     return wrapOn(e, args[0] /* clientCh */, args, onShell)

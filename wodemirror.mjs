@@ -684,7 +684,7 @@ function _viewInit
   (str) {
     selectTimeout = 0
     //d('SELECT ' + str)
-    Tron.cmd1('select', [ str ])
+    Tron.cmd1('clip.select', [ str ])
   }
 
   updateListener = CMView.EditorView.updateListener.of(update => {

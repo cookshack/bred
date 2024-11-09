@@ -1374,13 +1374,20 @@ div.bred-open-under-f {
 }
 
 .bred-head {
+  padding: 0.1rem;
+  display: flex;
+}
+
+.bred-head-mid {
   margin-left: auto;
+  margin-right: auto;
+}
+
+.bred-head-end {
   background: var(--clr-fill);
   border: 1px solid var(--clr-nb1);
   border-top: none;
   border-right: none;
-  padding: 0.1rem;
-  display: flex;
 }
 
 .bred-head-ed {

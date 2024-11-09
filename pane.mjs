@@ -246,17 +246,21 @@ function add
                   divCl('bred-lint-marker',
                         [],
                         { 'data-run': 'first diagnostic' }))
-  eleHead = divCl('bred-head',
-                  [ divCl('bred-head-ed bred-head-col',
-                          'C1'),
-                    eleLint ])
+
+  eleHead = divCl('bred-head-w',
+                  [ divCl('bred-head bred-head-mid',
+                          [ eleLint ]),
+
+                    divCl('bred-head bred-head-end',
+                          [ divCl('bred-head-ed bred-head-col',
+                                  'C1') ]) ])
 
   paneW = divCl('paneW',
                 [ ele,
                   divCl('bred-overlay-w',
                         divCl('bred-overlay',
                               [ elePoint,
-                                divCl('bred-head-w', eleHead) ])) ])
+                                eleHead ])) ])
 
   paneW.onscroll = () => {
     if (p.view.ed)

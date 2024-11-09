@@ -6,6 +6,7 @@ import * as Dom from './dom.mjs'
 import * as Em from './em.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
+import * as Tron from './tron.mjs'
 import * as Win from './win.mjs'
 //import { d } from './mess.mjs'
 
@@ -70,6 +71,7 @@ function add
     }
     ring.unshift(s)
     prepend(s)
+    Tron.cmd1('clip.write', [ s ])
   }
 }
 

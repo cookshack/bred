@@ -471,6 +471,14 @@ function cmdClipSelect
   return {}
 }
 
+function cmdClipWrite
+(e, ch, onArgs) {
+  let [ text ] = onArgs
+
+  Clipboard.writeText(text, 'clipboard')
+  return {}
+}
+
 function cmdTestThrow
 () {
   setTimeout(() => {
@@ -1163,6 +1171,9 @@ async function onCmd
 
   if (name == 'clip.select')
     return cmdClipSelect(e, ch, args)
+
+  if (name == 'clip.write')
+    return cmdClipWrite(e, ch, args)
 
   if (name == 'shell')
     return wrapOn(e, args[0] /* clientCh */, args, onShell)

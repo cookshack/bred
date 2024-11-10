@@ -17,10 +17,6 @@
   height: 19px; /* match ace */
 }
 
-.edWW.bred-prompt-buf-ww {
-  height: 4rem;
-}
-
 .edMl {
   width: 100%;
   height: var(--height-ml);
@@ -86,4 +82,9 @@
 
 .edWW.fillParent .edW {
   height: 100%;
+}
+
+.cm-scroller > .cm-content {
+  /* Prevent CM from growing the content to fit the parent. */
+  padding-bottom: 0 !important;
 }

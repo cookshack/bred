@@ -120,6 +120,7 @@ function ask
                     dir: p.dir,
                     placeholder: spec.hist?.nth(0)?.toString() })
   buf.vars('ed').fillParent = 0
+  buf.opts.set('blankLines.enabled', 0)
   buf.opts.set('core.autocomplete.enabled', 0)
   buf.opts.set('core.folding.enabled', 0)
   buf.opts.set('core.highlight.activeLine.enabled', 0)

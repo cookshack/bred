@@ -147,7 +147,7 @@ function init
       let name
 
       name = we.e.target.dataset.name
-      p.setBuf2(callerBuf, {}, () => {
+      p.setBuf(callerBuf, {}, () => {
         if (cb)
           cb(name, callerBuf)
       })
@@ -160,7 +160,7 @@ function init
 
       current = w.querySelector('.execute-cmd-current')
       if (current)
-        p.setBuf2(callerBuf, {}, () => {
+        p.setBuf(callerBuf, {}, () => {
           if (cb)
             cb(current.dataset.name, callerBuf)
         })
@@ -178,7 +178,7 @@ function init
     callerBuf = p?.buf
     buf = Buf.make('Execute', 'Execute', divW(), p.dir)
     buf.vars('execute').cb = (name, b) => Cmd.exec(name, b, u)
-    p.setBuf2(buf)
+    p.setBuf(buf)
   })
 
   Cmd.add('next line', () => next(), mo)

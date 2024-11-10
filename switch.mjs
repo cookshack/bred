@@ -184,7 +184,7 @@ function init
     if (b) {
       if (text.length)
         hist.add(text)
-      p.setBuf2(b)
+      p.setBuf(b)
     }
     else
       Mess.say('Missing buffer ' + id)
@@ -309,7 +309,7 @@ function init
     buf.file = 0
     //buf.dir = 0
     dir = p.dir
-    p.setBuf2(buf, {}, () => {
+    p.setBuf(buf, {}, () => {
       // view has been created
       buf.clear()
       buf.dir = dir

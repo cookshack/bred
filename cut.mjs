@@ -115,13 +115,13 @@ function init
     buf = shared().buf
     p = Pane.current()
     if (buf)
-      p.setBuf2(buf, {}, view => refresh(view))
+      p.setBuf(buf, {}, view => refresh(view))
     else {
       buf = Buf.add('Cuts', 'Cuts', divW(), p.dir)
       shared().buf = buf
       buf.icon = 'clipboard'
       buf.addMode('view')
-      p.setBuf2(buf)
+      p.setBuf(buf)
     }
   })
 

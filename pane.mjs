@@ -138,14 +138,14 @@ function add
       p.view.ed.focus()
   }
 
-  function setBuf2
+  function setBuf
   (b2,
    spec, // { lineNum, whenReady, bury }
    cb) { // (view)
     spec = spec || {}
-    d('PANE setBuf2 ' + (b2?.name || '??'))
+    d('PANE setBuf ' + (b2?.name || '??'))
     if (view?.buf == b2) {
-      d('setBuf2 to same buf')
+      d('setBuf to same buf')
       b = b2
       if (cb)
         cb(view)
@@ -294,14 +294,14 @@ function add
         openFile,
         pos,
         // always use this to set the buf, because it's nb to use a cb if you want to access the view after.
-        setBuf2,
+        setBuf,
         showLint,
         focus,
         text }
   id++
 
   b || Mess.toss('buffer required')
-  p.setBuf2(b, { lineNum: lineNum })
+  p.setBuf(b, { lineNum: lineNum })
 
   curr = current(frame)
   if (curr && curr.w) {
@@ -403,7 +403,7 @@ function bury
   t = Buf.top(pane.buf)
   if (t == pane.buf)
     return
-  pane.setBuf2(t, { bury: 1 })
+  pane.setBuf(t, { bury: 1 })
 }
 
 export

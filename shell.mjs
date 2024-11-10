@@ -226,7 +226,7 @@ function shellOrSpawn1
       setMl(w)
     }
 
-    p.setBuf2(b, {}, () => {
+    p.setBuf(b, {}, () => {
       b.clear()
       if (cb)
         cb(b)

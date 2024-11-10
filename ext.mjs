@@ -233,13 +233,13 @@ function init
     buf = Win.shared().exts.buf
     p = Pane.current()
     if (buf)
-      p.setBuf2(buf, {}, view => refresh(view))
+      p.setBuf(buf, {}, view => refresh(view))
     else {
       buf = Buf.add('Extensions', 'Exts', divW(), p.dir)
       Win.shared().exts.buf = buf
       buf.icon = 'clipboard'
       buf.addMode('view')
-      p.setBuf2(buf)
+      p.setBuf(buf)
     }
   })
 

@@ -67,7 +67,7 @@ function init
       b = Buf.add('Man Page', 'Man Page', divW(), p.dir)
       b.icon = 'manpage'
       b.addMode('view')
-      p.setBuf2(b, {}, () =>
+      p.setBuf(b, {}, () =>
         Shell.runToString(p.dir, 'man', [ '-Thtml', topic ], 0, str => {
           Win.shared().man.buf?.vars('Man').hist.add(topic)
           b.views.forEach(view => {
@@ -118,7 +118,7 @@ function init
     buf.opts.set('core.line.numbers.show', 0)
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
-    p.setBuf2(buf, {}, () => buf.clear())
+    p.setBuf(buf, {}, () => buf.clear())
   }
 
   if (Win.root())

@@ -99,7 +99,7 @@ function initAbout
     let p
 
     p = Pane.current()
-    p.setBuf2(Win.shared().about.buf || addBuf(p))
+    p.setBuf(Win.shared().about.buf || addBuf(p))
   })
   Em.on('C-h C-a', 'about')
 }
@@ -296,7 +296,7 @@ function initHelp
       buf = addBuf(p)
       buf.icon = 'help'
     }
-    p.setBuf2(buf)
+    p.setBuf(buf)
   })
 
   Em.on('C-h b', 'describe buffer')
@@ -384,7 +384,7 @@ function initDescribeKey
         //buf.vars("SC").hist = compileHist
         buf.addMode('view')
       }
-      p.setBuf2(buf, {}, view => refresh(view, to, wes))
+      p.setBuf(buf, {}, view => refresh(view, to, wes))
     }
 
     {
@@ -535,7 +535,7 @@ function initDescribeCmd
       //buf.vars("SC").hist = compileHist
       buf.addMode('view')
     }
-    p.setBuf2(buf, {}, view => refresh(view, name, mode))
+    p.setBuf(buf, {}, view => refresh(view, name, mode))
   }
 
   function describeCmd
@@ -546,7 +546,7 @@ function initDescribeCmd
     callerBuf = p.buf
     buf = Buf.make('Execute', 'Execute', Exec.divW(), p.dir)
     buf.vars('execute').cb = name => describe(name)
-    p.setBuf2(buf)
+    p.setBuf(buf)
   }
 
   mo = Mode.add('Describe Cmd')
@@ -636,7 +636,7 @@ function initLang
         buf.addMode('view')
       }
       buf.vars('lang').name = name
-      p.setBuf2(buf, {}, view => refresh(view))
+      p.setBuf(buf, {}, view => refresh(view))
     }
   }
 
@@ -712,7 +712,7 @@ function initLangs
       //buf.vars("SC").hist = compileHist
       buf.addMode('view')
     }
-    p.setBuf2(buf, {}, view => refresh(view))
+    p.setBuf(buf, {}, view => refresh(view))
   }
 
   if (Win.root())
@@ -805,9 +805,9 @@ function init
     p = Pane.current()
     buf = Win.shared().messages.buf
     if (buf)
-      p.setBuf2(buf, {}, () => refresh(p.view))
+      p.setBuf(buf, {}, () => refresh(p.view))
     else
-      p.setBuf2(addBuf(p))
+      p.setBuf(addBuf(p))
   })
 
   Em.on('C-h s', 'messages')

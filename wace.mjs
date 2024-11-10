@@ -610,7 +610,7 @@ function divW
 export
 function make
 (p, name, dir, file) {
-  p.setBuf(Buf.add(name, 'Ed', divW(dir, file), dir, file))
+  p.setBuf2(Buf.add(name, 'Ed', divW(dir, file), dir, file))
   return p
 }
 

@@ -178,7 +178,7 @@ function init
     callerBuf = p?.buf
     buf = Buf.make('Execute', 'Execute', divW(), p.dir)
     buf.vars('execute').cb = (name, b) => Cmd.exec(name, b, u)
-    p.setBuf(buf)
+    p.setBuf2(buf)
   })
 
   Cmd.add('next line', () => next(), mo)

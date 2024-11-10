@@ -239,7 +239,7 @@ function init
       Win.shared().exts.buf = buf
       buf.icon = 'clipboard'
       buf.addMode('view')
-      p.setBuf(buf)
+      p.setBuf2(buf)
     }
   })
 

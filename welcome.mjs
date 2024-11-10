@@ -174,6 +174,6 @@ function init
     let p
 
     p = Pane.current()
-    p.setBuf(Win.shared().welcome.buf || addBuf(p))
+    p.setBuf2(Win.shared().welcome.buf || addBuf(p))
   })
 }

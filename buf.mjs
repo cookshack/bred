@@ -626,7 +626,7 @@ function init
       shared().bBuffers = bBuffers
       bBuffers.icon = 'list'
       bBuffers.addMode('view')
-      p.setBuf(bBuffers)
+      p.setBuf2(bBuffers)
     }
   })
   Em.on('C-x A-b', 'buffers')

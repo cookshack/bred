@@ -184,7 +184,7 @@ function init
     if (b) {
       if (text.length)
         hist.add(text)
-      p.setBuf(b)
+      p.setBuf2(b)
     }
     else
       Mess.say('Missing buffer ' + id)

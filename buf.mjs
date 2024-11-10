@@ -434,9 +434,9 @@ function make2
             b.views.forEach(view => {
               let ww
 
-              if (view.ele.querySelector('.bred-info-w.bred-info-disk'))
+              if (view.ele?.querySelector('.bred-info-w.bred-info-disk'))
                 return
-              ww = view.ele.querySelector('.bred-info-ww')
+              ww = view.ele?.querySelector('.bred-info-ww')
               if (ww)
                 Dom.append(ww,
                            divCl('bred-info-w bred-info-disk',
@@ -447,7 +447,7 @@ function make2
             })
           else
             b.views.forEach(view => {
-              view.ele.querySelectorAll('.bred-info-w.bred-info-disk').forEach(w => w.remove())
+              view.ele?.querySelectorAll('.bred-info-w.bred-info-disk').forEach(w => w.remove())
             })
         },
         //

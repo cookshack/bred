@@ -45,7 +45,7 @@ function make
       reserved = [ ...ele.children ]
       reserved.forEach(e => e.remove())
       //ele.innerHTML = ''
-      ele = 0
+      ele = null
     }
   }
 

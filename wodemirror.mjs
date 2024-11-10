@@ -603,7 +603,10 @@ function _viewInit
   }
 
   d('================== viewInit')
-  d({ text })
+
+  if (!view.ele)
+    // Probably buffer was switched out while peer.get was running.
+    return
 
   buf = view.buf
   buf.modified = 0

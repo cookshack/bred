@@ -142,6 +142,7 @@ function add
   (b2,
    spec, // { lineNum, whenReady, bury }
    cb) { // (view)
+    d('PANE setBuf2 ' + (b2.name || '??'))
     if (view?.buf == b2) {
       d('setBuf2 to same buf')
       b = b2
@@ -159,8 +160,7 @@ function add
         b.bury()
     }
     b = b2
-    if (view
-        && view.ready) // else there may be a peer/fs callback about to access this view
+    if (view)
       view.close()
     if (b)
       view = Buf.view(b,

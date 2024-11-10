@@ -10,6 +10,7 @@ import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Tab from './tab.mjs'
 import * as Win from './win.mjs'
+import { d } from './mess.mjs'
 
 let buf, $callerView, ynEm, ynCb
 
@@ -100,6 +101,7 @@ function ask
  cb) { // (text)
   let win, p, buf, area, tab, ml
 
+  d('ASK')
   spec = spec || {}
   spec.w = spec.w || Ed.divW(0, 0, { extraWWCss: 'bred-prompt-buf-ww' })
   win = Win.current()
@@ -111,6 +113,7 @@ function ask
   ml = spec.w.querySelector('.edMl')
   if (ml)
     ml.innerText = spec.text || 'Enter text'
+  d('ASK make2')
   buf = Buf.make2({ name: 'Prompt2',
                     modeName: 'Prompt2',
                     content: spec.w,
@@ -129,6 +132,7 @@ function ask
   buf.vars('prompt').run = cb
   buf.vars('prompt').orig = p.buf
   buf.vars('prompt').hist = spec.hist
+  d('ASK setbuf')
   tab.frame.pane.setBuf(buf, null, 0,
                         () => {
                           area.show()

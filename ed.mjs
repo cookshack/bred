@@ -105,22 +105,22 @@ function make
     let icon
 
     icon = m && Icon.mode(m)?.name
-    p.setBuf(Buf.add(name || file,
-                     m || 'Ed',
-                     divW(dir,
-                          name || file,
-                          { icon: icon }),
-                     dir,
-                     file,
-                     lineNum),
-             lineNum,
-             whenReady,
-             () => {
-               p.buf.icon = icon
-               if (file)
-                 return
-               p.buf.file = name
-             })
+    p.setBuf2(Buf.add(name || file,
+                      m || 'Ed',
+                      divW(dir,
+                           name || file,
+                           { icon: icon }),
+                      dir,
+                      file,
+                      lineNum),
+              { lineNum: lineNum,
+                whenReady: whenReady },
+              () => {
+                p.buf.icon = icon
+                if (file)
+                  return
+                p.buf.file = name
+              })
   }
 
   if (file)
@@ -137,7 +137,7 @@ function make
     if (file)
       exist = Buf.find(b => (b.file == file) && (b.dir == dir.path))
     if (exist) {
-      p.setBuf(exist, lineNum, whenReady)
+      p.setBuf2(exist, { lineNum: lineNum }, whenReady)
       return
     }
     if (lineNum === undefined) {

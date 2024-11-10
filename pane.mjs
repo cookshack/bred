@@ -314,7 +314,7 @@ function add
   id++
 
   b || Mess.toss('buffer required')
-  p.setBuf(b, lineNum)
+  p.setBuf2(b, { lineNum: lineNum })
 
   curr = current(frame)
   if (curr && curr.w) {

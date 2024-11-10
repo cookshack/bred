@@ -1079,18 +1079,20 @@ function viewReopen
   d('================== viewReopen')
   // timeout so behaves like viewInit
   setTimeout(() => {
-    view.ready = 1
-    //view.ed.resize()
-    view.ed.focus()
-    if (Ed.defined(lineNum))
-      vgotoLine(view, lineNum)
-    else
-      view.ed.dispatch({ effects: CMView.EditorView.scrollIntoView(view.ed.state.selection.main.head,
-                                                                   { y: 'center' }) })
-    if (cb)
-      cb(view)
-    if (whenReady)
-      whenReady(view)
+    if (view.ele) {
+      view.ready = 1
+      //view.ed.resize()
+      view.ed.focus()
+      if (Ed.defined(lineNum))
+        vgotoLine(view, lineNum)
+      else
+        view.ed.dispatch({ effects: CMView.EditorView.scrollIntoView(view.ed.state.selection.main.head,
+                                                                     { y: 'center' }) })
+      if (cb)
+        cb(view)
+      if (whenReady)
+        whenReady(view)
+    }
   })
 }
 

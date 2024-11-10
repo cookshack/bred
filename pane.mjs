@@ -142,7 +142,8 @@ function add
   (b2,
    spec, // { lineNum, whenReady, bury }
    cb) { // (view)
-    d('PANE setBuf2 ' + (b2.name || '??'))
+    spec = spec || {}
+    d('PANE setBuf2 ' + (b2?.name || '??'))
     if (view?.buf == b2) {
       d('setBuf2 to same buf')
       b = b2

@@ -236,7 +236,7 @@ function initCmds
     tab = Tab.add(p.win.main)
     Css.expand(p.win.main.tabbar)
     p = tab.pane()
-    p.setBuf(buf)
+    p.setBuf2(buf)
   })
 
   Cmd.add('close tab', (u, we) => {
@@ -468,7 +468,7 @@ function initCmds
 
     buf = Buf.find(b => b.name == 'Scratch.js')
     if (buf) {
-      p.setBuf(buf)
+      p.setBuf2(buf)
       return
     }
 
@@ -1113,7 +1113,7 @@ function initTest
     b = Buf.add('Test Buffer', 'Test Buffer', divW(), p.dir)
     b.icon = 'help'
     b.addMode('view')
-    p.setBuf(b)
+    p.setBuf2(b)
   })
 
   Cmd.add('move', move, mo)
@@ -1169,7 +1169,7 @@ function initBrowse
     b = Buf.add('Web', 'Web', divW(), p.dir)
     b.icon = 'help'
     b.addMode('view')
-    p.setBuf(b)
+    p.setBuf2(b)
   })
 
   Cmd.add('browse', () => {
@@ -1654,7 +1654,7 @@ function initRecent
     else {
       buf = Buf.add('Recent', 'Recent', divW(), p.dir)
       buf.addMode('view')
-      p.setBuf(buf)
+      p.setBuf2(buf)
     }
   })
 }

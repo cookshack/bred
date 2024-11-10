@@ -99,7 +99,7 @@ function initAbout
     let p
 
     p = Pane.current()
-    p.setBuf(Win.shared().about.buf || addBuf(p))
+    p.setBuf2(Win.shared().about.buf || addBuf(p))
   })
   Em.on('C-h C-a', 'about')
 }
@@ -296,7 +296,7 @@ function initHelp
       buf = addBuf(p)
       buf.icon = 'help'
     }
-    p.setBuf(buf)
+    p.setBuf2(buf)
   })
 
   Em.on('C-h b', 'describe buffer')
@@ -546,7 +546,7 @@ function initDescribeCmd
     callerBuf = p.buf
     buf = Buf.make('Execute', 'Execute', Exec.divW(), p.dir)
     buf.vars('execute').cb = name => describe(name)
-    p.setBuf(buf)
+    p.setBuf2(buf)
   }
 
   mo = Mode.add('Describe Cmd')
@@ -807,7 +807,7 @@ function init
     if (buf)
       p.setBuf(buf, null, 0, () => refresh(p.view))
     else
-      p.setBuf(addBuf(p))
+      p.setBuf2(addBuf(p))
   })
 
   Em.on('C-h s', 'messages')

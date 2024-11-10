@@ -98,7 +98,7 @@ function make2
     buf = top()
     Pane.forEach(p2 => {
       if (p2.buf && (p2.buf.id == id))
-        p2.setBuf(buf)
+        p2.setBuf2(buf)
     })
     onRemoves.forEach(cb => cb(b))
   }
@@ -577,7 +577,7 @@ function init
 
     b = we.e.target.dataset.id && find(b => b.id == we.e.target.dataset.id)
     if (b)
-      Pane.current().setBuf(b)
+      Pane.current().setBuf2(b)
     else
       Mess.say('Missing target ID')
   }

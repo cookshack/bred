@@ -233,7 +233,7 @@ function init
     buf = Win.shared().exts.buf
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, null, 0, view => refresh(view))
+      p.setBuf2(buf, {}, view => refresh(view))
     else {
       buf = Buf.add('Extensions', 'Exts', divW(), p.dir)
       Win.shared().exts.buf = buf

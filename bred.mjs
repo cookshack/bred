@@ -1531,7 +1531,7 @@ function initFile
     buf.file = 0
     //buf.dir = 0
     dir = p.dir
-    p.setBuf(buf, null, null, () => {
+    p.setBuf2(buf, {}, () => {
       buf.clear()
       buf.dir = dir
 
@@ -1650,7 +1650,7 @@ function initRecent
 
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, null, 0, view => refresh(view))
+      p.setBuf2(buf, {}, view => refresh(view))
     else {
       buf = Buf.add('Recent', 'Recent', divW(), p.dir)
       buf.addMode('view')

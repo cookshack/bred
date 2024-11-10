@@ -384,7 +384,7 @@ function initDescribeKey
         //buf.vars("SC").hist = compileHist
         buf.addMode('view')
       }
-      p.setBuf(buf, null, 0, view => refresh(view, to, wes))
+      p.setBuf2(buf, {}, view => refresh(view, to, wes))
     }
 
     {
@@ -535,7 +535,7 @@ function initDescribeCmd
       //buf.vars("SC").hist = compileHist
       buf.addMode('view')
     }
-    p.setBuf(buf, null, 0, view => refresh(view, name, mode))
+    p.setBuf2(buf, {}, view => refresh(view, name, mode))
   }
 
   function describeCmd
@@ -636,7 +636,7 @@ function initLang
         buf.addMode('view')
       }
       buf.vars('lang').name = name
-      p.setBuf(buf, null, 0, view => refresh(view))
+      p.setBuf2(buf, {}, view => refresh(view))
     }
   }
 
@@ -712,7 +712,7 @@ function initLangs
       //buf.vars("SC").hist = compileHist
       buf.addMode('view')
     }
-    p.setBuf(buf, null, 0, view => refresh(view))
+    p.setBuf2(buf, {}, view => refresh(view))
   }
 
   if (Win.root())
@@ -805,7 +805,7 @@ function init
     p = Pane.current()
     buf = Win.shared().messages.buf
     if (buf)
-      p.setBuf(buf, null, 0, () => refresh(p.view))
+      p.setBuf2(buf, {}, () => refresh(p.view))
     else
       p.setBuf2(addBuf(p))
   })

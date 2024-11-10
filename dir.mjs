@@ -558,7 +558,7 @@ function add
 
   exist = Buf.find(b => (b.mode?.key == 'dir') && (b.dir == dir.path))
   if (exist) {
-    p.setBuf(exist, null, 0, () => refreshKeep(p, undefined, undefined, undefined, initialFile))
+    p.setBuf2(exist, {}, () => refreshKeep(p, undefined, undefined, undefined, initialFile))
     return
   }
 
@@ -569,7 +569,7 @@ function add
   b.icon = Icon.mode('dir').name
   b.fileType = 'dir'
   b.addMode('view')
-  p.setBuf(b, null, 0, () => {
+  p.setBuf2(b, {}, () => {
     fill(p, undefined, undefined, undefined, initialFile)
     watch(dir.path)
   })

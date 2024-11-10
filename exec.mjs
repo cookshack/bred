@@ -147,7 +147,7 @@ function init
       let name
 
       name = we.e.target.dataset.name
-      p.setBuf(callerBuf, null, 0, () => {
+      p.setBuf2(callerBuf, {}, () => {
         if (cb)
           cb(name, callerBuf)
       })
@@ -160,7 +160,7 @@ function init
 
       current = w.querySelector('.execute-cmd-current')
       if (current)
-        p.setBuf(callerBuf, null, 0, () => {
+        p.setBuf2(callerBuf, {}, () => {
           if (cb)
             cb(current.dataset.name, callerBuf)
         })

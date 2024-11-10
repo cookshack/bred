@@ -77,7 +77,7 @@ function init
     buf = Win.shared().options.buf
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, view => refresh(view))
+      p.setBuf2(buf, {}, view => refresh(view))
     else {
       buf = Buf.add('Options', 'Options', divW(), p.dir)
       Win.shared().options.buf = buf

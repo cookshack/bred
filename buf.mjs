@@ -620,7 +620,7 @@ function init
     bBuffers = shared().bBuffers
     p = Pane.current()
     if (bBuffers)
-      p.setBuf(bBuffers, null, 0, view => refresh(view))
+      p.setBuf2(bBuffers, {}, view => refresh(view))
     else {
       bBuffers = add('Buffers', 'Buffers', divW(), p.dir)
       shared().bBuffers = bBuffers

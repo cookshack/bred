@@ -76,11 +76,12 @@ function demandBuf
   buf.opts.set('core.lint.enabled', 0)
   buf.opts.set('minimap.enabled', 0)
   buf.icon = 'prompt'
-  area.tab.frame.pane.setBuf(buf, null, 0,
-                             () => {
-                               area.show()
-                               area.tab.frame.pane.focus()
-                             })
+  area.tab.frame.pane.setBuf2(buf,
+                              {},
+                              () => {
+                                area.show()
+                                area.tab.frame.pane.focus()
+                              })
   return p
 }
 
@@ -134,12 +135,13 @@ function ask
   buf.vars('prompt').orig = p.buf
   buf.vars('prompt').hist = spec.hist
   d('ASK setbuf')
-  tab.frame.pane.setBuf(buf, null, 0,
-                        () => {
-                          area.show()
-                          tab.frame.pane.focus()
-                          spec.onReady && spec.onReady(tab.frame.pane)
-                        })
+  tab.frame.pane.setBuf2(buf,
+                         {},
+                         () => {
+                           area.show()
+                           tab.frame.pane.focus()
+                           spec.onReady && spec.onReady(tab.frame.pane)
+                         })
   return p
 }
 
@@ -219,7 +221,7 @@ function init
     text = p.text()
     orig = buf.vars('Prompt').orig
     if (orig)
-      p.setBuf(orig, null, 0, () => run1())
+      p.setBuf2(orig, {}, () => run1())
     else
       run1()
   }

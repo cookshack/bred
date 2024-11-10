@@ -1078,8 +1078,8 @@ function viewReopen
 (view, lineNum, whenReady, cb) {
   d('================== viewReopen')
   // timeout so behaves like viewInit
-  setTimeout(() => {
-    if (view.ele) {
+  if (view.ele && view.ed)
+    setTimeout(() => {
       view.ready = 1
       //view.ed.resize()
       view.ed.focus()
@@ -1092,8 +1092,13 @@ function viewReopen
         cb(view)
       if (whenReady)
         whenReady(view)
-    }
-  })
+    })
+  else
+    // probably buf was switched out before init happened.
+    viewInit(view,
+             { lineNum: lineNum,
+               whenReady: whenReady },
+             cb)
 }
 
 export

@@ -1806,13 +1806,6 @@ function divW
                  opts.extraCo ])
 }
 
-export
-function make
-(p, name, dir, file) {
-  p.setBuf2(Buf.add(name, 'Ed', divW(dir, file), dir, file))
-  return p
-}
-
 function edexec
 (ed, markActive, cmd, markCmd, args) {
   return ((markCmd && markActive) ? markCmd : cmd)(ed, args)

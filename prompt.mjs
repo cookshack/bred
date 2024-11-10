@@ -74,7 +74,7 @@ function demandBuf
   buf.opts.set('core.folding.enabled', 0)
   buf.opts.set('core.line.numbers.show', 0)
   buf.opts.set('core.lint.enabled', 0)
-  buf.opts.set('core.minimap.enabled', 0)
+  buf.opts.set('minimap.enabled', 0)
   buf.icon = 'prompt'
   area.tab.frame.pane.setBuf(buf, null, 0,
                              () => {
@@ -126,7 +126,7 @@ function ask
   buf.opts.set('core.head.enabled', 0)
   buf.opts.set('core.line.numbers.show', 0)
   buf.opts.set('core.lint.enabled', 0)
-  buf.opts.set('core.minimap.enabled', 0)
+  buf.opts.set('minimap.enabled', 0)
   buf.opts.set('ruler.enabled', 0)
   buf.icon = 'prompt'
   buf.vars('prompt').run = cb

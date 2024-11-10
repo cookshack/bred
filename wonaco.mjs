@@ -232,7 +232,7 @@ function viewInit
            theme: 'solarized-light',
            wordWrap: 'on' }
 
-  if (buf.opt('core.minimap.enabled'))
+  if (buf.opt('minimap.enabled'))
     opts.minimap = { enabled: true }
   else
     opts.minimap = { enabled: false }
@@ -2277,12 +2277,12 @@ function addModes
 
 function reconfigureMinimap
 (buf, view) {
-  view.ed.updateOptions({ minimap: { enabled: buf.opt('core.cursor.blink') ? true : false } })
+  view.ed.updateOptions({ minimap: { enabled: buf.opt('minimap.enabled') ? true : false } })
 }
 
 function reconfigureCursorBlink
 (buf, view) {
-  view.ed.updateOptions({ cursorBlinking: buf.opt('core.minimap.enabled') ? 'blink' : 'solid' })
+  view.ed.updateOptions({ cursorBlinking: buf.opt('core.cursor.blink') ? 'blink' : 'solid' })
 }
 
 function initOpt
@@ -2301,7 +2301,7 @@ function initOpt
   }
 
   on('core.cursor.blink', reconfigureCursorBlink)
-  on('core.minimap.enabled', reconfigureMinimap)
+  on('minimap.enabled', reconfigureMinimap)
 }
 
 export

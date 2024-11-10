@@ -151,7 +151,7 @@ function initCommit
     buf.opts.set('core.folding.enabled', 0)
     buf.opts.set('core.line.numbers.show', 0)
     buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('core.minimap.enabled', 0)
+    buf.opts.set('minimap.enabled', 0)
     p.setBuf(buf, null, 0, () => buf.clear())
   }
 
@@ -506,7 +506,7 @@ function initLog
       //buf.addMode("view") // overrides n,p
     }
     buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('core.minimap.enabled', 0)
+    buf.opts.set('minimap.enabled', 0)
     buf.opts.set('core.lang', 'git log')
     p.setBuf(buf, null, 0, view => {
       buf.clear()
@@ -836,7 +836,7 @@ function initAnnotate
       //buf.addMode("view") // overrides n,p
     }
     buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('core.minimap.enabled', 0)
+    buf.opts.set('minimap.enabled', 0)
     //buf.opts.set('core.lang', 'git log')
     buf.vars('vc').file = p.buf.path
     p.setBuf(buf, null, 0, view => {

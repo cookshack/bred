@@ -304,7 +304,7 @@ function init
     buf.opts.set('core.folding.enabled', 0)
     buf.opts.set('core.line.numbers.show', 0)
     buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('core.minimap.enabled', 0)
+    buf.opts.set('minimap.enabled', 0)
     hist.reset()
     buf.file = 0
     //buf.dir = 0

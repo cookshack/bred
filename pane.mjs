@@ -182,18 +182,6 @@ function add
     p.frame.tab.icon = b?.icon
   }
 
-  function setBuf
-  (b2, lineNum,
-   // FIX called when file loaded
-   whenReady,
-   // called when buf ready to use
-   cb) { // (view)
-    setBuf2(b2,
-            { lineNum: lineNum,
-              whenReady: whenReady },
-            cb)
-  }
-
   function openFile
   (path, lineNum, whenReady) {
     path = Loc.make(path)
@@ -306,7 +294,6 @@ function add
         openFile,
         pos,
         // always use this to set the buf, because it's nb to use a cb if you want to access the view after.
-        setBuf,
         setBuf2,
         showLint,
         focus,

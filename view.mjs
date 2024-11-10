@@ -268,7 +268,8 @@ function make
   () {
     let head
 
-    head = (ele || null)?.parentNode.querySelector('.bred-head')
+    d('VIEW reconfHead')
+    head = (ele || null)?.parentNode.querySelector('.bred-head-w')
     if (head)
       if (b.opt('core.head.enabled'))
         Css.show(head)

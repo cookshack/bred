@@ -1315,8 +1315,15 @@ function selfInsertIndent
 
 export
 function flushLines
-() {
-  let p
+(other) {
+  let p, match, prompt
+
+  prompt = 'Flush lines containing string:'
+  match = (text, needle) => text.includes(needle)
+  if (other) {
+    prompt = 'Keep lines containing string:'
+    match = (text, needle) => text.includes(needle) == 0
+  }
 
   function flush
   (needle) {
@@ -1326,14 +1333,21 @@ function flushLines
     while (1) {
       psn.lineStart()
       text = Backend.lineAtBep(p.view, psn.bep)
-      d(text)
-      if (text.includes(needle)) {
-        let start, range
+      d('bep: ' + psn.bep)
+      d('text: ' + text)
+      if (match(text, needle)) {
+        let start, range, atEnd
 
+        d('remove line')
         start = psn.bep
         psn.lineEnd()
-        psn.charRight()
+        atEnd = psn.charRight()
         range = Backend.makeRange(start, psn.bep)
+
+        // mv back to start of line to be removed, so that psn is right
+        atEnd || psn.linePrev()
+        psn.lineStart()
+
         p.buf.views.forEach(view => {
           if (view.ele && view.ed)
             Backend.remove(view.ed, range)
@@ -1345,7 +1359,7 @@ function flushLines
   }
 
   p = Pane.current()
-  Prompt.ask({ text: 'Flush lines containing string:' },
+  Prompt.ask({ text: prompt },
              flush)
 }
 
@@ -1575,6 +1589,7 @@ function init
     Em.on('A-g l', 'goto line', mo)
 
     Cmd.add('flush lines', () => flushLines(), mo)
+    Cmd.add('keep lines', () => flushLines(1), mo)
 
     Em.on('C-c A-r', 'revert buffer')
 

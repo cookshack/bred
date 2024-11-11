@@ -1530,7 +1530,14 @@ function makePsn
 
   function charRight
   (u) {
+    let end
+
+    end = vgetBepEnd(view)
     bep += (u || 1)
+    if (bep > end) {
+      bep = end
+      return true
+    }
   }
 
   function lineRightOverSpace

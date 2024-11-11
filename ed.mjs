@@ -230,19 +230,26 @@ function initFlushLines
   let hist
 
   function flushLines
-  (other) {
+  (other, regex) {
     let p, match, prompt
 
-    prompt = 'Flush lines containing string:'
-    match = (text, needle) => text.includes(needle)
-    if (other) {
-      prompt = 'Keep lines containing string:'
-      match = (text, needle) => text.includes(needle) == 0
-    }
+    prompt = (other ? 'Keep' : 'Flush') + ' lines containing ' + (regex ? 'regex' : 'string')
 
     function flush
     (needle) {
       let psn, text
+
+      if (regex)
+        regex = new RegExp(needle)
+
+      match = text => text.includes(needle)
+      if (other)
+        if (regex)
+          match = text => regex.test(text) == 0
+        else
+          match = text => text.includes(needle) == 0
+      else if (regex)
+        match = text => regex.test(text)
 
       hist.add(needle)
       psn = Backend.makePsn(p.view, Backend.vgetBepEnd(p.view))
@@ -283,7 +290,9 @@ function initFlushLines
   hist = Hist.ensure('flush lines')
 
   Cmd.add('flush lines', () => flushLines(), mo)
+  Cmd.add('flush lines regex', () => flushLines(0, 1), mo)
   Cmd.add('keep lines', () => flushLines(1), mo)
+  Cmd.add('keep lines regex', () => flushLines(1, 1), mo)
 }
 
 function initGotoLine

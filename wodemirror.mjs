@@ -421,6 +421,7 @@ function diagnose
 
 function reconfigureOpt
 (buf, name) {
+  d('reconfigureOpt ' + name)
   buf.views.forEach(view => {
     if (view.ed && (view.win == Win.current()))
       brexts.forEach(b => {

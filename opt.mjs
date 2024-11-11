@@ -5,6 +5,7 @@ export let inherit, missing
 let shared, d
 
 d = console.log // too early for Mess
+//d = () => {}
 
 // using undefined instead of these
 inherit = {}
@@ -24,7 +25,7 @@ function load
         load1(prefix + kv[0] + '.', kv[1])
         return
       }
-      //d('opt ' + prefix + kv[0] + ': ' + kv[1])
+      d('opt ' + prefix + kv[0] + ': ' + kv[1])
       values[prefix + kv[0]] = kv[1]
     })
   }
@@ -45,7 +46,7 @@ function declare
  type,
  value) {
   shared().types[name] = type
-  //d('OPT ' + name + ' DECLARED ' + type)
+  d('OPT ' + name + ' DECLARED ' + type)
   if (get(name) === undefined)
     return setMem(name, clean(name, value))
   return get(name)
@@ -54,7 +55,7 @@ function declare
 export
 function get
 (name) {
-  //d('OPT ' + name + ': ' + values[name])
+  d('OPT ' + name + ': ' + shared().values[name])
   return shared().values[name]
 }
 
@@ -71,7 +72,7 @@ function setMem
 (name,
  value) { // must be clean
   shared().values[name] = value
-  //d('OPT ' + name + ' SET TO ' + value)
+  d('OPT ' + name + ' SET TO ' + value)
   shared().onSets[name]?.forEach(cb => cb(value, name))
   shared().onSetAlls.forEach(cb => cb(value, name))
   return value
@@ -166,7 +167,7 @@ function buf
   (name, val) {
     val = clean(name, val)
     vals[name] = val
-    //d('BUF OPT ' + name + ' SET TO ' + val)
+    d('BUF OPT ' + name + ' SET TO ' + val)
     shared().onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
   }
 

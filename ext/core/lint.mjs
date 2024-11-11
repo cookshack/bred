@@ -101,7 +101,7 @@ function updateListener
 
       //d('docChanged')
       p = p || Pane.holdingView(view)
-      p?.showLint(CMLint.diagnosticCount(update.state))
+      p?.showLintMarker(CMLint.diagnosticCount(update.state))
     }
   })
 }

@@ -214,7 +214,7 @@ function add
     })
   }
 
-  function showLint
+  function showLintMarker
   (count) {
     if (count)
       Css.show(eleLint)
@@ -295,7 +295,7 @@ function add
         pos,
         // always use this to set the buf, because it's nb to use a cb if you want to access the view after.
         setBuf,
-        showLint,
+        showLintMarker,
         focus,
         text }
   id++

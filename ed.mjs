@@ -1325,8 +1325,17 @@ function flushLines
     psn.lineStart()
     text = Backend.lineAtBep(p.view, psn.bep)
     d(text)
-    if (text.includes('xxx'))
-      d('remove line')
+    if (text.includes('xxx')) {
+      let start, range
+
+      start = psn.bep
+      psn.lineEnd()
+      psn.charRight()
+      range = Backend.makeRange(start, psn.bep)
+      p.buf.views.forEach(view => {
+        Backend.remove(view.ed, range)
+      })
+    }
     if (psn.charLeft())
       break
   }

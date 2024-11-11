@@ -1316,29 +1316,37 @@ function selfInsertIndent
 export
 function flushLines
 () {
-  let p, psn, text
+  let p
 
-  d('fl')
-  p = Pane.current()
-  psn = Backend.makePsn(p.view, Backend.vgetBepEnd(p.view))
-  while (1) {
-    psn.lineStart()
-    text = Backend.lineAtBep(p.view, psn.bep)
-    d(text)
-    if (text.includes('xxx')) {
-      let start, range
+  function flush
+  (needle) {
+    let psn, text
 
-      start = psn.bep
-      psn.lineEnd()
-      psn.charRight()
-      range = Backend.makeRange(start, psn.bep)
-      p.buf.views.forEach(view => {
-        Backend.remove(view.ed, range)
-      })
+    psn = Backend.makePsn(p.view, Backend.vgetBepEnd(p.view))
+    while (1) {
+      psn.lineStart()
+      text = Backend.lineAtBep(p.view, psn.bep)
+      d(text)
+      if (text.includes(needle)) {
+        let start, range
+
+        start = psn.bep
+        psn.lineEnd()
+        psn.charRight()
+        range = Backend.makeRange(start, psn.bep)
+        p.buf.views.forEach(view => {
+          if (view.ele && view.ed)
+            Backend.remove(view.ed, range)
+        })
+      }
+      if (psn.charLeft())
+        break
     }
-    if (psn.charLeft())
-      break
   }
+
+  p = Pane.current()
+  Prompt.ask({ text: 'Flush lines containing string:' },
+             flush)
 }
 
 export

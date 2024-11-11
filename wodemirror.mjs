@@ -1123,6 +1123,15 @@ function vlineStart
   return l.from
 }
 
+export
+function lineAtBep
+(view, bep) {
+  let l
+
+  l = view.ed.state.doc.lineAt(bep)
+  return l.text
+}
+
 function lineAt
 (view, pos) {
   let l
@@ -1510,6 +1519,15 @@ function makePsn
     return ''
   }
 
+  function charLeft
+  (u) {
+    bep -= (u || 1)
+    if (bep < 0) {
+      bep = 0
+      return true
+    }
+  }
+
   function charRight
   (u) {
     bep += (u || 1)
@@ -1613,6 +1631,7 @@ function makePsn
             return getText()
           },
           //
+          charLeft,
           charRight,
           lineEnd,
           lineNext,

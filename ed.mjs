@@ -1314,6 +1314,25 @@ function selfInsertIndent
 }
 
 export
+function flushLines
+() {
+  let p, psn, text
+
+  d('fl')
+  p = Pane.current()
+  psn = Backend.makePsn(p.view, Backend.vgetBepEnd(p.view))
+  while (1) {
+    psn.lineStart()
+    text = Backend.lineAtBep(p.view, psn.bep)
+    d(text)
+    if (text.includes('xxx'))
+      d('remove line')
+    if (psn.charLeft())
+      break
+  }
+}
+
+export
 function enable
 (u, name) {
   if (u == 4)
@@ -1537,6 +1556,8 @@ function init
     Em.on('C-A-e', 'top level end', mo)
 
     Em.on('A-g l', 'goto line', mo)
+
+    Cmd.add('flush lines', () => flushLines(), mo)
 
     Em.on('C-c A-r', 'revert buffer')
 

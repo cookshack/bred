@@ -521,6 +521,7 @@ function viewInitSpec
   d('peer.get ' + view.buf.id)
   d('vi vid: ' + view.vid)
   view.buf.modified = 0
+  Ed.setIcon(view.buf, '.edMl-mod', 'blank')
   view.ready = 0
   Tron.cmd('peer.get', [ view.buf.id ], (err, data) => {
     if (err) {
@@ -610,6 +611,7 @@ function _viewInit
 
   buf = view.buf
   buf.modified = 0
+  Ed.setIcon(view.buf, '.edMl-mod', 'blank')
   buf.modifiedOnDisk = 0
   view.ready = 0
   view.marks = []

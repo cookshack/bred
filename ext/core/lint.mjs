@@ -8,7 +8,7 @@ import * as Mess from '../../mess.mjs'
 import * as Opt from '../../opt.mjs'
 import * as Pane from '../../pane.mjs'
 import * as Win from '../../win.mjs'
-//import { d } from '../../mess.mjs'
+import { d } from '../../mess.mjs'
 
 import * as CMJS from '../../lib/@codemirror/lang-javascript.js'
 import * as CMLint from '../../lib/@codemirror/lint.js'
@@ -92,16 +92,26 @@ function makeLintGutter
   return CMLint.lintGutter({ tooltipFilter: handleTooltipLintGutter })
 }
 
+export
+function reconfLintMarker
+(view, state) {
+  if (view.ele && view.ed) {
+    let p
+
+    //d('reconfLintMarker')
+    state = state || view.ed.state
+    p = p || Pane.holdingView(view)
+    p?.showLintMarker(CMLint.diagnosticCount(state))
+  }
+}
+
 function updateListener
 (view) {
   return CMView.EditorView.updateListener.of(update => {
     //d('lint update')
     if (update.docChanged || update.changes) {
-      let p
-
-      //d('docChanged')
-      p = p || Pane.holdingView(view)
-      p?.showLintMarker(CMLint.diagnosticCount(update.state))
+      0 && d('docChanged')
+      reconfLintMarker(view, update.state)
     }
   })
 }

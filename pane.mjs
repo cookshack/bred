@@ -216,7 +216,7 @@ function add
 
   function showLintMarker
   (count) {
-    if (count)
+    if (count && b.opt('core.lint.enabled'))
       Css.show(eleLint)
     else
       Css.hide(eleLint)

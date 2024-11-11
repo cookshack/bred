@@ -127,7 +127,10 @@ function init
                             reconfOpts: [ 'core.folding.enabled', 'core.folding.gutter.enabled' ] }))
   register({ reconfOpts: [ 'core.head.enabled',
                            'core.lint.enabled' ],
-             reconf: buf => buf.views.forEach(v => v.reconfHead()) })
+             reconf: buf => buf.views.forEach(v => {
+               Lint.reconfLintMarker(v),
+               v.reconfHead()
+             }) })
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.specials.enabled') ? CMView.highlightSpecialChars() : [],
                             reconfOpts: [ 'core.highlight.specials.enabled' ] }))

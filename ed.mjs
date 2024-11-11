@@ -225,6 +225,67 @@ function initComplete
   Em.on('A-/', 'complete')
 }
 
+function initFlushLines
+(mo) {
+  let hist
+
+  function flushLines
+  (other) {
+    let p, match, prompt
+
+    prompt = 'Flush lines containing string:'
+    match = (text, needle) => text.includes(needle)
+    if (other) {
+      prompt = 'Keep lines containing string:'
+      match = (text, needle) => text.includes(needle) == 0
+    }
+
+    function flush
+    (needle) {
+      let psn, text
+
+      hist.add(needle)
+      psn = Backend.makePsn(p.view, Backend.vgetBepEnd(p.view))
+      while (1) {
+        psn.lineStart()
+        text = Backend.lineAtBep(p.view, psn.bep)
+        d('bep: ' + psn.bep)
+        d('text: ' + text)
+        if (match(text, needle)) {
+          let start, range, atEnd
+
+          d('remove line')
+          start = psn.bep
+          psn.lineEnd()
+          atEnd = psn.charRight()
+          range = Backend.makeRange(start, psn.bep)
+
+          // mv back to start of line to be removed, so that psn is right
+          atEnd || psn.linePrev()
+          psn.lineStart()
+
+          p.buf.views.forEach(view => {
+            if (view.ele && view.ed)
+              Backend.remove(view.ed, range)
+          })
+        }
+        if (psn.charLeft())
+          break
+      }
+    }
+
+    p = Pane.current()
+    Prompt.ask({ text: prompt,
+                 hist: hist },
+               flush)
+  }
+
+  hist = Hist.ensure('flush lines')
+
+  Cmd.add('flush lines', () => flushLines(), mo)
+  Cmd.add('keep lines', () => flushLines(1), mo)
+}
+
 function initGotoLine
 (mo) {
   let hist
@@ -1314,56 +1375,6 @@ function selfInsertIndent
 }
 
 export
-function flushLines
-(other) {
-  let p, match, prompt
-
-  prompt = 'Flush lines containing string:'
-  match = (text, needle) => text.includes(needle)
-  if (other) {
-    prompt = 'Keep lines containing string:'
-    match = (text, needle) => text.includes(needle) == 0
-  }
-
-  function flush
-  (needle) {
-    let psn, text
-
-    psn = Backend.makePsn(p.view, Backend.vgetBepEnd(p.view))
-    while (1) {
-      psn.lineStart()
-      text = Backend.lineAtBep(p.view, psn.bep)
-      d('bep: ' + psn.bep)
-      d('text: ' + text)
-      if (match(text, needle)) {
-        let start, range, atEnd
-
-        d('remove line')
-        start = psn.bep
-        psn.lineEnd()
-        atEnd = psn.charRight()
-        range = Backend.makeRange(start, psn.bep)
-
-        // mv back to start of line to be removed, so that psn is right
-        atEnd || psn.linePrev()
-        psn.lineStart()
-
-        p.buf.views.forEach(view => {
-          if (view.ele && view.ed)
-            Backend.remove(view.ed, range)
-        })
-      }
-      if (psn.charLeft())
-        break
-    }
-  }
-
-  p = Pane.current()
-  Prompt.ask({ text: prompt },
-             flush)
-}
-
-export
 function enable
 (u, name) {
   if (u == 4)
@@ -1588,13 +1599,11 @@ function init
 
     Em.on('A-g l', 'goto line', mo)
 
-    Cmd.add('flush lines', () => flushLines(), mo)
-    Cmd.add('keep lines', () => flushLines(1), mo)
-
     Em.on('C-c A-r', 'revert buffer')
 
     initLML(mo)
     initComplete()
+    initFlushLines(mo)
     initGotoLine(mo)
     initQR(mo)
     initSearch(mo)

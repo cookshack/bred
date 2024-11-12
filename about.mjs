@@ -269,7 +269,8 @@ function initHelp
 
       name = we.e.target.dataset.name
       callerBuf = Win.shared().helpBuffer.callerBuf
-      callerBuf?.opts.set(name, !callerBuf.opt(name))
+      callerBuf?.opts.set(name,
+                          callerBuf.opt(name) ? 0 : 1)
     }
     else
       Mess.toss('missing name')

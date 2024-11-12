@@ -724,7 +724,8 @@ function exchange() {
     let sel
 
     sel = p.view.ed.selection
-    sel.setSelectionRange(sel.getRange(), !sel.isBackwards())
+    sel.setSelectionRange(sel.getRange(),
+                          sel.isBackwards() ? false : true)
     return
   }
   p.view.ed.selection.clearSelection()
@@ -1093,7 +1094,7 @@ function vfind
                        caseSensitive: opts.caseSensitive,
                        wholeWord: 0,
                        start: initialBep,
-                       regExp: !!opts.regExp })
+                       regExp: Ed.bool(opts.regExp) })
   //d(ret)
   if (ret) {
     let bep

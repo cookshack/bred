@@ -1637,6 +1637,14 @@ function register
 /// Utils
 
 export
+function bool
+(x) {
+  if (x)
+    return true
+  return false
+}
+
+export
 function defined
 (arg) {
   if (arg === undefined)

@@ -20,6 +20,7 @@ let brexts, part, Eslint, eslintConfig
 
 eslintConfig = {
   languageOptions: EslintConfig.languageOptions,
+  plugins: EslintConfig.plugins,
   rules: EslintConfig.rules
 }
 

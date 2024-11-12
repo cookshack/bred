@@ -464,7 +464,9 @@ function register
       }))
 
     spec.reconfOpts?.forEach(name => {
-      if (!registeredOpts.has(name)) {
+      if (registeredOpts.has(name)) {
+      }
+      else {
         registeredOpts.add(name)
         // these will just listen forever, which is ok
         //   could get handles and free them when the brext is freed
@@ -506,7 +508,7 @@ function watch
       //d('--- file watch ev ---')
       //d({ data })
       if (data.type == 'change') {
-        if (buf.stat.mtimeMs == data.stat.mtimeMs)
+        if (buf.stat?.mtimeMs == data.stat?.mtimeMs)
           return
         buf.modifiedOnDisk = 1
       }
@@ -606,7 +608,10 @@ function _viewInit
 
   d('================== viewInit')
 
-  if (!view.ele)
+  if (view.ele) {
+    // Have DOM.
+  }
+  else
     // Probably buffer was switched out while peer.get was running.
     return
 
@@ -1003,7 +1008,7 @@ function _viewInit
       if (mode == 'Ed')
         mode = 'text'
       d('mode offered: ' + mode)
-      if (!mode || (mode == 'text'))
+      if (mode ? (mode == 'text') : 1)
         mode = modeFromFirstLine(data.data) || mode
 
       mode = mode || 'text'
@@ -2087,7 +2092,9 @@ function bufferStartEnd
   let p
 
   p = Pane.current()
-  if (!p.view.markActive) {
+  if (p.view.markActive) {
+  }
+  else {
     setMark()
     clearSelection(p.view)
   }
@@ -2556,7 +2563,7 @@ function vfind
     search = new CMSearch.SearchQuery({ search: needle,
                                         caseSensitive: opts.caseSensitive,
                                         literal: 1,
-                                        regexp: !!opts.regExp,
+                                        regexp: Ed.bool(opts.regExp),
                                         wholeWord: 0 })
     //CMSearch.setSearchQuery(query)
     query = search.create()
@@ -3795,7 +3802,7 @@ function init
 
   //langs = []
 
-  languages = CMData.languages.filter(l => ![ 'diff', 'javascript' ].includes(l.name.toLowerCase()))
+  languages = CMData.languages.filter(l => [ 'diff', 'javascript' ].includes(l.name.toLowerCase()) ? 0 : 1)
 
   function addLang
   (langs, lang, ed, opt) {

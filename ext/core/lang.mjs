@@ -22,7 +22,7 @@ function makeAutocomplete
     d('ac')
 
     word = context.matchBefore(/\w*/)
-    if (word.from == word.to && !context.explicit)
+    if (context.explicit ? 0 : (word.from == word.to))
       return null
 
     options = []
@@ -49,7 +49,7 @@ function makeAutocomplete
     d('ac')
 
     word = context.matchBefore(/\w*/)
-    if (word.from == word.to && !context.explicit)
+    if (context.explicit ? 0 : (word.from == word.to))
       return null
 
     options = []

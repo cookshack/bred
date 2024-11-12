@@ -20,8 +20,7 @@ function load
 
     values = shared().values
     Object.entries(data).forEach(kv => {
-      if ((typeof kv[1] == 'object')
-          && !Array.isArray(kv[1])) {
+      if (Array.isArray(kv[1]) ? 0 : (typeof kv[1] == 'object')) {
         load1(prefix + kv[0] + '.', kv[1])
         return
       }

@@ -366,7 +366,7 @@ function viewInit
       if (mode == 'Ed')
         mode = 'text'
       d('mode offered: ' + mode)
-      if (!mode || (mode == 'text'))
+      if (mode ? (mode == 'text') : 1)
         mode = modeFromFirstLine(data.data) || mode
 
       mode = mode || 'text'

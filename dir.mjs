@@ -91,8 +91,8 @@ function printMode
   function frob
   (bit, name, sbit, sname, negate) {
     if (negate
-      ? !(mode & (1 << bit))
-      : (mode & (1 << bit))) {
+        ? (0 == (mode & (1 << bit)))
+        : (mode & (1 << bit))) {
       if (sbit
           && (mode & (1 << sbit)))
         return sname
@@ -451,13 +451,13 @@ function fill
       // show hidden
     }
     else
-      co = co.filter(f => !f.hidden)
+      co = co.filter(f => f.hidden ? 0 : 1)
 
     if (bak) {
       // show backups
     }
     else
-      co = co.filter(f => !f.bak)
+      co = co.filter(f => f.bak ? 0 : 1)
 
     if (sort == 'size-asc')
       co = co.sort((f1,f2) => f1.stat?.size - f2.stat?.size)

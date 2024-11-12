@@ -4,8 +4,8 @@ export let inherit, missing
 
 let shared, d
 
-d = console.log // too early for Mess
-//d = () => {}
+//d = console.log // too early for Mess
+d = () => {}
 
 // using undefined instead of these
 inherit = {}

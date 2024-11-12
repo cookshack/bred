@@ -268,7 +268,7 @@ function make
   () {
     let head
 
-    d('VIEW reconfHead')
+    //d('VIEW reconfHead')
     head = (ele || null)?.parentNode.querySelector('.bred-head-w')
     if (head)
       if (b.opt('core.head.enabled'))

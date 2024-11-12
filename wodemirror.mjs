@@ -1959,11 +1959,13 @@ function setSelection
 
 function regionRange
 (view) {
-  let head, mark
+  let head
 
   head = view.ed.state.selection.main.head
-  mark = view.marks.at(-1)
-  if (mark) {
+  if (view.marks.length) {
+    let mark
+
+    mark = view.marks.at(-1)
     if (head > mark)
       return { from: mark, to: head }
     return { from: head, to: mark }

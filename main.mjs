@@ -1546,8 +1546,7 @@ async function whenReady
   d('setting app handlers')
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin')
-      app.quit()
+    app.quit()
   })
 
   app.on('activate', () => {

@@ -8,6 +8,7 @@ import * as Ed from './ed.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
+import Mk from './mk.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
@@ -649,7 +650,7 @@ function vgotoLine
 function vonChange
 (view, cb) {
   if (view.ed) {
-    view.onChanges = view.onChanges || []
+    view.onChanges = view.onChanges || Mk.array
     if (view.onChanges.find(o => o.cb == cb))
       Mess.toss('already have an onChange for this cb')
     view.onChanges.push({ cb: cb, ref: view.ed.onDidChangeModelContent(cb) })
@@ -661,11 +662,11 @@ function voffChange
   if (view.ed) {
     let onChange
 
-    view.onChanges = view.onChanges || []
+    view.onChanges = view.onChanges || Mk.array
     onChange = view.onChanges.find(o => o.cb == cb)
     if (onChange)
       onChange.ref.dispose()
-    view.onChanges = view.onChanges.filter(o => o.cb !== cb)
+    view.onChanges.removeIf(o => o.cb === cb)
   }
 }
 

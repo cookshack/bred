@@ -2,12 +2,13 @@ import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Em from './em.mjs'
 import * as Mess from './mess.mjs'
+import Mk from './mk.mjs'
 import * as Pane from './pane.mjs'
-//import { d } from './mess.mjs'
+import { d } from './mess.mjs'
 
 let modes
 
-modes = []
+modes = Mk.array
 
 export
 function add
@@ -54,11 +55,10 @@ function add
   opts = opts || {}
 
   m = get(key)
-  if (m) {
-    //D("mode.add: " + key + " (update)")
-  }
+  if (m)
+    0 && d('mode.add: ' + key + ' (update)')
   else {
-    //D("mode.add: " + key)
+    //d('mode.add: ' + key)
     m = {}
     modes.push(m)
   }
@@ -119,7 +119,7 @@ function remove
   m = get(key)
   if (m) {
     Cmd.remove(m.key + ' mode')
-    modes = modes.filter(m1 => m1.key != m.key)
+    modes.removeIf(m1 => m1.key == m.key)
   }
 }
 

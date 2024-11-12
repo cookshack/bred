@@ -57,7 +57,9 @@ function runToString
       str += der.decode(d.stdout)
     if (d.stderr)
       str += der.decode(d.stderr)
-    if (d.close !== undefined) {
+    if (d.close === undefined) {
+    }
+    else {
       Mess.say('SC Done: ' + sc)
       if (cb)
         cb(str, d.code)

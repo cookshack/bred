@@ -9,6 +9,7 @@ import * as Em from './em.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
+import Mk from './mk.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
@@ -151,7 +152,7 @@ let highlighters, stateHighlighters
   let all, id, effectHighlighters
 
   id = 0
-  all = []
+  all = Mk.array
 
   highlighters = {
     add(highlight, update) {
@@ -161,7 +162,7 @@ let highlighters, stateHighlighters
             //
             highlight,
             remove() {
-              all = all.filter(h1 => h1.id != h.id)
+              all.removeIf(h1 => h1.id == h.id)
             },
             update },
       all.push(h)
@@ -445,7 +446,7 @@ function register
 
     function free
     () {
-      brexts = brexts.filter(b => b.id !== brext.id)
+      brexts.removeIf(b => b.id === brext.id)
       // remove from existing views
       Buf.forEach(buf => buf.views.forEach(v => (v.win == Win.current()) && v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
       // reconfigure exts opts on all bufs, in case any other extensions use the opt
@@ -1450,7 +1451,7 @@ function vgotoLine
 function vonFocus
 (view, cb) {
   if (view.ed) {
-    view.onFocuss = view.onFocuss || []
+    view.onFocuss = view.onFocuss || Mk.array
     //d('vonFocus ' + cb)
     if (view.onFocuss.find(o => o.cb == cb))
       Mess.toss('already have an onFocus for this cb')
@@ -1462,15 +1463,15 @@ function vonFocus
 function voffFocus
 (view, cb) {
   if (view.ed) {
-    view.onFocuss = view.onFocuss || []
-    view.onFocuss = view.onFocuss.filter(o => o.cb !== cb)
+    view.onFocuss = view.onFocuss || Mk.array
+    view.onFocuss.removeIf(o => o.cb === cb)
   }
 }
 
 function vonChange
 (view, cb) { // (update)
   if (view.ed) {
-    view.onChanges = view.onChanges || []
+    view.onChanges = view.onChanges || Mk.array
     //d('vonChange ' + cb)
     if (view.onChanges.find(o => o.cb == cb))
       Mess.toss('already have an onChange for this cb')
@@ -1482,8 +1483,8 @@ function vonChange
 function voffChange
 (view, cb) {
   if (view.ed) {
-    view.onChanges = view.onChanges || []
-    view.onChanges = view.onChanges.filter(o => o.cb !== cb)
+    view.onChanges = view.onChanges || Mk.array
+    view.onChanges.removeIf(o => o.cb === cb)
   }
 }
 
@@ -3793,7 +3794,7 @@ function init
   let languages
 
   brextIds = 0
-  brexts = []
+  brexts = Mk.array
   registeredOpts = new Set()
   bredView = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
 

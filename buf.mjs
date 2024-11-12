@@ -5,6 +5,7 @@ import * as Dom from './dom.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Loc from './loc.mjs'
+import Mk from './mk.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
@@ -93,8 +94,8 @@ function make2
 
     id = Pane.current().buf?.id
     sh = shared()
-    sh.buffers = sh.buffers.filter(e => e !== b)
-    sh.ring = sh.ring.filter(e => e !== b)
+    sh.buffers.removeIf(e => e === b)
+    sh.ring.removeIf(e => e === b)
     buf = top()
     Pane.forEach(p2 => {
       if (p2.buf && (p2.buf.id == id))
@@ -156,7 +157,7 @@ function make2
     mo = getMo(modeOrKey)
     if (mo) {
       if (b.minors.find(m => m == mo)) {
-        b.minors = b.minors.filter(m => m !== mo)
+        b.minors.removeIf(m => m === mo)
         mo.stop(b)
         return 0
       }
@@ -372,7 +373,7 @@ function make2
         vid: vid,
         //
         co: content,
-        minors: [],
+        minors: Mk.array,
         modified: 0,
         name: name,
         ml: ml,
@@ -607,8 +608,8 @@ function init
   }
 
   if (Win.root())
-    Win.shared().buf = { buffers: [],
-                         ring: [],
+    Win.shared().buf = { buffers: Mk.array,
+                         ring: Mk.array,
                          id: 1 }
 
   mo = Mode.add('Buffers', { viewInit: refresh })

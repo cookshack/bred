@@ -80,8 +80,11 @@ function onPeerPush
   d('PEER ' + id + ' PUSHED ' + received.length)
   d('    version: ' + version)
   d('    buf.version: ' + buf.version)
-  if (version != buf.version)
-    received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
+  if (version == buf.version) {
+    e.sender.send(ch, {})
+    return
+  }
+  received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
   try {
     received.forEach(update => {
       buf.updates.push(update)

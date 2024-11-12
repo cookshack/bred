@@ -9,7 +9,7 @@ import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
 import * as Win from './win.mjs'
-//import { d } from './mess.mjs'
+import { d } from './mess.mjs'
 
 export
 function shared
@@ -134,6 +134,7 @@ function init
       Mess.log('clip.new: ' + err.message)
       return
     }
+    0 && d('CUT clip ' + data.text)
     add(data.text)
   })
 }

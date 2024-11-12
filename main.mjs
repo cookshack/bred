@@ -12,7 +12,7 @@ import { fork, spawn, spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 import * as Pty from 'node-pty'
 
-let version, options, stores, dirUserData, lsp, shell
+let version, options, stores, dirUserData, lsp, shell, lastClipWrite
 
 function lspMake
 () {
@@ -475,6 +475,7 @@ function cmdClipWrite
 (e, ch, onArgs) {
   let [ text ] = onArgs
 
+  lastClipWrite = text
   Clipboard.writeText(text, 'clipboard')
   return {}
 }
@@ -1397,6 +1398,8 @@ function watchClip
     text = Clipboard.readText('clipboard')
     if (text && text.length) {
       if (text == last)
+        return
+      if (text == lastClipWrite)
         return
       //d('clip.new ' + text)
       last = text

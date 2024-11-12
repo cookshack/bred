@@ -1525,6 +1525,7 @@ function init
     Cmd.add('yank', () => Backend.yank(), mo)
     Cmd.add('yank roll', () => Backend.yankRoll(), mo)
     Cmd.add('paste', () => Backend.yank(), mo)
+    Cmd.add('paste roll', () => Backend.yankRoll(), mo)
     Cmd.add('cut', () => Backend.cut(), mo)
     Cmd.add('copy', () => Backend.copy(), mo)
 

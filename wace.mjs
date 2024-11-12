@@ -1405,11 +1405,11 @@ function yank() {
 
 export
 function yankRoll() {
-  if ([ 'Yank', 'Yank Roll' ].includes(Cmd.last())) {
+  if ([ 'Paste', 'Paste Roll', 'Yank', 'Yank Roll' ].includes(Cmd.last())) {
     let p, str
 
     p = Pane.current()
-    if (Cmd.last() == 'Yank')
+    if ([ 'Paste', 'Yank' ].includes(Cmd.last()))
       Cut.roll()
     str = Cut.roll()
     if (str) {

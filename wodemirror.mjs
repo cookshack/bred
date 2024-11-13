@@ -242,6 +242,10 @@ function makePeer
       updates = CMCollab.sendableUpdates(this.view.state)
       if (this.pushing || (updates.length == 0))
         return
+      d('UPDATES')
+      updates.forEach((u,i) => {
+        d(i + ': ' + u.changes?.toJSON())
+      })
       this.pushing = true
       version = CMCollab.getSyncedVersion(this.view.state)
       pushUpdates(id, version, updates, () => {

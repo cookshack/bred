@@ -476,7 +476,7 @@ function init
     shell1('', 1, 0, [], null, 1)
   }
 
-  reErr = /^([^:]+):([0-9]+):([0-9]+):.*$/d
+  reErr = /^([^:]+):([0-9]+):([0-9]*:?).*$/d
   reFile = /^([^:\s]+):([^0-9]+.*)?$/d
 
   hist = Hist.ensure('shell')

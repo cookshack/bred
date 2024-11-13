@@ -667,10 +667,13 @@ function initSearchFiles
   let hist
 
   function follow
-  () {
+  (other) {
     let p, line
 
     p = Pane.current()
+    if (other)
+      Pane.nextOrSplit()
+
     line = p.line()
     if (line.length) {
       let s
@@ -721,8 +724,11 @@ function initSearchFiles
                                                              class: 'bred-bg',
                                                              'data-run': 'select' } } ] } ] })
 
-  Em.on('Enter', 'select', moSr)
   Cmd.add('select', () => follow(), moSr)
+  Cmd.add('select in other pane', () => follow(1), moSr)
+
+  Em.on('Enter', 'select', moSr)
+  Em.on('o', 'select in other pane', moSr)
 
   Cmd.add('search files', () => search())
 }

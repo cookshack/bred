@@ -65,10 +65,13 @@ function init
   }
 
   function info
-  () {
+  (other) {
     let p, psn, text, name
 
     p = Pane.current()
+    if (other)
+      Pane.nextOrSplit()
+
     psn = p.view.psn
     psn.lineStart()
 
@@ -104,10 +107,13 @@ function init
   }
 
   function open
-  (u, we) {
+  (u, we, other) {
     let p, path
 
     p = Pane.current()
+    if (other)
+      Pane.nextOrSplit()
+
     if (we?.e && (we.e.button == 0))
       path = we.e.target.innerText
     else
@@ -135,6 +141,7 @@ function init
 
   Cmd.add('contents', () => contents(), mo)
   Cmd.add('info', () => info(), mo)
+  Cmd.add('info in other pane', () => info(1), mo)
   Cmd.add('install', () => install(), mo)
   Cmd.add('remove', () => remove(), mo)
 
@@ -143,6 +150,7 @@ function init
   Em.on('e', 'info', mo)
   Em.on('i', 'install', mo)
   Em.on('l', 'contents', mo)
+  Em.on('o', 'info in other pane', mo)
   Em.on('r', 'remove', mo)
 
   // should use view mode
@@ -175,5 +183,8 @@ function init
                   decorators: [ { regex: /^(.*)$/d,
                                   decor: [ { attr: { 'data-run': 'open' } } ] } ] })
   Cmd.add('open', open, mo)
+  Cmd.add('open in other pane', (u, we) => open(u, we, 1), mo)
+
   Em.on('Enter', 'open', mo)
+  Em.on('o', 'open in other pane', mo)
 }

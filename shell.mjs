@@ -293,10 +293,13 @@ function nextErr
 
 export
 function edit
-() {
+(other) {
   let p, psn, text, match
 
   p = Pane.current()
+  if (other)
+    Pane.nextOrSplit()
+
   psn = p.view.psn
   psn.lineStart()
 
@@ -362,11 +365,13 @@ function initCompile
                                                      'data-run': 'edit' } } ] } ] })
 
   Cmd.add('edit', () => edit(), mo)
+  Cmd.add('edit in other pane', () => edit(1), mo)
   Cmd.add('next error', () => nextErr(1), mo)
   Cmd.add('previous error', () => nextErr(-1), mo)
 
   Em.on('e', 'edit', mo)
   Em.on('n', 'next error', mo)
+  Em.on('o', 'edit in other pane', mo)
   Em.on('p', 'previous error', mo)
   Em.on('Enter', 'edit', mo)
 

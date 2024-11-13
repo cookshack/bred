@@ -242,13 +242,16 @@ function makePeer
       updates = CMCollab.sendableUpdates(this.view.state)
       if (this.pushing || (updates.length == 0))
         return
-      d('UPDATES')
-      updates.forEach((u,i) => {
-        d(i + ': ' + u.changes?.toJSON())
-      })
+      if (0) {
+        d('UPDATES')
+        updates.forEach((u,i) => {
+          d(i + ': ' + u.changes?.toJSON())
+        })
+      }
       this.pushing = true
       version = CMCollab.getSyncedVersion(this.view.state)
-      pushUpdates(id, version, updates, () => {
+      //d('SYNCED VERSION ' + version)
+      pushUpdates(id, (version ?? 0) + 1, updates, () => {
         this.pushing = false
         // Regardless of whether the push failed or new updates came in
         // while it was running, try again if there are updates remaining
@@ -273,6 +276,12 @@ function makePeer
 
       updates = data.updates.map(u => ({ changes: CMState.ChangeSet.fromJSON(u.changes),
                                          clientID: u.clientID }))
+      if (0) {
+        d('RECEIVE')
+        updates.forEach((u,i) => {
+          d(i + ': ' + u.changes?.toJSON())
+        })
+      }
       tr = CMCollab.receiveUpdates(this.view.state, updates)
       this.view.dispatch(tr)
     }

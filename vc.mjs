@@ -107,8 +107,6 @@ function initCommit
                runGit)
   }
 
-  //Em.on('C-c C-c', 'run', mo)
-
   hist = Hist.ensure('commit')
 
   Cmd.add('vc commit', () => commit())

@@ -80,100 +80,34 @@ function initStash
 export
 function initCommit
 () {
-  let mo, buf, hist, reErr, reFile
-
-  function next
-  () {
-    let b
-
-    b = Pane.current().buf
-    b.vars('Commit').hist.next(b)
-  }
-
-  function prev
-  () {
-    let b
-
-    b = Pane.current().buf
-    b.vars('Commit').hist.prev(b)
-  }
+  let mo, hist, reErr, reFile
 
   function runGit
-  () {
-    let p, cm
+  (text) {
+    let cm
 
-    p = Pane.current()
-    cm = p.text()?.trim()
+    cm = text?.trim()
     if (cm == null)
       Mess.toss('Commit message missing')
     else {
-      let h, b64
+      let b64
 
-      h = p.buf.vars('Commit').hist
       b64 = globalThis.btoa(cm)
       Shell.shell1(Loc.appDir().join('bin/check-and-commit-64') + ' ' + b64,
                    1, 1, [], 0, 0, 0,
                    rbuf => rbuf.mode = 'commit result')
-      h.add(cm)
+      hist.add(cm)
     }
-  }
-
-  function divW
-  () {
-    return Ed.divW(0, 0, { extraWWCss: 'commit-ww',
-                           extraWCss: 'commit-w',
-                           extraCo: divCl('bred-filler') })
   }
 
   function commit
   () {
-    let p, w, ml
-
-    p = Pane.current()
-
-    w = divW()
-    ml = w.querySelector('.edMl')
-    if (ml)
-      ml.innerText = 'Commit Message:'
-
-    if (buf) {
-      buf.vars('Commit').hist.reset()
-      buf.dir = p.dir
-    }
-    else {
-      buf = Buf.make('Commit', 'Commit', w, p.dir)
-      hist.reset()
-      buf.vars('Commit').hist = hist
-    }
-
-    buf.vars('ed').fillParent = 0
-    buf.opts.set('core.autocomplete.enabled', 0)
-    buf.opts.set('core.folding.enabled', 0)
-    buf.opts.set('core.line.numbers.show', 0)
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('minimap.enabled', 0)
-    p.setBuf(buf, {}, () => buf.clear())
+    Prompt.ask({ text: 'Commit Message:',
+                 hist: hist },
+               runGit)
   }
 
-  mo = Mode.add('Commit', { viewInit: Ed.viewInit,
-                            viewInitSpec: Ed.viewInitSpec,
-                            viewCopy: Ed.viewCopy,
-                            initFns: Ed.initModeFns,
-                            parentsForEm: 'ed' })
-
-  Cmd.add('next', () => next(), mo)
-  Cmd.add('previous', () => prev(), mo)
-  Cmd.add('run', () => runGit(), mo)
-
-  Em.on('Enter', 'run', mo)
-
-  Em.on('A-n', 'Next', mo)
-  Em.on('A-p', 'Previous', mo)
-
-  Em.on('C-g', 'Close Buffer', mo)
-  Em.on('Escape', 'Close Buffer', mo)
-
-  Em.on('C-c C-c', 'run', mo)
+  //Em.on('C-c C-c', 'run', mo)
 
   hist = Hist.ensure('commit')
 

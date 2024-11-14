@@ -669,3 +669,17 @@ function print
   })
   d('-- end')
 }
+
+// like Ed.register, but for div bufs
+export
+function register
+(spec) {
+  if (spec.reconf)
+    spec.reconfOpts?.forEach(name => {
+      // these will just listen forever, which is ok
+      Opt.onSet(name, () => forEach(buf => spec.reconf(buf, name)))
+      Opt.onSetBuf(name, buf => spec.reconf(buf, name))
+      // reconfigure the opt on all bufs, in case any other extensions use the opt
+      forEach(buf => spec.reconf(buf, name))
+    })
+}

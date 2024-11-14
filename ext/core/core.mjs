@@ -16,18 +16,6 @@ import * as Lint from './lint.mjs'
 
 let brexts
 
-function register
-(spec) {
-  if (spec.reconf)
-    spec.reconfOpts?.forEach(name => {
-      // these will just listen forever, which is ok
-      Opt.onSet(name, () => Buf.forEach(buf => spec.reconf(buf, name)))
-      Opt.onSetBuf(name, buf => spec.reconf(buf, name))
-      // reconfigure the opt on all bufs, in case any other extensions use the opt
-      Buf.forEach(buf => spec.reconf(buf, name))
-    })
-}
-
 export
 function init
 () {
@@ -141,20 +129,20 @@ function init
                             make: makeActiveLine,
                             reconf: reconfActiveLine,
                             reconfOpts: [ 'core.highlight.activeLine.enabled' ] }))
-  register({ reconfOpts: [ 'core.highlight.activeLine.enabled' ],
-             reconf: reconfActiveLine })
+  Buf.register({ reconfOpts: [ 'core.highlight.activeLine.enabled' ],
+                 reconf: reconfActiveLine })
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeBrck,
                             reconfOpts: [ 'core.highlight.bracket.enabled', 'core.highlight.bracket.afterCursor' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeFold,
                             reconfOpts: [ 'core.folding.enabled', 'core.folding.gutter.enabled' ] }))
-  register({ reconfOpts: [ 'core.head.enabled',
-                           'core.lint.enabled' ],
-             reconf: buf => buf.views.forEach(v => {
-               Lint.reconfLintMarker(v)
-               v.reconfHead()
-             }) })
+  Buf.register({ reconfOpts: [ 'core.head.enabled',
+                               'core.lint.enabled' ],
+                 reconf: buf => buf.views.forEach(v => {
+                   Lint.reconfLintMarker(v)
+                   v.reconfHead()
+                 }) })
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.specials.enabled') ? CMView.highlightSpecialChars() : [],
                             reconfOpts: [ 'core.highlight.specials.enabled' ] }))

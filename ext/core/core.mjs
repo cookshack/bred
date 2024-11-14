@@ -95,7 +95,7 @@ function init
   (buf) {
     let display
 
-    0 && d('reconfActiveLine for ' + buf.name)
+    d('reconfActiveLine for ' + buf.name)
     display = 'none'
     if (buf.opt('core.highlight.activeLine.enabled'))
       display = 'flex'
@@ -129,7 +129,8 @@ function init
                             make: makeActiveLine,
                             reconf: reconfActiveLine,
                             reconfOpts: [ 'core.highlight.activeLine.enabled' ] }))
-  Buf.register({ reconfOpts: [ 'core.highlight.activeLine.enabled' ],
+  Buf.register({ name: 'al',
+                 reconfOpts: [ 'core.highlight.activeLine.enabled' ],
                  reconf: reconfActiveLine })
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeBrck,
@@ -137,7 +138,8 @@ function init
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeFold,
                             reconfOpts: [ 'core.folding.enabled', 'core.folding.gutter.enabled' ] }))
-  Buf.register({ reconfOpts: [ 'core.head.enabled',
+  Buf.register({ name: 'head',
+                 reconfOpts: [ 'core.head.enabled',
                                'core.lint.enabled' ],
                  reconf: buf => buf.views.forEach(v => {
                    Lint.reconfLintMarker(v)

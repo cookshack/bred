@@ -15,6 +15,8 @@ import * as View from './view.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
+let divExts
+
 export
 function shared
 () {
@@ -567,6 +569,8 @@ function init
 () {
   let mo
 
+  divExts = Mk.array
+
   function divW
   () {
     return divCl('buffers-ww', divCl('buffers-w bred-surface', ''))
@@ -644,19 +648,25 @@ function view
 (buf,
  spec, // { ele /* pane element */, elePoint, lineNum, whenReady /* FIX called when file loaded */ }
  cb) { // called when buf ready to use
-  let mode
+  let mode, v
 
   buf.vid++
   mode = Mode.get(buf.mode?.key) // want the one in current globalThis
-  return View.make(buf,
-                   { vid: buf.vid,
-                     mode: mode,
-                     views: buf.views,
-                     ele: spec.ele,
-                     elePoint: spec.elePoint,
-                     lineNum: spec.lineNum,
-                     whenReady: spec.whenReady },
-                   cb)
+  v = View.make(buf,
+                { vid: buf.vid,
+                  mode: mode,
+                  views: buf.views,
+                  ele: spec.ele,
+                  elePoint: spec.elePoint,
+                  lineNum: spec.lineNum,
+                  whenReady: spec.whenReady },
+                cb)
+  // reconf all the 'div' extensions for this buf so they're initialised for the new view
+  divExts.forEach(dext => {
+    d('dext ' + dext.name)
+    dext?.reconf(buf)
+  })
+  return v
 }
 
 export
@@ -682,4 +692,5 @@ function register
       // reconfigure the opt on all bufs, in case any other extensions use the opt
       forEach(buf => spec.reconf(buf, name))
     })
+  divExts.push(spec)
 }

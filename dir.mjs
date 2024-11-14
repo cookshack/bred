@@ -861,6 +861,50 @@ function init
                name => run(name, target, p.dir))
   }
 
+  function copy
+  () {
+    let p, marked, files, dir
+
+    function run
+    (from, to, dir) {
+      d('run from: ' + from)
+      to = abs(to, dir)
+      from = abs(from, dir)
+      Tron.cmd('file.cp', [ from, to ], err => {
+        if (err) {
+          Mess.yell('file.cp: ' + err.message)
+          return
+        }
+        Mess.say(from + ' ⧉ ' + to)
+      })
+    }
+
+    p = Pane.current()
+    marked = getMarked(p.buf)
+    dir = Loc.make(p.dir).ensureSlash()
+    if (marked.size) {
+      files = [ ...marked ].map(f => Loc.make(dir).join(f))
+      d({ files })
+      Mess.yell('FIX marked')
+      return
+    }
+    else {
+      let el, file
+
+      el = current()
+      if (el && el.dataset.path)
+        file = el.dataset.path
+      else {
+        Mess.say('Move to a file first')
+        return
+      }
+
+      d({ file })
+      Prompt.ask({ text: 'Copy to:' },
+                 name => run(file, name, p.dir))
+    }
+  }
+
   function rename
   () {
     let p, marked, files, dir
@@ -1128,6 +1172,7 @@ function init
 
   Cmd.add('chmod', () => chmod(), m)
   Cmd.add('clear marks', () => clear(), m)
+  Cmd.add('copy file', () => copy(), m)
   Cmd.add('delete', () => del(), m)
   Cmd.add('link', () => link(), m)
   Cmd.add('mark', mark, m)
@@ -1145,6 +1190,7 @@ function init
   Cmd.add('up', () => up(), m)
   Cmd.add('view', () => view(), m)
 
+  Em.on('c', 'copy file', 'Dir')
   Em.on('d', 'delete', 'Dir')
   Em.on('g', 'refresh', 'Dir')
   Em.on('l', 'link', 'Dir')

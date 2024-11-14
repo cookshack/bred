@@ -4,7 +4,7 @@ import * as Css from '../../css.mjs'
 import * as Ed from '../../ed.mjs'
 import * as Ext from '../../ext.mjs'
 import * as Opt from '../../opt.mjs'
-//import { d } from '../../mess.mjs'
+import { d } from '../../mess.mjs'
 
 import * as CMLang from '../../lib/@codemirror/language.js'
 import * as CMSearch from '../../lib/@codemirror/search.js'
@@ -103,6 +103,20 @@ function init
     return []
   }
 
+  function reconfActiveLine
+  (buf) {
+    let display
+
+    d('reconfActiveLine for ' + buf.name)
+    display = 'none'
+    if (buf.opt('core.highlight.activeLine.enabled'))
+      display = 'flex'
+    buf.views.forEach(v => {
+      v.ele?.parentNode?.style.setProperty('--display-active-line',
+                                           display)
+    })
+  }
+
   brexts = []
   Opt.declare('core.cursor.blink.enabled', 'bool', 0)
   Opt.declare('core.cursor.blink.rate', 'integer', 1200)
@@ -125,7 +139,10 @@ function init
 
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeActiveLine,
+                            reconf: reconfActiveLine,
                             reconfOpts: [ 'core.highlight.activeLine.enabled' ] }))
+  register({ reconfOpts: [ 'core.highlight.activeLine.enabled' ],
+             reconf: reconfActiveLine })
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeBrck,
                             reconfOpts: [ 'core.highlight.bracket.enabled', 'core.highlight.bracket.afterCursor' ] }))

@@ -879,9 +879,16 @@ function init
         })
       }
 
+      function confirm
+      () {
+        Prompt.yn('File exists. Overwrite?',
+                  'warning',
+                  yes => yes && ok())
+      }
+
       to = abs(to, dir)
       from = abs(from, dir)
-      Tron.cmd('file.stat', to, err => {
+      Tron.cmd('file.stat', to, (err, data) => {
         if (err)
           if (err.code == 'ENOENT')
             // new file
@@ -890,9 +897,23 @@ function init
             Mess.toss('file.stat: ' + err.message)
         else
           // dest exists
-          Prompt.yn('File exists. Overwrite?',
-                    'warning',
-                    yes => yes && ok())
+          if (data.data.mode & (1 << 15))
+            // dest is file
+            confirm()
+          else {
+            // dest is dir, cp file into that dir
+            to = Loc.make(to).join(Loc.make(from).filename)
+            Tron.cmd('file.stat', to, err => {
+              if (err)
+                if (err.code == 'ENOENT')
+                  // new file
+                  ok()
+                else
+                  Mess.toss('file.stat: ' + err.message)
+              else
+                confirm()
+            })
+          }
       })
     }
 

@@ -839,7 +839,7 @@ function init
           Mess.yell('file.ln: ' + err.message)
           return
         }
-        Mess.say(from + ' ⎘ ' + target)
+        Mess.say(from + ' ⮜⮞ ' + target)
       })
     }
 
@@ -867,15 +867,32 @@ function init
 
     function run
     (from, to, dir) {
-      d('run from: ' + from)
+
+      function ok
+      () {
+        Tron.cmd('file.cp', [ from, to ], err => {
+          if (err) {
+            Mess.yell('file.cp: ' + err.message)
+            return
+          }
+          Mess.say(from + ' ⧉⮞ ' + to)
+        })
+      }
+
       to = abs(to, dir)
       from = abs(from, dir)
-      Tron.cmd('file.cp', [ from, to ], err => {
-        if (err) {
-          Mess.yell('file.cp: ' + err.message)
-          return
-        }
-        Mess.say(from + ' ⧉ ' + to)
+      Tron.cmd('file.stat', to, err => {
+        if (err)
+          if (err.code == 'ENOENT')
+            // new file
+            ok()
+          else
+            Mess.toss('file.stat: ' + err.message)
+        else
+          // dest exists
+          Prompt.yn('File exists. Overwrite?',
+                    'warning',
+                    yes => yes && ok())
       })
     }
 
@@ -919,7 +936,7 @@ function init
           Mess.yell('file.mv: ' + err.message)
           return
         }
-        Mess.say(from + ' ➤ ' + to)
+        Mess.say(from + ' ⮞ ' + to)
       })
     }
 

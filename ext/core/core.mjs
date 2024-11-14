@@ -107,7 +107,7 @@ function init
   (buf) {
     let display
 
-    d('reconfActiveLine for ' + buf.name)
+    0 && d('reconfActiveLine for ' + buf.name)
     display = 'none'
     if (buf.opt('core.highlight.activeLine.enabled'))
       display = 'flex'

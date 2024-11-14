@@ -152,7 +152,7 @@ function init
   register({ reconfOpts: [ 'core.head.enabled',
                            'core.lint.enabled' ],
              reconf: buf => buf.views.forEach(v => {
-               Lint.reconfLintMarker(v),
+               Lint.reconfLintMarker(v)
                v.reconfHead()
              }) })
   brexts.push(Ed.register({ backend: 'cm',

@@ -164,7 +164,7 @@ let highlighters, stateHighlighters
             remove() {
               all.removeIf(h1 => h1.id == h.id)
             },
-            update },
+            update }
       all.push(h)
       return h
     },

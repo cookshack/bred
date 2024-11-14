@@ -103,7 +103,7 @@ function initPackages
     Shell.init()
     Apt.init()
     Vc.init()
-    About.init(),
+    About.init()
     Prompt.init()
     Switch.init()
     Tab.init()

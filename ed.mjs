@@ -1033,7 +1033,7 @@ function setBackend
       cb()
     },
                       err => {
-                        Mess.yell('Failed to load ' + backend + ': ' + err.message),
+                        Mess.yell('Failed to load ' + backend + ': ' + err.message)
                         cb(err)
                       })
   }

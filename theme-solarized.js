@@ -139,7 +139,7 @@ meanings = { text: clrs.base01,
 //--clr-point: rgba(38 139 210 / 40%); /* nb0 at 50% */
 meanings.point = meanings.nb0
 //--clr-point-border: rgba(38 139 210 / 40%); /* nb0 with some transparency */
-meanings.pointBorder = meanings.nb0,
+meanings.pointBorder = meanings.nb0
 //--clr-point-current: rgba(220 50 47 / 50%); /* nb3 at 50% */
 meanings.pointCurrent = meanings.nb3
 

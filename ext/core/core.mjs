@@ -31,6 +31,13 @@ function register
 export
 function init
 () {
+  function makeActiveLine
+  (view) {
+    if (view.buf.opt('core.highlight.activeLine.enabled'))
+      return CMView.highlightActiveLine()
+    return []
+  }
+
   function makeBrck
   (view) {
     if (view.buf.opt('core.highlight.bracket.enabled'))
@@ -117,7 +124,7 @@ function init
   Opt.declare('core.tab.width', 'integer', 2)
 
   brexts.push(Ed.register({ backend: 'cm',
-                            make: view => view.buf.opt('core.highlight.activeLine.enabled') ? CMView.highlightActiveLine() : [],
+                            make: makeActiveLine,
                             reconfOpts: [ 'core.highlight.activeLine.enabled' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeBrck,

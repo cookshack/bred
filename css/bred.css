@@ -1365,6 +1365,18 @@ div.bred-open-under-f {
   background: var(--clr-point);
 }
 
+.bred-point::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  width: 201vw;
+  transform: translate(-50%);
+  box-shadow: inset 0 -1px 0 0 var(--clr-active-line);
+}
+
 .bred-head-w {
   position: absolute;
   top: var(--height-ml);

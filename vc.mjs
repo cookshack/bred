@@ -801,6 +801,21 @@ function init
 () {
   let moB
 
+  Cmd.add('branch main', () => {
+    let view, range
+
+    view = Pane.current().view
+    Ed.Backend.bufferStart()
+    range = Ed.vfind(view,
+                     '^. +main$',
+                     0,
+                     { regExp: 1 })
+    if (range)
+      Ed.Backend.lineStart(view)
+    else
+      Mess.yell('Missing')
+  })
+
   Cmd.add('branch update', () => {
     git('git fetch --all --tags --prune')
   })
@@ -827,6 +842,7 @@ function init
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })
 
+  Em.on('m', 'branch main', moB)
   Em.on('u', 'branch update', moB)
   Em.on('s', 'branch switch', moB)
   Em.on('Enter', 'branch switch', moB)

@@ -22,6 +22,7 @@ import escapeStringRegexp from './lib/escape-string-regexp.js'
 
 import { mbe } from './json.mjs'
 
+export let Backend
 export let mimeByExt
 export let viewCopy
 export let viewInit
@@ -33,7 +34,6 @@ export let backend
 export let ctags
 
 let bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe
-let Backend
 
 export { bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe }
 

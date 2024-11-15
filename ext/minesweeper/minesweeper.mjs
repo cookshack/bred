@@ -50,7 +50,7 @@ function init
   () {
     sweeper.setGameModeConfiguration({ columns: 9,
                                        rows: 9,
-                                       bombs: 10, })
+                                       bombs: 10 })
     smile()
   }
 
@@ -58,7 +58,7 @@ function init
   () {
     sweeper.setGameModeConfiguration({ columns: 16,
                                        rows: 16,
-                                       bombs: 40, })
+                                       bombs: 40 })
     smile()
   }
 
@@ -66,7 +66,7 @@ function init
   () {
     sweeper.setGameModeConfiguration({ columns: 30,
                                        rows: 16,
-                                       bombs: 99, })
+                                       bombs: 99 })
     smile()
   }
 

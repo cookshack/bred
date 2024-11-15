@@ -10,7 +10,7 @@ function init
             [ /^\+\+\+\s.*/, 'bredfill' ],
             [ /^\@\@\s.*/, 'bredfill' ],
             [ /^-.*/, 'minus' ],
-            [ /^\+.*/, 'plus' ] ],
+            [ /^\+.*/, 'plus' ] ]
   }
 
   Mon.languages.register({ id: id,

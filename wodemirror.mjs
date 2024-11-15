@@ -3908,7 +3908,7 @@ function init
                    closed = /^\s*\}/.test(ctx.textAfter)
                    isCase = /^\s*(case|default)\b/.test(ctx.textAfter)
                    return ctx.baseIndent + (((closed || isCase) ? 0 : 1) * ctx.unit)
-                 },
+                 }
                  // always indent ternary like eslint (eg in array def overhang was flat)
                  // too weird, turned off eslint ternary indent instead
                  //ConditionalExpression: CMLang.continuedIndent({ units: 1 })
@@ -3949,9 +3949,9 @@ function init
                                   lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
                                   gutterBorder: '1px solid #ffffff10',
                                   gutterBackground: Theme.meanings.fill,
-                                  gutterForeground: Theme.meanings.text,
+                                  gutterForeground: Theme.meanings.text
                                 },
-                                styles: themeStyles(themeTags),
+                                styles: themeStyles(themeTags)
   })
   themeHighlighting = theme[0]
   themeExtension = theme[1]

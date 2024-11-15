@@ -24,7 +24,7 @@ function init
           //create,
           displayText: 'blocks',
           showOverlay: 'always',
-          gutters: [ { 1: '#00FF00', 2: '#00FF00' } ],
+          gutters: [ { 1: '#00FF00', 2: '#00FF00' } ]
         }
       })
 

@@ -1270,7 +1270,7 @@ function createWindow
                    webPreferences: {
                      // FIX The preload script configured for the <webview> will have node integration enabled when it is executed so you should ensure remote/untrusted content is not able to create a <webview> tag...
                      webviewTag: true,
-                     preload: Path.join(import.meta.dirname, 'preload.js'),
+                     preload: Path.join(import.meta.dirname, 'preload.js')
                    } }
   win = new BrowserWindow(opts)
 

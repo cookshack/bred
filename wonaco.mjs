@@ -246,7 +246,7 @@ function viewInit
     ed = view.ed
 
   else
-    ed = Mon.editor.create(edW, opts, /*overrides*/)
+    ed = Mon.editor.create(edW, opts /*, overrides*/)
 
   view.ed = ed
 

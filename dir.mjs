@@ -999,6 +999,7 @@ function init
 
       d({ file })
       Prompt.ask({ text: 'Rename to:',
+                   placeholder: placeholder(p, file),
                    hist: hist },
                  name => run(file, name, p.dir))
     }

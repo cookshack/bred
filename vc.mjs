@@ -103,6 +103,7 @@ function initCommit
   function commit
   () {
     Prompt.ask({ text: 'Commit Message:',
+                 placeholder: '',
                  hist: hist },
                runGit)
   }

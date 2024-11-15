@@ -103,7 +103,6 @@ function initCommit
   function commit
   () {
     Prompt.ask({ text: 'Commit Message:',
-                 placeholder: '',
                  hist: hist },
                runGit)
   }
@@ -235,25 +234,18 @@ function initEqual
 
   function equal
   (num) {
-    let name
-
     function finish
     (b) {
       b.mode = Ed.patchModeName()
-      b.name = name
       b.opts.set('core.lint.enabled', 0)
       b.addMode('equal')
       b.addMode('view')
     }
 
-    if ((num == null) || (num < 0)) {
+    if ((num == null) || (num < 0))
       Shell.spawn1('git-eq', 1, 1, [], 0, finish)
-      name = 'git diff'
-    }
-    else {
+    else
       Shell.spawn1('git', 1, 1, [ 'show', '--no-prefix', 'HEAD~' + num ], 0, finish)
-      name = 'git show HEAD~' + num
-    }
   }
 
   function goto

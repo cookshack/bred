@@ -763,6 +763,16 @@ function init
     return Loc.make(dir).join(to)
   }
 
+  function placeholder
+  (p, from) {
+    let next
+
+    next = p.next
+    if (next
+        && (next.buf?.mode.key == 'dir'))
+      return Loc.make(next.buf.path).join(Loc.make(from).filename)
+  }
+
   function chmod
   () {
     let p, el, path
@@ -930,7 +940,7 @@ function init
       return
     }
     else {
-      let el, file, place, next
+      let el, file
 
       el = current()
       if (el && el.dataset.path)
@@ -940,14 +950,9 @@ function init
         return
       }
 
-      next = p.next
-      if (next
-          && (next.buf?.mode.key == 'dir'))
-        place = Loc.make(next.buf.path).join(Loc.make(file).filename)
-
       //d({ file })
       Prompt.ask({ text: 'Copy to:',
-                   placeholder: place,
+                   placeholder: placeholder(p, file),
                    hist: hist },
                  name => run(file, name, p.dir))
     }

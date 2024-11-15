@@ -930,7 +930,7 @@ function init
       return
     }
     else {
-      let el, file
+      let el, file, place, next
 
       el = current()
       if (el && el.dataset.path)
@@ -940,8 +940,14 @@ function init
         return
       }
 
-      d({ file })
+      next = p.next
+      if (next
+          && (next.buf?.mode.key == 'dir'))
+        place = Loc.make(next.buf.path).join(Loc.make(file).filename)
+
+      //d({ file })
       Prompt.ask({ text: 'Copy to:',
+                   placeholder: place,
                    hist: hist },
                  name => run(file, name, p.dir))
     }

@@ -138,6 +138,21 @@ function add
       p.view.ed.focus()
   }
 
+  function next
+  () {
+    let i, pane
+
+    if (p.frame.panes.length == 1)
+      return 0
+
+    i = p.frame.panes.findIndex(p2 => p.id == p2.id)
+    if (i == p.frame.panes.length - 1)
+      pane = p.frame.panes[0]
+    else
+      pane = p.frame.panes[i + 1]
+    return pane
+  }
+
   function setBuf
   (b2,
    spec, // { lineNum, whenReady, bury }
@@ -280,6 +295,9 @@ function add
         get frame() {
           return frame
         },
+        get next() {
+          return next()
+        },
         get view() {
           return view
         },
@@ -327,22 +345,14 @@ function add
 export
 function nextOrSplit
 () {
-  let i, p, curr, frame
+  let next
 
-  frame = Frame.current()
-
-  if (frame.panes.length == 1)
-    return split()
-
-  curr = current()
-  i = frame.panes.findIndex(p => curr.id == p.id)
-  if (i == frame.panes.length - 1)
-    p = frame.panes[0]
-  else
-    p = frame.panes[i + 1]
-  p.focus()
-
-  return p
+  next = current().next
+  if (next) {
+    next.focus()
+    return next
+  }
+  return split()
 }
 
 export

@@ -183,12 +183,16 @@ function run
 
 function shellOrSpawn1
 (sc,
- end, // insert at end
- afterEndPoint, // see run
- args, hist, shell,
- multi, // keep listening for more commands
- onClose, // (buf, code)
- cb) { // (buf)
+ // { end, // insert at end
+ //   afterEndPoint, // see run
+ //   args,
+ //   hist,
+ //   shell,
+ //   multi, // keep listening for more commands
+ //   onClose } // (buf, code)
+ spec,
+ // (buf)
+ cb) {
   let p, dir
 
   function addBuf
@@ -205,7 +209,7 @@ function shellOrSpawn1
           ml.innerText = ''
           append(ml,
                  divCl('edMl-type', img(Icon.path('shell'), 'Shell', 'filter-clr-text')),
-                 divCl('ml-name', name + (args ? (' ' + args.join(' ')) : '')),
+                 divCl('ml-name', name + (spec.args ? (' ' + spec.args.join(' ')) : '')),
                  divCl('ml-busy'),
                  divCl('ml-close'))
         }
@@ -235,15 +239,25 @@ function shellOrSpawn1
     })
   }
 
-  if (hist)
-    hist.add(sc)
+  if (spec.hist)
+    spec.hist.add(sc)
   p = Pane.current()
   dir = Loc.make(p.buf.dir)
   dir.ensureSlash()
   dir = dir.path || Loc.home()
   addBuf(p, dir, sc,
          buf => {
-           run(buf, dir, sc, end, afterEndPoint, args, shell, 0, 0, multi, onClose)
+           run(buf,
+               dir,
+               sc,
+               spec.end,
+               spec.afterEndPoint,
+               spec.args,
+               spec.shell,
+               0, // onStderr
+               0, // onStdout
+               spec.multi,
+               spec.onClose)
            if (cb)
              cb(buf)
          })
@@ -252,13 +266,26 @@ function shellOrSpawn1
 export
 function shell1
 (sc, end, afterEndPoint, args, hist, multi, onClose, cb) { // (buf)
-  shellOrSpawn1(sc, end, afterEndPoint, args, hist, 1, multi, onClose, cb)
+  shellOrSpawn1(sc,
+                { end,
+                  afterEndPoint,
+                  args,
+                  hist,
+                  shell: 1,
+                  multi,
+                  onClose },
+                cb)
 }
 
 export
 function spawn1
 (sc, end, afterEndPoint, args, hist, cb) { // (buf)
-  shellOrSpawn1(sc, end, afterEndPoint, args, hist, 0, 0, 0, cb)
+  shellOrSpawn1(sc,
+                { end,
+                  afterEndPoint,
+                  args,
+                  hist },
+                cb)
 }
 
 export

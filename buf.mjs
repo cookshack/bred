@@ -250,6 +250,15 @@ function make2
       Mess.say('buf.add: on missing: ' + b.mode.key)
   }
 
+  function reconf
+  () {
+    // reconf all the 'div' extensions for this buf so they're initialised for the view
+    divExts.forEach(dext => {
+      d('dext ' + dext.name)
+      dext?.reconf(b)
+    })
+  }
+
   function save
   (cb) {
     if (b.mode?.key) {
@@ -469,6 +478,7 @@ function make2
           onRemoves.push(cb)
         },
         opt,
+        reconf,
         save,
         text,
         toggleMode,
@@ -661,11 +671,6 @@ function view
                   lineNum: spec.lineNum,
                   whenReady: spec.whenReady },
                 cb)
-  // reconf all the 'div' extensions for this buf so they're initialised for the new view
-  divExts.forEach(dext => {
-    d('dext ' + dext.name)
-    dext?.reconf(buf)
-  })
   return v
 }
 

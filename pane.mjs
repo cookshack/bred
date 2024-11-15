@@ -147,6 +147,7 @@ function add
     if (view?.buf == b2) {
       d('setBuf to same buf')
       b = b2
+      b.reconf()
       if (cb)
         cb(view)
       if (spec.whenReady)
@@ -161,6 +162,7 @@ function add
         b.bury()
     }
     b = b2
+    b.reconf()
     if (view)
       view.close()
     if (b)

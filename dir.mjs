@@ -420,6 +420,8 @@ function fill
     surf.onscroll = e => onscroll(view, e)
   }
 
+  d('DIR fill')
+
   marked = marked || new Set()
 
   path = Loc.make(p.dir)
@@ -746,7 +748,7 @@ function getMarked
 export
 function init
 () {
-  let m
+  let m, hist
 
   function current
   (p) {
@@ -870,6 +872,7 @@ function init
 
       function ok
       () {
+        hist.add(to)
         Tron.cmd('file.cp', [ from, to ], err => {
           if (err) {
             Mess.yell('file.cp: ' + err.message)
@@ -938,7 +941,8 @@ function init
       }
 
       d({ file })
-      Prompt.ask({ text: 'Copy to:' },
+      Prompt.ask({ text: 'Copy to:',
+                   hist: hist },
                  name => run(file, name, p.dir))
     }
   }
@@ -952,6 +956,7 @@ function init
       d('run from: ' + from)
       to = abs(to, dir)
       from = abs(from, dir)
+      hist.add(to)
       Tron.cmd('file.mv', [ from, to ], err => {
         if (err) {
           Mess.yell('file.mv: ' + err.message)
@@ -982,7 +987,8 @@ function init
       }
 
       d({ file })
-      Prompt.ask({ text: 'Rename to:' },
+      Prompt.ask({ text: 'Rename to:',
+                   hist: hist },
                  name => run(file, name, p.dir))
     }
   }
@@ -1205,6 +1211,8 @@ function init
   }
 
   watching = new Set()
+
+  hist = Hist.ensure('dir')
 
   m = Mode.add('Dir')
 

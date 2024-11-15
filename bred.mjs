@@ -586,7 +586,7 @@ function initCmds
     let ele
 
     ele = Pane.current().ele.parentNode
-    ele.scrollTo({ top: ele.scrollTop - ele.clientHeight * 0.9,
+    ele.scrollTo({ top: ele.scrollTop - (ele.clientHeight * 0.9),
                    left: 0,
                    behavior: 'auto' })
   })
@@ -595,7 +595,7 @@ function initCmds
     let ele
 
     ele = Pane.current().ele.parentNode
-    ele.scrollTo({ top: ele.scrollTop + ele.clientHeight * 0.9,
+    ele.scrollTo({ top: ele.scrollTop + (ele.clientHeight * 0.9),
                    left: 0,
                    behavior: 'auto' })
   })

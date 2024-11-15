@@ -113,7 +113,7 @@ function init
 
     code = 0
     while (code < rows) {
-      co.push(seq(cols).map(col => formatRow(code + rows * col)))
+      co.push(seq(cols).map(col => formatRow(code + (rows * col))))
       code++
     }
 

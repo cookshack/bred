@@ -3907,7 +3907,7 @@ function init
 
                    closed = /^\s*\}/.test(ctx.textAfter)
                    isCase = /^\s*(case|default)\b/.test(ctx.textAfter)
-                   return ctx.baseIndent + ((closed || isCase) ? 0 : 1) * ctx.unit
+                   return ctx.baseIndent + (((closed || isCase) ? 0 : 1) * ctx.unit)
                  },
                  // always indent ternary like eslint (eg in array def overhang was flat)
                  // too weird, turned off eslint ternary indent instead

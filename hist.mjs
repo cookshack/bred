@@ -20,7 +20,7 @@ function ensure
   let h
 
   name = canon(name)
-  name && name.length || Mess.toss('Name required')
+  name?.length || Mess.toss('Name required')
   h = get(name)
   if (h)
     return h

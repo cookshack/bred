@@ -95,7 +95,7 @@ function viewInit
     () {
       let h
 
-      h = ed.session.getScreenLength() * ed.renderer.lineHeight
+      h = (ed.session.getScreenLength() * ed.renderer.lineHeight)
         + (ed.renderer.$horizScroll ? ed.renderer.scrollBar.getWidth() : 0)
       if (h < ed.renderer.lineHeight)
         h = ed.renderer.lineHeight
@@ -894,7 +894,7 @@ function recenter
 
     pos = ed.renderer.$cursorLayer.getPixelPosition()
     h = ed.renderer.$size.scrollerHeight - ed.renderer.lineHeight
-    ed.session.setScrollTop(pos.top - h * 0.5)
+    ed.session.setScrollTop(pos.top - (h * 0.5))
     //ed.session.setScrollTop(pos.top)
     //ed.session.setScrollTop(pos.top - h)
   }

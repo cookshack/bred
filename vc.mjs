@@ -249,10 +249,13 @@ function initEqual
   }
 
   function goto
-  () {
+  (other) {
     let p
 
     p = Pane.current()
+    if (other)
+      Pane.nextOrSplit()
+
     p.view.excur(() => {
       let line, pos, lineNum, offset
 
@@ -315,6 +318,7 @@ function initEqual
   mo = Mode.add('Equal')
 
   Cmd.add('goto source', () => goto(), mo)
+  Cmd.add('goto source in other pane', () => goto(1), mo)
   Cmd.add('next hunk', () => nextH(), mo)
   Cmd.add('previous hunk', () => prevH(), mo)
   Cmd.add('next commit', () => prev(-1), mo)
@@ -322,6 +326,7 @@ function initEqual
 
   Em.on('e', 'Goto Source', mo)
   Em.on('n', 'Next Hunk', mo)
+  Em.on('o', 'Goto Source In Other Pane', mo)
   Em.on('p', 'Previous Hunk', mo)
   Em.on('Enter', 'Goto Source', mo)
   Em.on('>', 'Next Commit', mo)

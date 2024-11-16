@@ -3945,21 +3945,18 @@ function init
 
   themeTags = LZHighlight.tags
   theme = CMTheme.createTheme({ theme: 'light',
-                                settings: {
-                                  background: Theme.meanings.light,
-                                  backgroundImage: '',
-                                  foreground: Theme.meanings.text,
-                                  caret: Theme.meanings.pointCurrent,
-                                  //selection: 'rgb(38 139 210 / 20%)', //'rgb(238 232 213 / 45%)', //Theme.clrs.yellow,
-                                  selection: Theme.meanings.nb0Light,
-                                  selectionMatch: 'var(--clr-fill-aux)',
-                                  lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
-                                  gutterBorder: '1px solid #ffffff10',
-                                  gutterBackground: Theme.meanings.fill,
-                                  gutterForeground: Theme.meanings.text
-                                },
-                                styles: themeStyles(themeTags)
-  })
+                                settings: { background: Theme.meanings.light,
+                                            backgroundImage: '',
+                                            foreground: Theme.meanings.text,
+                                            caret: Theme.meanings.pointCurrent,
+                                            //selection: 'rgb(38 139 210 / 20%)', //'rgb(238 232 213 / 45%)', //Theme.clrs.yellow,
+                                            selection: Theme.meanings.nb0Light,
+                                            selectionMatch: 'var(--clr-fill-aux)',
+                                            lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
+                                            gutterBorder: '1px solid #ffffff10',
+                                            gutterBackground: Theme.meanings.fill,
+                                            gutterForeground: Theme.meanings.text },
+                                styles: themeStyles(themeTags) })
   themeHighlighting = theme[0]
   themeExtension = theme[1]
 

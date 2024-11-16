@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "mocha",
-    "start": "electron .",
-    "inspect": "electron --inspect=5656 .",
+    "start": "bin/start",
+    "inspect": "bin/start --inspect=5656",
     "mime": "node generate-mime-by-ext.mjs",
     "check": "NODE_OPTIONS=--disable-warning=ExperimentalWarning npx eslint --no-warn-ignored -f ./eslint-formatter.mjs *.mjs *.js ext/*/*.mjs",
     "format": "NODE_OPTIONS=--disable-warning=ExperimentalWarning npx eslint --no-warn-ignored --fix -f ./eslint-formatter.mjs *.mjs *.js ext/*/*.mjs",
@@ -57,6 +57,7 @@
     "ace-linters": "^1.2.2",
     "blamejs": "^1.0.0",
     "callsites": "^4.1.0",
+    "check-dependencies": "^2.0.0",
     "codemirror-lang-diff": "file:../codemirror-lang-diff",
     "codemirror-lang-elixir": "^4.0.0",
     "codemirror-lang-git-log": "^0.1.3",

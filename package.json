@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "test": "mocha",
-    "start": "bin/start",
-    "inspect": "bin/start --inspect=5656",
+    "start": "electron .",
+    "inspect": "electron --inspect=5656 .",
     "mime": "node generate-mime-by-ext.mjs",
     "check": "NODE_OPTIONS=--disable-warning=ExperimentalWarning npx eslint --no-warn-ignored -f ./eslint-formatter.mjs *.mjs *.js ext/*/*.mjs",
     "format": "NODE_OPTIONS=--disable-warning=ExperimentalWarning npx eslint --no-warn-ignored --fix -f ./eslint-formatter.mjs *.mjs *.js ext/*/*.mjs",

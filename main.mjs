@@ -1432,7 +1432,6 @@ function watchClip
 
 function checkDepsWin
 () {
-  d('cdr')
   let html, win, opts
 
   html = 'check-deps.html'
@@ -1499,30 +1498,34 @@ function checkDepsWin
   win.webContents.on('devtools-closed', () => {
     win.webContents.send('devtools', { open: 0 })
   })
+
+  return win
 }
 
 function checkDeps
 () {
-  let output
+  let win
 
-  d('Checking dependencies...')
-  checkDepsWin(win => {
-    win.webContents.on('dom-ready', () => {
-      output = CheckDeps.sync({ install: true,
-                                verbose: true })
-      if (output.status) {
-        d('Checking dependencies... ERR')
-        app.quit()
-        return
-      }
-      if (output.installWasNeeded) {
-        d('Checking dependencies... installed, restarting')
-        app.relaunch()
-        app.quit()
-        return
-      }
-      d('Checking dependencies... OK')
-    })
+  d('Creating check window...')
+  win = checkDepsWin()
+  win.webContents.on('dom-ready', () => {
+    let output
+
+    d('Checking dependencies...')
+    output = CheckDeps.sync({ install: true,
+                              verbose: true })
+    if (output.status) {
+      d('Checking dependencies... ERR')
+      app.quit()
+      return
+    }
+    if (output.installWasNeeded) {
+      d('Checking dependencies... installed, restarting')
+      app.relaunch()
+      app.quit()
+      return
+    }
+    d('Checking dependencies... OK')
   })
   return 1
 }

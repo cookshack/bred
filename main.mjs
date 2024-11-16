@@ -1,5 +1,5 @@
 import { app, clipboard as Clipboard, WebContentsView, BrowserWindow, ipcMain, shell as Shell /*, protocol, net*/ } from 'electron'
-import CheckDeps from 'check-dependencies'
+import CheckDeps from './lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
 import { d, log } from './main-log.mjs'
 import { makeErr, errMsg } from './main-err.mjs'
@@ -1441,8 +1441,14 @@ function checkDeps
     d('Checking dependencies... ERR')
     return 1
   }
+  if (output.installWasNeeded) {
+    d('Checking dependencies... installed, restarting')
+    app.relaunch()
+    quit()
+    return 1
+  }
   d('Checking dependencies... OK')
-  return 0
+  return 1
 }
 
 // attempt to speed up load using Cache-Control. seems the same.

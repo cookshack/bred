@@ -76,6 +76,7 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	sed -i "s\exports.parser = parser;\export { parser };\g" lib/@lezer/php.js
 
 sync-others:
+	cp node_modules/check-dependencies/lib/check-dependencies.js lib/check-dependencies.cjs
 	cp node_modules/escape-string-regexp/index.js lib/escape-string-regexp.js
 	cp node_modules/get-current-line/edition-es2022-esm/index.js lib/get-current-line.js
 	mkdir -p lib/typescript-language-server/lib/

@@ -1503,7 +1503,7 @@ function checkDepsWin
 }
 
 function checkDeps
-() {
+(whenHaveDeps) {
   let win
 
   d('Creating check window...')
@@ -1526,6 +1526,8 @@ function checkDeps
       return
     }
     d('Checking dependencies... OK')
+    setTimeout(() => win.close())
+    whenHaveDeps()
   })
   return 1
 }
@@ -1534,58 +1536,8 @@ function checkDeps
 //protocol.registerSchemesAsPrivileged([ { scheme: 'bf',
 //                                         privileges: { bypassCSP: true } } ])
 
-async function whenReady
-() {
-  let program
-
-  setVersion()
-
-  program = new Commander.Command()
-
-  program
-    .option('--skip-init', 'Skip loading of your init.js file')
-    .addOption(new Commander.Option('--devtools <state>', 'Initial state of devtools').choices([ 'auto', 'on', 'off' ]).default('auto'))
-    .option('--wait-for-devtools', 'Wait for devtools to load before starting. Slower, but useful for debugging startup.')
-    .option('--wait', 'Same as --wait-for-devtools.')
-    .addOption(new Commander.Option('--backend <name>', 'Editing backend').choices([ 'ace', 'codemirror', 'monaco' ]).default('codemirror'))
-    .option('--bounds <spec>', 'Set geometry of window (format: "x,y,width-in-px,height-in-px", default: previous geometry)')
-    .option('--inspect', 'listen for inspector messages on 9229')
-    .option('--logfile <file>', 'file to write logs to (default: stdout)')
-    .option('--no-sandbox', 'Turn off Chromium sandboxing')
-    .option('--disable-setuid-sandbox', 'Turn off UID sandboxing (eg if you want to run sudo)')
-    .version(version)
-    .parse()
-
-  options = program.opts()
-  if (options.wait)
-    options.waitForDevtools = true
-
-  shell = process.env.SHELL || 'sh'
-
-  if (options.logfile) {
-    let file
-
-    d('logging to ' + options.logfile)
-    fs.mkdirSync(Path.dirname(options.logfile),
-                 { recursive: true,
-                   mode: 0o777 }) // drwxrwxrwx
-    file = fs.createWriteStream(options.logfile,
-                                { flags: 'w',
-                                  flush: true })
-    log = d => {
-      file.write(Util.format(d) + '\n')
-    }
-  }
-  else
-    d('logging to stdout')
-
-  app.on('window-all-closed', () => {
-    app.quit()
-  })
-
-  if (checkDeps())
-    return
-
+function whenHaveDeps
+(program) {
   if (options.bounds) {
     let s
 
@@ -1676,6 +1628,58 @@ async function whenReady
     if (BrowserWindow.getAllWindows().length === 0)
       createMainWindow()
   })
+}
+
+async function whenReady
+() {
+  let program
+
+  setVersion()
+
+  program = new Commander.Command()
+
+  program
+    .option('--skip-init', 'Skip loading of your init.js file')
+    .addOption(new Commander.Option('--devtools <state>', 'Initial state of devtools').choices([ 'auto', 'on', 'off' ]).default('auto'))
+    .option('--wait-for-devtools', 'Wait for devtools to load before starting. Slower, but useful for debugging startup.')
+    .option('--wait', 'Same as --wait-for-devtools.')
+    .addOption(new Commander.Option('--backend <name>', 'Editing backend').choices([ 'ace', 'codemirror', 'monaco' ]).default('codemirror'))
+    .option('--bounds <spec>', 'Set geometry of window (format: "x,y,width-in-px,height-in-px", default: previous geometry)')
+    .option('--inspect', 'listen for inspector messages on 9229')
+    .option('--logfile <file>', 'file to write logs to (default: stdout)')
+    .option('--no-sandbox', 'Turn off Chromium sandboxing')
+    .option('--disable-setuid-sandbox', 'Turn off UID sandboxing (eg if you want to run sudo)')
+    .version(version)
+    .parse()
+
+  options = program.opts()
+  if (options.wait)
+    options.waitForDevtools = true
+
+  shell = process.env.SHELL || 'sh'
+
+  if (options.logfile) {
+    let file
+
+    d('logging to ' + options.logfile)
+    fs.mkdirSync(Path.dirname(options.logfile),
+                 { recursive: true,
+                   mode: 0o777 }) // drwxrwxrwx
+    file = fs.createWriteStream(options.logfile,
+                                { flags: 'w',
+                                  flush: true })
+    log = d => {
+      file.write(Util.format(d) + '\n')
+    }
+  }
+  else
+    d('logging to stdout')
+
+  app.on('window-all-closed', () => {
+    app.quit()
+  })
+
+  checkDeps(() => whenHaveDeps(program))
 }
 
 app.whenReady().then(whenReady)

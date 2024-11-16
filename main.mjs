@@ -1509,25 +1509,24 @@ function checkDeps
   d('Creating check window...')
   win = checkDepsWin()
   win.webContents.on('dom-ready', () => {
-    let output
-
     d('Checking dependencies...')
-    output = CheckDeps.sync({ install: true,
-                              verbose: true })
-    if (output.status) {
-      d('Checking dependencies... ERR')
-      app.quit()
-      return
-    }
-    if (output.installWasNeeded) {
-      d('Checking dependencies... installed, restarting')
-      app.relaunch()
-      app.quit()
-      return
-    }
-    d('Checking dependencies... OK')
-    setTimeout(() => win.close())
-    whenHaveDeps()
+    CheckDeps({ install: true,
+                verbose: true }).then(output => {
+      if (output.status) {
+        d('Checking dependencies... ERR')
+        app.quit()
+        return
+      }
+      if (output.installWasNeeded) {
+        d('Checking dependencies... installed, restarting')
+        app.relaunch()
+        app.quit()
+        return
+      }
+      d('Checking dependencies... OK')
+      setTimeout(() => win.close())
+      whenHaveDeps()
+    })
   })
   return 1
 }

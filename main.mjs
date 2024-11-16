@@ -1442,16 +1442,16 @@ function checkDepsRelaunch
     lsp.win.webContents.send('thrown', makeErr(err))
   })
 
-  opts = opts || { backgroundColor: '#fdf6e3', // --color-primary-light
-                   //frame: false,
-                   //titleBarStyle: 'hidden',
-                   //titleBarOverlay: true,
-                   show: false,
-                   webPreferences: {
-                     // FIX The preload script configured for the <webview> will have node integration enabled when it is executed so you should ensure remote/untrusted content is not able to create a <webview> tag...
-                     webviewTag: true
-                     //preload: Path.join(import.meta.dirname, 'preload.js')
-                   } }
+  opts = { backgroundColor: '#fdf6e3', // --color-primary-light
+           //frame: false,
+           //titleBarStyle: 'hidden',
+           //titleBarOverlay: true,
+           show: false,
+           webPreferences: {
+             // FIX The preload script configured for the <webview> will have node integration enabled when it is executed so you should ensure remote/untrusted content is not able to create a <webview> tag...
+             webviewTag: true
+             //preload: Path.join(import.meta.dirname, 'preload.js')
+           } }
   win = new BrowserWindow(opts)
 
   win.once('ready-to-show', () => win.show())
@@ -1459,7 +1459,7 @@ function checkDepsRelaunch
   win.removeMenu()
 
   win.setBounds({ width: 300,
-                  height: 30 })
+                  height: 100 })
 
   win.webContents.setWindowOpenHandler(() => {
     return { action: 'deny' }
@@ -1470,7 +1470,7 @@ function checkDepsRelaunch
     ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
                                   title: 'Developer Tools - Bred' })
     ch.setBounds({ width: 300,
-                   height: 30 })
+                   height: 100 })
   })
 
   if (options.devtools == 'on') {

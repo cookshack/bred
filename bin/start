@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo Checking dependencies...
+npx check-dependencies # > /dev/null
+if [ $? -eq 0 ]; then
+  echo Packages up to date.
+else
+  echo
+  echo
+  echo Packages out of date, updating...
+  echo "npm i && make prep"
+  npm i && make prep
+  if [ $? -eq 0 ]; then
+    echo Update OK.
+  else
+    echo FAILED, exiting.
+    exit 1
+  fi
+fi
+echo
+echo
+echo Starting...
+echo electron . $*
+electron . $*
+echo ...done.

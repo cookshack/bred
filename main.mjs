@@ -1433,8 +1433,75 @@ function watchClip
 function checkDepsRelaunch
 () {
   d('cdr')
-  app.relaunch()
-  quit()
+  let html, win, opts
+
+  html = 'check-deps.html'
+
+  process.on('uncaughtException', err => {
+    console.log(err.message)
+    lsp.win.webContents.send('thrown', makeErr(err))
+  })
+
+  opts = opts || { backgroundColor: '#fdf6e3', // --color-primary-light
+                   //frame: false,
+                   //titleBarStyle: 'hidden',
+                   //titleBarOverlay: true,
+                   show: false,
+                   webPreferences: {
+                     // FIX The preload script configured for the <webview> will have node integration enabled when it is executed so you should ensure remote/untrusted content is not able to create a <webview> tag...
+                     webviewTag: true
+                     //preload: Path.join(import.meta.dirname, 'preload.js')
+                   } }
+  win = new BrowserWindow(opts)
+
+  win.once('ready-to-show', () => win.show())
+
+  win.removeMenu()
+
+  win.setBounds({ width: 400,
+                  height: 400 })
+
+  win.webContents.setWindowOpenHandler(() => {
+    return { action: 'deny' }
+  })
+
+  win.webContents.on('did-create-window', ch => {
+    ch.removeMenu()
+    ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
+                                  title: 'Developer Tools - Bred' })
+    ch.setBounds({ width: 400,
+                   height: 400 })
+  })
+
+  if (options.devtools == 'on') {
+    d('opening devtools')
+    win.webContents.openDevTools({ activate: 0, // keeps main focus when detached
+                                   title: 'Developer Tools - Bred' })
+    // wait for devtools, so that breakpoints in init are hit
+    win.webContents.once('devtools-opened', () => {
+      d('loading ' + html)
+      if (options.waitForDevtools)
+        win.loadFile(html)
+      // would be nice to focus current pane here, for when devtools docked
+      //win.focus()
+    })
+    options.waitForDevtools || win.loadFile(html)
+  }
+  else {
+    d('loading ' + html)
+    win.webContents.closeDevTools()
+    win.loadFile(html)
+  }
+
+  win.webContents.on('devtools-opened', () => {
+    win.webContents.send('devtools', { open: 1 })
+  })
+  win.webContents.on('devtools-closed', () => {
+    win.webContents.send('devtools', { open: 0 })
+  })
+
+  //app.relaunch()
+  //quit()
 }
 
 function checkDeps

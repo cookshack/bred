@@ -1430,7 +1430,7 @@ function watchClip
   setInterval(check, 1 * 1000)
 }
 
-function checkDepsRelaunch
+function checkDepsWin
 () {
   d('cdr')
   let html, win, opts
@@ -1499,12 +1499,6 @@ function checkDepsRelaunch
   win.webContents.on('devtools-closed', () => {
     win.webContents.send('devtools', { open: 0 })
   })
-
-  win.webContents.on('dom-ready', () => {
-    d('Checking dependencies... RELAUNCH')
-    app.relaunch()
-    app.quit()
-  })
 }
 
 function checkDeps
@@ -1512,20 +1506,25 @@ function checkDeps
   let output
 
   d('Checking dependencies...')
-  output = CheckDeps.sync({ install: true,
-                            verbose: true })
-  if (output.status) {
-    d('Checking dependencies... ERR')
-    app.quit()
-    return 1
-  }
-  if (output.installWasNeeded) {
-    d('Checking dependencies... installed, restarting')
-    checkDepsRelaunch()
-    return 1
-  }
-  d('Checking dependencies... OK')
-  return 0
+  checkDepsWin(win => {
+    win.webContents.on('dom-ready', () => {
+      output = CheckDeps.sync({ install: true,
+                                verbose: true })
+      if (output.status) {
+        d('Checking dependencies... ERR')
+        app.quit()
+        return
+      }
+      if (output.installWasNeeded) {
+        d('Checking dependencies... installed, restarting')
+        app.relaunch()
+        app.quit()
+        return
+      }
+      d('Checking dependencies... OK')
+    })
+  })
+  return 1
 }
 
 // attempt to speed up load using Cache-Control. seems the same.

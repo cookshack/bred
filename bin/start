@@ -8,8 +8,8 @@ else
   echo
   echo
   echo Packages out of date, updating...
-  echo "npm i && make prep"
-  npm i && make prep
+  echo "npm i"
+  npm i
   if [ $? -eq 0 ]; then
     echo Update OK.
   else

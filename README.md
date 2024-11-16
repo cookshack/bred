@@ -11,7 +11,6 @@ cd ~/src
 git clone XXX:bred
 cd ~/src/bred
 npm install
-make prep
 ```
 
 ### Optional: Install Icons
@@ -33,7 +32,6 @@ cd ~/src/bred/ && npm start
 cd ~/src/bred
 git pull
 npm install
-make prep
 ```
 
 ## CLI

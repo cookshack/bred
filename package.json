@@ -11,7 +11,8 @@
     "mime": "node generate-mime-by-ext.mjs",
     "check": "NODE_OPTIONS=--disable-warning=ExperimentalWarning npx eslint --no-warn-ignored -f ./eslint-formatter.mjs *.mjs *.js ext/*/*.mjs",
     "format": "NODE_OPTIONS=--disable-warning=ExperimentalWarning npx eslint --no-warn-ignored --fix -f ./eslint-formatter.mjs *.mjs *.js ext/*/*.mjs",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "make prep"
   },
   "author": "Matt Mundell",
   "license": "CC0-1.0",

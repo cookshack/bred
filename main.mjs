@@ -1435,22 +1435,14 @@ function checkDeps
   let output
 
   d('Checking dependencies...')
-  output = CheckDeps.sync()
+  output = CheckDeps.sync({ install: true,
+                            verbose: true })
   if (output.status) {
-    // error
     d('Checking dependencies... ERR')
-    d('== Errors:')
-    output.error?.forEach(log => d(log))
-    d('== Log:')
-    output.log?.forEach(log => d(log))
     return 1
   }
-  if (output.depsWereOK) {
-    d('Checking dependencies... OK')
-    return 0
-  }
-  d('Checking dependencies... Out of date')
-  return 1
+  d('Checking dependencies... OK')
+  return 0
 }
 
 // attempt to speed up load using Cache-Control. seems the same.

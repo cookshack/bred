@@ -1500,7 +1500,7 @@ function checkDepsRelaunch
     win.webContents.send('devtools', { open: 0 })
   })
 
-  win.addEventListener('DOMContentLoaded', () => {
+  win.webContents.on('dom-ready', () => {
     app.relaunch()
     app.quit()
   })

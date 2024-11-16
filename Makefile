@@ -10,7 +10,7 @@ format:
 fix-node-pty:
 	npx electron-rebuild -f -w node-pty
 
-prep: sync-others fix-ace fix-monaco fix-codemirror prep-mime
+prep: fix-others fix-ace fix-monaco fix-codemirror prep-mime
 	rm -f lib/callsites.js
 	cp -r node_modules/callsites/index.js lib/callsites.mjs
 	npx peggy --format es -o lib/ev-parser.mjs lib/ev.pegjs
@@ -74,6 +74,9 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	sed -i "s/var \([^ ]\+\) = require('\([^']*\)');/import * as \\1 from '..\/\\2.js'/g" lib/@lezer/php.js
 	sed -i "s;Object.defineProperty(exports;//Object.defineProperty(exports;g" lib/@lezer/php.js
 	sed -i "s\exports.parser = parser;\export { parser };\g" lib/@lezer/php.js
+
+fix-others: sync-others
+	sed -i "s/output.status = success ? 0 : 1;/output.status = success ? 0 : 1; output.installWasNeeded = installNeeded;/g" lib/check-dependencies.cjs
 
 sync-others:
 	cp node_modules/check-dependencies/lib/check-dependencies.js lib/check-dependencies.cjs

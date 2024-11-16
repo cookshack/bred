@@ -8,7 +8,7 @@ I'm playing with CodeMirror, Monaco and Ace inside Electron.
 ```sh
 mkdir -p ~/src/
 cd ~/src
-git clone XXX:bred
+git clone https://git.sr.ht/~mattmundell/bred
 cd ~/src/bred
 npm install
 ```

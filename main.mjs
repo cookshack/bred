@@ -1501,6 +1501,7 @@ function checkDepsRelaunch
   })
 
   win.webContents.on('dom-ready', () => {
+    d('Checking dependencies... RELAUNCH')
     app.relaunch()
     app.quit()
   })
@@ -1515,6 +1516,7 @@ function checkDeps
                             verbose: true })
   if (output.status) {
     d('Checking dependencies... ERR')
+    app.quit()
     return 1
   }
   if (output.installWasNeeded) {
@@ -1523,7 +1525,7 @@ function checkDeps
     return 1
   }
   d('Checking dependencies... OK')
-  return 1
+  return 0
 }
 
 // attempt to speed up load using Cache-Control. seems the same.

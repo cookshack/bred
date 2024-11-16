@@ -298,15 +298,19 @@ function initEqual
               if (err.code == 'ENOENT')
                 // try relative to the current git root
                 gitFile(p.buf.dir, file, repoFile => {
-                  if (repoFile)
-                    Pane.openFile(repoFile)
+                  if (repoFile) {
+                    d('open repoFile ' + repoFile + ' at ' + lineNum)
+                    Pane.openFile(repoFile, lineNum)
+                  }
                   else
                     Mess.toss('File missing')
                 })
               else
                 Mess.toss(err)
-            else
+            else {
+              d('open loc.path ' + loc.path + ' at ' + lineNum)
               Pane.openFile(loc.path, lineNum)
+            }
           })
           return
         }

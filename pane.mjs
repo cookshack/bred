@@ -162,6 +162,8 @@ function add
     if (view?.buf == b2) {
       d('setBuf to same buf')
       b = b2
+      if (Ed.defined(spec.lineNum))
+        Ed.Backend.vgotoLine(p.view, spec.lineNum)
       b.reconf()
       if (cb)
         cb(view)

@@ -1458,8 +1458,8 @@ function checkDepsRelaunch
 
   win.removeMenu()
 
-  win.setBounds({ width: 400,
-                  height: 400 })
+  win.setBounds({ width: 300,
+                  height: 30 })
 
   win.webContents.setWindowOpenHandler(() => {
     return { action: 'deny' }
@@ -1469,8 +1469,8 @@ function checkDepsRelaunch
     ch.removeMenu()
     ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
                                   title: 'Developer Tools - Bred' })
-    ch.setBounds({ width: 400,
-                   height: 400 })
+    ch.setBounds({ width: 300,
+                   height: 30 })
   })
 
   if (options.devtools == 'on') {

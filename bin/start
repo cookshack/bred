@@ -1,21 +1,12 @@
 #!/bin/bash
 
 echo Checking dependencies...
-npx check-dependencies # > /dev/null
+npx check-dependencies --install
 if [ $? -eq 0 ]; then
-  echo Packages up to date.
+  echo Checking dependencies... OK.
 else
-  echo
-  echo
-  echo Packages out of date, updating...
-  echo "npm i"
-  npm i
-  if [ $? -eq 0 ]; then
-    echo Update OK.
-  else
-    echo FAILED, exiting.
-    exit 1
-  fi
+  echo Checking dependencies... ERR.
+  exit 1
 fi
 echo
 echo

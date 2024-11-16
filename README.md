@@ -31,7 +31,6 @@ cd ~/src/bred/ && npm start
 ```sh
 cd ~/src/bred
 git pull
-npm install
 ```
 
 ## CLI

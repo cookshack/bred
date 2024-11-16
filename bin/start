@@ -1,13 +1,5 @@
 #!/bin/bash
 
-echo Checking dependencies...
-npx check-dependencies --install
-if [ $? -eq 0 ]; then
-  echo Checking dependencies... OK.
-else
-  echo Checking dependencies... ERR.
-  exit 1
-fi
 echo
 echo
 echo Starting...

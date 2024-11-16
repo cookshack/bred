@@ -1,4 +1,5 @@
 import { app, clipboard as Clipboard, WebContentsView, BrowserWindow, ipcMain, shell as Shell /*, protocol, net*/ } from 'electron'
+import CheckDeps from 'check-dependencies'
 import * as Chmod from './main-chmod.mjs'
 import { d, log } from './main-log.mjs'
 import { makeErr, errMsg } from './main-err.mjs'
@@ -1429,6 +1430,29 @@ function watchClip
   setInterval(check, 1 * 1000)
 }
 
+function checkDeps
+() {
+  let output
+
+  d('Checking dependencies...')
+  output = CheckDeps.sync()
+  if (output.status) {
+    // error
+    d('Checking dependencies... ERR')
+    d('== Errors:')
+    output.error?.forEach(log => d(log))
+    d('== Log:')
+    output.log?.forEach(log => d(log))
+    return 1
+  }
+  if (output.depsWereOK) {
+    d('Checking dependencies... OK')
+    return 0
+  }
+  d('Checking dependencies... Out of date')
+  return 1
+}
+
 // attempt to speed up load using Cache-Control. seems the same.
 //protocol.registerSchemesAsPrivileged([ { scheme: 'bf',
 //                                         privileges: { bypassCSP: true } } ])
@@ -1477,6 +1501,9 @@ async function whenReady
   }
   else
     d('logging to stdout')
+
+  if (checkDeps())
+    return
 
   if (options.bounds) {
     let s

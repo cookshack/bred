@@ -1579,6 +1579,10 @@ async function whenReady
   else
     d('logging to stdout')
 
+  app.on('window-all-closed', () => {
+    app.quit()
+  })
+
   if (checkDeps())
     return
 
@@ -1667,10 +1671,6 @@ async function whenReady
   watchClip()
 
   d('setting app handlers')
-
-  app.on('window-all-closed', () => {
-    app.quit()
-  })
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0)

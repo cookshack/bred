@@ -1430,6 +1430,13 @@ function watchClip
   setInterval(check, 1 * 1000)
 }
 
+function checkDepsRelaunch
+() {
+  d('cdr')
+  app.relaunch()
+  quit()
+}
+
 function checkDeps
 () {
   let output
@@ -1443,8 +1450,7 @@ function checkDeps
   }
   if (output.installWasNeeded) {
     d('Checking dependencies... installed, restarting')
-    app.relaunch()
-    quit()
+    checkDepsRelaunch()
     return 1
   }
   d('Checking dependencies... OK')

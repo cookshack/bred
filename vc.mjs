@@ -257,11 +257,12 @@ function initEqual
       Pane.nextOrSplit()
 
     p.view.excur(() => {
-      let line, pos, lineNum, offset
+      let line, pos, lineNum, offset, first
 
       offset = -1 // hunk line (@@ -N,...) is 1 before line N
       pos = p.view.pos
       pos.col = 0
+      first = 1
       while (1) {
         if (Ed.posRow(pos) <= 0) {
           Mess.say('Reached start of buffer')
@@ -284,9 +285,13 @@ function initEqual
         if (lineNum === undefined)
           if (line.startsWith('-')) {
             // removed line
+            if (first)
+              // must include in count if start line is a removed line
+              offset++
           }
           else
             offset++
+        first = 0
         if (line.startsWith('+++ ')) {
           let loc, file
 

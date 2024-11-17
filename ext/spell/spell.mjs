@@ -7,16 +7,32 @@ import * as Prompt from '../../prompt.mjs'
 
 import './lib/spellchecker-wasm.js'
 
-let Checker
+let Checker, term
 
 Checker = globalThis['spellchecker-wasm'].SpellcheckerWasm
 
 function handle
 (results) {
   if (results?.length)
-    Mess.say('Correction: ' + results[0].term)
+    if (results.find(r => r.term == term))
+      Mess.say('OK')
+    else {
+      let corr
+
+      corr = ''
+      if (results.length > 1) {
+        corr = ' (OR '
+        for (let i = 1; i < 5 && i < results.length; i++)
+          corr += ' ' + results[i].term
+        if (results.length > 5)
+          corr += '...)'
+        else
+          corr += ')'
+      }
+      Mess.yell(results[0].term + corr)
+    }
   else
-    Mess.say('OK')
+    Mess.yell('??')
 }
 
 async function initSpell
@@ -56,8 +72,15 @@ function init
 
   function check
   (word) {
-    if (checker)
-      checker.checkSpelling(word)
+    term = 0
+    if (checker) {
+      term = word.toLowerCase()
+      checker.checkSpelling(term,
+                            { includeUnknown: false,
+                              includeSelf: true,
+                              maxEditDistance: 2, // all
+                              verbosity: 2 }) // all
+    }
     else
       Mess.yell('Spell checker still loading')
   }

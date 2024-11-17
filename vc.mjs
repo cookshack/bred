@@ -261,13 +261,14 @@ function initEqual
 
       offset = 0
       pos = p.view.pos
+      pos.col = 0
       while (1) {
         if (Ed.posRow(pos) <= 0) {
           Mess.say('Reached start of buffer')
           return
         }
         line = p.view.lineAt(pos)
-        d(line)
+        //d('EQ line: ' + line)
         if ((lineNum === undefined) && line.startsWith('@@ ')) {
           let num
 
@@ -289,6 +290,7 @@ function initEqual
         if (line.startsWith('+++ ')) {
           let loc, file
 
+          //d('EQ file line: ' + line)
           file = line.slice(4)
           loc = Loc.make(p.buf.dir)
           loc.ensureSlash()

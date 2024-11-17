@@ -131,6 +131,7 @@ function ask
   buf.icon = 'prompt'
   buf.vars('prompt').run = cb
   buf.vars('prompt').orig = p.buf
+  spec.hist?.reset()
   buf.vars('prompt').hist = spec.hist
   tab.frame.pane.setBuf(buf,
                         {},

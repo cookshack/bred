@@ -145,6 +145,7 @@ function make
                return
              }
              d('HIST add ' + it)
+             //d({ items })
              items.unshift(it)
              needSave = 1
            },

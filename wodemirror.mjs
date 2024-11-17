@@ -264,7 +264,7 @@ function makePeer
     (err, data) {
       let updates, tr
 
-      d('PULL ' + this.ch)
+      //d('PULL ' + this.ch)
 
       if (err) {
         d('makePeer pull: ' + err.message)
@@ -2712,7 +2712,7 @@ function vinsertAt
       text = text.toString()
     for (let i = 0; i < u; i++) {
       if (setOff) {
-        d('insertAt ' + off + ' replace')
+        //d('insertAt ' + off + ' replace')
 
         // this way in case there are chars like backspace in the string that will be filtered out by cm
         // (if use selection with changes dispatch below then the selection will be wrong if cm filters
@@ -2724,7 +2724,7 @@ function vinsertAt
         return
       }
 
-      d('insertAt ' + off)
+      //d('insertAt ' + off)
       v.ed.dispatch({ changes: { from: off,
                                  to: to ?? off,
                                  insert: text } })

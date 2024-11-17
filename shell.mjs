@@ -216,7 +216,7 @@ function shellOrSpawn1
       }
     }
 
-    name = 'SC: ' + sc + (spec.args ? (' ' + spec.args.join(' ')) : '')
+    name = 'SC: ' + sc + (spec.args?.length ? (' ' + spec.args.join(' ')) : '')
     re = new RegExp(`^${Ed.escapeForRe(name)}(<[0-9]+>)?$`)
     b = Buf.find(b2 => re.test(b2.name))
     if (b) {

@@ -209,14 +209,14 @@ function shellOrSpawn1
           ml.innerText = ''
           append(ml,
                  divCl('edMl-type', img(Icon.path('shell'), 'Shell', 'filter-clr-text')),
-                 divCl('ml-name', name + (spec.args ? (' ' + spec.args.join(' ')) : '')),
+                 divCl('ml-name', name),
                  divCl('ml-busy'),
                  divCl('ml-close'))
         }
       }
     }
 
-    name = 'SC: ' + sc
+    name = 'SC: ' + sc + (spec.args ? (' ' + spec.args.join(' ')) : '')
     re = new RegExp(`^${Ed.escapeForRe(name)}(<[0-9]+>)?$`)
     b = Buf.find(b2 => re.test(b2.name))
     if (b) {

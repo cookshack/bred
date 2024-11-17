@@ -3141,7 +3141,7 @@ function yankRoll() {
       Mess.say('Cut list empty')
     return
   }
-  Mess.say('Yank/Paste first')
+  yank()
 }
 
 function vcutOrCopy

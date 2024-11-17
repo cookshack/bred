@@ -3129,9 +3129,8 @@ function yankRoll() {
     let p, str
 
     p = Pane.current()
-    if ([ 'Paste', 'Yank' ].includes(Cmd.last()))
-      Cut.roll()
-    str = Cut.roll()
+    Cut.roll()
+    str = Cut.nth(0)
     if (str) {
       let r
 

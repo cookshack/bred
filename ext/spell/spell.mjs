@@ -1,6 +1,7 @@
 import * as Cmd from '../../cmd.mjs'
 import * as Mess from '../../mess.mjs'
-import { d } from '../../mess.mjs'
+import * as Prompt from '../../prompt.mjs'
+//import { d } from '../../mess.mjs'
 
 import './lib/spellchecker-wasm.js'
 
@@ -36,8 +37,6 @@ function init
 
   function check
   (word) {
-    d('-------------- CHECK -------------------')
-    d(word)
     if (checker)
       checker.checkSpelling(word)
     else
@@ -47,9 +46,8 @@ function init
   initSpell().then(c => checker = c)
 
   Cmd.add('spell check word', () => {
-    d('=----------- scw')
-    //check('exacly')
-    check('exactly')
+    Prompt.ask({ text: 'Check spelling of' },
+               text => check(text))
   })
 }
 

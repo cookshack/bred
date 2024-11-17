@@ -1,0 +1,7 @@
+#!/bin/bash
+mkdir -p lib/
+cp node_modules/spellchecker-wasm/lib/browser/index.js lib/spellchecker-wasm.js
+#cp node_modules/spellchecker-wasm/lib/browser/SpellcheckerWasm.js lib/spellchecker-wasm.cjs
+cp node_modules/spellchecker-wasm/lib/spellchecker-wasm.wasm lib/
+cp node_modules/spellchecker-wasm/lib/frequency_dictionary_en_82_765.txt lib/
+cp node_modules/spellchecker-wasm/lib/frequency_bigramdictionary_en_243_342.txt lib/

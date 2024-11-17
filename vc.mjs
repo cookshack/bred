@@ -259,7 +259,7 @@ function initEqual
     p.view.excur(() => {
       let line, pos, lineNum, offset
 
-      offset = 0
+      offset = -1 // hunk line (@@ -N,...) is 1 before line N
       pos = p.view.pos
       pos.col = 0
       while (1) {

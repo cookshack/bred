@@ -68,11 +68,11 @@ function makeContext
         cut = 1
     }
 
-    append(context.el, context0(p.buf, 'Cut', 0, { enable: cut }))
-    append(context.el, context0(p.buf, 'Copy', 0, { enable: copy }))
-    append(context.el, context0(p.buf, 'Paste', 0, { enable: paste }))
-
-    append(context.el, contextLine())
+    append(context.el,
+           context0(p.buf, 'Cut', 0, { enable: cut }),
+           context0(p.buf, 'Copy', 0, { enable: copy }),
+           context0(p.buf, 'Paste', 0, { enable: paste }),
+           contextLine())
   }
 
   context = { el: divCl('bred-context'),

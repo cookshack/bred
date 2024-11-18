@@ -3,6 +3,7 @@ import * as Em from '../../em.mjs'
 import * as Mess from '../../mess.mjs'
 import * as Pane from '../../pane.mjs'
 import * as Prompt from '../../prompt.mjs'
+import * as Win from '../../win.mjs'
 //import { d } from '../../mess.mjs'
 
 import './lib/spellchecker-wasm.js'
@@ -85,6 +86,20 @@ function init
       Mess.yell('Spell checker still loading')
   }
 
+  function checkAtPoint
+  (p) {
+    let l, pos, word
+
+    l = p.line()
+    pos = p.pos()
+    pos = pos.col
+    word = wordAt(l, pos)
+    if (word)
+      check(word)
+    else
+      Mess.yell('??')
+  }
+
   initSpell().then(c => checker = c)
 
   Cmd.add('spell check word', () => {
@@ -93,17 +108,25 @@ function init
   })
 
   Cmd.add('spell check word at point', () => {
-    let p, l, pos, word
+    let p
 
     p = Pane.current()
-    l = p.line()
-    pos = p.pos()
-    pos = pos.col
-    word = wordAt(l, pos)
-    if (word)
-      check(word)
-    else
-      Mess.yell('Move to a word first')
+    checkAtPoint(p)
+  })
+
+  Cmd.add('spell check word at click', (u, we) => {
+    if (we?.e && (we.e.button == 0)) {
+      let p, x, y
+
+      p = Pane.current()
+      let win
+
+      win = Win.current()
+      x = win.lastContext?.x ?? 0
+      y = win.lastContext?.y ?? 0
+      p.goXY(x, y)
+      checkAtPoint(p)
+    }
   })
 
   Em.on('A-$', 'spell check word at point')

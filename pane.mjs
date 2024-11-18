@@ -69,6 +69,16 @@ function add
     return null
   }
 
+  function goXY
+  (x, y) {
+    if (p.view)
+      if (p.buf?.mode?.goXY)
+        return p.buf.mode.goXY(p.view, x, y)
+
+    Mess.say('pane.add: goXY missing: ' + p.buf?.mode.key)
+    return null
+  }
+
   function pos
   () {
     if (p.view)
@@ -310,6 +320,7 @@ function add
         //set buf(b2) {... see setBuf below
         //
         close,
+        goXY,
         line,
         open,
         openDir,

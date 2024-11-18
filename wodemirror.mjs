@@ -1819,6 +1819,7 @@ function initModeFns
   mo.lineAt = lineAt
   mo.lineStart = lineStart
   mo.excur = excur
+  mo.goXY = vgoXY
   mo.makePsn = makePsn
   mo.off = off
   mo.on = on
@@ -3238,6 +3239,16 @@ function replace
   }
   d("that's all 2")
   return 0
+}
+
+export
+function vgoXY
+(view, x, y) {
+  let bep
+
+  bep = view.ed.posAtCoords({ x: x, y: y })
+  if (bep)
+    vsetBep(view, bep)
 }
 
 export

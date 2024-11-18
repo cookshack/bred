@@ -56,6 +56,14 @@ function makeContext
 (win) {
   let context
 
+  function appendSpell
+  (p) {
+    if (p)
+      append(context.el,
+             context0(p.buf, 'Spell Check Word', 'spell check word at click'),
+             contextLine())
+  }
+
   function addCopy
   (p) {
     let copy, cut, paste
@@ -94,6 +102,7 @@ function makeContext
                              contextLine())
                     p && appendContextMode(context, p)
                     p && addCopy(p)
+                    appendSpell(p)
                     append(context.el,
                            context0(p.buf, 'Inspect Element'))
                     Css.add(context.el, 'bred-open')
@@ -101,6 +110,7 @@ function makeContext
                 else {
                   p && appendContextMode(context, p)
                   p && addCopy(p)
+                  appendSpell(p)
                   append(context.el,
                          context0(p?.buf, 'Inspect Element'))
                   Css.add(context.el, 'bred-open')

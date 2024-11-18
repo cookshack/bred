@@ -36,6 +36,16 @@ function make
       })
   }
 
+  function prep
+  () {
+    if (mode && mode.hidePoint)
+      Css.hide(point.ele)
+    else
+      Css.show(point.ele)
+
+    reconfHead()
+  }
+
   function close
   () {
     d('VIEW closing ' + vid)
@@ -58,6 +68,7 @@ function make
     ele.innerHTML = ''
     append(ele, reserved)
     reserved = 0
+    prep()
     if (mode && mode.viewReopen)
       mode.viewReopen(v, lineNum, whenReady, cb)
     else
@@ -397,6 +408,7 @@ function make
   d('VIEW new view ' + v.vid + ' for ' + (b.name || '??'))
   ele.innerHTML = ''
   ready = 0
+  prep()
   existing = views.find(v2 => v2.ele && (v2.win == b.win))
   if (existing) {
     // use content from existing view
@@ -443,13 +455,6 @@ function make
     point.init()
     point.sync()
   }
-
-  if (mode && mode.hidePoint)
-    Css.hide(point.ele)
-  else
-    Css.show(point.ele)
-
-  reconfHead()
 
   views.push(v)
 

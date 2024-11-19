@@ -1212,12 +1212,16 @@ function init
 
   function view
   () {
-    let el, p
+    let el
 
-    p = Pane.current()
     el = current()
     if (el && el.dataset.path)
-      Shell.run(0, p.dir, 'xdg-open', 0, 0, [ el.dataset.path ], 0)
+      Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => {
+        if (err) {
+          Mess.yell('shell.open: ' + err.message)
+          return
+        }
+      })
     else
       Mess.say('Move to a file first')
   }

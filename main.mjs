@@ -689,7 +689,8 @@ function onShell
       d(ch + ': on: ' + JSON.stringify(data))
       if (data.input && data.input.length)
         proc.write(data.input)
-      process.kill(proc.pid, 'SIGHUP')
+      if (data.exit)
+        process.kill(proc.pid, 'SIGHUP')
     })
   }
   catch (err) {

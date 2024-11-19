@@ -655,13 +655,21 @@ function onShell
       // happens too late, need to somehow set it in .bashrc (now done in single.bashrc above)
       proc.write('export PS1=""\n')
 
-    if (runInShell)
-      if (multi) {
+    if (runInShell) {
+      let cmd
+
+      if (multi)
         if (runInShell.length)
-          proc.write(runInShell + '\n')
-      }
+          cmd = runInShell + '\n'
+        else
+          d('runInShell empty')
       else
-        proc.write(runInShell + ' && exit 2>/dev/null || exit 2>/dev/null\n')
+        cmd = runInShell + ' && exit 2>/dev/null || exit 2>/dev/null\n'
+      if (cmd) {
+        d('proc.write cmd: ' + cmd)
+        proc.write(cmd)
+      }
+    }
 
     proc.onData(data => {
       d(`${ch}: data: ${data}`)

@@ -1,7 +1,7 @@
 #!/usr/bin/env gjs
 
-imports.gi.versions.GLib = "2.0"
-const { GLib } = imports.gi
+globalThis.imports.gi.versions.GLib = '2.0'
+const { GLib } = globalThis.imports.gi
 
 function add
 (uri, mtype) {
@@ -15,7 +15,7 @@ function add
     bmf = new GLib.BookmarkFile()
     bmf.load_from_file(xbel)
 
-    bmf.add_application(uri, "Bred", 'bred %u')
+    bmf.add_application(uri, 'Bred', 'bred %u')
     bmf.set_mime_type(uri, mtype)
     if (bmf.set_visited_date_time)
       bmf.set_visited_date_time(uri, GLib.DateTime.new_now_utc())
@@ -34,7 +34,7 @@ function usage
   console.error('Usage: add-recent <filename> <mime-type>')
 }
 
-if (ARGV.length == 2)
-  add(ARGV[0], ARGV[1])
+if (globalThis.ARGV.length == 2)
+  add(globalThis.ARGV[0], globalThis.ARGV[1])
 else
   usage()

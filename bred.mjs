@@ -841,16 +841,6 @@ function initCmds
       }
     })
   })
-
-  Cmd.add('llm', () => {
-    Prompt.ask({ text: 'Prompt' },
-               prompt => {
-                 d(prompt)
-                 Shell.spawn1('llm', 1, 0, [ prompt ], 0, buf => {
-                   buf.mode = 'markdown'
-                 })
-               })
-  })
 }
 
 function initBindings
@@ -1232,6 +1222,19 @@ function initBrowse
                obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(p.ele)
                d({ obs })
              })
+  })
+}
+
+function initLlm
+() {
+  Cmd.add('llm', () => {
+    Prompt.ask({ text: 'Prompt' },
+               prompt => {
+                 d(prompt)
+                 Shell.spawn1('llm', 1, 0, [ prompt ], 0, buf => {
+                   buf.mode = 'markdown'
+                 })
+               })
   })
 }
 
@@ -1795,6 +1798,7 @@ function start2
   initBrowse()
   initFile()
   initEvalLine()
+  initLlm()
 
   initRecent()
   Ext.loadAll() // async

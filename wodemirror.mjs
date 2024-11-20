@@ -3842,6 +3842,8 @@ function init
     lang.extensions = lang.extensions?.map(e => '.' + e)
     lang.id = lang.name.toLowerCase()
     lang.path = opt.path
+    if (opt.firstLine)
+      lang.firstLine = opt.firstLine
     if (lang.id == 'cmake')
       lang.filenames = [ ...(lang.filenames || []), 'CMakeLists.txt' ]
     else if (lang.id == 'ruby')
@@ -3885,6 +3887,9 @@ function init
                                                    else
                                                      Mess.toss('missing loader for' + name)
 
+                                                   if (opt.postload)
+                                                     opt.postload(m, ls)
+
                                                    handleCustomTags(m)
 
                                                    d('Initialised lang: ' + file)
@@ -3911,6 +3916,7 @@ function init
   loadLang('./lib/@codemirror/lang-javascript.js',
            'JavaScript',
            { ext: [ 'js', 'mjs', 'cjs' ],
+             firstLine: '^#!.*\\b(node|gjs)',
              module: '@codemirror/javascript',
              preload(m) {
                let lang, props, indents
@@ -3932,7 +3938,6 @@ function init
                }
                props = [ CMLang.indentNodeProp.add(indents) ]
                lang = m.javascriptLanguage
-               lang.firstLine = '^#!.*\\b(node|gjs)'
                lang.parser = lang.parser.configure({ props: props })
              } })
 

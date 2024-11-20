@@ -1227,15 +1227,20 @@ function initBrowse
 
 function initLlm
 () {
+  let hist
+
   Cmd.add('llm', () => {
-    Prompt.ask({ text: 'Prompt' },
+    Prompt.ask({ text: 'Prompt',
+                 hist: hist },
                prompt => {
-                 d(prompt)
+                 hist.add(prompt)
                  Shell.spawn1('llm', 1, 0, [ prompt ], 0, buf => {
                    buf.mode = 'markdown'
                  })
                })
   })
+
+  hist = Hist.ensure('llm')
 }
 
 function initMakeDir

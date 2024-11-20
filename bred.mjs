@@ -841,6 +841,14 @@ function initCmds
       }
     })
   })
+
+  Cmd.add('llm', () => {
+    Prompt.ask({ text: 'Prompt' },
+               prompt => {
+                 d(prompt)
+                 Shell.spawn1('llm', 1, 0, [ prompt ])
+               })
+  })
 }
 
 function initBindings

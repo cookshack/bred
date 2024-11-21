@@ -976,6 +976,10 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   border-top-right-radius: 0.25rem;
 }
 
+.cm-markdoc-hidden {
+  display: none;
+}
+
 /* rest */
 
 .cm-ruler-w > div.cm-ruler-vert {

@@ -3879,13 +3879,13 @@ function init
                                                      opt.preload(m)
 
                                                    if (opt.load)
-                                                     ls = m[opt.load]()
+                                                     ls = opt.load(m)
                                                    else if (m['language'])
                                                      ls = m['language']()
                                                    else if (m[name.toLowerCase()])
                                                      ls = m[name.toLowerCase()]()
                                                    else
-                                                     Mess.toss('missing loader for' + name)
+                                                     Mess.toss('missing loader for ' + name)
 
                                                    if (opt.postload)
                                                      opt.postload(m, ls)
@@ -3908,6 +3908,7 @@ function init
   langs = []
   languages.forEach(l => addLang(langs, l, 1))
   langs.unshift({ id: 'text',
+                  alias: [],
                   name: 'Text',
                   extensions: [ '.txt' ] })
   addMode(langs[0])
@@ -3957,6 +3958,11 @@ function init
   loadLang('./lib/@orgajs/codemirror-lang-org.js', 'Org', { ext: [ 'org' ] })
   loadLang('./lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ], module: '@cookshack/codemirror-lang-peg' })
   loadLang('./lib/@cookshack/codemirror-lang-zig.js', 'Zig', { ext: [ 'zig' ] })
+
+  loadLang('./lib/codemirror-lang-richdoc.js', 'Richdoc',
+           { load(m) {
+             return m.richdoc({ lezer: { codeLanguages: langs } })
+           } })
 
   themeTags = LZHighlight.tags
   theme = CMTheme.createTheme({ theme: 'light',

@@ -3837,7 +3837,7 @@ function init
 
   //langs = []
 
-  languages = CMData.languages.filter(l => [ 'diff', 'javascript' ].includes(l.name.toLowerCase()) ? 0 : 1)
+  languages = CMData.languages.filter(l => [ 'diff', 'javascript', 'markdown' ].includes(l.name.toLowerCase()) ? 0 : 1)
 
   function addLang
   (langs, lang, ed, opt) {
@@ -3965,6 +3965,14 @@ function init
   loadLang('./lib/@orgajs/codemirror-lang-org.js', 'Org', { ext: [ 'org' ] })
   loadLang('./lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ], module: '@cookshack/codemirror-lang-peg' })
   loadLang('./lib/@cookshack/codemirror-lang-zig.js', 'Zig', { ext: [ 'zig' ] })
+
+  loadLang('./lib/@codemirror/lang-markdown.js',
+           'Markdown',
+           { ext: [ 'md', 'markdown', 'mkd' ],
+             module: '@codemirror/lang-markdown',
+             load(m) {
+               return m.markdown({ codeLanguages: langs })
+             } })
 
   loadLang('./lib/codemirror-lang-richdown.js', 'Richdown',
            { front: 1, // give priority over markdown

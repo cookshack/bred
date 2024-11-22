@@ -1636,7 +1636,7 @@ function init
 
     Em.on('A-g l', 'goto line', mo)
 
-    Em.on('C-c A-r', 'revert buffer')
+    Em.on('C-c A-r', 'revert buffer', mo)
 
     initLML(mo)
     initComplete()

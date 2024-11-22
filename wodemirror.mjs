@@ -3722,6 +3722,19 @@ function addMode
     //Cmd.add('insert }', (u,we) => insertClose(u, we, mode), mode)
     //Em.on('}', 'insert }', mode)
   }
+  else if (lang.id == 'richdown') {
+    Em.on('e', 'markdown mode', 'richdown')
+    Em.on('C-c C-c', 'markdown mode', 'richdown')
+    // should use view mode
+    Em.on('n', 'next line', 'richdown')
+    Em.on('p', 'previous line', 'richdown')
+    Em.on('q', 'bury', 'richdown')
+    Em.on('Backspace', 'scroll up', 'richdown')
+    Em.on(' ', 'scroll down', 'richdown')
+  }
+  else if (lang.id == 'markdown')
+    Em.on('C-c C-c', 'richdown mode', 'markdown')
+
   if ([ 'javascript', 'css', 'cpp' ].includes(lang.id))
     Em.on('}', 'self insert and indent', mode)
   mode.icon = Icon.mode(mode.key)

@@ -70,7 +70,7 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	if [ -e node_modules/codemirror-lang-git-log ]; then sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-git-log.js; fi
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-makefile.js
 	sed -i "s/^\import '\([^']\+\)';/import '.\/\\1.js';/g" lib/codemirror-lang-makefile.js
-	sed -i "s/^\(import .* from\) ['\"]\([^']\+\)['\"].*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-richdoc.js
+	sed -i "s/^\(import .* from\) ['\"]\([^']\+\)['\"].*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-richdown.js
 	sed -i "s/var StyleModule = exports.StyleModule/export var StyleModule/g" lib/style-mod.js
 	sed -i "s/var \([^ ]\+\) = require('\([^']*\)');/import * as \\1 from '..\/\\2.js'/g" lib/@lezer/php.js
 	sed -i "s;Object.defineProperty(exports;//Object.defineProperty(exports;g" lib/@lezer/php.js
@@ -111,7 +111,7 @@ sync-codemirror:
 	cp node_modules/codemirror-lang-elixir/dist/index.js lib/codemirror-lang-elixir.js
 	if [ -e node_modules/codemirror-lang-git-log ]; then cp node_modules/codemirror-lang-git-log/dist/index.js lib/codemirror-lang-git-log.js; fi
 	cp node_modules/codemirror-lang-makefile/dist/index.js lib/codemirror-lang-makefile.js
-	cp node_modules/codemirror-rich-markdoc/dist/index.js lib/codemirror-lang-richdoc.js
+	cp node_modules/codemirror-rich-markdoc/dist/index.js lib/codemirror-lang-richdown.js
 	cp node_modules/@markdoc/markdoc/dist/index.mjs lib/@markdoc/markdoc.js
 	cp node_modules/@replit/codemirror-lang-csharp/dist/index.js lib/@replit/codemirror-lang-csharp.js
 	cp node_modules/@replit/codemirror-lang-nix/dist/index.js lib/@replit/codemirror-lang-nix.js

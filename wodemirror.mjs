@@ -3959,9 +3959,9 @@ function init
   loadLang('./lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ], module: '@cookshack/codemirror-lang-peg' })
   loadLang('./lib/@cookshack/codemirror-lang-zig.js', 'Zig', { ext: [ 'zig' ] })
 
-  loadLang('./lib/codemirror-lang-richdoc.js', 'Richdoc',
+  loadLang('./lib/codemirror-lang-richdown.js', 'Richdown',
            { load(m) {
-             return m.richdoc({ lezer: { codeLanguages: langs } })
+             return m.richdown({ lezer: { codeLanguages: langs } })
            } })
 
   themeTags = LZHighlight.tags

@@ -3850,7 +3850,10 @@ function init
       lang.filenames = [ ...(lang.filenames || []), 'Vagrantfile' ]
     if (lang.load)
       lang.load().then(l => lang.language = l)
-    langs.push(lang)
+    if (opt.front)
+      langs.unshift(lang)
+    else
+      langs.push(lang)
     if (ed)
       addMode(lang)
   }
@@ -3960,9 +3963,11 @@ function init
   loadLang('./lib/@cookshack/codemirror-lang-zig.js', 'Zig', { ext: [ 'zig' ] })
 
   loadLang('./lib/codemirror-lang-richdown.js', 'Richdown',
-           { load(m) {
-             return m.richdown({ lezer: { codeLanguages: langs } })
-           } })
+           { front: 1, // give priority over markdown
+             ext: [ 'md' ],
+             load(m) {
+               return m.richdown({ lezer: { codeLanguages: langs } })
+             } })
 
   themeTags = LZHighlight.tags
   theme = CMTheme.createTheme({ theme: 'light',

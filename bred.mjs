@@ -1227,7 +1227,7 @@ function initBrowse
 
 function initLlm
 () {
-  let hist
+  let hist, mo
 
   function divW
   (query) {
@@ -1253,6 +1253,43 @@ function initLlm
     }
   }
 
+  function first
+  (v) {
+    v.point.put(v.ele.querySelector('.query-item'))
+  }
+
+  function next
+  (nth) {
+    let h, el, v
+
+    v = Pane.current().view
+    h = v.ele.querySelector('.query-h')
+    if (v.point.over(h)) {
+      first(v)
+      return
+    }
+    el = v.point.over()
+    if (el) {
+      let item
+
+      if (Css.has(el, 'query-item'))
+        item = el
+      else
+        item = el.closest('.query-item')
+
+      if (nth == -1)
+        el = item.previousElementSibling
+      else
+        el = item.nextElementSibling
+      if (Css.has(el, 'query-item')) {
+        v.point.put(el)
+        return
+      }
+    }
+    else
+      first(v)
+  }
+
   Cmd.add('llm', () => {
     Prompt.ask({ text: 'Prompt',
                  hist: hist },
@@ -1273,7 +1310,6 @@ function initLlm
 
                  p = Pane.current()
                  buf = Buf.add('Query', 'Query', divW(query), p.dir)
-                 buf.addMode('view')
                  p.setBuf(buf)
                  hist.add(query)
                  fetch('https://www.googleapis.com/customsearch/v1'
@@ -1309,9 +1345,15 @@ function initLlm
                })
   })
 
-  Mode.add('Query', { viewInit: refresh })
-
   hist = Hist.ensure('llm')
+
+  mo = Mode.add('Query', { viewInit: refresh })
+
+  Cmd.add('next', () => next(), mo)
+  Cmd.add('previous', () => next(-1), mo)
+
+  Em.on('n', 'Next', mo)
+  Em.on('p', 'Previous', mo)
 }
 
 function initMakeDir

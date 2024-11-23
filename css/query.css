@@ -3,8 +3,6 @@
   height: 100%;
   padding: 0.5rem;
 
-  font-family: monospace;
-
   display: flex;
   flex-direction: column;
 }
@@ -36,10 +34,22 @@
 .query-item-t {
   font-size: 1.2rem;
   margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+.query-item-icon {
+  margin-right: 0.5rem;
+  display: inline;
+}
+
+.query-item-icon > img {
+  width: 2rem;
 }
 
 .query-item-url {
   margin-bottom: 0.2rem;
+  padding: 0.2rem;
 }
 
 .query-item-snippet {

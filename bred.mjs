@@ -1292,17 +1292,36 @@ function initLlm
 
   function snippet
   (item) {
-    let split
+    let split, date
 
     split = item.snippet.split(' ', 3)
-    if (split && (split.length > 2) && /[0-9][0-9][0-9][0-9]/.test(split[2])) {
-      let date
-
+    if (split && (split.length > 2) && /[0-9][0-9][0-9][0-9]/.test(split[2]))
       date = split.join(' ')
+    if (date)
       return [ divCl('query-item-date', date),
                item.snippet.slice(date.length) ]
-    }
     return item.snippet
+  }
+
+  function title
+  (item) {
+    let favi
+
+    try {
+      let url
+
+      url = new URL(item.link)
+      favi = url.protocol + '//' + url.host + '/favicon.ico'
+    }
+    catch (err) {
+      Ed.use(err)
+    }
+
+    if (favi)
+      return [ divCl('query-item-icon',
+                     img(favi, 'Icon')),
+               item.title ]
+    return item.title
   }
 
   Cmd.add('llm', () => {
@@ -1346,7 +1365,7 @@ function initLlm
                          append(w,
                                 data.items.map(item => divCl('query-item',
                                                              [ divCl('query-item-t',
-                                                                     item.title,
+                                                                     title(item),
                                                                      { 'data-run': 'open externally',
                                                                        'data-url': item.link }),
                                                                divCl('query-item-url',

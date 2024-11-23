@@ -1229,6 +1229,30 @@ function initLlm
 () {
   let hist
 
+  function divW
+  (query) {
+    return divCl('query-ww',
+                 [ divCl('query-h', 'Query: ' + query),
+                   divCl('query-w', 'Fetching...') ])
+  }
+
+  function refresh
+  (view) {
+    let w, co
+
+    if (0) {
+      w = view.ele.querySelector('.query-w')
+      //w.innerHTML = 'xx'
+
+      co = recents.map(r => divCl('query-item',
+                                  r.href,
+                                  { 'data-run': 'open link',
+                                    'data-path': r.href }))
+
+      append(w, co)
+    }
+  }
+
   Cmd.add('llm', () => {
     Prompt.ask({ text: 'Prompt',
                  hist: hist },
@@ -1236,10 +1260,53 @@ function initLlm
                  hist.add(prompt)
                  Shell.spawn1('llm', 1, 0, [ prompt ], 0, buf => {
                    buf.opts.set('core.lint.enabled', 0)
-                   buf.mode = 'richdoc'
+                   buf.mode = 'richdown'
                  })
                })
   })
+
+  Cmd.add('google', () => {
+    Prompt.ask({ text: 'Query',
+                 hist: hist },
+               query => {
+                 let p, buf
+
+                 p = Pane.current()
+                 buf = Buf.add('Query', 'Query', divW(query), p.dir)
+                 buf.addMode('view')
+                 p.setBuf(buf)
+                 hist.add(query)
+                 fetch('https://www.googleapis.com/customsearch/v1'
+                       + '?cx=' + Opt.get('google.cx')
+                       + '&key=' + Opt.get('google.key')
+                       + '&q=' + query)
+                   .then(response => {
+                     response.ok || Mess.toss(response.statusText)
+                     return response.json()
+                   })
+                   .then(data => {
+                     d(data)
+                     buf?.views.forEach(view => {
+                       if (view.ele) {
+                         let w
+
+                         w = view.ele.querySelector('.query-w')
+                         w.innerHTML = ''
+                         append(w,
+                                data.items.map(item => divCl('query-item',
+                                                             item.title,
+                                                             { 'data-run': 'open externally',
+                                                               'data-url': item.link })))
+                       }
+                     })
+                   })
+                   .catch(error => {
+                     Mess.yell(error.message)
+                   })
+               })
+  })
+
+  Mode.add('Query', { viewInit: refresh })
 
   hist = Hist.ensure('llm')
 }

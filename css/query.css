@@ -37,3 +37,17 @@
   font-size: 1.2rem;
   margin-bottom: 0.25rem;
 }
+
+.query-item-url {
+  margin-bottom: 0.2rem;
+}
+
+.query-item-snippet {
+  padding: 0.2rem;
+}
+
+.query-item-date {
+  background-color: var(--clr-fill);
+  display: inline;
+  padding: 0.2rem;
+}

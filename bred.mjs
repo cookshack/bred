@@ -1290,6 +1290,21 @@ function initLlm
       first(v)
   }
 
+  function snippet
+  (item) {
+    let split
+
+    split = item.snippet.split(' ', 3)
+    if (split && (split.length > 2) && /[0-9][0-9][0-9][0-9]/.test(split[2])) {
+      let date
+
+      date = split.join(' ')
+      return [ divCl('query-item-date', date),
+               item.snippet.slice(date.length) ]
+    }
+    return item.snippet
+  }
+
   Cmd.add('llm', () => {
     Prompt.ask({ text: 'Prompt',
                  hist: hist },
@@ -1334,8 +1349,10 @@ function initLlm
                                                                      item.title,
                                                                      { 'data-run': 'open externally',
                                                                        'data-url': item.link }),
+                                                               divCl('query-item-url',
+                                                                     item.formattedUrl),
                                                                divCl('query-item-snippet',
-                                                                     item.snippet) ])))
+                                                                     snippet(item)) ])))
                        }
                      })
                    })

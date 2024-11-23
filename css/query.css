@@ -1,0 +1,39 @@
+.query-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+
+  font-family: monospace;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.query-h {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+
+  display: flex;
+}
+
+.query-w {
+  width: 100%;
+  max-width: 60rem;
+  height: min-content;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.query-item {
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.query-item-t {
+  font-size: 1.2rem;
+  margin-bottom: 0.25rem;
+}

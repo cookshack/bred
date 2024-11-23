@@ -1294,9 +1294,12 @@ function initLlm
                          w.innerHTML = ''
                          append(w,
                                 data.items.map(item => divCl('query-item',
-                                                             item.title,
-                                                             { 'data-run': 'open externally',
-                                                               'data-url': item.link })))
+                                                             [ divCl('query-item-t',
+                                                                     item.title,
+                                                                     { 'data-run': 'open externally',
+                                                                       'data-url': item.link }),
+                                                               divCl('query-item-snippet',
+                                                                     item.snippet) ])))
                        }
                      })
                    })
@@ -1777,6 +1780,7 @@ function initCss
             './css/test-buffer.css',
             './css/manpage.css',
             './css/options.css',
+            './css/query.css',
             './css/recent.css',
             './css/vc.css',
             './css/web.css' ]

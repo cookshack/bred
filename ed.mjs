@@ -1604,6 +1604,7 @@ function init
     Em.on('A-f', 'word forward', mo)
     Em.on('A-b', 'word backward', mo)
     Em.on('A-c', 'capitalize word', mo)
+    Em.on('A-j', 'new line', mo)
     Em.on('A-l', 'lowercase word', mo)
     Em.on('A-n', 'next suggestion', mo)
     Em.on('A-p', 'previous suggestion', mo)

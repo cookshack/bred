@@ -1324,12 +1324,13 @@ function initLlm
     return item.title
   }
 
-  Cmd.add('llm', () => {
+  Cmd.add('llm', (u, we, model) => {
+    model = model || Opt.get('llm.model')
     Prompt.ask({ text: 'Prompt',
                  hist: hist },
                prompt => {
                  hist.add(prompt)
-                 Shell.spawn1('llm', 1, 0, [ prompt ], 0, buf => {
+                 Shell.spawn1('llm', 1, 0, [ model, prompt ], 0, buf => {
                    buf.opts.set('core.lint.enabled', 0)
                    buf.mode = 'richdown'
                  })

@@ -1331,6 +1331,7 @@ function initLlm
                prompt => {
                  hist.add(prompt)
                  Shell.spawn1('llm', 1, 0, [ model, prompt ], 0, buf => {
+                   buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    buf.mode = 'richdown'
                  })

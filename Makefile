@@ -65,6 +65,7 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	for DIR in lib/@uiw/*; do find $$DIR -type f -name \*.js | xargs sed -i "s/^\(import .* from\) [\"']\([^.'][^']*\)[\"'].*/\\1 '..\/..\/\\2.js';/g"; done
 	echo "export * from './codemirror-themes/index.js'" > lib/@uiw/codemirror-themes.js
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/lezer-elixir.js
+	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-csv.js
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-diff.js
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-elixir.js
 	if [ -e node_modules/codemirror-lang-git-log ]; then sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-git-log.js; fi
@@ -107,6 +108,7 @@ sync-codemirror:
 	cp node_modules/globals/globals.json lib/globals.json
 	cp node_modules/@babel/runtime/helpers/esm/extends.js lib/@babel/runtime/helpers/extends.js
 	cp node_modules/lezer-elixir/dist/index.js lib/lezer-elixir.js
+	cp node_modules/codemirror-lang-csv/dist/index.js lib/codemirror-lang-csv.js
 	cp node_modules/codemirror-lang-diff/dist/index.js lib/codemirror-lang-diff.js
 	cp node_modules/codemirror-lang-elixir/dist/index.js lib/codemirror-lang-elixir.js
 	if [ -e node_modules/codemirror-lang-git-log ]; then cp node_modules/codemirror-lang-git-log/dist/index.js lib/codemirror-lang-git-log.js; fi

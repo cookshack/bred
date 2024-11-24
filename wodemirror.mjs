@@ -3963,6 +3963,7 @@ function init
              } })
 
   loadLang('./lib/@replit/codemirror-lang-csharp.js', 'Csharp', { ext: [ 'cs', 'csx' ] })
+  loadLang('./lib/codemirror-lang-csv.js', 'Csv', { ext: [ 'csv' ] })
   loadLang('./lib/codemirror-lang-diff.js', 'Diff', { ext: [ 'diff', 'patch' ] })
   loadLang('./lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
   loadLang('./lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ], module: '@codemirror/lang-lezer' })

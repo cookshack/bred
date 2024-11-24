@@ -60,6 +60,7 @@
     "blamejs": "^1.0.0",
     "callsites": "^4.1.0",
     "check-dependencies": "^2.0.0",
+    "codemirror-lang-csv": "file:../codemirror-lang-csv/latest.tgz",
     "codemirror-lang-diff": "file:../codemirror-lang-diff",
     "codemirror-lang-elixir": "^4.0.0",
     "codemirror-lang-git-log": "^0.1.3",

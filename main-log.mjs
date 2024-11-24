@@ -1,10 +1,22 @@
+let logFn
+
 function use
 () {
 }
 
 export
+function logWith
+(fn) {
+  logFn = fn
+}
+
+export
 function log
 (msg) {
+  if (logFn) {
+    logFn(msg)
+    return
+  }
   if (process.stdout?.writable)
     console.log(msg)
 }

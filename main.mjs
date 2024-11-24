@@ -2,6 +2,7 @@ import { app, clipboard as Clipboard, WebContentsView, BrowserWindow, ipcMain, s
 import CheckDeps from './lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
 import { d, log } from './main-log.mjs'
+import * as Log from './main-log.mjs'
 import { makeErr, errMsg } from './main-err.mjs'
 import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
@@ -1676,9 +1677,9 @@ async function whenReady
     file = fs.createWriteStream(options.logfile,
                                 { flags: 'w',
                                   flush: true })
-    log = d => {
+    Log.logWith(d => {
       file.write(Util.format(d) + '\n')
-    }
+    })
   }
   else
     d('logging to stdout')

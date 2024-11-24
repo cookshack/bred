@@ -1,0 +1,65 @@
+.rich-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0.5rem;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.rich-head {
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+
+  display: flex;
+}
+
+.rich-w {
+  width: 100%;
+  height: min-content;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.rich-b {
+  color: var(--clr-emph);
+}
+
+.rich-it {
+  font-style: italic;
+}
+
+.rich-h {
+  color: var(--clr-emph);
+}
+
+.rich-h1 {
+  font-size: 2rem;
+}
+
+.rich-h2 {
+  font-size: 1.75rem;
+}
+
+.rich-h3 {
+  font-size: 1.5rem;
+}
+
+.rich-h4 {
+  font-size: 1.25rem;
+}
+
+.rich-hr {
+  width: 100%;
+  height: 2px;
+  min-height: 2px;
+  max-height: 2px;
+  background-color: var(--clr-fill);
+}
+
+.rich-spc {
+  height: 0.5rem;
+  min-height: 0.5rem;
+  max-height: 0.5rem;
+}

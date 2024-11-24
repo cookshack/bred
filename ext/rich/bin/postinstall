@@ -1,0 +1,4 @@
+#!/bin/bash
+
+mkdir -p lib/
+cp node_modules/marked/lib/marked.esm.js lib/marked.js

@@ -1324,6 +1324,16 @@ function initLlm
     return item.title
   }
 
+  /* You are an expert. Based on the following search results, please provide a summary or answer to my question:
+
+Search Results:
+1.
+2.
+3.
+
+Question: ...
+*/
+
   Cmd.add('llm', (u, we, model) => {
     model = model || Opt.get('llm.model')
     Prompt.ask({ text: 'Prompt',

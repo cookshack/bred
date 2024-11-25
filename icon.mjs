@@ -9,10 +9,19 @@ function setHave
 export
 function path
 (name) {
-  if (have) {
-    if (name == 'bred')
-      return 'img/bred.svg'
+  if (name == 'bred')
+    return 'img/bred.svg'
 
+  if (name == 'csv')
+    return 'img/csv.svg'
+
+  if (name == 'prompt')
+    return 'img/prompt-square.svg'
+
+  if (name == 'warning')
+    return 'img/warning.svg'
+
+  if (have) {
     if (name == 'c_cpp')
       return 'lib/svg/file-icons/C++.svg'
 
@@ -24,9 +33,6 @@ function path
 
     if (name == 'css')
       return 'lib/svg/mfixx/css.svg'
-
-    if (name == 'csv')
-      return 'img/csv.svg'
 
     if (name == 'diagnostic')
       return 'lib/svg/fontawesome-4/heartbeat.svg'
@@ -73,9 +79,6 @@ function path
     if (name == 'perl')
       return 'lib/svg/mfixx/perl.svg'
 
-    if (name == 'prompt')
-      return 'img/prompt-square.svg'
-
     if (name == 'python')
       return 'lib/svg/mfixx/python.svg'
 
@@ -103,9 +106,6 @@ function path
     if (name == 'tree')
       return 'lib/svg/material-icons/account_tree/materialiconsoutlined/24px.svg'
 
-    if (name == 'warning')
-      return 'lib/svg/material-icons/warning_amber/materialicons/24px.svg'
-
     if (name == 'welcome')
       return 'lib/svg/fluentui-system-icons/ic_fluent_hand_wave_24_regular.svg'
 
@@ -114,19 +114,15 @@ function path
 
     if (name == 'zig')
       return 'lib/svg/file-icons/Zig.svg'
-
-    if (name.startsWith('letter-'))
-      return 'img/letter/' + name + '.svg'
-    return 'img/blank.svg'
   }
 
   if (name.startsWith('letter-'))
     return 'img/letter/' + name + '.svg'
   if (name == 'blank')
     return 'img/blank.svg'
-  if (name.length == 0)
-    return 'img/blank.svg'
-  return 'img/letter/letter-' + name[0].toLowerCase() + '.svg'
+  if (name.length)
+    return 'img/letter/letter-' + name[0].toLowerCase() + '.svg'
+  return 'img/blank.svg'
 }
 
 export

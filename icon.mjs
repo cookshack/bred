@@ -25,6 +25,9 @@ function path
     if (name == 'css')
       return 'lib/svg/mfixx/css.svg'
 
+    if (name == 'csv')
+      return 'img/csv.svg'
+
     if (name == 'diagnostic')
       return 'lib/svg/fontawesome-4/heartbeat.svg'
 
@@ -138,6 +141,7 @@ function mode
   if (name) {
     if (name == 'c_cpp') return { name: 'c_cpp' }
     if (name == 'css') return { name: 'css' }
+    if (name == 'csv') return { name: 'csv' }
     if (name == 'diff') return { name: 'patch' }
     if (name == 'dir') return { name: 'dir' }
     if (name == 'elisp') return { name: 'elisp' }

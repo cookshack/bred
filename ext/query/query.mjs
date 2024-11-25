@@ -188,3 +188,11 @@ Question: ...
   Em.on('n', 'Next', mo)
   Em.on('p', 'Previous', mo)
 }
+
+export
+function free
+() {
+  Cmd.remove('google')
+  Cmd.remove('llm')
+  Mode.remove('Query')
+}

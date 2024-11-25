@@ -91,3 +91,10 @@ Para with *bold* and _italic_.
     p.setBuf(buf)
   })
 }
+
+export
+function free
+() {
+  Cmd.remove('Rich')
+  Mode.remove('Rich')
+}

@@ -101,6 +101,7 @@ function makeLang
   lang = Ed.findLang(id)
   if (lang?.language)
     return [ lang.language,
+             ...(lang.support ? [ lang.support ] : []),
              ...(view.buf.opt('core.autocomplete.enabled') ? [ makeAutocomplete(view) ] : []) ]
   Mess.log('missing lang: ' + id)
   return []

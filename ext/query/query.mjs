@@ -187,6 +187,10 @@ Question: ...
 
   Em.on('n', 'Next', mo)
   Em.on('p', 'Previous', mo)
+  // should use view mode
+  Em.on('q', 'bury', mo)
+  Em.on('Backspace', 'scroll up', mo)
+  Em.on(' ', 'scroll down', mo)
 }
 
 export

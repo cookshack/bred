@@ -33,6 +33,12 @@ function init
       if (token.type == 'hr')
         return divCl('rich-hr')
 
+      if (token.type == 'link')
+        return divCl('rich-a',
+                     rest(token),
+                     { 'data-run': 'open externally',
+                       'data-url': token.href })
+
       if (token.type == 'list')
         return create(token.ordered ? 'ol' : 'ul',
                       token.items?.map(render),
@@ -47,8 +53,11 @@ function init
       if (token.type == 'space')
         return divCl('rich-spc')
 
-      if (token.type == 'text')
+      if (token.type == 'text') {
+        if (token.tokens)
+          return rest(token)
         return token.text
+      }
 
       d('RICH missing token type: ' + token.type)
       return div(rest(token))

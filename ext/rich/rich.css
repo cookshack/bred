@@ -63,3 +63,15 @@
   min-height: 0.5rem;
   max-height: 0.5rem;
 }
+
+.rich-ol,
+.rich-ul {
+  margin-left: 1rem;
+}
+
+.rich-ol {
+  list-style-type: decimal;
+}
+
+.rich-li {
+}

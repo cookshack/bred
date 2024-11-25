@@ -1,4 +1,4 @@
-import { append, div, divCl } from '../../dom.mjs'
+import { append, create, div, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
@@ -32,6 +32,14 @@ function init
 
       if (token.type == 'hr')
         return divCl('rich-hr')
+
+      if (token.type == 'list')
+        return create(token.ordered ? 'ol' : 'ul',
+                      token.items?.map(render),
+                      token.ordered ? 'rich-ol' : 'rich-ul')
+
+      if (token.type == 'list_item')
+        return create('li', rest(token), 'rich-li')
 
       if (token.type == 'paragraph')
         return divCl('rich-p', rest(token))

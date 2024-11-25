@@ -124,6 +124,7 @@ function init
   Opt.declare('core.highlight.whitespace.enabled', 'bool', 0)
   Opt.declare('core.line.numbers.show', 'bool', 1)
   Opt.declare('core.line.wrap.enabled', 'bool', 1)
+  Opt.declare('core.scroll.pastEnd.enabled', 'bool', 1)
   Opt.declare('core.tab.width', 'integer', 2)
 
   brexts.push(Ed.register({ backend: 'cm',
@@ -175,6 +176,10 @@ function init
                             reconfOpts: [ 'core.line.wrap.enabled' ] }))
 
   brexts.push(Ed.register({ backend: 'cm',
+                            make: view => view.buf.opt('core.scroll.pastEnd.enabled') ? CMView.scrollPastEnd() : [],
+                            reconfOpts: [ 'core.scroll.pastEnd.enabled' ] }))
+
+  brexts.push(Ed.register({ backend: 'cm',
                             make: view => CMState.EditorState.tabSize.of(view.buf.opt('core.tab.width') || 2),
                             reconfOpts: [ 'core.tab.width' ] }))
 
@@ -191,6 +196,7 @@ function init
   Cmd.add('highlight whitespace', u => Ed.enable(u, 'core.highlight.whitespace.enabled'))
   Cmd.add('enable line numbers', u => Ed.enable(u, 'core.line.numbers.show'))
   Cmd.add('enable line wrap', u => Ed.enable(u, 'core.line.wrap.enabled'))
+  Cmd.add('enable scroll past end', u => Ed.enable(u, 'core.scroll.pastEnd.enabled'))
   Cmd.add('buffer enable cursor blink', u => Ed.enableBuf(u, 'core.cursor.blink.enabled'))
   Cmd.add('buffer enable folding', u => Ed.enableBuf(u, 'core.folding.enabled'))
   Cmd.add('buffer enable fold gutter', u => Ed.enableBuf(u, 'core.folding.gutter.enabled'))
@@ -204,6 +210,7 @@ function init
   Cmd.add('buffer highlight whitespace', u => Ed.enableBuf(u, 'core.highlight.whitespace.enabled'))
   Cmd.add('buffer enable line numbers', u => Ed.enableBuf(u, 'core.line.numbers.show'))
   Cmd.add('buffer enable line wrap', u => Ed.enableBuf(u, 'core.line.wrap.enabled'))
+  Cmd.add('buffer enable scroll past end', u => Ed.enableBuf(u, 'core.scroll.pastEnd.enabled'))
 
   Lang.init()
   Lint.init()
@@ -218,6 +225,7 @@ function free
   Cmd.remove('enable head')
   Cmd.remove('enable line numbers')
   Cmd.remove('enable line wrap')
+  Cmd.remove('enable scroll past end')
   Cmd.remove('highlight active line')
   Cmd.remove('highlight bracket')
   Cmd.remove('highlight occurrences')
@@ -231,6 +239,7 @@ function free
   Cmd.remove('buffer enable head')
   Cmd.remove('buffer enable line numbers')
   Cmd.remove('buffer enable line wrap')
+  Cmd.remove('buffer enable scroll past end')
   Cmd.remove('buffer highlight active line')
   Cmd.remove('buffer highlight bracket')
   Cmd.remove('buffer highlight occurrences')

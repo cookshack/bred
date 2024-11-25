@@ -859,9 +859,6 @@ function _viewInit
            //stateHighlighters,
            CMState.Prec.low(decorator),
 
-           //CMView.keymap.of(CMComm.defaultKeymap),
-           CMView.scrollPastEnd(),
-
            bredView.of(view),
 
            colorPicker,

@@ -107,7 +107,7 @@ function init
 
     if (favi)
       return [ divCl('query-item-icon',
-                     img(favi, 'Icon')),
+                     img(favi, 'Icon', '', { crossorigin: 'anonymous' })),
                item.title ]
     return item.title
   }
@@ -117,7 +117,9 @@ function init
     fetch('https://www.googleapis.com/customsearch/v1'
           + '?cx=' + Opt.get('google.cx')
           + '&key=' + Opt.get('google.key')
-          + '&q=' + query)
+          + '&q=' + query,
+          { credentials: 'omit',
+            redirect: 'error' })
       .then(response => {
         response.ok || Mess.toss(response.statusText)
         return response.json()

@@ -445,7 +445,7 @@ function make
                             placeholder: b.placeholder },
                           cb)
       }
-      else if (mode && mode.viewInit) // remove when ace,mon have viewInitSpec
+      else if (mode && mode.viewInit) // remove when ace,mon have viewInitSpec (BUT also used by div views)
         mode.viewInit(v, 0, 0, lineNum, whenReady, cb)
       else
         ready1()

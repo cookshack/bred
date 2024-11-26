@@ -27,7 +27,7 @@ function init
   }
 
   function refresh
-  (view) {
+  (view, spec, cb) {
     let w, co
 
     if (0) {
@@ -36,6 +36,9 @@ function init
 
       append(w, co)
     }
+
+    if (cb)
+      cb(view)
   }
 
   function first
@@ -109,6 +112,42 @@ function init
     return item.title
   }
 
+  function search
+  (buf, query) {
+    fetch('https://www.googleapis.com/customsearch/v1'
+          + '?cx=' + Opt.get('google.cx')
+          + '&key=' + Opt.get('google.key')
+          + '&q=' + query)
+      .then(response => {
+        response.ok || Mess.toss(response.statusText)
+        return response.json()
+      })
+      .then(data => {
+        d(data)
+        buf?.views.forEach(view => {
+          if (view.ele) {
+            let w
+
+            w = view.ele.querySelector('.query-w')
+            w.innerHTML = ''
+            append(w,
+                   data.items.map(item => divCl('query-item',
+                                                [ divCl('query-item-t',
+                                                        title(item),
+                                                        { 'data-run': 'open externally',
+                                                          'data-url': item.link }),
+                                                  divCl('query-item-url',
+                                                        item.formattedUrl),
+                                                  divCl('query-item-snippet',
+                                                        snippet(item)) ])))
+          }
+        })
+      })
+      .catch(error => {
+        Mess.yell(error.message)
+      })
+  }
+
   /* You are an expert. Based on the following search results, please provide a summary or answer to my question:
 
 Search Results:
@@ -141,46 +180,14 @@ Question: ...
 
                  p = Pane.current()
                  buf = Buf.add('Query', 'Query', divW(query), p.dir)
-                 p.setBuf(buf)
                  hist.add(query)
-                 fetch('https://www.googleapis.com/customsearch/v1'
-                       + '?cx=' + Opt.get('google.cx')
-                       + '&key=' + Opt.get('google.key')
-                       + '&q=' + query)
-                   .then(response => {
-                     response.ok || Mess.toss(response.statusText)
-                     return response.json()
-                   })
-                   .then(data => {
-                     d(data)
-                     buf?.views.forEach(view => {
-                       if (view.ele) {
-                         let w
-
-                         w = view.ele.querySelector('.query-w')
-                         w.innerHTML = ''
-                         append(w,
-                                data.items.map(item => divCl('query-item',
-                                                             [ divCl('query-item-t',
-                                                                     title(item),
-                                                                     { 'data-run': 'open externally',
-                                                                       'data-url': item.link }),
-                                                               divCl('query-item-url',
-                                                                     item.formattedUrl),
-                                                               divCl('query-item-snippet',
-                                                                     snippet(item)) ])))
-                       }
-                     })
-                   })
-                   .catch(error => {
-                     Mess.yell(error.message)
-                   })
+                 p.setBuf(buf, {}, () => search(buf, query))
                })
   })
 
   hist = Hist.ensure('llm')
 
-  mo = Mode.add('Query', { viewInit: refresh })
+  mo = Mode.add('Query', { viewInitSpec: refresh })
 
   Cmd.add('next', () => next(), mo)
   Cmd.add('previous', () => next(-1), mo)

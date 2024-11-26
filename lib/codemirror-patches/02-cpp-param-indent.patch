@@ -1,0 +1,10 @@
+--- @codemirror/lang-cpp.js.orig	2024-11-26 17:44:53.667650884 +0200
++++ @codemirror/lang-cpp.js	2024-11-26 17:39:39.940062531 +0200
+@@ -16,6 +16,7 @@
+                 LabeledStatement: flatIndent,
+                 CaseStatement: context => context.baseIndent + context.unit,
+                 BlockComment: () => null,
++                ParameterList: delimitedIndent({ closing: ')', align: true }),
+                 CompoundStatement: /*@__PURE__*/delimitedIndent({ closing: "}" }),
+                 Statement: /*@__PURE__*/continuedIndent({ except: /^{/ })
+             }),

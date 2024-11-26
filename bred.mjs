@@ -480,13 +480,27 @@ function initCmds
   })
 
   Cmd.add('open externally', (u, we) => {
-    if (we.e.target.dataset.url)
-      Tron.cmd('shell.open', [ we.e.target.dataset.url ], err => {
-        if (err) {
-          Mess.yell('shell.open: ' + err.message)
-          return
-        }
-      })
+    let url
+
+    url = we.e.target.dataset.url?.trim()
+    if (url)
+      if (url.startsWith('#')) {
+        let p, el
+
+        p = Pane.current()
+        el = p.view.ele?.querySelector('[data-target="' + url.slice(1) + '"]')
+        if (el)
+          el.scrollIntoView()
+        else
+          Mess.yell('Missing target')
+      }
+      else
+        Tron.cmd('shell.open', [ url ], err => {
+          if (err) {
+            Mess.yell('shell.open: ' + err.message)
+            return
+          }
+        })
     else
       Mess.say('Target missing URL')
   })

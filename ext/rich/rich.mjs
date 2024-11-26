@@ -13,6 +13,11 @@ function init
 () {
   let md
 
+  function target
+  (id) {
+    return id.toLowerCase().replaceAll(' ', '-')
+  }
+
   function rest
   (token) {
     return token.tokens?.map(render)
@@ -28,7 +33,9 @@ function init
         return divCl('rich-it', rest(token))
 
       if (token.type == 'heading')
-        return divCl('rich-h rich-h' + (token.depth || 0), rest(token))
+        return divCl('rich-h rich-h' + (token.depth || 0),
+                     rest(token),
+                     { 'data-target': target(token.text) })
 
       if (token.type == 'hr')
         return divCl('rich-hr')

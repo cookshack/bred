@@ -125,6 +125,19 @@ export
 function make
 (p, name, dir, file, lineNum,
  whenReady) { // (view)
+  return make2(p,
+               { name: name,
+                 dir: dir,
+                 file: file,
+                 lineNum: lineNum,
+                 whenReady: whenReady })
+}
+
+export
+function make2
+(p,
+ spec, // { name, dir, file, lineNum, whenReady(view) }
+ cb) { // (view)
   let m
 
   function makeBuf
@@ -132,52 +145,52 @@ function make
     let icon
 
     icon = m && Icon.mode(m)?.name
-    p.setBuf(Buf.add(name || file,
+    p.setBuf(Buf.add(spec.name || spec.file,
                      m || 'Ed',
-                     divW(dir,
-                          name || file,
+                     divW(spec.dir,
+                          spec.name || spec.file,
                           { icon: icon }),
-                     dir,
-                     file,
-                     lineNum),
-             { lineNum: lineNum,
-               whenReady: whenReady },
-             () => {
+                     spec.dir,
+                     spec.file,
+                     spec.lineNum),
+             { lineNum: spec.lineNum,
+               whenReady: spec.whenReady },
+             view => {
                p.buf.icon = icon
-               if (file)
-                 return
-               p.buf.file = name
+               spec.file || (p.buf.file = spec.name)
+               if (cb)
+                 cb(view)
              })
   }
 
-  if (file)
-    m = Backend.modeFor(file)
-  else if (name)
-    m = Backend.modeFor(name)
-  if (file)
-    file = Loc.make(file).removeSlash() // for name
-  if (Loc.make(file).filename == file) {
+  if (spec.file)
+    m = Backend.modeFor(spec.file)
+  else if (spec.name)
+    m = Backend.modeFor(spec.name)
+  if (spec.file)
+    spec.file = Loc.make(spec.file).removeSlash() // for name
+  if (Loc.make(spec.file).filename == spec.file) {
     let exist
 
-    dir = Loc.make(dir)
-    dir.ensureSlash()
-    if (file)
-      exist = Buf.find(b => (b.file == file) && (b.dir == dir.path))
+    spec.dir = Loc.make(spec.dir)
+    spec.dir.ensureSlash()
+    if (spec.file)
+      exist = Buf.find(b => (b.file == spec.file) && (b.dir == spec.dir.path))
     if (exist) {
-      p.setBuf(exist, { lineNum: lineNum }, whenReady)
+      p.setBuf(exist, { lineNum: spec.lineNum, whenReady: spec.whenReady }, cb)
       return
     }
-    if (lineNum === undefined) {
+    if (spec.lineNum === undefined) {
       let path
 
-      dir = Buf.prepDir(dir)
-      path = dir + file
+      spec.dir = Buf.prepDir(spec.dir)
+      path = spec.dir + spec.file
       d('get pos')
       Tron.cmd1('brood.get', [ 'poss', path ], (err, resp) => {
         if (err)
           Mess.log('Error getting line num of ' + path + ', will use 1: ' + err.message)
         else if (resp.data)
-          lineNum = resp.data.row + 1
+          spec.lineNum = resp.data.row + 1
         d('make buf')
         makeBuf()
       })

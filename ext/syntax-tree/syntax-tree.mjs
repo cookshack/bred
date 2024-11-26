@@ -6,8 +6,11 @@ import { d } from '../../mess.mjs'
 
 export
 function make
-(p, dir, name, cb) {
-  Ed.make(p, name, dir, 0, 0, cb)
+(p, dir, name, cb) { // (view)
+  Ed.make2(p,
+           { name: name,
+             dir: dir },
+           cb)
 }
 
 export
@@ -34,10 +37,9 @@ function init
     name = callerBuf.file + '.leztree'
     found = Buf.find(b => (b.mode.name == 'lezer tree') && (b.name == name))
     if (found)
-      p.setBuf(found)
+      p.setBuf(found, {}, view => fill(view))
     else
-      make(p, callerBuf.dir, name)
-    fill(p.view)
+      make(p, callerBuf.dir, name, view => fill(view))
   }
 
   Cmd.add('syntax tree', () => tree())

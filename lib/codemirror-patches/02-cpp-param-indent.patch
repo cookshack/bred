@@ -4,7 +4,7 @@
                  LabeledStatement: flatIndent,
                  CaseStatement: context => context.baseIndent + context.unit,
                  BlockComment: () => null,
-+                "ParameterList ArgumentList FieldDeclarationList": delimitedIndent({ closing: ')', align: true }),
++                "ParameterList ArgumentList FieldDeclarationList ConditionClause": delimitedIndent({ closing: ')', align: true }),
                  CompoundStatement: /*@__PURE__*/delimitedIndent({ closing: "}" }),
                  Statement: /*@__PURE__*/continuedIndent({ except: /^{/ })
              }),

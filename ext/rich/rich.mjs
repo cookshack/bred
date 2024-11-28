@@ -32,6 +32,9 @@ function init
       if (token.type == 'code')
         return divCl('rich-code', token.text)
 
+      if (token.type == 'codespan')
+        return divCl('rich-codespan', token.text)
+
       if (token.type == 'strong')
         return divCl('rich-b', rest(token))
 

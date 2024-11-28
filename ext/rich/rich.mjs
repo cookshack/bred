@@ -7,6 +7,7 @@ import * as Pane from '../../pane.mjs'
 import { d } from '../../mess.mjs'
 
 import * as Marked from './lib/marked.js'
+import Purify from './lib/purify.js'
 
 export
 function init
@@ -40,6 +41,14 @@ function init
 
       if (token.type == 'escape')
         return token.text
+
+      if (token.type == 'html') {
+        let el
+
+        el = div()
+        el.innerHTML = Purify.sanitize(token.text)
+        return el
+      }
 
       if (token.type == 'strong')
         return divCl('rich-b', rest(token))

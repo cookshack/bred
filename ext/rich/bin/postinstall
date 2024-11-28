@@ -2,3 +2,4 @@
 
 mkdir -p lib/
 cp node_modules/marked/lib/marked.esm.js lib/marked.js
+cp node_modules/dompurify/dist/purify.es.mjs lib/purify.js

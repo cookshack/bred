@@ -40,12 +40,18 @@
   font-family: monospace;
   background-color: var(--clr-fill);
   padding: 0.5rem;
+  white-space: pre;
 }
 
 .rich-codespan {
   font-family: monospace;
   background-color: var(--clr-fill);
   display: inline;
+}
+
+/* strikethrough */
+.rich-del {
+  text-decoration: line-through;
 }
 
 .rich-it {

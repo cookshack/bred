@@ -38,6 +38,9 @@ function init
       if (token.type == 'del')
         return divCl('rich-del', rest(token))
 
+      if (token.type == 'escape')
+        return token.text
+
       if (token.type == 'strong')
         return divCl('rich-b', rest(token))
 

@@ -26,6 +26,9 @@ function init
   function render
   (token) {
     if (token) {
+      if (token.type == 'blockquote')
+        return divCl('rich-blockquote', rest(token))
+
       if (token.type == 'strong')
         return divCl('rich-b', rest(token))
 

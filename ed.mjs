@@ -1675,6 +1675,12 @@ function register
   return Backend.register && Backend.register(spec)
 }
 
+export
+function code
+(el, langId, text) {
+  return Backend.code && Backend.code(el, langId, text)
+}
+
 /// Utils
 
 export

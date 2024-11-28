@@ -45,7 +45,7 @@ cd ~/src/bred/ && npm start -- $*
 
 1. Create ~/.local/share/applications/userapp-bred.desktop with:
 
-    ```
+    ```ini
     [Desktop Entry]
     Encoding=UTF-8
     Version=1.0

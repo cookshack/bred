@@ -2,6 +2,7 @@ import { append, create, div, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
+import * as Ed from '../../ed.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 import { d } from '../../mess.mjs'
@@ -30,8 +31,13 @@ function init
       if (token.type == 'blockquote')
         return divCl('rich-blockquote', rest(token))
 
-      if (token.type == 'code')
-        return divCl('rich-code', token.text)
+      if (token.type == 'code') {
+        let el
+
+        el = divCl('rich-code')
+        Ed.code(el, token.lang, token.text)
+        return el
+      }
 
       if (token.type == 'codespan')
         return divCl('rich-codespan', token.text)

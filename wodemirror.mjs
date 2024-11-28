@@ -3832,6 +3832,41 @@ div.cm-line.cm-activeLine {
   globalThis.document.head.appendChild(globalThis.document.createElement('style')).innerHTML = css
 }
 
+function langFromCodeLang
+(code) {
+  if (code == 'sh')
+    return 'shell'
+  if (code == 'bash')
+    return 'shell'
+  return code
+}
+
+export
+function code
+(el, langId, text) {
+  let lang, opts, state
+
+  opts = [ themeHighlighting,
+           themeExtension,
+           CMView.EditorView.editable.of(false) ]
+
+  if (langId) {
+    lang = Ed.findLang(langFromCodeLang(langId))
+    if (lang?.language)
+      opts = [ ...opts,
+               lang.language,
+               ...(lang.support ? [ lang.support ] : []) ]
+    else
+      Mess.log('code: Missed lang: ' + langId)
+  }
+
+  state = CMState.EditorState.create({ doc: text || '',
+                                       extensions: opts })
+
+  return new CMView.EditorView({ state,
+                                 parent: el })
+}
+
 export
 function init
 () {

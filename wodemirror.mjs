@@ -4024,7 +4024,7 @@ function init
              } })
 
   loadLang('./lib/codemirror-lang-richdown.js', 'Richdown',
-           { front: 1, // give priority over markdown
+           { front: 0, // priority goes to markdown
              ext: [ 'md' ],
              load(m) {
                return m.richdown({ lezer: { codeLanguages: langs } })

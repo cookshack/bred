@@ -36,6 +36,12 @@
   padding-left: 0.2rem;
 }
 
+.rich-code {
+  font-family: monospace;
+  background-color: var(--clr-fill);
+  padding: 0.5rem;
+}
+
 .rich-it {
   font-style: italic;
 }

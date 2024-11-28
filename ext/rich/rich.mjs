@@ -29,6 +29,9 @@ function init
       if (token.type == 'blockquote')
         return divCl('rich-blockquote', rest(token))
 
+      if (token.type == 'code')
+        return divCl('rich-code', token.text)
+
       if (token.type == 'strong')
         return divCl('rich-b', rest(token))
 

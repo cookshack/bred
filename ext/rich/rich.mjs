@@ -3,6 +3,8 @@ import { append, create, div, divCl } from '../../dom.mjs'
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
 import * as Ed from '../../ed.mjs'
+import * as Em from '../../em.mjs'
+import * as Mess from '../../mess.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 import { d } from '../../mess.mjs'
@@ -13,7 +15,26 @@ import Purify from './lib/purify.js'
 export
 function init
 () {
-  let md
+  let mo
+
+  function edit
+  () {
+    let b, name, p, path
+
+    p = Pane.current()
+    name = p.buf.vars('Rich').name
+    if (name)
+      b = Buf.find(b2 => b2.name == name)
+    if (b) {
+      p.setBuf(b)
+      return
+    }
+    path = p.buf.vars('Rich').path
+    if (path)
+      Pane.openFile(path)
+    else
+      Mess.yell('Missing file')
+  }
 
   function target
   (id) {
@@ -127,23 +148,23 @@ function init
     append(w, co)
   }
 
-  md = `this is md
-
-# head
-
-Para with *bold* and _italic_.
-`
-  Mode.add('Rich', { viewInit: refresh })
+  mo = Mode.add('Rich', { viewInit: refresh })
 
   Cmd.add('Rich', () => {
-    let p, buf
+    let p, buf, md
 
     p = Pane.current()
     md = p.buf.text()
     buf = Buf.add('Rich', 'Rich', divW(md), p.dir)
+    buf.vars('Rich').name = p.buf.name
+    buf.vars('Rich').path = p.buf.path
     buf.addMode('view')
     p.setBuf(buf)
   })
+
+  Cmd.add('edit', () => edit(), mo)
+
+  Em.on('e', 'edit', mo)
 }
 
 export

@@ -39,6 +39,7 @@ import { Vode } from './json.mjs'
 export let langs, themeExtension
 
 let theme, themeTags, themeHighlighting
+let themeCode, themeHighlightingCode, themeExtensionCode
 let completionNextLine, completionPreviousLine, tagHighlighting, bredView, spRe
 let brexts, brextIds, registeredOpts, watching
 
@@ -3846,8 +3847,8 @@ function code
 (el, langId, text) {
   let lang, opts, state
 
-  opts = [ themeHighlighting,
-           themeExtension,
+  opts = [ themeHighlightingCode,
+           themeExtensionCode,
            CMView.EditorView.editable.of(false) ]
 
   if (langId) {
@@ -3870,7 +3871,7 @@ function code
 export
 function init
 () {
-  let languages
+  let languages, themeSettings
 
   brextIds = 0
   brexts = Mk.array
@@ -4030,21 +4031,29 @@ function init
              } })
 
   themeTags = LZHighlight.tags
+  themeSettings = { backgroundImage: '',
+                    foreground: Theme.meanings.text,
+                    caret: Theme.meanings.pointCurrent,
+                    //selection: 'rgb(38 139 210 / 20%)', //'rgb(238 232 213 / 45%)', //Theme.clrs.yellow,
+                    selection: Theme.meanings.nb0Light,
+                    selectionMatch: 'var(--clr-fill-aux)',
+                    lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
+                    gutterBorder: '1px solid #ffffff10',
+                    gutterBackground: Theme.meanings.fill,
+                    gutterForeground: Theme.meanings.text }
   theme = CMTheme.createTheme({ theme: 'light',
                                 settings: { background: Theme.meanings.light,
-                                            backgroundImage: '',
-                                            foreground: Theme.meanings.text,
-                                            caret: Theme.meanings.pointCurrent,
-                                            //selection: 'rgb(38 139 210 / 20%)', //'rgb(238 232 213 / 45%)', //Theme.clrs.yellow,
-                                            selection: Theme.meanings.nb0Light,
-                                            selectionMatch: 'var(--clr-fill-aux)',
-                                            lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
-                                            gutterBorder: '1px solid #ffffff10',
-                                            gutterBackground: Theme.meanings.fill,
-                                            gutterForeground: Theme.meanings.text },
+                                            ...themeSettings },
                                 styles: themeStyles(themeTags) })
   themeHighlighting = theme[0]
   themeExtension = theme[1]
+
+  themeCode = CMTheme.createTheme({ theme: 'code-light',
+                                    settings: { background: Theme.meanings.fill,
+                                                ...themeSettings },
+                                    styles: themeStyles(themeTags) })
+  themeHighlightingCode = themeCode[0]
+  themeExtensionCode = themeCode[1]
 
   {
     let classTags

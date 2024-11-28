@@ -3851,10 +3851,12 @@ function init
 
   function addLang
   (langs, lang, ed, opt) {
-    //d('lang: ' + lang.name)
+    //d('lang: ' + lang.name + ' (' + lang.id + ')')
     opt = opt || {}
-    lang.extensions = lang.extensions?.map(e => '.' + e)
     lang.id = lang.name.toLowerCase()
+    lang.extensions = lang.extensions?.map(e => '.' + e)
+    if (lang.id == 'dockerfile')
+      lang.extensions = [ ...(lang.extensions || []), '.Dockerfile' ]
     lang.path = opt.path
     if (opt.firstLine)
       lang.firstLine = opt.firstLine

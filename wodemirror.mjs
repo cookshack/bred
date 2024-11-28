@@ -3731,7 +3731,7 @@ function addMode
     Em.on(' ', 'scroll down', 'richdown')
   }
   else if (lang.id == 'markdown')
-    Em.on('C-c C-c', 'richdown mode', 'markdown')
+    Em.on('C-c C-c', 'rich', 'markdown')
 
   if ([ 'javascript', 'css', 'cpp' ].includes(lang.id))
     Em.on('}', 'self insert and indent', mode)

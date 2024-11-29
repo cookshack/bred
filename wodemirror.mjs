@@ -3901,6 +3901,8 @@ function init
       lang.filenames = [ ...(lang.filenames || []), 'CMakeLists.txt' ]
     else if (lang.id == 'ruby')
       lang.filenames = [ ...(lang.filenames || []), 'Vagrantfile' ]
+    if (lang.id == 'rust')
+      lang.alias = [ ...(lang.alias || []), 'rs' ]
     if (lang.load)
       lang.load().then(l => lang.language = l)
     if (opt.front)

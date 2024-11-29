@@ -31,6 +31,7 @@
 
 .rich-b {
   color: var(--clr-emph);
+  display: inline;
 }
 
 .rich-blockquote {
@@ -54,10 +55,12 @@
 /* strikethrough */
 .rich-del {
   text-decoration: line-through;
+  display: inline;
 }
 
 .rich-it {
   font-style: italic;
+  display: inline;
 }
 
 .rich-h {

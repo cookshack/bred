@@ -1215,13 +1215,24 @@ function init
     let el
 
     el = current()
-    if (el && el.dataset.path)
+    if (el && el.dataset.path) {
+      if (el.dataset.path.includes('.')) {
+        let ext, mtype
+
+        ext = el.dataset.path.slice(el.dataset.path.indexOf('.') + 1)
+        mtype = Ed.mtypeFromExt(ext)
+        if (mtype && Ed.supports(mtype)) {
+          Pane.open(el.dataset.path)
+          return
+        }
+      }
       Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => {
         if (err) {
           Mess.yell('shell.open: ' + err.message)
           return
         }
       })
+    }
     else
       Mess.say('Move to a file first')
   }

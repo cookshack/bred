@@ -4,7 +4,7 @@
   padding: 0.5rem;
   padding-top: 0;
 
-  font-family: monospace;
+  font-family: var(--font-monospace);
 
   display: flex;
 }

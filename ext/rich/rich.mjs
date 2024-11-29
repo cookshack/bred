@@ -165,7 +165,18 @@ function init
   () {
   }
 
+  function rich
+  () {
+    let p
+
+    p = Pane.current()
+    p.buf.path || Mess.toss('Need a buf path')
+    open(p.buf.path)
+  }
+
   mo = Mode.add('Rich', { viewInit: refresh })
+
+  Cmd.add('rich', () => rich())
 
   Cmd.add('edit', () => edit(), mo)
 

@@ -16,6 +16,7 @@
 }
 
 .rich-w {
+  line-height: 1.5;
   width: 100%;
   height: min-content;
   padding: 0.5rem;

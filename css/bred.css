@@ -192,6 +192,7 @@ html {
   /* explicit so that regular size matches mono size */
   --font-monospace: 'DejaVu Sans Mono', monospace;
   font-family: 'DejaVu Sans', sans-serif;
+  text-rendering: optimizeLegibility;
 }
 
 body {

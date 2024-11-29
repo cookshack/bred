@@ -61,9 +61,6 @@ function render
       return el
     }
 
-    if (token.type == 'strong')
-      return divCl('rich-b', rest(token))
-
     if (token.type == 'em')
       return divCl('rich-it', rest(token))
 
@@ -94,6 +91,9 @@ function render
 
     if (token.type == 'space')
       return divCl('rich-spc')
+
+    if (token.type == 'strong')
+      return divCl('rich-b', rest(token))
 
     if (token.type == 'text') {
       if (token.tokens)

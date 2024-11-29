@@ -1227,8 +1227,7 @@ function init
 
           rich = Ext.get('rich')
           if (rich && rich.supports(mtype)) {
-            Pane.open(el.dataset.path)
-            Cmd.run('rich')
+            Pane.open(el.dataset.path, null, () => Cmd.run('rich'))
             return
           }
         }

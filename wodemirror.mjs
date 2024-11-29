@@ -3704,7 +3704,7 @@ function addMode
   exts = lang.extensions?.map(e => e.slice(1))
   mime = minfo(exts)
   key = modeFromLang(lang.id)
-  d('adding mode ' + lang.id + ' with exts: ' + exts)
+  d('adding mode for ' + lang.id + ' with exts: ' + exts)
   mode = Mode.add(key,
                   { name: key,
                     viewInit: viewInit,
@@ -3715,6 +3715,7 @@ function addMode
                     mime: mime,
                     //
                     seize: seizeLang })
+  lang.mode = mode
 
   if (lang.id == 'css') {
     //Cmd.add('insert }', (u,we) => insertClose(u, we, mode), mode)

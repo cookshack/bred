@@ -5,6 +5,7 @@ import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
+import * as Ext from './ext.mjs'
 import * as Hist from './hist.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
@@ -1221,6 +1222,16 @@ function init
 
         ext = el.dataset.path.slice(el.dataset.path.indexOf('.') + 1)
         mtype = Ed.mtypeFromExt(ext)
+        if (mtype) {
+          let rich
+
+          rich = Ext.get('rich')
+          if (rich && rich.supports(mtype)) {
+            Pane.open(el.dataset.path)
+            Cmd.run('rich')
+            return
+          }
+        }
         if (mtype && Ed.supports(mtype)) {
           Pane.open(el.dataset.path)
           return

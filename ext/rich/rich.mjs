@@ -13,6 +13,12 @@ import * as Marked from './lib/marked.js'
 import Purify from './lib/purify.js'
 
 export
+function supports
+(mtype) {
+  return mtype == 'text/markdown'
+}
+
+export
 function init
 () {
   let mo

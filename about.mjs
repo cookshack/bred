@@ -607,7 +607,11 @@ function initLang
              div('Matches Path Regex'),
              div(lang.filename?.toString()),
              div('Type'),
-             div(lang.legacy ? 'legacy' : 'lezer'))
+             div(lang.legacy ? 'legacy' : 'lezer'),
+             div('Mode'),
+             div(lang.mode ? lang.mode.name : '??'),
+             div('Mode Mime Types'),
+             div(lang.mode?.mime ? [ ...new Set(lang.mode.mime.map(m => m.type)) ].join(' ') : ''))
 
     append(frag, divCl('lang-end'))
     append(w, frag)

@@ -4013,6 +4013,7 @@ function init
              path: /\.git\/config$/ })
   loadLang('./lib/@cookshack/codemirror-lang-lezer-tree.js', 'Lezer Tree', { ext: [ 'leztree' ] })
   loadLang('./lib/codemirror-lang-makefile.js', 'Makefile', { filename: /^(GNUmakefile|makefile|Makefile)$/, module: 'codemirror-lang-makefile' })
+  loadLang('./lib/@cookshack/codemirror-lang-nasl.js', 'NASL', { ext: [ 'nasl' ] })
   loadLang('./lib/@replit/codemirror-lang-nix.js', 'Nix', { ext: [ 'nix' ] })
   loadLang('./lib/@orgajs/codemirror-lang-org.js', 'Org', { ext: [ 'org' ] })
   loadLang('./lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ], module: '@cookshack/codemirror-lang-peg' })

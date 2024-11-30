@@ -11,7 +11,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Recent from './recent.mjs'
-//import { d } from './mess.mjs'
+import { d } from './mess.mjs'
 
 export
 function init
@@ -51,11 +51,12 @@ function init
 
   function refresh
   (view) {
-    let text, needles, vars, all, needle, rec, candidate, eNeedle
+    let text, needles, vars, all, needle, rec, candidate, eNeedle, regex
 
     function match
-    (name, needle) {
-      return name.split(/\s+/).some(word => word.toLowerCase().startsWith(needle))
+    (name) {
+      return regex.test(name)
+      //return name.split(/\s+/).some(word => word.toLowerCase().startsWith(needle))
     }
 
     text = buf.text() || ''
@@ -66,6 +67,22 @@ function init
     vars.needle = vars.needle || ''
     needles = text
     needle = text.toLowerCase()
+    if (needle.length) {
+      let re, split
+
+      // 'ab j' => about.js
+      split = needle.split(' ').filter(s => s.length)
+      if (split.length) {
+        // \p{L} is any char classified as letter in unicode
+        re = Ed.escapeForRe(split[0]) + '\\p{L}*'
+        for (let i = 1; i < split.length; i++)
+          // so match can have any word chars then must have some other chars then must have the split
+          re += '[^\\p{L}]+' + Ed.escapeForRe(split[i]) + '\\p{L}*'
+        re += '.*'
+        0 && d('REGEX: ' + re)
+        regex = new RegExp(re, 'ui') // unicode, insensitive
+      }
+    }
 
     all = Buf.getRing()
     // put current buf at end
@@ -101,15 +118,13 @@ function init
         }
       })
 
-      if (needle.length) {
-        all = all.filter(b => (b.name.length > 0)
-                         && match(b.name, needle))
-        rec = rec.filter(r => (r.name.length > 0)
-                         && match(r.name, needle))
+      if (regex) {
+        all = all.filter(b => b.name.length && match(b.name, needle))
+        rec = rec.filter(r => r.name.length && match(r.name, needle))
       }
       else {
-        all = all.filter(b => b.name.length > 0)
-        rec = rec.filter(r => r.name.length > 0)
+        all = all.filter(b => b.name.length)
+        rec = rec.filter(r => r.name.length)
       }
 
       if (all.length && all[0].name.length && needle.length)

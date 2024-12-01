@@ -6,6 +6,18 @@ export BRANCH
 REMOTE=`git for-each-ref --format='%(upstream:remotename)' "$(git symbolic-ref -q HEAD)"`
 export REMOTE
 
+if [ -z "$BRANCH" ]; then
+  echo REMOTE: $REMOTE
+  echo Failed to get branch
+  exit 1
+fi
+
+if [ -z "$REMOTE" ]; then
+  echo BRANCH: $BRANCH
+  echo Failed to get remote
+  exit 1
+fi
+
 echo git pull $REMOTE $BRANCH
 
 git pull $REMOTE $BRANCH

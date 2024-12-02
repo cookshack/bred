@@ -1,5 +1,5 @@
 {
-  "name": "bred",
+  "name": "@cookshack/bred",
   "version": "0.1.1",
   "description": "browser editor thing",
   "main": "main.mjs",

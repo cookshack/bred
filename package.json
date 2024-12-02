@@ -46,7 +46,7 @@
     "@cookshack/codemirror-lang-nasl": "^0.1.1",
     "@cookshack/codemirror-lang-peg": "file:../codemirror-lang-peg",
     "@cookshack/codemirror-lang-zig": "^0.1.0",
-    "@cookshack/codemirror-ruler": "file:../codemirror-ruler/latest.tgz",
+    "@cookshack/codemirror-ruler": "^0.2.3",
     "@cookshack/eslint-config": "^0.1.5",
     "@electron/rebuild": "^3.6.0",
     "@fluentui/svg-icons": "^1.1.240",

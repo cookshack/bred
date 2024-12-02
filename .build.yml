@@ -1,16 +1,15 @@
-image: alpine/edge
+image: alpine/3.20
+packages:
+  - nodejs
+  - npm
 secrets:
   - e2e843cf-6f7e-4b74-989f-819a97ca70b8
+  - 693e186a-109b-4e62-9d15-a123679909cc
 sources:
+  - https://git.sr.ht/~mattmundell/build
   - git+ssh://git@git.sr.ht/~mattmundell/bred
+environment:
+  PKG: bred
 tasks:
-  - check: |
-      cd bred
-      if [ "$(git rev-parse origin/main)" != "$(git rev-parse HEAD)" ]; then \
-        complete-build; \
-      fi
   - mirror: |
-      cd bred
-      git remote add github git@github.com:cookshack/bred.git
-      ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
-      git push github main
+      cd $PKG && ../build/bin/mirror

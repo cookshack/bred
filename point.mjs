@@ -367,7 +367,16 @@ function make
     sync()
   }
 
-  return { ele: elePoint,
+  return { get ele() {
+    return elePoint
+  },
+           //
+           set ele(e) {
+             return elePoint = e
+           },
+           set elePane(e) {
+             return elePane = e
+           },
            //
            over,
            backward,

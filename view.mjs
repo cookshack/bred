@@ -60,11 +60,13 @@ function make
   }
 
   function reopen
-  (newPaneEle, lineNum, whenReady, cb) {
+  (newPaneEle, newPointEle, lineNum, whenReady, cb) {
     d('VIEW reopen ' + vid)
     ready = 0
     active = 1
     ele = newPaneEle
+    point.elePane = ele
+    point.ele = newPointEle
     ele.innerHTML = ''
     append(ele, reserved)
     reserved = 0
@@ -302,7 +304,7 @@ function make
   v = views.find(v1 => (v1.win == win) && (v1.active == 0))
   if (v) {
     d('VIEW reusing view ' + v.vid)
-    v.reopen(ele, lineNum, whenReady, cb)
+    v.reopen(ele, elePoint, lineNum, whenReady, cb)
     return v
   }
   modeVars = []

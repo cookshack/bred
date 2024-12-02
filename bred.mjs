@@ -577,6 +577,9 @@ function initCmds
       pos--
     }
     l = l.slice(pos)
+    l = l.replace(/\x1B\[[0-?9;]*[mK]/g, '') // remove ansi sequences
+    //l = l.replace(/[\x00-\x1F\x7F]/g, '') // remove control chars
+
     if (l.startsWith('http://') || l.startsWith('https://'))
       return l.split(' ')[0]
     return 0

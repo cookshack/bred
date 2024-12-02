@@ -3955,7 +3955,10 @@ function init
                                                    return ls
                                                  })
                                                } })
-        lang.module = opt.module
+        if (opt.module === undefined)
+          lang.module = file.match(/^.\/lib\/(.*)\.js$/)?.at(1)
+        else
+          lang.module = opt.module
         languages.push(lang)
         addLang(langs, lang, opt.ed ?? 1, opt)
       }
@@ -3976,7 +3979,6 @@ function init
            'JavaScript',
            { ext: [ 'js', 'mjs', 'cjs' ],
              firstLine: '^#!.*\\b(node|gjs)',
-             module: '@codemirror/javascript',
              preload(m) {
                let lang, props, indents
 
@@ -4001,28 +4003,26 @@ function init
              } })
 
   loadLang('./lib/@replit/codemirror-lang-csharp.js', 'Csharp', { ext: [ 'cs', 'csx' ] })
-  loadLang('./lib/@cookshack/codemirror-lang-csv.js', 'Csv', { ext: [ 'csv' ], module: '@cookshack/codemirror-lang-csv' })
+  loadLang('./lib/@cookshack/codemirror-lang-csv.js', 'Csv', { ext: [ 'csv' ] })
   loadLang('./lib/codemirror-lang-diff.js', 'Diff', { ext: [ 'diff', 'patch' ] })
   loadLang('./lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
-  loadLang('./lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ], module: '@codemirror/lang-lezer' })
+  loadLang('./lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ] })
   loadLang('./lib/codemirror-lang-git-log.js', 'Git Log',
-           { ed: 0, // prevent mode creation, already have VC Log mode
-             module: 'codemirror-lang-git-log' })
+           { ed: 0 }) // prevent mode creation, already have VC Log mode
   loadLang('./lib/@cookshack/codemirror-lang-ini.js', 'Ini',
            { exts: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
              path: /\.git\/config$/ })
   loadLang('./lib/@cookshack/codemirror-lang-lezer-tree.js', 'Lezer Tree', { ext: [ 'leztree' ] })
-  loadLang('./lib/codemirror-lang-makefile.js', 'Makefile', { filename: /^(GNUmakefile|makefile|Makefile)$/, module: 'codemirror-lang-makefile' })
+  loadLang('./lib/codemirror-lang-makefile.js', 'Makefile', { filename: /^(GNUmakefile|makefile|Makefile)$/ })
   loadLang('./lib/@cookshack/codemirror-lang-nasl.js', 'NASL', { ext: [ 'nasl' ] })
   loadLang('./lib/@replit/codemirror-lang-nix.js', 'Nix', { ext: [ 'nix' ] })
   loadLang('./lib/@orgajs/codemirror-lang-org.js', 'Org', { ext: [ 'org' ] })
-  loadLang('./lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ], module: '@cookshack/codemirror-lang-peg' })
+  loadLang('./lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ] })
   loadLang('./lib/@cookshack/codemirror-lang-zig.js', 'Zig', { ext: [ 'zig' ] })
 
   loadLang('./lib/@codemirror/lang-markdown.js',
            'Markdown',
            { ext: [ 'md', 'markdown', 'mkd' ],
-             module: '@codemirror/lang-markdown',
              load(m) {
                return m.markdown({ codeLanguages: langs })
              } })
@@ -4030,6 +4030,7 @@ function init
   loadLang('./lib/codemirror-lang-richdown.js', 'Richdown',
            { front: 0, // priority goes to markdown
              ext: [ 'md' ],
+             module: 0,
              load(m) {
                return m.richdown({ lezer: { codeLanguages: langs } })
              } })

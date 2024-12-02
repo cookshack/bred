@@ -42,7 +42,7 @@
     "@codemirror/view": "^6.26.3",
     "@cookshack/codemirror-lang-csv": "^0.1.0",
     "@cookshack/codemirror-lang-ini": "file:../codemirror-lang-ini",
-    "@cookshack/codemirror-lang-lezer-tree": "file:../codemirror-lang-lezer-tree",
+    "@cookshack/codemirror-lang-lezer-tree": "^0.1.0",
     "@cookshack/codemirror-lang-nasl": "^0.1.1",
     "@cookshack/codemirror-lang-peg": "file:../codemirror-lang-peg",
     "@cookshack/codemirror-lang-zig": "^0.1.0",

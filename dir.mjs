@@ -746,33 +746,22 @@ function getMarked
   return marked
 }
 
-export
-function init
-() {
-  let m, hist
+function abs
+(to, dir) {
+  if (to.startsWith('/'))
+    return to
+  return Loc.make(dir).join(to)
+}
 
-  function current
-  (p) {
-    p = p || Pane.current()
-    return p?.view?.point?.over()
-  }
+function current
+(p) {
+  p = p || Pane.current()
+  return p?.view?.point?.over()
+}
 
-  function abs
-  (to, dir) {
-    if (to.startsWith('/'))
-      return to
-    return Loc.make(dir).join(to)
-  }
-
-  function placeholder
-  (p, from) {
-    let next
-
-    next = p.next
-    if (next
-        && (next.buf?.mode.key == 'dir'))
-      return Loc.make(next.buf.path).join(Loc.make(from).filename)
-  }
+function initChmod
+(m) {
+  let hist
 
   function chmod
   () {
@@ -783,6 +772,7 @@ function init
       let absPath
 
       absPath = abs(path, dir)
+      hist.add(mode)
       Tron.cmd('file.chmod', [ mode, absPath ], err => {
         if (err) {
           Mess.yell('file.chmod: ' + err.message)
@@ -806,8 +796,29 @@ function init
       return
     }
 
-    Prompt.ask({ text: 'Update mode for ' + path },
+    Prompt.ask({ text: 'Update mode for ' + path,
+                 hist: hist },
                mode => run(mode, p.dir))
+  }
+
+  hist = Hist.ensure('dir.chmod')
+  Cmd.add('chmod', () => chmod(), m)
+  Em.on('M', 'chmod', 'Dir')
+}
+
+export
+function init
+() {
+  let m, hist
+
+  function placeholder
+  (p, from) {
+    let next
+
+    next = p.next
+    if (next
+        && (next.buf?.mode.key == 'dir'))
+      return Loc.make(next.buf.path).join(Loc.make(from).filename)
   }
 
   function del
@@ -1259,7 +1270,6 @@ function init
 
   m = Mode.add('Dir')
 
-  Cmd.add('chmod', () => chmod(), m)
   Cmd.add('clear marks', () => clear(), m)
   Cmd.add('copy file', () => copy(), m)
   Cmd.add('delete', () => del(), m)
@@ -1284,7 +1294,6 @@ function init
   Em.on('g', 'refresh', 'Dir')
   Em.on('l', 'link', 'Dir')
   Em.on('m', 'mark', 'Dir')
-  Em.on('M', 'chmod', 'Dir')
   Em.on('n', 'next line', 'Dir')
   Em.on('o', 'open in other pane', 'Dir')
   Em.on('p', 'previous line', 'Dir')
@@ -1313,4 +1322,5 @@ function init
   Cmd.add('root', () => add(Pane.current(), '/'))
 
   initSearchFiles()
+  initChmod(m)
 }

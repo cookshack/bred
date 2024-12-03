@@ -24,7 +24,7 @@ import * as CMCollab from './lib/@codemirror/collab.js'
 import * as CMComm from './lib/@codemirror/commands.js'
 import * as CMData from './lib/@codemirror/language-data.js'
 import * as CMLang from './lib/@codemirror/language.js'
-import * as CMLangLezerTree from './lib/@cookshack/codemirror-lang-lezer-tree.js'
+import * as LezUtils from './lib/lezer-utils.js'
 import * as CMLint from './lib/@codemirror/lint.js'
 import * as CMSearch from './lib/@codemirror/search.js'
 import * as CMState from './lib/@codemirror/state.js'
@@ -1804,7 +1804,7 @@ function initModeFns
 
     state = b?.anyView()?.ed?.state
     if (state)
-      return CMLangLezerTree.pretty(CMLang.syntaxTree(state).topNode)
+      return LezUtils.pretty(CMLang.syntaxTree(state).topNode)
     return 'ERR'
   }
 

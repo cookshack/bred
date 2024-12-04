@@ -582,30 +582,28 @@ function initQR
   Cmd.add('find and replace', () => qr(), mo)
 }
 
-export
-function initSearch
-(mo) {
-  let s, mapSearch, lastNeedle
+function BredinitSearch
+(vfind, spec) { // { Backend, cancel, cleanup, mode }
+  let s, mapSearch, lastNeedle, mo
 
   function cleanup
   () {
     s.st.view.buf.opts.set('core.highlight.occurrences.enabled', s.st.occur)
-    Backend.clearDecorMatch(s.st.view, s.st)
-    Backend.clearDecorAll(s.st.view, s.st)
+    spec.cleanup && spec.cleanup(s)
 
     Css.show(s.st.win.echo)
     s.st.mini.remove()
     Css.remove(s.st.win.mini, 'active')
     Css.remove(s.st.win.mini, 'search')
     globalThis.onkeydown = s.st.oldOnKeyDown
-    Backend.cancel()
+    spec.cancel && spec.cancel()
   }
 
   function searchCancel
   (keepPos) {
     cleanup()
     if (keepPos) {
-      s.st.view.marks.push(Backend.posToBep(s.st.view, s.st.start))
+      s.st.view.marks?.push(Backend.posToBep(s.st.view, s.st.start))
       if (s.st.needle.length)
         lastNeedle = s.st.needle
     }
@@ -620,7 +618,7 @@ function initSearch
     if (s.st.needle.length)
       lastNeedle = s.st.needle
 
-    s.st.view.marks.push(Backend.posToBep(s.st.view, s.st.start))
+    s.st.view.marks?.push(Backend.posToBep(s.st.view, s.st.start))
 
     cleanup()
     s.st = 0
@@ -696,9 +694,8 @@ function initSearch
         d('stack now empty')
         s.st.needle = ''
         s.st.echo.innerText = ''
-        Backend.clearDecorMatch(s.st.view, s.st)
-        Backend.clearDecorAll(s.st.view, s.st)
-        Backend.vsetPos(s.st.view, s.st.start, 1)
+        cleanup && cleanup(s)
+        spec.Backend?.vsetPos(s.st.view, s.st.start, 1)
         return
       }
 
@@ -710,18 +707,18 @@ function initSearch
       s.st.needle = match.needle
       s.st.echo.innerText = s.st.needle
 
-      Backend.setDecorMatch(s.st, s.st.view, match.range)
+      spec.Backend?.setDecorMatch(s.st, s.st.view, match.range)
       if (oldNeedle == s.st.needle) {
         // removed a match that was added with 'search * again', so the decor is the same
       }
       else
-        Backend.setDecorAll(s.st, s.st.view, s.st.needle, { regExp: s.st.regExp, caseSensitive: s.st.caseSensitive })
+        spec.Backend?.setDecorAll(s.st, s.st.view, s.st.needle, { regExp: s.st.regExp, caseSensitive: s.st.caseSensitive })
 
       if (match.range) {
         let bep
 
-        bep = match.backwards ? Backend.rangeStartBep(match.range) : Backend.rangeEndBep(match.range)
-        Backend.vsetBep(s.st.view, bep, 1)
+        bep = match.backwards ? Backend?.rangeStartBep(match.range) : Backend?.rangeEndBep(match.range)
+        Backend?.vsetBep(s.st.view, bep, 1)
       }
     }
     else
@@ -740,12 +737,12 @@ function initSearch
         if (s.st.backward) {
           let bep
 
-          bep = Backend.rangeEndBep(match.range)
-          bep = Backend.vbepIncr(s.st.view, bep)
-          Backend.vsetBep(s.st.view, bep)
+          bep = Backend?.rangeEndBep(match.range)
+          bep = Backend?.vbepIncr(s.st.view, bep)
+          Backend?.vsetBep(s.st.view, bep)
         }
         else
-          Backend.vsetBep(s.st.view, Backend.rangeStartBep(match.range))
+          Backend?.vsetBep(s.st.view, Backend?.rangeStartBep(match.range))
 
       if (s.st.backward)
         previous(0)
@@ -765,7 +762,7 @@ function initSearch
       // about to search forward
       match = s.st.stack?.at(-1)
       if (match)
-        Backend.vsetBep(s.st.view, Backend.rangeStartBep(match.range))
+        Backend?.vsetBep(s.st.view, Backend?.rangeStartBep(match.range))
 
       needleRe = escapeForRe(s.st.needle) + '[^a-zA-Z0-9]*[a-zA-Z0-9]+'
       //d("needleRe: " + needleRe)
@@ -779,7 +776,7 @@ function initSearch
                       wholeWord: 0,
                       regExp: 1 })
       if (range) {
-        s.st.needle = Backend.vrangeText(s.st.view, range)
+        s.st.needle = Backend?.vrangeText(s.st.view, range)
         s.st.stack.push({ range: range, needle: s.st.needle, backwards: 0 })
         s.st.echo.innerText = s.st.needle
       }
@@ -875,6 +872,9 @@ function initSearch
     }
   }
 
+  spec = spec || {}
+  mo = spec.mode
+
   s = { s: 0, // state
         search: search,
         addCharToSearch: addCharToSearch,
@@ -884,7 +884,7 @@ function initSearch
         previous: previous,
         done: done }
 
-  mapSearch = Em.make('Ed: Search')
+  mapSearch = Em.make(spec.emName)
 
   Cmd.add('find', () => search(0), mo)
   Cmd.add('search forward', () => search(0), mo)
@@ -907,6 +907,19 @@ function initSearch
   Em.on('C-s', 'search forward again', mapSearch)
   Em.on('C-r', 'search backward again', mapSearch)
   Em.on('C-w', 'add word to search', mapSearch)
+}
+
+function initSearch
+(mo) {
+  BredinitSearch(vfind,
+                 { Backend: Backend,
+                   cancel: Backend.cancel,
+                   cleanup(s) {
+                     Backend.clearDecorMatch(s.st.view, s.st)
+                     Backend.clearDecorAll(s.st.view, s.st)
+                   },
+                   emName: 'Ed: Search',
+                   mode: mo })
 }
 
 export

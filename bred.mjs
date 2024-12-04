@@ -860,6 +860,23 @@ function initCmds
   })
 }
 
+function initSearch
+() {
+  function search
+  () {
+    let p
+
+    d('s')
+
+    p = Pane.current()
+    p.view.point.search('03')
+  }
+
+  Cmd.add('search forward', () => search(0))
+
+  Em.on('C-s', 'search forward')
+}
+
 function initBindings
 () {
   d('init bindings')
@@ -1841,6 +1858,7 @@ function start2
   initDoc(devtools)
   initHandlers()
   initTest()
+  initSearch()
   initBrowse()
   initFile()
   initEvalLine()

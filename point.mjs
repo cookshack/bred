@@ -2,7 +2,8 @@ import * as Mess from './mess.mjs'
 
 let d
 
-d = () => {}
+//d = () => {}
+d = Mess.d
 
 export
 function make
@@ -329,6 +330,34 @@ function make
     }
   }
 
+  function search
+  (str) {
+    let startNode, startPos
+
+    d('psr')
+    walker.currentNode || Mess.toss('missing currentNode')
+    startNode = walker.currentNode
+    startPos = pos
+    while (walker.currentNode) {
+      let i
+
+      i = walker.currentNode.wholeText.indexOf(str, pos)
+      if (i >= 0) {
+        pos = i + str.length
+        if (pos >= walker.currentNode.wholeText.length)
+          pos = walker.currentNode.wholeText.length - 1
+        sync()
+        return
+      }
+      if (getNext())
+        continue
+      walker.currentNode = startNode
+      pos = startPos
+      Mess.say("That's all")
+      break
+    }
+  }
+
   function sync
   (skipScroll) {
     if (walker.currentNode?.wholeText) {
@@ -390,5 +419,6 @@ function make
            lineNext,
            linePrev,
            put,
+           search,
            sync }
 }

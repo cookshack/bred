@@ -1201,7 +1201,7 @@ function initDivSearch
    //   stayInPlace }
    spec) {
     d('div vfind')
-    view.point.search(needle, spec)
+    return view.point.search(needle, spec)
   }
 
   initSearch(vfind,

@@ -331,7 +331,14 @@ function make
   }
 
   function search
-  (str, spec) { // { backward }
+  (str,
+   // { backwards,
+   //   caseSensitive,
+   //   regExp,
+   //   skipCurrent,
+   //   wrap,
+   //   stayInPlace }
+   spec) {
     let startNode, startPos
 
     d('psr')
@@ -340,23 +347,31 @@ function make
     startNode = walker.currentNode
     startPos = pos
     while (walker.currentNode) {
-      let i
+      let i, text
+
+      if (spec.caseSensitive)
+        text = walker.currentNode.wholeText
+      else {
+        text = walker.currentNode.wholeText.toLowerCase()
+        str = str.toLowerCase()
+      }
 
       d('ST ' + str)
-      d('VS ' + walker.currentNode.wholeText)
+      d('VS ' + text)
       d('pos ' + pos)
-      if (spec.backward)
-        i = (pos == 0) ? -1 : walker.currentNode.wholeText.lastIndexOf(str, pos - 1)
+
+      if (spec.backwards)
+        i = (pos == 0) ? -1 : text.lastIndexOf(str, pos - 1)
       else
-        i = walker.currentNode.wholeText.indexOf(str, pos)
+        i = text.indexOf(str, pos)
       if (i >= 0) {
-        pos = i + (spec.backward ? 0 : str.length)
-        if (pos >= walker.currentNode.wholeText.length)
-          pos = walker.currentNode.wholeText.length - 1
+        pos = i + (spec.backwards ? 0 : str.length)
+        if (pos >= text.length)
+          pos = text.length - 1
         sync()
         return
       }
-      if (spec.backward ? getPrevious() : getNext())
+      if (spec.backwards ? getPrevious() : getNext())
         continue
       walker.currentNode = startNode
       pos = startPos

@@ -1176,6 +1176,9 @@ function initSearch
   Cmd.add('search backward again', () => previous(1), mo)
   Cmd.add('search done', () => done(), mo)
 
+  Em.on('C-r', 'search backward', mo)
+  Em.on('C-s', 'search forward', mo)
+
   for (let d = 32; d <= 127; d++)
     Em.on(String.fromCharCode(d), 'add char to search', mapSearch)
   Em.on('Enter', 'search done', mapSearch)

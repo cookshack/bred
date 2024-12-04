@@ -1290,8 +1290,8 @@ function init
     Em.on('C-p', 'previous line', mo)
     Em.on('C-n', 'next line', mo)
     Em.on('C-q', 'quoted insert', mo)
-    Em.on('C-r', 'search backward', mo)
-    Em.on('C-s', 'search forward', mo)
+    // C-r Bred.initSearch
+    // C-s Bred.initSearch
     Em.on('C-w', 'cut', mo)
     Em.on('C- ', 'mark set', mo)
     Em.on('C-y', 'paste', mo) // aka Yank

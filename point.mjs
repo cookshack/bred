@@ -331,10 +331,11 @@ function make
   }
 
   function search
-  (str, backward) {
+  (str, spec) { // { backward }
     let startNode, startPos
 
     d('psr')
+    spec = spec || {}
     walker.currentNode || Mess.toss('missing currentNode')
     startNode = walker.currentNode
     startPos = pos
@@ -344,18 +345,18 @@ function make
       d('ST ' + str)
       d('VS ' + walker.currentNode.wholeText)
       d('pos ' + pos)
-      if (backward)
+      if (spec.backward)
         i = (pos == 0) ? -1 : walker.currentNode.wholeText.lastIndexOf(str, pos - 1)
       else
         i = walker.currentNode.wholeText.indexOf(str, pos)
       if (i >= 0) {
-        pos = i + (backward ? 0 : str.length)
+        pos = i + (spec.backward ? 0 : str.length)
         if (pos >= walker.currentNode.wholeText.length)
           pos = walker.currentNode.wholeText.length - 1
         sync()
         return
       }
-      if (backward ? getPrevious() : getNext())
+      if (spec.backward ? getPrevious() : getNext())
         continue
       walker.currentNode = startNode
       pos = startPos

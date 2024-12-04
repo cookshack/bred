@@ -1198,9 +1198,10 @@ function initDivSearch
    //   skipCurrent,
    //   wrap,
    //   stayInPlace }
-   opts) {
+   spec) {
     d('div vfind')
-    view.point.search(needle, opts.backwards)
+    view.point.search(needle,
+                      { backward: spec.backwards })
   }
 
   initSearch(vfind,

@@ -1278,6 +1278,38 @@ function initFile
   let mo, buf, under, ml, dirsOnly
   let hist
 
+  function prefix
+  (files) {
+    let i
+
+    if (files.length == 0)
+      return ''
+
+    if (files.length == 1)
+      return files[0]
+
+    i = 0
+    while (files[0][i] && files.every(file => file[i] == files[0][i]))
+      i++
+    return files[0].slice(0, i)
+  }
+
+  function complete
+  () {
+    let p, files, pre, text
+
+    p = Pane.current()
+    files = []
+    files = [ ...p.view.ele.querySelectorAll('.bred-open-under-f') ].map(el => el.dataset.name)
+    pre = prefix(files)
+    text = buf.text()
+    if (pre.length > text.length) {
+      p.buf.clear()
+      p.buf.insert(pre)
+      p.view.bufEnd()
+    }
+  }
+
   function nextSel
   () {
     let p, file
@@ -1569,6 +1601,7 @@ function initFile
                           initFns: Ed.initModeFns,
                           parentsForEm: 'ed' })
 
+  Cmd.add('complete', () => complete(), mo)
   Cmd.add('next', () => hist.next(buf), mo)
   Cmd.add('previous', () => hist.prev(buf), mo)
   Cmd.add('next selection', () => nextSel(), mo)
@@ -1577,6 +1610,7 @@ function initFile
   Cmd.add('select dir', (u, we) => selectDir(we), mo)
 
   Em.on('Enter', 'select', mo)
+  Em.on('Tab', 'complete', mo)
 
   Em.on('A-n', 'Next', mo)
   Em.on('A-p', 'Previous', mo)

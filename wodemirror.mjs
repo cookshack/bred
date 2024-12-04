@@ -2717,15 +2717,16 @@ function vinsertAt
         // (if use selection with changes dispatch below then the selection will be wrong if cm filters
         //  out chars)
 
-        setSelection(v, { from: off, to: to ?? off })
+        setSelection(v, { from: off ?? 0,
+                          to: to ?? (off ?? 0) })
         // this will set the off to the end of the text
         v.ed.dispatch(v.ed.state.replaceSelection(text))
         return
       }
 
       //d('insertAt ' + off)
-      v.ed.dispatch({ changes: { from: off,
-                                 to: to ?? off,
+      v.ed.dispatch({ changes: { from: off ?? 0,
+                                 to: to ?? (off ?? 0),
                                  insert: text } })
     }
   }

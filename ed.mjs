@@ -1186,7 +1186,6 @@ function initModeFns
       if (view.ed)
         //d(p.name + ": insert: " + str)
         Backend.vinsertAt(view, bep, 1, str)
-
     })
   }
 

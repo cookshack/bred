@@ -1280,9 +1280,7 @@ function initFile
 
   function prefix
   (files) {
-    let i
-
-    d({ files })
+    let i, end
 
     if (files.length == 0)
       return ''
@@ -1291,8 +1289,15 @@ function initFile
       return files[0]
 
     i = 0
-    while (files[0][i] && (files[1][i] == files[0][i]))
-      i++
+    end = files.length - 1
+    while (files[0][i]) {
+      if (files[0][i] == '/')
+        break
+      if (files[0][i] == files[end][i])
+        i++
+      else
+        break
+    }
     return files[0].slice(0, i)
   }
 

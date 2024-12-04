@@ -331,7 +331,7 @@ function make
   }
 
   function search
-  (str) {
+  (str, backward) {
     let startNode, startPos
 
     d('psr')
@@ -341,15 +341,21 @@ function make
     while (walker.currentNode) {
       let i
 
-      i = walker.currentNode.wholeText.indexOf(str, pos)
+      d('ST ' + str)
+      d('VS ' + walker.currentNode.wholeText)
+      d('pos ' + pos)
+      if (backward)
+        i = (pos == 0) ? -1 : walker.currentNode.wholeText.lastIndexOf(str, pos - 1)
+      else
+        i = walker.currentNode.wholeText.indexOf(str, pos)
       if (i >= 0) {
-        pos = i + str.length
+        pos = i + (backward ? 0 : str.length)
         if (pos >= walker.currentNode.wholeText.length)
           pos = walker.currentNode.wholeText.length - 1
         sync()
         return
       }
-      if (getNext())
+      if (backward ? getPrevious() : getNext())
         continue
       walker.currentNode = startNode
       pos = startPos

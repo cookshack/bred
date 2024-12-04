@@ -863,17 +863,19 @@ function initCmds
 function initSearch
 () {
   function search
-  () {
+  (backward) {
     let p
 
     d('s')
 
     p = Pane.current()
-    p.view.point.search('03')
+    p.view.point.search('03', backward)
   }
 
-  Cmd.add('search forward', () => search(0))
+  Cmd.add('search backward', () => search(1))
+  Cmd.add('search forward', () => search())
 
+  Em.on('C-r', 'search backward')
   Em.on('C-s', 'search forward')
 }
 

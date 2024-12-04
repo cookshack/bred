@@ -691,14 +691,11 @@ function initSearchFiles
   }
 
   function searchFiles
-  (needle) {
-    let p
-
-    p = Pane.current()
+  (recurse, needle) {
     if (needle && needle.length) {
       hist.add(needle)
       // find . -type f -not -name \*.BAK -not -name \*.CKP -not -name \*~ -maxdepth 1 2>/dev/null | xargs grep --ignore-case --fixed-strings --line-number "$1" -H -I 2>/dev/null # -I -e -H 2>/dev/null
-      Shell.spawn1(Loc.appDir().join('bin/sr'), 1, 1, [ needle, p.buf.opt('core.search.files.recurse') ? '1' : '0' ], 0, b => {
+      Shell.spawn1(Loc.appDir().join('bin/sr'), 1, 1, [ needle, recurse ? '1' : '0' ], 0, b => {
         b.mode = 'sr'
         b.addMode('view')
       })
@@ -709,11 +706,24 @@ function initSearchFiles
       Mess.say('Error')
   }
 
-  function search
-  () {
-    Prompt.ask({ text: 'Search files',
+  function prompt
+  (recurse) {
+    Prompt.ask({ text: 'Search files' + (recurse ? ' recursively' : ''),
                  hist: hist },
-               searchFiles)
+               needle => searchFiles(recurse, needle))
+  }
+
+  function search
+  (u) {
+    let p, recurse
+
+    p = Pane.current()
+    recurse = p.buf.opt('core.search.files.recurse')
+
+    if (u == 4)
+      recurse = false == recurse
+
+    prompt(recurse)
   }
 
   hist = Hist.ensure('search files')
@@ -733,7 +743,8 @@ function initSearchFiles
   Em.on('Enter', 'select', moSr)
   Em.on('o', 'select in other pane', moSr)
 
-  Cmd.add('search files', () => search())
+  Cmd.add('search files', search)
+  Cmd.add('search files recursively', () => prompt(1))
 }
 
 export

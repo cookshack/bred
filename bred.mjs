@@ -955,9 +955,7 @@ function initSearch
     s.st.stack.push({ range: range, needle: s.st.needle, backwards: 1 })
     if (range)
       Css.remove(s.st.echo, 'mini-search-fail')
-
     else
-      //d("got all")
       Css.add(s.st.echo, 'mini-search-fail')
 
     s.st.echo.innerText = s.st.needle

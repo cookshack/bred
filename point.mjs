@@ -369,14 +369,15 @@ function make
         if (pos >= text.length)
           pos = text.length - 1
         sync()
-        return
+        return { node: walker.currentNode,
+                 start: i,
+                 end: i + str.length }
       }
       if (spec.backwards ? getPrevious() : getNext())
         continue
       walker.currentNode = startNode
       pos = startPos
-      Mess.say("That's all")
-      break
+      return 0
     }
   }
 

@@ -1282,6 +1282,8 @@ function initFile
   (files) {
     let i
 
+    d({ files })
+
     if (files.length == 0)
       return ''
 
@@ -1289,8 +1291,7 @@ function initFile
       return files[0]
 
     i = 0
-    while (files[0][i]
-           && files.some((file, fi) => (fi > 0) && (file[i] == files[0][i])))
+    while (files[0][i] && (files[1][i] == files[0][i]))
       i++
     return files[0].slice(0, i)
   }

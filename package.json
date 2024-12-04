@@ -46,7 +46,7 @@
     "@cookshack/codemirror-lang-lezer-tree": "^0.1.0",
     "@cookshack/codemirror-lang-nasl": "^0.1.3",
     "@cookshack/codemirror-lang-peg": "file:../codemirror-lang-peg",
-    "@cookshack/codemirror-lang-zig": "^0.1.0",
+    "@cookshack/codemirror-lang-zig": "^0.1.2",
     "@cookshack/codemirror-ruler": "^0.2.3",
     "@cookshack/eslint-config": "^0.1.6",
     "@electron/rebuild": "^3.6.0",

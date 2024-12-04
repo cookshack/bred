@@ -1289,7 +1289,8 @@ function initFile
       return files[0]
 
     i = 0
-    while (files[0][i] && files.every(file => file[i] == files[0][i]))
+    while (files[0][i]
+           && files.some((file, fi) => (fi > 0) && (file[i] == files[0][i])))
       i++
     return files[0].slice(0, i)
   }

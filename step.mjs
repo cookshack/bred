@@ -26,7 +26,7 @@ function init
 
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
-    preload = 'file://' + Loc.appDir().join('preload-step.js')
+    preload = 'file://' + Loc.appDir().join('preload.js')
     d({ preload })
     wv = Dom.create('webview', [], '',
                     { src: 'file://' + Loc.appDir().join('step.html'),

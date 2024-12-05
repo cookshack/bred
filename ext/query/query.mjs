@@ -115,8 +115,8 @@ function init
   function search
   (buf, query) {
     fetch('https://www.googleapis.com/customsearch/v1'
-          + '?cx=' + Opt.get('google.cx')
-          + '&key=' + Opt.get('google.key')
+          + '?cx=' + Opt.get('query.google.cx')
+          + '&key=' + Opt.get('query.google.key')
           + '&q=' + query,
           { credentials: 'omit',
             redirect: 'error' })
@@ -161,7 +161,7 @@ Question: ...
 */
 
   Cmd.add('llm', (u, we, model) => {
-    model = model || Opt.get('llm.model')
+    model = model || Opt.get('query.model')
     Prompt.ask({ text: 'Prompt',
                  hist: hist },
                prompt => {
@@ -188,6 +188,10 @@ Question: ...
   })
 
   hist = Hist.ensure('llm')
+
+  Opt.declare('query.model', 'string', 'mistral')
+  Opt.declare('query.google.cx', 'string', '')
+  Opt.declare('query.google.key', 'string', '')
 
   mo = Mode.add('Query', { viewInitSpec: refresh })
 

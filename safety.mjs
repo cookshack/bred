@@ -1,1 +1,1 @@
-globalThis.restartForError.onclick = () => globalThis.tron.cmd('restart')
+globalThis.testButton.onclick = () => globalThis.tron.cmd('restart')

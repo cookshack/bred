@@ -1,6 +1,6 @@
 import { BrowserWindow } from 'electron'
 import { makeErr } from './main-err.mjs'
-//import { d } from './main-log.mjs'
+import { d } from './main-log.mjs'
 
 export
 function onSend
@@ -10,9 +10,15 @@ function onSend
 
   win = BrowserWindow.fromWebContents(e.sender)
 
+  d('Step.send')
+  d('method ' + method)
+
   win.webContents.debugger.sendCommand(method, params || {})
     .then(() => e.sender.send(ch, {}))
-    .catch(err => e.sender.send(ch, makeErr(err)))
+    .catch(err => {
+      d('ERR ' + err.message)
+      e.sender.send(ch, makeErr(err))
+    })
 
   return ch
 }

@@ -22,7 +22,7 @@ function init
             return { dom: div() }
           },
           //create,
-          displayText: 'blocks',
+          displayText: view.buf.opt('minimap.text.type') == 'characters' ? 'characters' : 'blocks',
           showOverlay: 'always',
           gutters: [ { 1: '#00FF00', 2: '#00FF00' } ]
         }
@@ -33,11 +33,13 @@ function init
 
   brexts = []
   Opt.declare('minimap.enabled', 'bool', 1)
+  // 'blocks' or 'characters' (slower)
+  Opt.declare('minimap.text.type', 'string', 'blocks')
 
   brexts.push(Ed.register({ backend: 'cm',
                             make,
                             part: new CMState.Compartment,
-                            reconfOpts: [ 'minimap.enabled' ] }))
+                            reconfOpts: [ 'minimap.enabled', 'minimap.text.type' ] }))
 
   Cmd.add('enable minimap', u => Ed.enable(u, 'minimap.enabled'))
   Cmd.add('buffer enable minimap', u => Ed.enableBuf(u, 'minimap.enabled'))

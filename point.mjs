@@ -2,8 +2,8 @@ import * as Mess from './mess.mjs'
 
 let d
 
-//d = () => {}
-d = Mess.d
+d = () => {}
+//d = Mess.d
 
 export
 function make

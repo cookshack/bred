@@ -8,6 +8,7 @@ import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
 import process from 'node:process'
 import fs from 'node:fs'
+import * as Step from './main-step.mjs'
 import Store from 'electron-store'
 import Util from 'node:util'
 import { fork, spawn, spawnSync } from 'node:child_process'
@@ -1209,6 +1210,9 @@ async function onCmd
   if (name == 'shell.open')
     return wrapOn(e, ch, args, onShellOpen)
 
+  if (name == 'step.send')
+    return wrapOn(e, ch, args, Step.onSend)
+
   if (name == 'quit') {
     quit()
     return ch
@@ -1290,6 +1294,21 @@ function createWindow
   win.removeMenu()
 
   win.setBounds(options.bounds || stores.state.get('bounds'))
+
+  try {
+    win.webContents.debugger.attach('1.3')
+  }
+  catch (err) {
+    log('ERR debugger.attach: ', err.message)
+  }
+
+  win.webContents.debugger.on('detach', (event, reason) => {
+    log('debugger: detached: ' + reason)
+  })
+
+  win.webContents.debugger.on('detach', (event, method) => {
+    log('debugger: message: ' + method)
+  })
 
   win.webContents.setWindowOpenHandler(details => {
     if ((details.url == 'about:blank')

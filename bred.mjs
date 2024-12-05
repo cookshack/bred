@@ -27,6 +27,7 @@ import * as Place from './place.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Shell from './shell.mjs'
+import * as Step from './step.mjs'
 import * as Switch from './switch.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
@@ -91,6 +92,7 @@ function initPackages
   Buf.init()
   Frame.init()
   Pane.init()
+  Step.init()
   Lsp.init()
   Ed.init(backend, err => {
     if (err)
@@ -971,7 +973,7 @@ function initSearch
         d('stack now empty')
         s.st.needle = ''
         s.st.echo.innerText = ''
-        cleanup && cleanup(s)
+        spec.cleanup && spec.cleanup(s)
         spec.Backend?.vsetPos(s.st.view, s.st.start, 1)
         return
       }

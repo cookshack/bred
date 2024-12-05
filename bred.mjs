@@ -28,13 +28,13 @@ import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Shell from './shell.mjs'
 import * as Step from './step.mjs'
+import * as Style from './style.mjs'
 import * as Switch from './switch.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
 import * as Vc from './vc.mjs'
 import * as ViewMode from './view-mode.mjs'
 import * as Win from './win.mjs'
-import { importCss } from './json.mjs'
 import { d } from './mess.mjs'
 
 import { v4 as uuidv4 } from './lib/uuid/index.js'
@@ -2067,52 +2067,6 @@ function initRecent
   })
 }
 
-export
-function initCss1
-(file) {
-  d('initCss1: ' + file)
-  importCss(file)
-    .then(m => {
-      d('initCss1: ' + file + ': done')
-      globalThis.document.adoptedStyleSheets = [ ...globalThis.document.adoptedStyleSheets, m.default ]
-    },
-          err => Mess.yell('Failed to load  ' + file + ': ' + err.message))
-}
-
-function initCss
-() {
-  let files, file
-
-  files = [ './css/bred.css',
-            './css/dir.css',
-            './css/describe-cmd.css',
-            './css/describe-key.css',
-            './css/ed.css',
-            './css/exts.css',
-            './css/lang.css',
-            './css/langs.css',
-            './css/mess.css',
-            './css/buffers.css',
-            './css/switch.css',
-            './css/cut.css',
-            './css/exec.css',
-            './css/test-buffer.css',
-            './css/manpage.css',
-            './css/options.css',
-            './css/recent.css',
-            './css/vc.css',
-            './css/web.css' ]
-  files.forEach(f => initCss1(f))
-
-  file = './lib/sheets.mjs'
-  import(file)
-    .then(m => {
-      m.sheets.forEach(f => initCss1(f))
-    },
-          err => Mess.yell('Failed to load  ' + file + ': ' + err.message))
-    .catch(err => Mess.yell('Failed to import  ' + file + ': ' + err.message))
-}
-
 function scratchMessage
 () {
   return `// This is your scratch buffer. For notes, tests or whatever.
@@ -2177,7 +2131,7 @@ function start1
   })
 
   d('initCss')
-  initCss()
+  Style.initCss(Mess.yell)
 }
 
 function start2

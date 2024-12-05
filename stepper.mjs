@@ -1,6 +1,7 @@
 import { button, div, divCl } from './dom.mjs'
 
 import * as Css from './css.mjs'
+import * as Style from './style.mjs'
 import * as Tron from './tron.mjs'
 
 globalThis.testButton.onclick = () => {
@@ -8,6 +9,8 @@ globalThis.testButton.onclick = () => {
 }
 
 let pause
+
+Style.initCss(console.log)
 
 pause = button('Pause', '', { 'data-run': 'Pause' })
 

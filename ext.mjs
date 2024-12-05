@@ -1,6 +1,5 @@
 import { append, button, divCl } from './dom.mjs'
 
-import * as Bred from './bred.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
@@ -9,6 +8,7 @@ import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
+import * as Style from './style.mjs'
 import * as Tron from './tron.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
@@ -44,7 +44,7 @@ function load
     if (err)
       return
     if (data.exists)
-      Bred.initCss1(loc.path)
+      Style.initCss1(loc.path, Mess.yell)
   })
 }
 

@@ -1,4 +1,4 @@
-import { append, divCl } from '../../dom.mjs'
+import { append, button, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
@@ -13,11 +13,11 @@ import { d } from '../../mess.mjs'
 export
 function init
 () {
-  let mo
+  let mo, webview
 
   function divW
   () {
-    return divCl('step-ww', divCl('step-w bred-surface', ''))
+    return divCl('step-ww', divCl('step-w bred-surface'))
   }
 
   function refresh
@@ -32,7 +32,11 @@ function init
                     { src: 'file://' + Loc.appDir().join('ext/step/step.html'),
                       preload: preload })
 
-    append(w, wv)
+    append(w,
+           divCl('step-w-controls',
+                 button('devtools', '', { 'data-run': 'Webview Devtools' })),
+           wv)
+    webview = wv
     wv.addEventListener('context-menu', e => {
       d('context menu')
       e.clientX = e.params.x
@@ -55,6 +59,10 @@ function init
 
   mo = Mode.add('Step', { viewInitSpec: refresh })
   d(mo)
+
+  Cmd.add('Webview Devtools', () => {
+    webview.openDevTools()
+  })
 
   Cmd.add('stepper', () => {
     let b, p

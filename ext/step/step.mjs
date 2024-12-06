@@ -19,6 +19,21 @@ function initDom
     return divCl('dom-ww', divCl('dom-w bred-surface'))
   }
 
+  function render
+  (el) {
+    let ret
+
+    ret = new globalThis.DocumentFragment()
+    for (let i = 0; i < el.children.length; i++) {
+      let ch
+
+      ch = el.children[i]
+      append(ret, divCl('dom-el', ch.tagName))
+    }
+
+    return ret
+  }
+
   function refresh
   (view, spec, cb) {
     let w
@@ -26,8 +41,7 @@ function initDom
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
 
-    append(w,
-           'xx')
+    append(w, render(globalThis.document.documentElement))
 
     if (cb)
       cb(view)

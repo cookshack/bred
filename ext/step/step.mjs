@@ -10,10 +10,47 @@ import * as Pane from '../../pane.mjs'
 import * as Tron from '../../tron.mjs'
 import { d } from '../../mess.mjs'
 
+function initDom
+() {
+  let mo
+
+  function divW
+  () {
+    return divCl('dom-ww', divCl('dom-w bred-surface'))
+  }
+
+  function refresh
+  (view, spec, cb) {
+    let w
+
+    w = view.ele.firstElementChild.firstElementChild
+    w.innerHTML = ''
+
+    append(w,
+           'xx')
+
+    if (cb)
+      cb(view)
+  }
+
+  Cmd.add('Dom', () => {
+    let b, p
+
+    p = Pane.current()
+    b = Buf.add('Dom', 'Dom', divW(), p.dir)
+    b.icon = 'dom'
+    b.addMode('view')
+    p.setBuf(b)
+  })
+
+  mo = Mode.add('Dom', { viewInitSpec: refresh })
+  d(mo)
+}
+
 export
 function init
 () {
-  let mo, webview
+  let webview
 
   function divW
   () {
@@ -57,11 +94,10 @@ function init
       cb(view)
   }
 
-  mo = Mode.add('Step', { viewInitSpec: refresh })
-  d(mo)
+  Mode.add('Step', { viewInitSpec: refresh })
 
   Cmd.add('Webview Devtools', () => {
-    webview.openDevTools()
+    webview?.openDevTools()
   })
 
   Cmd.add('stepper', () => {
@@ -89,6 +125,8 @@ function init
       })
     })
   })
+
+  initDom()
 }
 
 export

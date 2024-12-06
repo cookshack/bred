@@ -40,6 +40,9 @@ function path
     if (name == 'dir')
       return 'lib/svg/octicons/file-directory-24.svg'
 
+    if (name == 'dom')
+      return 'lib/svg/file-icons/DOM.svg'
+
     if (name == 'elisp')
       return 'lib/svg/file-icons/Emacs.svg'
 

@@ -28,7 +28,9 @@ function initDom
       let ch
 
       ch = el.children[i]
-      append(ret, divCl('dom-el', ch.tagName))
+      append(ret, divCl('dom-el',
+                        [ divCl('dom-el-pm', '+'),
+                          divCl('dom-el-name', ch.tagName) ]))
     }
 
     return ret

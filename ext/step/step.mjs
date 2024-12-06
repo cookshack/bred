@@ -82,7 +82,8 @@ function initDom
                                    ch.children.length ? '+' : '',
                                    { 'data-run': 'expand',
                                      'data-id': id + i }),
-                             divCl('dom-el-name', ch.tagName) ]) ]))
+                             divCl('dom-el-name', ch.tagName),
+                             divCl('dom-el-css', ch.className) ]) ]))
     }
 
     return ret

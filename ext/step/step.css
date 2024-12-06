@@ -56,7 +56,12 @@ webview {
 }
 
 .dom-el-name {
-  color: var(--clr-syntax1);
+  color: var(--rule-clr-keyword);
+}
+
+.dom-el-css {
+  margin-left: 0.5rem;
+  color: var(--rule-clr-attribute);
 }
 
 .dom-el-ch {

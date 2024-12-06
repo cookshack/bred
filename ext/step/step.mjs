@@ -9,6 +9,7 @@ import * as Loc from '../../loc.mjs'
 import * as Mess from '../../mess.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
+import * as Tab from '../../tab.mjs'
 import * as Tron from '../../tron.mjs'
 import { d } from '../../mess.mjs'
 
@@ -128,6 +129,19 @@ function initDom
     b = Buf.add('Dom', 'Dom', divW(), p.dir)
     b.icon = 'dom'
     b.addMode('view')
+    p.setBuf(b)
+  })
+
+  Cmd.add('Dom Right', () => {
+    let b, p, tab
+
+    p = Pane.current()
+    b = Buf.add('Dom', 'Dom', divW(), p.dir)
+    b.icon = 'dom'
+    b.addMode('view')
+
+    tab = Tab.current()
+    p = Pane.current(tab.frameRight)
     p.setBuf(b)
   })
 

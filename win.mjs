@@ -104,6 +104,7 @@ function makeContext
                     p && addCopy(p)
                     appendSpell(p)
                     append(context.el,
+                           context0(p.buf, 'Dom', 'Dom Right'),
                            context0(p.buf, 'Inspect Element'))
                     Css.add(context.el, 'bred-open')
                   })
@@ -112,6 +113,7 @@ function makeContext
                   p && addCopy(p)
                   appendSpell(p)
                   append(context.el,
+                         context0(p.buf, 'Dom Right'),
                          context0(p?.buf, 'Inspect Element'))
                   Css.add(context.el, 'bred-open')
                 }

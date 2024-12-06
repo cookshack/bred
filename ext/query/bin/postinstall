@@ -1,0 +1,6 @@
+#!/bin/bash
+
+mkdir -p lib/shared/
+cp node_modules/ollama/dist/browser.mjs lib/ollama.js
+cp node_modules/ollama/dist/shared/*.mjs lib/shared/
+cd lib/ && find . -type f -name \*.mjs -o -name \*.js | xargs sed -i "s:import://import:g" # fetch polyfill

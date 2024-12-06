@@ -14,6 +14,8 @@ import * as Prompt from '../../prompt.mjs'
 import * as Shell from '../../shell.mjs'
 import { d } from '../../mess.mjs'
 
+import Ollama from './lib/ollama.js'
+
 export
 function init
 () {
@@ -213,6 +215,46 @@ function init
               add)
   }
 
+  function fim
+  (dir, view, prompt) {
+    let text, off, bep, buf, gen, suffix
+
+    function add
+    (str) {
+      d(str)
+      buf.insert(str, bep)
+      bep += str.length // for won,wace need something like vbepIncr(str.length) OR insert could return new bep?
+    }
+
+    gen = async spec => {
+      let response
+
+      response = await Ollama.generate(spec)
+      for await (let part of response)
+        add(part.response)
+      add('\n')
+    }
+
+    text = view.buf.text()
+    off = view.offset
+    buf = view.buf // in case view changes, still issues if eg buf removed
+    bep = view.bep
+
+    prompt = text.slice(0, off) + '\n// please insert the following: ' + prompt + '\n'
+    suffix = text.slice(off)
+    d({ prompt })
+    d({ suffix })
+    gen({ model: view.buf?.opt('query.model.code') || view.buf?.opt('query.model'),
+          prompt: prompt,
+          suffix: suffix,
+          stream: true,
+          raw: true,
+          // https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values
+          options: {
+            //temperature: 1 // 0..1 higher is more creative
+          } })
+  }
+
   Cmd.add('llm', (u, we, model) => {
     model = model || Opt.get('query.model')
     Prompt.ask({ text: 'Prompt',
@@ -238,6 +280,20 @@ function init
                  hist.add(prompt)
                  prompt = prompt.trim()
                  insert(p.dir, p.view, prompt)
+               })
+  })
+
+  Cmd.add('fim', () => {
+    Prompt.ask({ text: 'Describe what should be inserted',
+                 hist: hist },
+               prompt => {
+                 let p
+
+                 p = Pane.current()
+
+                 hist.add(prompt)
+                 prompt = prompt.trim()
+                 fim(p.dir, p.view, prompt)
                })
   })
 

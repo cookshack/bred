@@ -5,8 +5,11 @@
   "main": "query.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "touch .READY"
+    "postinstall": "bin/postinstall && touch .READY"
   },
   "author": "Matt Mundell",
-  "license": "CC0-1.0"
+  "license": "CC0-1.0",
+  "dependencies": {
+    "ollama": "^0.5.11"
+  }
 }

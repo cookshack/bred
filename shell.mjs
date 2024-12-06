@@ -119,11 +119,11 @@ function run
       return
     }
 
-    d({ data })
+    //d({ data })
 
-    if (data.stdout)
+    if (0 && data.stdout)
       d('OUT: ' + decoder.decode(data.stdout))
-    if (data.stderr)
+    if (0 && data.stderr)
       d('ERR: ' + decoder.decode(data.stderr))
 
     if (b && data.stdout) {

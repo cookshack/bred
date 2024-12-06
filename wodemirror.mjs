@@ -1349,6 +1349,12 @@ function posToBep
 }
 
 export
+function bepToOff
+(view, bep) {
+  return bep
+}
+
+export
 function makeRange
 (from, to) {
   return { from: from, to: to }

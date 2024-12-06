@@ -128,6 +128,17 @@ function make
     return 0
   }
 
+  function getOff
+  () {
+    if (b.mode?.key)
+      if (b.mode?.offset)
+        return b.mode.offset(v)
+      else
+        Mess.say('buf.add: offset missing: ' + b.mode.key)
+
+    return 0
+  }
+
   function makePsn
   () {
     if (b.mode?.key)
@@ -324,6 +335,9 @@ function make
         },
         set bep(bep) {
           return setBep(bep)
+        },
+        get offset() {
+          return getOff()
         },
         get ready() {
           return ready

@@ -184,6 +184,35 @@ function init
       })
   }
 
+  function insert
+  (dir, view, prompt) {
+    let que, text, off, bep, buf
+
+    function add
+    (str) {
+      d(str)
+      buf.insert(str, bep)
+      bep += str.length // for won,wace need something like vbepIncr(str.length) OR insert could return new bep?
+    }
+
+    text = view.buf.text()
+    off = view.offset
+    que = 'Provide text that matches the DESCRIPTION below, that I can insert at the specified position in the FILE below.'
+    que += ' Respond only with the text that should be inserted.\n\n'
+    que += '1. DESCRIPTION:\n' + prompt + '\n\n'
+    que += '2. FILE:\n' + text.slice(0, off) + '[SPECIFIED POSITION]' + text.slice(off) + '\n'
+
+    d(que)
+    buf = view.buf // in case view changes, still issues if eg buf removed
+    bep = view.bep
+    Shell.run(0, dir, 'llm', 0, 0, [ view.buf?.opt('query.model.code') || view.buf?.opt('query.model'), que ],
+              0, // runInShell
+              // onStdout
+              add,
+              // onStderr
+              add)
+  }
+
   Cmd.add('llm', (u, we, model) => {
     model = model || Opt.get('query.model')
     Prompt.ask({ text: 'Prompt',
@@ -195,6 +224,20 @@ function init
                    buf.opts.set('core.lint.enabled', 0)
                    buf.mode = 'richdown'
                  })
+               })
+  })
+
+  Cmd.add('llm insert', () => {
+    Prompt.ask({ text: 'Describe what should be inserted',
+                 hist: hist },
+               prompt => {
+                 let p
+
+                 p = Pane.current()
+
+                 hist.add(prompt)
+                 prompt = prompt.trim()
+                 insert(p.dir, p.view, prompt)
                })
   })
 
@@ -229,6 +272,8 @@ function init
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
+
+  Em.on('C-x i', 'llm insert', 'ed')
 }
 
 export

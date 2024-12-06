@@ -869,11 +869,12 @@ function initModeFns
 
   function insert
   (b, str, bep) {
-    b.views.forEach(view => {
-      if (view.ed)
-        //d(p.name + ": insert: " + str)
-        Backend.vinsertAt(view, bep, 1, str)
-    })
+    let view
+
+    view = b.anyView()
+    if (view?.ed)
+      //d(b.name + ": insert: " + str)
+      Backend.vinsertAt(view, bep, 1, str)
   }
 
   mo.append = append
@@ -883,6 +884,7 @@ function initModeFns
   mo.ensurePointVisible = Backend.ensurePointVisible
   mo.insert = insert
   mo.len = Backend.vlen
+  mo.offset = v => Backend.bepToOff(v, Backend.vgetBep(v))
   mo.pos = v => Backend.bepToPos(v, Backend.vgetBep(v))
   mo.save = save
 

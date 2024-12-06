@@ -141,6 +141,8 @@ function init
         if (query.endsWith('?')) {
           let que
 
+          add(buf, buf?.opt('query.model') + ' says:\n\n')
+
           que = 'You are an expert. Based on the following search results, please provide a summary or answer to my question:\n\n'
           que += 'Search Results:\n'
 

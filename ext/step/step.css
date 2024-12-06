@@ -62,8 +62,27 @@ webview {
 .dom-el-css {
   margin-left: 0.5rem;
   color: var(--rule-clr-attribute);
+  display: flex;
+}
+
+.dom-el-attrs {
+  display: flex;
+}
+
+.dom-el-attr {
+  margin-left: 0.5rem;
+  display: flex;
+}
+
+.dom-el-attr-name {
+  color: var(--rule-clr-tag);
+}
+
+.dom-el-attr-val {
+  color: var(--rule-clr-string);
 }
 
 .dom-el-ch {
+  margin-top: 0.5rem;
   padding-left: 2rem;
 }

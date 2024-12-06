@@ -62,6 +62,23 @@ function initDom
     }
   }
 
+  function attrs
+  (el) {
+    let all, ret
+
+    all = el.getAttributeNames()
+    ret = []
+    for (let i = 0; i < all.length; i++)
+      if (all[i] == 'class')
+        continue
+      else
+        ret.push(divCl('dom-el-attr',
+                       [ divCl('dom-el-attr-name', all[i]),
+                         '=',
+                         divCl('dom-el-attr-val', el.getAttribute(all[i])) ]))
+    return ret
+  }
+
   function render
   (el, id) {
     let ret
@@ -83,7 +100,8 @@ function initDom
                                    { 'data-run': 'expand',
                                      'data-id': id + i }),
                              divCl('dom-el-name', ch.tagName),
-                             divCl('dom-el-css', ch.className) ]) ]))
+                             divCl('dom-el-css', ch.className),
+                             divCl('dom-el-attrs', attrs(ch)) ]) ]))
     }
 
     return ret

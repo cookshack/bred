@@ -46,6 +46,15 @@ webview {
   display: flex;
 }
 
+.dom-el-pm {
+  width: 1rem;
+  min-width: 1rem;
+  max-width: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .dom-el-name {
   color: var(--clr-syntax1);
 }

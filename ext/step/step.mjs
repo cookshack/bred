@@ -21,6 +21,21 @@ function initDom
     return divCl('dom-ww', divCl('dom-w bred-surface'))
   }
 
+  function getEl
+  (id) {
+    let el
+
+    // 3.11.2
+    el = dom
+    id.split('.').forEach(i => {
+      if (i.length)
+        el = el.children[parseInt(i)]
+      el || Mess.toss('failed to parse: ' + id)
+    })
+
+    return el
+  }
+
   function expand
   (u, we) {
     let id
@@ -32,19 +47,29 @@ function initDom
       el = we.e.target.parentNode.parentNode
       ch = el.querySelector('.dom-el-ch')
       if (ch)
-        if (Css.has(ch, 'retracted'))
+        if (Css.has(ch, 'retracted')) {
+          we.e.target.innerText = '\u2212'
           Css.expand(ch)
-        else
+        }
+        else {
+          we.e.target.innerText = '+'
           Css.retract(ch)
-      else
-        append(el, divCl('dom-el-ch', 'x'))
+        }
+      else {
+        we.e.target.innerText = '\u2212'
+        append(el, divCl('dom-el-ch', render(getEl(id), id)))
+      }
     }
   }
 
   function render
-  (el) {
+  (el, id) {
     let ret
 
+    if (id)
+      id = id + '.'
+    else
+      id = ''
     ret = new globalThis.DocumentFragment()
     for (let i = 0; i < el.children.length; i++) {
       let ch
@@ -54,7 +79,7 @@ function initDom
              divCl('dom-el',
                    [ divCl('dom-el-line',
                            [ divCl('dom-el-pm', '+', { 'data-run': 'expand',
-                                                       'data-id': i }),
+                                                       'data-id': id + i }),
                              divCl('dom-el-name', ch.tagName) ]) ]))
     }
 

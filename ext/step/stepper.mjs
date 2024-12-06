@@ -1,8 +1,8 @@
-import { button, div, divCl } from './dom.mjs'
+import { button, div, divCl } from '../../dom.mjs'
 
-import * as Css from './css.mjs'
-import * as Style from './style.mjs'
-import * as Tron from './tron.mjs'
+import * as Css from '../../css.mjs'
+import * as Style from '../../style.mjs'
+import * as Tron from '../../tron.mjs'
 
 globalThis.testButton.onclick = () => {
   if (globalThis.testButton.innerText == 'test')

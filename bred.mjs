@@ -27,7 +27,6 @@ import * as Place from './place.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Shell from './shell.mjs'
-import * as Step from './step.mjs'
 import * as Style from './style.mjs'
 import * as Switch from './switch.mjs'
 import * as Tab from './tab.mjs'
@@ -92,7 +91,6 @@ function initPackages
   Buf.init()
   Frame.init()
   Pane.init()
-  Step.init()
   Lsp.init()
   Ed.init(backend, err => {
     if (err)

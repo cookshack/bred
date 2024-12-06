@@ -766,8 +766,10 @@ function init
         let w
 
         w = view.ele.firstElementChild.firstElementChild
-        appendM(w, mess)
-        w.scrollIntoView({ block: 'end', inline: 'nearest' })
+        if (Css.has(view.ele, 'mess-w')) {
+          appendM(w, mess)
+          w.scrollIntoView({ block: 'end', inline: 'nearest' })
+        }
       }
     })
   }

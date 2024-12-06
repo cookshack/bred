@@ -22,6 +22,7 @@
   width: 100%;
   max-width: 60rem;
   height: min-content;
+  border-top: solid 0.25rem var(--clr-fill);
 
   display: flex;
   flex-direction: column;

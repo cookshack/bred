@@ -138,13 +138,25 @@ function init
       .then(data => {
         d(data)
 
-        if (query.endsWith('?'))
-          Shell.run(0, dir, 'llm', 0, 0, [ buf?.opt('query.model'), query ],
+        if (query.endsWith('?')) {
+          let que
+
+          que = 'You are an expert. Based on the following search results, please provide a summary or answer to my question:\n\n'
+          que += 'Search Results:\n'
+
+          for (let i = 0; (i < 3) && (i < data.items.length); i++)
+            que += String(i + 1) + '. ' + data.items[i].title + ' (' + data.items[i].snippet + ')\n'
+          que += '\nQuestion:\n' + query + '\n'
+
+          d(que)
+
+          Shell.run(0, dir, 'llm', 0, 0, [ buf?.opt('query.model'), que ],
                     0, // runInShell
                     // onStdout
                     str => add(buf, str),
                     // onStderr
                     str => add(buf, str))
+        }
 
         buf?.views.forEach(view => {
           if (view.ele) {
@@ -169,16 +181,6 @@ function init
         Mess.yell(error.message)
       })
   }
-
-  /* You are an expert. Based on the following search results, please provide a summary or answer to my question:
-
-Search Results:
-1.
-2.
-3.
-
-Question: ...
-*/
 
   Cmd.add('llm', (u, we, model) => {
     model = model || Opt.get('query.model')

@@ -78,8 +78,10 @@ function initDom
       append(ret,
              divCl('dom-el',
                    [ divCl('dom-el-line',
-                           [ divCl('dom-el-pm', '+', { 'data-run': 'expand',
-                                                       'data-id': id + i }),
+                           [ divCl('dom-el-pm',
+                                   ch.children.length ? '+' : '',
+                                   { 'data-run': 'expand',
+                                     'data-id': id + i }),
                              divCl('dom-el-name', ch.tagName) ]) ]))
     }
 

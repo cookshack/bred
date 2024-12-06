@@ -4,13 +4,6 @@ import * as Css from '../../css.mjs'
 import * as Style from '../../style.mjs'
 import * as Tron from '../../tron.mjs'
 
-globalThis.testButton.onclick = () => {
-  if (globalThis.testButton.innerText == 'test')
-    globalThis.testButton.innerText = 'OK'
-  else
-    globalThis.testButton.innerText = globalThis.testButton.innerText + '.'
-}
-
 let pause
 
 Style.initCss(console.log)
@@ -53,5 +46,5 @@ pause.onclick = () => {
   })
 }
 
-globalThis.testButton.after(div([ pause,
-                                  divCl('test', 'hello') ]))
+globalThis.document.body.after(div([ divCl('step-h', 'Stepper'),
+                                     pause ]))

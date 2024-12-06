@@ -23,6 +23,7 @@ function init
   (query) {
     return divCl('query-ww',
                  [ divCl('query-h', 'Query: ' + query),
+                   divCl('query-llm'),
                    divCl('query-w', 'Fetching...') ])
   }
 
@@ -113,7 +114,17 @@ function init
   }
 
   function search
-  (buf, query) {
+  (dir, buf, query) {
+    function add
+    (buf, str) {
+      buf?.views.forEach(view => {
+        let l
+
+        l = view.ele.querySelector('.query-llm')
+        l.innerText = l.innerText + str
+      })
+    }
+
     fetch('https://www.googleapis.com/customsearch/v1'
           + '?cx=' + Opt.get('query.google.cx')
           + '&key=' + Opt.get('query.google.key')
@@ -126,6 +137,15 @@ function init
       })
       .then(data => {
         d(data)
+
+        if (query.endsWith('?'))
+          Shell.run(0, dir, 'llm', 0, 0, [ buf?.opt('query.model'), query ],
+                    0, // runInShell
+                    // onStdout
+                    str => add(buf, str),
+                    // onStderr
+                    str => add(buf, str))
+
         buf?.views.forEach(view => {
           if (view.ele) {
             let w
@@ -181,9 +201,10 @@ Question: ...
                  let p, buf
 
                  p = Pane.current()
+                 query = query.trim()
                  buf = Buf.add('Query', 'Query', divW(query), p.dir)
                  hist.add(query)
-                 p.setBuf(buf, {}, () => search(buf, query))
+                 p.setBuf(buf, {}, () => search(p.dir, buf, query))
                })
   })
 

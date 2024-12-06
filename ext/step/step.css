@@ -39,8 +39,17 @@ webview {
 .dom-el {
   margin-bottom: 0.25rem;
   display: flex;
+  flex-direction: column;
+}
+
+.dom-el-line {
+  display: flex;
 }
 
 .dom-el-name {
   color: var(--clr-syntax1);
+}
+
+.dom-el-ch {
+  padding-left: 2rem;
 }

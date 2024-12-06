@@ -2,7 +2,9 @@ import { append, button, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
+import * as Css from '../../css.mjs'
 import * as Dom from '../../dom.mjs'
+import * as Em from '../../em.mjs'
 import * as Loc from '../../loc.mjs'
 import * as Mess from '../../mess.mjs'
 import * as Mode from '../../mode.mjs'
@@ -12,11 +14,31 @@ import { d } from '../../mess.mjs'
 
 function initDom
 () {
-  let mo
+  let mo, dom
 
   function divW
   () {
     return divCl('dom-ww', divCl('dom-w bred-surface'))
+  }
+
+  function expand
+  (u, we) {
+    let id
+
+    id = we.e.target.dataset.id
+    if (id) {
+      let el, ch
+
+      el = we.e.target.parentNode.parentNode
+      ch = el.querySelector('.dom-el-ch')
+      if (ch)
+        if (Css.has(ch, 'retracted'))
+          Css.expand(ch)
+        else
+          Css.retract(ch)
+      else
+        append(el, divCl('dom-el-ch', 'x'))
+    }
   }
 
   function render
@@ -28,9 +50,12 @@ function initDom
       let ch
 
       ch = el.children[i]
-      append(ret, divCl('dom-el',
-                        [ divCl('dom-el-pm', '+'),
-                          divCl('dom-el-name', ch.tagName) ]))
+      append(ret,
+             divCl('dom-el',
+                   [ divCl('dom-el-line',
+                           [ divCl('dom-el-pm', '+', { 'data-run': 'expand',
+                                                       'data-id': i }),
+                             divCl('dom-el-name', ch.tagName) ]) ]))
     }
 
     return ret
@@ -43,7 +68,8 @@ function initDom
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
 
-    append(w, render(globalThis.document.documentElement))
+    dom = globalThis.document.documentElement.cloneNode(true)
+    append(w, render(dom))
 
     if (cb)
       cb(view)
@@ -61,6 +87,10 @@ function initDom
 
   mo = Mode.add('Dom', { viewInitSpec: refresh })
   d(mo)
+
+  Cmd.add('Expand', expand, mo)
+
+  Em.on('Enter', 'expand', mo)
 }
 
 export

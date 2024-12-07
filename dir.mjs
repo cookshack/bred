@@ -1132,7 +1132,7 @@ function init
 
   function firstLine
   (v) {
-    d('firstLine')
+    //d('firstLine')
     v.point.put(v.ele.querySelector('.dir-name'))
   }
 
@@ -1140,11 +1140,11 @@ function init
   () {
     let h, el, v
 
-    d('nextLine')
+    //d('nextLine')
     v = Pane.current().view
     h = v.ele.querySelector('.dir-h')
     if (v.point.over(h)) {
-      d('over')
+      //d('over')
       firstLine(v)
       return
     }
@@ -1153,7 +1153,7 @@ function init
         // only search when inside the dir-w
         && el.closest('.dir-w')) {
       el = el.parentNode
-      d(el.className)
+      //d(el.className)
       while ((el = el.nextElementSibling))
         if (Css.has(el.firstElementChild, 'dir-name')) {
           v.point.put(el.firstElementChild)

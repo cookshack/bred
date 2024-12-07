@@ -4,7 +4,7 @@ import * as Css from '../../css.mjs'
 import * as Ed from '../../ed.mjs'
 import * as Ext from '../../ext.mjs'
 import * as Opt from '../../opt.mjs'
-import { d } from '../../mess.mjs'
+//import { d } from '../../mess.mjs'
 
 import * as CMLang from '../../lib/@codemirror/language.js'
 import * as CMSearch from '../../lib/@codemirror/search.js'
@@ -95,8 +95,6 @@ function init
   (buf) {
     let display
 
-    d('reconfActiveLine for ' + buf.name)
-    d(buf.opt('core.highlight.activeLine.enabled'))
     display = 'none'
     if (buf.opt('core.highlight.activeLine.enabled'))
       display = 'flex'

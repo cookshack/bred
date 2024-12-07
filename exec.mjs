@@ -23,8 +23,8 @@ function init
   (w) {
     let all, needles
 
-    d('needle: ' + needle)
-    d(callerBuf)
+    //d('needle: ' + needle)
+    //d(callerBuf)
 
     all = Cmd.getAll(callerBuf)
     if (needle.length)
@@ -89,7 +89,7 @@ function init
   (u, we) {
     let p, w
 
-    d('delPrev ' + we.e.key)
+    0 && d('delPrev ' + we.e.key)
     p = Pane.current()
     w = p.ele.firstElementChild.firstElementChild
     if (Css.has(w, 'execute-w')) {
@@ -102,7 +102,7 @@ function init
   (u, we) {
     let p, w
 
-    d('adding ' + we.e.key)
+    //d('adding ' + we.e.key)
     p = Pane.current()
     w = p.ele.firstElementChild.firstElementChild
     if (Css.has(w, 'execute-w')) {

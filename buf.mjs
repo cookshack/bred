@@ -254,7 +254,7 @@ function make2
   () {
     // reconf all the 'div' extensions for this buf so they're initialised for the view
     divExts.forEach(dext => {
-      d('dext ' + dext.name)
+      0 && d('dext ' + dext.name)
       dext?.reconf(b)
     })
   }

@@ -72,6 +72,14 @@ function makeContext
              contextLine())
   }
 
+  function appendStep
+  (p) {
+    append(context.el,
+           context0(p?.buf, 'Inspect Element'),
+           context0(p?.buf, 'Css Computed'),
+           context0(p?.buf, 'Dom', 'Dom Right'))
+  }
+
   function addCopy
   (p) {
     let copy, cut, paste
@@ -112,9 +120,7 @@ function makeContext
                     p && addCopy(p)
                     appendSpell(p)
                     appendRun(p)
-                    append(context.el,
-                           context0(p.buf, 'Inspect Element'),
-                           context0(p.buf, 'Dom', 'Dom Right'))
+                    appendStep(p)
                     Css.add(context.el, 'bred-open')
                   })
                 else {
@@ -122,9 +128,7 @@ function makeContext
                   p && addCopy(p)
                   appendSpell(p)
                   appendRun(p)
-                  append(context.el,
-                         context0(p?.buf, 'Inspect Element'),
-                         context0(p?.buf, 'Dom', 'Dom Right'))
+                  appendStep(p)
                   Css.add(context.el, 'bred-open')
                 }
               } }

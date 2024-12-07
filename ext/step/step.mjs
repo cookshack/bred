@@ -15,6 +15,92 @@ import * as Tron from '../../tron.mjs'
 import * as Win from '../../win.mjs'
 import { d } from '../../mess.mjs'
 
+function initCssComp
+() {
+  let mo
+
+  function divW
+  () {
+    return divCl('css-comp-ww', divCl('css-comp-w bred-surface'))
+  }
+
+  function render
+  (el) {
+    let ret, decl
+
+    d('render')
+    d(el.children.length + ' children')
+    d(el.childNodes.length + ' childNodes')
+    d(el.tagName)
+
+    ret = new globalThis.DocumentFragment()
+    decl = globalThis.getComputedStyle(el)
+    for (let i = 0; i < decl.length; i++) {
+      let name
+
+      d(i)
+      name = decl.item(i)
+      if (name)
+        append(ret,
+               divCl('css-comp-name', name))
+    }
+
+    d('render done')
+    return ret
+  }
+
+  function refresh
+  (view, spec, cb) {
+    let w, el
+
+    el = view.buf.vars('css comp').el
+    d('ref')
+    d({ el })
+    w = view.ele.firstElementChild.firstElementChild
+    w.innerHTML = ''
+
+    append(w, render(el))
+
+    if (cb)
+      cb(view)
+  }
+
+  Cmd.add('Css Computed', (u, we) => {
+    let b, p, tab, x, y, el
+
+    if (we?.e) {
+      let win
+
+      win = Win.current()
+      x = win.lastContext?.x ?? 0
+      y = win.lastContext?.y ?? 0
+    }
+    else {
+      x = Bred.mouse.x
+      y = Bred.mouse.y
+    }
+
+    el = globalThis.document.elementFromPoint(x, y)
+    el || Mess.toss('missing el')
+
+    p = Pane.current()
+    if (Css.has(p.frame?.tab?.frameRight?.el, 'retracted'))
+      Cmd.run('toggle frame right')
+
+    b = Buf.add2('Css Comp', 'Css Comp', divW(), p.dir,
+                 { vars: { 'css comp': { el: el } } })
+    b.icon = 'css'
+    b.addMode('view')
+
+    tab = Tab.current()
+    p = Pane.current(tab.frameRight)
+    p.setBuf(b)
+  })
+
+  mo = Mode.add('Css Comp', { viewInitSpec: refresh })
+  d(mo)
+}
+
 function initDom
 () {
   let mo, dom
@@ -303,6 +389,7 @@ function init
   })
 
   initDom()
+  initCssComp()
 }
 
 export

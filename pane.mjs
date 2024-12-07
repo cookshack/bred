@@ -8,6 +8,7 @@ import * as Ed from './ed.mjs'
 import * as Frame from './frame.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
+import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
@@ -474,7 +475,7 @@ function open
 (path,
  lineNum, // only if file
  whenReady) { // only if file
-  return current().open(path, lineNum, whenReady)
+  return current(Tab.current()?.frame1).open(path, lineNum, whenReady)
 }
 
 export

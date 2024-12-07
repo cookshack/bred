@@ -57,25 +57,19 @@ function scib
 
 function initRTL
 () {
-  function runClick
+  function runThisLine
   (u, we) {
-    if (we?.e && (we.e.button == 0)) {
-      let p, x, y
+    let p, l
 
-      p = Pane.current()
-      let win
+    p = Pane.current()
+    if (we?.e && (we.e.button == 0)) {
+      let x, y, win
 
       win = Win.current()
       x = win.lastContext?.x ?? 0
       y = win.lastContext?.y ?? 0
       p.goXY(x, y)
-      runThisLine(p)
     }
-  }
-
-  function runThisLine
-  (p) {
-    let l
 
     l = p.line()
     if (l && l.length)
@@ -89,8 +83,7 @@ function initRTL
       Mess.say('Line missing')
   }
 
-  Cmd.add('run this line', () => runThisLine(Pane.current()))
-  Cmd.add('run line at click', runClick)
+  Cmd.add('run this line', runThisLine)
 }
 
 export

@@ -60,7 +60,7 @@ function makeContext
   (p) {
     if (p && p.view.ed)
       append(context.el,
-             context0(p.buf, 'Run This Line', 'run line at click'),
+             context0(p.buf, 'Run This Line'),
              contextLine())
   }
 

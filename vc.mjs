@@ -396,7 +396,7 @@ function initLog
     dir = Loc.make(p.buf.dir)
     dir.ensureSlash()
     dir = dir.path || Loc.home()
-    Shell.run(buf, p.dir, 'git', [ 'log' ], { end: 1, afterEndPoint: 1 })
+    Shell.run(p.dir, 'git', [ 'log' ], { buf: buf, end: 1, afterEndPoint: 1 })
   }
 
   function show

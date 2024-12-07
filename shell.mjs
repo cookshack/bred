@@ -106,7 +106,7 @@ function run
   ch = nextCh()
   bep = b && (b.anyView()?.bep || 0)
 
-  d("run '" + sc + "' [" + spec.args + '] in ' + dir)
+  d("run '" + sc + "' [" + args + '] in ' + dir)
 
   b && b.onRemove(() => {
     d('RUN remove ch ' + ch)
@@ -173,7 +173,7 @@ function run
     b.vars('Shell').ch = ch
   }
 
-  Tron.cmd1('shell', [ ch, dir, sc, spec.args || [], spec.runInShell ? true : false, spec.multi ? true : false ], (err, tch) => {
+  Tron.cmd1('shell', [ ch, dir, sc, args || [], spec.runInShell ? true : false, spec.multi ? true : false ], (err, tch) => {
     if (err)
       Mess.toss(err)
     if (ch == tch) {

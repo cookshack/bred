@@ -32,7 +32,7 @@ function initDom
     el = dom
     id.split('.').forEach(i => {
       if (i.length)
-        el = el.children[parseInt(i)]
+        el = el.childNodes[parseInt(i)]
       el || Mess.toss('failed to parse: ' + id)
     })
 
@@ -89,6 +89,7 @@ function initDom
     d('render')
     d('id ' + id)
     d(el.children.length + ' children')
+    d(el.childNodes.length + ' childNodes')
     d(el.tagName)
     d(JSON.stringify(open))
 
@@ -101,29 +102,36 @@ function initDom
         open = open.slice(1)
     }
     ret = new globalThis.DocumentFragment()
-    for (let i = 0; i < el.children.length; i++) {
+    for (let i = 0; i < el.childNodes.length; i++) {
       let ch, chel, hi
 
       d(i)
-      ch = el.children[i]
-      d('vs ' + open[0])
+      ch = el.childNodes[i]
       if (open && (open[0] == i)) {
+        d('vs ' + open[0])
         if (open.length == 1)
           hi = 1
         chel = divCl('dom-el-ch',
                      render(ch, id + i, open.slice(1)))
       }
-      append(ret,
-             divCl('dom-el' + (hi ? ' dom-active' : ''),
-                   [ divCl('dom-el-line',
-                           [ divCl('dom-el-pm',
-                                   ch.children.length ? '+' : '',
-                                   { 'data-run': 'expand',
-                                     'data-id': id + i }),
-                             divCl('dom-el-name', ch.tagName),
-                             divCl('dom-el-css', ch.className),
-                             divCl('dom-el-attrs', attrs(ch)) ]),
-                     chel ]))
+
+      if (ch.nodeType == globalThis.Node.TEXT_NODE)
+        append(ret,
+               divCl('dom-el' + (hi ? ' dom-active' : ''),
+                     [ divCl('dom-el-text',
+                             ch.textContent) ]))
+      else
+        append(ret,
+               divCl('dom-el' + (hi ? ' dom-active' : ''),
+                     [ divCl('dom-el-line',
+                             [ divCl('dom-el-pm',
+                                     chel ? '\u2212' : (ch.childNodes.length ? '+' : ''),
+                                     { 'data-run': 'expand',
+                                       'data-id': id + i }),
+                               divCl('dom-el-name', ch.tagName),
+                               divCl('dom-el-css', ch.className),
+                               divCl('dom-el-attrs', attrs(ch)) ]),
+                       chel ]))
     }
 
     d('render done')
@@ -152,7 +160,7 @@ function initDom
     if (el.parentNode) {
       let index
 
-      index = [ ...el.parentNode.children ].indexOf(el)
+      index = [ ...el.parentNode.childNodes ].indexOf(el)
       if (index == -1)
         index = 0
       id = String(index) + (id ? ('.' + id) : '')

@@ -2179,6 +2179,8 @@ function start2
              view => {
                d('INSERT')
                view.insert(scratchMessage())
+               view.buf.modified = 0
+               Ed.setIcon(view.buf, '.edMl-mod', 'blank')
                start3(tab)
              })
     return

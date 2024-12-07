@@ -1375,7 +1375,9 @@ div.bred-open-under-f {
 }
 
 .bred-point {
+  --point-left: 0; /* set in point.mjs */
   position: relative;
+  left: var(--point-left);
   width: var(--width-point);
   height: calc(1rem + 2px);
   background: var(--clr-point);
@@ -1388,8 +1390,8 @@ div.bred-open-under-f {
   right: 0;
   bottom: 0;
   height: 2px;
-  width: 201vw;
-  transform: translate(-50%);
+  width: 99.5vw; /* for some reason 100 cause h scroll */
+  transform: translate(calc(-1 * var(--point-left)));
   box-shadow: inset 0 -1px 0 0 var(--clr-active-line);
   display: var(--display-active-line);
 }

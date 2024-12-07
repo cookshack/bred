@@ -399,7 +399,8 @@ function make
         eleRe = elePane.getBoundingClientRect()
         elePoint.style.top = (re.y - eleRe.y) + 'px'
         //point.ele.style.top = (0) + "px"
-        elePoint.style.left = (re.x - eleRe.x) + 'px'
+        //elePoint.style.left = (re.x - eleRe.x) + 'px'
+        elePoint.style.setProperty('--point-left', (re.x - eleRe.x) + 'px')
         if (skipScroll)
           return
         elePoint.scrollIntoView({ block: 'center', inline: 'nearest' })

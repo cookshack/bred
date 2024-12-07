@@ -191,6 +191,9 @@ function initDom
     }
 
     p = Pane.current()
+    if (Css.has(p.frame?.tab?.frameRight?.el, 'retracted'))
+      Cmd.run('toggle frame right')
+
     b = Buf.add2('Dom', 'Dom', divW(), p.dir,
                  { vars: { dom: { id: id } } })
     b.icon = 'dom'

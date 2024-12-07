@@ -113,8 +113,8 @@ function makeContext
                     appendSpell(p)
                     appendRun(p)
                     append(context.el,
-                           context0(p.buf, 'Dom', 'Dom Right'),
-                           context0(p.buf, 'Inspect Element'))
+                           context0(p.buf, 'Inspect Element'),
+                           context0(p.buf, 'Dom', 'Dom Right'))
                     Css.add(context.el, 'bred-open')
                   })
                 else {
@@ -123,8 +123,8 @@ function makeContext
                   appendSpell(p)
                   appendRun(p)
                   append(context.el,
-                         context0(p.buf, 'Dom Right'),
-                         context0(p?.buf, 'Inspect Element'))
+                         context0(p?.buf, 'Inspect Element'),
+                         context0(p.buf, 'Dom', 'Dom Right'))
                   Css.add(context.el, 'bred-open')
                 }
               } }

@@ -42,6 +42,10 @@ webview {
   flex-direction: column;
 }
 
+.dom-el.dom-active > .dom-el-line {
+  background-color: var(--clr-fill);
+}
+
 .dom-el-line {
   display: flex;
 }

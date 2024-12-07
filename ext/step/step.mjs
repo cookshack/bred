@@ -102,16 +102,19 @@ function initDom
     }
     ret = new globalThis.DocumentFragment()
     for (let i = 0; i < el.children.length; i++) {
-      let ch, chel
+      let ch, chel, hi
 
       d(i)
       ch = el.children[i]
       d('vs ' + open[0])
-      if (open && (open[0] == i))
+      if (open && (open[0] == i)) {
+        if (open.length == 1)
+          hi = 1
         chel = divCl('dom-el-ch',
                      render(ch, id + i, open.slice(1)))
+      }
       append(ret,
-             divCl('dom-el',
+             divCl('dom-el' + (hi ? ' dom-active' : ''),
                    [ divCl('dom-el-line',
                            [ divCl('dom-el-pm',
                                    ch.children.length ? '+' : '',

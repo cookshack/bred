@@ -2171,11 +2171,23 @@ function start2
   p.focus()
   if (Win.root()) {
     d('creating Scratch.js')
-    Ed.make(p, 'Scratch.js', p.dir, 0, 0, view => {
-      d('INSERT')
-      view.insert(scratchMessage())
-    })
+    Ed.make2(p,
+             { name: 'Scratch.js',
+               file: 0,
+               lineNum: 0,
+               dir: p.dir },
+             view => {
+               d('INSERT')
+               view.insert(scratchMessage())
+               start3(tab)
+             })
+    return
   }
+  start3(tab)
+}
+
+function start3
+(tab) {
   d('running welcome')
   if (Opt.get('core.welcome.enabled'))
     Cmd.run('welcome')

@@ -21,10 +21,18 @@ function init
 () {
   let hist, mo
 
+  function url
+  (query) {
+    return Opt.get('query.search.url.prefix') + globalThis.encodeURIComponent(query)
+  }
+
   function divW
   (query) {
     return divCl('query-ww',
                  [ divCl('query-h', 'Query: ' + query),
+                   divCl('query-links',
+                         divCl('query-link', 'Browser', { 'data-run': 'open externally',
+                                                          'data-url': url(query) })),
                    divCl('query-llm'),
                    divCl('query-w', 'Fetching...') ])
   }
@@ -308,6 +316,7 @@ function init
   hist = Hist.ensure('llm')
 
   Opt.declare('query.model', 'string', 'mistral')
+  Opt.declare('query.search.url.prefix', 'string', 'https://google.com/search?q=')
   Opt.declare('query.google.cx', 'string', '')
   Opt.declare('query.google.key', 'string', '')
 

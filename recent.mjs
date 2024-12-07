@@ -31,7 +31,7 @@ function add
     path = 'file://' + path
   else
     Mess.toss('Must be an absolute path')
-  Shell.run(0, p.dir, Loc.appDir().join('bin/add-recent'), 0, 0, [ path, mtype ], 0)
+  Shell.run(p.dir, Loc.appDir().join('bin/add-recent'), [ path, mtype ])
 }
 
 export

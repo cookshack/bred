@@ -154,12 +154,9 @@ function init
 
           d(que)
 
-          Shell.run(0, dir, 'llm', 0, 0, [ buf?.opt('query.model'), que ],
-                    0, // runInShell
-                    // onStdout
-                    str => add(buf, str),
-                    // onStderr
-                    str => add(buf, str))
+          Shell.run(dir, 'llm', [ buf?.opt('query.model'), que ],
+                    { onStdout: str => add(buf, str),
+                      onStderr: str => add(buf, str) })
         }
 
         buf?.views.forEach(view => {
@@ -207,12 +204,9 @@ function init
     d(que)
     buf = view.buf // in case view changes, still issues if eg buf removed
     bep = view.bep
-    Shell.run(0, dir, 'llm', 0, 0, [ view.buf?.opt('query.model.code') || view.buf?.opt('query.model'), que ],
-              0, // runInShell
-              // onStdout
-              add,
-              // onStderr
-              add)
+    Shell.run(dir, 'llm', [ view.buf?.opt('query.model.code') || view.buf?.opt('query.model'), que ],
+              { onStdout: add,
+                onStderr: add })
   }
 
   function fim

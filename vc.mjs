@@ -396,7 +396,7 @@ function initLog
     dir = Loc.make(p.buf.dir)
     dir.ensureSlash()
     dir = dir.path || Loc.home()
-    Shell.run(buf, p.dir, 'git', 1, 1, [ 'log' ], 0)
+    Shell.run(buf, p.dir, 'git', [ 'log' ], { end: 1, afterEndPoint: 1 })
   }
 
   function show
@@ -492,7 +492,8 @@ function initLogBadIdea
     p = Pane.current()
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
-    Shell.run(0, p.dir, 'git', 0, 0, [ 'log' ], 0, onStdin, onStdout)
+    Shell.run(p.dir, 'git', [ 'log' ], { onStdin: onStdin,
+                                         onStdout: onStdout })
   }
 
   function onStdin
@@ -564,8 +565,11 @@ function initAnnotate
     file = buf.vars('vc').file
     file || Mess.toss('file var missing')
     if (0) {
-      Shell.run(0, Loc.make(file).dirname, 'git', 1, 1, [ 'annotate', '--line-porcelain', file ], 0,
-                onStdout, onStderr)
+      Shell.run(Loc.make(file).dirname, 'git', [ 'annotate', '--line-porcelain', file ],
+                { end: 1,
+                  afterEndPoint: 1,
+                  onStdout: onStdout,
+                  onStderr: onStderr })
       buf.append('xx')
     }
     else

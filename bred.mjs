@@ -519,7 +519,7 @@ function initCmds
       if (ed)
         Pane.open(we.e.target.dataset.path, we.e.target.dataset.line)
       else
-        Shell.run(0, Pane.current().dir, 'xdg-open', 0, 0, [ we.e.target.dataset.path ], 0)
+        Shell.run(Pane.current().dir, 'xdg-open', [ we.e.target.dataset.path ])
     }
     else
       Mess.say('Target missing path')

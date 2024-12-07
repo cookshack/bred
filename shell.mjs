@@ -79,31 +79,34 @@ function runToString
 
 export
 function run
-(b, // optional
- dir, sc,
- // Insert at end. Only used if b.
- end,
- // For the first insert/append: if inserting at point
- // and point is at the end of the view, then point's
- // placement after the insert/append will be before
- // the added text.
+(dir,
+ sc,
+ args, // []
+ // { buf, // optional
+ //   end, // Insert at end. Only used if buf.
+ //   // For the first insert/append: if inserting at point
+ //   // and point is at the end of the view, then point's
+ //   // placement after the insert/append will be before
+ //   // the added text.
  //
- // Used to prevent scroll on input, eg for c-c c (compile).
+ //   // Used to prevent scroll on input, eg for c-c c (compile).
  //
- // Only used if b.
- afterEndPoint,
- args,
- runInShell,
- onStdout, // (str)
- onStderr, // (str)
- multi, // keep listening for more commands
- onClose) { // (b, code)
-  let ch, bep
+ //   // Only used if buf.
+ //   afterEndPoint,
+ //   runInShell,
+ //   onStdout, // (str)
+ //   onStderr, // (str)
+ //   multi, // keep listening for more commands
+ //   onClose } // (buf, code)
+ spec) {
+  let ch, bep, b
 
+  spec = spec || {}
+  b = spec.buf
   ch = nextCh()
   bep = b && (b.anyView()?.bep || 0)
 
-  d("run '" + sc + "' [" + args + '] in ' + dir)
+  d("run '" + sc + "' [" + spec.args + '] in ' + dir)
 
   b && b.onRemove(() => {
     d('RUN remove ch ' + ch)
@@ -127,36 +130,36 @@ function run
       d('ERR: ' + decoder.decode(data.stderr))
 
     if (b && data.stdout) {
-      if (end)
-        b.append(decoder.decode(data.stdout), afterEndPoint)
+      if (spec.end)
+        b.append(decoder.decode(data.stdout), spec.afterEndPoint)
       else
-        b.insert(decoder.decode(data.stdout), bep, afterEndPoint)
+        b.insert(decoder.decode(data.stdout), bep, spec.afterEndPoint)
       b.vars('Shell').lastLineText = b.line(-1)
       d('lastLineText: ' + b.vars('Shell').lastLineText)
-      afterEndPoint = 0
+      spec.afterEndPoint = 0
     }
 
-    if (onStdout && data.stdout)
-      onStdout(decoder.decode(data.stdout))
+    if (spec.onStdout && data.stdout)
+      spec.onStdout(decoder.decode(data.stdout))
 
     if (b && data.stderr) {
-      if (end)
-        b.append(decoder.decode(data.stderr), afterEndPoint)
+      if (spec.end)
+        b.append(decoder.decode(data.stderr), spec.afterEndPoint)
       else
-        b.insert(decoder.decode(data.stderr), bep, afterEndPoint)
-      afterEndPoint = 0
+        b.insert(decoder.decode(data.stderr), bep, spec.afterEndPoint)
+      spec.afterEndPoint = 0
     }
 
     if (data.close) {
       if (b)
         b.ml.set('busy', 'exit ' + data.code)
-      if (onClose)
-        onClose(b, data.code)
+      if (spec.onClose)
+        spec.onClose(b, data.code)
       Mess.log('SC exit: ' + sc + ': ' + data.code)
     }
 
-    if (onStderr && data.stderr)
-      onStderr(decoder.decode(data.stderr))
+    if (spec.onStderr && data.stderr)
+      spec.onStderr(decoder.decode(data.stderr))
 
     if (data.err) {
       if (b)
@@ -170,7 +173,7 @@ function run
     b.vars('Shell').ch = ch
   }
 
-  Tron.cmd1('shell', [ ch, dir, sc, args || [], runInShell ? true : false, multi ? true : false ], (err, tch) => {
+  Tron.cmd1('shell', [ ch, dir, sc, spec.args || [], spec.runInShell ? true : false, spec.multi ? true : false ], (err, tch) => {
     if (err)
       Mess.toss(err)
     if (ch == tch) {
@@ -239,6 +242,7 @@ function shellOrSpawn1
     })
   }
 
+  spec = spec || {}
   if (spec.hist)
     spec.hist.add(sc)
   p = Pane.current()
@@ -247,17 +251,13 @@ function shellOrSpawn1
   dir = dir.path || Loc.home()
   addBuf(p, dir, sc,
          buf => {
-           run(buf,
-               dir,
-               sc,
-               spec.end,
-               spec.afterEndPoint,
-               spec.args,
-               spec.shell,
-               0, // onStderr
-               0, // onStdout
-               spec.multi,
-               spec.onClose)
+           run(dir, sc, spec.args,
+               { buf: buf,
+                 end: spec.end,
+                 afterEndPoint: spec.afterEndPoint,
+                 runInShell: spec.shell,
+                 multi: spec.multi,
+                 onClose: spec.onClose })
            if (cb)
              cb(buf)
          })

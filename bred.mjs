@@ -2213,9 +2213,10 @@ function start3
       Mess.yell('Ready!')
     })
   }
-  else
-    Ed.make(Pane.current(), 'Main', ':')
-  //Pane.open(':tmp/home.js')//Mess.yell("Ready!")
+  else {
+    Ed.make2(Pane.current(), { name: 'Main', dir: Loc.home() })
+    Mess.yell('Ready!')
+  }
 }
 
 function start0

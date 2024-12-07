@@ -124,7 +124,7 @@ function makeContext
                   appendRun(p)
                   append(context.el,
                          context0(p?.buf, 'Inspect Element'),
-                         context0(p.buf, 'Dom', 'Dom Right'))
+                         context0(p?.buf, 'Dom', 'Dom Right'))
                   Css.add(context.el, 'bred-open')
                 }
               } }

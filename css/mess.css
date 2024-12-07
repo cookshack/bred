@@ -42,6 +42,10 @@
   color: var(--clr-emph);
 }
 
+.mess-text.mess-log {
+  color: var(--rule-clr-warn-token);
+}
+
 .mess-text.mess-debug {
   color: var(--clr-text-light);
 }

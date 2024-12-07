@@ -184,6 +184,21 @@ function initMouse
   }
 }
 
+function makeScratch
+(p, cb) {
+  Ed.make2(p,
+           { name: 'Scratch.js',
+             dir: Loc.home() },
+           view => {
+             view.buf.file = 'Scratch.js'
+             view.insert(scratchMessage())
+             view.buf.modified = 0
+             Ed.setIcon(view.buf, '.edMl-mod', 'blank')
+             if (cb)
+               cb()
+           })
+}
+
 function initCmds
 () {
   let quitEm
@@ -472,7 +487,7 @@ function initCmds
       return
     }
 
-    Ed.make(p, 'Scratch.js', p.dir)
+    makeScratch(p)
   })
 
   Cmd.add('evaluate expression', () => {
@@ -2171,16 +2186,7 @@ function start2
   p.focus()
   if (Win.root()) {
     d('creating Scratch.js')
-    Ed.make2(p,
-             { name: 'Scratch.js',
-               dir: Loc.home() },
-             view => {
-               view.buf.file = 'Scratch.js'
-               view.insert(scratchMessage())
-               view.buf.modified = 0
-               Ed.setIcon(view.buf, '.edMl-mod', 'blank')
-               start3(tab)
-             })
+    makeScratch(p, () => start3(tab))
     return
   }
   start3(tab)

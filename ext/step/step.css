@@ -106,9 +106,10 @@ webview {
   padding: 0.25rem;
   display: grid;
   grid-template-columns: minmax(min-content, max-content) auto;
+  grid-gap: 0.25rem;
 }
 
 .css-comp-name {
-  margin-top: 0.2rem;
   color: var(--rule-clr-tag);
+  white-space: nowrap;
 }

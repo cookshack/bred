@@ -60,7 +60,7 @@ function makeContext
   (p) {
     if (p && p.view.ed)
       append(context.el,
-             context0(p.buf, 'Run This Line'),
+             context0(p.buf, 'Run This Line In Shell', 'run this line'),
              contextLine())
   }
 

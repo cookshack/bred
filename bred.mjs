@@ -1717,11 +1717,13 @@ function initFile
     let text
 
     text = buf.text().trim()
-    if (text.length) {
-      Ed.make(p, text, p.dir)
-      // delayed otherwise Ed tries to open file
-      p.buf.file = text
-    }
+    if (text.length)
+      Ed.make2(p,
+               { name: text, dir: p.dir },
+               () => {
+                 // delayed otherwise Ed tries to open file
+                 p.buf.file = text
+               })
   }
 
   function select

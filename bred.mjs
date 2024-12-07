@@ -2173,11 +2173,9 @@ function start2
     d('creating Scratch.js')
     Ed.make2(p,
              { name: 'Scratch.js',
-               file: 0,
-               lineNum: 0,
-               dir: p.dir },
+               dir: Loc.home() },
              view => {
-               d('INSERT')
+               view.buf.file = 'Scratch.js'
                view.insert(scratchMessage())
                view.buf.modified = 0
                Ed.setIcon(view.buf, '.edMl-mod', 'blank')

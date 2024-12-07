@@ -216,7 +216,11 @@ function add
   (path, lineNum, whenReady) {
     path = Loc.make(path)
     path.expand()
-    Ed.make(p, path.filename, path.dirname, path.filename, lineNum, whenReady)
+    Ed.make2(p, { name: path.filename,
+                  dir: path.dirname,
+                  file: path.filename,
+                  lineNum: lineNum,
+                  whenReady: whenReady })
   }
 
   function openDir

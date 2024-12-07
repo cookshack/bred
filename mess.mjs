@@ -42,12 +42,15 @@ function trace
     more += ', method: ' + fr.getMethodName()
     more += ')'
 
-    return '  ' + i + ': ' + fr.getFunctionName() + ' ' + fr.getFileName() + ':' + fr.getLineNumber() + ':' + fr.getColumnNumber() + more
+    return [ '  ' + i + ': ' + fr.getFunctionName() + ' ' + fr.getFileName() + ':' + fr.getLineNumber() + ':' + fr.getColumnNumber() + more,
+             { file: fr.getFileName(),
+               line: fr.getLineNumber(),
+               col: fr.getColumnNumber() } ]
   }
 
   bt = callsites()
   say('Backtrace:')
-  bt.forEach((fr, i) => say(frame(fr, i)))
+  bt.forEach((fr, i) => say(...frame(fr, i)))
   say(new Error(msg).stack)
   console.trace()
 }
@@ -96,8 +99,8 @@ function isElement
 }
 
 function push
-(type, arg) {
-  let text, frame, file, line, col
+(type, arg, spec) {
+  let text, file, line, col
 
   function simple
   (ex) {
@@ -145,18 +148,27 @@ function push
 
   text = makeText(arg)
 
-  frame = callsites().find(fr => {
-    let loc
+  if (spec) {
+    file = spec.file
+    line = spec.line
+    col = spec.col
+  }
+  else {
+    let frame
 
-    loc = Loc.make(fr.getFileName())
-    if (loc.filename == 'mess.mjs')
-      return 0
-    return 1
-  })
-  if (frame) {
-    file = frame.getFileName()
-    line = frame.getLineNumber()
-    col = frame.getColumnNumber()
+    frame = callsites().find(fr => {
+      let loc
+
+      loc = Loc.make(fr.getFileName())
+      if (loc.filename == 'mess.mjs')
+        return 0
+      return 1
+    })
+    if (frame) {
+      file = frame.getFileName()
+      line = frame.getLineNumber()
+      col = frame.getColumnNumber()
+    }
   }
 
   {
@@ -195,10 +207,10 @@ function echoMore
 
 export
 function say
-(msg) {
+(msg, spec) {
   msg = echoMore(msg)
   if (msg.length)
-    push('say', msg)
+    push('say', msg, spec)
 }
 
 export

@@ -858,6 +858,10 @@ function initCmds
       }
     })
   })
+
+  Cmd.add('toss', () => {
+    Mess.toss('test toss')
+  })
 }
 
 export

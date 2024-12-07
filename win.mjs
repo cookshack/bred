@@ -56,6 +56,14 @@ function makeContext
 (win) {
   let context
 
+  function appendRun
+  (p) {
+    if (p && p.view.ed)
+      append(context.el,
+             context0(p.buf, 'Run This Line', 'run line at click'),
+             contextLine())
+  }
+
   function appendSpell
   (p) {
     if (p)
@@ -103,6 +111,7 @@ function makeContext
                     p && appendContextMode(context, p)
                     p && addCopy(p)
                     appendSpell(p)
+                    appendRun(p)
                     append(context.el,
                            context0(p.buf, 'Dom', 'Dom Right'),
                            context0(p.buf, 'Inspect Element'))
@@ -112,6 +121,7 @@ function makeContext
                   p && appendContextMode(context, p)
                   p && addCopy(p)
                   appendSpell(p)
+                  appendRun(p)
                   append(context.el,
                          context0(p.buf, 'Dom Right'),
                          context0(p?.buf, 'Inspect Element'))

@@ -4,6 +4,7 @@ import * as Mess from './mess.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
+import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
 let hist
@@ -56,11 +57,26 @@ function scib
 
 function initRTL
 () {
-  function runThisLine
-  () {
-    let p, l
+  function runClick
+  (u, we) {
+    if (we?.e && (we.e.button == 0)) {
+      let p, x, y
 
-    p = Pane.current()
+      p = Pane.current()
+      let win
+
+      win = Win.current()
+      x = win.lastContext?.x ?? 0
+      y = win.lastContext?.y ?? 0
+      p.goXY(x, y)
+      runThisLine(p)
+    }
+  }
+
+  function runThisLine
+  (p) {
+    let l
+
     l = p.line()
     if (l && l.length)
       Shell.shell1(l, 1, 0, 0, hist, 0, 0, buf => {
@@ -73,7 +89,8 @@ function initRTL
       Mess.say('Line missing')
   }
 
-  Cmd.add('run this line', () => runThisLine())
+  Cmd.add('run this line', () => runThisLine(Pane.current()))
+  Cmd.add('run line at click', runClick)
 }
 
 export

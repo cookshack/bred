@@ -762,12 +762,14 @@ function init
   function add
   (mess) {
     Win.shared().messages.buf?.views.forEach(view => {
-      if (view.ele && Css.has(view.ele, 'mess-w')) {
+      if (view.ele) {
         let w
 
-        w = view.ele.firstElementChild.firstElementChild
-        appendM(w, mess)
-        w.scrollIntoView({ block: 'end', inline: 'nearest' })
+        w = view.ele.firstElementChild?.firstElementChild
+        if (w && Css.has(w, 'mess-w')) {
+          appendM(w, mess)
+          w.scrollIntoView({ block: 'end', inline: 'nearest' })
+        }
       }
     })
   }

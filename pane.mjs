@@ -475,7 +475,11 @@ function open
 (path,
  lineNum, // only if file
  whenReady) { // only if file
-  return current(Tab.current()?.frame1).open(path, lineNum, whenReady)
+  let p
+
+  p = current(Tab.current()?.frame1)
+  p.focus()
+  return p.open(path, lineNum, whenReady)
 }
 
 export

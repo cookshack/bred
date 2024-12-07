@@ -86,7 +86,7 @@ function make
 
 export
 function make2
-(spec = {}) {
+(spec = {}) { // { ..., placeholder, vars }
   let { name, modeName, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk
 
@@ -347,7 +347,7 @@ function make2
       name = old + '<' + suffix++ + '>'
   }
 
-  modeVars = {}
+  modeVars = spec.vars || {}
   views = []
   vid = 1
   onRemoves = []
@@ -493,15 +493,27 @@ function make2
 }
 
 export
-function add
-(name, modeName, content, dir, file, lineNum) {
+function add2
+(name, modeName, content, dir, spec) { // { file, lineNum, vars }
   let b, sh
 
-  b = make(name, modeName, content, dir, file, lineNum)
+  b = make2({ name: name,
+              modeName: modeName,
+              content: content,
+              dir: dir,
+              file: spec.file,
+              lineNum: spec.lineNum,
+              vars: spec.vars })
   sh = shared()
   sh.buffers.push(b)
   shared().ring.unshift(b)
   return b
+}
+
+export
+function add
+(name, modeName, content, dir, file, lineNum) {
+  return add2(name, modeName, content, dir, { file: file, lineNum: lineNum })
 }
 
 // move buf to top of ring

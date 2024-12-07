@@ -1,5 +1,6 @@
 import { append, button, divCl } from '../../dom.mjs'
 
+import * as Bred from '../../bred.mjs'
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
 import * as Css from '../../css.mjs'
@@ -11,6 +12,7 @@ import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 import * as Tab from '../../tab.mjs'
 import * as Tron from '../../tron.mjs'
+import * as Win from '../../win.mjs'
 import { d } from '../../mess.mjs'
 
 function initDom
@@ -81,18 +83,33 @@ function initDom
   }
 
   function render
-  (el, id) {
+  (el, id, open) {
     let ret
+
+    d('render')
+    d('id ' + id)
+    d(el.children.length + ' children')
+    d(el.tagName)
+    d(JSON.stringify(open))
 
     if (id)
       id = id + '.'
-    else
+    else {
       id = ''
+      if (open)
+        // skip HTML node
+        open = open.slice(1)
+    }
     ret = new globalThis.DocumentFragment()
     for (let i = 0; i < el.children.length; i++) {
-      let ch
+      let ch, chel
 
+      d(i)
       ch = el.children[i]
+      d('vs ' + open[0])
+      if (open && (open[0] == i))
+        chel = divCl('dom-el-ch',
+                     render(ch, id + i, open.slice(1)))
       append(ret,
              divCl('dom-el',
                    [ divCl('dom-el-line',
@@ -102,24 +119,43 @@ function initDom
                                      'data-id': id + i }),
                              divCl('dom-el-name', ch.tagName),
                              divCl('dom-el-css', ch.className),
-                             divCl('dom-el-attrs', attrs(ch)) ]) ]))
+                             divCl('dom-el-attrs', attrs(ch)) ]),
+                     chel ]))
     }
 
+    d('render done')
     return ret
   }
 
   function refresh
   (view, spec, cb) {
-    let w
+    let w, id
 
+    id = view.buf.vars('dom').id
+    d('ref')
+    d({ id })
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
 
     dom = globalThis.document.documentElement.cloneNode(true)
-    append(w, render(dom))
+    append(w, render(dom, 0, id.split('.').map(s => parseInt(s))))
 
     if (cb)
       cb(view)
+  }
+
+  function domId
+  (el, id) {
+    if (el.parentNode) {
+      let index
+
+      index = [ ...el.parentNode.children ].indexOf(el)
+      if (index == -1)
+        index = 0
+      id = String(index) + (id ? ('.' + id) : '')
+      return domId(el.parentNode, id)
+    }
+    return id
   }
 
   Cmd.add('Dom', () => {
@@ -132,11 +168,31 @@ function initDom
     p.setBuf(b)
   })
 
-  Cmd.add('Dom Right', () => {
-    let b, p, tab
+  Cmd.add('Dom Right', (u, we) => {
+    let b, p, tab, x, y, el, id
+
+    if (we?.e) {
+      let win
+
+      win = Win.current()
+      x = win.lastContext?.x ?? 0
+      y = win.lastContext?.y ?? 0
+    }
+    else {
+      x = Bred.mouse.x
+      y = Bred.mouse.y
+    }
+
+    el = globalThis.document.elementFromPoint(x, y)
+    if (el) {
+      d({ el })
+      id = domId(el)
+      d({ id })
+    }
 
     p = Pane.current()
-    b = Buf.add('Dom', 'Dom', divW(), p.dir)
+    b = Buf.add2('Dom', 'Dom', divW(), p.dir,
+                 { vars: { dom: { id: id } } })
     b.icon = 'dom'
     b.addMode('view')
 

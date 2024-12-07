@@ -2285,3 +2285,5 @@ function initNewWindow
     start0(start2)
   })
 }
+
+export { mouse }

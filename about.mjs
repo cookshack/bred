@@ -767,8 +767,21 @@ function init
 
         w = view.ele.firstElementChild?.firstElementChild
         if (w && Css.has(w, 'mess-w')) {
+          let wasAtEnd, paneW
+
+          paneW = view.ele.parentNode
+          if (paneW.scrollHeight == paneW.clientHeight)
+            // existing content fits entirely in pane, scroll if needed
+            wasAtEnd = 0
+          else
+            wasAtEnd = Math.abs((paneW.scrollHeight - Math.ceil(paneW.scrollTop)) - paneW.clientHeight)
+          //atEnd = paneW.scrollTop === (paneW.scrollHeight - paneW.offsetHeight)
           appendM(w, mess)
-          w.scrollIntoView({ block: 'end', inline: 'nearest' })
+          if (paneW.scrollHeight == paneW.clientHeight) {
+            // content still fits entirely in pane
+          }
+          else if (wasAtEnd < 10) // close enough
+            w.scrollIntoView({ block: 'end', inline: 'nearest' })
         }
       }
     })

@@ -42,7 +42,8 @@ function initCssComp
       name = decl.item(i)
       if (name)
         append(ret,
-               divCl('css-comp-name', name))
+               divCl('css-comp-name', name),
+               divCl('css-comp-val', decl.getPropertyValue(name)))
     }
 
     d('render done')

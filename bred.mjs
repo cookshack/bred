@@ -2088,10 +2088,7 @@ function initRecent
 
 function scratchMessage
 () {
-  return `// This is your scratch buffer. For notes, tests or whatever.
-// It's in Javascript mode.
-
-`
+  return '// This is your Javascript scratch buffer. For notes, tests or whatever.\n\n'
 }
 
 function initFontSize

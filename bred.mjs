@@ -186,17 +186,17 @@ function initMouse
 
 function makeScratch
 (p, cb) {
-  Ed.make2(p,
-           { name: 'Scratch.js',
-             dir: Loc.home() },
-           view => {
-             view.buf.file = 'Scratch.js'
-             view.insert(scratchMessage())
-             view.buf.modified = 0
-             Ed.setIcon(view.buf, '.edMl-mod', 'blank')
-             if (cb)
-               cb()
-           })
+  Ed.make(p,
+          { name: 'Scratch.js',
+            dir: Loc.home() },
+          view => {
+            view.buf.file = 'Scratch.js'
+            view.insert(scratchMessage())
+            view.buf.modified = 0
+            Ed.setIcon(view.buf, '.edMl-mod', 'blank')
+            if (cb)
+              cb()
+          })
 }
 
 function initCmds
@@ -1718,12 +1718,12 @@ function initFile
 
     text = buf.text().trim()
     if (text.length)
-      Ed.make2(p,
-               { name: text, dir: p.dir },
-               () => {
-                 // delayed otherwise Ed tries to open file
-                 p.buf.file = text
-               })
+      Ed.make(p,
+              { name: text, dir: p.dir },
+              () => {
+                // delayed otherwise Ed tries to open file
+                p.buf.file = text
+              })
   }
 
   function select
@@ -2214,7 +2214,7 @@ function start3
     })
   }
   else {
-    Ed.make2(Pane.current(), { name: 'Main', dir: Loc.home() })
+    Ed.make(Pane.current(), { name: 'Main', dir: Loc.home() })
     Mess.yell('Ready!')
   }
 }

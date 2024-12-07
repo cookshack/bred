@@ -124,18 +124,6 @@ function langs
 
 export
 function make
-(p, name, dir, file, lineNum,
- whenReady) { // (view)
-  return make2(p,
-               { name: name,
-                 dir: dir,
-                 file: file,
-                 lineNum: lineNum,
-                 whenReady: whenReady })
-}
-
-export
-function make2
 (p,
  spec, // { name, dir, file, lineNum, whenReady(view) }
  cb) { // (view)

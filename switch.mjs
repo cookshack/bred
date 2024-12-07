@@ -236,7 +236,7 @@ function init
     // create
     if (text.length) {
       hist.add(text)
-      Ed.make2(p, { name: text, dir: p.dir })
+      Ed.make(p, { name: text, dir: p.dir })
     }
   }
 

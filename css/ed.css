@@ -53,7 +53,7 @@
 .edMl-file {
   margin-left: 0.3rem;
   margin-right: 0.2rem;
-  color: var(--clr-emph);
+  /* color set for current pane in bred.css */
 }
 
 .edMl-dir > span {

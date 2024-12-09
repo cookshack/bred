@@ -127,6 +127,26 @@ webview {
   width: 100%;
   height: 100%;
   padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.css-rules-rule {
+  margin-bottom: 1rem;
+}
+
+.css-rules-sels {
+  margin-bottom: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.css-rules-sel {
+  color: var(--rule-clr-attribute);
+}
+
+.css-rules-props {
+  margin-left: 1rem;
   display: grid;
   grid-template-columns: minmax(min-content, max-content) auto;
   grid-gap: 0.25rem;
@@ -134,5 +154,8 @@ webview {
 
 .css-rules-name {
   color: var(--rule-clr-tag);
-  white-space: nowrap;
+}
+
+.css-rules-val {
+  color: var(--rule-clr-string);
 }

@@ -164,7 +164,17 @@ function initCssRules
 
               d({ data3 })
               ret = new globalThis.DocumentFragment()
-              append(ret, 'xx')
+              data3.matchedCSSRules.forEach(r =>
+                append(ret,
+                       divCl('css-rules-rule',
+                             [ divCl('css-rules-sels',
+                                     r.rule.selectorList.selectors.map(sel => divCl('css-rules-sel',
+                                                                                    sel.text))),
+                               divCl('css-rules-props',
+                                     r.rule.style.cssProperties
+                                       .filter(p => p.disabled === false)
+                                       .map(p => [ divCl('css-rules-name', p.name),
+                                                   divCl('css-rules-val', p.value) ])) ])))
               append(w, ret)
             })
           })

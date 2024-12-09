@@ -437,7 +437,7 @@ textarea:focus-visible {
   overflow: hidden;
   padding: 3px;
   background: var(--clr-fill);
-  box-shadow: inset 0 1px var(--clr-text-light);
+  box-shadow: inset -1px 1px var(--clr-text-light);
 }
 
 .frame.current > .paneWW.current {
@@ -445,7 +445,8 @@ textarea:focus-visible {
   --opacity-active-line: 1;
   /* line around pane, too light */
   /* box-shadow: inset 0 0px 3px var(--clr-nb0), inset 0 0 3px var(--clr-nb0); */
-  box-shadow: inset 0 0.2rem var(--clr-nb0);
+  /* as in .paneWW, plus nb0 bar on top */
+  box-shadow: inset 0 0.2rem var(--clr-nb0), inset -1px 1px var(--clr-text-light);
 }
 
 .frame.current > .paneWW.current > .paneW > .pane > .edWW > .edMl > .edMl-file {

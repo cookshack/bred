@@ -1519,7 +1519,8 @@ div.bred-lint-marker:active {
   border-color: var(--clr-point-current);
 }
 
-.paneW.ed > .bred-overlay-w > .bred-overlay > .bred-point {
+.paneW.ed > .bred-overlay-w > .bred-overlay > .bred-point,
+.paneW.ed > .bred-overlay-w > .bred-overlay > .bred-point-line {
   display: none;
 }
 

@@ -58,7 +58,7 @@ function getBootBuf
 export
 function add
 (frame, b, lineNum) {
-  let p, curr, view, ele, elePoint, eleHead, eleLint, paneW
+  let p, curr, view, ele, elePoint, elePointLine, eleHead, eleLint, paneW
 
   function line
   () {
@@ -265,6 +265,7 @@ function add
               { 'data-id': frame.panes.length })
 
   elePoint = divCl('bred-point')
+  elePointLine = divCl('bred-point-line')
   eleLint = divCl('bred-head-ed bred-head-lint hidden',
                   divCl('bred-lint-marker',
                         [],
@@ -283,6 +284,7 @@ function add
                   divCl('bred-overlay-w',
                         divCl('bred-overlay',
                               [ elePoint,
+                                elePointLine,
                                 eleHead ])) ])
 
   paneW.onscroll = () => {

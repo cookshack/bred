@@ -15,6 +15,18 @@ import * as Tron from '../../tron.mjs'
 import * as Win from '../../win.mjs'
 import { d } from '../../mess.mjs'
 
+function send
+(method, args, cb) {
+  Tron.cmd('step.send', [ method, args ], (err, data) => {
+    if (err) {
+      Mess.yell(method + ': ' + err.message)
+      return
+    }
+    if (cb)
+      cb(data)
+  })
+}
+
 function initCssComp
 () {
   let mo
@@ -99,6 +111,117 @@ function initCssComp
   })
 
   mo = Mode.add('Css Comp', { viewInitSpec: refresh })
+  d(mo)
+}
+
+function initCssRules
+() {
+  let mo
+
+  function divW
+  () {
+    return divCl('css-rules-ww', divCl('css-rules-w bred-surface'))
+  }
+
+  function idInParent
+  (el) {
+    let id
+
+    for (id = 0; id < el.parentNode.children.length; id++)
+      if (el.parentNode.children[id] === el)
+        break
+    return (id || 0) + 1
+  }
+
+  function selector
+  (el) {
+    if (el.parentNode)
+      return selector(el.parentNode) + ' :nth-child(' + idInParent(el) + ')'
+    return ''
+  }
+
+  function render
+  (w, el) {
+    d('render')
+    d(el.children.length + ' children')
+    d(el.childNodes.length + ' childNodes')
+    d(el.tagName)
+
+    send('DOM.enable', {}, () => {
+      send('CSS.enable', {}, () => {
+        let sel
+
+        sel = selector(el)
+        d({ sel })
+        send('DOM.getDocument', {}, data => {
+          d({ data })
+          data || Mess.toss('DOM.getDocument empty')
+          send('DOM.querySelector', { nodeId: data.root.nodeId, selector: sel }, data2 => {
+            d({ data2 })
+            data2.nodeId || Mess.toss('DOM.querySelector empty')
+            send('CSS.getMatchedStylesForNode', { nodeId: data2.nodeId }, data3 => {
+              let ret
+
+              d({ data3 })
+              ret = new globalThis.DocumentFragment()
+              append(ret, 'xx')
+              append(w, ret)
+            })
+          })
+        })
+      })
+    })
+  }
+
+  function refresh
+  (view, spec, cb) {
+    let w, el
+
+    el = view.buf.vars('css rules').el
+    d('ref')
+    d({ el })
+    w = view.ele.firstElementChild.firstElementChild
+    w.innerHTML = ''
+
+    render(w, el)
+
+    if (cb)
+      cb(view)
+  }
+
+  Cmd.add('Css Rules', (u, we) => {
+    let b, p, tab, x, y, el
+
+    if (we?.e) {
+      let win
+
+      win = Win.current()
+      x = win.lastContext?.x ?? 0
+      y = win.lastContext?.y ?? 0
+    }
+    else {
+      x = Bred.mouse.x
+      y = Bred.mouse.y
+    }
+
+    el = globalThis.document.elementFromPoint(x, y)
+    el || Mess.toss('missing el')
+
+    p = Pane.current()
+    if (Css.has(p.frame?.tab?.frameRight?.el, 'retracted'))
+      Cmd.run('toggle frame right')
+
+    b = Buf.add2('Css Rules', 'Css Rules', divW(), p.dir,
+                 { vars: { 'css rules': { el: el } } })
+    b.icon = 'css'
+    b.addMode('view')
+
+    tab = Tab.current()
+    p = Pane.current(tab.frameRight)
+    p.setBuf(b)
+  })
+
+  mo = Mode.add('Css Rules', { viewInitSpec: refresh })
   d(mo)
 }
 
@@ -390,6 +513,7 @@ function init
   })
 
   initDom()
+  initCssRules()
   initCssComp()
 }
 

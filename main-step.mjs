@@ -14,7 +14,7 @@ function onSend
   d('method ' + method)
 
   win.webContents.debugger.sendCommand(method, params || {})
-    .then(() => e.sender.send(ch, {}))
+    .then(data => e.sender.send(ch, data))
     .catch(err => {
       d('ERR ' + err.message)
       e.sender.send(ch, makeErr(err))

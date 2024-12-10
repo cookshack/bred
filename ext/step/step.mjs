@@ -154,19 +154,22 @@ function initCssRules
 
   function cmpSpeci
   (sp1, sp2) {
-    if (sp1.a < sp2.a)
-      return -1
+    // ID
     if (sp1.a > sp2.a)
+      return -1
+    if (sp1.a < sp2.a)
       return 1
 
-    if (sp1.b < sp2.b)
-      return -1
+    // Class
     if (sp1.b > sp2.b)
+      return -1
+    if (sp1.b < sp2.b)
       return 1
 
-    if (sp1.c < sp2.c)
-      return -1
+    // Type
     if (sp1.c > sp2.c)
+      return -1
+    if (sp1.c < sp2.c)
       return 1
 
     return 0
@@ -176,13 +179,13 @@ function initCssRules
   (sels1, sels2) {
     let hi1, hi2
 
-    if (sels1.length == 0)
+    if (sels1.length == 0) {
       if (sels2.length == 0)
         return 0
       else
         return 1
-    else
       return -1
+    }
 
     sels1.forEach(sel => {
       let sp

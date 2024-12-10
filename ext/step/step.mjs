@@ -538,8 +538,9 @@ function initDom
     p.setBuf(b)
   })
 
-  Cmd.add('Dom Right', (u, we) => {
-    let b, p, tab, x, y, el, id
+  function xyEl
+  (we) {
+    let x, y
 
     if (we?.e) {
       let win
@@ -553,12 +554,12 @@ function initDom
       y = Bred.mouse.y
     }
 
-    el = globalThis.document.elementFromPoint(x, y)
-    if (el) {
-      d({ el })
-      id = domId(el)
-      d({ id })
-    }
+    return globalThis.document.elementFromPoint(x, y)
+  }
+
+  function domRight
+  (id) {
+    let b, p, tab
 
     p = Pane.current()
     if (Css.has(p.frame?.tab?.frameRight?.el, 'retracted'))
@@ -572,6 +573,16 @@ function initDom
     tab = Tab.current()
     p = Pane.current(tab.frameRight)
     p.setBuf(b)
+  }
+
+  Cmd.add('Dom Right', (u, we) => {
+    let el, id
+
+    el = xyEl(we)
+    if (el)
+      id = domId(el)
+
+    domRight(id)
   })
 
   mo = Mode.add('Dom', { viewInitSpec: refresh })

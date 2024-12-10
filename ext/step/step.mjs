@@ -149,7 +149,9 @@ function initCssRules
   (rule) {
     return rule.selectorList.selectors.map(sel => divCl('css-rules-sel',
                                                         [ divCl('css-rules-sel-text', sel.text),
-                                                          divCl('css-rules-sel-rest', speci(sel.specificity)) ]))
+                                                          divCl('css-rules-sel-rest',
+                                                                [ divCl('css-rules-src', rule.origin == 'user-agent' ? 'ua' : ''),
+                                                                  divCl('css-rules-speci', speci(sel.specificity)) ]) ]))
   }
 
   function cmpSpeci

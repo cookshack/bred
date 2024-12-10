@@ -153,6 +153,12 @@ webview {
 
 .css-rules-sel-rest {
   margin-left: auto;
+  display: flex;
+}
+
+.css-rules-src {
+  margin-right: 0.25rem;
+  font-style: italic;
 }
 
 .css-rules-props {

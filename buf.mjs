@@ -92,15 +92,14 @@ function make2
 
   function remove
   () {
-    let sh, id, buf
+    let sh, buf
 
-    id = Pane.current().buf?.id
     sh = shared()
     sh.buffers.removeIf(e => e === b)
     sh.ring.removeIf(e => e === b)
     buf = top()
     Pane.forEach(p2 => {
-      if (p2.buf && (p2.buf.id == id))
+      if (p2.buf && (p2.buf.id == b.id))
         p2.setBuf(buf)
     })
     onRemoves.forEach(cb => cb(b))

@@ -253,7 +253,7 @@ function initCssRules
             d({ data2 })
             data2.nodeId || Mess.toss('DOM.querySelector empty')
             send('CSS.getMatchedStylesForNode', { nodeId: data2.nodeId }, data3 => {
-              let ret
+              let ret, rs
 
               d({ data3 })
               ret = new globalThis.DocumentFragment()
@@ -265,19 +265,22 @@ function initCssRules
                                divCl('css-rules-props',
                                      props(r.rule)) ])))
               append(ret, divCl('css-rules-head', 'Inherited'))
+              rs = []
               data3.inherited.forEach(rules => {
                 if (rules.matchedCSSRules.length) {
                   let r
 
                   r = rules.matchedCSSRules[rules.matchedCSSRules.length - 1]
-                  if (r.matchingSelectors.length)
-                    append(ret,
-                           divCl('css-rules-rule css-rules-inherited',
-                                 [ divCl('css-rules-sels',
-                                         sels(r.rule)),
-                                   divCl('css-rules-props',
-                                         props(r.rule)) ]))
+                  rs.push(r)
                 }
+              })
+              rs.forEach(r => {
+                append(ret,
+                       divCl('css-rules-rule css-rules-inherited',
+                             [ divCl('css-rules-sels',
+                                     sels(r.rule)),
+                               divCl('css-rules-props',
+                                     props(r.rule)) ]))
               })
               append(ret, divCl('css-rules-end'))
               append(w, ret)

@@ -76,8 +76,6 @@ function makeContext
   (p) {
     append(context.el,
            context0(p?.buf, 'Inspect Element'),
-           context0(p?.buf, 'Css Computed'),
-           context0(p?.buf, 'Css Rules'),
            context0(p?.buf, 'Dom', 'Dom And Css Right'))
   }
 

@@ -27,6 +27,25 @@ function send
   })
 }
 
+function xyEl
+(we) {
+  let x, y
+
+  if (we?.e) {
+    let win
+
+    win = Win.current()
+    x = win.lastContext?.x ?? 0
+    y = win.lastContext?.y ?? 0
+  }
+  else {
+    x = Bred.mouse.x
+    y = Bred.mouse.y
+  }
+
+  return globalThis.document.elementFromPoint(x, y)
+}
+
 function initCssComp
 () {
   let mo
@@ -79,21 +98,9 @@ function initCssComp
   }
 
   Cmd.add('Css Computed', (u, we) => {
-    let b, p, tab, x, y, el
+    let b, p, tab, el
 
-    if (we?.e) {
-      let win
-
-      win = Win.current()
-      x = win.lastContext?.x ?? 0
-      y = win.lastContext?.y ?? 0
-    }
-    else {
-      x = Bred.mouse.x
-      y = Bred.mouse.y
-    }
-
-    el = globalThis.document.elementFromPoint(x, y)
+    el = xyEl(we)
     el || Mess.toss('missing el')
 
     p = Pane.current()
@@ -339,21 +346,9 @@ function initCssRules
   }
 
   Cmd.add('Css Rules', (u, we) => {
-    let b, p, tab, x, y, el
+    let b, p, tab, el
 
-    if (we?.e) {
-      let win
-
-      win = Win.current()
-      x = win.lastContext?.x ?? 0
-      y = win.lastContext?.y ?? 0
-    }
-    else {
-      x = Bred.mouse.x
-      y = Bred.mouse.y
-    }
-
-    el = globalThis.document.elementFromPoint(x, y)
+    el = xyEl(we)
     el || Mess.toss('missing el')
 
     p = Pane.current()
@@ -537,25 +532,6 @@ function initDom
     b.addMode('view')
     p.setBuf(b)
   })
-
-  function xyEl
-  (we) {
-    let x, y
-
-    if (we?.e) {
-      let win
-
-      win = Win.current()
-      x = win.lastContext?.x ?? 0
-      y = win.lastContext?.y ?? 0
-    }
-    else {
-      x = Bred.mouse.x
-      y = Bred.mouse.y
-    }
-
-    return globalThis.document.elementFromPoint(x, y)
-  }
 
   function domRight
   (id) {

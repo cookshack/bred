@@ -585,6 +585,16 @@ function initDom
     domRight(id)
   })
 
+  Cmd.add('Dom And Css Right', (u, we) => {
+    let el, id
+
+    el = xyEl(we)
+    if (el)
+      id = domId(el)
+
+    domRight(id)
+  })
+
   mo = Mode.add('Dom', { viewInitSpec: refresh })
   d(mo)
 

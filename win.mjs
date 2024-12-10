@@ -78,7 +78,7 @@ function makeContext
            context0(p?.buf, 'Inspect Element'),
            context0(p?.buf, 'Css Computed'),
            context0(p?.buf, 'Css Rules'),
-           context0(p?.buf, 'Dom', 'Dom Right'))
+           context0(p?.buf, 'Dom', 'Dom And Css Right'))
   }
 
   function addCopy

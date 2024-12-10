@@ -204,6 +204,7 @@ function initCssRules
                                                        divCl('css-rules-val', p.value) ])) ]))
                 }
               })
+              append(ret, divCl('css-rules-end'))
               append(w, ret)
             })
           })

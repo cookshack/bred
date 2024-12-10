@@ -151,6 +151,10 @@ webview {
   color: var(--rule-clr-attribute);
 }
 
+.css-rules-sel-text.css-rules-off {
+  opacity: 0.5;
+}
+
 .css-rules-sel-rest {
   margin-left: auto;
   display: flex;

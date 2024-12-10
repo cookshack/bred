@@ -145,8 +145,24 @@ function initCssRules
     return s.a + ',' + s.b + ',' + s.c
   }
 
+  function selDiv
+  (sel, i, src, matching) {
+    let off
+
+    off = ' css-rules-off'
+    if (matching.includes(i))
+      off = ''
+
+    return divCl('css-rules-sel',
+                 [ divCl('css-rules-sel-text' + off,
+                         sel.text),
+                   divCl('css-rules-sel-rest',
+                         [ divCl('css-rules-src', src),
+                           divCl('css-rules-speci', speci(sel.specificity)) ]) ])
+  }
+
   function sels
-  (rule) {
+  (rule, matching) {
     let src
 
     src = ''
@@ -155,11 +171,7 @@ function initCssRules
     else if (rule.origin == 'regular')
       src = rule.styleSheetId || ''
 
-    return rule.selectorList.selectors.map(sel => divCl('css-rules-sel',
-                                                        [ divCl('css-rules-sel-text', sel.text),
-                                                          divCl('css-rules-sel-rest',
-                                                                [ divCl('css-rules-src', src),
-                                                                  divCl('css-rules-speci', speci(sel.specificity)) ]) ]))
+    return rule.selectorList.selectors.map((sel, i) => selDiv(sel, i, src, matching))
   }
 
   function cmpSpeci
@@ -279,7 +291,7 @@ function initCssRules
                 append(ret,
                        divCl('css-rules-rule',
                              [ divCl('css-rules-sels',
-                                     sels(r.rule)),
+                                     sels(r.rule, r.matchingSelectors)),
                                divCl('css-rules-props',
                                      props(r.rule, seen)) ])))
               append(ret, divCl('css-rules-head', 'Inherited'))
@@ -297,7 +309,7 @@ function initCssRules
                 append(ret,
                        divCl('css-rules-rule css-rules-inherited',
                              [ divCl('css-rules-sels',
-                                     sels(r.rule)),
+                                     sels(r.rule, r.matchingSelectors)),
                                divCl('css-rules-props',
                                      props(r.rule, seen)) ]))
               })

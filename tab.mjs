@@ -110,12 +110,15 @@ function add
   area.tabs.push(tab)
   append(area.el, tab.el)
   append(area.tabbar, tab.elBar)
+  tab.framesRight = []
   if (options.singleFrame)
     tab.frame1 = Frame.add(tab)
   else {
     tab.frameLeft = Frame.add(tab)
     tab.frame1 = Frame.add(tab)
     tab.frameRight = Frame.add(tab)
+    tab.framesRight = [ tab.frameRight,
+                        Frame.add(tab) ]
   }
   {
     let $current
@@ -123,7 +126,7 @@ function add
     $current = current(area)
     if ($current) {
       if ($current.frameRight && Css.has($current.frameRight.el, 'retracted'))
-        Css.retract(tab.frameRight.el)
+        tab.framesRight?.forEach(fr => Css.retract(fr.el))
       if ($current.frameLeft && Css.has($current.frameLeft.el, 'retracted'))
         Css.retract(tab.frameLeft.el)
     }

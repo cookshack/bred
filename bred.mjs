@@ -303,14 +303,14 @@ function initCmds
     if (Css.toggle(tab.frameRight.el, 'retracted')) {
       Tab.forEach(win.main, tab => {
         tab.frame1.focus()
-        Css.retract(tab.frameRight.el)
+        tab.framesRight.forEach(fr => Css.retract(fr.el))
       })
       tab.frame1.focus()
       Css.remove(win.frameToggleR, 'mini-frame-open')
     }
     else {
       Tab.forEach(win.main, tab => {
-        Css.expand(tab.frameRight.el)
+        tab.framesRight.forEach(fr => Css.expand(fr.el))
       })
       Css.add(win.frameToggleR, 'mini-frame-open')
     }
@@ -678,7 +678,7 @@ function initCmds
         return
       }
       if (f == f.tab.frameRight) {
-        Tab.forEach(win.main, tab => Css.retract(tab.frameRight.el))
+        Tab.forEach(win.main, tab => tab.framesRight.forEach(fr => Css.retract(fr.el)))
         Css.remove(win.frameToggleR, 'mini-frame-open')
         f.tab.frame1.focus()
         return
@@ -708,7 +708,7 @@ function initCmds
         return
       }
       Tab.forEach(win.main, tab => Css.retract(tab.frameLeft.el))
-      Tab.forEach(win.main, tab => Css.retract(tab.frameRight.el))
+      Tab.forEach(win.main, tab => tab.framesRight.forEach(fr => Css.retract(fr.el)))
       Css.remove(win.frameToggleL, 'mini-frame-open')
       Css.remove(win.frameToggleR, 'mini-frame-open')
       return
@@ -2169,7 +2169,7 @@ function start2
   if (frames.left == 0)
     Css.retract(tab.frameLeft.el)
   if (frames.right == 0)
-    Css.retract(tab.frameRight.el)
+    tab.framesRight.forEach(fr => Css.retract(fr.el))
   p = Pane.current(tab.frameLeft)
   p.focus()
   Cmd.run('home')

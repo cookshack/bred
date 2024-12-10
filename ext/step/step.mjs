@@ -346,7 +346,7 @@ function initCssRules
   }
 
   function rulesRight
-  (el) {
+  (el, far) {
     let b, p, tab
 
     p = Pane.current()
@@ -359,7 +359,10 @@ function initCssRules
     b.addMode('view')
 
     tab = Tab.current()
-    p = Pane.current(tab.frameRight)
+    if (far)
+      p = Pane.current(tab.framesRight[1] || tab.frameRight)
+    else
+      p = Pane.current(tab.frameRight)
     p.setBuf(b)
   }
 
@@ -383,10 +386,12 @@ function initCssRules
 
   mo = Mode.add('Css Rules', { viewInitSpec: refresh })
   d(mo)
+
+  return { right: rulesRight }
 }
 
 function initDom
-() {
+(Rules) {
   let mo, dom
 
   function divW
@@ -585,6 +590,7 @@ function initDom
       id = domId(el)
 
     domRight(id)
+    Rules.right(el, 1)
   })
 
   mo = Mode.add('Dom', { viewInitSpec: refresh })
@@ -598,6 +604,7 @@ function initDom
 export
 function init
 () {
+  let Rules
   let webview
 
   function divW
@@ -674,8 +681,8 @@ function init
     })
   })
 
-  initDom()
-  initCssRules()
+  Rules = initCssRules()
+  initDom(Rules)
   initCssComp()
 }
 

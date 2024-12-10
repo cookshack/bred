@@ -345,11 +345,9 @@ function initCssRules
       cb(view)
   }
 
-  Cmd.add('Css Rules', (u, we) => {
-    let b, p, tab, el
-
-    el = xyEl(we)
-    el || Mess.toss('missing el')
+  function rulesRight
+  (el) {
+    let b, p, tab
 
     p = Pane.current()
     if (Css.has(p.frame?.tab?.frameRight?.el, 'retracted'))
@@ -363,6 +361,24 @@ function initCssRules
     tab = Tab.current()
     p = Pane.current(tab.frameRight)
     p.setBuf(b)
+  }
+
+  Cmd.add('Css Rules', (u, we) => {
+    let el
+
+    el = xyEl(we)
+    el || Mess.toss('missing el')
+
+    rulesRight(el)
+  })
+
+  Cmd.add('Css Rules Right2', (u, we) => {
+    let el
+
+    el = xyEl(we)
+    el || Mess.toss('missing el')
+
+    rulesRight(el, 1)
   })
 
   mo = Mode.add('Css Rules', { viewInitSpec: refresh })

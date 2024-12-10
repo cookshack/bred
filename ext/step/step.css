@@ -126,6 +126,8 @@ webview {
 .css-rules-w {
   width: 100%;
   height: 100%;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
   padding: 0.25rem;
   display: flex;
   flex-direction: column;
@@ -142,7 +144,15 @@ webview {
 }
 
 .css-rules-sel {
+  display: flex;
+}
+
+.css-rules-sel-text {
   color: var(--rule-clr-attribute);
+}
+
+.css-rules-sel-rest {
+  margin-left: auto;
 }
 
 .css-rules-props {

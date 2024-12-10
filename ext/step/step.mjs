@@ -140,6 +140,18 @@ function initCssRules
     return ''
   }
 
+  function speci
+  (s) {
+    return s.a + ',' + s.b + ',' + s.c
+  }
+
+  function sels
+  (rule) {
+    return rule.selectorList.selectors.map(sel => divCl('css-rules-sel',
+                                                        [ divCl('css-rules-sel-text', sel.text),
+                                                          divCl('css-rules-sel-rest', speci(sel.specificity)) ]))
+  }
+
   function render
   (w, el) {
     d('render')
@@ -168,8 +180,7 @@ function initCssRules
                 append(ret,
                        divCl('css-rules-rule',
                              [ divCl('css-rules-sels',
-                                     r.rule.selectorList.selectors.map(sel => divCl('css-rules-sel',
-                                                                                    sel.text))),
+                                     sels(r.rule)),
                                divCl('css-rules-props',
                                      r.rule.style.cssProperties
                                        .filter(p => p.disabled === false)
@@ -185,8 +196,7 @@ function initCssRules
                     append(ret,
                            divCl('css-rules-rule css-rules-inherited',
                                  [ divCl('css-rules-sels',
-                                         r.rule.selectorList.selectors.map(sel => divCl('css-rules-sel',
-                                                                                        sel.text))),
+                                         sels(r.rule)),
                                    divCl('css-rules-props',
                                          r.rule.style.cssProperties
                                            .filter(p => p.disabled === false)

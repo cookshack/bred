@@ -219,14 +219,14 @@ function initCssRules
 
   function props
   (rule) {
-    let ret, seen
+    let ret, got
 
     ret = []
-    seen = new Set()
+    got = new Set()
     rule.style.cssProperties.forEach(p => {
-      if (seen.has(p.name))
+      if (got.has(p.name))
         return
-      seen.add(p.name)
+      got.add(p.name)
       ret.push([ divCl('css-rules-name', p.name),
                  divCl('css-rules-val', p.value) ])
     })
@@ -274,7 +274,8 @@ function initCssRules
                   rs.push(r)
                 }
               })
-              rs.forEach(r => {
+              d({ rs })
+              sort(rs).forEach(r => {
                 append(ret,
                        divCl('css-rules-rule css-rules-inherited',
                              [ divCl('css-rules-sels',

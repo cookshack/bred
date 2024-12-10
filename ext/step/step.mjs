@@ -221,17 +221,21 @@ function initCssRules
   }
 
   function props
-  (rule) {
+  (rule, seen) {
     let ret, got
 
     ret = []
     got = new Set()
     rule.style.cssProperties.forEach(p => {
+      let s
+
       if (got.has(p.name))
         return
       got.add(p.name)
-      ret.push([ divCl('css-rules-name', p.name),
-                 divCl('css-rules-val', p.value) ])
+      s = seen.has(p.name) ? ' css-rules-seen' : ''
+      ret.push([ divCl('css-rules-name' + s, p.name),
+                 divCl('css-rules-val' + s, p.value) ])
+      seen.add(p.name)
     })
     return ret
   }
@@ -256,9 +260,10 @@ function initCssRules
             d({ data2 })
             data2.nodeId || Mess.toss('DOM.querySelector empty')
             send('CSS.getMatchedStylesForNode', { nodeId: data2.nodeId }, data3 => {
-              let ret, rs
+              let ret, rs, seen
 
               d({ data3 })
+              seen = new Set()
               ret = new globalThis.DocumentFragment()
               sort(data3.matchedCSSRules).forEach(r =>
                 append(ret,
@@ -266,7 +271,7 @@ function initCssRules
                              [ divCl('css-rules-sels',
                                      sels(r.rule)),
                                divCl('css-rules-props',
-                                     props(r.rule)) ])))
+                                     props(r.rule, seen)) ])))
               append(ret, divCl('css-rules-head', 'Inherited'))
               rs = []
               data3.inherited.forEach(rules => {
@@ -284,7 +289,7 @@ function initCssRules
                              [ divCl('css-rules-sels',
                                      sels(r.rule)),
                                divCl('css-rules-props',
-                                     props(r.rule)) ]))
+                                     props(r.rule, seen)) ]))
               })
               append(ret, divCl('css-rules-end'))
               append(w, ret)

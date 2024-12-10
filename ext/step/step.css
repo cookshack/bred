@@ -170,6 +170,13 @@ webview {
   color: var(--rule-clr-string);
 }
 
+.css-rules-val.css-rules-seen,
+.css-rules-name.css-rules-seen {
+  text-decoration: line-through;
+  text-decoration-color: var(--clr-text);
+}
+
+
 .css-rules-end {
   height: 1rem;
   min-height: 1rem;

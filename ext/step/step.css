@@ -126,15 +126,41 @@ webview {
 .css-rules-w {
   width: 100%;
   height: 100%;
-  margin-top: 1rem;
   margin-bottom: 1rem;
-  padding: 0.25rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
 }
 
+.css-rules-hw {
+  background: var(--clr-fill);
+  padding: 0.25rem;
+  padding-bottom: 0;
+  margin-bottom: 0.5rem;
+  display: flex;
+}
+
+.css-rules-h {
+  background: var(--clr-fill);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 0.25rem;
+}
+
+div.css-rules-m0 {
+  padding: 0.25rem;
+  color: var(--clr-text);
+  display: flex;
+  justify-content: center;
+}
+
+.css-rules-m0.css-rules-m0-active {
+  box-shadow: inset 0 -2px var(--clr-nb0)
+}
+
 .css-rules-rule {
   margin-bottom: 1rem;
+  padding: 0.25rem;
 }
 
 .css-rules-sels {

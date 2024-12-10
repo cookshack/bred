@@ -338,7 +338,10 @@ function initCssRules
     d({ el })
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
-
+    append(w, divCl('css-rules-hw',
+                    divCl('css-rules-h',
+                          [ divCl('css-rules-m0 css-rules-m0-active', 'Rules'),
+                            divCl('css-rules-m0', 'Computed', { 'data-run': 'Computed' }) ])))
     render(w, el)
 
     if (cb)

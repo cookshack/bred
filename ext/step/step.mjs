@@ -152,6 +152,71 @@ function initCssRules
                                                           divCl('css-rules-sel-rest', speci(sel.specificity)) ]))
   }
 
+  function cmpSpeci
+  (sp1, sp2) {
+    if (sp1.a < sp2.a)
+      return -1
+    if (sp1.a > sp2.a)
+      return 1
+
+    if (sp1.b < sp2.b)
+      return -1
+    if (sp1.b > sp2.b)
+      return 1
+
+    if (sp1.c < sp2.c)
+      return -1
+    if (sp1.c > sp2.c)
+      return 1
+
+    return 0
+  }
+
+  function cmpSel
+  (sels1, sels2) {
+    let hi1, hi2
+
+    if (sels1.length == 0)
+      if (sels2.length == 0)
+        return 0
+      else
+        return 1
+    else
+      return -1
+
+    sels1.forEach(sel => {
+      let sp
+
+      sp = sel.specificity
+      if (hi1) {
+        if (cmpSpeci(sp, hi1) < 0)
+          hi1 = sp
+      }
+      else
+        hi1 = sp
+    })
+
+    sels2.forEach(sel => {
+      let sp
+
+      sp = sel.specificity
+      if (hi2) {
+        if (cmpSpeci(sp, hi2) < 0)
+          hi2 = sp
+      }
+      else
+        hi2 = sp
+    })
+
+    return cmpSpeci(hi1, hi2)
+  }
+
+  function sort
+  (rules) {
+    return rules.sort((r1,r2) => cmpSel(r1.rule.selectorList.selectors,
+                                        r2.rule.selectorList.selectors))
+  }
+
   function render
   (w, el) {
     d('render')
@@ -176,7 +241,7 @@ function initCssRules
 
               d({ data3 })
               ret = new globalThis.DocumentFragment()
-              data3.matchedCSSRules.forEach(r =>
+              sort(data3.matchedCSSRules).forEach(r =>
                 append(ret,
                        divCl('css-rules-rule',
                              [ divCl('css-rules-sels',

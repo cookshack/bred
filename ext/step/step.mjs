@@ -264,7 +264,7 @@ function initCssRules
                                      sels(r.rule)),
                                divCl('css-rules-props',
                                      props(r.rule)) ])))
-              append(ret, 'inherited')
+              append(ret, divCl('css-rules-head', 'Inherited'))
               data3.inherited.forEach(rules => {
                 if (rules.matchedCSSRules.length) {
                   let r

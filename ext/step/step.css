@@ -174,3 +174,11 @@ webview {
   height: 1rem;
   min-height: 1rem;
 }
+
+.css-rules-head {
+  width: 100%;
+  background-color: var(--clr-fill);
+  margin-bottom: 1rem;
+  padding: 0.2rem;
+  display: flex;
+}

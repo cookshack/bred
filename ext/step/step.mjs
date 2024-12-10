@@ -415,10 +415,15 @@ function initDom
   }
 
   function toggleEl
-  (id, pm, origEl, expand) { // el being inspected
+  (id, pm, origEl, // el being inspected
+   select) {
     let ch, el
 
     el = pm.parentNode.parentNode // el in Dom buffer with class 'dom-el'
+
+    el.closest('.dom-w').querySelectorAll('.dom-active').forEach(el => Css.remove(el, 'dom-active'))
+    Css.add(el, 'dom-active')
+
     ch = el.querySelector('.dom-el-ch')
     if (ch)
       // has children div
@@ -427,7 +432,7 @@ function initDom
         Css.expand(ch)
       }
       else {
-        if (expand)
+        if (select)
           return
         pm.innerText = '+'
         Css.retract(ch)

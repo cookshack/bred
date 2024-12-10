@@ -217,6 +217,14 @@ function initCssRules
                                         r2.rule.selectorList.selectors))
   }
 
+  function props
+  (rule) {
+    return rule.style.cssProperties
+      .filter(p => p.disabled === false)
+      .map(p => [ divCl('css-rules-name', p.name),
+                  divCl('css-rules-val', p.value) ])
+  }
+
   function render
   (w, el) {
     d('render')
@@ -247,10 +255,7 @@ function initCssRules
                              [ divCl('css-rules-sels',
                                      sels(r.rule)),
                                divCl('css-rules-props',
-                                     r.rule.style.cssProperties
-                                       .filter(p => p.disabled === false)
-                                       .map(p => [ divCl('css-rules-name', p.name),
-                                                   divCl('css-rules-val', p.value) ])) ])))
+                                     props(r.rule)) ])))
               append(ret, 'inherited')
               data3.inherited.forEach(rules => {
                 if (rules.matchedCSSRules.length) {
@@ -263,10 +268,7 @@ function initCssRules
                                  [ divCl('css-rules-sels',
                                          sels(r.rule)),
                                    divCl('css-rules-props',
-                                         r.rule.style.cssProperties
-                                           .filter(p => p.disabled === false)
-                                           .map(p => [ divCl('css-rules-name', p.name),
-                                                       divCl('css-rules-val', p.value) ])) ]))
+                                         props(r.rule)) ]))
                 }
               })
               append(ret, divCl('css-rules-end'))

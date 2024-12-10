@@ -219,10 +219,18 @@ function initCssRules
 
   function props
   (rule) {
-    return rule.style.cssProperties
-      .filter(p => p.disabled === false)
-      .map(p => [ divCl('css-rules-name', p.name),
-                  divCl('css-rules-val', p.value) ])
+    let ret, seen
+
+    ret = []
+    seen = new Set()
+    rule.style.cssProperties.forEach(p => {
+      if (seen.has(p.name))
+        return
+      seen.add(p.name)
+      ret.push([ divCl('css-rules-name', p.name),
+                 divCl('css-rules-val', p.value) ])
+    })
+    return ret
   }
 
   function render

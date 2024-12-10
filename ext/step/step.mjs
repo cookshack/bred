@@ -147,10 +147,18 @@ function initCssRules
 
   function sels
   (rule) {
+    let src
+
+    src = ''
+    if (rule.origin == 'user-agent')
+      src = 'ua'
+    else if (rule.origin == 'regular')
+      src = rule.styleSheetId || ''
+
     return rule.selectorList.selectors.map(sel => divCl('css-rules-sel',
                                                         [ divCl('css-rules-sel-text', sel.text),
                                                           divCl('css-rules-sel-rest',
-                                                                [ divCl('css-rules-src', rule.origin == 'user-agent' ? 'ua' : ''),
+                                                                [ divCl('css-rules-src', src),
                                                                   divCl('css-rules-speci', speci(sel.specificity)) ]) ]))
   }
 

@@ -175,6 +175,25 @@ function initCssRules
                                        .filter(p => p.disabled === false)
                                        .map(p => [ divCl('css-rules-name', p.name),
                                                    divCl('css-rules-val', p.value) ])) ])))
+              append(ret, 'inherited')
+              data3.inherited.forEach(rules => {
+                if (rules.matchedCSSRules.length) {
+                  let r
+
+                  r = rules.matchedCSSRules[rules.matchedCSSRules.length - 1]
+                  if (r.matchingSelectors.length)
+                    append(ret,
+                           divCl('css-rules-rule css-rules-inherited',
+                                 [ divCl('css-rules-sels',
+                                         r.rule.selectorList.selectors.map(sel => divCl('css-rules-sel',
+                                                                                        sel.text))),
+                                   divCl('css-rules-props',
+                                         r.rule.style.cssProperties
+                                           .filter(p => p.disabled === false)
+                                           .map(p => [ divCl('css-rules-name', p.name),
+                                                       divCl('css-rules-val', p.value) ])) ]))
+                }
+              })
               append(w, ret)
             })
           })

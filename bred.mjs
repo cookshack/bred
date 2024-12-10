@@ -730,11 +730,6 @@ function initCmds
   Cmd.add('close buffer', (u, we) => {
     let p
 
-    function remove
-    () {
-      p.buf.remove()
-    }
-
     if (we?.e && (we?.e instanceof globalThis.MouseEvent))
       if (we.e.button == 0)
         p = Pane.holding(we.e.target.parentNode.querySelector('.pane'))
@@ -752,13 +747,13 @@ function initCmds
                       Cmd.runMo('save', 'ed', 1, {}, err => {
                         if (err)
                           Mess.toss(err)
-                        remove()
+                        p.buf.remove()
                       })
                     else
-                      remove()
+                      p.buf.remove()
                   })
       else
-        remove()
+        p.buf.remove()
   })
 
   Cmd.add('close demand', () => {

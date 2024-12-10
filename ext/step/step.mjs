@@ -404,40 +404,59 @@ function initDom
     let el
 
     // 3.11.2
+    // first num is nth child of html (vs domId first num is 1 == html)
     el = dom
     id.split('.').forEach(i => {
       if (i.length)
-        el = el.childNodes[parseInt(i)]
-      el || Mess.toss('failed to parse: ' + id)
+        el = el.childNodes[parseInt(i)] || Mess.toss('failed to parse: ' + id)
     })
 
     return el
+  }
+
+  function toggleEl
+  (id, pm, origEl, expand) { // el being inspected
+    let ch, el
+
+    el = pm.parentNode.parentNode // el in Dom buffer with class 'dom-el'
+    ch = el.querySelector('.dom-el-ch')
+    if (ch)
+      // has children div
+      if (Css.has(ch, 'retracted')) {
+        pm.innerText = '\u2212'
+        Css.expand(ch)
+      }
+      else {
+        if (expand)
+          return
+        pm.innerText = '+'
+        Css.retract(ch)
+      }
+    else {
+      // needs children div
+      pm.innerText = '\u2212'
+      append(el, divCl('dom-el-ch', render(origEl || getEl(id), id)))
+    }
   }
 
   function expand
   (u, we) {
     let id
 
-    id = we.e.target.dataset.id
-    if (id) {
-      let el, ch
+    id = we.e.target.dataset.id ?? Mess.toss('Missing id')
+    toggleEl(id, we.e.target)
+  }
 
-      el = we.e.target.parentNode.parentNode
-      ch = el.querySelector('.dom-el-ch')
-      if (ch)
-        if (Css.has(ch, 'retracted')) {
-          we.e.target.innerText = '\u2212'
-          Css.expand(ch)
-        }
-        else {
-          we.e.target.innerText = '+'
-          Css.retract(ch)
-        }
-      else {
-        we.e.target.innerText = '\u2212'
-        append(el, divCl('dom-el-ch', render(getEl(id), id)))
-      }
-    }
+  function select
+  (u, we) {
+    let target, id, el
+
+    target = we.e.target.previousElementSibling // plus minus button
+    id = target.dataset.id ?? Mess.toss('Missing id')
+    //domRight('1.' + id, 1)
+    el = getEl(id)
+    Rules.right(el, 1)
+    toggleEl(id, target, el, 1)
   }
 
   function attrs
@@ -503,7 +522,8 @@ function initDom
                                      chel ? '\u2212' : (ch.childNodes.length ? '+' : ''),
                                      { 'data-run': 'expand',
                                        'data-id': id + i }),
-                               divCl('dom-el-name', ch.tagName),
+                               divCl('dom-el-name', ch.tagName,
+                                     { 'data-run': 'select' }),
                                divCl('dom-el-css', ch.className),
                                divCl('dom-el-attrs', attrs(ch)) ]),
                        chel ]))
@@ -597,6 +617,7 @@ function initDom
   d(mo)
 
   Cmd.add('Expand', expand, mo)
+  Cmd.add('Select', select, mo)
 
   Em.on('Enter', 'expand', mo)
 }

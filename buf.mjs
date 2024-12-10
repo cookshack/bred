@@ -482,7 +482,8 @@ function make2
         text,
         toggleMode,
         vars,
-        view }
+        view,
+        _internal: { modeVars } }
 
   b.opts = Opt.buf(b)
   b.dir = dir

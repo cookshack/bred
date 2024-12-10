@@ -15,6 +15,8 @@ import * as Tron from '../../tron.mjs'
 import * as Win from '../../win.mjs'
 import { d } from '../../mess.mjs'
 
+let Comp
+
 function send
 (method, args, cb) {
   Tron.cmd('step.send', [ method, args ], (err, data) => {
@@ -97,10 +99,10 @@ function initCssComp
       cb(view)
   }
 
-  Cmd.add('Css Computed', (u, we) => {
-    let b, p, tab, el
+  function comp
+  (el, far) {
+    let b, p, tab
 
-    el = xyEl(we)
     el || Mess.toss('missing el')
 
     p = Pane.current()
@@ -113,12 +115,21 @@ function initCssComp
     b.addMode('view')
 
     tab = Tab.current()
-    p = Pane.current(tab.frameRight)
+    if (far)
+      p = Pane.current(tab.framesRight[1] || tab.frameRight)
+    else
+      p = Pane.current(tab.frameRight)
     p.setBuf(b)
+  }
+
+  Cmd.add('Css Computed', (u, we) => {
+    comp(xyEl(we))
   })
 
   mo = Mode.add('Css Comp', { viewInitSpec: refresh })
   d(mo)
+
+  return { comp: comp }
 }
 
 function initCssRules
@@ -329,13 +340,23 @@ function initCssRules
     })
   }
 
+  function computed
+  (u, we) {
+    let p, el
+
+    if (we.e)
+      p = Pane.holding(we.e.target)
+    else
+      p = Pane.current()
+    el = p.view.buf.vars('css rules').el
+    Comp.comp(el, 1)
+  }
+
   function refresh
   (view, spec, cb) {
     let w, el
 
     el = view.buf.vars('css rules').el
-    d('ref')
-    d({ el })
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
     append(w, divCl('css-rules-hw',
@@ -388,7 +409,8 @@ function initCssRules
   })
 
   mo = Mode.add('Css Rules', { viewInitSpec: refresh })
-  d(mo)
+
+  Cmd.add('Computed', computed, mo)
 
   return { right: rulesRight }
 }
@@ -712,7 +734,7 @@ function init
 
   Rules = initCssRules()
   initDom(Rules)
-  initCssComp()
+  Comp = initCssComp()
 }
 
 export

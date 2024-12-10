@@ -167,6 +167,7 @@ webview {
 }
 
 .css-rules-val {
+  margin-left: 0.5rem;
   color: var(--rule-clr-string);
 }
 

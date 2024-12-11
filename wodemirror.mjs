@@ -2876,6 +2876,12 @@ function capitalizeWord() {
 export
 function newline
 () {
+  exec(CMComm.insertNewline)
+}
+
+export
+function newlineAndIndent
+() {
   exec(CMComm.insertNewlineAndIndent)
 }
 

@@ -1051,6 +1051,14 @@ function countRegion
   Mess.say('Region has ' + lines + ' lines, ' + region.chars + ' characters')
 }
 
+function newlineAndIndent
+(u) {
+  if (Backend.newlineAndIndent)
+    Backend.newlineAndIndent(u)
+  else
+    Backend.newline(u)
+}
+
 function save
 (u, we, cb) {
   let p, path
@@ -1189,7 +1197,8 @@ function init
     Cmd.add('capitalize word', () => Backend.capitalizeWord(), mo)
     Cmd.add('lowercase word', () => Backend.caseWord(w => w.toLowerCase()), mo)
     Cmd.add('uppercase word', () => Backend.caseWord(w => w.toUpperCase()), mo)
-    Cmd.add('new line', u => Backend.newline(u), mo)
+    Cmd.add('new line and indent', newlineAndIndent, mo)
+    Cmd.add('new line', Backend.newline, mo)
     Cmd.add('forward', Backend.forward, mo)
     Cmd.add('backward', Backend.backward, mo)
     Cmd.add('cut line', () => Backend.cutLine(), mo)
@@ -1248,7 +1257,7 @@ function init
     Cmd.add('revert buffer', () => Backend.revert(), mo)
     Cmd.add('discard and revert', () => discardAndRevert()) // global because call from prompt area
 
-    Em.on('Enter', 'new line', mo)
+    Em.on('Enter', 'new line and indent', mo)
     Em.on('Backspace', 'delete previous char', mo)
     Em.on('Delete', 'delete next char', mo)
     Em.on('Tab', 'indent region', mo)

@@ -151,8 +151,10 @@ function run
     }
 
     if (data.close) {
-      if (b)
+      if (b) {
         b.ml.set('busy', 'exit ' + data.code)
+        b.vars('shell').code = data.code
+      }
       if (spec.onClose)
         spec.onClose(b, data.code)
       Mess.log('SC exit: ' + sc + ': ' + data.code)

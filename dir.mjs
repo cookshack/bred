@@ -697,6 +697,10 @@ function initSearchFiles
     p = Pane.current()
     needle = p.buf.vars('sr').needle ?? Mess.throw('Missing needle')
     needle.length || Mess.throw('Empty needle')
+    if (p.buf.vars('shell').code) {
+      Mess.yell('Busy')
+      return
+    }
     p.buf.clear()
     Shell.run(p.dir,
               Loc.appDir().join('bin/sr'),

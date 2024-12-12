@@ -157,6 +157,11 @@ function add
     append(el, area.el)
   }
 
+  function frame1
+  () {
+    return areas.find(a => Css.has(a.el, 'bred-main'))?.tab?.frame1
+  }
+
   ident = id()
 
   areas = []
@@ -236,6 +241,9 @@ function add
           },
           get parent() {
             return spec?.parent
+          },
+          get frame1() {
+            return frame1()
           },
           get selection() {
             return window.getSelection()

@@ -699,7 +699,6 @@ function initSearchFiles
   (recurse, needle) {
     if (needle && needle.length) {
       hist.add(needle)
-      // find . -type f -not -name \*.BAK -not -name \*.CKP -not -name \*~ -maxdepth 1 2>/dev/null | xargs grep --ignore-case --fixed-strings --line-number "$1" -H -I 2>/dev/null # -I -e -H 2>/dev/null
       Shell.spawn1(Loc.appDir().join('bin/sr'), 1, 1, [ needle, recurse ? '1' : '0' ], 0, b => {
         b.mode = 'sr'
         b.addMode('view')

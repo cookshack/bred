@@ -2258,7 +2258,7 @@ function init
   Opt.load(() => {
     initFontSize()
 
-    if (0)
+    if (1)
       globalThis.onerror = (e, source, lineno, colno, err) => {
         Mess.trace(source + ':' + lineno + ' ' + err?.message)
         Mess.yell(source + ':' + lineno + ' ' + err?.message)

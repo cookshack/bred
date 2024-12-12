@@ -690,6 +690,11 @@ function initSearchFiles
     }
   }
 
+  function rerun
+  () {
+    d('r')
+  }
+
   function searchFiles
   (recurse, needle) {
     if (needle && needle.length) {
@@ -737,10 +742,12 @@ function initSearchFiles
                                                              class: 'bred-bg',
                                                              'data-run': 'select' } } ] } ] })
 
+  Cmd.add('rerun', () => rerun(), moSr)
   Cmd.add('select', () => follow(), moSr)
   Cmd.add('select in other pane', () => follow(1), moSr)
 
   Em.on('Enter', 'select', moSr)
+  Em.on('g', 'rerun', moSr)
   Em.on('o', 'select in other pane', moSr)
 
   Cmd.add('search files', search)

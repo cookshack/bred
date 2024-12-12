@@ -692,7 +692,18 @@ function initSearchFiles
 
   function rerun
   () {
-    d('r')
+    let p, needle
+
+    p = Pane.current()
+    needle = p.buf.vars('sr').needle ?? Mess.throw('Missing needle')
+    needle.length || Mess.throw('Empty needle')
+    p.buf.clear()
+    Shell.run(p.dir,
+              Loc.appDir().join('bin/sr'),
+              [ needle, p.buf.vars('sr').recurse ? '1' : '0' ],
+              { buf: p.buf,
+                end: 1,
+                afterEndPoint: 1 })
   }
 
   function searchFiles
@@ -701,6 +712,8 @@ function initSearchFiles
       hist.add(needle)
       Shell.spawn1(Loc.appDir().join('bin/sr'), 1, 1, [ needle, recurse ? '1' : '0' ], 0, b => {
         b.mode = 'sr'
+        b.vars('sr').needle = needle
+        b.vars('sr').recurse = recurse
         b.addMode('view')
       })
     }

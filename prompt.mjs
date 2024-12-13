@@ -23,14 +23,15 @@ function callerView
 export
 function yn
 (content, icon, cb) { // (yes)
-  icon = icon || 'letter-question'
   ynCb = cb
   demand(ynEm,
          [ divCl('float-ww',
                  divCl('float-w',
                        [ divCl('float-h',
-                               [ divCl('float-icon',
-                                       img(Icon.path(icon), Icon.alt(icon), 'filter-clr-nb3')),
+                               [ divCl('float-icon' + (icon ? '' : ' retracted'),
+                                       img(Icon.path(icon || 'blank'),
+                                           Icon.alt(icon),
+                                           'filter-clr-nb3')),
                                  divCl('float-text', content),
                                  button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
                                  button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }),

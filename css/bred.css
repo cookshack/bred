@@ -1724,6 +1724,7 @@ div.cm-line.cm-activeLine::before {
 .bred-qr-buttons.retracted,
 .bred-qr-with.retracted,
 .bred-qr-replace.retracted,
+.float-icon.retracted,
 *.retracted {
   display: none;
 }

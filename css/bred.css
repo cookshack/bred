@@ -1685,10 +1685,10 @@ div.cm-line.cm-activeLine::before,
   content: " ";
   position: absolute;
   top: 0;
-  /* want to somehow match left pad on .ͼN > .cm-line */
+  /* match left pad of .cm-line (and should be of codemirror-indentation-markers) */
   left: 6px;
-  /* this looks better anyway */
-  left: 0;
+  /* FIX keep codemirror-indentation-markers happy for now */
+  left: 2px;
   width: 100%;
   height: 100%;
   display: flex;

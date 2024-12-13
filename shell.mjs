@@ -108,11 +108,10 @@ function run
 
   d("run '" + sc + "' [" + args + '] in ' + dir)
 
-  b.vars('shell').sc = sc
-  b.vars('shell').args = args
-  b.vars('shell').spec = spec
-
   if (b) {
+    b.vars('shell').sc = sc
+    b.vars('shell').args = args
+    b.vars('shell').spec = spec
     b.vars('shell').code = null
     b.onRemove(() => {
       d('RUN remove ch ' + ch)

@@ -108,10 +108,13 @@ function run
 
   d("run '" + sc + "' [" + args + '] in ' + dir)
 
-  b && b.onRemove(() => {
-    d('RUN remove ch ' + ch)
-    Tron.send(ch, { exit: 1 })
-  })
+  if (b) {
+    b.vars('shell').code = null
+    b.onRemove(() => {
+      d('RUN remove ch ' + ch)
+      Tron.send(ch, { exit: 1 })
+    })
+  }
 
   Tron.on(ch, (err, data) => {
     let decoder
@@ -455,6 +458,13 @@ function init
 
   function selfInsert
   (u, we) {
+    let p
+
+    p = Pane.current()
+    if (Ed.defined(p.buf.vars('shell').code)) {
+      Mess.yell('Process has exited')
+      return
+    }
     Cmd.runMo('self insert', 'Ed', 1, we)
   }
 

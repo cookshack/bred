@@ -697,17 +697,17 @@ function initSearchFiles
     p = Pane.current()
     needle = p.buf.vars('sr').needle ?? Mess.throw('Missing needle')
     needle.length || Mess.throw('Empty needle')
-    if (p.buf.vars('shell').code) {
-      Mess.yell('Busy')
+    if (Ed.defined(p.buf.vars('shell').code)) {
+      p.buf.clear()
+      Shell.run(p.dir,
+                Loc.appDir().join('bin/sr'),
+                [ needle, p.buf.vars('sr').recurse ? '1' : '0' ],
+                { buf: p.buf,
+                  end: 1,
+                  afterEndPoint: 1 })
       return
     }
-    p.buf.clear()
-    Shell.run(p.dir,
-              Loc.appDir().join('bin/sr'),
-              [ needle, p.buf.vars('sr').recurse ? '1' : '0' ],
-              { buf: p.buf,
-                end: 1,
-                afterEndPoint: 1 })
+    Mess.yell('Busy')
   }
 
   function searchFiles

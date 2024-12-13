@@ -1188,7 +1188,9 @@ function vgetPos
 }
 
 function vsetOff
-(view, off, reveal, keepSelection) {
+(view, off,
+ reveal, // 1 nearest, 2 center
+ keepSelection) {
   let tr
 
   //d('vsetOff ' + off)
@@ -2579,7 +2581,8 @@ function vfind
  //   regExp,
  //   skipCurrent,
  //   wrap,
- //   stayInPlace }
+ //   stayInPlace,
+ //   reveal } // 1 nearest, 2 center
  opts) {
   let ret, find, initialOff, initialSel, search, query
 
@@ -2676,10 +2679,9 @@ function vfind
 
     off = opts.backwards ? ret.from : ret.to
     if (initialSel)
-      vsetSel(view, initialSel.from, off, 1)
-
+      vsetSel(view, initialSel.from, off, opts.reveal ?? 1)
     else
-      vsetOff(view, off, 1)
+      vsetOff(view, off, opts.reveal ?? 1)
     return ret
   }
   if (decorParent?.decorAll)

@@ -466,7 +466,8 @@ function initCmds
                          wrap: 0,
                          caseSensitive: 0,
                          wholeWord: 0,
-                         regExp: 1 })
+                         regExp: 1,
+                         reveal: 2 })
         ret || Mess.yell('Failed search for ' + ctag.regex)
       })
     }

@@ -108,6 +108,10 @@ function run
 
   d("run '" + sc + "' [" + args + '] in ' + dir)
 
+  b.vars('shell').sc = sc
+  b.vars('shell').args = args
+  b.vars('shell').spec = spec
+
   if (b) {
     b.vars('shell').code = null
     b.onRemove(() => {
@@ -456,12 +460,31 @@ function init
     hist.prev(p.buf, 1, prep(p))
   }
 
+  function rerun
+  (p) {
+    let sc, args, spec
+
+    sc = p.buf.vars('shell').sc || Mess.toss('Shell command missing')
+    args = p.buf.vars('shell').args
+    spec = p.buf.vars('shell').spec
+    p.buf.clear()
+    spec.buf = p.buf
+    run(p.dir, sc, args, spec)
+  }
+
   function selfInsert
   (u, we) {
     let p
 
     p = Pane.current()
     if (Ed.defined(p.buf.vars('shell').code)) {
+      let char
+
+      char = Ed.charForInsert(we)
+      if (char == 'g') {
+        Prompt.yn('Rerun command?', 0, yes => yes && rerun(p))
+        return
+      }
       Mess.yell('Process has exited')
       return
     }

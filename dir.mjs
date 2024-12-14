@@ -1015,6 +1015,21 @@ function init
       from = abs(from, dir)
       hist.add(to)
       Tron.cmd('file.mv', [ from, to ], err => {
+        if (err?.exists) {
+          Prompt.yn('File exists. Overwrite?',
+                    'warning',
+                    yes => {
+                      if (yes)
+                        Tron.cmd('file.mv', [ from, to, { overwrite: 1 } ], err => {
+                          if (err) {
+                            Mess.yell('file.mv: ' + err.message)
+                            return
+                          }
+                          Mess.say(from + ' ⮞ ' + to)
+                        })
+                    })
+          return
+        }
         if (err) {
           Mess.yell('file.mv: ' + err.message)
           return

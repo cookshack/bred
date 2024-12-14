@@ -994,11 +994,15 @@ function onFileLn
 
 function onFileMv
 (e, ch, onArgs) {
-  let [ from, to ] = onArgs
+  let [ from, to, spec ] = onArgs
 
+  spec = spec || {}
   if (from.startsWith('/') && to.startsWith('/')) {
-    if (fs.statSync(to, { throwIfNoEntry: false })) {
-      e.sender.send(ch, errMsg('File exists'))
+    if (spec.overwrite) {
+      // skip check
+    }
+    else if (fs.statSync(to, { throwIfNoEntry: false })) {
+      e.sender.send(ch, errMsg('File exists', { exists: 1 }))
       return
     }
     fs.renameSync(from, to)

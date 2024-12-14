@@ -8,6 +8,6 @@ function makeErr
 
 export
 function errMsg
-(msg) {
-  return { err: { message: msg } }
+(msg, more) {
+  return { err: { message: msg, ...(more || {}) } }
 }

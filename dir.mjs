@@ -856,8 +856,38 @@ function init
   }
 
   function delMarked
-  () {
-    d('dm')
+  (dir, marked) {
+    let under, paths
+
+    paths = []
+    under = [ ...marked ].map(file => {
+      let path
+
+      path = Loc.make(dir).join(file)
+      paths.push({ file: file, path: path })
+      return [ divCl('float-f-name', file),
+               divCl('float-f-path', path) ]
+    })
+    Prompt.yn('Delete these?',
+              { icon: 'trash',
+                under: divCl('float-files', under) },
+              yes => {
+                if (yes)
+                  paths.forEach(item => {
+                    let isDir
+
+                    isDir = item.path.endsWith('/')
+                    Tron.cmd(isDir ? 'dir.rm' : 'file.rm',
+                             [ item.path ],
+                             err => {
+                               if (err) {
+                                 Mess.yell('Error deleting: ' + err.message)
+                                 return
+                               }
+                               marked.delete(item.file)
+                             })
+                  })
+              })
   }
 
   function del
@@ -868,7 +898,7 @@ function init
 
     marked = getMarked(p.buf)
     if (marked.size) {
-      delMarked(p)
+      delMarked(Loc.make(p.dir).ensureSlash(), marked)
       return
     }
     el = current(p)

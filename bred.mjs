@@ -201,8 +201,6 @@ function makeScratch
 
 function initCmds
 () {
-  let quitEm
-
   Cmd.add('click', click)
   Cmd.add('click aux', clickAux)
 
@@ -742,7 +740,7 @@ function initCmds
     if (p.buf)
       if (p.buf.file && p.buf.modified)
         Prompt.yn('Save buffer before closing?',
-                  'save',
+                  { icon: 'save' },
                   yes => {
                     if (yes)
                       Cmd.runMo('save', 'ed', 1, {}, err => {
@@ -821,13 +819,6 @@ function initCmds
   Cmd.add('save and exit', () => saveAndX(1))
   Cmd.add('save and relaunch', () => saveAndX())
 
-  quitEm = Em.make('Quit')
-  quitEm.on('y', 'save and exit')
-  quitEm.on('n', 'exit')
-  quitEm.on('c', 'close demand')
-  Em.on('C-g', 'close demand', quitEm)
-  Em.on('Escape', 'close demand', quitEm)
-
   function quitOrRestart
   (quit) {
     let mods
@@ -838,24 +829,21 @@ function initCmds
       Cmd.run(quit ? 'exit' : 'relaunch')
       return
     }
-    Prompt.demand(quitEm,
-                  [ divCl('float-ww',
-                          divCl('float-w',
-                                [ divCl('float-h',
-                                        [ divCl('float-icon', img(Icon.path('save'), 'Save', 'filter-clr-nb3')),
-                                          divCl('float-text',
-                                                'Save these files before ' + (quit ? 'quitting' : 'restarting') + '?'),
-                                          button([ span('y', 'key'), 'es' ],
-                                                 '',
-                                                 { 'data-run': quit ? 'save and exit' : 'save and relaunch' }),
-                                          button([ span('n', 'key'), 'o' ],
-                                                 '',
-                                                 { 'data-run': quit ? 'exit' : 'relaunch' }),
-                                          button([ span('c', 'key'), 'ancel' ],
-                                                 '',
-                                                 { 'data-run': 'close demand' }) ]),
-                                  divCl('float-files', mods) ])),
-                    divCl('float-shade') ])
+    Prompt.yn('Save these files before ' + (quit ? 'quitting' : 'restarting') + '?',
+              { icon: 'save',
+                under: divCl('float-files', mods) },
+              yes => {
+                if (yes)
+                  if (quit)
+                    Cmd.run('save and exit')
+                  else
+                    Cmd.run('save and relaunch')
+                else
+                  if (quit)
+                    Cmd.run('exit')
+                  else
+                    Cmd.run('relaunch')
+              })
   }
 
   Cmd.add('quit', () => quitOrRestart(1))

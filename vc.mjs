@@ -350,7 +350,7 @@ function initEqual
 function reset
 () {
   Prompt.yn('Reset Git dir?',
-            'warning',
+            { icon: 'warning' },
             yes => yes && git('git reset HEAD~1'))
 }
 

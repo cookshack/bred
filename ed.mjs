@@ -1088,7 +1088,7 @@ function save
     if (p.view.buf.stat) {
       if (p.view.buf.stat?.mtimeMs < data.data.mtimeMs)
         Prompt.yn('File has changed on disk. Overwrite?',
-                  'save',
+                  { icon: 'save' },
                   yes => {
                     if (yes)
                       Backend.vsave(p.view, cb)

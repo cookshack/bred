@@ -481,7 +481,7 @@ function init
 
       char = Ed.charForInsert(we)
       if (char == 'g') {
-        Prompt.yn('Rerun command?', 0, yes => yes && rerun(p))
+        Prompt.yn('Rerun command?', {}, yes => yes && rerun(p))
         return
       }
       Mess.yell('Process has exited')

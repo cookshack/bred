@@ -878,7 +878,7 @@ function init
       dir = el.dataset.type == 'd'
       msg = div([ 'Delete ' + (dir ? 'dir' : 'file') + ' ',
                   span(el.dataset.path, 'bold'), '?' ])
-      Prompt.yn(msg, 'trash', yes =>
+      Prompt.yn(msg, { icon: 'trash' }, yes =>
         yes && Tron.cmd(dir ? 'dir.rm' : 'file.rm', [ el.dataset.path ], err => {
           if (err) {
             Mess.yell('Error deleting: ' + err.message)
@@ -952,7 +952,7 @@ function init
       function confirm
       () {
         Prompt.yn('File exists. Overwrite?',
-                  'warning',
+                  { icon: 'warning' },
                   yes => yes && ok())
       }
 
@@ -1028,7 +1028,7 @@ function init
       Tron.cmd('file.mv', [ from, to ], err => {
         if (err?.exists) {
           Prompt.yn('File exists. Overwrite?',
-                    'warning',
+                    { icon: 'warning' },
                     yes => {
                       if (yes)
                         Tron.cmd('file.mv', [ from, to, { overwrite: 1 } ], err => {

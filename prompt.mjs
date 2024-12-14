@@ -22,20 +22,24 @@ function callerView
 
 export
 function yn
-(content, icon, cb) { // (yes)
+(content,
+ spec, // { icon, under }
+ cb) { // (yes)
+  spec = spec || {}
   ynCb = cb
   demand(ynEm,
          [ divCl('float-ww',
                  divCl('float-w',
                        [ divCl('float-h',
-                               [ divCl('float-icon' + (icon ? '' : ' retracted'),
-                                       img(Icon.path(icon || 'blank'),
-                                           Icon.alt(icon),
+                               [ divCl('float-icon' + (spec.icon ? '' : ' retracted'),
+                                       img(Icon.path(spec.icon || 'blank'),
+                                           Icon.alt(spec.icon),
                                            'filter-clr-nb3')),
                                  divCl('float-text', content),
                                  button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
                                  button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }),
-                                 button([ span('c', 'key'), 'ancel' ], '', { 'data-run': 'close demand' }) ]) ])),
+                                 button([ span('c', 'key'), 'ancel' ], '', { 'data-run': 'close demand' }) ]),
+                         spec.under ])),
            divCl('float-shade') ])
 }
 

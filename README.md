@@ -24,7 +24,7 @@ ln -s ../../all-the-icons.el/svg svg
 ## Run
 
 ```sh
-cd ~/src/bred/ && npm start
+cd ~/src/bred/ && bin/bred
 ```
 
 ## Update
@@ -37,8 +37,8 @@ git pull
 
 Create ~/bin/bred with:
 ```bash
-#!/bin/bash
-cd ~/src/bred/ && npm start -- $*
+#!/usr/bin/env bash
+cd ~/src/bred/ && bin/bred $*
 ```
 
 ## Gnome Launcher
@@ -92,9 +92,6 @@ sudo: The "no new privileges" flag is set, which prevents sudo from running as r
 sudo: If sudo is running in a container, you may need to adjust the container configuration to disable the flag.
 ```
 then create an AppArmor profile, as in 1 above.
-
-Note that there's an error somewhere, so if you `A-x Restart` (or click the restart icon) then the
-permission will be lost, and you'll have to close the app and start it again to run sudo commands.
 
 #### 3. "node-pty" errors on startup
 

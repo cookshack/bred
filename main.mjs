@@ -1125,6 +1125,21 @@ function quit
   }
 }
 
+function relaunch
+() {
+  // Would be neater, but relaunched process always has "no new privileges" set, preventing it from running sudo.
+  //app.relaunch()
+  //quit()
+
+  try {
+    app.exit(7)
+  }
+  catch (err) {
+    console.log(err.message)
+    lsp.win.webContents.send('thrown', makeErr(err))
+  }
+}
+
 let onCmdCount
 
 onCmdCount = 0
@@ -1223,8 +1238,7 @@ async function onCmd
   }
 
   if (name == 'restart') {
-    app.relaunch()
-    quit()
+    relaunch()
     return ch
   }
 
@@ -1552,8 +1566,7 @@ function checkDeps
       }
       if (output.installWasNeeded) {
         d('Checking dependencies... installed, restarting')
-        app.relaunch()
-        app.quit()
+        relaunch()
         return
       }
       d('Checking dependencies... OK')

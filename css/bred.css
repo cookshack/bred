@@ -1689,7 +1689,7 @@ div.cm-line.cm-activeLine::before,
   left: 6px;
   /* FIX keep codemirror-indentation-markers happy for now */
   left: 2px;
-  width: 100%;
+  right: 0;
   height: 100%;
   display: flex;
 }

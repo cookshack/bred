@@ -855,11 +855,22 @@ function init
       return Loc.make(next.buf.path).join(Loc.make(from).filename)
   }
 
+  function delMarked
+  () {
+    d('dm')
+  }
+
   function del
   () {
-    let p, el
+    let p, el, marked
 
     p = Pane.current()
+
+    marked = getMarked(p.buf)
+    if (marked.size) {
+      delMarked(p)
+      return
+    }
     el = current(p)
     if (el && el.dataset.path) {
       let msg, dir

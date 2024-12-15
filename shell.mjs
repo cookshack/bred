@@ -277,16 +277,10 @@ function shellOrSpawn1
 
 export
 function shell1
-(sc, end, afterEndPoint, args, hist, multi, onClose, cb) { // (buf)
-  shellOrSpawn1(sc,
-                { end,
-                  afterEndPoint,
-                  args,
-                  hist,
-                  shell: 1,
-                  multi,
-                  onClose },
-                cb)
+(sc, spec, cb) {
+  spec = spec || {}
+  spec.shell = 1
+  shellOrSpawn1(sc, spec, cb)
 }
 
 export
@@ -538,7 +532,8 @@ function init
 
   function shell
   () {
-    shell1('', 1, 0, [], null, 1)
+    shell1('', { end: 1,
+                 multi: 1 })
   }
 
   reErr = /^([^:]+):([0-9]+):([0-9]*:?).*$/d

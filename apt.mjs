@@ -13,7 +13,8 @@ import * as Shell from './shell.mjs'
 function apt
 (cmd, mode, minors) {
   // these use shell1 instead of spawn1 so that .bashrc is loaded (needed eg for nvm init)
-  Shell.shell1(cmd, 1, 0, 0, 0, 0, 0,
+  Shell.shell1(cmd,
+               { end: 1 },
                b => {
                  if (mode)
                    b.mode = mode
@@ -38,7 +39,8 @@ function init
 
       b64 = globalThis.btoa(term)
       Shell.shell1(Loc.appDir().join('bin/apt-search-64') + ' ' + b64,
-                   1, 1, [], 0, 0, 0,
+                   { end: 1,
+                     afterEndPoint: 1 },
                    rbuf => rbuf.mode = 'apt search result')
       hist.add(term)
     }

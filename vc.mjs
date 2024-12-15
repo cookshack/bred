@@ -19,7 +19,8 @@ let clrs
 function git
 (cmd, mode, minors) {
   // these use shell1 instead of spawn1 so that .bashrc is loaded (needed eg for nvm init)
-  Shell.shell1(cmd, 1, 0, 0, 0, 0, 0,
+  Shell.shell1(cmd,
+               { end: 1 },
                b => {
                  if (mode)
                    b.mode = mode
@@ -94,7 +95,8 @@ function initCommit
 
       b64 = globalThis.btoa(cm)
       Shell.shell1(Loc.appDir().join('bin/check-and-commit-64') + ' ' + b64,
-                   1, 1, [], 0, 0, 0,
+                   { end: 1,
+                     afterEndPoint: 1 },
                    rbuf => rbuf.mode = 'commit result')
       hist.add(cm)
     }
@@ -357,7 +359,8 @@ function reset
 function showHash
 (hash) {
   Shell.shell1('git show --no-prefix' + (hash ? (' ' + hash) : ''),
-               1, 1, 0, 0, 0, 0,
+               { end: 1,
+                 afterEndPoint: 1 },
                b => {
                  b.mode = Ed.patchModeName()
                  b.addMode('equal')
@@ -882,10 +885,10 @@ function init
   Cmd.add('vc reset', () => reset())
   Cmd.add('vc show', () => showHash())
   Cmd.add('vc stash', () => git('git stash'))
-  Cmd.add('vc stash apply', () => Shell.shell1('git-stash-apply', 1))
+  Cmd.add('vc stash apply', () => Shell.shell1('git-stash-apply', { end: 1 }))
   Cmd.add('vc stash enumerate', () => git('git stash list', 'stash'))
-  Cmd.add('vc stash pop', () => Shell.shell1('git-stash-pop', 1))
-  Cmd.add('vc status', () => Shell.shell1('git status', 1))
+  Cmd.add('vc stash pop', () => Shell.shell1('git-stash-pop', { end: 1 }))
+  Cmd.add('vc status', () => Shell.shell1('git status', { end: 1 }))
 
   Em.on('C-x v a', 'vc stash apply')
   Em.on('C-x v b', 'vc branch')

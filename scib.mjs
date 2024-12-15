@@ -11,7 +11,8 @@ let hist
 
 export
 function runText
-(sc, spec) {
+(sc,
+ spec) { // { end, afterEndPoint, hist, onClose }
   spec = spec || {}
   if (sc && sc.length) {
     let modes
@@ -19,12 +20,10 @@ function runText
     modes = spec.modes
 
     Shell.shell1(sc,
-                 spec.end ?? 1,
-                 spec.afterEndPoint ?? 0,
-                 0,
-                 spec.hist,
-                 0,
-                 spec.onClose,
+                 { end: spec.end ?? 1,
+                   afterEndPoint: spec.afterEndPoint ?? 0,
+                   hist: spec.hist,
+                   onClose: spec.onClose },
                  buf => {
                    buf.opts.set('ansi.enabled', 1)
                    buf.opts.set('core.highlight.specials.enabled', 0)
@@ -73,10 +72,12 @@ function initRTL
 
     l = p.line()
     if (l && l.length)
-      Shell.shell1(l, 1, 0, 0, hist, 0, 0, buf => {
-        buf.opts.set('ansi.enabled', 1)
-        buf.opts.set('core.highlight.specials.enabled', 0)
-      })
+      Shell.shell1(l,
+                   { end: 1, hist },
+                   buf => {
+                     buf.opts.set('ansi.enabled', 1)
+                     buf.opts.set('core.highlight.specials.enabled', 0)
+                   })
     else if (typeof l === 'string')
       Mess.say('Line empty')
     else

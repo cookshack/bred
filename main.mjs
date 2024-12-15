@@ -597,7 +597,7 @@ function run
   runInShell = spec.runInShell
 
   try {
-    let env
+    let env, cols, rows
 
     if (runInShell) {
       if (spec.multi)
@@ -626,9 +626,15 @@ function run
     d('spawn ' + sc + ' [' + args + '] in ' + dir)
     //process.stdin.setRawMode(true)
     // could be useful: const cwd = await fs.promises.readlink(`/proc/${this.#realPty.pid}/cwd`, {encoding: "utf8"})
+    cols = parseInt(spec.cols ?? 10000)
+    if (isNaN(cols))
+      cols = 10000
+    rows = parseInt(spec.rows ?? 10000)
+    if (isNaN(rows))
+      rows = 10000
     proc = Pty.spawn(sc, args, { cwd: dir,
-                                 cols: 10000,
-                                 rows: 10000,
+                                 cols: cols,
+                                 rows: rows,
                                  env: env,
                                  encoding: null })
 

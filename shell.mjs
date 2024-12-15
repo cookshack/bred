@@ -183,7 +183,8 @@ function run
 
   Tron.cmd1('shell.run',
             [ ch, dir, sc, args || [], { runInShell: spec.runInShell ? true : false,
-                                         multi: spec.multi ? true : false } ],
+                                         multi: spec.multi ? true : false,
+                                         cols: 80 } ],
             (err, tch) => {
               if (err)
                 Mess.toss(err)

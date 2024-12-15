@@ -246,9 +246,15 @@ function initEqual
     }
 
     if ((num == null) || (num < 0))
-      Shell.spawn1('git-eq', 1, 1, [], 0, finish)
+      Shell.spawn1('git-eq',
+                   [],
+                   { end: 1, afterEndPoint: 1 },
+                   finish)
     else
-      Shell.spawn1('git', 1, 1, [ 'show', '--no-prefix', 'HEAD~' + num ], 0, finish)
+      Shell.spawn1('git',
+                   [ 'show', '--no-prefix', 'HEAD~' + num ],
+                   { end: 1, afterEndPoint: 1 },
+                   finish)
   }
 
   function goto

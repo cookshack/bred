@@ -760,12 +760,17 @@ function initSearchFiles
   (recurse, needle) {
     if (needle && needle.length) {
       hist.add(needle)
-      Shell.spawn1(Loc.appDir().join('bin/sr'), 1, 1, [ needle, recurse ? '1' : '0' ], 0, b => {
-        b.mode = 'sr'
-        b.vars('sr').needle = needle
-        b.vars('sr').recurse = recurse
-        b.addMode('view')
-      })
+      Shell.spawn1(Loc.appDir().join('bin/sr'),
+                   [ needle,
+                     recurse ? '1' : '0' ],
+                   { end: 1,
+                     afterEndPoint: 1 },
+                   b => {
+                     b.mode = 'sr'
+                     b.vars('sr').needle = needle
+                     b.vars('sr').recurse = recurse
+                     b.addMode('view')
+                   })
     }
     else if (typeof needle === 'string')
       Mess.say('Empty')

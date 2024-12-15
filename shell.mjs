@@ -287,12 +287,12 @@ function shell1
 
 export
 function spawn1
-(sc, end, afterEndPoint, args, hist, cb) { // (buf)
+(sc, args, spec, cb) { // (buf)
+  spec = spec || {}
+  spec.shell = 0
+  spec.args = args
   shellOrSpawn1(sc,
-                { end,
-                  afterEndPoint,
-                  args,
-                  hist },
+                spec,
                 cb)
 }
 

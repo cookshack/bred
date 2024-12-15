@@ -3,6 +3,7 @@ import { divCl, img } from './dom.mjs'
 import * as Buf from './buf.mjs'
 import * as Css from './css.mjs'
 import * as Dir from './dir.mjs'
+import * as Dom from './dom.mjs'
 import * as Em from './em.mjs'
 import * as Ed from './ed.mjs'
 import * as Frame from './frame.mjs'
@@ -55,10 +56,32 @@ function getBootBuf
   return bootBuf = Buf.make(0, 0, 0, Loc.iwd().path)
 }
 
+function chPx
+(el, char) {
+  let canvas, context, style
+
+  char = char ?? '0'
+  canvas = Dom.create('canvas')
+  style = globalThis.getComputedStyle(el)
+
+  context = canvas.getContext('2d')
+  context.font = style.fontSize + ' ' + style.fontFamily
+
+  return context.measureText(char).width
+}
+
 export
 function add
 (frame, b, lineNum) {
   let p, curr, view, ele, elePoint, elePointLine, eleHead, eleLint, paneW
+
+  function cols
+  () {
+    let r
+
+    r = ele.getBoundingClientRect()
+    return Math.floor(r.width / chPx(ele)) || 80
+  }
 
   function line
   () {
@@ -304,6 +327,9 @@ function add
         //
         get buf() {
           return view?.buf
+        },
+        get cols() {
+          return cols()
         },
         get dir() {
           return view?.buf ? view.buf.dir : Loc.home()

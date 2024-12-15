@@ -93,6 +93,7 @@ function run
  //
  //   // Only used if buf.
  //   afterEndPoint,
+ //   cols,
  //   runInShell,
  //   onStdout, // (str)
  //   onStderr, // (str)
@@ -184,7 +185,7 @@ function run
   Tron.cmd1('shell.run',
             [ ch, dir, sc, args || [], { runInShell: spec.runInShell ? true : false,
                                          multi: spec.multi ? true : false,
-                                         cols: 80 } ],
+                                         cols: spec.cols } ],
             (err, tch) => {
               if (err)
                 Mess.toss(err)
@@ -265,6 +266,7 @@ function shellOrSpawn1
          buf => {
            run(dir, sc, spec.args,
                { buf: buf,
+                 cols: p.cols,
                  end: spec.end,
                  afterEndPoint: spec.afterEndPoint,
                  runInShell: spec.shell,

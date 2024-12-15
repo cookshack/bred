@@ -2751,6 +2751,13 @@ function vreplaceAt
   }
 }
 
+export
+function vreplaceAtAll
+(view, range, text, more) {
+  // Peer does the "all" part
+  return vreplaceAt(view, range, text, more)
+}
+
 function isOpenBracket
 (char) {
   // really depends on lang which char could be open brackets

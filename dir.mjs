@@ -18,6 +18,52 @@ import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
+let Marked
+
+Marked = {
+  make() {
+    let marked, items
+
+    function add
+    (name, type) {
+      if (has(name))
+        return
+      items.push({ name, type })
+    }
+
+    function has
+    (name) {
+      return items.find(item => item.name == name)
+    }
+
+    function map
+    (cb) {
+      return items.map(item => cb && cb(item))
+    }
+
+    function rm
+    (name) {
+      items = items.filter(item => {
+        if (item.name == name)
+          return 0
+        return 1
+      })
+    }
+
+    items = []
+    marked = { add,
+               has,
+               map,
+               rm,
+               //
+               get length() {
+                 return items.length
+               } }
+
+    return marked
+  }
+}
+
 export
 function nav
 (path, run) {
@@ -423,7 +469,7 @@ function fill
 
   d('DIR fill')
 
-  marked = marked || new Set()
+  marked = marked || Marked.make()
 
   path = Loc.make(p.dir)
   path.ensureSlash()
@@ -775,7 +821,7 @@ function getMarked
 (b) {
   let marked
 
-  marked = b.vars('dir').marked || new Set()
+  marked = b.vars('dir').marked || Marked.make()
   b.vars('dir').marked = marked
   return marked
 }
@@ -860,12 +906,12 @@ function init
     let under, paths
 
     paths = []
-    under = [ ...marked ].map(file => {
+    under = marked.map(m => {
       let path
 
-      path = Loc.make(dir).join(file)
-      paths.push({ file: file, path: path })
-      return [ divCl('float-f-name', file),
+      path = Loc.make(dir).join(m.name)
+      paths.push({ name: m.name, isDir: m.type == 'd', path: path })
+      return [ divCl('float-f-name', m.name),
                divCl('float-f-path', path) ]
     })
     Prompt.yn('Delete these?',
@@ -873,20 +919,16 @@ function init
                 under: divCl('float-files', under) },
               yes => {
                 if (yes)
-                  paths.forEach(item => {
-                    let isDir
-
-                    isDir = item.path.endsWith('/')
-                    Tron.cmd(isDir ? 'dir.rm' : 'file.rm',
+                  paths.forEach(item =>
+                    Tron.cmd(item.isDir ? 'dir.rm' : 'file.rm',
                              [ item.path ],
                              err => {
                                if (err) {
                                  Mess.yell('Error deleting: ' + err.message)
                                  return
                                }
-                               marked.delete(item.file)
-                             })
-                  })
+                               marked.rm(item.name)
+                             }))
               })
   }
 
@@ -897,7 +939,7 @@ function init
     p = Pane.current()
 
     marked = getMarked(p.buf)
-    if (marked.size) {
+    if (marked.length) {
       delMarked(Loc.make(p.dir).ensureSlash(), marked)
       return
     }
@@ -1020,8 +1062,8 @@ function init
     p = Pane.current()
     marked = getMarked(p.buf)
     dir = Loc.make(p.dir).ensureSlash()
-    if (marked.size) {
-      files = [ ...marked ].map(f => Loc.make(dir).join(f))
+    if (marked.length) {
+      files = marked.map(m => Loc.make(dir).join(m.name))
       d({ files })
       Mess.yell('FIX marked')
       return
@@ -1082,8 +1124,8 @@ function init
     p = Pane.current()
     marked = getMarked(p.buf)
     dir = Loc.make(p.dir).ensureSlash()
-    if (marked.size) {
-      files = [ ...marked ].map(f => Loc.make(dir).join(f))
+    if (marked.length) {
+      files = marked.map(m => Loc.make(dir).join(m.name))
       d({ files })
       Mess.yell('FIX marked')
       return
@@ -1114,8 +1156,8 @@ function init
     p = Pane.current()
     marked = getMarked(p.buf)
     dir = Loc.make(p.dir).ensureSlash()
-    if (marked.size)
-      files = [ ...marked ].map(f => Loc.make(dir).join(f))
+    if (marked.length)
+      files = marked.map(m => Loc.make(dir).join(m.name))
     else {
       let el
 
@@ -1198,9 +1240,10 @@ function init
 
           marked = getMarked(Pane.current().buf)
           if (Css.has(next, 'on'))
-            marked.add(next.firstElementChild.dataset.name)
+            marked.add(next.firstElementChild.dataset.name,
+                       next.firstElementChild.dataset.type)
           else
-            marked.delete(next.firstElementChild.dataset.name)
+            marked.rm(next.firstElementChild.dataset.name)
           break
         }
         next = next.nextElementSibling
@@ -1262,18 +1305,20 @@ function init
     // toggle marks in lines,marked
     p = Pane.current()
     old = getMarked(p.buf)
-    marked = new Set()
+    marked = Marked.make()
     lines = p.buf.vars('dir').lines
     lines.forEach(line => {
-      let name
+      let ch, name, type
 
-      name = line.at(-1).firstElementChild?.dataset.name
+      ch = line.at(-1).firstElementChild
+      name = ch?.dataset.name
+      type = ch?.dataset.type
       if (old.has(name)) {
         line.forEach(cell => Css.remove(cell, 'on'))
         return
       }
       line.forEach(cell => Css.add(cell, 'on'))
-      marked.add(name)
+      marked.add(name, type)
     })
     p.buf.vars('dir').marked = marked
 
@@ -1314,7 +1359,7 @@ function init
     let p
 
     p = Pane.current()
-    p.buf.vars('dir').marked = new Set()
+    p.buf.vars('dir').marked = Marked.make()
     clearViews(p.buf)
   }
 

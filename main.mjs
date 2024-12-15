@@ -581,10 +581,10 @@ function onPaths
                       v8: process.versions.v8 } }
 }
 
-function onShell
-(e, ch, onArgs) {
+function run
+(e, ch, dir, sc, args, spec) {
   let proc, closedProc, closedErr, closedOut, sender
-  let [ clientCh, dir, sc, args, runInShell, multi ] = onArgs
+  let runInShell
 
   function close
   () {
@@ -593,14 +593,14 @@ function onShell
     }
   }
 
-  ch = clientCh
   sender = e.sender
+  runInShell = spec.runInShell
 
   try {
     let env
 
     if (runInShell) {
-      if (multi)
+      if (spec.multi)
         args = [ '-i' ]
       else
         args = [ '--init-file', app.getAppPath() + '/etc/single.bashrc', '-i' ]
@@ -650,7 +650,7 @@ function onShell
       }
     }
 
-    if (multi) {
+    if (spec.multi) {
       // want the prompt string
     }
     else
@@ -660,7 +660,7 @@ function onShell
     if (runInShell) {
       let cmd
 
-      if (multi)
+      if (spec.multi)
         if (runInShell.length)
           cmd = runInShell + '\n'
         else
@@ -699,6 +699,21 @@ function onShell
     d(`${ch}: child process caught err ${err}`)
     sender.send(ch, { err: err })
   }
+}
+
+function onShell
+(e, ch, onArgs) {
+  let [ clientCh, dir, sc, args, runInShell, multi ] = onArgs
+
+  return run(e, clientCh, dir, sc, args, { runInShell: runInShell,
+                                           multi: multi })
+}
+
+function onShellRun
+(e, ch, onArgs) {
+  let [ clientCh, dir, sc, args, spec ] = onArgs
+
+  return run(e, clientCh, dir, sc, args, spec)
 }
 
 function onShellOpen
@@ -1225,6 +1240,9 @@ async function onCmd
 
   if (name == 'shell')
     return wrapOn(e, args[0] /* clientCh */, args, onShell)
+
+  if (name == 'shell.run')
+    return wrapOn(e, args[0] /* clientCh */, args, onShellRun)
 
   if (name == 'shell.open')
     return wrapOn(e, ch, args, onShellOpen)

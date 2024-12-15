@@ -181,15 +181,18 @@ function run
     b.vars('Shell').ch = ch
   }
 
-  Tron.cmd1('shell', [ ch, dir, sc, args || [], spec.runInShell ? true : false, spec.multi ? true : false ], (err, tch) => {
-    if (err)
-      Mess.toss(err)
-    if (ch == tch) {
-      // good
-    }
-    else
-      Mess.warn('tron ch should be ' + ch + ': ' + tch)
-  })
+  Tron.cmd1('shell.run',
+            [ ch, dir, sc, args || [], { runInShell: spec.runInShell ? true : false,
+                                         multi: spec.multi ? true : false } ],
+            (err, tch) => {
+              if (err)
+                Mess.toss(err)
+              if (ch == tch) {
+                // good
+              }
+              else
+                Mess.warn('tron ch should be ' + ch + ': ' + tch)
+            })
 }
 
 function shellOrSpawn1

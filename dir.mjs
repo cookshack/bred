@@ -468,6 +468,8 @@ function fill
     surf.onscroll = e => onscroll(view, e)
   }
 
+  ////
+
   d('DIR fill')
 
   marked = marked || Marked.make()
@@ -600,15 +602,18 @@ function watch
 export
 function add
 (p, dir, initialFile) {
-  let b, exist
+  let b, exist, sort
 
   dir = Loc.make(dir)
   dir.expand()
   dir.ensureSlash()
 
+  if (p.buf.mode?.key == 'dir')
+    sort = p.buf.opt('dir.sort')
+
   exist = Buf.find(b => (b.mode?.key == 'dir') && (b.dir == dir.path))
   if (exist) {
-    p.setBuf(exist, {}, () => refreshKeep(p, undefined, undefined, undefined, initialFile))
+    p.setBuf(exist, {}, () => refreshKeep(p, undefined, undefined, sort, initialFile))
     return
   }
 
@@ -620,7 +625,7 @@ function add
   b.fileType = 'dir'
   b.addMode('view')
   p.setBuf(b, {}, () => {
-    fill(p, undefined, undefined, undefined, initialFile)
+    fill(p, undefined, undefined, sort, initialFile)
     watch(dir.path)
   })
 }

@@ -42,7 +42,7 @@ function load
 export
 function declare
 (name,
- type,
+ type, // bool, integer, float, string
  value) {
   shared().types[name] = type
   d('OPT ' + name + ' DECLARED ' + type)

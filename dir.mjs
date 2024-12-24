@@ -11,6 +11,7 @@ import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
+import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scib from './scib.mjs'
@@ -474,7 +475,7 @@ function fill
   path = Loc.make(p.dir)
   path.ensureSlash()
 
-  sort = sort || 'name'
+  sort = sort || Opt.get('dir.sort')
   if (sort == 'time')
     sort = 'time-desc'
   else if (sort == 'name')
@@ -1409,6 +1410,8 @@ function init
   hist = Hist.ensure('dir')
 
   m = Mode.add('Dir')
+
+  Opt.declare('dir.sort', 'string', 'time-desc')
 
   Cmd.add('clear marks', () => clear(), m)
   Cmd.add('copy file', () => copy(), m)

@@ -531,7 +531,7 @@ function fill
     p.buf.vars('dir').bak = bak
     hid = hid ? 1 : 0
     p.buf.vars('dir').hid = hid
-    p.buf.vars('dir').sort = sort
+    p.buf.opts.set('dir.sort', sort)
 
     p.buf.content = dirW(path,
                          [ divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }),
@@ -669,7 +669,7 @@ function refreshKeep
 
   bak = bak ?? p.buf.vars('dir').bak
   hid = hid ?? p.buf.vars('dir').hid
-  sort = sort ?? p.buf.vars('dir').sort
+  sort = sort ?? p.buf.opt('dir.sort')
 
   marked = getMarked(p.buf)
   refresh(p, bak, hid, sort, marked, currentFile)
@@ -680,7 +680,7 @@ function sortBy
   let p, sort
 
   p = Pane.current()
-  sort = p.buf.vars('dir').sort
+  sort = p.buf.opt('dir.sort')
   if (sort) {
     let ss
 
@@ -702,7 +702,7 @@ function showBak
   refreshKeep(p,
               p.buf.vars('dir').bak ? 0 : 1,
               p.buf.vars('dir').hid,
-              p.buf.vars('dir').sort)
+              p.buf.opt('dir.sort'))
 }
 
 function showHid
@@ -713,7 +713,7 @@ function showHid
   refreshKeep(p,
               p.buf.vars('dir').bak,
               p.buf.vars('dir').hid ? 0 : 1,
-              p.buf.vars('dir').sort)
+              p.buf.opt('dir.sort'))
 }
 
 function initSearchFiles

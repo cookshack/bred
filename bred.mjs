@@ -527,6 +527,14 @@ function initCmds
         ext = we.e.target.dataset.path.slice(we.e.target.dataset.path.indexOf('.') + 1)
         mtype = Ed.mtypeFromExt(ext)
         if (mtype && Ed.supports(mtype)) {
+          let rich
+
+          rich = Ext.get('rich')
+          if (rich?.supports(mtype)) {
+            rich.open(we.e.target.dataset.path, we.e.target.dataset.line)
+            return
+          }
+
           Pane.open(we.e.target.dataset.path, we.e.target.dataset.line)
           return
         }

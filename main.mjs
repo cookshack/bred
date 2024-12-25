@@ -870,9 +870,13 @@ async function wrapOn
 
 function onFileGet
 (e, ch, onArgs) {
-  let path
+  let path, file
+
+  file = 'file://'
 
   path = onArgs
+  if (path.startsWith(file))
+    path = path.slice(file.length)
   fs.readFile(path, 'utf8', (err, data) => {
     if (err)
       e.sender.send(ch, { err: err })

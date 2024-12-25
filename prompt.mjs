@@ -126,6 +126,7 @@ function ask
   buf.vars('ed').fillParent = 0
   buf.opts.set('blankLines.enabled', 0)
   buf.opts.set('core.autocomplete.enabled', 0)
+  buf.opts.set('core.brackets.close.enabled', 0)
   buf.opts.set('core.folding.enabled', 0)
   buf.opts.set('core.highlight.activeLine.enabled', 0)
   buf.opts.set('core.head.enabled', 0)

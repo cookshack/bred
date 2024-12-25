@@ -535,25 +535,32 @@ function initCmds
 
       path = we.e.target.dataset.path
 
-      if (path.includes('.')) {
-        ext = path.slice(path.lastIndexOf('.') + 1)
-        mtype = Ed.mtypeFromExt(ext)
-        if (mtype && Ed.supports(mtype)) {
-          let rich
+      if (path.startsWith('/'))
+        path = 'file://' + path
+      if (path.startsWith('file://')) {
+        if (path.includes('.')) {
+          ext = path.slice(path.lastIndexOf('.') + 1)
+          mtype = Ed.mtypeFromExt(ext)
+          if (mtype && Ed.supports(mtype)) {
+            let rich
 
-          rich = Ext.get('rich')
-          if (rich?.supports(mtype)) {
-            rich.open(path, we.e.target.dataset.line)
-            return
+            rich = Ext.get('rich')
+            if (rich?.supports(mtype)) {
+              rich.open(path, we.e.target.dataset.line)
+              return
+            }
+
+            Pane.open(path, we.e.target.dataset.line)
           }
-
-          Pane.open(path, we.e.target.dataset.line)
+          else
+            shell()
+          return
         }
-        else
-          shell()
+        Pane.open(path, we.e.target.dataset.line)
         return
       }
-      Pane.open(path, we.e.target.dataset.line)
+      // https://, mailto:// etc
+      shell()
     }
     else
       Mess.say('Target missing path')

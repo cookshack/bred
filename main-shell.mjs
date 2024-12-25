@@ -1,6 +1,7 @@
 import { app, ipcMain, shell as Shell } from 'electron'
 import { d } from './main-log.mjs'
 import * as Pty from 'node-pty'
+import * as U from './util.mjs'
 
 function run
 (e, ch, dir, sc, args, spec) {
@@ -154,20 +155,10 @@ function onOpen
   Shell.openExternal(url)
 }
 
-function stripFilePrefix
-(path) {
-  let file
-
-  file = 'file://'
-  if (path.startsWith(file))
-    return path.slice(file.length)
-  return path
-}
-
 export
 function onShow
 (e, ch, onArgs) {
   let [ path ] = onArgs
 
-  Shell.showItemInFolder(stripFilePrefix(path))
+  Shell.showItemInFolder(U.stripFilePrefix(path))
 }

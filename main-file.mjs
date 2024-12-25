@@ -2,16 +2,7 @@ import { log } from './main-log.mjs'
 import { errMsg, makeErr } from './main-err.mjs'
 import Fs from 'node:fs'
 import Path from 'node:path'
-
-function stripFilePrefix
-(path) {
-  let file
-
-  file = 'file://'
-  if (path.startsWith(file))
-    return path.slice(file.length)
-  return path
-}
+import * as U from './util.mjs'
 
 export
 function onGet
@@ -19,7 +10,7 @@ function onGet
   let path
 
   path = onArgs
-  path = stripFilePrefix(path)
+  path = U.stripFilePrefix(path)
 
   Fs.readFile(path, 'utf8', (err, data) => {
     if (err)

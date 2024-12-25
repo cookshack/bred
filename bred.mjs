@@ -31,6 +31,7 @@ import * as Style from './style.mjs'
 import * as Switch from './switch.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import * as Vc from './vc.mjs'
 import * as ViewMode from './view-mode.mjs'
 import * as Win from './win.mjs'
@@ -197,16 +198,6 @@ function makeScratch
             if (cb)
               cb()
           })
-}
-
-function stripFilePrefix
-(path) {
-  let file
-
-  file = 'file://'
-  if (path.startsWith(file))
-    return path.slice(file.length)
-  return path
 }
 
 function initCmds
@@ -577,7 +568,7 @@ function initCmds
           else
             Shell.runToString(Pane.current().dir,
                               'file',
-                              [ '-b', '--mime-type', stripFilePrefix(path) ],
+                              [ '-b', '--mime-type', U.stripFilePrefix(path) ],
                               0,
                               mtype => {
                                 mtype = mtype && mtype.trim()

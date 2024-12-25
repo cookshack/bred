@@ -22,7 +22,7 @@ function init
   brexts = []
   Opt.declare('blankLines.enabled', 'bool', 0)
   Opt.declare('blankLines.includeActiveLine', 'bool', 1)
-  Opt.declare('blankLines.background', 'string', 'var(--clr-fill-aux-very-light)')
+  Opt.declare('blankLines.background', 'str', 'var(--clr-fill-aux-very-light)')
   Opt.declare('blankLines.lineHeight', 'decimal', '0.5')
 
   brexts.push(Ed.register({ backend: 'cm',

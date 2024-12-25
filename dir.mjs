@@ -1372,7 +1372,7 @@ function init
 
   Opt.declare('dir.show.backups', 'bool', 0)
   Opt.declare('dir.show.hidden', 'bool', 0)
-  Opt.declare('dir.sort', 'string', 'time-desc')
+  Opt.declare('dir.sort', 'str', 'time-desc')
 
   Cmd.add('clear marks', () => clear(), m)
   Cmd.add('copy file', () => copy(), m)

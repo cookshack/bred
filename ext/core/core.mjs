@@ -106,7 +106,7 @@ function init
 
   brexts = []
   Opt.declare('core.cursor.blink.enabled', 'bool', 0)
-  Opt.declare('core.cursor.blink.rate', 'integer', 1200)
+  Opt.declare('core.cursor.blink.rate', 'int', 1200)
   Opt.declare('core.folding.enabled', 'bool', 1)
   Opt.declare('core.folding.gutter.enabled', 'bool', 1)
   Opt.declare('core.head.enabled', 'bool', 1)
@@ -123,7 +123,7 @@ function init
   Opt.declare('core.line.numbers.show', 'bool', 1)
   Opt.declare('core.line.wrap.enabled', 'bool', 1)
   Opt.declare('core.scroll.pastEnd.enabled', 'bool', 1)
-  Opt.declare('core.tab.width', 'integer', 2)
+  Opt.declare('core.tab.width', 'int', 2)
 
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeActiveLine,

@@ -113,7 +113,7 @@ function init
   brexts = []
   part = new CMState.Compartment
   Opt.declare('core.autocomplete.enabled', 'bool', 1)
-  Opt.declare('core.lang', 'string', undefined)
+  Opt.declare('core.lang', 'str', undefined)
 
   brexts.push(Ed.register({ backend: 'cm',
                             part,

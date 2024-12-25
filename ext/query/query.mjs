@@ -315,10 +315,10 @@ function init
 
   hist = Hist.ensure('llm')
 
-  Opt.declare('query.model', 'string', 'mistral')
-  Opt.declare('query.search.url.prefix', 'string', 'https://google.com/search?q=')
-  Opt.declare('query.google.cx', 'string', '')
-  Opt.declare('query.google.key', 'string', '')
+  Opt.declare('query.model', 'str', 'mistral')
+  Opt.declare('query.search.url.prefix', 'str', 'https://google.com/search?q=')
+  Opt.declare('query.google.cx', 'str', '')
+  Opt.declare('query.google.key', 'str', '')
 
   mo = Mode.add('Query', { viewInitSpec: refresh })
 

@@ -34,7 +34,7 @@ function init
   brexts = []
   Opt.declare('minimap.enabled', 'bool', 1)
   // 'blocks' or 'characters' (slower)
-  Opt.declare('minimap.text.type', 'string', 'blocks')
+  Opt.declare('minimap.text.type', 'str', 'blocks')
 
   brexts.push(Ed.register({ backend: 'cm',
                             make,

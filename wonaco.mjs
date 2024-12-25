@@ -15,6 +15,7 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import { Vonaco } from './json.mjs'
 import { d } from './mess.mjs'
 
@@ -330,7 +331,7 @@ function viewInit
     d('chose mode 1: ' + mode)
     Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
     Mon.editor.setModelLanguage(ed.getModel(), modeLang(mode))
-    if (Ed.defined(lineNum))
+    if (U.defined(lineNum))
       //ed.renderer.once("afterRender", () => recenter(ed))
       vgotoLine(view, lineNum)
 
@@ -396,7 +397,7 @@ function viewInit
       ed.getModel().setValue(data.data)
       if (view == Pane.current().view)
         ed.focus()
-      if (Ed.defined(lineNum))
+      if (U.defined(lineNum))
         vgotoLine(view, lineNum)
         //ed.renderer.once("afterRender", () => recenter(ed))
         //setTimeout(() => recenter(ed))
@@ -429,7 +430,7 @@ function viewReopen
   view.ready = 1
   //view.ed.resize()
   view.ed.focus()
-  if (Ed.defined(lineNum))
+  if (U.defined(lineNum))
     vgotoLine(view, lineNum)
   if (whenReady)
     whenReady(view)

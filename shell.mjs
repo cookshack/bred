@@ -13,6 +13,7 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scib from './scib.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
 let reErr, reFile
@@ -476,7 +477,7 @@ function init
     let p
 
     p = Pane.current()
-    if (Ed.defined(p.buf.vars('shell').code)) {
+    if (U.defined(p.buf.vars('shell').code)) {
       let char
 
       char = Ed.charForInsert(we)

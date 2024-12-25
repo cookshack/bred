@@ -11,6 +11,7 @@ import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
@@ -204,7 +205,7 @@ function add
     if (view?.buf == b2) {
       d('setBuf to same buf')
       b = b2
-      if (Ed.defined(spec.lineNum))
+      if (U.defined(spec.lineNum))
         Ed.Backend.vgotoLine(p.view, spec.lineNum)
       b.reconf()
       if (cb)

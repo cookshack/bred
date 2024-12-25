@@ -1,8 +1,6 @@
-let logFn
+import * as U from './util.mjs'
 
-function use
-() {
-}
+let logFn
 
 export
 function logWith
@@ -43,6 +41,6 @@ function d
         + ' ' + msg)
   }
   catch (err) {
-    use(err)
+    U.use(err)
   }
 }

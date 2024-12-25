@@ -16,6 +16,7 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
@@ -971,7 +972,7 @@ function _viewInit
     d('chose mode 1: ' + mode)
     Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
     vsetLang(view, modeLang(mode))
-    if (Ed.defined(lineNum))
+    if (U.defined(lineNum))
       //ed.renderer.once('afterRender', () => recenter(ed))
       vgotoLine(view, lineNum)
 
@@ -982,7 +983,7 @@ function _viewInit
   }
 
   if ((typeof text == 'string') || text instanceof String) {
-    if (Ed.defined(lineNum))
+    if (U.defined(lineNum))
       vgotoLine(view, lineNum)
   }
   else if (buf.file) {
@@ -1050,7 +1051,7 @@ function _viewInit
       setValue(ed, data.data, false)
       if (view == Pane.current().view)
         ed.focus()
-      if (Ed.defined(lineNum)) {
+      if (U.defined(lineNum)) {
         vgotoLine(view, lineNum)
         //ed.renderer.once('afterRender', () => recenter(ed))
         0 && setTimeout(() => recenter(ed))
@@ -1103,7 +1104,7 @@ function viewReopen
       view.ready = 1
       //view.ed.resize()
       view.ed.focus()
-      if (Ed.defined(lineNum))
+      if (U.defined(lineNum))
         vgotoLine(view, lineNum)
       else
         view.ed.dispatch({ effects: CMView.EditorView.scrollIntoView(view.ed.state.selection.main.head,
@@ -2592,7 +2593,7 @@ function vfind
     search = new CMSearch.SearchQuery({ search: needle,
                                         caseSensitive: opts.caseSensitive,
                                         literal: 1,
-                                        regexp: Ed.bool(opts.regExp),
+                                        regexp: U.bool(opts.regExp),
                                         wholeWord: 0 })
     //CMSearch.setSearchQuery(query)
     query = search.create()

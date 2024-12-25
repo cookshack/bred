@@ -15,6 +15,7 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
 const ace = globalThis.ace
@@ -1094,7 +1095,7 @@ function vfind
                        caseSensitive: opts.caseSensitive,
                        wholeWord: 0,
                        start: initialBep,
-                       regExp: Ed.bool(opts.regExp) })
+                       regExp: U.bool(opts.regExp) })
   //d(ret)
   if (ret) {
     let bep

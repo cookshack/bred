@@ -1156,6 +1156,17 @@ function init
     let el
 
     el = current()
+    if (el && el.dataset.path)
+      Pane.open(el.dataset.path)
+    else
+      Mess.say('Move to a file first')
+  }
+
+  function editIfSupported
+  () {
+    let el
+
+    el = current()
     if (el && el.dataset.path) {
       if (el.dataset.path.includes('.')) {
         let ext, mtype
@@ -1339,6 +1350,7 @@ function init
   Cmd.add('copy file', () => copy(), m)
   Cmd.add('delete', () => del(), m)
   Cmd.add('edit', () => edit(), m)
+  Cmd.add('edit if supported', () => editIfSupported(), m)
   Cmd.add('link', () => link(), m)
   Cmd.add('mark', mark, m)
   Cmd.add('refresh', () => refreshKeep(Pane.current()), m)
@@ -1358,6 +1370,7 @@ function init
   Em.on('c', 'copy file', 'Dir')
   Em.on('d', 'delete', 'Dir')
   Em.on('e', 'edit', 'Dir')
+  Em.on('E', 'edit if supported', 'Dir')
   Em.on('g', 'refresh', 'Dir')
   Em.on('l', 'link', 'Dir')
   Em.on('m', 'mark', 'Dir')

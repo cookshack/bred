@@ -4029,6 +4029,7 @@ function init
   loadLang('./lib/@cookshack/codemirror-lang-csv.js', 'Csv', { ext: [ 'csv' ] })
   loadLang('./lib/codemirror-lang-diff.js', 'Diff', { ext: [ 'diff', 'patch' ] })
   loadLang('./lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
+  loadLang('./lib/codemirror-lang-kcl.js', 'Kcl', { ext: [ 'kcl' ] })
   loadLang('./lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ] })
   loadLang('./lib/codemirror-lang-git-log.js', 'Git Log',
            { ed: 0 }) // prevent mode creation, already have VC Log mode

@@ -218,7 +218,7 @@ function charForInsert
 export
 function mtypeFromExt
 (ext) {
-  return mimeByExt[ext]?.type
+  return ext && mimeByExt[ext]?.type
 }
 
 export

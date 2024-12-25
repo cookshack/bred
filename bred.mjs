@@ -520,6 +520,16 @@ function initCmds
   })
 
   Cmd.add('open link', (u, we) => {
+    function shell
+    () {
+      Tron.cmd('shell.open', [ we.e.target.dataset.path ], err => {
+        if (err) {
+          Mess.yell('shell.open: ' + err.message)
+          return
+        }
+      })
+    }
+
     if (we.e.target.dataset.path) {
       let ext, mtype
 
@@ -536,15 +546,12 @@ function initCmds
           }
 
           Pane.open(we.e.target.dataset.path, we.e.target.dataset.line)
-          return
         }
+        else
+          shell()
+        return
       }
-      Tron.cmd('shell.open', [ we.e.target.dataset.path ], err => {
-        if (err) {
-          Mess.yell('shell.open: ' + err.message)
-          return
-        }
-      })
+      Pane.open(we.e.target.dataset.path, we.e.target.dataset.line)
     }
     else
       Mess.say('Target missing path')

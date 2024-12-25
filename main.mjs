@@ -1,6 +1,7 @@
 import { app, clipboard as Clipboard, WebContentsView, BrowserWindow, ipcMain, shell as Shell /*, protocol, net*/ } from 'electron'
 import CheckDeps from './lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
+import * as File from './main-file.mjs'
 import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
 import { makeErr, errMsg } from './main-err.mjs'
@@ -729,6 +730,16 @@ function onShellOpen
   Shell.openExternal(url)
 }
 
+function stripFilePrefix
+(path) {
+  let file
+
+  file = 'file://'
+  if (path.startsWith(file))
+    return path.slice(file.length)
+  return path
+}
+
 function onShellShow
 (e, ch, onArgs) {
   let [ path ] = onArgs
@@ -861,7 +872,7 @@ async function wrapOn
 (e, ch, onArgs, cb) {
   setTimeout(async () => {
     try {
-      await cb(e, ch, onArgs)
+      await cb(e, ch, onArgs, { lsp: lsp })
     }
     catch (err) {
       try {
@@ -873,285 +884,6 @@ async function wrapOn
     }
   })
   return ch
-}
-
-function stripFilePrefix
-(path) {
-  let file
-
-  file = 'file://'
-  if (path.startsWith(file))
-    return path.slice(file.length)
-  return path
-}
-
-function onFileGet
-(e, ch, onArgs) {
-  let path
-
-  path = onArgs
-  path = stripFilePrefix(path)
-
-  fs.readFile(path, 'utf8', (err, data) => {
-    if (err)
-      e.sender.send(ch, { err: err })
-    else {
-      lsp.open(path, 'javascript', data)
-      e.sender.send(ch, { data: data,
-                          stat: fs.statSync(path, { throwIfNoEntry: false }),
-                          realpath: fs.realpathSync(path) })
-    }
-  })
-}
-
-function onFileLn
-(e, ch, onArgs) {
-  let cwd, dir, absFrom, dbg, targetFile, fromFile
-  let from, target
-
-  function link
-  (chdir) {
-    if (fs.statSync(from, { throwIfNoEntry: false })) {
-      e.sender.send(ch, errMsg('File exists: ' + from))
-      return
-    }
-    dbg('fs.symlink: ' + target + ' <- ' + from)
-    fs.symlink(target,
-               from,
-               err => {
-                 try {
-                   let ret
-
-                   ret = { ...(err ? makeErr(err) : {}),
-                           cwd: process.cwd(),
-                           from: from,
-                           target: target,
-                           absFrom: Path.join(cwd, from),
-                           absTarget: Path.join(cwd, target) }
-                   e.sender.send(ch, ret)
-                 }
-                 finally {
-                   if (chdir)
-                     process.chdir(chdir)
-                 }
-               })
-  }
-
-  // args
-  //
-  // ln -s target from
-  //
-  // the file pointed to by the symlink.
-  // absolute.
-  target = onArgs[0]
-  // the symlink (a file that contains the target pathname).
-  // absolute, or relative to target dirname
-  // if ends in / takes filename of target.
-  // same if basename is '..'.
-  from = onArgs[1]
-
-  dbg = () => {}
-  //dbg = d
-  dbg('from: ' + from)
-  dbg('target: ' + target)
-
-  // check target
-  //
-
-  if (target.startsWith('/')) {
-    // ok
-  }
-  else {
-    e.sender.send(ch, errMsg('Target path must be absolute'))
-    return
-  }
-
-  // check from
-  //
-
-  fromFile = Path.basename(from)
-  dbg('fromFile: ' + fromFile)
-
-  if (fromFile == '.') {
-    e.sender.send(ch, errMsg('Link to self'))
-    return
-  }
-
-  targetFile = Path.basename(target)
-  dbg('targetFile: ' + targetFile)
-
-  // .. ⎘ t becomes ../t ⎘ t
-  if (fromFile == '..')
-    from += '/'
-  // x/ ⎘ t becomes x/t ⎘ t
-  if (from.endsWith('/'))
-    from = Path.join(from, targetFile)
-
-  // store the current dir (for logging and may chdir)
-  //
-
-  cwd = process.cwd()
-
-  // absolute from
-  //
-
-  if (from.startsWith('/')) {
-    link()
-    return
-  }
-
-  // relative from, need to change dir
-  //
-
-  if (from.startsWith('./')
-      || from.startsWith('../')) {
-    // safe
-  }
-  else
-    from = './' + from
-
-  // change into the link dir
-  dbg('from: ' + from)
-  absFrom = Path.join(Path.dirname(target), from)
-  dbg('absFrom: ' + absFrom)
-  dir = Path.dirname(absFrom)
-  dbg('dir: ' + dir)
-  process.chdir(dir)
-  dbg('temp cwd: ' + process.cwd())
-
-  // make from just the file name (this is simplest)
-  from = Path.basename(absFrom)
-  dbg('new from: ' + from)
-
-  // get the target path relative to the link dir (kind of the inverse of arg 'from')
-  target = Path.relative(dir, target)
-  dbg('new target: ' + target)
-  //target = './' + Path.basename(target)
-
-  // create link, passing flag to revert dir
-  link(cwd)
-}
-
-function onFileMv
-(e, ch, onArgs) {
-  let [ from, to, spec ] = onArgs
-
-  spec = spec || {}
-  if (from.startsWith('/') && to.startsWith('/')) {
-    if (spec.overwrite) {
-      // skip check
-    }
-    else if (fs.statSync(to, { throwIfNoEntry: false })) {
-      e.sender.send(ch, errMsg('File exists', { exists: 1 }))
-      return
-    }
-    fs.renameSync(from, to)
-    e.sender.send(ch, {})
-    return
-  }
-  e.sender.send(ch, errMsg('Paths must be absolute'))
-}
-
-function onFileRm
-(e, ch, onArgs) {
-  let [ path ] = onArgs
-
-  if (path.startsWith('/'))
-    fs.unlink(path, err => {
-      if (err) {
-        e.sender.send(ch, makeErr(err))
-        return
-      }
-      e.sender.send(ch, {})
-    })
-  else
-    e.sender.send(ch, errMsg('Path must be absolute'))
-}
-
-function onFileSave
-(e, ch, onArgs) {
-  let [ path, text ] = onArgs
-
-  fs.writeFile(path, text, { encoding: 'utf8' }, err => {
-    if (err)
-      e.sender.send(ch, { err: err })
-    else
-      e.sender.send(ch, { stat: fs.statSync(path, { throwIfNoEntry: false }) })
-  })
-}
-
-function onFileStat
-(e, ch, onArgs) {
-  fs.lstat(onArgs, (err, data) => {
-    if (err)
-      e.sender.send(ch, { err: { message: err.message,
-                                 code: err.code } })
-    else if (data.isSymbolicLink())
-      fs.readlink(onArgs, (err, string) => {
-        if (err)
-          e.sender.send(ch, { err: err })
-        else {
-          let dest
-
-          dest = Path.join(Path.dirname(onArgs), string)
-          fs.stat(dest, (err, data) => {
-            if (err)
-              e.sender.send(ch, { err: err })
-            else
-              e.sender.send(ch, { data: data,
-                                  link: 1,
-                                  dest: dest })
-          })
-        }
-      })
-    else
-      e.sender.send(ch, { data: data })
-  })
-}
-
-function onFileTouch
-(e, ch, onArgs) {
-  let now, paths
-
-  now = new Date()
-  paths = onArgs
-  for (let i = 0; i < paths.length; i++)
-    if (paths[i].startsWith('/'))
-      fs.utimesSync(paths[i], now, now)
-    else {
-      e.sender.send(ch, errMsg('Path must be absolute: ' + paths[i]))
-      return
-    }
-  e.sender.send(ch, {})
-}
-
-function onFileWatch
-(e, ch, onArgs) {
-  let [ path ] = onArgs
-  let watcher
-
-  function handle
-  (type, name) {
-    try {
-      //d('--- handle ---')
-      //d('type: ' + type)
-      //d('name: ' + name)
-      e.sender.send(ch,
-                    { type: type,
-                      name: name,
-                      stat: fs.statSync(path, { throwIfNoEntry: false }) })
-    }
-    catch (err) {
-      err.message.includes('Object has been destroyed')
-        || log(err.message)
-      watcher.close()
-    }
-  }
-
-  if (path.startsWith('/'))
-    watcher = fs.watch(path, { recursive: false }, handle)
-  else
-    e.sender.send(ch, errMsg('Path must be absolute'))
 }
 
 function quit
@@ -1298,28 +1030,28 @@ async function onCmd
     return wrapOn(e, ch, args, onFileExists)
 
   if (name == 'file.get')
-    return wrapOn(e, ch, args, onFileGet)
+    return wrapOn(e, ch, args, File.onGet)
 
   if (name == 'file.ln')
-    return wrapOn(e, ch, args, onFileLn)
+    return wrapOn(e, ch, args, File.onLn)
 
   if (name == 'file.mv')
-    return wrapOn(e, ch, args, onFileMv)
+    return wrapOn(e, ch, args, File.onMv)
 
   if (name == 'file.rm')
-    return wrapOn(e, ch, args, onFileRm)
+    return wrapOn(e, ch, args, File.onRm)
 
   if (name == 'file.save')
-    return wrapOn(e, ch, args, onFileSave)
+    return wrapOn(e, ch, args, File.onSave)
 
   if (name == 'file.stat')
-    return wrapOn(e, ch, args, onFileStat)
+    return wrapOn(e, ch, args, File.onStat)
 
   if (name == 'file.touch')
-    return wrapOn(e, ch, args, onFileTouch)
+    return wrapOn(e, ch, args, File.onTouch)
 
   if (name == 'file.watch')
-    return wrapOn(e, ch, args, onFileWatch)
+    return wrapOn(e, ch, args, File.onWatch)
 
   if (name == 'peer.get')
     return wrapOn(e, ch, args, Peer.onPeerGet)

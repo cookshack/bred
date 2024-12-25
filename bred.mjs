@@ -533,7 +533,12 @@ function initCmds
       if (ed)
         Pane.open(we.e.target.dataset.path, we.e.target.dataset.line)
       else
-        Shell.run(Pane.current().dir, 'xdg-open', [ we.e.target.dataset.path ])
+        Tron.cmd('shell.open', [ we.e.target.dataset.path ], err => {
+          if (err) {
+            Mess.yell('shell.open: ' + err.message)
+            return
+          }
+        })
     }
     else
       Mess.say('Target missing path')

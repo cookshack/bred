@@ -191,6 +191,14 @@ function add
   (b2,
    spec, // { lineNum, whenReady, bury }
    cb) { // (view)
+    if (b2 == undefined) {
+      if (cb)
+        cb(view)
+      if (spec.whenReady)
+        spec.whenReady(view)
+      return
+    }
+
     spec = spec || {}
     d('PANE setBuf ' + (b2?.name || '??'))
     if (view?.buf == b2) {

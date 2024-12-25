@@ -1151,6 +1151,33 @@ function init
       Mess.yell('Move to a file line first')
   }
 
+  function edit
+  () {
+    let el
+
+    el = current()
+    if (el && el.dataset.path) {
+      if (el.dataset.path.includes('.')) {
+        let ext, mtype
+
+        ext = el.dataset.path.slice(el.dataset.path.indexOf('.') + 1)
+        mtype = Ed.mtypeFromExt(ext)
+        if (mtype && Ed.supports(mtype)) {
+          Pane.open(el.dataset.path)
+          return
+        }
+      }
+      Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => {
+        if (err) {
+          Mess.yell('shell.open: ' + err.message)
+          return
+        }
+      })
+    }
+    else
+      Mess.say('Move to a file first')
+  }
+
   function firstLine
   (v) {
     //d('firstLine')
@@ -1309,6 +1336,7 @@ function init
   Cmd.add('clear marks', () => clear(), m)
   Cmd.add('copy file', () => copy(), m)
   Cmd.add('delete', () => del(), m)
+  Cmd.add('edit', () => edit(), m)
   Cmd.add('link', () => link(), m)
   Cmd.add('mark', mark, m)
   Cmd.add('refresh', () => refreshKeep(Pane.current()), m)
@@ -1327,6 +1355,7 @@ function init
 
   Em.on('c', 'copy file', 'Dir')
   Em.on('d', 'delete', 'Dir')
+  Em.on('e', 'edit', 'Dir')
   Em.on('g', 'refresh', 'Dir')
   Em.on('l', 'link', 'Dir')
   Em.on('m', 'mark', 'Dir')

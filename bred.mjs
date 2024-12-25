@@ -199,6 +199,16 @@ function makeScratch
           })
 }
 
+function stripFilePrefix
+(path) {
+  let file
+
+  file = 'file://'
+  if (path.startsWith(file))
+    return path.slice(file.length)
+  return path
+}
+
 function initCmds
 () {
   Cmd.add('click', click)
@@ -520,6 +530,19 @@ function initCmds
   })
 
   Cmd.add('open link', (u, we) => {
+    function open
+    (path, mtype) {
+      let rich
+
+      rich = Ext.get('rich')
+      if (rich?.supports(mtype)) {
+        rich.open(path, we.e.target.dataset.line)
+        return
+      }
+
+      Pane.open(path, we.e.target.dataset.line)
+    }
+
     function shell
     () {
       Tron.cmd('shell.open', [ we.e.target.dataset.path ], err => {
@@ -548,20 +571,32 @@ function initCmds
           // file with ext
           ext = path.slice(path.lastIndexOf('.') + 1)
           mtype = Ed.mtypeFromExt(ext)
-          if (mtype && Ed.supports(mtype)) {
-            // file with supported ext
-            let rich
-
-            rich = Ext.get('rich')
-            if (rich?.supports(mtype)) {
-              rich.open(path, we.e.target.dataset.line)
-              return
-            }
-
-            Pane.open(path, we.e.target.dataset.line)
-          }
+          if (mtype && Ed.supports(mtype))
+            // file with supported ext: eg.js
+            open(path, mtype)
           else
-            shell()
+            Shell.runToString(Pane.current().dir,
+                              'file',
+                              [ '-b', '--mime-type', stripFilePrefix(path) ],
+                              0,
+                              mtype => {
+                                mtype = mtype && mtype.trim()
+                                d('MIME type: ' + mtype)
+                                if (mtype == 'inode/x-empty')
+                                  // empty file
+                                  Pane.open(path)
+                                else if (mtype == 'application/octet-stream')
+                                  // arbitrary binary data (try anyway because often text, like eg.bak)
+                                  Pane.open(path)
+                                else if (mtype == 'inode/directory')
+                                  // directory (path was missing trailing /)
+                                  Pane.open(path)
+                                else if (mtype && Ed.supports(mtype))
+                                  // file with supported mime type: eg.xxx
+                                  open(path, mtype)
+                                else
+                                  shell()
+                              })
           return
         }
         // bare file

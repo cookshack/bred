@@ -15,7 +15,6 @@ import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scib from './scib.mjs'
-import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
@@ -716,117 +715,6 @@ function showHid
               p.buf.opt('dir.sort'))
 }
 
-function initSearchFiles
-() {
-  let moSr
-  let hist
-
-  function follow
-  (other) {
-    let p, line
-
-    p = Pane.current()
-    if (other)
-      Pane.nextOrSplit()
-
-    line = p.line()
-    if (line.length) {
-      let s
-
-      s = line.split(':', 3)
-      if ((s.length > 2) && s[0].length)
-        if ((s[0].length > 2) && (s[0].startsWith('./')))
-          Pane.open(p.dir + s[0].slice(2), s[1])
-        else
-          Pane.open(p.dir + s[0], [ 1 ])
-    }
-  }
-
-  function rerun
-  () {
-    let p, needle
-
-    p = Pane.current()
-    needle = p.buf.vars('sr').needle ?? Mess.throw('Missing needle')
-    needle.length || Mess.throw('Empty needle')
-    if (Ed.defined(p.buf.vars('shell').code)) {
-      p.buf.clear()
-      Shell.run(p.dir,
-                Loc.appDir().join('bin/sr'),
-                [ needle, p.buf.vars('sr').recurse ? '1' : '0' ],
-                { buf: p.buf,
-                  end: 1,
-                  afterEndPoint: 1 })
-      return
-    }
-    Mess.yell('Busy')
-  }
-
-  function searchFiles
-  (recurse, needle) {
-    if (needle && needle.length) {
-      hist.add(needle)
-      Shell.spawn1(Loc.appDir().join('bin/sr'),
-                   [ needle,
-                     recurse ? '1' : '0' ],
-                   { end: 1,
-                     afterEndPoint: 1 },
-                   b => {
-                     b.mode = 'sr'
-                     b.vars('sr').needle = needle
-                     b.vars('sr').recurse = recurse
-                     b.addMode('view')
-                   })
-    }
-    else if (typeof needle === 'string')
-      Mess.say('Empty')
-    else
-      Mess.say('Error')
-  }
-
-  function prompt
-  (recurse) {
-    Prompt.ask({ text: 'Search files' + (recurse ? ' recursively' : ''),
-                 hist: hist },
-               needle => searchFiles(recurse, needle))
-  }
-
-  function search
-  (u) {
-    let p, recurse
-
-    p = Pane.current()
-    recurse = p.buf.opt('core.search.files.recurse')
-
-    if (u == 4)
-      recurse = false == recurse
-
-    prompt(recurse)
-  }
-
-  hist = Hist.ensure('search files')
-
-  moSr = Mode.add('Sr', { viewInit: Ed.viewInit,
-                          viewInitSpec: Ed.viewInitSpec,
-                          initFns: Ed.initModeFns,
-                          parentsForEm: 'ed',
-                          decorators: [ { regex: /^([^:]+:[0-9]+:).*$/d,
-                                          decor: [ { attr: { style: 'color: var(--clr-emph-light); --background-color: var(--clr-fill);',
-                                                             class: 'bred-bg',
-                                                             'data-run': 'select' } } ] } ] })
-
-  Cmd.add('rerun', () => rerun(), moSr)
-  Cmd.add('select', () => follow(), moSr)
-  Cmd.add('select in other pane', () => follow(1), moSr)
-
-  Em.on('Enter', 'select', moSr)
-  Em.on('g', 'rerun', moSr)
-  Em.on('o', 'select in other pane', moSr)
-
-  Cmd.add('search files', search)
-  Cmd.add('search files recursively', () => prompt(1))
-}
-
 export
 function getMarked
 (b) {
@@ -1469,6 +1357,5 @@ function init
   Cmd.add('home', () => add(Pane.current(), ':'))
   Cmd.add('root', () => add(Pane.current(), '/'))
 
-  initSearchFiles()
   initChmod(m)
 }

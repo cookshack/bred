@@ -531,27 +531,29 @@ function initCmds
     }
 
     if (we.e.target.dataset.path) {
-      let ext, mtype
+      let ext, mtype, path
 
-      if (we.e.target.dataset.path.includes('.')) {
-        ext = we.e.target.dataset.path.slice(we.e.target.dataset.path.lastIndexOf('.') + 1)
+      path = we.e.target.dataset.path
+
+      if (path.includes('.')) {
+        ext = path.slice(path.lastIndexOf('.') + 1)
         mtype = Ed.mtypeFromExt(ext)
         if (mtype && Ed.supports(mtype)) {
           let rich
 
           rich = Ext.get('rich')
           if (rich?.supports(mtype)) {
-            rich.open(we.e.target.dataset.path, we.e.target.dataset.line)
+            rich.open(path, we.e.target.dataset.line)
             return
           }
 
-          Pane.open(we.e.target.dataset.path, we.e.target.dataset.line)
+          Pane.open(path, we.e.target.dataset.line)
         }
         else
           shell()
         return
       }
-      Pane.open(we.e.target.dataset.path, we.e.target.dataset.line)
+      Pane.open(path, we.e.target.dataset.line)
     }
     else
       Mess.say('Target missing path')

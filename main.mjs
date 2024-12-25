@@ -1315,6 +1315,8 @@ async function whenReady
   if (options.wait)
     options.waitForDevtools = true
 
+  shell = process.env.SHELL || 'sh'
+
   if (options.logfile) {
     let file
 

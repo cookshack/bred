@@ -4,7 +4,7 @@ import * as Pty from 'node-pty'
 import * as U from './util.mjs'
 
 function run
-(e, ch, dir, sc, args, spec) {
+(e, ch, dir, sc, args, spec, ctx) {
   let proc, closedProc, closedErr, closedOut, sender
   let runInShell
 
@@ -28,7 +28,7 @@ function run
         args = [ '--init-file', app.getAppPath() + '/etc/single.bashrc', '-i' ]
       runInShell = sc
       //d('runInShell: ' + runInShell)
-      sc = spec.ctx.shell
+      sc = ctx.shell
     }
 
     env = {}
@@ -134,17 +134,18 @@ function on
 (e, ch, onArgs, ctx) {
   let [ clientCh, dir, sc, args, runInShell, multi ] = onArgs
 
-  return run(e, clientCh, dir, sc, args, { runInShell: runInShell,
-                                           multi: multi,
-                                           ctx: ctx })
+  return run(e, clientCh, dir, sc, args,
+             { runInShell: runInShell,
+               multi: multi },
+             ctx)
 }
 
 export
 function onRun
-(e, ch, onArgs) {
+(e, ch, onArgs, ctx) {
   let [ clientCh, dir, sc, args, spec ] = onArgs
 
-  return run(e, clientCh, dir, sc, args, spec)
+  return run(e, clientCh, dir, sc, args, spec, ctx)
 }
 
 export

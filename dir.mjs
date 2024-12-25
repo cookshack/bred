@@ -527,9 +527,9 @@ function fill
     p.buf.vars('dir').lines = lines
     p.buf.vars('dir').marked = marked
     bak = bak ? 1 : 0
-    p.buf.vars('dir').bak = bak
+    p.buf.opts.set('dir.show.backups', bak)
     hid = hid ? 1 : 0
-    p.buf.vars('dir').hid = hid
+    p.buf.opts.set('dir.show.hidden', hid)
     p.buf.opts.set('dir.sort', sort)
 
     p.buf.content = dirW(path,
@@ -582,12 +582,12 @@ function watch
             && (pane.buf.mode?.key == 'dir')
             && (pane.buf.path == path)) {
           if (data.bak) {
-            if (pane.buf.vars('dir').bak)
+            if (pane.buf.opt('dir.show.backups'))
               refreshKeep(pane)
             return
           }
           if (data.hidden) {
-            if (pane.buf.vars('dir').hid)
+            if (pane.buf.opt('dir.show.hidden'))
               refreshKeep(pane)
             return
           }
@@ -666,8 +666,8 @@ function refreshKeep
 (p, bak, hid, sort, currentFile) {
   let marked
 
-  bak = bak ?? p.buf.vars('dir').bak
-  hid = hid ?? p.buf.vars('dir').hid
+  bak = bak ?? p.buf.opt('dir.show.backups')
+  hid = hid ?? p.buf.opt('dir.show.hidden')
   sort = sort ?? p.buf.opt('dir.sort')
 
   marked = getMarked(p.buf)
@@ -688,8 +688,8 @@ function sortBy
       d = d + (ss[1] == 'asc' ? '-desc' : '-asc')
   }
   refreshKeep(p,
-              p.buf.vars('dir').bak,
-              p.buf.vars('dir').hid,
+              p.buf.opt('dir.show.backups'),
+              p.buf.opt('dir.show.hidden'),
               d)
 }
 
@@ -699,8 +699,8 @@ function showBak
 
   p = Pane.current()
   refreshKeep(p,
-              p.buf.vars('dir').bak ? 0 : 1,
-              p.buf.vars('dir').hid,
+              p.buf.opt('dir.show.backups') ? 0 : 1,
+              p.buf.opt('dir.show.hidden'),
               p.buf.opt('dir.sort'))
 }
 
@@ -710,8 +710,8 @@ function showHid
 
   p = Pane.current()
   refreshKeep(p,
-              p.buf.vars('dir').bak,
-              p.buf.vars('dir').hid ? 0 : 1,
+              p.buf.opt('dir.show.backups'),
+              p.buf.opt('dir.show.hidden') ? 0 : 1,
               p.buf.opt('dir.sort'))
 }
 
@@ -1331,6 +1331,8 @@ function init
 
   m = Mode.add('Dir')
 
+  Opt.declare('dir.show.backups', 'bool', 0)
+  Opt.declare('dir.show.hidden', 'bool', 0)
   Opt.declare('dir.sort', 'string', 'time-desc')
 
   Cmd.add('clear marks', () => clear(), m)

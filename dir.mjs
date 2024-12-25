@@ -258,7 +258,7 @@ function fill
 
   function makeF
   (f) {
-    let name, file, on
+    let name, file, on, type
 
     function join
     (dir, file) {
@@ -290,6 +290,8 @@ function fill
       return sz
     }
 
+    ////
+
     if (f.stat)
       file = f.stat.mode & (1 << 15)
     else
@@ -297,11 +299,12 @@ function fill
 
     f.name = f.name || '???'
 
+    type = f.stat?.link ? 'l' : (file ? 'f' : 'd')
     name = div(f.name + (file ? '' : '/'),
                'dir-name',
-               { 'data-type': f.stat?.link ? 'l' : (file ? 'f' : 'd'),
+               { 'data-type': type,
                  'data-name': f.name,
-                 'data-path': join(path, f.name),
+                 'data-path': join(path, f.name) + (type == 'd' ? '/' : ''),
                  'data-run': 'open link' })
 
     on = marked.has(f.name) ? ' on' : ''

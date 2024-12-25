@@ -538,10 +538,18 @@ function initCmds
       if (path.startsWith('/'))
         path = 'file://' + path
       if (path.startsWith('file://')) {
+        if (path.endsWith('/')) {
+          // dir
+          // check needed because dir name may include dots
+          Pane.open(path, we.e.target.dataset.line)
+          return
+        }
         if (path.includes('.')) {
+          // file with ext
           ext = path.slice(path.lastIndexOf('.') + 1)
           mtype = Ed.mtypeFromExt(ext)
           if (mtype && Ed.supports(mtype)) {
+            // file with supported ext
             let rich
 
             rich = Ext.get('rich')
@@ -556,6 +564,7 @@ function initCmds
             shell()
           return
         }
+        // bare file
         Pane.open(path, we.e.target.dataset.line)
         return
       }

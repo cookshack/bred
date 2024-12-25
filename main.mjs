@@ -729,6 +729,13 @@ function onShellOpen
   Shell.openExternal(url)
 }
 
+function onShellShow
+(e, ch, onArgs) {
+  let [ path ] = onArgs
+
+  Shell.showItemInFolder(stripFilePrefix(path))
+}
+
 function onDirGet
 (e, ch, dir) {
   function stat
@@ -868,15 +875,23 @@ async function wrapOn
   return ch
 }
 
-function onFileGet
-(e, ch, onArgs) {
-  let path, file
+function stripFilePrefix
+(path) {
+  let file
 
   file = 'file://'
+  if (path.startsWith(file))
+    return path.slice(file.length)
+  return path
+}
+
+function onFileGet
+(e, ch, onArgs) {
+  let path
 
   path = onArgs
-  if (path.startsWith(file))
-    path = path.slice(file.length)
+  path = stripFilePrefix(path)
+
   fs.readFile(path, 'utf8', (err, data) => {
     if (err)
       e.sender.send(ch, { err: err })
@@ -1256,6 +1271,9 @@ async function onCmd
 
   if (name == 'shell.open')
     return wrapOn(e, ch, args, onShellOpen)
+
+  if (name == 'shell.show')
+    return wrapOn(e, ch, args, onShellShow)
 
   if (name == 'step.send')
     return wrapOn(e, ch, args, Step.onSend)

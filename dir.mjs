@@ -1168,6 +1168,10 @@ function init
 
     el = current()
     if (el && el.dataset.path) {
+      if (el.dataset.type == 'd') {
+        Pane.open(el.dataset.path)
+        return
+      }
       if (el.dataset.path.includes('.')) {
         let ext, mtype
 
@@ -1306,6 +1310,10 @@ function init
 
     el = current()
     if (el && el.dataset.path) {
+      if (el.dataset.type == 'd') {
+        Pane.open(el.dataset.path)
+        return
+      }
       if (el.dataset.path.includes('.')) {
         let ext, mtype
 

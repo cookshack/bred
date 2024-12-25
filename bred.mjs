@@ -534,7 +534,7 @@ function initCmds
       let ext, mtype
 
       if (we.e.target.dataset.path.includes('.')) {
-        ext = we.e.target.dataset.path.slice(we.e.target.dataset.path.indexOf('.') + 1)
+        ext = we.e.target.dataset.path.slice(we.e.target.dataset.path.lastIndexOf('.') + 1)
         mtype = Ed.mtypeFromExt(ext)
         if (mtype && Ed.supports(mtype)) {
           let rich

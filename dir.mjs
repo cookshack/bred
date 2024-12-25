@@ -1160,7 +1160,7 @@ function init
       if (el.dataset.path.includes('.')) {
         let ext, mtype
 
-        ext = el.dataset.path.slice(el.dataset.path.indexOf('.') + 1)
+        ext = el.dataset.path.slice(el.dataset.path.lastIndexOf('.') + 1)
         mtype = Ed.mtypeFromExt(ext)
         if (mtype && Ed.supports(mtype)) {
           Pane.open(el.dataset.path)
@@ -1298,7 +1298,7 @@ function init
       if (el.dataset.path.includes('.')) {
         let ext, mtype
 
-        ext = el.dataset.path.slice(el.dataset.path.indexOf('.') + 1)
+        ext = el.dataset.path.slice(el.dataset.path.lastIndexOf('.') + 1)
         mtype = Ed.mtypeFromExt(ext)
         if (mtype) {
           let rich

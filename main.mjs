@@ -1,4 +1,4 @@
-import { app, clipboard as Clipboard, WebContentsView, BrowserWindow, ipcMain, shell as Shell /*, protocol, net*/ } from 'electron'
+import { app, clipboard as Clipboard, WebContentsView, BrowserWindow, ipcMain /*, protocol, net*/ } from 'electron'
 import CheckDeps from './lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
 import * as File from './main-file.mjs'
@@ -9,12 +9,12 @@ import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
 import process from 'node:process'
 import fs from 'node:fs'
+import * as Shell from './main-shell.mjs'
 import * as Step from './main-step.mjs'
 import Store from 'electron-store'
 import Util from 'node:util'
 import { fork, spawn, spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
-import * as Pty from 'node-pty'
 
 let version, options, stores, dirUserData, lsp, shell, lastClipWrite
 
@@ -582,171 +582,6 @@ function onPaths
                       v8: process.versions.v8 } }
 }
 
-function run
-(e, ch, dir, sc, args, spec) {
-  let proc, closedProc, closedErr, closedOut, sender
-  let runInShell
-
-  function close
-  () {
-    if (closedProc && closedErr && closedOut) {
-      //ipcMain.removeAllListeners(ch)
-    }
-  }
-
-  sender = e.sender
-  runInShell = spec.runInShell
-
-  try {
-    let env, cols, rows
-
-    if (runInShell) {
-      if (spec.multi)
-        args = [ '-i' ]
-      else
-        args = [ '--init-file', app.getAppPath() + '/etc/single.bashrc', '-i' ]
-      runInShell = sc
-      //d('runInShell: ' + runInShell)
-      sc = shell
-    }
-
-    env = {}
-    // prevent: nvm is not compatible with the "npm_config_prefix" environment variable...
-    Object.entries(process.env).forEach(kv => {
-      if (kv[0].startsWith('npm_'))
-        return
-      env[kv[0]] = kv[1].slice(0)
-    })
-    env.EMACS = 't' // turns off line editing in bash
-    env.TERM = 'dumb'
-    //env.TERM = 'xterm'
-    //env.TERM = 'xterm-256color'
-    //env.COLORTERM = 'truecolor'
-
-    //d(JSON.stringify(env, null, 2))
-    d('spawn ' + sc + ' [' + args + '] in ' + dir)
-    //process.stdin.setRawMode(true)
-    // could be useful: const cwd = await fs.promises.readlink(`/proc/${this.#realPty.pid}/cwd`, {encoding: "utf8"})
-    cols = parseInt(spec.cols ?? 10000)
-    if (isNaN(cols))
-      cols = 10000
-    rows = parseInt(spec.rows ?? 10000)
-    if (isNaN(rows))
-      rows = 10000
-    proc = Pty.spawn(sc, args, { cwd: dir,
-                                 cols: cols,
-                                 rows: rows,
-                                 env: env,
-                                 encoding: null })
-
-    /// raw mode to prevent echo of input (bred already put the input in the buf)
-    // https://github.com/Microsoft/node-pty/issues/78#issuecomment-1867116455
-    //proc.write(`stty -F ${proc.ptsName} raw -echo\n`)
-    // https://github.com/Microsoft/node-pty/issues/78#issuecomment-297550361
-    {
-      let tty, TtyWrap
-
-      //d(proc.ptsName)
-      //d(proc.fd)
-      TtyWrap = process.binding('tty_wrap')
-      tty = new TtyWrap.TTY(proc.fd, true)
-      //d('tty.isTTY: ' + tty.isTTY)
-      if (1) { // (TtyWrap.IsTTY(tty)) { // (tty.isTTY)
-        0 && d('setRawMode')
-        tty.setRawMode(true)
-      }
-    }
-
-    if (spec.multi) {
-      // want the prompt string
-    }
-    else
-      // happens too late, need to somehow set it in .bashrc (now done in single.bashrc above)
-      proc.write('export PS1=""\n')
-
-    if (runInShell) {
-      let cmd
-
-      if (spec.multi)
-        if (runInShell.length)
-          cmd = runInShell + '\n'
-        else
-          d('runInShell empty')
-      else
-        cmd = runInShell + ' && exit 2>/dev/null || exit 2>/dev/null\n'
-      if (cmd) {
-        d('proc.write cmd: ' + cmd)
-        proc.write(cmd)
-      }
-    }
-
-    proc.onData(data => {
-      d(`${ch}: data: ${data}`)
-      sender.send(ch, { stdout: data })
-      closedOut = 1
-      close()
-    })
-
-    proc.onExit(ret => {
-      d(`${ch}: child process exited with code ${ret.exitCode}`)
-      sender.send(ch, { close: 1, code: ret.exitCode })
-      closedProc = 1
-      close()
-    })
-
-    ipcMain.on(ch, (e, data) => {
-      d(ch + ': on: ' + JSON.stringify(data))
-      if (data.input && data.input.length)
-        proc.write(data.input)
-      if (data.exit)
-        process.kill(proc.pid, 'SIGHUP')
-    })
-  }
-  catch (err) {
-    d(`${ch}: child process caught err ${err}`)
-    sender.send(ch, { err: err })
-  }
-}
-
-function onShell
-(e, ch, onArgs) {
-  let [ clientCh, dir, sc, args, runInShell, multi ] = onArgs
-
-  return run(e, clientCh, dir, sc, args, { runInShell: runInShell,
-                                           multi: multi })
-}
-
-function onShellRun
-(e, ch, onArgs) {
-  let [ clientCh, dir, sc, args, spec ] = onArgs
-
-  return run(e, clientCh, dir, sc, args, spec)
-}
-
-function onShellOpen
-(e, ch, onArgs) {
-  let [ url ] = onArgs
-
-  Shell.openExternal(url)
-}
-
-function stripFilePrefix
-(path) {
-  let file
-
-  file = 'file://'
-  if (path.startsWith(file))
-    return path.slice(file.length)
-  return path
-}
-
-function onShellShow
-(e, ch, onArgs) {
-  let [ path ] = onArgs
-
-  Shell.showItemInFolder(stripFilePrefix(path))
-}
-
 function onDirGet
 (e, ch, dir) {
   function stat
@@ -872,7 +707,8 @@ async function wrapOn
 (e, ch, onArgs, cb) {
   setTimeout(async () => {
     try {
-      await cb(e, ch, onArgs, { lsp: lsp })
+      await cb(e, ch, onArgs, { lsp: lsp,
+                                shell: shell })
     }
     catch (err) {
       try {
@@ -996,16 +832,16 @@ async function onCmd
     return cmdClipWrite(e, ch, args)
 
   if (name == 'shell')
-    return wrapOn(e, args[0] /* clientCh */, args, onShell)
+    return wrapOn(e, args[0] /* clientCh */, args, Shell.on)
 
   if (name == 'shell.run')
-    return wrapOn(e, args[0] /* clientCh */, args, onShellRun)
+    return wrapOn(e, args[0] /* clientCh */, args, Shell.onRun)
 
   if (name == 'shell.open')
-    return wrapOn(e, ch, args, onShellOpen)
+    return wrapOn(e, ch, args, Shell.onOpen)
 
   if (name == 'shell.show')
-    return wrapOn(e, ch, args, onShellShow)
+    return wrapOn(e, ch, args, Shell.onShow)
 
   if (name == 'step.send')
     return wrapOn(e, ch, args, Step.onSend)
@@ -1478,8 +1314,6 @@ async function whenReady
   options = program.opts()
   if (options.wait)
     options.waitForDevtools = true
-
-  shell = process.env.SHELL || 'sh'
 
   if (options.logfile) {
     let file

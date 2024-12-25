@@ -99,3 +99,9 @@ div.dir-h-dir,
 .dir-name[data-type="l"] {
   color: var(--clr-syntax3);
 }
+
+.dir-empty {
+  grid-column: 1 / -1;
+  color: var(--clr-text-light);
+  display: flex;
+}

@@ -533,7 +533,8 @@ function fill
     p.buf.opts.set('dir.sort', sort)
 
     p.buf.content = dirW(path,
-                         [ divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }),
+                         [ lines.length ? null : divCl('dir-empty', 'Empty directory'),
+                           divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }),
                            divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }) ],
                          { 'data-bak': bak,
                            'data-hid': hid,

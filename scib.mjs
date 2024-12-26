@@ -1,6 +1,8 @@
 import * as Cmd from './cmd.mjs'
+import * as Ed from './ed.mjs'
 import * as Hist from './hist.mjs'
 import * as Mess from './mess.mjs'
+import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
@@ -25,6 +27,7 @@ function runText
                    hist: spec.hist,
                    onClose: spec.onClose },
                  buf => {
+                   buf.mode = 'command'
                    buf.opts.set('ansi.enabled', 1)
                    buf.opts.set('core.highlight.specials.enabled', 0)
                    d({ modes })
@@ -75,6 +78,7 @@ function initRTL
       Shell.shell1(l,
                    { end: 1, hist },
                    buf => {
+                     buf.mode = 'command'
                      buf.opts.set('ansi.enabled', 1)
                      buf.opts.set('core.highlight.specials.enabled', 0)
                    })
@@ -90,7 +94,16 @@ function initRTL
 export
 function init
 () {
+  let mo
+
   Cmd.add('shell command in buffer', () => scib())
+
+  mo = Mode.add('Command', { viewInit: Ed.viewInit,
+                             viewInitSpec: Ed.viewInitSpec,
+                             viewCopy: Ed.viewCopy,
+                             initFns: Ed.initModeFns,
+                             parentsForEm: 'ed' })
+  d(mo)
 
   hist = Hist.ensure('shell')
   initRTL()

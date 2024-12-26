@@ -30,7 +30,6 @@ function defined
 }
 
 // pass any args to this fn to prevent warnings about them
-// eg catch param list requires args
 export
 function use
 () {

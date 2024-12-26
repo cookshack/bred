@@ -1,5 +1,3 @@
-import * as U from './util.mjs'
-
 let logFn
 
 export
@@ -40,7 +38,6 @@ function d
         + ':' + pad(date.getMilliseconds(), 3)
         + ' ' + msg)
   }
-  catch (err) {
-    U.use(err)
+  catch {
   }
 }

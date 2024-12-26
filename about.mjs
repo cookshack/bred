@@ -15,7 +15,6 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
-import * as U from './util.mjs'
 import { Vace } from './json.mjs'
 import { Vode } from './json.mjs'
 import { Vonaco } from './json.mjs'
@@ -129,8 +128,7 @@ function initHelp
       try {
         json = JSON.stringify(val)
       }
-      catch (e) {
-        U.use(e)
+      catch {
         json = '??'
       }
       return div(type + ': ' + json)

@@ -2093,6 +2093,11 @@ function initRecent
                    divCl('recent-w') ])
   }
 
+  function clean
+  (href) {
+    return U.stripFilePrefix(href)
+  }
+
   function refresh
   (view) {
     Recent.get((err, all) => {
@@ -2108,7 +2113,7 @@ function initRecent
       w.innerHTML = ''
 
       co = recents.map(r => divCl('recent-item',
-                                  r.href,
+                                  clean(r.href),
                                   { 'data-run': 'open link',
                                     'data-path': r.href }))
 

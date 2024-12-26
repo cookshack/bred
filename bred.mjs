@@ -2095,7 +2095,16 @@ function initRecent
 
   function clean
   (href) {
-    return U.stripFilePrefix(href)
+    let home
+
+    home = Loc.home()
+
+    href = U.stripFilePrefix(href)
+
+    if (href.startsWith(home))
+      href = ':' + href.slice(home.length)
+
+    return href
   }
 
   function refresh

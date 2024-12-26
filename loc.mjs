@@ -228,7 +228,7 @@ function make
     return path
   }
 
-  function isRelative
+  function relative
   () {
     if (path && path.startsWith('/'))
       return 0
@@ -270,6 +270,9 @@ function make
            get path() {
              return path
            },
+           get relative() {
+             return relative()
+           },
            //
            set path(p) {
              expanded = 0; return path = p
@@ -277,7 +280,6 @@ function make
            //
            ensureSlash,
            expand,
-           isRelative,
            join,
            needsDotExpand,
            parent,

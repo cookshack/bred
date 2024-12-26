@@ -47,7 +47,7 @@ function prepDir
     dir.ensureSlash()
     dir.expand()
 
-    if (dir.isRelative())
+    if (dir.relative)
       Mess.toss('Absolute path required')
 
     if (dir.length)

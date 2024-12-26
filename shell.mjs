@@ -332,6 +332,13 @@ function edit
 (other) {
   let p, psn, text, match
 
+  function abs
+  (path) {
+    if (p.dir && Loc.make(path).relative)
+      return Loc.make(p.dir).join(path)
+    return path
+  }
+
   p = Pane.current()
   if (other)
     Pane.nextOrSplit()
@@ -342,13 +349,13 @@ function edit
   text = psn.text
   match = text.match(reErr)
   if (match) {
-    Pane.openFile(match[1], match[2])
+    Pane.openFile(abs(match[1]), match[2])
     return
   }
 
   match = text.match(reFile)
   if (match) {
-    Pane.openFile(match[1])
+    Pane.openFile(abs(match[1]))
     return
   }
 

@@ -1027,6 +1027,7 @@ function _viewInit
       mode = mode || 'text'
       vsetLang(view, modeLang(mode))
       d('chose mode 2: ' + mode)
+      buf.mode = mode
       Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
       decorate(view, buf.mode)
 

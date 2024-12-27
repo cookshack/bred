@@ -309,6 +309,16 @@ function make2
     return dir
   }
 
+  function setPlaceholder
+  (val) {
+    if (b.mode?.setPlaceholder) {
+      b.views.forEach(view => b.mode.setPlaceholder(view, val))
+      return val
+    }
+    Mess.toss('buf.make: setPlaceholder missing')
+    return 0
+  }
+
   function syntaxTreeStr
   () {
     if (b.mode?.key) {
@@ -460,6 +470,9 @@ function make2
             b.views.forEach(view => {
               view.ele?.querySelectorAll('.bred-info-w.bred-info-disk').forEach(w => w.remove())
             })
+        },
+        set placeholder(val) {
+          return setPlaceholder(val)
         },
         //
         addMode,

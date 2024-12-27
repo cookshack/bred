@@ -418,7 +418,7 @@ function split
   frame = Frame.current()
   p = current(frame)
   return add(frame, p.buf,
-             p.view.ed // hack
+             p.view.ed
              && Ed.bepRow(p.view, p.view.bep) + 1)
 }
 

@@ -210,6 +210,13 @@ function pushUpdates
   })
 }
 
+function makePlaceholder
+(ph) {
+  if (ph?.length)
+    return CMView.placeholder(String(ph))
+  return []
+}
+
 function makePeer
 (id, startVersion) {
   let plugin
@@ -644,6 +651,7 @@ function _viewInit
   view.wode.comp.exts = new CMState.Compartment
   view.wode.themeExtension = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
+  view.wode.placeholder = new CMState.Compartment
 
   let decorator
 
@@ -851,6 +859,7 @@ function _viewInit
   }
 
   opts = [ CMComm.history(),
+           view.wode.placeholder.of(makePlaceholder(placeholder)),
 
            CMView.EditorView.domEventHandlers(domEventHandlers),
 
@@ -878,9 +887,6 @@ function _viewInit
     opts.push(view.wode.peer.of([ peer ]))
   else
     opts.push(view.wode.peer.of([]))
-
-  if (placeholder && placeholder.length)
-    opts.push(CMView.placeholder(placeholder))
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')
@@ -1808,6 +1814,11 @@ function initModeFns
       })
   }
 
+  function setPlaceholder
+  (view, val) {
+    view.ed.dispatch({ effects: view.wode.placeholder.reconfigure(makePlaceholder(val)) })
+  }
+
   function syntaxTreeStr
   (b) {
     let state
@@ -1836,6 +1847,7 @@ function initModeFns
   mo.nextLine = nextLine
   mo.seize = mo.seize || (b => seize(b, mo))
   mo.setBep = vsetBep
+  mo.setPlaceholder = setPlaceholder
   mo.syntaxTreeStr = syntaxTreeStr
   mo.text = text
   mo.viewReopen = viewReopen

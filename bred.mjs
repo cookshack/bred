@@ -200,6 +200,33 @@ function makeScratch
           })
 }
 
+function urlAt
+(l, pos) {
+  if (l.length == 0)
+    return 0
+  if (l[pos] == ' ')
+    return 0
+  while (pos > 0) {
+    if (l[pos] == ' ') {
+      pos++
+      break
+    }
+    pos--
+  }
+  l = l.slice(pos)
+  l = l.replace(/\x1B\[[0-?9;]*[mK]/g, '') // remove ansi sequences
+  //l = l.replace(/[\x00-\x1F\x7F]/g, '') // remove control chars
+
+  if (l.startsWith('/'))
+    l = 'file://' + l
+  try {
+    return new URL(l.split(' ')[0])
+  }
+  catch {
+  }
+  return 0
+}
+
 function initCmds
 () {
   Cmd.add('click', click)
@@ -638,33 +665,6 @@ function initCmds
     else
       Mess.yell('parent: Missing dir')
   })
-
-  function urlAt
-  (l, pos) {
-    if (l.length == 0)
-      return 0
-    if (l[pos] == ' ')
-      return 0
-    while (pos > 0) {
-      if (l[pos] == ' ') {
-        pos++
-        break
-      }
-      pos--
-    }
-    l = l.slice(pos)
-    l = l.replace(/\x1B\[[0-?9;]*[mK]/g, '') // remove ansi sequences
-    //l = l.replace(/[\x00-\x1F\x7F]/g, '') // remove control chars
-
-    if (l.startsWith('/'))
-      l = 'file://' + l
-    try {
-      return new URL(l.split(' ')[0])
-    }
-    catch {
-    }
-    return 0
-  }
 
   Cmd.add('view url at point', () => {
     let p, l, pos, url
@@ -1969,9 +1969,9 @@ function initFile
   }
 
   function openFile
-  () {
+  (u) {
     dirsOnly = 0
-    open()
+    open(u)
   }
 
   function openDir
@@ -1981,8 +1981,8 @@ function initFile
   }
 
   function open
-  () {
-    let p, w, dir
+  (u) {
+    let p, w, dir, ph
 
     p = Pane.current()
 
@@ -1991,10 +1991,27 @@ function initFile
     if (ml)
       ml.innerText = 'Open file'
 
+    if ((u == 4) && p.view.ed) {
+      let l, pos, url
+
+      l = p.line()
+      if (l) {
+        pos = p.pos()
+        pos = pos.col
+        url = urlAt(l, pos)
+        if (url?.protocol == 'file:')
+          ph = url.pathname
+      }
+    }
+
     if (buf)
-      buf = buf
+      buf.placeholder = ph
     else {
-      buf = Buf.make('Open', 'Open', w, p.dir)
+      buf = Buf.make2({ name: 'Open',
+                        modeName: 'Open',
+                        content: w,
+                        dir: p.dir,
+                        placeholder: ph })
       buf.icon = 'prompt'
     }
 
@@ -2051,7 +2068,7 @@ function initFile
   Em.on('C-s', 'Idle', mo)
   Em.on('C-r', 'Idle', mo)
 
-  Cmd.add('open file', () => openFile())
+  Cmd.add('open file', openFile)
 
   Cmd.add('open directory', () => openDir())
   Cmd.add('dir', () => openDir())

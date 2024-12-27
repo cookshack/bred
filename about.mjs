@@ -302,10 +302,10 @@ function initHelp
   Opt.onSet(0, (val, name) => {
     let buf, callerBuf
 
+    d('ABOUT opt ' + name + ' changed to "' + val + '"')
+
     callerBuf = Win.shared().helpBuffer.callerBuf
 
-    d({ val })
-    d({ name })
     buf = Win.shared().helpBuffer.buf
     buf?.views.forEach(view => {
       if (view.ele) {
@@ -317,6 +317,26 @@ function initHelp
           el.innerText = clean(callerBuf?.opts.get(name), val, Opt.type(name))
       }
     })
+  })
+
+  Opt.onSetBuf(0, (buf, val, name) => {
+    let callerBuf
+
+    d('ABOUT opt ' + name + ' changed to "' + val + '" on buf "' + buf.name + '"')
+
+    callerBuf = Win.shared().helpBuffer.callerBuf
+
+    if (buf == callerBuf)
+      Win.shared().helpBuffer.buf?.views.forEach(view => {
+        if (view.ele) {
+          let w, el
+
+          w = view.ele.firstElementChild.firstElementChild
+          el = w.querySelector('.options-val[data-name="' + name + '"]')
+          if (el)
+            el.innerText = clean(val, Opt.get(name), Opt.type(name))
+        }
+      })
   })
 
   Em.on('C-h b', 'describe buffer')

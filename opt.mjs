@@ -40,10 +40,18 @@ function load
 }
 
 export
+function check
+(name) {
+  if (name.includes(' '))
+    throw new Error('Opt name contains space')
+}
+
+export
 function declare
 (name,
  type, // bool, decimal, int, float, str
  value) {
+  check(name)
   shared().types[name] = type
   d('OPT ' + name + ' DECLARED ' + type)
   if (get(name) === undefined)
@@ -70,6 +78,7 @@ function clean
 function setMem
 (name,
  value) { // must be clean
+  check(name)
   shared().values[name] = value
   d('OPT ' + name + ' SET TO ' + value)
   shared().onSets[name]?.forEach(cb => cb(value, name))
@@ -125,11 +134,16 @@ function onSet
 
 function onSetBuf1
 (name, cb) { // (buf, val, name)
-  shared().onSetBufs[name] = shared().onSetBufs[name] ?? []
-  shared().onSetBufs[name].push(cb)
+  if (name) {
+    shared().onSetBufs[name] = shared().onSetBufs[name] ?? []
+    shared().onSetBufs[name].push(cb)
+    return
+  }
+  shared().onSetBufAlls.push(cb)
 }
 
 // for example, you have a mode that wants to update the buf's ext when the opt is changed on any buf.
+// or you're displaying a list of opts for a buffer, and the list must update when a buf opt changes.
 export
 function onSetBuf
 (nameOrArray, cb) { // (buf, val, name)
@@ -168,6 +182,7 @@ function buf
     vals[name] = val
     d('BUF OPT ' + name + ' SET TO ' + val)
     shared().onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
+    shared().onSetBufAlls.forEach(cb => cb(buffer, val, name))
   }
 
   function get
@@ -200,6 +215,7 @@ function init
   shared().onSets = {}
   shared().onSetAlls = []
   shared().onSetBufs = {}
+  shared().onSetBufAlls = []
 
   declare('core.brackets.close.enabled', 'bool', 1)
   declare('core.fontSize', 'float', undefined)

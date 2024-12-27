@@ -317,7 +317,7 @@ function fill
              divCl(on, f.stat?.uid),
              divCl(on, f.stat?.gid),
              divCl('dir-size' + on, f.stat ? size() : '?'),
-             divCl('dir-date' + on, f.stat ? formatDate(Math.floor(f.stat.mtimeMs / 1000)) : '?'),
+             divCl('dir-date' + on, f.stat ? formatDate(new Date(f.stat.mtimeMs)) : '?'),
              divCl('dir-name-w' + on, name) ]
   }
 

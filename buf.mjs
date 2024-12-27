@@ -496,9 +496,11 @@ function make
 }
 
 export
-function add2
+function add
 (name, modeName, content, dir, spec) { // { file, lineNum, vars }
   let b, sh
+
+  spec = spec || {}
 
   b = make({ name: name,
              modeName: modeName,
@@ -511,12 +513,6 @@ function add2
   sh.buffers.push(b)
   shared().ring.unshift(b)
   return b
-}
-
-export
-function add
-(name, modeName, content, dir, file, lineNum) {
-  return add2(name, modeName, content, dir, { file: file, lineNum: lineNum })
 }
 
 // move buf to top of ring

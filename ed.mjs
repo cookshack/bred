@@ -140,8 +140,8 @@ function make
                           spec.name || spec.file,
                           { icon: icon }),
                      spec.dir,
-                     spec.file,
-                     spec.lineNum),
+                     { file: spec.file,
+                       lineNum: spec.lineNum }),
              { lineNum: spec.lineNum,
                whenReady: spec.whenReady },
              view => {

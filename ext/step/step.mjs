@@ -109,8 +109,8 @@ function initCssComp
     if (Css.has(p.frame?.tab?.frameRight?.el, 'retracted'))
       Cmd.run('toggle frame right')
 
-    b = Buf.add2('Css Comp', 'Css Comp', divW(), p.dir,
-                 { vars: { 'css comp': { el: el } } })
+    b = Buf.add('Css Comp', 'Css Comp', divW(), p.dir,
+                { vars: { 'css comp': { el: el } } })
     b.icon = 'css'
     b.addMode('view')
 
@@ -378,8 +378,8 @@ function initCssRules
     if (Css.has(tab.frameRight?.el, 'retracted'))
       Cmd.run('toggle frame right')
 
-    b = Buf.add2('Css Rules', 'Css Rules', divW(), p.dir,
-                 { vars: { 'css rules': { el: el } } })
+    b = Buf.add('Css Rules', 'Css Rules', divW(), p.dir,
+                { vars: { 'css rules': { el: el } } })
     b.icon = 'css'
     b.addMode('view')
 
@@ -613,8 +613,8 @@ function initDom
     if (Css.has(tab.frameRight?.el, 'retracted'))
       Cmd.run('toggle frame right')
 
-    b = Buf.add2('Dom', 'Dom', divW(), p.dir,
-                 { vars: { dom: { id: id } } })
+    b = Buf.add('Dom', 'Dom', divW(), p.dir,
+                { vars: { dom: { id: id } } })
     b.icon = 'dom'
     b.addMode('view')
 

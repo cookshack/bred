@@ -623,7 +623,7 @@ function add
   if (dir.path.length > 1)
     dir.removeSlash()
 
-  b = Buf.add(dir.filename, 'Dir', 0, dir.dirname, dir.filename)
+  b = Buf.add(dir.filename, 'Dir', 0, dir.dirname, { file: dir.filename })
   b.icon = Icon.mode('dir').name
   b.fileType = 'dir'
   b.addMode('view')

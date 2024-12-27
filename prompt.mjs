@@ -73,10 +73,10 @@ function demandBuf
   ml = w.querySelector('.edMl')
   if (ml)
     ml.innerText = 'Query replace'
-  buf = Buf.make2({ name: 'QR',
-                    modeName: 'QR',
-                    content: w,
-                    dir: p.dir })
+  buf = Buf.make({ name: 'QR',
+                   modeName: 'QR',
+                   content: w,
+                   dir: p.dir })
   buf.vars('ed').fillParent = 0
   buf.opts.set('core.autocomplete.enabled', 0)
   buf.opts.set('core.folding.enabled', 0)
@@ -121,11 +121,11 @@ function ask
   ml = spec.w.querySelector('.edMl')
   if (ml)
     ml.innerText = spec.text || 'Enter text'
-  buf = Buf.make2({ name: 'Prompt2',
-                    modeName: 'Prompt2',
-                    content: spec.w,
-                    dir: p.dir,
-                    placeholder: spec.placeholder ?? spec.hist?.nth(0)?.toString() })
+  buf = Buf.make({ name: 'Prompt2',
+                   modeName: 'Prompt2',
+                   content: spec.w,
+                   dir: p.dir,
+                   placeholder: spec.placeholder ?? spec.hist?.nth(0)?.toString() })
   buf.vars('ed').fillParent = 0
   buf.opts.set('blankLines.enabled', 0)
   buf.opts.set('core.autocomplete.enabled', 0)

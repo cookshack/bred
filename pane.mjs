@@ -54,7 +54,7 @@ function getBootBuf
   if (bootBuf)
     return bootBuf
   d('Making boot buf')
-  return bootBuf = Buf.make2({ dir: Loc.iwd().path })
+  return bootBuf = Buf.make({ dir: Loc.iwd().path })
 }
 
 function chPx

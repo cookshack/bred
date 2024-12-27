@@ -106,10 +106,10 @@ function init
     if (buf)
       buf.vars('Man').hist.reset()
     else {
-      buf = Buf.make2({ name: 'Man',
-                        modeName: 'Man',
-                        content: w,
-                        dir: p.dir })
+      buf = Buf.make({ name: 'Man',
+                       modeName: 'Man',
+                       content: w,
+                       dir: p.dir })
       Win.shared().man.buf = buf
       hist.reset()
       buf.vars('Man').hist = hist

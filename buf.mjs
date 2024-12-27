@@ -76,16 +76,6 @@ function savePoss
 
 export
 function make
-(name, modeName, content, dir, file) {
-  return make2({ name: name,
-                 modeName: modeName,
-                 content: content,
-                 dir: dir,
-                 file: file })
-}
-
-export
-function make2
 (spec = {}) { // { name, modeName, content, dir, file, placeholder, vars }
   let { name, modeName, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk
@@ -510,13 +500,13 @@ function add2
 (name, modeName, content, dir, spec) { // { file, lineNum, vars }
   let b, sh
 
-  b = make2({ name: name,
-              modeName: modeName,
-              content: content,
-              dir: dir,
-              file: spec.file,
-              lineNum: spec.lineNum,
-              vars: spec.vars })
+  b = make({ name: name,
+             modeName: modeName,
+             content: content,
+             dir: dir,
+             file: spec.file,
+             lineNum: spec.lineNum,
+             vars: spec.vars })
   sh = shared()
   sh.buffers.push(b)
   shared().ring.unshift(b)

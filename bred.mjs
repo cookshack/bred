@@ -2007,11 +2007,11 @@ function initFile
     if (buf)
       buf.placeholder = ph
     else {
-      buf = Buf.make2({ name: 'Open',
-                        modeName: 'Open',
-                        content: w,
-                        dir: p.dir,
-                        placeholder: ph })
+      buf = Buf.make({ name: 'Open',
+                       modeName: 'Open',
+                       content: w,
+                       dir: p.dir,
+                       placeholder: ph })
       buf.icon = 'prompt'
     }
 

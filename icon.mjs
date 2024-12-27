@@ -85,6 +85,9 @@ function path
     if (name == 'python')
       return 'lib/svg/mfixx/python.svg'
 
+    if (name == 'rust')
+      return 'lib/svg/devopicons/rust.svg'
+
     if (name == 'save')
       return 'lib/svg/fluentui-system-icons/ic_fluent_save_24_regular.svg'
 
@@ -154,6 +157,7 @@ function mode
     if (name == 'plaintext') return { name: 'text' }
     if (name == 'perl') return { name: 'perl' }
     if (name == 'python') return { name: 'python' }
+    if (name == 'rust') return { name: 'rust' }
     if (name == 'sh') return { name: 'sh' }
     if (name == 'tex') return { name: 'tex' }
     if (name == 'text') return { name: 'text' }

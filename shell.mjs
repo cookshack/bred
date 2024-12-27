@@ -143,7 +143,7 @@ function run
       else
         b.insert(decoder.decode(data.stdout), bep, spec.afterEndPoint)
       b.vars('Shell').lastLineText = b.line(-1)
-      d('lastLineText: ' + b.vars('Shell').lastLineText)
+      //d('lastLineText: ' + b.vars('Shell').lastLineText)
       spec.afterEndPoint = 0
     }
 

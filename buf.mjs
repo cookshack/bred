@@ -86,7 +86,7 @@ function make
 
 export
 function make2
-(spec = {}) { // { ..., placeholder, vars }
+(spec = {}) { // { name, modeName, content, dir, file, placeholder, vars }
   let { name, modeName, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk
 

@@ -8,6 +8,7 @@ import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 import * as Prompt from '../../prompt.mjs'
 import * as Shell from '../../shell.mjs'
+import * as U from '../../util.mjs'
 //import { d } from '../../mess.mjs'
 
 export
@@ -44,7 +45,7 @@ function init
     p = Pane.current()
     needle = p.buf.vars('sr').needle ?? Mess.throw('Missing needle')
     needle.length || Mess.throw('Empty needle')
-    if (Ed.defined(p.buf.vars('shell').code)) {
+    if (U.defined(p.buf.vars('shell').code)) {
       p.buf.clear()
       Shell.run(p.dir,
                 Loc.appDir().join('bin/sr'),

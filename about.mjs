@@ -420,7 +420,10 @@ function initDescribeKey
         //buf.vars("SC").hist.reset()
       }
       else {
-        buf = Buf.make('Describe Key', 'Describe Key', w, p.dir)
+        buf = Buf.make2({ name: 'Describe Key',
+                          modeName: 'Describe Key',
+                          content: w,
+                          dir: p.dir })
         //buf.vars("SC").hist = compileHist
         buf.addMode('view')
       }
@@ -571,7 +574,10 @@ function initDescribeCmd
       //buf.vars("SC").hist.reset()
     }
     else {
-      buf = Buf.make('Describe Cmd', 'Describe Cmd', w, p.dir)
+      buf = Buf.make2({ name: 'Describe Cmd',
+                        modeName: 'Describe Cmd',
+                        content: w,
+                        dir: p.dir })
       //buf.vars("SC").hist = compileHist
       buf.addMode('view')
     }
@@ -584,7 +590,10 @@ function initDescribeCmd
 
     p = Pane.current()
     callerBuf = p.buf
-    buf = Buf.make('Execute', 'Execute', Exec.divW(), p.dir)
+    buf = Buf.make2({ name: 'Command to Describe',
+                      modeName: 'Execute',
+                      content: Exec.divW(),
+                      dir: p.dir })
     buf.vars('execute').cb = name => describe(name)
     p.setBuf(buf)
   }
@@ -675,7 +684,10 @@ function initLang
         //buf.vars("SC").hist.reset()
       }
       else {
-        buf = Buf.make('Lang', 'Lang', w, p.dir)
+        buf = Buf.make2({ name: 'Lang',
+                          modeName: 'Lang',
+                          content: w,
+                          dir: p.dir })
         Win.shared().lang.buf = buf
         buf.addMode('view')
       }
@@ -751,7 +763,10 @@ function initLangs
       //buf.vars("SC").hist.reset()
     }
     else {
-      buf = Buf.make('Langs', 'Langs', w, p.dir)
+      buf = Buf.make2({ name: 'Langs',
+                        modeName: 'Langs',
+                        content: w,
+                        dir: p.dir })
       Win.shared().langs.buf = buf
       //buf.vars("SC").hist = compileHist
       buf.addMode('view')

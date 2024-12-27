@@ -308,7 +308,10 @@ function init
     if (buf)
       buf = buf
     else {
-      buf = Buf.make('Switch', 'Switch', w, p.dir)
+      buf = Buf.make2({ name: 'Switch',
+                        modeName: 'Switch',
+                        content: w,
+                        dir: p.dir })
       buf.icon = 'prompt'
       needOn = 1
     }

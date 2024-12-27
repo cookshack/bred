@@ -73,7 +73,10 @@ function demandBuf
   ml = w.querySelector('.edMl')
   if (ml)
     ml.innerText = 'Query replace'
-  buf = Buf.make('QR', 'QR', w, p.dir)
+  buf = Buf.make2({ name: 'QR',
+                    modeName: 'QR',
+                    content: w,
+                    dir: p.dir })
   buf.vars('ed').fillParent = 0
   buf.opts.set('core.autocomplete.enabled', 0)
   buf.opts.set('core.folding.enabled', 0)

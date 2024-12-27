@@ -108,6 +108,16 @@ function initHelp
 () {
   let mo
 
+  function clean
+  (bufVal, val, type) {
+    val = bufVal === undefined ? val : bufVal
+    if (type == 'bool')
+      val = val ? 'true' : 'false'
+    else
+      val = String(val)
+    return val + ((bufVal === undefined) ? ' (inherited)' : '')
+  }
+
   function divW
   (p) {
     let mode, minor
@@ -132,16 +142,6 @@ function initHelp
         json = '??'
       }
       return div(type + ': ' + json)
-    }
-
-    function clean
-    (bufVal, val, type) {
-      val = bufVal === undefined ? val : bufVal
-      if (type == 'bool')
-        val = val ? 'true' : 'false'
-      else
-        val = String(val)
-      return val + ((bufVal === undefined) ? ' (inherited)' : '')
     }
 
     function opts
@@ -297,6 +297,26 @@ function initHelp
       buf.icon = 'help'
     }
     p.setBuf(buf)
+  })
+
+  Opt.onSet(0, (val, name) => {
+    let buf, callerBuf
+
+    callerBuf = Win.shared().helpBuffer.callerBuf
+
+    d({ val })
+    d({ name })
+    buf = Win.shared().helpBuffer.buf
+    buf?.views.forEach(view => {
+      if (view.ele) {
+        let w, el
+
+        w = view.ele.firstElementChild.firstElementChild
+        el = w.querySelector('.options-val[data-name="' + name + '"]')
+        if (el)
+          el.innerText = clean(callerBuf?.opts.get(name), val, Opt.type(name))
+      }
+    })
   })
 
   Em.on('C-h b', 'describe buffer')

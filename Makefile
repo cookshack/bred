@@ -55,6 +55,7 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	cd lib/@codemirror/ && find . -type f -name language-data.js | xargs sed -i "s/import('\([^']*\)')/import\('..\/\\1.js'\)/g"
 	cd lib/@codemirror/ && echo 'let bredHackImport = (x) => x.replace(/^(.*)$$/, "../$$1.js")' >> language-data.js
 	cd lib/@codemirror/ && sed -i "s/import(\([^)]\+[^\"']\))/import(bredHackImport(\\1))/g" language-data.js
+	bin/fix-scope kittycad
 	bin/fix-scope lezer
 	bin/fix-scope replit
 	cd lib/@orgajs/ && find . -type f -name \*.js | xargs sed -i "s/^\(import .* from\) '\([^.'][^']*\)'.*/\\1 '..\/\\2.js';/g"
@@ -69,7 +70,6 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-diff.js
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-elixir.js
 	if [ -e node_modules/codemirror-lang-git-log ]; then sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-git-log.js; fi
-	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-kcl.js
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-makefile.js
 	sed -i "s/^\import '\([^']\+\)';/import '.\/\\1.js';/g" lib/codemirror-lang-makefile.js
 	sed -i "s/^\(import .* from\) ['\"]\([^']\+\)['\"].*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-richdown.js
@@ -93,12 +93,14 @@ sync-others:
 
 sync-codemirror:
 	rm -rf lib/@codemirror
+	rm -rf lib/@kittycad
 	rm -rf lib/@lezer
 	rm -rf lib/@markdoc
 	rm -rf lib/@replit
 	rm -rf lib/@orgajs
 	rm -rf lib/@uiw
 	rm -rf lib/@babel
+	mkdir -p lib/@kittycad
 	mkdir -p lib/@lezer
 	mkdir -p lib/@markdoc
 	mkdir -p lib/@replit
@@ -106,13 +108,13 @@ sync-codemirror:
 	mkdir -p lib/@uiw
 	mkdir -p lib/@babel/runtime/helpers/
 	bin/sync-scope cookshack
+	bin/sync-scope kittycad
 	cp node_modules/globals/globals.json lib/globals.json
 	cp node_modules/@babel/runtime/helpers/esm/extends.js lib/@babel/runtime/helpers/extends.js
 	cp node_modules/lezer-elixir/dist/index.js lib/lezer-elixir.js
 	cp node_modules/lezer-utils/dist/pretty.js lib/lezer-utils.js
 	cp node_modules/codemirror-lang-diff/dist/index.js lib/codemirror-lang-diff.js
 	cp node_modules/codemirror-lang-elixir/dist/index.js lib/codemirror-lang-elixir.js
-	cp node_modules/codemirror-lang-kcl/dist/index.js lib/codemirror-lang-kcl.js
 	if [ -e node_modules/codemirror-lang-git-log ]; then cp node_modules/codemirror-lang-git-log/dist/index.js lib/codemirror-lang-git-log.js; fi
 	cp node_modules/codemirror-lang-makefile/dist/index.js lib/codemirror-lang-makefile.js
 	cp node_modules/codemirror-rich-markdoc/dist/index.js lib/codemirror-lang-richdown.js

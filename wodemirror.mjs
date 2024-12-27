@@ -4042,7 +4042,6 @@ function init
   loadLang('./lib/@cookshack/codemirror-lang-csv.js', 'Csv', { ext: [ 'csv' ] })
   loadLang('./lib/codemirror-lang-diff.js', 'Diff', { ext: [ 'diff', 'patch' ] })
   loadLang('./lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
-  loadLang('./lib/codemirror-lang-kcl.js', 'Kcl', { ext: [ 'kcl' ] })
   loadLang('./lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ] })
   loadLang('./lib/codemirror-lang-git-log.js', 'Git Log',
            { ed: 0 }) // prevent mode creation, already have VC Log mode
@@ -4052,6 +4051,7 @@ function init
   loadLang('./lib/@cookshack/codemirror-lang-lezer-tree.js', 'Lezer Tree', { ext: [ 'leztree' ] })
   loadLang('./lib/codemirror-lang-makefile.js', 'Makefile', { filename: /^(GNUmakefile|makefile|Makefile)$/ })
   loadLang('./lib/@cookshack/codemirror-lang-nasl.js', 'NASL', { ext: [ 'nasl' ] })
+  loadLang('./lib/@kittycad/codemirror-lang-kcl.js', 'Kcl', { ext: [ 'kcl' ] })
   loadLang('./lib/@replit/codemirror-lang-nix.js', 'Nix', { ext: [ 'nix' ] })
   loadLang('./lib/@orgajs/codemirror-lang-org.js', 'Org', { ext: [ 'org' ] })
   loadLang('./lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ] })

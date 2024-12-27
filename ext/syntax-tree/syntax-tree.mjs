@@ -7,10 +7,10 @@ import { d } from '../../mess.mjs'
 export
 function make
 (p, dir, name, cb) { // (view)
-  Ed.make2(p,
-           { name: name,
-             dir: dir },
-           cb)
+  Ed.make(p,
+          { name: name,
+            dir: dir },
+          cb)
 }
 
 export

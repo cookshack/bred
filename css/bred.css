@@ -1602,6 +1602,7 @@ div.bred-lint-marker:active {
   cursor: text;
   width: 100%;
   background: var(--clr-light);
+  padding-left: 6px; /* match .cm-line left pad */
   display: flex;
 }
 

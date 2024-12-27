@@ -10,6 +10,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
+import * as Scib from './scib.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
@@ -831,6 +832,13 @@ function init
 () {
   let moB
 
+  function add
+  () {
+    Scib.scib(pane => {
+      pane.view.buf.append('git checkout -b ')
+    })
+  }
+
   Cmd.add('branch main', () => {
     let view, range
 
@@ -872,10 +880,13 @@ function init
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })
 
+  Em.on('+', 'branch add', moB)
   Em.on('m', 'branch main', moB)
   Em.on('u', 'branch update', moB)
   Em.on('s', 'branch switch', moB)
   Em.on('Enter', 'branch switch', moB)
+
+  Cmd.add('branch add', add, moB)
 
   initClrs()
   initAnnotate()

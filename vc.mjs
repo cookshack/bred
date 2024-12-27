@@ -609,8 +609,7 @@ function initAnnotate
                        decorHashJoin: Ed.makeDecor({ attr: { style: 'visibility: hidden;',
                                                              'data-run': 'show',
                                                              'data-hash': hash } }),
-                       // display,width hack so bg fills line
-                       decorText: Ed.makeDecor({ attr: { style: '--background-color: ' + clr + '; display: inline-block; width: 100%; --z-index: var(--z-below-activeLine);',
+                       decorText: Ed.makeDecor({ attr: { style: '--background-color: ' + clr + '; --z-index: var(--z-below-activeLine);',
                                                          class: 'bred-bg' } }) }
             commits.push(commit)
             return

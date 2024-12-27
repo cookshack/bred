@@ -609,8 +609,9 @@ function initAnnotate
                        decorHashJoin: Ed.makeDecor({ attr: { style: 'visibility: hidden;',
                                                              'data-run': 'show',
                                                              'data-hash': hash } }),
-                       decorText: Ed.makeDecor({ attr: { style: '--background-color: ' + clr + '; --z-index: var(--z-below-activeLine);',
-                                                         class: 'bred-bg' } }) }
+                       decorText: Ed.makeDecor({ line: 1,
+                                                 attr: { style: '--background-color: ' + clr + '; --z-index: var(--z-below-activeLine);',
+                                                         class: 'bred-bg vc-bg' } }) }
             commits.push(commit)
             return
           }
@@ -761,12 +762,11 @@ function initAnnotate
                                                  decor: [ { attr: { 'style': '--background-color: var(--clr-fill);',
                                                                     'class': 'bred-bg' } } ] },
                                                // above is hack to remove bg clr from \t
-                                               { regex: /^([^\s]+)\s+([^\t]+)(\t.*)$/d, // \t in last group so that empty lines get colored
+                                               { regex: /^([^\s]+).*$/d,
+                                                 decor: [ { ref: getRefText } ] },
+                                               { regex: /^([^\s]+)\s+([^\t]+)\t.*$/d,
                                                  decor: [ { ref: getRefHash },
-                                                          { ref: getRefInfo },
-                                                          //{ attr: { 'data-run': 'show' } },
-                                                          //{ rules: [ 'comment' ] },
-                                                          { ref: getRefText } ] } ] })
+                                                          { ref: getRefInfo } ] } ] })
 
   Cmd.add('edit', () => edit(), mo)
 
@@ -792,6 +792,7 @@ function initAnnotate
     }
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
+    buf.opts.set('core.highlight.trailingWhitespace.enabled', 0)
     //buf.opts.set('core.lang', 'git log')
     buf.vars('vc').file = p.buf.path
     p.setBuf(buf, {}, view => {

@@ -85,7 +85,7 @@
   --z-info: 80;
   --z-indent-marker: 50; /* above line */
   --z-below-selection: -3; /* cm selection is -2 */
-  --z-activeLine: -1; /* for the :before of the activeLine, eg to set a background */
+  --z-activeLine: -1; /* for the :after of the activeLine, eg to set a background */
   --z-below-activeLine: calc(var(--z-activeLine) - 1);
 }
 
@@ -1680,7 +1680,7 @@ span.bred-search-match > span.bred-search-all > span {
   position: relative; /* for ::before */
 }
 
-div.cm-line.cm-activeLine::before,
+div.cm-line.cm-activeLine::after,
 .bred-bg::before {
   pointer-events: none;
   content: " ";
@@ -1695,7 +1695,7 @@ div.cm-line.cm-activeLine::before,
   display: flex;
 }
 
-div.cm-line.cm-activeLine::before {
+div.cm-line.cm-activeLine::after {
   z-index: var(--z-activeLine);
   opacity: var(--opacity-active-line);
   box-shadow: inset 0 -1px 0 0 var(--clr-active-line);

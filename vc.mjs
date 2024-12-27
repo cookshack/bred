@@ -586,6 +586,7 @@ function initAnnotate
       Shell.runToString(Loc.make(file).dirname, 'git', [ 'annotate', '--line-porcelain', file ], 0, str => {
         let out, commits, rows, commit, previous
 
+        d('VC porcelain ready')
         out = ''
         commits = []
         rows = []
@@ -593,6 +594,7 @@ function initAnnotate
         str.split('\n').forEach(line => {
           let m
 
+          //d({line})
           m = line.match(/^([0-9a-f]{39,40})\s.*/)
           if (m) {
             let hash, clr
@@ -643,17 +645,23 @@ function initAnnotate
             return
           if (line.length == 0)
             return
+          if (line.startsWith('\t')) {
+            let out1
 
-          rows.push({ commit: commit,
-                      join: commit.hash == previous?.hash })
+            rows.push({ commit: commit,
+                        join: commit.hash == previous?.hash })
 
-          previous = commit
+            previous = commit
 
-          out += ((commit.hash?.slice(0, 8) || '').padStart(8, ' ')
-                  + ' ' + (commit.author?.slice(0, 8) || '').padStart(8, ' ')
-                  + ' ' + (commit['author-time-formatted'] || '').padStart(10, ' ')
-                  + line // starts with tab
-                  + '\n')
+            out1 = ((commit.hash?.slice(0, 8) || '').padStart(8, ' ')
+                    + ' ' + (commit.author?.slice(0, 8) || '').padStart(8, ' ')
+                    + ' ' + (commit['author-time-formatted'] || '').padStart(10, ' ')
+                    + line // starts with tab
+                    + '\n')
+            //d(out1)
+            //d(out1.split('\n').length - 1)
+            out += out1
+          }
         })
         //d({ commits })
         //d({ rows })

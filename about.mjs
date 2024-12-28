@@ -868,7 +868,7 @@ function init
 
   function refresh
   (view) {
-    let surf, end, frag, first, messages, shown
+    let surf, end, frag, first, messages, shown, lastScrollTop
 
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // mess-ww > mess-h,mess-w
     surf.innerHTML = ''
@@ -886,9 +886,14 @@ function init
     end.before(frag)
 
     end.style.height = 'calc(' + (messages.length - shown) + ' * var(--line-height))'
-    surf.scrollIntoView({ block: 'end', inline: 'nearest' })
+    0 && surf.scrollIntoView({ block: 'end', inline: 'nearest' })
     first.dataset.shown = shown
-    surf.onscroll = e => onscroll(view, e)
+    surf.onscroll = e => {
+      if (surf.scrollTop == lastScrollTop)
+        return
+      lastScrollTop = surf.scrollTop
+      onscroll(view, e)
+    }
   }
 
   function addBuf
@@ -905,7 +910,7 @@ function init
   if (Win.root())
     Win.shared().messages = {}
 
-  Ev.on('Mess.push', e => add(e.detail))
+  0 && Ev.on('Mess.push', e => add(e.detail))
 
   mo = Mode.add('Messages', { viewInit: refresh })
 

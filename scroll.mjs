@@ -1,5 +1,23 @@
 import { d } from './mess.mjs'
 
+// number of lines to show
+export
+function show
+(surf, numLines) {
+  let avail, px, rect
+
+  d(surf)
+  rect = surf.getBoundingClientRect()
+  d('surf: ' + rect.height)
+  px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
+  px *= (parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1)
+  d(px)
+
+  avail = Math.ceil(rect.height / px)
+  d(avail)
+  return Math.min(avail, numLines)
+}
+
 export
 function redraw
 (view, numLines, colsPerLine, addLine) {
@@ -10,7 +28,7 @@ function redraw
   d('== redraw')
 
   colsPerLine = colsPerLine || 7
-  surf = view.ele.firstElementChild.firstElementChild.nextElementSibling
+  surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
   rect = surf.getBoundingClientRect()
   d('surf: ' + rect.height)
   px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
@@ -25,7 +43,7 @@ function redraw
   first = surf.firstElementChild
   first.dataset.above = first.dataset.above || 0
   first.dataset.scrolltop = first.dataset.scrolltop || 0
-  shown = first.dataset.shown
+  shown = parseInt(first.dataset.shown)
 
   d('first.dataset.above: ' + first.dataset.above)
   d('first.dataset.scrolltop: ' + first.dataset.scrolltop)

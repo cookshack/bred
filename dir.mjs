@@ -344,24 +344,14 @@ function fill
 
   function init
   (view) {
-    let surf, px, rect, avail, first, frag, lines, shown, end
+    let surf, first, frag, lines, shown, end
 
     lines = view.buf.vars('dir').lines
-
-    surf = view.ele.firstElementChild.firstElementChild.nextElementSibling
-    d(surf)
-    rect = surf.getBoundingClientRect()
-    d('surf: ' + rect.height)
-    px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
-    px *= (parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1)
-    d(px)
-
-    avail = Math.ceil(rect.height / px)
-    d(avail)
+    surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
 
     first = surf.firstElementChild
     frag = new globalThis.DocumentFragment()
-    shown = Math.min(avail, lines.length)
+    shown = Scroll.show(surf, lines.length)
     for (let i = 0; i < shown; i++)
       lines[i].forEach(cell => append(frag, cell))
     first.after(frag)

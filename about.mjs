@@ -15,6 +15,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
+import * as Scroll from './scroll.mjs'
 import { Vace } from './json.mjs'
 import { Vode } from './json.mjs'
 import { Vonaco } from './json.mjs'
@@ -25,7 +26,9 @@ import { d } from './mess.mjs'
 
 function divW
 () {
-  return divCl('mess-ww', divCl('mess-w bred-surface', ''))
+  return divCl('mess-ww',
+               [ divCl('mess-h', ''),
+                 divCl('mess-w bred-surface', '') ])
 }
 
 function initAbout
@@ -794,7 +797,7 @@ function init
 
   function appendM
   (frag, m) {
-    let date, loc, locDiv, last
+    let date, loc, locDiv
 
     date = new Date(m.time * 1000)
     loc = Loc.make(m.file)
@@ -806,48 +809,52 @@ function init
                        'data-line': m.line })
     else
       locDiv = divCl('mess-loc')
-    last = frag.lastElementChild
-    last.before(divCl('mess-date', String(date.getHours()).padStart(2, ' ') + 'h' + String(date.getMinutes()).padStart(2, '0')))
-    last.before(locDiv)
-    last.before(divCl('mess-type', m.type[0].toUpperCase()))
-    last.before(divCl('mess-text mess-' + m.type, m.text))
+    append(frag,
+           divCl('mess-date', String(date.getHours()).padStart(2, ' ') + 'h' + String(date.getMinutes()).padStart(2, '0')),
+           locDiv,
+           divCl('mess-type', m.type[0].toUpperCase()),
+           divCl('mess-text mess-' + m.type, m.text))
   }
 
   function add
   (mess) {
-    Win.shared().messages.buf?.views.forEach(view => {
-      if (view.ele) {
-        let w
+    if (mess)
+      Win.shared().messages.buf?.views.forEach(view => {
+        if (view.ele) {
+          let w
 
-        w = view.ele.firstElementChild?.firstElementChild
-        if (w && Css.has(w, 'mess-w')) {
-          let wasAtEnd, paneW
+          w = view.ele.firstElementChild?.firstElementChild?.nextElementSibling
+          if (w && Css.has(w, 'mess-w')) {
+            let wasAtEnd, paneW
 
-          paneW = view.ele.parentNode
-          if (paneW.scrollHeight == paneW.clientHeight)
-            // existing content fits entirely in pane, scroll if needed
-            wasAtEnd = 0
-          else
-            wasAtEnd = Math.abs((paneW.scrollHeight - Math.ceil(paneW.scrollTop)) - paneW.clientHeight)
-          //atEnd = paneW.scrollTop === (paneW.scrollHeight - paneW.offsetHeight)
-          appendM(w, mess)
-          if (paneW.scrollHeight == paneW.clientHeight) {
-            // content still fits entirely in pane
+            paneW = view.ele.parentNode
+            if (paneW.scrollHeight == paneW.clientHeight)
+              // existing content fits entirely in pane, scroll if needed
+              wasAtEnd = 0
+            else
+              wasAtEnd = Math.abs((paneW.scrollHeight - Math.ceil(paneW.scrollTop)) - paneW.clientHeight)
+            //atEnd = paneW.scrollTop === (paneW.scrollHeight - paneW.offsetHeight)
+            appendM(w, mess)
+            if (paneW.scrollHeight == paneW.clientHeight) {
+              // content still fits entirely in pane
+            }
+            else if (wasAtEnd < 10) // close enough
+              w.scrollIntoView({ block: 'end', inline: 'nearest' })
           }
-          else if (wasAtEnd < 10) // close enough
-            w.scrollIntoView({ block: 'end', inline: 'nearest' })
         }
-      }
-    })
+      })
   }
 
   function redraw
   (view) {
-    //let surf
+    let messages
 
     console.log('red')
-    //surf = view.ele.firstElementChild.firstElementChild
-    //surf.innerHTML = ''
+    messages = Mess.messages()
+    Scroll.redraw(view,
+                  messages.length,
+                  4,
+                  (frag, i) => appendM(frag, messages[i]))
     view.vars('mess').toScroll = 0
   }
 
@@ -861,22 +868,23 @@ function init
 
   function refresh
   (view) {
-    let surf, frag, first, shown
+    let surf, end, frag, first, messages, shown
 
-    surf = view.ele.firstElementChild.firstElementChild
+    surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // mess-ww > mess-h,mess-w
     surf.innerHTML = ''
     frag = new globalThis.DocumentFragment()
+
     first = divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' })
-    append(frag,
-           first,
-           divCl('bred-gap', [], { style: 'height: calc(' + /*lines.length*/0 + ' * var(--line-height));' }))
-    shown = 0
-    Mess.messages().every(m => {
-      appendM(frag, m)
-      shown++
-      return 1
-    })
-    append(surf, frag)
+    end = divCl('bred-gap', [], { style: 'height: calc(' + /*lines.length*/0 + ' * var(--line-height));' })
+    append(frag, first)
+
+    messages = Mess.messages()
+    shown = Scroll.show(surf, messages.length)
+    for (let i = 0; i < shown; i++)
+      appendM(frag, messages)
+    append(surf, frag, end)
+
+    end.style.height = 'calc(' + (messages.length - shown) + ' * var(--line-height))'
     surf.scrollIntoView({ block: 'end', inline: 'nearest' })
     first.dataset.shown = shown
     surf.onscroll = e => onscroll(view, e)

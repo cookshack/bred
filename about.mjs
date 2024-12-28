@@ -828,18 +828,25 @@ function init
             let wasAtEnd, paneW
 
             paneW = view.ele.parentNode
+
             if (paneW.scrollHeight == paneW.clientHeight)
               // existing content fits entirely in pane, scroll if needed
               wasAtEnd = 0
             else
               wasAtEnd = Math.abs((paneW.scrollHeight - Math.ceil(paneW.scrollTop)) - paneW.clientHeight)
             //atEnd = paneW.scrollTop === (paneW.scrollHeight - paneW.offsetHeight)
-            appendM(w, mess)
-            if (paneW.scrollHeight == paneW.clientHeight) {
-              // content still fits entirely in pane
+
+            //lineHeight = (parseFloat(globalThis.getComputedStyle(w).getPropertyValue('--line-height') || 1) || 1)
+            //spaceForLine = wasAtEnd < lineHeight
+            wasAtEnd = (wasAtEnd < 10) // close enough
+            if (wasAtEnd) {
+              appendM(w, mess)
+              if (paneW.scrollHeight == paneW.clientHeight) {
+                // content still fits entirely in pane
+              }
+              else if (wasAtEnd)
+                w.scrollIntoView({ block: 'end', inline: 'nearest' })
             }
-            else if (wasAtEnd < 10) // close enough
-              w.scrollIntoView({ block: 'end', inline: 'nearest' })
           }
         }
       })
@@ -907,7 +914,7 @@ function init
   if (Win.root())
     Win.shared().messages = {}
 
-  0 && Ev.on('Mess.push', e => add(e.detail))
+  Ev.on('Mess.push', e => add(e.detail))
 
   mo = Mode.add('Messages', { viewInit: refresh })
 

@@ -1854,27 +1854,6 @@ function initModeFns
   mo.vinsertAll = vinsert1
 }
 
-export
-function divW
-(dir, name, opts) {
-  opts = opts || {}
-  return divCl('edWW' + (opts.extraWWCss ? (' ' + opts.extraWWCss) : ''),
-               [ divCl('ml edMl' + (opts.hideMl ? ' retracted' : ''),
-                       [ divCl('edMl-type',
-                               img(Icon.path(opts.icon || 'blank'), 'Blank', 'filter-clr-text'),
-                               { 'data-run': 'describe buffer' }),
-                         divCl('edMl-mod',
-                               img(Icon.path('blank'), 'Modified', 'filter-clr-text')),
-                         divCl('edMl-file', name || ''),
-                         divCl('edMl-dir', Ed.makeMlDir(dir)),
-                         divCl('ml-close') ]),
-                 opts.extraBefore,
-                 divCl('bred-info-www',
-                       divCl('bred-info-ww')),
-                 divCl('edW' + (opts.extraWCss ? (' ' + opts.extraWCss) : '')),
-                 opts.extraCo ])
-}
-
 function edexec
 (ed, markActive, cmd, markCmd, args) {
   return ((markCmd && markActive) ? markCmd : cmd)(ed, args)

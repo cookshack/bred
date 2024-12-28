@@ -1,4 +1,4 @@
-import { append, button, divCl, span } from './dom.mjs'
+import { append, button, divCl, img, span } from './dom.mjs'
 
 import * as Bred from './bred.mjs'
 import * as Buf from './buf.mjs'
@@ -29,7 +29,6 @@ export let viewCopy
 export let viewInit
 export let viewInitSpec
 export let vfind
-export let divW
 export let emRevert
 export let backend
 export let ctags
@@ -39,6 +38,27 @@ let bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe
 export { bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe }
 
 mimeByExt = mbe
+
+export
+function divW
+(dir, name, opts) {
+  opts = opts || {}
+  return divCl('edWW' + (opts.extraWWCss ? (' ' + opts.extraWWCss) : ''),
+               [ divCl('ml edMl' + (opts.hideMl ? ' retracted' : ''),
+                       [ divCl('edMl-type',
+                               img(Icon.path(opts.icon || 'blank'), 'Blank', 'filter-clr-text'),
+                               { 'data-run': 'describe buffer' }),
+                         divCl('edMl-mod',
+                               img(Icon.path('blank'), 'Modified', 'filter-clr-text')),
+                         divCl('edMl-file', name || ''),
+                         divCl('edMl-dir', makeMlDir(dir)),
+                         divCl('ml-close') ]),
+                 opts.extraBefore,
+                 divCl('bred-info-www',
+                       divCl('bred-info-ww')),
+                 divCl('edW' + (opts.extraWCss ? (' ' + opts.extraWCss) : '')),
+                 opts.extraCo ])
+}
 
 export
 function makePos
@@ -1158,7 +1178,6 @@ function init
     viewInit = Backend.viewInit
     viewInitSpec = Backend.viewInitSpec
     vfind = Backend.vfind
-    divW = Backend.divW
 
     d('init theme')
     initTheme()

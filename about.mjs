@@ -873,16 +873,17 @@ function init
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // mess-ww > mess-h,mess-w
     surf.innerHTML = ''
     frag = new globalThis.DocumentFragment()
+    messages = Mess.messages()
 
     first = divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' })
-    end = divCl('bred-gap', [], { style: 'height: calc(' + /*lines.length*/0 + ' * var(--line-height));' })
-    append(frag, first)
+    end = divCl('bred-gap', [], { style: 'height: calc(' + messages.length + ' * var(--line-height));' })
+    append(surf, first, end)
 
-    messages = Mess.messages()
     shown = Scroll.show(surf, messages.length)
+    d('MESS shown ' + shown)
     for (let i = 0; i < shown; i++)
-      appendM(frag, messages)
-    append(surf, frag, end)
+      appendM(frag, messages[i])
+    end.before(frag)
 
     end.style.height = 'calc(' + (messages.length - shown) + ' * var(--line-height))'
     surf.scrollIntoView({ block: 'end', inline: 'nearest' })

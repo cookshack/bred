@@ -25,7 +25,7 @@ function redraw
   let first // top gap div
   let end // bottom gap div
 
-  d('== redraw')
+  d('SCROLL redraw')
 
   colsPerLine = colsPerLine || 7
   surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
@@ -122,5 +122,5 @@ function redraw
   end.style.height = 'calc(' + (numLines - shown - above) + ' * var(--line-height))'
   first.dataset.shown = shown
 
-  d('== done')
+  d('SCROLL redraw done')
 }

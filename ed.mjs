@@ -42,6 +42,7 @@ mimeByExt = mbe
 export
 function divMl
 (dir, name, opts) {
+  opts = opts || {}
   return divCl('ml edMl' + (opts.hideMl ? ' retracted' : ''),
                [ divCl('edMl-type',
                        img(Icon.path(opts.icon || 'blank'), 'Blank', 'filter-clr-text'),

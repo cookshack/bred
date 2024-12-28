@@ -108,7 +108,7 @@ function render
 }
 
 function divW
-(md) {
+(md, dir, name) {
   let co, lexer, tokens
 
   lexer = new Marked.Lexer()
@@ -118,7 +118,7 @@ function divW
   co = tokens?.map(render)
 
   return divCl('rich-ww',
-               [ divCl('rich-head', 'Rich'),
+               [ Ed.divMl(dir, name, { icon: 'markdown' }),
                  divCl('rich-w', co) ])
 }
 
@@ -137,7 +137,10 @@ function open
     path = data.realpath || path
     loc = Loc.make(path)
     p = Pane.current()
-    buf = Buf.add('Rich: ' + loc.filename, 'Rich', divW(data.data), loc.dirname)
+    buf = Buf.add('Rich: ' + loc.filename,
+                  'Rich',
+                  divW(data.data, loc.dirname, loc.filename),
+                  loc.dirname)
     buf.vars('Rich').path = path
     buf.addMode('view')
     p.setBuf(buf)

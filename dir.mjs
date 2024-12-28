@@ -327,21 +327,20 @@ function fill
 
     lines = view.buf.vars('dir').lines
     xredraw(view,
+            lines.length,
             7,
             (frag, i) => lines[i].forEach(cell => append(frag, cell)))
   }
 
   function xredraw
-  (view, colsPerLine, addLine) {
-    let surf, px, rect, avail, frag, lines, shown, above
+  (view, numLines, colsPerLine, addLine) {
+    let surf, px, rect, avail, frag, shown, above
     let first // top gap div
     let end // bottom gap div
 
     d('== redraw')
 
     colsPerLine = colsPerLine || 7
-    lines = view.buf.vars('dir').lines
-
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling
     rect = surf.getBoundingClientRect()
     d('surf: ' + rect.height)
@@ -404,7 +403,7 @@ function fill
     {
       let mustShow
 
-      mustShow = Math.min(avail, (lines.length - above))
+      mustShow = Math.min(avail, (numLines - above))
       d({ shown })
       d({ mustShow })
 
@@ -414,9 +413,7 @@ function fill
         d('= add ' + (mustShow - shown) + ' lines below')
         while (shown < mustShow) {
           d('add line ' + (above + shown))
-          lines[above + shown].forEach(cell => {
-            append(frag, cell)
-          })
+          addLine(frag, above + shown)
           shown++
         }
         end.before(frag)
@@ -435,7 +432,7 @@ function fill
     }
 
     // adjust bottom gap
-    end.style.height = 'calc(' + (lines.length - shown - above) + ' * var(--line-height))'
+    end.style.height = 'calc(' + (numLines - shown - above) + ' * var(--line-height))'
     first.dataset.shown = shown
 
     d('== done')

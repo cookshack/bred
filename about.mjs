@@ -849,7 +849,6 @@ function init
   (view) {
     let messages
 
-    console.log('red')
     messages = Mess.messages()
     Scroll.redraw(view,
                   messages.length,
@@ -860,7 +859,6 @@ function init
 
   function onscroll
   (view) {
-    console.log('scr')
     if (view.vars('mess').toScroll)
       return
     view.vars('mess').toScroll = setTimeout(e => redraw(view, e), 100)
@@ -880,7 +878,6 @@ function init
     append(surf, first, end)
 
     shown = Scroll.show(surf, messages.length)
-    d('MESS shown ' + shown)
     for (let i = 0; i < shown; i++)
       appendM(frag, messages[i])
     end.before(frag)

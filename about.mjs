@@ -794,7 +794,7 @@ function init
 
   function appendM
   (frag, m) {
-    let date, loc, locDiv
+    let date, loc, locDiv, last
 
     date = new Date(m.time * 1000)
     loc = Loc.make(m.file)
@@ -806,11 +806,11 @@ function init
                        'data-line': m.line })
     else
       locDiv = divCl('mess-loc')
-    append(frag,
-           [ divCl('mess-date', String(date.getHours()).padStart(2, ' ') + 'h' + String(date.getMinutes()).padStart(2, '0')),
-             locDiv,
-             divCl('mess-type', m.type[0].toUpperCase()),
-             divCl('mess-text mess-' + m.type, m.text) ])
+    last = frag.lastElementChild
+    last.before(divCl('mess-date', String(date.getHours()).padStart(2, ' ') + 'h' + String(date.getMinutes()).padStart(2, '0')))
+    last.before(locDiv)
+    last.before(divCl('mess-type', m.type[0].toUpperCase()))
+    last.before(divCl('mess-text mess-' + m.type, m.text))
   }
 
   function add
@@ -841,18 +841,45 @@ function init
     })
   }
 
+  function redraw
+  (view) {
+    //let surf
+
+    console.log('red')
+    //surf = view.ele.firstElementChild.firstElementChild
+    //surf.innerHTML = ''
+    view.vars('mess').toScroll = 0
+  }
+
+  function onscroll
+  (view) {
+    console.log('scr')
+    if (view.vars('mess').toScroll)
+      return
+    view.vars('mess').toScroll = setTimeout(e => redraw(view, e), 100)
+  }
+
   function refresh
   (view) {
-    let w, frag
+    let surf, frag, first, shown
 
-    w = view.ele.firstElementChild.firstElementChild
-    w.innerHTML = ''
+    surf = view.ele.firstElementChild.firstElementChild
+    surf.innerHTML = ''
     frag = new globalThis.DocumentFragment()
-    Mess.messages().forEach(m => {
+    first = divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' })
+    append(frag,
+           first,
+           divCl('bred-gap', [], { style: 'height: calc(' + /*lines.length*/0 + ' * var(--line-height));' }))
+    shown = 0
+    Mess.messages().every(m => {
       appendM(frag, m)
+      shown++
+      return 1
     })
-    append(w, frag)
-    w.scrollIntoView({ block: 'end', inline: 'nearest' })
+    append(surf, frag)
+    surf.scrollIntoView({ block: 'end', inline: 'nearest' })
+    first.dataset.shown = shown
+    surf.onscroll = e => onscroll(view, e)
   }
 
   function addBuf

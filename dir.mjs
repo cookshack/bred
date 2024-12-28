@@ -323,12 +323,23 @@ function fill
 
   function redraw
   (view) {
+    let lines
+
+    lines = view.buf.vars('dir').lines
+    xredraw(view,
+            7,
+            (frag, i) => lines[i].forEach(cell => append(frag, cell)))
+  }
+
+  function xredraw
+  (view, colsPerLine, addLine) {
     let surf, px, rect, avail, frag, lines, shown, above
     let first // top gap div
     let end // bottom gap div
 
     d('== redraw')
 
+    colsPerLine = colsPerLine || 7
     lines = view.buf.vars('dir').lines
 
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling
@@ -368,7 +379,7 @@ function fill
     if (above > first.dataset.above) {
       // remove lines above
       d('= remove ' + (above - first.dataset.above) + ' lines above')
-      for (let i = 0; i < (above - first.dataset.above) * 7; i++)
+      for (let i = 0; i < (above - first.dataset.above) * colsPerLine; i++)
         if (first.nextElementSibling)
           first.nextElementSibling.remove()
       shown -= (above - first.dataset.above)
@@ -378,7 +389,7 @@ function fill
       d('= add ' + (first.dataset.above - above) + ' lines above')
       frag = new globalThis.DocumentFragment()
       for (let i = 0; i < (first.dataset.above - above); i++) {
-        lines[i + above].forEach(cell => append(frag, cell))
+        addLine(frag, i + above)
         shown++
       }
       first.after(frag)
@@ -415,7 +426,7 @@ function fill
         d('= remove ' + (shown - mustShow) + ' lines below')
         while (mustShow < shown) {
           d('remove last line')
-          for (let i = 0; i < 7; i++)
+          for (let i = 0; i < colsPerLine; i++)
             if (end.previousElementSibling)
               end.previousElementSibling.remove()
           shown--

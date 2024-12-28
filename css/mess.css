@@ -1,7 +1,6 @@
 .mess-ww {
   width: 100%;
   height: 100%;
-  max-width: 50rem;
   padding: 0.5rem;
 
   font-family: var(--font-monospace);
@@ -17,12 +16,23 @@
 }
 
 .mess-w {
+  --line-height: 1.5rem; /* includes vertical padding */
+
   width: 100%;
   height: min-content;
+  overflow-y: auto;
 
   display: grid;
   grid-template-columns: minmax(min-content, max-content) min-content min-content auto;
   grid-gap: 0.5rem;
+}
+
+.mess-w > div {
+  height: var(--line-height);
+}
+
+.mess-w > .bred-gap {
+  grid-column: 1 / -1;
 }
 
 .mess-date {

@@ -541,7 +541,7 @@ function initAnnotate
   let mo, decorInfoJoin
 
   function refresh
-  (view) {
+  (view, pos) {
     let buf, file
 
     function onStdout
@@ -668,6 +668,8 @@ function initAnnotate
         buf.vars('VC Annotate').commits = commits
         buf.vars('VC Annotate').rows = rows
         buf.append(out, 1)
+        if (pos)
+          view.gotoLine(pos.lineNumber)
       })
   }
 
@@ -783,7 +785,7 @@ function initAnnotate
   Cmd.add('show', (u, we) => show(u, we), mo)
 
   Cmd.add('vc annotate', () => {
-    let p, buf, name
+    let p, pos, buf, name
 
     p = Pane.current()
     p.buf.path || Mess.toss('buffer path missing')
@@ -803,9 +805,10 @@ function initAnnotate
     buf.opts.set('core.highlight.trailingWhitespace.enabled', 0)
     //buf.opts.set('core.lang', 'git log')
     buf.vars('vc').file = p.buf.path
+    pos = p.view.pos
     p.setBuf(buf, {}, view => {
       buf.clear()
-      refresh(view)
+      refresh(view, pos)
     })
   })
 

@@ -3924,9 +3924,11 @@ function fill
   range = para(view)
   text = vrangeText(view, range)
   if (text.length) {
-    let wrap, prep
+    let wrap, prep, bep
 
     //d({ text })
+
+    bep = vgetBep(view)
 
     prep = text.replaceAll('\n', ' ').trim()
     //d({ prep })
@@ -3936,6 +3938,7 @@ function fill
     if (wrap == text)
       return
     vreplaceAt(view, range, wrap)
+    vsetBep(view, bep)
   }
 }
 

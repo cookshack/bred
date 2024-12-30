@@ -424,6 +424,32 @@ function initCompile
 }
 
 export
+function initJs
+() {
+  let hist
+
+  hist = Hist.ensure('Js')
+
+  Cmd.add('js', () => {
+    let p
+
+    p = Pane.current()
+    Prompt.ask({ text: 'JS Expr',
+                 hist },
+               expr => {
+                 hist.add(expr)
+                 runToString(p.dir, 'node', [ '-e', 'console.log(' + expr + ')' ], 0, (str, code) => {
+                   if (str) {
+                     Mess.say(str.trim())
+                     return
+                   }
+                   Mess.yell('Error: ' + code)
+                 })
+               })
+  })
+}
+
+export
 function init
 () {
   let mo, hist
@@ -570,22 +596,9 @@ function init
 
   Cmd.add('shell', shell)
 
-  Cmd.add('js', () => {
-    let p
-
-    p = Pane.current()
-    Prompt.ask({ text: 'JS Expr' },
-               expr => runToString(p.dir, 'node', [ '-e', 'console.log(' + expr + ')' ], 0, (str, code) => {
-                 if (str) {
-                   Mess.say(str.trim())
-                   return
-                 }
-                 Mess.yell('Error: ' + code)
-               }))
-  })
-
   Scib.init()
   initCompile()
+  initJs()
 }
 
 export { reErr, reFile }

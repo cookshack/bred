@@ -12,6 +12,13 @@ function stripFilePrefix
 }
 
 export
+function stripAnsi
+(str) {
+  //str.replace(/[\x00-\x1F\x7F]/g, '') // remove control chars
+  return str?.replace(/\x1B\[[0-?9;]*[mK]/g, '') // remove ansi sequences
+}
+
+export
 function bool
 (x) {
   if (x)

@@ -214,8 +214,7 @@ function urlAt
     pos--
   }
   l = l.slice(pos)
-  l = l.replace(/\x1B\[[0-?9;]*[mK]/g, '') // remove ansi sequences
-  //l = l.replace(/[\x00-\x1F\x7F]/g, '') // remove control chars
+  l = U.stripAnsi(l)
 
   if (l.startsWith('/'))
     l = 'file://' + l

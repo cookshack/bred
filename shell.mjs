@@ -334,6 +334,7 @@ function edit
 
   function abs
   (path) {
+    path = U.stripAnsi(path)
     if (p.dir && Loc.make(path).relative)
       return Loc.make(p.dir).join(path)
     return path

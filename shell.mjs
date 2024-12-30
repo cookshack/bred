@@ -60,11 +60,8 @@ function runToString
       str += der.decode(d.stderr)
     if (d.close === undefined) {
     }
-    else {
-      Mess.say('SC Done: ' + sc)
-      if (cb)
-        cb(str, d.code)
-    }
+    else if (cb)
+      cb(str, d.code)
   })
 
   Tron.cmd1('shell', [ ch, dir, sc, args || [], runInShell ? true : false ], (err, tch) => {
@@ -572,6 +569,20 @@ function init
   Em.on('Enter', 'shell run', mo)
 
   Cmd.add('shell', shell)
+
+  Cmd.add('js', () => {
+    let p
+
+    p = Pane.current()
+    Prompt.ask({ text: 'JS Expr' },
+               expr => runToString(p.dir, 'node', [ '-e', 'console.log(' + expr + ')' ], 0, (str, code) => {
+                 if (str) {
+                   Mess.say(str.trim())
+                   return
+                 }
+                 Mess.yell('Error: ' + code)
+               }))
+  })
 
   Scib.init()
   initCompile()

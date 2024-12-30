@@ -75,6 +75,7 @@
     "electron-store": "^9.0.0",
     "escape-string-regexp": "^5.0.0",
     "eslint-linter-browserify": "^9.4.0",
+    "fast-word-wrap": "^1.1.0",
     "get-current-line": "^7.4.0",
     "lezer-utils": "^0.3.1",
     "mime": "^4.0.3",

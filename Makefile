@@ -80,10 +80,13 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 
 fix-others: sync-others
 	sed -i "s/output.status = success ? 0 : 1;/output.status = success ? 0 : 1; output.installWasNeeded = installNeeded;/g" lib/check-dependencies.cjs
+	sed -i "s/function/export function/g" lib/fast-word-wrap.js
+	sed -i "s/module.exports/\/\/module.exports/g" lib/fast-word-wrap.js
 
 sync-others:
 	cp node_modules/check-dependencies/lib/check-dependencies.js lib/check-dependencies.cjs
 	cp node_modules/escape-string-regexp/index.js lib/escape-string-regexp.js
+	cp node_modules/fast-word-wrap/index.js lib/fast-word-wrap.js
 	cp node_modules/get-current-line/edition-es2022-esm/index.js lib/get-current-line.js
 	mkdir -p lib/typescript-language-server/lib/
 	cp node_modules/typescript-language-server/lib/cli.mjs lib/typescript-language-server/lib/cli.mjs

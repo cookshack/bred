@@ -1334,6 +1334,7 @@ function init
     Em.on('A-p', 'previous suggestion', mo)
     Em.on('A-u', 'uppercase word', mo)
     Em.on('A-d', 'delete next word', mo)
+    // A-q fill to ruler ext/ruler
     Em.on('A-t', 'transpose words', mo)
     Em.on('A-w', 'copy', mo)
     Em.on('A-y', 'yank roll', mo)
@@ -1390,4 +1391,10 @@ export
 function code
 (el, langId, text) {
   return Backend.code && Backend.code(el, langId, text)
+}
+
+export
+function fill
+(view, col) {
+  return Backend.fill && Backend.fill(view, col)
 }

@@ -35,6 +35,7 @@ import * as Theme from './theme-solarized.js'
 import { v4 as uuidv4 } from './lib/uuid/index.js'
 import { colorPicker } from './lib/@replit/codemirror-css-color-picker.js'
 import * as LZHighlight from './lib/@lezer/highlight.js'
+import * as Wrap from './lib/fast-word-wrap.js'
 import { Vode } from './json.mjs'
 
 export let langs, themeExtension
@@ -3882,6 +3883,22 @@ function code
 
   return new CMView.EditorView({ state,
                                  parent: el })
+}
+
+export
+function fill
+(view, col) {
+  let l, bep
+
+  bep = vgetBep(view)
+  l = view.ed.state.doc.lineAt(bep)
+  if (l.length > col) {
+    let text
+
+    text = Wrap.wrap(l.text, col)
+
+    vreplaceAt(view, l, text)
+  }
 }
 
 export

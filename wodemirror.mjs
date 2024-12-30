@@ -1339,7 +1339,7 @@ function bepRightOverSpace
 
   line = view.ed.state.doc.lineAt(bep)
   spRe.lastIndex = 0
-  if (spRe.exec(line.text.slice(bep - line.start)))
+  if (spRe.exec(line.text.slice(bep - line.from)))
     bep += spRe.lastIndex
 
   return bep
@@ -1583,7 +1583,7 @@ function makePsn
 
     line = view.ed.state.doc.lineAt(bep)
     spRe.lastIndex = 0
-    if (spRe.exec(line.text.slice(bep - line.start)))
+    if (spRe.exec(line.text.slice(bep - line.from)))
       bep += spRe.lastIndex
   }
 
@@ -3885,19 +3885,57 @@ function code
                                  parent: el })
 }
 
+function para
+(view) {
+  let bep, bepEnd, start, end
+
+  bep = vgetBep(view)
+  bepEnd = vgetBepEnd(view)
+  start = view.ed.state.doc.lineAt(bep)
+  if (start.length == 0)
+    return 0
+  end = start
+  while (1) {
+    let l
+
+    if (start.from == 0)
+      break
+    l = view.ed.state.doc.lineAt(start.from - 1)
+    if (l.length == 0)
+      break
+    if (l.text.trim().length == 0)
+      break
+    start = l
+  }
+  while (end.length && end.text.trim().length) {
+    if (end.to == bepEnd)
+      break
+    end = view.ed.state.doc.lineAt(end.to + 1)
+  }
+  return { from: start.from,
+           to: end.to }
+}
+
 export
 function fill
 (view, col) {
-  let l, bep
+  let range, text
 
-  bep = vgetBep(view)
-  l = view.ed.state.doc.lineAt(bep)
-  if (l.length > col) {
-    let text
+  range = para(view)
+  text = vrangeText(view, range)
+  if (text.length) {
+    let wrap, prep
 
-    text = Wrap.wrap(l.text, col)
+    //d({ text })
 
-    vreplaceAt(view, l, text)
+    prep = text.replaceAll('\n', ' ').trim()
+    //d({ prep })
+
+    wrap = Wrap.wrap(prep, col)
+    //d({ wrap })
+    if (wrap == text)
+      return
+    vreplaceAt(view, range, wrap)
   }
 }
 

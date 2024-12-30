@@ -334,7 +334,6 @@ function edit
 
   function abs
   (path) {
-    path = U.stripAnsi(path)
     if (p.dir && Loc.make(path).relative)
       return Loc.make(p.dir).join(path)
     return path
@@ -347,7 +346,7 @@ function edit
   psn = p.view.psn
   psn.lineStart()
 
-  text = psn.text
+  text = U.stripAnsi(psn.text)
   match = text.match(reErr)
   if (match) {
     Pane.openFile(abs(match[1]), match[2])
@@ -547,6 +546,8 @@ function init
                  multi: 1 })
   }
 
+  // packages/codemirror-lang-kcl/src/index.ts:41:30 - error TS2345
+  // /home/matt/fresh/main/gvmd/src/manage.h:1:1: error: unterminated comment
   reErr = /^([^:]+):([0-9]+):([0-9]*:?).*$/d
   reFile = /^([^:\s]+):([^0-9]+.*)?$/d
 

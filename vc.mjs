@@ -509,7 +509,7 @@ function initLogBadIdea
   function onStdin
   (str) {
     //d(str)
-    str.split('\n').forEach(line => {
+    str.split(/\r?\n/).forEach(line => {
       append(w, divCl('vc_log-line', line))
     })
   }
@@ -557,7 +557,11 @@ function initAnnotate
     function parse
     (commit, line, name, isTime) {
       if (line.startsWith(name + ' ')) {
-        commit[name] = line.slice(name.length + 1)
+        let text
+
+        text = line.slice(name.length + 1)
+        //d({ text })
+        commit[name] = text
         if (isTime) {
           let date
 
@@ -591,7 +595,7 @@ function initAnnotate
         commits = []
         rows = []
         commit = {} // in case other line accidentally comes before hash
-        str.split('\n').forEach(line => {
+        str.split(/\r?\n/).forEach(line => {
           let m
 
           //d({line})

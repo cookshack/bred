@@ -51,7 +51,7 @@
     "@cookshack/eslint-config": "^0.1.6",
     "@electron/rebuild": "^3.6.0",
     "@fluentui/svg-icons": "^1.1.240",
-    "@kittycad/codemirror-lang-kcl": "file:../codemirror-lang-kcl/latest.tgz",
+    "@kittycad/codemirror-lang-kcl": "file:../modeling-app/packages/codemirror-lang-kcl/latest.tgz",
     "@markdoc/markdoc": "^0.4.0",
     "@orgajs/cm-lang": "^1.1.4",
     "@replit/codemirror-css-color-picker": "^6.1.1",

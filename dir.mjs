@@ -682,6 +682,23 @@ function initChmod
   Em.on('M', 'chmod', 'Dir')
 }
 
+function under
+(dir, marked) {
+  let divs, paths
+
+  paths = []
+  divs = marked.map(m => {
+    let path
+
+    path = Loc.make(dir).join(m.name)
+    paths.push({ name: m.name, isDir: m.type == 'd', path: path })
+    return [ divCl('float-f-name', m.name),
+             divCl('float-f-path', path) ]
+  })
+
+  return { divs: divs, paths: paths }
+}
+
 export
 function init
 () {
@@ -699,23 +716,15 @@ function init
 
   function delMarked
   (dir, marked) {
-    let under, paths
+    let list
 
-    paths = []
-    under = marked.map(m => {
-      let path
-
-      path = Loc.make(dir).join(m.name)
-      paths.push({ name: m.name, isDir: m.type == 'd', path: path })
-      return [ divCl('float-f-name', m.name),
-               divCl('float-f-path', path) ]
-    })
+    list = under(dir, marked)
     Prompt.yn('Delete these?',
               { icon: 'trash',
-                under: divCl('float-files', under) },
+                under: divCl('float-files', list.divs) },
               yes => {
                 if (yes)
-                  paths.forEach(item =>
+                  list.paths.forEach(item =>
                     Tron.cmd(item.isDir ? 'dir.rm' : 'file.rm',
                              [ item.path ],
                              err => {

@@ -1,11 +1,12 @@
 import { app, clipboard as Clipboard, WebContentsView, BrowserWindow, ipcMain /*, protocol, net*/ } from 'electron'
 import CheckDeps from './lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
+import * as Dir from './main-dir.mjs'
 import * as Ext from './main-ext.mjs'
 import * as File from './main-file.mjs'
 import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
-import { makeErr, errMsg } from './main-err.mjs'
+import { makeErr } from './main-err.mjs'
 import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
 import process from 'node:process'
@@ -469,103 +470,6 @@ function onPaths
                       v8: process.versions.v8 } }
 }
 
-function onDirGet
-(e, ch, dir) {
-  function stat
-  (path) {
-    let st
-
-    st = fs.lstatSync(path,
-                      { throwIfNoEntry: false })
-    if (st)
-      st.link = st.isSymbolicLink()
-    return st
-  }
-
-  function ok
-  (data) {
-    e.sender.send(ch, { data: data.map(f => ({ name: f,
-                                               bak: f && f.endsWith('~'),
-                                               hidden: f && f.startsWith('.'),
-                                               stat: stat(Path.join(dir, f)) })) })
-  }
-
-  fs.readdir(dir, {}, (err, data) => {
-    if (err)
-      if (err.code === 'ENOTDIR') {
-        dir = Path.dirname(dir)
-        fs.readdir(dir, {}, (err, data) => {
-          if (err)
-            e.sender.send(ch, { err: err })
-          else
-            ok(data)
-        })
-      }
-      else
-        e.sender.send(ch, { err: err })
-
-    else
-      ok(data)
-  })
-}
-
-function onDirMake
-(e, ch, dir) {
-  // mode will be 0777 (drwxrwxrwx)
-  fs.mkdir(dir, { recursive: true }, err => {
-    if (err)
-      e.sender.send(ch, { err: err })
-    else
-      e.sender.send(ch, {})
-  })
-}
-
-function onDirRm
-(e, ch, onArgs) {
-  let [ path ] = onArgs
-
-  if (path.startsWith('/'))
-    fs.rmdir(path, err => {
-      if (err) {
-        e.sender.send(ch, makeErr(err))
-        return
-      }
-      e.sender.send(ch, {})
-    })
-  else
-    e.sender.send(ch, errMsg('Path must be absolute'))
-}
-
-function onDirWatch
-(e, ch, onArgs) {
-  let [ path ] = onArgs
-  let watcher
-
-  function handle
-  (type, name) {
-    try {
-      //d('--- handle ---')
-      //d('type: ' + type)
-      //d('name: ' + name)
-      e.sender.send(ch,
-                    { type: type,
-                      bak: name.endsWith('~'),
-                      hidden: Path.basename(name).startsWith('.'),
-                      name: name })
-    }
-    catch (err) {
-      err.message.includes('Object has been destroyed')
-        || log(err.message)
-      watcher.close()
-    }
-  }
-
-  if (path.startsWith('/'))
-    watcher = fs.watch(path, { recursive: false }, handle)
-  else
-    e.sender.send(ch, errMsg('Path must be absolute'))
-}
-
 async function wrapOn
 (e, ch, onArgs, cb) {
   setTimeout(async () => {
@@ -647,16 +551,16 @@ async function onCmd
     return wrapOn(e, ch, args, onBrowse)
 
   if (name == 'dir.get')
-    return wrapOn(e, ch, args, onDirGet)
+    return wrapOn(e, ch, args, Dir.onGet)
 
   if (name == 'dir.make')
-    return wrapOn(e, ch, args, onDirMake)
+    return wrapOn(e, ch, args, Dir.onMake)
 
   if (name == 'dir.rm')
-    return wrapOn(e, ch, args, onDirRm)
+    return wrapOn(e, ch, args, Dir.onRm)
 
   if (name == 'dir.watch')
-    return wrapOn(e, ch, args, onDirWatch)
+    return wrapOn(e, ch, args, Dir.onWatch)
 
   if (name == 'devtools.inspect')
     return wrapOn(e, ch, args, () => {

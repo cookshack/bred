@@ -1,8 +1,8 @@
 //import { d } from './main-log.mjs'
 import { app } from 'electron'
 import { errMsg, makeErr } from './main-err.mjs'
-import Path from 'node:path'
 import Fs from 'node:fs'
+import Path from 'node:path'
 import { spawn } from 'node:child_process'
 
 function mandatoryExt

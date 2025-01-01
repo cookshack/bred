@@ -316,7 +316,7 @@ function fill
                      'data-nameonmark': f.name }),
              divCl('dir-mode' + on, printMode(f.stat),
                    { 'data-run': 'chmod' }),
-             divCl(on, f.stat?.uid),
+             divCl(on, f.username || f.stat?.uid),
              divCl(on, f.stat?.gid),
              divCl('dir-size' + on, f.stat ? size() : '?'),
              divCl('dir-date' + on, f.stat ? formatDate(new Date(f.stat.mtimeMs)) : '?'),

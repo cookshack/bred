@@ -1,11 +1,13 @@
-import { log } from './main-log.mjs'
+import { d, log } from './main-log.mjs'
 import { errMsg, makeErr } from './main-err.mjs'
 import Fs from 'node:fs'
 import Path from 'node:path'
-
+import { spawn } from 'node:child_process'
 export
 function onGet
 (e, ch, dir) {
+  let proc, ents
+
   function stat
   (path) {
     let st
@@ -17,30 +19,67 @@ function onGet
     return st
   }
 
-  function ok
-  (data) {
-    e.sender.send(ch, { data: data.map(f => ({ name: f,
-                                               bak: f && f.endsWith('~'),
-                                               hidden: f && f.startsWith('.'),
-                                               stat: stat(Path.join(dir, f)) })) })
+  function username
+  (uid) {
+    let ent
+
+    ent = ents.find(e => e[2] == uid)
+    return ent?.at(0)
   }
 
-  Fs.readdir(dir, {}, (err, data) => {
-    if (err)
-      if (err.code === 'ENOTDIR') {
-        dir = Path.dirname(dir)
-        Fs.readdir(dir, {}, (err, data) => {
-          if (err)
-            e.sender.send(ch, { err: err })
-          else
-            ok(data)
-        })
-      }
-      else
-        e.sender.send(ch, { err: err })
+  function make
+  (f) {
+    let st
 
-    else
-      ok(data)
+    st = stat(Path.join(dir, f))
+
+    return { name: f,
+             bak: f && f.endsWith('~'),
+             hidden: f && f.startsWith('.'),
+             username: username(st.uid),
+             stat: st }
+  }
+
+  function ok
+  (data) {
+    e.sender.send(ch, { data: data.map(make) })
+  }
+
+  ////
+
+  ents = ''
+  proc = spawn('getent', [ 'passwd' ], { encoding: 'utf-8' })
+  if (proc.error)
+    throw proc.error
+  proc.stdout.on('data', data => {
+    ents += data
+  })
+  proc.on('close', code => {
+    if (code)
+      e.sender.send(ch, errMsg('getent failed: ' + code))
+    else {
+      ents = ents.split(/\r?\n/)
+      ents = ents.map(ent => ent.split(':'))
+      0 && ents.forEach(e => d(e.join()))
+
+      Fs.readdir(dir, {}, (err, data) => {
+        if (err)
+          if (err.code === 'ENOTDIR') {
+            dir = Path.dirname(dir)
+            Fs.readdir(dir, {}, (err, data) => {
+              if (err)
+                e.sender.send(ch, { err: err })
+              else
+                ok(data)
+            })
+          }
+          else
+            e.sender.send(ch, { err: err })
+
+        else
+          ok(data)
+      })
+    }
   })
 }
 

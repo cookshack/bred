@@ -940,9 +940,32 @@ function init
     }
   }
 
+  function renameMarked
+  (dir, marked) {
+    let list
+
+    list = under(dir, marked)
+    Prompt.ask({ text: 'Move these files to',
+                 hist: hist,
+                 under: divCl('float-files', list.divs) },
+               dest => {
+                 let absDest
+
+                 hist.add(dest)
+
+                 absDest = abs(dest, dir)
+                 Tron.cmd('file.mv', [ list.paths.map(p => p.path), absDest ], err => {
+                   if (err) {
+                     Mess.yell('file.mv: ' + err.message)
+                     return
+                   }
+                 })
+               })
+  }
+
   function rename
   () {
-    let p, marked, files, dir
+    let p, marked
 
     function run
     (from, to, dir) {
@@ -976,11 +999,8 @@ function init
 
     p = Pane.current()
     marked = getMarked(p.buf)
-    dir = Loc.make(p.dir).ensureSlash()
     if (marked.length) {
-      files = marked.map(m => Loc.make(dir).join(m.name))
-      d({ files })
-      Mess.yell('FIX marked')
+      renameMarked(Loc.make(p.dir).ensureSlash(), marked)
       return
     }
     else {

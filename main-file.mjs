@@ -179,12 +179,55 @@ function onLn
   link(cwd)
 }
 
+function mvMany
+(e, ch, from, to) {
+  for (let file of from) {
+    if (file.startsWith('/'))
+      continue
+    e.sender.send(ch, errMsg('Paths must be absolute: ' + file))
+    return
+  }
+  for (let file of from) {
+    let path
+
+    path = Path.join(to, Path.basename(file))
+    if (Fs.statSync(path, { throwIfNoEntry: false })) {
+      e.sender.send(ch, errMsg('File exists: ' + path, { exists: 1 }))
+      return
+    }
+  }
+  for (let file of from)
+    Fs.renameSync(file, // from
+                  Path.join(to, Path.basename(file))) // to
+  e.sender.send(ch, {})
+  return
+}
+
 export
 function onMv
 (e, ch, onArgs) {
   let [ from, to, spec ] = onArgs
 
   spec = spec || {}
+
+  if (Array.isArray(from)) {
+    if (to.startsWith('/')) {
+      let st
+
+      st = Fs.statSync(to, { throwIfNoEntry: false })
+      if (st)
+        if (st.isDirectory())
+          mvMany(e, ch, from, to)
+        else
+          e.sender.send(ch, errMsg('Destination must be a dir'))
+      else
+        e.sender.send(ch, errMsg('Destination must exist', { missing: 1 }))
+    }
+    else
+      e.sender.send(ch, errMsg('Destination path must be absolute'))
+    return
+  }
+
   if (from.startsWith('/') && to.startsWith('/')) {
     if (spec.overwrite) {
       // skip check

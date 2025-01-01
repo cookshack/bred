@@ -27,12 +27,12 @@ Marked = {
 
     function hideB
     () {
-      buf?.views.forEach(view => Css.hide(view?.ele.querySelector('.dir-h-clear')))
+      buf?.views.forEach(view => Css.hide(view?.ele?.querySelector('.dir-h-clear')))
     }
 
     function add
     (name, type) {
-      buf?.views.forEach(view => Css.show(view?.ele.querySelector('.dir-h-clear')))
+      buf?.views.forEach(view => Css.show(view?.ele?.querySelector('.dir-h-clear')))
       if (has(name))
         return
       items.push({ name, type })
@@ -869,9 +869,32 @@ function init
                name => run(name, target, p.dir))
   }
 
+  function cpMarked
+  (dir, marked) {
+    let list
+
+    list = under(dir, marked)
+    Prompt.ask({ text: 'Copy these files to',
+                 hist: hist,
+                 under: divCl('float-files', list.divs) },
+               dest => {
+                 let absDest
+
+                 hist.add(dest)
+
+                 absDest = abs(dest, dir)
+                 Tron.cmd('file.cp', [ list.paths.map(p => p.path), absDest ], err => {
+                   if (err) {
+                     Mess.yell('file.cp: ' + err.message)
+                     return
+                   }
+                 })
+               })
+  }
+
   function copy
   () {
-    let p, marked, files, dir
+    let p, marked
 
     function run
     (from, to, dir) {
@@ -928,11 +951,8 @@ function init
 
     p = Pane.current()
     marked = getMarked(p.buf)
-    dir = Loc.make(p.dir).ensureSlash()
     if (marked.length) {
-      files = marked.map(m => Loc.make(dir).join(m.name))
-      d({ files })
-      Mess.yell('FIX marked')
+      cpMarked(Loc.make(p.dir).ensureSlash(), marked)
       return
     }
     else {
@@ -1260,9 +1280,10 @@ function init
     buf.views.forEach(v => {
       let w
 
-      w = v.ele.querySelector('.dir-w')
-      for (let i = 0; i < w.children.length; i++)
-        Css.remove(w.children[i], 'on')
+      w = v.ele?.querySelector('.dir-w')
+      if (w)
+        for (let i = 0; i < w.children.length; i++)
+          Css.remove(w.children[i], 'on')
     })
   }
 

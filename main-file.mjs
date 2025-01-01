@@ -5,6 +5,32 @@ import Path from 'node:path'
 import * as U from './util.mjs'
 
 export
+function onCp
+(e, ch, onArgs) {
+  let [ from, to ] = onArgs
+
+  if (from.startsWith('/') && to.startsWith('/')) {
+    Fs.copyFile(from, to, 0, err => {
+      if (err)
+        e.sender.send(ch, makeErr(err))
+      else
+        e.sender.send(ch, {})
+    })
+    return
+  }
+  e.sender.send(ch, errMsg('Paths must be absolute'))
+}
+
+export
+function onExists
+(e, ch, onArgs) {
+  let path
+
+  path = onArgs
+  e.sender.send(ch, { exists: Fs.existsSync(path) })
+}
+
+export
 function onGet
 (e, ch, onArgs, ctx) {
   let path

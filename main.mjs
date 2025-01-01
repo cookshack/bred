@@ -679,30 +679,6 @@ function onDirWatch
     e.sender.send(ch, errMsg('Path must be absolute'))
 }
 
-function onFileCp
-(e, ch, onArgs) {
-  let [ from, to ] = onArgs
-
-  if (from.startsWith('/') && to.startsWith('/')) {
-    fs.copyFile(from, to, 0, err => {
-      if (err)
-        e.sender.send(ch, makeErr(err))
-      else
-        e.sender.send(ch, {})
-    })
-    return
-  }
-  e.sender.send(ch, errMsg('Paths must be absolute'))
-}
-
-function onFileExists
-(e, ch, onArgs) {
-  let path
-
-  path = onArgs
-  e.sender.send(ch, { exists: fs.existsSync(path) })
-}
-
 async function wrapOn
 (e, ch, onArgs, cb) {
   setTimeout(async () => {
@@ -860,10 +836,10 @@ async function onCmd
     return wrapOn(e, ch, args, Chmod.onChmod)
 
   if (name == 'file.cp')
-    return wrapOn(e, ch, args, onFileCp)
+    return wrapOn(e, ch, args, File.onCp)
 
   if (name == 'file.exists')
-    return wrapOn(e, ch, args, onFileExists)
+    return wrapOn(e, ch, args, File.onExists)
 
   if (name == 'file.get')
     return wrapOn(e, ch, args, File.onGet)

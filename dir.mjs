@@ -314,7 +314,8 @@ function fill
                    img('img/tick.svg', '*', 'filter-clr-text'),
                    { 'data-run': 'mark',
                      'data-nameonmark': f.name }),
-             divCl('dir-mode' + on, printMode(f.stat)),
+             divCl('dir-mode' + on, printMode(f.stat),
+                   { 'data-run': 'chmod' }),
              divCl(on, f.stat?.uid),
              divCl(on, f.stat?.gid),
              divCl('dir-size' + on, f.stat ? size() : '?'),
@@ -664,7 +665,7 @@ function initChmod
   }
 
   function chmod
-  () {
+  (u, we) {
     let p, el, path, marked
 
     function run
@@ -690,6 +691,19 @@ function initChmod
       return
     }
 
+    if (we?.e && (we.e.button == 0)) {
+      let next
+
+      next = we.e.target
+      while (next) {
+        if (Css.has(next, 'dir-name-w'))
+          break
+        next = next.nextElementSibling
+      }
+      if (next)
+        p.view.point.put(next)
+    }
+
     el = current()
     if (el && el.dataset.path)
       path = el.dataset.name ?? el.dataset.path
@@ -704,7 +718,7 @@ function initChmod
   }
 
   hist = Hist.ensure('dir.chmod')
-  Cmd.add('chmod', () => chmod(), m)
+  Cmd.add('chmod', chmod, m)
   Em.on('M', 'chmod', 'Dir')
 }
 

@@ -659,8 +659,8 @@ function initChmod
     }
 
     p = Pane.current()
-    if (getMarked(p.buf).size) {
-      Mess.throw('Clear marks first')
+    if (getMarked(p.buf).length) {
+      Mess.yell('Clear marks first')
       return
     }
 
@@ -781,8 +781,8 @@ function init
     }
 
     p = Pane.current()
-    if (getMarked(p.buf).size) {
-      Mess.throw('Clear marks first')
+    if (getMarked(p.buf).length) {
+      Mess.yell('Clear marks first')
       return
     }
 

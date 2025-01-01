@@ -636,6 +636,14 @@ function current
   return p?.view?.point?.over()
 }
 
+function currentFile
+() {
+  let el
+
+  el = current()
+  return el?.dataset.name
+}
+
 function initChmod
 (m) {
   let hist
@@ -1323,7 +1331,7 @@ function init
   Cmd.add('edit if supported', () => editIfSupported(), m)
   Cmd.add('link', () => link(), m)
   Cmd.add('mark', mark, m)
-  Cmd.add('refresh', () => refreshKeep(Pane.current()), m)
+  Cmd.add('refresh', () => refreshKeep(Pane.current(), 0, 0, 0, currentFile()), m)
   Cmd.add('rename', () => rename(), m)
   Cmd.add('show in folder', () => showInFolder(), m)
   Cmd.add('sort by name', () => sortBy('name'), m)

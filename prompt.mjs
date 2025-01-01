@@ -107,12 +107,13 @@ function close
 
 export
 function ask
-(spec, // { hist, text, onReady, w }
+(spec, // { hist, text, onReady, under, w }
  cb) { // (text)
   let win, p, buf, area, tab, ml
 
   spec = spec || {}
-  spec.w = spec.w || Ed.divW(0, 0, { extraWWCss: 'bred-prompt-buf-ww' })
+  spec.w = spec.w || Ed.divW(0, 0, { extraWWCss: 'bred-prompt-buf-ww',
+                                     extraCo: spec.under })
   win = Win.current()
   Area.getByName(win, 'bred-float')?.close()
   area = Area.add(win, 'bred-float')

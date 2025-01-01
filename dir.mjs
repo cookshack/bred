@@ -639,9 +639,33 @@ function initChmod
 (m) {
   let hist
 
+  function chmodMarked
+  (dir, marked) {
+    let list
+
+    list = under(dir, marked)
+    Prompt.ask({ text: 'Update mode of these files',
+                 hist: hist,
+                 under: divCl('float-files', list.divs) },
+               mode => {
+                 hist.add(mode)
+                 list.paths.forEach(item => {
+                   let absPath
+
+                   absPath = abs(item.path, dir)
+                   Tron.cmd('file.chmod', [ mode, absPath ], err => {
+                     if (err) {
+                       Mess.yell('file.chmod: ' + err.message)
+                       return
+                     }
+                   })
+                 })
+               })
+  }
+
   function chmod
   () {
-    let p, el, path
+    let p, el, path, marked
 
     function run
     (mode, dir) {
@@ -659,8 +683,10 @@ function initChmod
     }
 
     p = Pane.current()
-    if (getMarked(p.buf).length) {
-      Mess.yell('Clear marks first')
+
+    marked = getMarked(p.buf)
+    if (marked.length) {
+      chmodMarked(Loc.make(p.dir).ensureSlash(), marked)
       return
     }
 
@@ -672,7 +698,7 @@ function initChmod
       return
     }
 
-    Prompt.ask({ text: 'Update mode for ' + path,
+    Prompt.ask({ text: 'Update mode of ' + path,
                  hist: hist },
                mode => run(mode, p.dir))
   }

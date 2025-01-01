@@ -1,6 +1,7 @@
 import { app, clipboard as Clipboard, WebContentsView, BrowserWindow, ipcMain /*, protocol, net*/ } from 'electron'
 import CheckDeps from './lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
+import * as Ext from './main-ext.mjs'
 import * as File from './main-file.mjs'
 import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
@@ -13,7 +14,7 @@ import * as Shell from './main-shell.mjs'
 import * as Step from './main-step.mjs'
 import Store from 'electron-store'
 import Util from 'node:util'
-import { fork, spawn, spawnSync } from 'node:child_process'
+import { fork, spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
 let version, options, stores, dirUserData, lsp, shell, lastClipWrite
@@ -325,120 +326,6 @@ function onBrowse
   })
 
   e.sender.send(ch, {})
-}
-
-function mandatoryExt
-(name) {
-  return [ 'core', 'ed' ].includes(name)
-}
-
-function onExtAdd
-(e, ch, onArgs) {
-  let [ name ] = onArgs
-  let res, flag, dir
-
-  function add
-  () {
-    flag = Path.join(dir, '.ADDED')
-    fs.open(flag, 'a', (err, fd) => {
-      if (err) {
-        e.sender.send(ch, makeErr(err))
-        return
-      }
-      fs.close(fd, err => {
-        if (err)
-          e.sender.send(ch, makeErr(err))
-        else
-          e.sender.send(ch, {})
-      })
-    })
-  }
-
-  if (mandatoryExt(name)) {
-    e.sender.send(ch, errMsg("That's a mandatory extension"))
-    return
-  }
-
-  dir = Path.join(app.getAppPath(), 'ext', name)
-
-  flag = Path.join(dir, '.READY')
-  fs.access(flag, fs.constants.F_OK, err => {
-    if (err) {
-      res = spawn('npm', [ 'install' ], { cwd: dir, encoding: 'utf-8' })
-      if (res.error)
-        throw res.error
-      res.on('close', code => {
-        if (code)
-          e.sender.send(ch, errMsg('npm install failed: ' + code))
-        else
-          add()
-      })
-      return
-    }
-    // already installed
-    add()
-  })
-
-  return ch
-}
-
-function onExtRemove
-(e, ch, onArgs) {
-  let [ name ] = onArgs
-  let flag
-
-  if (mandatoryExt(name)) {
-    e.sender.send(ch, errMsg("That's a mandatory extension"))
-    return
-  }
-  flag = Path.join(app.getAppPath(), 'ext', name, '.ADDED')
-  fs.unlinkSync(flag)
-  e.sender.send(ch, {})
-}
-
-function onExtAll
-(e, ch) {
-  let dir
-
-  function isDir
-  (stat) {
-    if (stat.mode & (1 << 15))
-      return 0
-    return 1
-  }
-
-  function added
-  (dir, name) {
-    if (mandatoryExt(name))
-      return 1
-    if (fs.statSync(Path.join(dir, name, '.ADDED'),
-                    { throwIfNoEntry: false }))
-      return 1
-    return 0
-  }
-
-  dir = Path.join(app.getAppPath(), 'ext')
-  fs.readdir(dir, {}, (err, data) => {
-    let exts
-
-    if (err) {
-      e.sender.send(ch, { err: err })
-      return
-    }
-
-    exts = []
-    data.forEach(name => {
-      let stat
-
-      stat = fs.statSync(Path.join(dir, name),
-                         { throwIfNoEntry: false })
-      if (stat && isDir(stat))
-        exts.push({ name: name,
-                    mandatory: mandatoryExt(name),
-                    added: added(dir, name) })
-    })
-    e.sender.send(ch, { exts: exts })
-  })
 }
 
 function cmdDevtoolsClose
@@ -784,13 +671,13 @@ async function onCmd
     return cmdDevtoolsToggle(e, ch, args)
 
   if (name == 'ext.add')
-    return wrapOn(e, ch, args, onExtAdd)
+    return wrapOn(e, ch, args, Ext.onAdd)
 
   if (name == 'ext.all')
-    return wrapOn(e, ch, args, onExtAll)
+    return wrapOn(e, ch, args, Ext.onAll)
 
   if (name == 'ext.remove')
-    return wrapOn(e, ch, args, onExtRemove)
+    return wrapOn(e, ch, args, Ext.onRemove)
 
   if (name == 'init.load')
     return wrapOn(e, ch, [], onLoadInit)

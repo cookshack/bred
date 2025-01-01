@@ -6,7 +6,7 @@ import { spawn } from 'node:child_process'
 export
 function onGet
 (e, ch, dir) {
-  let proc, ents
+  let proc, ents, groups, readyU, readyG
 
   function stat
   (path) {
@@ -19,12 +19,20 @@ function onGet
     return st
   }
 
-  function username
+  function user
   (uid) {
     let ent
 
     ent = ents.find(e => e[2] == uid)
     return ent?.at(0)
+  }
+
+  function group
+  (gid) {
+    let g
+
+    g = groups.find(g2 => g2[2] == gid)
+    return g?.at(0)
   }
 
   function make
@@ -35,8 +43,9 @@ function onGet
 
     return { name: f,
              bak: f && f.endsWith('~'),
+             group: group(st?.gid),
              hidden: f && f.startsWith('.'),
-             username: username(st.uid),
+             user: user(st?.uid),
              stat: st }
   }
 
@@ -45,22 +54,16 @@ function onGet
     e.sender.send(ch, { data: data.map(make) })
   }
 
-  ////
-
-  ents = ''
-  proc = spawn('getent', [ 'passwd' ], { encoding: 'utf-8' })
-  if (proc.error)
-    throw proc.error
-  proc.stdout.on('data', data => {
-    ents += data
-  })
-  proc.on('close', code => {
-    if (code)
-      e.sender.send(ch, errMsg('getent failed: ' + code))
-    else {
+  function ready
+  () {
+    if (readyU && readyG) {
       ents = ents.split(/\r?\n/)
       ents = ents.map(ent => ent.split(':'))
       0 && ents.forEach(e => d(e.join()))
+
+      groups = groups.split(/\r?\n/)
+      groups = groups.map(ent => ent.split(':'))
+      0 && groups.forEach(e => d(e.join()))
 
       Fs.readdir(dir, {}, (err, data) => {
         if (err)
@@ -79,6 +82,41 @@ function onGet
         else
           ok(data)
       })
+    }
+  }
+
+  ////
+
+  ents = ''
+  groups = ''
+
+  proc = spawn('getent', [ 'passwd' ], { encoding: 'utf-8' })
+  if (proc.error)
+    throw proc.error
+  proc.stdout.on('data', data => {
+    ents += data
+  })
+  proc.on('close', code => {
+    if (code)
+      e.sender.send(ch, errMsg('getent failed: ' + code))
+    else {
+      readyU = 1
+      ready()
+    }
+  })
+
+  proc = spawn('getent', [ 'group' ], { encoding: 'utf-8' })
+  if (proc.error)
+    throw proc.error
+  proc.stdout.on('data', data => {
+    groups += data
+  })
+  proc.on('close', code => {
+    if (code)
+      e.sender.send(ch, errMsg('getent group failed: ' + code))
+    else {
+      readyG = 1
+      ready()
     }
   })
 }

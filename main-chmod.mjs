@@ -72,7 +72,7 @@ function update
 }
 
 export
-async function onFileChmod
+async function onChmod
 (e, ch, onArgs) {
   let str, stat, mode, path
 

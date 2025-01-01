@@ -857,7 +857,7 @@ async function onCmd
   }
 
   if (name == 'file.chmod')
-    return wrapOn(e, ch, args, Chmod.onFileChmod)
+    return wrapOn(e, ch, args, Chmod.onChmod)
 
   if (name == 'file.cp')
     return wrapOn(e, ch, args, onFileCp)

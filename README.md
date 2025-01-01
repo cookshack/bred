@@ -50,7 +50,7 @@ cd ~/src/bred/ && bin/bred $*
     Encoding=UTF-8
     Version=1.0
     Type=Application
-    Exec=/home/<USERNAME>/bin/bred
+    Exec=sh -e "/home/<USERNAME>/bin/bred > /dev/null 2>&1"
     Name=Bred
     Comment=Custom definition for Bred
     Icon=/home/<USERNAME>/src/bred/img/logo.png

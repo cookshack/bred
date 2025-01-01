@@ -15,6 +15,7 @@
   padding-left: 0.5rem;
 
   display: flex;
+  align-items: center;
 }
 
 .dir-w {
@@ -89,6 +90,10 @@ div.dir-mark {
 
 .dir-name[data-type="f"] {
   color: var(--clr-syntax0);
+}
+
+.dir-h-clear {
+  margin-left: 0.5rem;
 }
 
 div.dir-h-dir,

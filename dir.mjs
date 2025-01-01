@@ -1,4 +1,4 @@
-import { append, div, divCl, span, img } from './dom.mjs'
+import { append, button, div, divCl, span, img } from './dom.mjs'
 
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
@@ -22,11 +22,17 @@ import { d } from './mess.mjs'
 let Marked
 
 Marked = {
-  make() {
+  make(buf) {
     let marked, items
+
+    function hideB
+    () {
+      buf?.views.forEach(view => Css.hide(view?.ele.querySelector('.dir-h-clear')))
+    }
 
     function add
     (name, type) {
+      buf?.views.forEach(view => Css.show(view?.ele.querySelector('.dir-h-clear')))
       if (has(name))
         return
       items.push({ name, type })
@@ -49,6 +55,8 @@ Marked = {
           return 0
         return 1
       })
+      if (items.length == 0)
+        hideB()
     }
 
     items = []
@@ -60,6 +68,8 @@ Marked = {
                get length() {
                  return items.length
                } }
+
+    hideB()
 
     return marked
   }
@@ -101,6 +111,10 @@ function dirW
                    img(Icon.modePath('dir'), 'Dir', 'filter-clr-text')) ])
 
   hco.push(nav(path))
+
+  hco.push(button([ 'clear' ],
+                  'dir-h-clear hidden',
+                  { 'data-run': 'clear marks' }))
 
   return divCl('dir-ww',
                [ divCl('dir-h', hco),
@@ -368,7 +382,7 @@ function fill
 
   d('DIR fill')
 
-  marked = marked || Marked.make()
+  marked = marked || Marked.make(p.buf)
 
   path = Loc.make(p.dir)
   path.ensureSlash()
@@ -618,7 +632,7 @@ function getMarked
 (b) {
   let marked
 
-  marked = b.vars('dir').marked || Marked.make()
+  marked = b.vars('dir').marked || Marked.make(b)
   b.vars('dir').marked = marked
   return marked
 }
@@ -1220,7 +1234,7 @@ function init
     // toggle marks in lines,marked
     p = Pane.current()
     old = getMarked(p.buf)
-    marked = Marked.make()
+    marked = Marked.make(p.buf)
     lines = p.buf.vars('dir').lines
     lines.forEach(line => {
       let ch, name, type
@@ -1290,7 +1304,7 @@ function init
     let p
 
     p = Pane.current()
-    p.buf.vars('dir').marked = Marked.make()
+    p.buf.vars('dir').marked = Marked.make(p.buf)
     clearViews(p.buf)
   }
 

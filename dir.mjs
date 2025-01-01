@@ -481,15 +481,15 @@ function watch
             && (pane.buf.path == path)) {
           if (data.bak) {
             if (pane.buf.opt('dir.show.backups'))
-              refreshKeep(pane)
+              refreshKeep(pane, 0, 0, 0, currentFile())
             return
           }
           if (data.hidden) {
             if (pane.buf.opt('dir.show.hidden'))
-              refreshKeep(pane)
+              refreshKeep(pane, 0, 0, 0, currentFile())
             return
           }
-          refreshKeep(pane)
+          refreshKeep(pane, 0, 0, 0, currentFile())
         }
       })
     })

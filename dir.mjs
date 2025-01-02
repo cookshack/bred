@@ -112,7 +112,7 @@ function dirW
 
   hco.push(nav(path))
 
-  hco.push(button([ 'clear' ],
+  hco.push(button(img('img/tick.svg', 'clear', 'filter-clr-text'),
                   'dir-h-clear hidden',
                   { 'data-run': 'clear marks' }))
 

@@ -94,6 +94,15 @@ div.dir-mark {
 
 .dir-h-clear {
   margin-left: 0.5rem;
+  width: 1rem;
+  height: 1rem;
+  display: flex;
+}
+
+.dir-h-clear > img {
+  pointer-events: none;
+  aspect-ratio: 1 / 1;
+  height: 100%;
 }
 
 div.dir-h-dir,

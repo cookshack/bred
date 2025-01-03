@@ -34,6 +34,11 @@ function hex
   return String.fromCharCode('0'.charCodeAt(0) + u4)
 }
 
+function u8Hex
+(u8) {
+  return hex(u8 >> 4) + hex(u8 & 0b1111)
+}
+
 function appendLine
 (frag, u8s, index, current) {
   let ascii, hexs, addr, end, curLine
@@ -56,7 +61,7 @@ function appendLine
     ascii.push(divCl('hex-a' + cur,
                      asc(u8s[i])))
     hexs.push(divCl('hex-u8 hex-col-' + (i % 16) + cur,
-                    hex(u8s[i] >> 4) + hex(u8s[i] & 0b1111)))
+                    u8Hex(u8s[i])))
   }
 
   append(frag, divCl('hex-line' + (curLine ? ' hex-cur' : ''),
@@ -150,6 +155,27 @@ export
 function init
 () {
   let mo
+
+  function insert
+  (u, we) {
+    let char, p, surf, line, u8s
+
+    if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(we.key))
+      return
+
+    char = Ed.charForInsert(we)
+
+    p = Pane.current()
+    u = u || 1
+    surf = p.view.ele.querySelector('.hex-main-body')
+    line = surf?.querySelector('.hex-line.hex-cur')
+    u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
+    if (u8s) {
+      u8s[0].innerText = u8Hex(char.charCodeAt(0))
+      u8s[1].innerText = char
+      forward(1)
+    }
+  }
 
   function forward
   (n) {
@@ -258,11 +284,13 @@ function init
   Cmd.add('hex', () => hex())
 
   Cmd.add('edit', () => edit(), mo)
-
+  Cmd.add('self insert', insert, mo)
   Cmd.add('forward character', forward, mo)
   Cmd.add('backward character', () => forward(-1), mo)
 
   Em.on('e', 'edit', mo)
+  for (let d = 32; d <= 127; d++)
+    Em.on(String.fromCharCode(d), 'self insert', mo)
 }
 
 export

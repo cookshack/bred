@@ -1086,8 +1086,10 @@ function newlineAndIndent
     Backend.newline(u)
 }
 
+export
 function save
-(u, we, cb) {
+(fn, // (view, cb)
+ cb) { // (err)
   let p, path
 
   function error
@@ -1098,6 +1100,7 @@ function save
       Mess.yell(msg)
   }
 
+  fn = fn || Backend.vsave
   p = Pane.current()
 
   path = Loc.make(p.view.buf.path).expand()
@@ -1105,7 +1108,7 @@ function save
     if (err) {
       if (err.code === 'ENOENT') {
         // new file
-        Backend.vsave(p.view, cb)
+        fn(p.view, cb)
         return
       }
       error(err.message)
@@ -1118,10 +1121,10 @@ function save
                   { icon: 'save' },
                   yes => {
                     if (yes)
-                      Backend.vsave(p.view, cb)
+                      fn(p.view, cb)
                   })
       else
-        Backend.vsave(p.view, cb)
+        fn(p.view, cb)
       return
     }
     error('Buffer missing stat')
@@ -1260,7 +1263,7 @@ function init
     Cmd.add('indent line', () => Backend.indentLine(), mo)
     Cmd.add('indent rigidly', indentRigidly, mo)
     Cmd.add('insert two spaces', () => Backend.insertTwoSpaces(), mo)
-    Cmd.add('save', save, mo)
+    Cmd.add('save', () => save(), mo)
     Cmd.add('save as', () => Backend.vsaveAs(Pane.current()?.view), mo)
     Cmd.add('transpose chars', () => Backend.transposeChars(), mo)
     Cmd.add('transpose words', () => transposeWords(), mo)

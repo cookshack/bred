@@ -13,7 +13,7 @@ import * as Scroll from '../../scroll.mjs'
 import * as Tron from '../../tron.mjs'
 import { d } from '../../mess.mjs'
 
-let encoder
+let encoder, decoder
 
 function asc
 (u8) {
@@ -144,8 +144,10 @@ function open
                   'Hex',
                   divW(loc.dirname, loc.filename),
                   loc.dirname,
-                  { vars: { hex: { u8s: u8s,
+                  { file: loc.filename,
+                    vars: { hex: { u8s: u8s,
                                    lineCount: lineCount } } })
+    buf.stat = data.stat
     buf.vars('Hex').path = path
     p.setBuf(buf)
   })
@@ -213,6 +215,47 @@ function init
       Mess.yell('Missing path')
   }
 
+  function vsave
+  (view, cb) {
+    if (view.buf.path) {
+      let u8s, str
+
+      Css.disable(view.ele)
+      u8s = view.buf.vars('hex').u8s || Mess.throw('missing u8s')
+      str = decoder.decode(u8s)
+      Tron.cmd('file.save', [ Loc.make(view.buf.path).expand(), str ], (err, data) => {
+        Css.enable(view.ele)
+        if (err) {
+          if (cb)
+            cb(err)
+          else
+            Mess.yell(err.message)
+          return
+        }
+        view.buf.modified = 0
+        view.buf.modifiedOnDisk = 0
+        view.buf.stat = data.stat
+        Ed.setIcon(view.buf, '.edMl-mod', 'blank')
+        if (cb)
+          cb()
+        else
+          Mess.say('Saved')
+      })
+    }
+    else if (cb)
+      cb(new Error('Buf needs path'))
+    else
+      Mess.toss('Buf needs path')
+  }
+
+  function save
+  () {
+    Ed.save(vsave, err => {
+      if (err)
+        Mess.yell(err.message)
+    })
+  }
+
   function redraw
   (view) {
     let lineCount, u8s
@@ -277,6 +320,7 @@ function init
   }
 
   encoder = new TextEncoder()
+  decoder = new TextDecoder()
 
   mo = Mode.add('Hex', { viewInit: refresh,
                          icon: { name: 'binary' } })
@@ -284,11 +328,13 @@ function init
   Cmd.add('hex', () => hex())
 
   Cmd.add('edit', () => edit(), mo)
+  Cmd.add('save', () => save(), mo)
   Cmd.add('self insert', insert, mo)
   Cmd.add('forward character', forward, mo)
   Cmd.add('backward character', () => forward(-1), mo)
 
-  Em.on('e', 'edit', mo)
+  Em.on('C-c C-c', 'edit', mo)
+  Em.on('C-x C-s', 'save', mo)
   for (let d = 32; d <= 127; d++)
     Em.on(String.fromCharCode(d), 'self insert', mo)
 }

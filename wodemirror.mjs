@@ -2444,7 +2444,7 @@ function vsaveAs
 
 export
 function vsave
-(view, cb) {
+(view, cb) { // (err)
   if (view?.ed)
     if (view.buf.path) {
       Css.disable(view.ele)

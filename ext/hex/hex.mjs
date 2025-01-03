@@ -41,7 +41,7 @@ function u8Hex
 
 function appendLine
 (frag, u8s, index, current) {
-  let ascii, hexs, addr, end, curLine
+  let ascii, hexs, addr, end, curLine, i
 
   0 && d('appendLine ' + index)
 
@@ -52,7 +52,7 @@ function appendLine
   end = Math.min(addr + 16, u8s.byteLength)
   hexs.push(divCl('hex-addr hex-addr-h',
                   addr.toString(16).padStart(8, '0')))
-  for (let i = addr; i < end; i++) {
+  for (i = addr; i < end; i++) {
     let cur
 
     cur = (i == current ? ' hex-cur' : '')
@@ -67,24 +67,16 @@ function appendLine
                       'data-run': 'select byte' }))
   }
 
+  if (u8s.byteLength - addr < 16)
+    for (; i < addr + 16; i++) {
+      ascii.push(divCl('hex-a hex-a-h hex-u8-fill', '_'))
+      hexs.push(divCl('hex-u8 hex-u8-fill hex-col-' + (i % 16),
+                      '00'))
+    }
+
   append(frag, divCl('hex-line' + (curLine ? ' hex-cur' : ''),
                      [ divCl('hex-hexs', hexs),
                        divCl('hex-ascii', ascii) ]))
-
-  if (0) {
-    let rem
-
-    rem = u8s.byteLength % 16
-    for (let i = 0; i < (16 - rem); i++) {
-      ascii.push(divCl('hex-a hex-a-h hex-u8-fill', '_'))
-      hexs.push(divCl('hex-u8 hex-u8-fill hex-col-' + (rem + i),
-                      '00'))
-    }
-    if (hexs.length)
-      append(frag, divCl('hex-line',
-                         [ divCl('hex-hexs', hexs),
-                           divCl('hex-ascii', ascii) ]))
-  }
 
   if (0) {
     ascii = []

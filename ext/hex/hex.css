@@ -97,12 +97,6 @@
   padding-right: 0;
 }
 
-.hex-a.hex-cur,
-.hex-u8.hex-cur {
-  color: var(--clr-emph);
-  background-color: var(--clr-nb0-light);
-}
-
 .hex-line.hex-cur > .hex-hexs > .hex-addr {
   color: var(--clr-emph);
 }
@@ -111,4 +105,10 @@ div.hex-a[data-run],
 div.hex-u8[data-run] {
   cursor: inherit;
   color: inherit;
+}
+
+div.hex-a.hex-cur,
+div.hex-u8.hex-cur {
+  color: var(--clr-emph);
+  background-color: var(--clr-nb0-light);
 }

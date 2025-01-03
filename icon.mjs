@@ -22,6 +22,9 @@ function path
     return 'img/warning.svg'
 
   if (have) {
+    if (name == 'binary')
+      return 'lib/svg/octicons/file-binary-24.svg'
+
     if (name == 'c_cpp')
       return 'lib/svg/file-icons/C++.svg'
 

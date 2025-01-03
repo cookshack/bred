@@ -1,0 +1,42 @@
+.hex-ww {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow-y: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.hex-w {
+  line-height: 1.5;
+  width: 100%;
+  height: min-content;
+  padding: 0.5rem;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.hex-hexs {
+  font-family: monospace;
+  display: grid;
+  grid-template-columns: repeat(17, min-content);
+}
+
+.hex-addr-h,
+.hex-u8-h {
+  background-color: var(--clr-fill);
+}
+
+.hex-addr,
+.hex-u8 {
+  padding: 0.25rem;
+}
+
+.hex-u8.hex-col-4,
+.hex-u8.hex-col-8,
+.hex-u8.hex-col-12 {
+  padding-left: 1rem;
+}

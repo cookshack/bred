@@ -1,0 +1,2 @@
+#!/bin/bash
+#../../bin/sync-scope cookshack && ../../bin/fix-scope cookshack ../../../../lib/

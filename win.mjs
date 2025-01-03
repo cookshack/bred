@@ -5,6 +5,7 @@ import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Cut from './cut.mjs'
 import * as Em from './em.mjs'
+import * as Ext from './ext.mjs'
 import * as Icon from './icon.mjs'
 import * as Menu from './menu.mjs'
 import * as Pane from './pane.mjs'
@@ -114,6 +115,10 @@ function makeContext
                     if (code == 0)
                       append(context.el,
                              context0(p.buf, 'Annotate', 'Vc Annotate'),
+                             contextLine())
+                    if (Ext.get('hex'))
+                      append(context.el,
+                             context0(p.buf, 'Hex'),
                              contextLine())
                     p && appendContextMode(context, p)
                     p && addCopy(p)

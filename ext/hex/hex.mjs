@@ -11,9 +11,6 @@ import * as Pane from '../../pane.mjs'
 import * as Tron from '../../tron.mjs'
 import { d } from '../../mess.mjs'
 
-import * as Marked from './lib/marked.js'
-import Purify from './lib/purify.js'
-
 export
 function supports
 (mtype) {
@@ -34,21 +31,21 @@ function render
 (token) {
   if (token) {
     if (token.type == 'blockquote')
-      return divCl('rich-blockquote', rest(token))
+      return divCl('hex-blockquote', rest(token))
 
     if (token.type == 'code') {
       let el
 
-      el = divCl('rich-code')
+      el = divCl('hex-code')
       Ed.code(el, token.lang, token.text)
       return el
     }
 
     if (token.type == 'codespan')
-      return divCl('rich-codespan', token.text)
+      return divCl('hex-codespan', token.text)
 
     if (token.type == 'del')
-      return divCl('rich-del', rest(token))
+      return divCl('hex-del', rest(token))
 
     if (token.type == 'escape')
       return token.text
@@ -57,23 +54,23 @@ function render
       let el
 
       el = div()
-      el.innerHTML = Purify.sanitize(token.text)
+      el.innerHTML = 'html'
       return el
     }
 
     if (token.type == 'em')
-      return divCl('rich-it', rest(token))
+      return divCl('hex-it', rest(token))
 
     if (token.type == 'heading')
-      return divCl('rich-h rich-h' + (token.depth || 0),
+      return divCl('hex-h hex-h' + (token.depth || 0),
                    rest(token),
                    { 'data-target': target(token.text) })
 
     if (token.type == 'hr')
-      return divCl('rich-hr')
+      return divCl('hex-hr')
 
     if (token.type == 'link')
-      return divCl('rich-a',
+      return divCl('hex-a',
                    rest(token),
                    { 'data-run': 'open externally',
                      'data-url': token.href })
@@ -81,19 +78,19 @@ function render
     if (token.type == 'list')
       return create(token.ordered ? 'ol' : 'ul',
                     token.items?.map(render),
-                    token.ordered ? 'rich-ol' : 'rich-ul')
+                    token.ordered ? 'hex-ol' : 'hex-ul')
 
     if (token.type == 'list_item')
-      return create('li', rest(token), 'rich-li')
+      return create('li', rest(token), 'hex-li')
 
     if (token.type == 'paragraph')
-      return divCl('rich-p', rest(token))
+      return divCl('hex-p', rest(token))
 
     if (token.type == 'space')
-      return divCl('rich-spc')
+      return divCl('hex-spc')
 
     if (token.type == 'strong')
-      return divCl('rich-b', rest(token))
+      return divCl('hex-b', rest(token))
 
     if (token.type == 'text') {
       if (token.tokens)
@@ -101,25 +98,49 @@ function render
       return token.text
     }
 
-    d('RICH missing token type: ' + token.type)
+    d('HEX missing token type: ' + token.type)
     return div(rest(token))
   }
   return []
 }
 
+function hex
+(u4) {
+  if (u4 < 0)
+    return ''
+  if (u4 > 16)
+    return ''
+  if (u4 >= 10)
+    return String.fromCharCode('A'.charCodeAt(0) + (u4 - 10))
+  return String.fromCharCode('0'.charCodeAt(0) + u4)
+}
+
 function divW
-(md, dir, name) {
-  let co, lexer, tokens
+(bin, dir, name) {
+  let hexs, encoder, u8s, addr
 
-  lexer = new Marked.Lexer()
-  tokens = lexer.lex(md)
-  d(tokens)
+  hexs = []
+  encoder = new TextEncoder()
+  hexs.push(divCl('hex-addr hex-addr-h'))
+  for (let i = 0; i < 16; i++)
+    hexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (i % 16),
+                    hex(i).repeat(2)))
+  u8s = encoder.encode(bin)
+  addr = 0
+  for (let i = 0; i < u8s.byteLength; i++) {
+    if (i % 16 == 0) {
+      hexs.push(divCl('hex-addr hex-addr-h',
+                      addr.toString(16).padStart(8, '0')))
+      addr += 16
+    }
+    hexs.push(divCl('hex-u8 hex-col-'+ (i % 16),
+                    hex(u8s[i] >> 4) + hex(u8s[i] & 0b1111)))
+  }
 
-  co = tokens?.map(render)
-
-  return divCl('rich-ww',
-               [ Ed.divMl(dir, name, { icon: 'markdown' }),
-                 divCl('rich-w', co) ])
+  return divCl('hex-ww',
+               [ Ed.divMl(dir, name, { icon: 'binary' }),
+                 divCl('hex-w',
+                       [ divCl('hex-hexs', hexs) ]) ])
 }
 
 export
@@ -130,18 +151,18 @@ function open
 
     if (err) {
       Mess.log('path: ' + path)
-      Mess.toss('Rich.open: ' + err.message)
+      Mess.toss('Hex.open: ' + err.message)
       return
     }
 
     path = data.realpath || path
     loc = Loc.make(path)
     p = Pane.current()
-    buf = Buf.add('Rich: ' + loc.filename,
-                  'Rich',
+    buf = Buf.add('Hex: ' + loc.filename,
+                  'Hex',
                   divW(data.data, loc.dirname, loc.filename),
                   loc.dirname)
-    buf.vars('Rich').path = path
+    buf.vars('Hex').path = path
     buf.addMode('view')
     p.setBuf(buf)
   })
@@ -168,7 +189,7 @@ function init
   () {
   }
 
-  function rich
+  function hex
   () {
     let p
 
@@ -177,10 +198,10 @@ function init
     open(p.buf.path)
   }
 
-  mo = Mode.add('Rich', { viewInit: refresh,
-                          icon: { name: 'markdown' } })
+  mo = Mode.add('Hex', { viewInit: refresh,
+                         icon: { name: 'binary' } })
 
-  Cmd.add('rich', () => rich())
+  Cmd.add('hex', () => hex())
 
   Cmd.add('edit', () => edit(), mo)
 
@@ -190,5 +211,5 @@ function init
 export
 function free
 () {
-  Mode.remove('Rich')
+  Mode.remove('Hex')
 }

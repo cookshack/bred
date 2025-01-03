@@ -1,0 +1,14 @@
+{
+  "name": "bred-ext-hex",
+  "version": "0.1.0",
+  "description": "Hex editing",
+  "main": "hex.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "bin/postinstall && touch .READY"
+  },
+  "author": "Matt Mundell",
+  "license": "CC0-1.0",
+  "dependencies": {
+  }
+}

@@ -87,7 +87,12 @@
   padding-right: 0;
 }
 
-.hex-cur {
+.hex-a.hex-cur,
+.hex-u8.hex-cur {
   font-weight: bold;
   background-color: var(--clr-nb0-light);
+}
+
+.hex-line.hex-cur > .hex-hexs > .hex-addr {
+  font-weight: bold;
 }

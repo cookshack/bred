@@ -2,6 +2,7 @@ import { append, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
+import * as Css from '../../css.mjs'
 import * as Ed from '../../ed.mjs'
 import * as Em from '../../em.mjs'
 import * as Loc from '../../loc.mjs'
@@ -35,7 +36,7 @@ function hex
 
 function appendLine
 (frag, u8s, index, current) {
-  let ascii, hexs, addr, end
+  let ascii, hexs, addr, end, curLine
 
   0 && d('appendLine ' + index)
 
@@ -47,13 +48,18 @@ function appendLine
   hexs.push(divCl('hex-addr hex-addr-h',
                   addr.toString(16).padStart(8, '0')))
   for (let i = addr; i < end; i++) {
-    ascii.push(divCl('hex-a' + (i == current ? ' hex-cur' : ''),
+    let cur
+
+    cur = (i == current ? ' hex-cur' : '')
+    if (cur)
+      curLine = 1
+    ascii.push(divCl('hex-a' + cur,
                      asc(u8s[i])))
-    hexs.push(divCl('hex-u8 hex-col-'+ (i % 16) + (i == current ? ' hex-cur' : ''),
+    hexs.push(divCl('hex-u8 hex-col-' + (i % 16) + cur,
                     hex(u8s[i] >> 4) + hex(u8s[i] & 0b1111)))
   }
 
-  append(frag, divCl('hex-line',
+  append(frag, divCl('hex-line' + (curLine ? ' hex-cur' : ''),
                      [ divCl('hex-hexs', hexs),
                        divCl('hex-ascii', ascii) ]))
 
@@ -145,6 +151,30 @@ function init
 () {
   let mo
 
+  function forward
+  (n) {
+    let p, surf, line, u8s
+
+    p = Pane.current()
+    surf = p.view.ele.querySelector('.hex-main-body')
+    line = surf?.querySelector('.hex-line.hex-cur')
+    u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
+    u8s?.forEach(u8 => {
+      let next
+
+      next = u8.nextElementSibling
+      if (n < 0) {
+        next = u8.previousElementSibling
+        if (Css.has(next, 'hex-addr'))
+          next = 0
+      }
+      if (next) {
+        Css.remove(u8, 'hex-cur')
+        Css.add(next, 'hex-cur')
+      }
+    })
+  }
+
   function edit
   () {
     let p, path
@@ -228,6 +258,9 @@ function init
   Cmd.add('hex', () => hex())
 
   Cmd.add('edit', () => edit(), mo)
+
+  Cmd.add('forward character', forward, mo)
+  Cmd.add('backward character', () => forward(-1), mo)
 
   Em.on('e', 'edit', mo)
 }

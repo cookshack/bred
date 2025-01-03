@@ -1,4 +1,4 @@
-import { create, div, divCl } from '../../dom.mjs'
+import { divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
@@ -9,100 +9,7 @@ import * as Mess from '../../mess.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 import * as Tron from '../../tron.mjs'
-import { d } from '../../mess.mjs'
-
-export
-function supports
-(mtype) {
-  return mtype == 'text/markdown'
-}
-
-function target
-(id) {
-  return id.toLowerCase().replaceAll(' ', '-')
-}
-
-function rest
-(token) {
-  return token.tokens?.map(render)
-}
-
-function render
-(token) {
-  if (token) {
-    if (token.type == 'blockquote')
-      return divCl('hex-blockquote', rest(token))
-
-    if (token.type == 'code') {
-      let el
-
-      el = divCl('hex-code')
-      Ed.code(el, token.lang, token.text)
-      return el
-    }
-
-    if (token.type == 'codespan')
-      return divCl('hex-codespan', token.text)
-
-    if (token.type == 'del')
-      return divCl('hex-del', rest(token))
-
-    if (token.type == 'escape')
-      return token.text
-
-    if (token.type == 'html') {
-      let el
-
-      el = div()
-      el.innerHTML = 'html'
-      return el
-    }
-
-    if (token.type == 'em')
-      return divCl('hex-it', rest(token))
-
-    if (token.type == 'heading')
-      return divCl('hex-h hex-h' + (token.depth || 0),
-                   rest(token),
-                   { 'data-target': target(token.text) })
-
-    if (token.type == 'hr')
-      return divCl('hex-hr')
-
-    if (token.type == 'link')
-      return divCl('hex-a',
-                   rest(token),
-                   { 'data-run': 'open externally',
-                     'data-url': token.href })
-
-    if (token.type == 'list')
-      return create(token.ordered ? 'ol' : 'ul',
-                    token.items?.map(render),
-                    token.ordered ? 'hex-ol' : 'hex-ul')
-
-    if (token.type == 'list_item')
-      return create('li', rest(token), 'hex-li')
-
-    if (token.type == 'paragraph')
-      return divCl('hex-p', rest(token))
-
-    if (token.type == 'space')
-      return divCl('hex-spc')
-
-    if (token.type == 'strong')
-      return divCl('hex-b', rest(token))
-
-    if (token.type == 'text') {
-      if (token.tokens)
-        return rest(token)
-      return token.text
-    }
-
-    d('HEX missing token type: ' + token.type)
-    return div(rest(token))
-  }
-  return []
-}
+//import { d } from '../../mess.mjs'
 
 function asc
 (u8) {

@@ -17,6 +17,11 @@
 
   display: flex;
   flex-direction: column;
+  align-items: center;
+}
+
+.hex-main {
+  display: flex;
 }
 
 .hex-hexs {
@@ -25,11 +30,20 @@
   grid-template-columns: repeat(17, min-content);
 }
 
+.hex-ascii {
+  margin-left: 1rem;
+  font-family: monospace;
+  display: grid;
+  grid-template-columns: repeat(16, min-content);
+}
+
+.hex-a-h,
 .hex-addr-h,
 .hex-u8-h {
   background-color: var(--clr-fill);
 }
 
+.hex-a,
 .hex-addr,
 .hex-u8 {
   padding: 0.25rem;
@@ -39,4 +53,9 @@
 .hex-u8.hex-col-8,
 .hex-u8.hex-col-12 {
   padding-left: 1rem;
+}
+
+.hex-a {
+  padding-left: 0;
+  padding-right: 0;
 }

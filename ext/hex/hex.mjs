@@ -104,6 +104,14 @@ function render
   return []
 }
 
+function asc
+(u8) {
+  if ((u8 >= 32) // space
+      && (u8 <= 126)) // ~
+    return String.fromCharCode(u8)
+  return '.'
+}
+
 function hex
 (u4) {
   if (u4 < 0)
@@ -117,14 +125,20 @@ function hex
 
 function divW
 (bin, dir, name) {
-  let hexs, encoder, u8s, addr
+  let ascii, hexs, encoder, u8s, addr
 
+  ascii = []
   hexs = []
-  encoder = new TextEncoder()
+
   hexs.push(divCl('hex-addr hex-addr-h'))
-  for (let i = 0; i < 16; i++)
+  for (let i = 0; i < 16; i++) {
+    ascii.push(divCl('hex-a hex-a-h',
+                     hex(i)))
     hexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (i % 16),
                     hex(i).repeat(2)))
+  }
+
+  encoder = new TextEncoder()
   u8s = encoder.encode(bin)
   addr = 0
   for (let i = 0; i < u8s.byteLength; i++) {
@@ -133,6 +147,7 @@ function divW
                       addr.toString(16).padStart(8, '0')))
       addr += 16
     }
+    ascii.push(divCl('hex-a', asc(u8s[i])))
     hexs.push(divCl('hex-u8 hex-col-'+ (i % 16),
                     hex(u8s[i] >> 4) + hex(u8s[i] & 0b1111)))
   }
@@ -140,7 +155,9 @@ function divW
   return divCl('hex-ww',
                [ Ed.divMl(dir, name, { icon: 'binary' }),
                  divCl('hex-w',
-                       [ divCl('hex-hexs', hexs) ]) ])
+                       [ divCl('hex-main',
+                               [ divCl('hex-hexs', hexs),
+                                 divCl('hex-ascii', ascii) ]) ]) ])
 }
 
 export

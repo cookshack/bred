@@ -32,22 +32,25 @@ function hex
 
 function divW
 (bin, dir, name) {
-  let ascii, hexs, encoder, u8s, addr
+  let ascii, hexs, hascii, hhexs, encoder, u8s, addr
 
   ascii = []
   hexs = []
+  hascii = []
+  hhexs = []
 
-  hexs.push(divCl('hex-addr hex-addr-h'))
+  addr = 0
+  hhexs.push(divCl('hex-addr hex-addr-h hidden',
+                   addr.toString(16).padStart(8, '0')))
   for (let i = 0; i < 16; i++) {
-    ascii.push(divCl('hex-a hex-a-h',
-                     hex(i)))
-    hexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (i % 16),
-                    hex(i).repeat(2)))
+    hascii.push(divCl('hex-a hex-a-h',
+                      hex(i)))
+    hhexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (i % 16),
+                     hex(i).repeat(2)))
   }
 
   encoder = new TextEncoder()
   u8s = encoder.encode(bin)
-  addr = 0
   for (let i = 0; i < u8s.byteLength; i++) {
     if (i % 16 == 0) {
       hexs.push(divCl('hex-addr hex-addr-h',
@@ -79,8 +82,12 @@ function divW
                [ Ed.divMl(dir, name, { icon: 'binary' }),
                  divCl('hex-w',
                        [ divCl('hex-main',
-                               [ divCl('hex-hexs', hexs),
-                                 divCl('hex-ascii', ascii) ]) ]) ])
+                               [ divCl('hex-main-h',
+                                       [ divCl('hex-hexs', hhexs),
+                                         divCl('hex-ascii', hascii) ]),
+                                 divCl('hex-main-body',
+                                       [ divCl('hex-hexs', hexs),
+                                         divCl('hex-ascii', ascii) ]) ]) ]) ])
 }
 
 export

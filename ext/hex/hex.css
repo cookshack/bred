@@ -21,6 +21,16 @@
 }
 
 .hex-main {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.hex-main-h {
+  display: flex;
+}
+
+.hex-main-body {
   overflow-y: auto;
   height: 100%;
   display: flex;

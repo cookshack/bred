@@ -74,11 +74,21 @@
 .hex-u8 {
   height: var(--line-height);
   padding: 0 0.25rem 0 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hex-u8.hex-col-4,
 .hex-u8.hex-col-8,
 .hex-u8.hex-col-12 {
+  margin-left: 0.75rem;
+}
+
+.hex-u8-h.hex-col-4,
+.hex-u8-h.hex-col-8,
+.hex-u8-h.hex-col-12 {
+  margin-left: 0;
   padding-left: 1rem;
 }
 
@@ -89,10 +99,10 @@
 
 .hex-a.hex-cur,
 .hex-u8.hex-cur {
-  font-weight: bold;
+  color: var(--clr-emph);
   background-color: var(--clr-nb0-light);
 }
 
 .hex-line.hex-cur > .hex-hexs > .hex-addr {
-  font-weight: bold;
+  color: var(--clr-emph);
 }

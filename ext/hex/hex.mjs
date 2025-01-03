@@ -32,12 +32,11 @@ function hex
 
 function divW
 (bin, dir, name) {
-  let ascii, hexs, hascii, hhexs, encoder, u8s, addr
+  let ascii, hexs, hascii, hhexs, encoder, u8s, addr, lines
 
-  ascii = []
-  hexs = []
   hascii = []
   hhexs = []
+  lines = []
 
   addr = 0
   hhexs.push(divCl('hex-addr hex-addr-h hidden',
@@ -51,11 +50,19 @@ function divW
 
   encoder = new TextEncoder()
   u8s = encoder.encode(bin)
+  ascii = []
+  hexs = []
   for (let i = 0; i < u8s.byteLength; i++) {
     if (i % 16 == 0) {
+      addr += 16
+      if (i > 0)
+        lines.push(divCl('hex-line',
+                         [ divCl('hex-hexs', hexs),
+                           divCl('hex-ascii', ascii) ]))
+      ascii = []
+      hexs = []
       hexs.push(divCl('hex-addr hex-addr-h',
                       addr.toString(16).padStart(8, '0')))
-      addr += 16
     }
     ascii.push(divCl('hex-a', asc(u8s[i])))
     hexs.push(divCl('hex-u8 hex-col-'+ (i % 16),
@@ -67,16 +74,27 @@ function divW
 
     rem = u8s.byteLength % 16
     for (let i = 0; i < (16 - rem); i++) {
-      ascii.push(divCl('hex-a hex-a-h'))
-      hexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (rem + i)))
+      ascii.push(divCl('hex-a hex-a-h hex-u8-fill', '_'))
+      hexs.push(divCl('hex-u8 hex-u8-fill hex-col-' + (rem + i),
+                      '00'))
     }
+    if (hexs.length)
+      lines.push(divCl('hex-line',
+                       [ divCl('hex-hexs', hexs),
+                         divCl('hex-ascii', ascii) ]))
   }
 
-  hexs.push(divCl('hex-addr hex-addr-h'))
+  ascii = []
+  hexs = []
+  hexs.push(divCl('hex-addr hex-addr-h hex-u8-fill', '0'.repeat(8)))
   for (let i = 0; i < 16; i++) {
-    ascii.push(divCl('hex-a hex-a-h'))
-    hexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (i % 16)))
+    ascii.push(divCl('hex-a hex-a-h hex-u8-fill', '_'))
+    hexs.push(divCl('hex-u8 hex-u8-fill hex-col-' + (i % 16),
+                    '00'))
   }
+  lines.push(divCl('hex-line',
+                   [ divCl('hex-hexs', hexs),
+                     divCl('hex-ascii', ascii) ]))
 
   return divCl('hex-ww',
                [ Ed.divMl(dir, name, { icon: 'binary' }),
@@ -86,8 +104,7 @@ function divW
                                        [ divCl('hex-hexs', hhexs),
                                          divCl('hex-ascii', hascii) ]),
                                  divCl('hex-main-body',
-                                       [ divCl('hex-hexs', hexs),
-                                         divCl('hex-ascii', ascii) ]) ]) ]) ])
+                                       [ lines ]) ]) ]) ])
 }
 
 export

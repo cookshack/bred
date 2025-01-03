@@ -33,8 +33,13 @@
 .hex-main-body {
   overflow-y: auto;
   height: 100%;
-  display: flex;
   margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.hex-line {
+  display: flex;
 }
 
 .hex-hexs {
@@ -53,8 +58,13 @@
 
 .hex-a-h,
 .hex-addr-h,
+.hex-u8-fill,
 .hex-u8-h {
   background-color: var(--clr-fill);
+}
+
+.hex-u8-fill {
+  color: var(--clr-fill);
 }
 
 .hex-a,

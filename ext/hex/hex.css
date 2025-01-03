@@ -9,6 +9,8 @@
 }
 
 .hex-w {
+  --line-height: 2rem; /* includes vertical padding */
+
   line-height: 1.5;
   width: 100%;
   height: min-content;
@@ -70,7 +72,8 @@
 .hex-a,
 .hex-addr,
 .hex-u8 {
-  padding: 0.25rem;
+  height: var(--line-height);
+  padding: 0 0.25rem 0 0.25rem;
 }
 
 .hex-u8.hex-col-4,

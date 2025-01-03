@@ -17,18 +17,24 @@ function show
 
 export
 function redraw
-(view, numLines, colsPerLine, addLine) {
-  let surf
+(view,
+ spec, // { numLines, colsPerLine?, surf? }
+ addLine) {
+  let surf, dbg, colsPerLine
 
-  surf = view.ele?.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
+  dbg = () => {}
+  //dbg = d
+
+  spec = spec || {}
+  colsPerLine = spec.cols || 7
+  surf = spec.surf || view.ele?.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
   if (surf) {
-    let px, rect, avail, frag, shown, above
+    let px, rect, avail, frag, shown, above, height
     let first // top gap div
     let end // bottom gap div
 
-    //d('SCROLL redraw')
+    dbg('SCROLL redraw')
 
-    colsPerLine = colsPerLine || 7
     rect = surf.getBoundingClientRect()
     px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
     px *= (parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1)
@@ -40,9 +46,9 @@ function redraw
     first.dataset.scrolltop = first.dataset.scrolltop || 0
     shown = parseInt(first.dataset.shown)
 
-    //d('first.dataset.above: ' + first.dataset.above)
-    //d('first.dataset.scrolltop: ' + first.dataset.scrolltop)
-    //d('first.dataset.shown: ' + first.dataset.shown)
+    dbg('first.dataset.above: ' + first.dataset.above)
+    dbg('first.dataset.scrolltop: ' + first.dataset.scrolltop)
+    dbg('first.dataset.shown: ' + first.dataset.shown)
 
     if (first.dataset.scrolltop == Math.floor(surf.scrollTop)) {
       0 && d('same')
@@ -55,11 +61,11 @@ function redraw
       above = 0
     else
       above = Math.floor(surf.scrollTop / px)
-    //d('above: ' + above)
+    dbg('above: ' + above)
 
     if (above > first.dataset.above) {
       // remove lines above
-      //d('= remove ' + (above - first.dataset.above) + ' lines above')
+      dbg('= remove ' + (above - first.dataset.above) + ' lines above')
       for (let i = 0; i < (above - first.dataset.above) * colsPerLine; i++)
         if (first.nextElementSibling)
           first.nextElementSibling.remove()
@@ -67,7 +73,7 @@ function redraw
     }
     else if (above < first.dataset.above) {
       // add lines above
-      //d('= add ' + (first.dataset.above - above) + ' lines above')
+      dbg('= add ' + (first.dataset.above - above) + ' lines above')
       frag = new globalThis.DocumentFragment()
       for (let i = 0; i < (first.dataset.above - above); i++) {
         addLine(frag, i + above)
@@ -77,7 +83,8 @@ function redraw
     }
 
     // adjust top gap
-    first.style.height = 'calc(' + above + ' * var(--line-height))'
+    height = 'calc(' + above + ' * var(--line-height))'
+    first.style.minHeight = height
     first.dataset.above = above
 
     end = surf.lastElementChild
@@ -85,16 +92,16 @@ function redraw
     {
       let mustShow
 
-      mustShow = Math.min(avail, (numLines - above))
-      //d({ shown })
-      //d({ mustShow })
+      mustShow = Math.min(avail, (spec.numLines - above))
+      dbg({ shown })
+      dbg({ mustShow })
 
       if (shown < mustShow) {
         // add lines below
         frag = new globalThis.DocumentFragment()
-        //d('= add ' + (mustShow - shown) + ' lines below')
+        dbg('= add ' + (mustShow - shown) + ' lines below')
         while (shown < mustShow) {
-          //d('add line ' + (above + shown))
+          dbg('add line ' + (above + shown))
           addLine(frag, above + shown)
           shown++
         }
@@ -104,7 +111,7 @@ function redraw
         // remove lines below
         0 && d('= remove ' + (shown - mustShow) + ' lines below')
         while (mustShow < shown) {
-          //d('remove last line')
+          dbg('remove last line')
           for (let i = 0; i < colsPerLine; i++)
             if (end.previousElementSibling)
               end.previousElementSibling.remove()
@@ -114,9 +121,10 @@ function redraw
     }
 
     // adjust bottom gap
-    end.style.height = 'calc(' + (numLines - shown - above) + ' * var(--line-height))'
+    height = 'calc(' + (spec.numLines - shown - above) + ' * var(--line-height))'
+    end.style.minHeight = height
     first.dataset.shown = shown
 
-    //d('SCROLL redraw done')
+    dbg('SCROLL redraw done')
   }
 }

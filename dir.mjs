@@ -343,8 +343,8 @@ function fill
 
     lines = view.buf.vars('dir').lines
     Scroll.redraw(view,
-                  lines.length,
-                  7,
+                  { numLines: lines.length,
+                    cols: 7 },
                   (frag, i) => lines[i].forEach(cell => append(frag, cell)))
     toScroll = 0
   }

@@ -1,4 +1,4 @@
-import { divCl } from '../../dom.mjs'
+import { append, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
@@ -8,8 +8,11 @@ import * as Loc from '../../loc.mjs'
 import * as Mess from '../../mess.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
+import * as Scroll from '../../scroll.mjs'
 import * as Tron from '../../tron.mjs'
-//import { d } from '../../mess.mjs'
+import { d } from '../../mess.mjs'
+
+let encoder
 
 function asc
 (u8) {
@@ -30,46 +33,30 @@ function hex
   return String.fromCharCode('0'.charCodeAt(0) + u4)
 }
 
-function divW
-(bin, dir, name) {
-  let ascii, hexs, hascii, hhexs, encoder, u8s, addr, lines
+function appendLine
+(frag, u8s, index) {
+  let ascii, hexs, addr, end
 
-  hascii = []
-  hhexs = []
-  lines = []
+  0 && d('appendLine ' + index)
 
-  addr = 0
-  hhexs.push(divCl('hex-addr hex-addr-h hidden',
-                   addr.toString(16).padStart(8, '0')))
-  for (let i = 0; i < 16; i++) {
-    hascii.push(divCl('hex-a hex-a-h',
-                      hex(i)))
-    hhexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (i % 16),
-                     hex(i).repeat(2)))
-  }
+  addr = 16 * index
 
-  encoder = new TextEncoder()
-  u8s = encoder.encode(bin)
   ascii = []
   hexs = []
-  for (let i = 0; i < u8s.byteLength; i++) {
-    if (i % 16 == 0) {
-      addr += 16
-      if (i > 0)
-        lines.push(divCl('hex-line',
-                         [ divCl('hex-hexs', hexs),
-                           divCl('hex-ascii', ascii) ]))
-      ascii = []
-      hexs = []
-      hexs.push(divCl('hex-addr hex-addr-h',
-                      addr.toString(16).padStart(8, '0')))
-    }
+  end = Math.min(addr + 16, u8s.byteLength)
+  hexs.push(divCl('hex-addr hex-addr-h',
+                  addr.toString(16).padStart(8, '0')))
+  for (let i = addr; i < end; i++) {
     ascii.push(divCl('hex-a', asc(u8s[i])))
     hexs.push(divCl('hex-u8 hex-col-'+ (i % 16),
                     hex(u8s[i] >> 4) + hex(u8s[i] & 0b1111)))
   }
 
-  {
+  append(frag, divCl('hex-line',
+                     [ divCl('hex-hexs', hexs),
+                       divCl('hex-ascii', ascii) ]))
+
+  if (0) {
     let rem
 
     rem = u8s.byteLength % 16
@@ -79,23 +66,41 @@ function divW
                       '00'))
     }
     if (hexs.length)
-      lines.push(divCl('hex-line',
+      append(frag, divCl('hex-line',
+                         [ divCl('hex-hexs', hexs),
+                           divCl('hex-ascii', ascii) ]))
+  }
+
+  if (0) {
+    ascii = []
+    hexs = []
+    hexs.push(divCl('hex-addr hex-addr-h hex-u8-fill', '0'.repeat(8)))
+    for (let i = 0; i < 16; i++) {
+      ascii.push(divCl('hex-a hex-a-h hex-u8-fill', '_'))
+      hexs.push(divCl('hex-u8 hex-u8-fill hex-col-' + (i % 16),
+                      '00'))
+    }
+    append(frag, divCl('hex-line',
                        [ divCl('hex-hexs', hexs),
                          divCl('hex-ascii', ascii) ]))
   }
+}
 
-  ascii = []
-  hexs = []
-  hexs.push(divCl('hex-addr hex-addr-h hex-u8-fill', '0'.repeat(8)))
+function divW
+(dir, name) {
+  let addr, hascii, hhexs
+
+  addr = 0
+  hascii = []
+  hhexs = []
+  hhexs.push(divCl('hex-addr hex-addr-h hidden',
+                   addr.toString(16).padStart(8, '0')))
   for (let i = 0; i < 16; i++) {
-    ascii.push(divCl('hex-a hex-a-h hex-u8-fill', '_'))
-    hexs.push(divCl('hex-u8 hex-u8-fill hex-col-' + (i % 16),
-                    '00'))
+    hascii.push(divCl('hex-a hex-a-h',
+                      hex(i)))
+    hhexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (i % 16),
+                     hex(i).repeat(2)))
   }
-  lines.push(divCl('hex-line',
-                   [ divCl('hex-hexs', hexs),
-                     divCl('hex-ascii', ascii) ]))
-
   return divCl('hex-ww',
                [ Ed.divMl(dir, name, { icon: 'binary' }),
                  divCl('hex-w',
@@ -103,15 +108,14 @@ function divW
                                [ divCl('hex-main-h',
                                        [ divCl('hex-hexs', hhexs),
                                          divCl('hex-ascii', hascii) ]),
-                                 divCl('hex-main-body',
-                                       [ lines ]) ]) ]) ])
+                                 divCl('hex-main-body') ]) ]) ])
 }
 
 export
 function open
 (path) {
   Tron.cmd('file.get', path, (err, data) => {
-    let p, buf, loc
+    let p, buf, loc, u8s, lineCount
 
     if (err) {
       Mess.log('path: ' + path)
@@ -122,10 +126,14 @@ function open
     path = data.realpath || path
     loc = Loc.make(path)
     p = Pane.current()
+    u8s = encoder.encode(data.data)
+    lineCount = Math.floor(u8s.byteLength / 16) + ((u8s.byteLength % 16) ? 1 : 0)
     buf = Buf.add('Hex: ' + loc.filename,
                   'Hex',
-                  divW(data.data, loc.dirname, loc.filename),
-                  loc.dirname)
+                  divW(loc.dirname, loc.filename),
+                  loc.dirname,
+                  { vars: { hex: { u8s: u8s,
+                                   lineCount: lineCount } } })
     buf.vars('Hex').path = path
     buf.addMode('view')
     p.setBuf(buf)
@@ -149,8 +157,58 @@ function init
       Mess.yell('Missing path')
   }
 
+  function redraw
+  (view) {
+    let lineCount, u8s
+
+    lineCount = view.buf.vars('hex').lineCount
+    u8s = view.buf.vars('hex').u8s
+    Scroll.redraw(view,
+                  { numLines: lineCount,
+                    cols: 1,
+                    surf: view.ele.querySelector('.hex-main-body') },
+                  (frag, i) => appendLine(frag, u8s, i))
+    view.vars('hex').toScroll = 0
+  }
+
+  function onscroll
+  (view) {
+    if (view.vars('hex').toScroll)
+      return
+    view.vars('hex').toScroll = setTimeout(e => redraw(view, e), 100)
+  }
+
   function refresh
-  () {
+  (view) {
+    let surf, end, frag, first, shown, lastScrollTop, lineCount, u8s
+
+    lineCount = view.buf.vars('hex').lineCount
+    u8s = view.buf.vars('hex').u8s
+
+    surf = view.ele.querySelector('.hex-main-body')
+    surf.innerHTML = ''
+    frag = new globalThis.DocumentFragment()
+
+    first = divCl('bred-gap', [], { style: 'min-height: calc(0 * var(--line-height));' })
+    end = divCl('bred-gap', [], { style: 'min-height: calc(' + lineCount + ' * var(--line-height));' })
+    append(surf, first, end)
+
+    shown = Scroll.show(surf, lineCount)
+    for (let i = 0; i < shown; i++)
+      appendLine(frag, u8s, i)
+    end.before(frag)
+
+    end.style.height = 'calc(' + (lineCount - shown) + ' * var(--line-height))'
+    0 && surf.scrollIntoView({ block: 'end', inline: 'nearest' })
+    first.dataset.shown = shown
+    if (1)
+      surf.onscroll = e => {
+        if (surf.scrollTop == lastScrollTop)
+          return
+        lastScrollTop = surf.scrollTop
+        onscroll(view, e)
+      }
+
   }
 
   function hex
@@ -161,6 +219,8 @@ function init
     p.buf.path || Mess.toss('Need a buf path')
     open(p.buf.path)
   }
+
+  encoder = new TextEncoder()
 
   mo = Mode.add('Hex', { viewInit: refresh,
                          icon: { name: 'binary' } })

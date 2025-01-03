@@ -858,8 +858,8 @@ function init
 
     messages = Mess.messages()
     Scroll.redraw(view,
-                  messages.length,
-                  4,
+                  { numLines: messages.length,
+                    cols: 4 },
                   (frag, i) => appendM(frag, messages[i]))
     view.vars('mess').toScroll = 0
   }

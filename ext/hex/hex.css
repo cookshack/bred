@@ -106,3 +106,9 @@
 .hex-line.hex-cur > .hex-hexs > .hex-addr {
   color: var(--clr-emph);
 }
+
+div.hex-a[data-run],
+div.hex-u8[data-run] {
+  cursor: inherit;
+  color: inherit;
+}

@@ -59,10 +59,12 @@ function appendLine
     if (cur)
       curLine = 1
     ascii.push(divCl('hex-a' + cur,
-                     asc(u8s[i])))
+                     asc(u8s[i]),
+                     { 'data-run': 'select char' }))
     hexs.push(divCl('hex-u8 hex-col-' + (i % 16) + cur,
                     u8Hex(u8s[i]),
-                    { 'data-addr': i }))
+                    { 'data-addr': i,
+                      'data-run': 'select byte' }))
   }
 
   append(frag, divCl('hex-line' + (curLine ? ' hex-cur' : ''),
@@ -158,6 +160,34 @@ export
 function init
 () {
   let mo
+
+  function select
+  (u, we, char) {
+    if (we?.e && (we.e.button == 0)) {
+      let p, surf, line, u8s, u8, i, other
+
+      p = Pane.current()
+      surf = p.view.ele.querySelector('.hex-main-body')
+      line = surf?.querySelector('.hex-line.hex-cur')
+      Css.remove(line, 'hex-cur')
+      u8s = line?.querySelectorAll('.hex-cur')
+      u8s?.forEach(u8 => Css.remove(u8, 'hex-cur'))
+
+      u8 = we.e.target
+      Css.add(u8, 'hex-cur')
+      line = u8.parentNode.parentNode
+      Css.add(line, 'hex-cur')
+      i = char ? 0 : -1 // for address el
+      while ((u8 = u8?.previousElementSibling))
+        i++
+      if (char)
+        other = line.firstElementChild
+      else
+        other = line.firstElementChild.nextElementSibling
+      u8 = other?.children[char ? i + 1 : i]
+      Css.add(u8, 'hex-cur')
+    }
+  }
 
   function insert
   (u, we) {
@@ -335,6 +365,8 @@ function init
 
   Cmd.add('edit', () => edit(), mo)
   Cmd.add('save', () => save(), mo)
+  Cmd.add('select byte', select, mo)
+  Cmd.add('select char', (u, we) => select(u, we, 1), mo)
   Cmd.add('self insert', insert, mo)
   Cmd.add('forward character', forward, mo)
   Cmd.add('backward character', () => forward(-1), mo)

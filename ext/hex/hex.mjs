@@ -61,7 +61,8 @@ function appendLine
     ascii.push(divCl('hex-a' + cur,
                      asc(u8s[i])))
     hexs.push(divCl('hex-u8 hex-col-' + (i % 16) + cur,
-                    u8Hex(u8s[i])))
+                    u8Hex(u8s[i]),
+                    { 'data-addr': i }))
   }
 
   append(frag, divCl('hex-line' + (curLine ? ' hex-cur' : ''),
@@ -160,7 +161,7 @@ function init
 
   function insert
   (u, we) {
-    let char, p, surf, line, u8s
+    let char, p, surf, line, u8es
 
     if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(we.key))
       return
@@ -171,10 +172,15 @@ function init
     u = u || 1
     surf = p.view.ele.querySelector('.hex-main-body')
     line = surf?.querySelector('.hex-line.hex-cur')
-    u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
-    if (u8s) {
-      u8s[0].innerText = u8Hex(char.charCodeAt(0))
-      u8s[1].innerText = char
+    u8es = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
+    if (u8es) {
+      let addr, u8s
+
+      u8es[0].innerText = u8Hex(char.charCodeAt(0))
+      u8es[1].innerText = char
+      u8s = p.view.buf.vars('hex').u8s || Mess.throw('missing u8s')
+      addr = u8es[0].dataset.addr
+      u8s[addr] = char.charCodeAt(0)
       forward(1)
     }
   }

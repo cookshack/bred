@@ -152,6 +152,22 @@ function divW
                     hex(u8s[i] >> 4) + hex(u8s[i] & 0b1111)))
   }
 
+  {
+    let rem
+
+    rem = u8s.byteLength % 16
+    for (let i = 0; i < (16 - rem); i++) {
+      ascii.push(divCl('hex-a hex-a-h'))
+      hexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (rem + i)))
+    }
+  }
+
+  hexs.push(divCl('hex-addr hex-addr-h'))
+  for (let i = 0; i < 16; i++) {
+    ascii.push(divCl('hex-a hex-a-h'))
+    hexs.push(divCl('hex-u8 hex-u8-h hex-col-' + (i % 16)))
+  }
+
   return divCl('hex-ww',
                [ Ed.divMl(dir, name, { icon: 'binary' }),
                  divCl('hex-w',

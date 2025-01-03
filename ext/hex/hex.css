@@ -12,8 +12,8 @@
   line-height: 1.5;
   width: 100%;
   height: min-content;
+  max-height: 100%;
   padding: 0.5rem;
-  overflow-y: auto;
 
   display: flex;
   flex-direction: column;
@@ -21,7 +21,10 @@
 }
 
 .hex-main {
+  overflow-y: auto;
+  height: 100%;
   display: flex;
+  margin-bottom: 2rem;
 }
 
 .hex-hexs {
@@ -32,6 +35,7 @@
 
 .hex-ascii {
   margin-left: 1rem;
+  margin-right: 0.5rem;
   font-family: monospace;
   display: grid;
   grid-template-columns: repeat(16, min-content);

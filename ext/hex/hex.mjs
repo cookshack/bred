@@ -118,7 +118,7 @@ function init
     let p, path
 
     p = Pane.current()
-    path = p.buf.vars('Rich').path
+    path = p.buf.vars('Hex').path
     if (path)
       Pane.openFile(path)
     else

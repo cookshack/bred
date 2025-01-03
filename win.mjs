@@ -116,14 +116,14 @@ function makeContext
                       append(context.el,
                              context0(p.buf, 'Annotate', 'Vc Annotate'),
                              contextLine())
-                    if (Ext.get('hex'))
-                      append(context.el,
-                             context0(p.buf, 'Hex'),
-                             contextLine())
                     p && appendContextMode(context, p)
                     p && addCopy(p)
                     appendSpell(p)
                     appendRun(p)
+                    if (Ext.get('hex'))
+                      append(context.el,
+                             context0(p.buf, 'Hex'),
+                             contextLine())
                     appendStep(p)
                     Css.add(context.el, 'bred-open')
                   })

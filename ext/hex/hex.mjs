@@ -34,7 +34,7 @@ function hex
 }
 
 function appendLine
-(frag, u8s, index) {
+(frag, u8s, index, current) {
   let ascii, hexs, addr, end
 
   0 && d('appendLine ' + index)
@@ -47,8 +47,9 @@ function appendLine
   hexs.push(divCl('hex-addr hex-addr-h',
                   addr.toString(16).padStart(8, '0')))
   for (let i = addr; i < end; i++) {
-    ascii.push(divCl('hex-a', asc(u8s[i])))
-    hexs.push(divCl('hex-u8 hex-col-'+ (i % 16),
+    ascii.push(divCl('hex-a' + (i == current ? ' hex-cur' : ''),
+                     asc(u8s[i])))
+    hexs.push(divCl('hex-u8 hex-col-'+ (i % 16) + (i == current ? ' hex-cur' : ''),
                     hex(u8s[i] >> 4) + hex(u8s[i] & 0b1111)))
   }
 
@@ -135,7 +136,6 @@ function open
                   { vars: { hex: { u8s: u8s,
                                    lineCount: lineCount } } })
     buf.vars('Hex').path = path
-    buf.addMode('view')
     p.setBuf(buf)
   })
 }
@@ -195,7 +195,7 @@ function init
 
     shown = Scroll.show(surf, lineCount)
     for (let i = 0; i < shown; i++)
-      appendLine(frag, u8s, i)
+      appendLine(frag, u8s, i, 0)
     end.before(frag)
 
     end.style.height = 'calc(' + (lineCount - shown) + ' * var(--line-height))'

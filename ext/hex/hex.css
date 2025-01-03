@@ -86,3 +86,8 @@
   padding-left: 0;
   padding-right: 0;
 }
+
+.hex-cur {
+  font-weight: bold;
+  background-color: var(--clr-nb0-light);
+}

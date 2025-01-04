@@ -2897,6 +2897,22 @@ function newlineAndIndent
 }
 
 export
+function insertSlash
+(u) {
+  let p
+
+  p = Pane.current()
+  u = u || 1
+
+  if (p.buf.opt('core.comments.continue')
+      && CMCont.maybeCloseBlockComment({ state: p.view.ed.state,
+                                         dispatch: p.view.ed.dispatch }))
+    return
+
+  vinsert1(p.view, u, '/')
+}
+
+export
 function openLine() {
   exec(CMComm.splitLine)
 }

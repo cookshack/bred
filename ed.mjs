@@ -1086,6 +1086,14 @@ function newlineAndIndent
     Backend.newline(u)
 }
 
+function insertSlash
+(u, we) {
+  if (Backend.insertSlash)
+    Backend.insertSlash(u)
+  else
+    Backend.selfInsert(u, we)
+}
+
 export
 function save
 (fn, // (view, cb)
@@ -1228,6 +1236,7 @@ function init
     Cmd.add('uppercase word', () => Backend.caseWord(w => w.toUpperCase()), mo)
     Cmd.add('new line and indent', newlineAndIndent, mo)
     Cmd.add('new line', Backend.newline, mo)
+    Cmd.add('insert /', insertSlash, mo)
     Cmd.add('forward', Backend.forward, mo)
     Cmd.add('backward', Backend.backward, mo)
     Cmd.add('cut line', () => Backend.cutLine(), mo)
@@ -1301,6 +1310,7 @@ function init
     Em.on('End', 'buffer end', mo)
     for (let d = 32; d <= 127; d++)
       Em.on(String.fromCharCode(d), 'self insert', mo)
+    Em.on('/', 'insert /', mo)
 
     Em.on('C-ArrowLeft', 'word backward', mo)
     Em.on('C-ArrowRight', 'word forward', mo)

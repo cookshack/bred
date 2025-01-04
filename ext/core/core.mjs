@@ -105,6 +105,7 @@ function init
   }
 
   brexts = []
+  Opt.declare('core.comments.continue', 'bool', 1)
   Opt.declare('core.cursor.blink.enabled', 'bool', 0)
   Opt.declare('core.cursor.blink.rate', 'int', 1200)
   Opt.declare('core.folding.enabled', 'bool', 1)

@@ -23,6 +23,7 @@ import { d } from './mess.mjs'
 import * as CMAuto from './lib/@codemirror/autocomplete.js'
 import * as CMCollab from './lib/@codemirror/collab.js'
 import * as CMComm from './lib/@codemirror/commands.js'
+import * as CMCont from './lib/@valtown/codemirror-continue.js'
 import * as CMData from './lib/@codemirror/language-data.js'
 import * as CMLang from './lib/@codemirror/language.js'
 import * as LezUtils from './lib/lezer-utils.js'
@@ -2885,6 +2886,13 @@ function newline
 export
 function newlineAndIndent
 () {
+  let p
+
+  p = Pane.current()
+  if (p.buf.opt('core.comments.continue')
+      && CMCont.insertNewlineContinueComment({ state: p.view.ed.state,
+                                               dispatch: p.view.ed.dispatch }))
+    return
   exec(CMComm.insertNewlineAndIndent)
 }
 

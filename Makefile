@@ -58,6 +58,7 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	bin/fix-scope kittycad
 	bin/fix-scope lezer
 	bin/fix-scope replit
+	bin/fix-scope valtown
 	cd lib/@orgajs/ && find . -type f -name \*.js | xargs sed -i "s/^\(import .* from\) '\([^.'][^']*\)'.*/\\1 '..\/\\2.js';/g"
 	cd lib/@orgajs/ && find . -type f -name \*.js | xargs sed -i "s/ from '\@\([^']\+\)'.*/ from '..\/\@\\1.js';/g"
 	cp lib/@orgajs/index.js lib/@orgajs/lezer.js
@@ -103,15 +104,18 @@ sync-codemirror:
 	rm -rf lib/@orgajs
 	rm -rf lib/@uiw
 	rm -rf lib/@babel
+	rm -rf lib/@valtown
 	mkdir -p lib/@kittycad
 	mkdir -p lib/@lezer
 	mkdir -p lib/@markdoc
 	mkdir -p lib/@replit
+	mkdir -p lib/@valtown
 	mkdir -p lib/@orgajs
 	mkdir -p lib/@uiw
 	mkdir -p lib/@babel/runtime/helpers/
 	bin/sync-scope cookshack
 	bin/sync-scope kittycad
+	bin/sync-scope valtown
 	cp node_modules/globals/globals.json lib/globals.json
 	cp node_modules/@babel/runtime/helpers/esm/extends.js lib/@babel/runtime/helpers/extends.js
 	cp node_modules/lezer-elixir/dist/index.js lib/lezer-elixir.js

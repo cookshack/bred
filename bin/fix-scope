@@ -8,5 +8,5 @@ else
 fi
 # will fail if there are colons in $PREFIX
 cd lib/@${SCOPE}/ \
-&& find . -type f -name \*.js | xargs sed -i "s:^\(import .* from\) '\([^']\+\)'.*:\\1 '${PREFIX}\\2.js';:g" \
+&& find . -type f -name \*.js | xargs sed -i "s:^\(import .* from\) [\"']\([^'\"]\+\)[\"'].*:\\1 '${PREFIX}\\2.js';:g" \
 && find . -type f -name \*.js | xargs sed -i "s:^\(import .* from\) '\(.*/\)globals.js'.*:\\1 '\\2globals.json' with { type\: 'json' };:g"

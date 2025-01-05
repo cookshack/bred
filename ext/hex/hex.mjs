@@ -255,6 +255,23 @@ function init
     })
   }
 
+  function lineEnd
+  () {
+    let line, u8s
+
+    line = currentLine()
+    u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
+    u8s?.forEach(u8 => {
+      let last
+
+      last = u8.parentNode.lastElementChild
+      if (last) {
+        Css.remove(u8, 'hex-cur')
+        Css.add(last, 'hex-cur')
+      }
+    })
+  }
+
   function edit
   () {
     let p, path
@@ -387,6 +404,7 @@ function init
   Cmd.add('forward character', forward, mo)
   Cmd.add('backward character', () => forward(-1), mo)
   Cmd.add('line start', () => lineStart(), mo)
+  Cmd.add('line end', () => lineEnd(), mo)
 
   Em.on('C-c C-c', 'edit', mo)
   Em.on('C-x C-s', 'save', mo)

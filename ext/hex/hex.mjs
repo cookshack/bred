@@ -235,6 +235,42 @@ function init
     })
   }
 
+  function bufStart
+  () {
+    let p, line, u8s, u8
+
+    line = currentLine()
+    Css.remove(line, 'hex-cur')
+    u8s = line?.querySelectorAll('.hex-cur')
+    u8s?.forEach(u8 => Css.remove(u8, 'hex-cur'))
+
+    p = Pane.current()
+    u8 = p.view.ele.querySelector('.hex-main-body > .hex-line > .hex-hexs > .hex-u8')
+    Css.add(u8, 'hex-cur')
+    Css.add(u8?.parentNode?.parentNode, 'hex-cur')
+    u8 = p.view.ele.querySelector('.hex-main-body > .hex-line > .hex-ascii > .hex-a')
+    Css.add(u8, 'hex-cur')
+  }
+
+  function bufEnd
+  () {
+    let p, line, u8s, u8
+
+    line = currentLine()
+    Css.remove(line, 'hex-cur')
+    u8s = line?.querySelectorAll('.hex-cur')
+    u8s?.forEach(u8 => Css.remove(u8, 'hex-cur'))
+
+    p = Pane.current()
+    u8s = p.view.ele.querySelectorAll('.hex-main-body > :nth-last-child(2) > .hex-hexs > :not(.hex-u8-fill)')
+    u8 = u8s && u8s[u8s.length - 1]
+    Css.add(u8, 'hex-cur')
+    Css.add(u8?.parentNode?.parentNode, 'hex-cur')
+    u8s = p.view.ele.querySelectorAll('.hex-main-body > :nth-last-child(2) > .hex-ascii > :not(.hex-u8-fill)')
+    u8 = u8s && u8s[u8s.length - 1]
+    Css.add(u8, 'hex-cur')
+  }
+
   function lineStart
   () {
     let line, u8s
@@ -403,6 +439,8 @@ function init
   Cmd.add('self insert', insert, mo)
   Cmd.add('forward character', forward, mo)
   Cmd.add('backward character', () => forward(-1), mo)
+  Cmd.add('buffer start', () => bufStart(), mo)
+  Cmd.add('buffer end', () => bufEnd(), mo)
   Cmd.add('line start', () => lineStart(), mo)
   Cmd.add('line end', () => lineEnd(), mo)
 

@@ -153,14 +153,21 @@ function init
 () {
   let mo
 
+  function currentLine
+  () {
+    let p, surf
+
+    p = Pane.current()
+    surf = p.view.ele.querySelector('.hex-main-body')
+    return surf?.querySelector('.hex-line.hex-cur')
+  }
+
   function select
   (u, we, char) {
     if (we?.e && (we.e.button == 0)) {
-      let p, surf, line, u8s, u8, i, other
+      let line, u8s, u8, i, other
 
-      p = Pane.current()
-      surf = p.view.ele.querySelector('.hex-main-body')
-      line = surf?.querySelector('.hex-line.hex-cur')
+      line = currentLine()
       Css.remove(line, 'hex-cur')
       u8s = line?.querySelectorAll('.hex-cur')
       u8s?.forEach(u8 => Css.remove(u8, 'hex-cur'))
@@ -183,7 +190,7 @@ function init
 
   function insert
   (u, we) {
-    let char, p, surf, line, u8es
+    let char, p, line, u8es
 
     if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(we.key))
       return
@@ -192,8 +199,7 @@ function init
 
     p = Pane.current()
     u = u || 1
-    surf = p.view.ele.querySelector('.hex-main-body')
-    line = surf?.querySelector('.hex-line.hex-cur')
+    line = currentLine()
     u8es = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
     if (u8es) {
       let addr, u8s
@@ -209,11 +215,9 @@ function init
 
   function forward
   (n) {
-    let p, surf, line, u8s
+    let line, u8s
 
-    p = Pane.current()
-    surf = p.view.ele.querySelector('.hex-main-body')
-    line = surf?.querySelector('.hex-line.hex-cur')
+    line = currentLine()
     u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
     u8s?.forEach(u8 => {
       let next
@@ -233,11 +237,9 @@ function init
 
   function lineStart
   () {
-    let p, surf, line, u8s
+    let line, u8s
 
-    p = Pane.current()
-    surf = p.view.ele.querySelector('.hex-main-body')
-    line = surf?.querySelector('.hex-line.hex-cur')
+    line = currentLine()
     u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
     u8s?.forEach(u8 => {
       let first

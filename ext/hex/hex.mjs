@@ -217,8 +217,18 @@ function init
   (n) {
     let line, u8s
 
+    n = n || 0
     line = currentLine()
-    u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
+    u8s = line?.querySelectorAll('.hex-cur')
+    if (u8s?.length)
+      if ((n < 0) && Css.has(u8s[0], 'hex-col-0')) {
+        lineNext(-1) && lineEnd()
+        return
+      }
+      else if ((n >= 0) && Css.has(u8s[0], 'hex-col-15')) {
+        lineNext() && lineStart()
+        return
+      }
     u8s?.forEach(u8 => {
       let next
 
@@ -302,8 +312,16 @@ function init
         i = 1
       Css.add(next.firstElementChild?.children[i], 'hex-cur')
       Css.add(next.firstElementChild?.nextElementSibling?.children[i - 1], 'hex-cur')
-      return
+      return 1
     }
+
+    return 0
+  }
+
+  function lineNextOrEnd
+  (n) {
+    if (lineNext(n))
+      return
 
     if (n < 0)
       lineStart()
@@ -483,7 +501,7 @@ function init
   Cmd.add('buffer end', () => bufEnd(), mo)
   Cmd.add('line start', () => lineStart(), mo)
   Cmd.add('line end', () => lineEnd(), mo)
-  Cmd.add('next line', () => lineNext(), mo)
+  Cmd.add('next line', () => lineNextOrEnd(), mo)
   Cmd.add('previous line', () => lineNext(-1), mo)
 
   Em.on('C-c C-c', 'edit', mo)

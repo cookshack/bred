@@ -271,6 +271,36 @@ function init
     Css.add(u8, 'hex-cur')
   }
 
+  function lineNext
+  () {
+    let line, next, u8s
+
+    line = currentLine()
+
+    next = line.nextElementSibling
+    if (next && Css.has(next, 'hex-line')) {
+      let i
+
+      u8s = line?.querySelectorAll('.hex-cur')
+      i = 0
+      if (u8s?.length) {
+        let u8
+
+        u8 = u8s[0]
+        while ((u8 = u8?.previousElementSibling))
+          i++
+      }
+      Css.remove(line, 'hex-cur')
+      u8s?.forEach(u8 => Css.remove(u8, 'hex-cur'))
+
+      Css.add(next, 'hex-cur')
+      if (i < 1)
+        i = 1
+      Css.add(next.firstElementChild?.children[i], 'hex-cur')
+      Css.add(next.firstElementChild?.nextElementSibling?.children[i - 1], 'hex-cur')
+    }
+  }
+
   function lineStart
   () {
     let line, u8s
@@ -443,6 +473,7 @@ function init
   Cmd.add('buffer end', () => bufEnd(), mo)
   Cmd.add('line start', () => lineStart(), mo)
   Cmd.add('line end', () => lineEnd(), mo)
+  Cmd.add('next line', () => lineNext(), mo)
 
   Em.on('C-c C-c', 'edit', mo)
   Em.on('C-x C-s', 'save', mo)

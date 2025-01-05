@@ -272,12 +272,16 @@ function init
   }
 
   function lineNext
-  () {
+  (n) {
     let line, next, u8s
 
     line = currentLine()
 
-    next = line.nextElementSibling
+    if (n < 0)
+      next = line.previousElementSibling
+    else
+      next = line.nextElementSibling
+
     if (next && Css.has(next, 'hex-line')) {
       let i
 
@@ -298,7 +302,13 @@ function init
         i = 1
       Css.add(next.firstElementChild?.children[i], 'hex-cur')
       Css.add(next.firstElementChild?.nextElementSibling?.children[i - 1], 'hex-cur')
+      return
     }
+
+    if (n < 0)
+      lineStart()
+    else
+      lineEnd()
   }
 
   function lineStart
@@ -474,6 +484,7 @@ function init
   Cmd.add('line start', () => lineStart(), mo)
   Cmd.add('line end', () => lineEnd(), mo)
   Cmd.add('next line', () => lineNext(), mo)
+  Cmd.add('previous line', () => lineNext(-1), mo)
 
   Em.on('C-c C-c', 'edit', mo)
   Em.on('C-x C-s', 'save', mo)

@@ -231,6 +231,28 @@ function init
     })
   }
 
+  function lineStart
+  () {
+    let p, surf, line, u8s
+
+    p = Pane.current()
+    surf = p.view.ele.querySelector('.hex-main-body')
+    line = surf?.querySelector('.hex-line.hex-cur')
+    u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
+    u8s?.forEach(u8 => {
+      let first
+
+      if (Css.has(u8, 'hex-a'))
+        first = u8.parentNode.firstElementChild
+      else
+        first = u8.parentNode.firstElementChild.nextElementSibling
+      if (first) {
+        Css.remove(u8, 'hex-cur')
+        Css.add(first, 'hex-cur')
+      }
+    })
+  }
+
   function edit
   () {
     let p, path
@@ -362,6 +384,7 @@ function init
   Cmd.add('self insert', insert, mo)
   Cmd.add('forward character', forward, mo)
   Cmd.add('backward character', () => forward(-1), mo)
+  Cmd.add('line start', () => lineStart(), mo)
 
   Em.on('C-c C-c', 'edit', mo)
   Em.on('C-x C-s', 'save', mo)

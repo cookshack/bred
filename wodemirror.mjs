@@ -3967,6 +3967,25 @@ function fill
 }
 
 export
+function flushTrailing
+() {
+  let p, r, text
+
+  p = Pane.current()
+  if (p.view.markActive) {
+    r = regionRange(p.view)
+    if (r.from == r.to)
+      r.to = vgetBepEnd(p.view)
+  }
+  else
+    r = { from: vgetBep(p.view),
+          to: vgetBepEnd(p.view) }
+  text = vrangeText(p.view, r)
+  if (text.length)
+    vreplaceAt(p.view, r, text.replace(/[^\S\r\n]+$/gm, ''))
+}
+
+export
 function init
 () {
   let languages, themeSettings

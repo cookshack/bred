@@ -260,6 +260,16 @@ function supports
 }
 
 export
+function supportsExt
+(ext) {
+  function yes
+  (m) {
+    return m.exts?.find(e => e == ext)
+  }
+  return Mode.find(yes) ? 1 : 0
+}
+
+export
 function escapeForRe
 (s) {
   return escapeStringRegexp(s)

@@ -588,8 +588,12 @@ function initCmds
           // file with ext
           ext = path.slice(path.lastIndexOf('.') + 1)
           mtype = Ed.mtypeFromExt(ext)
-          if (mtype && Ed.supports(mtype))
+          // check ext first because mime-db missing eg.py
+          if (ext && Ed.supportsExt(ext))
             // file with supported ext: eg.js
+            open(path, mtype)
+          else if (mtype && Ed.supports(mtype))
+            // file with supported mime type (via ext)
             open(path, mtype)
           else
             Shell.runToString(Pane.current().dir,

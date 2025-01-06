@@ -17,7 +17,9 @@ let encoder, decoder
 
 function asc
 (u8) {
-  if ((u8 >= 32) // space
+  if (u8 == 32) // space
+    return '\u00A0' // &nbsp;
+  if ((u8 >= 33) // !
       && (u8 <= 126)) // ~
     return String.fromCharCode(u8)
   return '.'
@@ -76,21 +78,8 @@ function appendLine
 
   append(frag, divCl('hex-line' + (curLine ? ' hex-cur' : ''),
                      [ divCl('hex-hexs', hexs),
-                       divCl('hex-ascii', ascii) ]))
-
-  if (0) {
-    ascii = []
-    hexs = []
-    hexs.push(divCl('hex-addr hex-addr-h hex-u8-fill', '0'.repeat(8)))
-    for (let i = 0; i < 16; i++) {
-      ascii.push(divCl('hex-a hex-a-h hex-u8-fill', '_'))
-      hexs.push(divCl('hex-u8 hex-u8-fill hex-col-' + (i % 16),
-                      '00'))
-    }
-    append(frag, divCl('hex-line',
-                       [ divCl('hex-hexs', hexs),
-                         divCl('hex-ascii', ascii) ]))
-  }
+                       divCl('hex-ascii', ascii) ],
+                     { 'data-addr': addr }))
 }
 
 function divW
@@ -154,12 +143,30 @@ function init
   let mo
 
   function currentLine
-  () {
-    let p, surf
+  (surf) {
+    if (surf)
+      surf = surf
+    else {
+      let p
 
-    p = Pane.current()
-    surf = p.view.ele.querySelector('.hex-main-body')
+      p = Pane.current()
+      surf = p.view.ele.querySelector('.hex-main-body')
+    }
     return surf?.querySelector('.hex-line.hex-cur')
+  }
+
+  function lineFirst
+  (surf) {
+    return surf?.querySelector('.hex-line')
+  }
+
+  function lineLast
+  (surf) {
+    let lines
+
+    lines = surf?.querySelectorAll('.hex-line')
+    if (lines)
+      return lines[lines.length - 1]
   }
 
   function select
@@ -421,15 +428,47 @@ function init
 
   function redraw
   (view) {
-    let lineCount, u8s
+    let lineCount, line, u8s, first, last, addr, surf
 
+    surf = view.ele.querySelector('.hex-main-body')
     lineCount = view.buf.vars('hex').lineCount
     u8s = view.buf.vars('hex').u8s
+    line = currentLine(surf)
     Scroll.redraw(view,
                   { numLines: lineCount,
                     cols: 1,
-                    surf: view.ele.querySelector('.hex-main-body') },
+                    surf: surf },
                   (frag, i) => appendLine(frag, u8s, i))
+    u8s = line?.querySelectorAll('.hex-cur')
+    addr = u8s?.length && u8s[0].dataset.addr
+    //d('REDRAW addr ' + line?.dataset.addr)
+    first = lineFirst(surf)
+    //d('REDRAW first ' + first?.dataset.addr)
+    last = lineLast(surf)
+    //d('REDRAW last ' + last?.dataset.addr)
+    if (addr && first && last
+        && ((addr < first.dataset.addr) || (addr > last.dataset.addr))) {
+      let mid
+
+      //d('REDRAW remove from ' + line.dataset.addr)
+      Css.remove(line, 'hex-cur')
+      u8s.forEach(u8 => Css.remove(u8, 'hex-cur'))
+
+      addr = parseInt(first.dataset.addr)
+      //d('REDRAW addr ' + addr)
+      addr += (parseInt(last.dataset.addr) - parseInt(first.dataset.addr)) / 2
+      //d('REDRAW addr ' + addr)
+      addr = addr - (addr %= 16)
+      //d('REDRAW addr ' + addr)
+      mid = surf.querySelector('.hex-line[data-addr="' + addr + '"]')
+      //d('REDRAW mid ' + mid)
+      mid = mid || first
+      //d('REDRAW add to ' + mid.dataset.addr)
+      Css.add(mid, 'hex-cur')
+      Css.add(mid.firstElementChild?.children[1], 'hex-cur')
+      Css.add(mid.firstElementChild?.nextElementSibling.children[0], 'hex-cur')
+    }
+
     view.vars('hex').toScroll = 0
   }
 

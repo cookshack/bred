@@ -561,12 +561,14 @@ function initCmds
     }
 
     function shell
-    () {
-      Tron.cmd('shell.open', [ we.e.target.dataset.path ], err => {
+    (path) {
+      d('open externally: ' + path)
+      Tron.cmd('shell.open', [ path ], err => {
         if (err) {
           Mess.yell('shell.open: ' + err.message)
           return
         }
+        d('opened OK')
       })
     }
 
@@ -616,7 +618,7 @@ function initCmds
                                   // file with supported mime type: eg.xxx
                                   open(path, mtype)
                                 else
-                                  shell()
+                                  shell(path)
                               })
           return
         }

@@ -1,5 +1,6 @@
 import { app, ipcMain, shell as Shell } from 'electron'
 import { d } from './main-log.mjs'
+import { makeErr } from './main-err.mjs'
 import * as Pty from 'node-pty'
 import * as U from './util.mjs'
 
@@ -152,8 +153,12 @@ export
 function onOpen
 (e, ch, onArgs) {
   let [ url ] = onArgs
+  let sender
 
+  sender = e.sender
   Shell.openExternal(url)
+    .then(() => sender.send(ch, {}))
+    .catch(err => sender.send(ch, makeErr(err)))
 }
 
 export

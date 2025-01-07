@@ -58,7 +58,7 @@
     "@replit/codemirror-lang-csharp": "^6.2.0",
     "@replit/codemirror-lang-nix": "^6.0.1",
     "@uiw/codemirror-themes": "^4.22.1",
-    "@valtown/codemirror-continue": "file:../codemirror-continue/latest.tgz",
+    "@valtown/codemirror-continue": "^2.2.0",
     "ace-builds": "1.35",
     "ace-code": "1.35",
     "ace-linters": "^1.2.2",

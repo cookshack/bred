@@ -182,6 +182,7 @@ function init
                             make: view => CMState.EditorState.tabSize.of(view.buf.opt('core.tab.width') || 2),
                             reconfOpts: [ 'core.tab.width' ] }))
 
+  Cmd.add('enable comments continue', u => Ed.enable(u, 'core.comments.continue'))
   Cmd.add('enable cursor blink', u => Ed.enable(u, 'core.cursor.blink.enabled'))
   Cmd.add('enable folding', u => Ed.enable(u, 'core.folding.enabled'))
   Cmd.add('enable fold gutter', u => Ed.enable(u, 'core.folding.gutter.enabled'))
@@ -196,6 +197,7 @@ function init
   Cmd.add('enable line numbers', u => Ed.enable(u, 'core.line.numbers.show'))
   Cmd.add('enable line wrap', u => Ed.enable(u, 'core.line.wrap.enabled'))
   Cmd.add('enable scroll past end', u => Ed.enable(u, 'core.scroll.pastEnd.enabled'))
+  Cmd.add('buffer enable comments continue', u => Ed.enableBuf(u, 'core.comments.continue'))
   Cmd.add('buffer enable cursor blink', u => Ed.enableBuf(u, 'core.cursor.blink.enabled'))
   Cmd.add('buffer enable folding', u => Ed.enableBuf(u, 'core.folding.enabled'))
   Cmd.add('buffer enable fold gutter', u => Ed.enableBuf(u, 'core.folding.gutter.enabled'))
@@ -218,6 +220,7 @@ function init
 export
 function free
 () {
+  Cmd.remove('enable comments continue')
   Cmd.remove('enable cursor blink')
   Cmd.remove('enable folding')
   Cmd.remove('enable fold gutter')
@@ -232,6 +235,7 @@ function free
   Cmd.remove('highlight syntax')
   Cmd.remove('highlight trailing whitespace')
   Cmd.remove('highlight whitespace')
+  Cmd.remove('buffer enable comments continue')
   Cmd.remove('buffer enable cursor blink')
   Cmd.remove('buffer enable folding')
   Cmd.remove('buffer enable fold gutter')

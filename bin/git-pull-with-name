@@ -15,6 +15,7 @@ fi
 if [ -z "$REMOTE" ]; then
   echo BRANCH: $BRANCH
   echo Failed to get remote
+  echo "  looked for" $(git symbolic-ref -q HEAD)
   exit 1
 fi
 

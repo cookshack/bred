@@ -854,7 +854,8 @@ function init
     })
   }
 
-  Cmd.add('branch main', () => {
+  function main
+  () {
     let view, range
 
     view = Pane.current().view
@@ -867,13 +868,10 @@ function init
       Ed.Backend.lineStart(view)
     else
       Mess.yell('Missing')
-  })
+  }
 
-  Cmd.add('branch update', () => {
-    git('git fetch --all --tags --prune')
-  })
-
-  Cmd.add('branch switch', () => {
+  function sw
+  () {
     let line
 
     line = Pane.current().line()
@@ -887,7 +885,12 @@ function init
       br = line.split('/').at(-1)
       git('git switch ' + br)
     }
-  })
+  }
+
+  function update
+  () {
+    git('git fetch --all --tags --prune')
+  }
 
   moB = Mode.add('branch', { viewInit: Ed.viewInit,
                              viewInitSpec: Ed.viewInitSpec,
@@ -895,13 +898,16 @@ function init
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })
 
+  Cmd.add('branch add', () => add(), moB)
+  Cmd.add('branch main', () => main(), moB)
+  Cmd.add('branch switch', () => sw(), moB)
+  Cmd.add('branch update', () => update(), moB)
+
   Em.on('+', 'branch add', moB)
   Em.on('m', 'branch main', moB)
   Em.on('u', 'branch update', moB)
   Em.on('s', 'branch switch', moB)
   Em.on('Enter', 'branch switch', moB)
-
-  Cmd.add('branch add', add, moB)
 
   initClrs()
   initAnnotate()

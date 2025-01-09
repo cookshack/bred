@@ -882,7 +882,17 @@ function init
     else {
       let br
 
-      br = line.split('/').at(-1)
+      br = line.trim()
+      if (br.startsWith('remotes/')) {
+        let i
+
+        br = br.slice('remotes/'.length)
+
+        // will fail if remote name contains slash
+        i = br.indexOf('/')
+        if (i >= 0)
+          br = br.slice(i + 1)
+      }
       git('git switch ' + br)
     }
   }

@@ -1680,6 +1680,10 @@ span.bred-search-match > span.bred-search-all > span {
   position: relative; /* for ::before */
 }
 
+div.cm-content.cm-lineWrapping {
+  word-break: break-all;
+}
+
 div.cm-line.cm-activeLine::after,
 .bred-bg::before {
   pointer-events: none;

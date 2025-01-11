@@ -1600,6 +1600,8 @@ div.bred-lint-marker:active {
 .bred-qr-replace,
 .bred-qr-with {
   cursor: text;
+  white-space: pre;
+  font-family: monospace;
   width: 100%;
   background: var(--clr-light);
   padding-left: 6px; /* match .cm-line left pad */

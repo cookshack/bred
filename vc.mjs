@@ -876,7 +876,7 @@ function init
 
     line = Pane.current().line()
     if (line.startsWith('*'))
-      Mess.say("That's the current branch")
+      Cmd.run('parent')
     else if (line.trim().length == 0)
       Mess.say('Empty line')
     else {

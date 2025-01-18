@@ -870,6 +870,22 @@ function init
       Mess.yell('Missing')
   }
 
+  function star
+  () {
+    let view, range
+
+    view = Pane.current().view
+    Ed.Backend.bufferStart()
+    range = Ed.vfind(view,
+                     '^\\*',
+                     0,
+                     { regExp: 1 })
+    if (range)
+      Ed.Backend.lineStart(view)
+    else
+      Mess.yell('Missing')
+  }
+
   function sw
   () {
     let line
@@ -910,10 +926,12 @@ function init
 
   Cmd.add('branch add', () => add(), moB)
   Cmd.add('branch main', () => main(), moB)
+  Cmd.add('branch *', () => star(), moB)
   Cmd.add('branch switch', () => sw(), moB)
   Cmd.add('branch update', () => update(), moB)
 
   Em.on('+', 'branch add', moB)
+  Em.on('*', 'branch *', moB)
   Em.on('m', 'branch main', moB)
   Em.on('u', 'branch update', moB)
   Em.on('s', 'branch switch', moB)

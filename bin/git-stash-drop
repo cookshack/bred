@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [ $# -eq 1 ]; then
+  echo git stash drop $1
+  git stash drop $1
+else
+  echo git stash drop
+  git stash drop
+fi
+
+echo done.

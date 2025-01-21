@@ -69,6 +69,23 @@ function initStash
     }
   })
 
+  Cmd.add('stash drop', () => {
+    let line
+
+    line = Pane.current().line()
+    if (line.trim().length == 0)
+      Mess.say('Empty line')
+    else {
+      let st
+
+      st = /[^@]+@{([^}]+)/.exec(line)[1]
+      if (st && st.length)
+        git(Loc.appDir().join('bin/git-stash-drop') + ' ' + st)
+      else
+        Mess.warn('Failed to extract stash num: ' + line)
+    }
+  })
+
   moS = Mode.add('stash', { viewInit: Ed.viewInit,
                             viewInitSpec: Ed.viewInitSpec,
                             viewCopy: Ed.viewCopy,
@@ -76,6 +93,7 @@ function initStash
                             parentsForEm: 'ed' })
 
   Em.on('a', 'stash apply', moS)
+  Em.on('d', 'stash drop', moS)
   Em.on('Enter', 'stash open', moS)
 }
 

@@ -2,20 +2,29 @@
 
 BRANCH=`git rev-parse --abbrev-ref HEAD | tr -d '\n'`
 export BRANCH
-
-REMOTE=`git for-each-ref --format='%(upstream:remotename)' "$(git symbolic-ref -q HEAD)"`
-export REMOTE
+echo BRANCH: $BRANCH
 
 if [ -z "$BRANCH" ]; then
-  echo REMOTE: $REMOTE
   echo Failed to get branch
   exit 1
 fi
 
+REMOTE=`git for-each-ref --format='%(upstream:remotename)' "$(git symbolic-ref -q HEAD)"`
+export REMOTE
+echo REMOTE: $REMOTE
+
 if [ -z "$REMOTE" ]; then
-  echo BRANCH: $BRANCH
   echo Failed to get remote
   echo "  looked for" $(git symbolic-ref -q HEAD)
+  echo
+  echo \#\# Remote branches
+  echo git branch -r \| grep $BRANCH
+  git branch -r | grep $BRANCH
+  echo \#\# Run this if missing
+  echo git fetch --all
+  echo
+  echo \#\# Probably need to track remote
+  echo git branch --set-upstream-to=origin/$BRANCH
   exit 1
 fi
 

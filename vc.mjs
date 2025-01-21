@@ -63,7 +63,7 @@ function initStash
 
       st = /[^@]+@{([^}]+)/.exec(line)[1]
       if (st && st.length)
-        git('git-stash-apply ' + st)
+        git(Loc.appDir().join('bin/git-stash-apply') + ' ' + st)
       else
         Mess.warn('Failed to extract stash num: ' + line)
     }
@@ -951,7 +951,7 @@ function init
   Cmd.add('vc reset', () => reset())
   Cmd.add('vc show', () => showHash())
   Cmd.add('vc stash', () => git('git stash'))
-  Cmd.add('vc stash apply', () => Shell.shell1('git-stash-apply', { end: 1 }))
+  Cmd.add('vc stash apply', () => git(Loc.appDir().join('bin/git-stash-apply')))
   Cmd.add('vc stash enumerate', () => git('git stash list', 'stash'))
   Cmd.add('vc stash pop', () => Shell.shell1('git-stash-pop', { end: 1 }))
   Cmd.add('vc status', () => Shell.shell1('git status', { end: 1 }))

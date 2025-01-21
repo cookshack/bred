@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if [ $# -eq 1 ]; then
+  echo git stash apply $1
+  git stash apply $1
+else
+  echo git stash apply
+  git stash apply
+fi
+
+# because git stash apply sometimes stages files
+echo git reset HEAD
+git reset HEAD
+
+echo done.

@@ -203,17 +203,6 @@ function onLoadInit
   }
 }
 
-function onLspReq
-(e, ch, onArgs) {
-  let [ method, id, params ] = onArgs
-
-  setTimeout(() => lsp.req({ method: method,
-                             ...(id ? { id: id } : {}),
-                             params: params }))
-
-  return {}
-}
-
 function onPaths
 (e) {
   let home, user, win, frame
@@ -369,7 +358,7 @@ async function onCmd
     return wrapOn(e, ch, [], onLoadInit)
 
   if (name == 'lsp.req')
-    return onLspReq(e, ch, args)
+    return lsp.onReq(e, ch, args)
 
   if (name == 'paths')
     return onPaths(e)

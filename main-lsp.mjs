@@ -10,6 +10,17 @@ function make
   let capabilities, valueSet
   let files, tsproc, encoder, decoder, bcl, crnlLen, codeCr, codeNl
 
+  function onReq
+  (e, ch, onArgs) {
+    let [ method, id, params ] = onArgs
+
+    setTimeout(() => lsp.req({ method: method,
+                               ...(id ? { id: id } : {}),
+                               params: params }))
+
+    return {}
+  }
+
   function dbg
   (msg) {
     if (0)
@@ -180,7 +191,8 @@ function make
                                                  contextSupport: true,
                                                  dynamicRegistration: false } } }
 
-  lsp = { open,
+  lsp = { onReq,
+          open,
           req }
 
   tsproc = fork(Path.join(import.meta.dirname,

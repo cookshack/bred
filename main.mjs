@@ -19,7 +19,7 @@ import Util from 'node:util'
 import { spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
-let version, options, stores, dirUserData, lsp, shell, lastClipWrite
+let version, options, stores, dirUserData, shell, lastClipWrite, _win
 
 function getStore
 (name) {
@@ -245,8 +245,7 @@ async function wrapOn
 (e, ch, onArgs, cb) {
   setTimeout(async () => {
     try {
-      await cb(e, ch, onArgs, { lsp: lsp,
-                                shell: shell })
+      await cb(e, ch, onArgs, { shell: shell })
     }
     catch (err) {
       try {
@@ -267,7 +266,7 @@ function quit
   }
   catch (err) {
     console.log(err.message)
-    lsp.win.webContents.send('thrown', makeErr(err))
+    _win.webContents.send('thrown', makeErr(err))
   }
 }
 
@@ -282,7 +281,7 @@ function relaunch
   }
   catch (err) {
     console.log(err.message)
-    lsp.win.webContents.send('thrown', makeErr(err))
+    _win.webContents.send('thrown', makeErr(err))
   }
 }
 
@@ -358,7 +357,7 @@ async function onCmd
     return wrapOn(e, ch, [], onLoadInit)
 
   if (name == 'lsp.req')
-    return lsp.onReq(e, ch, args)
+    return Lsp.onReq(e, ch, args)
 
   if (name == 'paths')
     return onPaths(e)
@@ -564,11 +563,12 @@ function createMainWindow
   if (options.backend == 'ace')
     html = 'bred-ace.html'
 
-  lsp.win = createWindow(html)
+  _win = createWindow(html)
+  Lsp.setWin(_win)
 
   process.on('uncaughtException', err => {
     console.log(err.message)
-    lsp.win.webContents.send('thrown', makeErr(err))
+    _win.webContents.send('thrown', makeErr(err))
   })
 }
 
@@ -622,7 +622,7 @@ function watchClip
         return
       //d('clip.new ' + text)
       last = text
-      lsp.win.webContents.send('clip.new', { text: text })
+      _win.webContents.send('clip.new', { text: text })
     }
   }
 
@@ -637,7 +637,7 @@ function checkDepsWin
 
   process.on('uncaughtException', err => {
     console.log(err.message)
-    lsp.win.webContents.send('thrown', makeErr(err))
+    _win.webContents.send('thrown', makeErr(err))
   })
 
   opts = { backgroundColor: '#fdf6e3', // --color-primary-light
@@ -769,7 +769,8 @@ function whenHaveDeps
 
   d(JSON.stringify(process.env, null, 2))
 
-  lsp = Lsp.make()
+  Lsp.make('c')
+  Lsp.make('javascript')
 
   stores = { frame: new Store({ name: 'frame', cwd: 'brood' }),
              poss: new Store({ name: 'poss', cwd: 'brood' }),

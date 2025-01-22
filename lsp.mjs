@@ -7,11 +7,11 @@ let id, cbs
 
 export
 function call
-(method, params, cb) {
+(lang, method, params, cb) {
   id = ++id
   if (cb)
     cbs[id] = cb
-  Tron.cmd1('lsp.req', [ method, id, params || {} ], err => {
+  Tron.cmd1('lsp.req', [ lang, method, id, params || {} ], err => {
     if (err) {
       Mess.yell('lsp.req: ', err.message)
       delete cbs[id]
@@ -77,10 +77,13 @@ function kindName
 
 export
 function complete
-(file, // absolute
+(lang,
+ file, // absolute
  word, // { view, from, to, text }
  cb) { // (words)
-  call('textDocument/completion',
+  //d('LSP complete')
+  call(lang,
+       'textDocument/completion',
        { textDocument: { uri: 'file://' + file },
          // 0 based
          position: { line: Ed.bepRow(word.view, word.to),
@@ -88,6 +91,9 @@ function complete
          context: { triggerKind: 1 } },
        response => {
          let words
+
+         if (response.error)
+           console.warn('LSP complete: ' + response.error.message)
 
          //d({ response })
          words = []

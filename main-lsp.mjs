@@ -1,29 +1,53 @@
 import { d, log } from './main-log.mjs'
-import { fork } from 'node:child_process'
+import { fork, spawn } from 'node:child_process'
 import Path from 'node:path'
+
+let lsps, win
+
+export
+function setWin
+(w) {
+  win = w
+}
+
+export
+function onReq
+(e, ch, onArgs) {
+  let [ lang, method, id, params ] = onArgs
+  let lsp
+
+  d('LSP onReq ' + lang)
+
+  lsp = lsps[lang]
+  if (lsp)
+    setTimeout(() => lsp.req({ method: method,
+                               ...(id ? { id: id } : {}),
+                               params: params }))
+
+  return {}
+}
+
+export
+function open
+(lang, path, data) {
+  let lsp
+
+  lsp = lsps[lang]
+  if (lsp)
+    lsp.open(path, lang, data)
+}
 
 export
 function make
-() {
+(lang) {
   let lsp, initialized, buffer // u8
   let clen // in bytes
   let capabilities, valueSet
   let files, tsproc, encoder, decoder, bcl, crnlLen, codeCr, codeNl
 
-  function onReq
-  (e, ch, onArgs) {
-    let [ method, id, params ] = onArgs
-
-    setTimeout(() => lsp.req({ method: method,
-                               ...(id ? { id: id } : {}),
-                               params: params }))
-
-    return {}
-  }
-
   function dbg
   (msg) {
-    if (0)
+    if (1)
       log(msg)
   }
 
@@ -105,28 +129,28 @@ function make
 
   function parse
   () {
-    dbg('PARSE')
+    dbg('LSP PARSE')
     while (1) {
       if (bstartsWith(buffer, bcl)) {
         let crI
 
         // Content-Length: ...\r\n
-        dbg('STARTSWITH: cl')
+        dbg('LSP STARTSWITH: cl')
         crI = buffer.indexOf(codeCr)
         if (crI > 0) {
           let nlI
 
-          dbg('FOUND: cr')
+          dbg('LSP FOUND: cr')
           nlI = buffer.indexOf(codeNl)
           if (nlI == crI + 1) {
             let bnum
 
-            dbg('FOUND: nl')
+            dbg('LSP FOUND: nl')
             bnum = buffer.slice(bcl.length, crI)
             //d(sl)
             if (bnum.length) {
               clen = parseInt(decoder.decode(bnum))
-              dbg('CLEN: ' + clen + ' bytes')
+              dbg('LSP CLEN: ' + clen + ' bytes')
               buffer = buffer.slice(nlI + 1)
             }
           }
@@ -139,7 +163,7 @@ function make
         // empty line between Content-Length: and content.
         buffer = buffer.slice(crnlLen)
         if (0)
-          dbg('BETWEEN: ' + buffer)
+          dbg('LSP BETWEEN: ' + buffer)
       }
 
       if (clen && buffer.length && (buffer.length >= clen)) {
@@ -155,7 +179,7 @@ function make
         catch (err) {
           console.error('JSON.parse: ' + err.message)
         }
-        dbg('RESPONSE:')
+        dbg('LSP RESPONSE:')
         //d('  id: ' + json.id)
         // if id call any handler
         dbg(JSON.stringify(json, null, 2))
@@ -164,13 +188,13 @@ function make
             console.error('LSP: initialize FAILED: ' + json.error.message)
             return
           }
-          dbg('INITIALIZED')
+          dbg('LSP INITIALIZED')
           initialized = 1
         }
-        else if (lsp.win)
-          lsp.win.webContents.send('lsp', { response: json })
+        else if (win)
+          win.webContents.send('lsp', { response: json })
         else
-          console.error('MISSING: lsp.win')
+          console.error('LSP MISSING: win')
         buffer = buffer.slice(clen)
         clen = undefined
       }
@@ -194,29 +218,39 @@ function make
   lsp = { onReq,
           open,
           req }
+  lsps = lsps || []
+  lsps[lang] = lsp
 
-  tsproc = fork(Path.join(import.meta.dirname,
-                          'lib/typescript-language-server/lib/cli.mjs'),
-                [ '--stdio', '--log-level', '4' ],
-                { cwd: import.meta.dirname,
-                  stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ] })
+  if (lang == 'javascript')
+    tsproc = fork(Path.join(import.meta.dirname,
+                            'lib/typescript-language-server/lib/cli.mjs'),
+                  [ '--stdio', '--log-level', '4' ],
+                  { cwd: import.meta.dirname,
+                    stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ] })
+  else if (lang == 'c')
+    tsproc = spawn('clangd',
+                   [ '--log', 'verbose' ],
+                   { cwd: import.meta.dirname,
+                     stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ] })
+  else
+    throw new Error('Missing LSP support for lang: ' + lang)
 
-  tsproc.on('exit', code => log('EXIT ' + code))
-  tsproc.on('error', code => log('ERROR ' + code))
+  tsproc.on('exit', code => log('LSP EXIT ' + code))
+  tsproc.on('error', code => log('LSP ERROR ' + code))
   tsproc.stdout && tsproc.stdout.setEncoding('utf-8')
 
   tsproc.stdout.on('data',
                    data => {
-                     dbg('DATA: [' + data + ']')
+                     dbg('LSP DATA: [' + data + ']')
                      buffer = bconcat(buffer, encoder.encode(data))
-                     dbg('BUFFER: [' + decoder.decode(buffer) + ']')
+                     dbg('LSP BUFFER: [' + decoder.decode(buffer) + ']')
 
                      parse()
                    })
 
   tsproc.stderr.on('data',
                    data => {
-                     log('STDERR: ')
+                     log('LSP STDERR: ')
                      process.stderr.write(data)
                    })
 

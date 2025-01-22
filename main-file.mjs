@@ -1,6 +1,7 @@
 import { log } from './main-log.mjs'
 import { errMsg, makeErr } from './main-err.mjs'
 import Fs from 'node:fs'
+import * as Lsp from './main-lsp.mjs'
 import Path from 'node:path'
 import * as U from './util.mjs'
 
@@ -74,7 +75,7 @@ function onExists
 
 export
 function onGet
-(e, ch, onArgs, ctx) {
+(e, ch, onArgs) {
   let path
 
   path = onArgs
@@ -84,7 +85,7 @@ function onGet
     if (err)
       e.sender.send(ch, { err: err })
     else {
-      ctx.lsp.open(path, 'javascript', data)
+      Lsp.open('javascript', path, data)
       e.sender.send(ch, { data: data,
                           stat: Fs.statSync(path, { throwIfNoEntry: false }),
                           realpath: Fs.realpathSync(path) })

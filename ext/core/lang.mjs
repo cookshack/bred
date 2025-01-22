@@ -13,13 +13,13 @@ let brexts, part
 
 function makeAutocomplete
 (view) {
-  let autocomplete
+  let autocomplete, lang
 
   function autocompleteTags
   (context) {
     let word, options, p
 
-    d('ac')
+    d('AC tags')
 
     word = context.matchBefore(/\w*/)
     if (context.explicit ? 0 : (word.from == word.to))
@@ -43,10 +43,10 @@ function makeAutocomplete
   }
 
   function autocompleteLsp
-  (context) {
+  (lang, context) {
     let word, options, p
 
-    d('ac')
+    d('AC lsp')
 
     word = context.matchBefore(/\w*/)
     if (context.explicit ? 0 : (word.from == word.to))
@@ -58,19 +58,20 @@ function makeAutocomplete
     word.view = p.view
 
     return new Promise(resolve => {
-      Lsp.complete(p.buf.path, word, words => {
+      Lsp.complete(lang, p.buf.path, word, words => {
         d({ words })
         if (words.length)
           options = words.map(w => {
             return { label: w.name, type: w.kind }
           })
-        else if (0) {
-          for (let count = 0, i = 0; i < Ed.ctags.length; i++)
-            if (Ed.ctags[i].name.startsWith(word.text)) {
-              options.push({ label: Ed.ctags[i].name, type: Ed.ctags[i].kind })
-              if (count++ > 10)
-                break
-            }
+        else {
+          if (0)
+            for (let count = 0, i = 0; i < Ed.ctags.length; i++)
+              if (Ed.ctags[i].name.startsWith(word.text)) {
+                options.push({ label: Ed.ctags[i].name, type: Ed.ctags[i].kind })
+                if (count++ > 10)
+                  break
+              }
           if (0)
             options = [ { label: 'match', type: 'keyword' },
                         { label: 'hello', type: 'variable', info: '(World)' },
@@ -83,13 +84,18 @@ function makeAutocomplete
   }
 
   0 && (autocomplete = autocompleteTags)
-  if ([ 'javascript', 'typescript' ].includes(view.wode.language?.language?.name))
-    autocomplete = autocompleteLsp
+  lang = view.buf.opt('core.lang')
+  if ([ 'javascript', 'typescript' ].includes(lang))
+    autocomplete = ctx => autocompleteLsp('javascript', ctx)
+  if ([ 'c' ].includes(lang))
+    autocomplete = ctx => autocompleteLsp('c', ctx)
 
-  return CMAuto.autocompletion({ activateOnTyping: false, // would be overridden by bred handlers anyway
-                                 ...(autocomplete ? { override: [ autocomplete ] } : {}),
-                                 closeOnBlur: false,
-                                 defaultKeymap: false })
+  if (autocomplete)
+    return CMAuto.autocompletion({ activateOnTyping: false, // would be overridden by bred handlers anyway
+                                   ...(autocomplete ? { override: [ autocomplete ] } : {}),
+                                   closeOnBlur: false,
+                                   defaultKeymap: false })
+  return []
 }
 
 function makeLang

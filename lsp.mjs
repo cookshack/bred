@@ -1,7 +1,7 @@
 import * as Ed from './ed.mjs'
 import * as Mess from './mess.mjs'
 import * as Tron from './tron.mjs'
-import { d, log } from './mess.mjs'
+import { d } from './mess.mjs'
 
 let id, cbs
 
@@ -140,15 +140,17 @@ function init
   Tron.on('lsp', (err, data) => {
     d('LSP')
     if (data.log)
-      log(data.log)
+      Mess.log(data.log)
     if (data.response) {
       if (data.response.id === '1')
         // initialize
         return
       if (data.response.id)
         handleReqResponse(data.response)
-      else
-        Mess.log(JSON.stringify(data.response, null, 1))
+      else {
+        data.response.BRED = 'Random message from LSP'
+        Mess.log(data.response)
+      }
     }
   })
 }

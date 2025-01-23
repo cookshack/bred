@@ -82,6 +82,14 @@ function complete
  word, // { view, from, to, text }
  cb) { // (words)
   //d('LSP complete')
+
+  function clean
+  (name) {
+    // clangd prefixes with bullet or space, for some reason.
+    if (name.startsWith('•'))
+      name = name.slice(1)
+    return name.trim()
+  }
   call(lang,
        'textDocument/completion',
        { textDocument: { uri: 'file://' + file },
@@ -102,7 +110,7 @@ function complete
              let item
 
              item = response.result.items[i]
-             words.push({ name: item.label, kind: kindName(item.kind) })
+             words.push({ name: clean(item.label), kind: kindName(item.kind) })
            }
          cb(words)
        })

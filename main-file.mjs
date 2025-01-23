@@ -86,6 +86,7 @@ function onGet
       e.sender.send(ch, { err: err })
     else {
       Lsp.open('javascript', path, data)
+      Lsp.open('c', path, data)
       e.sender.send(ch, { data: data,
                           stat: Fs.statSync(path, { throwIfNoEntry: false }),
                           realpath: Fs.realpathSync(path) })

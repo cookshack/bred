@@ -1,7 +1,7 @@
 import * as Ed from './ed.mjs'
 import * as Mess from './mess.mjs'
 import * as Tron from './tron.mjs'
-import { d } from './mess.mjs'
+import { d, log } from './mess.mjs'
 
 let id, cbs
 
@@ -139,6 +139,8 @@ function init
 
   Tron.on('lsp', (err, data) => {
     d('LSP')
+    if (data.log)
+      log(data.log)
     if (data.response) {
       if (data.response.id === '1')
         // initialize

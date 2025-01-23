@@ -116,6 +116,8 @@ function make
     if (initialized) {
       if (files.includes(file))
         return
+      if (win)
+        win.webContents.send('lsp', { log: 'MAIN LSP ' + lang + ': opening ' + file })
       req({ method: 'textDocument/didOpen',
             params: { textDocument: { uri: 'file://' + file,
                                       // ids listed under interface here
@@ -215,8 +217,7 @@ function make
                                                  contextSupport: true,
                                                  dynamicRegistration: false } } }
 
-  lsp = { onReq,
-          open,
+  lsp = { open,
           req }
   lsps = lsps || []
   lsps[lang] = lsp

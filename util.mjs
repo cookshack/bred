@@ -17,7 +17,7 @@ function stripFilePrefix
   let file
 
   file = 'file://'
-  if (path.startsWith(file))
+  if (path?.startsWith(file))
     return path.slice(file.length)
   return path
 }

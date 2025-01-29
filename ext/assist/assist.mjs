@@ -3,8 +3,10 @@ import { append, div, divCl } from '../../dom.mjs'
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
 import * as Ed from '../../ed.mjs'
+import * as Loc from '../../loc.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
+import * as U from '../../util.mjs'
 //import { d } from '../../mess.mjs'
 
 let onCursor
@@ -48,7 +50,16 @@ function init
       el = v.ele.querySelector('.assist-callers')
       el.innerHTML = ''
       results.callers?.forEach(clr => {
-        append(el, div(clr.from.uri))
+        let home, path
+
+        path = U.stripFilePrefix(clr.from.uri)
+        home = Loc.home()
+        if (path.startsWith(home))
+          path = ':' + path.slice(home.length)
+
+        append(el, divCl('assist-caller',
+                         [ div(clr.from.name),
+                           div(path) ]))
       })
     })
   }

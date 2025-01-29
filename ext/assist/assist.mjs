@@ -1,0 +1,55 @@
+import * as Buf from '../../buf.mjs'
+import * as Cmd from '../../cmd.mjs'
+import * as Ed from '../../ed.mjs'
+import * as Pane from '../../pane.mjs'
+import * as Tab from '../../tab.mjs'
+import { d } from '../../mess.mjs'
+
+export
+function make
+(p, dir, name, cb) { // (view)
+  Ed.make(p,
+          { name: name,
+            dir: dir },
+          cb)
+}
+
+export
+function init
+() {
+  function assist
+  () {
+    let found, p, callerBuf, txt, name, tab
+
+    function fill
+    (view) {
+      d('fill')
+      view.buf.clear()
+      view.insert(txt + (txt.length ? '\n' : ''))
+      view.buf.modified = 0
+      view.buf.addMode('view')
+      Cmd.run('buffer start')
+      Ed.setIcon(view.buf, '.edMl-mod', 'blank')
+    }
+
+    tab = Tab.current()
+    p = Pane.current(tab.frame1)
+    callerBuf = p.buf
+    p = Pane.current()
+    txt = callerBuf.syntaxTreeStr || ''
+    name = callerBuf.file + '.leztree'
+    found = Buf.find(b => (b.mode.name == 'lezer tree') && (b.name == name))
+    if (found)
+      p.setBuf(found, {}, view => fill(view))
+    else
+      make(p, callerBuf.dir, name, view => fill(view))
+  }
+
+  Cmd.add('assist', () => assist())
+}
+
+export
+function free
+() {
+  Cmd.remove('assist')
+}

@@ -30,38 +30,44 @@ function divW
 export
 function init
 () {
-  function update
-  (view) {
-    let callers
+  function refresh
+  (v, // assist
+   view) { // target
+    let lang, off, tok, callers
 
     callers = view.callers
+
+    lang = v.ele.querySelector('.assist-lang')
+    lang.innerText = view.buf.opt('core.lang')
+
+    off = v.ele.querySelector('.assist-offset')
+    off.innerText = view.offset
+
+    tok = v.ele.querySelector('.assist-tok')
+    tok.innerText = callers?.node?.name
+  }
+
+  function update
+  (view) {
     Buf.forEach(b => {
       if (b.mode.key == 'assist')
-        b.views.forEach(v => {
-          let off, tok
-
-          off = v.ele.querySelector('.assist-offset')
-          off.innerText = view.offset
-
-          tok = v.ele.querySelector('.assist-tok')
-          tok.innerText = callers?.node?.name
-        })
+        b.views.forEach(v => refresh(v, view))
     })
   }
 
   function viewInit
   (view) {
-    let p, body, callers
+    let p, body
 
     body = view.ele.querySelector('.assist-main-body')
     p = view.win.frame1.pane
 
-    callers = p.view.callers
-
     append(body,
-           div('Lang'), div(p.buf.opt('core.lang')),
-           div('Offset'), divCl('assist-offset', p.view.offset),
-           div('Token'), divCl('assist-tok', callers?.node?.name))
+           div('Lang'), divCl('assist-lang'),
+           div('Offset'), divCl('assist-offset'),
+           div('Token'), divCl('assist-tok'))
+
+    refresh(view, p.view)
   }
 
   function assist

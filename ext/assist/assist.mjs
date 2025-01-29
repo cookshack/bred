@@ -7,6 +7,8 @@ import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 //import { d } from '../../mess.mjs'
 
+let onCursor
+
 export
 function make
 (p, dir, name, cb) { // (view)
@@ -64,7 +66,7 @@ function init
     p.setBuf(found)
   }
 
-  Ed.onCursor((be, view) => update(view))
+  onCursor = Ed.onCursor((be, view) => update(view))
 
   Mode.add('Assist', { viewInit: viewInit,
                        icon: { name: 'help' } })
@@ -76,4 +78,5 @@ export
 function free
 () {
   Mode.remove('Assist')
+  onCursor.free()
 }

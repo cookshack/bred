@@ -16,6 +16,7 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as theme from './theme-solarized.js'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
 import { wordChars } from './lib/unicode.mjs'
@@ -33,9 +34,9 @@ export let emRevert
 export let backend
 export let ctags
 
-let bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe
+let bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe, onCursors
 
-export { bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe }
+export { bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe, onCursors }
 
 mimeByExt = mbe
 
@@ -1189,6 +1190,7 @@ function init
   d('set backend')
 
   ctags = []
+  onCursors = []
 
   // these two from ace
   tokenRe = new RegExp('[' + wordChars + '\\$_]+', 'g')
@@ -1421,4 +1423,20 @@ export
 function fill
 (view, col) {
   return Backend.fill && Backend.fill(view, col)
+}
+
+export
+function onCursor
+(cb) {
+  let oc
+
+  function free
+  () {
+    U.arrRm1(onCursors, o => o.cb == cb)
+  }
+
+  oc = { cb, free }
+
+  onCursors.push(oc)
+  return oc
 }

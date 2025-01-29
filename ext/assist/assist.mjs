@@ -28,6 +28,19 @@ function divW
 export
 function init
 () {
+  function update
+  (view) {
+    Buf.forEach(b => {
+      if (b.mode.key == 'assist')
+        b.views.forEach(v => {
+          let off
+
+          off = v.ele.querySelector('.assist-offset')
+          off.innerText = view.offset
+        })
+    })
+  }
+
   function viewInit
   (view) {
     let p, body
@@ -37,7 +50,7 @@ function init
 
     append(body,
            div('Lang'), div(p.buf.opt('core.lang')),
-           div('Offset'), div(p.view.offset))
+           div('Offset'), divCl('assist-offset', p.view.offset))
   }
 
   function assist
@@ -50,6 +63,8 @@ function init
     found = found || Buf.add('Assist', 'Assist', divW(), p.dir)
     p.setBuf(found)
   }
+
+  Ed.onCursor((be, view) => update(view))
 
   Mode.add('Assist', { viewInit: viewInit,
                        icon: { name: 'help' } })

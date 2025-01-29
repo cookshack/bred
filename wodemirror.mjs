@@ -773,6 +773,8 @@ function _viewInit
         if ((from >= line.from) && (to <= line.to))
           diagnose(p?.win, diag)
       })
+
+      Ed.onCursors.forEach(oc => oc.cb && oc.cb('cm', view, update))
     }
 
     if (update.docChanged) {

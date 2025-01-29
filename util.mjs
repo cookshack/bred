@@ -1,6 +1,17 @@
 // node or browser
 
 export
+function arrRm1
+(arr, pred) { // (cb)
+  let i
+
+  i = arr.findIndex(pred)
+  if (i < 0)
+    return
+  arr.splice(i, 1)
+}
+
+export
 function stripFilePrefix
 (path) {
   let file

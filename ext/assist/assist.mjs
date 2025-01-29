@@ -95,6 +95,14 @@ function init
                        icon: { name: 'help' } })
 
   Cmd.add('assist', () => assist())
+
+  Cmd.add('update', () => {
+    let p
+
+    p = Pane.current().view.win.frame1.pane
+
+    update(p.view)
+  })
 }
 
 export

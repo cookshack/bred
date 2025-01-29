@@ -1750,6 +1750,16 @@ function vregion
 export
 function initModeFns
 (mo) {
+  function callers
+  (view) {
+    let state
+
+    state = view.ed.state
+    if (state)
+      return { node: CMLang.syntaxTree(state).resolveInner(vgetBep(view)) }
+    return { err: 'Missing state' }
+  }
+
   function clear
   (b) {
     let view
@@ -1833,6 +1843,7 @@ function initModeFns
     return 'ERR'
   }
 
+  mo.callers = callers
   mo.clear = clear
   mo.clearLine = clearLine
   mo.gotoLine = vgotoLine

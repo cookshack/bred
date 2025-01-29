@@ -45,14 +45,17 @@ function init
 
   function viewInit
   (view) {
-    let p, body
+    let p, body, callers
 
     body = view.ele.querySelector('.assist-main-body')
     p = view.win.frame1.pane
 
+    callers = p.view.callers
+
     append(body,
            div('Lang'), div(p.buf.opt('core.lang')),
-           div('Offset'), divCl('assist-offset', p.view.offset))
+           div('Offset'), divCl('assist-offset', p.view.offset),
+           div('Token'), divCl('assist-tok', callers?.node?.name))
   }
 
   function assist

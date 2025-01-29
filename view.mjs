@@ -128,6 +128,14 @@ function make
     return 0
   }
 
+  function getCallers
+  () {
+    // quietly else recurses
+    if (b.mode?.key && b.mode?.callers)
+      return b.mode.callers(v)
+    return 0
+  }
+
   function getOff
   () {
     if (b.mode?.key)
@@ -335,6 +343,9 @@ function make
         },
         set bep(bep) {
           return setBep(bep)
+        },
+        get callers() {
+          return getCallers()
         },
         get offset() {
           return getOff()

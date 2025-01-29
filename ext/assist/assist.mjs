@@ -1,11 +1,10 @@
-import { div, divCl } from '../../dom.mjs'
+import { append, div, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
 import * as Ed from '../../ed.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
-import * as Tab from '../../tab.mjs'
 //import { d } from '../../mess.mjs'
 
 export
@@ -18,37 +17,41 @@ function make
 }
 
 function divW
-(callerBuf) {
+() {
   return divCl('assist-ww',
                [ divCl('assist-w',
                        [ divCl('assist-main',
                                [ divCl('assist-main-h'),
-                                 divCl('assist-main-body',
-                                       [ div('Lang'), div(callerBuf.opt('core.lang')) ]) ]) ]) ])
+                                 divCl('assist-main-body') ]) ]) ])
 }
 
 export
 function init
 () {
-  function refresh
-  () {
+  function viewInit
+  (view) {
+    let p, body
+
+    body = view.ele.querySelector('.assist-main-body')
+    p = view.win.frame1.pane
+
+    append(body,
+           div('Lang'), div(p.buf.opt('core.lang')),
+           div('Offset'), div(p.view.offset))
   }
 
   function assist
   () {
-    let found, p, callerBuf, tab
+    let found, p
 
-    tab = Tab.current()
-    p = Pane.current(tab.frame1)
-    callerBuf = p.buf
     p = Pane.current()
 
-    found = Buf.find(b => (b.mode.name == 'Assist'))
-    found = found || Buf.add('Assist', 'Assist', divW(callerBuf), p.dir)
+    found = Buf.find(b => (b.mode.key == 'assist'))
+    found = found || Buf.add('Assist', 'Assist', divW(), p.dir)
     p.setBuf(found)
   }
 
-  Mode.add('Assist', { viewInit: refresh,
+  Mode.add('Assist', { viewInit: viewInit,
                        icon: { name: 'help' } })
 
   Cmd.add('assist', () => assist())

@@ -32,13 +32,19 @@ function init
 () {
   function update
   (view) {
+    let callers
+
+    callers = view.callers
     Buf.forEach(b => {
       if (b.mode.key == 'assist')
         b.views.forEach(v => {
-          let off
+          let off, tok
 
           off = v.ele.querySelector('.assist-offset')
           off.innerText = view.offset
+
+          tok = v.ele.querySelector('.assist-tok')
+          tok.innerText = callers?.node?.name
         })
     })
   }

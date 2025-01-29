@@ -45,7 +45,7 @@ function callers
              console.warn('LSP callers prep: ' + response.error.message)
 
            d({ response })
-           if (response?.result.length) {
+           if (response?.result?.length) {
              let result
 
              result = response?.result[0]

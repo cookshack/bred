@@ -1,9 +1,12 @@
+import { divCl } from '../../dom.mjs'
+
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
 import * as Ed from '../../ed.mjs'
+import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 import * as Tab from '../../tab.mjs'
-import { d } from '../../mess.mjs'
+//import { d } from '../../mess.mjs'
 
 export
 function make
@@ -14,23 +17,26 @@ function make
           cb)
 }
 
+function divW
+(txt) {
+  return divCl('assist-ww',
+               [ divCl('assist-w',
+                       [ divCl('assist-main',
+                               [ divCl('assist-main-h',
+                                       [ txt ]),
+                                 divCl('assist-main-body') ]) ]) ])
+}
+
 export
 function init
 () {
+  function refresh
+  () {
+  }
+
   function assist
   () {
     let found, p, callerBuf, txt, name, tab
-
-    function fill
-    (view) {
-      d('fill')
-      view.buf.clear()
-      view.insert(txt + (txt.length ? '\n' : ''))
-      view.buf.modified = 0
-      view.buf.addMode('view')
-      Cmd.run('buffer start')
-      Ed.setIcon(view.buf, '.edMl-mod', 'blank')
-    }
 
     tab = Tab.current()
     p = Pane.current(tab.frame1)
@@ -38,12 +44,14 @@ function init
     p = Pane.current()
     txt = callerBuf.syntaxTreeStr || ''
     name = callerBuf.file + '.leztree'
+
     found = Buf.find(b => (b.mode.name == 'lezer tree') && (b.name == name))
-    if (found)
-      p.setBuf(found, {}, view => fill(view))
-    else
-      make(p, callerBuf.dir, name, view => fill(view))
+    found = found || Buf.add('Assist', 'Assist', divW(txt), p.dir)
+    p.setBuf(found)
   }
+
+  Mode.add('Assist', { viewInit: refresh,
+                       icon: { name: 'help' } })
 
   Cmd.add('assist', () => assist())
 }
@@ -51,5 +59,5 @@ function init
 export
 function free
 () {
-  Cmd.remove('assist')
+  Mode.remove('Assist')
 }

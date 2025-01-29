@@ -33,7 +33,7 @@ function init
   function refresh
   (v, // assist
    view) { // target
-    let lang, off, tok, callers
+    let lang, off, tok, callers, el
 
     callers = view.callers
 
@@ -45,6 +45,12 @@ function init
 
     tok = v.ele.querySelector('.assist-tok')
     tok.innerText = callers?.node?.name
+
+    el = v.ele.querySelector('.assist-callers')
+    el.innerHTML = ''
+    callers.callers?.forEach(clr => {
+      append(el, div(clr.path))
+    })
   }
 
   function update
@@ -65,7 +71,9 @@ function init
     append(body,
            div('Lang'), divCl('assist-lang'),
            div('Offset'), divCl('assist-offset'),
-           div('Token'), divCl('assist-tok'))
+           div('Token'), divCl('assist-tok'),
+           divCl('assist-callers-h', 'Callers'),
+           divCl('assist-callers'))
 
     refresh(view, p.view)
   }

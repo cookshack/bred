@@ -1756,7 +1756,13 @@ function initModeFns
 
     state = view.ed.state
     if (state)
-      return { node: CMLang.syntaxTree(state).resolveInner(vgetBep(view)) }
+      return { node: CMLang.syntaxTree(state).resolveInner(vgetBep(view)),
+               callers: [ { path: 'eg',
+                            line: 3,
+                            col: 4 },
+                          { path: 'eg2',
+                            line: 3,
+                            col: 4 } ] }
     return { err: 'Missing state' }
   }
 

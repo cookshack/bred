@@ -1,4 +1,4 @@
-import { divCl } from '../../dom.mjs'
+import { div, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
@@ -18,13 +18,13 @@ function make
 }
 
 function divW
-(txt) {
+(callerBuf) {
   return divCl('assist-ww',
                [ divCl('assist-w',
                        [ divCl('assist-main',
-                               [ divCl('assist-main-h',
-                                       [ txt ]),
-                                 divCl('assist-main-body') ]) ]) ])
+                               [ divCl('assist-main-h'),
+                                 divCl('assist-main-body',
+                                       [ div('Lang'), div(callerBuf.opt('core.lang')) ]) ]) ]) ])
 }
 
 export
@@ -36,17 +36,15 @@ function init
 
   function assist
   () {
-    let found, p, callerBuf, txt, name, tab
+    let found, p, callerBuf, tab
 
     tab = Tab.current()
     p = Pane.current(tab.frame1)
     callerBuf = p.buf
     p = Pane.current()
-    txt = callerBuf.syntaxTreeStr || ''
-    name = callerBuf.file + '.leztree'
 
-    found = Buf.find(b => (b.mode.name == 'lezer tree') && (b.name == name))
-    found = found || Buf.add('Assist', 'Assist', divW(txt), p.dir)
+    found = Buf.find(b => (b.mode.name == 'Assist'))
+    found = found || Buf.add('Assist', 'Assist', divW(callerBuf), p.dir)
     p.setBuf(found)
   }
 

@@ -50,16 +50,21 @@ function init
       el = v.ele.querySelector('.assist-callers')
       el.innerHTML = ''
       results.callers?.forEach(clr => {
-        let home, path
+        let home, line, path
 
         path = U.stripFilePrefix(clr.from.uri)
         home = Loc.home()
         if (path.startsWith(home))
           path = ':' + path.slice(home.length)
 
+        line = parseInt(clr.from.range.start.line) + 1
+
         append(el, divCl('assist-caller',
-                         [ div(clr.from.name),
-                           div(path) ]))
+                         [ div(clr.from.name,
+                               { 'data-run': 'open link',
+                                 'data-path': clr.from.uri,
+                                 'data-line': line }),
+                           div(path + ' ' + line) ]))
       })
     })
   }

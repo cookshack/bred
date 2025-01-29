@@ -383,8 +383,10 @@ function initCssRules
     b.icon = 'css'
     b.addMode('view')
 
-    if (far)
+    if (far) {
+      Css.expand(tab.framesRight[1]?.el)
       p = Pane.current(tab.framesRight[1] || tab.frameRight)
+    }
     else
       p = Pane.current(tab.frameRight)
     p.setBuf(b)

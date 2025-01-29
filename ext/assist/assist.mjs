@@ -2,11 +2,14 @@ import { append, div, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
+import * as Css from '../../css.mjs'
 import * as Ed from '../../ed.mjs'
 import * as Loc from '../../loc.mjs'
+import * as Mess from '../../mess.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 import * as U from '../../util.mjs'
+import * as Win from '../../win.mjs'
 //import { d } from '../../mess.mjs'
 
 let onCursor
@@ -96,12 +99,14 @@ function init
 
   function assist
   () {
-    let found, p
+    let found, p, tab
 
-    p = Pane.current()
+    tab = Win.current().frame1.tab || Mess.throw('Tab missing')
+    Css.retract(tab.framesRight[1]?.el)
+    p = Pane.current(tab.frameRight)
 
     found = Buf.find(b => (b.mode.key == 'assist'))
-    found = found || Buf.add('Assist', 'Assist', divW(), p.dir)
+    found = found || Buf.add('Assist', 'Assist', divW(), Pane.current().dir)
     p.setBuf(found)
   }
 

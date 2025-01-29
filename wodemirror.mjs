@@ -8,6 +8,7 @@ import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
+import * as Lsp from './lsp.mjs'
 import * as Mess from './mess.mjs'
 import Mk from './mk.mjs'
 import * as Mode from './mode.mjs'
@@ -1750,19 +1751,24 @@ function vregion
 export
 function initModeFns
 (mo) {
-  function callers
-  (view) {
+  function getCallers
+  (view, cb) { // ({ node, callers })
     let state
 
     state = view.ed.state
-    if (state)
-      return { node: CMLang.syntaxTree(state).resolveInner(vgetBep(view)),
-               callers: [ { path: 'eg',
-                            line: 3,
-                            col: 4 },
-                          { path: 'eg2',
-                            line: 3,
-                            col: 4 } ] }
+    if (state) {
+      let node, word
+
+      node = CMLang.syntaxTree(state).resolveInner(vgetBep(view))
+
+      word = view.pos
+      word.view = view
+      Lsp.callers(view.buf.opt('core.lang'), view.buf.path, word, results => {
+        cb({ node: node,
+             callers: results })
+      })
+      return
+    }
     return { err: 'Missing state' }
   }
 
@@ -1849,7 +1855,6 @@ function initModeFns
     return 'ERR'
   }
 
-  mo.callers = callers
   mo.clear = clear
   mo.clearLine = clearLine
   mo.gotoLine = vgotoLine
@@ -1859,6 +1864,7 @@ function initModeFns
   mo.lineAt = lineAt
   mo.lineStart = lineStart
   mo.excur = excur
+  mo.getCallers = getCallers
   mo.goXY = vgoXY
   mo.makePsn = makePsn
   mo.off = off

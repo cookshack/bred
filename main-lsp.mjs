@@ -47,7 +47,7 @@ function make
 
   function dbg
   (msg) {
-    if (1)
+    if (0)
       log(msg)
   }
 
@@ -190,7 +190,8 @@ function make
             console.error('LSP: initialize FAILED: ' + json.error.message)
             return
           }
-          dbg('LSP INITIALIZED')
+          d('LSP INITIALIZED')
+          d(JSON.stringify(json))
           initialized = 1
         }
         else if (win)

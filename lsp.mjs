@@ -20,6 +20,51 @@ function call
   })
 }
 
+function avail
+(lang) {
+  return [ 'javascript', 'typescript', 'c' ].includes(lang)
+}
+
+export
+function callers
+(lang,
+ file, // absolute
+ word, // { view, from, to, text }
+ cb) { // (results)
+  d('LSP callers')
+
+  if (avail(lang))
+    call(lang,
+         'textDocument/prepareCallHierarchy',
+         { textDocument: { uri: 'file://' + file },
+           // 0 based
+           position: { line: word.row,
+                       character: word.col } },
+         response => {
+           if (response.error)
+             console.warn('LSP callers prep: ' + response.error.message)
+
+           d({ response })
+           if (response?.result.length) {
+             let result
+
+             result = response?.result[0]
+             call(lang,
+                  'callHierarchy/incomingCalls',
+                  { item: result },
+                  r2 => {
+                    if (r2.error)
+                      console.warn('LSP callers incoming: ' + r2.error.message)
+
+                    d({ r2 })
+                    cb(r2.result)
+                  })
+           }
+           else
+             cb()
+         })
+}
+
 function kindName
 (kind) {
   if (kind == 1)

@@ -33,23 +33,23 @@ function init
   function refresh
   (v, // assist
    view) { // target
-    let lang, off, tok, callers, el
+    view.getCallers(results => {
+      let lang, off, tok, el
 
-    callers = view.callers
+      lang = v.ele.querySelector('.assist-lang')
+      lang.innerText = view.buf.opt('core.lang')
 
-    lang = v.ele.querySelector('.assist-lang')
-    lang.innerText = view.buf.opt('core.lang')
+      off = v.ele.querySelector('.assist-offset')
+      off.innerText = view.offset
 
-    off = v.ele.querySelector('.assist-offset')
-    off.innerText = view.offset
+      tok = v.ele.querySelector('.assist-tok')
+      tok.innerText = results?.node?.name
 
-    tok = v.ele.querySelector('.assist-tok')
-    tok.innerText = callers?.node?.name
-
-    el = v.ele.querySelector('.assist-callers')
-    el.innerHTML = ''
-    callers.callers?.forEach(clr => {
-      append(el, div(clr.path))
+      el = v.ele.querySelector('.assist-callers')
+      el.innerHTML = ''
+      results.callers?.forEach(clr => {
+        append(el, div(clr.from.uri))
+      })
     })
   }
 

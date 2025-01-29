@@ -129,10 +129,10 @@ function make
   }
 
   function getCallers
-  () {
+  (cb) {
     // quietly else recurses
-    if (b.mode?.key && b.mode?.callers)
-      return b.mode.callers(v)
+    if (b.mode?.key && b.mode?.getCallers)
+      return b.mode.getCallers(v, cb)
     return 0
   }
 
@@ -344,9 +344,6 @@ function make
         set bep(bep) {
           return setBep(bep)
         },
-        get callers() {
-          return getCallers()
-        },
         get offset() {
           return getOff()
         },
@@ -410,6 +407,7 @@ function make
         forwardChar: () => point.forward(),
         ensurePointVisible,
         excur,
+        getCallers,
         gotoLine: n => { // 1 indexed
           if (b.mode?.key)
             if (b.mode?.gotoLine)

@@ -12,7 +12,7 @@ function init
 
 export
 function add
-(tab) {
+(tab, spec) {
   let f, sm, sep
 
   function focus
@@ -179,14 +179,16 @@ function add
       d('adj for mid')
   }
 
+  spec = spec || {}
+  spec.width = spec.width || 25
   sm = divCl('startMarker')
   sep = divCl('framesep', [], { draggable: 'false' })
 
   f = { panes: [],
         el: divCl('frame',
                   [ sep, sm ],
-                  { style: 'width: 25%;',
-                    'data-width': 25 }),
+                  { style: 'width: ' + spec.width + '%;',
+                    'data-width': spec.width }),
         sep: sep,
         startMarker: sm,
         //

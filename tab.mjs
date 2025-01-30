@@ -112,7 +112,7 @@ function add
   append(area.tabbar, tab.elBar)
   tab.framesRight = []
   if (options.singleFrame)
-    tab.frame1 = Frame.add(tab)
+    tab.frame1 = Frame.add(tab, { width: 100 })
   else {
     tab.frameLeft = Frame.add(tab)
     tab.frame1 = Frame.add(tab)

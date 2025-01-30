@@ -3,6 +3,7 @@ import { append, divCl } from './dom.mjs'
 import * as Css from './css.mjs'
 import * as Tab from './tab.mjs'
 import * as Pane from './pane.mjs'
+import { d } from './mess.mjs'
 
 export
 function init
@@ -27,7 +28,40 @@ function add
   (e) {
     e.preventDefault()
     globalThis.onmouseup = null
+    globalThis.onmousemove = null
     Css.remove(f.sep, 'down')
+  }
+
+  function handleMove
+  (e) {
+    e.preventDefault()
+    if (f == tab.frame1) {
+      let rect, change, changeP, width
+
+      //d(e.clientX)
+      rect = f.el.getBoundingClientRect()
+      change = e.clientX - rect.right
+      if (change == 0)
+        return
+      changeP = (change / globalThis.innerWidth) * 100
+      0 && d(changeP + '%')
+      width = parseFloat(f.el.dataset.width) + changeP
+      // grow/shrink frame1
+      f.el.dataset.width = width
+      f.el.style.width = width + '%'
+      // shrink/grow frames to the right
+      if (tab.framesRight) {
+        changeP = changeP / tab.framesRight.filter(f => Css.has(f.el, 'retracted') == 0).length
+        //d(changeP + '%')
+        tab.framesRight.forEach(fr => {
+          if (Css.has(fr.el, 'retracted'))
+            return
+          width = parseFloat(fr.el.dataset.width) - changeP
+          fr.el.dataset.width = width
+          fr.el.style.width = width + '%'
+        })
+      }
+    }
   }
 
   function handleDown
@@ -35,6 +69,7 @@ function add
     if (e.button == 0) {
       e.preventDefault()
       globalThis.onmouseup = handleUp
+      globalThis.onmousemove = handleMove
       Css.add(f.sep, 'down')
     }
   }
@@ -43,7 +78,10 @@ function add
   sep = divCl('framesep', [], { draggable: 'false' })
 
   f = { panes: [],
-        el: divCl('frame', [ sep, sm ], { width: 'calc(25%)' }),
+        el: divCl('frame',
+                  [ sep, sm ],
+                  { style: 'width: 25%;',
+                    'data-width': 25 }),
         sep: sep,
         startMarker: sm,
         //

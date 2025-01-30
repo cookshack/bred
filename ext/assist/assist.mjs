@@ -2,7 +2,6 @@ import { append, div, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
-import * as Css from '../../css.mjs'
 import * as Ed from '../../ed.mjs'
 import * as Loc from '../../loc.mjs'
 import * as Mess from '../../mess.mjs'
@@ -102,7 +101,7 @@ function init
     let found, p, tab
 
     tab = Win.current().frame1.tab || Mess.throw('Tab missing')
-    Css.retract(tab.framesRight[1]?.el)
+    tab.framesRight[1]?.retract()
     p = Pane.current(tab.frameRight)
 
     found = Buf.find(b => (b.mode.key == 'assist'))

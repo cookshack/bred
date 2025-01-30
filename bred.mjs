@@ -328,14 +328,14 @@ function initCmds
     if (Css.toggle(tab.frameRight.el, 'retracted')) {
       Tab.forEach(win.main, tab => {
         tab.frame1.focus()
-        tab.framesRight.forEach(fr => Css.retract(fr.el))
+        tab.framesRight.forEach(fr => fr.retract())
       })
       tab.frame1.focus()
       Css.remove(win.frameToggleR, 'mini-frame-open')
     }
     else {
       Tab.forEach(win.main, tab => {
-        tab.framesRight.forEach(fr => Css.expand(fr.el))
+        tab.framesRight.forEach(fr => fr.expand())
       })
       Css.add(win.frameToggleR, 'mini-frame-open')
     }
@@ -349,14 +349,14 @@ function initCmds
     if (Css.toggle(tab.frameLeft.el, 'retracted')) {
       Tab.forEach(win.main, tab => {
         tab.frame1.focus()
-        Css.retract(tab.frameLeft.el)
+        tab.frameLeft.retract()
       })
       tab.frame1.focus()
       Css.remove(win.frameToggleL, 'mini-frame-open')
     }
     else {
       Tab.forEach(win.main, tab => {
-        Css.expand(tab.frameLeft.el)
+        tab.frameLeft.expand()
       })
       Css.add(win.frameToggleL, 'mini-frame-open')
     }

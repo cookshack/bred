@@ -384,7 +384,7 @@ function initCssRules
     b.addMode('view')
 
     if (far) {
-      Css.expand(tab.framesRight[1]?.el)
+      tab.framesRight[1]?.expand()
       p = Pane.current(tab.framesRight[1] || tab.frameRight)
     }
     else

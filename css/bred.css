@@ -327,6 +327,10 @@ textarea:focus-visible {
   position: relative; /* for .framesep */
 }
 
+.frame.retracted {
+  display: flex; /* must retract by setting width, for resizing. */
+}
+
 .framesep {
   position: absolute;
   top: 0;

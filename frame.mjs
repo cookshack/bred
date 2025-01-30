@@ -74,6 +74,55 @@ function add
     }
   }
 
+  function retract
+  () {
+    if (f == tab.frame1)
+      return
+
+    Css.retract(f.el)
+    f.el.style.width = '0%'
+    if ((f == tab.frameLeft)
+        || tab.framesRight?.includes(f)) {
+      let frame1, width
+
+      // add to frame1
+      frame1 = tab.frame1
+      if (frame1) {
+        width = parseFloat(frame1.el.dataset.width) + parseFloat(f.el.dataset.width)
+        frame1.el.dataset.width = width
+        frame1.el.style.width = width + '%'
+      }
+    }
+    else
+      d('adj for mid')
+  }
+
+  function expand
+  () {
+    let width
+
+    if (f == tab.frame1)
+      return
+
+    Css.expand(f.el)
+    width = f.el.dataset.width
+    f.el.style.width = parseFloat(width) + '%'
+    if ((f == tab.frameLeft)
+        || tab.framesRight?.includes(f)) {
+      let frame1, width
+
+      // remove from frame1
+      frame1 = tab.frame1
+      if (frame1) {
+        width = parseFloat(frame1.el.dataset.width) - parseFloat(f.el.dataset.width)
+        frame1.el.dataset.width = width
+        frame1.el.style.width = width + '%'
+      }
+    }
+    else
+      d('adj for mid')
+  }
+
   sm = divCl('startMarker')
   sep = divCl('framesep', [], { draggable: 'false' })
 
@@ -92,7 +141,9 @@ function add
           return tab
         },
         //
-        focus }
+        expand,
+        focus,
+        retract }
 
   f.sep.onmousedown = handleDown
   f.sep.onmouseup = handleUp

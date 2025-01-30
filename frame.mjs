@@ -36,6 +36,11 @@ function add
   (e) {
     let rect, change, changeP, width
 
+    function activeFramesRight
+    () {
+      return tab.framesRight.filter(f => Css.has(f.el, 'retracted') == 0).length
+    }
+
     e.preventDefault()
 
     //d(e.clientX)
@@ -53,7 +58,7 @@ function add
       f.el.style.width = width + '%'
       // shrink/grow frames to the right
       if (tab.framesRight) {
-        changeP = changeP / tab.framesRight.filter(f => Css.has(f.el, 'retracted') == 0).length
+        changeP = changeP / activeFramesRight()
         //d(changeP + '%')
         tab.framesRight.forEach(fr => {
           if (Css.has(fr.el, 'retracted'))
@@ -63,6 +68,7 @@ function add
           fr.el.style.width = width + '%'
         })
       }
+      return
     }
     if (f == tab.frameLeft) {
       // grow/shrink frameLeft
@@ -73,6 +79,43 @@ function add
         width = parseFloat(tab.frame1.el.dataset.width) - changeP
         tab.frame1.el.dataset.width = width
         tab.frame1.el.style.width = width + '%'
+      }
+      return
+    }
+    if (tab.framesRight) {
+      // grow/shrink frame
+      f.el.dataset.width = width
+      f.el.style.width = width + '%'
+      // shrink/grow frames to the right
+      if (tab.framesRight) {
+        let count, i
+
+        // skip to after frame
+        for (i = 0; i < tab.framesRight.length; i++)
+          if (tab.framesRight[i] == f)
+            break
+        // count active frames to the right of frame
+        count = 0
+        for (let j = i; j < tab.framesRight.length; j++) {
+          if (Css.has(tab.framesRight[j].el, 'retracted'))
+            return
+          count++
+        }
+        if (count) {
+          // shrink/grow them
+          changeP = changeP / count
+          //d(changeP + '%')
+          for (let j = i; j < tab.framesRight.length; j++) {
+            let fr
+
+            fr = tab.framesRight[j]
+            if (Css.has(fr.el, 'retracted'))
+              return
+            width = parseFloat(fr.el.dataset.width) - changeP
+            fr.el.dataset.width = width
+            fr.el.style.width = width + '%'
+          }
+        }
       }
     }
   }

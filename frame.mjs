@@ -34,18 +34,20 @@ function add
 
   function handleMove
   (e) {
-    e.preventDefault()
-    if (f == tab.frame1) {
-      let rect, change, changeP, width
+    let rect, change, changeP, width
 
-      //d(e.clientX)
-      rect = f.el.getBoundingClientRect()
-      change = e.clientX - rect.right
-      if (change == 0)
-        return
-      changeP = (change / globalThis.innerWidth) * 100
-      0 && d(changeP + '%')
-      width = parseFloat(f.el.dataset.width) + changeP
+    e.preventDefault()
+
+    //d(e.clientX)
+    rect = f.el.getBoundingClientRect()
+    change = e.clientX - rect.right
+    if (change == 0)
+      return
+    changeP = (change / globalThis.innerWidth) * 100
+    0 && d(changeP + '%')
+    width = parseFloat(f.el.dataset.width) + changeP
+
+    if (f == tab.frame1) {
       // grow/shrink frame1
       f.el.dataset.width = width
       f.el.style.width = width + '%'
@@ -60,6 +62,17 @@ function add
           fr.el.dataset.width = width
           fr.el.style.width = width + '%'
         })
+      }
+    }
+    if (f == tab.frameLeft) {
+      // grow/shrink frameLeft
+      f.el.dataset.width = width
+      f.el.style.width = width + '%'
+      // shrink/grow frame1
+      if (tab.frame1) {
+        width = parseFloat(tab.frame1.el.dataset.width) - changeP
+        tab.frame1.el.dataset.width = width
+        tab.frame1.el.style.width = width + '%'
       }
     }
   }

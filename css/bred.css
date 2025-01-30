@@ -68,6 +68,7 @@
   --height-menu: 1.6rem;
   --padding-top-opener: 0.2rem;
   --width-point: 2px;
+  --frame-sep-width: 0.5rem;
 
   --clr-active-line: var(--clr-point-current);
   --opacity-active-line: 0.3;
@@ -319,6 +320,14 @@ textarea:focus-visible {
 .bred-areas,
 .frame {
   flex-direction: column;
+}
+
+.framesep {
+  background: var(--clr-syntax4);
+  cursor: col-resize;
+  width: var(--frame-sep-width);
+  min-width: var(--frame-sep-width);
+  max-width: var(--frame-sep-width);
 }
 
 .bred-area.bred-top {

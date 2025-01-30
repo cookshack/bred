@@ -26,7 +26,8 @@ function add
   sm = divCl('startMarker')
 
   f = { panes: [],
-        el: divCl('frame', sm),
+        el: divCl('frame', sm, { width: 'calc(25% - var(--frame-sep-width))' }),
+        sep: divCl('framesep'),
         startMarker: sm,
         //
         get pane() {
@@ -38,7 +39,7 @@ function add
         //
         focus }
 
-  append(tab.el, f.el)
+  append(tab.el, f.el, f.sep)
   tab.frames.push(f)
   Pane.add(f)
   f.focus()

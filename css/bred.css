@@ -68,7 +68,7 @@
   --height-menu: 1.6rem;
   --padding-top-opener: 0.2rem;
   --width-point: 2px;
-  --frame-sep-width: 0.5rem;
+  --framesep-width: 0.25rem;
 
   --clr-active-line: var(--clr-point-current);
   --opacity-active-line: 0.3;
@@ -80,10 +80,11 @@
   --z-menu-item: 101;
   --z-menu: 100;
   --z-top: 99;
-  --z-hover: 98; /* bottom area with cmd on hover */
+  --z-hover: 98; /* bottom area that shows cmd on hover */
   --z-diag: 97;
   --z-close: 90;
   --z-info: 80;
+  --z-framesep: 70;
   --z-indent-marker: 50; /* above line */
   --z-below-selection: -3; /* cm selection is -2 */
   --z-activeLine: -1; /* for the :after of the activeLine, eg to set a background */
@@ -322,12 +323,26 @@ textarea:focus-visible {
   flex-direction: column;
 }
 
+.frame {
+  position: relative; /* for .framesep */
+}
+
 .framesep {
-  background: var(--clr-syntax4);
+  position: absolute;
+  top: 0;
+  right: 1px; /* left of pane's box-shadow */
+  bottom: 0;
+  background: transparent;
   cursor: col-resize;
-  width: var(--frame-sep-width);
-  min-width: var(--frame-sep-width);
-  max-width: var(--frame-sep-width);
+  width: var(--framesep-width);
+  min-width: var(--framesep-width);
+  max-width: var(--framesep-width);
+  display: flex;
+  z-index: var(--z-framesep)
+}
+
+.framesep.down {
+  background: var(--clr-nb3);
 }
 
 .bred-area.bred-top {

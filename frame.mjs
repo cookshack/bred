@@ -12,7 +12,7 @@ function init
 export
 function add
 (tab) {
-  let f, sm
+  let f, sm, sep
 
   function focus
   () {
@@ -23,11 +23,28 @@ function add
     Css.add(f.el, 'current')
   }
 
+  function handleUp
+  (e) {
+    e.preventDefault()
+    globalThis.onmouseup = null
+    Css.remove(f.sep, 'down')
+  }
+
+  function handleDown
+  (e) {
+    if (e.button == 0) {
+      e.preventDefault()
+      globalThis.onmouseup = handleUp
+      Css.add(f.sep, 'down')
+    }
+  }
+
   sm = divCl('startMarker')
+  sep = divCl('framesep', [], { draggable: 'false' })
 
   f = { panes: [],
-        el: divCl('frame', sm, { width: 'calc(25% - var(--frame-sep-width))' }),
-        sep: divCl('framesep'),
+        el: divCl('frame', [ sep, sm ], { width: 'calc(25%)' }),
+        sep: sep,
         startMarker: sm,
         //
         get pane() {
@@ -39,7 +56,10 @@ function add
         //
         focus }
 
-  append(tab.el, f.el, f.sep)
+  f.sep.onmousedown = handleDown
+  f.sep.onmouseup = handleUp
+
+  append(tab.el, f.el)
   tab.frames.push(f)
   Pane.add(f)
   f.focus()

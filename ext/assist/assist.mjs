@@ -2,6 +2,7 @@ import { append, div, divCl } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
+import * as Css from '../../css.mjs'
 import * as Ed from '../../ed.mjs'
 import * as Loc from '../../loc.mjs'
 import * as Mess from '../../mess.mjs'
@@ -28,7 +29,7 @@ function divW
                [ divCl('assist-w',
                        [ divCl('assist-main',
                                [ divCl('assist-main-h'),
-                                 divCl('assist-main-body') ]) ]) ])
+                                 divCl('assist-main-body retracted') ]) ]) ])
 }
 
 export
@@ -38,18 +39,21 @@ function init
   (v, // assist
    view) { // target
     view.getCallers(results => {
-      let lang, off, tok, el
+      let lang, off, tok, el, body
 
-      lang = v.ele.querySelector('.assist-lang')
+      body = v.ele.querySelector('.assist-main-body')
+      Css.expand(body)
+
+      lang = body.querySelector('.assist-lang')
       lang.innerText = view.buf.opt('core.lang')
 
-      off = v.ele.querySelector('.assist-offset')
+      off = body.querySelector('.assist-offset')
       off.innerText = view.offset
 
-      tok = v.ele.querySelector('.assist-tok')
+      tok = body.querySelector('.assist-tok')
       tok.innerText = results?.node?.name
 
-      el = v.ele.querySelector('.assist-callers')
+      el = body.querySelector('.assist-callers')
       el.innerHTML = ''
       results.callers?.forEach(clr => {
         let home, line, path

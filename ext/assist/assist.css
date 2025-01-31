@@ -62,3 +62,7 @@
 .assist-caller {
   margin-bottom: 0.5rem;
 }
+
+.assist-main-body.retracted {
+  display: none;
+}

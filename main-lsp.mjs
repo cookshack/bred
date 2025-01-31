@@ -185,6 +185,7 @@ function make
         //d('  id: ' + json.id)
         // if id call any handler
         dbg(JSON.stringify(json, null, 2))
+        d(JSON.stringify(json, null, 2).substring(0, 1000))
         if (json.id == 1) {
           if (json.error) {
             console.error('LSP: initialize FAILED: ' + json.error.message)
@@ -253,6 +254,7 @@ function make
   tsproc.stderr.on('data',
                    data => {
                      log('LSP STDERR: ')
+                     d(String(data)?.substring(1, 1000))
                      process.stderr.write(data)
                    })
 

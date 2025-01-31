@@ -129,10 +129,10 @@ function make
   }
 
   function getCallers
-  (cb) {
+  (cb, cbSig) {
     // quietly else recurses
     if (b.mode?.key && b.mode?.getCallers)
-      return b.mode.getCallers(v, cb)
+      return b.mode.getCallers(v, cb, cbSig)
     return 0
   }
 

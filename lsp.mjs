@@ -30,7 +30,8 @@ function callers
 (lang,
  file, // absolute
  word, // { view, from, to, text }
- cb) { // ({ callers, def })
+ cb, // ({ callers, def })
+ cbSig) { // ({ sig })
   d('LSP callers')
 
   if (avail(lang))
@@ -59,9 +60,25 @@ function callers
                     d({ r2 })
                     cb({ callers: r2.result, def: result })
                   })
+
+             call(lang,
+                  'textDocument/signatureHelp',
+                  { textDocument: { uri: 'file://' + file },
+                    position: { line: word.row,
+                                character: word.col } },
+                  r3 => {
+                    if (r3.error)
+                      console.warn('LSP callers sig: ' + r3.error.message)
+
+                    d({ r3 })
+                    cbSig({ sig: r3.result })
+                  })
            }
-           else
+           else {
              cb()
+             if (cbSig)
+               cbSig()
+           }
          })
 }
 

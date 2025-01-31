@@ -1752,7 +1752,9 @@ export
 function initModeFns
 (mo) {
   function getCallers
-  (view, cb) { // ({ node, def, callers })
+  (view,
+   cb, // ({ node, def, callers })
+   cbSig) { // ({ sig })
     let state
 
     state = view.ed.state
@@ -1763,11 +1765,11 @@ function initModeFns
 
       word = view.pos
       word.view = view
-      Lsp.callers(view.buf.opt('core.lang'), view.buf.path, word, ret => {
-        cb({ node: node,
-             def: ret?.def,
-             callers: ret?.callers })
-      })
+      Lsp.callers(view.buf.opt('core.lang'), view.buf.path, word,
+                  ret => cb({ node: node,
+                              def: ret?.def,
+                              callers: ret?.callers }),
+                  cbSig)
       return
     }
     return { err: 'Missing state' }

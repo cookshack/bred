@@ -51,7 +51,8 @@ function init
       return path
     }
 
-    view.getCallers(results => {
+    function setDefCaller
+    (results) {
       let lang, off, tok, el, body
 
       body = v.ele.querySelector('.assist-main-body')
@@ -80,22 +81,27 @@ function init
                        'data-line': line }),
                  div(uriPath(def.uri) + ' ' + line) ])
       }
+    }
 
-      el = body.querySelector('.assist-callers')
+    function setSig
+    (results) {
+      let el, body
+
+      body = v.ele.querySelector('.assist-main-body')
+      Css.expand(body)
+
+      el = body.querySelector('.assist-sig')
       el.innerHTML = ''
-      results?.callers?.forEach(clr => {
-        let line
+      if (results?.sig) {
+        let sig
 
-        line = parseInt(clr.from.range.start.line) + 1
+        sig = results.sig.signatures?.at(0)
+        if (sig)
+          el.innerText = sig.label
+      }
+    }
 
-        append(el, divCl('assist-caller',
-                         [ div(clr.from.name,
-                               { 'data-run': 'open link',
-                                 'data-path': clr.from.uri,
-                                 'data-line': line }),
-                           div(uriPath(clr.from.uri) + ' ' + line) ]))
-      })
-    })
+    view.getCallers(setDefCaller, setSig)
   }
 
   function update
@@ -117,6 +123,7 @@ function init
            div('Lang'), divCl('assist-lang'),
            div('Offset'), divCl('assist-offset'),
            div('Token'), divCl('assist-tok'),
+           divCl('assist-sig'),
            divCl('assist-def-h', 'Def'),
            divCl('assist-def'),
            divCl('assist-callers-h', 'Callers'),

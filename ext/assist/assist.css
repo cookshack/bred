@@ -56,7 +56,8 @@
 }
 
 .assist-callers,
-.assist-def {
+.assist-def,
+.assist-sig {
   padding-top: 0;
   grid-column: 1 / span 2;
   display: flex;

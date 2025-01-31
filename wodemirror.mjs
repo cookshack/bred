@@ -1752,7 +1752,7 @@ export
 function initModeFns
 (mo) {
   function getCallers
-  (view, cb) { // ({ node, callers })
+  (view, cb) { // ({ node, def, callers })
     let state
 
     state = view.ed.state
@@ -1763,9 +1763,10 @@ function initModeFns
 
       word = view.pos
       word.view = view
-      Lsp.callers(view.buf.opt('core.lang'), view.buf.path, word, results => {
+      Lsp.callers(view.buf.opt('core.lang'), view.buf.path, word, ret => {
         cb({ node: node,
-             callers: results })
+             def: ret?.def,
+             callers: ret?.callers })
       })
       return
     }

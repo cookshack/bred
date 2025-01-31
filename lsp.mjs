@@ -30,7 +30,7 @@ function callers
 (lang,
  file, // absolute
  word, // { view, from, to, text }
- cb) { // (results)
+ cb) { // ({ callers, def })
   d('LSP callers')
 
   if (avail(lang))
@@ -57,7 +57,7 @@ function callers
                       console.warn('LSP callers incoming: ' + r2.error.message)
 
                     d({ r2 })
-                    cb(r2.result)
+                    cb({ callers: r2.result, def: result })
                   })
            }
            else

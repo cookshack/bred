@@ -38,6 +38,17 @@ function init
   function refresh
   (v, // assist
    view) { // target
+    function uriPath
+    (uri) {
+      let home, path
+
+      path = U.stripFilePrefix(uri)
+      home = Loc.home()
+      if (path.startsWith(home))
+        path = ':' + path.slice(home.length)
+      return path
+    }
+
     view.getCallers(results => {
       let lang, off, tok, el, body
 
@@ -53,15 +64,25 @@ function init
       tok = body.querySelector('.assist-tok')
       tok.innerText = results?.node?.name
 
+      el = body.querySelector('.assist-def')
+      el.innerHTML = ''
+      if (results?.def) {
+        let def, line
+
+        def = results.def
+        line = parseInt(def.range.start.line) + 1
+        append(el,
+               [ div(def.name,
+                     { 'data-run': 'open link',
+                       'data-path': def.uri,
+                       'data-line': line }),
+                 div(uriPath(def.uri) + ' ' + line) ])
+      }
+
       el = body.querySelector('.assist-callers')
       el.innerHTML = ''
-      results.callers?.forEach(clr => {
-        let home, line, path
-
-        path = U.stripFilePrefix(clr.from.uri)
-        home = Loc.home()
-        if (path.startsWith(home))
-          path = ':' + path.slice(home.length)
+      results?.callers?.forEach(clr => {
+        let line
 
         line = parseInt(clr.from.range.start.line) + 1
 
@@ -70,7 +91,7 @@ function init
                                { 'data-run': 'open link',
                                  'data-path': clr.from.uri,
                                  'data-line': line }),
-                           div(path + ' ' + line) ]))
+                           div(uriPath(clr.from.uri) + ' ' + line) ]))
       })
     })
   }
@@ -94,6 +115,8 @@ function init
            div('Lang'), divCl('assist-lang'),
            div('Offset'), divCl('assist-offset'),
            div('Token'), divCl('assist-tok'),
+           divCl('assist-def-h', 'Def'),
+           divCl('assist-def'),
            divCl('assist-callers-h', 'Callers'),
            divCl('assist-callers'))
 

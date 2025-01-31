@@ -1,18 +1,20 @@
-import { append, div, divCl } from '../../dom.mjs'
+import { append, div, divCl, img } from '../../dom.mjs'
 
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
 import * as Css from '../../css.mjs'
 import * as Ed from '../../ed.mjs'
+import * as Icon from '../../icon.mjs'
 import * as Loc from '../../loc.mjs'
 import * as Mess from '../../mess.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
+import * as Panel from '../../panel.mjs'
 import * as U from '../../util.mjs'
 import * as Win from '../../win.mjs'
 //import { d } from '../../mess.mjs'
 
-let onCursor
+let onCursor, icon
 
 export
 function make
@@ -150,6 +152,11 @@ function init
 
     update(p.view)
   })
+
+  icon = div(img(Icon.path('help'), 'Assistant', 'filter-clr-text'),
+             'mini-icon onfill mini-em',
+             { 'data-run': 'assist' })
+  Panel.start('mini-panel', icon)
 }
 
 export
@@ -157,4 +164,5 @@ function free
 () {
   Mode.remove('Assist')
   onCursor.free()
+  icon.remove()
 }

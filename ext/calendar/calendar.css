@@ -66,3 +66,7 @@
   border: 1px solid var(--clr-syntax0);
   border-radius: 0.25rem;
 }
+
+.mini-calendar .mini-icon {
+  pointer-events: none;
+}

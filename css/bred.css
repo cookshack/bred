@@ -815,10 +815,6 @@ div.bred-menu1-item {
   transform: rotateY(180deg);
 }
 
-.mini-calendar .mini-icon {
-  pointer-events: none;
-}
-
 .mini-echo,
 .mini-frame,
 .mini-calendar,

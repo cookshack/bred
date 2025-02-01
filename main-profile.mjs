@@ -18,7 +18,9 @@ function getStore
     return stores.poss
   if (name == 'state')
     return stores.state
-  return new Store({ name: name, cwd: 'brood' })
+  if (profile.dir)
+    return new Store({ name: name, cwd: profile.dir })
+  throw new Error('getStore missing profile.dir')
 }
 
 export

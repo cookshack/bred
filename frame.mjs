@@ -153,6 +153,7 @@ function add
 
     Css.retract(f.el)
     f.el.style.width = '0%'
+    save()
     if ((f == tab.frameLeft)
         || tab.framesRight?.includes(f)) {
       let frame1, width
@@ -179,6 +180,7 @@ function add
     Css.expand(f.el)
     width = f.el.dataset.width
     f.el.style.width = parseFloat(width) + '%'
+    save()
     if ((f == tab.frameLeft)
         || tab.framesRight?.includes(f)) {
       let frame1, width

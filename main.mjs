@@ -481,6 +481,10 @@ function createWindow
     stores.state.set('bounds', win.getBounds())
   })
 
+  win.on('move', () => {
+    stores.state.set('bounds', win.getBounds())
+  })
+
   if ((options.devtools == 'on')
       || ((options.devtools == 'auto') && stores.state.get('isDevToolsOpened'))) {
     d('opening devtools')

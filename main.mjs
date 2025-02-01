@@ -5,6 +5,7 @@ import * as Chmod from './main-chmod.mjs'
 import * as Dir from './main-dir.mjs'
 import * as Ext from './main-ext.mjs'
 import * as File from './main-file.mjs'
+import Fs from 'node:fs'
 import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
 import * as Lsp from './main-lsp.mjs'
@@ -20,7 +21,7 @@ import Util from 'node:util'
 import { spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
-let version, options, stores, dirUserData, shell, lastClipWrite, _win
+let version, options, stores, dirUserData, shell, lastClipWrite, _win, profile
 
 function getStore
 (name) {
@@ -730,9 +731,9 @@ function whenHaveDeps
   Lsp.make('c')
   Lsp.make('javascript')
 
-  stores = { frame: new Store({ name: 'frame', cwd: 'brood' }),
-             poss: new Store({ name: 'poss', cwd: 'brood' }),
-             state: new Store({ name: 'state', cwd: 'brood' }) }
+  stores = { frame: new Store({ name: 'frame', cwd: profile.dir }),
+             poss: new Store({ name: 'poss', cwd: profile.dir }),
+             state: new Store({ name: 'state', cwd: profile.dir }) }
 
   log('Bred ' + version)
   log('    Node: ' + process.versions.node)
@@ -764,13 +765,6 @@ function whenHaveDeps
   */
 
   ipcMain.handle('cmd', onCmd)
-
-  try {
-    dirUserData = app.getPath('userData')
-  }
-  catch (err) {
-    console.warn('failed to get userData: ' + err.message)
-  }
 
   d('creating window')
   createMainWindow()
@@ -804,6 +798,7 @@ async function whenReady
     .option('--inspect', 'listen for inspector messages on 9229')
     .option('--logfile <file>', 'file to write logs to (default: stdout)')
     .option('--no-sandbox', 'Turn off Chromium sandboxing')
+    .option('--profile <name>', 'Profile to use (default: Main)')
     .option('--disable-setuid-sandbox', 'Turn off UID sandboxing (eg if you want to run sudo)')
     .version(version)
     .parse()
@@ -813,6 +808,29 @@ async function whenReady
     options.waitForDevtools = true
 
   shell = process.env.SHELL || 'sh'
+
+  try {
+    dirUserData = app.getPath('userData')
+  }
+  catch (err) {
+    console.warn('failed to get userData: ' + err.message)
+  }
+
+  profile = { name: options.profile || 'Main' }
+  if (profile.name.match(/[A-Z][a-z]+/))
+    profile.dir = 'profile/' + profile.name
+  else {
+    console.error('Profile name must be [A-Z][a-z]+')
+    console.error('  Examples: Main, Testing, Css, Logs, Browser')
+    app.quit()
+    return
+  }
+  if (Fs.existsSync(profile.dir)) {
+    // OK
+  }
+  else
+    Fs.mkdirSync(Path.join(dirUserData, profile.dir),
+                 { recursive: true })
 
   if (options.logfile) {
     let file

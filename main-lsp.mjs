@@ -11,6 +11,17 @@ function setWin
 }
 
 export
+function onEdit
+(e, ch, onArgs) {
+  let [ lang, path ] = onArgs
+
+  if (win)
+    win.webContents.send('lsp', { log: 'MAIN LSP edit: ' + lang + ': ' + path })
+  //open('javascript', path, data) // data is file text, get from peer
+  e.sender.send(ch, {})
+}
+
+export
 function onReq
 (e, ch, onArgs) {
   let [ lang, method, id, params ] = onArgs

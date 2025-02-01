@@ -268,6 +268,9 @@ async function onCmd
   if (name == 'init.load')
     return wrapOn(e, ch, [], onLoadInit)
 
+  if (name == 'lsp.edit')
+    return wrapOn(e, ch, args, Lsp.onEdit)
+
   if (name == 'lsp.req')
     return Lsp.onReq(e, ch, args)
 

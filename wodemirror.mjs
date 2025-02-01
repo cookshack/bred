@@ -149,6 +149,16 @@ function vsetLang
   langs.find(l => l.id == id) || Mess.toss('missing lang: ' + id)
   d('vsetLang ' + id)
   view.buf.opts.set('core.lang', id)
+  // this should happen in the opt
+  if (view.buf.path)
+    Tron.cmd('lsp.edit', [ view.buf.path, id ], (err, data) => {
+      if (err) {
+        Mess.yell('lsp.edit: ' + err.message)
+        return
+      }
+      if (data.lang)
+        Mess.yell('Opened in lang server ' + data.lang + ': ' + view.buf.path)
+    })
 }
 
 let highlighters, stateHighlighters

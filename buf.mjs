@@ -66,7 +66,7 @@ function savePoss
 
       v = b.views.find(v2 => v2.ele)
       pos = v.pos
-      Tron.cmd1('brood.set', [ 'poss', b.path, { row: Ed.posRow(pos), col: Ed.posCol(pos) } ], err => {
+      Tron.cmd1('profile.set', [ 'poss', b.path, { row: Ed.posRow(pos), col: Ed.posCol(pos) } ], err => {
         if (err)
           Mess.warn('Failed to save pos of ' + b.path + ': ' + err.message)
       })

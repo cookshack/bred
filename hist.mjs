@@ -175,7 +175,7 @@ function save
 (cb) { // (err)
   d('HIST save')
   if (hists.length)
-    Tron.cmd1('brood.save', [ 'hists-v1', hists.map(h => [ h.name, h.items ]) ], cb)
+    Tron.cmd1('profile.save', [ 'hists-v1', hists.map(h => [ h.name, h.items ]) ], cb)
   else
     cb(0)
 }
@@ -185,7 +185,7 @@ function init
 () {
   hists = []
 
-  Tron.cmd('brood.load', 'hists-v1', (err, data) => {
+  Tron.cmd('profile.load', 'hists-v1', (err, data) => {
     if (err)
       Mess.toss(err)
     Object.entries(data.data).forEach(kv => {

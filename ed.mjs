@@ -203,7 +203,7 @@ function make
       spec.dir = Buf.prepDir(spec.dir)
       path = spec.dir + spec.file
       d('get pos')
-      Tron.cmd1('brood.get', [ 'poss', path ], (err, resp) => {
+      Tron.cmd1('profile.get', [ 'poss', path ], (err, resp) => {
         if (err)
           Mess.log('Error getting line num of ' + path + ', will use 1: ' + err.message)
         else if (resp.data)

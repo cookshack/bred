@@ -29,7 +29,7 @@ function load
     })
   }
 
-  Tron.cmd('brood.load', 'opt', (err, data) => {
+  Tron.cmd('profile.load', 'opt', (err, data) => {
     if (err) {
       console.warn('Error loading options: ' + err.message)
       console.warn('Error loading options: (continuing anyway)')
@@ -90,7 +90,7 @@ export
 function set
 (name, value) {
   value = clean(name, value)
-  Tron.cmd1('brood.set', [ 'opt', name, value ], () => {
+  Tron.cmd1('profile.set', [ 'opt', name, value ], () => {
   })
   return setMem(name, value)
 }

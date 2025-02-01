@@ -217,16 +217,16 @@ async function onCmd
   else
     d(ch + ': ' + name) // + " on " + args)
 
-  if (name == 'brood.get')
+  if (name == 'profile.get')
     return Profile.onGet(e, args[0], args[1])
 
-  if (name == 'brood.load')
+  if (name == 'profile.load')
     return wrapOn(e, ch, args, Profile.onLoad)
 
-  if (name == 'brood.save')
+  if (name == 'profile.save')
     return Profile.onSave(e, ch, args)
 
-  if (name == 'brood.set')
+  if (name == 'profile.set')
     return Profile.onSet(e, args[0], args[1], args[2])
 
   if (name == 'browse')

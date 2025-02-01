@@ -13,62 +13,15 @@ import { makeErr } from './main-err.mjs'
 import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
 import process from 'node:process'
+import * as Profile from './main-profile.mjs'
 import fs from 'node:fs'
 import * as Shell from './main-shell.mjs'
 import * as Step from './main-step.mjs'
-import Store from 'electron-store'
 import Util from 'node:util'
 import { spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
-let version, options, stores, dirUserData, shell, lastClipWrite, _win, profile
-
-function getStore
-(name) {
-  if (name == 'frame')
-    return stores.frame
-  if (name == 'poss')
-    return stores.poss
-  if (name == 'state')
-    return stores.state
-  return new Store({ name: name, cwd: 'brood' })
-}
-
-function onBroodGet
-(e, file, name) {
-  let s
-
-  s = getStore(file)
-  return { data: s.get(name) }
-}
-
-function onBroodLoad
-(e, ch, name) {
-  let s
-
-  s = getStore(name)
-  e.sender.send(ch, { data: s.store })
-}
-
-function onBroodSave
-(e, ch, args) {
-  let s
-
-  s = getStore(args[0])
-  args[1].forEach(a => {
-    s.set(a[0], a[1])
-  })
-  return {}
-}
-
-function onBroodSet
-(e, file, name, value) {
-  let s
-
-  s = getStore(file)
-  s.set(name, value)
-  return {}
-}
+let version, options, dirUserData, shell, lastClipWrite, _win, profile
 
 function cmdDevtoolsClose
 (e) {
@@ -166,7 +119,7 @@ function onPaths
 (e) {
   let home, user, win, frame
 
-  frame = stores.frame
+  frame = Profile.stores.frame
 
   win = BrowserWindow.fromWebContents(e.sender)
 
@@ -266,16 +219,16 @@ async function onCmd
     d(ch + ': ' + name) // + " on " + args)
 
   if (name == 'brood.get')
-    return onBroodGet(e, args[0], args[1])
+    return Profile.onGet(e, args[0], args[1])
 
   if (name == 'brood.load')
-    return wrapOn(e, ch, args, onBroodLoad)
+    return wrapOn(e, ch, args, Profile.onLoad)
 
   if (name == 'brood.save')
-    return onBroodSave(e, ch, args)
+    return Profile.onSave(e, ch, args)
 
   if (name == 'brood.set')
-    return onBroodSet(e, args[0], args[1], args[2])
+    return Profile.onSet(e, args[0], args[1], args[2])
 
   if (name == 'browse')
     return wrapOn(e, ch, args, Browse.onBrowse)
@@ -422,7 +375,7 @@ function createWindow
 
   win.removeMenu()
 
-  win.setBounds(options.bounds || stores.state.get('bounds'))
+  win.setBounds(options.bounds || Profile.stores.state.get('bounds'))
 
   try {
     win.webContents.debugger.attach('1.3')
@@ -464,7 +417,7 @@ function createWindow
   win.webContents.on('did-create-window', ch => {
     let bounds
 
-    bounds = stores.state.get('bounds')
+    bounds = Profile.stores.state.get('bounds')
     bounds.x = 0
     bounds.y = 0
     ch.removeMenu()
@@ -474,20 +427,20 @@ function createWindow
   })
 
   win.on('close', () => {
-    stores.state.set('isDevToolsOpened', win.webContents.isDevToolsOpened())
-    stores.state.set('bounds', win.getBounds())
+    Profile.stores.state.set('isDevToolsOpened', win.webContents.isDevToolsOpened())
+    Profile.stores.state.set('bounds', win.getBounds())
   })
 
   win.on('resize', () => {
-    stores.state.set('bounds', win.getBounds())
+    Profile.stores.state.set('bounds', win.getBounds())
   })
 
   win.on('move', () => {
-    stores.state.set('bounds', win.getBounds())
+    Profile.stores.state.set('bounds', win.getBounds())
   })
 
   if ((options.devtools == 'on')
-      || ((options.devtools == 'auto') && stores.state.get('isDevToolsOpened'))) {
+      || ((options.devtools == 'auto') && Profile.stores.state.get('isDevToolsOpened'))) {
     d('opening devtools')
     win.webContents.openDevTools({ activate: 0, // keeps main focus when detached
                                    title: 'Developer Tools - Bred' })
@@ -508,11 +461,11 @@ function createWindow
   }
 
   win.webContents.on('devtools-opened', () => {
-    stores.state.set('isDevToolsOpened', 1)
+    Profile.stores.state.set('isDevToolsOpened', 1)
     win.webContents.send('devtools', { open: 1 })
   })
   win.webContents.on('devtools-closed', () => {
-    stores.state.set('isDevToolsOpened', 0)
+    Profile.stores.state.set('isDevToolsOpened', 0)
     win.webContents.send('devtools', { open: 0 })
   })
 
@@ -736,10 +689,6 @@ function whenHaveDeps
   Lsp.make('c')
   Lsp.make('javascript')
 
-  stores = { frame: new Store({ name: 'frame', cwd: profile.dir }),
-             poss: new Store({ name: 'poss', cwd: profile.dir }),
-             state: new Store({ name: 'state', cwd: profile.dir }) }
-
   log('Bred ' + version)
   log('    Node: ' + process.versions.node)
   log('    Electron: ' + process.versions.electron)
@@ -836,6 +785,7 @@ async function whenReady
   else
     Fs.mkdirSync(Path.join(dirUserData, profile.dir),
                  { recursive: true })
+  Profile.init(profile)
 
   if (options.logfile) {
     let file

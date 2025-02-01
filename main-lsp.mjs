@@ -1,6 +1,7 @@
 import { d, log } from './main-log.mjs'
 import { fork, spawn } from 'node:child_process'
 import Path from 'node:path'
+import * as Project from './main-project.mjs'
 
 let lsps, win
 
@@ -15,9 +16,20 @@ function onEdit
 (e, ch, onArgs) {
   let [ lang, path ] = onArgs
 
-  if (win)
-    win.webContents.send('lsp', { log: 'MAIN LSP edit: ' + lang + ': ' + path })
-  //open('javascript', path, data) // data is file text, get from peer
+  function send
+  (msg) {
+    if (win)
+      win.webContents.send('lsp', { log: 'MAIN LSP edit: ' + msg })
+  }
+
+  if (path && lang) {
+    let p
+
+    send(lang + ', ' + path)
+    //open('javascript', path, data) // data is file text, get from peer
+    p = Project.get(path)
+    send('project dir: ' + p.dir)
+  }
   e.sender.send(ch, {})
 }
 

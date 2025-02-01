@@ -1,6 +1,14 @@
+import Fs from 'node:fs'
+import Path from 'node:path'
 import Store from 'electron-store'
 
-let stores
+let stores, profile
+
+export
+function name
+() {
+  return profile?.name
+}
 
 function getStore
 (name) {
@@ -55,7 +63,22 @@ function onSet
 
 export
 function init
-(profile) {
+(name, dirUserData) {
+  profile = { name: name || 'Main' }
+  if (profile.name.match(/[A-Z][a-z]+/))
+    profile.dir = 'profile/' + profile.name
+  else {
+    console.error('Profile name must be [A-Z][a-z]+')
+    console.error('  Examples: Main, Testing, Css, Logs, Browser')
+    return 1
+  }
+  if (Fs.existsSync(profile.dir)) {
+    // Existing profile.
+  }
+  else
+    Fs.mkdirSync(Path.join(dirUserData, profile.dir),
+                 { recursive: true })
+
   stores = { frame: new Store({ name: 'frame', cwd: profile.dir }),
              poss: new Store({ name: 'poss', cwd: profile.dir }),
              state: new Store({ name: 'state', cwd: profile.dir }) }

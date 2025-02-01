@@ -5,7 +5,6 @@ import * as Chmod from './main-chmod.mjs'
 import * as Dir from './main-dir.mjs'
 import * as Ext from './main-ext.mjs'
 import * as File from './main-file.mjs'
-import Fs from 'node:fs'
 import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
 import * as Lsp from './main-lsp.mjs'
@@ -21,7 +20,7 @@ import Util from 'node:util'
 import { spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
-let version, options, dirUserData, shell, lastClipWrite, _win, profile
+let version, options, dirUserData, shell, lastClipWrite, _win
 
 function cmdDevtoolsClose
 (e) {
@@ -140,7 +139,7 @@ function onPaths
            user: user,
            cwd: process.cwd(),
            shell: shell,
-           profile: profile.name,
+           profile: Profile.name(),
            //
            backend: options.backend,
            devtools: { open: win.webContents.isDevToolsOpened() ? 1 : 0 },
@@ -770,22 +769,10 @@ async function whenReady
     console.warn('failed to get userData: ' + err.message)
   }
 
-  profile = { name: options.profile || 'Main' }
-  if (profile.name.match(/[A-Z][a-z]+/))
-    profile.dir = 'profile/' + profile.name
-  else {
-    console.error('Profile name must be [A-Z][a-z]+')
-    console.error('  Examples: Main, Testing, Css, Logs, Browser')
+  if (Profile.init(options.profile, dirUserData)) {
     app.quit()
     return
   }
-  if (Fs.existsSync(profile.dir)) {
-    // OK
-  }
-  else
-    Fs.mkdirSync(Path.join(dirUserData, profile.dir),
-                 { recursive: true })
-  Profile.init(profile)
 
   if (options.logfile) {
     let file

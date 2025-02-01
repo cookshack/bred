@@ -187,6 +187,7 @@ function onPaths
            user: user,
            cwd: process.cwd(),
            shell: shell,
+           profile: profile.name,
            //
            backend: options.backend,
            devtools: { open: win.webContents.isDevToolsOpened() ? 1 : 0 },

@@ -1,7 +1,19 @@
 import * as Mess from './mess.mjs'
 //import { d } from './mess.mjs'
 
-let $appDir, $configDir, $iwd, $home, $shell
+let $appDir, $configDir, $iwd, $home, $profile, $shell
+
+export
+function profileSet
+(p) {
+  $profile = p
+}
+
+export
+function profile
+() {
+  return $profile
+}
 
 export
 function appDirSet

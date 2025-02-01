@@ -2210,16 +2210,18 @@ function start1
       setTimeout(() => start2(data.devtools, data.frames))
   })
 
-  Mess.log('home: ' + data.home)
-  Mess.log(' app: ' + data.app)
-  Mess.log('user: ' + data.user)
-  Mess.log(' cwd: ' + data.cwd)
+  Mess.log('   home: ' + data.home)
+  Mess.log('    app: ' + data.app)
+  Mess.log('   user: ' + data.user)
+  Mess.log('    cwd: ' + data.cwd)
+  Mess.log('profile: ' + data.profile)
   Loc.appDirSet(data.app)
   Loc.homeSet(data.home || data.app)
   Loc.iwdSet(data.cwd || data.app) // initial working dir
   $version = data.version
   Loc.configDirSet(data.user)
   Loc.shellSet(data.shell)
+  Loc.profileSet(data.profile)
 
   Ed.initCTags()
   Icon.setHave(1)

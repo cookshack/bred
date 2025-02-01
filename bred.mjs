@@ -2369,14 +2369,8 @@ function init
       let tab
 
       tab = Tab.current(Win.current().main)
-      Tron.cmd1('profile.set', [ 'frame', 'frameLeft', Css.has(tab.frameLeft.el, 'retracted') ? 0 : 1 ], err => {
-        if (err)
-          Mess.warn('Failed to save state of frameLeft')
-      })
-      Tron.cmd1('profile.set', [ 'frame', 'frameRight', Css.has(tab.frameRight.el, 'retracted') ? 0 : 1 ], err => {
-        if (err)
-          Mess.warn('Failed to save state of frameRight')
-      })
+      tab.frameLeft.save()
+      tab.frameRight.save()
       Buf.savePoss()
       Hist.save()
     }

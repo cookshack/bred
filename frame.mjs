@@ -1,8 +1,10 @@
 import { append, divCl } from './dom.mjs'
 
 import * as Css from './css.mjs'
+import * as Mess from './mess.mjs'
 import * as Tab from './tab.mjs'
 import * as Pane from './pane.mjs'
+import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
 export
@@ -130,6 +132,20 @@ function add
     }
   }
 
+  function save
+  () {
+    if (f == tab.frameLeft)
+      Tron.cmd1('profile.set', [ 'frame', 'frameLeft', Css.has(f.el, 'retracted') ? 0 : 1 ], err => {
+        if (err)
+          Mess.warn('Failed to save state of frameLeft')
+      })
+    else if (f == tab.frameRight)
+      Tron.cmd1('profile.set', [ 'frame', 'frameRight', Css.has(f.el, 'retracted') ? 0 : 1 ], err => {
+        if (err)
+          Mess.warn('Failed to save state of frameRight')
+      })
+  }
+
   function retract
   () {
     if (f == tab.frame1)
@@ -201,7 +217,8 @@ function add
         //
         expand,
         focus,
-        retract }
+        retract,
+        save }
 
   f.sep.onmousedown = handleDown
   f.sep.onmouseup = handleUp

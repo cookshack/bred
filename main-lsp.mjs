@@ -4,7 +4,7 @@ import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
 import * as Project from './main-project.mjs'
 
-let lsps, win
+let win
 
 export
 function setWin
@@ -23,15 +23,22 @@ function onEdit
       win.webContents.send('lsp', { log: 'MAIN LSP edit: ' + msg })
   }
 
+  d('LSP onEdit ' + lang + ', ' + path)
+
   if (path && lang) {
     let p, buf
 
     send(lang + ', ' + path)
-    buf = Peer.get(bufId)
-    if (buf?.text)
-      open(lang, path, buf.text.toString())
-    p = Project.get(path)
+    p = Project.get(lang, path)
     send('project dir: ' + p.dir)
+    buf = Peer.get(bufId)
+    if (buf)
+      if (buf.text)
+        p.open(lang, path, buf.text.toString())
+      else
+        send('buf missing text')
+    else
+      send('buf missing')
   }
   e.sender.send(ch, {})
 }
@@ -39,28 +46,19 @@ function onEdit
 export
 function onReq
 (e, ch, onArgs) {
-  let [ lang, method, id, params ] = onArgs
-  let lsp
+  let [ lang, path, method, id, params ] = onArgs
+  let lsp, p
 
-  d('LSP onReq ' + lang)
+  d('LSP onReq ' + lang + ', ' + path)
 
-  lsp = lsps[lang]
+  p = Project.get(lang, path)
+  lsp = p?.lsps[lang]
   if (lsp)
     setTimeout(() => lsp.req({ method: method,
                                ...(id ? { id: id } : {}),
                                params: params }))
 
   return {}
-}
-
-export
-function open
-(lang, path, data) {
-  let lsp
-
-  lsp = lsps[lang]
-  if (lsp)
-    lsp.open(path, lang, data)
 }
 
 export
@@ -138,7 +136,7 @@ function make
   }
 
   function open
-  (file, language, text) { // absolute
+  (language, file, text) { // absolute
     if (initialized) {
       if (files.includes(file))
         return
@@ -245,11 +243,6 @@ function make
                                                  contextSupport: true,
                                                  dynamicRegistration: false } } }
 
-  lsp = { open,
-          req }
-  lsps = lsps || []
-  lsps[lang] = lsp
-
   if (lang == 'javascript')
     tsproc = fork(Path.join(import.meta.dirname,
                             'lib/typescript-language-server/lib/cli.mjs'),
@@ -263,6 +256,10 @@ function make
                      stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ] })
   else
     throw new Error('Missing LSP support for lang: ' + lang)
+  d('LSP started ' + lang)
+
+  lsp = { open,
+          req }
 
   tsproc.on('exit', code => log('LSP EXIT ' + code))
   tsproc.on('error', code => log('LSP ERROR ' + code))

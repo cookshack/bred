@@ -151,7 +151,7 @@ function vsetLang
   view.buf.opts.set('core.lang', id)
   // this should happen in the opt
   if (view.buf.path)
-    Tron.cmd('lsp.edit', [ id, view.buf.path, view.buf.id ], (err, data) => {
+    Tron.cmd('lsp.edit', [ view.buf.path, id, view.buf.id ], (err, data) => {
       if (err) {
         Mess.yell('lsp.edit: ' + err.message)
         return

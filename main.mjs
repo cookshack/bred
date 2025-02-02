@@ -688,9 +688,6 @@ function whenHaveDeps
 
   d(JSON.stringify(process.env, null, 2))
 
-  Lsp.make('c')
-  Lsp.make('javascript')
-
   log('Bred ' + version)
   log('    Node: ' + process.versions.node)
   log('    Electron: ' + process.versions.electron)

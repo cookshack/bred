@@ -5,13 +5,13 @@ import { d } from './mess.mjs'
 
 let id, cbs
 
-export
 function call
-(lang, method, params, cb) {
+(lang, path, // absolute
+ method, params, cb) {
   id = ++id
   if (cb)
     cbs[id] = cb
-  Tron.cmd1('lsp.req', [ lang, method, id, params || {} ], err => {
+  Tron.cmd1('lsp.req', [ lang, path, method, id, params || {} ], err => {
     if (err) {
       Mess.yell('lsp.req: ', err.message)
       delete cbs[id]
@@ -36,6 +36,7 @@ function callers
 
   if (avail(lang))
     call(lang,
+         file,
          'textDocument/prepareCallHierarchy',
          { textDocument: { uri: 'file://' + file },
            // 0 based
@@ -51,6 +52,7 @@ function callers
 
              result = response?.result[0]
              call(lang,
+                  file,
                   'callHierarchy/incomingCalls',
                   { item: result },
                   r2 => {
@@ -62,6 +64,7 @@ function callers
                   })
 
              call(lang,
+                  file,
                   'textDocument/signatureHelp',
                   { textDocument: { uri: 'file://' + file },
                     position: { line: word.row,
@@ -153,6 +156,7 @@ function complete
     return name.trim()
   }
   call(lang,
+       file,
        'textDocument/completion',
        { textDocument: { uri: 'file://' + file },
          // 0 based

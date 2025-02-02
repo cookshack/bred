@@ -5,6 +5,7 @@ import * as CMCollab from '@codemirror/collab'
 
 let bufs
 
+export
 function get
 (id) {
   let buf, updates

@@ -1,6 +1,7 @@
 import { d, log } from './main-log.mjs'
 import { fork, spawn } from 'node:child_process'
 import Path from 'node:path'
+import * as Peer from './main-peer.mjs'
 import * as Project from './main-project.mjs'
 
 let lsps, win
@@ -14,7 +15,7 @@ function setWin
 export
 function onEdit
 (e, ch, onArgs) {
-  let [ lang, path ] = onArgs
+  let [ lang, path, bufId ] = onArgs
 
   function send
   (msg) {
@@ -23,10 +24,12 @@ function onEdit
   }
 
   if (path && lang) {
-    let p
+    let p, buf
 
     send(lang + ', ' + path)
-    //open('javascript', path, data) // data is file text, get from peer
+    buf = Peer.get(bufId)
+    if (buf?.text)
+      open(lang, path, buf.text.toString())
     p = Project.get(path)
     send('project dir: ' + p.dir)
   }
@@ -140,7 +143,7 @@ function make
       if (files.includes(file))
         return
       if (win)
-        win.webContents.send('lsp', { log: 'MAIN LSP ' + lang + ': opening ' + file })
+        win.webContents.send('lsp', { log: 'MAIN LSP ' + lang + ': open file ' + file })
       req({ method: 'textDocument/didOpen',
             params: { textDocument: { uri: 'file://' + file,
                                       // ids listed under interface here

@@ -1,8 +1,9 @@
-import { append, button, div, divCl, span } from './dom.mjs'
+import { append, button, img, div, divCl, span } from './dom.mjs'
 
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Opt from './opt.mjs'
@@ -51,10 +52,10 @@ function init
     w = divCl('bred-welcome-ww',
               divCl('bred-welcome-w',
                     [ divCl('bred-welcome-theme',
-                            [ button('light',
+                            [ button(img(Icon.path('light'), 'Light', 'filter-clr-text'),
                                      'buttonLight' + ((Opt.get('core.theme.mode') == 'light') ? ' retracted' : ''),
                                      { 'data-run': 'light mode' }),
-                              button('dark',
+                              button(img(Icon.path('dark'), 'Dark', 'filter-clr-text'),
                                      'buttonDark' + ((Opt.get('core.theme.mode') == 'light') ? '' : ' retracted'),
                                      { 'data-run': 'dark mode' }) ]),
                       divCl('bred-welcome-h',

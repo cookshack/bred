@@ -1263,6 +1263,11 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   left: 0.5rem;
 }
 
+.bred-welcome-theme > button > img {
+  width: 100%;
+  pointer-events: none;
+}
+
 .bred-welcome-h {
   font-size: 2rem;
   margin-bottom: 1rem;

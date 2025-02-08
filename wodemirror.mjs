@@ -4026,28 +4026,9 @@ function flushTrailing
     vreplaceAt(p.view, r, text.replace(/[^\S\r\n]+$/gm, ''))
 }
 
-export
-function init
+function initLangs
 () {
-  let languages, themeSettings
-
-  if (Opt.get('core.theme.mode') == 'light')
-    Theme = ThemeLight
-  else
-    Theme = ThemeDark
-  Ed.initTheme(Theme)
-
-  brextIds = 0
-  brexts = Mk.array
-  registeredOpts = new Set()
-  bredView = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
-
-  completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run
-  completionPreviousLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowUp').run
-
-  //langs = []
-
-  languages = CMData.languages.filter(l => [ 'diff', 'javascript', 'markdown' ].includes(l.name.toLowerCase()) ? 0 : 1)
+  let languages
 
   function addLang
   (langs, lang, ed, opt) {
@@ -4128,8 +4109,9 @@ function init
     })
   }
 
-  watching = new Set()
+  languages = CMData.languages.filter(l => [ 'diff', 'javascript', 'markdown' ].includes(l.name.toLowerCase()) ? 0 : 1)
   langs = []
+
   languages.forEach(l => addLang(langs, l, 1))
   langs.unshift({ id: 'text',
                   alias: [],
@@ -4198,6 +4180,30 @@ function init
              load(m) {
                return m.richdown({ lezer: { codeLanguages: langs } })
              } })
+}
+
+export
+function init
+() {
+  let themeSettings
+
+  brextIds = 0
+  brexts = Mk.array
+  registeredOpts = new Set()
+  bredView = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
+
+  completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run
+  completionPreviousLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowUp').run
+
+  watching = new Set()
+
+  if (Opt.get('core.theme.mode') == 'light')
+    Theme = ThemeLight
+  else
+    Theme = ThemeDark
+  Ed.initTheme(Theme)
+
+  initLangs()
 
   themeTags = LZHighlight.tags
   themeSettings = { backgroundImage: '',

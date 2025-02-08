@@ -45,7 +45,7 @@ export let langs, themeExtension, Theme
 
 let theme, themeTags, themeHighlighting
 let themeCode, themeHighlightingCode, themeExtensionCode
-let completionNextLine, completionPreviousLine, tagHighlighting, bredView, spRe
+let completionNextLine, completionPreviousLine, bredView, spRe
 let brexts, brextIds, registeredOpts, watching
 
 export
@@ -4216,25 +4216,6 @@ function initTheme
                                     styles: themeStyles(themeTags) })
   themeHighlightingCode = themeCode[0]
   themeExtensionCode = themeCode[1]
-
-  {
-    let classTags
-
-    classTags = Object.entries(themeTags).map(kv => {
-      return { tag: kv[1],
-               class: 'bred-hz-' + kv[0] }
-    })
-    d({ classTags })
-    tagHighlighting = LZHighlight.tagHighlighter(classTags)
-    d({ tagHighlighting })
-  }
-
-  /*
-  theme = CMView.EditorView.theme({
-    ".cm-content": {color: "darkorange"},
-    "&.cm-focused .cm-content": {color: "orange"}
-    })
-  */
 }
 
 export

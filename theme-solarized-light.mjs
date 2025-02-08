@@ -8,9 +8,6 @@ meanings = { text: Theme.clrs.base01,
              textLight: Theme.clrs.base00,
              fill: Theme.clrs.base2,
              light: Theme.clrs.base3,
-             fillAux: Theme.clrs.cyanLight,
-             fillAuxLight: Theme.clrs.cyanVeryLight,
-             fillAuxVeryLight: Theme.clrs.cyanVeryVeryLight,
              //
              emph: Theme.clrs.base03,
              emphLight: Theme.clrs.base02 }

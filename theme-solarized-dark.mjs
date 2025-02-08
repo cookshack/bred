@@ -25,13 +25,21 @@ if (0) {
   d(clrs.blueLight)
 }
 
+rgb = clrs.cyanRGB
+
+rgb.a = 0.38
+clrs.cyanLight = toHex(Blend.normal(clrs.base03RGB, rgb))
+
+rgb.a = 0.18
+clrs.cyanVeryLight = toHex(Blend.normal(clrs.base03RGB, rgb))
+
+rgb.a = 0.9
+clrs.cyanVeryVeryLight = toHex(Blend.normal(clrs.base03RGB, rgb))
+
 meanings = { text: clrs.base1,
              textLight: clrs.base0,
              fill: clrs.base02,
              light: clrs.base03,
-             fillAux: clrs.cyanLight,
-             fillAuxLight: clrs.cyanVeryLight,
-             fillAuxVeryLight: clrs.cyanVeryVeryLight,
              //
              emph: clrs.base3,
              emphLight: clrs.base2 }

@@ -20,7 +20,11 @@ function fillMeanings
 
   meanings = meanings || {}
 
-  common = { nb3: clrs.red,
+  common = { fillAux: clrs.cyanLight,
+             fillAuxLight: clrs.cyanVeryLight,
+             fillAuxVeryLight: clrs.cyanVeryVeryLight,
+             //
+             nb3: clrs.red,
              nb2: clrs.magenta,
              nb1: clrs.yellow,
              nb0: clrs.blue,
@@ -239,6 +243,7 @@ clrs = { base03: '#002b36',
          blue: '#268bd2',
          blueRGB: { r: 38, g: 139, b: 210 },
          cyan: '#2aa198',
+         cyanRGB: { r: 42, g: 161, b: 152 },
          green: '#859900',
          //
          blueLight: '#cbe1df', // blue 20% on base3

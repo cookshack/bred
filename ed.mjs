@@ -1192,6 +1192,9 @@ function init
   ctags = []
   onCursors = []
 
+  // Here so it loads before backend.
+  Opt.declare('core.theme.mode', 'str', 'light')
+
   // these two from ace
   tokenRe = new RegExp('[' + wordChars + '\\$_]+', 'g')
   nonTokenRe = new RegExp('(?:[^' + wordChars + '\\$_]|\\s])+', 'g')

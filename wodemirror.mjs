@@ -4031,7 +4031,7 @@ function init
 () {
   let languages, themeSettings
 
-  if (0)
+  if (Opt.get('core.theme.mode') == 'light')
     Theme = ThemeLight
   else
     Theme = ThemeDark

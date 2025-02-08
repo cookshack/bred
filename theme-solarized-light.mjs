@@ -14,8 +14,6 @@ meanings = { text: Theme.clrs.base01,
              emphLight: Theme.clrs.base02 }
 
 filterMeanings = { text: Theme.filters.base01,
-                   nb3: Theme.filters.red,
-                   nb0: Theme.filters.blue,
                    emph: Theme.filters.base03 }
 
 theme = Theme.init('solarized-light', meanings, filterMeanings)

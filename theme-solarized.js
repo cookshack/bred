@@ -1,5 +1,19 @@
 let clrs, filters
 
+function fillFilterMeanings
+(meanings) {
+  let common
+
+  meanings = meanings || {}
+
+  common = { nb3: filters.red,
+             nb0: filters.blue }
+
+  Object.assign(meanings, common)
+
+  return meanings
+}
+
 function fillMeanings
 (meanings) {
   let common
@@ -91,6 +105,8 @@ function init
   rules = []
 
   meanings = fillMeanings(meanings)
+
+  filterMeanings = fillFilterMeanings(filterMeanings)
 
   rule('', meanings.text)
   rule('annotation', meanings.textLight)

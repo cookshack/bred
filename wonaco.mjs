@@ -46,7 +46,7 @@ StandaloneServices.initialize(overrides)
 import { LinkedList } from './lib/monaco/vs/base/common/linkedList.js'
 import { KeybindingsRegistry } from './lib/monaco/vs/platform/keybinding/common/keybindingsRegistry.js'
 import * as Mon from './lib/monaco/vs/editor/editor.main.js'
-import * as theme from './theme-solarized.js'
+import { theme } from './theme-solarized.js'
 import { wordChars } from './lib/unicode.mjs'
 
 import { init as initPatch } from './lang-patch.js'

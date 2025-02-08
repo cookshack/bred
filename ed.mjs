@@ -14,7 +14,7 @@ import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
-import * as theme from './theme-solarized.js'
+import { theme } from './theme-solarized-light.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import { d } from './mess.mjs'
@@ -757,7 +757,7 @@ function initTheme
   })
 
   css += '\n'
-  theme.theme.rules.forEach(rule => {
+  theme.rules.forEach(rule => {
     if (rule?.token?.length && rule.foreground)
       css += '  --rule-clr-' + rule.token + ': ' + rule.foreground + ';\n'
   })

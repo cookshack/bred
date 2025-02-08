@@ -1424,6 +1424,10 @@ function initTest
       return div('--clr-' + c, '', { style: 'color: var(--clr-' + c + ');' })
     }
 
+    function clrName(c) {
+      return div('--clr-' + c, '')
+    }
+
     function clrs
     (clr) {
       return [ clr('text'),
@@ -1448,6 +1452,10 @@ function initTest
 
     function sol(c) {
       return div('--theme-clr-' + c, '', { style: 'color: var(--theme-clr-' + c + ');' })
+    }
+
+    function solName(c) {
+      return div('--theme-clr-' + c, '')
     }
 
     function colors
@@ -1518,8 +1526,9 @@ function initTest
                                       Dom.create('hr'),
                                       divCl('test_buffer-des-section light', design()),
                                       divCl('test_buffer-des-section dark', design(1)),
-                                      divCl('test_buffer-des-two',
-                                            [ divCl('test_buffer-des-section light', colors(sol, clr)),
+                                      divCl('test_buffer-des-three',
+                                            [ divCl('test_buffer-des-section light', colors(solName, clrName)),
+                                              divCl('test_buffer-des-section light', colors(sol, clr)),
                                               divCl('test_buffer-des-section dark', colors(sol, clr)) ]) ]),
            divCl('test_buffer-picker', [ divCl('test_buffer-des-h', 'Color Picker'),
                                          div('#red;'),

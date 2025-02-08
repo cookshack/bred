@@ -103,6 +103,12 @@
   grid-template-columns: auto auto;
 }
 
+.test_buffer-des-three {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: auto auto auto;
+}
+
 .test_buffer-des-section {
   padding: 1rem;
 }

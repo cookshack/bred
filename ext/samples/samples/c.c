@@ -1,5 +1,10 @@
 #include <stdio.h>
 
+void
+boo() __attribute__((noreturn)) {
+  exit(0);
+}
+
 typedef struct {
   char *name; ///< the name
 } name_t;

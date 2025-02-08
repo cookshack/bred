@@ -3829,6 +3829,7 @@ function themeStyles
 
   styles = [ { tag: tags.attributeName, color: Theme.fg('attribute.name') },
              { tag: tags.angleBracket, color: Theme.fg('delimiter.angle') },
+             { tag: tags.annotation, backgroundColor: Theme.meanings.fill }, // eg kcl @setting
              { tag: tags.bool, color: Theme.fg('variable.name') },
              { tag: tags.comment, color: Theme.fg('comment') },
              { tag: tags.className, color: Theme.fg('class.identifier') },

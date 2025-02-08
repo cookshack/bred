@@ -27,7 +27,6 @@ function fillMeanings
              nb0: clrs.blue,
              nb0Light: clrs.blueLight,
              nb0VeryLight: clrs.blueVeryLight,
-             nb0VeryLightTranslucent: clrs.blueVeryLightTranslucent,
              //
              syntax5: clrs.orange,
              syntax4: clrs.yellow,
@@ -36,11 +35,8 @@ function fillMeanings
              syntax1: clrs.cyan,
              syntax0: clrs.green }
 
-  //--clr-point: rgba(38 139 210 / 40%); /* nb0 at 50% */
   common.point = common.nb0
-  //--clr-point-border: rgba(38 139 210 / 40%); /* nb0 with some transparency */
   common.pointBorder = common.nb0
-  //--clr-point-current: rgba(220 50 47 / 50%); /* nb3 at 50% */
   common.pointCurrent = common.nb3
 
   common.scroll = common.textLight
@@ -247,7 +243,6 @@ clrs = { base03: '#002b36',
          //
          blueLight: '#cbe1df', // blue 20% on base3
          blueVeryLight: '#e4ebe2',
-         blueVeryLightTranslucent: 'rgb(38 139 210 / 10%)',
          cyanLight:  '#cedbcb', // cyan 38% on base3
          cyanVeryLight:  '#e8ead8', // cyan 18% on base3
          cyanVeryVeryLight:  '#f3f0de' } // cyan 9% on base3

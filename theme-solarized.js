@@ -239,18 +239,18 @@ clrs = { base03: '#002b36',
          orange: '#cb4b16',
          red: '#dc322f',
          magenta: '#d33682',
-         magentaLight: '#dc5c95', // magenta 80% on meanings.light
+         magentaLight: '#dc5c95', // magenta 80% on base3
          violet: '#6c71c4',
          blue: '#268bd2',
          cyan: '#2aa198',
          green: '#859900',
          //
-         blueLight: '#cbe1df', // blue 20% on meanings.light
+         blueLight: '#cbe1df', // blue 20% on base3
          blueVeryLight: '#e4ebe2',
          blueVeryLightTranslucent: 'rgb(38 139 210 / 10%)',
-         cyanLight:  '#cedbcb', // cyan 38% on meanings.light
-         cyanVeryLight:  '#e8ead8', // cyan 18% on meanings.light
-         cyanVeryVeryLight:  '#f3f0de' } // cyan 9% on meanings.light
+         cyanLight:  '#cedbcb', // cyan 38% on base3
+         cyanVeryLight:  '#e8ead8', // cyan 18% on base3
+         cyanVeryVeryLight:  '#f3f0de' } // cyan 9% on base3
 
 filters = { base02: 'invert(15%) sepia(24%) saturate(2855%) hue-rotate(156deg) brightness(93%) contrast(94%)',
             base01: 'invert(44%) sepia(9%) saturate(914%) hue-rotate(148deg) brightness(89%) contrast(85%)',

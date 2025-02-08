@@ -4182,28 +4182,15 @@ function initLangs
              } })
 }
 
-export
-function init
+function initTheme
 () {
   let themeSettings
-
-  brextIds = 0
-  brexts = Mk.array
-  registeredOpts = new Set()
-  bredView = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
-
-  completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run
-  completionPreviousLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowUp').run
-
-  watching = new Set()
 
   if (Opt.get('core.theme.mode') == 'light')
     Theme = ThemeLight
   else
     Theme = ThemeDark
   Ed.initTheme(Theme)
-
-  initLangs()
 
   themeTags = LZHighlight.tags
   themeSettings = { backgroundImage: '',
@@ -4216,7 +4203,6 @@ function init
                     gutterBorder: '1px solid #ffffff10',
                     gutterBackground: Theme.meanings.fill,
                     gutterForeground: Theme.meanings.text }
-  d({ Theme })
   theme = CMTheme.createTheme({ theme: 'light',
                                 settings: { background: Theme.meanings.light,
                                             ...themeSettings },
@@ -4249,6 +4235,22 @@ function init
     "&.cm-focused .cm-content": {color: "orange"}
     })
   */
+}
 
+export
+function init
+() {
+  brextIds = 0
+  brexts = Mk.array
+  registeredOpts = new Set()
+  bredView = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
+
+  completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run
+  completionPreviousLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowUp').run
+
+  watching = new Set()
+
+  initLangs()
+  initTheme()
   initActiveLine()
 }

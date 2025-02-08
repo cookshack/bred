@@ -1257,6 +1257,12 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   grid-column: 1 / span 2;
 }
 
+.bred-welcome-theme {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+}
+
 .bred-welcome-h {
   font-size: 2rem;
   margin-bottom: 1rem;

@@ -37,6 +37,9 @@ function path
     if (name == 'css')
       return 'lib/svg/mfixx/css.svg'
 
+    if (name == 'dark')
+      return 'lib/svg/material-icons/dark_mode/materialiconsoutlined/24px.svg'
+
     if (name == 'diagnostic')
       return 'lib/svg/fontawesome-4/heartbeat.svg'
 
@@ -63,6 +66,9 @@ function path
 
     if (name == 'json')
       return 'lib/svg/vscode-codicons/json.svg'
+
+    if (name == 'light')
+      return 'lib/svg/material-icons/light_mode/materialiconsoutlined/24px.svg'
 
     if (name == 'lisp')
       return 'lib/svg/file-icons/Common-Lisp.svg'

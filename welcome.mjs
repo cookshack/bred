@@ -50,7 +50,14 @@ function init
 
     w = divCl('bred-welcome-ww',
               divCl('bred-welcome-w',
-                    [ divCl('bred-welcome-h',
+                    [ divCl('bred-welcome-theme',
+                            [ button('light',
+                                     'buttonLight' + ((Opt.get('core.theme.mode') == 'light') ? ' retracted' : ''),
+                                     { 'data-run': 'light mode' }),
+                              button('dark',
+                                     'buttonDark' + ((Opt.get('core.theme.mode') == 'light') ? '' : ' retracted'),
+                                     { 'data-run': 'dark mode' }) ]),
+                      divCl('bred-welcome-h',
                             [ div('Welcome') ]),
                       divCl('bred-welcome-text',
                             div([ 'This is Bred. ',
@@ -133,6 +140,42 @@ function init
 
   if (Win.root())
     Win.shared().welcome = {}
+
+  Cmd.add('dark mode', () => {
+    let buf
+
+    buf = Win.shared().welcome.buf
+    Opt.set('core.theme.mode', 'dark')
+    if (buf)
+      buf.views.forEach(view => {
+        if (view.ele) {
+          let buttonL, buttonD
+
+          buttonL = view.ele.querySelector('.buttonLight')
+          buttonD = buttonL.nextElementSibling
+          Css.expand(buttonL)
+          Css.retract(buttonD)
+        }
+      })
+  })
+
+  Cmd.add('light mode', () => {
+    let buf
+
+    buf = Win.shared().welcome.buf
+    Opt.set('core.theme.mode', 'light')
+    if (buf)
+      buf.views.forEach(view => {
+        if (view.ele) {
+          let buttonL, buttonD
+
+          buttonL = view.ele.querySelector('.buttonLight')
+          buttonD = buttonL.nextElementSibling
+          Css.retract(buttonL)
+          Css.expand(buttonD)
+        }
+      })
+  })
 
   Cmd.add('show welcome on start', () => {
     let buf

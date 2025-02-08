@@ -97,6 +97,12 @@
   justify-content: center;
 }
 
+.test_buffer-des-two {
+  margin-top: 0.5rem;
+  display: grid;
+  grid-template-columns: auto auto;
+}
+
 .test_buffer-des-section {
   padding: 1rem;
 }

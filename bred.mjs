@@ -1420,11 +1420,12 @@ function initTest
   (view, spec, cb) {
     let w, alpha
 
+    function clr(c) {
+      return div('--clr-' + c, '', { style: 'color: var(--clr-' + c + ');' })
+    }
+
     function clrs
-    () {
-      function clr(c) {
-        return div('--clr-' + c, '', { style: 'color: var(--clr-' + c + ');' })
-      }
+    (clr) {
       return [ clr('text'),
                clr('text-light'),
                clr('fill'),
@@ -1445,11 +1446,12 @@ function initTest
                clr('scroll-fill') ]
     }
 
+    function sol(c) {
+      return div('--theme-clr-' + c, '', { style: 'color: var(--theme-clr-' + c + ');' })
+    }
+
     function colors
-    () {
-      function sol(c) {
-        return div('--theme-clr-' + c, '', { style: 'color: var(--theme-clr-' + c + ');' })
-      }
+    (sol, clr) {
       return [ sol('base03'),
                sol('base02'),
                sol('base01'),
@@ -1465,7 +1467,7 @@ function initTest
                sol('blue'),
                sol('cyan'),
                sol('green'),
-               clrs() ]
+               clrs(clr) ]
     }
 
     function design
@@ -1516,8 +1518,9 @@ function initTest
                                       Dom.create('hr'),
                                       divCl('test_buffer-des-section light', design()),
                                       divCl('test_buffer-des-section dark', design(1)),
-                                      divCl('test_buffer-des-section light', colors()),
-                                      divCl('test_buffer-des-section dark', colors()) ]),
+                                      divCl('test_buffer-des-two',
+                                            [ divCl('test_buffer-des-section light', colors(sol, clr)),
+                                              divCl('test_buffer-des-section dark', colors(sol, clr)) ]) ]),
            divCl('test_buffer-picker', [ divCl('test_buffer-des-h', 'Color Picker'),
                                          div('#red;'),
                                          div('#FF0000;'),

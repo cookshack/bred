@@ -4031,7 +4031,7 @@ function init
 () {
   let languages, themeSettings
 
-  if (0)
+  if (1)
     Theme = ThemeLight
   else
     Theme = ThemeDark

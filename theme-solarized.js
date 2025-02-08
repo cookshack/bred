@@ -1,5 +1,42 @@
 let clrs, filters
 
+function fillMeanings
+(meanings) {
+  let common
+
+  meanings = meanings || {}
+
+  common = { nb3: clrs.red,
+             nb2: clrs.magenta,
+             nb2Light: clrs.magentaLight,
+             nb1: clrs.yellow,
+             nb0: clrs.blue,
+             nb0Light: clrs.blueLight,
+             nb0VeryLight: clrs.blueVeryLight,
+             nb0VeryLightTranslucent: clrs.blueVeryLightTranslucent,
+             //
+             syntax5: clrs.orange,
+             syntax4: clrs.yellow,
+             syntax3: clrs.violet,
+             syntax2: clrs.blue,
+             syntax1: clrs.cyan,
+             syntax0: clrs.green }
+
+  //--clr-point: rgba(38 139 210 / 40%); /* nb0 at 50% */
+  common.point = common.nb0
+  //--clr-point-border: rgba(38 139 210 / 40%); /* nb0 with some transparency */
+  common.pointBorder = common.nb0
+  //--clr-point-current: rgba(220 50 47 / 50%); /* nb3 at 50% */
+  common.pointCurrent = common.nb3
+
+  common.scroll = common.textLight
+  common.scrollFill = common.fill
+
+  Object.assign(meanings, common)
+
+  return meanings
+}
+
 export
 function init
 (name, meanings, filterMeanings) {
@@ -52,6 +89,8 @@ function init
   ///
 
   rules = []
+
+  meanings = fillMeanings(meanings)
 
   rule('', meanings.text)
   rule('annotation', meanings.textLight)

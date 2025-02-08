@@ -1,21 +1,44 @@
 import * as Theme from './theme-solarized.js'
+import * as Blend from './lib/color-blend.js'
+import { d } from './mess.mjs'
 
-let theme, meanings, filterMeanings
+let theme, clrs, meanings, filterMeanings, rgb
 
-meanings = { text: Theme.clrs.base1,
-             textLight: Theme.clrs.base0,
-             fill: Theme.clrs.base02,
-             light: Theme.clrs.base03,
-             fillAux: Theme.clrs.cyanLight,
-             fillAuxLight: Theme.clrs.cyanVeryLight,
-             fillAuxVeryLight: Theme.clrs.cyanVeryVeryLight,
+function toX
+(r) {
+  return r.toString(16).padStart(2, '0')
+}
+
+function toHex
+(c) {
+  return '#' + toX(c.r) + toX(c.g) + toX(c.b)
+}
+
+clrs = { ...Theme.clrs }
+
+rgb = clrs.blueRGB
+rgb.a = 0.2
+clrs.blueLight = toHex(Blend.normal(clrs.base03RGB, rgb))
+if (0) {
+  d({ rgb })
+  d('===================')
+  d(clrs.blueLight)
+}
+
+meanings = { text: clrs.base1,
+             textLight: clrs.base0,
+             fill: clrs.base02,
+             light: clrs.base03,
+             fillAux: clrs.cyanLight,
+             fillAuxLight: clrs.cyanVeryLight,
+             fillAuxVeryLight: clrs.cyanVeryVeryLight,
              //
-             emph: Theme.clrs.base3,
-             emphLight: Theme.clrs.base2 }
+             emph: clrs.base3,
+             emphLight: clrs.base2 }
 
 filterMeanings = { text: Theme.filters.base1,
                    emph: Theme.filters.base3 }
 
-theme = Theme.init('solarized-dark', meanings, filterMeanings)
+theme = Theme.init('solarized-dark', clrs, meanings, filterMeanings)
 
 export { theme }

@@ -15,7 +15,7 @@ function fillFilterMeanings
 }
 
 function fillMeanings
-(meanings) {
+(meanings, clrs) {
   let common
 
   meanings = meanings || {}
@@ -48,7 +48,7 @@ function fillMeanings
 
 export
 function init
-(name, meanings, filterMeanings) {
+(name, clrs, meanings, filterMeanings) {
   let t, rules
 
   function copy
@@ -99,7 +99,7 @@ function init
 
   rules = []
 
-  meanings = fillMeanings(meanings)
+  meanings = fillMeanings(meanings, clrs)
 
   filterMeanings = fillFilterMeanings(filterMeanings)
 
@@ -198,7 +198,7 @@ function init
   t = { base: 'vs',
         inherit: false,
 
-        clrs,
+        clrs: clrs,
         filters,
         filterMeanings,
         meanings,
@@ -223,6 +223,7 @@ function init
 
 // http://ethanschoonover.com/solarized
 clrs = { base03: '#002b36',
+         base03RGB: { r: 0, g: 43, b: 54, a: 1 },
          base02: '#073642',
          base01: '#586e75',
          base00: '#657b83',
@@ -236,6 +237,7 @@ clrs = { base03: '#002b36',
          magenta: '#d33682',
          violet: '#6c71c4',
          blue: '#268bd2',
+         blueRGB: { r: 38, g: 139, b: 210 },
          cyan: '#2aa198',
          green: '#859900',
          //

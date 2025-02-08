@@ -1,6 +1,8 @@
 import * as Theme from './theme-solarized.js'
 
-let theme, meanings, filterMeanings
+let theme, clrs, meanings, filterMeanings
+
+clrs = { ...Theme.clrs }
 
 meanings = { text: Theme.clrs.base01,
              textLight: Theme.clrs.base00,
@@ -16,6 +18,6 @@ meanings = { text: Theme.clrs.base01,
 filterMeanings = { text: Theme.filters.base01,
                    emph: Theme.filters.base03 }
 
-theme = Theme.init('solarized-light', meanings, filterMeanings)
+theme = Theme.init('solarized-light', clrs, meanings, filterMeanings)
 
 export { theme }

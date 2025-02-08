@@ -202,6 +202,7 @@ filters = { base02: 'invert(15%) sepia(24%) saturate(2855%) hue-rotate(156deg) b
             base00: 'invert(50%) sepia(18%) saturate(382%) hue-rotate(150deg) brightness(89%) contrast(88%)',
             base0: 'invert(64%) sepia(12%) saturate(320%) hue-rotate(138deg) brightness(89%) contrast(85%)',
             base1: 'invert(65%) sepia(3%) saturate(1021%) hue-rotate(131deg) brightness(99%) contrast(83%)',
+            base3: 'invert(88%) sepia(15%) saturate(539%) hue-rotate(327deg) brightness(112%) contrast(98%)',
             red: 'invert(20%) sepia(50%) saturate(6419%) hue-rotate(351deg) brightness(96%) contrast(79%)',
             blue: 'invert(52%) sepia(82%) saturate(2190%) hue-rotate(179deg) brightness(86%) contrast(91%)' }
 

@@ -2,16 +2,16 @@ import * as Theme from './theme-solarized.js'
 
 let theme, meanings, filterMeanings
 
-meanings = { text: Theme.clrs.base01,
-             textLight: Theme.clrs.base00,
-             fill: Theme.clrs.base2,
-             light: Theme.clrs.base3,
+meanings = { text: Theme.clrs.base1,
+             textLight: Theme.clrs.base0,
+             fill: Theme.clrs.base02,
+             light: Theme.clrs.base03,
              fillAux: Theme.clrs.cyanLight,
              fillAuxLight: Theme.clrs.cyanVeryLight,
              fillAuxVeryLight: Theme.clrs.cyanVeryVeryLight,
              //
-             emph: Theme.clrs.base03,
-             emphLight: Theme.clrs.base02,
+             emph: Theme.clrs.base3,
+             emphLight: Theme.clrs.base2,
              //
              nb3: Theme.clrs.red,
              nb2: Theme.clrs.magenta,
@@ -29,21 +29,18 @@ meanings = { text: Theme.clrs.base01,
              syntax1: Theme.clrs.cyan,
              syntax0: Theme.clrs.green }
 
-//--clr-point: rgba(38 139 210 / 40%); /* nb0 at 50% */
 meanings.point = meanings.nb0
-//--clr-point-border: rgba(38 139 210 / 40%); /* nb0 with some transparency */
 meanings.pointBorder = meanings.nb0
-//--clr-point-current: rgba(220 50 47 / 50%); /* nb3 at 50% */
 meanings.pointCurrent = meanings.nb3
 
 meanings.scroll = meanings.textLight
 meanings.scrollFill = meanings.fill
 
-filterMeanings = { text: Theme.filters.base01,
+filterMeanings = { text: Theme.filters.base1,
                    nb3: Theme.filters.red,
                    nb0: Theme.filters.blue,
-                   emph: Theme.filters.base03 }
+                   emph: Theme.filters.base3 }
 
-theme = Theme.init('solarized-light', meanings, filterMeanings)
+theme = Theme.init('solarized-dark', meanings, filterMeanings)
 
 export { theme }

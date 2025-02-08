@@ -14,7 +14,6 @@ import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
-import { theme } from './theme-solarized-light.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import { d } from './mess.mjs'
@@ -703,8 +702,9 @@ function setIcon
   }
 }
 
+export
 function initTheme
-() {
+(theme) {
   let css
 
   function nameToCss
@@ -1210,7 +1210,8 @@ function init
     vfind = Backend.vfind
 
     d('init theme')
-    initTheme()
+    if (Backend.Theme)
+      initTheme(Backend.Theme)
 
     emRevert = Em.make('Revert')
     emRevert.on('y', 'discard and revert')

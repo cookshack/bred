@@ -33,14 +33,15 @@ import * as CMSearch from './lib/@codemirror/search.js'
 import * as CMState from './lib/@codemirror/state.js'
 import * as CMView from './lib/@codemirror/view.js'
 import * as CMTheme from './lib/@uiw/codemirror-themes/index.js'
-import { theme as Theme } from './theme-solarized-light.mjs'
+import { theme as ThemeLight } from './theme-solarized-light.mjs'
+import { theme as ThemeDark } from './theme-solarized-dark.mjs'
 import { v4 as uuidv4 } from './lib/uuid/index.js'
 import { colorPicker } from './lib/@replit/codemirror-css-color-picker.js'
 import * as LZHighlight from './lib/@lezer/highlight.js'
 import * as Wrap from './lib/fast-word-wrap.js'
 import { Vode } from './json.mjs'
 
-export let langs, themeExtension
+export let langs, themeExtension, Theme
 
 let theme, themeTags, themeHighlighting
 let themeCode, themeHighlightingCode, themeExtensionCode
@@ -4029,6 +4030,12 @@ export
 function init
 () {
   let languages, themeSettings
+
+  if (0)
+    Theme = ThemeLight
+  else
+    Theme = ThemeDark
+  Ed.initTheme(Theme)
 
   brextIds = 0
   brexts = Mk.array

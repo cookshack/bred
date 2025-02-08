@@ -22,7 +22,6 @@ function fillMeanings
 
   common = { nb3: clrs.red,
              nb2: clrs.magenta,
-             nb2Light: clrs.magentaLight,
              nb1: clrs.yellow,
              nb0: clrs.blue,
              nb0Light: clrs.blueLight,
@@ -185,7 +184,7 @@ function init
   rule('variable', meanings.text)
   rule('variable.name', meanings.syntax3)
   rule('variable.name.def', meanings.syntax4)
-  rule('variable.name.std', meanings.nb2Light)
+  rule('variable.name.std', meanings.nb2)
   rule('variable.predefined', meanings.text)
   rule('variable.value', meanings.text)
   rule('warn-token', meanings.nb1)
@@ -235,7 +234,6 @@ clrs = { base03: '#002b36',
          orange: '#cb4b16',
          red: '#dc322f',
          magenta: '#d33682',
-         magentaLight: '#dc5c95', // magenta 80% on base3
          violet: '#6c71c4',
          blue: '#268bd2',
          cyan: '#2aa198',

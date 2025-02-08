@@ -3833,6 +3833,7 @@ function themeStyles
              { tag: tags.comment, color: Theme.fg('comment') },
              { tag: tags.className, color: Theme.fg('class.identifier') },
              { tag: tags.definition(tags.variableName), color: Theme.fg('variable.name.def') },
+             { tag: tags.definition(tags.propertyName), color: Theme.fg('variable.name.def') },
              { tag: tags.function(tags.definition(tags.variableName)), color: Theme.fg('function.name.def') },
              { tag: tags.deleted, color: Theme.fg('minus') },
              { tag: tags.emphasis, color: Theme.fg('bold') },

@@ -41,7 +41,7 @@ import * as LZHighlight from './lib/@lezer/highlight.js'
 import * as Wrap from './lib/fast-word-wrap.js'
 import { Vode } from './json.mjs'
 
-export let langs, themeExtension, Theme
+export let langs, themeExtension, themeExtensionPart, Theme
 
 let theme, themeTags, themeHighlighting
 let themeCode, themeHighlightingCode, themeExtensionCode
@@ -663,7 +663,6 @@ function _viewInit
   view.wode.decorMode = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
-  view.wode.themeExtension = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
   view.wode.placeholder = new CMState.Compartment
 
@@ -889,7 +888,6 @@ function _viewInit
            bredView.of(view),
 
            colorPicker,
-           themeHighlighting,
 
            view.wode.decorMode.of([]),
 
@@ -3897,7 +3895,8 @@ function handleCustomTags
     Buf.forEach(buf => buf.views.forEach(view => {
       if (view.ed && (view.win == Win.current()))
         if (buf.opt('core.highlight.syntax.enabled'))
-          view.ed.dispatch({ effects: view.wode.themeExtension.reconfigure(themeExtension) })
+          view.ed.dispatch({ effects: themeExtensionPart.reconfigure([ themeExtension,
+                                                                       themeHighlighting ]) })
     }))
   }
 }
@@ -4184,38 +4183,49 @@ function initLangs
 
 function initTheme
 () {
-  let themeSettings
+  function makeTheme
+  () {
+    let themeSettings
 
-  if (Opt.get('core.theme.mode') == 'light')
-    Theme = ThemeLight
-  else
-    Theme = ThemeDark
-  Ed.initTheme(Theme)
+    if (Opt.get('core.theme.mode') == 'light')
+      Theme = ThemeLight
+    else
+      Theme = ThemeDark
+    Ed.initTheme(Theme)
 
-  themeTags = LZHighlight.tags
-  themeSettings = { backgroundImage: '',
-                    foreground: Theme.meanings.text,
-                    caret: Theme.meanings.pointCurrent,
-                    //selection: 'rgb(38 139 210 / 20%)', //'rgb(238 232 213 / 45%)', //Theme.clrs.yellow,
-                    selection: Theme.meanings.nb0Light,
-                    selectionMatch: 'var(--clr-fill-aux)',
-                    lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
-                    gutterBorder: '1px solid #ffffff10',
-                    gutterBackground: Theme.meanings.fill,
-                    gutterForeground: Theme.meanings.text }
-  theme = CMTheme.createTheme({ theme: 'light',
-                                settings: { background: Theme.meanings.light,
-                                            ...themeSettings },
-                                styles: themeStyles(themeTags) })
-  themeHighlighting = theme[0]
-  themeExtension = theme[1]
+    themeTags = LZHighlight.tags
+    themeSettings = { backgroundImage: '',
+                      foreground: Theme.meanings.text,
+                      caret: Theme.meanings.pointCurrent,
+                      //selection: 'rgb(38 139 210 / 20%)', //'rgb(238 232 213 / 45%)', //Theme.clrs.yellow,
+                      selection: Theme.meanings.nb0Light,
+                      selectionMatch: 'var(--clr-fill-aux)',
+                      lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
+                      gutterBorder: '1px solid #ffffff10',
+                      gutterBackground: Theme.meanings.fill,
+                      gutterForeground: Theme.meanings.text }
+    theme = CMTheme.createTheme({ theme: 'light',
+                                  settings: { background: Theme.meanings.light,
+                                              ...themeSettings },
+                                  styles: themeStyles(themeTags) })
+    themeHighlighting = theme[0]
+    themeExtension = theme[1]
 
-  themeCode = CMTheme.createTheme({ theme: 'code-light',
-                                    settings: { background: Theme.meanings.fill,
-                                                ...themeSettings },
-                                    styles: themeStyles(themeTags) })
-  themeHighlightingCode = themeCode[0]
-  themeExtensionCode = themeCode[1]
+    // theme for Ed.code, used eg by ext/rich
+    themeCode = CMTheme.createTheme({ theme: 'code-light',
+                                      settings: { background: Theme.meanings.fill,
+                                                  ...themeSettings },
+                                      styles: themeStyles(themeTags) })
+    themeHighlightingCode = themeCode[0]
+    themeExtensionCode = themeCode[1]
+
+    return [ themeExtension, themeHighlighting ]
+  }
+
+  register({ backend: 'cm',
+             part: themeExtensionPart,
+             make: makeTheme,
+             reconfOpts: [ 'core.theme.mode' ] })
 }
 
 export

@@ -1,6 +1,7 @@
 import { d, log } from './main-log.mjs'
 import { fork, spawn } from 'node:child_process'
 import Path from 'node:path'
+import * as Peer from './main-peer.mjs'
 import * as Project from './main-project.mjs'
 
 let win
@@ -140,8 +141,11 @@ function make
   }
 
   function open
-  (language, file, text) { // absolute
+  (language, file, // absolute
+   bufId) {
     if (initialized) {
+      let buf
+
       d('LSP OPEN')
       if (files.includes(file))
         return
@@ -149,7 +153,16 @@ function make
       if (win)
         win.webContents.send('lsp',
                              { log: 'MAIN LSP ' + lang + ': open file ' + file /*+ ': [' + text + ']'*/ })
-      doOpen(file, language, text)
+
+      d('LSP peer get ' + bufId)
+      buf = Peer.get(bufId)
+      if (buf)
+        if (buf.text)
+          doOpen(file, language, buf.text.toString())
+        else
+          d('LSP buf missing text')
+      else
+        d('LSP buf missing')
     }
     else
       d('LSP OPEN before init')

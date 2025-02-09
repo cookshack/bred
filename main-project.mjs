@@ -1,7 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import * as Lsp from './main-lsp.mjs'
 import Path from 'node:path'
-import * as Peer from './main-peer.mjs'
 import { d } from './main-log.mjs'
 
 let projects
@@ -22,13 +21,13 @@ function add
   }
 
   function open
-  (lang, path, text) {
+  (lang, path, bufId) {
     let lsp
 
     d('PROJ open ' + path)
     add(lang)
     lsp = p.lsps?.[lang]
-    lsp?.open(lang, path, text)
+    lsp?.open(lang, path, bufId)
   }
 
   d('PROJ add ' + dir)
@@ -44,7 +43,7 @@ function add
 export
 function get
 (lang, path, bufId) {
-  let p, buf
+  let p
 
   d('PROJ get ' + path)
 
@@ -77,15 +76,7 @@ function get
   p.add(lang)
 
   // ensure path is open in lsp (in case init took too long for lsp.edit)
-  d('PROJ peer get ' + bufId)
-  buf = Peer.get(bufId)
-  if (buf)
-    if (buf.text)
-      p.open(lang, path, buf.text.toString())
-    else
-      d('PROJ buf missing text')
-  else
-    d('PROJ buf missing')
+  p.open(lang, path, bufId)
 
   return p
 }

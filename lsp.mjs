@@ -7,11 +7,13 @@ let id, cbs
 
 function call
 (lang, path, // absolute
- method, params, cb) {
+ bufId, method, params, cb) {
   id = ++id
   if (cb)
     cbs[id] = cb
-  Tron.cmd1('lsp.req', [ lang, path, method, id, params || {} ], err => {
+  d('lsp.req ' + method + ' ' + lang + ' ' + path + ' ' + id)
+  d({ params })
+  Tron.cmd1('lsp.req', [ lang, path, bufId, method, id, params || {} ], err => {
     if (err) {
       Mess.yell('lsp.req: ', err.message)
       delete cbs[id]
@@ -29,6 +31,7 @@ export
 function callers
 (lang,
  file, // absolute
+ bufId,
  word, // { view, from, to, text }
  cb, // ({ callers, def })
  cbSig) { // ({ sig })
@@ -37,6 +40,7 @@ function callers
   if (avail(lang))
     call(lang,
          file,
+         bufId,
          'textDocument/prepareCallHierarchy',
          { textDocument: { uri: 'file://' + file },
            // 0 based
@@ -53,6 +57,7 @@ function callers
              result = response?.result[0]
              call(lang,
                   file,
+                  bufId,
                   'callHierarchy/incomingCalls',
                   { item: result },
                   r2 => {
@@ -65,6 +70,7 @@ function callers
 
              call(lang,
                   file,
+                  bufId,
                   'textDocument/signatureHelp',
                   { textDocument: { uri: 'file://' + file },
                     position: { line: word.row,
@@ -144,6 +150,7 @@ export
 function complete
 (lang,
  file, // absolute
+ bufId,
  word, // { view, from, to, text }
  cb) { // (words)
   //d('LSP complete')
@@ -157,6 +164,7 @@ function complete
   }
   call(lang,
        file,
+       bufId,
        'textDocument/completion',
        { textDocument: { uri: 'file://' + file },
          // 0 based

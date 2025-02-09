@@ -58,7 +58,7 @@ function makeAutocomplete
     word.view = p.view
 
     return new Promise(resolve => {
-      Lsp.complete(lang, p.buf.path, word, words => {
+      Lsp.complete(lang, p.buf.path, p.buf.id, word, words => {
         d({ words })
         if (words.length)
           options = words.map(w => {

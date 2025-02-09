@@ -1,7 +1,6 @@
 import { d, log } from './main-log.mjs'
 import { fork, spawn } from 'node:child_process'
 import Path from 'node:path'
-import * as Peer from './main-peer.mjs'
 import * as Project from './main-project.mjs'
 
 let win
@@ -26,19 +25,11 @@ function onEdit
   d('LSP onEdit ' + lang + ', ' + path)
 
   if (path && lang) {
-    let p, buf
+    let p
 
     send(lang + ', ' + path)
-    p = Project.get(lang, path)
+    p = Project.get(lang, path, bufId)
     send('project dir: ' + p.dir)
-    buf = Peer.get(bufId)
-    if (buf)
-      if (buf.text)
-        p.open(lang, path, buf.text.toString())
-      else
-        send('buf missing text')
-    else
-      send('buf missing')
   }
   e.sender.send(ch, {})
 }
@@ -46,15 +37,17 @@ function onEdit
 export
 function onReq
 (e, ch, onArgs) {
-  let [ lang, path, method, id, params ] = onArgs
+  let [ lang, path, bufId, method, id, params ] = onArgs
   let lsp, p
 
   d('LSP onReq ' + lang + ', ' + path)
 
-  p = Project.get(lang, path)
+  p = Project.get(lang, path, bufId)
   lsp = p?.lsps[lang]
   if (lsp)
-    setTimeout(() => lsp.req({ method: method,
+    setTimeout(() => lsp.req(lang,
+                             path,
+                             { method: method,
                                ...(id ? { id: id } : {}),
                                params: params }))
 
@@ -129,27 +122,37 @@ function make
   }
 
   function req
-  (json) {
-    if (initialized)
+  (lang, file, json) {
+    if (initialized && files.includes(file))
       _req(json)
+  }
+
+  function doOpen
+  (file, language, text) {
+    if (initialized)
+      _req({ method: 'textDocument/didOpen',
+             params: { textDocument: { uri: 'file://' + file,
+                                       // ids listed under interface here
+                                       // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentItem
+                                       languageId: language,
+                                       version: 0,
+                                       text: text } } })
   }
 
   function open
   (language, file, text) { // absolute
     if (initialized) {
+      d('LSP OPEN')
       if (files.includes(file))
         return
-      if (win)
-        win.webContents.send('lsp', { log: 'MAIN LSP ' + lang + ': open file ' + file })
-      req({ method: 'textDocument/didOpen',
-            params: { textDocument: { uri: 'file://' + file,
-                                      // ids listed under interface here
-                                      // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentItem
-                                      languageId: language,
-                                      version: 0,
-                                      text: text } } })
       files.push(file)
+      if (win)
+        win.webContents.send('lsp',
+                             { log: 'MAIN LSP ' + lang + ': open file ' + file /*+ ': [' + text + ']'*/ })
+      doOpen(file, language, text)
     }
+    else
+      d('LSP OPEN before init')
   }
 
   function parse

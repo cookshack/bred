@@ -13,6 +13,7 @@ import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
 import process from 'node:process'
 import * as Profile from './main-profile.mjs'
+import * as Project from './main-project.mjs'
 import fs from 'node:fs'
 import * as Shell from './main-shell.mjs'
 import * as Step from './main-step.mjs'
@@ -790,6 +791,8 @@ async function whenReady
   }
   else
     d('logging to stdout')
+
+  Project.init()
 
   app.on('window-all-closed', () => {
     app.quit()

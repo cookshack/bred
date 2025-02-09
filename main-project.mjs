@@ -1,11 +1,12 @@
 import { spawnSync } from 'node:child_process'
 import * as Lsp from './main-lsp.mjs'
 import Path from 'node:path'
+import * as Peer from './main-peer.mjs'
 import { d } from './main-log.mjs'
 
 let projects
 
-projects = [ { main: 1, dir: '' } ]
+projects = []
 
 function add
 (dir) {
@@ -24,12 +25,15 @@ function add
   (lang, path, text) {
     let lsp
 
+    d('PROJ open ' + path)
     add(lang)
     lsp = p.lsps?.[lang]
     lsp?.open(lang, path, text)
   }
 
   d('PROJ add ' + dir)
+
+  dir = dir || ''
 
   p = { add, dir, open }
 
@@ -39,8 +43,8 @@ function add
 
 export
 function get
-(lang, path) {
-  let p
+(lang, path, bufId) {
+  let p, buf
 
   d('PROJ get ' + path)
 
@@ -61,7 +65,8 @@ function get
                     [ 'rev-parse', '--show-toplevel' ],
                     { cwd: Path.dirname(path),
                       encoding: 'utf-8' })
-    d(res.error)
+    if (res.error)
+      d(res.error)
     if (res.error || (res.stdout.trim().length == 0))
       // fallback to the catchall project 'main'
       p = projects[0]
@@ -70,8 +75,26 @@ function get
   }
 
   p.add(lang)
+
   // ensure path is open in lsp (in case init took too long for lsp.edit)
-  // remove/adjust when add proj root
-  p.open(lang, path)
+  d('PROJ peer get ' + bufId)
+  buf = Peer.get(bufId)
+  if (buf)
+    if (buf.text)
+      p.open(lang, path, buf.text.toString())
+    else
+      d('PROJ buf missing text')
+  else
+    d('PROJ buf missing')
+
   return p
+}
+
+export
+function init
+() {
+  let p
+
+  p = add()
+  p.main = 1
 }

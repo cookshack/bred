@@ -17,7 +17,7 @@ function add
       return
     p.lsps = p.lsps || []
     if ([ 'c', 'javascript' ].includes(lang))
-      p.lsps[lang] = Lsp.make(lang)
+      p.lsps[lang] = Lsp.make(lang, dir)
   }
 
   function open

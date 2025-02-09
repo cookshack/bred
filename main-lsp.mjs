@@ -63,7 +63,7 @@ function onReq
 
 export
 function make
-(lang) {
+(lang, dir) {
   let lsp, initialized, buffer // u8
   let clen // in bytes
   let capabilities, valueSet
@@ -121,8 +121,7 @@ function make
                      capabilities: capabilities,
                      rootPath: '.',
                      rootUri: null,
-                     //rootUri: 'file://' + dir,
-                     //workspaceFolders: workspaceFolders,
+                     workspaceFolders: dir ? [ { name: dir, url: 'file://' + dir } ] : [],
                      initializationOptions: { tsserver: { logDirectory: '/tmp/',
                                                           logVerbosity: 'verbose',
                                                           trace: 'off' } }, // off/messages/verbose delivered through LSP messages

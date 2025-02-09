@@ -123,13 +123,13 @@ function make
   }
 
   function req
-  (lang, file, json) {
+  (language, file, json) {
     if (initialized && files.includes(file))
       _req(json)
   }
 
   function doOpen
-  (file, language, text) {
+  (language, file, text) {
     if (initialized)
       _req({ method: 'textDocument/didOpen',
              params: { textDocument: { uri: 'file://' + file,
@@ -152,13 +152,13 @@ function make
       files.push(file)
       if (win)
         win.webContents.send('lsp',
-                             { log: 'MAIN LSP ' + lang + ': open file ' + file /*+ ': [' + text + ']'*/ })
+                             { log: 'MAIN LSP ' + language + ': open file ' + file /*+ ': [' + text + ']'*/ })
 
       d('LSP peer get ' + bufId)
       buf = Peer.get(bufId)
       if (buf)
         if (buf.text)
-          doOpen(file, language, buf.text.toString())
+          doOpen(language, file, buf.text.toString())
         else
           d('LSP buf missing text')
       else

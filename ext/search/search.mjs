@@ -59,18 +59,20 @@ function init
   }
 
   function searchFiles
-  (recurse, needle) {
+  (recurse, regex, needle) {
     if (needle && needle.length) {
       hist.add(needle)
       Shell.spawn1(Loc.appDir().join('bin/sr'),
                    [ needle,
-                     recurse ? '1' : '0' ],
+                     recurse ? '1' : '0',
+                     regex ? '1' : '0' ],
                    { end: 1,
                      afterEndPoint: 1 },
                    b => {
                      b.mode = 'sr'
                      b.vars('sr').needle = needle
                      b.vars('sr').recurse = recurse
+                     b.vars('sr').regex = regex
                      b.addMode('view')
                    })
     }
@@ -81,14 +83,14 @@ function init
   }
 
   function prompt
-  (recurse) {
+  (recurse, regex) {
     Prompt.ask({ text: 'Search files' + (recurse ? ' recursively' : ''),
                  hist: hist },
-               needle => searchFiles(recurse, needle))
+               needle => searchFiles(recurse, regex, needle))
   }
 
   function search
-  (u) {
+  (u, regex) {
     let p, recurse
 
     p = Pane.current()
@@ -97,7 +99,7 @@ function init
     if (u == 4)
       recurse = false == recurse
 
-    prompt(recurse)
+    prompt(recurse, regex)
   }
 
   hist = Hist.ensure('search files')
@@ -121,6 +123,8 @@ function init
 
   Cmd.add('search files', search)
   Cmd.add('search files recursively', () => prompt(1))
+  Cmd.add('match files', u => search(u, 1))
+  Cmd.add('match files recursively', () => prompt(1, 1))
 }
 
 export

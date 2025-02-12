@@ -4,4 +4,8 @@ DEPTH=""
 if [ "$2" -eq "0" ]; then
   DEPTH="-maxdepth 1"
 fi
-find . -type f -not -name \*.BAK -not -name \*.CKP -not -name \*~ $DEPTH 2>/dev/null | sort | uniq | xargs grep --ignore-case --fixed-strings --line-number "$1" -H -I 2>/dev/null # -I -e -H 2>/dev/null
+FIXED="--fixed-strings"
+if [ "$3" -eq "1" ]; then
+  FIXED=""
+fi
+find . -type f -not -name \*.BAK -not -name \*.CKP -not -name \*~ $DEPTH 2>/dev/null | sort | uniq | xargs grep --ignore-case $FIXED --line-number "$1" -H -I 2>/dev/null # -I -e -H 2>/dev/null

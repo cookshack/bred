@@ -55,6 +55,20 @@ function init
     (results) {
       let lang, off, tok, el, body
 
+      function link
+      (name, uri, line) {
+        return [ div(name,
+                     { 'data-run': 'open link',
+                       'data-path': uri,
+                       'data-line': line }),
+                 divCl('assist-uri',
+                       uriPath(uri) + (line ? (' ' + line) : ''),
+                       { 'data-run': 'open link',
+                         'data-path': uri,
+                         'data-line': line }) ]
+
+      }
+
       body = v.ele.querySelector('.assist-main-body')
       Css.expand(body)
 
@@ -74,16 +88,7 @@ function init
 
         def = results.def
         line = parseInt(def.range.start.line) + 1
-        append(el,
-               [ div(def.name,
-                     { 'data-run': 'open link',
-                       'data-path': def.uri,
-                       'data-line': line }),
-                 divCl('assist-uri',
-                       uriPath(def.uri) + ' ' + line,
-                       { 'data-run': 'open link',
-                         'data-path': def.uri,
-                         'data-line': line }) ])
+        append(el, link(def.name, def.uri, line))
       }
 
       if (results?.callers) {
@@ -92,7 +97,11 @@ function init
         el = body.querySelector('.assist-callers')
         el.innerText = ''
         results.callers.forEach(res => {
-          append(el, divCl('.assist-caller', res.from.name))
+          append(el,
+                 divCl('.assist-caller',
+                       [ link(res.from.name,
+                              res.from.uri,
+                              parseInt(res.from.selectionRange.start.line) + 1) ]))
         })
       }
     }

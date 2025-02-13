@@ -46,6 +46,9 @@ function path
     if (name == 'dir')
       return 'lib/svg/octicons/file-directory-24.svg'
 
+    if (name == 'docker')
+      return 'lib/svg/file-icons/Docker.svg'
+
     if (name == 'dom')
       return 'lib/svg/file-icons/DOM.svg'
 
@@ -154,6 +157,7 @@ function mode
     if (name == 'css') return { name: 'css' }
     if (name == 'csv') return { name: 'csv' }
     if (name == 'diff') return { name: 'patch' }
+    if (name == 'dockerfile') return { name: 'docker' }
     if (name == 'dir') return { name: 'dir' }
     if (name == 'elisp') return { name: 'elisp' }
     if (name == 'html') return { name: 'html' }

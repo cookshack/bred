@@ -40,7 +40,7 @@ clrs.cyanLight = toHex(Blend.normal(bgRgb, rgb))
 rgb.a = 0.18
 clrs.cyanVeryLight = toHex(Blend.normal(bgRgb, rgb))
 
-rgb.a = 0.9
+rgb.a = 0.09
 clrs.cyanVeryVeryLight = toHex(Blend.normal(bgRgb, rgb))
 
 meanings = { text: text,

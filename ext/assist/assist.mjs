@@ -79,11 +79,21 @@ function init
                      { 'data-run': 'open link',
                        'data-path': def.uri,
                        'data-line': line }),
-                 divCl('assist-def-uri',
+                 divCl('assist-uri',
                        uriPath(def.uri) + ' ' + line,
                        { 'data-run': 'open link',
                          'data-path': def.uri,
                          'data-line': line }) ])
+      }
+
+      if (results?.callers) {
+        let el
+
+        el = body.querySelector('.assist-callers')
+        el.innerText = ''
+        results.callers.forEach(res => {
+          append(el, divCl('.assist-caller', res.from.name))
+        })
       }
     }
 

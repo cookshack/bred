@@ -16,15 +16,15 @@ function toHex
 
 clrs = { ...Theme.clrs }
 
-rgb = clrs.blueRGB
+rgb = clrs.blueRgb
 rgb.a = 0.2
-clrs.blueLight = toHex(Blend.normal(clrs.base03RGB, rgb))
+clrs.blueLight = toHex(Blend.normal(clrs.base03Rgb, rgb))
 
 text = clrs.base1
 textRgb = clrs.base1Rgb
 
 bg = clrs.base03
-bgRgb = clrs.base03RGB
+bgRgb = clrs.base03Rgb
 
 // base02 too dark, eg hard to see tag.meta like #include in c
 clrs.base02LightRgb = clrs.base02Rgb
@@ -32,7 +32,7 @@ clrs.base02LightRgb.a = 0.9
 clrs.base02Light = toHex(Blend.normal(textRgb, clrs.base02LightRgb))
 fill = clrs.base02Light
 
-rgb = clrs.cyanRGB
+rgb = clrs.cyanRgb
 
 rgb.a = 0.38
 clrs.cyanLight = toHex(Blend.normal(bgRgb, rgb))

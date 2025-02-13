@@ -227,7 +227,7 @@ function init
 
 // http://ethanschoonover.com/solarized
 clrs = { base03: '#002b36',
-         base03RGB: { r: 0, g: 43, b: 54, a: 1 },
+         base03Rgb: { r: 0, g: 43, b: 54, a: 1 },
          base02: '#073642',
          base02Rgb: { r: 7, g: 54, b: 66, a: 1 },
          base01: '#586e75',
@@ -243,9 +243,9 @@ clrs = { base03: '#002b36',
          magenta: '#d33682',
          violet: '#6c71c4',
          blue: '#268bd2',
-         blueRGB: { r: 38, g: 139, b: 210 },
+         blueRgb: { r: 38, g: 139, b: 210 },
          cyan: '#2aa198',
-         cyanRGB: { r: 42, g: 161, b: 152 },
+         cyanRgb: { r: 42, g: 161, b: 152 },
          green: '#859900',
          //
          blueLight: '#cbe1df', // blue 20% on base3

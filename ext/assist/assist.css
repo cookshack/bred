@@ -64,6 +64,10 @@
   flex-direction: column;
 }
 
+div.assist-def-uri {
+  color: var(--clr-text);
+}
+
 .assist-caller {
   margin-bottom: 0.5rem;
 }

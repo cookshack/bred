@@ -79,7 +79,11 @@ function init
                      { 'data-run': 'open link',
                        'data-path': def.uri,
                        'data-line': line }),
-                 div(uriPath(def.uri) + ' ' + line) ])
+                 divCl('assist-def-uri',
+                       uriPath(def.uri) + ' ' + line,
+                       { 'data-run': 'open link',
+                         'data-path': def.uri,
+                         'data-line': line }) ])
       }
     }
 

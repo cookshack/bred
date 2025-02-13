@@ -1,8 +1,8 @@
 import * as Theme from './theme-solarized.js'
 import * as Blend from './lib/color-blend.js'
-import { d } from './mess.mjs'
+//import { d } from './mess.mjs'
 
-let theme, clrs, meanings, filterMeanings, rgb
+let theme, clrs, meanings, filterMeanings, rgb, bg, bgRgb, fill, text, textRgb
 
 function toX
 (r) {
@@ -19,27 +19,34 @@ clrs = { ...Theme.clrs }
 rgb = clrs.blueRGB
 rgb.a = 0.2
 clrs.blueLight = toHex(Blend.normal(clrs.base03RGB, rgb))
-if (0) {
-  d({ rgb })
-  d('===================')
-  d(clrs.blueLight)
-}
+
+text = clrs.base1
+textRgb = clrs.base1Rgb
+
+bg = clrs.base03
+bgRgb = clrs.base03RGB
+
+// base02 too dark, eg hard to see tag.meta like #include in c
+clrs.base02LightRgb = clrs.base02Rgb
+clrs.base02LightRgb.a = 0.9
+clrs.base02Light = toHex(Blend.normal(textRgb, clrs.base02LightRgb))
+fill = clrs.base02Light
 
 rgb = clrs.cyanRGB
 
 rgb.a = 0.38
-clrs.cyanLight = toHex(Blend.normal(clrs.base03RGB, rgb))
+clrs.cyanLight = toHex(Blend.normal(bgRgb, rgb))
 
 rgb.a = 0.18
-clrs.cyanVeryLight = toHex(Blend.normal(clrs.base03RGB, rgb))
+clrs.cyanVeryLight = toHex(Blend.normal(bgRgb, rgb))
 
 rgb.a = 0.9
-clrs.cyanVeryVeryLight = toHex(Blend.normal(clrs.base03RGB, rgb))
+clrs.cyanVeryVeryLight = toHex(Blend.normal(bgRgb, rgb))
 
-meanings = { text: clrs.base1,
+meanings = { text: text,
              textLight: clrs.base0,
-             fill: clrs.base02,
-             light: clrs.base03,
+             fill: fill,
+             light: bg,
              //
              emph: clrs.base3,
              emphLight: clrs.base2 }

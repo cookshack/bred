@@ -55,6 +55,11 @@ function init
     (results) {
       let lang, off, tok, el, body
 
+      function lnum
+      (num) {
+        return parseInt(num) + 1
+      }
+
       function link
       (name, uri, line) {
         return [ div(name,
@@ -87,7 +92,7 @@ function init
         let def, line
 
         def = results.def
-        line = parseInt(def.range.start.line) + 1
+        line = lnum(def.range.start.line)
         append(el, link(def.name, def.uri, line))
       }
 
@@ -98,10 +103,16 @@ function init
         el.innerText = ''
         results.callers.forEach(res => {
           append(el,
-                 divCl('.assist-caller',
+                 divCl('assist-caller',
                        [ link(res.from.name,
                               res.from.uri,
-                              parseInt(res.from.selectionRange.start.line) + 1) ]))
+                              lnum(res.from.selectionRange.start.line)),
+                         res.fromRanges.map(fr => divCl('assist-caller-loc',
+                                                        lnum(fr.start.line),
+                                                        { 'data-run': 'open link',
+                                                          'data-path': res.from.uri,
+                                                          'data-line': lnum(fr.start.line),
+                                                          'data-col': fr.start.character })) ]))
         })
       }
     }

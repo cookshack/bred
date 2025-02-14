@@ -64,12 +64,17 @@
   flex-direction: column;
 }
 
+div.assist-caller-loc,
 div.assist-uri {
   color: var(--clr-text);
 }
 
 .assist-caller {
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.assist-caller-loc {
+  margin-left: 1rem;
 }
 
 .assist-main-body.retracted {

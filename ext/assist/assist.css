@@ -76,6 +76,17 @@ div.assist-uri {
 .assist-caller-loc {
   margin-left: 1rem;
   font-family: var(--font-monospace);
+  display: grid;
+  grid-template-columns: minmax(min-content, max-content) auto;
+}
+
+.assist-caller-loc > div {
+  pointer-events: none;
+  padding: 0.25rem;
+}
+
+.assist-caller-num {
+  background-color: var(--clr-fill);
 }
 
 .assist-main-body.retracted {

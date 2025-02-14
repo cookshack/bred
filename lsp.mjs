@@ -61,11 +61,21 @@ function callers
                   'callHierarchy/incomingCalls',
                   { item: result },
                   r2 => {
-                    if (r2.error)
-                      console.warn('LSP callers incoming: ' + r2.error.message)
-
                     d({ r2 })
-                    cb({ callers: r2.result, def: result })
+                    if (r2.error) {
+                      console.warn('LSP callers incoming: ' + r2.error.message)
+                      cb({ callers: r2.result, def: result })
+                    }
+                    else
+                      Tron.cmd('files.lines', r2.result, (err, r4) => {
+                        console.log({ r4 })
+                        if (err) {
+                          console.warn('LSP peer.lines: ' + err.message)
+                          cb({ callers: r2.result, def: result })
+                          return
+                        }
+                        cb({ callers: r4, def: result })
+                      })
                   })
 
              call(lang,

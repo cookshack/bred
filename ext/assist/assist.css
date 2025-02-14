@@ -75,6 +75,7 @@ div.assist-uri {
 
 .assist-caller-loc {
   margin-left: 1rem;
+  font-family: var(--font-monospace);
 }
 
 .assist-main-body.retracted {

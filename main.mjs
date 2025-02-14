@@ -5,6 +5,7 @@ import * as Chmod from './main-chmod.mjs'
 import * as Dir from './main-dir.mjs'
 import * as Ext from './main-ext.mjs'
 import * as File from './main-file.mjs'
+import * as Files from './main-files.mjs'
 import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
 import * as Lsp from './main-lsp.mjs'
@@ -341,6 +342,9 @@ async function onCmd
 
   if (name == 'file.watch')
     return wrapOn(e, ch, args, File.onWatch)
+
+  if (name == 'files.lines')
+    return wrapOn(e, ch, args, Files.onLines)
 
   if (name == 'peer.get')
     return wrapOn(e, ch, args, Peer.onPeerGet)

@@ -70,7 +70,7 @@ function callers
                       Tron.cmd('files.lines', r2.result, (err, r4) => {
                         console.log({ r4 })
                         if (err) {
-                          console.warn('LSP peer.lines: ' + err.message)
+                          console.warn('LSP files.lines: ' + err.message)
                           cb({ callers: r2.result, def: result })
                           return
                         }

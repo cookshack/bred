@@ -209,7 +209,7 @@ function init
         name,
         rules,
 
-        colors: { 'editor.background': meanings.light,
+        colors: { 'editor.background': meanings.bg,
                   'editor.foreground': meanings.text,
                   'editor.selectionBackground': meanings.nb0Light,
                   'editor.lineHighlightBackground': meanings.nb0VeryLight,

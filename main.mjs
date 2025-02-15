@@ -368,7 +368,7 @@ function createWindow
 
   mode = Profile.stores.opt.get('core.theme.mode')
 
-  opts = opts || { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-light
+  opts = opts || { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
                    //frame: false,
                    //titleBarStyle: 'hidden',
                    //titleBarOverlay: true,
@@ -406,7 +406,7 @@ function createWindow
         && (details.frameName.match(/bred:win\/[-0-9a-f]+/)))
       return { action: 'allow',
                outlivesOpener: true,
-               overrideBrowserWindowOptions: { backgroundColor: '#fdf6e3', // --color-primary-light
+               overrideBrowserWindowOptions: { backgroundColor: '#fdf6e3', // --color-primary-bg
                                                show: false,
                                                webPreferences: { webviewTag: true,
                                                                  preload: Path.join(import.meta.dirname,
@@ -566,7 +566,7 @@ function checkDepsWin
     _win.webContents.send('thrown', makeErr(err))
   })
 
-  opts = { backgroundColor: '#fdf6e3', // --color-primary-light
+  opts = { backgroundColor: '#fdf6e3', // --color-primary-bg
            //frame: false,
            //titleBarStyle: 'hidden',
            //titleBarOverlay: true,

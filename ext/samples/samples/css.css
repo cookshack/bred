@@ -16,7 +16,7 @@
   box-sizing: border-box;
   padding: 0;
   border-spacing: 0;
-  scrollbar-color: var(--clr-text) var(--clr-light);
+  scrollbar-color: var(--clr-text) var(--clr-bg);
 }
 
 *::-webkit-scrollbar-thumb {

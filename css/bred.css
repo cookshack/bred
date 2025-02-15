@@ -36,7 +36,7 @@
   --filter-clr-text: var(--filter-clr-solarized-base00);
   --clr-text-light: var(--solarized-base1);
   --clr-fill: var(--solarized-base2);
-  --clr-light: var(--solarized-base3);
+  --clr-bg: var(--solarized-base3);
 
   --clr-nb3: var(--solarized-red);
   --filter-clr-nb3: var(--filter-clr-solarized-red);
@@ -96,7 +96,7 @@
   padding: 0;
   margin: 0;
   border-spacing: 0;
-  scrollbar-color: var(--clr-text) var(--clr-light);
+  scrollbar-color: var(--clr-text) var(--clr-bg);
 }
 
 ::selection {
@@ -132,12 +132,12 @@ span[data-run]:hover {
 
 div[data-run]:active,
 span[data-run]:active {
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
 }
 
 div[data-run].onfill:hover,
 span[data-run].onfill:hover {
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
 }
 
 div[data-run].onfill:active,
@@ -199,7 +199,7 @@ html {
 
 body {
   font-size: 16px;
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
   /* prevent extra flash on buttons on chrome on mobile */
   -webkit-tap-highlight-color: transparent;
 }
@@ -219,7 +219,7 @@ button {
 }
 
 button:hover {
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 button:active {
@@ -227,7 +227,7 @@ button:active {
 }
 
 button.onfill {
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 button.onfill:hover {
@@ -496,7 +496,7 @@ textarea:focus-visible {
   height: 100%;
   width: 100%;
   padding: 0;
-  background: var(--clr-light);
+  background: var(--clr-bg);
   display: flex;
 }
 
@@ -524,7 +524,7 @@ textarea:focus-visible {
   height: var(--height-tabbar);
   min-height: var(--height-tabbar);
   background-color: var(--clr-fill);
-  border-bottom: 1px solid var(--clr-light);
+  border-bottom: 1px solid var(--clr-bg);
   color: var(--clr-text);
   padding: 0 0.25rem 0 0.25rem;
 
@@ -539,7 +539,7 @@ div.bred-menu {
   height: var(--height-menu);
   min-height: var(--height-menu);
   background-color: var(--clr-fill);
-  border-bottom: 1px solid var(--clr-light);
+  border-bottom: 1px solid var(--clr-bg);
   color: var(--clr-text);
 
   display: flex;
@@ -609,7 +609,7 @@ div.bred-menu1-item {
 .bred-context-line,
 .bred-menu1-line {
   height: 1px;
-  background: var(--clr-light);
+  background: var(--clr-bg);
   margin: 0.3rem 0 0.3rem 0;
 }
 
@@ -754,7 +754,7 @@ div.bred-menu1-item {
 }
 
 #mini.active {
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
 }
 
 .mini-search-w {
@@ -839,7 +839,7 @@ div.mini-time {
 .bred-menu-item:hover,
 .bred-menu1-item:hover,
 .mini-em:hover {
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
 }
 
 .bred-menu-item:active,
@@ -854,7 +854,7 @@ div.mini-time {
 }
 
 .mini-echo:active {
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
 }
 
 #mini-execute,
@@ -942,7 +942,7 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
 .monaco-editor div.line-numbers.active-line-number,
 .paneWW.current > .paneW > .pane > .edWW > .edW > .ace_gutter > .ace_layer > div.ace_gutter-active-line {
   color: var(--clr-nb3);
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
 }
 
 .monaco-editor div.margin,
@@ -1000,7 +1000,7 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
 
 .cm-editor.cm-focused .cm-activeLineGutter {
   color: var(--clr-nb3)!important;
-  background-color: var(--clr-light)!important;
+  background-color: var(--clr-bg)!important;
 }
 
 .cm-tooltip.cm-tooltip-autocomplete {
@@ -1061,7 +1061,7 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   width: 100%;
   min-height: 3rem;
   border-bottom: 2px solid var(--clr-nb3);
-  background: var(--clr-light);
+  background: var(--clr-bg);
   padding: 1rem;
   display: flex;
 }
@@ -1091,7 +1091,7 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
 .float-h {
   display: flex;
   align-items: center;
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 .float-icon {
@@ -1197,7 +1197,7 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
 .bred-about-lic,
 .bred-about-dw {
   margin-top: 1rem;
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
   box-shadow: none;
 }
 
@@ -1346,7 +1346,7 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
 }
 
 .bred-opener-w > .cm-editor {
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 .bred-filler {
@@ -1395,7 +1395,7 @@ div.bred-open-under-f {
 }
 
 .bred-open-under-f:hover {
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 .bred-open-under-f:active {
@@ -1589,11 +1589,11 @@ div.bred-lint-marker:active {
 
 .tabbar-tab.current {
   color: var(--clr-emph);
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 .tabbar-tab:hover {
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 .tabbar-tab:active {
@@ -1642,7 +1642,7 @@ div.bred-lint-marker:active {
   white-space: pre;
   font-family: monospace;
   width: 100%;
-  background: var(--clr-light);
+  background: var(--clr-bg);
   padding-left: 6px; /* match .cm-line left pad */
   display: flex;
 }
@@ -1650,7 +1650,7 @@ div.bred-lint-marker:active {
 div.bred-qr-replace:hover,
 div.bred-qr-with:hover {
   cursor: text;
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 .bred-qr-ed {
@@ -1682,7 +1682,7 @@ span.bred-search-match > span.bred-search-all,
 span.bred-search-match > span.bred-search-all > div,
 span.bred-search-match > span.bred-search-all > span {
   background: var(--clr-nb0);
-  color: var(--clr-light);
+  color: var(--clr-bg);
 }
 
 .bred-zebra {

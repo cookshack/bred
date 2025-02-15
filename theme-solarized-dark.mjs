@@ -46,7 +46,7 @@ clrs.cyanVeryVeryLight = toHex(Blend.normal(bgRgb, rgb))
 meanings = { text: text,
              textLight: clrs.base0,
              fill: fill,
-             light: bg,
+             bg: bg,
              //
              emph: clrs.base3,
              emphLight: clrs.base2 }

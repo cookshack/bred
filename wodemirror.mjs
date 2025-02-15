@@ -4205,7 +4205,7 @@ function initTheme
                       gutterBackground: Theme.meanings.fill,
                       gutterForeground: Theme.meanings.text }
     theme = CMTheme.createTheme({ theme: 'light',
-                                  settings: { background: Theme.meanings.light,
+                                  settings: { background: Theme.meanings.bg,
                                               ...themeSettings },
                                   styles: themeStyles(themeTags) })
     themeHighlighting = theme[0]

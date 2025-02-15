@@ -7,7 +7,7 @@ clrs = { ...Theme.clrs }
 meanings = { text: Theme.clrs.base01,
              textLight: Theme.clrs.base00,
              fill: Theme.clrs.base2,
-             light: Theme.clrs.base3,
+             bg: Theme.clrs.base3,
              //
              emph: Theme.clrs.base03,
              emphLight: Theme.clrs.base02 }

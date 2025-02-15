@@ -156,7 +156,12 @@ function add
     save()
     if ((f == tab.frameLeft)
         || tab.framesRight?.includes(f)) {
-      let frame1, width
+      let frame1, width, ind
+
+      // retract sep of previous frame
+      ind = tab.framesRight?.indexOf(f)
+      if (ind > 0)
+        Css.retract(tab.framesRight[ind - 1].sep)
 
       // add to frame1
       frame1 = tab.frame1
@@ -183,7 +188,12 @@ function add
     save()
     if ((f == tab.frameLeft)
         || tab.framesRight?.includes(f)) {
-      let frame1, width
+      let frame1, width, ind
+
+      // retract sep of previous frame
+      ind = tab.framesRight?.indexOf(f)
+      if (ind > 0)
+        Css.expand(tab.framesRight[ind - 1].sep)
 
       // remove from frame1
       frame1 = tab.frame1

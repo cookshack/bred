@@ -14,6 +14,8 @@ function getStore
 (name) {
   if (name == 'frame')
     return stores.frame
+  if (name == 'opt')
+    return stores.opt
   if (name == 'poss')
     return stores.poss
   if (name == 'state')
@@ -82,6 +84,7 @@ function init
                  { recursive: true })
 
   stores = { frame: new Store({ name: 'frame', cwd: profile.dir }),
+             opt: new Store({ name: 'opt', cwd: profile.dir }),
              poss: new Store({ name: 'poss', cwd: profile.dir }),
              state: new Store({ name: 'state', cwd: profile.dir }) }
 }

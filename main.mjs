@@ -364,9 +364,11 @@ async function onCmd
 
 function createWindow
 (html, opts) {
-  let win
+  let win, mode
 
-  opts = opts || { backgroundColor: '#fdf6e3', // --color-primary-light
+  mode = Profile.stores.opt.get('core.theme.mode')
+
+  opts = opts || { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-light
                    //frame: false,
                    //titleBarStyle: 'hidden',
                    //titleBarOverlay: true,

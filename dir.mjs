@@ -456,14 +456,14 @@ function fill
     if (currentFile) {
       let el
 
-      el = p.view.ele.querySelector('.dir-name[data-name="' + currentFile + '"]')
+      el = p.view.ele?.querySelector('.dir-name[data-name="' + currentFile + '"]')
       if (el)
         p.view.point.put(el)
     }
     else {
       let first
 
-      first = p.view.ele.querySelector('.dir-name')
+      first = p.view.ele?.querySelector('.dir-name')
       if (first)
         p.view.point.put(first)
     }

@@ -4076,24 +4076,30 @@ function initLangs
                                                  return import(file).then(m => {
                                                    let ls
 
-                                                   if (opt.preload)
-                                                     opt.preload(m)
+                                                   try {
+                                                     if (opt.preload)
+                                                       opt.preload(m)
 
-                                                   if (opt.load)
-                                                     ls = opt.load(m)
-                                                   else if (m['language'])
-                                                     ls = m['language']()
-                                                   else if (m[name.toLowerCase()])
-                                                     ls = m[name.toLowerCase()]()
-                                                   else
-                                                     Mess.toss('missing loader for ' + name)
+                                                     if (opt.load)
+                                                       ls = opt.load(m)
+                                                     else if (m['language'])
+                                                       ls = m['language']()
+                                                     else if (m[name.toLowerCase()])
+                                                       ls = m[name.toLowerCase()]()
+                                                     else
+                                                       Mess.toss('missing loader for ' + name)
 
-                                                   if (opt.postload)
-                                                     opt.postload(m, ls)
+                                                     if (opt.postload)
+                                                       opt.postload(m, ls)
 
-                                                   handleCustomTags(m)
+                                                     handleCustomTags(m)
 
-                                                   d('Initialised lang: ' + file)
+                                                     d('Initialised lang: ' + file)
+                                                   }
+                                                   catch (err) {
+                                                     d('loadLang load: ' + file + ': ' + err.message)
+                                                     //debugger
+                                                   }
 
                                                    return ls
                                                  })
@@ -4221,6 +4227,8 @@ function initTheme
 
     return [ themeExtension, themeHighlighting ]
   }
+
+  themeExtensionPart = new CMState.Compartment
 
   register({ backend: 'cm',
              part: themeExtensionPart,

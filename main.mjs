@@ -403,10 +403,13 @@ function createWindow
 
   win.webContents.setWindowOpenHandler(details => {
     if ((details.url == 'about:blank')
-        && (details.frameName.match(/bred:win\/[-0-9a-f]+/)))
+        && (details.frameName.match(/bred:win\/[-0-9a-f]+/))) {
+      let mode
+
+      mode = Profile.stores.opt.get('core.theme.mode')
       return { action: 'allow',
                outlivesOpener: true,
-               overrideBrowserWindowOptions: { backgroundColor: '#fdf6e3', // --color-primary-bg
+               overrideBrowserWindowOptions: { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
                                                show: false,
                                                webPreferences: { webviewTag: true,
                                                                  preload: Path.join(import.meta.dirname,
@@ -420,6 +423,7 @@ function createWindow
                  win = createWindow(html, opts)
                  return win?.webContents
                } }
+    }
     return { action: 'deny' }
   })
 
@@ -557,16 +561,17 @@ function watchClip
 
 function checkDepsWin
 () {
-  let html, win, opts
+  let html, win, opts, mode
 
   html = 'check-deps.html'
+  mode = Profile.stores.opt.get('core.theme.mode')
 
   process.on('uncaughtException', err => {
     console.log(err.message)
     _win.webContents.send('thrown', makeErr(err))
   })
 
-  opts = { backgroundColor: '#fdf6e3', // --color-primary-bg
+  opts = { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
            //frame: false,
            //titleBarStyle: 'hidden',
            //titleBarOverlay: true,

@@ -915,7 +915,11 @@ function init
   if (Win.root())
     Win.shared().messages = {}
 
-  Ev.on('Mess.push', e => add(e.detail))
+  Ev.on('Mess.push', e => {
+    // each does dom update, so should combine them
+    setTimeout(() => add(e.detail),
+               100)
+  })
 
   mo = Mode.add('Messages', { viewInit: refresh })
 

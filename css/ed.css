@@ -62,7 +62,7 @@
 }
 
 .edMl > div[data-run]:hover {
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
 }
 
 .edMl > div[data-run]:active {

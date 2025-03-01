@@ -61,7 +61,7 @@ div.switch-name {
 }
 
 .switch-name.selected {
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 .switch-sep {

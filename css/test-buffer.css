@@ -75,7 +75,7 @@
   padding: 1rem;
   width: 10rem;
   display: flex;
-  background-color: var(--clr-light);
+  background-color: var(--clr-bg);
 }
 
 .test_buffer-4 > div.test_buffer-right {
@@ -129,7 +129,7 @@
 }
 
 .test_buffer-des-section .mini-panel {
-  background: var(--clr-light);
+  background: var(--clr-bg);
 }
 
 .test_buffer-des-section.dark .mini-panel {

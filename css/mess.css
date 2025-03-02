@@ -32,7 +32,7 @@
 }
 
 .mess-w > .bred-gap {
-  grid-column: 1 / -1;
+  grid-column: 1 / span 4;
 }
 
 .mess-date {

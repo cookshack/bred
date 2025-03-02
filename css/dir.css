@@ -115,7 +115,7 @@ div.dir-h-dir,
 }
 
 .dir-empty {
-  grid-column: 1 / -1;
+  grid-column: 1 / span 7;
   color: var(--clr-text-light);
   display: flex;
 }

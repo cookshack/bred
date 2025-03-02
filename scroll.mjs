@@ -63,11 +63,15 @@ function redraw
       above = Math.floor(surf.scrollTop / px)
     dbg('above: ' + above)
 
+    end = surf.lastElementChild
+
     if (above > first.dataset.above) {
       // remove lines above
       dbg('= remove ' + (above - first.dataset.above) + ' lines above')
       for (let i = 0; i < (above - first.dataset.above) * colsPerLine; i++)
-        if (first.nextElementSibling)
+        if (first.nextElementSibling == end)
+          break
+        else if (first.nextElementSibling)
           first.nextElementSibling.remove()
       shown -= (above - first.dataset.above)
     }
@@ -86,8 +90,6 @@ function redraw
     height = 'calc(' + above + ' * var(--line-height))'
     first.style.minHeight = height
     first.dataset.above = above
-
-    end = surf.lastElementChild
 
     {
       let mustShow

@@ -818,8 +818,8 @@ function init
   }
 
   function add
-  (mess) {
-    if (mess)
+  (messs) {
+    if (messs?.length)
       Win.shared().messages.buf?.views.forEach(view => {
         if (view.ele) {
           let w
@@ -841,7 +841,7 @@ function init
             //spaceForLine = wasAtEnd < lineHeight
             wasAtEnd = (wasAtEnd < 10) // close enough
             if (wasAtEnd) {
-              appendM(w, mess)
+              messs.forEach(mess => appendM(w, mess))
               if (paneW.scrollHeight == paneW.clientHeight) {
                 // content still fits entirely in pane
               }
@@ -924,7 +924,7 @@ function init
 
       function addFromQueue
       () {
-        queue.forEach(detail => add(detail))
+        add(queue)
         queue = []
       }
 

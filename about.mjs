@@ -841,7 +841,10 @@ function init
             //spaceForLine = wasAtEnd < lineHeight
             wasAtEnd = (wasAtEnd < 10) // close enough
             if (wasAtEnd) {
-              messs.forEach(mess => appendM(w, mess))
+              let gap
+
+              gap = w.lastElementChild
+              messs.forEach(mess => gap.before(w, mess))
               if (paneW.scrollHeight == paneW.clientHeight) {
                 // content still fits entirely in pane
               }

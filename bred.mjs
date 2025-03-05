@@ -397,10 +397,20 @@ function initCmds
 
     we.e.preventDefault()
     win = Win.current()
-    win.context.open(we)
-    win.lastContext = { x: we.e.x, y: we.e.y }
-    win.context.el.style.left = we.e.x + 'px'
-    win.context.el.style.top = we.e.y + 'px'
+    win.context.open(we, () => {
+      let x, y, rect
+
+      x = we.e.x
+      y = we.e.y
+      rect = win.context.el.getBoundingClientRect()
+      if ((rect.height + y) > win.window.innerHeight)
+        y = win.window.innerHeight - rect.height - 10
+      if ((rect.width + x) > win.window.innerWidth)
+        x = win.window.innerWidth - rect.width - 10
+      win.lastContext = { x: x, y: y }
+      win.context.el.style.left = x + 'px'
+      win.context.el.style.top = y + 'px'
+    })
   })
 
   Cmd.add('inspect element', (u, we) => {

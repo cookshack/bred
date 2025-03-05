@@ -103,7 +103,7 @@ function makeContext
               close() {
                 Css.remove(context.el, 'bred-open')
               },
-              open(we) {
+              open(we, cb) { // runs after visible
                 let target, p
 
                 context.el.innerHTML = ''
@@ -126,6 +126,7 @@ function makeContext
                              contextLine())
                     appendStep(p)
                     Css.add(context.el, 'bred-open')
+                    cb && cb()
                   })
                 else {
                   p && appendContextMode(context, p)
@@ -134,6 +135,7 @@ function makeContext
                   appendRun(p)
                   appendStep(p)
                   Css.add(context.el, 'bred-open')
+                  cb && cb()
                 }
               } }
 

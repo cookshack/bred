@@ -22,7 +22,7 @@ function init
   let hist, mo
 
   function chat
-  (model, key, prompt, cb) { // (text)
+  (model, key, msgs, prompt, cb) { // (msg)
 
     function stream
     (response) {
@@ -36,7 +36,6 @@ function init
 
           if (done) {
             d('CHAT done')
-            cb('\n')
             reader.cancel()
             return
           }
@@ -59,23 +58,16 @@ function init
             buffer = buffer.slice(lineEnd + 1)
 
             if (line.startsWith('data: ')) {
-              let data
+              let data, delta
 
               data = line.slice(6)
 
               if (data === '[DONE]')
                 break
 
-              try {
-                let content
-
-                content = JSON.parse(data).choices[0].delta.content
-                if (content)
-                  cb(content)
-              }
-              catch {
-                cb('JSON ERR')
-              }
+              delta = JSON.parse(data).choices[0].delta
+              if (delta.content)
+                cb(delta)
             }
           }
 
@@ -107,6 +99,7 @@ function init
               model: model,
               messages: [ { role: 'system',
                             content: 'You are a helpful assistant.' },
+                          ...msgs,
                           { role: 'user',
                             content: prompt } ],
               stream: true
@@ -394,15 +387,17 @@ function init
                    buf = Buf.add(name, 'richdown', w, p.dir)
                    buf.icon = 'chat'
                  }
+                 buf.vars('query').msgs = []
 
                  buf.clear()
                  p.setBuf(buf, {}, () => {
                    buf.append('# 💬 ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
-                   chat(model, Opt.get('query.key'), prompt, text => {
-                     d('CHAT append: ' + text)
-                     buf.append(text)
+                   chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt, msg => {
+                     d('CHAT append: ' + msg.content)
+                     buf.vars('query').msgs.push(msg)
+                     buf.append(msg.content)
                    })
                  })
                })

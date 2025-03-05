@@ -358,11 +358,43 @@ function init
                prompt => {
                  hist.add(prompt)
                  Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
-                   buf.append('# 💬 ' + prompt + '\n\n')
+                   buf.append('# 🗨️ ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    buf.mode = 'richdown'
                  })
+               })
+  })
+
+  Cmd.add('chat more', () => {
+    let p, buf
+
+    p = Pane.current()
+    buf = p.buf
+    if (buf.vars('query').busy) {
+      d('busy')
+      return
+    }
+    Prompt.ask({ text: 'Prompt',
+                 hist: hist },
+               prompt => {
+                 let model
+
+                 hist.add(prompt)
+
+                 model = buf.vars('query').model || Opt.get('query.model')
+                 buf.vars('query').busy = 1
+                 buf.append('\n\n# 🗨️ ' + prompt + '\n\n')
+                 chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+                      msg => {
+                        d('CHAT more append: ' + msg.content)
+                        buf.vars('query').msgs.push(msg)
+                        buf.append(msg.content)
+                      },
+                      () => {
+                        buf.append('\n')
+                        buf.vars('query').busy = 0
+                      })
                })
   })
 
@@ -388,11 +420,13 @@ function init
                    buf = Buf.add(name, 'richdown', w, p.dir)
                    buf.icon = 'chat'
                  }
+                 buf.vars('query').busy = 1
+                 buf.vars('query').model = model
                  buf.vars('query').msgs = []
 
                  buf.clear()
                  p.setBuf(buf, {}, () => {
-                   buf.append('# 💬 ' + prompt + '\n\n')
+                   buf.append('# 🗨️ ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
@@ -403,6 +437,7 @@ function init
                         },
                         () => {
                           buf.append('\n')
+                          buf.vars('query').busy = 0
                         })
                  })
                })

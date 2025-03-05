@@ -381,9 +381,9 @@ function init
 
         r = promptRange(p)
         d(r)
-        //p.buf.clear()
+        Ed.Backend.remove(p.view.ed, r)
         d(prev)
-        p.buf.append(prev)
+        p.buf.append(' ' + prev)
       }
     }
   }

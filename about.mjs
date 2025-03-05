@@ -798,23 +798,25 @@ function init
 
   function appendM
   (frag, m) {
-    let date, loc, locDiv
+    if (m) {
+      let date, loc, locDiv
 
-    date = new Date(m.time * 1000)
-    loc = Loc.make(m.file)
-    if (loc.filename)
-      locDiv = divCl('mess-loc',
-                     loc.filename + ':' + m.line,
-                     { 'data-run': 'open link',
-                       'data-path': loc.path,
-                       'data-line': m.line })
-    else
-      locDiv = divCl('mess-loc')
-    append(frag,
-           divCl('mess-date', String(date.getHours()).padStart(2, ' ') + 'h' + String(date.getMinutes()).padStart(2, '0')),
-           locDiv,
-           divCl('mess-type', m.type[0].toUpperCase()),
-           divCl('mess-text mess-' + m.type, m.text))
+      date = new Date(m.time * 1000)
+      loc = Loc.make(m.file)
+      if (loc.filename)
+        locDiv = divCl('mess-loc',
+                       loc.filename + ':' + m.line,
+                       { 'data-run': 'open link',
+                         'data-path': loc.path,
+                         'data-line': m.line })
+      else
+        locDiv = divCl('mess-loc')
+      append(frag,
+             divCl('mess-date', String(date.getHours()).padStart(2, ' ') + 'h' + String(date.getMinutes()).padStart(2, '0')),
+             locDiv,
+             divCl('mess-type', m.type[0].toUpperCase()),
+             divCl('mess-text mess-' + m.type, m.text))
+    }
   }
 
   function add

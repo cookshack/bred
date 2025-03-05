@@ -19,7 +19,7 @@ import Ollama from './lib/ollama.js'
 export
 function init
 () {
-  let hist, mo
+  let hist, mo, chMo
 
   function chat
   (model, key, msgs, prompt, cb, cbEnd) { // (msg), ()
@@ -366,7 +366,8 @@ function init
                })
   })
 
-  Cmd.add('chat more', () => {
+  function chatMore
+  () {
     let p, buf
 
     p = Pane.current()
@@ -384,7 +385,7 @@ function init
 
                  model = buf.vars('query').model || Opt.get('query.model')
                  buf.vars('query').busy = 1
-                 buf.append('\n\n# 🗨️ ' + prompt + '\n\n')
+                 buf.append(prompt + '\n\n')
                  chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                       msg => {
                         d('CHAT more append: ' + msg.content)
@@ -392,11 +393,11 @@ function init
                         buf.append(msg.content)
                       },
                       () => {
-                        buf.append('\n')
+                        buf.append('\n\n# 🗨️ ')
                         buf.vars('query').busy = 0
                       })
                })
-  })
+  }
 
   Cmd.add('chat', (u, we, model) => {
     model = model || Opt.get('query.model')
@@ -418,6 +419,8 @@ function init
 
                    w = Ed.divW(0, 0, { hideMl: 1 })
                    buf = Buf.add(name, 'richdown', w, p.dir)
+                   buf.addMode('chat')
+                   buf.addMode('view')
                    buf.icon = 'chat'
                  }
                  buf.vars('query').busy = 1
@@ -436,7 +439,7 @@ function init
                           buf.append(msg.content)
                         },
                         () => {
-                          buf.append('\n')
+                          buf.append('\n\n# 🗨️ ')
                           buf.vars('query').busy = 0
                         })
                  })
@@ -491,6 +494,11 @@ function init
   Opt.declare('query.search.url.prefix', 'str', 'https://google.com/search?q=')
   Opt.declare('query.google.cx', 'str', '')
   Opt.declare('query.google.key', 'str', '')
+
+  chMo = Mode.add('Chat', { minor: 1 })
+
+  Cmd.add('chat more', () => chatMore(), chMo)
+  Em.on('+', 'chat more', chMo)
 
   mo = Mode.add('Query', { viewInitSpec: refresh })
 

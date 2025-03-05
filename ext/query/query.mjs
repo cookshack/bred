@@ -22,7 +22,7 @@ function init
   let hist, mo
 
   function chat
-  (model, key, msgs, prompt, cb) { // (msg)
+  (model, key, msgs, prompt, cb, cbEnd) { // (msg), ()
 
     function stream
     (response) {
@@ -37,6 +37,7 @@ function init
           if (done) {
             d('CHAT done')
             reader.cancel()
+            cbEnd && cbEnd()
             return
           }
 
@@ -67,7 +68,7 @@ function init
 
               delta = JSON.parse(data).choices[0].delta
               if (delta.content)
-                cb(delta)
+                cb && cb(delta)
             }
           }
 
@@ -394,11 +395,15 @@ function init
                    buf.append('# 💬 ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
-                   chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt, msg => {
-                     d('CHAT append: ' + msg.content)
-                     buf.vars('query').msgs.push(msg)
-                     buf.append(msg.content)
-                   })
+                   chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+                        msg => {
+                          d('CHAT append: ' + msg.content)
+                          buf.vars('query').msgs.push(msg)
+                          buf.append(msg.content)
+                        },
+                        () => {
+                          buf.append('\n')
+                        })
                  })
                })
   })

@@ -89,6 +89,8 @@ function init
 
     model = model || 'meta-llama/llama-3.3-70b-instruct:free'
 
+    msgs.push({ role: 'user', content: prompt })
+
     fetch('https://openrouter.ai/api/v1/chat/completions',
           { method: 'POST',
             headers: {
@@ -100,9 +102,7 @@ function init
               model: model,
               messages: [ { role: 'system',
                             content: 'You are a helpful assistant.' },
-                          ...msgs,
-                          { role: 'user',
-                            content: prompt } ],
+                          ...msgs ],
               stream: true
             })
           })

@@ -377,9 +377,10 @@ function init
     if (hist) {
       prev = nth < 0 ? hist.next() : hist.prev()
       if (prev) {
-        //let r
+        let r
 
-        //r = promptRange()
+        r = promptRange(p)
+        d(r)
         //p.buf.clear()
         d(prev)
         p.buf.append(prev)
@@ -387,13 +388,9 @@ function init
     }
   }
 
-  function enter
-  () {
-    let r, p, buf, model, prompt, end
-
-    p = Pane.current()
-
-    // parse prompt
+  function promptRange
+  (p) {
+    let r, end
 
     p.view.bufEnd()
     end = p.view.bep
@@ -411,21 +408,30 @@ function init
     r || Mess.toss('Failed to find last prompt')
     Ed.Backend.rangeEmpty(r) && Mess.toss('Failed to find last prompt')
     r.to = end
+    r.from += emo.length
+    if (r.to < r.from)
+      // something went wrong
+      r.to = r.from
+
+    return r
+  }
+  function enter
+  () {
+    let r, p, buf, model, prompt
+
+    p = Pane.current()
+
+    // parse prompt
+
+    r = promptRange(p)
+
     prompt = Ed.Backend.vrangeText(p.view, r)
-    d({ prompt })
     prompt = prompt.trim()
-    d({ prompt })
-    if (prompt.startsWith(emo)) {
-      d('emo')
-      prompt = prompt.slice(emo.length)
-      prompt = prompt.trim()
-    }
-    d({ prompt })
     if (prompt.length == 0) {
       Mess.yell('Empty prompt')
       return
     }
-    d(prompt)
+    d({ prompt })
 
     buf = p.buf
     if (buf.vars('query').busy) {

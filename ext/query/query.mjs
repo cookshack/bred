@@ -368,7 +368,7 @@ function init
 
   function chatMore
   () {
-    let p, buf
+    let p, buf, model
 
     p = Pane.current()
     buf = p.buf
@@ -376,14 +376,12 @@ function init
       d('busy')
       return
     }
-    Prompt.ask({ text: 'Prompt',
+    model = buf.vars('query').model || Opt.get('query.model')
+    Prompt.ask({ text: '🗨️ ' + model,
                  hist: hist },
                prompt => {
-                 let model
-
                  hist.add(prompt)
 
-                 model = buf.vars('query').model || Opt.get('query.model')
                  buf.vars('query').busy = 1
                  buf.append(prompt + '\n\n')
                  chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
@@ -401,7 +399,7 @@ function init
 
   Cmd.add('chat', (u, we, model) => {
     model = model || Opt.get('query.model')
-    Prompt.ask({ text: 'Prompt',
+    Prompt.ask({ text: '🗨️ ' + model,
                  hist: hist },
                prompt => {
                  let name, buf, p

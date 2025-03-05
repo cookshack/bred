@@ -264,6 +264,7 @@ function init
                prompt => {
                  hist.add(prompt)
                  Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
+                   buf.append('# 💬 ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    buf.mode = 'richdown'

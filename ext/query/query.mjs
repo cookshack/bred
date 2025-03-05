@@ -368,6 +368,68 @@ function init
                })
   })
 
+  function enter
+  () {
+    let r, p, buf, model, prompt, end
+
+    p = Pane.current()
+
+    // parse prompt
+
+    p.view.bufEnd()
+    end = p.view.bep
+    r = Ed.vfind(p.view,
+                 emo,
+                 0,
+                 { skipCurrent: 0,
+                   backwards: 1,
+                   stayInPlace: 1,
+                   wrap: 0,
+                   caseSensitive: 0,
+                   wholeWord: 0,
+                   regExp: 0,
+                   reveal: 2 })
+    r || Mess.toss('Failed to find last prompt')
+    Ed.Backend.rangeEmpty(r) && Mess.toss('Failed to find last prompt')
+    r.to = end
+    prompt = Ed.Backend.vrangeText(p.view, r)
+    d({ prompt })
+    prompt = prompt.trim()
+    d({ prompt })
+    if (prompt.startsWith(emo)) {
+      d('emo')
+      prompt = prompt.slice(emo.length)
+      prompt = prompt.trim()
+    }
+    d({ prompt })
+    prompt.length || Mess.toss('Empty prompt')
+    d(prompt)
+
+    buf = p.buf
+    if (buf.vars('query').busy) {
+      d('busy')
+      return
+    }
+
+    // run chat
+
+    model = buf.vars('query').model || Opt.get('query.model')
+    hist.add(prompt)
+
+    buf.vars('query').busy = 1
+    buf.append('\n\n')
+    chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+         msg => {
+           d('CHAT enter append: ' + msg.content)
+           buf.vars('query').msgs.push(msg)
+           buf.append(msg.content)
+         },
+         () => {
+           buf.append('\n\n# ' + emo + ' ')
+           buf.vars('query').busy = 0
+         })
+  }
+
   function chatMore
   () {
     let p, buf, model
@@ -420,7 +482,7 @@ function init
                    w = Ed.divW(0, 0, { hideMl: 1 })
                    buf = Buf.add(name, 'richdown', w, p.dir)
                    buf.addMode('chat')
-                   buf.addMode('view')
+                   //buf.addMode('view')
                    buf.icon = 'chat'
                  }
                  buf.vars('query').busy = 1
@@ -499,7 +561,17 @@ function init
   chMo = Mode.add('Chat', { minor: 1 })
 
   Cmd.add('chat more', () => chatMore(), chMo)
+  Cmd.add('enter', () => enter(), chMo)
+
   Em.on('+', 'chat more', chMo)
+  Em.on('Enter', 'enter', chMo)
+  // override richdown
+  Em.on('e', 'self insert', chMo)
+  Em.on('n', 'self insert', chMo)
+  Em.on('p', 'self insert', chMo)
+  Em.on('q', 'self insert', chMo)
+  Em.on('Backspace', 'delete previous char', chMo)
+  Em.on(' ', 'self insert', chMo)
 
   mo = Mode.add('Query', { viewInitSpec: refresh })
 

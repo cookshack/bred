@@ -206,7 +206,7 @@ function make
   }
 
   function append
-  (str, afterEndPoint) {
+  (str, afterEndPoint) { // if point at end, then final position of point will be before str.
     if (b.mode?.append)
       return b.mode.append(b, str, afterEndPoint)
     Mess.toss('buf.add: append missing')

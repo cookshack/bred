@@ -368,6 +368,25 @@ function init
                })
   })
 
+  function prevHist
+  (nth) {
+    let p, prev, hist
+
+    p = Pane.current()
+    hist = p.buf.vars('query').hist
+    if (hist) {
+      prev = nth < 0 ? hist.next() : hist.prev()
+      if (prev) {
+        //let r
+
+        //r = promptRange()
+        //p.buf.clear()
+        d(prev)
+        p.buf.append(prev)
+      }
+    }
+  }
+
   function enter
   () {
     let r, p, buf, model, prompt, end
@@ -402,7 +421,10 @@ function init
       prompt = prompt.trim()
     }
     d({ prompt })
-    prompt.length || Mess.toss('Empty prompt')
+    if (prompt.length == 0) {
+      Mess.yell('Empty prompt')
+      return
+    }
     d(prompt)
 
     buf = p.buf
@@ -414,6 +436,7 @@ function init
     // run chat
 
     model = buf.vars('query').model || Opt.get('query.model')
+    buf.vars('query').hist.add(prompt)
     hist.add(prompt)
 
     buf.vars('query').busy = 1
@@ -445,6 +468,7 @@ function init
                  hist: hist },
                prompt => {
                  hist.add(prompt)
+                 buf.vars('query').hist.add(prompt)
 
                  buf.vars('query').busy = 1
                  buf.append(prompt + '\n\n')
@@ -468,8 +492,6 @@ function init
                prompt => {
                  let name, buf, p
 
-                 hist.add(prompt)
-
                  name = 'Chat: ' + prompt
                  p = Pane.current()
                  buf = Buf.find(b2 => b2.name == name)
@@ -488,6 +510,11 @@ function init
                  buf.vars('query').busy = 1
                  buf.vars('query').model = model
                  buf.vars('query').msgs = []
+
+                 hist.add(prompt)
+                 buf.vars('query').hist = Hist.ensure(name)
+                 if (buf.vars('query').hist.length == 0)
+                   buf.vars('query').hist.add(prompt)
 
                  buf.clear()
                  p.setBuf(buf, {}, () => {
@@ -562,9 +589,15 @@ function init
 
   Cmd.add('chat more', () => chatMore(), chMo)
   Cmd.add('enter', () => enter(), chMo)
+  Cmd.add('next history item', () => prevHist(-1), mo)
+  Cmd.add('previous history item', () => prevHist(), mo)
 
   Em.on('+', 'chat more', chMo)
   Em.on('Enter', 'enter', chMo)
+  Em.on('ArrowUp', 'previous history item', chMo)
+  Em.on('ArrowDown', 'next history item', chMo)
+  Em.on('A-p', 'previous history item', chMo)
+  Em.on('A-n', 'next history item', chMo)
   // override richdown
   Em.on('e', 'self insert', chMo)
   Em.on('n', 'self insert', chMo)

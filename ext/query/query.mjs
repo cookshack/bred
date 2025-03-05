@@ -443,7 +443,6 @@ function init
 
     model = buf.vars('query').model || Opt.get('query.model')
     buf.vars('query').hist.add(prompt)
-    hist.add(prompt)
 
     buf.vars('query').busy = 1
     buf.append('\n\n')
@@ -473,7 +472,6 @@ function init
     Prompt.ask({ text: emo + ' ' + model,
                  hist: hist },
                prompt => {
-                 hist.add(prompt)
                  buf.vars('query').hist.add(prompt)
 
                  buf.vars('query').busy = 1

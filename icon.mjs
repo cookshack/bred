@@ -28,6 +28,9 @@ function path
     if (name == 'c_cpp')
       return 'lib/svg/file-icons/C++.svg'
 
+    if (name == 'chat')
+      return 'lib/svg/material-icons/chat/materialiconsoutlined/24px.svg'
+
     if (name == 'clipboard')
       return 'lib/svg/fluentui-system-icons/ic_fluent_clipboard_32_regular.svg'
 

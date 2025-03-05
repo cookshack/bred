@@ -21,6 +21,106 @@ function init
 () {
   let hist, mo
 
+  function chat
+  (model, key, prompt, cb) { // (text)
+
+    function stream
+    (response) {
+      let buffer, reader, decoder
+
+      d('CHAT stream')
+
+      function read
+      () {
+        reader.read().then(({ done, value }) => {
+
+          if (done) {
+            d('CHAT done')
+            cb('\n')
+            reader.cancel()
+            return
+          }
+
+          buffer += decoder.decode(value, { stream: true })
+          d('CHAT buffer: ' + buffer)
+
+          // Process complete lines from buffer
+
+          while (true) {
+            let lineEnd, line
+
+            lineEnd = buffer.indexOf('\n')
+
+            if (lineEnd === -1)
+              break
+
+            line = buffer.slice(0, lineEnd).trim()
+
+            buffer = buffer.slice(lineEnd + 1)
+
+            if (line.startsWith('data: ')) {
+              let data
+
+              data = line.slice(6)
+
+              if (data === '[DONE]')
+                break
+
+              try {
+                let content
+
+                content = JSON.parse(data).choices[0].delta.content
+                if (content)
+                  cb(content)
+              }
+              catch {
+                cb('JSON ERR')
+              }
+            }
+          }
+
+          read()
+        })
+      }
+
+      reader = response.body?.getReader() || Mess.throw('Error reading response body')
+
+      decoder = new TextDecoder()
+
+      buffer = ''
+
+      read()
+    }
+
+    prompt.length || Mess.throw('empty prompt')
+
+    model = model || 'meta-llama/llama-3.3-70b-instruct:free'
+
+    fetch('https://openrouter.ai/api/v1/chat/completions',
+          { method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + key,
+              'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({
+              model: model,
+              messages: [ { role: 'system',
+                            content: 'You are a helpful assistant.' },
+                          { role: 'user',
+                            content: prompt } ],
+              stream: true
+            })
+          })
+      .then(response => {
+        response.ok || Mess.throw('fetch failed')
+        return stream(response)
+      })
+      .catch(err => {
+        Mess.yell('fetch: ' + err.message)
+      })
+  }
+
   function url
   (query) {
     return Opt.get('query.search.url.prefix') + globalThis.encodeURIComponent(query)
@@ -268,6 +368,42 @@ function init
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    buf.mode = 'richdown'
+                 })
+               })
+  })
+
+  Cmd.add('chat', (u, we, model) => {
+    model = model || Opt.get('query.model')
+    Prompt.ask({ text: 'Prompt',
+                 hist: hist },
+               prompt => {
+                 let name, buf, p
+
+                 hist.add(prompt)
+
+                 name = 'Chat: ' + prompt
+                 p = Pane.current()
+                 buf = Buf.find(b2 => b2.name == name)
+
+                 if (buf)
+                   buf.dir = p.dir
+                 else {
+                   let w
+
+                   w = Ed.divW(0, 0, { hideMl: 1 })
+                   buf = Buf.add(name, 'richdown', w, p.dir)
+                   buf.icon = 'chat'
+                 }
+
+                 buf.clear()
+                 p.setBuf(buf, {}, () => {
+                   buf.append('# 💬 ' + prompt + '\n\n')
+                   buf.opts.set('core.line.wrap.enabled', 1)
+                   buf.opts.set('core.lint.enabled', 0)
+                   chat(model, Opt.get('query.key'), prompt, text => {
+                     d('CHAT append: ' + text)
+                     buf.append(text)
+                   })
                  })
                })
   })

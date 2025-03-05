@@ -32,8 +32,8 @@ function ensure
 
 export
 function make
-(name) {
-  let items, pos, current
+(name, temp) {
+  let items, pos, current, save
 
   function next
   (buf, cleared) {
@@ -123,6 +123,10 @@ function make
     return items
   }
 
+  save = 1
+  if (temp)
+    save = 0
+
   setItems([])
 
   return { get name() {
@@ -134,9 +138,15 @@ function make
            get items() {
              return items
            },
+           get save() {
+             return save
+           },
            //
            set items(array) {
              return setItems(array)
+           },
+           set save(val) {
+             return save = val ? 1 : 0
            },
            //
            add: it => {
@@ -147,7 +157,8 @@ function make
              d('HIST add ' + it)
              //d({ items })
              items.unshift(it)
-             needSave = 1
+             if (save)
+               needSave = 1
            },
            at: i => items[i],
            next,
@@ -175,7 +186,9 @@ function save
 (cb) { // (err)
   d('HIST save')
   if (hists.length)
-    Tron.cmd1('profile.save', [ 'hists-v1', hists.map(h => [ h.name, h.items ]) ], cb)
+    Tron.cmd1('profile.save',
+              [ 'hists-v1', hists.filter(h => h.save).map(h => [ h.name, h.items ]) ],
+              cb)
   else
     cb(0)
 }
@@ -193,6 +206,7 @@ function init
 
       h = ensure(kv[0])
       h.items = kv[1]
+      h.save = 1
     })
   })
 

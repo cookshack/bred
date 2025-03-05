@@ -16,6 +16,8 @@ import { d } from '../../mess.mjs'
 
 import Ollama from './lib/ollama.js'
 
+let emo
+
 export
 function init
 () {
@@ -358,7 +360,7 @@ function init
                prompt => {
                  hist.add(prompt)
                  Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
-                   buf.append('# 🗨️ ' + prompt + '\n\n')
+                   buf.append('# ' + emo + ' ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    buf.mode = 'richdown'
@@ -377,7 +379,7 @@ function init
       return
     }
     model = buf.vars('query').model || Opt.get('query.model')
-    Prompt.ask({ text: '🗨️ ' + model,
+    Prompt.ask({ text: emo + ' ' + model,
                  hist: hist },
                prompt => {
                  hist.add(prompt)
@@ -391,7 +393,7 @@ function init
                         buf.append(msg.content)
                       },
                       () => {
-                        buf.append('\n\n# 🗨️ ')
+                        buf.append('\n\n# ' + emo + ' ')
                         buf.vars('query').busy = 0
                       })
                })
@@ -399,7 +401,7 @@ function init
 
   Cmd.add('chat', (u, we, model) => {
     model = model || Opt.get('query.model')
-    Prompt.ask({ text: '🗨️ ' + model,
+    Prompt.ask({ text: emo + ' ' + model,
                  hist: hist },
                prompt => {
                  let name, buf, p
@@ -427,7 +429,7 @@ function init
 
                  buf.clear()
                  p.setBuf(buf, {}, () => {
-                   buf.append('# 🗨️ ' + prompt + '\n\n')
+                   buf.append('# ' + emo + ' ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
@@ -437,7 +439,7 @@ function init
                           buf.append(msg.content)
                         },
                         () => {
-                          buf.append('\n\n# 🗨️ ')
+                          buf.append('\n\n# ' + emo + ' ')
                           buf.vars('query').busy = 0
                         })
                  })
@@ -486,6 +488,7 @@ function init
                })
   })
 
+  emo = '🗨️'
   hist = Hist.ensure('llm')
 
   Opt.declare('query.model', 'str', 'mistral')

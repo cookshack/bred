@@ -2761,6 +2761,7 @@ function vinsertAt
                           to: to ?? (off ?? 0) })
         // this will set the off to the end of the text
         v.ed.dispatch(v.ed.state.replaceSelection(text))
+        v.ed.dispatch({ scrollIntoView: true })
         return
       }
 

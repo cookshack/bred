@@ -561,9 +561,10 @@ function watchClip
 
 function checkDepsWin
 () {
-  let html, win, opts, mode
+  let html, uri, win, opts, mode
 
-  html = 'check-deps.html'
+  html = '<html><body>Checking dependencies...</body></html>'
+  uri = 'data:text/html,' + globalThis.encodeURIComponent(html)
   mode = Profile.stores.opt.get('core.theme.mode')
 
   process.on('uncaughtException', err => {
@@ -608,18 +609,18 @@ function checkDepsWin
                                    title: 'Developer Tools - Bred' })
     // wait for devtools, so that breakpoints in init are hit
     win.webContents.once('devtools-opened', () => {
-      d('loading ' + html)
+      d('loading html')
       if (options.waitForDevtools)
-        win.loadFile(html)
+        win.loadURL(uri)
       // would be nice to focus current pane here, for when devtools docked
       //win.focus()
     })
-    options.waitForDevtools || win.loadFile(html)
+    options.waitForDevtools || win.loadURL(uri)
   }
   else {
-    d('loading ' + html)
+    d('loading html')
     win.webContents.closeDevTools()
-    win.loadFile(html)
+    win.loadURL(uri)
   }
 
   win.webContents.on('devtools-opened', () => {

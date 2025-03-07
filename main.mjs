@@ -561,9 +561,10 @@ function watchClip
 
 function checkDepsWin
 () {
-  let html, uri, win, opts, mode
+  let html, uri, win, opts, mode, color
 
-  html = '<html><body>Checking dependencies...</body></html>'
+  color = (mode == 'dark') ? '#93a1a1' : '#586e75' // --color-text
+  html = '<html><body style="color: ' + color + '">Checking dependencies...</body></html>'
   uri = 'data:text/html,' + globalThis.encodeURIComponent(html)
   mode = Profile.stores.opt.get('core.theme.mode')
 

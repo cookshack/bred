@@ -238,7 +238,7 @@ function initEqual
     let b, num
 
     b = Pane.current().buf
-    if (b.name == 'SC: git-eq')
+    if (/^SC: .*\/git-eq$/.test(b.name))
       num = -1
     else if (b.name == 'SC: git show --no-prefix')
       num = 0

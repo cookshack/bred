@@ -599,8 +599,6 @@ function init
 
   Em.on('+', 'chat more', chMo)
   Em.on('Enter', 'enter', chMo)
-  Em.on('ArrowUp', 'previous history item', chMo)
-  Em.on('ArrowDown', 'next history item', chMo)
   Em.on('A-p', 'previous history item', chMo)
   Em.on('A-n', 'next history item', chMo)
   // override richdown

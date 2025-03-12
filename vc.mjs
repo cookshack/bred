@@ -251,19 +251,19 @@ function initEqual
     num += nth
     if (isNaN(num))
       Mess.toss('Failed to parse commit num from buf name: ' + b.name)
-    equal(num)
+    equalN(num)
   }
 
-  function equal
-  (num) {
-    function finish
-    (b) {
-      b.mode = Ed.patchModeName()
-      b.opts.set('core.lint.enabled', 0)
-      b.addMode('equal')
-      b.addMode('view')
-    }
+  function finish
+  (b) {
+    b.mode = Ed.patchModeName()
+    b.opts.set('core.lint.enabled', 0)
+    b.addMode('equal')
+    b.addMode('view')
+  }
 
+  function equalN
+  (num) {
     if ((num == null) || (num < 0))
       Shell.spawn1('git-eq',
                    [],
@@ -274,6 +274,22 @@ function initEqual
                    [ 'show', '--no-prefix', 'HEAD~' + num ],
                    { end: 1, afterEndPoint: 1 },
                    finish)
+  }
+
+  function equalBr
+  () {
+    Shell.spawn1(Loc.appDir().join('bin/git-eq-br'),
+                 [],
+                 { end: 1, afterEndPoint: 1 },
+                 finish)
+  }
+
+  function equal
+  (u) {
+    if (u == 1)
+      equalN()
+    else
+      equalBr()
   }
 
   function goto
@@ -371,7 +387,7 @@ function initEqual
   Em.on('>', 'Next Commit', mo)
   Em.on('<', 'Previous Commit', mo)
 
-  Cmd.add('vc equal', () => equal())
+  Cmd.add('vc equal', equal)
 }
 
 function reset

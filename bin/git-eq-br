@@ -1,3 +1,3 @@
 #!/bin/bash
 
-git diff $(git merge-base origin/main HEAD)
+git --no-pager diff --no-prefix $(git merge-base origin/main HEAD)

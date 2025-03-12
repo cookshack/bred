@@ -1,0 +1,4 @@
+#!/bin/bash
+
+git --no-pager diff --no-prefix
+for next in $( git ls-files --others --exclude-standard ) ; do git --no-pager diff --no-prefix --no-index /dev/null $next; done;

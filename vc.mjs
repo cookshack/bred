@@ -265,7 +265,7 @@ function initEqual
   function equalN
   (num) {
     if ((num == null) || (num < 0))
-      Shell.spawn1('git-eq',
+      Shell.spawn1(Loc.appDir().join('bin/git-eq'),
                    [],
                    { end: 1, afterEndPoint: 1 },
                    finish)

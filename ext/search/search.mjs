@@ -49,7 +49,9 @@ function init
       p.buf.clear()
       Shell.run(p.dir,
                 Loc.appDir().join('bin/sr'),
-                [ needle, p.buf.vars('sr').recurse ? '1' : '0' ],
+                [ needle,
+                  p.buf.vars('sr').recurse ? '1' : '0',
+                  p.buf.vars('sr').regex ? '1' : '0' ],
                 { buf: p.buf,
                   end: 1,
                   afterEndPoint: 1 })

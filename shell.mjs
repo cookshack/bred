@@ -82,6 +82,7 @@ function run
  args, // []
  // { buf, // optional
  //   end, // Insert at end. Only used if buf.
+ //
  //   // For the first insert/append: if inserting at point
  //   // and point is at the end of the view, then point's
  //   // placement after the insert/append will be before

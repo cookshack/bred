@@ -18,10 +18,11 @@ import { d } from './mess.mjs'
 let clrs
 
 function git
-(cmd, mode, minors) {
+(cmd, mode, minors, afterEndPoint) {
   // these use shell1 instead of spawn1 so that .bashrc is loaded (needed eg for nvm init)
   Shell.shell1(cmd,
-               { end: 1 },
+               { end: 1,
+                 afterEndPoint: afterEndPoint },
                b => {
                  if (mode)
                    b.mode = mode
@@ -46,7 +47,10 @@ function initStash
 
       st = /[^@]+@{([^}]+)/.exec(line)[1]
       if (st && st.length)
-        git('git stash show --no-prefix -p ' + st, Ed.patchModeName(), [ 'equal' ])
+        git('git stash show --no-prefix -p ' + st,
+            Ed.patchModeName(),
+            [ 'equal' ],
+            1) // keep point at start
       else
         Mess.warn('Failed to extract stash num: ' + line)
     }
@@ -987,7 +991,7 @@ function init
   Cmd.add('vc stash', () => git('git stash'))
   Cmd.add('vc stash apply', () => git(Loc.appDir().join('bin/git-stash-apply')))
   Cmd.add('vc stash drop', () => git(Loc.appDir().join('bin/git-stash-drop')))
-  Cmd.add('vc stash enumerate', () => git('git stash list', 'stash'))
+  Cmd.add('vc stash enumerate', () => git('git stash list', 'stash', [], 1))
   Cmd.add('vc stash pop', () => Shell.shell1('git-stash-pop', { end: 1 }))
   Cmd.add('vc status', () => Shell.shell1('git status', { end: 1 }))
 

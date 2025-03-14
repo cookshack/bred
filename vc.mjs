@@ -46,7 +46,7 @@ function initStash
 
       st = /[^@]+@{([^}]+)/.exec(line)[1]
       if (st && st.length)
-        git('git stash show -p ' + st, Ed.patchModeName(), [ 'equal' ])
+        git('git stash show --no-prefix -p ' + st, Ed.patchModeName(), [ 'equal' ])
       else
         Mess.warn('Failed to extract stash num: ' + line)
     }

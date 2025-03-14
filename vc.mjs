@@ -902,6 +902,10 @@ function init
                      '^. +main$',
                      0,
                      { regExp: 1 })
+    range = range || Ed.vfind(view,
+                              '^. +master$',
+                              0,
+                              { regExp: 1 })
     if (range)
       Ed.Backend.lineStart(view)
     else

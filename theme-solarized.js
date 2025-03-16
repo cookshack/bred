@@ -1,5 +1,17 @@
 let clrs, filters
 
+export
+function toX
+(r) {
+  return r.toString(16).padStart(2, '0')
+}
+
+export
+function toHex
+(c) {
+  return '#' + toX(c.r) + toX(c.g) + toX(c.b)
+}
+
 function fillFilterMeanings
 (meanings) {
   let common
@@ -25,6 +37,7 @@ function fillMeanings
              fillAuxVeryLight: clrs.cyanVeryVeryLight,
              //
              nb3: clrs.red,
+             nb3Light: clrs.redLight,
              nb2: clrs.magenta,
              nb1: clrs.yellow,
              nb0: clrs.blue,
@@ -237,9 +250,11 @@ clrs = { base03: '#002b36',
          base1Rgb: { r: 147, g: 161, b: 161, a: 1 },
          base2: '#eee8d5',
          base3: '#fdf6e3',
+         base3Rgb: { r: 253, g: 246, b: 227, a: 1 },
          yellow: '#b58900',
          orange: '#cb4b16',
          red: '#dc322f',
+         redRgb: { r: 220, g: 50, b: 47, a: 1 },
          magenta: '#d33682',
          violet: '#6c71c4',
          blue: '#268bd2',

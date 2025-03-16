@@ -988,6 +988,11 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   /* background: linear-gradient(90deg, var(--clr-point-current), transparent, transparent); */
 }
 
+span.core-leadingSpace,
+.cm-line > span.cm-trailingSpace {
+  background-color: var(--clr-nb3-light);
+}
+
 .cm-gutters {
   background-color: var(--clr-fill)!important;
   color: var(--clr-text-light)!important;

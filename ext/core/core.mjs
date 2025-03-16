@@ -19,6 +19,27 @@ let brexts
 export
 function init
 () {
+  let leadingSpaceHighlighter
+
+  function makeLSH
+  () {
+    let decorator
+
+    function create
+    (view) {
+      return { decorations: decorator.createDeco(view),
+               update(u) {
+                 this.decorations = decorator.updateDeco(u, this.decorations)
+               } }
+    }
+
+    decorator = new CMView.MatchDecorator({ regexp: /^ +/g,
+                                            decoration: CMView.Decoration.mark({ class: 'core-leadingSpace' }) })
+
+    return CMView.ViewPlugin.define(create,
+                                    { decorations: v => v.decorations })
+  }
+
   function makeActiveLine
   (view) {
     if (view.buf.opt('core.highlight.activeLine.enabled'))
@@ -83,6 +104,13 @@ function init
     return []
   }
 
+  function makeHighlightLeadingSpace
+  (view) {
+    if (view.buf.opt('core.highlight.leadingSpace.enabled'))
+      return [ leadingSpaceHighlighter ]
+    return []
+  }
+
   function makeHighlightSyntax
   (view) {
     if (view.buf.opt('core.highlight.syntax.enabled'))
@@ -104,6 +132,8 @@ function init
     })
   }
 
+  leadingSpaceHighlighter = makeLSH()
+
   brexts = []
   Opt.declare('core.comments.continue', 'bool', 1)
   Opt.declare('core.cursor.blink.enabled', 'bool', 0)
@@ -114,6 +144,7 @@ function init
   Opt.declare('core.highlight.activeLine.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.afterCursor', 'bool', 1)
+  Opt.declare('core.highlight.leadingSpace.enabled', 'bool', 0)
   Opt.declare('core.highlight.occurrences.enabled', 'bool', 1)
   Opt.declare('core.highlight.occurrences.wholeWords', 'bool', 0)
   Opt.declare('core.highlight.occurrences.wordAroundCursor', 'bool', 1)
@@ -146,6 +177,9 @@ function init
                    Lint.reconfLintMarker(v)
                    v.reconfHead()
                  }) })
+  brexts.push(Ed.register({ backend: 'cm',
+                            make: makeHighlightLeadingSpace,
+                            reconfOpts: [ 'core.highlight.leadingSpace.enabled' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: view => view.buf.opt('core.highlight.specials.enabled') ? CMView.highlightSpecialChars() : [],
                             reconfOpts: [ 'core.highlight.specials.enabled' ] }))
@@ -189,6 +223,7 @@ function init
   Cmd.add('enable head', u => Ed.enable(u, 'core.head.enabled'))
   Cmd.add('highlight active line', u => Ed.enable(u, 'core.highlight.activeLine.enabled'))
   Cmd.add('highlight bracket', u => Ed.enable(u, 'core.highlight.bracket.enabled'))
+  Cmd.add('highlight leading space', u => Ed.enable(u, 'core.highlight.leadingSpace.enabled'))
   Cmd.add('highlight occurrences', u => Ed.enable(u, 'core.highlight.occurrences.enabled'))
   Cmd.add('highlight specials', u => Ed.enable(u, 'core.highlight.specials.enabled'))
   Cmd.add('highlight syntax', u => Ed.enable(u, 'core.highlight.syntax.enabled'))
@@ -204,6 +239,7 @@ function init
   Cmd.add('buffer enable head', u => Ed.enableBuf(u, 'core.head.enabled'))
   Cmd.add('buffer highlight active line', u => Ed.enableBuf(u, 'core.highlight.activeLine.enabled'))
   Cmd.add('buffer highlight bracket', u => Ed.enableBuf(u, 'core.highlight.bracket.enabled'))
+  Cmd.add('buffer highlight leading space', u => Ed.enableBuf(u, 'core.highlight.leadingSpace.enabled'))
   Cmd.add('buffer highlight occurrences', u => Ed.enableBuf(u, 'core.highlight.occurrences.enabled'))
   Cmd.add('buffer highlight specials', u => Ed.enableBuf(u, 'core.highlight.specials.enabled'))
   Cmd.add('buffer highlight syntax', u => Ed.enableBuf(u, 'core.highlight.syntax.enabled'))
@@ -230,6 +266,7 @@ function free
   Cmd.remove('enable scroll past end')
   Cmd.remove('highlight active line')
   Cmd.remove('highlight bracket')
+  Cmd.remove('highlight leading space')
   Cmd.remove('highlight occurrences')
   Cmd.remove('highlight specials')
   Cmd.remove('highlight syntax')
@@ -245,6 +282,7 @@ function free
   Cmd.remove('buffer enable scroll past end')
   Cmd.remove('buffer highlight active line')
   Cmd.remove('buffer highlight bracket')
+  Cmd.remove('buffer highlight leading space')
   Cmd.remove('buffer highlight occurrences')
   Cmd.remove('buffer highlight specials')
   Cmd.remove('buffer highlight syntax')

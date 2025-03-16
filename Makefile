@@ -57,6 +57,7 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	cd lib/@codemirror/ && sed -i "s/import(\([^)]\+[^\"']\))/import(bredHackImport(\\1))/g" language-data.js
 	bin/fix-scope kittycad
 	bin/fix-scope lezer
+	bin/fix-scope marijn
 	bin/fix-scope replit
 	bin/fix-scope valtown
 	cd lib/@orgajs/ && find . -type f -name \*.js | xargs sed -i "s/^\(import .* from\) '\([^.'][^']*\)'.*/\\1 '..\/\\2.js';/g"
@@ -101,6 +102,7 @@ sync-codemirror:
 	rm -rf lib/@kittycad
 	rm -rf lib/@lezer
 	rm -rf lib/@markdoc
+	rm -rf lib/@marijn
 	rm -rf lib/@replit
 	rm -rf lib/@orgajs
 	rm -rf lib/@uiw
@@ -109,6 +111,7 @@ sync-codemirror:
 	mkdir -p lib/@kittycad
 	mkdir -p lib/@lezer
 	mkdir -p lib/@markdoc
+	mkdir -p lib/@marijn
 	mkdir -p lib/@replit
 	mkdir -p lib/@valtown
 	mkdir -p lib/@orgajs
@@ -116,6 +119,9 @@ sync-codemirror:
 	mkdir -p lib/@babel/runtime/helpers/
 	bin/sync-scope cookshack
 	bin/sync-scope kittycad
+	# bad marijn
+	#bin/sync-scope marijn
+	cp node_modules/@marijn/find-cluster-break/src/index.js lib/@marijn/find-cluster-break.js
 	bin/sync-scope valtown
 	cp node_modules/globals/globals.json lib/globals.json
 	cp node_modules/@babel/runtime/helpers/esm/extends.js lib/@babel/runtime/helpers/extends.js

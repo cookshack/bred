@@ -35,7 +35,7 @@ clrs.cyanVeryVeryLight = Theme.toHex(Blend.normal(bgRgb, rgb))
 
 rgb = clrs.redRgb
 
-rgb.a = 0.3
+rgb.a = 0.6
 clrs.redLight = Theme.toHex(Blend.normal(bgRgb, rgb))
 
 meanings = { text: text,

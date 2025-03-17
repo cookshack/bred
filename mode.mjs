@@ -12,7 +12,7 @@ modes = Mk.array
 
 export
 function add
-(key, opts) {
+(key, spec) {
   let m
 
   function getParentEms
@@ -41,18 +41,18 @@ function add
 
   function start
   (buf) {
-    opts.onStart && opts.onStart(buf)
+    spec.onStart && spec.onStart(buf)
   }
 
   function stop
   (buf) {
-    opts.onStop && opts.onStop(buf)
+    spec.onStop && spec.onStop(buf)
   }
 
   if (key)
     key = key.toLowerCase()
 
-  opts = opts || {}
+  spec = spec || {}
 
   m = get(key)
   if (m)
@@ -64,29 +64,29 @@ function add
   }
 
   m.key = key
-  m.name = key ? (opts.name || Buf.capitalize(key)) : ''
-  m.minor = opts.minor ? 1 : 0
-  m.context = opts.context
-  m.decorators = opts.decorators
-  m.em = opts.em || Em.make(m.name)
-  m.exts = opts.exts
-  m.hidePoint = opts.hidePoint
-  m.icon = opts.icon
-  m.mime = opts.mime
+  m.name = key ? (spec.name || Buf.capitalize(key)) : ''
+  m.minor = spec.minor ? 1 : 0
+  m.context = spec.context
+  m.decorators = spec.decorators
+  m.em = spec.em || Em.make(m.name)
+  m.exts = spec.exts
+  m.hidePoint = spec.hidePoint
+  m.icon = spec.icon
+  m.mime = spec.mime
   m.start = start
   m.stop = stop
-  m.seize = opts.seize
-  m.viewCopy = opts.viewCopy
-  m.viewInit = opts.viewInit
-  m.viewInitSpec = opts.viewInitSpec
-  m.viewReopen = opts.viewReopen
-  m.parentsForEm = (typeof opts.parentsForEm == 'string') ? [ opts.parentsForEm ] : opts.parentsForEm
+  m.seize = spec.seize
+  m.viewCopy = spec.viewCopy
+  m.viewInit = spec.viewInit
+  m.viewInitSpec = spec.viewInitSpec
+  m.viewReopen = spec.viewReopen
+  m.parentsForEm = (typeof spec.parentsForEm == 'string') ? [ spec.parentsForEm ] : spec.parentsForEm
   //
   m.getParentEms = getParentEms
-  if (opts.initFns)
-    opts.initFns(m)
+  if (spec.initFns)
+    spec.initFns(m)
 
-  if (opts.minor)
+  if (spec.minor)
     Cmd.add(key + ' mode', () => {
       let p
 

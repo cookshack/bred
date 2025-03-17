@@ -326,10 +326,11 @@ function make
     let val
 
     val = b.opts.get(name)
-    //d('BUF.OPT ' + name + ' VAL: ' + val)
-    if (val === undefined)
-      return Opt.get(name)
-    //d('BUF.OPT ' + name + ' VAL 2: ' + val)
+    if (val === undefined) {
+      val = b.mode?.opts?.get(name)
+      if (val === undefined)
+        return Opt.get(name)
+    }
     return val
   }
 

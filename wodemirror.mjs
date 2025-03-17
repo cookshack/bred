@@ -3761,7 +3761,7 @@ function modeLang
 
 export
 function addMode
-(lang) {
+(lang, spec) {
   let mode, exts, mime, key
 
   function seizeLang
@@ -3815,6 +3815,9 @@ function addMode
   if ([ 'javascript', 'css', 'cpp' ].includes(lang.id))
     Em.on('}', 'self insert and indent', mode)
   mode.icon = Icon.mode(mode.key)
+
+  if (spec?.onAddMode)
+    spec.onAddMode(mode)
 }
 
 export
@@ -4054,7 +4057,7 @@ function initLangs
     else
       langs.push(lang)
     if (ed)
-      addMode(lang)
+      addMode(lang, opt)
   }
 
   function loadLang
@@ -4164,7 +4167,9 @@ function initLangs
            { exts: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
              path: /\.git\/config$/ })
   loadLang('./lib/@cookshack/codemirror-lang-lezer-tree.js', 'Lezer Tree', { ext: [ 'leztree' ] })
-  loadLang('./lib/codemirror-lang-makefile.js', 'Makefile', { filename: /^(GNUmakefile|makefile|Makefile)$/ })
+  loadLang('./lib/codemirror-lang-makefile.js', 'Makefile',
+           { filename: /^(GNUmakefile|makefile|Makefile)$/,
+             onAddMode: m => m.opts.set('core.highlight.leadingSpace.enabled', 1) })
   loadLang('./lib/@cookshack/codemirror-lang-nasl.js', 'NASL', { ext: [ 'nasl' ] })
   loadLang('./lib/@kittycad/codemirror-lang-kcl.js', 'Kcl', { ext: [ 'kcl' ] })
   loadLang('./lib/@replit/codemirror-lang-nix.js', 'Nix', { ext: [ 'nix' ] })

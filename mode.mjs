@@ -3,6 +3,7 @@ import * as Cmd from './cmd.mjs'
 import * as Em from './em.mjs'
 import * as Mess from './mess.mjs'
 import Mk from './mk.mjs'
+import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import { d } from './mess.mjs'
 
@@ -63,6 +64,7 @@ function add
     modes.push(m)
   }
 
+  m.opts = Opt.mode(m)
   m.key = key
   m.name = key ? (spec.name || Buf.capitalize(key)) : ''
   m.minor = spec.minor ? 1 : 0

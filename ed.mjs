@@ -34,6 +34,7 @@ export let backend
 export let ctags
 
 let bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe, onCursors
+let pageBreakRe
 
 export { bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe, onCursors }
 
@@ -935,6 +936,47 @@ function makeDecor
   return Backend.makeDecor && Backend.makeDecor(spec)
 }
 
+pageBreakRe = /^/g
+
+function vpageForward
+(view, u) {
+  let backward
+
+  u = u || 1
+  backward = u < 0
+  u = Math.abs(u)
+  for (let i = 0; i < u; i++)
+    if (vfind(view,
+              pageBreakRe,
+              0,
+              { skipCurrent: 0,
+                backwards: backward,
+                wrap: 0,
+                caseSensitive: 0,
+                wholeWord: 0,
+                regExp: 1 })
+        == 0) {
+      if (backward)
+        Backend.vbufStart(view)
+      else
+        Backend.vbufEnd(view)
+      break
+    }
+}
+
+function pageForward
+(u) {
+  let p
+
+  p = Pane.current()
+  vpageForward(p.view, u)
+}
+
+function pageBackward
+(u) {
+  pageForward(u ? -u : -1)
+}
+
 export
 function vwordForward
 (view, u) {
@@ -1262,6 +1304,8 @@ function init
     Cmd.add('syntax backward', Backend.syntaxBackward, mo)
     Cmd.add('word forward', Backend.wordForward, mo)
     Cmd.add('word backward', Backend.wordBackward, mo)
+    Cmd.add('page forward', pageForward, mo)
+    Cmd.add('page backward', pageBackward, mo)
     Cmd.add('previous line', u => Backend.prevLine(Pane.current().view, u), mo)
     Cmd.add('next line', u => Backend.nextLine(Pane.current().view, u), mo)
     Cmd.add('line start', () => Backend.lineStart(Pane.current().view), mo)
@@ -1380,6 +1424,8 @@ function init
 
     Em.on('C-c ;', 'comment region', mo)
 
+    Em.on('C-x [', 'page backward', mo)
+    Em.on('C-x ]', 'page forward', mo)
     Em.on('C-x o', 'open line', mo)
     Em.on('C-x  ', 'activate mark', mo)
     Em.on('C-x t', 'transpose chars', mo)

@@ -990,7 +990,7 @@ function pageForwardOrSelf
   let last
 
   last = Cmd.last()
-  if ([ 'Page Forward', 'Page Backward' ].includes(last))
+  if (pageCmds.includes(last))
     pageForward(u)
   else
     Backend.selfInsert(u, we)

@@ -34,7 +34,7 @@ export let backend
 export let ctags
 
 let bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe, onCursors
-let pageBreakRe
+let pageBreakRe, pageCmds
 
 export { bepRow, bepCol, posRow, posCol, tokenRe, nonTokenRe, onCursors }
 
@@ -977,6 +977,32 @@ function pageBackward
   pageForward(u ? -u : -1)
 }
 
+pageCmds = [ 'Page Forward', 'Page Backward',
+             'Page Forward Or Self Insert',
+             'Page Backward Or Self Insert' ]
+
+function pageForwardOrSelf
+(u, we) {
+  let last
+
+  last = Cmd.last()
+  if ([ 'Page Forward', 'Page Backward' ].includes(last))
+    pageForward(u)
+  else
+    Backend.selfInsert(u, we)
+}
+
+function pageBackwardOrSelf
+(u, we) {
+  let last
+
+  last = Cmd.last()
+  if (pageCmds.includes(last))
+    pageBackward(u)
+  else
+    Backend.selfInsert(u, we)
+}
+
 export
 function vwordForward
 (view, u) {
@@ -1306,6 +1332,8 @@ function init
     Cmd.add('word backward', Backend.wordBackward, mo)
     Cmd.add('page forward', pageForward, mo)
     Cmd.add('page backward', pageBackward, mo)
+    Cmd.add('page forward or self insert', pageForwardOrSelf, mo)
+    Cmd.add('page backward or self insert', pageBackwardOrSelf, mo)
     Cmd.add('previous line', u => Backend.prevLine(Pane.current().view, u), mo)
     Cmd.add('next line', u => Backend.nextLine(Pane.current().view, u), mo)
     Cmd.add('line start', () => Backend.lineStart(Pane.current().view), mo)
@@ -1372,6 +1400,8 @@ function init
     for (let d = 32; d <= 127; d++)
       Em.on(String.fromCharCode(d), 'self insert', mo)
     Em.on('/', 'insert /', mo)
+    Em.on('[', 'page backward or self insert', mo)
+    Em.on(']', 'page forward or self insert', mo)
 
     Em.on('C-ArrowLeft', 'word backward', mo)
     Em.on('C-ArrowRight', 'word forward', mo)

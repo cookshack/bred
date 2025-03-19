@@ -945,6 +945,10 @@ function vpageForward
   u = u || 1
   backward = u < 0
   u = Math.abs(u)
+  if (backward)
+    Backend.lineStart(view)
+  else
+    Backend.lineEnd(view)
   for (let i = 0; i < u; i++)
     if (vfind(view,
               pageBreakRe,
@@ -1336,7 +1340,7 @@ function init
     Cmd.add('page backward or self insert', pageBackwardOrSelf, mo)
     Cmd.add('previous line', u => Backend.prevLine(Pane.current().view, u), mo)
     Cmd.add('next line', u => Backend.nextLine(Pane.current().view, u), mo)
-    Cmd.add('line start', () => Backend.lineStart(Pane.current().view), mo)
+    Cmd.add('line start', () => Backend.lineStart(), mo)
     Cmd.add('line end', () => Backend.lineEnd(), mo)
     Cmd.add('buffer start', () => Backend.bufferStart(), mo)
     Cmd.add('buffer end', () => Backend.bufferEnd(), mo)

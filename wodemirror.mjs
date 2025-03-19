@@ -2108,26 +2108,22 @@ function exchange() {
 
 export
 function lineStart
-() {
-  let p
-
-  p = Pane.current()
-  if (p.view.markActive)
-    CMComm.selectLineStart(p.view.ed)
+(view) {
+  view = view || Pane.current().view
+  if (view.markActive)
+    CMComm.selectLineStart(view.ed)
   else
-    CMComm.cursorLineStart(p.view.ed)
+    CMComm.cursorLineStart(view.ed)
 }
 
 export
 function lineEnd
-() {
-  let p
-
-  p = Pane.current()
-  if (p.view.markActive)
-    CMComm.selectLineEnd(p.view.ed)
+(view) {
+  view = view || Pane.current().view
+  if (view.markActive)
+    CMComm.selectLineEnd(view.ed)
   else
-    CMComm.cursorLineEnd(p.view.ed)
+    CMComm.cursorLineEnd(view.ed)
 }
 
 export

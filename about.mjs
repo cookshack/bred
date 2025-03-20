@@ -846,7 +846,7 @@ function init
               let gap
 
               gap = w.lastElementChild
-              messs.forEach(mess => gap.before(w, mess))
+              messs.forEach(mess => appendM(gap, mess))
               if (paneW.scrollHeight == paneW.clientHeight) {
                 // content still fits entirely in pane
               }

@@ -185,7 +185,7 @@ function init
   onCursor = Ed.onCursor((be, view) => update(view))
 
   Mode.add('Assist', { viewInit: viewInit,
-                       icon: { name: 'help' } })
+                       icon: { name: 'assist' } })
 
   Cmd.add('assist', () => assist())
 
@@ -197,7 +197,7 @@ function init
     update(p.view)
   })
 
-  icon = div(img(Icon.path('help'), 'Assistant', 'filter-clr-text'),
+  icon = div(img(Icon.path('assist'), 'Assistant', 'filter-clr-text'),
              'mini-icon onfill mini-em',
              { 'data-run': 'assist' })
   Panel.start('mini-panel', icon)

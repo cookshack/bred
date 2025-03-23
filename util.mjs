@@ -47,6 +47,33 @@ function defined
   return 1
 }
 
+export
+function urlAt
+(l, pos) {
+  if (l.length == 0)
+    return 0
+  if (l[pos] == ' ')
+    return 0
+  while (pos > 0) {
+    if (l[pos] == ' ') {
+      pos++
+      break
+    }
+    pos--
+  }
+  l = l.slice(pos)
+  l = stripAnsi(l)
+
+  if (l.startsWith('/'))
+    l = 'file://' + l
+  try {
+    return new URL(l.split(' ')[0])
+  }
+  catch {
+  }
+  return 0
+}
+
 // pass any args to this fn to prevent warnings about them
 export
 function use

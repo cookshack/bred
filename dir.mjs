@@ -16,6 +16,7 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scib from './scib.mjs'
 import * as Scroll from './scroll.mjs'
+import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
@@ -36,6 +37,11 @@ Marked = {
       if (has(name))
         return
       items.push({ name, type })
+    }
+
+    function at
+    (i) {
+      return items.at(i)
     }
 
     function has
@@ -61,6 +67,7 @@ Marked = {
 
     items = []
     marked = { add,
+               at,
                has,
                map,
                rm,
@@ -831,6 +838,53 @@ function init
       Mess.say('Move to a file first')
   }
 
+  function equal
+  () {
+    let p, el, marked, one, two
+
+    function finish
+    (b) {
+      b.mode = Ed.patchModeName()
+      b.opts.set('core.lint.enabled', 0)
+      b.addMode('equal')
+      b.addMode('view')
+    }
+
+    p = Pane.current()
+
+    marked = getMarked(p.buf)
+    if (marked.length) {
+      if (marked.length == 2) {
+        one = Loc.make(p.dir).join(marked.at(0).name)
+        two = Loc.make(p.dir).join(marked.at(1).name)
+        Shell.spawn1('diff',
+                     [ '-u', one, two ],
+                     { end: 1, afterEndPoint: 1 },
+                     finish)
+        return
+      }
+      else if (marked.length > 2) {
+        Mess.say('Too many marked files')
+        return
+      }
+      one = Loc.make(p.dir).join(marked.at(0).name)
+    }
+    el = current(p)
+    if (el && el.dataset.path) {
+      let dir
+
+      dir = el.dataset.type == 'd'
+      if (dir) {
+        Mess.say("That's a directory")
+        return
+      }
+      one = one || el.dataset.path
+      d('e ' + one)
+    }
+    else
+      Mess.say('Move to a file first')
+  }
+
   function link
   () {
     let p, el, target
@@ -1384,6 +1438,7 @@ function init
   Cmd.add('delete', () => del(), m)
   Cmd.add('edit', () => edit(), m)
   Cmd.add('edit if supported', () => editIfSupported(), m)
+  Cmd.add('equal', () => equal(), m)
   Cmd.add('link', () => link(), m)
   Cmd.add('mark', mark, m)
   Cmd.add('refresh', () => refreshKeep(Pane.current(), 0, 0, 0, currentFile()), m)
@@ -1420,6 +1475,7 @@ function init
   Em.on('D', 'delete', 'Dir')
   Em.on('T', 'touch', 'Dir')
   Em.on('U', 'clear marks', 'Dir')
+  Em.on('=', 'equal', 'Dir')
   Em.on('^', 'up', 'Dir')
   Em.on('!', 'shell command on file', 'Dir')
   Em.on('+', 'make dir', 'Dir')

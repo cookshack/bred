@@ -261,7 +261,7 @@ function initFile
       path = file?.dataset.path
       if (path && path.length) {
         if (p.buf.text().length)
-          hist.add(p.buf.text())
+          hist?.add(p.buf.text())
         cbOpen && cbOpen(path)
       }
       else if (typeof path === 'string')
@@ -300,7 +300,7 @@ function initFile
           return
         }
         if (p.buf.text().length)
-          hist.add(p.buf.text())
+          hist?.add(p.buf.text())
         cbOpen && cbOpen(path)
       }
       else if (typeof path === 'string')

@@ -850,6 +850,27 @@ function init
       b.addMode('view')
     }
 
+    function run
+    () {
+      d('one: ' + one)
+      d('two: ' + two)
+      Shell.spawn1('diff',
+                   [ '-u', one, two ],
+                   { end: 1, afterEndPoint: 1 },
+                   finish)
+    }
+
+    function create
+    () {
+      Mess.yell('File must exist')
+    }
+
+    function open
+    (path) {
+      two = path
+      run()
+    }
+
     p = Pane.current()
 
     marked = getMarked(p.buf)
@@ -857,10 +878,7 @@ function init
       if (marked.length == 2) {
         one = Loc.make(p.dir).join(marked.at(0).name)
         two = Loc.make(p.dir).join(marked.at(1).name)
-        Shell.spawn1('diff',
-                     [ '-u', one, two ],
-                     { end: 1, afterEndPoint: 1 },
-                     finish)
+        run()
         return
       }
       else if (marked.length > 2) {
@@ -879,7 +897,7 @@ function init
         return
       }
       one = one || el.dataset.path
-      d('e ' + one)
+      Prompt.file({ create, open })
     }
     else
       Mess.say('Move to a file first')

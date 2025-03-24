@@ -163,7 +163,7 @@ function ask
 function initFile
 () {
   let mo, buf, under, ml
-  let cbOpen, dirsOnly, hist
+  let cbCreate, cbOpen, dirsOnly, hist
 
   function divW
   () {
@@ -246,12 +246,7 @@ function initFile
 
     text = buf.text().trim()
     if (text.length)
-      Ed.make(p,
-              { name: text, dir: p.dir },
-              () => {
-                // delayed otherwise Ed tries to open file
-                p.buf.file = text
-              })
+      cbCreate && cbCreate(p, text)
   }
 
   function select
@@ -267,7 +262,7 @@ function initFile
       if (path && path.length) {
         if (p.buf.text().length)
           hist.add(p.buf.text())
-        cbOpen(path)
+        cbOpen && cbOpen(path)
       }
       else if (typeof path === 'string')
         Mess.say('Empty')
@@ -306,7 +301,7 @@ function initFile
         }
         if (p.buf.text().length)
           hist.add(p.buf.text())
-        cbOpen(path)
+        cbOpen && cbOpen(path)
       }
       else if (typeof path === 'string')
         Mess.say('Empty')
@@ -439,6 +434,7 @@ function initFile
   (spec) {
     let p, w, dir, ph
 
+    cbCreate = spec.create
     cbOpen = spec.open
     hist = spec.hist
     dirsOnly = spec.dirsOnly

@@ -1,4 +1,5 @@
 import * as Cmd from './cmd.mjs'
+import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Hist from './hist.mjs'
 import * as Loc from './loc.mjs'
@@ -44,26 +45,33 @@ function init
 () {
   let hist
 
+  function create
+  (p, text) {
+    Ed.make(p,
+            { name: text, dir: p.dir },
+            () => {
+              // delayed otherwise Ed tries to open file
+              p.buf.file = text
+            })
+  }
+
+  function open
+  (path) {
+    Pane.open(path)
+  }
+
   function openFile
   (u) {
-    function open
-    (path) {
-      Pane.open(path)
-    }
-
     Prompt.file({ atPoint: u == 4,
+                  create,
                   hist,
                   open })
   }
 
   function openDir
   () {
-    function open
-    (path) {
-      Pane.open(path)
-    }
-
-    Prompt.dir({ hist,
+    Prompt.dir({ create,
+                 hist,
                  open })
   }
 

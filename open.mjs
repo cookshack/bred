@@ -152,7 +152,7 @@ function init
       else if (typeof path === 'string')
         Mess.say('Empty')
       else
-        Mess.say('Error')
+        Mess.say('Error, path was ' + (typeof path))
     }
     else
       selectFile(we)
@@ -191,7 +191,7 @@ function init
       else if (typeof path === 'string')
         Mess.say('Empty')
       else
-        Mess.say('Error')
+        Mess.say('Error, path was ' + (typeof path))
       return
     }
 
@@ -323,20 +323,20 @@ function init
     refresh()
   }
 
-  function openFile
-  (u) {
-    dirsOnly = 0
-    open(u)
+  function dir
+  (spec) {
+    dirsOnly = 1
+    open(spec)
   }
 
-  function openDir
-  () {
-    dirsOnly = 1
-    open()
+  function file
+  (spec) {
+    dirsOnly = 0
+    open(spec)
   }
 
   function open
-  (u) {
+  (spec) {
     let p, w, dir, ph
 
     p = Pane.current()
@@ -346,7 +346,7 @@ function init
     if (ml)
       ml.innerText = 'Open file'
 
-    if ((u == 4) && p.view.ed) {
+    if (spec.atPoint && p.view.ed) {
       let l, pos, url
 
       l = p.line()
@@ -376,7 +376,7 @@ function init
     buf.opts.set('core.line.numbers.show', 0)
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
-    hist.reset()
+    spec.hist?.reset()
     buf.off('change', onChange)
     buf.file = 0
     //buf.dir = 0
@@ -392,6 +392,17 @@ function init
         buf.on('change', onChange)
       }
     })
+  }
+
+  function openFile
+  (u) {
+    file({ hist: hist,
+           atPoint: u == 4 })
+  }
+
+  function openDir
+  () {
+    dir({ hist: hist })
   }
 
   hist = Hist.ensure('open')

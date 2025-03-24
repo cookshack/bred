@@ -163,7 +163,7 @@ function ask
 function initFile
 () {
   let mo, buf, under, ml
-  let dirsOnly, hist
+  let cbOpen, dirsOnly, hist
 
   function divW
   () {
@@ -267,12 +267,12 @@ function initFile
       if (path && path.length) {
         if (p.buf.text().length)
           hist.add(p.buf.text())
-        Pane.open(path)
+        cbOpen(path)
       }
       else if (typeof path === 'string')
         Mess.say('Empty')
       else
-        Mess.say('Error, path was ' + (typeof path))
+        Mess.yell('Error, path was ' + (typeof path))
     }
     else
       selectFile(we)
@@ -306,12 +306,12 @@ function initFile
         }
         if (p.buf.text().length)
           hist.add(p.buf.text())
-        Pane.open(path)
+        cbOpen(path)
       }
       else if (typeof path === 'string')
         Mess.say('Empty')
       else
-        Mess.say('Error, path was ' + (typeof path))
+        Mess.yell('Error, path was ' + (typeof path))
       return
     }
 
@@ -439,6 +439,7 @@ function initFile
   (spec) {
     let p, w, dir, ph
 
+    cbOpen = spec.open
     hist = spec.hist
     dirsOnly = spec.dirsOnly
     p = Pane.current()

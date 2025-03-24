@@ -46,13 +46,25 @@ function init
 
   function openFile
   (u) {
-    Prompt.file({ hist: hist,
-                  atPoint: u == 4 })
+    function open
+    (path) {
+      Pane.open(path)
+    }
+
+    Prompt.file({ atPoint: u == 4,
+                  hist,
+                  open })
   }
 
   function openDir
   () {
-    Prompt.dir({ hist: hist })
+    function open
+    (path) {
+      Pane.open(path)
+    }
+
+    Prompt.dir({ hist,
+                 open })
   }
 
   hist = Hist.ensure('open')

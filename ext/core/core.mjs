@@ -6,6 +6,7 @@ import * as Ext from '../../ext.mjs'
 import * as Opt from '../../opt.mjs'
 //import { d } from '../../mess.mjs'
 
+import { bracketMatching } from '../../lib/@cookshack/codemirror-bracket-matching.js'
 import * as CMLang from '../../lib/@codemirror/language.js'
 import * as CMSearch from '../../lib/@codemirror/search.js'
 import * as CMState from '../../lib/@codemirror/state.js'
@@ -50,7 +51,8 @@ function init
   function makeBrck
   (view) {
     if (view.buf.opt('core.highlight.bracket.enabled'))
-      return CMLang.bracketMatching({ afterCursor: view.buf.opt('core.highlight.bracket.afterCursor') })
+      return bracketMatching({ afterCursor: view.buf.opt('core.highlight.bracket.afterCursor'),
+                               directional: 1 })
     return []
   }
 

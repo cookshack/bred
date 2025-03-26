@@ -52,7 +52,7 @@ function init
   (view) {
     if (view.buf.opt('core.highlight.bracket.enabled'))
       return bracketMatching({ afterCursor: view.buf.opt('core.highlight.bracket.afterCursor'),
-                               directional: 1 })
+                               directional: view.buf.opt('core.highlight.bracket.directional') })
     return []
   }
 
@@ -146,6 +146,7 @@ function init
   Opt.declare('core.highlight.activeLine.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.enabled', 'bool', 1)
   Opt.declare('core.highlight.bracket.afterCursor', 'bool', 1)
+  Opt.declare('core.highlight.bracket.directional', 'bool', 1)
   Opt.declare('core.highlight.leadingSpace.enabled', 'bool', 0)
   Opt.declare('core.highlight.occurrences.enabled', 'bool', 1)
   Opt.declare('core.highlight.occurrences.wholeWords', 'bool', 0)
@@ -168,7 +169,9 @@ function init
                  reconf: reconfActiveLine })
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeBrck,
-                            reconfOpts: [ 'core.highlight.bracket.enabled', 'core.highlight.bracket.afterCursor' ] }))
+                            reconfOpts: [ 'core.highlight.bracket.enabled',
+                                          'core.highlight.bracket.afterCursor',
+                                          'core.highlight.bracket.directional' ] }))
   brexts.push(Ed.register({ backend: 'cm',
                             make: makeFold,
                             reconfOpts: [ 'core.folding.enabled', 'core.folding.gutter.enabled' ] }))

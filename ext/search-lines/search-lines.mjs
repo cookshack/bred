@@ -18,23 +18,20 @@ function init
 
   function follow
   (other) {
-    let p, line
+    let p, line, lines
 
-    p = Pane.current()
     if (other)
       Pane.nextOrSplit()
+    p = Pane.current()
 
-    line = p.line()
-    if (line.length) {
-      let s
+    lines = p.buf.vars('Search Lines').lines
+    if (lines)
+      line = lines[Ed.bepRow(p.view, p.view.bep)]
 
-      s = line.split(':', 3)
-      if ((s.length > 2) && s[0].length)
-        if ((s[0].length > 2) && (s[0].startsWith('./')))
-          Pane.open(p.dir + s[0].slice(2), s[1])
-        else
-          Pane.open(p.dir + s[0], [ 1 ])
-    }
+    if (line)
+      p.setBuf(line.buf, {}, view => {
+        view.bep = line.from
+      })
   }
 
   function rerun
@@ -90,6 +87,7 @@ function init
         view.insert(lines.map(line => line.text).join('\n'))
         if (lines.length)
           view.insert('\n')
+        view.bufStart()
       })
     }
     else if (typeof needle === 'string')

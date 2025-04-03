@@ -1,14 +1,12 @@
+import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
 import * as Ed from '../../ed.mjs'
 import * as Em from '../../em.mjs'
 import * as Hist from '../../hist.mjs'
-import * as Loc from '../../loc.mjs'
 import * as Mess from '../../mess.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 import * as Prompt from '../../prompt.mjs'
-import * as Shell from '../../shell.mjs'
-import * as U from '../../util.mjs'
 //import { d } from '../../mess.mjs'
 
 export
@@ -43,40 +41,53 @@ function init
     let p, needle
 
     p = Pane.current()
-    needle = p.buf.vars('srl').needle ?? Mess.throw('Missing needle')
+    needle = p.buf.vars('Search Lines').needle ?? Mess.throw('Missing needle')
     needle.length || Mess.throw('Empty needle')
-    if (U.defined(p.buf.vars('shell').code)) {
-      p.buf.clear()
-      Shell.run(p.dir,
-                Loc.appDir().join('bin/sr'),
-                [ needle,
-                  p.buf.vars('srl').recurse ? '1' : '0',
-                  p.buf.vars('srl').regex ? '1' : '0' ],
-                { buf: p.buf,
-                  end: 1,
-                  afterEndPoint: 1 })
-      return
-    }
-    Mess.yell('Busy')
+    Mess.throw('FIX')
   }
 
-  function searchFiles
-  (recurse, regex, needle) {
+  function searchLines
+  (dir, target, view, regex, needle) {
     if (needle && needle.length) {
-      hist.add(needle)
-      Shell.spawn1(Loc.appDir().join('bin/sr'),
-                   [ needle,
-                     recurse ? '1' : '0',
-                     regex ? '1' : '0' ],
-                   { end: 1,
-                     afterEndPoint: 1 },
-                   b => {
-                     b.mode = 'srl'
-                     b.vars('srl').needle = needle
-                     b.vars('srl').recurse = recurse
-                     b.vars('srl').regex = regex
-                     b.addMode('view')
-                   })
+      let p, buf, name, lines
+
+      name = 'SL: ' + needle
+
+      buf = Buf.find(b => (b.mode.name == name))
+      if (buf)
+        buf.clear()
+      else {
+        buf = Buf.add(name, 'Search Lines', Ed.divW(0, 0, { hideMl: 1 }), dir)
+        buf.addMode('view')
+      }
+      buf.opts.set('core.lint.enabled', 0)
+      buf.opts.set('minimap.enabled', 0)
+      buf.vars('Search Lines').needle = needle
+      buf.vars('Search Lines').regex = regex
+      {
+        let psn
+
+        // have to do this before the view closes
+        // really need to persist the views somehow
+
+        lines = []
+        psn = Ed.Backend.makePsn(view, Ed.Backend.makeBep(view, 0, 0))
+        do {
+          let text
+
+          text = Ed.Backend.lineAtBep(view, psn.bep)
+          if (text.includes(needle))
+            lines.push({ text: text, from: psn.bep, buf: view.buf })
+        }
+        while (psn.lineNext())
+        buf.vars('Search Lines').lines = lines
+      }
+      p = Pane.current()
+      p.setBuf(buf, {}, view => {
+        view.insert(lines.map(line => line.text).join('\n'))
+        if (lines.length)
+          view.insert('\n')
+      })
     }
     else if (typeof needle === 'string')
       Mess.say('Empty')
@@ -85,36 +96,28 @@ function init
   }
 
   function prompt
-  (recurse, regex) {
-    Prompt.ask({ text: 'Search files' + (recurse ? ' recursively' : ''),
+  (regex) {
+    let p
+
+    p = Pane.current()
+    Prompt.ask({ text: 'Search lines',
                  hist: hist },
-               needle => searchFiles(recurse, regex, needle))
+               needle => searchLines(p.dir, p.buf, p.view, regex, needle))
   }
 
   function search
   (u, regex) {
-    let p, recurse
-
-    p = Pane.current()
-    recurse = p.buf.opt('core.search.files.recurse')
-
-    if (u == 4)
-      recurse = false == recurse
-
-    prompt(recurse, regex)
+    prompt(regex)
   }
 
-  hist = Hist.ensure('search files')
+  hist = Hist.ensure('search lines')
 
-  moSr = Mode.add('Srl',
+  moSr = Mode.add('Search Lines',
                   { viewInit: Ed.viewInit,
                     viewInitSpec: Ed.viewInitSpec,
+                    viewCopy: Ed.viewCopy,
                     initFns: Ed.initModeFns,
-                    parentsForEm: 'ed',
-                    decorators: [ { regex: /^([^:]+:[0-9]+:).*$/d,
-                                    decor: [ { attr: { style: 'color: var(--clr-emph-light); --background-color: var(--clr-fill);',
-                                                       class: 'bred-bg',
-                                                       'data-run': 'select' } } ] } ] })
+                    parentsForEm: 'ed' })
 
   Cmd.add('rerun', () => rerun(), moSr)
   Cmd.add('select', () => follow(), moSr)
@@ -133,5 +136,5 @@ function free
 () {
   Cmd.remove('search lines')
   Cmd.remove('match lines')
-  Mode.remove('Srl')
+  Mode.remove('Search Lines')
 }

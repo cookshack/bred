@@ -123,7 +123,7 @@ function init
   Em.on('g', 'rerun', moSr)
   Em.on('o', 'select in other pane', moSr)
 
-  Cmd.add('search files', search)
+  Cmd.add('search files', u => search(u, 0))
   Cmd.add('search files recursively', () => prompt(1))
   Cmd.add('match files', u => search(u, 1))
   Cmd.add('match files recursively', () => prompt(1, 1))

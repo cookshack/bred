@@ -70,6 +70,8 @@ function init
     if (needle && needle.length) {
       let p, buf, name, lines
 
+      hist.add(needle)
+
       name = 'SL: ' + needle
 
       buf = Buf.find(b => (b.mode.name == name))

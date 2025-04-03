@@ -1,3 +1,7 @@
 .search_lines-lineNumbers {
   margin-left: 0.5rem;
 }
+
+.search_lines-lineNumbers > .cm-gutterElement {
+  cursor: pointer;
+}

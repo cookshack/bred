@@ -19,6 +19,27 @@ function init
   let moSr
   let hist
 
+  function go
+  (p, line) {
+    if (line)
+      p.setBuf(line.buf, {}, view => {
+        view.bep = line.from
+      })
+  }
+
+  function goto
+  (line, other) {
+    if (line) {
+      let p
+
+      if (other)
+        Pane.nextOrSplit()
+      p = Pane.current()
+
+      go(p, line)
+    }
+  }
+
   function follow
   (other) {
     let p, line, lines
@@ -31,10 +52,7 @@ function init
     if (lines)
       line = lines[Ed.bepRow(p.view, p.view.bep)]
 
-    if (line)
-      p.setBuf(line.buf, {}, view => {
-        view.bep = line.from
-      })
+    go(p, line)
   }
 
   function rerun
@@ -129,6 +147,20 @@ function init
   }
 
   gutter = CMView.gutter({ class: 'search_lines-lineNumbers',
+                           domEventHandlers: {
+                             mousedown(cmView, resultLine) {
+                               let lines, line, view
+
+                               view = cmView.bred?.view
+                               if (view) {
+                                 lines = view.buf.vars('Search Lines').lines
+                                 if (lines)
+                                   line = lines[Ed.bepRow(view, resultLine.from)]
+                                 if (line)
+                                   goto(line)
+                               }
+                             }
+                           },
                            lineMarker(cmView, resultLine) {
                              let lines, line, view
 

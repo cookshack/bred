@@ -1,8 +1,8 @@
 {
-  "name": "bred-ext-search",
+  "name": "bred-ext-search-files",
   "version": "0.1.0",
   "description": "Search files.",
-  "main": "rich.mjs",
+  "main": "search-files.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "bin/postinstall && touch .READY"

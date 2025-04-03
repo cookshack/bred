@@ -74,6 +74,14 @@ function urlAt
   return 0
 }
 
+export
+function includes
+(text, needle, foldCase) {
+  if (foldCase)
+    return text.normalize('NFD').toLowerCase().includes(needle.normalize('NFD').toLowerCase())
+  return text.includes(needle)
+}
+
 // pass any args to this fn to prevent warnings about them
 export
 function use

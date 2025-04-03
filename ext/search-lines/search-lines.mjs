@@ -7,6 +7,7 @@ import * as Mess from '../../mess.mjs'
 import * as Mode from '../../mode.mjs'
 import * as Pane from '../../pane.mjs'
 import * as Prompt from '../../prompt.mjs'
+import * as U from '../../util.mjs'
 //import { d } from '../../mess.mjs'
 
 export
@@ -78,7 +79,7 @@ function init
           let text
 
           text = Ed.Backend.lineAtBep(view, psn.bep)
-          if (regex ? regex.test(text) : text.includes(needle))
+          if (regex ? regex.test(text) : U.includes(text, needle, 1))
             lines.push({ text: text, from: psn.bep, buf: view.buf })
         }
         while (psn.lineNext())

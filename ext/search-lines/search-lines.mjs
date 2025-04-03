@@ -64,6 +64,8 @@ function init
       buf.opts.set('minimap.enabled', 0)
       buf.vars('Search Lines').needle = needle
       buf.vars('Search Lines').regex = regex
+      if (regex)
+        regex = new RegExp(needle, 'i')
       {
         let psn
 
@@ -76,7 +78,7 @@ function init
           let text
 
           text = Ed.Backend.lineAtBep(view, psn.bep)
-          if (text.includes(needle))
+          if (regex ? regex.test(text) : text.includes(needle))
             lines.push({ text: text, from: psn.bep, buf: view.buf })
         }
         while (psn.lineNext())

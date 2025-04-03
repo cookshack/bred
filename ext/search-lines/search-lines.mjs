@@ -10,6 +10,9 @@ import * as Prompt from '../../prompt.mjs'
 import * as U from '../../util.mjs'
 //import { d } from '../../mess.mjs'
 
+import * as CMState from '../../lib/@codemirror/state.js'
+import * as CMView from '../../lib/@codemirror/view.js'
+
 export
 function init
 () {
@@ -77,7 +80,7 @@ function init
 
           text = Ed.Backend.lineAtBep(view, psn.bep)
           if (regex ? regex.test(text) : U.includes(text, needle, 1))
-            lines.push({ text: text, from: psn.bep, buf: view.buf })
+            lines.push({ text: text, from: psn.bep, row: Ed.bepRow(view, psn.bep), buf: view.buf })
         }
         while (psn.lineNext())
         buf.vars('Search Lines').lines = lines
@@ -111,6 +114,35 @@ function init
     prompt(regex)
   }
 
+  let gutter
+
+  class NumberMarker extends CMView.GutterMarker {
+    constructor
+    (number) {
+      super()
+      this.number = number
+    }
+    toDOM
+    () {
+      return globalThis.document.createTextNode(this.number)
+    }
+  }
+
+  gutter = CMView.gutter({ class: 'search_lines-lineNumbers',
+                           lineMarker(cmView, resultLine) {
+                             let lines, line, view
+
+                             view = cmView.bred?.view
+                             if (view) {
+                               lines = view.buf.vars('Search Lines').lines
+                               if (lines)
+                                 line = lines[Ed.bepRow(view, resultLine.from)]
+                               if (line)
+                                 return new NumberMarker(line.row + 1)
+                             }
+                             return null
+                           } })
+
   hist = Hist.ensure('search lines')
 
   moSr = Mode.add('Search Lines',
@@ -118,6 +150,9 @@ function init
                     viewInitSpec: Ed.viewInitSpec,
                     viewCopy: Ed.viewCopy,
                     initFns: Ed.initModeFns,
+                    exts: [ { backend: 'cm',
+                              make: () => gutter,
+                              part: new CMState.Compartment } ],
                     parentsForEm: 'ed' })
 
   Cmd.add('rerun', () => rerun(), moSr)

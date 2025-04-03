@@ -556,7 +556,7 @@ function watch
 export
 function viewInitSpec
 (view,
- spec, // { text, modeWhenText, lineNum, whenReady, forceFresh }
+ spec, // { text, modeWhenText, lineNum, whenReady, forceFresh, exts }
  cb) {
   d('peer.get ' + view.buf.id)
   d('vi vid: ' + view.vid)
@@ -576,7 +576,8 @@ function viewInitSpec
               spec.modeWhenText,
               spec.lineNum,
               spec.whenReady,
-              spec.placeholder)
+              spec.placeholder,
+              spec)
     if (cb)
       cb(view)
   })
@@ -600,7 +601,7 @@ function viewInit
 }
 
 function _viewInit
-(peer, view, text, modeWhenText, lineNum, whenReady, placeholder) {
+(peer, view, text, modeWhenText, lineNum, whenReady, placeholder, spec) {
   let ed, buf, edWW, edW, opts, domEventHandlers
 
   function removeAllKeyBindings
@@ -644,6 +645,8 @@ function _viewInit
   }
 
   d('================== viewInit')
+
+  spec = spec || {}
 
   if (view.ele) {
     // Have DOM.
@@ -901,6 +904,10 @@ function _viewInit
     opts.push(view.wode.peer.of([ peer ]))
   else
     opts.push(view.wode.peer.of([]))
+
+  spec.exts?.forEach(ext => {
+    ext.make && opts.push(ext.part.of(ext.make(view)))
+  })
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')

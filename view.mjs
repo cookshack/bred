@@ -9,7 +9,7 @@ import { d } from './mess.mjs'
 export
 function make
 (b,
- spec,
+ spec, // { ..., exts }
  cb) { // called when buf ready to use
   let { vid,
         mode,
@@ -467,7 +467,8 @@ function make
         mode.viewInitSpec(v,
                           { lineNum: lineNum,
                             whenReady: whenReady,
-                            placeholder: b.placeholder },
+                            placeholder: b.placeholder,
+                            exts: mode.exts },
                           cb)
       }
       else if (mode && mode.viewInit) // remove when ace,mon have viewInitSpec (BUT also used by div views)

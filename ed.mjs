@@ -276,16 +276,6 @@ function escapeForRe
   return escapeStringRegexp(s)
 }
 
-function initLML
-(mo) {
-  function lml
-  () {
-    d('lml')
-  }
-
-  Cmd.add('list matching lines', () => lml(), mo)
-}
-
 function initComplete
 () {
   Cmd.add('complete', Backend.initComplete())
@@ -1474,7 +1464,6 @@ function init
 
     Em.on('C-c A-r', 'revert buffer', mo)
 
-    initLML(mo)
     initComplete()
     initFlushLines(mo)
     initGotoLine(mo)

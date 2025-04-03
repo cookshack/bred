@@ -1,5 +1,6 @@
 .search_lines-lineNumbers {
   margin-left: 0.5rem;
+  margin-right: 0.25rem;
 }
 
 .search_lines-lineNumbers > .cm-gutterElement {

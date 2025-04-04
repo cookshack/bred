@@ -554,33 +554,30 @@ function watch
 }
 
 export
-function viewInitSpec
+async function viewInitSpec
 (view,
  spec, // { text, modeWhenText, lineNum, whenReady, forceFresh, exts }
  cb) {
+  let data
+
   d('peer.get ' + view.buf.id)
   d('vi vid: ' + view.vid)
   view.buf.modified = 0
   Ed.setIcon(view.buf, '.edMl-mod', 'blank')
   view.ready = 0
-  Tron.cmd('peer.get', [ view.buf.id ], (err, data) => {
-    if (err) {
-      Mess.toss('peer.get: ' + err.message)
-      return
-    }
-    d('peer.get ' + view.buf.id + ' ok (' + view.buf.name + ')')
-    d({ data })
-    _viewInit(makePeer(view.buf.id, data.version),
-              view,
-              (spec.forceFresh || data.fresh) ? 0 : data.text,
-              spec.modeWhenText,
-              spec.lineNum,
-              spec.whenReady,
-              spec.placeholder,
-              spec)
-    if (cb)
-      cb(view)
-  })
+  data = await Tron.acmd('peer.get', [ view.buf.id ])
+  d('peer.get ' + view.buf.id + ' ok (' + view.buf.name + ')')
+  d({ data })
+  _viewInit(makePeer(view.buf.id, data.version),
+            view,
+            (spec.forceFresh || data.fresh) ? 0 : data.text,
+            spec.modeWhenText,
+            spec.lineNum,
+            spec.whenReady,
+            spec.placeholder,
+            spec)
+  if (cb)
+    cb(view)
 }
 
 export

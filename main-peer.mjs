@@ -34,15 +34,15 @@ function get
 
 export
 function onPeerGet
-(e, ch, onArgs) {
+(e, onArgs) {
   const [ id ] = onArgs
   let buf
 
   buf = get(id)
   d('PEER ' + id + ' GET')
-  e.sender.send(ch, { version: buf.version,
-                      fresh: buf.fresh,
-                      text: buf.text.toString() })
+  return { version: buf.version,
+           fresh: buf.fresh,
+           text: buf.text.toString() }
 }
 
 function changes

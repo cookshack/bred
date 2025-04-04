@@ -201,6 +201,9 @@ function relaunch
 
 async function onAcmd
 (e, name, args) {
+  if (name == 'peer.get')
+    return Peer.onPeerGet(e, args)
+
   if (name == 'peer.psn.line')
     return Peer.onPeerPsnLine(e, args)
 
@@ -354,9 +357,6 @@ async function onCmd
 
   if (name == 'files.lines')
     return wrapOn(e, ch, args, Files.onLines)
-
-  if (name == 'peer.get')
-    return wrapOn(e, ch, args, Peer.onPeerGet)
 
   if (name == 'peer.pull')
     return wrapOn(e, ch, args, Peer.onPeerPull)

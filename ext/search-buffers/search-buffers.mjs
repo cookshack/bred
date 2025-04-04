@@ -148,7 +148,7 @@ function init
     }
   }
 
-  gutter = CMView.gutter({ class: 'search_lines-lineNumbers',
+  gutter = CMView.gutter({ class: 'search_buffers-lineNumbers',
                            domEventHandlers: {
                              mousedown(cmView, resultLine) {
                                let lines, line, view
@@ -177,7 +177,7 @@ function init
                              return null
                            } })
 
-  hist = Hist.ensure('search lines')
+  hist = Hist.ensure('search lines') // shared w search-lines
 
   moSr = Mode.add('Search Buffers',
                   { viewInit: Ed.viewInit,

@@ -80,7 +80,53 @@ export
 function make
 (spec = {}) { // { name, modeName, content, dir, file, placeholder, vars }
   let { name, modeName, content, dir, file } = spec
-  let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk
+  let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk, ed
+
+  function makePsn
+  () {
+    let psn, row, bep // always cm type bep, because peer uses cm internally.
+
+    bep = 0
+    row = 0
+
+    psn = { get bep() {
+      return bep
+    },
+            get line() { // async
+              return new Promise(resolve => {
+                Tron.cmd('peer.psn.line', [ b.id, bep ], (err, data) => {
+                  if (err) {
+                    Mess.toss('peer.psn.line: ' + err.message) // will reject
+                    return
+                  }
+                  if (typeof data.text == 'string') {
+                    resolve(data.text)
+                    return
+                  }
+                  Mess.toss('peer.psn.line: line missing') // will reject
+                })
+              })
+            },
+            get row() {
+              return row
+            },
+            //
+            async lineNext() {
+              return new Promise(resolve => {
+                Tron.cmd('peer.psn.lineNext', [ b.id, bep ], (err, data) => {
+                  if (err) {
+                    Mess.toss('peer.psn.lineNext: ' + err.message) // will reject
+                    return
+                  }
+                  bep = data.bep ?? bep
+                  row = data.row ?? row
+                  resolve(data.more)
+                })
+              })
+            } }
+
+    return psn
+  }
 
   function remove
   () {
@@ -394,6 +440,9 @@ function make
         get dir() {
           return getDir()
         },
+        get ed() {
+          return ed
+        },
         get file() {
           return file
         },
@@ -428,6 +477,9 @@ function make
         },
         set dir(d) {
           return setDir(d)
+        },
+        set ed(val) {
+          return ed = val ? 1 : 0
         },
         set file(f) {
           return file = Loc.make(f).removeSlash()
@@ -475,6 +527,7 @@ function make
         clear,
         clearLine,
         line,
+        makePsn,
         remove,
         insert,
         off,

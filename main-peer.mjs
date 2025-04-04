@@ -108,4 +108,47 @@ function onPeerPush
   e.sender.send(ch, {})
 }
 
+export
+function onPeerPsnLine
+(e, ch, onArgs) {
+  const [ id, bep ] = onArgs
+  let buf, text
+
+  buf = get(id)
+  d('PEER ' + id + ' PSN.LINE')
+
+  text = buf.text.lineAt(bep)?.text
+  e.sender.send(ch, { version: buf.version,
+                      fresh: buf.fresh,
+                      text: text })
+}
+
+export
+function onPeerPsnLineNext
+(e, ch, onArgs) {
+  const [ id, bep ] = onArgs
+  let buf, line
+
+  buf = get(id)
+  d('PEER ' + id + ' PSN.LINENEXT ' + bep)
+
+  line = buf.text.lineAt(bep)
+  if (line)
+    if ((line.number + 1) <= buf.text.lines) {
+      let next
+
+      next = buf.text.line(line.number + 1)
+      if (next) {
+        e.sender.send(ch, { version: buf.version,
+                            fresh: buf.fresh,
+                            row: line.number,
+                            bep: next.from,
+                            more: 1 })
+        return
+      }
+    }
+  e.sender.send(ch, { version: buf.version,
+                      fresh: buf.fresh })
+}
+
 bufs = []

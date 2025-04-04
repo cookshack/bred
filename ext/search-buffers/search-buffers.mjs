@@ -13,6 +13,63 @@ import * as U from '../../util.mjs'
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 
+async function searchBufs
+(dir, regex, needle, hist) {
+  if (needle && needle.length) {
+    let p, buf, name, lines
+
+    hist.add(needle)
+
+    name = 'Search Buffers: ' + needle
+
+    buf = Buf.find(b => (b.name == name))
+    if (buf)
+      buf.clear()
+    else {
+      buf = Buf.add(name, 'Search Buffers', Ed.divW(0, 0, { hideMl: 1 }), dir)
+      buf.addMode('view')
+    }
+    buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('minimap.enabled', 0)
+    buf.vars('Search Buffers').needle = needle
+    buf.vars('Search Buffers').regex = regex
+    if (regex)
+      regex = new RegExp(needle, 'i')
+    lines = []
+    {
+      let bufs
+
+      bufs = []
+      Buf.forEach(buf => buf.ed && bufs.push(buf))
+      for (let buf of bufs) {
+        let psn
+
+        psn = buf.makePsn()
+        do {
+          let text
+
+          text = await psn.line
+          if (regex ? regex.test(text) : U.includes(text, needle, 1))
+            lines.push({ text: text, from: psn.bep, row: psn.row, buf: buf })
+        }
+        while (await psn.lineNext())
+      }
+    }
+    buf.vars('Search Buffers').lines = lines
+    p = Pane.current()
+    p.setBuf(buf, {}, view => {
+      view.insert(lines.map(line => line.text).join('\n'))
+      if (lines.length)
+        view.insert('\n')
+      view.bufStart()
+    })
+  }
+  else if (typeof needle === 'string')
+    Mess.say('Empty')
+  else
+    Mess.say('Error')
+}
+
 export
 function init
 () {
@@ -65,60 +122,6 @@ function init
     Mess.throw('FIX')
   }
 
-  function searchBufs
-  (dir, target, view, regex, needle) {
-    if (needle && needle.length) {
-      let p, buf, name, lines
-
-      hist.add(needle)
-
-      name = 'Search Buffers: ' + needle
-
-      buf = Buf.find(b => (b.mode.name == name))
-      if (buf)
-        buf.clear()
-      else {
-        buf = Buf.add(name, 'Search Buffers', Ed.divW(0, 0, { hideMl: 1 }), dir)
-        buf.addMode('view')
-      }
-      buf.opts.set('core.lint.enabled', 0)
-      buf.opts.set('minimap.enabled', 0)
-      buf.vars('Search Buffers').needle = needle
-      buf.vars('Search Buffers').regex = regex
-      if (regex)
-        regex = new RegExp(needle, 'i')
-      {
-        let psn
-
-        // have to do this before the view closes
-        // really need to persist the views somehow
-
-        lines = []
-        psn = Ed.Backend.makePsn(view, Ed.Backend.makeBep(view, 0, 0))
-        do {
-          let text
-
-          text = Ed.Backend.lineAtBep(view, psn.bep)
-          if (regex ? regex.test(text) : U.includes(text, needle, 1))
-            lines.push({ text: text, from: psn.bep, row: Ed.bepRow(view, psn.bep), buf: view.buf })
-        }
-        while (psn.lineNext())
-        buf.vars('Search Buffers').lines = lines
-      }
-      p = Pane.current()
-      p.setBuf(buf, {}, view => {
-        view.insert(lines.map(line => line.text).join('\n'))
-        if (lines.length)
-          view.insert('\n')
-        view.bufStart()
-      })
-    }
-    else if (typeof needle === 'string')
-      Mess.say('Empty')
-    else
-      Mess.say('Error')
-  }
-
   function prompt
   (regex) {
     let p
@@ -126,7 +129,7 @@ function init
     p = Pane.current()
     Prompt.ask({ text: 'Search Buffers',
                  hist: hist },
-               needle => searchBufs(p.dir, p.buf, p.view, regex, needle))
+               needle => searchBufs(p.dir, regex, needle, hist))
   }
 
   function search

@@ -349,6 +349,12 @@ async function onCmd
   if (name == 'peer.get')
     return wrapOn(e, ch, args, Peer.onPeerGet)
 
+  if (name == 'peer.psn.line')
+    return wrapOn(e, ch, args, Peer.onPeerPsnLine)
+
+  if (name == 'peer.psn.lineNext')
+    return wrapOn(e, ch, args, Peer.onPeerPsnLineNext)
+
   if (name == 'peer.pull')
     return wrapOn(e, ch, args, Peer.onPeerPull)
 

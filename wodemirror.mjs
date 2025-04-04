@@ -656,6 +656,7 @@ function _viewInit
     return
 
   buf = view.buf
+  buf.ed = 1
   buf.modified = 0
   Ed.setIcon(view.buf, '.edMl-mod', 'blank')
   buf.modifiedOnDisk = 0

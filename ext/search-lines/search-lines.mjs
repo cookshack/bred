@@ -74,7 +74,7 @@ function init
 
       name = 'SL: ' + needle
 
-      buf = Buf.find(b => (b.mode.name == name))
+      buf = Buf.find(b => (b.name == name))
       if (buf)
         buf.clear()
       else {

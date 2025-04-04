@@ -1,4 +1,4 @@
-import { app, clipboard as Clipboard, BrowserWindow, ipcMain /*, protocol, net*/ } from 'electron'
+import { app, clipboard as Clipboard, BrowserWindow, ipcMain, Menu /*, protocol, net*/ } from 'electron'
 import * as Browse from './main-browse.mjs'
 import CheckDeps from './lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
@@ -756,7 +756,6 @@ function whenHaveDeps
       createMainWindow()
   })
 }
-
 async function whenReady
 () {
   let program
@@ -816,6 +815,8 @@ async function whenReady
     d('logging to stdout')
 
   Project.init()
+
+  Menu.setApplicationMenu(null) // Apparently good for performance
 
   app.on('window-all-closed', () => {
     app.quit()

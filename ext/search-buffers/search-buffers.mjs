@@ -1,3 +1,5 @@
+import { div } from '../../dom.mjs'
+
 import * as Buf from '../../buf.mjs'
 import * as Cmd from '../../cmd.mjs'
 import * as Ed from '../../ed.mjs'
@@ -139,15 +141,16 @@ function init
 
   let gutter
 
-  class NumberMarker extends CMView.GutterMarker {
+  class Marker extends CMView.GutterMarker {
     constructor
-    (number) {
+    (name, num) {
       super()
-      this.number = number
+      this.name = name
+      this.num = num
     }
     toDOM
     () {
-      return globalThis.document.createTextNode(this.number)
+      return div([ div(this.name), div(this.num) ])
     }
   }
 
@@ -175,7 +178,7 @@ function init
                                if (lines)
                                  line = lines[Ed.bepRow(view, resultLine.from)]
                                if (line)
-                                 return new NumberMarker(line.row + 1)
+                                 return new Marker(line.buf.name, line.row + 1)
                              }
                              return null
                            } })

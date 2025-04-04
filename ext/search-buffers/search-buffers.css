@@ -6,3 +6,9 @@
 .search_buffers-lineNumbers > .cm-gutterElement {
   cursor: pointer;
 }
+
+.search_buffers-lineNumbers > .cm-gutterElement > div {
+  display: grid;
+  grid-template-columns: auto minmax(min-content, max-content);
+  gap: 0 0.5rem;
+}

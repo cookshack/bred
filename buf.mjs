@@ -93,36 +93,25 @@ function make
       return bep
     },
             get line() { // async
-              return new Promise(resolve => {
-                Tron.cmd('peer.psn.line', [ b.id, bep ], (err, data) => {
-                  if (err) {
-                    Mess.toss('peer.psn.line: ' + err.message) // will reject
-                    return
-                  }
-                  if (typeof data.text == 'string') {
-                    resolve(data.text)
-                    return
-                  }
-                  Mess.toss('peer.psn.line: line missing') // will reject
-                })
-              })
+              return (async () => {
+                let data
+
+                data = await Tron.acmd('peer.psn.line', [ b.id, bep ])
+
+                return data.text
+              })()
             },
             get row() {
               return row
             },
             //
             async lineNext() {
-              return new Promise(resolve => {
-                Tron.cmd('peer.psn.lineNext', [ b.id, bep ], (err, data) => {
-                  if (err) {
-                    Mess.toss('peer.psn.lineNext: ' + err.message) // will reject
-                    return
-                  }
-                  bep = data.bep ?? bep
-                  row = data.row ?? row
-                  resolve(data.more)
-                })
-              })
+              let data
+
+              data = await Tron.acmd('peer.psn.lineNext', [ b.id, bep ])
+              bep = data.bep ?? bep
+              row = data.row ?? row
+              return data.more
             } }
 
     return psn

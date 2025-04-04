@@ -6,6 +6,7 @@ ons = {}
 
 contextBridge.exposeInMainWorld('tron', {
   cmd: (name, args) => ipcRenderer.invoke('cmd', name, args),
+  acmd: (name, args) => ipcRenderer.invoke('acmd', name, args),
   //
   send: (ch, ...args) => ipcRenderer.send(ch, ...args),
   // read a response

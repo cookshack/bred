@@ -110,7 +110,7 @@ function onPeerPush
 
 export
 function onPeerPsnLine
-(e, ch, onArgs) {
+(e, onArgs) {
   const [ id, bep ] = onArgs
   let buf, text
 
@@ -118,14 +118,14 @@ function onPeerPsnLine
   d('PEER ' + id + ' PSN.LINE')
 
   text = buf.text.lineAt(bep)?.text
-  e.sender.send(ch, { version: buf.version,
-                      fresh: buf.fresh,
-                      text: text })
+  return { version: buf.version,
+           fresh: buf.fresh,
+           text: text }
 }
 
 export
 function onPeerPsnLineNext
-(e, ch, onArgs) {
+(e, onArgs) {
   const [ id, bep ] = onArgs
   let buf, line
 
@@ -138,17 +138,15 @@ function onPeerPsnLineNext
       let next
 
       next = buf.text.line(line.number + 1)
-      if (next) {
-        e.sender.send(ch, { version: buf.version,
-                            fresh: buf.fresh,
-                            row: line.number,
-                            bep: next.from,
-                            more: 1 })
-        return
-      }
+      if (next)
+        return { version: buf.version,
+                 fresh: buf.fresh,
+                 row: line.number,
+                 bep: next.from,
+                 more: 1 }
     }
-  e.sender.send(ch, { version: buf.version,
-                      fresh: buf.fresh })
+  return { version: buf.version,
+           fresh: buf.fresh }
 }
 
 bufs = []

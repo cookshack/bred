@@ -43,6 +43,12 @@ function cmd
 }
 
 export
+async function acmd
+(name, args) {
+  return await globalThis.tron.acmd(name, args)
+}
+
+export
 function on
 (ch, cb) { // (err, data)
   let w

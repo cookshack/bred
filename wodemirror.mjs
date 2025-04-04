@@ -215,13 +215,12 @@ let highlighters, stateHighlighters
   }
 }
 
-function pushUpdates
+async function pushUpdates
 (id, version, updates, cb) {
   updates = updates?.map(u => ({ clientID: u.clientID,
                                  changes: u.changes.toJSON() }))
-  Tron.cmd('peer.push', [ id, version, updates ], () => {
-    cb()
-  })
+  await Tron.acmd('peer.push', [ id, version, updates ])
+  cb()
 }
 
 function makePlaceholder

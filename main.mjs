@@ -209,6 +209,9 @@ async function onAcmd
 
   if (name == 'peer.psn.lineNext')
     return Peer.onPeerPsnLineNext(e, args)
+
+  if (name == 'peer.push')
+    return Peer.onPeerPush(e, args)
 }
 
 let onCmdCount
@@ -360,9 +363,6 @@ async function onCmd
 
   if (name == 'peer.pull')
     return wrapOn(e, ch, args, Peer.onPeerPull)
-
-  if (name == 'peer.push')
-    return wrapOn(e, ch, args, Peer.onPeerPush)
 
   if (name == 'test.throw')
     return cmdTestThrow(e, ch, args)

@@ -71,7 +71,7 @@ function onPeerPull
 
 export
 function onPeerPush
-(e, ch, onArgs) {
+(e, onArgs) {
   const [ id, version, updates ] = onArgs
   let received, buf
 
@@ -81,10 +81,9 @@ function onPeerPush
   d('PEER ' + id + ' PUSHED ' + received.length)
   d('    version: ' + version)
   d('    buf.version: ' + buf.version)
-  if (version == buf.version) {
-    e.sender.send(ch, {})
-    return
-  }
+  if (version == buf.version)
+    return {}
+
   received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
   try {
     received.forEach(update => {
@@ -105,7 +104,7 @@ function onPeerPush
       e.sender.send(pullCh, { updates: push })
     })
   }
-  e.sender.send(ch, {})
+  return {}
 }
 
 export

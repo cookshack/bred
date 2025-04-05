@@ -208,6 +208,8 @@ function init
   // bred
   rule('plus', meanings.syntax1)
   rule('minus', meanings.nb3)
+  rule('plusLight', meanings.fillAux)
+  rule('minusLight', meanings.nb3Light)
   rule('bredfill', meanings.emph, { background: meanings.fill })
 
   rules = fixup(rules)

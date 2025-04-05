@@ -1759,15 +1759,15 @@ div.cm-line.cm-activeLine::after {
 .diff-refine-plus,
 .diff-refine-minus > span,
 .diff-refine-plus > span {
-  color: var(--clr-bg);
+  color: var(--clr-text);
 }
 
 .diff-refine-plus {
-  background: var(--rule-clr-plus);
+  background: var(--rule-clr-plusLight);
 }
 
 .diff-refine-minus {
-  background: var(--rule-clr-minus);
+  background: var(--rule-clr-minusLight);
 }
 
 .bred-bg::before {

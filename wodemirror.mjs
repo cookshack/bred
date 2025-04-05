@@ -4278,24 +4278,63 @@ function init
   initTheme()
   initActiveLine()
 
-  extPatch = CMView.ViewPlugin.fromClass(class {
-    constructor
-    (view) {
-      this.view = view
+  {
+    let decorPlus, decorMinus
+
+    function decorateRefines
+    (ed, refines) {
+      let builder
+
+      builder = new CMState.RangeSetBuilder()
+      if (refines && refines.length)
+        for (let { from, to } of ed.visibleRanges)
+          for (let pos = from; pos <= to;) {
+            let line
+
+            line = ed.state.doc.lineAt(pos)
+            if (line.from - line.to > 10)
+              builder.add(line.from, line.from + 5, decorPlus)
+            pos = line.to + 1
+          }
+      return builder.finish()
     }
 
-    update
-    (update) {
-      if (update.docChanged) {
-        let buf
+    decorPlus = Ed.makeDecor({ attr: { class: patchModeName() + '-refine-plus' } })
+    decorMinus = Ed.makeDecor({ attr: { class: patchModeName() + '-refine-minus' } })
+    U.use(decorMinus)
 
-        buf = update.view.bred?.view?.buf
-        if (buf) {
-          buf.vars(patchModeName()).lines = null
-          Patch.refine(update.view.state.doc.toString(),
-                       lines => buf.vars(patchModeName()).lines = lines)
+    extPatch = CMView.ViewPlugin.fromClass(class {
+      constructor
+      (ed) {
+        let buf, refines
+
+        buf = ed.bred?.view?.buf
+        if (buf)
+          refines = buf.vars(patchModeName()).lines
+        this.decorations = decorateRefines(ed, refines)
+      }
+
+      update
+      (update) {
+        if (update.docChanged || update.viewportChanged) {
+          let buf
+
+          buf = update.view.bred?.view?.buf
+          if (buf)
+            if (update.docChanged) {
+              buf.vars(patchModeName()).lines = null
+              Patch.refine(update.view.state.doc.toString(),
+                           lines => {
+                             buf.vars(patchModeName()).lines = lines
+                             this.decorations = decorateRefines(update.view, lines)
+                           })
+            }
+            else
+              this.decorations = decorateRefines(update.view, buf.vars(patchModeName()).lines)
         }
       }
-    }
-  })
+    }, {
+      decorations: v => v.decorations
+    })
+  }
 }

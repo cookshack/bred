@@ -4292,15 +4292,15 @@ function init
             let line
 
             line = ed.state.doc.lineAt(pos)
-            if (line.from - line.to > 10)
+            if ((line.to - line.from) > 10)
               builder.add(line.from, line.from + 5, decorPlus)
             pos = line.to + 1
           }
       return builder.finish()
     }
 
-    decorPlus = Ed.makeDecor({ attr: { class: patchModeName() + '-refine-plus' } })
-    decorMinus = Ed.makeDecor({ attr: { class: patchModeName() + '-refine-minus' } })
+    decorPlus = CMView.Decoration.mark({ class: patchModeName() + '-refine-plus' })
+    decorMinus = CMView.Decoration.mark({ class: patchModeName() + '-refine-minus' })
     U.use(decorMinus)
 
     extPatch = CMView.ViewPlugin.fromClass(class {

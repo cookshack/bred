@@ -902,8 +902,8 @@ function _viewInit
   else
     opts.push(view.wode.peer.of([]))
 
-  spec.exts?.forEach(ext => {
-    ext.make && opts.push(ext.part.of(ext.make(view)))
+  spec.brexts?.forEach(brext => {
+    brext.make && opts.push(brext.part.of(brext.make(view)))
   })
 
   edWW = view.ele.firstElementChild
@@ -3779,6 +3779,7 @@ function addMode
     return []
   }
 
+  spec = spec || {}
   exts = lang.extensions?.map(e => e.slice(1))
   mime = minfo(exts)
   key = modeFromLang(lang.id)
@@ -3790,6 +3791,7 @@ function addMode
                     initFns: Ed.initModeFns,
                     parentsForEm: 'ed',
                     exts: exts,
+                    brexts: spec.brexts,
                     mime: mime,
                     //
                     seize: seizeLang })

@@ -184,9 +184,9 @@ function init
                     viewInitSpec: Ed.viewInitSpec,
                     viewCopy: Ed.viewCopy,
                     initFns: Ed.initModeFns,
-                    exts: [ { backend: 'cm',
-                              make: () => gutter,
-                              part: new CMState.Compartment } ],
+                    brexts: [ { backend: 'cm',
+                                make: () => gutter,
+                                part: new CMState.Compartment } ],
                     parentsForEm: 'ed' })
 
   Cmd.add('rerun', () => rerun(), moSr)

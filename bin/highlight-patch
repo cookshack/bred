@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if which diffr > /dev/null; then
+  printf "%s" "$1" | diffr --colors refine-added:none:background:green --colors added:none --colors refine-removed:none:background:red --colors removed:none
+else
+  printf "%s" "$1"
+fi

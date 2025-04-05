@@ -13,6 +13,7 @@ import * as Mess from './mess.mjs'
 import Mk from './mk.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
+import * as Patch from './patch.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
@@ -4289,8 +4290,11 @@ function init
         let buf
 
         buf = update.view.bred?.view?.buf
-        if (buf)
-          buf.vars(patchModeName()).lines = [ 1 ]
+        if (buf) {
+          buf.vars(patchModeName()).lines = null
+          Patch.refine(update.view.state.doc.toString(),
+                       lines => buf.vars(patchModeName()).lines = lines)
+        }
       }
     }
   })

@@ -555,7 +555,7 @@ function watch
 export
 async function viewInitSpec
 (view,
- spec, // { text, modeWhenText, lineNum, whenReady, forceFresh, exts }
+ spec, // { text, modeWhenText, lineNum, whenReady, forceFresh, brextsMode }
  cb) {
   let data
 
@@ -663,6 +663,7 @@ function _viewInit
   view.wode.decorMode = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
+  view.wode.comp.extsMode = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
   view.wode.placeholder = new CMState.Compartment
 
@@ -902,9 +903,10 @@ function _viewInit
   else
     opts.push(view.wode.peer.of([]))
 
-  spec.brexts?.forEach(brext => {
-    brext.make && opts.push(brext.part.of(brext.make(view)))
-  })
+  if (spec.brextsMode?.length)
+    opts.push(view.wode.comp.extsMode.of(spec.brextsMode.filter(b => b.make).map(b => b.make(view))))
+  else
+    opts.push(view.wode.comp.extsMode.of([]))
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')

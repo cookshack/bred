@@ -46,7 +46,7 @@ export let langs, themeExtension, themeExtensionPart, Theme
 let theme, themeTags, themeHighlighting
 let themeCode, themeHighlightingCode, themeExtensionCode
 let completionNextLine, completionPreviousLine, bredView, spRe
-let brexts, brextIds, registeredOpts, watching
+let brexts, brextIds, registeredOpts, watching, extPatch
 
 export
 function version
@@ -221,6 +221,13 @@ async function pushUpdates
                                  changes: u.changes.toJSON() }))
   await Tron.acmd('peer.push', [ id, version, updates ])
   cb()
+}
+
+function makeExtsMode
+(view) {
+  if (view.wode.brextsMode)
+    return view.wode.brextsMode.filter(b => b.make).map(b => b.make(view))
+  return []
 }
 
 function makePlaceholder
@@ -663,6 +670,7 @@ function _viewInit
   view.wode.decorMode = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
+  view.wode.brextsMode = spec.brextsMode
   view.wode.comp.extsMode = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
   view.wode.placeholder = new CMState.Compartment
@@ -903,10 +911,7 @@ function _viewInit
   else
     opts.push(view.wode.peer.of([]))
 
-  if (spec.brextsMode?.length)
-    opts.push(view.wode.comp.extsMode.of(spec.brextsMode.filter(b => b.make).map(b => b.make(view))))
-  else
-    opts.push(view.wode.comp.extsMode.of([]))
+  opts.push(view.wode.comp.extsMode.of(makeExtsMode(view)))
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')
@@ -1555,6 +1560,9 @@ function seize
 (b, mode) {
   d('ed seizing ' + b.name + ' for ' + mode.name)
   b.views.forEach(v => {
+    // remove old mode specific extensions, add new ones
+    v.ed.dispatch({ effects: v.wode.comp.extsMode.reconfigure(makeExtsMode(v)) })
+
     if (v.ed && (v.win == Win.current()))
       decorate(v, b.mode)
   })
@@ -3788,6 +3796,7 @@ function addMode
   d('adding mode for ' + lang.id + ' with exts: ' + exts)
   mode = Mode.add(key,
                   { name: key,
+                    viewInitSpec: viewInitSpec,
                     viewInit: viewInit,
                     viewCopy: viewCopy,
                     initFns: Ed.initModeFns,
@@ -4162,7 +4171,12 @@ function initLangs
 
   loadLang('./lib/@replit/codemirror-lang-csharp.js', 'Csharp', { ext: [ 'cs', 'csx' ] })
   loadLang('./lib/@cookshack/codemirror-lang-csv.js', 'Csv', { ext: [ 'csv' ] })
-  loadLang('./lib/codemirror-lang-diff.js', 'Diff', { ext: [ 'diff', 'patch' ] })
+  loadLang('./lib/codemirror-lang-diff.js', 'Diff',
+           { ext: [ 'diff', 'patch' ],
+             brexts: [ { backend: 'cm',
+                         name: 'extPatch',
+                         make: () => extPatch,
+                         part: new CMState.Compartment } ] })
   loadLang('./lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
   loadLang('./lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ] })
   loadLang('./lib/codemirror-lang-git-log.js', 'Git Log',
@@ -4262,4 +4276,22 @@ function init
   initLangs()
   initTheme()
   initActiveLine()
+
+  extPatch = CMView.ViewPlugin.fromClass(class {
+    constructor
+    (view) {
+      this.view = view
+    }
+
+    update
+    (update) {
+      if (update.docChanged) {
+        let buf
+
+        buf = update.view.bred?.view?.buf
+        if (buf)
+          buf.vars(patchModeName()).lines = [ 1 ]
+      }
+    }
+  })
 }

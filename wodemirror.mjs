@@ -4293,10 +4293,10 @@ function init
 
             line = ed.state.doc.lineAt(pos)
             refine = refines.find(r => r.line == line.number)
-            if (refine
-                && (line.to - line.from) > 6)
-              builder.add(line.from, line.from + 5,
-                          refine.type == '+' ? decorPlus : decorMinus)
+            if (refine)
+              if ((refine.from < refine.to) && (refine.to <= line.length))
+                builder.add(line.from + refine.from, line.from + refine.to,
+                            refine.type == '+' ? decorPlus : decorMinus)
             pos = line.to + 1
           }
       return builder.finish()

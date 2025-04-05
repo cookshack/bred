@@ -1756,7 +1756,9 @@ div.cm-line.cm-activeLine::after {
 }
 
 .diff-refine-minus,
-.diff-refine-plus {
+.diff-refine-plus,
+.diff-refine-minus > span,
+.diff-refine-plus > span {
   color: var(--clr-bg);
 }
 

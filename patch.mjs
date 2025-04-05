@@ -17,11 +17,20 @@ function findEscapeSequences
   matches = []
 
   while (match = regex.exec(text)) {
-    let start, lineStart, from
+    let start, lineStart, lineText, from, count
 
-    start = match.index
-    lineStart = text.lastIndexOf('\n', start)
-    from = lineStart == -1 ? start : start - lineStart - 1
+    start = match.index // before the ESC[41m
+    lineStart = text.lastIndexOf('\n', start) + 1
+    from = start - lineStart
+
+    // Subtract the space taken by the 'ESC[0m's in the string
+    lineText = text.substring(lineStart, start)
+    count = (lineText.match(/\x1b\[0m/g) || []).length
+    from -= (count * 4)
+
+    // Subtract the space taken by the 'ESC[4Xm's in the string
+    count = (lineText.match(/\x1b\[4[12]m/g) || []).length
+    from -= (count * 5)
 
     matches.push({ line: text.substring(0, start).split('\n').length,
                    from: from,

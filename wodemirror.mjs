@@ -4289,11 +4289,14 @@ function init
       if (refines && refines.length)
         for (let { from, to } of ed.visibleRanges)
           for (let pos = from; pos <= to;) {
-            let line
+            let line, refine
 
             line = ed.state.doc.lineAt(pos)
-            if ((line.to - line.from) > 10)
-              builder.add(line.from, line.from + 5, decorPlus)
+            refine = refines.find(r => r.line == line.number)
+            if (refine
+                && (line.to - line.from) > 6)
+              builder.add(line.from, line.from + 5,
+                          refine.type == '+' ? decorPlus : decorMinus)
             pos = line.to + 1
           }
       return builder.finish()
@@ -4301,7 +4304,6 @@ function init
 
     decorPlus = CMView.Decoration.mark({ class: patchModeName() + '-refine-plus' })
     decorMinus = CMView.Decoration.mark({ class: patchModeName() + '-refine-minus' })
-    U.use(decorMinus)
 
     extPatch = CMView.ViewPlugin.fromClass(class {
       constructor

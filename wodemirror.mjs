@@ -4310,7 +4310,7 @@ function init
 
         buf = ed.bred?.view?.buf
         if (buf)
-          refines = buf.vars(patchModeName()).lines
+          refines = buf.vars(patchModeName()).refines
         this.decorations = decorateRefines(ed, refines)
       }
 
@@ -4321,16 +4321,14 @@ function init
 
           buf = update.view.bred?.view?.buf
           if (buf)
-            if (update.docChanged) {
-              buf.vars(patchModeName()).lines = null
+            if (update.docChanged)
               Patch.refine(update.view.state.doc.toString(),
-                           lines => {
-                             buf.vars(patchModeName()).lines = lines
-                             this.decorations = decorateRefines(update.view, lines)
+                           refines => {
+                             buf.vars(patchModeName()).refines = refines
+                             this.decorations = decorateRefines(update.view, refines)
                            })
-            }
             else
-              this.decorations = decorateRefines(update.view, buf.vars(patchModeName()).lines)
+              this.decorations = decorateRefines(update.view, buf.vars(patchModeName()).refines)
         }
       }
     }, {

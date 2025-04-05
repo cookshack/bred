@@ -1562,6 +1562,7 @@ function seize
   d('ed seizing ' + b.name + ' for ' + mode.name)
   b.views.forEach(v => {
     // remove old mode specific extensions, add new ones
+    v.wode.brextsMode = v.buf.mode.brexts
     v.ed.dispatch({ effects: v.wode.comp.extsMode.reconfigure(makeExtsMode(v)) })
 
     if (v.ed && (v.win == Win.current()))
@@ -4314,6 +4315,14 @@ function init
         if (buf)
           refines = buf.vars(patchModeName()).refines
         this.decorations = decorateRefines(ed, refines)
+
+        Patch.refine(ed.state.doc.toString(),
+                     refines => {
+                       buf = ed.bred?.view?.buf
+                       if (buf)
+                         buf.vars(patchModeName()).refines = refines
+                       this.decorations = decorateRefines(ed, refines)
+                     })
       }
 
       update

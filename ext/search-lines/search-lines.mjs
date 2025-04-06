@@ -180,8 +180,7 @@ function init
   hist = Hist.ensure('search lines')
 
   moSr = Mode.add('Search Lines',
-                  { viewInit: Ed.viewInit,
-                    viewInitSpec: Ed.viewInitSpec,
+                  { viewInitSpec: Ed.viewInitSpec,
                     viewCopy: Ed.viewCopy,
                     initFns: Ed.initModeFns,
                     brexts: [ { backend: 'cm',

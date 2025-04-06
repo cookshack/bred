@@ -69,7 +69,7 @@ function init
   if (Win.root())
     Win.shared().options = {}
 
-  mo = Mode.add('Options', { viewInit: refresh })
+  mo = Mode.add('Options', { viewInitSpec: refresh })
 
   Cmd.add('options', () => {
     let p, buf

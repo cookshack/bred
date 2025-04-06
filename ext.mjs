@@ -222,7 +222,7 @@ function init
 
   exts = {}
 
-  mo = Mode.add('Exts', { viewInit: refresh })
+  mo = Mode.add('Exts', { viewInitSpec: refresh })
 
   Cmd.add('add extension', add, mo)
   Cmd.add('remove extension', remove, mo)

@@ -524,7 +524,7 @@ function init
   encoder = new TextEncoder()
   decoder = new TextDecoder()
 
-  mo = Mode.add('Hex', { viewInit: refresh,
+  mo = Mode.add('Hex', { viewInitSpec: refresh,
                          icon: { name: 'binary' } })
 
   Cmd.add('hex', () => hex())

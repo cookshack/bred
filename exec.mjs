@@ -75,7 +75,7 @@ function init
                                              'data-run': 'select' })) ])
   }
 
-  function viewInit
+  function viewInitSpec
   (view) {
     let w
 
@@ -169,7 +169,7 @@ function init
 
   needle = ''
 
-  mo = Mode.add('Execute', { viewInit: viewInit })
+  mo = Mode.add('Execute', { viewInitSpec: viewInitSpec })
 
   Cmd.add('execute', u => {
     let p, buf

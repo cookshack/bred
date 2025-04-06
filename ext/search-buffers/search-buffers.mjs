@@ -190,8 +190,7 @@ function init
   hist = Hist.ensure('search lines') // shared w search-lines
 
   moSr = Mode.add('Search Buffers',
-                  { viewInit: Ed.viewInit,
-                    viewInitSpec: Ed.viewInitSpec,
+                  { viewInitSpec: Ed.viewInitSpec,
                     viewCopy: Ed.viewCopy,
                     initFns: Ed.initModeFns,
                     brexts: [ { backend: 'cm',

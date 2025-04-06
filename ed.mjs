@@ -26,7 +26,6 @@ import { mbe } from './json.mjs'
 export let Backend
 export let mimeByExt
 export let viewCopy
-export let viewInit
 export let viewInitSpec
 export let vfind
 export let emRevert
@@ -557,7 +556,6 @@ function initQR
   }
 
   moQr = Mode.add('QR', { hidePoint: 1,
-                          viewInit: viewInit,
                           viewInitSpec: viewInitSpec,
                           initFns: initModeFns,
                           parentsForEm: 'ed' })
@@ -1270,7 +1268,6 @@ function init
     posRow = Backend.posRow
     posCol = Backend.posCol
     viewCopy = Backend.viewCopy
-    viewInit = Backend.viewInit
     viewInitSpec = Backend.viewInitSpec
     vfind = Backend.vfind
 
@@ -1286,7 +1283,6 @@ function init
 
     d('add ed mode')
     mo = Mode.add('Ed', { hidePoint: 1,
-                          viewInit: Backend.viewInit,
                           viewInitSpec: Backend.viewInitSpec,
                           viewCopy: Backend.viewCopy,
                           viewReopen: Backend.viewReopen,

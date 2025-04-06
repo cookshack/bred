@@ -103,7 +103,7 @@ function init
     p.setBuf(b)
   }
 
-  mode = Mode.add('Calendar', { viewInit: refresh })
+  mode = Mode.add('Calendar', { viewInitSpec: view => refresh(view) })
 
   Cmd.add('year', () => year(), mode)
   Em.on('y', 'year', mode)

@@ -105,7 +105,7 @@ function init
   if (Win.root())
     Win.shared().cut = { ring: [] }
 
-  mo = Mode.add('Cuts', { viewInit: refresh })
+  mo = Mode.add('Cuts', { viewInitSpec: refresh })
 
   Cmd.add('refresh', () => refresh(Pane.current().view), mo)
 

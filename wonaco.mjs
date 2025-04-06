@@ -351,7 +351,7 @@ function viewInit
         Mess.log('file: ' + buf.file)
         Mess.log(' dir: ' + buf.dir)
         Mess.log('path: ' + path)
-        Mess.toss('Wonaco viewinit: ' + err.message)
+        Mess.toss('Wonaco viewInitSpec: ' + err.message)
         return
       }
 
@@ -2234,7 +2234,6 @@ function addModes
     //d("adding mode " + lang.id + " with exts: " + exts)
     mode = Mode.add(key,
                     { name: key,
-                      viewInit: viewInit,
                       viewCopy: viewCopy,
                       initFns: Ed.initModeFns,
                       parentsForEm: 'ed',

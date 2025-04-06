@@ -103,7 +103,7 @@ function init
       make(p)
   }
 
-  mo = Mode.add('2048', { viewInit: refresh })
+  mo = Mode.add('2048', { viewInitSpec: refresh })
 
   Cmd.add('smile', () => smile(), mo)
   Cmd.add('easy', () => easy(), mo)

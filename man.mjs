@@ -22,7 +22,7 @@ function initManpage
     w.innerHTML = ''
   }
 
-  Mode.add('Manpage', { viewInit: refresh })
+  Mode.add('Manpage', { viewInitSpec: refresh })
 
   //Cmd.add("refresh", () => refresh(Pane.current().view), mo)
 
@@ -127,8 +127,7 @@ function init
   if (Win.root())
     Win.shared().man = {}
 
-  mo = Mode.add('Man', { viewInit: Ed.viewInit,
-                         viewInitSpec: Ed.viewInitSpec,
+  mo = Mode.add('Man', { viewInitSpec: Ed.viewInitSpec,
                          viewCopy: Ed.viewCopy,
                          initFns: Ed.initModeFns,
                          parentsForEm: 'ed' })

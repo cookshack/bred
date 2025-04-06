@@ -495,7 +495,6 @@ function initFile
 
   mo = Mode.add('Open', { hidePoint: 1,
                           viewInitSpec: Ed.viewInitSpec,
-                          viewInit: Ed.viewInit,
                           initFns: Ed.initModeFns,
                           parentsForEm: 'ed' })
 
@@ -573,7 +572,6 @@ function initPrompt2
   }
 
   mo = Mode.add('Prompt2', { hidePoint: 1,
-                             viewInit: Ed.viewInit,
                              viewInitSpec: Ed.viewInitSpec,
                              viewCopy: Ed.viewCopy,
                              initFns: Ed.initModeFns,
@@ -641,8 +639,7 @@ function init
   Em.on('C-g', 'close yes/no', ynEm)
   Em.on('Escape', 'close yes/no', ynEm)
 
-  mo = Mode.add('Prompt', { viewInit: Ed.viewInit,
-                            viewInitSpec: Ed.viewInitSpec,
+  mo = Mode.add('Prompt', { viewInitSpec: Ed.viewInitSpec,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })

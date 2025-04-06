@@ -177,7 +177,7 @@ function init
     open(p.buf.path)
   }
 
-  mo = Mode.add('Rich', { viewInit: refresh,
+  mo = Mode.add('Rich', { viewInitSpec: refresh,
                           icon: { name: 'markdown' } })
 
   Cmd.add('rich', () => rich())

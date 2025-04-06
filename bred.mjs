@@ -1737,7 +1737,7 @@ function initRecent
     })
   }
 
-  Mode.add('Recent', { viewInit: refresh })
+  Mode.add('Recent', { viewInitSpec: refresh })
 
   Cmd.add('Open Recent', () => {
     let p

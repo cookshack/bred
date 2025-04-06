@@ -98,8 +98,7 @@ function init
 
   Cmd.add('shell command in buffer', () => scib())
 
-  mo = Mode.add('Command', { viewInit: Ed.viewInit,
-                             viewInitSpec: Ed.viewInitSpec,
+  mo = Mode.add('Command', { viewInitSpec: Ed.viewInitSpec,
                              viewCopy: Ed.viewCopy,
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })

@@ -938,7 +938,7 @@ function init
     })
   }
 
-  mo = Mode.add('Messages', { viewInit: refresh })
+  mo = Mode.add('Messages', { viewInitSpec: refresh })
 
   Cmd.add('messages', () => {
     let p, buf

@@ -80,7 +80,6 @@ function add
   m.stop = stop
   m.seize = spec.seize
   m.viewCopy = spec.viewCopy
-  m.viewInit = spec.viewInit
   m.viewInitSpec = spec.viewInitSpec
   m.viewReopen = spec.viewReopen
   m.parentsForEm = (typeof spec.parentsForEm == 'string') ? [ spec.parentsForEm ] : spec.parentsForEm

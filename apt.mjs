@@ -132,8 +132,7 @@ function init
 
   reLine = /^([^ ]+) - .*$/d
 
-  mo = Mode.add('Apt Search Result', { viewInit: Ed.viewInit,
-                                       viewInitSpec: Ed.viewInitSpec,
+  mo = Mode.add('Apt Search Result', { viewInitSpec: Ed.viewInitSpec,
                                        viewCopy: Ed.viewCopy,
                                        initFns: Ed.initModeFns,
                                        parentsForEm: 'ed',
@@ -162,23 +161,20 @@ function init
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
-  Mode.add('Apt Info', { viewInit: Ed.viewInit,
-                         viewInitSpec: Ed.viewInitSpec,
+  Mode.add('Apt Info', { viewInitSpec: Ed.viewInitSpec,
                          viewCopy: Ed.viewCopy,
                          initFns: Ed.initModeFns,
                          parentsForEm: 'ed',
                          decorators: [ { regex: /^([^ ]+:) .*$/d,
                                          decor: [ { attr: { style: 'color: var(--clr-emph-light); background-color: var(--clr-fill);' } } ] } ] })
 
-  Mode.add('Apt Install', { viewInit: Ed.viewInit,
-                            viewInitSpec: Ed.viewInitSpec,
+  Mode.add('Apt Install', { viewInitSpec: Ed.viewInitSpec,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
 
   mo = Mode.add('Apt Contents',
-                { viewInit: Ed.viewInit,
-                  viewInitSpec: Ed.viewInitSpec,
+                { viewInitSpec: Ed.viewInitSpec,
                   viewCopy: Ed.viewCopy,
                   initFns: Ed.initModeFns,
                   parentsForEm: 'ed',

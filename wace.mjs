@@ -282,7 +282,7 @@ function viewInit
         Mess.log('file: ' + buf.file)
         Mess.log(' dir: ' + buf.dir)
         Mess.log('path: ' + path)
-        Mess.toss('Wace viewinit: ' + err.message)
+        Mess.toss('Wace viewInitSpec: ' + err.message)
         return
       }
 
@@ -1824,7 +1824,6 @@ function addModes
 
     //d("adding mode " + m.name + " with exts: " + exts)
     mode = Mode.add(m.name, { name: m.caption,
-                              viewInit: viewInit,
                               viewCopy: viewCopy,
                               initFns: Ed.initModeFns,
                               parentsForEm: 'ed',

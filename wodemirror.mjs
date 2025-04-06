@@ -587,23 +587,6 @@ async function viewInitSpec
     cb(view)
 }
 
-export
-function viewInit
-(view, text, modeWhenText, lineNum,
- // only called if buf has a file.
- // may cause issues eg if call v.insert then the view must already have been added to the buf (which happens after viewInit).
- //   (probably it's fine because probably the Tron file.get cb below always runs after the current event).
- whenReady, // (view)
- // called after _viewInit runs, but before the file.get cb
- cb) { // (view)
-  viewInitSpec(view,
-               { text: text,
-                 modeWhenText: modeWhenText,
-                 lineNum: lineNum,
-                 whenReady: whenReady },
-               cb)
-}
-
 function _viewInit
 (peer, view, text, modeWhenText, lineNum, whenReady, placeholder, spec) {
   let ed, buf, edWW, edW, opts, domEventHandlers
@@ -1030,7 +1013,7 @@ function _viewInit
         Mess.log('file: ' + buf.file)
         Mess.log(' dir: ' + buf.dir)
         Mess.log('path: ' + path)
-        Mess.toss('Wodemirror viewinit: ' + err.message)
+        Mess.toss('Wodemirror viewinitSpec: ' + err.message)
         return
       }
 
@@ -1149,17 +1132,22 @@ function viewReopen
     })
   else
     // probably buf was switched out before init happened.
-    viewInit(view,
-             { lineNum: lineNum,
-               whenReady: whenReady },
-             cb)
+    viewInitSpec(view,
+                 { lineNum: lineNum,
+                   whenReady: whenReady },
+                 cb)
 }
 
 export
 function viewCopy
 (to, from, lineNum, whenReady, cb) {
   d('================== viewCopy')
-  viewInit(to, from.ed.state.doc.toString(), from.buf.opt('core.lang'), lineNum, whenReady, cb)
+  viewInitSpec(to,
+               { text: from.ed.state.doc.toString(),
+                 modeWhenText: from.buf.opt('core.lang'),
+                 lineNum: lineNum,
+                 whenReady: whenReady },
+               cb)
 }
 
 function charAt
@@ -3799,7 +3787,6 @@ function addMode
   mode = Mode.add(key,
                   { name: key,
                     viewInitSpec: viewInitSpec,
-                    viewInit: viewInit,
                     viewCopy: viewCopy,
                     initFns: Ed.initModeFns,
                     parentsForEm: 'ed',

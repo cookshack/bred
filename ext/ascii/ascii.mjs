@@ -219,7 +219,7 @@ function init
 
   verbose = 0
 
-  mo = Mode.add('ASCII', { viewInit: refresh,
+  mo = Mode.add('ASCII', { viewInitSpec: refresh,
                            context: [ { cmd: 'Toggle Verbose' } ] })
 
   Cmd.add('refresh', () => refresh(Pane.current().view), mo)

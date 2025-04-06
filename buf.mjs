@@ -682,7 +682,7 @@ function init
                          ring: Mk.array,
                          id: 1 }
 
-  mo = Mode.add('Buffers', { viewInit: refresh })
+  mo = Mode.add('Buffers', { viewInitSpec: refresh })
 
   Cmd.add('buffers', () => {
     let p, bBuffers

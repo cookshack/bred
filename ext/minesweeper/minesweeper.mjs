@@ -103,7 +103,7 @@ function init
       make(p)
   }
 
-  mo = Mode.add('Minesweeper', { viewInit: refresh })
+  mo = Mode.add('Minesweeper', { viewInitSpec: refresh })
 
   Cmd.add('smile', () => smile(), mo)
   Cmd.add('easy', () => easy(), mo)

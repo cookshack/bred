@@ -4309,9 +4309,7 @@ function init
     decorEffect = CMState.StateEffect.define()
 
     extPatchDecor = CMState.StateField.define({
-      create() {
-        return CMView.Decoration.none
-      },
+      create: () => CMView.Decoration.none,
       update(value, tr) {
         for (let effect of tr.effects)
           if (effect.is(decorEffect))
@@ -4321,23 +4319,8 @@ function init
       provide: field => CMView.EditorView.decorations.from(field)
     })
 
-    extPatch = CMView.ViewPlugin.fromClass(class {
-      constructor
-      (ed) {
-        Patch.refine(ed.state.doc.toString(),
-                     refines => {
-                       let buf
-
-                       buf = ed.bred?.view?.buf
-                       if (buf)
-                         buf.vars(patchModeName()).refines = refines
-                       ed.dispatch({
-                         effects: decorEffect.of(decorateRefines(ed, refines))
-                       })
-                     })
-      }
-
-      update
+    extPatch = CMView.ViewPlugin.define(ed => {
+      function update
       (update) {
         if (update.docChanged || update.viewportChanged) {
           let buf
@@ -4359,6 +4342,20 @@ function init
               })
         }
       }
+
+      Patch.refine(ed.state.doc.toString(),
+                   refines => {
+                     let buf
+
+                     buf = ed.bred?.view?.buf
+                     if (buf)
+                       buf.vars(patchModeName()).refines = refines
+                     ed.dispatch({
+                       effects: decorEffect.of(decorateRefines(ed, refines))
+                     })
+                   })
+
+      return { update }
     })
   }
 }

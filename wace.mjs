@@ -42,6 +42,7 @@ function setBlink
   ed.setOption('cursorStyle', blink ? 'thin' : 'wide') // wide prevents blink, css sets width
 }
 
+// FIX update to viewInitSpec
 export
 function viewInit
 (view, text, modeWhenText, lineNum) {

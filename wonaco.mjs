@@ -135,6 +135,7 @@ function updateMarks
   //d('==')
 }
 
+// FIX update to viewInitSpec
 export
 function viewInit
 (view, text, modeWhenText, lineNum, whenReady) {

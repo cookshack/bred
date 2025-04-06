@@ -47,7 +47,7 @@ export let langs, themeExtension, themeExtensionPart, Theme
 let theme, themeTags, themeHighlighting
 let themeCode, themeHighlightingCode, themeExtensionCode
 let completionNextLine, completionPreviousLine, bredView, spRe
-let brexts, brextIds, registeredOpts, watching, extPatch
+let brexts, brextIds, registeredOpts, watching, extPatch, extPatchDecor
 
 export
 function version
@@ -4177,7 +4177,7 @@ function initLangs
            { ext: [ 'diff', 'patch' ],
              brexts: [ { backend: 'cm',
                          name: 'extPatch',
-                         make: () => extPatch,
+                         make: () => ([ extPatch, extPatchDecor ]),
                          part: new CMState.Compartment } ] })
   loadLang('./lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
   loadLang('./lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ] })
@@ -4280,7 +4280,7 @@ function init
   initActiveLine()
 
   {
-    let decorPlus, decorMinus
+    let decorPlus, decorMinus, decorEffect
 
     function decorateRefines
     (ed, refines) {
@@ -4306,22 +4306,34 @@ function init
     decorPlus = CMView.Decoration.mark({ class: patchModeName() + '-refine-plus' })
     decorMinus = CMView.Decoration.mark({ class: patchModeName() + '-refine-minus' })
 
+    decorEffect = CMState.StateEffect.define()
+
+    extPatchDecor = CMState.StateField.define({
+      create() {
+        return CMView.Decoration.none
+      },
+      update(value, tr) {
+        for (let effect of tr.effects)
+          if (effect.is(decorEffect))
+            return effect.value
+        return value
+      },
+      provide: field => CMView.EditorView.decorations.from(field)
+    })
+
     extPatch = CMView.ViewPlugin.fromClass(class {
       constructor
       (ed) {
-        let buf, refines
-
-        buf = ed.bred?.view?.buf
-        if (buf)
-          refines = buf.vars(patchModeName()).refines
-        this.decorations = decorateRefines(ed, refines)
-
         Patch.refine(ed.state.doc.toString(),
                      refines => {
+                       let buf
+
                        buf = ed.bred?.view?.buf
                        if (buf)
                          buf.vars(patchModeName()).refines = refines
-                       this.decorations = decorateRefines(ed, refines)
+                       ed.dispatch({
+                         effects: decorEffect.of(decorateRefines(ed, refines))
+                       })
                      })
       }
 
@@ -4336,14 +4348,17 @@ function init
               Patch.refine(update.view.state.doc.toString(),
                            refines => {
                              buf.vars(patchModeName()).refines = refines
-                             this.decorations = decorateRefines(update.view, refines)
+                             update.view.dispatch({
+                               effects: decorEffect.of(decorateRefines(update.view, refines))
+                             })
                            })
             else
-              this.decorations = decorateRefines(update.view, buf.vars(patchModeName()).refines)
+              update.view.dispatch({
+                effects: decorEffect.of(decorateRefines(update.view,
+                                                        buf.vars(patchModeName()).refines))
+              })
         }
       }
-    }, {
-      decorations: v => v.decorations
     })
   }
 }

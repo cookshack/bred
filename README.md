@@ -3,6 +3,8 @@
 
 I'm playing with CodeMirror, Monaco and Ace inside Electron.
 
+![4 Breds](https://git.sr.ht/~mattmundell/bred/blob/main/etc/shot.png)
+
 ## Install
 
 ```sh

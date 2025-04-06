@@ -4290,14 +4290,14 @@ function init
       if (refines && refines.length)
         for (let { from, to } of ed.visibleRanges)
           for (let pos = from; pos <= to;) {
-            let line, refine
+            let line
 
             line = ed.state.doc.lineAt(pos)
-            refine = refines.find(r => r.line == line.number)
-            if (refine)
+            refines.filter(r => r.line == line.number).forEach(refine => {
               if ((refine.from < refine.to) && (refine.to <= line.length))
                 builder.add(line.from + refine.from, line.from + refine.to,
                             refine.type == '+' ? decorPlus : decorMinus)
+            })
             pos = line.to + 1
           }
       return builder.finish()

@@ -1281,8 +1281,12 @@ function init
 
   function nextLine
   (u) {
+    let bw
+
     //d('nextLine')
     u = u || 1
+    bw = u < 0
+    u = Math.abs(u)
     for (let i = 0; i < u; i++) {
       let h, el, v
 
@@ -1299,7 +1303,7 @@ function init
           && el.closest('.dir-w')) {
         el = el.parentNode
         //d(el.className)
-        while ((el = el.nextElementSibling))
+        while ((el = (bw ? el.previousElementSibling : el.nextElementSibling)))
           if (Css.has(el.firstElementChild, 'dir-name')) {
             v.point.put(el.firstElementChild)
             break
@@ -1311,6 +1315,12 @@ function init
         firstLine(v)
       return
     }
+  }
+
+  function prevLine
+  (u) {
+    u = u || 1
+    nextLine(-u)
   }
 
   function other
@@ -1510,6 +1520,7 @@ function init
   Em.on('s t', 'sort by time', 'Dir')
 
   Cmd.add('next line', nextLine, m)
+  Cmd.add('previous line', prevLine, m)
   Cmd.add('open in other pane', () => other(), m)
 
   Cmd.add('home', () => add(Pane.current(), ':'))

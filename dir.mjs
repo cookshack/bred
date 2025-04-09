@@ -1280,32 +1280,37 @@ function init
   }
 
   function nextLine
-  () {
-    let h, el, v
-
+  (u) {
     //d('nextLine')
-    v = Pane.current().view
-    h = v.ele.querySelector('.dir-h')
-    if (v.point.over(h)) {
-      //d('over')
-      firstLine(v)
+    u = u || 1
+    for (let i = 0; i < u; i++) {
+      let h, el, v
+
+      v = Pane.current().view
+      h = v.ele.querySelector('.dir-h')
+      if (v.point.over(h)) {
+        //d('over')
+        firstLine(v)
+        return
+      }
+      el = v.point.over()
+      if (el
+          // only search when inside the dir-w
+          && el.closest('.dir-w')) {
+        el = el.parentNode
+        //d(el.className)
+        while ((el = el.nextElementSibling))
+          if (Css.has(el.firstElementChild, 'dir-name')) {
+            v.point.put(el.firstElementChild)
+            break
+          }
+        if (el)
+          continue
+      }
+      else
+        firstLine(v)
       return
     }
-    el = v.point.over()
-    if (el
-        // only search when inside the dir-w
-        && el.closest('.dir-w')) {
-      el = el.parentNode
-      //d(el.className)
-      while ((el = el.nextElementSibling))
-        if (Css.has(el.firstElementChild, 'dir-name')) {
-          v.point.put(el.firstElementChild)
-          return
-        }
-
-    }
-    else
-      firstLine(v)
   }
 
   function other
@@ -1504,7 +1509,7 @@ function init
   Em.on('s s', 'sort by size', 'Dir')
   Em.on('s t', 'sort by time', 'Dir')
 
-  Cmd.add('next line', () => nextLine(), m)
+  Cmd.add('next line', nextLine, m)
   Cmd.add('open in other pane', () => other(), m)
 
   Cmd.add('home', () => add(Pane.current(), ':'))

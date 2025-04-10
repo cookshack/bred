@@ -103,7 +103,7 @@ function initStash
 export
 function initCommit
 () {
-  let mo, hist, reErr, reFile
+  let mo, hist, reErr, reFile, encoder
 
   function runGit
   (text) {
@@ -115,7 +115,8 @@ function initCommit
     else {
       let b64
 
-      b64 = globalThis.btoa(cm)
+      // encode for eg ¯\_(ツ)_/¯ because btoa requires utf8.
+      b64 = globalThis.btoa(String.fromCharCode(...new Uint8Array(encoder.encode(cm))))
       Shell.shell1(Loc.appDir().join('bin/check-and-commit-64') + ' ' + b64,
                    { end: 1,
                      afterEndPoint: 1 },
@@ -132,6 +133,7 @@ function initCommit
                runGit)
   }
 
+  encoder = new globalThis.TextEncoder()
   hist = Hist.ensure('commit')
 
   Cmd.add('vc commit', () => commit())

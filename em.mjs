@@ -386,7 +386,7 @@ function handle
            Mess.say('')
            Cmd.run(to, buf, Cmd.universal(to), we)
          }
-         else {
+         else if (0) {
            let n
 
            // empty/error
@@ -397,6 +397,10 @@ function handle
              n += 'A-'
            n += (we.mouse ? we.name : we.e.key)
            updateMini(' ' + n + ' is empty')
+           reset()
+         }
+         else {
+           updateMini('¯\\_(ツ)_/¯')
            reset()
          }
        })

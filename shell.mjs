@@ -450,7 +450,7 @@ function initJs
 }
 
 export
-function init
+function initShell
 () {
   let mo, hist
 
@@ -594,7 +594,12 @@ function init
   Em.on('Enter', 'shell run', mo)
 
   Cmd.add('shell', shell)
+}
 
+export
+function init
+() {
+  initShell()
   Scib.init()
   initCompile()
   initJs()

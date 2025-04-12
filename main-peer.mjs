@@ -16,9 +16,9 @@ function get
     return buf
   }
 
-  updates = []
+  updates = [] // could get huge
   buf = { id: id,
-          chs: [],
+          chs: new Set(),
           fresh: 1,
           text: CMState.Text.of([ '' ]),
           //
@@ -56,7 +56,7 @@ function onPeerPull
 (e, ch, onArgs) {
   const [ id, version, pullCh ] = onArgs
 
-  d('PEER ' + id + ' PULLED ' + pullCh)
+  d('============== PEER ' + id + ' PULLED (main sending) ' + pullCh)
   setTimeout(() => {
     let buf
 
@@ -64,9 +64,9 @@ function onPeerPull
     if (version < buf.version)
       e.sender.send(pullCh,
                     { updates: changes(buf.updates.slice(version)) })
-    buf.chs.push(pullCh)
+    buf.chs.add(pullCh)
   })
-  e.sender.send(ch, {})
+  e.sender.send(ch, {}) // just ret here
 }
 
 export
@@ -78,7 +78,7 @@ function onPeerPush
   buf = get(id)
   received = updates.map(u => ({ clientID: u.clientID,
                                  changes: CMState.ChangeSet.fromJSON(u.changes) }))
-  d('PEER ' + id + ' PUSHED ' + received.length)
+  d('============= PEER ' + id + ' PUSHED (main receiving) ' + received.length)
   d('    version: ' + version)
   d('    buf.version: ' + buf.version)
   if (version == buf.version)
@@ -94,14 +94,14 @@ function onPeerPush
   catch (err) {
     d('ERR ' + err.message)
   }
-  if (received.length && buf.chs.length) {
+  if (received.length && buf.chs.size) {
     let push
 
     d('    WILL SEND')
     push = changes(received)
-    buf.chs.forEach(pullCh => {
+    buf.chs.forEach(pullCh => { // excl ch received from?
       d('    SEND TO ' + pullCh)
-      e.sender.send(pullCh, { updates: push })
+      e.sender.send(pullCh, { updates: push }) // updates depends on version at pullCh?
     })
   }
   return {}

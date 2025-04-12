@@ -1337,6 +1337,11 @@ span.core-leadingSpace,
   display: flex;
 }
 
+.bred-welcome-recent-dirs {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
 .bred-welcome-recent > div {
   margin-top: 0.25rem;
 }

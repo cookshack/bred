@@ -91,7 +91,7 @@ function onPeerPush
     received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
   try {
     received.forEach(update => {
-      d(JSON.stringify(update, null, 2))
+      //d(JSON.stringify(update, null, 2))
       buf.updates.push(update)
       buf.text = update.changes.apply(buf.text)
       applied.push(update)

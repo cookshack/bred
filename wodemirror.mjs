@@ -272,7 +272,7 @@ function makePeer
       updates = CMCollab.sendableUpdates(this.view.state)
       if (this.pushing || (updates.length == 0))
         return
-      if (1) {
+      if (0) {
         d('UPDATES')
         updates.forEach((u,i) => {
           d(i + ': ' + u.changes?.toJSON())
@@ -306,7 +306,7 @@ function makePeer
 
       updates = data.updates.map(u => ({ changes: CMState.ChangeSet.fromJSON(u.changes),
                                          clientID: u.clientID }))
-      if (1) {
+      if (0) {
         d('RECEIVE')
         updates.forEach((u,i) => {
           d(i + ': ' + u.changes?.toJSON())

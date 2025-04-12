@@ -19,6 +19,7 @@ import * as Scroll from './scroll.mjs'
 import { Vace } from './json.mjs'
 import { Vode } from './json.mjs'
 import { Vonaco } from './json.mjs'
+import { Vqlite } from './json.mjs'
 import * as Win from './win.mjs'
 
 import * as Welcome from './welcome.mjs'
@@ -70,6 +71,7 @@ function initAbout
                                  ver('Ace', Vace.version || 'missing'),
                                  ver('CodeMirror', Vode.version),
                                  ver('Monaco', Vonaco.version),
+                                 ver('SQLite', Vqlite.version),
                                  ver('Backend', Ed.backend),
                                  ver('Profile', Loc.profile()) ]),
                          divCl('bred-about-dw',

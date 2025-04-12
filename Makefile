@@ -13,7 +13,7 @@ fix-node-pty:
 fix-sqlite3:
 	npx electron-rebuild -f -w better-sqlite3
 
-prep: fix-others fix-ace fix-monaco fix-codemirror prep-mime
+prep: version-sqlite fix-others fix-ace fix-monaco fix-codemirror prep-mime
 	rm -f lib/callsites.js
 	cp -r node_modules/callsites/index.js lib/callsites.mjs
 	npx peggy --format es -o lib/ev-parser.mjs lib/ev.pegjs
@@ -34,6 +34,11 @@ fix-css:
 	echo export let sheets = \[ > lib/sheets.mjs
 	cd lib/monaco/ && find . -type f -name \*.js | xargs grep "import .*\\.css" | sed "s;\\./\(.\+\)/.*:import '\\.\(.*\).css'.*;'./lib/monaco/\1\2.css',;g" >> ../sheets.mjs
 	echo \] >> lib/sheets.mjs
+
+version-sqlite:
+	echo -n '{ "version": "' > lib/sqlite.json
+	grep -m 1 -oE 'version ([0-9]+\.[0-9]+\.[0-9]+)' node_modules/better-sqlite3/deps/sqlite3/sqlite3.c | cut -d' ' -f2- | tr -d '\n' >> lib/sqlite.json
+	echo '" }' >> lib/sqlite.json
 
 version-ace:
 	echo -n '{ "version": "' > lib/ace/version.json

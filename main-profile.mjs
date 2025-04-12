@@ -1,11 +1,22 @@
 import Fs from 'node:fs'
 import Path from 'node:path'
-//import Sqlite3 from 'better-sqlite3'
+import Database from 'better-sqlite3'
 import Store from 'electron-store'
 
-let stores, profile
+let stores, profile, db
 
-import { d } from './main-log.mjs'
+import { d, log } from './main-log.mjs'
+
+export
+function initHist
+() {
+  let path
+
+  path = profile.dir + '/hist.db'
+  log('Opening hist: ' + path)
+  db = new Database(profile.dir + '/hist.db')
+  db.prepare('CREATE TABLE IF NOT EXISTS dirs (path, time)').run()
+}
 
 export
 function onHistAdd
@@ -13,6 +24,7 @@ function onHistAdd
   const [ path, mtype ] = onArgs
   d(onArgs)
   d('PROFILE.HIST add ' + path + ' ' + mtype)
+  db.prepare('INSERT INTO dirs (path, time) VALUES (?, ?)').run(path, Date.now())
 }
 
 export
@@ -81,7 +93,7 @@ function init
 (name, dirUserData) {
   profile = { name: name || 'Main' }
   if (profile.name.match(/[A-Z][a-z]+/))
-    profile.dir = 'profile/' + profile.name
+    profile.dir = Path.join(dirUserData, 'profile/' + profile.name)
   else {
     console.error('Profile name must be [A-Z][a-z]+')
     console.error('  Examples: Main, Testing, Css, Logs, Browser')
@@ -91,13 +103,15 @@ function init
     // Existing profile.
   }
   else
-    Fs.mkdirSync(Path.join(dirUserData, profile.dir),
+    Fs.mkdirSync(profile.dir,
                  { recursive: true })
 
   stores = { frame: new Store({ name: 'frame', cwd: profile.dir }),
              opt: new Store({ name: 'opt', cwd: profile.dir }),
              poss: new Store({ name: 'poss', cwd: profile.dir }),
              state: new Store({ name: 'state', cwd: profile.dir }) }
+
+  initHist()
 }
 
 export { stores }

@@ -102,3 +102,11 @@ Run:
 make fix-node-pty
 
 ```
+
+#### 4. "better_sqlite3" errors on startup
+
+Run:
+```sh
+make fix-sqlite3
+
+```

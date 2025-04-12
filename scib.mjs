@@ -1,8 +1,6 @@
 import * as Cmd from './cmd.mjs'
-import * as Ed from './ed.mjs'
 import * as Hist from './hist.mjs'
 import * as Mess from './mess.mjs'
-import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
@@ -94,15 +92,7 @@ function initRTL
 export
 function init
 () {
-  let mo
-
   Cmd.add('shell command in buffer', () => scib())
-
-  mo = Mode.add('Command', { viewInitSpec: Ed.viewInitSpec,
-                             viewCopy: Ed.viewCopy,
-                             initFns: Ed.initModeFns,
-                             parentsForEm: 'ed' })
-  d(mo)
 
   hist = Hist.ensure('scib')
   initRTL()

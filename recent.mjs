@@ -47,7 +47,8 @@ function get
 
   if (dirs) {
     Tron.acmd('profile.hist.get').then(data => {
-      cb(null, data)
+      if (cb)
+        cb(null, data)
     })
     return
   }

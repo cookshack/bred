@@ -100,7 +100,7 @@ function init
         all.push(old)
     }
 
-    Recent.get((err, recents) => {
+    Recent.get(0, (err, recents) => {
 
       if (err)
         Mess.toss(err)

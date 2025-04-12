@@ -1702,7 +1702,7 @@ function initRecent
 
   function refresh
   (view) {
-    Recent.get((err, all) => {
+    Recent.get(0, (err, all) => {
       let w, co
 
       if (err) {

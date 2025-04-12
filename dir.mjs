@@ -14,6 +14,7 @@ import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
+import * as Recent from './recent.mjs'
 import * as Scib from './scib.mjs'
 import * as Scroll from './scroll.mjs'
 import * as Shell from './shell.mjs'
@@ -528,6 +529,8 @@ function add
 
   if (p.buf.mode?.key == 'dir')
     sort = p.buf.opt('dir.sort')
+
+  Recent.add(dir.path, 'inode/directory')
 
   exist = Buf.find(b => (b.mode?.key == 'dir') && (b.dir == dir.path))
   if (exist) {

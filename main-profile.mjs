@@ -1,8 +1,19 @@
 import Fs from 'node:fs'
 import Path from 'node:path'
+//import Sqlite3 from 'better-sqlite3'
 import Store from 'electron-store'
 
 let stores, profile
+
+import { d } from './main-log.mjs'
+
+export
+function onHistAdd
+(e, onArgs) {
+  const [ path, mtype ] = onArgs
+  d(onArgs)
+  d('PROFILE.HIST add ' + path + ' ' + mtype)
+}
 
 export
 function name

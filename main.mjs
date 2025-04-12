@@ -212,6 +212,9 @@ async function onAcmd
 
   if (name == 'peer.push')
     return Peer.onPeerPush(e, args)
+
+  if (name == 'profile.hist.add')
+    return Profile.onHistAdd(e, args)
 }
 
 let onCmdCount

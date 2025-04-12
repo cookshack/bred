@@ -63,6 +63,7 @@
     "ace-builds": "1.35",
     "ace-code": "1.35",
     "ace-linters": "^1.2.2",
+    "better-sqlite3": "^11.9.1",
     "blamejs": "^1.0.0",
     "callsites": "^4.1.0",
     "check-dependencies": "^2.0.0",

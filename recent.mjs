@@ -18,9 +18,15 @@ function xbelPath
 }
 
 export
-function add
+async function add
 (path, mtype) {
   let p
+
+  if (mtype == 'inode/directory') {
+    d('================ DIR')
+    Tron.acmd('profile.hist.add', [ path, mtype ])
+    return
+  }
 
   p = Pane.current()
   0 && d('Recent.add: ' + path + ' ' + mtype)

@@ -15,16 +15,16 @@ function initHist
   path = profile.dir + '/hist.db'
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
-  db.prepare('CREATE TABLE IF NOT EXISTS dirs (path, time)').run()
+  db.prepare('CREATE TABLE IF NOT EXISTS dirs (href, time)').run()
 }
 
 export
 function onHistAdd
 (e, onArgs) {
-  const [ path, mtype ] = onArgs
-  d(onArgs)
-  d('PROFILE.HIST add ' + path + ' ' + mtype)
-  db.prepare('INSERT INTO dirs (path, time) VALUES (?, ?)').run(path, Date.now())
+  const [ href, mtype ] = onArgs
+
+  d('PROFILE.HIST add ' + href + ' ' + mtype)
+  db.prepare('INSERT INTO dirs (href, time) VALUES (?, ?)').run(href, Date.now())
 }
 
 export

@@ -139,15 +139,15 @@ function init
       append(rds, div('Recent dirs'))
       recents.every(r => {
         0 && d(r)
-        if (r.path.startsWith('file://')
-            || r.path.startsWith('/')) {
+        if (r.href.startsWith('file://')
+            || r.href.startsWith('/')) {
           let loc
 
           count++
-          loc = Loc.make(r.path)
+          loc = Loc.make(r.href)
           rds.append(div(loc.dirname,
                          { 'data-run': 'open link',
-                           'data-path': r.path }))
+                           'data-path': r.href }))
           return count < 10
         }
         return 1

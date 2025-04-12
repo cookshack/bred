@@ -15,7 +15,7 @@ function initHist
   path = profile.dir + '/hist.db'
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
-  db.prepare('CREATE TABLE IF NOT EXISTS dirs (href, time)').run()
+  db.prepare('CREATE TABLE IF NOT EXISTS dirs (id INTEGER PRIMARY KEY, href, time)').run()
 }
 
 export
@@ -30,7 +30,17 @@ function onHistAdd
 export
 function onHistGet
 () {
-  return db.prepare('SELECT * FROM dirs').all()
+  let st
+
+  // distinct hrefs with most recent access time
+  st = db.prepare(`WITH ranked_table AS (SELECT *,
+                                         MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
+                                         FROM dirs)
+                   SELECT *
+                   FROM ranked_table
+                   WHERE id = first_occurrence_id
+                   ORDER BY time DESC`)
+  return st.all()
 }
 
 export

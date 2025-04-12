@@ -102,7 +102,8 @@ function onPeerPush
 
     d('    WILL SEND')
     push = changes(applied)
-    buf.chs.forEach(pullCh => { // excl ch received from?
+    // must send to everyone, including peer that pushed.
+    buf.chs.forEach(pullCh => {
       d('    SEND TO ' + pullCh)
       e.sender.send(pullCh, { updates: push }) // updates depends on version at pullCh?
     })

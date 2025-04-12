@@ -81,11 +81,14 @@ function onPeerPush
   d('============= PEER ' + id + ' PUSHED (main receiving) ' + received.length)
   d('    version: ' + version)
   d('    buf.version: ' + buf.version)
-  if (version == buf.version)
+  if (received.length == 0)
     return {}
-
   applied = []
-  received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
+  if (version == buf.version) {
+    // both at same version, new updates received.
+  }
+  else
+    received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
   try {
     received.forEach(update => {
       d(JSON.stringify(update, null, 2))
@@ -105,7 +108,7 @@ function onPeerPush
     // must send to everyone, including peer that pushed.
     buf.chs.forEach(pullCh => {
       d('    SEND TO ' + pullCh)
-      e.sender.send(pullCh, { updates: push }) // updates depends on version at pullCh?
+      e.sender.send(pullCh, { updates: push })
     })
   }
   return {}

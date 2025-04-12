@@ -27,7 +27,7 @@ function runText
                    hist: spec.hist,
                    onClose: spec.onClose },
                  buf => {
-                   buf.mode = 'command'
+                   buf.mode = 'shell'
                    buf.opts.set('ansi.enabled', 1)
                    buf.opts.set('core.highlight.specials.enabled', 0)
                    d({ modes })
@@ -78,7 +78,7 @@ function initRTL
       Shell.shell1(l,
                    { end: 1, hist },
                    buf => {
-                     buf.mode = 'command'
+                     buf.mode = 'shell'
                      buf.opts.set('ansi.enabled', 1)
                      buf.opts.set('core.highlight.specials.enabled', 0)
                    })

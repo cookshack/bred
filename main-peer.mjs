@@ -73,7 +73,7 @@ export
 function onPeerPush
 (e, onArgs) {
   const [ id, version, updates ] = onArgs
-  let received, buf
+  let received, buf, applied
 
   buf = get(id)
   received = updates.map(u => ({ clientID: u.clientID,
@@ -84,21 +84,24 @@ function onPeerPush
   if (version == buf.version)
     return {}
 
+  applied = []
   received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
   try {
     received.forEach(update => {
+      d(JSON.stringify(update, null, 2))
       buf.updates.push(update)
       buf.text = update.changes.apply(buf.text)
+      applied.push(update)
     })
   }
   catch (err) {
     d('ERR ' + err.message)
   }
-  if (received.length && buf.chs.size) {
+  if (applied.length && buf.chs.size) {
     let push
 
     d('    WILL SEND')
-    push = changes(received)
+    push = changes(applied)
     buf.chs.forEach(pullCh => { // excl ch received from?
       d('    SEND TO ' + pullCh)
       e.sender.send(pullCh, { updates: push }) // updates depends on version at pullCh?

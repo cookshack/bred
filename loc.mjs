@@ -1,4 +1,5 @@
 import * as Mess from './mess.mjs'
+import * as U from './util.mjs'
 //import { d } from './mess.mjs'
 
 let $appDir, $configDir, $iwd, $home, $profile, $shell
@@ -296,4 +297,15 @@ function make
            needsDotExpand,
            parent,
            removeSlash }
+}
+
+export
+function cleanHref
+(href) {
+  href = U.stripFilePrefix(href)
+
+  if (href.startsWith(home()))
+    href = ':' + href.slice(home().length)
+
+  return href
 }

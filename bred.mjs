@@ -1700,20 +1700,6 @@ function initRecent
                    divCl('recent-w') ])
   }
 
-  function clean
-  (href) {
-    let home
-
-    home = Loc.home()
-
-    href = U.stripFilePrefix(href)
-
-    if (href.startsWith(home))
-      href = ':' + href.slice(home.length)
-
-    return href
-  }
-
   function refresh
   (view) {
     Recent.get((err, all) => {
@@ -1729,7 +1715,7 @@ function initRecent
       w.innerHTML = ''
 
       co = recents.map(r => divCl('recent-item',
-                                  clean(r.href),
+                                  Loc.cleanHref(r.href),
                                   { 'data-run': 'open link',
                                     'data-path': r.href }))
 

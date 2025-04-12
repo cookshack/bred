@@ -145,7 +145,7 @@ function init
 
           count++
           loc = Loc.make(r.href)
-          rds.append(div(loc.dirname,
+          rds.append(div(Loc.cleanHref(loc.dirname),
                          { 'data-run': 'open link',
                            'data-path': r.href }))
           return count < 10

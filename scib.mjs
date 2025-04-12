@@ -104,6 +104,6 @@ function init
                              parentsForEm: 'ed' })
   d(mo)
 
-  hist = Hist.ensure('shell')
+  hist = Hist.ensure('scib')
   initRTL()
 }

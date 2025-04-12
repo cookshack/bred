@@ -215,6 +215,9 @@ async function onAcmd
 
   if (name == 'profile.hist.add')
     return Profile.onHistAdd(e, args)
+
+  if (name == 'profile.hist.get')
+    return Profile.onHistGet(e, args)
 }
 
 let onCmdCount

@@ -28,6 +28,12 @@ function onHistAdd
 }
 
 export
+function onHistGet
+() {
+  return db.prepare('SELECT * FROM dirs').all()
+}
+
+export
 function name
 () {
   return profile?.name

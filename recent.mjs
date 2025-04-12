@@ -42,8 +42,15 @@ async function add
 
 export
 function get
-(cb) { // (err, recents)
+(dirs, cb) { // (err, recents)
   let path, recents
+
+  if (dirs) {
+    Tron.acmd('profile.hist.get').then(data => {
+      cb(null, data)
+    })
+    return
+  }
 
   recents = []
   path = xbelPath()

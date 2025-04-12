@@ -10,6 +10,7 @@ function add
   try {
     let xbel, bmf
 
+    // typically ~/.local/share/recently-used.xbel
     xbel = GLib.build_filenamev([ GLib.get_user_data_dir(), 'recently-used.xbel' ])
 
     bmf = new GLib.BookmarkFile()

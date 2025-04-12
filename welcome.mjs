@@ -10,7 +10,7 @@ import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Recent from './recent.mjs'
 import * as Win from './win.mjs'
-//import { d } from './mess.mjs'
+import { d } from './mess.mjs'
 
 export
 function init
@@ -84,7 +84,7 @@ function init
                       divCl('bred-welcome-more',
                             [ div('More options.', { 'data-run': 'options' } ) ]) ]))
 
-    Recent.get((err, recents) => {
+    Recent.get(0, (err, recents) => {
       let count
 
       if (err) {
@@ -121,6 +121,47 @@ function init
           ele.innerHTML = ''
           append(ele,
                  [ ...rfs.children ].map(ch => ch.cloneNode(true)))
+        }
+      })
+    })
+
+    Recent.get(1, (err, recents) => {
+      let count
+
+      if (err) {
+        Mess.log('Recent: ' + err.message)
+        return
+      }
+
+      // add files to the recent list in the buf content
+      count = 0
+      rds.innerHTML = ''
+      append(rds, div('Recent dirs'))
+      recents.every(r => {
+        0 && d(r)
+        if (r.path.startsWith('file://')
+            || r.path.startsWith('/')) {
+          let loc
+
+          count++
+          loc = Loc.make(r.path)
+          rds.append(div(loc.dirname,
+                         { 'data-run': 'open link',
+                           'data-path': r.path }))
+          return count < 10
+        }
+        return 1
+      })
+
+      // creating a view copies the buf content, so also add the dirs to contents of any open views
+      Win.shared().welcome.buf.views.forEach(view => {
+        if (view.ele) {
+          let ele
+
+          ele = view.ele.querySelector('.bred-welcome-recent-dirs')
+          ele.innerHTML = ''
+          append(ele,
+                 [ ...rds.children ].map(ch => ch.cloneNode(true)))
         }
       })
     })

@@ -16,7 +16,7 @@ import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
-import { Vonaco } from './json.mjs'
+import { Vonaco } from '../json.mjs'
 import { d } from './mess.mjs'
 
 /*

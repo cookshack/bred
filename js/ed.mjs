@@ -21,7 +21,7 @@ import { d } from './mess.mjs'
 import { wordChars } from '../lib/unicode.mjs'
 import escapeStringRegexp from '../lib/escape-string-regexp.js'
 
-import { mbe } from './json.mjs'
+import { mbe } from '../json.mjs'
 
 export let Backend
 export let mimeByExt

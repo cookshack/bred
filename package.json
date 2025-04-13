@@ -9,9 +9,9 @@
     "start": "electron .",
     "inspect": "electron --inspect=5656 .",
     "mime": "node generate-mime-by-ext.mjs",
-    "check": "true || ./node_modules/@cookshack/build/bin/check *.mjs *.js js/*.mjs js/*.js ext/*/*.mjs",
+    "check": "./node_modules/@cookshack/build/bin/check *.mjs *.js js/*.mjs js/*.js ext/*/*.mjs",
     "format": "NODE_OPTIONS=--disable-warning=ExperimentalWarning npx eslint --no-warn-ignored --fix -f ./eslint-formatter.mjs *.mjs *.js ext/*/*.mjs",
-    "prepare": "true || husky",
+    "prepare": "husky",
     "postinstall": "make prep"
   },
   "author": "Matt Mundell",

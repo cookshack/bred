@@ -1,4 +1,5 @@
-import { importCss } from './json.mjs'
+import * as Loc from './loc.mjs'
+import { importCss } from '../json.mjs'
 import { d } from './mess.mjs'
 
 export
@@ -10,7 +11,7 @@ function initCss1
       d('initCss1: ' + file + ': done')
       globalThis.document.adoptedStyleSheets = [ ...globalThis.document.adoptedStyleSheets, m.default ]
     },
-          err => yell('Failed to load  ' + file + ': ' + err.message))
+          err => yell('Failed to load ' + file + ': ' + err.message))
 }
 
 export
@@ -18,32 +19,32 @@ function initCss
 (yell) {
   let files, file
 
-  files = [ '../css/bred.css',
-            '../css/dir.css',
-            '../css/describe-cmd.css',
-            '../css/describe-key.css',
-            '../css/ed.css',
-            '../css/exts.css',
-            '../css/lang.css',
-            '../css/langs.css',
-            '../css/mess.css',
-            '../css/buffers.css',
-            '../css/switch.css',
-            '../css/cut.css',
-            '../css/exec.css',
-            '../css/test-buffer.css',
-            '../css/manpage.css',
-            '../css/options.css',
-            '../css/recent.css',
-            '../css/vc.css',
-            '../css/web.css' ]
-  files.forEach(f => initCss1(f, yell))
+  files = [ 'bred.css',
+            'dir.css',
+            'describe-cmd.css',
+            'describe-key.css',
+            'ed.css',
+            'exts.css',
+            'lang.css',
+            'langs.css',
+            'mess.css',
+            'buffers.css',
+            'switch.css',
+            'cut.css',
+            'exec.css',
+            'test-buffer.css',
+            'manpage.css',
+            'options.css',
+            'recent.css',
+            'vc.css',
+            'web.css' ]
+  files.forEach(f => initCss1(Loc.appDir().join('css/' + f), yell))
 
   file = '../lib/sheets.mjs'
   import(file)
     .then(m => {
-      m.sheets.forEach(f => initCss1(f))
+      m.sheets.forEach(f => initCss1(Loc.appDir().join('css/' + f)))
     },
-          err => yell('Failed to load  ' + file + ': ' + err.message))
-    .catch(err => yell('Failed to import  ' + file + ': ' + err.message))
+          err => yell('Failed to load ' + file + ': ' + err.message))
+    .catch(err => yell('Failed to import ' + file + ': ' + err.message))
 }

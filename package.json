@@ -5,7 +5,7 @@
   "main": "js/main.mjs",
   "type": "module",
   "scripts": {
-    "test": "true || mocha",
+    "test": "mocha",
     "start": "electron .",
     "inspect": "electron --inspect=5656 .",
     "mime": "node generate-mime-by-ext.mjs",

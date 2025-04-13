@@ -1,5 +1,5 @@
 import { equal } from 'node:assert/strict'
-import * as Ext from '../ext.mjs'
+import * as Ext from '../js/ext.mjs'
 
 let tests, canon
 

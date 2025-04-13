@@ -1,5 +1,5 @@
 import { equal, throws } from 'node:assert/strict'
-import * as Chmod from '../main-chmod.mjs'
+import * as Chmod from '../js/main-chmod.mjs'
 
 let tests, parseModePerm
 

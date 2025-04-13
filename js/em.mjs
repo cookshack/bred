@@ -366,13 +366,6 @@ function handle
   if (wes.length == 0)
     Mess.say('')
 
-  if (we.mouse) {
-    // ok
-  }
-  else if (we.e.ctrlKey && (we.e.key == 'g')) {
-    Pane.cancel()
-    return
-  }
   wes.push(we)
   look(wes,
        active,
@@ -407,6 +400,12 @@ function handle
            reset()
          }
          else {
+           if (we.mouse) {
+           }
+           else if (we.e.ctrlKey && (we.e.key == 'g')) {
+             Pane.cancel()
+             return
+           }
            updateMini('¯\\_(ツ)_/¯')
            reset()
          }

@@ -4117,6 +4117,8 @@ function initLangs
         languages.push(lang)
         addLang(langs, lang, opt.ed ?? 1, opt)
       }
+      else
+        Mess.warn('Missing: ' + file)
     })
   }
 
@@ -4131,7 +4133,7 @@ function initLangs
   addMode(langs[0])
   d({ langs })
 
-  loadLang('../lib/@codemirror/lang-javascript.js',
+  loadLang(Loc.appDir().join('lib/@codemirror/lang-javascript.js'),
            'JavaScript',
            { ext: [ 'js', 'mjs', 'cjs' ],
              firstLine: '^#!.*\\b(node|gjs)',
@@ -4158,40 +4160,41 @@ function initLangs
                lang.parser = lang.parser.configure({ props: props })
              } })
 
-  loadLang('../lib/@replit/codemirror-lang-csharp.js', 'Csharp', { ext: [ 'cs', 'csx' ] })
-  loadLang('../lib/@cookshack/codemirror-lang-csv.js', 'Csv', { ext: [ 'csv' ] })
-  loadLang('../lib/codemirror-lang-diff.js', 'Diff',
+  loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-csharp.js'), 'Csharp', { ext: [ 'cs', 'csx' ] })
+  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-csv.js'), 'Csv', { ext: [ 'csv' ] })
+  loadLang(Loc.appDir().join('lib/codemirror-lang-diff.js'), 'Diff',
            { ext: [ 'diff', 'patch' ],
              brexts: [ { backend: 'cm',
                          name: 'extPatch',
                          make: () => ([ extPatch, extPatchDecor ]),
                          part: new CMState.Compartment } ] })
-  loadLang('../lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
-  loadLang('../lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ] })
-  loadLang('../lib/codemirror-lang-git-log.js', 'Git Log',
+  loadLang(Loc.appDir().join('lib/codemirror-lang-elixir.js'), 'Elixir', { ext: [ 'ex', 'exs' ] })
+  loadLang(Loc.appDir().join('lib/@codemirror/lang-lezer.js'), 'Lezer', { ext: [ 'grammar' ] })
+  loadLang(Loc.appDir().join('lib/codemirror-lang-git-log.js'), 'Git Log',
            { ed: 0 }) // prevent mode creation, already have VC Log mode
-  loadLang('../lib/@cookshack/codemirror-lang-ini.js', 'Ini',
+  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-ini.js'), 'Ini',
            { exts: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
              path: /\.git\/config$/ })
-  loadLang('../lib/@cookshack/codemirror-lang-lezer-tree.js', 'Lezer Tree', { ext: [ 'leztree' ] })
-  loadLang('../lib/codemirror-lang-makefile.js', 'Makefile',
+  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-lezer-tree.js'), 'Lezer Tree', { ext: [ 'leztree' ] })
+  loadLang(Loc.appDir().join('lib/codemirror-lang-makefile.js'), 'Makefile',
            { filename: /^(GNUmakefile|makefile|Makefile)$/,
              onAddMode: m => m.opts.set('core.highlight.leadingSpace.enabled', 1) })
-  loadLang('../lib/@cookshack/codemirror-lang-nasl.js', 'NASL', { ext: [ 'nasl' ] })
-  loadLang('../lib/@kittycad/codemirror-lang-kcl.js', 'Kcl', { ext: [ 'kcl' ] })
-  loadLang('../lib/@replit/codemirror-lang-nix.js', 'Nix', { ext: [ 'nix' ] })
-  loadLang('../lib/@orgajs/codemirror-lang-org.js', 'Org', { ext: [ 'org' ] })
-  loadLang('../lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ] })
-  loadLang('../lib/@cookshack/codemirror-lang-zig.js', 'Zig', { ext: [ 'zig' ] })
+  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-nasl.js'), 'NASL', { ext: [ 'nasl' ] })
+  loadLang(Loc.appDir().join('lib/@kittycad/codemirror-lang-kcl.js'), 'Kcl', { ext: [ 'kcl' ] })
+  loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-nix.js'), 'Nix', { ext: [ 'nix' ] })
+  loadLang(Loc.appDir().join('lib/@orgajs/codemirror-lang-org.js'), 'Org', { ext: [ 'org' ] })
+  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-peg.js'), 'PEG', { ext: [ 'peg' ] })
+  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-zig.js'), 'Zig', { ext: [ 'zig' ] })
 
-  loadLang('../lib/@codemirror/lang-markdown.js',
+  loadLang(Loc.appDir().join('lib/@codemirror/lang-markdown.js'),
            'Markdown',
            { ext: [ 'md', 'markdown', 'mkd' ],
              load(m) {
                return m.markdown({ codeLanguages: langs })
              } })
 
-  loadLang('../lib/codemirror-lang-richdown.js', 'Richdown',
+  loadLang(Loc.appDir().join('lib/codemirror-lang-richdown.js'),
+           'Richdown',
            { front: 0, // priority goes to markdown
              ext: [ 'md' ],
              module: 0,

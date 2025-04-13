@@ -1,7 +1,15 @@
-import Fs from 'node:fs'
-import { importJson } from './js/json.mjs'
+#!/usr/bin/env node
 
-importJson('../lib/mime.json').then(m => {
+import Fs from 'node:fs'
+import Path from 'node:path'
+import Url from 'node:url'
+import { importJson } from '../json.mjs'
+
+let dirname
+
+dirname = Path.dirname(Url.fileURLToPath(import.meta.url))
+
+importJson(Path.join(dirname, '../lib/mime.json')).then(m => {
   let mime, mimeByExt
 
   mime = m.default
@@ -23,7 +31,7 @@ importJson('../lib/mime.json').then(m => {
   //d(mimeByExt)
 
   try {
-    Fs.writeFileSync('./lib/mime-by-ext.json', JSON.stringify(mimeByExt, null, 2) + '\n')
+    Fs.writeFileSync(Path.join(dirname, '../lib/mime-by-ext.json'), JSON.stringify(mimeByExt, null, 2) + '\n')
   }
   catch (err) {
     console.error('Error: ' + err.message)

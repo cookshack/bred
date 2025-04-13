@@ -8,7 +8,7 @@
     "test": "mocha",
     "start": "electron .",
     "inspect": "electron --inspect=5656 .",
-    "mime": "node generate-mime-by-ext.mjs",
+    "mime": "./bin/generate-mime-by-ext",
     "check": "./node_modules/@cookshack/build/bin/check *.mjs *.js js/*.mjs js/*.js ext/*/*.mjs",
     "format": "NODE_OPTIONS=--disable-warning=ExperimentalWarning npx eslint --no-warn-ignored --fix -f ./eslint-formatter.mjs *.mjs *.js ext/*/*.mjs",
     "prepare": "husky",

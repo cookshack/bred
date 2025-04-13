@@ -1,10 +1,10 @@
-import * as Cmd from '../../cmd.mjs'
-import * as Em from '../../em.mjs'
-import * as Mess from '../../mess.mjs'
-import * as Pane from '../../pane.mjs'
-import * as Prompt from '../../prompt.mjs'
-import * as Win from '../../win.mjs'
-//import { d } from '../../mess.mjs'
+import * as Cmd from '../../js/cmd.mjs'
+import * as Em from '../../js/em.mjs'
+import * as Mess from '../../js/mess.mjs'
+import * as Pane from '../../js/pane.mjs'
+import * as Prompt from '../../js/prompt.mjs'
+import * as Win from '../../js/win.mjs'
+//import { d } from '../../js/mess.mjs'
 
 import './lib/spellchecker-wasm.js'
 

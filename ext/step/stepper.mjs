@@ -1,8 +1,8 @@
-import { button, div, divCl } from '../../dom.mjs'
+import { button, div, divCl } from '../../js/dom.mjs'
 
-import * as Css from '../../css.mjs'
-import * as Style from '../../style.mjs'
-import * as Tron from '../../tron.mjs'
+import * as Css from '../../js/css.mjs'
+import * as Style from '../../js/style.mjs'
+import * as Tron from '../../js/tron.mjs'
 
 let pause
 

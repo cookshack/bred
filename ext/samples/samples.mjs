@@ -1,10 +1,10 @@
-import * as Cmd from '../../cmd.mjs'
-import * as Ed from '../../ed.mjs'
-import * as Loc from '../../loc.mjs'
-import * as Opt from '../../opt.mjs'
-import * as Menu from '../../menu.mjs'
-import * as Pane from '../../pane.mjs'
-//import { d } from '../../mess.mjs'
+import * as Cmd from '../../js/cmd.mjs'
+import * as Ed from '../../js/ed.mjs'
+import * as Loc from '../../js/loc.mjs'
+import * as Opt from '../../js/opt.mjs'
+import * as Menu from '../../js/menu.mjs'
+import * as Pane from '../../js/pane.mjs'
+//import { d } from '../../js/mess.mjs'
 
 export
 function init

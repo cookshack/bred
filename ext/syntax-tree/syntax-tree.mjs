@@ -1,8 +1,8 @@
-import * as Buf from '../../buf.mjs'
-import * as Cmd from '../../cmd.mjs'
-import * as Ed from '../../ed.mjs'
-import * as Pane from '../../pane.mjs'
-import { d } from '../../mess.mjs'
+import * as Buf from '../../js/buf.mjs'
+import * as Cmd from '../../js/cmd.mjs'
+import * as Ed from '../../js/ed.mjs'
+import * as Pane from '../../js/pane.mjs'
+import { d } from '../../js/mess.mjs'
 
 export
 function make

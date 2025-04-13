@@ -1,10 +1,10 @@
-import { append, div, divCl } from '../../dom.mjs'
+import { append, div, divCl } from '../../js/dom.mjs'
 
-import * as Buf from '../../buf.mjs'
-import * as Cmd from '../../cmd.mjs'
-import * as Mode from '../../mode.mjs'
-import * as Pane from '../../pane.mjs'
-import * as Panel from '../../panel.mjs'
+import * as Buf from '../../js/buf.mjs'
+import * as Cmd from '../../js/cmd.mjs'
+import * as Mode from '../../js/mode.mjs'
+import * as Pane from '../../js/pane.mjs'
+import * as Panel from '../../js/panel.mjs'
 
 let time, timer
 

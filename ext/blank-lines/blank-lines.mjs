@@ -1,7 +1,7 @@
-import * as Cmd from '../../cmd.mjs'
-import * as Ed from '../../ed.mjs'
-import * as Opt from '../../opt.mjs'
-//import { d } from '../../mess.mjs'
+import * as Cmd from '../../js/cmd.mjs'
+import * as Ed from '../../js/ed.mjs'
+import * as Opt from '../../js/opt.mjs'
+//import { d } from '../../js/mess.mjs'
 
 import { blankLines } from './lib/@cookshack/codemirror-blank-lines.js'
 import * as CMState from '../../lib/@codemirror/state.js'

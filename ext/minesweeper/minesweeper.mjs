@@ -1,11 +1,11 @@
-import { append, button, create, divCl } from '../../dom.mjs'
+import { append, button, create, divCl } from '../../js/dom.mjs'
 
-import * as Buf from '../../buf.mjs'
-import * as Cmd from '../../cmd.mjs'
-import * as Em from '../../em.mjs'
-import * as Mode from '../../mode.mjs'
-import * as Pane from '../../pane.mjs'
-import { d } from '../../mess.mjs'
+import * as Buf from '../../js/buf.mjs'
+import * as Cmd from '../../js/cmd.mjs'
+import * as Em from '../../js/em.mjs'
+import * as Mode from '../../js/mode.mjs'
+import * as Pane from '../../js/pane.mjs'
+import { d } from '../../js/mess.mjs'
 
 import './lib/minesweeper-for-web.js'
 

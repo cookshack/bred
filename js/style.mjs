@@ -18,25 +18,25 @@ function initCss
 (yell) {
   let files, file
 
-  files = [ './css/bred.css',
-            './css/dir.css',
-            './css/describe-cmd.css',
-            './css/describe-key.css',
-            './css/ed.css',
-            './css/exts.css',
-            './css/lang.css',
-            './css/langs.css',
-            './css/mess.css',
-            './css/buffers.css',
-            './css/switch.css',
-            './css/cut.css',
-            './css/exec.css',
-            './css/test-buffer.css',
-            './css/manpage.css',
-            './css/options.css',
-            './css/recent.css',
-            './css/vc.css',
-            './css/web.css' ]
+  files = [ '../css/bred.css',
+            '../css/dir.css',
+            '../css/describe-cmd.css',
+            '../css/describe-key.css',
+            '../css/ed.css',
+            '../css/exts.css',
+            '../css/lang.css',
+            '../css/langs.css',
+            '../css/mess.css',
+            '../css/buffers.css',
+            '../css/switch.css',
+            '../css/cut.css',
+            '../css/exec.css',
+            '../css/test-buffer.css',
+            '../css/manpage.css',
+            '../css/options.css',
+            '../css/recent.css',
+            '../css/vc.css',
+            '../css/web.css' ]
   files.forEach(f => initCss1(f, yell))
 
   file = '../lib/sheets.mjs'

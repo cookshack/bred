@@ -1,7 +1,7 @@
 import Fs from 'node:fs'
-import { importJson } from './json.mjs'
+import { importJson } from './js/json.mjs'
 
-importJson('./lib/mime.json').then(m => {
+importJson('../lib/mime.json').then(m => {
   let mime, mimeByExt
 
   mime = m.default

@@ -32,7 +32,7 @@ fix-main:
 fix-css:
 #	cd lib/monaco/ && find . -type f -name \*.js | xargs grep "import .*\\.css" | sed "s;\\./\(.\+\)/.*:import '\\.\(.*\).css'.*;<link rel=\"stylesheet\" type=\"text/css\" href=\"lib/monaco/\1\2.css\"\/>;g" #> ../css.html
 	echo export let sheets = \[ > lib/sheets.mjs
-	cd lib/monaco/ && find . -type f -name \*.js | xargs grep "import .*\\.css" | sed "s;\\./\(.\+\)/.*:import '\\.\(.*\).css'.*;'./lib/monaco/\1\2.css',;g" >> ../sheets.mjs
+	cd lib/monaco/ && find . -type f -name \*.js | xargs grep "import .*\\.css" | sed "s;\\./\(.\+\)/.*:import '\\.\(.*\).css'.*;'../lib/monaco/\1\2.css',;g" >> ../sheets.mjs
 	echo \] >> lib/sheets.mjs
 
 version-sqlite:

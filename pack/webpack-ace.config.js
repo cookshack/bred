@@ -1,12 +1,12 @@
-const path = require('path')
+const Path = require('path')
 
 module.exports = {
   experiments: {
     outputModule: true
   },
-  entry: './lib/ace.js',
+  entry: Path.join(__dirname, '../lib/ace.js'),
   output: {
-    path: path.resolve(__dirname, 'lib'),
+    path: Path.resolve(__dirname, '../lib'),
     filename: 'ace.bundle.js',
     library: {
       type: 'module'

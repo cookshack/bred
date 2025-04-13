@@ -1,12 +1,12 @@
-const path = require('path')
+const Path = require('path')
 
 module.exports = {
   experiments: {
     outputModule: true
   },
-  entry: './lib/codemirror.js',
+  entry: Path.join(__dirname, '../lib/codemirror.js'),
   output: {
-    path: path.resolve(__dirname, 'lib'),
+    path: Path.resolve(__dirname, '../lib'),
     filename: 'codemirror.bundle.js',
     library: {
       type: 'module'

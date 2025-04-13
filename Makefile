@@ -56,7 +56,7 @@ patch-codemirror:
 	cd lib/ && for P in codemirror-patches/*.patch; do echo "  $$P"; cat $$P | patch --ignore-whitespace -p 0; done
 
 fix-codemirror: sync-codemirror patch-codemirror version-codemirror
-	npx webpack --config webpack-orga.config.cjs
+	npx webpack --config ./pack/webpack-orga.config.cjs
 	bin/fix-scope cookshack
 	bin/fix-scope codemirror
 	bin/fix-scope codemirror/legacy-modes/mode
@@ -215,9 +215,9 @@ sync-icons:
 	find node_modules/@fluentui/svg-icons/icons/*_24_regular.svg | while read f; do cp $$f lib/icon/$$(basename $$f | sed -e 's/_24_regular.svg$$/.svg/g'); done
 
 pack:
-#	npx webpack --config ./webpack.config.js
+#	npx webpack --config ./pack/pack.config.js
 	echo ERR in main.html now
-#	npx webpack --config ./webpack-ace.config.js
+#	npx webpack --config ./pack/wack-ace.config.js
 
 release:
 	npm run make # FIX fails due to symlinks

@@ -48,7 +48,7 @@
     "@cookshack/codemirror-lang-peg": "^0.1.1",
     "@cookshack/codemirror-lang-zig": "^0.1.2",
     "@cookshack/codemirror-ruler": "^0.2.3",
-    "@cookshack/eslint-config": "^0.1.6",
+    "@cookshack/eslint-config": "^1.0.0",
     "@electron/rebuild": "^3.6.0",
     "@fluentui/svg-icons": "^1.1.240",
     "@kittycad/codemirror-lang-kcl": "file:../modeling-app/packages/codemirror-lang-kcl/latest.tgz",

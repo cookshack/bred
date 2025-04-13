@@ -1,6 +1,6 @@
 import { app, clipboard as Clipboard, BrowserWindow, ipcMain, Menu /*, protocol, net*/ } from 'electron'
 import * as Browse from './main-browse.mjs'
-import CheckDeps from './lib/check-dependencies.cjs'
+import CheckDeps from '../lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
 import * as Dir from './main-dir.mjs'
 import * as Ext from './main-ext.mjs'

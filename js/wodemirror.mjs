@@ -22,24 +22,24 @@ import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
-import * as CMAuto from './lib/@codemirror/autocomplete.js'
-import * as CMCollab from './lib/@codemirror/collab.js'
-import * as CMComm from './lib/@codemirror/commands.js'
-import * as CMCont from './lib/@valtown/codemirror-continue.js'
-import * as CMData from './lib/@codemirror/language-data.js'
-import * as CMLang from './lib/@codemirror/language.js'
-import * as LezUtils from './lib/lezer-utils.js'
-import * as CMLint from './lib/@codemirror/lint.js'
-import * as CMSearch from './lib/@codemirror/search.js'
-import * as CMState from './lib/@codemirror/state.js'
-import * as CMView from './lib/@codemirror/view.js'
-import * as CMTheme from './lib/@uiw/codemirror-themes/index.js'
+import * as CMAuto from '../lib/@codemirror/autocomplete.js'
+import * as CMCollab from '../lib/@codemirror/collab.js'
+import * as CMComm from '../lib/@codemirror/commands.js'
+import * as CMCont from '../lib/@valtown/codemirror-continue.js'
+import * as CMData from '../lib/@codemirror/language-data.js'
+import * as CMLang from '../lib/@codemirror/language.js'
+import * as LezUtils from '../lib/lezer-utils.js'
+import * as CMLint from '../lib/@codemirror/lint.js'
+import * as CMSearch from '../lib/@codemirror/search.js'
+import * as CMState from '../lib/@codemirror/state.js'
+import * as CMView from '../lib/@codemirror/view.js'
+import * as CMTheme from '../lib/@uiw/codemirror-themes/index.js'
 import { theme as ThemeLight } from './theme-solarized-light.mjs'
 import { theme as ThemeDark } from './theme-solarized-dark.mjs'
-import { v4 as uuidv4 } from './lib/uuid/index.js'
-import { colorPicker } from './lib/@replit/codemirror-css-color-picker.js'
-import * as LZHighlight from './lib/@lezer/highlight.js'
-import * as Wrap from './lib/fast-word-wrap.js'
+import { v4 as uuidv4 } from '../lib/uuid/index.js'
+import { colorPicker } from '../lib/@replit/codemirror-css-color-picker.js'
+import * as LZHighlight from '../lib/@lezer/highlight.js'
+import * as Wrap from '../lib/fast-word-wrap.js'
 import { Vode } from './json.mjs'
 
 export let langs, themeExtension, themeExtensionPart, Theme
@@ -4131,7 +4131,7 @@ function initLangs
   addMode(langs[0])
   d({ langs })
 
-  loadLang('./lib/@codemirror/lang-javascript.js',
+  loadLang('../lib/@codemirror/lang-javascript.js',
            'JavaScript',
            { ext: [ 'js', 'mjs', 'cjs' ],
              firstLine: '^#!.*\\b(node|gjs)',
@@ -4158,40 +4158,40 @@ function initLangs
                lang.parser = lang.parser.configure({ props: props })
              } })
 
-  loadLang('./lib/@replit/codemirror-lang-csharp.js', 'Csharp', { ext: [ 'cs', 'csx' ] })
-  loadLang('./lib/@cookshack/codemirror-lang-csv.js', 'Csv', { ext: [ 'csv' ] })
-  loadLang('./lib/codemirror-lang-diff.js', 'Diff',
+  loadLang('../lib/@replit/codemirror-lang-csharp.js', 'Csharp', { ext: [ 'cs', 'csx' ] })
+  loadLang('../lib/@cookshack/codemirror-lang-csv.js', 'Csv', { ext: [ 'csv' ] })
+  loadLang('../lib/codemirror-lang-diff.js', 'Diff',
            { ext: [ 'diff', 'patch' ],
              brexts: [ { backend: 'cm',
                          name: 'extPatch',
                          make: () => ([ extPatch, extPatchDecor ]),
                          part: new CMState.Compartment } ] })
-  loadLang('./lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
-  loadLang('./lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ] })
-  loadLang('./lib/codemirror-lang-git-log.js', 'Git Log',
+  loadLang('../lib/codemirror-lang-elixir.js', 'Elixir', { ext: [ 'ex', 'exs' ] })
+  loadLang('../lib/@codemirror/lang-lezer.js', 'Lezer', { ext: [ 'grammar' ] })
+  loadLang('../lib/codemirror-lang-git-log.js', 'Git Log',
            { ed: 0 }) // prevent mode creation, already have VC Log mode
-  loadLang('./lib/@cookshack/codemirror-lang-ini.js', 'Ini',
+  loadLang('../lib/@cookshack/codemirror-lang-ini.js', 'Ini',
            { exts: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
              path: /\.git\/config$/ })
-  loadLang('./lib/@cookshack/codemirror-lang-lezer-tree.js', 'Lezer Tree', { ext: [ 'leztree' ] })
-  loadLang('./lib/codemirror-lang-makefile.js', 'Makefile',
+  loadLang('../lib/@cookshack/codemirror-lang-lezer-tree.js', 'Lezer Tree', { ext: [ 'leztree' ] })
+  loadLang('../lib/codemirror-lang-makefile.js', 'Makefile',
            { filename: /^(GNUmakefile|makefile|Makefile)$/,
              onAddMode: m => m.opts.set('core.highlight.leadingSpace.enabled', 1) })
-  loadLang('./lib/@cookshack/codemirror-lang-nasl.js', 'NASL', { ext: [ 'nasl' ] })
-  loadLang('./lib/@kittycad/codemirror-lang-kcl.js', 'Kcl', { ext: [ 'kcl' ] })
-  loadLang('./lib/@replit/codemirror-lang-nix.js', 'Nix', { ext: [ 'nix' ] })
-  loadLang('./lib/@orgajs/codemirror-lang-org.js', 'Org', { ext: [ 'org' ] })
-  loadLang('./lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ] })
-  loadLang('./lib/@cookshack/codemirror-lang-zig.js', 'Zig', { ext: [ 'zig' ] })
+  loadLang('../lib/@cookshack/codemirror-lang-nasl.js', 'NASL', { ext: [ 'nasl' ] })
+  loadLang('../lib/@kittycad/codemirror-lang-kcl.js', 'Kcl', { ext: [ 'kcl' ] })
+  loadLang('../lib/@replit/codemirror-lang-nix.js', 'Nix', { ext: [ 'nix' ] })
+  loadLang('../lib/@orgajs/codemirror-lang-org.js', 'Org', { ext: [ 'org' ] })
+  loadLang('../lib/@cookshack/codemirror-lang-peg.js', 'PEG', { ext: [ 'peg' ] })
+  loadLang('../lib/@cookshack/codemirror-lang-zig.js', 'Zig', { ext: [ 'zig' ] })
 
-  loadLang('./lib/@codemirror/lang-markdown.js',
+  loadLang('../lib/@codemirror/lang-markdown.js',
            'Markdown',
            { ext: [ 'md', 'markdown', 'mkd' ],
              load(m) {
                return m.markdown({ codeLanguages: langs })
              } })
 
-  loadLang('./lib/codemirror-lang-richdown.js', 'Richdown',
+  loadLang('../lib/codemirror-lang-richdown.js', 'Richdown',
            { front: 0, // priority goes to markdown
              ext: [ 'md' ],
              module: 0,

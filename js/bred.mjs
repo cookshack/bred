@@ -38,9 +38,9 @@ import * as ViewMode from './view-mode.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
-import { v4 as uuidv4 } from './lib/uuid/index.js'
+import { v4 as uuidv4 } from '../lib/uuid/index.js'
 
-//import * as Linters from "./lib/ace-linters/ace-linters.js"
+//import * as Linters from "../lib/ace-linters/ace-linters.js"
 
 let $version, mouse, recents
 

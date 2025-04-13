@@ -4,7 +4,7 @@ import * as Loc from './loc.mjs'
 import * as Opt from './opt.mjs'
 import * as Win from './win.mjs'
 
-import callsites from './lib/callsites.mjs'
+import callsites from '../lib/callsites.mjs'
 
 let $messages
 

@@ -39,7 +39,7 @@ function initCss
             './css/web.css' ]
   files.forEach(f => initCss1(f, yell))
 
-  file = './lib/sheets.mjs'
+  file = '../lib/sheets.mjs'
   import(file)
     .then(m => {
       m.sheets.forEach(f => initCss1(f))

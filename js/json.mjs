@@ -1,12 +1,12 @@
 // Collect all "import ... with" in this file, which is skipped by
 // eslint.
 
-import globals from "./lib/globals.json" with { type: "json" }
-import mbe from "./lib/mime-by-ext.json" with { type: "json" }
-import Vqlite from "./lib/sqlite.json" with { type: "json" }
-import Vace from "./lib/ace/version.json" with { type: "json" }
-import Vode from "./lib/@codemirror/version.json" with { type: "json" }
-import Vonaco from "./lib/monaco/version.json" with { type: "json" }
+import globals from "../lib/globals.json" with { type: "json" }
+import mbe from "../lib/mime-by-ext.json" with { type: "json" }
+import Vqlite from "../lib/sqlite.json" with { type: "json" }
+import Vace from "../lib/ace/version.json" with { type: "json" }
+import Vode from "../lib/@codemirror/version.json" with { type: "json" }
+import Vonaco from "../lib/monaco/version.json" with { type: "json" }
 
 export
 function importCss

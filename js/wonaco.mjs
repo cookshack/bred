@@ -20,8 +20,8 @@ import { Vonaco } from './json.mjs'
 import { d } from './mess.mjs'
 
 /*
-import {SyncDescriptor} from './lib/monaco/vs/platform/instantiation/common/descriptors.js'
-import {AbstractKeybindingService} from './lib/monaco/vs/platform/keybinding/common/abstractKeybindingService.js'
+import {SyncDescriptor} from '../lib/monaco/vs/platform/instantiation/common/descriptors.js'
+import {AbstractKeybindingService} from '../lib/monaco/vs/platform/keybinding/common/abstractKeybindingService.js'
 let StandaloneKeybindingService = class StandaloneKeybindingService extends AbstractKeybindingService {
   constructor(contextKeyService, commandService, telemetryService, notificationService, logService, codeEditorService) {
     super(contextKeyService, commandService, telemetryService, notificationService, logService)
@@ -38,16 +38,16 @@ let StandaloneKeybindingService = class StandaloneKeybindingService extends Abst
 let overrides = { keybindingService: new SyncDescriptor(StandaloneKeybindingService,
                                                         [],
                                                         0) } // supportsDelayedInstantiation
-let {StandaloneServices} = await import('./lib/monaco/vs/editor/standalone/browser/standaloneServices.js')
-//import {StandaloneServices} from './lib/monaco/vs/editor/standalone/browser/standaloneServices.js'
+let {StandaloneServices} = await import('../lib/monaco/vs/editor/standalone/browser/standaloneServices.js')
+//import {StandaloneServices} from '../lib/monaco/vs/editor/standalone/browser/standaloneServices.js'
 StandaloneServices.initialize(overrides)
 */
 
-import { LinkedList } from './lib/monaco/vs/base/common/linkedList.js'
-import { KeybindingsRegistry } from './lib/monaco/vs/platform/keybinding/common/keybindingsRegistry.js'
-import * as Mon from './lib/monaco/vs/editor/editor.main.js'
+import { LinkedList } from '../lib/monaco/vs/base/common/linkedList.js'
+import { KeybindingsRegistry } from '../lib/monaco/vs/platform/keybinding/common/keybindingsRegistry.js'
+import * as Mon from '../lib/monaco/vs/editor/editor.main.js'
 import { theme } from './theme-solarized.js'
-import { wordChars } from './lib/unicode.mjs'
+import { wordChars } from '../lib/unicode.mjs'
 
 import { init as initPatch } from './lang-patch.js'
 import { init as initMakefile } from './lang-makefile.js'
@@ -2287,18 +2287,18 @@ function init
   function getPath
   (label) {
     if (label === 'json')
-      return './lib/monaco/vs/language/json/json.worker.js'
+      return '../lib/monaco/vs/language/json/json.worker.js'
 
     if ([ 'css', 'scss', 'less' ].includes(label))
-      return './lib/monaco/vs/language/css/css.worker.js'
+      return '../lib/monaco/vs/language/css/css.worker.js'
 
     if ([ 'html', 'handlebars', 'razor' ].includes(label))
-      return './lib/monaco/vs/language/html/html.worker.js'
+      return '../lib/monaco/vs/language/html/html.worker.js'
 
     if ([ 'typescript', 'javascript' ].includes(label))
-      return './lib/monaco/vs/language/typescript/ts.worker.js'
+      return '../lib/monaco/vs/language/typescript/ts.worker.js'
 
-    return './lib/monaco/vs/editor/editor.worker.js'
+    return '../lib/monaco/vs/editor/editor.worker.js'
   }
 
   // these two from ace

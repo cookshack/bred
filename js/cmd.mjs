@@ -3,7 +3,7 @@ import * as Hist from './hist.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 
-import getCurrentLine from './lib/get-current-line.js'
+import getCurrentLine from '../lib/get-current-line.js'
 
 let cmds, $universal, $last, lastFlags, flaggedDuringCmd
 

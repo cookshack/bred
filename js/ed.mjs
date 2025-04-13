@@ -18,8 +18,8 @@ import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
-import { wordChars } from './lib/unicode.mjs'
-import escapeStringRegexp from './lib/escape-string-regexp.js'
+import { wordChars } from '../lib/unicode.mjs'
+import escapeStringRegexp from '../lib/escape-string-regexp.js'
 
 import { mbe } from './json.mjs'
 

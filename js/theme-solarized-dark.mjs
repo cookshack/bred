@@ -1,5 +1,5 @@
 import * as Theme from './theme-solarized.js'
-import * as Blend from './lib/color-blend.js'
+import * as Blend from '../lib/color-blend.js'
 //import { d } from './mess.mjs'
 
 let theme, clrs, meanings, filterMeanings, rgb, bg, bgRgb, fill, text, textRgb

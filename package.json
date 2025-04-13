@@ -9,7 +9,7 @@
     "start": "electron .",
     "inspect": "electron --inspect=5656 .",
     "mime": "./bin/generate-mime-by-ext",
-    "check": "./node_modules/@cookshack/build/bin/check *.mjs js/*.mjs js/*.js ext/*/*.mjs",
+    "check": "./node_modules/@cookshack/build/bin/check js/*.mjs js/*.js ext/*/*.mjs",
     "format": "NODE_OPTIONS=--disable-warning=ExperimentalWarning npx eslint --no-warn-ignored --fix -f ./eslint-formatter.mjs *.mjs *.js ext/*/*.mjs",
     "prepare": "husky",
     "postinstall": "make prep"

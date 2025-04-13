@@ -1,6 +1,10 @@
 import * as Loc from './loc.mjs'
-import { importCss } from '../json.mjs'
 import { d } from './mess.mjs'
+
+function importCss
+(file) {
+  return import(file, { with: { type: 'css' } })
+}
 
 export
 function initCss1

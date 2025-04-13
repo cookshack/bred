@@ -16,10 +16,10 @@ import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Scroll from './scroll.mjs'
-import { Vace } from '../json.mjs'
-import { Vode } from '../json.mjs'
-import { Vonaco } from '../json.mjs'
-import { Vqlite } from '../json.mjs'
+import Vace from '../lib/ace/version.json' with { type: 'json' }
+import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
+import Vqlite from '../lib/sqlite.json' with { type: 'json' }
+import Vonaco from '../lib/monaco/version.json' with { type: 'json' }
 import * as Win from './win.mjs'
 
 import * as Welcome from './welcome.mjs'

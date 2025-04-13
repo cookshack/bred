@@ -21,7 +21,7 @@ prep: version-sqlite fix-others fix-ace fix-monaco fix-codemirror prep-mime
 
 prep-mime:
 	rm -f lib/mime.json
-	echo \{\} > lib/mime-by-ext.json # must exist for json.mjs
+	echo \{\} > lib/mime-by-ext.json
 	cp -r node_modules/mime-db/db.json lib/mime.json
 	npm run mime
 

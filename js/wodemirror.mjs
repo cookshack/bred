@@ -40,7 +40,7 @@ import { v4 as uuidv4 } from '../lib/uuid/index.js'
 import { colorPicker } from '../lib/@replit/codemirror-css-color-picker.js'
 import * as LZHighlight from '../lib/@lezer/highlight.js'
 import * as Wrap from '../lib/fast-word-wrap.js'
-import { Vode } from '../json.mjs'
+import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 
 export let langs, themeExtension, themeExtensionPart, Theme
 

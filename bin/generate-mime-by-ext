@@ -3,9 +3,13 @@
 import Fs from 'node:fs'
 import Path from 'node:path'
 import Url from 'node:url'
-import { importJson } from '../json.mjs'
 
 let dirname
+
+function importJson
+(file) {
+  return import(file, { with: { type: 'json' } })
+}
 
 dirname = Path.dirname(Url.fileURLToPath(import.meta.url))
 

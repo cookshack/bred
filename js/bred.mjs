@@ -1574,7 +1574,7 @@ function initBrowse
 
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
-    preload = 'file://' + Loc.appDir().join('preload-web.js')
+    preload = 'file://' + Loc.appDir().join('js/preload-web.js')
     d({ preload })
     wv = Dom.create('webview', [], '',
                     { src: 'https://en.wikipedia.org/wiki/Edvard_Munch',

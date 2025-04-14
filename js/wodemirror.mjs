@@ -1549,9 +1549,13 @@ function seize
 (b, mode) {
   d('ed seizing ' + b.name + ' for ' + mode.name)
   b.views.forEach(v => {
+    let effects, exts
+
     // remove old mode specific extensions, add new ones
     v.wode.brextsMode = v.buf.mode.brexts
-    v.ed.dispatch({ effects: v.wode.comp.extsMode.reconfigure(makeExtsMode(v)) })
+    exts = makeExtsMode(v)
+    effects = v.wode.comp.extsMode.reconfigure(exts)
+    v.ed.dispatch({ effects: effects })
 
     if (v.ed && (v.win == Win.current()))
       decorate(v, b.mode)
@@ -4301,7 +4305,11 @@ function initPatchExt
 
         buf = update.view.bred?.view?.buf
         if (buf)
-          if (update.docChanged)
+          if (update.docChanged) {
+            // clear decor else decor will be out of sync with doc (Patch.refine is async, so update happens later)
+            update.view.dispatch({
+              effects: decorEffect.of(decorateRefines(update.view))
+            })
             Patch.refine(update.view.state.doc.toString(),
                          refines => {
                            buf.vars(patchModeName()).refines = refines
@@ -4309,6 +4317,7 @@ function initPatchExt
                              effects: decorEffect.of(decorateRefines(update.view, refines))
                            })
                          })
+          }
           else
             update.view.dispatch({
               effects: decorEffect.of(decorateRefines(update.view,

@@ -128,11 +128,18 @@ function initBrowse
     return divCl('browse-ww', divCl('browse-w bred-surface'))
   }
 
+  function remove
+  (buf) {
+    d('remove')
+    d(buf)
+  }
+
   Cmd.add('browse', () => {
     let p, buf
 
     p = Pane.current()
     buf = Buf.add('Browse', 'Browse', divW(), p.dir)
+    buf.onRemove(remove)
     p.setBuf(buf)
   })
 

@@ -127,18 +127,27 @@ function push
       return t
 
     if (typeof ex == 'object') {
-      let s
+      let s, i
 
       s = '{'
-      Object.entries(ex).forEach((kv,i) => {
-        let t
+      i = 0
+      for (let key of Object.keys(ex)) {
+        let t, val
 
         if (i > 0)
           s += ','
-        s += ' ' + kv[0] + ': '
-        t = simple(kv[1])
-        s += (t || ('<' + typeof kv[1] + '>'))
-      })
+        s += ' ' + key + ': '
+        try {
+          val = ex[key]
+          t = simple()
+        }
+        catch {
+          val = '??'
+          t = '??'
+        }
+        s += (t || ('<' + typeof val + '>'))
+        i++
+      }
       s += ' }'
       return s
     }

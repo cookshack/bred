@@ -9,6 +9,18 @@ function onBrowse
 
   view = new WebContentsView()
   win = BrowserWindow.fromWebContents(e.sender)
+  view.webContents.on('before-input-event', (event, input) => {
+    // send event to parent
+    win.webContents.sendInputEvent({ type: input.type == 'keyDown' ? 'keyDown' : 'keyUp',
+                                     keyCode: input.key,
+                                     modifiers: input.modifiers,
+                                     code: input.code,
+                                     isAutoRepeat: input.isAutoRepeat || false,
+                                     text: input.text,
+                                     unmodifiedText: input.unmodifiedText })
+    // prevent webpage from getting event
+    event.preventDefault()
+  })
   view.webContents.on('context-menu', () => {
     d('context-menu')
     //win.webContents.sendInputEvent({ type: 'contextMenu', x: 0, y: 0 })

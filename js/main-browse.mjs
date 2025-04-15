@@ -72,9 +72,14 @@ function onClose
   view = views[id]
   win = BrowserWindow.fromWebContents(e.sender)
   if (view) {
+    let focus
+
+    focus = view.webContents.isFocused()
     win.contentView.removeChildView(view)
     view.webContents.destroy()
     views[id] = 0
+    e.sender.send(ch, { wasFocused: focus })
+    return
   }
 
   e.sender.send(ch, {})

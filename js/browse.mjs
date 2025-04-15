@@ -103,13 +103,17 @@ function initBrowse
     view.onClose(() => {
       d('view.onClose')
       d(id)
+
       Tron.cmd('browse.close',
                [ id ],
-               err => {
+               (err, data) => {
                  if (err) {
                    Mess.warn('Err closing: ' + err.message)
                    return
                  }
+                 d('wasF: ' + data.wasFocused)
+                 if (data.wasFocused)
+                   view.ele?.focus()
                })
     })
 

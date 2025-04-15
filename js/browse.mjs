@@ -10,8 +10,7 @@ import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
-export
-function init
+function initWeb
 () {
   let mo
 
@@ -63,7 +62,10 @@ function init
     b.addMode('view')
     p.setBuf(b)
   })
+}
 
+function initBrowse
+() {
   Cmd.add('browse', () => {
     let p, r
 
@@ -115,4 +117,11 @@ function init
                d({ obs })
              })
   })
+}
+
+export
+function init
+() {
+  initWeb()
+  initBrowse()
 }

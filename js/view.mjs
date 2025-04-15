@@ -19,7 +19,7 @@ function make
         lineNum,
         whenReady } // called when file loaded (FIX also ready1)
     = spec
-  let v, active, ready, point, modeVars
+  let v, active, ready, point, modeVars, onCloses
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
   let reserved, win, existing
@@ -49,6 +49,7 @@ function make
   function close
   () {
     d('VIEW closing ' + vid)
+    onCloses.forEach(cb => cb())
     ready = 0
     active = 0
     if (ele) {
@@ -327,6 +328,7 @@ function make
     return v
   }
   modeVars = []
+  onCloses = []
   active = 1
 
   point = Point.make(ele, elePoint)
@@ -424,6 +426,7 @@ function make
         lineNext,
         linePrev,
         insert,
+        onClose: cb => onCloses.push(cb),
         reconfHead,
         reopen,
         close,

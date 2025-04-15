@@ -255,6 +255,9 @@ async function onCmd
   if (name == 'browse')
     return wrapOn(e, ch, args, Browse.onBrowse)
 
+  if (name == 'browse.close')
+    return wrapOn(e, ch, args, Browse.onClose)
+
   if (name == 'dir.get')
     return wrapOn(e, ch, args, Dir.onGet)
 
@@ -820,6 +823,7 @@ async function whenReady
   else
     d('logging to stdout')
 
+  Browse.init()
   Project.init()
 
   Menu.setApplicationMenu(null) // Apparently good for performance

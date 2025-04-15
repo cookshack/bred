@@ -68,9 +68,9 @@ function initBrowse
 () {
   let mo
 
-  function refresh
+  function viewInit
   (view) {
-    let r
+    let r, id
 
     function resize
     (ch) { //(ch, roes) {
@@ -100,6 +100,19 @@ function initBrowse
                   Math.floor(r2.height))
     }
 
+    view.onClose(() => {
+      d('view.onClose')
+      d(id)
+      Tron.cmd('browse.close',
+               [ id ],
+               err => {
+                 if (err) {
+                   Mess.warn('Err closing: ' + err.message)
+                   return
+                 }
+               })
+    })
+
     view.ele.firstElementChild.firstElementChild.innerHTML = ''
 
     r = view.ele.getBoundingClientRect()
@@ -114,12 +127,13 @@ function initBrowse
                let obs
 
                if (err) {
-                 Mess.warn('Err browsing: ', err.message)
+                 Mess.warn('Err browsing: ' + err.message)
                  return
                }
                Mess.say('brow')
                obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.ele)
                d({ obs })
+               id = data.id
              })
   }
 
@@ -143,7 +157,7 @@ function initBrowse
     p.setBuf(buf)
   })
 
-  mo = Mode.add('Browse', { viewInitSpec: refresh })
+  mo = Mode.add('Browse', { viewInitSpec: viewInit })
   d(mo)
 }
 

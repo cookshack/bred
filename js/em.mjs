@@ -74,7 +74,7 @@ function make
             to = kb.to
           }
           else if (kb && kb.to) {
-            Mess.warn(0, 'Control bound to cmd')
+            Mess.warn('Control bound to cmd')
             return 0
           }
           else
@@ -89,7 +89,7 @@ function make
             to = kb.to
           }
           else if (kb && kb.to) {
-            Mess.warn(0, 'Alt bound to cmd')
+            Mess.warn('Alt bound to cmd')
             return 0
           }
           else

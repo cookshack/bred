@@ -1,16 +1,20 @@
 import { BrowserWindow, ipcMain, WebContentsView } from 'electron'
 import { d } from './main-log.mjs'
 
+let views
+
 export
 function onBrowse
 (e, ch, onArgs) {
   const [ x, y, width, height, page ] = onArgs
-  let view, win
+  let view, win, id
 
   view = new WebContentsView()
+  id = views.length
+  views[id] = view
   win = BrowserWindow.fromWebContents(e.sender)
   view.webContents.on('before-input-event', (event, input) => {
-    // send event to parent
+    // send event to the window's webContents
     win.webContents.sendInputEvent({ type: input.type == 'keyDown' ? 'keyDown' : 'keyUp',
                                      keyCode: input.key,
                                      modifiers: input.modifiers,
@@ -54,5 +58,30 @@ function onBrowse
     view.setBounds({ x: x, y: y, width: width, height: height })
   })
 
+  e.sender.send(ch, { id: id })
+}
+
+export
+function onClose
+(e, ch, onArgs) {
+  const [ id ] = onArgs
+  let view, win
+
+  d('BROWSE close ' + id)
+
+  view = views[id]
+  win = BrowserWindow.fromWebContents(e.sender)
+  if (view) {
+    win.contentView.removeChildView(view)
+    view.webContents.destroy()
+    views[id] = 0
+  }
+
   e.sender.send(ch, {})
+}
+
+export
+function init
+() {
+  views = []
 }

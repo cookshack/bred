@@ -252,8 +252,8 @@ async function onCmd
   if (name == 'profile.set')
     return Profile.onSet(e, args[0], args[1], args[2])
 
-  if (name == 'browse')
-    return wrapOn(e, ch, args, Browse.onBrowse)
+  if (name == 'browse.open')
+    return wrapOn(e, ch, args, Browse.onOpen)
 
   if (name == 'browse.close')
     return wrapOn(e, ch, args, Browse.onClose)

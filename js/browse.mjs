@@ -117,7 +117,7 @@ function initBrowse
 
     r = view.ele.getBoundingClientRect()
 
-    Tron.cmd('browse',
+    Tron.cmd('browse.open',
              [ Math.floor(r.x),
                Math.floor(r.y),
                Math.floor(r.width),

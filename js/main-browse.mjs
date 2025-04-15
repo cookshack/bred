@@ -4,7 +4,7 @@ import { d } from './main-log.mjs'
 let views
 
 export
-function onBrowse
+function onOpen
 (e, ch, onArgs) {
   const [ x, y, width, height, page ] = onArgs
   let view, win, id

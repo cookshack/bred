@@ -384,6 +384,7 @@ function make
       name = old + '<' + suffix++ + '>'
   }
 
+  modeName = modeName || 'div'
   modeVars = spec.vars || {}
   views = []
   vid = 1

@@ -1280,16 +1280,6 @@ function initBindings
   Em.on('click.aux', 'click aux')
   Em.on('context', 'context menu')
 
-  Em.on('Enter', 'select')
-  Em.on('ArrowUp', 'previous line')
-  Em.on('ArrowDown', 'next line')
-  Em.on('ArrowLeft', 'backward character')
-  Em.on('ArrowRight', 'forward character')
-  Em.on('Home', 'buffer start')
-  Em.on('End', 'buffer end')
-  Em.on('PageUp', 'scroll up')
-  Em.on('PageDown', 'scroll down')
-
   Em.on('C-+', 'zoom in')
   Em.on('C-=', 'zoom in')
   Em.on('C--', 'zoom out')
@@ -1649,6 +1639,23 @@ function initFontSize
   globalThis.document.documentElement.style.fontSize = px + 'px'
 }
 
+function initDivMode
+() {
+  let mo
+
+  mo = Mode.add('Div', {})
+
+  Em.on('Enter', 'select', mo)
+  Em.on('ArrowUp', 'previous line', mo)
+  Em.on('ArrowDown', 'next line', mo)
+  Em.on('ArrowLeft', 'backward character', mo)
+  Em.on('ArrowRight', 'forward character', mo)
+  Em.on('Home', 'buffer start', mo)
+  Em.on('End', 'buffer end', mo)
+  Em.on('PageUp', 'scroll up', mo)
+  Em.on('PageDown', 'scroll down', mo)
+}
+
 function start1
 (data, start2) {
   let path
@@ -1707,6 +1714,7 @@ function start2
 
   d('start2 (backend is loaded)')
 
+  initDivMode()
   initCmds()
   initBindings()
   initDoc(devtools)

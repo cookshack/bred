@@ -17,6 +17,10 @@ function init
   Em.on('q', 'bury', mode)
   Em.on('Backspace', 'scroll up', mode)
   Em.on(' ', 'scroll down', mode)
+  Em.on('PageUp', 'scroll up', mode)
+  Em.on('PageDown', 'scroll down', mode)
+  Em.on('Home', 'buffer start', mode)
+  Em.on('End', 'buffer end', mode)
 
   Cmd.add('view mode', () => {
     let p

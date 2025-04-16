@@ -64,13 +64,29 @@ function initWeb
   })
 }
 
+function divW
+() {
+  return divCl('browse-ww', divCl('browse-w bred-surface'))
+}
+
+export
+function browse
+(url) {
+  let p, buf
+
+  p = Pane.current()
+  buf = Buf.add('Browse', 'Browse', divW(), p.dir,
+                { vars: { browse: { url: url } } })
+  p.setBuf(buf)
+}
+
 function initBrowse
 () {
   let mo
 
   function viewInit
   (view) {
-    let r, id
+    let r, id, url
 
     function resize
     (ch) { //(ch, roes) {
@@ -119,6 +135,8 @@ function initBrowse
 
     view.ele.firstElementChild.firstElementChild.innerHTML = ''
 
+    url = view.buf.vars('browse').url || Mess.toss('URL missing')
+
     r = view.ele.getBoundingClientRect()
 
     Tron.cmd('browse.open',
@@ -126,7 +144,7 @@ function initBrowse
                Math.floor(r.y),
                Math.floor(r.width),
                Math.floor(r.height),
-               'https://w3c.github.io/uievents/tools/key-event-viewer.html' ],
+               url ],
              (err, data) => {
                let obs
 
@@ -134,23 +152,11 @@ function initBrowse
                  Mess.warn('browse.open: ' + err.message)
                  return
                }
-               Mess.say('brow')
                obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.ele)
                d({ obs })
                id = data.id
                view.vars('Browse').id = id
              })
-  }
-
-  function divW
-  () {
-    return divCl('browse-ww', divCl('browse-w bred-surface'))
-  }
-
-  function remove
-  (buf) {
-    d('remove')
-    d(buf)
   }
 
   function makeEventFromWe
@@ -224,8 +230,8 @@ function initBrowse
     let p, buf
 
     p = Pane.current()
-    buf = Buf.add('Browse', 'Browse', divW(), p.dir)
-    buf.onRemove(remove)
+    buf = Buf.add('Browse', 'Browse', divW(), p.dir,
+                  { vars: { browse: { url: 'https://w3c.github.io/uievents/tools/key-event-viewer.html' } } })
     p.setBuf(buf)
   })
 

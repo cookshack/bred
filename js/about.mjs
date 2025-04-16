@@ -2,12 +2,14 @@ import { append, div, divCl, span, img } from './dom.mjs'
 
 import * as Buf from './buf.mjs'
 import * as Bred from './bred.mjs'
+import * as Browse from './browse.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Exec from './exec.mjs'
 import * as Em from './em.mjs'
 import * as Ev from './ev.mjs'
+import * as Hist from './hist.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Man from './man.mjs'
@@ -15,6 +17,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
+import * as Prompt from './prompt.mjs'
 import * as Scroll from './scroll.mjs'
 import Vace from '../lib/ace/version.json' with { type: 'json' }
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
@@ -614,6 +617,29 @@ function initDescribeCmd
   Em.on('C-h c', 'describe command')
 }
 
+export
+function initDescribeWord
+() {
+  let hist
+
+  function run
+  (word) {
+    hist.add(word)
+    Browse.browse('https://en.wiktionary.org/wiki/' + word)
+  }
+
+  function describeWord
+  () {
+    Prompt.ask({ text: 'Describe word',
+                 hist: hist },
+               run)
+  }
+  hist = Hist.ensure('describe word')
+
+  Cmd.add('describe word', () => describeWord())
+  Em.on('C-h w', 'describe word')
+}
+
 function initLang
 () {
   let mo
@@ -965,6 +991,7 @@ function init
   initHelp()
   initDescribeCmd()
   initDescribeKey()
+  initDescribeWord()
   initLangs()
   Welcome.init()
   Man.init()

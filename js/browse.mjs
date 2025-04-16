@@ -220,7 +220,7 @@ function initBrowse
     }
   }
 
-  Cmd.add('browse', () => {
+  Cmd.add('test browse', () => {
     let p, buf
 
     p = Pane.current()
@@ -232,7 +232,7 @@ function initBrowse
   mo = Mode.add('Browse', { viewInitSpec: viewInit,
                             onEmEmpty(view, wes, updateMini) {
                               if (wes.length > 1)
-                                updateMini('!!')
+                                updateMini('¯\\_(ツ)_/¯')
                               else if (wes.length)
                                 pass(view, wes[0])
                               else

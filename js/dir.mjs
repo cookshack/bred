@@ -1515,6 +1515,7 @@ function init
   Em.on('^', 'up', 'Dir')
   Em.on('!', 'shell command on file', 'Dir')
   Em.on('+', 'make dir', 'Dir')
+  Em.on('Enter', 'select', 'Dir')
 
   Em.on('s b', 'show backups', 'Dir')
   Em.on('s h', 'show hidden', 'Dir')

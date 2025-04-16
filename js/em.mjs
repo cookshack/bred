@@ -305,13 +305,15 @@ function look
 
 export
 function handle
-(we, buf) {
-  let active, targetEm
+(we, view) {
+  let active, buf, targetEm
 
   function updateMini
   (name) {
     Mess.echoMore(name)
   }
+
+  buf = view?.buf
 
   if (we.mouse) {
     if (we.e?.button == 0) {
@@ -400,13 +402,21 @@ function handle
            reset()
          }
          else {
+           let onEmpty
+
            if (we.mouse) {
            }
            else if (we.e.ctrlKey && (we.e.key == 'g')) {
              Pane.cancel()
              return
            }
-           updateMini('¯\\_(ツ)_/¯')
+
+           onEmpty = buf?.mode?.onEmEmpty
+           if (onEmpty)
+             onEmpty(view, wes, updateMini)
+           else
+             updateMini('¯\\_(ツ)_/¯')
+
            reset()
          }
        })

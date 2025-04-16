@@ -108,7 +108,7 @@ function initBrowse
                [ id ],
                (err, data) => {
                  if (err) {
-                   Mess.warn('Err closing: ' + err.message)
+                   Mess.warn('browse.close: ' + err.message)
                    return
                  }
                  d('wasF: ' + data.wasFocused)
@@ -126,18 +126,19 @@ function initBrowse
                Math.floor(r.y),
                Math.floor(r.width),
                Math.floor(r.height),
-               'https://electronjs.org' ],
+               'https://w3c.github.io/uievents/tools/key-event-viewer.html' ],
              (err, data) => {
                let obs
 
                if (err) {
-                 Mess.warn('Err browsing: ' + err.message)
+                 Mess.warn('browse.open: ' + err.message)
                  return
                }
                Mess.say('brow')
                obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.ele)
                d({ obs })
                id = data.id
+               view.vars('Browse').id = id
              })
   }
 
@@ -152,6 +153,73 @@ function initBrowse
     d(buf)
   }
 
+  function makeEventFromWe
+  (we) {
+    let e
+
+    function makeModifiers
+    () {
+      let mods
+
+      mods = []
+      if (e.altKey)
+        mods.push('alt')
+      if (e.ctrlKey)
+        mods.push('ctrl')
+      if (e.metaKey)
+        mods.push('meta')
+      if (e.shiftKey)
+        mods.push('shift')
+
+      return mods
+    }
+
+    e = we.e
+    return { type: e.type == 'keydown' ? 'keyDown' : 'keyUp',
+             keyCode: e.key,
+             modifiers: makeModifiers(),
+             code: e.code,
+             //text: e.text,
+             //unmodifiedText: input.unmodifiedText
+             isAutoRepeat: e.repeat || false }
+  }
+
+  function pass
+  (view, we) {
+    let id, event
+
+    event = makeEventFromWe(we)
+    id = view.vars('browse').id ?? Mess.toss('Missing id')
+    Tron.cmd('browse.pass',
+             [ id, event ],
+             err => {
+               if (err) {
+                 Mess.warn('browse.pass down: ' + err.message)
+                 return
+               }
+             })
+    if (event.type == 'keyDown') {
+      event.type = 'char'
+      Tron.cmd('browse.pass',
+               [ id, event ],
+               err => {
+                 if (err) {
+                   Mess.warn('browse.pass char: ' + err.message)
+                   return
+                 }
+               })
+      event.type = 'keyUp'
+      Tron.cmd('browse.pass',
+               [ id, event ],
+               err => {
+                 if (err) {
+                   Mess.warn('browse.pass up: ' + err.message)
+                   return
+                 }
+               })
+    }
+  }
+
   Cmd.add('browse', () => {
     let p, buf
 
@@ -161,7 +229,15 @@ function initBrowse
     p.setBuf(buf)
   })
 
-  mo = Mode.add('Browse', { viewInitSpec: viewInit })
+  mo = Mode.add('Browse', { viewInitSpec: viewInit,
+                            onEmEmpty(view, wes, updateMini) {
+                              if (wes.length > 1)
+                                updateMini('!!')
+                              else if (wes.length)
+                                pass(view, wes[0])
+                              else
+                                updateMini('ERR')
+                            } })
   d(mo)
 }
 

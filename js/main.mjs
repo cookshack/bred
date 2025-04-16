@@ -258,6 +258,9 @@ async function onCmd
   if (name == 'browse.close')
     return wrapOn(e, ch, args, Browse.onClose)
 
+  if (name == 'browse.pass')
+    return wrapOn(e, ch, args, Browse.onPass)
+
   if (name == 'dir.get')
     return wrapOn(e, ch, args, Dir.onGet)
 

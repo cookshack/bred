@@ -542,17 +542,22 @@ function initQR
 
   function closeAndPassThrough
   (u, we) {
+    let view
+
     closeQr()
 
     if (we.mouse) {
       let target
 
       target = globalThis.document.elementFromPoint(we.e.clientX, we.e.clientY)
-      we.buf = Pane.holding(target)?.buf
+      view = Pane.holding(target)?.view
+      we.buf = view?.buf
     }
-    else
-      we.buf = Pane.current()?.buf
-    Em.handle(we, we.buf)
+    else {
+      view = Pane.current()?.view
+      we.buf = view?.buf
+    }
+    Em.handle(we, view)
   }
 
   moQr = Mode.add('QR', { hidePoint: 1,

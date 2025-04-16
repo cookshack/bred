@@ -76,6 +76,7 @@ function add
   m.hidePoint = spec.hidePoint
   m.icon = spec.icon
   m.mime = spec.mime
+  m.onEmEmpty = spec.onEmEmpty
   m.start = start
   m.stop = stop
   m.seize = spec.seize

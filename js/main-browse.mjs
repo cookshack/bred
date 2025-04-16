@@ -1,7 +1,20 @@
 import { BrowserWindow, ipcMain, WebContentsView } from 'electron'
+import * as U from './util.mjs'
+
 import { d } from './main-log.mjs'
 
 let views
+
+function makeEventFromInput
+(input) {
+  return { type: input.type == 'keyDown' ? 'keyDown' : 'keyUp',
+           keyCode: input.key,
+           modifiers: input.modifiers,
+           code: input.code,
+           text: input.text,
+           unmodifiedText: input.unmodifiedText,
+           isAutoRepeat: input.isAutoRepeat || false }
+}
 
 export
 function onOpen
@@ -13,38 +26,52 @@ function onOpen
   id = views.length
   views[id] = view
   win = BrowserWindow.fromWebContents(e.sender)
-  view.webContents.on('before-input-event', (event, input) => {
-    // send event to the window's webContents
-    win.webContents.sendInputEvent({ type: input.type == 'keyDown' ? 'keyDown' : 'keyUp',
-                                     keyCode: input.key,
-                                     modifiers: input.modifiers,
-                                     code: input.code,
-                                     isAutoRepeat: input.isAutoRepeat || false,
-                                     text: input.text,
-                                     unmodifiedText: input.unmodifiedText })
-    // prevent webpage from getting event
-    event.preventDefault()
+  view.webContents.on('before-input-event', (e, input) => {
+    if (1) {
+      let event
+
+      d('= before-input-event')
+
+      d(JSON.stringify(input))
+
+      // HACK flag from onPass
+      if (input.modifiers.includes('leftbuttondown')) {
+        d('PASS')
+        0 && U.arrRm1(input.modifiers, m => m == 'leftbuttondown')
+        return
+      }
+
+      event = makeEventFromInput(input)
+      d(JSON.stringify(event))
+
+      // send event to the window's webContents
+      win.webContents.sendInputEvent(event)
+
+      // prevent webpage from getting event
+      e.preventDefault()
+    }
   })
   view.webContents.on('context-menu', () => {
-    d('context-menu')
+    d('= context-menu')
     //win.webContents.sendInputEvent({ type: 'contextMenu', x: 0, y: 0 })
     win.webContents.sendInputEvent({ type: 'mouseDown', x: 0, y: 0, button: 'left', clickCount: 1 })
   })
   view.webContents.on('input-event', (event, input) => {
-    //d('input-event')
+    //d('= input-event')
     //d(input.type)
     if ((input.type == 'keyDown') || (input.type == 'rawKeyDown')) {
-      d(input.type)
-      d(e.key)
+      d('= input-event')
+      d(JSON.stringify(input))
     }
     if (input.type == 'mouseDown') {
-      d('mouseDown')
-      d(event.button)
-      d(JSON.stringify(event))
+      d('= input-event')
+      d(JSON.stringify(input))
     }
     if ((input.type == 'contextMenu')
-        || ((input.type == 'mouseDown') && (event.button == 2)))
+        || ((input.type == 'mouseDown') && (event.button == 2))) {
+      d('= input-event')
       d('context')
+    }
   })
   view.webContents.loadURL(page)
   win.contentView.addChildView(view)
@@ -79,6 +106,30 @@ function onClose
     view.webContents.destroy()
     views[id] = 0
     e.sender.send(ch, { wasFocused: focus })
+    return
+  }
+
+  e.sender.send(ch, {})
+}
+
+export
+function onPass
+(e, ch, onArgs) {
+  const [ id, event ] = onArgs
+  let view
+
+  d('BROWSE pass ' + id)
+
+  // HACK flag for before-input-event
+  event.modifiers.push('leftButtonDown')
+
+  d(JSON.stringify(event))
+
+  view = views[id]
+  if (view) {
+    // send event to the view's webContents
+    view.webContents.sendInputEvent(event)
+    e.sender.send(ch, {})
     return
   }
 

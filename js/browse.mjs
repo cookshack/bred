@@ -84,8 +84,34 @@ function initBrowse
 () {
   let mo
 
-  function viewInit
-  (view) {
+  function viewReopen
+  (view, lineNum, whenReady, cb) {
+    d('================== browse viewReopen')
+    if (view.ele && view.ed)
+      viewInitSpec(view,
+                   { lineNum: lineNum,
+                     whenReady: whenReady },
+                   cb)
+    else if (0)
+      // timeout so behaves like viewInit
+      setTimeout(() => {
+        view.ready = 1
+        if (cb)
+          cb(view)
+        if (whenReady)
+          whenReady(view)
+      })
+    else
+      // probably buf was switched out before init happened.
+      viewInitSpec(view,
+                   { lineNum: lineNum,
+                     whenReady: whenReady },
+                   cb)
+
+  }
+
+  function viewInitSpec
+  (view, spec, cb) {
     let r, id, url
 
     function resize
@@ -152,6 +178,9 @@ function initBrowse
                id = data.id
                view.vars('Browse').id = id
              })
+
+    if (cb)
+      cb(view)
   }
 
   function makeEventFromWe
@@ -209,7 +238,8 @@ function initBrowse
     p.setBuf(buf)
   })
 
-  mo = Mode.add('Browse', { viewInitSpec: viewInit,
+  mo = Mode.add('Browse', { viewInitSpec: viewInitSpec,
+                            viewReopen: viewReopen,
                             onEmEmpty(view, wes, updateMini) {
                               if (wes.length > 1)
                                 updateMini('¯\\_(ツ)_/¯')

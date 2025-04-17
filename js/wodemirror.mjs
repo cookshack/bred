@@ -1114,8 +1114,8 @@ export
 function viewReopen
 (view, lineNum, whenReady, cb) {
   d('================== viewReopen')
-  // timeout so behaves like viewInit
   if (view.ele && view.ed)
+    // timeout so behaves like viewInit
     setTimeout(() => {
       view.ready = 1
       //view.ed.resize()

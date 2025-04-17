@@ -63,10 +63,13 @@ function onOpen
       d('= input-event')
       d(JSON.stringify(input))
     }
+
     if (input.type == 'mouseDown') {
       d('= input-event')
       d(JSON.stringify(input))
+      e.sender.send(ch, { ev: 'focus' })
     }
+
     if ((input.type == 'contextMenu')
         || ((input.type == 'mouseDown') && (event.button == 2))) {
       d('= input-event')

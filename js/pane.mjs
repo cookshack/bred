@@ -34,13 +34,13 @@ function current
 
 export
 function focusView
-(view, skipEd) {
+(view, skipEd, skipEle) {
   let p
 
   Frame.find(frame => {
     p = frame.panes.find(p => p.view == view)
     if (p) {
-      p.focus(skipEd)
+      p.focus(skipEd, skipEle)
       return 1
     }
     return 0
@@ -146,7 +146,7 @@ function add
   }
 
   function focus
-  (skipEd) {
+  (skipEd, skipEle) {
     let curr
 
     frame.focus()
@@ -161,7 +161,8 @@ function add
     }
     Css.add(p.w, 'current')
 
-    p.ele.focus()
+    if (skipEle)
+      p.ele.focus()
 
     p.frame.tab.name = b?.name || 'Empty'
     p.frame.tab.icon = b?.icon

@@ -201,6 +201,12 @@ function relaunch
 
 async function onAcmd
 (e, name, args) {
+  if (name == 'browse.close')
+    return Browse.onClose(e, args)
+
+  if (name == 'browse.pass')
+    return Browse.onPass(e, args)
+
   if (name == 'peer.get')
     return Peer.onPeerGet(e, args)
 
@@ -240,6 +246,9 @@ async function onCmd
   else
     d(ch + ': ' + name) // + " on " + args)
 
+  if (name == 'browse.open')
+    return wrapOn(e, ch, args, Browse.onOpen)
+
   if (name == 'profile.get')
     return Profile.onGet(e, args[0], args[1])
 
@@ -251,15 +260,6 @@ async function onCmd
 
   if (name == 'profile.set')
     return Profile.onSet(e, args[0], args[1], args[2])
-
-  if (name == 'browse.open')
-    return wrapOn(e, ch, args, Browse.onOpen)
-
-  if (name == 'browse.close')
-    return wrapOn(e, ch, args, Browse.onClose)
-
-  if (name == 'browse.pass')
-    return wrapOn(e, ch, args, Browse.onPass)
 
   if (name == 'dir.get')
     return wrapOn(e, ch, args, Dir.onGet)

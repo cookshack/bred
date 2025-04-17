@@ -90,7 +90,7 @@ function onOpen
 
 export
 function onClose
-(e, ch, onArgs) {
+(e, onArgs) {
   const [ id ] = onArgs
   let view, win
 
@@ -105,16 +105,16 @@ function onClose
     win.contentView.removeChildView(view)
     view.webContents.destroy()
     views[id] = 0
-    e.sender.send(ch, { wasFocused: focus })
+    return { wasFocused: focus }
     return
   }
 
-  e.sender.send(ch, {})
+  return {}
 }
 
 export
 function onPass
-(e, ch, onArgs) {
+(e, onArgs) {
   const [ id, event ] = onArgs
   let view
 
@@ -129,11 +129,10 @@ function onPass
   if (view) {
     // send event to the view's webContents
     view.webContents.sendInputEvent(event)
-    e.sender.send(ch, {})
-    return
+    return {}
   }
 
-  e.sender.send(ch, {})
+  return {}
 }
 
 export

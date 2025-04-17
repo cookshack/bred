@@ -116,21 +116,16 @@ function initBrowse
                   Math.floor(r2.height))
     }
 
-    view.onClose(() => {
+    view.onClose(async () => {
+      let data
+
       d('view.onClose')
       d(id)
 
-      Tron.cmd('browse.close',
-               [ id ],
-               (err, data) => {
-                 if (err) {
-                   Mess.warn('browse.close: ' + err.message)
-                   return
-                 }
-                 d('wasF: ' + data.wasFocused)
-                 if (data.wasFocused)
-                   view.ele?.focus()
-               })
+      data = Tron.acmd('browse.close', [ id ])
+      d('wasF: ' + data.wasFocused)
+      if (data.wasFocused)
+        view.ele?.focus()
     })
 
     view.ele.firstElementChild.firstElementChild.innerHTML = ''
@@ -196,33 +191,12 @@ function initBrowse
 
     event = makeEventFromWe(we)
     id = view.vars('browse').id ?? Mess.toss('Missing id')
-    Tron.cmd('browse.pass',
-             [ id, event ],
-             err => {
-               if (err) {
-                 Mess.warn('browse.pass down: ' + err.message)
-                 return
-               }
-             })
+    Tron.acmd('browse.pass', [ id, event ])
     if (event.type == 'keyDown') {
       event.type = 'char'
-      Tron.cmd('browse.pass',
-               [ id, event ],
-               err => {
-                 if (err) {
-                   Mess.warn('browse.pass char: ' + err.message)
-                   return
-                 }
-               })
+      Tron.acmd('browse.pass', [ id, event ])
       event.type = 'keyUp'
-      Tron.cmd('browse.pass',
-               [ id, event ],
-               err => {
-                 if (err) {
-                   Mess.warn('browse.pass up: ' + err.message)
-                   return
-                 }
-               })
+      Tron.cmd('browse.pass', [ id, event ])
     }
   }
 

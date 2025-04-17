@@ -84,6 +84,16 @@ function initBrowse
 () {
   let mo
 
+  function viewCopy
+  (to, from, lineNum, whenReady, cb) {
+    d('================== browse viewCopy')
+    to.buf.vars('browse').url = from.buf.vars('browse')?.url
+    viewInitSpec(to,
+                 { lineNum: lineNum,
+                   whenReady: whenReady },
+                 cb)
+  }
+
   function viewReopen
   (view, lineNum, whenReady, cb) {
     d('================== browse viewReopen')
@@ -240,6 +250,7 @@ function initBrowse
 
   mo = Mode.add('Browse', { viewInitSpec: viewInitSpec,
                             viewReopen: viewReopen,
+                            viewCopy: viewCopy,
                             onEmEmpty(view, wes, updateMini) {
                               if (wes.length > 1)
                                 updateMini('¯\\_(ツ)_/¯')

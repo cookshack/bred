@@ -75,7 +75,7 @@ function browse
   let p, buf
 
   p = Pane.current()
-  buf = Buf.add('Browse', 'Browse', divW(), p.dir,
+  buf = Buf.add(url, 'Browse', divW(), p.dir,
                 { vars: { browse: { url: url } } })
   p.setBuf(buf)
 }
@@ -251,7 +251,7 @@ function initBrowse
     let p, buf
 
     p = Pane.current()
-    buf = Buf.add('Browse', 'Browse', divW(), p.dir,
+    buf = Buf.add('Test Browse', 'Browse', divW(), p.dir,
                   { vars: { browse: { url: 'https://w3c.github.io/uievents/tools/key-event-viewer.html' } } })
     p.setBuf(buf)
   })

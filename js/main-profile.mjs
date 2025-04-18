@@ -3,14 +3,14 @@ import Path from 'node:path'
 import Database from 'better-sqlite3'
 import Store from 'electron-store'
 
-let stores, profile, db, hist
+let stores, profile, hist
 
 import { d, log } from './main-log.mjs'
 
 export
 function initHist
 () {
-  let path
+  let path, db
 
   function add
   (href, type) {

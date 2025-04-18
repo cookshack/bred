@@ -26,8 +26,8 @@ function initHist
 
     // distinct hrefs with most recent access time
     st = db.prepare(`WITH ranked_table AS (SELECT *,
-                                         MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
-                                         FROM urls)
+                                           MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
+                                           FROM urls)
                    SELECT *
                    FROM ranked_table
                    WHERE id = first_occurrence_id

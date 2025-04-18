@@ -8,10 +8,11 @@
 }
 
 .browse-h {
-  margin-bottom: 0.5rem;
-  min-height: 1rem;
+  height: var(--height-ml);
+  min-height: var(--height-ml);
 
   display: flex;
+  align-items: center;
 }
 
 .browse-w {

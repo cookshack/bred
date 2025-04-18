@@ -28,10 +28,10 @@ function initHist
     st = db.prepare(`WITH ranked_table AS (SELECT *,
                                            MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
                                            FROM urls)
-                   SELECT *
-                   FROM ranked_table
-                   WHERE id = first_occurrence_id
-                   ORDER BY time DESC`)
+                     SELECT *
+                     FROM ranked_table
+                     WHERE id = first_occurrence_id
+                     ORDER BY time DESC`)
     return st.all()
   }
 

@@ -503,10 +503,10 @@ function init
         data.urls?.forEach(url => {
           append(frag,
                  divCl('query-sug',
-                       url.href,
+                       url.item.href,
                        { 'data-run': 'close demand',
                          'data-after': 'open link',
-                         'data-path': url.href }))
+                         'data-path': url.item.href }))
         })
         under.innerHTML = ''
         append(under, frag)

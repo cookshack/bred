@@ -1,6 +1,7 @@
 import Fs from 'node:fs'
 import Path from 'node:path'
 import Database from 'better-sqlite3'
+import Fuse from 'fuse.js'
 import Store from 'electron-store'
 
 let stores, profile, hist
@@ -20,6 +21,19 @@ function initHist
     db.prepare('INSERT INTO urls (href, time, type) VALUES (?, ?, ?)').run(href, Date.now(), type)
   }
 
+  function filter
+  (query) {
+    let st
+
+    st = db.prepare(`SELECT *
+                     FROM urls
+                     WHERE type = 'url'
+                     AND href LIKE ?
+                     ORDER BY id DESC
+                     LIMIT 10`)
+    return { urls: st.all('%' + query + '%') }
+  }
+
   function get
   () {
     let st
@@ -37,15 +51,16 @@ function initHist
 
   function suggest
   (query) {
-    let st
+    let fuse, rows
 
-    st = db.prepare(`SELECT *
-                     FROM urls
-                     WHERE type = 'url'
-                     AND href LIKE ?
-                     ORDER BY id DESC
-                     LIMIT 10`)
-    return { urls: st.all('%' + query + '%') }
+    rows = get(query)
+
+    fuse = new Fuse(rows,
+                    { keys: [ 'href' ],
+                      threshold: 0.6,
+                      distance: 100,
+                      limit: 10 })
+    return { urls: fuse.search(query) }
   }
 
   path = profile.dir + '/hist.db'
@@ -55,6 +70,7 @@ function initHist
 
   hist = { add,
            get,
+           filter,
            suggest }
 }
 

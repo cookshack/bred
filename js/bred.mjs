@@ -614,7 +614,7 @@ function initCmds
         return
       }
       // https://, mailto:// etc
-      shell()
+      shell(path)
     }
     else
       Mess.say('Target missing path')

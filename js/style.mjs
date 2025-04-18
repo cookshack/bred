@@ -24,6 +24,7 @@ function initCss
   let files, file
 
   files = [ 'bred.css',
+            'browse.css',
             'dir.css',
             'describe-cmd.css',
             'describe-key.css',

@@ -3,6 +3,7 @@ import { append, divCl } from './dom.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Dom from './dom.mjs'
+import * as Em from './em.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
@@ -66,7 +67,9 @@ function initWeb
 
 function divW
 () {
-  return divCl('browse-ww', divCl('browse-w bred-surface'))
+  return divCl('browse-ww',
+               [ divCl('browse-h', 'XXX'),
+                 divCl('browse-w bred-surface') ])
 }
 
 export
@@ -124,6 +127,11 @@ function initBrowse
   (view, spec, cb) {
     let r, id, url
 
+    function getSurfaceRect
+    () {
+      return view.ele?.firstElementChild?.firstElementChild?.nextElementSibling?.getBoundingClientRect()
+    }
+
     function resize
     (ch) { //(ch, roes) {
       let r2
@@ -136,7 +144,7 @@ function initBrowse
                     width: Math.floor(roe.contentRect.width),
                     height: Math.floor(roe.contentRect.height) }))
       */
-      r2 = view.ele?.getBoundingClientRect()
+      r2 = getSurfaceRect()
       if (r2)
         /* this way messed up values
         Tron.send(ch,
@@ -164,11 +172,11 @@ function initBrowse
         view.ele?.focus()
     })
 
-    view.ele.firstElementChild.firstElementChild.innerHTML = ''
+    //view.ele.firstElementChild.firstElementChild.innerHTML = ''
 
     url = view.buf.vars('browse').url || Mess.toss('URL missing')
 
-    r = view.ele.getBoundingClientRect()
+    r = getSurfaceRect()
 
     Tron.cmd('browse.open',
              [ Math.floor(r.x),
@@ -199,6 +207,16 @@ function initBrowse
 
     if (cb)
       cb(view)
+  }
+
+  function makeEventFromName
+  (name, code) {
+    return { keyCode: code,
+             modifiers: [],
+             code: name,
+             //text: e.text,
+             //unmodifiedText: input.unmodifiedText
+             isAutoRepeat: false }
   }
 
   function makeEventFromWe
@@ -247,6 +265,21 @@ function initBrowse
     }
   }
 
+  function key
+  (view, name, code) {
+    let id, event
+
+    event = makeEventFromName(name, code || name)
+    event.modifiers.push('leftButtonDown') // HACK to tell main to pass it through to page
+    id = view.vars('browse').id ?? Mess.toss('Missing id')
+    event.type = 'keyDown'
+    Tron.acmd('browse.pass', [ id, event ])
+    event.type = 'char'
+    Tron.acmd('browse.pass', [ id, event ])
+    event.type = 'keyUp'
+    Tron.cmd('browse.pass', [ id, event ])
+  }
+
   Cmd.add('test browse', () => {
     let p, buf
 
@@ -254,6 +287,22 @@ function initBrowse
     buf = Buf.add('Test Browse', 'Browse', divW(), p.dir,
                   { vars: { browse: { url: 'https://w3c.github.io/uievents/tools/key-event-viewer.html' } } })
     p.setBuf(buf)
+  })
+
+  Cmd.add('buffer end', () => {
+    key(Pane.current().view, 'End')
+  })
+
+  Cmd.add('buffer start', () => {
+    key(Pane.current().view, 'Home')
+  })
+
+  Cmd.add('scroll up', () => {
+    key(Pane.current().view, 'PageUp')
+  })
+
+  Cmd.add('scroll down', () => {
+    key(Pane.current().view, 'PageDown')
   })
 
   mo = Mode.add('Browse', { viewInitSpec: viewInitSpec,
@@ -268,6 +317,13 @@ function initBrowse
                                 updateMini('ERR')
                             } })
   d(mo)
+
+  Em.on('PageUp', 'scroll up', mo)
+  Em.on('PageDown', 'scroll down', mo)
+  Em.on('A-v', 'scroll up', mo)
+  Em.on('A->', 'buffer end', mo)
+  Em.on('A-<', 'buffer start', mo)
+  Em.on('C-v', 'scroll down', mo)
 }
 
 export

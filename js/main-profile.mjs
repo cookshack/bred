@@ -36,15 +36,16 @@ function initHist
   }
 
   function suggest
-  () {
+  (query) {
     let st
 
     st = db.prepare(`SELECT *
                      FROM urls
                      WHERE type = 'url'
+                     AND href LIKE ?
                      ORDER BY time DESC
                      LIMIT 10`)
-    return { urls: st.all() }
+    return { urls: st.all('%' + query + '%') }
   }
 
   path = profile.dir + '/hist.db'
@@ -73,8 +74,10 @@ function onHistGet
 
 export
 function onHistSuggest
-() {
-  return hist.suggest()
+(e, onArgs) {
+  let [ query ] = onArgs
+
+  return hist.suggest(query)
 }
 
 export

@@ -20,12 +20,28 @@ function initHist
     db.prepare('INSERT INTO urls (href, time, type) VALUES (?, ?, ?)').run(href, Date.now(), type)
   }
 
+  function get
+  () {
+    let st
+
+    // distinct hrefs with most recent access time
+    st = db.prepare(`WITH ranked_table AS (SELECT *,
+                                         MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
+                                         FROM urls)
+                   SELECT *
+                   FROM ranked_table
+                   WHERE id = first_occurrence_id
+                   ORDER BY time DESC`)
+    return st.all()
+  }
+
   path = profile.dir + '/hist.db'
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
   db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, href, type, time)').run()
 
-  hist = { add }
+  hist = { add,
+           get }
 }
 
 export
@@ -39,17 +55,7 @@ function onHistAdd
 export
 function onHistGet
 () {
-  let st
-
-  // distinct hrefs with most recent access time
-  st = db.prepare(`WITH ranked_table AS (SELECT *,
-                                         MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
-                                         FROM urls)
-                   SELECT *
-                   FROM ranked_table
-                   WHERE id = first_occurrence_id
-                   ORDER BY time DESC`)
-  return st.all()
+  return hist.get()
 }
 
 export

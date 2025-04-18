@@ -503,7 +503,9 @@ function init
         data.urls?.forEach(url => {
           append(frag, divCl('query-sug', url.href))
         })
+        under.innerHTML = ''
         append(under, frag)
+        Css.enable(under)
       })
   }
 

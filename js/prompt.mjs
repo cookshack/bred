@@ -119,8 +119,10 @@ function ask
 
   function refresh
   () {
-    under.innerHTML = ''
-    spec.suggest && spec.suggest(under, buf.text())
+    if (spec.suggest) {
+      Css.disable(under)
+      spec.suggest(under, buf.text())
+    }
   }
 
   function onChange

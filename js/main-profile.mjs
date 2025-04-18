@@ -3,7 +3,7 @@ import Path from 'node:path'
 import Database from 'better-sqlite3'
 import Store from 'electron-store'
 
-let stores, profile, db
+let stores, profile, db, hist
 
 import { d, log } from './main-log.mjs'
 
@@ -12,10 +12,20 @@ function initHist
 () {
   let path
 
+  function add
+  (href, type) {
+    d('PROFILE.HIST add ' + href + ' ' + type)
+    if (href.startsWith('/'))
+      href = 'file://' + href
+    db.prepare('INSERT INTO urls (href, time, type) VALUES (?, ?, ?)').run(href, Date.now(), type)
+  }
+
   path = profile.dir + '/hist.db'
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
   db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, href, type, time)').run()
+
+  hist = { add }
 }
 
 export
@@ -23,10 +33,7 @@ function onHistAdd
 (e, onArgs) {
   let [ href, type ] = onArgs
 
-  d('PROFILE.HIST add ' + href + ' ' + type)
-  if (href.startsWith('/'))
-    href = 'file://' + href
-  db.prepare('INSERT INTO urls (href, time, type) VALUES (?, ?, ?)').run(href, Date.now(), type)
+  hist.add(href, type)
 }
 
 export
@@ -132,4 +139,4 @@ function init
   initHist()
 }
 
-export { stores }
+export { hist, stores }

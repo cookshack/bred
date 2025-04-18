@@ -1,4 +1,5 @@
 import { BrowserWindow, ipcMain, WebContentsView } from 'electron'
+import * as Profile from './main-profile.mjs'
 import * as U from './util.mjs'
 
 import { d } from './main-log.mjs'
@@ -77,6 +78,7 @@ function onOpen
     }
   })
   view.webContents.loadURL(page)
+  Profile.hist.add(page, 'url')
   win.contentView.addChildView(view)
   view.setBounds({ x: x, y: y, width: width, height: height }) // safeDialogs, autoplayPolicy, navigateOnDragDrop, spellcheck
   view.setBackgroundColor('white')

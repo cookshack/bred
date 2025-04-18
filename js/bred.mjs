@@ -613,6 +613,14 @@ function initCmds
         Pane.open(path, we.e.target.dataset.line)
         return
       }
+
+      // http
+      if (path.startsWith('http://')
+          || path.startsWith('https://')) {
+        Browse.browse(path)
+        return
+      }
+
       // https://, mailto:// etc
       shell(path)
     }

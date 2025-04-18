@@ -233,6 +233,7 @@ function init
       })
     }
 
+    Tron.acmd('profile.hist.add', [ query, { type: 'search' } ])
     fetch('https://www.googleapis.com/customsearch/v1'
           + '?cx=' + Opt.get('query.google.cx')
           + '&key=' + Opt.get('query.google.key')

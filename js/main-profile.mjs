@@ -21,6 +21,8 @@ function initHist
     spec.type = spec.type || 'url'
     if (href.startsWith('/'))
       href = 'file://' + href
+    if (spec.type == 'search')
+      href = 'search://' + href
     db.prepare('INSERT INTO urls (type, href, title, time) VALUES (?, ?, ?, ?)').run(spec.type, href, spec.title, Date.now())
   }
 

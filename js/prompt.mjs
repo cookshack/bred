@@ -113,11 +113,29 @@ function close
 
 export
 function ask
-(spec, // { hist, text, onReady, under, w }
+(spec, // { hist, text, onReady, suggest, under, w }
  cb) { // (text)
-  let win, p, buf, area, tab, ml
+  let win, p, buf, area, tab, ml, under
+
+  function refresh
+  () {
+    under.innerHTML = ''
+    spec.suggest && spec.suggest(under)
+  }
+
+  function onChange
+  () {
+    refresh()
+  }
 
   spec = spec || {}
+
+  if (spec.under && spec.suggest)
+    Mess.toss('under and suggest both given')
+
+  if (spec.suggest)
+    spec.under = divCl('bred-prompt-under')
+
   spec.w = spec.w || Ed.divW(0, 0, { extraWWCss: 'bred-prompt-buf-ww',
                                      extraCo: spec.under })
   win = Win.current()
@@ -150,12 +168,18 @@ function ask
   buf.vars('prompt').orig = p.buf
   spec.hist?.reset()
   buf.vars('prompt').hist = spec.hist
+  buf.off('change', onChange)
   tab.frame.pane.setBuf(buf,
                         {},
-                        () => {
+                        view => {
                           area.show()
                           tab.frame.pane.focus()
                           spec.onReady && spec.onReady(tab.frame.pane)
+                          if (spec.suggest) {
+                            under = view.ele.querySelector('.bred-prompt-under') || Mess.toss('under missing')
+                            refresh()
+                            buf.on('change', onChange)
+                          }
                         })
   return p
 }

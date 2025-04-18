@@ -490,6 +490,13 @@ function init
                })
   }
 
+  function suggest
+  (query) {
+    d('suggest')
+    d({ query })
+    // bred-prompt-under
+  }
+
   Cmd.add('chat', (u, we, model) => {
     model = model || Opt.get('query.model')
     Prompt.ask({ text: emo + ' ' + model,
@@ -571,7 +578,8 @@ function init
   Cmd.add('go', (u, we) => {
     Prompt.ask({ text: 'Go',
                  placeholder: we?.e.target.dataset.url,
-                 hist: hist },
+                 hist,
+                 suggest },
                query => {
                  let p, buf
 

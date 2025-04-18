@@ -707,6 +707,7 @@ function init
   Cmd.add('refresh', () => refresh(Pane.current().view), mo)
 
   Em.on('g', 'refresh', mo)
+  Em.on('Enter', 'select', mo)
 }
 
 // was inside buf, but then runs in globalThis of buf

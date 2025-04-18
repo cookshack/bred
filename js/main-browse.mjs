@@ -108,8 +108,11 @@ function onClose
     win.contentView.removeChildView(view)
     view.webContents.destroy()
     views[id] = 0
+    if (focus) {
+      win.focus()
+      win.webContents.focus()
+    }
     return { wasFocused: focus }
-    return
   }
 
   return {}

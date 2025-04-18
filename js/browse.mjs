@@ -9,6 +9,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
 function initWeb
@@ -323,6 +324,26 @@ function initBrowse
   Em.on('A->', 'buffer end', mo)
   Em.on('A-<', 'buffer start', mo)
   Em.on('C-v', 'scroll down', mo)
+
+  Cmd.add('browse url at point', () => {
+    let p, l, pos, url
+
+    p = Pane.current()
+    l = p.line()
+    pos = p.pos()
+    pos = pos.col
+    url = U.urlAt(l, pos)
+    if (url?.protocol == 'file:')
+      Pane.open(url.pathname)
+    else if ((url?.protocol == 'http:')
+             || (url?.protocol == 'https:'))
+      browse(url.href)
+    else if (url)
+      Tron.cmd('shell.open', [ url.href ], err => err && Mess.yell('shell.open: ' + err.message))
+    else
+      Mess.say('Point must be over an URL')
+  })
+
 }
 
 export

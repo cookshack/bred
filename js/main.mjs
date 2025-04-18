@@ -224,6 +224,9 @@ async function onAcmd
 
   if (name == 'profile.hist.get')
     return Profile.onHistGet(e, args)
+
+  if (name == 'profile.hist.suggest')
+    return Profile.onHistSuggest(e, args)
 }
 
 let onCmdCount

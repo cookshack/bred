@@ -13,6 +13,7 @@ import * as Opt from '../../js/opt.mjs'
 import * as Pane from '../../js/pane.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import * as Shell from '../../js/shell.mjs'
+import * as Tron from '../../js/tron.mjs'
 import { d } from '../../js/mess.mjs'
 
 import Ollama from './lib/ollama.js'
@@ -491,10 +492,19 @@ function init
   }
 
   function suggest
-  (query) {
+  (under, query) {
     d('suggest')
     d({ query })
-    // bred-prompt-under
+    Tron.acmd('profile.hist.suggest', [ query ])
+      .then(data => {
+        let frag
+
+        frag = new globalThis.DocumentFragment()
+        data.urls?.forEach(url => {
+          append(frag, divCl('query-sug', url.href))
+        })
+        append(under, frag)
+      })
   }
 
   Cmd.add('chat', (u, we, model) => {

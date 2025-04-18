@@ -35,13 +35,26 @@ function initHist
     return st.all()
   }
 
+  function suggest
+  () {
+    let st
+
+    st = db.prepare(`SELECT *
+                     FROM urls
+                     WHERE type = 'url'
+                     ORDER BY time DESC
+                     LIMIT 10`)
+    return { urls: st.all() }
+  }
+
   path = profile.dir + '/hist.db'
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
   db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, href, type, time)').run()
 
   hist = { add,
-           get }
+           get,
+           suggest }
 }
 
 export
@@ -56,6 +69,12 @@ export
 function onHistGet
 () {
   return hist.get()
+}
+
+export
+function onHistSuggest
+() {
+  return hist.suggest()
 }
 
 export

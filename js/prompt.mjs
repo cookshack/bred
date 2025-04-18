@@ -120,7 +120,7 @@ function ask
   function refresh
   () {
     under.innerHTML = ''
-    spec.suggest && spec.suggest(under)
+    spec.suggest && spec.suggest(under, buf.text())
   }
 
   function onChange

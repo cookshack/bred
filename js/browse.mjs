@@ -66,9 +66,9 @@ function initWeb
 }
 
 function divW
-() {
+(url) {
   return divCl('browse-ww',
-               [ divCl('browse-h', 'XXX'),
+               [ divCl('browse-h', url),
                  divCl('browse-w bred-surface') ])
 }
 
@@ -78,7 +78,7 @@ function browse
   let p, buf
 
   p = Pane.current()
-  buf = Buf.add(url, 'Browse', divW(), p.dir,
+  buf = Buf.add(url, 'Browse', divW(url), p.dir,
                 { vars: { browse: { url: url } } })
   p.setBuf(buf)
 }
@@ -281,12 +281,7 @@ function initBrowse
   }
 
   Cmd.add('test browse', () => {
-    let p, buf
-
-    p = Pane.current()
-    buf = Buf.add('Test Browse', 'Browse', divW(), p.dir,
-                  { vars: { browse: { url: 'https://w3c.github.io/uievents/tools/key-event-viewer.html' } } })
-    p.setBuf(buf)
+    browse('https://w3c.github.io/uievents/tools/key-event-viewer.html')
   })
 
   Cmd.add('buffer end', () => {

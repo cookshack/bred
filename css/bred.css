@@ -1416,6 +1416,10 @@ div.bred-open-under-f {
   color: var(--clr-nb0);
 }
 
+.bred-prompt-under {
+  margin-top: 0.5rem;
+}
+
 .bred-overlay-w {
   pointer-events: none;
   position: absolute; /* for .bred-point */

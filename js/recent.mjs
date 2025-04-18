@@ -24,7 +24,7 @@ async function add
 
   if (mtype == 'inode/directory') {
     d('================ DIR')
-    Tron.acmd('profile.hist.add', [ path, mtype ])
+    Tron.acmd('profile.hist.add', [ path, 'dir' ])
     return
   }
 

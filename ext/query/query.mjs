@@ -620,6 +620,7 @@ function init
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
+  Em.on('Enter', 'select', mo)
 
   Em.on('C-x i', 'llm insert', 'ed')
 }

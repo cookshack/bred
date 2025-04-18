@@ -77,8 +77,12 @@ function onOpen
       d('context')
     }
   })
+  view.webContents.on('dom-ready', () => {
+    view.webContents.executeJavaScript('document.title').then(title => {
+      Profile.hist.add(page, { title })
+    })
+  })
   view.webContents.loadURL(page)
-  Profile.hist.add(page, 'url')
   win.contentView.addChildView(view)
   view.setBounds({ x: x, y: y, width: width, height: height }) // safeDialogs, autoplayPolicy, navigateOnDragDrop, spellcheck
   view.setBackgroundColor('white')

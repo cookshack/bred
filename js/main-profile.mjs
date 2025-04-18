@@ -14,11 +14,14 @@ function initHist
   let path, db
 
   function add
-  (href, type) {
-    d('PROFILE.HIST add ' + href + ' ' + type)
+  (href, spec) {
+    d('PROFILE.HIST add ' + href)
+    spec = spec || ''
+    spec.title = spec.title || ''
+    spec.type = spec.type || 'url'
     if (href.startsWith('/'))
       href = 'file://' + href
-    db.prepare('INSERT INTO urls (href, time, type) VALUES (?, ?, ?)').run(href, Date.now(), type)
+    db.prepare('INSERT INTO urls (type, href, title, time) VALUES (?, ?, ?, ?)').run(spec.type, href, spec.title, Date.now())
   }
 
   function filter
@@ -28,7 +31,7 @@ function initHist
     st = db.prepare(`SELECT *
                      FROM urls
                      WHERE type = 'url'
-                     AND href LIKE ?
+                     AND (href LIKE ? OR title LIKE ?)
                      ORDER BY id DESC
                      LIMIT 10`)
     return { urls: st.all('%' + query + '%') }
@@ -56,7 +59,7 @@ function initHist
     rows = get(query)
 
     fuse = new Fuse(rows,
-                    { keys: [ 'href' ],
+                    { keys: [ 'href', 'title' ],
                       threshold: 0.6,
                       distance: 100,
                       limit: 10 })
@@ -66,7 +69,7 @@ function initHist
   path = profile.dir + '/hist.db'
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
-  db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, href, type, time)').run()
+  db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, time)').run()
 
   hist = { add,
            get,
@@ -77,9 +80,9 @@ function initHist
 export
 function onHistAdd
 (e, onArgs) {
-  let [ href, type ] = onArgs
+  let [ href, spec ] = onArgs
 
-  hist.add(href, type)
+  hist.add(href, spec)
 }
 
 export

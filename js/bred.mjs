@@ -621,6 +621,17 @@ function initCmds
         return
       }
 
+      // search
+      if (path.startsWith('search://')) {
+        let query
+
+        query = Ext.get('query')
+        if (query) {
+          query.search(path.slice('search://'.length))
+          return
+        }
+      }
+
       // https://, mailto:// etc
       shell(path)
     }

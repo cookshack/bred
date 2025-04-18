@@ -20,6 +20,137 @@ import Ollama from './lib/ollama.js'
 
 let emo, premo
 
+function snippet
+(item) {
+  let split, date
+
+  split = item.snippet.split(' ', 3)
+  if (split && (split.length > 2) && /[0-9][0-9][0-9][0-9]/.test(split[2]))
+    date = split.join(' ')
+  if (date)
+    return [ divCl('query-item-date', date),
+             item.snippet.slice(date.length) ]
+  return item.snippet
+}
+
+function title
+(item) {
+  let favi
+
+  try {
+    let url
+
+    url = new URL(item.link)
+    favi = url.protocol + '//' + url.host + '/favicon.ico'
+  }
+  catch (err) {
+    Ed.use(err)
+  }
+
+  if (favi)
+    return [ divCl('query-item-icon',
+                   img(favi, 'Icon', '', { crossorigin: 'anonymous' })),
+             item.title ]
+  return item.title
+}
+
+function srch
+(dir, buf, query) {
+  function add
+  (buf, str) {
+    buf?.views.forEach(view => {
+      let l
+
+      l = view.ele.querySelector('.query-llm')
+      l.innerText = l.innerText + str
+    })
+  }
+
+  Tron.acmd('profile.hist.add', [ query, { type: 'search' } ])
+  fetch('https://www.googleapis.com/customsearch/v1'
+        + '?cx=' + Opt.get('query.google.cx')
+        + '&key=' + Opt.get('query.google.key')
+        + '&q=' + query,
+        { credentials: 'omit',
+          redirect: 'error' })
+    .then(response => {
+      response.ok || Mess.toss(response.statusText)
+      return response.json()
+    })
+    .then(data => {
+      d(data)
+
+      if (query.endsWith('?')) {
+        let que
+
+        add(buf, buf?.opt('query.model') + ' says:\n\n')
+
+        que = 'You are an expert. Based on the following search results, please provide a summary or answer to my question:\n\n'
+        que += 'Search Results:\n'
+
+        for (let i = 0; (i < 3) && (i < data.items.length); i++)
+          que += String(i + 1) + '. ' + data.items[i].title + ' (' + data.items[i].snippet + ')\n'
+        que += '\nQuestion:\n' + query + '\n'
+
+        d(que)
+
+        Shell.run(dir, 'llm', [ buf?.opt('query.model'), que ],
+                  { onStdout: str => add(buf, str),
+                    onStderr: str => add(buf, str) })
+      }
+
+      buf?.views.forEach(view => {
+        if (view.ele) {
+          let w
+
+          w = view.ele.querySelector('.query-w')
+          w.innerHTML = ''
+          append(w,
+                 data.items.map(item => divCl('query-item',
+                                              [ divCl('query-item-t',
+                                                      title(item),
+                                                      { 'data-run': 'open link',
+                                                        'data-path': item.link }),
+                                                divCl('query-item-url',
+                                                      item.formattedUrl),
+                                                divCl('query-item-snippet',
+                                                      snippet(item)) ])))
+        }
+      })
+    })
+    .catch(error => {
+      Mess.yell(error.message)
+    })
+}
+
+function url
+(query) {
+  return Opt.get('query.search.url.prefix') + globalThis.encodeURIComponent(query)
+}
+
+function divW
+(query) {
+  return divCl('query-ww',
+               [ divCl('query-h', 'Query: ' + query),
+                 divCl('query-links',
+                       divCl('query-link', 'Browser', { 'data-run': 'open externally',
+                                                        'data-url': url(query) })),
+                 divCl('query-llm'),
+                 divCl('query-w', 'Fetching...') ])
+}
+
+export
+function search
+(query, spec) { // { hist }
+  let p, buf
+
+  spec = spec || {}
+  p = Pane.current()
+  buf = Buf.add('Query', 'Query', divW(query), p.dir)
+  spec.hist?.add(query)
+  p.setBuf(buf, {}, () => srch(p.dir, buf, query))
+}
+
 export
 function init
 () {
@@ -119,22 +250,6 @@ function init
       })
   }
 
-  function url
-  (query) {
-    return Opt.get('query.search.url.prefix') + globalThis.encodeURIComponent(query)
-  }
-
-  function divW
-  (query) {
-    return divCl('query-ww',
-                 [ divCl('query-h', 'Query: ' + query),
-                   divCl('query-links',
-                         divCl('query-link', 'Browser', { 'data-run': 'open externally',
-                                                          'data-url': url(query) })),
-                   divCl('query-llm'),
-                   divCl('query-w', 'Fetching...') ])
-  }
-
   function refresh
   (view, spec, cb) {
     let w, co
@@ -185,109 +300,6 @@ function init
     }
     else
       first(v)
-  }
-
-  function snippet
-  (item) {
-    let split, date
-
-    split = item.snippet.split(' ', 3)
-    if (split && (split.length > 2) && /[0-9][0-9][0-9][0-9]/.test(split[2]))
-      date = split.join(' ')
-    if (date)
-      return [ divCl('query-item-date', date),
-               item.snippet.slice(date.length) ]
-    return item.snippet
-  }
-
-  function title
-  (item) {
-    let favi
-
-    try {
-      let url
-
-      url = new URL(item.link)
-      favi = url.protocol + '//' + url.host + '/favicon.ico'
-    }
-    catch (err) {
-      Ed.use(err)
-    }
-
-    if (favi)
-      return [ divCl('query-item-icon',
-                     img(favi, 'Icon', '', { crossorigin: 'anonymous' })),
-               item.title ]
-    return item.title
-  }
-
-  function search
-  (dir, buf, query) {
-    function add
-    (buf, str) {
-      buf?.views.forEach(view => {
-        let l
-
-        l = view.ele.querySelector('.query-llm')
-        l.innerText = l.innerText + str
-      })
-    }
-
-    Tron.acmd('profile.hist.add', [ query, { type: 'search' } ])
-    fetch('https://www.googleapis.com/customsearch/v1'
-          + '?cx=' + Opt.get('query.google.cx')
-          + '&key=' + Opt.get('query.google.key')
-          + '&q=' + query,
-          { credentials: 'omit',
-            redirect: 'error' })
-      .then(response => {
-        response.ok || Mess.toss(response.statusText)
-        return response.json()
-      })
-      .then(data => {
-        d(data)
-
-        if (query.endsWith('?')) {
-          let que
-
-          add(buf, buf?.opt('query.model') + ' says:\n\n')
-
-          que = 'You are an expert. Based on the following search results, please provide a summary or answer to my question:\n\n'
-          que += 'Search Results:\n'
-
-          for (let i = 0; (i < 3) && (i < data.items.length); i++)
-            que += String(i + 1) + '. ' + data.items[i].title + ' (' + data.items[i].snippet + ')\n'
-          que += '\nQuestion:\n' + query + '\n'
-
-          d(que)
-
-          Shell.run(dir, 'llm', [ buf?.opt('query.model'), que ],
-                    { onStdout: str => add(buf, str),
-                      onStderr: str => add(buf, str) })
-        }
-
-        buf?.views.forEach(view => {
-          if (view.ele) {
-            let w
-
-            w = view.ele.querySelector('.query-w')
-            w.innerHTML = ''
-            append(w,
-                   data.items.map(item => divCl('query-item',
-                                                [ divCl('query-item-t',
-                                                        title(item),
-                                                        { 'data-run': 'open link',
-                                                          'data-path': item.link }),
-                                                  divCl('query-item-url',
-                                                        item.formattedUrl),
-                                                  divCl('query-item-snippet',
-                                                        snippet(item)) ])))
-          }
-        })
-      })
-      .catch(error => {
-        Mess.yell(error.message)
-      })
   }
 
   function insert
@@ -599,19 +611,13 @@ function init
                  hist,
                  suggest },
                query => {
-                 let p, buf
-
                  query = query.trim()
                  if (query.startsWith('http://')
                      || query.startsWith('https://')) {
                    Browse.browse(query)
                    return
                  }
-
-                 p = Pane.current()
-                 buf = Buf.add('Go', 'Query', divW(query), p.dir)
-                 hist.add(query)
-                 p.setBuf(buf, {}, () => search(p.dir, buf, query))
+                 search(query, { hist })
                })
   })
 
@@ -619,13 +625,8 @@ function init
     Prompt.ask({ text: 'Query',
                  hist: hist },
                query => {
-                 let p, buf
-
-                 p = Pane.current()
                  query = query.trim()
-                 buf = Buf.add('Query', 'Query', divW(query), p.dir)
-                 hist.add(query)
-                 p.setBuf(buf, {}, () => search(p.dir, buf, query))
+                 search(query, { hist })
                })
   })
 

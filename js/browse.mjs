@@ -68,7 +68,11 @@ function initWeb
 function divW
 (url) {
   return divCl('browse-ww',
-               [ divCl('browse-h', url),
+               [ divCl('browse-h',
+                       divCl('browse-url',
+                             url,
+                             { 'data-run': 'go',
+                               'data-url' : url })),
                  divCl('browse-w bred-surface') ])
 }
 

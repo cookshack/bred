@@ -567,6 +567,21 @@ function init
                })
   })
 
+  Cmd.add('go', (u, we) => {
+    Prompt.ask({ text: 'Go',
+                 placeholder: we?.e.target.dataset.url,
+                 hist: hist },
+               query => {
+                 let p, buf
+
+                 p = Pane.current()
+                 query = query.trim()
+                 buf = Buf.add('Go', 'Query', divW(query), p.dir)
+                 hist.add(query)
+                 p.setBuf(buf, {}, () => search(p.dir, buf, query))
+               })
+  })
+
   Cmd.add('google', () => {
     Prompt.ask({ text: 'Query',
                  hist: hist },
@@ -628,6 +643,7 @@ function init
 export
 function free
 () {
+  Cmd.remove('go')
   Cmd.remove('google')
   Cmd.remove('llm')
   Mode.remove('Query')

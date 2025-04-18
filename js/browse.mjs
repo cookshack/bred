@@ -70,10 +70,15 @@ function divW
 (url) {
   return divCl('browse-ww',
                [ divCl('browse-h',
-                       divCl('browse-url',
-                             url,
-                             { 'data-run': 'go',
-                               'data-url' : url })),
+                       [ divCl('browse-url',
+                               url,
+                               { 'data-run': 'go',
+                                 'data-url' : url }),
+                         divCl('browse-browser',
+                               'Ext',
+                               { 'data-run': 'open externally',
+                                 'data-url' : url }),
+                         divCl('ml-close') ]),
                  divCl('browse-w bred-surface') ])
 }
 

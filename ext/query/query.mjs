@@ -1,6 +1,7 @@
 import { append, divCl, img } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
+import * as Browse from '../../js/browse.mjs'
 import * as Css from '../../js/css.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Ed from '../../js/ed.mjs'
@@ -574,8 +575,14 @@ function init
                query => {
                  let p, buf
 
-                 p = Pane.current()
                  query = query.trim()
+                 if (query.startsWith('http://')
+                     || query.startsWith('https://')) {
+                   Browse.browse(query)
+                   return
+                 }
+
+                 p = Pane.current()
                  buf = Buf.add('Go', 'Query', divW(query), p.dir)
                  hist.add(query)
                  p.setBuf(buf, {}, () => search(p.dir, buf, query))

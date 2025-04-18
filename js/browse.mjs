@@ -158,7 +158,7 @@ function initBrowse
       d('view.onClose')
       d(id)
 
-      data = Tron.acmd('browse.close', [ id ])
+      data = await Tron.acmd('browse.close', [ id ])
       d('wasF: ' + data.wasFocused)
       if (data.wasFocused)
         view.ele?.focus()

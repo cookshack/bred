@@ -43,7 +43,7 @@ function initHist
                      FROM urls
                      WHERE type = 'url'
                      AND href LIKE ?
-                     ORDER BY time DESC
+                     ORDER BY id DESC
                      LIMIT 10`)
     return { urls: st.all('%' + query + '%') }
   }

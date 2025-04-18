@@ -501,7 +501,12 @@ function init
 
         frag = new globalThis.DocumentFragment()
         data.urls?.forEach(url => {
-          append(frag, divCl('query-sug', url.href))
+          append(frag,
+                 divCl('query-sug',
+                       url.href,
+                       { 'data-run': 'close demand',
+                         'data-after': 'open link',
+                         'data-path': url.href }))
         })
         under.innerHTML = ''
         append(under, frag)

@@ -161,7 +161,9 @@ function add
     }
     Css.add(p.w, 'current')
 
-    if (skipEle)
+    if (skipEle) {
+    }
+    else
       p.ele.focus()
 
     p.frame.tab.name = b?.name || 'Empty'

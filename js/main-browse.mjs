@@ -25,7 +25,7 @@ function onOpen
 
   view = new WebContentsView()
   id = views.length
-  views[id] = view
+  views[id] = { view: view }
   win = BrowserWindow.fromWebContents(e.sender)
   view.webContents.on('before-input-event', (e, input) => {
     if (1) {
@@ -115,9 +115,9 @@ function onZoom
   view = views[id]
   if (view)
     if (inward)
-      view.webContents.zoomFactor += 0.1
+      view.view.webContents.zoomFactor += 0.1
     else
-      view.webContents.zoomFactor -= 0.1
+      view.view.webContents.zoomFactor -= 0.1
 }
 
 export
@@ -133,9 +133,9 @@ function onClose
   if (view) {
     let focus
 
-    focus = view.webContents.isFocused()
-    win.contentView.removeChildView(view)
-    view.webContents.destroy()
+    focus = view.view.webContents.isFocused()
+    win.contentView.removeChildView(view.view)
+    view.view.webContents.destroy()
     views[id] = 0
     if (focus) {
       win.focus()
@@ -163,7 +163,7 @@ function onPass
   view = views[id]
   if (view) {
     // send event to the view's webContents
-    view.webContents.sendInputEvent(event)
+    view.view.webContents.sendInputEvent(event)
     return {}
   }
 

@@ -81,7 +81,7 @@ function divW
                                { 'data-run': 'go',
                                  'data-url' : url }),
                          divCl('browse-title'),
-                         divCl('browse-browser',
+                         divCl('browse-external',
                                img(Icon.path('external'),
                                    'Ext',
                                    'filter-clr-text'),

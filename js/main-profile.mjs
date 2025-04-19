@@ -15,6 +15,8 @@ function initHist
 
   function add
   (href, spec) {
+    let url
+
     d('PROFILE.HIST add ' + href)
     spec = spec || ''
     spec.title = spec.title || ''
@@ -23,7 +25,17 @@ function initHist
       href = 'file://' + href
     if (spec.type == 'search')
       href = 'search://' + href
-    db.prepare('INSERT INTO urls (type, href, title, time) VALUES (?, ?, ?, ?)').run(spec.type, href, spec.title, Date.now())
+    try {
+      url = new URL(href)
+    }
+    catch {
+    }
+    db.prepare('INSERT INTO urls (type, href, title, hostname, time) VALUES (?, ?, ?, ?, ?)')
+      .run(spec.type,
+           href,
+           spec.title,
+           url?.hostname ?? '',
+           Date.now())
   }
 
   function filter
@@ -61,7 +73,7 @@ function initHist
     rows = get(query)
 
     fuse = new Fuse(rows,
-                    { keys: [ 'href', 'title' ],
+                    { keys: [ 'title', 'hostname' ],
                       threshold: 0.6,
                       distance: 100,
                       limit: 10 })
@@ -71,7 +83,7 @@ function initHist
   path = profile.dir + '/hist.db'
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
-  db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, time)').run()
+  db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, time)').run()
 
   hist = { add,
            get,

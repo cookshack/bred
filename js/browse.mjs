@@ -317,10 +317,6 @@ function initBrowse
     Tron.acmd('browse.pass', [ id, event ])
   }
 
-  Cmd.add('test browse', () => {
-    browse('https://w3c.github.io/uievents/tools/key-event-viewer.html')
-  })
-
   Cmd.add('buffer end', () => {
     key(Pane.current().view, 'End')
   })
@@ -371,6 +367,10 @@ function initBrowse
   Em.on('C-v', 'scroll down', mo)
   Em.on('C-=', 'zoom in', mo)
   Em.on('C--', 'zoom out', mo)
+
+  Cmd.add('test browse', () => {
+    browse('https://w3c.github.io/uievents/tools/key-event-viewer.html')
+  })
 
   Cmd.add('browse url at point', () => {
     let p, l, pos, url

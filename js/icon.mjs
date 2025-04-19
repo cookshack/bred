@@ -61,6 +61,9 @@ function path
     if (name == 'elisp')
       return 'lib/svg/file-icons/Emacs.svg'
 
+    if (name == 'external')
+      return 'lib/svg/octicons/link-external-24.svg'
+
     if (name == 'handwave')
       return 'lib/svg/fluentui-system-icons/ic_fluent_hand_wave_24_regular.svg'
 

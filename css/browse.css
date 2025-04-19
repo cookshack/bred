@@ -26,3 +26,7 @@
 .browse-browser {
   margin-left: auto;
 }
+
+.browse-browser > img {
+  pointer-events: none;
+}

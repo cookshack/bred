@@ -1,9 +1,10 @@
-import { append, divCl } from './dom.mjs'
+import { append, divCl, img } from './dom.mjs'
 
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Dom from './dom.mjs'
 import * as Em from './em.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
@@ -75,7 +76,9 @@ function divW
                                { 'data-run': 'go',
                                  'data-url' : url }),
                          divCl('browse-browser',
-                               'Ext',
+                               img(Icon.path('external'),
+                                   'Ext',
+                                   'filter-clr-text'),
                                { 'data-run': 'open externally',
                                  'data-url' : url }),
                          divCl('ml-close') ]),

@@ -80,6 +80,9 @@ function onOpen
   view.webContents.on('did-navigate', (event, url) => {
     view.webContents.executeJavaScript('document.title').then(title => {
       Profile.hist.add(url, { title })
+      e.sender.send(ch, { ev: 'did-navigate',
+                          url: url,
+                          title: title })
     })
   })
   view.webContents.on('zoom-changed', (event, dir) => {

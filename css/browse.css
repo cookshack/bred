@@ -23,8 +23,9 @@
   display: flex;
 }
 
-.browse-browser {
+.browse-title {
   margin-left: auto;
+  margin-right: auto;
 }
 
 .browse-browser > img {

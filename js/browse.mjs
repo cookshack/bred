@@ -75,6 +75,7 @@ function divW
                                url,
                                { 'data-run': 'go',
                                  'data-url' : url }),
+                         divCl('browse-title'),
                          divCl('browse-browser',
                                img(Icon.path('external'),
                                    'Ext',
@@ -139,6 +140,11 @@ function initBrowse
   function viewInitSpec
   (view, spec, cb) {
     let r, id, url
+
+    function getMl
+    () {
+      return view.ele?.firstElementChild?.firstElementChild
+    }
 
     function getSurfaceRect
     () {
@@ -210,6 +216,21 @@ function initBrowse
                  d({ data })
                  if (data.ev == 'focus')
                    Pane.focusView(view, 1, 1)
+                 else if (data.ev == 'did-navigate') {
+                   let ml
+
+                   ml = getMl(view)
+                   if (ml) {
+                     let e
+
+                     e = ml.querySelector('.browse-url')
+                     if (e)
+                       e.innerText = data.url
+                     e = ml.querySelector('.browse-title')
+                     if (e)
+                       e.innerText = data.title
+                   }
+                 }
                })
 
                obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.ele)

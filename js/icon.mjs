@@ -28,9 +28,6 @@ function path
     if (name == 'binary')
       return 'lib/svg/octicons/file-binary-24.svg'
 
-    if (name == 'open-in-browser')
-      return 'lib/svg/material-icons/open_in_browser/materialicons/24px.svg'
-
     if (name == 'c_cpp')
       return 'lib/svg/file-icons/C++.svg'
 
@@ -100,6 +97,9 @@ function path
     if (name == 'markdown')
       return 'lib/svg/devopicons/markdown.svg'
 
+    if (name == 'open-in-browser')
+      return 'lib/svg/material-icons/open_in_browser/materialicons/24px.svg'
+
     if (name == 'patch')
       return 'lib/svg/file-icons/Patch.svg'
 
@@ -108,6 +108,9 @@ function path
 
     if (name == 'python')
       return 'lib/svg/mfixx/python.svg'
+
+    if (name == 'refresh')
+      return 'lib/svg/material-icons/refresh/materialicons/24px.svg'
 
     if (name == 'rust')
       return 'lib/svg/devopicons/rust.svg'

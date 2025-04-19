@@ -71,7 +71,12 @@ function divW
 (url) {
   return divCl('browse-ww',
                [ divCl('browse-h',
-                       [ divCl('browse-url',
+                       [ divCl('browse-refresh',
+                               img(Icon.path('refresh'),
+                                   'Refresh',
+                                   'filter-clr-text'),
+                               { 'data-run': 'refresh' }),
+                         divCl('browse-url',
                                url,
                                { 'data-run': 'go',
                                  'data-url' : url }),
@@ -327,6 +332,11 @@ function initBrowse
     key(Pane.current().view, 'Home')
   }
 
+  function refresh
+  () {
+    d('r')
+  }
+
   function scrollUp
   () {
     key(Pane.current().view, 'PageUp')
@@ -345,13 +355,6 @@ function initBrowse
     Tron.acmd('browse.zoom', [ id, inward ])
   }
 
-  Cmd.add('buffer end', () => bufEnd(), mo)
-  Cmd.add('buffer start', () => bufStart(), mo)
-  Cmd.add('scroll up', () => scrollUp(), mo)
-  Cmd.add('scroll down', () => scrollDown(), mo)
-  Cmd.add('zoom in', () => zoom(1), mo)
-  Cmd.add('zoom out', () => zoom(0), mo)
-
   mo = Mode.add('Browse', { viewInitSpec: viewInitSpec,
                             viewReopen: viewReopen,
                             viewCopy: viewCopy,
@@ -363,6 +366,14 @@ function initBrowse
                               else
                                 updateMini('ERR')
                             } })
+
+  Cmd.add('buffer end', () => bufEnd(), mo)
+  Cmd.add('buffer start', () => bufStart(), mo)
+  Cmd.add('refresh', () => refresh(), mo)
+  Cmd.add('scroll up', () => scrollUp(), mo)
+  Cmd.add('scroll down', () => scrollDown(), mo)
+  Cmd.add('zoom in', () => zoom(1), mo)
+  Cmd.add('zoom out', () => zoom(0), mo)
 
   Em.on('PageUp', 'scroll up', mo)
   Em.on('PageDown', 'scroll down', mo)

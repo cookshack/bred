@@ -23,11 +23,16 @@
   display: flex;
 }
 
+.browse-url {
+  margin-left: 0.5rem;
+}
+
 .browse-title {
   margin-left: auto;
   margin-right: auto;
 }
 
+.browse-refresh > img,
 .browse-browser > img {
   pointer-events: none;
 }

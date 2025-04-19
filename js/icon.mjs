@@ -28,6 +28,9 @@ function path
     if (name == 'binary')
       return 'lib/svg/octicons/file-binary-24.svg'
 
+    if (name == 'open-in-browser')
+      return 'lib/svg/material-icons/open_in_browser/materialicons/24px.svg'
+
     if (name == 'c_cpp')
       return 'lib/svg/file-icons/C++.svg'
 

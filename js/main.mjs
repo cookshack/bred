@@ -207,6 +207,9 @@ async function onAcmd
   if (name == 'browse.pass')
     return Browse.onPass(e, args)
 
+  if (name == 'browse.reload')
+    return Browse.onReload(e, args)
+
   if (name == 'browse.reopen')
     return Browse.onReopen(e, args)
 

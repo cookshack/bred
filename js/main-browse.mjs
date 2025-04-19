@@ -146,6 +146,22 @@ function onClose
 }
 
 export
+function onReload
+(e, onArgs) {
+  const [ id ] = onArgs
+  let view
+
+  d('BROWSE reload ' + id)
+
+  view = views[id]
+  if (view) {
+    view.view.webContents.reload()
+    return {}
+  }
+  return {}
+}
+
+export
 function onReopen
 (e, onArgs) {
   const [ id ] = onArgs

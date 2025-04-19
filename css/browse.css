@@ -35,7 +35,7 @@
   margin-left: 0.5rem;
 }
 
-.browse-refresh > img,
+.browse-reload > img,
 .browse-external > img {
   pointer-events: none;
 }

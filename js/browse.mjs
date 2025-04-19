@@ -71,11 +71,11 @@ function divW
 (url) {
   return divCl('browse-ww',
                [ divCl('browse-h',
-                       [ divCl('browse-refresh',
+                       [ divCl('browse-reload',
                                img(Icon.path('refresh'),
-                                   'Refresh',
+                                   'Reload',
                                    'filter-clr-text'),
-                               { 'data-run': 'refresh' }),
+                               { 'data-run': 'reload' }),
                          divCl('browse-url',
                                url,
                                { 'data-run': 'go',
@@ -324,9 +324,12 @@ function initBrowse
     key(Pane.current().view, 'Home')
   }
 
-  function refresh
+  function reload
   () {
-    d('r')
+    let id
+
+    id = Pane.current().view.vars('browse').id ?? Mess.toss('Missing id')
+    Tron.acmd('browse.reload', [ id ])
   }
 
   function scrollUp
@@ -361,7 +364,7 @@ function initBrowse
 
   Cmd.add('buffer end', () => bufEnd(), mo)
   Cmd.add('buffer start', () => bufStart(), mo)
-  Cmd.add('refresh', () => refresh(), mo)
+  Cmd.add('reload', () => reload(), mo)
   Cmd.add('scroll up', () => scrollUp(), mo)
   Cmd.add('scroll down', () => scrollDown(), mo)
   Cmd.add('zoom in', () => zoom(1), mo)

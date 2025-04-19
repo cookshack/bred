@@ -82,6 +82,12 @@ function onOpen
       Profile.hist.add(page, { title })
     })
   })
+  view.webContents.on('zoom-changed', (event, dir) => {
+    if (dir == 'in')
+      view.webContents.zoomFactor += 0.1
+    else
+      view.webContents.zoomFactor -= 0.1
+  })
   view.webContents.loadURL(page)
   win.contentView.addChildView(view)
   view.setBounds({ x: x, y: y, width: width, height: height }) // safeDialogs, autoplayPolicy, navigateOnDragDrop, spellcheck

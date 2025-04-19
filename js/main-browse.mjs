@@ -134,9 +134,7 @@ function onClose
     let focus
 
     focus = view.view.webContents.isFocused()
-    win.contentView.removeChildView(view.view)
-    view.view.webContents.destroy()
-    views[id] = 0
+    view.view.setVisible(false)
     if (focus) {
       win.focus()
       win.webContents.focus()
@@ -144,6 +142,22 @@ function onClose
     return { wasFocused: focus }
   }
 
+  return {}
+}
+
+export
+function onReopen
+(e, onArgs) {
+  const [ id ] = onArgs
+  let view
+
+  d('BROWSE reopen ' + id)
+
+  view = views[id]
+  if (view) {
+    view.view.setVisible(true)
+    return {}
+  }
   return {}
 }
 

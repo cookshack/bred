@@ -118,21 +118,13 @@ function initBrowse
 
   function viewReopen
   (view, lineNum, whenReady, cb) {
+    let id
+
     d('================== browse viewReopen')
-    if (view.ele && view.ed)
-      viewInitSpec(view,
-                   { lineNum: lineNum,
-                     whenReady: whenReady },
-                   cb)
-    else if (0)
-      // timeout so behaves like viewInit
-      setTimeout(() => {
-        view.ready = 1
-        if (cb)
-          cb(view)
-        if (whenReady)
-          whenReady(view)
-      })
+
+    id = view.vars('browse').id ?? Mess.toss('Missing id')
+    if (view.ele)
+      Tron.acmd('browse.reopen', [ id ])
     else
       // probably buf was switched out before init happened.
       viewInitSpec(view,

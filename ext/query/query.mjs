@@ -506,8 +506,6 @@ function init
 
   function suggest
   (under, query) {
-    d('suggest')
-    d({ query })
     Tron.acmd('profile.hist.suggest', [ query ])
       .then(data => {
         let frag

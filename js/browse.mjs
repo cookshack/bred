@@ -338,7 +338,6 @@ function initBrowse
                               else
                                 updateMini('ERR')
                             } })
-  d(mo)
 
   Em.on('PageUp', 'scroll up', mo)
   Em.on('PageDown', 'scroll down', mo)

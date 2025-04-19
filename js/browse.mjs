@@ -276,10 +276,13 @@ function initBrowse
   }
 
   function key
-  (view, name, code) {
+  (view, name, spec) {
     let id, event
 
-    event = makeEventFromName(name, code || name)
+    spec = spec || {}
+    event = makeEventFromName(name, spec.code || name)
+    if (spec.ctrl)
+      event.modifiers.push('control')
     event.modifiers.push('leftButtonDown') // HACK to tell main to pass it through to page
     id = view.vars('browse').id ?? Mess.toss('Missing id')
     event.type = 'keyDown'
@@ -287,7 +290,7 @@ function initBrowse
     event.type = 'char'
     Tron.acmd('browse.pass', [ id, event ])
     event.type = 'keyUp'
-    Tron.cmd('browse.pass', [ id, event ])
+    Tron.acmd('browse.pass', [ id, event ])
   }
 
   Cmd.add('test browse', () => {
@@ -310,6 +313,20 @@ function initBrowse
     key(Pane.current().view, 'PageDown')
   })
 
+  Cmd.add('zoom in', () => {
+    let id
+
+    id = Pane.current().view.vars('browse').id ?? Mess.toss('Missing id')
+    Tron.acmd('browse.zoom', [ id, 1 ])
+  })
+
+  Cmd.add('zoom out', () => {
+    let id
+
+    id = Pane.current().view.vars('browse').id ?? Mess.toss('Missing id')
+    Tron.acmd('browse.zoom', [ id, 0 ])
+  })
+
   mo = Mode.add('Browse', { viewInitSpec: viewInitSpec,
                             viewReopen: viewReopen,
                             viewCopy: viewCopy,
@@ -329,6 +346,8 @@ function initBrowse
   Em.on('A->', 'buffer end', mo)
   Em.on('A-<', 'buffer start', mo)
   Em.on('C-v', 'scroll down', mo)
+  Em.on('C-=', 'zoom in', mo)
+  Em.on('C--', 'zoom out', mo)
 
   Cmd.add('browse url at point', () => {
     let p, l, pos, url

@@ -207,6 +207,9 @@ async function onAcmd
   if (name == 'browse.pass')
     return Browse.onPass(e, args)
 
+  if (name == 'browse.zoom')
+    return Browse.onZoom(e, args)
+
   if (name == 'peer.get')
     return Peer.onPeerGet(e, args)
 

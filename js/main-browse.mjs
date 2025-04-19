@@ -98,6 +98,20 @@ function onOpen
 }
 
 export
+function onZoom
+(e, onArgs) {
+  const [ id, inward ] = onArgs
+  let view
+
+  view = views[id]
+  if (view)
+    if (inward)
+      view.webContents.zoomFactor += 0.1
+    else
+      view.webContents.zoomFactor -= 0.1
+}
+
+export
 function onClose
 (e, onArgs) {
   const [ id ] = onArgs

@@ -30,11 +30,12 @@ function initHist
     }
     catch {
     }
-    db.prepare('INSERT INTO urls (type, href, title, hostname, time) VALUES (?, ?, ?, ?, ?)')
+    db.prepare('INSERT INTO urls (type, href, title, hostname, port, time) VALUES (?, ?, ?, ?, ?, ?)')
       .run(spec.type,
            href,
            spec.title,
            url?.hostname ?? '',
+           url?.port ?? 0,
            Date.now())
   }
 
@@ -73,7 +74,7 @@ function initHist
     rows = get(query)
 
     fuse = new Fuse(rows,
-                    { keys: [ 'title', 'hostname' ],
+                    { keys: [ 'title', 'hostname', 'port' ],
                       threshold: 0.6,
                       distance: 100,
                       limit: 10 })
@@ -83,7 +84,7 @@ function initHist
   path = profile.dir + '/hist.db'
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
-  db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, time)').run()
+  db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, port, time)').run()
 
   hist = { add,
            get,

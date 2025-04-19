@@ -77,9 +77,9 @@ function onOpen
       d('context')
     }
   })
-  view.webContents.on('dom-ready', () => {
+  view.webContents.on('did-navigate', (event, url) => {
     view.webContents.executeJavaScript('document.title').then(title => {
-      Profile.hist.add(page, { title })
+      Profile.hist.add(url, { title })
     })
   })
   view.webContents.on('zoom-changed', (event, dir) => {

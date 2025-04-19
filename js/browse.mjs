@@ -22,7 +22,7 @@ function initWeb
     return divCl('web-ww', divCl('web-w bred-surface', ''))
   }
 
-  function refresh
+  function viewInitSpec
   (view, spec, cb) {
     let w, wv, preload
 
@@ -53,7 +53,7 @@ function initWeb
       cb(view)
   }
 
-  mo = Mode.add('Web', { viewInitSpec: refresh })
+  mo = Mode.add('Web', { viewInitSpec: viewInitSpec })
   d(mo)
 
   Cmd.add('web', () => {

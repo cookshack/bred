@@ -7,6 +7,7 @@ import * as Cmd from '../../js/cmd.mjs'
 import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/em.mjs'
 import * as Hist from '../../js/hist.mjs'
+import * as Icon from '../../js/icon.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Opt from '../../js/opt.mjs'
@@ -133,8 +134,12 @@ function divW
   return divCl('query-ww',
                [ divCl('query-h', 'Query: ' + query),
                  divCl('query-links',
-                       divCl('query-link', 'Browser', { 'data-run': 'open externally',
-                                                        'data-url': url(query) })),
+                       divCl('query-link',
+                             img(Icon.path('external'),
+                                 'External',
+                                 'filter-clr-text'),
+                             { 'data-run': 'open externally',
+                               'data-url': url(query) })),
                  divCl('query-llm'),
                  divCl('query-w', 'Fetching...') ])
 }

@@ -76,3 +76,7 @@
 .query-sug {
   padding-bottom: 0.25rem;
 }
+
+.query-link > img {
+  pointer-events: none;
+}

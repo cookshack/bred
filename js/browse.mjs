@@ -317,35 +317,40 @@ function initBrowse
     Tron.acmd('browse.pass', [ id, event ])
   }
 
-  Cmd.add('buffer end', () => {
+  function bufEnd
+  () {
     key(Pane.current().view, 'End')
-  })
+  }
 
-  Cmd.add('buffer start', () => {
+  function bufStart
+  () {
     key(Pane.current().view, 'Home')
-  })
+  }
 
-  Cmd.add('scroll up', () => {
+  function scrollUp
+  () {
     key(Pane.current().view, 'PageUp')
-  })
+  }
 
-  Cmd.add('scroll down', () => {
+  function scrollDown
+  () {
     key(Pane.current().view, 'PageDown')
-  })
+  }
 
-  Cmd.add('zoom in', () => {
+  function zoom
+  (inward) {
     let id
 
     id = Pane.current().view.vars('browse').id ?? Mess.toss('Missing id')
-    Tron.acmd('browse.zoom', [ id, 1 ])
-  })
+    Tron.acmd('browse.zoom', [ id, inward ])
+  }
 
-  Cmd.add('zoom out', () => {
-    let id
-
-    id = Pane.current().view.vars('browse').id ?? Mess.toss('Missing id')
-    Tron.acmd('browse.zoom', [ id, 0 ])
-  })
+  Cmd.add('buffer end', () => bufEnd(), mo)
+  Cmd.add('buffer start', () => bufStart(), mo)
+  Cmd.add('scroll up', () => scrollUp(), mo)
+  Cmd.add('scroll down', () => scrollDown(), mo)
+  Cmd.add('zoom in', () => zoom(1), mo)
+  Cmd.add('zoom out', () => zoom(0), mo)
 
   mo = Mode.add('Browse', { viewInitSpec: viewInitSpec,
                             viewReopen: viewReopen,

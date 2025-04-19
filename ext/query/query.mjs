@@ -24,7 +24,7 @@ function snippet
 (item) {
   let split, date
 
-  split = item.snippet.split(' ', 3)
+  split = item.snippet?.split(' ', 3)
   if (split && (split.length > 2) && /[0-9][0-9][0-9][0-9]/.test(split[2]))
     date = split.join(' ')
   if (date)

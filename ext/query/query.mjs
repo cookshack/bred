@@ -537,7 +537,7 @@ function init
   }
 
   function divMl
-  (query) {
+  (model, query) {
     let question
 
     query = query.trim()
@@ -545,7 +545,8 @@ function init
       question = query
     question = query + '?'
     return divCl('ml edMl',
-                 [ divCl('query-ml-brow query-link',
+                 [ divCl('query-ml-model', model),
+                   divCl('query-ml-brow query-link',
                          img(Icon.path('browse'), 'Browse', 'filter-clr-text'),
                          { 'data-run': 'open link',
                            'data-path': url(question) }),
@@ -572,7 +573,7 @@ function init
                  else {
                    let w
 
-                   w = Ed.divW(0, 0, { ml: divMl(prompt) })
+                   w = Ed.divW(0, 0, { ml: divMl(model, prompt) })
                    buf = Buf.add(name, 'richdown', w, p.dir)
                    buf.addMode('chat')
                    //buf.addMode('view')

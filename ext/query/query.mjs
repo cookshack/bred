@@ -177,17 +177,26 @@ function init
   function makeExtRo
   () {
     extRo = CMState.EditorState.transactionFilter.of(tr => {
-      let view
+      if (tr.docChanged) {
+        let view
 
-      view = Ed.Backend.viewFromState(tr.state)
-      if (view) {
-        let buf
+        if (tr.annotation(CMState.Transaction.remote))
+          return tr
 
-        buf = view?.buf
-        if (0 && buf)
-          return []
-        return tr
+        view = Ed.Backend.viewFromState(tr.state)
+        if (view) {
+          let end
+
+          //if (view.buf?.vars('query').busy)
+          //  return []
+          end = view.buf?.vars('query').promptEnd
+          if (end == null)
+            return tr
+          if (Ed.bepGt(end, view.bep))
+            return []
+        }
       }
+      return tr
     })
   }
 

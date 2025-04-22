@@ -1309,6 +1309,12 @@ function vgetBep
   return vgetOff(view)
 }
 
+export
+function bepGt
+(bep1, bep2) {
+  return bep1 > bep2
+}
+
 // 0 indexed
 export
 function bepRow

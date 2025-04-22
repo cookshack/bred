@@ -545,11 +545,11 @@ function init
       question = query
     question = query + '?'
     return divCl('ml edMl',
-                 [ divCl('query-ml-brow',
+                 [ divCl('query-ml-brow query-link',
                          img(Icon.path('browse'), 'Browse', 'filter-clr-text'),
                          { 'data-run': 'open link',
-                           'data-path': url(query) }),
-                   divCl('query-link',
+                           'data-path': url(question) }),
+                   divCl('query-ml-ext query-link',
                          img(Icon.path('external'), 'External', 'filter-clr-text'),
                          { 'data-run': 'open externally',
                            'data-url': url(question) }),

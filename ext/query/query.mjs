@@ -170,7 +170,9 @@ function init
 
   function appendWithEnd
   (buf, text) {
+    buf.vars('query').appending = 1
     buf.append(text)
+    buf.vars('query').appending = 0
     buf.vars('query').promptEnd = buf.bepEnd
   }
 
@@ -187,8 +189,10 @@ function init
         if (view) {
           let end
 
-          //if (view.buf?.vars('query').busy)
-          //  return []
+          if (view.buf?.vars('query').appending)
+            return tr
+          if (view.buf?.vars('query').busy)
+            return []
           end = view.buf?.vars('query').promptEnd
           if (end == null)
             return tr

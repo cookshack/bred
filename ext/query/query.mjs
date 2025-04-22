@@ -545,7 +545,9 @@ function init
       question = query
     question = query + '?'
     return divCl('ml edMl',
-                 [ divCl('query-ml-model', model),
+                 [ divCl('query-ml-icon',
+                         img(Icon.path('chat'), 'Chat', 'filter-clr-text')),
+                   divCl('query-ml-model', model),
                    divCl('query-ml-brow query-link',
                          img(Icon.path('browse'), 'Browse', 'filter-clr-text'),
                          { 'data-run': 'open link',

@@ -42,7 +42,12 @@ function add
 
   function start
   (buf) {
+    let major
+
     spec.onStart && spec.onStart(buf)
+    major = buf.mode
+    if (m.minor && major?.addMinor)
+      major.addMinor(buf, m)
   }
 
   function stop

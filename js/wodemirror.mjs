@@ -231,6 +231,17 @@ function makeExtsMode
   return []
 }
 
+// Make cm extensions for the wexts of every minor mode.
+//
+function makeExtsMinors
+(view) {
+  let exts
+
+  exts = []
+  view.buf?.minors.forEach(mode => mode.wexts?.filter(w => w.make).forEach(w => exts.push(w.make(view))))
+  return exts
+}
+
 function makePlaceholder
 (ph) {
   if (ph?.length)
@@ -323,6 +334,12 @@ function makePeer
   })
 
   return [ CMCollab.collab({ startVersion }), plugin ]
+}
+
+export
+function viewFromState
+(state) {
+  return state.facet(bredView)
 }
 
 function markFromDec
@@ -654,8 +671,10 @@ function _viewInit
   view.wode.decorMode = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
-  view.wode.wextsMode = spec.wextsMode
+  view.wode.wextsMode = spec.wextsMode // [ wext ]
   view.wode.comp.extsMode = new CMState.Compartment
+  view.wode.wextsMinors = [] // [ { name, wexts: [ wext ] } ]
+  view.wode.comp.extsMinors = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
   view.wode.placeholder = new CMState.Compartment
 
@@ -896,6 +915,7 @@ function _viewInit
     opts.push(view.wode.peer.of([]))
 
   opts.push(view.wode.comp.extsMode.of(makeExtsMode(view)))
+  opts.push(view.wode.comp.extsMinors.of(makeExtsMinors(view)))
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')
@@ -1562,6 +1582,22 @@ function seize
   })
 }
 
+function addMinor
+(b, mode) {
+  d('-------------------------------- ed adding minor ' + mode.name + ' to ' + b.name)
+  if (mode.minor)
+    b.views.forEach(v => {
+      let effects, exts
+
+      // remove old minor specific extensions, add new ones
+      exts = makeExtsMinors(v)
+      effects = v.wode.comp.extsMinors.reconfigure(exts)
+      v.ed.dispatch({ effects: effects })
+    })
+  else
+    Mess.warn('addMinor: attempt to add major: ' + mode?.name)
+}
+
 export
 function makePsn
 (view, bep) {
@@ -1875,6 +1911,7 @@ function initModeFns
     return 'ERR'
   }
 
+  mo.addMinor = addMinor
   mo.clear = clear
   mo.clearLine = clearLine
   mo.gotoLine = vgotoLine

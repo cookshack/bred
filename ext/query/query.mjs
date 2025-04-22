@@ -18,6 +18,7 @@ import * as Tron from '../../js/tron.mjs'
 import { d } from '../../js/mess.mjs'
 
 import Ollama from './lib/ollama.js'
+import * as CMState from '../../lib/@codemirror/state.js'
 
 let emo, premo
 
@@ -165,7 +166,24 @@ function search
 export
 function init
 () {
-  let hist, mo, chMo
+  let hist, mo, chMo, extRo
+
+  function makeExtRo
+  () {
+    extRo = CMState.EditorState.transactionFilter.of(tr => {
+      let view
+
+      view = Ed.Backend.viewFromState(tr.state)
+      if (view) {
+        let buf
+
+        buf = view?.buf
+        if (0 && buf)
+          return []
+        return tr
+      }
+    })
+  }
 
   function chat
   (model, key, msgs, prompt, cb, cbEnd) { // (msg), ()
@@ -671,7 +689,12 @@ function init
   Opt.declare('query.google.cx', 'str', '')
   Opt.declare('query.google.key', 'str', '')
 
-  chMo = Mode.add('Chat', { minor: 1 })
+  makeExtRo()
+
+  chMo = Mode.add('Chat', { minor: 1,
+                            wexts: [ { backend: 'cm',
+                                       make: () => extRo,
+                                       part: new CMState.Compartment } ] })
 
   Cmd.add('chat more', () => chatMore(), chMo)
   Cmd.add('enter', () => enter(), chMo)

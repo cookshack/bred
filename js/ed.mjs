@@ -59,7 +59,7 @@ function divW
 (dir, name, opts) {
   opts = opts || {}
   return divCl('edWW' + (opts.extraWWCss ? (' ' + opts.extraWWCss) : ''),
-               [ divMl(dir, name, opts),
+               [ opts.ml || divMl(dir, name, opts),
                  opts.extraBefore,
                  divCl('bred-info-www',
                        divCl('bred-info-ww')),

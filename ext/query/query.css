@@ -80,3 +80,11 @@
 .query-link > img {
   pointer-events: none;
 }
+
+.query-ml-brow {
+  margin-left: auto;
+}
+
+.query-ml-ext,
+.query-ml-brow {
+}

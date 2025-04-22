@@ -97,7 +97,7 @@ function path
     if (name == 'markdown')
       return 'lib/svg/devopicons/markdown.svg'
 
-    if (name == 'open-in-browser')
+    if (name == 'browse')
       return 'lib/svg/material-icons/open_in_browser/materialicons/24px.svg'
 
     if (name == 'patch')

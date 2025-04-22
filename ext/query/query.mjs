@@ -135,7 +135,7 @@ function divW
                [ divCl('query-h', 'Query: ' + query),
                  divCl('query-links',
                        [ divCl('query-link',
-                               img(Icon.path('open-in-browser'),
+                               img(Icon.path('browse'),
                                    'Browse',
                                    'filter-clr-text'),
                                { 'data-run': 'open link',
@@ -536,6 +536,26 @@ function init
       })
   }
 
+  function divMl
+  (query) {
+    let question
+
+    query = query.trim()
+    if (query.endsWith('?'))
+      question = query
+    question = query + '?'
+    return divCl('ml edMl',
+                 [ divCl('query-ml-brow',
+                         img(Icon.path('browse'), 'Browse', 'filter-clr-text'),
+                         { 'data-run': 'open link',
+                           'data-path': url(query) }),
+                   divCl('query-link',
+                         img(Icon.path('external'), 'External', 'filter-clr-text'),
+                         { 'data-run': 'open externally',
+                           'data-url': url(question) }),
+                   divCl('ml-close') ])
+  }
+
   Cmd.add('chat', (u, we, model) => {
     model = model || Opt.get('query.model')
     Prompt.ask({ text: emo + ' ' + model,
@@ -552,7 +572,7 @@ function init
                  else {
                    let w
 
-                   w = Ed.divW(0, 0, { hideMl: 1 })
+                   w = Ed.divW(0, 0, { ml: divMl(prompt) })
                    buf = Buf.add(name, 'richdown', w, p.dir)
                    buf.addMode('chat')
                    //buf.addMode('view')

@@ -1584,7 +1584,7 @@ function seize
 
 function addMinor
 (b, mode) {
-  d('-------------------------------- ed adding minor ' + mode.name + ' to ' + b.name)
+  d(' ed adding minor ' + mode.name + ' to ' + b.name)
   if (mode.minor)
     b.views.forEach(v => {
       let effects, exts

@@ -899,6 +899,7 @@ function initModeFns
 
   mo.append = append
   mo.bep = Backend.vgetBep
+  mo.bepEnd = Backend.vgetBepEnd
   mo.bufEnd = Backend.vbufEnd
   mo.bufStart = Backend.vbufStart
   mo.ensurePointVisible = Backend.ensurePointVisible

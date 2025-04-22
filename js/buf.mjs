@@ -177,6 +177,22 @@ function make
     }
   }
 
+  function bepEnd
+  () {
+    if (b.mode?.key)
+      if (b.mode?.bepEnd) {
+        let view
+
+        view = anyView()
+        if (view)
+          return b.mode.bepEnd(view)
+        return 0
+      }
+
+    Mess.say('buf.add: bepEnd missing: ' + b.mode.key)
+    return 0
+  }
+
   // toggle minor mode
   function toggleMode
   (modeOrKey) {
@@ -427,6 +443,9 @@ function make
         name: name,
         ml: ml,
         //
+        get bepEnd() {
+          return bepEnd()
+        },
         get dir() {
           return getDir()
         },

@@ -168,6 +168,12 @@ function init
 () {
   let hist, mo, chMo, extRo
 
+  function appendWithEnd
+  (buf, text) {
+    buf.append(text)
+    buf.vars('query').promptEnd = buf.bepEnd
+  }
+
   function makeExtRo
   () {
     extRo = CMState.EditorState.transactionFilter.of(tr => {
@@ -459,6 +465,7 @@ function init
 
     return r
   }
+
   function enter
   () {
     let r, p, buf, model, prompt
@@ -489,15 +496,15 @@ function init
     buf.vars('query').hist.add(prompt)
 
     buf.vars('query').busy = 1
-    buf.append('\n\n')
+    appendWithEnd(buf, '\n\n')
     chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
          msg => {
            d('CHAT enter append: ' + msg.content)
            buf.vars('query').msgs.push(msg)
-           buf.append(msg.content)
+           appendWithEnd(buf, msg.content)
          },
          () => {
-           buf.append('\n\n' + premo + ' ')
+           appendWithEnd(buf, '\n\n' + premo + ' ')
            buf.vars('query').busy = 0
          })
   }
@@ -519,15 +526,15 @@ function init
                  buf.vars('query').hist.add(prompt)
 
                  buf.vars('query').busy = 1
-                 buf.append(prompt + '\n\n')
+                 appendWithEnd(buf, prompt + '\n\n')
                  chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                       msg => {
                         d('CHAT more append: ' + msg.content)
                         buf.vars('query').msgs.push(msg)
-                        buf.append(msg.content)
+                        appendWithEnd(buf, msg.content)
                       },
                       () => {
-                        buf.append('\n\n' + premo + ' ')
+                        appendWithEnd(buf, '\n\n' + premo + ' ')
                         buf.vars('query').busy = 0
                       })
                })
@@ -610,17 +617,17 @@ function init
 
                  buf.clear()
                  p.setBuf(buf, {}, () => {
-                   buf.append(premo + ' ' + prompt + '\n\n')
+                   appendWithEnd(buf, premo + ' ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                         msg => {
                           d('CHAT append: ' + msg.content)
                           buf.vars('query').msgs.push(msg)
-                          buf.append(msg.content)
+                          appendWithEnd(buf, msg.content)
                         },
                         () => {
-                          buf.append('\n\n' + premo + ' ')
+                          appendWithEnd(buf, '\n\n' + premo + ' ')
                           buf.vars('query').busy = 0
                         })
                  })

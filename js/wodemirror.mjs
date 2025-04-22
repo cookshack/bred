@@ -47,7 +47,7 @@ export let langs, themeExtension, themeExtensionPart, Theme
 let theme, themeTags, themeHighlighting
 let themeCode, themeHighlightingCode, themeExtensionCode
 let completionNextLine, completionPreviousLine, bredView, spRe
-let brexts, brextIds, registeredOpts, watching, extPatch, extPatchDecor
+let wexts, wextIds, registeredOpts, watching, extPatch, extPatchDecor
 
 export
 function version
@@ -226,8 +226,8 @@ async function pushUpdates
 
 function makeExtsMode
 (view) {
-  if (view.wode.brextsMode)
-    return view.wode.brextsMode.filter(b => b.make).map(b => b.make(view))
+  if (view.wode.wextsMode)
+    return view.wode.wextsMode.filter(b => b.make).map(b => b.make(view))
   return []
 }
 
@@ -468,7 +468,7 @@ function reconfigureOpt
   //d('reconfigureOpt ' + name)
   buf.views.forEach(view => {
     if (view.ed && (view.win == Win.current()))
-      brexts.forEach(b => {
+      wexts.forEach(b => {
         if (b.spec.make && b.spec.reconfOpts && b.spec.reconfOpts.includes(name))
           view.ed.dispatch({ effects: b.spec.part.reconfigure(b.spec.make(view)) })
       })
@@ -485,18 +485,18 @@ export
 function register
 (spec) { // { backend, make, part, reconfOpts }
   if (spec.backend == 'cm') {
-    let brext, id
+    let wext, id
 
     function free
     () {
-      brexts.removeIf(b => b.id === brext.id)
+      wexts.removeIf(b => b.id === wext.id)
       // remove from existing views
       Buf.forEach(buf => buf.views.forEach(v => (v.win == Win.current()) && v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
       // reconfigure exts opts on all bufs, in case any other extensions use the opt
       spec.reconfOpts?.forEach(name => Buf.forEach(buf => reconfigureOpt(buf, name)))
     }
 
-    id = ++brextIds
+    id = ++wextIds
 
     spec.part = spec.part || new CMState.Compartment
 
@@ -513,7 +513,7 @@ function register
       else {
         registeredOpts.add(name)
         // these will just listen forever, which is ok
-        //   could get handles and free them when the brext is freed
+        //   could get handles and free them when the wext is freed
         Opt.onSet(name, () => Buf.forEach(buf => reconfigureOpt(buf, name)))
         Opt.onSetBuf(name, buf => reconfigureOpt(buf, name))
       }
@@ -521,16 +521,16 @@ function register
       Buf.forEach(buf => reconfigureOpt(buf, name))
     })
 
-    brext = { spec,
-              free,
-              //
-              get id() {
-                return id
-              } }
+    wext = { spec,
+             free,
+             //
+             get id() {
+               return id
+             } }
 
-    brexts.push(brext)
+    wexts.push(wext)
 
-    return brext
+    return wext
   }
 }
 
@@ -563,7 +563,7 @@ function watch
 export
 async function viewInitSpec
 (view,
- spec, // { text, modeWhenText, lineNum, whenReady, forceFresh, brextsMode }
+ spec, // { text, modeWhenText, lineNum, whenReady, forceFresh, wextsMode }
  cb) {
   let data
 
@@ -654,7 +654,7 @@ function _viewInit
   view.wode.decorMode = new CMState.Compartment
   view.wode.exts = new Set()
   view.wode.comp.exts = new CMState.Compartment
-  view.wode.brextsMode = spec.brextsMode
+  view.wode.wextsMode = spec.wextsMode
   view.wode.comp.extsMode = new CMState.Compartment
   view.wode.peer = new CMState.Compartment
   view.wode.placeholder = new CMState.Compartment
@@ -888,7 +888,7 @@ function _viewInit
 
            view.wode.comp.exts.of([]) ]
 
-  brexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
+  wexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
 
   if (peer)
     opts.push(view.wode.peer.of([ peer ]))
@@ -1552,7 +1552,7 @@ function seize
     let effects, exts
 
     // remove old mode specific extensions, add new ones
-    v.wode.brextsMode = v.buf.mode.brexts
+    v.wode.wextsMode = v.buf.mode.wexts
     exts = makeExtsMode(v)
     effects = v.wode.comp.extsMode.reconfigure(exts)
     v.ed.dispatch({ effects: effects })
@@ -3795,7 +3795,7 @@ function addMode
                     initFns: Ed.initModeFns,
                     parentsForEm: 'ed',
                     exts: exts,
-                    brexts: spec.brexts,
+                    wexts: spec.wexts,
                     mime: mime,
                     //
                     seize: seizeLang })
@@ -4168,10 +4168,10 @@ function initLangs
   loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-csv.js'), 'Csv', { ext: [ 'csv' ] })
   loadLang(Loc.appDir().join('lib/codemirror-lang-diff.js'), 'Diff',
            { ext: [ 'diff', 'patch' ],
-             brexts: [ { backend: 'cm',
-                         name: 'extPatch',
-                         make: () => ([ extPatch, extPatchDecor ]),
-                         part: new CMState.Compartment } ] })
+             wexts: [ { backend: 'cm',
+                        name: 'extPatch',
+                        make: () => ([ extPatch, extPatchDecor ]),
+                        part: new CMState.Compartment } ] })
   loadLang(Loc.appDir().join('lib/codemirror-lang-elixir.js'), 'Elixir', { ext: [ 'ex', 'exs' ] })
   loadLang(Loc.appDir().join('lib/@codemirror/lang-lezer.js'), 'Lezer', { ext: [ 'grammar' ] })
   loadLang(Loc.appDir().join('lib/codemirror-lang-git-log.js'), 'Git Log',
@@ -4345,8 +4345,8 @@ function initPatchExt
 export
 function init
 () {
-  brextIds = 0
-  brexts = Mk.array
+  wextIds = 0
+  wexts = Mk.array
   registeredOpts = new Set()
   bredView = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
 

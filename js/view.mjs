@@ -471,7 +471,7 @@ function make
                           { lineNum: lineNum,
                             whenReady: whenReady,
                             placeholder: b.placeholder,
-                            brextsMode: mode.brexts },
+                            wextsMode: mode.wexts },
                           cb)
       }
       else if (mode && mode.viewInit) // remove when ace,mon have viewInitSpec (BUT also used by div views)

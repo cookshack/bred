@@ -15,7 +15,7 @@ import * as CMView from '../../lib/@codemirror/view.js'
 import * as Lang from './lang.mjs'
 import * as Lint from './lint.mjs'
 
-let brexts
+let wexts
 
 export
 function init
@@ -137,7 +137,7 @@ function init
 
   leadingSpaceHighlighter = makeLSH()
 
-  brexts = []
+  wexts = []
   Opt.declare('core.comments.continue', 'bool', 1)
   Opt.declare('core.cursor.blink.enabled', 'bool', 0)
   Opt.declare('core.cursor.blink.rate', 'int', 1200)
@@ -162,22 +162,22 @@ function init
   Opt.declare('core.scroll.pastEnd.enabled', 'bool', 1)
   Opt.declare('core.tab.width', 'int', 2)
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: makeActiveLine,
-                            reconf: reconfActiveLine,
-                            reconfOpts: [ 'core.highlight.activeLine.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: makeActiveLine,
+                           reconf: reconfActiveLine,
+                           reconfOpts: [ 'core.highlight.activeLine.enabled' ] }))
   Buf.register({ name: 'al',
                  reconfOpts: [ 'core.highlight.activeLine.enabled' ],
                  reconf: reconfActiveLine })
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: makeBrck,
-                            reconfOpts: [ 'core.highlight.bracket.enabled',
-                                          'core.highlight.bracket.afterCursor',
-                                          'core.highlight.bracket.directional',
-                                          'core.highlight.bracket.enclosing' ] }))
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: makeFold,
-                            reconfOpts: [ 'core.folding.enabled', 'core.folding.gutter.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: makeBrck,
+                           reconfOpts: [ 'core.highlight.bracket.enabled',
+                                         'core.highlight.bracket.afterCursor',
+                                         'core.highlight.bracket.directional',
+                                         'core.highlight.bracket.enclosing' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: makeFold,
+                           reconfOpts: [ 'core.folding.enabled', 'core.folding.gutter.enabled' ] }))
   Buf.register({ name: 'head',
                  reconfOpts: [ 'core.head.enabled',
                                'core.lint.enabled' ],
@@ -185,44 +185,44 @@ function init
                    Lint.reconfLintMarker(v)
                    v.reconfHead()
                  }) })
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: makeHighlightLeadingSpace,
-                            reconfOpts: [ 'core.highlight.leadingSpace.enabled' ] }))
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: view => view.buf.opt('core.highlight.specials.enabled') ? CMView.highlightSpecialChars() : [],
-                            reconfOpts: [ 'core.highlight.specials.enabled' ] }))
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: makeOccur,
-                            reconfOpts: [ 'core.highlight.occurrences.enabled',
-                                          'core.highlight.occurrences.wholeWords',
-                                          'core.highlight.occurrences.wordAroundCursor' ] }))
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: makeHighlightSyntax,
-                            reconfOpts: [ 'core.highlight.syntax.enabled' ] }))
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: view => view.buf.opt('core.highlight.trailingWhitespace.enabled') ? CMView.highlightTrailingWhitespace() : [],
-                            reconfOpts: [ 'core.highlight.trailingWhitespace.enabled' ] }))
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: view => view.buf.opt('core.highlight.whitespace.enabled') ? CMView.highlightWhitespace() : [],
-                            reconfOpts: [ 'core.highlight.whitespace.enabled' ] }))
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: makeCursor,
-                            reconfOpts: [ 'core.cursor.blink.enabled', 'core.cursor.blink.rate' ] }))
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: makeNums,
-                            reconfOpts: [ 'core.line.numbers.show', 'blankLines.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: makeHighlightLeadingSpace,
+                           reconfOpts: [ 'core.highlight.leadingSpace.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: view => view.buf.opt('core.highlight.specials.enabled') ? CMView.highlightSpecialChars() : [],
+                           reconfOpts: [ 'core.highlight.specials.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: makeOccur,
+                           reconfOpts: [ 'core.highlight.occurrences.enabled',
+                                         'core.highlight.occurrences.wholeWords',
+                                         'core.highlight.occurrences.wordAroundCursor' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: makeHighlightSyntax,
+                           reconfOpts: [ 'core.highlight.syntax.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: view => view.buf.opt('core.highlight.trailingWhitespace.enabled') ? CMView.highlightTrailingWhitespace() : [],
+                           reconfOpts: [ 'core.highlight.trailingWhitespace.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: view => view.buf.opt('core.highlight.whitespace.enabled') ? CMView.highlightWhitespace() : [],
+                           reconfOpts: [ 'core.highlight.whitespace.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: makeCursor,
+                           reconfOpts: [ 'core.cursor.blink.enabled', 'core.cursor.blink.rate' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: makeNums,
+                           reconfOpts: [ 'core.line.numbers.show', 'blankLines.enabled' ] }))
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: view => view.buf.opt('core.line.wrap.enabled') ? CMView.EditorView.lineWrapping : [],
-                            reconfOpts: [ 'core.line.wrap.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: view => view.buf.opt('core.line.wrap.enabled') ? CMView.EditorView.lineWrapping : [],
+                           reconfOpts: [ 'core.line.wrap.enabled' ] }))
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: view => view.buf.opt('core.scroll.pastEnd.enabled') ? CMView.scrollPastEnd() : [],
-                            reconfOpts: [ 'core.scroll.pastEnd.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: view => view.buf.opt('core.scroll.pastEnd.enabled') ? CMView.scrollPastEnd() : [],
+                           reconfOpts: [ 'core.scroll.pastEnd.enabled' ] }))
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: view => CMState.EditorState.tabSize.of(view.buf.opt('core.tab.width') || 2),
-                            reconfOpts: [ 'core.tab.width' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: view => CMState.EditorState.tabSize.of(view.buf.opt('core.tab.width') || 2),
+                           reconfOpts: [ 'core.tab.width' ] }))
 
   Cmd.add('enable comments continue', u => Ed.enable(u, 'core.comments.continue'))
   Cmd.add('enable cursor blink', u => Ed.enable(u, 'core.cursor.blink.enabled'))
@@ -296,7 +296,7 @@ function free
   Cmd.remove('buffer highlight syntax')
   Cmd.remove('buffer highlight trailing whitespace')
   Cmd.remove('buffer highlight whitespace')
-  brexts.forEach(b => b?.free())
+  wexts.forEach(b => b?.free())
   Lang.free()
   Lint.free()
 }

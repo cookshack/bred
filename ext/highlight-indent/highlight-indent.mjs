@@ -6,7 +6,7 @@ import * as Opt from '../../js/opt.mjs'
 import * as CMState from '../../lib/@codemirror/state.js'
 import { indentationMarkers } from './lib/@replit/codemirror-indentation-markers.js'
 
-let brexts
+let wexts
 
 export
 function init
@@ -27,13 +27,13 @@ function init
     return []
   }
 
-  brexts = []
+  wexts = []
   Opt.declare('highlightIndent.enabled', 'bool', 1)
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make,
-                            part: new CMState.Compartment,
-                            reconfOpts: [ 'highlightIndent.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make,
+                           part: new CMState.Compartment,
+                           reconfOpts: [ 'highlightIndent.enabled' ] }))
 
   Cmd.add('highlight indent', u => Ed.enable(u, 'highlightIndent.enabled'))
   Cmd.add('buffer highlight indent', u => Ed.enableBuf(u, 'highlightIndent.enabled'))
@@ -48,5 +48,5 @@ function free
   Cmd.remove('buffer highlight indent')
   Cmd.remove('enable highlight indent')
   Cmd.remove('buffer enable highlight indent')
-  brexts.forEach(b => b?.free())
+  wexts.forEach(b => b?.free())
 }

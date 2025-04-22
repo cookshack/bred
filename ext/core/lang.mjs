@@ -9,7 +9,7 @@ import { d } from '../../js/mess.mjs'
 import * as CMAuto from '../../lib/@codemirror/autocomplete.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let brexts, part
+let wexts, part
 
 function makeAutocomplete
 (view) {
@@ -116,15 +116,15 @@ function makeLang
 export
 function init
 () {
-  brexts = []
+  wexts = []
   part = new CMState.Compartment
   Opt.declare('core.autocomplete.enabled', 'bool', 1)
   Opt.declare('core.lang', 'str', undefined)
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            part,
-                            make: makeLang,
-                            reconfOpts: [ 'core.lang', 'core.autocomplete.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           part,
+                           make: makeLang,
+                           reconfOpts: [ 'core.lang', 'core.autocomplete.enabled' ] }))
 
   Cmd.add('enable autocomplete', u => Ed.enable(u, 'core.autocomplete.enabled'))
   Cmd.add('buffer enable autocomplete', u => Ed.enableBuf(u, 'core.autocomplete.enabled'))
@@ -135,5 +135,5 @@ function free
 () {
   Cmd.remove('enable autocomplete')
   Cmd.remove('buffer enable autocomplete')
-  brexts.forEach(b => b?.free())
+  wexts.forEach(b => b?.free())
 }

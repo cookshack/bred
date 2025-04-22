@@ -9,7 +9,7 @@ import * as Pane from '../../js/pane.mjs'
 import * as Ruler from './lib/@cookshack/codemirror-ruler.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let brexts
+let wexts
 
 export
 function init
@@ -36,14 +36,14 @@ function init
     return []
   }
 
-  brexts = []
+  wexts = []
   Opt.declare('ruler.enabled', 'bool', 1)
   Opt.declare('ruler.col', 'int', 100)
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make,
-                            part: new CMState.Compartment,
-                            reconfOpts: [ 'ruler.enabled', 'ruler.col' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make,
+                           part: new CMState.Compartment,
+                           reconfOpts: [ 'ruler.enabled', 'ruler.col' ] }))
 
   Cmd.add('enable ruler', u => Ed.enable(u, 'ruler.enabled'))
   Cmd.add('buffer enable ruler', u => Ed.enableBuf(u, 'ruler.enabled'))
@@ -58,5 +58,5 @@ function free
 () {
   Cmd.remove('enable ruler')
   Cmd.remove('buffer enable ruler')
-  brexts.forEach(b => b?.free())
+  wexts.forEach(b => b?.free())
 }

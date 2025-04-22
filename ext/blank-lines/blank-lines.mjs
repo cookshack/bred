@@ -7,7 +7,7 @@ import { blankLines } from './lib/@cookshack/codemirror-blank-lines.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 
-let brexts
+let wexts
 
 export
 function init
@@ -19,24 +19,24 @@ function init
     return []
   }
 
-  brexts = []
+  wexts = []
   Opt.declare('blankLines.enabled', 'bool', 0)
   Opt.declare('blankLines.includeActiveLine', 'bool', 1)
   Opt.declare('blankLines.background', 'str', 'var(--clr-fill-aux-very-light)')
   Opt.declare('blankLines.lineHeight', 'decimal', '0.5')
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make,
-                            part: new CMState.Compartment,
-                            reconfOpts: [ 'blankLines.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make,
+                           part: new CMState.Compartment,
+                           reconfOpts: [ 'blankLines.enabled' ] }))
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make(view) {
-                              return CMView.EditorView.theme({ '.cm-blank-line': { background: view.buf.opt('blankLines.background') ?? 'inherit',
-                                                                                   lineHeight: view.buf.opt('blankLines.lineHeight') ?? 'inherit' } })
-                            },
-                            part: new CMState.Compartment,
-                            reconfOpts: [ 'blankLines.background', 'blankLines.lineHeight' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make(view) {
+                             return CMView.EditorView.theme({ '.cm-blank-line': { background: view.buf.opt('blankLines.background') ?? 'inherit',
+                                                                                  lineHeight: view.buf.opt('blankLines.lineHeight') ?? 'inherit' } })
+                           },
+                           part: new CMState.Compartment,
+                           reconfOpts: [ 'blankLines.background', 'blankLines.lineHeight' ] }))
 
   Cmd.add('enable blank lines', u => Ed.enable(u, 'blankLines.enabled'))
   Cmd.add('buffer enable blank lines', u => Ed.enableBuf(u, 'blankLines.enabled'))
@@ -47,5 +47,5 @@ function free
 () {
   Cmd.remove('enable blank lines')
   Cmd.remove('buffer enable blank lines')
-  brexts.forEach(b => b?.free())
+  wexts.forEach(b => b?.free())
 }

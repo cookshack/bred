@@ -72,7 +72,7 @@ function add
   m.decorators = spec.decorators
   m.em = spec.em || Em.make(m.name)
   m.exts = spec.exts
-  m.brexts = spec.brexts
+  m.wexts = spec.wexts
   m.hidePoint = spec.hidePoint
   m.icon = spec.icon
   m.mime = spec.mime

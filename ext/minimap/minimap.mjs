@@ -8,7 +8,7 @@ import * as Opt from '../../js/opt.mjs'
 import { showMinimap } from './lib/@replit/codemirror-minimap.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let brexts
+let wexts
 
 export
 function init
@@ -31,15 +31,15 @@ function init
     return []
   }
 
-  brexts = []
+  wexts = []
   Opt.declare('minimap.enabled', 'bool', 1)
   // 'blocks' or 'characters' (slower)
   Opt.declare('minimap.text.type', 'str', 'blocks')
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make,
-                            part: new CMState.Compartment,
-                            reconfOpts: [ 'minimap.enabled', 'minimap.text.type' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make,
+                           part: new CMState.Compartment,
+                           reconfOpts: [ 'minimap.enabled', 'minimap.text.type' ] }))
 
   Cmd.add('enable minimap', u => Ed.enable(u, 'minimap.enabled'))
   Cmd.add('buffer enable minimap', u => Ed.enableBuf(u, 'minimap.enabled'))
@@ -50,5 +50,5 @@ function free
 () {
   Cmd.remove('enable minimap')
   Cmd.remove('buffer enable minimap')
-  brexts.forEach(b => b?.free())
+  wexts.forEach(b => b?.free())
 }

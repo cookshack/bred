@@ -16,7 +16,7 @@ import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 import * as EslintConfig from '../../lib/@cookshack/eslint-config.js'
 
-let brexts, part, Eslint, eslintConfig
+let wexts, part, Eslint, eslintConfig
 
 eslintConfig = {
   languageOptions: EslintConfig.languageOptions,
@@ -154,15 +154,15 @@ function initEslint
 export
 function init
 () {
-  brexts = []
+  wexts = []
   part = new CMState.Compartment
   Opt.declare('core.lint.enabled', 'bool', 1)
   Opt.declare('core.lint.gutter.enabled', 'bool', 1)
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            part,
-                            make: makeEffects,
-                            reconfOpts: [ 'core.lint.enabled', 'core.lint.gutter.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           part,
+                           make: makeEffects,
+                           reconfOpts: [ 'core.lint.enabled', 'core.lint.gutter.enabled' ] }))
 
   Cmd.add('enable lint', u => Ed.enable(u, 'core.lint.enabled'))
   Cmd.add('enable lint gutter', u => Ed.enable(u, 'core.lint.gutter.enabled'))
@@ -179,5 +179,5 @@ function free
   Cmd.remove('enable lint gutter')
   Cmd.remove('buffer enable lint')
   Cmd.remove('buffer enable lint gutter')
-  brexts.forEach(b => b?.free())
+  wexts.forEach(b => b?.free())
 }

@@ -6,7 +6,7 @@ import * as Opt from '../../js/opt.mjs'
 import { ansi } from './lib/@cookshack/codemirror-ansi.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let brexts
+let wexts
 
 export
 function init
@@ -14,13 +14,13 @@ function init
   let ext
 
   ext = ansi()
-  brexts = []
+  wexts = []
   Opt.declare('ansi.enabled', 'bool', 1)
 
-  brexts.push(Ed.register({ backend: 'cm',
-                            make: view => view.buf.opt('ansi.enabled') ? ext : [],
-                            part: new CMState.Compartment,
-                            reconfOpts: [ 'ansi.enabled' ] }))
+  wexts.push(Ed.register({ backend: 'cm',
+                           make: view => view.buf.opt('ansi.enabled') ? ext : [],
+                           part: new CMState.Compartment,
+                           reconfOpts: [ 'ansi.enabled' ] }))
 
   Cmd.add('enable ansi', u => Ed.enable(u, 'ansi.enabled'))
   Cmd.add('buffer enable ansi', u => Ed.enableBuf(u, 'ansi.enabled'))
@@ -31,5 +31,5 @@ function free
 () {
   Cmd.remove('enable ansi')
   Cmd.remove('buffer enable ansi')
-  brexts.forEach(b => b?.free())
+  wexts.forEach(b => b?.free())
 }

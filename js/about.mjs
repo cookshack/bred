@@ -112,6 +112,7 @@ function initAbout
     p.setBuf(Win.shared().about.buf || addBuf(p))
   })
   Em.on('C-h C-a', 'about')
+  Em.on('C-h a', 'about')
 }
 
 function initHelp

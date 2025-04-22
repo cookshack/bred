@@ -187,16 +187,21 @@ function init
 
         view = Ed.Backend.viewFromState(tr.state)
         if (view) {
-          let end
+          let end, skip
 
           if (view.buf?.vars('query').appending)
             return tr
           if (view.buf?.vars('query').busy)
             return []
+
           end = view.buf?.vars('query').promptEnd
           if (end == null)
             return tr
-          if (Ed.bepGt(end, view.bep))
+          tr.changes.iterChangedRanges((from, to) => {
+            if (Ed.bepLt(Math.min(from, to), end))
+              skip = 1
+          })
+          if (skip)
             return []
         }
       }

@@ -1315,6 +1315,12 @@ function bepGt
   return bep1 > bep2
 }
 
+export
+function bepLt
+(bep1, bep2) {
+  return bep1 < bep2
+}
+
 // 0 indexed
 export
 function bepRow

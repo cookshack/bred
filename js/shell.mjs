@@ -454,6 +454,28 @@ function initShell
 () {
   let mo, hist
 
+  function enter
+  () {
+    let ch, p, l, last, input
+
+    p = Pane.current()
+    ch = p.buf.vars('Shell').ch
+    last = p.buf.vars('Shell').lastLineText
+    //d('last: [' + last + ']')
+    l = p.view.line
+    //d('l: [' + l + ']')
+
+    input = l.slice(last.length).trim()
+
+    p.view.insert('\n')
+    if (ch) {
+      if (hist)
+        hist.add(input)
+      d('sending to ch ' + ch + ': ' + input)
+      Tron.send(ch, { input: input + '\n' })
+    }
+  }
+
   function prep
   (p) {
     let prompt, l
@@ -538,28 +560,6 @@ function initShell
         globalThis.window.onkeydown = oldOnKeyDown
         Mess.say()
       }
-    }
-  }
-
-  function enter
-  () {
-    let ch, p, l, last, input
-
-    p = Pane.current()
-    ch = p.buf.vars('Shell').ch
-    last = p.buf.vars('Shell').lastLineText
-    //d('last: [' + last + ']')
-    l = p.view.line
-    //d('l: [' + l + ']')
-
-    input = l.slice(last.length).trim()
-
-    p.view.insert('\n')
-    if (ch) {
-      if (hist)
-        hist.add(input)
-      d('sending to ch ' + ch + ': ' + input)
-      Tron.send(ch, { input: input + '\n' })
     }
   }
 

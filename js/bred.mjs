@@ -1299,6 +1299,9 @@ function initBindings
   Em.on('click.aux', 'click aux')
   Em.on('context', 'context menu')
 
+  // Keys like PageUp go in the modes (mainly div,browse,ed,view) so that the
+  // browse mode WebContentsView gets them (see main-browse.mjs).
+
   Em.on('C-+', 'zoom in')
   Em.on('C-=', 'zoom in')
   Em.on('C--', 'zoom out')
@@ -1307,7 +1310,6 @@ function initBindings
   Em.on('C-e', 'line end')
   Em.on('C-f', 'forward character')
   Em.on('C-g', 'cancel')
-  Em.on('Escape', 'cancel')
   Em.on('C-l', 'recenter')
   Em.on('C-n', 'next line')
   Em.on('C-o', 'pane next or split')
@@ -1664,6 +1666,7 @@ function initDivMode
 
   mo = Mode.add('Div', {})
 
+  Em.on('Escape', 'cancel', mo)
   Em.on('Enter', 'select', mo)
   Em.on('ArrowUp', 'previous line', mo)
   Em.on('ArrowDown', 'next line', mo)

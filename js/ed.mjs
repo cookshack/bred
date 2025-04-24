@@ -1382,6 +1382,7 @@ function init
     Cmd.add('revert buffer', () => Backend.revert(), mo)
     Cmd.add('discard and revert', () => discardAndRevert()) // global because call from prompt area
 
+    Em.on('Escape', 'cancel', mo)
     Em.on('Enter', 'new line and indent', mo)
     Em.on('Backspace', 'delete previous char', mo)
     Em.on('Delete', 'delete next char', mo)

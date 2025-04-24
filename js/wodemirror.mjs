@@ -1979,6 +1979,7 @@ function utimes
 
 // nav
 
+export
 function vforward(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorCharRight, CMComm.selectCharRight))
 }

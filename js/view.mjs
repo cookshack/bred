@@ -238,6 +238,22 @@ function make
       Mess.toss('buf.add: excur missing')
   }
 
+  function forward
+  (times) {
+    if (v.ed) {
+      if (b.mode?.key)
+        if (b.mode?.forward)
+          b.mode.forward(v, times)
+        else {
+          d(b.mode)
+          Mess.say('buf.add: forward missing: ' + b.mode.key)
+        }
+
+    }
+    else
+      point.forward()
+  }
+
   function insert
   (str) {
     let b
@@ -405,10 +421,10 @@ function make
           return win
         },
         //
-        backwardChar: () => point.backward(),
-        forwardChar: () => point.forward(),
+        backward: () => point.backward(),
         ensurePointVisible,
         excur,
+        forward,
         getCallers,
         gotoLine: n => { // 1 indexed
           if (b.mode?.key)

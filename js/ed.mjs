@@ -904,6 +904,7 @@ function initModeFns
   mo.bufStart = Backend.vbufStart
   mo.ensurePointVisible = Backend.ensurePointVisible
   mo.insert = insert
+  mo.forward = Backend.vforward
   mo.len = Backend.vlen
   mo.offset = v => Backend.bepToOff(v, Backend.vgetBep(v))
   mo.pos = v => Backend.bepToPos(v, Backend.vgetBep(v))

@@ -454,6 +454,21 @@ function initShell
 () {
   let mo, hist
 
+  function lineStart
+  () {
+    let p, l, last, prompt
+
+    p = Pane.current()
+    last = p.buf.vars('Shell').lastLineText
+    //d('last: [' + last + ']')
+    l = p.view.line
+    //d('l: [' + l + ']')
+
+    prompt = l.slice(0, last.length)
+    p.view.lineStart()
+    p.view.forward(prompt.length)
+  }
+
   function enter
   () {
     let ch, p, l, last, input
@@ -581,6 +596,7 @@ function initShell
                            initFns: Ed.initModeFns,
                            parentsForEm: 'ed' })
 
+  Cmd.add('line start', () => lineStart(), mo)
   Cmd.add('next', () => next(), mo)
   Cmd.add('previous', () => prev(), mo)
   Cmd.add('self insert', selfInsert, mo)

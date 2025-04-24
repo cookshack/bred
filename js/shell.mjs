@@ -478,21 +478,21 @@ function initShell
 
   function prep
   (p) {
-    let prompt, l
+    let prompt, l, last, input
 
-    prompt = ''
+    last = p.buf.vars('Shell').lastLineText
+    //d('last: [' + last + ']')
     l = p.view.line
-    if (l.startsWith('$ ')) {
-      prompt = '$ '
-      l = l.slice(2)
-    }
-    else if (l.startsWith('> ')) {
-      prompt = '> '
-      l = l.slice(2)
-    }
+    //d('l: [' + l + ']')
+
+    input = l.slice(last.length).trim()
+    //d('input: [' + input + ']')
+    prompt = l.slice(0, last.length)
+    //d('prompt: [' + prompt + ']')
+
     p.buf.clearLine()
     p.view.insert(prompt)
-    return l || ''
+    return input || ''
   }
 
   function next

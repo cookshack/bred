@@ -587,10 +587,10 @@ function initShell
   Cmd.add('quoted insert', quotedInsert, mo)
   Cmd.add('shell run', enter, mo)
 
-  Em.on('ArrowUp', 'Previous', mo)
-  Em.on('ArrowDown', 'Next', mo)
-  Em.on('A-p', 'Previous', mo)
-  Em.on('A-n', 'Next', mo)
+  Em.on('ArrowUp', 'previous', mo)
+  Em.on('ArrowDown', 'next', mo)
+  Em.on('A-p', 'previous', mo)
+  Em.on('A-n', 'next', mo)
   Em.on('Enter', 'shell run', mo)
 
   Cmd.add('shell', shell)

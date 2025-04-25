@@ -77,6 +77,18 @@ function onOpen
       d('context')
     }
   })
+  view.webContents.setWindowOpenHandler(details => {
+    d(JSON.stringify(details))
+    return { action: 'deny' }
+  })
+  view.webContents.on('will-navigate', (event, url) => {
+    d('= will-navigate')
+    d(url)
+  })
+  view.webContents.on('will-frame-navigate', (event, url) => {
+    d('= will-frame-navigate')
+    d(url)
+  })
   view.webContents.on('did-navigate', (event, url) => {
     view.webContents.executeJavaScript('document.title').then(title => {
       Profile.hist.add(url, { title })

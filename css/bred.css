@@ -1352,6 +1352,14 @@ span.core-leadingSpace,
   margin-top: 0.25rem;
 }
 
+div.bred-welcome-rf-h-link {
+  color: var(--clr-text); /* bold of link is too much */
+}
+
+div.bred-welcome-rf-h-link:hover {
+  color: var(--clr-emph);
+}
+
 .bred-prompt-buf-ww,
 .bred-opener-ww,
 .bred-qr-ww {

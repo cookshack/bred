@@ -28,7 +28,7 @@ function init
     }
 
     rcs = divCl('bred-welcome-recent-cmds bred-welcome-recent',
-                div('Recent commands'))
+                divCl('bred-welcome-rf-h', 'Recent commands'))
 
     {
       let hist, seen
@@ -106,7 +106,11 @@ function init
       // add files to the recent list in the buf content
       count = 0
       rfs.innerHTML = ''
-      append(rfs, div('Recent files'))
+      append(rfs,
+             divCl('bred-welcome-rf-h',
+                   div('Recent files',
+                       'bred-welcome-rf-h-link',
+                       { 'data-run': 'open recent' })))
       recents.every(r => {
         //d(r)
         if (r.href.startsWith('file://')
@@ -149,8 +153,8 @@ function init
       lcount = 0
       rds.innerHTML = ''
       rls.innerHTML = ''
-      append(rds, div('Recent dirs'))
-      append(rls, div('Recent links'))
+      append(rds, divCl('bred-welcome-rf-h', 'Recent dirs'))
+      append(rls, divCl('bred-welcome-rf-h', 'Recent links'))
       recents.every(r => {
         0 && d(r)
         if (r.href.startsWith('file://')

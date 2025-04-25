@@ -126,9 +126,9 @@ function add
     $current = current(area)
     if ($current) {
       if ($current.frameRight && Css.has($current.frameRight.el, 'retracted'))
-        tab.framesRight?.forEach(fr => Css.retract(fr.el))
+        tab.framesRight?.forEach(fr => fr.retract())
       if ($current.frameLeft && Css.has($current.frameLeft.el, 'retracted'))
-        Css.retract(tab.frameLeft.el)
+        tab.frameLeft.retract()
     }
   }
   tab.show()

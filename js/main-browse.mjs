@@ -79,6 +79,10 @@ function onOpen
   })
   view.webContents.setWindowOpenHandler(details => {
     d(JSON.stringify(details))
+    if (details.url.startsWith('http:')
+        || details.url.startsWith('https:'))
+      e.sender.send(ch, { ev: 'open',
+                          href: details.url })
     return { action: 'deny' }
   })
   view.webContents.on('will-navigate', (event, url) => {

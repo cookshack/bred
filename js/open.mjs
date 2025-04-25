@@ -1,13 +1,132 @@
+import * as Browse from './browse.mjs'
 import * as Cmd from './cmd.mjs'
+import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
+import * as Ext from './ext.mjs'
 import * as Hist from './hist.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
+import * as Shell from './shell.mjs'
+import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
-//import { d } from './mess.mjs'
+import * as U from './util.mjs'
+import { d } from './mess.mjs'
+
+export
+function link
+(path, line, newTab) {
+  let ext, mtype
+
+  function open
+  (path, mtype) {
+    let rich
+
+    rich = Ext.get('rich')
+    if (rich?.supports(mtype)) {
+      rich.open(path, line)
+      return
+    }
+
+    Pane.open(path, line)
+  }
+
+  function shell
+  (path) {
+    d('open externally: ' + path)
+    Tron.cmd('shell.open', [ path ], err => {
+      if (err) {
+        Mess.yell('shell.open: ' + err.message)
+        return
+      }
+      d('opened OK')
+    })
+  }
+
+  if (newTab) {
+    let tab, buf, p
+
+    p = Pane.current()
+    buf = p.buf
+    tab = Tab.add(p.win.main)
+    Css.expand(p.win.main.tabbar)
+    p = tab.pane()
+    p.setBuf(buf)
+  }
+
+  if (path.startsWith('/'))
+    path = 'file://' + path
+  if (path.startsWith('file://')) {
+    if (path.endsWith('/')) {
+      // dir
+      // check needed because dir name may include dots
+      Pane.open(path, line)
+      return
+    }
+    if (path.includes('.')) {
+      // file with ext
+      ext = path.slice(path.lastIndexOf('.') + 1)
+      mtype = Ed.mtypeFromExt(ext)
+      // check ext first because mime-db missing eg.py
+      if (ext && Ed.supportsExt(ext))
+        // file with supported ext: eg.js
+        open(path, mtype)
+      else if (mtype && Ed.supports(mtype))
+        // file with supported mime type (via ext)
+        open(path, mtype)
+      else
+        Shell.runToString(Pane.current().dir,
+                          'file',
+                          [ '-b', '--mime-type', U.stripFilePrefix(path) ],
+                          0,
+                          mtype => {
+                            mtype = mtype && mtype.trim()
+                            d('MIME type: ' + mtype)
+                            if (mtype == 'inode/x-empty')
+                              // empty file
+                              Pane.open(path)
+                            else if (mtype == 'application/octet-stream')
+                              // arbitrary binary data (try anyway because often text, like eg.bak)
+                              Pane.open(path)
+                            else if (mtype == 'inode/directory')
+                              // directory (path was missing trailing /)
+                              Pane.open(path)
+                            else if (mtype && Ed.supports(mtype))
+                              // file with supported mime type: eg.xxx
+                              open(path, mtype)
+                            else
+                              shell(path)
+                          })
+      return
+    }
+    // bare file
+    Pane.open(path, line)
+    return
+  }
+
+  // http
+  if (path.startsWith('http://')
+      || path.startsWith('https://')) {
+    Browse.browse(path)
+    return
+  }
+
+  // search
+  if (path.startsWith('search://')) {
+    let query
+
+    query = Ext.get('query')
+    if (query) {
+      query.search(path.slice('search://'.length))
+      return
+    }
+  }
+
+  // https://, mailto:// etc
+  shell(path)
+}
 
 function initMakeDir
 () {

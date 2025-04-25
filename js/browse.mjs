@@ -8,6 +8,7 @@ import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
+import * as Open from './open.mjs'
 import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
@@ -211,9 +212,11 @@ function initBrowse
                Tron.on(data.ch, (err, data) => {
                  d('--- browse ev ---')
                  d({ data })
-                 if (data.ev == 'focus')
+                 if (data.ev == 'focus') {
                    Pane.focusView(view, 1, 1)
-                 else if (data.ev == 'did-navigate') {
+                   return
+                 }
+                 if (data.ev == 'did-navigate') {
                    let ml
 
                    ml = getMl(view)
@@ -227,10 +230,18 @@ function initBrowse
                      if (e)
                        e.innerText = data.title
                    }
+                   return
+                 }
+                 if (data.ev == 'open') {
+                   Open.link(data.href, null, 1)
+                   return
                  }
                })
 
-               obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.ele)
+               if (view.ele)
+                 obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.ele)
+               else
+                 Mess.log('FIX browser viewInitSpec view.ele missing for ResizeObserver')
                d({ obs })
                id = data.id
                view.vars('Browse').id = id

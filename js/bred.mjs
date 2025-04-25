@@ -533,125 +533,21 @@ function initCmds
       Mess.say('Target missing URL')
   })
 
-  Cmd.add('open link', (u, we, newTab) => {
-    function open
-    (path, mtype) {
-      let rich
-
-      rich = Ext.get('rich')
-      if (rich?.supports(mtype)) {
-        rich.open(path, we.e.target.dataset.line)
-        return
-      }
-
-      Pane.open(path, we.e.target.dataset.line)
-    }
-
-    function shell
-    (path) {
-      d('open externally: ' + path)
-      Tron.cmd('shell.open', [ path ], err => {
-        if (err) {
-          Mess.yell('shell.open: ' + err.message)
-          return
-        }
-        d('opened OK')
-      })
-    }
-
-    if (we.e.target.dataset.path) {
-      let ext, mtype, path
-
-      if (newTab) {
-        let tab, buf, p
-
-        p = Pane.current()
-        buf = p.buf
-        tab = Tab.add(p.win.main)
-        Css.expand(p.win.main.tabbar)
-        p = tab.pane()
-        p.setBuf(buf)
-      }
-
-      path = we.e.target.dataset.path
-
-      if (path.startsWith('/'))
-        path = 'file://' + path
-      if (path.startsWith('file://')) {
-        if (path.endsWith('/')) {
-          // dir
-          // check needed because dir name may include dots
-          Pane.open(path, we.e.target.dataset.line)
-          return
-        }
-        if (path.includes('.')) {
-          // file with ext
-          ext = path.slice(path.lastIndexOf('.') + 1)
-          mtype = Ed.mtypeFromExt(ext)
-          // check ext first because mime-db missing eg.py
-          if (ext && Ed.supportsExt(ext))
-            // file with supported ext: eg.js
-            open(path, mtype)
-          else if (mtype && Ed.supports(mtype))
-            // file with supported mime type (via ext)
-            open(path, mtype)
-          else
-            Shell.runToString(Pane.current().dir,
-                              'file',
-                              [ '-b', '--mime-type', U.stripFilePrefix(path) ],
-                              0,
-                              mtype => {
-                                mtype = mtype && mtype.trim()
-                                d('MIME type: ' + mtype)
-                                if (mtype == 'inode/x-empty')
-                                  // empty file
-                                  Pane.open(path)
-                                else if (mtype == 'application/octet-stream')
-                                  // arbitrary binary data (try anyway because often text, like eg.bak)
-                                  Pane.open(path)
-                                else if (mtype == 'inode/directory')
-                                  // directory (path was missing trailing /)
-                                  Pane.open(path)
-                                else if (mtype && Ed.supports(mtype))
-                                  // file with supported mime type: eg.xxx
-                                  open(path, mtype)
-                                else
-                                  shell(path)
-                              })
-          return
-        }
-        // bare file
-        Pane.open(path, we.e.target.dataset.line)
-        return
-      }
-
-      // http
-      if (path.startsWith('http://')
-          || path.startsWith('https://')) {
-        Browse.browse(path)
-        return
-      }
-
-      // search
-      if (path.startsWith('search://')) {
-        let query
-
-        query = Ext.get('query')
-        if (query) {
-          query.search(path.slice('search://'.length))
-          return
-        }
-      }
-
-      // https://, mailto:// etc
-      shell(path)
-    }
+  Cmd.add('open link', (u, we) => {
+    if (we.e.target.dataset.path)
+      Open.link(we.e.target.dataset.path,
+                we.e.target.dataset.line)
     else
       Mess.say('Target missing path')
   })
 
   Cmd.add('open link in new tab', (u, we) => {
-    Cmd.run('open link', Pane.current().buf, u, we, 1)
+    if (we.e.target.dataset.path)
+      Open.link(we.e.target.dataset.path,
+                we.e.target.dataset.line,
+                1)
+    else
+      Mess.say('Target missing path')
   })
 
   Cmd.add('say', () => Mess.say('Test of Mess.say'))

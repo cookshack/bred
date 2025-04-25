@@ -17,7 +17,15 @@ function init
 () {
   function divW
   () {
-    let w, rcs, rds, rfs
+    let w, rcs, rds, rfs, rls
+
+    function short
+    (href) {
+      let url
+
+      url = new URL(href)
+      return url.hostname + url.pathname
+    }
 
     rcs = divCl('bred-welcome-recent-cmds bred-welcome-recent',
                 div('Recent commands'))
@@ -49,6 +57,9 @@ function init
     rfs = divCl('bred-welcome-recent-files bred-welcome-recent',
                 div('Loading...'))
 
+    rls = divCl('bred-welcome-recent-links bred-welcome-recent',
+                div('Loading...'))
+
     w = divCl('bred-welcome-ww',
               divCl('bred-welcome-w',
                     [ divCl('bred-welcome-theme',
@@ -72,7 +83,7 @@ function init
                                   divCl('bred-welcome-link', 'Scratch', { 'data-run': 'Goto Scratch' }) ])),
                       divCl('bred-welcome-quick',
                             divCl('bred-welcome-recents',
-                                  [ rfs, rds, rcs ])),
+                                  [ rls, rfs, rds, rcs ])),
                       divCl('bred-welcome-sett',
                             [ 'Show Welcome on start? ',
                               button('yes',
@@ -126,7 +137,7 @@ function init
     })
 
     Recent.get(1, (err, recents) => {
-      let count
+      let count, lcount
 
       if (err) {
         Mess.log('Recent: ' + err.message)
@@ -135,8 +146,11 @@ function init
 
       // add files to the recent list in the buf content
       count = 0
+      lcount = 0
       rds.innerHTML = ''
+      rls.innerHTML = ''
       append(rds, div('Recent dirs'))
+      append(rls, div('Recent links'))
       recents.every(r => {
         0 && d(r)
         if (r.href.startsWith('file://')
@@ -150,6 +164,14 @@ function init
                            'data-path': r.href }))
           return count < 10
         }
+        if (r.href.startsWith('http')
+                 || r.href.startsWith('https')) {
+          lcount++
+          rls.append(div(short(r.href),
+                         { 'data-run': 'open link',
+                           'data-path': r.href }))
+          return lcount < 10
+        }
         return 1
       })
 
@@ -162,6 +184,11 @@ function init
           ele.innerHTML = ''
           append(ele,
                  [ ...rds.children ].map(ch => ch.cloneNode(true)))
+
+          ele = view.ele.querySelector('.bred-welcome-recent-links')
+          ele.innerHTML = ''
+          append(ele,
+                 [ ...rls.children ].map(ch => ch.cloneNode(true)))
         }
       })
     })

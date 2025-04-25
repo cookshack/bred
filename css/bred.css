@@ -1334,10 +1334,16 @@ span.core-leadingSpace,
 }
 
 .bred-welcome-recents {
+  max-width: 100%;
   display: flex;
 }
 
-.bred-welcome-recent-dirs {
+.bred-welcome-recent {
+  overflow-x: scroll;
+}
+
+.bred-welcome-recent-dirs,
+.bred-welcome-recent-links {
   margin-left: 0.5rem;
   margin-right: 0.5rem;
 }

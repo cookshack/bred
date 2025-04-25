@@ -121,6 +121,7 @@ function init
           loc = Loc.make(r.href)
           rfs.append(div(loc.filename,
                          { 'data-run': 'open link',
+                           'data-runaux': 'open link in new tab',
                            'data-path': r.href }))
           return count < 10
         }
@@ -165,6 +166,7 @@ function init
           loc = Loc.make(r.href)
           rds.append(div(Loc.cleanHref(loc.dirname),
                          { 'data-run': 'open link',
+                           'data-runaux': 'open link in new tab',
                            'data-path': r.href }))
           return count < 10
         }
@@ -173,6 +175,7 @@ function init
           lcount++
           rls.append(div(short(r.href),
                          { 'data-run': 'open link',
+                           'data-runaux': 'open link in new tab',
                            'data-path': r.href }))
           return lcount < 10
         }

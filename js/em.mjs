@@ -316,6 +316,7 @@ function handle
   buf = view?.buf
 
   if (we.mouse) {
+    // Primary (often left)
     if (we.e?.button == 0) {
       let name, run, target
 
@@ -351,6 +352,35 @@ function handle
         }
         else
           Mess.warn('target has data-em and em is missing: ' + name)
+      }
+    }
+    // Aux (often middle/wheel)
+    if (we.e?.button == 1) {
+      let run, target
+
+      target = we.e?.target
+      run = target?.dataset?.runaux
+      if (run) {
+        let p
+
+        p = Pane.holding(target)
+        if (p)
+          p.focus()
+        reset()
+        Mess.say('')
+
+        buf = buf || Pane.current()?.buf
+
+        if (Css.has(target.parentNode, 'bred-context'))
+          Css.remove(target.parentNode, 'bred-open')
+
+        Css.remove(target.parentNode?.parentNode, 'bred-open')
+
+        d('cmd on data-runaux: ' + run)
+        Cmd.run(run, buf, Cmd.universal(run), we)
+        if (target.dataset.afteraux)
+          Cmd.run(target.dataset.afteraux, buf, 1, we)
+        return
       }
     }
   }

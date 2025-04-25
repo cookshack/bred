@@ -1623,6 +1623,7 @@ function initRecent
       co = recents.map(r => divCl('recent-item',
                                   Loc.cleanHref(r.href),
                                   { 'data-run': 'open link',
+                                    'data-runaux': 'open link in new tab',
                                     'data-path': r.href }))
 
       append(w, co)

@@ -533,7 +533,7 @@ function initCmds
       Mess.say('Target missing URL')
   })
 
-  Cmd.add('open link', (u, we) => {
+  Cmd.add('open link', (u, we, newTab) => {
     function open
     (path, mtype) {
       let rich
@@ -561,6 +561,17 @@ function initCmds
 
     if (we.e.target.dataset.path) {
       let ext, mtype, path
+
+      if (newTab) {
+        let tab, buf, p
+
+        p = Pane.current()
+        buf = p.buf
+        tab = Tab.add(p.win.main)
+        Css.expand(p.win.main.tabbar)
+        p = tab.pane()
+        p.setBuf(buf)
+      }
 
       path = we.e.target.dataset.path
 
@@ -637,6 +648,10 @@ function initCmds
     }
     else
       Mess.say('Target missing path')
+  })
+
+  Cmd.add('open link in new tab', (u, we) => {
+    Cmd.run('open link', Pane.current().buf, u, we, 1)
   })
 
   Cmd.add('say', () => Mess.say('Test of Mess.say'))

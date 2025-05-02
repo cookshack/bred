@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
 while true; do
-  npm start -- $*
+  if [ -n "$BRED_GDB" ] && [ "$BRED_GDB" -eq 1 ]; then
+    npm run start-gdb -- $*
+  else
+    npm start -- $*
+  fi
   CODE=$?
   echo "exit code: $CODE"
   if [ $CODE -eq 7 ]; then

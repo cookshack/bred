@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "mocha",
+    "start-gdb": "gdb -q --args node node_modules/.bin/electron .",
     "start": "electron .",
     "inspect": "electron --inspect=5656 .",
     "mime": "./bin/generate-mime-by-ext",

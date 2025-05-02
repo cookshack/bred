@@ -21,8 +21,17 @@ function initPrompt
     d('PROFILE.HIST added')
   }
 
+  function load
+  () {
+    let st
+
+    st = db.prepare('SELECT * FROM prompts ORDER BY id DESC')
+    return { prompts: st.all() }
+  }
+
   prompt = {
-    add
+    add,
+    load
   }
 }
 
@@ -145,6 +154,12 @@ function onPromptAdd
   let [ name, text ] = onArgs
 
   prompt.add(name, text)
+}
+
+export
+function onPromptLoad
+() {
+  return prompt.load()
 }
 
 export

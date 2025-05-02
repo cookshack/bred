@@ -200,15 +200,13 @@ function init
 () {
   hists = []
 
-  Tron.cmd('profile.load', 'hists-v1', (err, data) => {
-    if (err)
-      Mess.toss(err)
-    Object.entries(data.data).forEach(kv => {
+  Tron.acmd('profile.prompt.load').then(data => {
+    data.prompts.forEach(p => {
       let h
 
-      h = ensure(kv[0])
-      h.items = kv[1]
-      h.save = 1
+      h = ensure(p.name)
+      h.items = h.items || []
+      h.items.push(p.text)
     })
   })
 

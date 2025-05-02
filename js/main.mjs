@@ -239,6 +239,9 @@ async function onAcmd
 
   if (name == 'profile.prompt.add')
     return Profile.onPromptAdd(e, args)
+
+  if (name == 'profile.prompt.load')
+    return Profile.onPromptLoad(e, args)
 }
 
 let onCmdCount

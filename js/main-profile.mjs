@@ -204,16 +204,17 @@ function onLoad
 export
 function onSave
 (e, ch, args) {
-  //let s
+  let s
 
-  d('PROFILE save ' + args[0])
-  //s = getStore(args[0])
-  args[1].forEach((/*a*/) => {
+  //d('PROFILE save ' + args[0])
+  s = getStore(args[0])
+  args[1].forEach(a => {
     //d('PROFILE save ' + args[0] + ': ' + a[0] + ':')
     //d(JSON.stringify(a[1]))
-    //s.set(a[0], a[1])
+    s.set(a[0], a[1])
   })
-  d('PROFILE save ' + args[0] + ': done')
+
+  //d('PROFILE save ' + args[0] + ': done')
   return {}
 }
 

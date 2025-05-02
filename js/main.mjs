@@ -263,7 +263,7 @@ function onCmdCh
   if (name == 'profile.load')
     return wrapOn(e, ch, args, Profile.onLoad)
 
-  if (name == 'profile.save')
+  if (name == 'profile.save') // profile.set but many
     return Profile.onSave(e, ch, args)
 
   if (name == 'profile.set')

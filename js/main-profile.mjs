@@ -4,9 +4,27 @@ import Database from 'better-sqlite3'
 import Fuse from 'fuse.js'
 import Store from 'electron-store'
 
-let stores, profile, hist
+let stores, profile, hist, prompt
 
 import { d, log } from './main-log.mjs'
+
+function initPrompt
+(db) {
+
+  function add
+  (name, text) {
+    d('PROFILE.PROMPT add ' + text)
+    db.prepare('INSERT INTO prompts (name, text, time) VALUES (?, ?, ?)')
+      .run(name,
+           text,
+           Date.now())
+    d('PROFILE.HIST added')
+  }
+
+  prompt = {
+    add
+  }
+}
 
 export
 function initHist
@@ -40,6 +58,7 @@ function initHist
            url?.search ?? '',
            url?.hash ?? '',
            Date.now())
+    d('PROFILE.HIST added')
   }
 
   function filter
@@ -88,11 +107,14 @@ function initHist
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
   db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, time)').run()
+  db.prepare('CREATE TABLE IF NOT EXISTS prompts (id INTEGER PRIMARY KEY, name, text, time)').run()
 
   hist = { add,
            get,
            filter,
            suggest }
+
+  initPrompt(db)
 }
 
 export
@@ -115,6 +137,14 @@ function onHistSuggest
   let [ query ] = onArgs
 
   return hist.suggest(query)
+}
+
+export
+function onPromptAdd
+(e, onArgs) {
+  let [ name, text ] = onArgs
+
+  prompt.add(name, text)
 }
 
 export
@@ -159,12 +189,16 @@ function onLoad
 export
 function onSave
 (e, ch, args) {
-  let s
+  //let s
 
-  s = getStore(args[0])
-  args[1].forEach(a => {
-    s.set(a[0], a[1])
+  d('PROFILE save ' + args[0])
+  //s = getStore(args[0])
+  args[1].forEach((/*a*/) => {
+    //d('PROFILE save ' + args[0] + ': ' + a[0] + ':')
+    //d(JSON.stringify(a[1]))
+    //s.set(a[0], a[1])
   })
+  d('PROFILE save ' + args[0] + ': done')
   return {}
 }
 

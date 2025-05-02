@@ -157,8 +157,10 @@ function make
              d('HIST add ' + it)
              //d({ items })
              items.unshift(it)
-             if (save)
+             if (save) {
+               Tron.acmd('profile.prompt.add', [ name, it ])
                needSave = 1
+             }
            },
            at: i => items[i],
            next,

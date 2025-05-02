@@ -236,27 +236,20 @@ async function onAcmd
 
   if (name == 'profile.hist.suggest')
     return Profile.onHistSuggest(e, args)
+
+  if (name == 'profile.prompt.add')
+    return Profile.onPromptAdd(e, args)
 }
 
 let onCmdCount
 
 onCmdCount = 0
 
-async function onCmd
-(e, name, args) {
-  let win, ch
-
-  ch = 'onCmd' + onCmdCount
-  onCmdCount++
-  onCmdCount = Math.min(onCmdCount, 1000000)
+function onCmdCh
+(ch, e, name, args) {
+  let win
 
   win = BrowserWindow.fromWebContents(e.sender)
-
-  if ((name == 'dir.get') && options.logfile) {
-    // Skip because the dir watch handler calls dir.get, so this would cause recursive behaviour.
-  }
-  else
-    d(ch + ': ' + name) // + " on " + args)
 
   if (name == 'browse.open')
     return wrapOn(e, ch, args, Browse.onOpen)
@@ -393,6 +386,30 @@ async function onCmd
 
   setTimeout(() => e.sender.send(ch, { err: { message: 'bogus cmd' } }))
   return ch
+}
+
+async function onCmd
+(e, name, args) {
+  let ret, ch
+
+  ch = 'onCmd' + onCmdCount
+  onCmdCount++
+  onCmdCount = Math.min(onCmdCount, 1000000)
+
+  if ((name == 'dir.get') && options.logfile) {
+    // Skip because the dir watch handler calls dir.get, so this would cause recursive behaviour.
+  }
+  else
+    d(ch + ': ' + name) // + " on " + args)
+
+  ret = onCmdCh(ch, e, name, args)
+
+  if ((name == 'dir.get') && options.logfile) {
+  }
+  else
+    d(ch + ': ' + name + ': done')
+
+  return ret
 }
 
 function createWindow

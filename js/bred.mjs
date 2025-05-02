@@ -750,10 +750,6 @@ function initCmds
     Prompt.close()
   })
 
-  Cmd.add('save histories', () => {
-    Hist.save()
-  })
-
   Cmd.add('relaunch', () => {
     Tron.cmd1('restart', [], err => {
       if (err)
@@ -1773,7 +1769,6 @@ function init
       tab.frameLeft.save()
       tab.frameRight.save()
       Buf.savePoss()
-      Hist.save()
     }
 
     start0(start2)

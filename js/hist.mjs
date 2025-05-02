@@ -2,7 +2,7 @@ import * as Mess from './mess.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
-let hists, needSave
+let hists
 
 function get
 (name) {
@@ -157,10 +157,8 @@ function make
              d('HIST add ' + it)
              //d({ items })
              items.unshift(it)
-             if (save) {
+             if (save)
                Tron.acmd('profile.prompt.add', [ name, it ])
-               needSave = 1
-             }
            },
            at: i => items[i],
            next,
@@ -168,31 +166,6 @@ function make
            prev,
            reset,
            to }
-}
-
-export
-function saveIfNeeded
-() {
-  if (needSave)
-    save(err => {
-      if (err) {
-        Mess.log(err.message)
-        return
-      }
-      needSave = 0
-    })
-}
-
-export
-function save
-(cb) { // (err)
-  d('HIST save')
-  if (hists.length)
-    Tron.cmd1('profile.save',
-              [ 'hists-v1', hists.filter(h => h.save).map(h => [ h.name, h.items ]) ],
-              cb)
-  else
-    cb(0)
 }
 
 export
@@ -205,11 +178,9 @@ function init
       let h
 
       h = ensure(p.name)
+      h.save = 1
       h.items = h.items || []
       h.items.push(p.text)
     })
   })
-
-  setInterval(() => saveIfNeeded(),
-              10 * 1000)
 }

@@ -168,6 +168,34 @@ function init
 () {
   let hist, mo, chMo, extRo
 
+  function busy
+  (buf) {
+    buf.vars('query').busy = 1
+    buf.views.forEach(view => {
+      if (view.ele) {
+        let el
+
+        el = view.ele.querySelector('.query-ml-stop')
+        if (el)
+          Css.show(el)
+      }
+    })
+  }
+
+  function done
+  (buf) {
+    buf.vars('query').busy = 0
+    buf.views.forEach(view => {
+      if (view.ele) {
+        let el
+
+        el = view.ele.querySelector('.query-ml-stop')
+        if (el)
+          Css.hide(el)
+      }
+    })
+  }
+
   function appendWithEnd
   (buf, text) {
     buf.vars('query').appending = 1
@@ -513,7 +541,7 @@ function init
     model = buf.vars('query').model || Opt.get('query.model')
     buf.vars('query').hist.add(prompt)
 
-    buf.vars('query').busy = 1
+    busy(buf)
     appendWithEnd(buf, '\n\n')
     chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
          msg => {
@@ -523,7 +551,7 @@ function init
          },
          () => {
            appendWithEnd(buf, '\n\n' + premo + ' ')
-           buf.vars('query').busy = 0
+           done(buf)
          })
   }
 
@@ -543,7 +571,7 @@ function init
                prompt => {
                  buf.vars('query').hist.add(prompt)
 
-                 buf.vars('query').busy = 1
+                 busy(buf)
                  appendWithEnd(buf, prompt + '\n\n')
                  chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                       msg => {
@@ -553,7 +581,7 @@ function init
                       },
                       () => {
                         appendWithEnd(buf, '\n\n' + premo + ' ')
-                        buf.vars('query').busy = 0
+                        done(buf)
                       })
                })
   }
@@ -642,7 +670,7 @@ function init
                    //buf.addMode('view')
                    buf.icon = 'chat'
                  }
-                 buf.vars('query').busy = 1
+                 busy(buf)
                  buf.vars('query').model = model
                  buf.vars('query').msgs = []
 
@@ -664,7 +692,7 @@ function init
                         },
                         () => {
                           appendWithEnd(buf, '\n\n' + premo + ' ')
-                          buf.vars('query').busy = 0
+                          done(buf)
                         })
                  })
                })

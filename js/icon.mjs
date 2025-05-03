@@ -40,6 +40,9 @@ function path
     if (name == 'close')
       return 'lib/svg/vscode-codicons/close.svg'
 
+    if (name == 'config')
+      return 'lib/svg/material-icons/settings_applications/materialicons/24px.svg'
+
     if (name == 'css')
       return 'lib/svg/mfixx/css.svg'
 
@@ -183,6 +186,7 @@ function mode
     if (name == 'markdown') return { name: 'markdown' }
     if (name == 'patch') return { name: 'patch' }
     if (name == 'plaintext') return { name: 'text' }
+    if (name == 'properties files') return { name: 'config' }
     if (name == 'perl') return { name: 'perl' }
     if (name == 'python') return { name: 'python' }
     if (name == 'rust') return { name: 'rust' }

@@ -184,6 +184,7 @@ function init
 
   function done
   (buf) {
+    buf.vars('query').cancel = 0
     buf.vars('query').busy = 0
     buf.views.forEach(view => {
       if (view.ele) {
@@ -238,17 +239,26 @@ function init
   }
 
   function chat
-  (model, key, msgs, prompt, cb, cbEnd) { // (msg), ()
+  (buf, model, key, msgs, prompt, cb, cbEnd) { // (msg), ()
 
     function stream
     (response) {
-      let buffer, reader, decoder
+      let buffer, reader, decoder, cancelled
 
       d('CHAT stream')
+
+      function cancel
+      () {
+        cancelled = 1
+        reader.cancel()
+      }
 
       function read
       () {
         reader.read().then(({ done, value }) => {
+
+          if (cancelled)
+            return
 
           if (done) {
             d('CHAT done')
@@ -299,6 +309,8 @@ function init
       buffer = ''
 
       read()
+
+      buf.vars('query').cancel = cancel
     }
 
     prompt.length || Mess.throw('empty prompt')
@@ -543,7 +555,7 @@ function init
 
     busy(buf)
     appendWithEnd(buf, '\n\n')
-    chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+    chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
          msg => {
            d('CHAT enter append: ' + msg.content)
            buf.vars('query').msgs.push(msg)
@@ -573,7 +585,7 @@ function init
 
                  busy(buf)
                  appendWithEnd(buf, prompt + '\n\n')
-                 chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+                 chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                       msg => {
                         d('CHAT more append: ' + msg.content)
                         buf.vars('query').msgs.push(msg)
@@ -645,7 +657,13 @@ function init
 
     p = Pane.current()
     if (p.buf.vars('query').busy)
-      d('stopped')
+      if (p.buf.vars('query').cancel) {
+        p.buf.vars('query').cancel()
+        appendWithEnd(p.buf, ' ...stopped.\n\n' + premo + ' ')
+        done(p.buf)
+      }
+      else
+        Mess.toss('cancel function missing')
   })
 
   Cmd.add('chat', (u, we, model) => {
@@ -684,7 +702,7 @@ function init
                    appendWithEnd(buf, premo + ' ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
-                   chat(model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+                   chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                         msg => {
                           d('CHAT append: ' + msg.content)
                           buf.vars('query').msgs.push(msg)

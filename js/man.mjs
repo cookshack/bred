@@ -107,7 +107,7 @@ function init
       buf.vars('Man').hist.reset()
     else {
       buf = Buf.make({ name: 'Man',
-                       modeName: 'Man',
+                       modeKey: 'man',
                        content: w,
                        dir: p.dir })
       Win.shared().man.buf = buf

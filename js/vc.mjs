@@ -48,7 +48,7 @@ function initStash
       st = /[^@]+@{([^}]+)/.exec(line)[1]
       if (st && st.length)
         git('git stash show --no-prefix -p ' + st,
-            Ed.patchModeName(),
+            Ed.patchModeKey(),
             [ 'equal' ],
             1) // keep point at start
       else
@@ -260,7 +260,7 @@ function initEqual
 
   function finish
   (b) {
-    b.mode = Ed.patchModeName()
+    b.mode = Ed.patchModeKey()
     b.opts.set('core.lint.enabled', 0)
     b.addMode('equal')
     b.addMode('view')
@@ -407,7 +407,7 @@ function showHash
                { end: 1,
                  afterEndPoint: 1 },
                b => {
-                 b.mode = Ed.patchModeName()
+                 b.mode = Ed.patchModeKey()
                  b.addMode('equal')
                  b.addMode('view')
                })

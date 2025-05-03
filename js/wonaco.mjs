@@ -2169,7 +2169,7 @@ function initComplete
 }
 
 export
-function patchModeName
+function patchModeKey
 () {
   return 'patch'
 }

@@ -154,15 +154,15 @@ function make
 (p,
  spec, // { name, dir, file, lineNum, whenReady(view) }
  cb) { // (view)
-  let modeName
+  let modeKey
 
   function makeBuf
   () {
     let icon
 
-    icon = modeName && Icon.mode(modeName)?.name
+    icon = modeKey && Icon.mode(modeKey)?.name
     p.setBuf(Buf.add(spec.name || spec.file,
-                     modeName || 'Ed',
+                     modeKey || 'ed',
                      divW(spec.dir,
                           spec.name || spec.file,
                           { icon: icon }),
@@ -180,9 +180,9 @@ function make
   }
 
   if (spec.file)
-    modeName = Backend.modeFor(spec.file)
+    modeKey = Backend.modeFor(spec.file)
   else if (spec.name)
-    modeName = Backend.modeFor(spec.name)
+    modeKey = Backend.modeFor(spec.name)
   if (spec.file)
     spec.file = Loc.make(spec.file).removeSlash() // for name
   if (Loc.make(spec.file).filename == spec.file) {
@@ -616,9 +616,9 @@ function initSearch
 }
 
 export
-function patchModeName
+function patchModeKey
 () {
-  return Backend.patchModeName()
+  return Backend.patchModeKey()
 }
 
 export

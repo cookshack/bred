@@ -3792,7 +3792,7 @@ function initComplete
 }
 
 export
-function patchModeName
+function patchModeKey
 () {
   return 'diff'
 }
@@ -4333,8 +4333,8 @@ function initPatchExt
     return builder.finish()
   }
 
-  decorPlus = CMView.Decoration.mark({ class: patchModeName() + '-refine-plus' })
-  decorMinus = CMView.Decoration.mark({ class: patchModeName() + '-refine-minus' })
+  decorPlus = CMView.Decoration.mark({ class: patchModeKey() + '-refine-plus' })
+  decorMinus = CMView.Decoration.mark({ class: patchModeKey() + '-refine-minus' })
 
   decorEffect = CMState.StateEffect.define()
 
@@ -4364,7 +4364,7 @@ function initPatchExt
             })
             Patch.refine(update.view.state.doc.toString(),
                          refines => {
-                           buf.vars(patchModeName()).refines = refines
+                           buf.vars(patchModeKey()).refines = refines
                            update.view.dispatch({
                              effects: decorEffect.of(decorateRefines(update.view, refines))
                            })
@@ -4373,7 +4373,7 @@ function initPatchExt
           else
             update.view.dispatch({
               effects: decorEffect.of(decorateRefines(update.view,
-                                                      buf.vars(patchModeName()).refines))
+                                                      buf.vars(patchModeKey()).refines))
             })
       }
     }
@@ -4384,7 +4384,7 @@ function initPatchExt
 
                    buf = ed.bred?.view?.buf
                    if (buf)
-                     buf.vars(patchModeName()).refines = refines
+                     buf.vars(patchModeKey()).refines = refines
                    ed.dispatch({
                      effects: decorEffect.of(decorateRefines(ed, refines))
                    })

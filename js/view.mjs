@@ -327,11 +327,11 @@ function make
   }
 
   function vars
-  (modeName) {
-    if (modeName) {
-      modeName = modeName.toLowerCase()
-      modeVars[modeName] = modeVars[modeName] || {}
-      return modeVars[modeName]
+  (modeKey) {
+    if (modeKey) {
+      modeKey = modeKey.toLowerCase()
+      modeVars[modeKey] = modeVars[modeKey] || {}
+      return modeVars[modeKey]
     }
     return modeVars
   }

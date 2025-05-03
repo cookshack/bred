@@ -428,14 +428,14 @@ function initDescribeKey
       w = divW()
 
       if (buf) {
-        //buf.vars("SC").hist.reset()
+        //buf.vars('SC').hist.reset()
       }
       else {
         buf = Buf.make({ name: 'Describe Key',
-                         modeName: 'Describe Key',
+                         modeKey: 'describe key',
                          content: w,
                          dir: p.dir })
-        //buf.vars("SC").hist = compileHist
+        //buf.vars('SC').hist = compileHist
         buf.addMode('view')
       }
       p.setBuf(buf, {}, view => refresh(view, to, wes))
@@ -582,14 +582,14 @@ function initDescribeCmd
     w = divW()
 
     if (buf) {
-      //buf.vars("SC").hist.reset()
+      //buf.vars('SC').hist.reset()
     }
     else {
       buf = Buf.make({ name: 'Describe Cmd',
-                       modeName: 'Describe Cmd',
+                       modeKey: 'describe cmd',
                        content: w,
                        dir: p.dir })
-      //buf.vars("SC").hist = compileHist
+      //buf.vars('SC').hist = compileHist
       buf.addMode('view')
     }
     p.setBuf(buf, {}, view => refresh(view, name, mode))
@@ -602,7 +602,7 @@ function initDescribeCmd
     p = Pane.current()
     callerBuf = p.buf
     buf = Buf.make({ name: 'Command to Describe',
-                     modeName: 'Execute',
+                     modeKey: 'execute',
                      content: Exec.divW(),
                      dir: p.dir })
     buf.vars('execute').cb = name => describe(name)
@@ -715,11 +715,11 @@ function initLang
 
       buf = Win.shared().lang.buf
       if (buf) {
-        //buf.vars("SC").hist.reset()
+        //buf.vars('SC').hist.reset()
       }
       else {
         buf = Buf.make({ name: 'Lang',
-                         modeName: 'Lang',
+                         modeKey: 'lang',
                          content: w,
                          dir: p.dir })
         Win.shared().lang.buf = buf
@@ -794,15 +794,15 @@ function initLangs
 
     buf = Win.shared().langs.buf
     if (buf) {
-      //buf.vars("SC").hist.reset()
+      //buf.vars('SC').hist.reset()
     }
     else {
       buf = Buf.make({ name: 'Langs',
-                       modeName: 'Langs',
+                       modeKey: 'Langs',
                        content: w,
                        dir: p.dir })
       Win.shared().langs.buf = buf
-      //buf.vars("SC").hist = compileHist
+      //buf.vars('SC').hist = compileHist
       buf.addMode('view')
     }
     p.setBuf(buf, {}, view => refresh(view))

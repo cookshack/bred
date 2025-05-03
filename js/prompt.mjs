@@ -80,7 +80,7 @@ function demandBuf
   if (ml)
     ml.innerText = 'Query replace'
   buf = Buf.make({ name: 'QR',
-                   modeName: 'QR',
+                   modeKey: 'qr',
                    content: w,
                    dir: p.dir })
   buf.vars('ed').fillParent = 0
@@ -150,7 +150,7 @@ function ask
   if (ml)
     ml.innerText = spec.text || 'Enter text'
   buf = Buf.make({ name: 'Prompt2',
-                   modeName: 'Prompt2',
+                   modeKey: 'prompt2',
                    content: spec.w,
                    dir: p.dir,
                    placeholder: spec.placeholder ?? spec.hist?.nth(0)?.toString() })
@@ -488,7 +488,7 @@ function initFile
       buf.placeholder = ph
     else {
       buf = Buf.make({ name: 'Open',
-                       modeName: 'Open',
+                       modeKey: 'open',
                        content: w,
                        dir: p.dir,
                        placeholder: ph })

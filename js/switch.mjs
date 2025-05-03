@@ -309,7 +309,7 @@ function init
       buf = buf
     else {
       buf = Buf.make({ name: 'Switch',
-                       modeName: 'Switch',
+                       modeKey: 'switch',
                        content: w,
                        dir: p.dir })
       buf.icon = 'prompt'

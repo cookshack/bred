@@ -177,7 +177,7 @@ function init
     p = Pane.current()
     callerBuf = p?.buf
     buf = Buf.make({ name: 'Execute',
-                     modeName: 'Execute',
+                     modeKey: 'execute',
                      content: divW(),
                      dir: p.dir })
     buf.vars('execute').cb = (name, b) => Cmd.exec(name, b, u)

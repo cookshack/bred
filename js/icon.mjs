@@ -169,32 +169,32 @@ function alt
 
 export
 function mode
-(name) {
-  if (name) {
-    if (name == 'c_cpp') return { name: 'c_cpp' }
-    if (name == 'css') return { name: 'css' }
-    if (name == 'csv') return { name: 'csv' }
-    if (name == 'diff') return { name: 'patch' }
-    if (name == 'dockerfile') return { name: 'docker' }
-    if (name == 'dir') return { name: 'dir' }
-    if (name == 'elisp') return { name: 'elisp' }
-    if (name == 'html') return { name: 'html' }
-    if (name == 'javascript') return { name: 'javascript' }
-    if (name == 'json') return { name: 'json' }
-    if (name == 'latex') return { name: 'tex' }
-    if (name == 'lisp') return { name: 'lisp' }
-    if (name == 'markdown') return { name: 'markdown' }
-    if (name == 'patch') return { name: 'patch' }
-    if (name == 'plaintext') return { name: 'text' }
-    if (name == 'properties files') return { name: 'config' }
-    if (name == 'perl') return { name: 'perl' }
-    if (name == 'python') return { name: 'python' }
-    if (name == 'rust') return { name: 'rust' }
-    if (name == 'sh') return { name: 'sh' }
-    if (name == 'tex') return { name: 'tex' }
-    if (name == 'text') return { name: 'text' }
-    if (name == 'zig') return { name: 'zig' }
-    if (name.length) return { name: 'letter-' + name.slice(0, 1) }
+(key) {
+  if (key) {
+    if (key == 'c_cpp') return { name: 'c_cpp' }
+    if (key == 'css') return { name: 'css' }
+    if (key == 'csv') return { name: 'csv' }
+    if (key == 'diff') return { name: 'patch' }
+    if (key == 'dockerfile') return { name: 'docker' }
+    if (key == 'dir') return { name: 'dir' }
+    if (key == 'elisp') return { name: 'elisp' }
+    if (key == 'html') return { name: 'html' }
+    if (key == 'javascript') return { name: 'javascript' }
+    if (key == 'json') return { name: 'json' }
+    if (key == 'latex') return { name: 'tex' }
+    if (key == 'lisp') return { name: 'lisp' }
+    if (key == 'markdown') return { name: 'markdown' }
+    if (key == 'patch') return { name: 'patch' }
+    if (key == 'plaintext') return { name: 'text' }
+    if (key == 'properties files') return { name: 'config' }
+    if (key == 'perl') return { name: 'perl' }
+    if (key == 'python') return { name: 'python' }
+    if (key == 'rust') return { name: 'rust' }
+    if (key == 'sh') return { name: 'sh' }
+    if (key == 'tex') return { name: 'tex' }
+    if (key == 'text') return { name: 'text' }
+    if (key == 'zig') return { name: 'zig' }
+    if (key.length) return { name: 'letter-' + key.slice(0, 1) }
   }
   return 0
 }

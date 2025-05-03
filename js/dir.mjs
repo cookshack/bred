@@ -847,7 +847,7 @@ function init
 
     function finish
     (b) {
-      b.mode = Ed.patchModeName()
+      b.mode = Ed.patchModeKey()
       b.opts.set('core.lint.enabled', 0)
       b.addMode('equal')
       b.addMode('view')

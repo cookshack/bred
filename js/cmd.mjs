@@ -58,12 +58,12 @@ function setUniversal
 
 export
 function getMo
-(name, modeName) {
+(name, modeKey) {
   name = canon(name)
-  if (modeName) {
+  if (modeKey) {
     let mode
 
-    mode = Mode.get(modeName)
+    mode = Mode.get(modeKey)
     if (mode?.cmds && mode.cmds[name])
       return mode.cmds[name]
     /*

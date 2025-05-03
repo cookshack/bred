@@ -78,8 +78,8 @@ function savePoss
 
 export
 function make
-(spec = {}) { // { name, modeName, content, dir, file, placeholder, vars }
-  let { name, modeName, content, dir, file } = spec
+(spec = {}) { // { name, modeKey, content, dir, file, placeholder, vars }
+  let { name, modeKey, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk, ed
 
   function makePsn
@@ -323,11 +323,11 @@ function make
   }
 
   function vars
-  (modeName) {
-    if (modeName) {
-      modeName = modeName.toLowerCase()
-      modeVars[modeName] = modeVars[modeName] || {}
-      return modeVars[modeName]
+  (modeKey) {
+    if (modeKey) {
+      modeKey = modeKey.toLowerCase()
+      modeVars[modeKey] = modeVars[modeKey] || {}
+      return modeVars[modeKey]
     }
     return modeVars
   }
@@ -400,13 +400,13 @@ function make
       name = old + '<' + suffix++ + '>'
   }
 
-  modeName = modeName || 'div'
+  modeKey = modeKey || 'div'
   modeVars = spec.vars || {}
   views = []
   vid = 1
   onRemoves = []
 
-  mode = Mode.getOrAdd(modeName)
+  mode = Mode.getOrAdd(modeKey)
 
   let ml
 
@@ -562,13 +562,13 @@ function make
 
 export
 function add
-(name, modeName, content, dir, spec) { // { file, lineNum, vars }
+(name, modeKey, content, dir, spec) { // { file, lineNum, vars }
   let b, sh
 
   spec = spec || {}
 
   b = make({ name: name,
-             modeName: modeName,
+             modeKey: modeKey,
              content: content,
              dir: dir,
              file: spec.file,

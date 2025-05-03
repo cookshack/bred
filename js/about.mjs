@@ -246,7 +246,8 @@ function initHelp
                                  mode && div('Mode Key'),
                                  mode && div(mode.key),
                                  mode && p.view?.lang && div('Mode Backend Lang'),
-                                 mode && p.view?.lang && div(p.view.lang),
+                                 mode && p.view?.lang && div(p.view.lang, '', { 'data-run': 'Lang',
+                                                                                'data-id': p.view.lang }),
                                  mode && p.view?.langData && div('Comment Token: Line'),
                                  mode && p.view?.langData && divCl('bred-help-comment', p.view.langData?.comment?.line || ''),
                                  mode && p.view?.langData && div('Comment Token: Block'),
@@ -657,9 +658,9 @@ function initLang
 
   function refresh
   (view) {
-    let w, frag, name, lang
+    let w, frag, id, lang
 
-    name = view.buf.vars('lang').name
+    id = view.buf.vars('lang').id
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
     frag = new globalThis.DocumentFragment()
@@ -669,14 +670,14 @@ function initLang
                    div() ]))
 
     append(frag,
-           div('Name'),
-           div(name || '??'))
+           div('Id'),
+           div(id || '??'))
 
-    lang = Ed.langs().find(l => l.name == name)
+    lang = Ed.langs().find(l => l.id == id)
     if (lang)
       append(frag,
-             div('Id'),
-             div(lang.id),
+             div('Name'),
+             div(lang.name),
              div('Module'),
              div(lang.module
                  && div(lang.module,
@@ -707,9 +708,9 @@ function initLang
   function lang
   (u, we) {
     if (we?.e && (we.e.button == 0)) {
-      let p, w, buf, name
+      let p, w, buf, id
 
-      name = we.e.target.dataset.name || Mess.toss('Missing lang name')
+      id = we.e.target.dataset.id || Mess.toss('Missing lang id')
       p = Pane.current()
       w = divW()
 
@@ -725,7 +726,7 @@ function initLang
         Win.shared().lang.buf = buf
         buf.addMode('view')
       }
-      buf.vars('lang').name = name
+      buf.vars('lang').id = id
       p.setBuf(buf, {}, view => refresh(view))
     }
   }
@@ -770,7 +771,7 @@ function initLangs
                    div(String(langs.length + ' languages (' + Ed.langs().filter(l => l.legacy).length + ' legacy)')) ]))
     langs.forEach(lang =>
       append(frag,
-             lang.name ? div(lang.name, { 'data-run': 'lang', 'data-name': lang.name }) : div('ERR'),
+             lang.name ? div(lang.name, { 'data-run': 'lang', 'data-id': lang.id }) : div('ERR'),
              div(lang.module
                  && div(lang.module,
                         { 'data-run': 'open externally',

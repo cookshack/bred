@@ -410,7 +410,7 @@ function initBrowse
     else if (url)
       Tron.cmd('shell.open', [ url.href ], err => err && Mess.yell('shell.open: ' + err.message))
     else
-      Mess.say('Point must be over an URL')
+      Mess.say('Must be on an URL')
   })
 
 }

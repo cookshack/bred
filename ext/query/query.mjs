@@ -1,4 +1,4 @@
-import { append, divCl, img } from '../../js/dom.mjs'
+import { append, button, divCl, img } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
 import * as Browse from '../../js/browse.mjs'
@@ -592,9 +592,15 @@ function init
                          img(Icon.path('chat'), 'Chat', 'filter-clr-text'),
                          { 'data-run': 'describe buffer' }),
                    divCl('query-ml-model', model),
+                   divCl('query-ml-new query-ml-icon',
+                         button('New',
+                                'bred-ml-button',
+                                { 'data-run': 'chat' })),
                    divCl('query-ml-stop query-ml-icon',
-                         img(Icon.path('stop'), 'Stop', 'filter-clr-text'),
-                         { 'data-run': 'stop chat' }),
+                         button([ img(Icon.path('stop'), 'Stop', 'filter-clr-text'),
+                                  'Stop' ],
+                                'bred-ml-button',
+                                { 'data-run': 'stop chat' })),
                    divCl('query-ml-brow query-link',
                          img(Icon.path('browse'), 'Browse', 'filter-clr-text'),
                          { 'data-run': 'open link',

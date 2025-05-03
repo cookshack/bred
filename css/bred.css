@@ -218,6 +218,11 @@ button {
   align-items: center;
 }
 
+button.bred-ml-button {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 button:hover {
   background: var(--clr-bg);
 }

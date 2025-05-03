@@ -82,8 +82,12 @@
   pointer-events: none;
 }
 
-.query-ml-stop {
+.query-ml-new {
   margin-left: auto;
+}
+
+.query-ml-new,
+.query-ml-stop {
   margin-right: 0.5rem;
 }
 

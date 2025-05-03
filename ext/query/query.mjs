@@ -600,7 +600,7 @@ function init
                          button([ img(Icon.path('stop'), 'Stop', 'filter-clr-text'),
                                   'Stop' ],
                                 'bred-ml-button',
-                                { 'data-run': 'stop chat' })),
+                                { 'data-run': 'stop response' })),
                    divCl('query-ml-brow query-link',
                          img(Icon.path('browse'), 'Browse', 'filter-clr-text'),
                          { 'data-run': 'open link',
@@ -611,6 +611,14 @@ function init
                            'data-url': url(question) }),
                    divCl('ml-close') ])
   }
+
+  Cmd.add('stop response', () => {
+    let p
+
+    p = Pane.current()
+    if (p.buf.vars('query').busy)
+      d('stopped')
+  })
 
   Cmd.add('chat', (u, we, model) => {
     model = model || Opt.get('query.model')

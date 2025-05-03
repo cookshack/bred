@@ -4097,6 +4097,8 @@ function initLangs
     lang.extensions = lang.extensions?.map(e => '.' + e)
     if (lang.id == 'dockerfile')
       lang.extensions = [ ...(lang.extensions || []), '.Dockerfile' ]
+    if (lang.id == 'properties files')
+      lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf' ]
     lang.path = opt.path
     if (opt.firstLine)
       lang.firstLine = opt.firstLine

@@ -1,5 +1,25 @@
 // node or browser
 
+let $home
+
+export
+function homeSet
+(h) {
+  h = h || '/'
+  h = h.trim()
+  if (h.endsWith('/'))
+    $home = h
+  else
+    $home = h + '/'
+}
+
+// guaranteed to have trailing slash
+export
+function home
+() {
+  return $home || '/'
+}
+
 export
 function arrRm1
 (arr, pred) { // (cb)
@@ -64,7 +84,9 @@ function urlAt
   l = l.slice(pos)
   l = stripAnsi(l)
 
-  if (l.startsWith('/'))
+  if (l.startsWith('~/'))
+    l = 'file://' + home() + l.slice(2)
+  else if (l.startsWith('/'))
     l = 'file://' + l
   try {
     return new URL(l.split(' ')[0])

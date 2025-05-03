@@ -1614,6 +1614,7 @@ function start1
   Mess.log('profile: ' + data.profile)
   Loc.appDirSet(data.app)
   Loc.homeSet(data.home || data.app)
+  U.homeSet(data.home || data.app)
   Loc.iwdSet(data.cwd || data.app) // initial working dir
   $version = data.version
   Loc.configDirSet(data.user)

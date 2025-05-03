@@ -681,8 +681,8 @@ function initLang
              div('Module'),
              div(lang.module
                  && div(lang.module,
-                        { 'data-run': 'open externally',
-                          'data-url': 'http://npmjs.com/package/' + lang.module })),
+                        { 'data-run': 'open link',
+                          'data-path': 'http://npmjs.com/package/' + lang.module })),
              div('Extensions'),
              div(lang.extensions.join(' ')),
              div('Matches Filenames'),

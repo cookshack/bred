@@ -130,6 +130,9 @@ function path
     if (name == 'shell')
       return 'lib/svg/file-icons/Terminal.svg'
 
+    if (name == 'stop')
+      return 'lib/svg/material-icons/stop_circle/materialicons/24px.svg'
+
     if (name == 'tex')
       return 'lib/svg/file-icons/LaTeX.svg'
 

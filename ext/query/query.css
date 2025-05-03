@@ -82,8 +82,9 @@
   pointer-events: none;
 }
 
-.query-ml-brow {
+.query-ml-stop {
   margin-left: auto;
+  margin-right: 0.5rem;
 }
 
 .query-ml-model {

@@ -776,6 +776,16 @@ function init
 () {
   let m, hist
 
+  function scrollDown
+  (up) {
+    let p, el
+
+    p = Pane.current()
+    el = p.view.ele.querySelector('.bred-surface')
+    if (el)
+      el.scrollBy(0, (el.clientHeight / 2) * (up ? -1 : 1))
+  }
+
   function placeholder
   (p, from) {
     let next
@@ -1479,6 +1489,8 @@ function init
   Cmd.add('mark', mark, m)
   Cmd.add('refresh', () => refreshKeep(Pane.current(), 0, 0, 0, currentFile()), m)
   Cmd.add('rename', () => rename(), m)
+  Cmd.add('scroll down', () => scrollDown(), m)
+  Cmd.add('scroll up', () => scrollDown(1), m)
   Cmd.add('show in folder', () => showInFolder(), m)
   Cmd.add('sort by name', () => sortBy('name'), m)
   Cmd.add('sort by size', () => sortBy('size'), m)

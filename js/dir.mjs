@@ -782,8 +782,13 @@ function init
 
     p = Pane.current()
     el = p.view.ele.querySelector('.bred-surface')
-    if (el)
+    if (el) {
       el.scroll(0, (top ? 0 : el.scrollHeight))
+      if (top)
+        firstLine(p.view)
+      else
+        lastLine(p.view)
+    }
   }
 
   function scrollDown
@@ -1300,6 +1305,15 @@ function init
   (v) {
     //d('firstLine')
     v.point.put(v.ele.querySelector('.dir-name'))
+  }
+
+  function lastLine
+  (v) {
+    let all
+
+    all = v.ele.querySelectorAll('.dir-name')
+    if (all)
+      v.point.put(all[all.length - 1])
   }
 
   function nextLine

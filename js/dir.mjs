@@ -19,6 +19,7 @@ import * as Scib from './scib.mjs'
 import * as Scroll from './scroll.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
+import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
 let Marked
@@ -275,6 +276,59 @@ function formatDate
   return formatDateMonthDay(date, tz) + ', ' + formatTime(date, tz, timeFormat)
 }
 
+function put
+(v, el) {
+  if (el) {
+    v.point.put(el)
+    v.buf.vars('dir').current = el
+  }
+}
+
+function firstLine
+(v) {
+  //d('firstLine')
+  put(v, v.ele.querySelector('.dir-name'))
+}
+
+function lastLine
+(v) {
+  let all
+
+  all = v.ele.querySelectorAll('.dir-name')
+  if (all)
+    put(v, all[all.length - 1])
+}
+
+function nearestLine
+(v) {
+
+  let h, el
+
+  h = v.ele.querySelector('.dir-h')
+  if (v.point.over(h)) {
+    //d('over')
+    firstLine(v)
+    return
+  }
+  el = v.point.over()
+  if (el
+      // only search when inside the dir-w
+      && el.closest('.dir-w')) {
+    el = el.parentNode
+    //d(el.className)
+    do {
+      if (Css.has(el.firstElementChild, 'dir-name')) {
+        put(v, el.firstElementChild)
+        return
+      }
+      el = el.nextElementSibling
+    }
+    while (el)
+  }
+  firstLine(v)
+  return
+}
+
 function fill
 (p, bak, hid, sort, currentFile, marked) {
   let path, toScroll
@@ -345,15 +399,34 @@ function fill
              divCl('dir-name-w' + on, name) ]
   }
 
+  function visible
+  (el) {
+    if (el) {
+      let rect, win
+
+      win = Win.current()
+      rect = el.getBoundingClientRect()
+      return (rect.top < win.window.innerHeight)
+        && (rect.bottom > 0)
+        && (rect.left < win.window.innerWidth)
+        && (rect.right > 0)
+    }
+  }
+
   function redraw
   (view) {
-    let lines
+    let lines, el
 
     lines = view.buf.vars('dir').lines
+    el = view.buf.vars('dir').current
     Scroll.redraw(view,
                   { numLines: lines.length,
                     cols: 7 },
                   (frag, i) => lines[i].forEach(cell => append(frag, cell)))
+    if (visible(el))
+      put(p.view, el)
+    else
+      nearestLine(view)
     toScroll = 0
   }
 
@@ -383,7 +456,9 @@ function fill
     end.style.height = 'calc(' + (lines.length - shown) + ' * var(--line-height))'
     first.dataset.shown = shown
 
-    surf.onscroll = e => onscroll(view, e)
+    surf.onscroll = e => {
+      onscroll(view, e)
+    }
   }
 
   ////
@@ -466,14 +541,14 @@ function fill
 
       el = p.view.ele?.querySelector('.dir-name[data-name="' + currentFile + '"]')
       if (el)
-        p.view.point.put(el)
+        put(p.view, el)
     }
     else {
       let first
 
       first = p.view.ele?.querySelector('.dir-name')
       if (first)
-        p.view.point.put(first)
+        put(p.view, first)
     }
   })
 }
@@ -733,7 +808,7 @@ function initChmod
         next = next.nextElementSibling
       }
       if (next)
-        p.view.point.put(next)
+        put(p.view, next)
     }
 
     el = current()
@@ -1233,7 +1308,7 @@ function init
           start = start.parentNode
         start = start.nextElementSibling
         if (Css.has(start, 'dir-name-w')) {
-          Pane.current().view.point.put(start.firstElementChild)
+          put(Pane.current().view, start.firstElementChild)
           break
         }
       }
@@ -1301,21 +1376,6 @@ function init
       Mess.say('Move to a file first')
   }
 
-  function firstLine
-  (v) {
-    //d('firstLine')
-    v.point.put(v.ele.querySelector('.dir-name'))
-  }
-
-  function lastLine
-  (v) {
-    let all
-
-    all = v.ele.querySelectorAll('.dir-name')
-    if (all)
-      v.point.put(all[all.length - 1])
-  }
-
   function nextLine
   (u) {
     let bw
@@ -1342,7 +1402,7 @@ function init
         //d(el.className)
         while ((el = (bw ? el.previousElementSibling : el.nextElementSibling)))
           if (Css.has(el.firstElementChild, 'dir-name')) {
-            v.point.put(el.firstElementChild)
+            put(v, el.firstElementChild)
             break
           }
         if (el)

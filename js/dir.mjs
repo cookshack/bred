@@ -776,6 +776,16 @@ function init
 () {
   let m, hist
 
+  function scrollBottom
+  (top) {
+    let p, el
+
+    p = Pane.current()
+    el = p.view.ele.querySelector('.bred-surface')
+    if (el)
+      el.scroll(0, (top ? 0 : el.scrollHeight))
+  }
+
   function scrollDown
   (up) {
     let p, el
@@ -1479,6 +1489,8 @@ function init
   Opt.declare('dir.show.hidden', 'bool', 0)
   Opt.declare('dir.sort', 'str', 'time-desc')
 
+  Cmd.add('buffer start', () => scrollBottom(1), m)
+  Cmd.add('buffer end', () => scrollBottom(), m)
   Cmd.add('clear marks', () => clear(), m)
   Cmd.add('copy file', () => copy(), m)
   Cmd.add('delete', () => del(), m)

@@ -19,7 +19,6 @@ import * as Scib from './scib.mjs'
 import * as Scroll from './scroll.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
-import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
 let Marked
@@ -299,6 +298,61 @@ function lastLine
     put(v, all[all.length - 1])
 }
 
+function visible
+(el) {
+  if (el) {
+    let surf
+
+    surf = el.closest('.dir-w')
+    if (surf) {
+      let rsurf, rel
+
+      rsurf = surf.getBoundingClientRect()
+      rel = el.getBoundingClientRect()
+      return (rel.bottom <= rsurf.bottom)
+        && (rel.top >= rsurf.top)
+    }
+  }
+}
+
+function nextLine
+(u) {
+  let bw
+
+  //d('nextLine')
+  u = u || 1
+  bw = u < 0
+  u = Math.abs(u)
+  for (let i = 0; i < u; i++) {
+    let h, el, v
+
+    v = Pane.current().view
+    h = v.ele.querySelector('.dir-h')
+    if (v.point.over(h)) {
+      //d('over')
+      firstLine(v)
+      return
+    }
+    el = v.point.over()
+    if (el
+        // only search when inside the dir-w
+        && el.closest('.dir-w')) {
+      el = el.parentNode
+      //d(el.className)
+      while ((el = (bw ? el.previousElementSibling : el.nextElementSibling)))
+        if (Css.has(el.firstElementChild, 'dir-name')) {
+          put(v, el.firstElementChild)
+          break
+        }
+      if (el)
+        continue
+    }
+    else
+      firstLine(v)
+    return
+  }
+}
+
 function nearestLine
 (v) {
 
@@ -319,6 +373,9 @@ function nearestLine
     do {
       if (Css.has(el.firstElementChild, 'dir-name')) {
         put(v, el.firstElementChild)
+        if (visible (el))
+          return
+        nextLine()
         return
       }
       el = el.nextElementSibling
@@ -397,20 +454,6 @@ function fill
              divCl('dir-size' + on, f.stat ? size() : '?'),
              divCl('dir-date' + on, f.stat ? formatDate(new Date(f.stat.mtimeMs)) : '?'),
              divCl('dir-name-w' + on, name) ]
-  }
-
-  function visible
-  (el) {
-    if (el) {
-      let rect, win
-
-      win = Win.current()
-      rect = el.getBoundingClientRect()
-      return (rect.top < win.window.innerHeight)
-        && (rect.bottom > 0)
-        && (rect.left < win.window.innerWidth)
-        && (rect.right > 0)
-    }
   }
 
   function redraw
@@ -1374,44 +1417,6 @@ function init
     }
     else
       Mess.say('Move to a file first')
-  }
-
-  function nextLine
-  (u) {
-    let bw
-
-    //d('nextLine')
-    u = u || 1
-    bw = u < 0
-    u = Math.abs(u)
-    for (let i = 0; i < u; i++) {
-      let h, el, v
-
-      v = Pane.current().view
-      h = v.ele.querySelector('.dir-h')
-      if (v.point.over(h)) {
-        //d('over')
-        firstLine(v)
-        return
-      }
-      el = v.point.over()
-      if (el
-          // only search when inside the dir-w
-          && el.closest('.dir-w')) {
-        el = el.parentNode
-        //d(el.className)
-        while ((el = (bw ? el.previousElementSibling : el.nextElementSibling)))
-          if (Css.has(el.firstElementChild, 'dir-name')) {
-            put(v, el.firstElementChild)
-            break
-          }
-        if (el)
-          continue
-      }
-      else
-        firstLine(v)
-      return
-    }
   }
 
   function prevLine

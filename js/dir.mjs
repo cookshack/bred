@@ -283,10 +283,21 @@ function put
   }
 }
 
-function firstLine
+function topLine
 (v) {
-  //d('firstLine')
-  put(v, v.ele.querySelector('.dir-name'))
+  let all
+
+  all = v.ele.querySelectorAll('.dir-name')
+  if (all) {
+    let surf
+
+    surf = all[0].closest('.dir-w')
+    for (let i = 0; i < all.length; i++)
+      if (visible(all[i], surf)) {
+        put(v, all[i])
+        return
+      }
+  }
 }
 
 function lastLine
@@ -299,11 +310,9 @@ function lastLine
 }
 
 function visible
-(el) {
+(el, surf) {
   if (el) {
-    let surf
-
-    surf = el.closest('.dir-w')
+    surf = surf || el.closest('.dir-w')
     if (surf) {
       let rsurf, rel
 
@@ -330,7 +339,7 @@ function nextLine
     h = v.ele.querySelector('.dir-h')
     if (v.point.over(h)) {
       //d('over')
-      firstLine(v)
+      topLine(v)
       return
     }
     el = v.point.over()
@@ -348,7 +357,7 @@ function nextLine
         continue
     }
     else
-      firstLine(v)
+      topLine(v)
     return
   }
 }
@@ -361,7 +370,7 @@ function nearestLine
   h = v.ele.querySelector('.dir-h')
   if (v.point.over(h)) {
     //d('over')
-    firstLine(v)
+    topLine(v)
     return
   }
   el = v.point.over()
@@ -382,7 +391,7 @@ function nearestLine
     }
     while (el)
   }
-  firstLine(v)
+  topLine(v)
   return
 }
 
@@ -903,7 +912,7 @@ function init
     if (el) {
       el.scroll(0, (top ? 0 : el.scrollHeight))
       if (top)
-        firstLine(p.view)
+        topLine(p.view)
       else
         lastLine(p.view)
     }

@@ -137,16 +137,27 @@ function onMake
 export
 function onRm
 (e, ch, onArgs) {
-  let [ path ] = onArgs
+  let [ path, spec ] = onArgs
 
-  if (path.startsWith('/'))
-    Fs.rmdir(path, err => {
-      if (err) {
-        e.sender.send(ch, makeErr(err))
-        return
-      }
-      e.sender.send(ch, {})
-    })
+  if (path == '/')
+    e.sender.send(ch, errMsg('Cowardly refusing to rm /'))
+  else if (path.startsWith('/'))
+    if (spec?.recurse)
+      Fs.rm(path, { recursive: true }, err => {
+        if (err) {
+          e.sender.send(ch, makeErr(err))
+          return
+        }
+        e.sender.send(ch, {})
+      })
+    else
+      Fs.rmdir(path, err => {
+        if (err) {
+          e.sender.send(ch, makeErr(err))
+          return
+        }
+        e.sender.send(ch, {})
+      })
   else
     e.sender.send(ch, errMsg('Path must be absolute'))
 }

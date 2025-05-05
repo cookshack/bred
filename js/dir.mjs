@@ -982,7 +982,22 @@ function init
       Prompt.yn(msg, { icon: 'trash' }, yes =>
         yes && Tron.cmd(dir ? 'dir.rm' : 'file.rm', [ el.dataset.path ], err => {
           if (err) {
-            Mess.yell('Error deleting: ' + err.message)
+            if (err.code == 'ENOTEMPTY') {
+              msg = div([ 'RECURSIVELY delete ', span(el.dataset.path, 'bold'), '?' ])
+              Prompt.yn(msg, { icon: 'trash' }, yes => {
+                yes && Tron.cmd('dir.rm', [ el.dataset.path, { recurse: 1 } ], err => {
+                  if (err) {
+                    Mess.yell('Error deleting: ' + err.message)
+                    return
+                  }
+                  Mess.say('Deleted dir ' + el.dataset.path)
+                  refreshKeep(p)
+                })
+              })
+              return
+            }
+            else
+              Mess.yell('Error deleting: ' + err.message)
             return
           }
           Mess.say('Deleted ' + (dir ? 'dir' : 'file') + ' ' + el.dataset.path)

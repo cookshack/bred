@@ -138,7 +138,7 @@ function ask
   if (spec.suggest)
     spec.under = divCl('bred-prompt-under')
 
-  spec.w = spec.w || Ed.divW(0, 0, { extraWWCss: 'bred-prompt-buf-ww',
+  spec.w = spec.w || Ed.divW(0, 0, { extraWWCss: 'bred-prompt-buf-ww bred-prompt-attract',
                                      extraCo: spec.under })
   win = Win.current()
   Area.getByName(win, 'bred-float')?.close()
@@ -177,6 +177,15 @@ function ask
                           area.show()
                           tab.frame.pane.focus()
                           spec.onReady && spec.onReady(tab.frame.pane)
+                          setTimeout(() => {
+                            buf.views.forEach(v => {
+                              let w
+
+                              w = v.ele.querySelector('.bred-prompt-buf-ww')
+                              Css.remove(w, 'bred-prompt-attract')
+                            })
+                          },
+                                     0.35 * 1000)
                           if (spec.suggest) {
                             under = view.ele.querySelector('.bred-prompt-under') || Mess.toss('under missing')
                             refresh()

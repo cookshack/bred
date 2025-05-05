@@ -1373,6 +1373,10 @@ div.bred-welcome-rf-h-link:hover {
   padding-right: 0;
 }
 
+.bred-prompt-attract {
+  border-bottom: 1rem solid var(--clr-nb0);
+}
+
 .edW.bred-opener-w {
   margin-left: 1.6rem;
   width: calc(100% - 1.6rem);

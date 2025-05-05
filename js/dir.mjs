@@ -288,7 +288,7 @@ function topLine
   let all
 
   all = v.ele.querySelectorAll('.dir-name')
-  if (all) {
+  if (all && all.length) {
     let surf
 
     surf = all[0].closest('.dir-w')

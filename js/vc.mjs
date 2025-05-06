@@ -97,6 +97,7 @@ function initStash
 
   Em.on('a', 'stash apply', moS)
   Em.on('d', 'stash drop', moS)
+  Em.on('e', 'stash open', moS)
   Em.on('g', 'vc stash enumerate', moS)
   Em.on('Enter', 'stash open', moS)
 }

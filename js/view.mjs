@@ -209,6 +209,20 @@ function make
       point.linePrev()
   }
 
+  function lineEnd
+  () {
+    if (v.ed) {
+      if (b.mode?.key)
+        if (b.mode?.lineEnd)
+          b.mode.lineEnd(v)
+        else
+          Mess.say('buf.add: lineEnd missing: ' + b.mode.key)
+
+    }
+    else
+      point.lineEnd()
+  }
+
   function lineStart
   () {
     if (v.ed) {
@@ -435,7 +449,7 @@ function make
 
         },
         lineAt,
-        lineEnd: () => point.lineEnd(),
+        lineEnd,
         lineStart,
         bufEnd,
         bufStart,

@@ -482,6 +482,7 @@ function initShell
 
     input = l.slice(last.length).trim()
 
+    p.view.lineEnd()
     p.view.insert('\n')
     if (ch) {
       let h

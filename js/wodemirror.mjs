@@ -1931,6 +1931,7 @@ function initModeFns
   mo.langData = langData
   mo.line = line
   mo.lineAt = lineAt
+  mo.lineEnd = lineEnd
   mo.lineStart = lineStart
   mo.excur = excur
   mo.getCallers = getCallers

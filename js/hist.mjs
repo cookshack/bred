@@ -33,7 +33,7 @@ function ensure
 export
 function make
 (name, temp) {
-  let items, pos, current, save
+  let hist, items, pos, current, save
 
   function next
   (buf, cleared) {
@@ -110,9 +110,11 @@ function make
     return items[pos]
   }
 
+  // returns self as convenience
   function reset
   () {
     pos = -1
+    return hist
   }
 
   function setItems
@@ -129,7 +131,7 @@ function make
 
   setItems([])
 
-  return { get name() {
+  hist = { get name() {
     return name
   },
            get length() {
@@ -166,6 +168,8 @@ function make
            prev,
            reset,
            to }
+
+  return hist
 }
 
 export

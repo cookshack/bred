@@ -56,7 +56,7 @@ function scib
                onReady: cb },
              sc => {
                runText(sc, { hist: hist,
-                             shellHist: Hist.ensure('scib: ' + sc) })
+                             shellHist: Hist.ensure('scib: ' + sc).reset() })
              })
 }
 

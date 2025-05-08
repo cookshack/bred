@@ -12,7 +12,7 @@ let hist
 export
 function runText
 (sc,
- spec) { // { end, afterEndPoint, hist, onClose }
+ spec) { // { end, afterEndPoint, hist, onClose, shellHist }
   spec = spec || {}
   if (sc && sc.length) {
     let modes
@@ -22,10 +22,12 @@ function runText
     Shell.shell1(sc,
                  { end: spec.end ?? 1,
                    afterEndPoint: spec.afterEndPoint ?? 0,
-                   hist: spec.hist,
+                   hist: spec.hist, // sc is added to this
                    onClose: spec.onClose },
                  buf => {
                    buf.mode = 'shell'
+                   // commands entered in buf are added to this
+                   buf.vars('Shell').hist = spec.shellHist
                    buf.opts.set('ansi.enabled', 1)
                    buf.opts.set('core.highlight.specials.enabled', 0)
                    d({ modes })
@@ -52,7 +54,10 @@ function scib
   Prompt.ask({ text: 'Shell Command in ' + p.dir,
                hist: hist,
                onReady: cb },
-             sc => runText(sc, { hist: hist }))
+             sc => {
+               runText(sc, { hist: hist,
+                             shellHist: Hist.ensure('scib: ' + sc) })
+             })
 }
 
 function initRTL

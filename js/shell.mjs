@@ -484,8 +484,11 @@ function initShell
 
     p.view.insert('\n')
     if (ch) {
-      if (hist)
-        hist.add(input)
+      let h
+
+      h = p.buf.vars('Shell').hist || hist
+      if (h)
+        h.add(input)
       d('sending to ch ' + ch + ': ' + input)
       Tron.send(ch, { input: input + '\n' })
     }
@@ -512,19 +515,21 @@ function initShell
 
   function next
   () {
-    let p
+    let p, h
 
     p = Pane.current()
     prep(p)
-    hist.next(p.buf, 1)
+    h = p.buf.vars('Shell').hist || hist
+    h.next(p.buf, 1)
   }
 
   function prev
   () {
-    let p
+    let p, h
 
     p = Pane.current()
-    hist.prev(p.buf, 1, prep(p))
+    h = p.buf.vars('Shell').hist || hist
+    h.prev(p.buf, 1, prep(p))
   }
 
   function rerun

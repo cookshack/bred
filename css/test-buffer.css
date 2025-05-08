@@ -125,7 +125,7 @@
 
 .test_buffer-des-section .mini-icon {
   margin-left: 0.5rem;
-  max-height: 1.2rem;
+  max-height: var(--width-mini-icon);
 }
 
 .test_buffer-des-section .mini-panel {

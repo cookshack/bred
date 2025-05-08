@@ -77,6 +77,15 @@
   padding-bottom: 0.25rem;
 }
 
+.query-link,
+.query-ml-icon {
+  margin-left: 0.2rem;
+  margin-right: 0.2rem;
+  width: var(--width-mini-icon);
+  height: var(--width-mini-icon);
+  display: flex;
+}
+
 .query-link > img,
 .query-ml-icon > img {
   pointer-events: none;

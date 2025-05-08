@@ -69,6 +69,7 @@
   --padding-top-opener: 0.2rem;
   --width-point: 2px;
   --framesep-width: 0.25rem;
+  --width-mini-icon: 1.2rem;
 
   --clr-active-line: var(--clr-point-current);
   --opacity-active-line: 0.3;
@@ -1543,9 +1544,9 @@ div.bred-lint-marker:active {
   pointer-events: auto;
   position: absolute;
   right: calc(0.2rem + var(--scrollbar-size));
-  top: calc(3px + 0.2rem); /* paneWW pad + (--height-ml - 1.2rem) */
-  width: 1.2rem;
-  height: 1.2rem;
+  top: calc(3px + 0.2rem); /* paneWW pad + (--height-ml - --width-mini-icon) */
+  width: var(--width-mini-icon);
+  height: var(--width-mini-icon);
   display: none;
   z-index: var(--z-close);
 }

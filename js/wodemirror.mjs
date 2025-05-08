@@ -2575,6 +2575,8 @@ function revertV
 (view) {
   let lineNum
 
+  d('=====>>>>>>>>>> revertV')
+
   Css.disable(view.ele)
   lineNum = bepRow(view, vgetBep(view)) + 1
 
@@ -2585,6 +2587,8 @@ function revertV
                                 insert: '' } })
   viewInitSpec(view, { forceFresh: 1, // consider peer fresh so will reread file
                        lineNum: lineNum })
+
+  d('=====>>>>>>>>>> revertV done')
 }
 
 export

@@ -33,7 +33,7 @@ function get
 }
 
 export
-function onPeerGet
+function onGet
 (e, onArgs) {
   const [ id ] = onArgs
   let buf
@@ -52,7 +52,7 @@ function changes
 }
 
 export
-function onPeerPull
+function onPull
 (e, ch, onArgs) {
   const [ id, version, pullCh ] = onArgs
 
@@ -70,7 +70,7 @@ function onPeerPull
 }
 
 export
-function onPeerPush
+function onPush
 (e, onArgs) {
   const [ id, version, updates ] = onArgs
   let received, buf, applied
@@ -115,7 +115,7 @@ function onPeerPush
 }
 
 export
-function onPeerPsnLine
+function onPsnLine
 (e, onArgs) {
   const [ id, bep ] = onArgs
   let buf, text
@@ -130,7 +130,7 @@ function onPeerPsnLine
 }
 
 export
-function onPeerPsnLineNext
+function onPsnLineNext
 (e, onArgs) {
   const [ id, bep ] = onArgs
   let buf, line

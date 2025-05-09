@@ -220,16 +220,16 @@ async function onAcmd
     return File.onSaveTmp(e, args)
 
   if (name == 'peer.get')
-    return Peer.onPeerGet(e, args)
+    return Peer.onGet(e, args)
 
   if (name == 'peer.psn.line')
-    return Peer.onPeerPsnLine(e, args)
+    return Peer.onPsnLine(e, args)
 
   if (name == 'peer.psn.lineNext')
-    return Peer.onPeerPsnLineNext(e, args)
+    return Peer.onPsnLineNext(e, args)
 
   if (name == 'peer.push')
-    return Peer.onPeerPush(e, args)
+    return Peer.onPush(e, args)
 
   if (name == 'profile.hist.add')
     return Profile.onHistAdd(e, args)
@@ -385,7 +385,7 @@ function onCmdCh
     return wrapOn(e, ch, args, Files.onLines)
 
   if (name == 'peer.pull')
-    return wrapOn(e, ch, args, Peer.onPeerPull)
+    return wrapOn(e, ch, args, Peer.onPull)
 
   if (name == 'test.throw')
     return cmdTestThrow(e, ch, args)

@@ -300,7 +300,7 @@ function initEqual
 
   function applyH
   () {
-    let p, patch, iHunk, file, text
+    let p, patch, hunk, iHunk, file, lineNum, text
 
     p = Pane.current()
 
@@ -324,8 +324,11 @@ function initEqual
       Mess.yell('Multiple entries in patch for file')
       return
     }
-    patch[0].hunks = [ patch[0].hunks[iHunk] ]
+    hunk = patch[0].hunks[iHunk]
+    patch[0].hunks = [ hunk ]
     d(patch)
+    // May be wrong if file modified since patch made.
+    lineNum = hunk.newStart
 
     // Build patch text.
 
@@ -361,8 +364,7 @@ function initEqual
                               return
                             }
                             // revert to show changes
-                            Ed.Backend.revertV(view)
-                            // go to line in buf
+                            Ed.Backend.revertV(view, { lineNum })
                           })
       })
     })

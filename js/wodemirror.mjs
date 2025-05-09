@@ -580,7 +580,7 @@ function watch
 export
 async function viewInitSpec
 (view,
- spec, // { text, modeWhenText, lineNum, whenReady, forceFresh, wextsMode }
+ spec, // { text, modeWhenText, lineNum, whenReady(view), forceFresh, wextsMode }
  cb) {
   let data
 
@@ -2584,13 +2584,15 @@ function vsave
 
 export
 function revertV
-(view) {
+(view, spec) { // { lineNum, whenReady }
   let lineNum
 
   d('=====>>>>>>>>>> revertV')
 
+  spec = spec || {}
+
   Css.disable(view.ele)
-  lineNum = bepRow(view, vgetBep(view)) + 1
+  lineNum = spec.lineNum ?? (bepRow(view, vgetBep(view)) + 1)
 
   view.ready = 0 // limit onChange handler
   // dispatch so that peers get the same
@@ -2598,7 +2600,8 @@ function revertV
                                 to: view.ed.state.doc.length,
                                 insert: '' } })
   viewInitSpec(view, { forceFresh: 1, // consider peer fresh so will reread file
-                       lineNum: lineNum })
+                       lineNum: lineNum,
+                       whenReady: spec.whenReady })
 
   d('=====>>>>>>>>>> revertV done')
 }

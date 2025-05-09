@@ -343,6 +343,10 @@ function initEqual
         Mess.toss('Please save first')
       // put patch in tmp file
       Tron.acmd('file.save.tmp', [ text ]).then(data => {
+        if (data.err) {
+          Mess.yell('file.save.tmp: ' + data.err.message)
+          return
+        }
         Shell.runToString(p.dir,
                           'patch',
                           [ '-i', data.name, file ],

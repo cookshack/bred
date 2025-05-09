@@ -2,6 +2,7 @@ import { log } from './main-log.mjs'
 import { errMsg, makeErr } from './main-err.mjs'
 import Fs from 'node:fs'
 import FsP from 'node:fs/promises'
+import Os from 'node:os'
 import Path from 'node:path'
 import * as U from './util.mjs'
 
@@ -318,16 +319,18 @@ export
 async function onSaveTmp
 (e, onArgs) {
   const [ text ] = onArgs
-  let name
-
-  name = '/tmp/XXX'
 
   try {
+    let name
+
+    name = Path.join(await FsP.mkdtemp(Path.join(Os.tmpdir(),
+                                                 'bred-')),
+                     'x')
     await FsP.writeFile(name, text)
     return { name: name }
   }
   catch (err) {
-    return { err: makeErr(err) }
+    return makeErr(err)
   }
 }
 

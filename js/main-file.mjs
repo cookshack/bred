@@ -321,13 +321,12 @@ async function onSaveTmp
   const [ text ] = onArgs
 
   try {
-    let name
+    let dir, file
 
-    name = Path.join(await FsP.mkdtemp(Path.join(Os.tmpdir(),
-                                                 'bred-')),
-                     'x')
-    await FsP.writeFile(name, text)
-    return { name: name }
+    dir = await FsP.mkdtemp(Path.join(Os.tmpdir(), 'bred-'))
+    file = Path.join(dir, 'x')
+    await FsP.writeFile(file, text)
+    return { file: file, dir: dir }
   }
   catch (err) {
     return makeErr(err)

@@ -349,9 +349,13 @@ function initEqual
         }
         Shell.runToString(p.dir,
                           'patch',
-                          [ '-i', data.name, file ],
+                          [ '-i', data.file, file ],
                           0,
                           (str, code) => {
+                            Tron.cmd('dir.rm', [ data.dir, { recurse: 1 } ], err => {
+                              if (err)
+                                Mess.yell('Error deleting: ' + err.message)
+                            })
                             if (code) {
                               Mess.yell('Error: ' + code + ': ' + str)
                               return

@@ -75,6 +75,7 @@
     "codemirror-rich-markdoc": "file:../codemirror-rich-markdoc/latest.tgz",
     "color-blend": "^4.0.0",
     "commander": "^12.1.0",
+    "diff": "^7.0.0",
     "electron-squirrel-startup": "^1.0.1",
     "electron-store": "^9.0.0",
     "escape-string-regexp": "^5.0.0",

@@ -446,7 +446,7 @@ function make
         get bepEnd() {
           return bepEnd()
         },
-        get dir() {
+        get dir() { // guarantees trailing /
           return getDir()
         },
         get ed() {

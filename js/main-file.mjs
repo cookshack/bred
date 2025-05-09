@@ -1,6 +1,7 @@
 import { log } from './main-log.mjs'
 import { errMsg, makeErr } from './main-err.mjs'
 import Fs from 'node:fs'
+import FsP from 'node:fs/promises'
 import Path from 'node:path'
 import * as U from './util.mjs'
 
@@ -311,6 +312,23 @@ function onSave
     else
       e.sender.send(ch, { stat: Fs.statSync(path, { throwIfNoEntry: false }) })
   })
+}
+
+export
+async function onSaveTmp
+(e, onArgs) {
+  const [ text ] = onArgs
+  let name
+
+  name = '/tmp/XXX'
+
+  try {
+    await FsP.writeFile(name, text)
+    return { name: name }
+  }
+  catch (err) {
+    return { err: makeErr(err) }
+  }
 }
 
 export

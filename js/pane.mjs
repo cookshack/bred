@@ -248,7 +248,7 @@ function add
   }
 
   function openFile
-  (path, lineNum, whenReady) {
+  (path, lineNum, whenReady) { // (view)
     path = Loc.make(path)
     path.expand()
     Ed.make(p, { name: path.filename,
@@ -267,7 +267,7 @@ function add
   function open
   (path,
    lineNum, // only if file
-   whenReady) { // only if file
+   whenReady) { // (view) only if file
     Tron.cmd('file.stat', Loc.make(path).expand(), (err, data) => {
       let name
 

@@ -94,6 +94,7 @@ fix-others: sync-others
 	sed -i "s/module.exports/\/\/module.exports/g" lib/fast-word-wrap.js
 
 sync-others:
+	cp node_modules/diff/lib/index.mjs lib/diff.js
 	cp node_modules/check-dependencies/lib/check-dependencies.js lib/check-dependencies.cjs
 	cp node_modules/color-blend/dist/index.modern.js lib/color-blend.js
 	cp node_modules/escape-string-regexp/index.js lib/escape-string-regexp.js

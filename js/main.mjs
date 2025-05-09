@@ -216,6 +216,9 @@ async function onAcmd
   if (name == 'browse.zoom')
     return Browse.onZoom(e, args)
 
+  if (name == 'file.save.tmp')
+    return File.onSaveTmp(e, args)
+
   if (name == 'peer.get')
     return Peer.onPeerGet(e, args)
 

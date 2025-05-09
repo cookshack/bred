@@ -1411,6 +1411,12 @@ function bepToOff
 }
 
 export
+function offToBep
+(view, off) {
+  return off
+}
+
+export
 function makeRange
 (from, to) {
   return { from: from, to: to }
@@ -1734,11 +1740,17 @@ function makePsn
   psn = { get bep() {
     return bep
   },
-          get col() {
+          get col() { // 0 indexed
             return bepCol(view, bep)
           },
           get eol() {
             return bep == view.ed.state.doc.lineAt(bep).to
+          },
+          get pos() {
+            return bepToPos(view, bep)
+          },
+          get row() { // 0 indexed
+            return bepRow(view, bep)
           },
           get text() {
             return getText()
@@ -3050,6 +3062,12 @@ function remove
   ed.dispatch({ changes: { from: range.from,
                            to: range.to,
                            insert: '' } })
+}
+
+export
+function vremove
+(view, range) {
+  return remove(view.ed, range)
 }
 
 export

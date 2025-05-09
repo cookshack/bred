@@ -15,6 +15,8 @@ import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
+import * as Diff from '../lib/diff.js'
+
 let clrs
 
 function git
@@ -188,6 +190,44 @@ function gitFile
 }
 
 export
+function applyHunkTooPrecise
+(view, hunk) {
+  let off
+
+  off = hunk.oldStart
+  hunk.lines.forEach(line => {
+    d('off ' + off)
+    d(line)
+    if (line.startsWith(' '))
+      off += line.length - 1 /* space */ + 1 /* nl */
+    else if (line.startsWith('-')) {
+      let from, to
+
+      from = off
+      to = from + line.length - 1 /* - */ + 1 /* nl */
+      d('remove ' + from + '-' + to)
+      Ed.Backend.vremove(view,
+                         { from: from,
+                           to: to })
+    }
+    else if (line.startsWith('+')) {
+      let text
+
+      text = line.slice(1) + '\n'
+      d('insert at ' + off + ': ' + text)
+      Ed.Backend.vinsertAt(view,
+                           Ed.Backend.offToBep(off),
+                           1,
+                           text)
+      off += text.length
+    }
+    else
+      Mess.log('applyHunk: weird line: ' + line)
+  })
+  d('off ' + off)
+}
+
+export
 function initEqual
 () {
   let mo
@@ -212,6 +252,112 @@ function initEqual
       Ed.posRowDecr(pos)
       p.view.linePrev()
     }
+  }
+
+  function currentH
+  (p) {
+    let psn, count
+
+    psn = p.view.psn
+    psn.lineStart()
+    count = -1
+    while (1) {
+      let line
+
+      if (psn.row <= 0)
+        break
+
+      line = p.view.lineAt(psn.pos)
+      if (line.startsWith('+++'))
+        break
+      if (line.startsWith('@@'))
+        count++
+
+      psn.linePrev()
+    }
+    return count
+  }
+
+  function currentOldFile
+  (p) {
+    let psn
+
+    psn = p.view.psn
+    psn.lineStart()
+    while (1) {
+      let line
+
+      if (psn.row <= 0)
+        break
+
+      line = p.view.lineAt(psn.pos)
+      if (line.startsWith('+++ '))
+        return line.slice('+++ '.length)
+
+      psn.linePrev()
+    }
+  }
+
+  function applyH
+  () {
+    let p, patch, iHunk, file, text
+
+    p = Pane.current()
+
+    // Parse the patch.
+
+    patch = Diff.parsePatch(p.buf.text())
+    d(patch)
+
+    // Strip it down to just the hunk.
+
+    iHunk = currentH(p)
+    file = currentOldFile(p)
+    d({ iHunk })
+    d({ file })
+    patch = patch.filter(f => f.oldFileName == file)
+    if (patch.length == 0) {
+      Mess.yell('Empty')
+      return
+    }
+    if (patch.length > 1) {
+      Mess.yell('Multiple entries in patch for file')
+      return
+    }
+    patch[0].hunks = [ patch[0].hunks[iHunk] ]
+    d(patch)
+
+    // Build patch text.
+
+    text = Diff.formatPatch(patch)
+    d(text)
+
+    // Apply it.
+
+    file = Loc.make(p.buf.dir).join(file)
+    d({ file })
+    // Make sure file is open
+    p.open(file, null, view => {
+      // Must be saved
+      if (p.buf.modified)
+        Mess.toss('Please save first')
+      // put patch in tmp file
+      Tron.acmd('file.save.tmp', [ text ]).then(data => {
+        Shell.runToString(p.dir,
+                          'patch',
+                          [ '-i', data.name, file ],
+                          0,
+                          (str, code) => {
+                            if (code) {
+                              Mess.yell('Error: ' + code + ': ' + str)
+                              return
+                            }
+                            // revert to show changes
+                            Ed.Backend.revertV(view)
+                            // go to line in buf
+                          })
+      })
+    })
   }
 
   function nextH
@@ -380,11 +526,13 @@ function initEqual
 
   Cmd.add('goto source', () => goto(), mo)
   Cmd.add('goto source in other pane', () => goto(1), mo)
+  Cmd.add('apply hunk', () => applyH(), mo)
   Cmd.add('next hunk', () => nextH(), mo)
   Cmd.add('previous hunk', () => prevH(), mo)
   Cmd.add('next commit', () => prev(-1), mo)
   Cmd.add('previous commit', () => prev(1), mo)
 
+  Em.on('a', 'Apply Hunk', mo)
   Em.on('e', 'Goto Source', mo)
   Em.on('n', 'Next Hunk', mo)
   Em.on('o', 'Goto Source In Other Pane', mo)

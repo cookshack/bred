@@ -1258,11 +1258,6 @@ function vsetOff
   return vsetBepSpec(view, off, { reveal, keepSelection })
 }
 
-function vgetOff
-(view) {
-  return vgetBep(view)
-}
-
 function vsetSel
 (view, from, to, reveal) {
   d('vsetSel')
@@ -3580,37 +3575,37 @@ function initComplete
   //
   function getWord
   (p) {
-    let off, off1, word, start
+    let bep, bep1, word, start
 
-    off = vgetOff(p.view)
-    start = vlineStart(p.view, off)
+    bep = vgetBep(p.view)
+    start = vlineStart(p.view, bep)
 
-    if (off <= start)
+    if (bep <= start)
       return 0
 
-    off1 = off
-    d('[' + charAt(p.view, off1) + ']')
+    bep1 = bep
+    d('[' + charAt(p.view, bep1) + ']')
     // mv backwards over any space
-    while (isWhite(charAt(p.view, off1)))
-      off1--
-    if (off1 < start)
+    while (isWhite(charAt(p.view, bep1)))
+      bep1--
+    if (bep1 < start)
       return 0
 
     // mv backwards to start of word
     while (1) {
-      if (off1 == start)
+      if (bep1 == start)
         break
-      d('[' + charAt(p.view, off1) + ']')
-      if (isWhite(charAt(p.view, off1))) {
-        off1++
+      d('[' + charAt(p.view, bep1) + ']')
+      if (isWhite(charAt(p.view, bep1))) {
+        bep1++
         break
       }
-      off1--
+      bep1--
     }
-    if (off1 < start)
+    if (bep1 < start)
       // can this happen?
       return 0
-    word = textFromRange(p.view, { from: off1, to: off })
+    word = textFromRange(p.view, { from: bep1, to: bep })
     word = word.trim() // safety
     if (word.length == 0)
       return 0

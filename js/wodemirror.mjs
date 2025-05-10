@@ -1229,23 +1229,33 @@ function vgetPos
   return voffToPos(view, vgetOff(view))
 }
 
+export
+function vsetBepSpec
+(view, bep, spec) { // { reveal /* 1 nearest 2 center */, keepSelection, goalCol }
+  let tr
+
+  d('goalCol: ' + spec.goalCol)
+  if (spec.keepSelection && view.markActive)
+    tr = { selection: { anchor: view.ed.state.selection.main.anchor,
+                        head: bep,
+                        goalColumn: spec.goalCol },
+           userEvent: 'select' }
+  else
+    // the goalColumn is only set when the wrapping create is used.
+    tr = { selection: CMState.EditorSelection.create([ CMState.EditorSelection.cursor(bep, 0, undefined, spec.goalCol) ]),
+           userEvent: 'select' }
+  if (spec.reveal == 1)
+    tr.effects = CMView.EditorView.scrollIntoView(bep, { y: 'nearest' })
+  else if (spec.reveal == 2)
+    tr.effects = CMView.EditorView.scrollIntoView(bep, { y: 'center' })
+  return view.ed.dispatch(tr)
+}
+
 function vsetOff
 (view, off,
  reveal, // 1 nearest, 2 center
  keepSelection) {
-  let tr
-
-  //d('vsetOff ' + off)
-  if (keepSelection && view.markActive)
-    tr = { selection: { anchor: view.ed.state.selection.main.anchor,
-                        head: off } }
-  else
-    tr = { selection: { anchor: off, head: off } }
-  if (reveal == 1)
-    tr.effects = CMView.EditorView.scrollIntoView(off, { y: 'nearest' })
-  else if (reveal == 2)
-    tr.effects = CMView.EditorView.scrollIntoView(off, { y: 'center' })
-  return view.ed.dispatch(tr)
+  return vsetBepSpec(view, off, { reveal, keepSelection })
 }
 
 function vgetOff
@@ -2065,8 +2075,46 @@ function prevLine(v, u) {
 }
 
 export
-function nextLine(v, u) {
+function nextWrapedLine(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorLineDown, CMComm.selectLineDown))
+}
+
+function nextLine1(v) {
+  let bep, col, goalCol
+
+  bep = vgetBep(v)
+  line = v.ed.state.doc.lineAt(bep)
+  goalCol = v.ed.state.selection.main.goalColumn
+  //d('goalCol was ' + goalCol)
+  if (goalCol)
+    col = goalCol
+  else
+    col = bep - line.from
+  bep = line.to
+  if (bep < vgetBepEnd(v)) {
+    bep++
+    line = v.ed.state.doc.lineAt(bep)
+    if (line.length < col)
+      bep += line.length
+    else
+      bep += col
+  }
+  //d('goalCol set ' + col)
+  vsetBepSpec(v, bep, { goalCol: col })
+  //d('goalCol now ' + v.ed.state.selection.main.goalColumn)
+}
+
+export
+function nextLine(v, u) {
+  if (v.markActive)
+    utimes(u, () => CMComm.selectLineDown(v.ed))
+  else
+    utimes(u, () => nextLine1(v))
+}
+
+export
+function nextBoundary(v, u) {
+  utimes(u, () => vexec(v, CMComm.cursorLineBoundaryForward, CMComm.selectLineBoundaryForward))
 }
 
 export

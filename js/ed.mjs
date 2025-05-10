@@ -1339,6 +1339,7 @@ function init
     Cmd.add('page backward or self insert', pageBackwardOrSelf, mo)
     Cmd.add('previous line', u => Backend.prevLine(Pane.current().view, u), mo)
     Cmd.add('next line', u => Backend.nextLine(Pane.current().view, u), mo)
+    Cmd.add('next boundary', u => Backend.nextBoundary(Pane.current().view, u), mo)
     Cmd.add('line start', () => Backend.lineStart(), mo)
     Cmd.add('line end', () => Backend.lineEnd(), mo)
     Cmd.add('buffer start', () => Backend.bufferStart(), mo)

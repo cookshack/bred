@@ -2070,13 +2070,47 @@ function syntaxBackward(u) {
 }
 
 export
-function prevLine(v, u) {
+function prevWrappedLine(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorLineUp, CMComm.selectLineUp))
 }
 
 export
 function nextWrapedLine(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorLineDown, CMComm.selectLineDown))
+}
+
+function prevLine1(v) {
+  let bep, col, goalCol
+
+  bep = vgetBep(v)
+  line = v.ed.state.doc.lineAt(bep)
+  goalCol = v.ed.state.selection.main.goalColumn
+  //d('goalCol was ' + goalCol)
+  if (goalCol)
+    col = goalCol
+  else
+    col = bep - line.from
+  bep = line.from
+  if (bep > 0) {
+    bep--
+    line = v.ed.state.doc.lineAt(bep)
+    bep = line.from
+    if (line.length < col)
+      bep += line.length
+    else
+      bep += col
+  }
+  //d('goalCol set ' + col)
+  vsetBepSpec(v, bep, { goalCol: col })
+  //d('goalCol now ' + v.ed.state.selection.main.goalColumn)
+}
+
+export
+function prevLine(v, u) {
+  if (v.markActive)
+    utimes(u, () => CMComm.selectLineUp(v.ed))
+  else
+    utimes(u, () => prevLine1(v))
 }
 
 function nextLine1(v) {

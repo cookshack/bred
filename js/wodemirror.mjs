@@ -2101,7 +2101,7 @@ function prevLine1(v) {
       bep += col
   }
   //d('goalCol set ' + col)
-  vsetBepSpec(v, bep, { goalCol: col })
+  vsetBepSpec(v, bep, { goalCol: col, reveal: 1 })
   //d('goalCol now ' + v.ed.state.selection.main.goalColumn)
 }
 
@@ -2134,7 +2134,7 @@ function nextLine1(v) {
       bep += col
   }
   //d('goalCol set ' + col)
-  vsetBepSpec(v, bep, { goalCol: col })
+  vsetBepSpec(v, bep, { goalCol: col, reveal: 1 })
   //d('goalCol now ' + v.ed.state.selection.main.goalColumn)
 }
 

@@ -1226,7 +1226,7 @@ function vsetPos
 export
 function vgetPos
 (view) {
-  return voffToPos(view, vgetOff(view))
+  return bepToPos(view, vgetBep(view))
 }
 
 export
@@ -1260,7 +1260,7 @@ function vsetOff
 
 function vgetOff
 (view) {
-  return view.ed.state.selection.main.head
+  return vgetBep(view)
 }
 
 function vsetSel
@@ -1316,7 +1316,7 @@ function posCol
 export
 function vgetBep
 (view) {
-  return vgetOff(view)
+  return view.ed.state.selection.main.head
 }
 
 export

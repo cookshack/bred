@@ -1202,19 +1202,6 @@ function lineAt
   return l.text
 }
 
-function vposToOff
-(view, pos) {
-  return view.ed.state.doc.line(pos.row + 1).from + pos.column
-}
-
-function voffToPos
-(view, off) {
-  let line
-
-  line = view.ed.state.doc.lineAt(off)
-  return Ed.makePos(line.number - 1, off - line.from)
-}
-
 // pos here is bred pos (vs ace/mon pos)
 export
 function vsetPos
@@ -1392,14 +1379,22 @@ function bepRightOverSpace
 export
 function bepToPos
 (view, bep) {
-  return voffToPos(view, bep)
+  let line
+
+  line = view.ed.state.doc.lineAt(bep)
+  return Ed.makePos(line.number - 1, bep - line.from)
+}
+
+function voffToPos
+(view, off) {
+  return bepToPos(view, off)
 }
 
 // pos here is bred pos (vs monaco/ace pos)
 export
 function posToBep
 (view, pos) {
-  return vposToOff(view, pos)
+  return view.ed.state.doc.line(pos.row + 1).from + pos.column
 }
 
 export

@@ -2984,7 +2984,7 @@ function selfInsert
       vinsert1(p.view, u, char)
   }
   else
-    vinsert1(p.view, u, char)
+    vinsert1(p.view, 1, char.repeat(u))
 
   if (char == ' ')
     return

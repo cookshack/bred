@@ -3390,13 +3390,33 @@ function yankRoll() {
 
 function vcutOrCopy
 (view, cut) {
-  let sel, range, str
+  let range, str
 
-  sel = view.ed.state.selection.main
-  if (sel.head > sel.anchor)
-    range = { from: sel.anchor, to: sel.head }
-  else
-    range = { from: sel.head, to: sel.anchor }
+  if (view.markActive) {
+    let sel
+
+    sel = view.ed.state.selection.main
+    if (sel.head > sel.anchor)
+      range = { from: sel.anchor, to: sel.head }
+    else
+      range = { from: sel.head, to: sel.anchor }
+  }
+  else {
+    let point, mark
+
+    // still want to cut/copy to mark if there is one
+
+    point = vgetBep(view)
+    if (view.marks.length == 0) {
+      Mess.say('Set a mark first')
+      return
+    }
+    mark = view.marks.at(view.marks.length - 1)
+    if (point > mark)
+      range = { from: mark, to: point }
+    else
+      range = { from: point, to: mark }
+  }
   str = vrangeText(view, range)
   if (str && str.length) {
     if (cut)

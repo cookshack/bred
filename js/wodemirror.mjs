@@ -1171,17 +1171,17 @@ function viewCopy
 }
 
 function charAt
-(view, off) {
-  return view.ed.state.sliceDoc(off, off + 1)
+(view, bep) {
+  return view.ed.state.sliceDoc(bep, bep + 1)
 }
 
 function vlineStart
-(view, off) {
+(view, bep) {
   let l
 
-  if (off < 0)
-    off = 0
-  l = view.ed.state.doc.lineAt(off)
+  if (bep < 0)
+    bep = 0
+  l = view.ed.state.doc.lineAt(bep)
   return l.from
 }
 
@@ -1198,7 +1198,7 @@ function lineAt
 (view, pos) {
   let l
 
-  l = view.ed.state.doc.lineAt(vposToOff(view, pos))
+  l = view.ed.state.doc.lineAt(posToBep(view, pos))
   return l.text
 }
 
@@ -1577,13 +1577,18 @@ function vendOff
   return v.ed.state.doc.length
 }
 
+function vendBep
+(v) {
+  return v.ed.state.doc.length
+}
+
 // get end line number
 export
 function vlen
 (v) {
   let end, line
 
-  end = vendOff(v)
+  end = vendBep(v)
   line = v.ed.state.doc.lineAt(end)
   return line.number
 }
@@ -2371,7 +2376,7 @@ function topLevelStart
   if (p.view.markActive)
     vsetSel(p.view, p.view.ed.state.selection.main.to, l.from, 1)
   else
-    vsetOff(p.view, l.from, 1)
+    vsetBep(p.view, l.from, 1)
 }
 
 export

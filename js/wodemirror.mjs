@@ -2472,11 +2472,11 @@ function makeRect
 }
 
 function lineEle
-(view, off) {
+(view, bep) {
   let node, ele
 
   // https://discuss.codemirror.net/t/function-method-for-getting-a-lines-dom-element/8208
-  node = view.ed.domAtPos(off)
+  node = view.ed.domAtPos(bep)
   ele = node?.node
   while (ele) {
     if ((ele instanceof globalThis.HTMLElement) && Css.has(ele, 'cm-line'))
@@ -2589,16 +2589,16 @@ export
 function recenter
 (view) {
   if (view?.ed) {
-    let off, scroller, middle, ele, rect
+    let bep, scroller, middle, ele, rect
 
-    off = vgetOff(view)
-    d('off: ' + off + ' line: ' + view.ed.state.doc.lineAt(off).number)
+    bep = vgetBep(view)
+    d('bep: ' + bep + ' line: ' + view.ed.state.doc.lineAt(bep).number)
     scroller = view.ed.scrollDOM
     middle = scroller.clientHeight / 2
     d('middle: ' + middle)
     rect = makeRect(scroller.getBoundingClientRect(), scroller)
     d(rect)
-    ele = lineEle(view, off)
+    ele = lineEle(view, bep)
     d(ele)
     if (ele) {
       let lineRect, dest, delta, middleLine

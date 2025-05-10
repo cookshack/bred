@@ -2200,8 +2200,8 @@ function selReverse
 }
 
 function addMarkAt
-(view, off) {
-  view.marks.push(off)
+(view, bep) {
+  view.marks.push(bep)
 }
 
 export
@@ -2223,10 +2223,10 @@ function setMark(u) {
     vsetOff(p.view, mark, 1)
   }
   else {
-    let off
+    let bep
 
-    off = vgetOff(p.view)
-    addMarkAt(p.view, off)
+    bep = vgetBep(p.view)
+    addMarkAt(p.view, bep)
     if (p.view.markActive)
       clearSelection(p.view)
     p.view.markActive = 1

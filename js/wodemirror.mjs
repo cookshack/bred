@@ -2113,6 +2113,11 @@ function nextLine(v, u) {
 }
 
 export
+function prevBoundary(v, u) {
+  utimes(u, () => vexec(v, CMComm.cursorLineBoundaryBackward, CMComm.selectLineBoundaryBackward))
+}
+
+export
 function nextBoundary(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorLineBoundaryForward, CMComm.selectLineBoundaryForward))
 }

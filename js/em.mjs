@@ -3,6 +3,7 @@ import * as Cmd from './cmd.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
+import * as U from './util.mjs'
 
 import * as EvParser from '../lib/ev-parser.mjs'
 
@@ -445,7 +446,7 @@ function handle
            if (onEmpty)
              onEmpty(view, wes, updateMini)
            else
-             updateMini('¯\\_(ツ)_/¯')
+             updateMini(U.shrug)
 
            reset()
          }

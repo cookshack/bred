@@ -1,6 +1,10 @@
 // node or browser
 
-let $home
+let $home, shrug
+
+export { shrug }
+
+shrug = '¯\\_(ツ)_/¯'
 
 export
 function homeSet

@@ -3,6 +3,7 @@ import * as Cmd from './cmd.mjs'
 import * as Mode from './mode.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './pane.mjs'
+import * as U from './util.mjs'
 //import { d } from './mess.mjs'
 
 export
@@ -33,5 +34,5 @@ function init
     p?.buf.addMode(mode)
   })
 
-  Cmd.add('self insert', () => Mess.say('Buffer is in view mode'), mode)
+  Cmd.add('self insert', () => Mess.say(U.shrug), mode)
 }

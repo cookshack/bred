@@ -366,7 +366,7 @@ function initBrowse
                             viewCopy: viewCopy,
                             onEmEmpty(view, wes, updateMini) {
                               if (wes.length > 1)
-                                updateMini('¯\\_(ツ)_/¯')
+                                updateMini(U.shrug)
                               else if (wes.length)
                                 pass(view, wes[0])
                               else

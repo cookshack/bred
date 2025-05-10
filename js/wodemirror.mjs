@@ -2356,21 +2356,21 @@ function lineIsText
 export
 function topLevelStart
 () {
-  let p, off, l
+  let p, bep, l
 
   p = Pane.current()
 
-  off = vgetOff(p.view)
+  bep = vgetBep(p.view)
   //d('endLine: ' + endLine)
-  l = p.view.ed.state.doc.lineAt(off)
+  l = p.view.ed.state.doc.lineAt(bep)
   while ((l.number > 1) && lineIsText(l)) {
-    off = l.from - 1
-    l = p.view.ed.state.doc.lineAt(off)
+    bep = l.from - 1
+    l = p.view.ed.state.doc.lineAt(bep)
   }
 
   while ((l.number > 1) && lineIsClear(l)) {
-    off = l.from - 1
-    l = p.view.ed.state.doc.lineAt(off)
+    bep = l.from - 1
+    l = p.view.ed.state.doc.lineAt(bep)
   }
 
   if (p.view.markActive)
@@ -2382,27 +2382,27 @@ function topLevelStart
 export
 function topLevelEnd
 () {
-  let p, off, endLine, l
+  let p, bep, endLine, l
 
   p = Pane.current()
-  off = vgetOff(p.view)
+  bep = vgetBep(p.view)
   endLine = vlen(p.view)
   //d('endLine: ' + endLine)
-  l = p.view.ed.state.doc.lineAt(off)
+  l = p.view.ed.state.doc.lineAt(bep)
   while ((l.number < endLine) && lineIsText(l)) {
-    off = l.to + 1
-    l = p.view.ed.state.doc.lineAt(off)
+    bep = l.to + 1
+    l = p.view.ed.state.doc.lineAt(bep)
   }
 
   while ((l.number < endLine) && lineIsClear(l)) {
-    off = l.to + 1
-    l = p.view.ed.state.doc.lineAt(off)
+    bep = l.to + 1
+    l = p.view.ed.state.doc.lineAt(bep)
   }
 
   if (p.view.markActive)
     vsetSel(p.view, p.view.ed.state.selection.main.from, l.from, 1)
   else
-    vsetOff(p.view, l.from, 1)
+    vsetBep(p.view, l.from, 1)
 }
 
 function ensureCursorVisible

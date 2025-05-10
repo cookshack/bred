@@ -3128,12 +3128,12 @@ function delNextChar() {
 
 export
 function cutLine() {
-  let p, str, off, range
+  let p, str, bep, range
 
   p = Pane.current()
-  off = vgetOff(p.view)
-  line = p.view.ed.state.doc.lineAt(off)
-  range = { from: off, to: line.to }
+  bep = vgetBep(p.view)
+  line = p.view.ed.state.doc.lineAt(bep)
+  range = { from: bep, to: line.to }
   str = vrangeText(p.view, range)
   if (str.length) {
     remove(p.view.ed, range)
@@ -3167,12 +3167,12 @@ function delNextWordBound
 
   p = Pane.current()
   clearSelection(p.view)
-  start = vgetOff(p.view)
+  start = vgetBep(p.view)
   if (n < 0)
     edexec(p.view.ed, p.view.markActive, CMComm.cursorGroupLeft)
   else
     edexec(p.view.ed, p.view.markActive, CMComm.cursorGroupRight)
-  end = vgetOff(p.view)
+  end = vgetBep(p.view)
   if (end >= start)
     range = { from: start, to: end }
   else

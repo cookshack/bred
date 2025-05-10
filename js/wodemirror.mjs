@@ -1219,7 +1219,7 @@ function voffToPos
 export
 function vsetPos
 (view, pos, reveal) {
-  return vsetOff(view, vposToOff(view, pos), reveal)
+  return vsetBepSpec(view, posToBep(view, pos), { reveal })
 }
 
 // pos here is bred pos (vs ace/mon pos)
@@ -1249,13 +1249,6 @@ function vsetBepSpec
   else if (spec.reveal == 2)
     tr.effects = CMView.EditorView.scrollIntoView(bep, { y: 'center' })
   return view.ed.dispatch(tr)
-}
-
-function vsetOff
-(view, off,
- reveal, // 1 nearest, 2 center
- keepSelection) {
-  return vsetBepSpec(view, off, { reveal, keepSelection })
 }
 
 function vsetSel
@@ -1367,7 +1360,7 @@ function vsetBep
 (view, bep, reveal, // 1 nearest, 2 center
  keepSelection) {
   //d('vsetBep ' + bep)
-  return vsetOff(view, bep, reveal, keepSelection)
+  return vsetBepSpec(view, bep, { reveal, keepSelection })
 }
 
 export
@@ -2220,7 +2213,7 @@ function setMark(u) {
     clearSelection(p.view)
     mark = p.view.marks.pop()
     Mess.say('Mark popped')
-    vsetOff(p.view, mark, 1)
+    vsetBep(p.view, mark, 1)
   }
   else {
     let bep

@@ -2251,7 +2251,7 @@ function exchange() {
   let p, point, mark
 
   p = Pane.current()
-  point = vgetOff(p.view)
+  point = vgetBep(p.view)
   if (p.view.marks.length == 0) {
     Mess.say('Set a mark first')
     return
@@ -2260,7 +2260,7 @@ function exchange() {
   if (p.view.markActive)
     selReverse(p.view)
   else
-    vsetOff(p.view, mark, 1) // want to use 3rd option "reveal in center if off screen else stay the same"
+    vsetBep(p.view, mark, 1) // want to use 3rd option "reveal in center if off screen else stay the same"
   p.view.marks.push(point)
 }
 

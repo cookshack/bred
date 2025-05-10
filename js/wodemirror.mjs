@@ -2777,7 +2777,7 @@ function vfind
  //   stayInPlace,
  //   reveal } // 1 nearest, 2 center
  opts) {
-  let ret, find, initialOff, initialSel, search, query
+  let ret, find, initialBep, initialSel, search, query
 
   function init
   () {
@@ -2799,20 +2799,20 @@ function vfind
 
   init()
 
-  initialOff = vgetOff(view)
+  initialBep = vgetBep(view)
   if (view.markActive)
     initialSel = view.ed.state.selection.main
 
-  ret = find.bind(query)(view.ed.state, initialOff, initialOff)
+  ret = find.bind(query)(view.ed.state, initialBep, initialBep)
   //d(ret)
   if (ret) {
-    let off
+    let bep
 
     if (opts.skipCurrent
-        && (ret.from == initialOff)) {
+        && (ret.from == initialBep)) {
       let opts2
 
-      vsetOff(view, ret.to)
+      vsetBep(view, ret.to)
       opts2 = Object.assign({}, opts)
       opts2.skipCurrent = 0
       return vfind(view, needle, decorParent, opts2)
@@ -2820,8 +2820,8 @@ function vfind
 
     if (opts.wrap == 0)
       if (opts.backwards
-        ? (initialOff < ret.from)
-        : (ret.from < initialOff))
+        ? (initialBep < ret.from)
+        : (ret.from < initialBep))
         // wrapped
         return 0
 
@@ -2870,11 +2870,11 @@ function vfind
     if (opts.stayInPlace)
       return ret
 
-    off = opts.backwards ? ret.from : ret.to
+    bep = opts.backwards ? ret.from : ret.to
     if (initialSel)
-      vsetSel(view, initialSel.from, off, opts.reveal ?? 1)
+      vsetSel(view, initialSel.from, bep, opts.reveal ?? 1)
     else
-      vsetOff(view, off, opts.reveal ?? 1)
+      vsetBep(view, bep, opts.reveal ?? 1)
     return ret
   }
   if (decorParent?.decorAll)
@@ -2884,13 +2884,13 @@ function vfind
     else {
       decorParent.decorAll.remove(view)
       // change view to force highlight refresh
-      vsetOff(view, initialOff)
+      vsetBep(view, initialBep)
     }
 
   if (decorParent?.decorMatch) {
     decorParent.decorMatch.remove(view)
     // change view to force highlight refresh
-    vsetOff(view, initialOff)
+    vsetBep(view, initialBep)
   }
   return 0
 }

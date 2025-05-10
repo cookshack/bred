@@ -3332,7 +3332,7 @@ function trim() {
   let p, str, start, l
 
   p = Pane.current()
-  start = vgetOff(p.view)
+  start = vgetBep(p.view)
   l = p.view.ed.state.doc.lineAt(start)
   spRe.lastIndex = 0
   if (spRe.exec(l.text.slice(start - l.from)))

@@ -82,8 +82,8 @@ function updateMarks
   }
 
   function contains
-  (from, to, off) {
-    return (from > to) && (from <= off) && (to >= off)
+  (from, to, bep) {
+    return (from > to) && (from <= bep) && (to >= bep)
   }
 
   function change
@@ -1385,11 +1385,6 @@ function bepToPos
   return Ed.makePos(line.number - 1, bep - line.from)
 }
 
-function voffToPos
-(view, off) {
-  return bepToPos(view, off)
-}
-
 // pos here is bred pos (vs monaco/ace pos)
 export
 function posToBep
@@ -1450,12 +1445,12 @@ function rangeEndBep
 
 function rangeStart
 (view, range) {
-  return voffToPos(view, range.from)
+  return bepToPos(view, range.from)
 }
 
 function rangeEnd
 (view, range) {
-  return voffToPos(view, range.to)
+  return bepToPos(view, range.to)
 }
 
 function rangeFromPoints
@@ -1558,11 +1553,6 @@ function voffChange
     view.onChanges = view.onChanges || Mk.array
     view.onChanges.removeIf(o => o.cb === cb)
   }
-}
-
-function vendOff
-(v) {
-  return v.ed.state.doc.length
 }
 
 function vendBep
@@ -2422,7 +2412,7 @@ function bottomPos
 
 function endPos
 (view) {
-  return voffToPos(view, vendOff(view))
+  return bepToPos(view, vendBep(view))
 }
 
 function containsVertically

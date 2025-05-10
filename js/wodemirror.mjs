@@ -2897,38 +2897,38 @@ function vfind
 
 function vinsert1
 (view, u, text) {
-  let off
+  let bep
 
-  off = vgetOff(view)
-  vinsertAt(view, off, u, text, 1)
+  bep = vgetBep(view)
+  vinsertAt(view, bep, u, text, 1)
 }
 
 export
 function vinsertAt
-(v, off, u, text, setOff, to) {
+(v, bep, u, text, setBep, to) {
   if (v.ele) {
     clearSelection(v)
     if (typeof text == 'number')
       text = text.toString()
     for (let i = 0; i < u; i++) {
-      if (setOff) {
-        //d('insertAt ' + off + ' replace')
+      if (setBep) {
+        //d('insertAt ' + bep + ' replace')
 
         // this way in case there are chars like backspace in the string that will be filtered out by cm
         // (if use selection with changes dispatch below then the selection will be wrong if cm filters
         //  out chars)
 
-        setSelection(v, { from: off ?? 0,
-                          to: to ?? (off ?? 0) })
-        // this will set the off to the end of the text
+        setSelection(v, { from: bep ?? 0,
+                          to: to ?? (bep ?? 0) })
+        // this will set the bep to the end of the text
         v.ed.dispatch(v.ed.state.replaceSelection(text))
         v.ed.dispatch({ scrollIntoView: true })
         return
       }
 
-      //d('insertAt ' + off)
-      v.ed.dispatch({ changes: { from: off ?? 0,
-                                 to: to ?? (off ?? 0),
+      //d('insertAt ' + bep)
+      v.ed.dispatch({ changes: { from: bep ?? 0,
+                                 to: to ?? (bep ?? 0),
                                  insert: text } })
     }
   }

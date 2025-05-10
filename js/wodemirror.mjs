@@ -2478,7 +2478,7 @@ function lineFullyVisible
 
 function xBep
 (view, bottom) {
-  let rect, xEdge, yEdge, off, scroller, first, leeway
+  let rect, xEdge, yEdge, bep, scroller, first, leeway
 
   //return view.ed.viewport.from
   //return view.ed.visibleRanges.at(0)?.from || 0
@@ -2510,14 +2510,14 @@ function xBep
     }
 
   //d(rect)
-  off = view.ed.posAtCoords({ x: xEdge, y: yEdge }) || 0
-  off = vlineStart(view, off)
-  first = off
+  bep = view.ed.posAtCoords({ x: xEdge, y: yEdge }) || 0
+  bep = vlineStart(view, bep)
+  first = bep
   for (let i = 0; i < 10; i++) {
-    //d('off: ' + off + ' line: ' + view.ed.state.doc.lineAt(off).number)
-    if (lineFullyVisible(view, rect, off))
-      return off
-    off = vlineStart(view, off + (bottom ? -1 : 1))
+    //d('bep: ' + bep + ' line: ' + view.ed.state.doc.lineAt(bep).number)
+    if (lineFullyVisible(view, rect, bep))
+      return bep
+    bep = vlineStart(view, bep + (bottom ? -1 : 1))
   }
   return first
 }
@@ -3459,11 +3459,11 @@ function find
 export
 function replace
 (st, all, search) {
-  let r, off
+  let r, bep
 
-  off = Math.min(st.view.ed.state.selection.main.anchor,
+  bep = Math.min(st.view.ed.state.selection.main.anchor,
                  st.view.ed.state.selection.main.head)
-  setSelection(st.view, { from: off, to: off })
+  setSelection(st.view, { from: bep, to: bep })
   r = vfind(st.view, st.from, 0, { skipCurrent: 0,
                                    backwards: 0,
                                    wrap: 0,

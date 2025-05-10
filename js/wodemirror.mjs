@@ -3020,12 +3020,12 @@ function quotedInsert
 
 export
 function caseWord(cb) {
-  let p, range, origHead, origAnch, sel, off, str
+  let p, range, origHead, origAnch, sel, bep, str
 
   p = Pane.current()
 
   // get the range to be cased
-  off = vgetOff(p.view)
+  bep = vgetBep(p.view)
   origHead = p.view.ed.state.selection.head
   origAnch = p.view.ed.state.selection.anchor
   clearSelection(p.view)
@@ -3037,7 +3037,7 @@ function caseWord(cb) {
     range = { from: sel.head, to: sel.anchor }
   str = vrangeText(p.view, range)
   str = cb(str, p.view)
-  vsetOff(p.view, off)
+  vsetBep(p.view, bep)
 
   // case range in current view
   {
@@ -3048,7 +3048,7 @@ function caseWord(cb) {
     vorigAnch = view.ed.state.selection.anchor
     clearSelection(view)
     remove(view.ed, range)
-    vinsertAt(view, off, 1, str)
+    vinsertAt(view, bep, 1, str)
     view.ed.state.selection.head = vorigHead
     view.ed.state.selection.anchor = vorigAnch
   }
@@ -3056,7 +3056,7 @@ function caseWord(cb) {
   // move point in current pane
   p.view.ed.state.selection.head = origHead
   p.view.ed.state.selection.anchor = origAnch
-  vsetOff(p.view, range.to)
+  vsetBep(p.view, range.to)
 }
 
 export

@@ -81,6 +81,7 @@ function make
 (spec = {}) { // { name, modeKey, content, dir, file, placeholder, vars }
   let { name, modeKey, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk, ed
+  let placeholder
 
   function makePsn
   () {
@@ -354,6 +355,7 @@ function make
 
   function setPlaceholder
   (val) {
+    placeholder = val
     if (b.mode?.setPlaceholder) {
       b.views.forEach(view => b.mode.setPlaceholder(view, val))
       return val
@@ -400,6 +402,7 @@ function make
       name = old + '<' + suffix++ + '>'
   }
 
+  placeholder = spec.placeholder
   modeKey = modeKey || 'div'
   modeVars = spec.vars || {}
   views = []
@@ -471,7 +474,7 @@ function make
           return dir ? (dir + (file || '')) : file
         },
         get placeholder() {
-          return spec.placeholder
+          return placeholder
         },
         get syntaxTreeStr() {
           return syntaxTreeStr(b)

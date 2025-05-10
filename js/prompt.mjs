@@ -67,9 +67,10 @@ function demand
 
 export
 function demandBuf
-(w) {
+(w, spec) {
   let win, p, buf, area, ml
 
+  spec = spec || {}
   win = Win.current()
   Area.getByName(win, 'bred-float')?.close()
   area = Area.add(win, 'bred-float')
@@ -82,7 +83,8 @@ function demandBuf
   buf = Buf.make({ name: 'QR',
                    modeKey: 'qr',
                    content: w,
-                   dir: p.dir })
+                   dir: p.dir,
+                   placeholder: spec.placeholder })
   buf.vars('ed').fillParent = 0
   buf.opts.set('core.autocomplete.enabled', 0)
   buf.opts.set('core.brackets.close.enabled', 0)

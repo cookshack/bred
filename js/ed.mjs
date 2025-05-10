@@ -464,6 +464,9 @@ function initQR
       return
     p = Pane.current()
     from = p.buf.text()
+    if (from.length == 0)
+      from = p.buf.placeholder
+    from.length || Mess.toss('Empty')
     p.buf.clear()
     p.buf.views.forEach(view => {
       if (view.ele) {
@@ -533,7 +536,8 @@ function initQR
     hist.reset()
     st.occur = st.view.buf.opts.get('core.highlight.occurrences.enabled')
     st.view.buf.opts.set('core.highlight.occurrences.enabled', 0)
-    st.p = Prompt.demandBuf(divW())
+    st.p = Prompt.demandBuf(divW(),
+                            { placeholder: hist.nth()?.from })
   }
 
   function closeQr

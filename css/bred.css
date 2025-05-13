@@ -1648,6 +1648,7 @@ div.bred-lint-marker:active {
   line-height: var(--height-tabbar);
   overflow: hidden;
   display: flex;
+  white-space: nowrap;
 }
 
 .tabbar-tab-x {

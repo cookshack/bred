@@ -71,8 +71,8 @@ function initRTL
       let x, y, win
 
       win = Win.current()
-      x = win.lastContext?.x ?? 0
-      y = win.lastContext?.y ?? 0
+      x = win.lastContextClick?.x ?? 0
+      y = win.lastContextClick?.y ?? 0
       p.goXY(x, y)
     }
 

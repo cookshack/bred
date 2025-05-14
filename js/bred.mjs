@@ -379,6 +379,7 @@ function initCmds
 
       x = we.e.x
       y = we.e.y
+      win.lastContextClick = { x: x, y: y }
       rect = win.context.el.getBoundingClientRect()
       if ((rect.height + y) > win.window.innerHeight)
         y = win.window.innerHeight - rect.height - 10
@@ -397,8 +398,8 @@ function initCmds
       let win
 
       win = Win.current()
-      x = win.lastContext?.x ?? 0
-      y = win.lastContext?.y ?? 0
+      x = win.lastContextClick?.x ?? 0
+      y = win.lastContextClick?.y ?? 0
     }
     else {
       x = mouse.x

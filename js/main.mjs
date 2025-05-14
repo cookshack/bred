@@ -286,7 +286,7 @@ function onCmdCh
 
   if (name == 'devtools.inspect')
     return wrapOn(e, ch, args, () => {
-      win.inspectElement(args[0], args[1]) // x, y
+      win.inspectElement(Math.round(args[0]), Math.round(args[1])) // x, y
       e.sender.send(ch, {})
     })
 

@@ -4468,24 +4468,26 @@ function initPatchExt
 
         buf = update.view.bred?.view?.buf
         if (buf)
-          if (update.docChanged) {
-            // clear decor else decor will be out of sync with doc (Patch.refine is async, so update happens later)
-            update.view.dispatch({
-              effects: decorEffect.of(decorateRefines(update.view))
-            })
-            Patch.refine(update.view.state.doc.toString(),
-                         refines => {
-                           buf.vars(patchModeKey()).refines = refines
-                           update.view.dispatch({
-                             effects: decorEffect.of(decorateRefines(update.view, refines))
+          if (update.docChanged)
+            // Timeout else "Calls to EditorView.update are not allowed while an update is in progress"
+            setTimeout(() => {
+              // clear decor else decor will be out of sync with doc (Patch.refine is async, so update happens later)
+              update.view.dispatch({
+                effects: decorEffect.of(decorateRefines(update.view))
+              })
+              Patch.refine(update.view.state.doc.toString(),
+                           refines => {
+                             buf.vars(patchModeKey()).refines = refines
+                             update.view.dispatch({
+                               effects: decorEffect.of(decorateRefines(update.view, refines))
+                             })
                            })
-                         })
-          }
+            })
           else
-            update.view.dispatch({
+            setTimeout(() => update.view.dispatch({
               effects: decorEffect.of(decorateRefines(update.view,
                                                       buf.vars(patchModeKey()).refines))
-            })
+            }))
       }
     }
 

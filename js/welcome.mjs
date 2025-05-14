@@ -1,5 +1,6 @@
 import { append, button, img, div, divCl, span } from './dom.mjs'
 
+import * as Bred from './bred.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
@@ -17,7 +18,7 @@ function init
 () {
   function divW
   () {
-    let w, rcs, rds, rfs, rls
+    let w, rcs, rds, rfs, rls, version
 
     function short
     (href) {
@@ -60,6 +61,8 @@ function init
     rls = divCl('bred-welcome-recent-links bred-welcome-recent',
                 div('Loading...'))
 
+    version = Bred.version()?.bred || '??'
+
     w = divCl('bred-welcome-ww',
               divCl('bred-welcome-w',
                     [ divCl('bred-welcome-theme',
@@ -98,7 +101,9 @@ function init
                                      'buttonN' + (Opt.get('core.welcome.enabled') ? '' : ' on'),
                                      { 'data-run': 'hide welcome on start' }) ]),
                       divCl('bred-welcome-more',
-                            [ div('More options.', { 'data-run': 'options' } ) ]) ]))
+                            [ div('More options.', { 'data-run': 'options' } ) ]),
+                      divCl('bred-welcome-version',
+                            div([ 'v', span(version, { 'data-run': 'about' } ) ])) ]))
 
     Recent.get(0, (err, recents) => {
       let count

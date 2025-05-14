@@ -570,17 +570,17 @@ function setVersion
 
       stat = fs.statSync(Path.join(appPath, '.git'), { throwIfNoEntry: true })
       if (stat) {
-        let res
+        let res, out
 
-        //d('git describe in ' + appPath)
-        res = spawnSync('git', [ 'describe' ], { cwd: appPath, encoding: 'utf-8' })
+        res = spawnSync('git',
+                        [ 'rev-list', '--count', 'v' + version + '..HEAD' ],
+                        { cwd: appPath, encoding: 'utf-8' })
         if (res.error)
           throw res.error
-        version = res.stdout.trim()
-        if (version.length == 0)
-          throw new Error ('git describe output empty')
-        if (version[0] == 'v')
-          version = version.slice(1)
+        out = res.stdout.trim()
+        if (out.length == 0)
+          throw new Error ('git rev-list in ' + appPath + ': output empty')
+        version += '-' + out
       }
     }
     catch (err) {

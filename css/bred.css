@@ -1375,6 +1375,13 @@ div.bred-welcome-rf-h-link:hover {
   color: var(--clr-emph);
 }
 
+.bred-welcome-version {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem;
+  display: flex;
+}
+
 .bred-prompt-buf-ww,
 .bred-opener-ww,
 .bred-qr-ww {

@@ -23,12 +23,15 @@
   display: flex;
 }
 
-.browse-url {
-  margin-left: 0.5rem;
-}
-
+.browse-url,
 .browse-title {
   margin-left: auto;
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+
+.browse-url {
+  margin-left: 0.5rem;
 }
 
 .browse-external {

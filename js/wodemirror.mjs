@@ -1,11 +1,13 @@
 import { button, divCl, span, img } from './dom.mjs'
 
+import * as Area from './area.mjs'
 import * as Buf from './buf.mjs'
 import * as Cut from './cut.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
+import * as Frame from './frame.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Lsp from './lsp.mjs'
@@ -17,6 +19,7 @@ import * as Patch from './patch.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
+import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'
@@ -454,11 +457,37 @@ function decorate
 
 function diagnose
 (win, diag) {
+  function covers
+  (el, rect) {
+    if (rect) {
+      let rEl
+
+      rEl = el.getBoundingClientRect()
+      return rEl
+        && (rEl.top <= rect.bottom)
+        && (rEl.right >= rect.left)
+    }
+  }
+  function xy
+  () {
+    let view, area, frame, tab
+
+    area = Area.current(win)
+    tab = Tab.current(area)
+    frame = area && Frame.current(tab)
+    view = frame && Pane.current(frame)?.view
+    view = Pane.current().view
+    return view?.ed?.coordsAtPos(vgetBep(view))
+  }
   if (win && diag) {
     win.diag.lastElementChild.firstElementChild.innerText = diag.message
     win.diag.lastElementChild.lastElementChild.innerText = diag.source
     Css.add(win.diag, 'bred-' + diag.severity)
     Css.show(win.diag)
+    if (covers(win.diag, xy()))
+      Css.add(win.diag.parentNode, 'bred-diag-right')
+    else
+      Css.remove(win.diag.parentNode, 'bred-diag-right')
     return
   }
   Css.hide(win?.diag)

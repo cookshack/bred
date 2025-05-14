@@ -397,6 +397,10 @@ textarea:focus-visible {
   flex-direction: row;
 }
 
+.bred-diag-right {
+  justify-content: flex-end;
+}
+
 .bred-area.bred-tip-w {
   justify-content: flex-end;
 }

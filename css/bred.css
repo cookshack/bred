@@ -1168,6 +1168,10 @@ span.core-leadingSpace,
   flex-direction: column;
 }
 
+.bred-welcome-w {
+  height: 100%;
+}
+
 .bred-about-w {
   align-items: center;
 }
@@ -1304,7 +1308,8 @@ span.core-leadingSpace,
 }
 
 .bred-welcome-sett {
-  margin-top: 2rem;
+  padding-top: 2rem;
+  margin-top: auto;
   display: flex;
   align-items: center;
 }

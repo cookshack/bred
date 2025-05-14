@@ -171,7 +171,9 @@ function onReload
 
   view = views[id]
   if (view) {
-    view.view.webContents.reload()
+    view.view.webContents.executeJavaScript("document.body.innerHTML = ''; document.documentElement.innerHTML = ''")
+    setTimeout(() => view.view.webContents.reload(),
+               0.05 * 1000)
     return {}
   }
   return {}

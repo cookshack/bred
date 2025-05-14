@@ -35,6 +35,13 @@
   margin-left: 0.5rem;
 }
 
+.browse-reload,
+.browse-external {
+  width: var(--width-mini-icon);
+  height: var(--width-mini-icon);
+  display: flex;
+}
+
 .browse-reload > img,
 .browse-external > img {
   pointer-events: none;

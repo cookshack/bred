@@ -65,6 +65,13 @@ cd ~/src/bred/ && bin/bred $*
     update-desktop-database ~/.local/share/applications
     ```
 
+## Optional OS packages
+
+```sh
+# For extra highlighting of patches.
+sudo apt-get install diffr
+```
+
 ## Issues
 
 #### 1. Sandbox error

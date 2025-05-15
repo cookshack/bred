@@ -141,15 +141,18 @@ function onZoom
 export
 function onBack
 (e, onArgs) {
-  const [ id ] = onArgs
+  const [ id, n ] = onArgs
   let view
 
   d('BROWSE back ' + id)
 
   view = views[id]
   if (view) {
-    if (view.hist.back())
-      return { err: { message: 'At beginning of history' } }
+    let msg
+
+    msg = view.hist.back(n)
+    if (msg)
+      return { err: { message: msg } }
     view.view.webContents.executeJavaScript("document.body.innerHTML = ''; document.documentElement.innerHTML = ''")
     d('Load ' + view.hist.href)
     setTimeout(() => view.view.webContents.loadURL(view.hist.href),
@@ -270,12 +273,20 @@ function init
              }
 
              function back
-             () {
-               d('back')
+             (n) {
+               d('back ' + n)
                d(index)
                d(JSON.stringify(items))
+               if (n < 0) {
+                 // forward
+                 if (items.length > (index + 1))
+                   index++
+                 else
+                   return 'At end of history'
+                 return
+               }
                if (index <= 0)
-                 return 1
+                 return 'At beginning of history'
                index--
                d(index)
              }

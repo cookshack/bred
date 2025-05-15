@@ -25,6 +25,12 @@ function path
     if (name == 'assist')
       return 'lib/svg/file-icons/Manpage.svg'
 
+    if (name == 'arrow-left')
+      return 'lib/svg/octicons/arrow-left-24.svg'
+
+    if (name == 'arrow-right')
+      return 'lib/svg/octicons/arrow-right-24.svg'
+
     if (name == 'binary')
       return 'lib/svg/octicons/file-binary-24.svg'
 

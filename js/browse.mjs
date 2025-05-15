@@ -72,7 +72,17 @@ function divW
 (url) {
   return divCl('browse-ww',
                [ divCl('browse-h',
-                       [ divCl('browse-reload',
+                       [ divCl('browse-control',
+                               img(Icon.path('arrow-left'),
+                                   'Back',
+                                   'filter-clr-text'),
+                               { 'data-run': 'page backward' }),
+                         divCl('browse-control',
+                               img(Icon.path('arrow-right'),
+                                   'Forward',
+                                   'filter-clr-text'),
+                               { 'data-run': 'page forward' }),
+                         divCl('browse-reload browse-control',
                                img(Icon.path('refresh'),
                                    'Reload',
                                    'filter-clr-text'),
@@ -82,7 +92,7 @@ function divW
                                { 'data-run': 'go',
                                  'data-url' : url }),
                          divCl('browse-title'),
-                         divCl('browse-external',
+                         divCl('browse-external browse-control',
                                img(Icon.path('external'),
                                    'Ext',
                                    'filter-clr-text'),
@@ -343,6 +353,16 @@ function initBrowse
     Tron.acmd('browse.reload', [ id ])
   }
 
+  function back
+  (n) { // 1 one back, -1 one forward
+    let id
+
+    n = n || 1
+    d('back ' + n)
+    id = Pane.current().view.vars('browse').id ?? Mess.toss('Missing id')
+    Tron.acmd('browse.back', [ id, n ])
+  }
+
   function scrollUp
   () {
     key(Pane.current().view, 'PageUp')
@@ -375,6 +395,8 @@ function initBrowse
 
   Cmd.add('buffer end', () => bufEnd(), mo)
   Cmd.add('buffer start', () => bufStart(), mo)
+  Cmd.add('page backward', () => back(), mo)
+  Cmd.add('page forward', () => back(-1), mo)
   Cmd.add('reload', () => reload(), mo)
   Cmd.add('scroll up', () => scrollUp(), mo)
   Cmd.add('scroll down', () => scrollDown(), mo)

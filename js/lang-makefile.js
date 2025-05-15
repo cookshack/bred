@@ -10,7 +10,7 @@ function init
                         [ /'([^'\\]|\\.)*'/, 'string' ],
                         [ /'([^'\\]|\\.)*'/, 'string' ] ] }
 
-  Mon.languages.register({ id: id,
+  Mon.languages.register({ id,
                            filenames: [ 'GNUmakefile', 'makefile', 'Makefile' ] })
-  Mon.languages.setMonarchTokensProvider(id, { tokenizer: tokenizer })
+  Mon.languages.setMonarchTokensProvider(id, { tokenizer })
 }

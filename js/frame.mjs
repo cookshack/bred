@@ -217,7 +217,7 @@ function add
                   [ sep, sm ],
                   { style: 'width: ' + spec.width + '%;',
                     'data-width': spec.width }),
-        sep: sep,
+        sep,
         startMarker: sm,
         //
         get pane() {

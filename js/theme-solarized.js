@@ -70,14 +70,14 @@ function init
 
   function copy
   (token, from) {
-    rules.push({ token: token,
+    rules.push({ token,
                  alias: from })
   }
 
   function rule
   (token, foreground, more) {
-    rules.push({ token: token,
-                 ...(foreground ? { foreground: foreground } : {}),
+    rules.push({ token,
+                 ...(foreground ? { foreground } : {}),
                  ...(more || {}) })
   }
 
@@ -217,7 +217,7 @@ function init
   t = { base: 'vs',
         inherit: false,
 
-        clrs: clrs,
+        clrs,
         filters,
         filterMeanings,
         meanings,

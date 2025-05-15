@@ -8,8 +8,8 @@ export
 function make
 (p, dir, name, cb) { // (view)
   Ed.make(p,
-          { name: name,
-            dir: dir },
+          { name,
+            dir },
           cb)
 }
 

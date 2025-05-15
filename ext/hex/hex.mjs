@@ -129,8 +129,8 @@ function open
                   divW(loc.dirname, loc.filename),
                   loc.dirname,
                   { file: loc.filename,
-                    vars: { hex: { u8s: u8s,
-                                   lineCount: lineCount } } })
+                    vars: { hex: { u8s,
+                                   lineCount } } })
     buf.stat = data.stat
     buf.vars('Hex').path = path
     p.setBuf(buf)
@@ -437,7 +437,7 @@ function init
     Scroll.redraw(view,
                   { numLines: lineCount,
                     cols: 1,
-                    surf: surf },
+                    surf },
                   (frag, i) => appendLine(frag, u8s, i))
     u8s = line?.querySelectorAll('.hex-cur')
     addr = u8s?.length && u8s[0].dataset.addr

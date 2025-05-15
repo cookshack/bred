@@ -169,7 +169,7 @@ function init
 
   needle = ''
 
-  mo = Mode.add('Execute', { viewInitSpec: viewInitSpec })
+  mo = Mode.add('Execute', { viewInitSpec })
 
   Cmd.add('execute', u => {
     let p, buf

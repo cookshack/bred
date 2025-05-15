@@ -20,8 +20,8 @@ export
 function make
 (p, dir, name, cb) { // (view)
   Ed.make(p,
-          { name: name,
-            dir: dir },
+          { name,
+            dir },
           cb)
 }
 
@@ -184,7 +184,7 @@ function init
 
   onCursor = Ed.onCursor((be, view) => update(view))
 
-  Mode.add('Assist', { viewInitSpec: viewInitSpec,
+  Mode.add('Assist', { viewInitSpec,
                        icon: { name: 'assist' } })
 
   Cmd.add('assist', () => assist())

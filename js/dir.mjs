@@ -805,7 +805,7 @@ function initChmod
 
     list = under(dir, marked)
     Prompt.ask({ text: 'Update mode of these files',
-                 hist: hist,
+                 hist,
                  under: divCl('float-files', list.divs) },
                mode => {
                  hist.add(mode)
@@ -872,7 +872,7 @@ function initChmod
     }
 
     Prompt.ask({ text: 'Update mode of ' + path,
-                 hist: hist },
+                 hist },
                mode => run(mode, p.dir))
   }
 
@@ -890,12 +890,12 @@ function under
     let path
 
     path = Loc.make(dir).join(m.name)
-    paths.push({ name: m.name, isDir: m.type == 'd', path: path })
+    paths.push({ name: m.name, isDir: m.type == 'd', path })
     return [ divCl('float-f-name', m.name),
              divCl('float-f-path', path) ]
   })
 
-  return { divs: divs, paths: paths }
+  return { divs, paths }
 }
 
 export
@@ -1117,7 +1117,7 @@ function init
 
     list = under(dir, marked)
     Prompt.ask({ text: 'Copy these files to',
-                 hist: hist,
+                 hist,
                  under: divCl('float-files', list.divs) },
                dest => {
                  let absDest
@@ -1211,7 +1211,7 @@ function init
       //d({ file })
       Prompt.ask({ text: 'Copy to:',
                    placeholder: placeholder(p, file),
-                   hist: hist },
+                   hist },
                  name => run(file, name, p.dir))
     }
   }
@@ -1222,7 +1222,7 @@ function init
 
     list = under(dir, marked)
     Prompt.ask({ text: 'Move these files to',
-                 hist: hist,
+                 hist,
                  under: divCl('float-files', list.divs) },
                dest => {
                  let absDest
@@ -1293,7 +1293,7 @@ function init
       d({ file })
       Prompt.ask({ text: 'Rename to:',
                    placeholder: placeholder(p, file),
-                   hist: hist },
+                   hist },
                  name => run(file, name, p.dir))
     }
   }

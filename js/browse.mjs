@@ -33,7 +33,7 @@ function initWeb
     d({ preload })
     wv = Dom.create('webview', [], '',
                     { src: 'https://en.wikipedia.org/wiki/Edvard_Munch',
-                      preload: preload })
+                      preload })
 
     append(w, wv)
     wv.addEventListener('context-menu', e => {
@@ -42,7 +42,7 @@ function initWeb
       e.clientY = e.params.y
       e.x = e.params.x
       e.y = e.params.y
-      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e: e })
+      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e })
     })
     wv.addEventListener('dom-ready', () => {
       d('dom-ready')
@@ -54,7 +54,7 @@ function initWeb
       cb(view)
   }
 
-  mo = Mode.add('Web', { viewInitSpec: viewInitSpec })
+  mo = Mode.add('Web', { viewInitSpec })
   d(mo)
 
   Cmd.add('web', () => {
@@ -99,7 +99,7 @@ function browse
 
   p = Pane.current()
   buf = Buf.add(url, 'Browse', divW(url), p.dir,
-                { vars: { browse: { url: url } } })
+                { vars: { browse: { url } } })
   p.setBuf(buf)
 }
 
@@ -112,8 +112,8 @@ function initBrowse
     d('================== browse viewCopy')
     to.buf.vars('browse').url = from.buf.vars('browse')?.url
     viewInitSpec(to,
-                 { lineNum: lineNum,
-                   whenReady: whenReady },
+                 { lineNum,
+                   whenReady },
                  cb)
   }
 
@@ -129,8 +129,8 @@ function initBrowse
     else
       // probably buf was switched out before init happened.
       viewInitSpec(view,
-                   { lineNum: lineNum,
-                     whenReady: whenReady },
+                   { lineNum,
+                     whenReady },
                    cb)
 
   }
@@ -361,9 +361,9 @@ function initBrowse
     Tron.acmd('browse.zoom', [ id, inward ])
   }
 
-  mo = Mode.add('Browse', { viewInitSpec: viewInitSpec,
-                            viewReopen: viewReopen,
-                            viewCopy: viewCopy,
+  mo = Mode.add('Browse', { viewInitSpec,
+                            viewReopen,
+                            viewCopy,
                             onEmEmpty(view, wes, updateMini) {
                               if (wes.length > 1)
                                 updateMini(U.shrug)

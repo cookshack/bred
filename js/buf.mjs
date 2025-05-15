@@ -434,17 +434,17 @@ function make
       })
     }
 
-    ml = { set: set }
+    ml = { set }
   }
 
   b = { id: shared().id,
-        vid: vid,
+        vid,
         //
         co: content,
         minors: Mk.array,
         modified: 0,
-        name: name,
-        ml: ml,
+        name,
+        ml,
         //
         get bepEnd() {
           return bepEnd()
@@ -570,10 +570,10 @@ function add
 
   spec = spec || {}
 
-  b = make({ name: name,
-             modeKey: modeKey,
-             content: content,
-             dir: dir,
+  b = make({ name,
+             modeKey,
+             content,
+             dir,
              file: spec.file,
              lineNum: spec.lineNum,
              vars: spec.vars })
@@ -744,7 +744,7 @@ function view
   mode = Mode.get(buf.mode?.key) // want the one in current globalThis
   v = View.make(buf,
                 { vid: buf.vid,
-                  mode: mode,
+                  mode,
                   views: buf.views,
                   ele: spec.ele,
                   elePoint: spec.elePoint,

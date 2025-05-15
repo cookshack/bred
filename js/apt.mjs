@@ -49,7 +49,7 @@ function init
   function search
   () {
     Prompt.ask({ text: 'Search Apt',
-                 hist: hist },
+                 hist },
                runApt)
   }
 

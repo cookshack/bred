@@ -110,7 +110,7 @@ function initCssComp
       Cmd.run('toggle frame right')
 
     b = Buf.add('Css Comp', 'Css Comp', divW(), p.dir,
-                { vars: { 'css comp': { el: el } } })
+                { vars: { 'css comp': { el } } })
     b.icon = 'css'
     b.addMode('view')
 
@@ -129,7 +129,7 @@ function initCssComp
   mo = Mode.add('Css Comp', { viewInitSpec: refresh })
   d(mo)
 
-  return { comp: comp }
+  return { comp }
 }
 
 function initCssRules
@@ -379,7 +379,7 @@ function initCssRules
       Cmd.run('toggle frame right')
 
     b = Buf.add('Css Rules', 'Css Rules', divW(), p.dir,
-                { vars: { 'css rules': { el: el } } })
+                { vars: { 'css rules': { el } } })
     b.icon = 'css'
     b.addMode('view')
 
@@ -616,7 +616,7 @@ function initDom
       Cmd.run('toggle frame right')
 
     b = Buf.add('Dom', 'Dom', divW(), p.dir,
-                { vars: { dom: { id: id } } })
+                { vars: { dom: { id } } })
     b.icon = 'dom'
     b.addMode('view')
 
@@ -675,7 +675,7 @@ function init
     d({ preload })
     wv = Dom.create('webview', [], '',
                     { src: 'file://' + Loc.appDir().join('ext/step/step.html'),
-                      preload: preload })
+                      preload })
 
     append(w,
            divCl('step-w-controls',
@@ -688,7 +688,7 @@ function init
       e.clientY = e.params.y
       e.x = e.params.x
       e.y = e.params.y
-      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e: e })
+      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e })
     })
     wv.addEventListener('dom-ready', () => {
       d('dom-ready')

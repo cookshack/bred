@@ -52,7 +52,7 @@ function init
     time.innerText = String(d.getHours()).padStart(2, '0') + 'h' + String(d.getMinutes()).padStart(2, '0')
   }
 
-  Mode.add('Clock', { viewInitSpec: viewInitSpec })
+  Mode.add('Clock', { viewInitSpec })
 
   Cmd.add('clock', () => {
     let found, p

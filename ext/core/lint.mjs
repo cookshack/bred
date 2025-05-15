@@ -66,7 +66,7 @@ function maybeLintTooltip
   })
   if (diags.length)
     return { pos: start,
-             end: end,
+             end,
              create() {
                return { dom: diagTip(diags) }
              } }

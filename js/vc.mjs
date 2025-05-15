@@ -24,7 +24,7 @@ function git
   // these use shell1 instead of spawn1 so that .bashrc is loaded (needed eg for nvm init)
   Shell.shell1(cmd,
                { end: 1,
-                 afterEndPoint: afterEndPoint },
+                 afterEndPoint },
                b => {
                  if (mode)
                    b.mode = mode
@@ -133,7 +133,7 @@ function initCommit
   () {
     Prompt.ask({ text: 'Commit Message:',
                  placeholder: '',
-                 hist: hist },
+                 hist },
                runGit)
   }
 
@@ -207,8 +207,8 @@ function applyHunkTooPrecise
       to = from + line.length - 1 /* - */ + 1 /* nl */
       d('remove ' + from + '-' + to)
       Ed.Backend.vremove(view,
-                         { from: from,
-                           to: to })
+                         { from,
+                           to })
     }
     else if (line.startsWith('+')) {
       let text
@@ -604,7 +604,7 @@ function initLog
     dir = Loc.make(p.buf.dir)
     dir.ensureSlash()
     dir = dir.path || Loc.home()
-    Shell.run(p.dir, 'git', [ 'log' ], { buf: buf, end: 1, afterEndPoint: 1 })
+    Shell.run(p.dir, 'git', [ 'log' ], { buf, end: 1, afterEndPoint: 1 })
   }
 
   function show
@@ -699,8 +699,8 @@ function initLogBadIdea
     p = Pane.current()
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
-    Shell.run(p.dir, 'git', [ 'log' ], { onStdin: onStdin,
-                                         onStdout: onStdout })
+    Shell.run(p.dir, 'git', [ 'log' ], { onStdin,
+                                         onStdout })
   }
 
   function onStdin
@@ -779,8 +779,8 @@ function initAnnotate
       Shell.run(Loc.make(file).dirname, 'git', [ 'annotate', '--line-porcelain', file ],
                 { end: 1,
                   afterEndPoint: 1,
-                  onStdout: onStdout,
-                  onStderr: onStderr })
+                  onStdout,
+                  onStderr })
       buf.append('xx')
     }
     else
@@ -805,8 +805,8 @@ function initAnnotate
             if (commit)
               return
             clr = clrs[commits.length % clrs.length]
-            commit = { hash: hash,
-                       clr: clr,
+            commit = { hash,
+                       clr,
                        decorHash: Ed.makeDecor({ attr: { 'data-run': 'show',
                                                          'data-hash': hash } }),
                        decorHashJoin: Ed.makeDecor({ attr: { style: 'visibility: hidden;',
@@ -849,7 +849,7 @@ function initAnnotate
           if (line.startsWith('\t')) {
             let out1
 
-            rows.push({ commit: commit,
+            rows.push({ commit,
                         join: commit.hash == previous?.hash })
 
             previous = commit

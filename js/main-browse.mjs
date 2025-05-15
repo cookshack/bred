@@ -25,7 +25,7 @@ function onOpen
 
   view = new WebContentsView()
   id = views.length
-  views[id] = { view: view }
+  views[id] = { view }
   win = BrowserWindow.fromWebContents(e.sender)
   view.webContents.on('before-input-event', (e, input) => {
     if (1) {
@@ -97,8 +97,8 @@ function onOpen
     view.webContents.executeJavaScript('document.title').then(title => {
       Profile.hist.add(url, { title })
       e.sender.send(ch, { ev: 'did-navigate',
-                          url: url,
-                          title: title })
+                          url,
+                          title })
     })
   })
   view.webContents.on('zoom-changed', (event, dir) => {
@@ -109,17 +109,17 @@ function onOpen
   })
   view.webContents.loadURL(page)
   win.contentView.addChildView(view)
-  view.setBounds({ x: x, y: y, width: width, height: height }) // safeDialogs, autoplayPolicy, navigateOnDragDrop, spellcheck
+  view.setBounds({ x, y, width, height }) // safeDialogs, autoplayPolicy, navigateOnDragDrop, spellcheck
   view.setBackgroundColor('white')
   //view.setAutoResize({ width: true, height: true })
 
   ipcMain.on(ch, (e, x, y, width, height) => {
     // using d messed up values
     //view.setBounds({ x: d.x, y: d.y, width: d.width, height: d.height })
-    view.setBounds({ x: x, y: y, width: width, height: height })
+    view.setBounds({ x, y, width, height })
   })
 
-  e.sender.send(ch, { id: id })
+  e.sender.send(ch, { id })
 }
 
 export

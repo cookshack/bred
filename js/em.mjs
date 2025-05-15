@@ -31,13 +31,13 @@ function make
 
   function on
   (key, to) {
-    ons[key] = { key: key, to: to }
+    ons[key] = { key, to }
   }
 
   function setOtherwise
   (to) {
     if (to)
-      return otherwise = { to: to }
+      return otherwise = { to }
     return otherwise = 0
   }
 
@@ -114,7 +114,7 @@ function make
       return 0
     }
 
-    to = { ons: ons }
+    to = { ons }
     d('look in ' + name)
     if (wes.every(look1))
       return cb(to)
@@ -128,10 +128,10 @@ function make
   else
     key += ':'
 
-  return { key: key,
-           name: name,
-           spec: spec,
-           ons: ons,
+  return { key,
+           name,
+           spec,
+           ons,
            //
            get otherwise() {
              return otherwise.to
@@ -292,7 +292,7 @@ function look
     if (active[i].look(wes, to => {
       d('look to: ' + to)
       if (to) {
-        ret = { map: active[i], to: to }
+        ret = { map: active[i], to }
         return 1
       }
       return 0

@@ -38,10 +38,10 @@ rgb = clrs.redRgb
 rgb.a = 0.6
 clrs.redLight = Theme.toHex(Blend.normal(bgRgb, rgb))
 
-meanings = { text: text,
+meanings = { text,
              textLight: clrs.base0,
-             fill: fill,
-             bg: bg,
+             fill,
+             bg,
              //
              emph: clrs.base3,
              emphLight: clrs.base2 }

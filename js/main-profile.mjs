@@ -179,7 +179,7 @@ function getStore
   if (name == 'state')
     return stores.state
   if (profile.dir)
-    return new Store({ name: name, cwd: profile.dir })
+    return new Store({ name, cwd: profile.dir })
   throw new Error('getStore missing profile.dir')
 }
 

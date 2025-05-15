@@ -752,8 +752,8 @@ function _viewInit
                                               range.from,
                                               to,
                                               // add
-                                              (f, t, m, p) => ranges.push({ f: f,
-                                                                            t: t,
+                                              (f, t, m, p) => ranges.push({ f,
+                                                                            t,
                                                                             decorMark: m,
                                                                             // higher comes first
                                                                             precedence: p })))
@@ -874,7 +874,7 @@ function _viewInit
 
         d('wode cmd on data-run: ' + run)
         d(run)
-        Cmd.run(run, buf, Cmd.universal(run), { mouse: 1, name: 'click', e: e, buf: p?.buf })
+        Cmd.run(run, buf, Cmd.universal(run), { mouse: 1, name: 'click', e, buf: p?.buf })
       }
     },
     contextmenu() {
@@ -961,7 +961,7 @@ function _viewInit
 
     ed = new CMView.EditorView({ state: startState,
                                  parent: edW })
-    ed.bred = { view: view }
+    ed.bred = { view }
   }
 
   view.ed = ed
@@ -1182,8 +1182,8 @@ function viewReopen
   else
     // probably buf was switched out before init happened.
     viewInitSpec(view,
-                 { lineNum: lineNum,
-                   whenReady: whenReady },
+                 { lineNum,
+                   whenReady },
                  cb)
 }
 
@@ -1194,8 +1194,8 @@ function viewCopy
   viewInitSpec(to,
                { text: from.ed.state.doc.toString(),
                  modeWhenText: from.buf.opt('core.lang'),
-                 lineNum: lineNum,
-                 whenReady: whenReady },
+                 lineNum,
+                 whenReady },
                cb)
 }
 
@@ -1436,7 +1436,7 @@ function offToBep
 export
 function makeRange
 (from, to) {
-  return { from: from, to: to }
+  return { from, to }
 }
 
 export
@@ -1551,7 +1551,7 @@ function vonFocus
     //d('vonFocus ' + cb)
     if (view.onFocuss.find(o => o.cb == cb))
       Mess.toss('already have an onFocus for this cb')
-    view.onFocuss.push({ cb: cb })
+    view.onFocuss.push({ cb })
     return cb
   }
 }
@@ -1571,7 +1571,7 @@ function vonChange
     //d('vonChange ' + cb)
     if (view.onChanges.find(o => o.cb == cb))
       Mess.toss('already have an onChange for this cb')
-    view.onChanges.push({ cb: cb })
+    view.onChanges.push({ cb })
     return cb
   }
 }
@@ -1610,7 +1610,7 @@ function seize
     v.wode.wextsMode = v.buf.mode.wexts
     exts = makeExtsMode(v)
     effects = v.wode.comp.extsMode.reconfigure(exts)
-    v.ed.dispatch({ effects: effects })
+    v.ed.dispatch({ effects })
 
     if (v.ed && (v.win == Win.current()))
       decorate(v, b.mode)
@@ -1627,7 +1627,7 @@ function addMinor
       // remove old minor specific extensions, add new ones
       exts = makeExtsMinors(v)
       effects = v.wode.comp.extsMinors.reconfigure(exts)
-      v.ed.dispatch({ effects: effects })
+      v.ed.dispatch({ effects })
     })
   else
     Mess.warn('addMinor: attempt to add major: ' + mode?.name)
@@ -1860,7 +1860,7 @@ function initModeFns
       word = view.pos
       word.view = view
       Lsp.callers(view.buf.opt('core.lang'), view.buf.path, view.buf.id, word,
-                  ret => cb({ node: node,
+                  ret => cb({ node,
                               def: ret?.def,
                               callers: ret?.callers }),
                   cbSig)
@@ -2171,7 +2171,7 @@ function clearSelection
   head = view.ed.state.selection.main.head
   view.markActive = 0
   return view.ed.dispatch({ selection: { anchor: head,
-                                         head: head } })
+                                         head } })
 }
 
 function setSelection
@@ -2468,8 +2468,8 @@ function makeRect
           x: rect.left,
           top: rect.top,
           y: rect.y,
-          width: width,
-          height: height }
+          width,
+          height }
 
     r.right = r.x + r.width
     r.bottom = r.y + r.height
@@ -2694,7 +2694,7 @@ function revertV
                                 to: view.ed.state.doc.length,
                                 insert: '' } })
   viewInitSpec(view, { forceFresh: 1, // consider peer fresh so will reread file
-                       lineNum: lineNum,
+                       lineNum,
                        whenReady: spec.whenReady })
 
   d('=====>>>>>>>>>> revertV done')
@@ -2769,7 +2769,7 @@ function setDecorAll
 (decorParent, view, needle) {
   if (decorParent.decorAll) {
     d('redecorate all')
-    decorParent.decorAll.update({ needle: needle })
+    decorParent.decorAll.update({ needle })
   }
 }
 
@@ -3015,7 +3015,7 @@ function quotedInsert
     try {
       let char
 
-      char = Ed.charForInsert({ e: e })
+      char = Ed.charForInsert({ e })
       vinsert1(p.view, u, char)
     }
     finally {
@@ -3278,8 +3278,8 @@ function indentLine
   if (oldTextOff > 0)
     anchor += oldTextOff
 
-  p.view.ed.dispatch({ changes: changes,
-                       selection: { anchor: anchor, head: anchor } })
+  p.view.ed.dispatch({ changes,
+                       selection: { anchor, head: anchor } })
 }
 
 export
@@ -3306,7 +3306,7 @@ function indentRegion
       to = from
 
     changes = CMLang.indentRange(p.view.ed.state, from, to)
-    changes.empty || p.view.ed.dispatch({ changes: changes })
+    changes.empty || p.view.ed.dispatch({ changes })
     clearSelection(p.view)
   }
   else
@@ -3516,7 +3516,7 @@ function vgoXY
 (view, x, y) {
   let bep
 
-  bep = view.ed.posAtCoords({ x: x, y: y })
+  bep = view.ed.posAtCoords({ x, y })
   if (bep)
     vsetBep(view, bep)
 }
@@ -3526,7 +3526,7 @@ function vtokenAt
 (view, x, y) {
   let bep, tree, node
 
-  bep = view.ed.posAtCoords({ x: x, y: y })
+  bep = view.ed.posAtCoords({ x, y })
   if (bep === null)
     return null
   tree = CMLang.syntaxTree(view.ed.state)
@@ -3702,7 +3702,7 @@ function initComplete
               backwards: bw,
               wholeWord: 0,
               wrap: 0,
-              range: range })
+              range })
       return s
     }
 
@@ -3718,8 +3718,8 @@ function initComplete
       d('found at: (' + posRow(pos1) + ',' + posCol(pos1) + ')')
       return { text: text.trim().slice(word.length), // trim to remove leading space introduced by regex
                pos: pos1,
-               phase: phase,
-               buf: buf }
+               phase,
+               buf }
     }
 
     phase = phase || 0
@@ -3835,10 +3835,10 @@ function initComplete
             continue
           //d('found ' + Ed.ctags[i].name)
           return { text: ctag.name.slice(word.length),
-                   pos: pos,
-                   phase: phase,
-                   buf: buf,
-                   ctag: ctag }
+                   pos,
+                   phase,
+                   buf,
+                   ctag }
         }
       }
     }
@@ -3911,16 +3911,16 @@ function initComplete
       tries.push(rest.text)
       if (rest.ctag)
         ctags++
-      last = { tries: tries,
-               bufs: bufs,
-               orig: orig,
+      last = { tries,
+               bufs,
+               orig,
                start: point,
                end: vgetPos(p.view),
-               word: word,
+               word,
                pos: rest.pos,
                phase: rest.phase,
                buf: rest.buf,
-               ctags: ctags }
+               ctags }
     }
     else {
       Mess.say("That's all")
@@ -3980,13 +3980,13 @@ function addMode
   d('adding mode for ' + lang.id + ' with exts: ' + exts)
   mode = Mode.add(key,
                   { name: key,
-                    viewInitSpec: viewInitSpec,
-                    viewCopy: viewCopy,
+                    viewInitSpec,
+                    viewCopy,
                     initFns: Ed.initModeFns,
                     parentsForEm: 'ed',
-                    exts: exts,
+                    exts,
                     wexts: spec.wexts,
-                    mime: mime,
+                    mime,
                     //
                     seize: seizeLang })
   lang.mode = mode
@@ -4271,7 +4271,7 @@ function initLangs
       if (data.exists) {
         let lang
 
-        lang = CMLang.LanguageDescription.of({ name: name,
+        lang = CMLang.LanguageDescription.of({ name,
                                                extensions: opt.ext,
                                                filename: opt.filename,
                                                load() {
@@ -4353,7 +4353,7 @@ function initLangs
                }
                props = [ CMLang.indentNodeProp.add(indents) ]
                lang = m.javascriptLanguage
-               lang.parser = lang.parser.configure({ props: props })
+               lang.parser = lang.parser.configure({ props })
              } })
 
   loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-csharp.js'), 'Csharp', { ext: [ 'cs', 'csx' ] })

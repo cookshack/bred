@@ -100,7 +100,7 @@ function init
 
           text = Ed.Backend.lineAtBep(view, psn.bep)
           if (regex ? regex.test(text) : U.includes(text, needle, 1))
-            lines.push({ text: text, from: psn.bep, row: Ed.bepRow(view, psn.bep), buf: view.buf })
+            lines.push({ text, from: psn.bep, row: Ed.bepRow(view, psn.bep), buf: view.buf })
         }
         while (psn.lineNext())
         buf.vars('Search Lines').lines = lines
@@ -125,7 +125,7 @@ function init
 
     p = Pane.current()
     Prompt.ask({ text: 'Search lines',
-                 hist: hist },
+                 hist },
                needle => searchLines(p.dir, p.buf, p.view, regex, needle))
   }
 

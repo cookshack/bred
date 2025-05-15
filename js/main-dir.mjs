@@ -72,13 +72,13 @@ function onGet
             dir = Path.dirname(dir)
             Fs.readdir(dir, {}, (err, data) => {
               if (err)
-                e.sender.send(ch, { err: err })
+                e.sender.send(ch, { err })
               else
                 ok(data)
             })
           }
           else
-            e.sender.send(ch, { err: err })
+            e.sender.send(ch, { err })
 
         else
           ok(data)
@@ -128,7 +128,7 @@ function onMake
   // mode will be 0777 (drwxrwxrwx)
   Fs.mkdir(dir, { recursive: true }, err => {
     if (err)
-      e.sender.send(ch, { err: err })
+      e.sender.send(ch, { err })
     else
       e.sender.send(ch, {})
   })
@@ -175,10 +175,10 @@ function onWatch
       //d('type: ' + type)
       //d('name: ' + name)
       e.sender.send(ch,
-                    { type: type,
+                    { type,
                       bak: name.endsWith('~'),
                       hidden: Path.basename(name).startsWith('.'),
-                      name: name })
+                      name })
     }
     catch (err) {
       err.message.includes('Object has been destroyed')

@@ -17,7 +17,7 @@ function get
   }
 
   updates = [] // could get huge
-  buf = { id: id,
+  buf = { id,
           chs: new Set(),
           fresh: 1,
           text: CMState.Text.of([ '' ]),
@@ -126,7 +126,7 @@ function onPsnLine
   text = buf.text.lineAt(bep)?.text
   return { version: buf.version,
            fresh: buf.fresh,
-           text: text }
+           text }
 }
 
 export

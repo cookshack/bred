@@ -48,9 +48,9 @@ function onReq
   if (lsp)
     setTimeout(() => lsp.req(lang,
                              path,
-                             { method: method,
-                               ...(id ? { id: id } : {}),
-                               params: params }))
+                             { method,
+                               ...(id ? { id } : {}),
+                               params }))
 
   return {}
 }
@@ -112,7 +112,7 @@ function make
     _req({ method: 'initialize',
            id: 1,
            params: { processId: -1,
-                     capabilities: capabilities,
+                     capabilities,
                      rootPath: '.',
                      rootUri: null,
                      workspaceFolders: dir ? [ { name: dir, url: 'file://' + dir } ] : [],
@@ -137,7 +137,7 @@ function make
                                        // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentItem
                                        languageId: language,
                                        version: 0,
-                                       text: text } } })
+                                       text } } })
   }
 
   function open
@@ -254,7 +254,7 @@ function make
                                    completion: { completionItem: { commitCharactersSupport: false,
                                                                    documentationFormat: [ 'markdown', 'plaintext' ],
                                                                    snippetSupport: false },
-                                                 completionItemKind: { valueSet: valueSet },
+                                                 completionItemKind: { valueSet },
                                                  contextSupport: true,
                                                  dynamicRegistration: false } } }
 

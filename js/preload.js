@@ -16,7 +16,7 @@ contextBridge.exposeInMainWorld('tron', {
 
     w = (e, d) => cb(d)
     ons.ch = ons.ch || []
-    ons.ch.push({ cb: cb, w: w })
+    ons.ch.push({ cb, w })
     ipcRenderer.on(ch, w)
   },
   off(ch, cb) {

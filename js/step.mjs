@@ -30,7 +30,7 @@ function init
     d({ preload })
     wv = Dom.create('webview', [], '',
                     { src: 'file://' + Loc.appDir().join('step.html'),
-                      preload: preload })
+                      preload })
 
     append(w, wv)
     wv.addEventListener('context-menu', e => {
@@ -39,7 +39,7 @@ function init
       e.clientY = e.params.y
       e.x = e.params.x
       e.y = e.params.y
-      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e: e })
+      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e })
     })
     wv.addEventListener('dom-ready', () => {
       d('dom-ready')

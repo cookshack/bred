@@ -398,7 +398,7 @@ function makeBep
 (view,
  row, // 0 indexed
  col) { // 0 indexed
-  return { row: row, column: col + 1 }
+  return { row, column: col + 1 }
 }
 
 export
@@ -452,7 +452,7 @@ function vgetBepEnd
 
   row = view.ed.session.getLength() - 1
   rowLen = view.ed.session.getLine(rowLen).length
-  return { row: row, column: rowLen }
+  return { row, column: rowLen }
 }
 
 export
@@ -1181,7 +1181,7 @@ function quotedInsert
     try {
       let char
 
-      char = Ed.charForInsert({ e: e })
+      char = Ed.charForInsert({ e })
       p.view.buf.views.forEach(view => {
         for (let i = 0; i < u; i++)
           view.ed.session.insert(pos, char)
@@ -1561,7 +1561,7 @@ function initComplete
               backwards: bw,
               wholeWord: 0,
               wrap: 0,
-              range: range })
+              range })
       return s
     }
 
@@ -1579,8 +1579,8 @@ function initComplete
       d('found at: (' + pos1.row + ',' + pos1.column + ')')
       return { text: sl.split(' ')[0],
                pos: pos1,
-               phase: phase,
-               buf: buf }
+               phase,
+               buf }
     }
 
     phase = phase || 0
@@ -1749,11 +1749,11 @@ function initComplete
       point = p.view.ed.getCursorPosition()
       vinsert(p.view, 1, rest.text)
       tries.push(rest.text)
-      last = { tries: tries,
-               bufs: bufs,
+      last = { tries,
+               bufs,
                start: point,
                end: p.view.ed.getCursorPosition(),
-               word: word,
+               word,
                pos: rest.pos,
                phase: rest.phase,
                buf: rest.buf }
@@ -1825,13 +1825,13 @@ function addModes
 
     //d("adding mode " + m.name + " with exts: " + exts)
     mode = Mode.add(m.name, { name: m.caption,
-                              viewCopy: viewCopy,
+                              viewCopy,
                               initFns: Ed.initModeFns,
                               parentsForEm: 'ed',
-                              exts: exts,
+                              exts,
                               mime: minfo(exts),
                               //
-                              seize: seize })
+                              seize })
 
     if (m.name == 'css') {
       Cmd.add('insert }', (u,we) => insertClose(u, we, mode), mode)

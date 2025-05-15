@@ -327,7 +327,7 @@ function init
             },
 
             body: JSON.stringify({
-              model: model,
+              model,
               messages: [ { role: 'system',
                             content: 'You are a helpful assistant.' },
                           ...msgs ],
@@ -451,8 +451,8 @@ function init
     d({ prompt })
     d({ suffix })
     gen({ model: view.buf?.opt('query.model.code') || view.buf?.opt('query.model'),
-          prompt: prompt,
-          suffix: suffix,
+          prompt,
+          suffix,
           stream: true,
           raw: true,
           // https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values
@@ -464,7 +464,7 @@ function init
   Cmd.add('llm', (u, we, model) => {
     model = model || Opt.get('query.model')
     Prompt.ask({ text: 'Prompt',
-                 hist: hist },
+                 hist },
                prompt => {
                  hist.add(prompt)
                  Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
@@ -579,7 +579,7 @@ function init
     }
     model = buf.vars('query').model || Opt.get('query.model')
     Prompt.ask({ text: emo + ' ' + model,
-                 hist: hist },
+                 hist },
                prompt => {
                  buf.vars('query').hist.add(prompt)
 
@@ -669,7 +669,7 @@ function init
   Cmd.add('chat', (u, we, model) => {
     model = model || Opt.get('query.model')
     Prompt.ask({ text: emo + ' ' + model,
-                 hist: hist },
+                 hist },
                prompt => {
                  let name, buf, p
 
@@ -718,7 +718,7 @@ function init
 
   Cmd.add('llm insert', () => {
     Prompt.ask({ text: 'Describe what should be inserted',
-                 hist: hist },
+                 hist },
                prompt => {
                  let p
 
@@ -732,7 +732,7 @@ function init
 
   Cmd.add('fim', () => {
     Prompt.ask({ text: 'Describe what should be inserted',
-                 hist: hist },
+                 hist },
                prompt => {
                  let p
 
@@ -762,7 +762,7 @@ function init
 
   Cmd.add('google', () => {
     Prompt.ask({ text: 'Query',
-                 hist: hist },
+                 hist },
                query => {
                  query = query.trim()
                  search(query, { hist })

@@ -363,7 +363,7 @@ function make
 
   point = Point.make(ele, elePoint)
 
-  v = { vid: vid,
+  v = { vid,
         get active() {
           return active
         },
@@ -498,8 +498,8 @@ function make
       if (mode && mode.viewInitSpec) {
         d('VIEW  placeholder: ' + b.placeholder)
         mode.viewInitSpec(v,
-                          { lineNum: lineNum,
-                            whenReady: whenReady,
+                          { lineNum,
+                            whenReady,
                             placeholder: b.placeholder,
                             wextsMode: mode.wexts },
                           cb)

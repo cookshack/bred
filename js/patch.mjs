@@ -33,9 +33,9 @@ function findEscapeSequences
     from -= (count * 5)
 
     matches.push({ line: text.substring(0, start).split('\n').length,
-                   from: from,
+                   from,
                    to: from + match[1].length,
-                   type: type })
+                   type })
   }
 
   return matches

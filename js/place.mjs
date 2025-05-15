@@ -5,8 +5,8 @@ let places
 export
 function add
 (name, path) {
-  places.push({ name: name,
-                path: path })
+  places.push({ name,
+                path })
   d({ places })
 }
 

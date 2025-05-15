@@ -75,11 +75,11 @@ function make
           return 0
         if ((highests.length == 0)
             || (highests[0].offset == offset)) {
-          highests.push({ offset: offset, r: r, ch: ch })
+          highests.push({ offset, r, ch })
           return 1
         }
         if (highests[0].offset > offset) {
-          highests = [ { offset: offset, r: r, ch: ch } ]
+          highests = [ { offset, r, ch } ]
           return 1
         }
         return 0

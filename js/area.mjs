@@ -69,7 +69,7 @@ function add
   tabs = []
   tabbar = divCl('tabbar retracted')
 
-  area = { id: id,
+  area = { id,
            el: divCl('retracted bred-area ' + (name || ''),
                      tabbar,
                      cssId ? { id: cssId } : {}),

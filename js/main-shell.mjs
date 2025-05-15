@@ -56,9 +56,9 @@ function run
     if (isNaN(rows))
       rows = 10000
     proc = Pty.spawn(sc, args, { cwd: dir,
-                                 cols: cols,
-                                 rows: rows,
-                                 env: env,
+                                 cols,
+                                 rows,
+                                 env,
                                  encoding: null })
 
     /// raw mode to prevent echo of input (bred already put the input in the buf)
@@ -126,7 +126,7 @@ function run
   }
   catch (err) {
     d(`${ch}: child process caught err ${err}`)
-    sender.send(ch, { err: err })
+    sender.send(ch, { err })
   }
 }
 
@@ -136,8 +136,8 @@ function on
   let [ clientCh, dir, sc, args, runInShell, multi ] = onArgs
 
   return run(e, clientCh, dir, sc, args,
-             { runInShell: runInShell,
-               multi: multi },
+             { runInShell,
+               multi },
              ctx)
 }
 

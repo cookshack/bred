@@ -487,7 +487,7 @@ function initDescribeKey
         // see note at top of em.look1
         return
 
-      we = { mouse: 0, e: e }
+      we = { mouse: 0, e }
       // if in search em then do that
       // else if in old em then describe key and exit
       wes.push(we)
@@ -633,7 +633,7 @@ function initDescribeWord
   function describeWord
   () {
     Prompt.ask({ text: 'Describe word',
-                 hist: hist },
+                 hist },
                run)
   }
   hist = Hist.ensure('describe word')

@@ -103,7 +103,7 @@ function onAll
     let exts
 
     if (err) {
-      e.sender.send(ch, { err: err })
+      e.sender.send(ch, { err })
       return
     }
 
@@ -114,10 +114,10 @@ function onAll
       stat = Fs.statSync(Path.join(dir, name),
                          { throwIfNoEntry: false })
       if (stat && isDir(stat))
-        exts.push({ name: name,
+        exts.push({ name,
                     mandatory: mandatoryExt(name),
                     added: added(dir, name) })
     })
-    e.sender.send(ch, { exts: exts })
+    e.sender.send(ch, { exts })
   })
 }

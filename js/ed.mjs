@@ -167,7 +167,7 @@ function make
                      modeKey || 'ed',
                      divW(spec.dir,
                           spec.name || spec.file,
-                          { icon: icon }),
+                          { icon }),
                      spec.dir,
                      { file: spec.file,
                        lineNum: spec.lineNum }),
@@ -341,7 +341,7 @@ function initFlushLines
 
     p = Pane.current()
     Prompt.ask({ text: prompt,
-                 hist: hist },
+                 hist },
                flush)
   }
 
@@ -373,7 +373,7 @@ function initGotoLine
 
     p = Pane.current()
     Prompt.ask({ text: 'goto line:',
-                 hist: hist },
+                 hist },
                go)
   }
 
@@ -574,7 +574,7 @@ function initQR
   }
 
   moQr = Mode.add('QR', { hidePoint: 1,
-                          viewInitSpec: viewInitSpec,
+                          viewInitSpec,
                           initFns: initModeFns,
                           parentsForEm: 'ed' })
 
@@ -618,7 +618,7 @@ function initQR
 function initSearch
 (mo) {
   Bred.initSearch(vfind,
-                  { Backend: Backend,
+                  { Backend,
                     cancel: Backend.cancel,
                     cleanup(s) {
                       Backend.clearDecorMatch(s.st.view, s.st)

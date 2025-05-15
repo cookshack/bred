@@ -184,10 +184,10 @@ function push
     let m
 
     m = { time: now(),
-          type: type,
-          file: file,
-          line: line,
-          col: col,
+          type,
+          file,
+          line,
+          col,
           //
           get text() {
             return text

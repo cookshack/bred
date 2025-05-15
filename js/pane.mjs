@@ -230,8 +230,8 @@ function add
       view.close()
     if (b)
       view = Buf.view(b,
-                      { ele: ele,
-                        elePoint: elePoint,
+                      { ele,
+                        elePoint,
                         lineNum: spec.lineNum,
                         whenReady: spec.whenReady },
                       v => {
@@ -254,8 +254,8 @@ function add
     Ed.make(p, { name: path.filename,
                  dir: path.dirname,
                  file: path.filename,
-                 lineNum: lineNum,
-                 whenReady: whenReady })
+                 lineNum,
+                 whenReady })
   }
 
   function openDir
@@ -333,9 +333,9 @@ function add
                          img('img/x.svg', 'Close', 'filter-clr-text'),
                          { 'data-run': 'close buffer' }),
                    paneW ]),
-        elePoint: elePoint,
-        ele: ele,
-        id: id,
+        elePoint,
+        ele,
+        id,
         //
         get buf() {
           return view?.buf
@@ -379,7 +379,7 @@ function add
   id++
 
   b || Mess.toss('buffer required')
-  p.setBuf(b, { lineNum: lineNum })
+  p.setBuf(b, { lineNum })
 
   curr = current(frame)
   if (curr && curr.w) {

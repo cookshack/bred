@@ -74,7 +74,7 @@ function add
   elIcon = divCl('tabbar-tab-icon', img('', '', 'filter-clr-text'))
   setIcon('blank')
 
-  tab = { id: id,
+  tab = { id,
           elBar: divCl('tabbar-tab',
                        [ elIcon,
                          elName,

@@ -83,7 +83,7 @@ function div
 export
 function divId
 (id, content, classes, attrs) {
-  return create('div', content, classes, { ...(attrs || {}), id: id })
+  return create('div', content, classes, { ...(attrs || {}), id })
 }
 
 export
@@ -107,7 +107,7 @@ function span
 export
 function img
 (src, alt, classes, attrs) {
-  return create('img', [], classes, { src: src, alt: alt, ...(attrs || {}) })
+  return create('img', [], classes, { src, alt, ...(attrs || {}) })
 }
 
 export

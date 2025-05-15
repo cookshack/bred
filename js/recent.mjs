@@ -79,7 +79,7 @@ function get
       bookmark = info.parentNode
       //d(type)
       if (Ed.supports(type))
-        recents.unshift({ type: type,
+        recents.unshift({ type,
                           visited: Date.parse(bookmark.getAttribute('visited') ?? 0),
                           href: bookmark.getAttribute('href') })
         //d("YES")

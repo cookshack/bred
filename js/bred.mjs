@@ -145,7 +145,7 @@ function initDoc
   d('building')
   if (globalThis.bredWin)
     return
-  Win.add(globalThis, { devtools: devtools })
+  Win.add(globalThis, { devtools })
   globalThis.restartForError.remove()
 }
 
@@ -379,13 +379,13 @@ function initCmds
 
       x = we.e.x
       y = we.e.y
-      win.lastContextClick = { x: x, y: y }
+      win.lastContextClick = { x, y }
       rect = win.context.el.getBoundingClientRect()
       if ((rect.height + y) > win.window.innerHeight)
         y = win.window.innerHeight - rect.height - 10
       if ((rect.width + x) > win.window.innerWidth)
         x = win.window.innerWidth - rect.width - 10
-      win.lastContext = { x: x, y: y }
+      win.lastContext = { x, y }
       win.context.el.style.left = x + 'px'
       win.context.el.style.top = y + 'px'
     })
@@ -906,14 +906,14 @@ function initSearch
     range = vfind(s.st.view,
                   s.st.needle,
                   s.st,
-                  { skipCurrent: skipCurrent,
+                  { skipCurrent,
                     backwards: 0,
                     wrap: 0,
                     caseSensitive: 0,
                     wholeWord: 0,
                     regExp: 0 })
     if (range) {
-      s.st.stack.push({ range: range, needle: s.st.needle, backwards: 0 })
+      s.st.stack.push({ range, needle: s.st.needle, backwards: 0 })
       Css.remove(s.st.echo, 'mini-search-fail')
     }
     else
@@ -937,13 +937,13 @@ function initSearch
     range = vfind(s.st.view,
                   s.st.needle,
                   s.st,
-                  { skipCurrent: skipCurrent,
+                  { skipCurrent,
                     backwards: 1,
                     wrap: 0,
                     caseSensitive: 0,
                     wholeWord: 0,
                     regExp: 0 })
-    s.st.stack.push({ range: range, needle: s.st.needle, backwards: 1 })
+    s.st.stack.push({ range, needle: s.st.needle, backwards: 1 })
     if (range)
       Css.remove(s.st.echo, 'mini-search-fail')
     else
@@ -1045,7 +1045,7 @@ function initSearch
                       regExp: 1 })
       if (range) {
         s.st.needle = spec.Backend?.vrangeText(s.st.view, range)
-        s.st.stack.push({ range: range, needle: s.st.needle, backwards: 0 })
+        s.st.stack.push({ range, needle: s.st.needle, backwards: 0 })
         s.st.echo.innerText = s.st.needle
       }
     }
@@ -1108,7 +1108,7 @@ function initSearch
         // see note at top of em.look1
         return
 
-      we = { mouse: 0, e: e }
+      we = { mouse: 0, e }
       // if in search em then do that
       // else if in old em then cancel search and do that
       wes.push(we)
@@ -1144,13 +1144,13 @@ function initSearch
   mo = spec.mode
 
   s = { s: 0, // state
-        search: search,
-        addCharToSearch: addCharToSearch,
-        addWordToSearch: addWordToSearch,
+        search,
+        addCharToSearch,
+        addWordToSearch,
         removeCharFromSearch: removeOneFromSearch,
-        next: next,
-        previous: previous,
-        done: done }
+        next,
+        previous,
+        done }
 
   mapSearch = Em.make(spec.emName)
 
@@ -1262,7 +1262,7 @@ function initHandlers
     let view
 
     view = Pane.current()?.view
-    Em.handle({ mouse: 0, e: e, buf: view?.buf },
+    Em.handle({ mouse: 0, e, buf: view?.buf },
               view)
   }
 
@@ -1272,7 +1272,7 @@ function initHandlers
 
     target = globalThis.document.elementFromPoint(e.clientX, e.clientY)
     view = Pane.holding(target)?.view
-    Em.handle({ mouse: 1, name: name, e: e, buf: view?.buf },
+    Em.handle({ mouse: 1, name, e, buf: view?.buf },
               view)
   }
 

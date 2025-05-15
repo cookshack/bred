@@ -655,7 +655,7 @@ function vonChange
     view.onChanges = view.onChanges || Mk.array
     if (view.onChanges.find(o => o.cb == cb))
       Mess.toss('already have an onChange for this cb')
-    view.onChanges.push({ cb: cb, ref: view.ed.onDidChangeModelContent(cb) })
+    view.onChanges.push({ cb, ref: view.ed.onDidChangeModelContent(cb) })
   }
 }
 
@@ -1344,7 +1344,7 @@ function setDecorMatch
 
   model = view.ed.getModel()
   decorParent.decorMatch = model.deltaDecorations(decorParent.decorMatch || [],
-                                                  [ { range: range,
+                                                  [ { range,
                                                       options: { isWholeLine: 0,
                                                                  inlineClassName: 'bred-search-match' } } ])
 }
@@ -1455,7 +1455,7 @@ function vinsertAt
                                                     pos.column,
                                                     to ? to.lineNumber : pos.lineNumber,
                                                     to ? to.column : pos.column),
-                               text: text,
+                               text,
                                forceMoveMarkers: true } ],
                            [ view.ed.getSelection() ])
     if (setBep) {
@@ -1517,7 +1517,7 @@ function quotedInsert
     try {
       let char
 
-      char = Ed.charForInsert({ e: e })
+      char = Ed.charForInsert({ e })
       vinsert(p.view, u, char)
     }
     finally {
@@ -1649,7 +1649,7 @@ function clearSelection
 export
 function remove
 (ed, range) {
-  ed.executeEdits('bred', [ { range: range, text: null } ])
+  ed.executeEdits('bred', [ { range, text: null } ])
 }
 
 export
@@ -1962,7 +1962,7 @@ function initComplete
               backwards: bw,
               wholeWord: 0,
               wrap: 0,
-              range: range })
+              range })
       return s
     }
 
@@ -1980,8 +1980,8 @@ function initComplete
       d('found at: (' + posRow(pos1) + ',' + posCol(pos1) + ')')
       return { text: sl.split(' ')[0],
                pos: pos1,
-               phase: phase,
-               buf: buf }
+               phase,
+               buf }
     }
 
     phase = phase || 0
@@ -2150,11 +2150,11 @@ function initComplete
       point = vgetPos(p.view)
       vinsert(p.view, 1, rest.text)
       tries.push(rest.text)
-      last = { tries: tries,
-               bufs: bufs,
+      last = { tries,
+               bufs,
                start: point,
                end: vgetPos(p.view),
-               word: word,
+               word,
                pos: rest.pos,
                phase: rest.phase,
                buf: rest.buf }
@@ -2235,13 +2235,13 @@ function addModes
     //d("adding mode " + lang.id + " with exts: " + exts)
     mode = Mode.add(key,
                     { name: key,
-                      viewCopy: viewCopy,
+                      viewCopy,
                       initFns: Ed.initModeFns,
                       parentsForEm: 'ed',
-                      exts: exts,
-                      mime: mime,
+                      exts,
+                      mime,
                       //
-                      seize: seize })
+                      seize })
 
     if (lang.id == 'css') {
       //Cmd.add("insert }", (u,we) => insertClose(u, we, mode), mode)

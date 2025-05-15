@@ -99,7 +99,7 @@ function onLoadInit
           return
         }
         log('Loading ' + file + ': ' + err.message)
-        e.sender.send(ch, { err: err })
+        e.sender.send(ch, { err })
         return
       }
       js = '(function (C,Cmd,Dom,Ed,Em,Hist,Loc,Opt,Pane,Mess,Mode,Dir,Place,Win) { "use strict"; Mess.log("Loading your init.js...");\n' + js + ';\nMess.log("Loading your init.js... done"); })(window.bred.C,window.bred.Cmd,window.bred.Dom,window.bred.Ed,window.bred.Em,window.bred.Hist,window.bred.Loc,window.bred.Opt,window.bred.Pane,window.bred.Mess,window.bred.Mode,window.bred.Dir,window.bred.Place,window.bred.Win)'
@@ -136,11 +136,11 @@ function onPaths
   catch (e) {
     console.warn('failed to get userData: ' + e.message)
   }
-  return { home: home,
+  return { home,
            app: app.getAppPath(),
-           user: user,
+           user,
            cwd: process.cwd(),
-           shell: shell,
+           shell,
            profile: Profile.name(),
            //
            backend: options.backend,
@@ -159,7 +159,7 @@ async function wrapOn
 (e, ch, onArgs, cb) {
   setTimeout(async () => {
     try {
-      await cb(e, ch, onArgs, { shell: shell })
+      await cb(e, ch, onArgs, { shell })
     }
     catch (err) {
       try {
@@ -608,7 +608,7 @@ function watchClip
         return
       //d('clip.new ' + text)
       last = text
-      _win.webContents.send('clip.new', { text: text })
+      _win.webContents.send('clip.new', { text })
     }
   }
 

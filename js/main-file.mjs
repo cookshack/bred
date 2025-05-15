@@ -84,9 +84,9 @@ function onGet
 
   Fs.readFile(path, 'utf8', (err, data) => {
     if (err)
-      e.sender.send(ch, { err: err })
+      e.sender.send(ch, { err })
     else
-      e.sender.send(ch, { data: data,
+      e.sender.send(ch, { data,
                           stat: Fs.statSync(path, { throwIfNoEntry: false }),
                           realpath: Fs.realpathSync(path) })
   })
@@ -113,8 +113,8 @@ function onLn
 
                    ret = { ...(err ? makeErr(err) : {}),
                            cwd: process.cwd(),
-                           from: from,
-                           target: target,
+                           from,
+                           target,
                            absFrom: Path.join(cwd, from),
                            absTarget: Path.join(cwd, target) }
                    e.sender.send(ch, ret)
@@ -309,7 +309,7 @@ function onSave
 
   Fs.writeFile(path, text, { encoding: 'utf8' }, err => {
     if (err)
-      e.sender.send(ch, { err: err })
+      e.sender.send(ch, { err })
     else
       e.sender.send(ch, { stat: Fs.statSync(path, { throwIfNoEntry: false }) })
   })
@@ -326,7 +326,7 @@ async function onSaveTmp
     dir = await FsP.mkdtemp(Path.join(Os.tmpdir(), 'bred-'))
     file = Path.join(dir, 'x')
     await FsP.writeFile(file, text)
-    return { file: file, dir: dir }
+    return { file, dir }
   }
   catch (err) {
     return makeErr(err)
@@ -343,23 +343,23 @@ function onStat
     else if (data.isSymbolicLink())
       Fs.readlink(onArgs, (err, string) => {
         if (err)
-          e.sender.send(ch, { err: err })
+          e.sender.send(ch, { err })
         else {
           let dest
 
           dest = Path.join(Path.dirname(onArgs), string)
           Fs.stat(dest, (err, data) => {
             if (err)
-              e.sender.send(ch, { err: err })
+              e.sender.send(ch, { err })
             else
-              e.sender.send(ch, { data: data,
+              e.sender.send(ch, { data,
                                   link: 1,
-                                  dest: dest })
+                                  dest })
           })
         }
       })
     else
-      e.sender.send(ch, { data: data })
+      e.sender.send(ch, { data })
   })
 }
 
@@ -393,8 +393,8 @@ function onWatch
       //d('type: ' + type)
       //d('name: ' + name)
       e.sender.send(ch,
-                    { type: type,
-                      name: name,
+                    { type,
+                      name,
                       stat: Fs.statSync(path, { throwIfNoEntry: false }) })
     }
     catch (err) {

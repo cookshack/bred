@@ -53,7 +53,7 @@ async function searchBufs
           text = await psn.line
           if (typeof text == 'string') {
             if (regex ? regex.test(text) : U.includes(text, needle, 1))
-              lines.push({ text: text, from: psn.bep, row: psn.row, buf: buf })
+              lines.push({ text, from: psn.bep, row: psn.row, buf })
           }
           else
             Mess.say('Error: line ' + (psn.row + 1) + ' missing from ' + buf.name)
@@ -134,7 +134,7 @@ function init
 
     p = Pane.current()
     Prompt.ask({ text: 'Search Buffers',
-                 hist: hist },
+                 hist },
                needle => searchBufs(p.dir, regex, needle, hist))
   }
 

@@ -13,9 +13,9 @@ function init
             [ /^\+.*/, 'plus' ] ]
   }
 
-  Mon.languages.register({ id: id,
+  Mon.languages.register({ id,
                            firstLine: '^diff --git.*',
                            'mime-type': [ 'text/x-diff', 'text/x-patch', 'application/x-patch' ],
                            extensions: [ '.patch', '.diff' ] })
-  Mon.languages.setMonarchTokensProvider(id, { tokenizer: tokenizer })
+  Mon.languages.setMonarchTokensProvider(id, { tokenizer })
 }

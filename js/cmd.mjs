@@ -224,9 +224,9 @@ function add
   if (commands[name])
     commands[name].cb = cb
   else
-    commands[name] = { name: name,
+    commands[name] = { name,
                        mode: mo,
-                       cb: cb }
+                       cb }
 
   commands[name].source = getCurrentLine({ frames: 2 })
 

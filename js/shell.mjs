@@ -264,7 +264,7 @@ function shellOrSpawn1
   addBuf(p, dir, sc,
          buf => {
            run(dir, sc, spec.args,
-               { buf: buf,
+               { buf,
                  cols: p.cols,
                  end: spec.end,
                  afterEndPoint: spec.afterEndPoint,
@@ -378,7 +378,7 @@ function initCompile
                  { afterEndPoint: 1, // initial command output goes after point if point at end
                    hist: compileHist,
                    modes: [ 'compile' /*, 'view' */ ],
-                   onClose: onClose })
+                   onClose })
   }
 
   function compile
@@ -575,7 +575,7 @@ function initShell
       if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
         return
       try {
-        Cmd.runMo('self insert', 'Ed', 1, { e: e })
+        Cmd.runMo('self insert', 'Ed', 1, { e })
       }
       finally {
         globalThis.window.onkeydown = oldOnKeyDown

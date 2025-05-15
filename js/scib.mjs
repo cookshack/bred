@@ -52,10 +52,10 @@ function scib
 
   p = Pane.current()
   Prompt.ask({ text: 'Shell Command in ' + p.dir,
-               hist: hist,
+               hist,
                onReady: cb },
              sc => {
-               runText(sc, { hist: hist,
+               runText(sc, { hist,
                              shellHist: Hist.ensure('scib: ' + sc).reset() })
              })
 }

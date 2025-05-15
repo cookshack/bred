@@ -201,6 +201,9 @@ function relaunch
 
 async function onAcmd
 (e, name, args) {
+  if (name == 'browse.back')
+    return Browse.onBack(e, args)
+
   if (name == 'browse.close')
     return Browse.onClose(e, args)
 

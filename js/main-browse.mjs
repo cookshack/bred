@@ -137,6 +137,24 @@ function onZoom
 }
 
 export
+function onBack
+(e, onArgs) {
+  const [ id ] = onArgs
+  let view
+
+  d('BROWSE back ' + id)
+
+  view = views[id]
+  if (view) {
+    view.view.webContents.executeJavaScript("document.body.innerHTML = ''; document.documentElement.innerHTML = ''")
+    setTimeout(() => {},
+               0.05 * 1000)
+    return {}
+  }
+  return {}
+}
+
+export
 function onClose
 (e, onArgs) {
   const [ id ] = onArgs

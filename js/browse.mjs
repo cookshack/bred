@@ -360,7 +360,7 @@ function initBrowse
     n = n || 1
     d('back ' + n)
     id = Pane.current().view.vars('browse').id ?? Mess.toss('Missing id')
-    Tron.acmd('browse.back', [ id, n ])
+    Tron.acmd('browse.back', [ id, n ]).then(data => data.err && Mess.yell(data.err.message))
   }
 
   function scrollUp

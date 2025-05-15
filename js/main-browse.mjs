@@ -4,7 +4,7 @@ import * as U from './util.mjs'
 
 import { d } from './main-log.mjs'
 
-let views
+let views, Hist
 
 function makeEventFromInput
 (input) {
@@ -21,11 +21,12 @@ export
 function onOpen
 (e, ch, onArgs) {
   const [ x, y, width, height, page ] = onArgs
-  let view, win, id
+  let view, hist, win, id
 
   view = new WebContentsView()
+  hist = Hist.make()
   id = views.length
-  views[id] = { view }
+  views[id] = { view, hist }
   win = BrowserWindow.fromWebContents(e.sender)
   view.webContents.on('before-input-event', (e, input) => {
     if (1) {
@@ -96,6 +97,7 @@ function onOpen
   view.webContents.on('did-navigate', (event, url) => {
     view.webContents.executeJavaScript('document.title').then(title => {
       Profile.hist.add(url, { title })
+      hist.add(url)
       e.sender.send(ch, { ev: 'did-navigate',
                           url,
                           title })
@@ -146,8 +148,11 @@ function onBack
 
   view = views[id]
   if (view) {
+    if (view.hist.back())
+      return { err: { message: 'At beginning of history' } }
     view.view.webContents.executeJavaScript("document.body.innerHTML = ''; document.documentElement.innerHTML = ''")
-    setTimeout(() => {},
+    d('Load ' + view.hist.href)
+    setTimeout(() => view.view.webContents.loadURL(view.hist.href),
                0.05 * 1000)
     return {}
   }
@@ -240,4 +245,49 @@ export
 function init
 () {
   views = []
+
+  Hist = { xxx: 1,
+           make() {
+             let hist, items, index
+
+             items = []
+             index = -1
+
+             function add
+             (href) {
+               if (index >= 0) {
+                 if (items[index].href == href)
+                   return
+                 items = items.slice(0, index + 1)
+               }
+               else
+                 items = []
+               items.push({ href })
+               index++
+               d('added')
+               d(index)
+               d(JSON.stringify(items))
+             }
+
+             function back
+             () {
+               d('back')
+               d(index)
+               d(JSON.stringify(items))
+               if (index <= 0)
+                 return 1
+               index--
+               d(index)
+             }
+
+             hist = { add,
+                      back,
+                      get href() {
+                        d(index)
+                        d(JSON.stringify(items))
+                        return (index >= 0) && items[index]?.href
+                      } }
+
+             return hist
+           } }
 }

@@ -175,8 +175,6 @@ function initMouse
         text = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.url
       else
         text = Cmd.canon(e.target?.dataset?.run)
-      if (hover)
-        return
       Tron.acmd('hover.on', [ text ])
       hover = 1
     }

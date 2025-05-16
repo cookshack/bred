@@ -436,15 +436,6 @@ function createWindow
 (html, opts) {
   let win, mode
 
-  function resizeHover
-  () {
-    let bounds, height
-
-    bounds = win.getBounds()
-    height = 100
-    win.bred.hover.view.setBounds({ x: 0, y: bounds.height - height, width: 600, height })
-  }
-
   mode = Profile.stores.opt.get('core.theme.mode')
 
   opts = opts || { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
@@ -460,16 +451,23 @@ function createWindow
   win = new BrowserWindow(opts)
   win.bred = win.bred || {}
 
-  win.bred.hover = { view: new WebContentsView() }
+  win.bred.hover = { view: new WebContentsView(),
+                     resize() {
+                       let bounds, height
+
+                       bounds = win.getBounds()
+                       height = 100
+                       win.bred.hover.view.setBounds({ x: 0, y: bounds.height - height, width: 600, height })
+                     } }
   win.bred.hover.view.setBackgroundColor((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
   win.bred.hover.view.webContents.loadURL('about:blank')
   win.bred.hover.view.setVisible(false)
   win.contentView.addChildView(win.bred.hover.view)
-  resizeHover()
+  win.bred.hover.resize()
 
   win.once('ready-to-show', () => {
     win.show()
-    resizeHover()
+    win.bred.hover.resize()
   })
 
   win.removeMenu()
@@ -527,7 +525,7 @@ function createWindow
     ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
                                   title: 'Developer Tools - Bred' })
     ch.setBounds(bounds)
-    resizeHover()
+    win.bred.hover.resize()
   })
 
   win.on('close', () => {
@@ -536,7 +534,7 @@ function createWindow
   })
 
   win.on('resize', () => {
-    resizeHover()
+    win.bred.hover.resize()
     Profile.stores.state.set('bounds', win.getBounds())
   })
 

@@ -458,7 +458,7 @@ function createWindow
   width = 600
   height = 100
   win.bred.hover.view.setBounds({ x, y, width, height })
-  win.bred.hover.view.setBackgroundColor('white')
+  win.bred.hover.view.setBackgroundColor((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
   win.bred.hover.view.webContents.loadURL('about:blank')
   win.bred.hover.view.setVisible(false)
   win.contentView.addChildView(win.bred.hover.view)

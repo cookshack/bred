@@ -461,6 +461,12 @@ function createWindow
               hover.view.setBackgroundColor((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
               win.contentView.addChildView(hover.view)
             },
+            off() {
+              hover.view.setVisible(false)
+            },
+            on() {
+              hover.view.setVisible(true)
+            },
             resize(width, height) {
               if (hover.view) {
                 let bounds

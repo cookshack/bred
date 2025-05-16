@@ -18,7 +18,7 @@ function onOn
     hover.create()
     html = 'data:text/html,' + globalThis.encodeURIComponent('<html><body style="padding: 0; margin: 0; overflow: hidden;"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
     hover.view.webContents.loadURL(html)
-    hover.view.setVisible(true)
+    hover.on()
     hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {
       hover.resize(wh[0], wh[1])
     })
@@ -30,13 +30,9 @@ function onOn
 export
 function onOff
 (e) {
-  let win, view
+  let win
 
   win = BrowserWindow.fromWebContents(e.sender)
-  view = win.bred.hover.view
   d('HOVER off')
-  if (view)
-    view.setVisible(false)
-  else
-    d('HOVER missing view')
+  win.bred?.hover?.off()
 }

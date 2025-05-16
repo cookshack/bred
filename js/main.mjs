@@ -434,7 +434,7 @@ async function onCmd
 
 function createWindow
 (html, opts) {
-  let win, mode
+  let win, mode, hover
 
   mode = Profile.stores.opt.get('core.theme.mode')
 
@@ -451,20 +451,30 @@ function createWindow
   win = new BrowserWindow(opts)
   win.bred = win.bred || {}
 
-  win.bred.hover = { view: new WebContentsView(),
-                     resize(width, height) {
-                       let bounds
+  hover = { view: 0,
+            create() {
+              // have to recreate it every time so it stays on top of the browser views
+              // https://github.com/electron/electron/issues/15899
+              if (hover.view)
+                win.contentView.removeChildView(hover.view)
+              hover.view = new WebContentsView()
+              hover.view.setBackgroundColor((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
+              win.contentView.addChildView(hover.view)
+            },
+            resize(width, height) {
+              if (hover.view) {
+                let bounds
 
-                       height = height ?? 30
-                       bounds = win.getBounds()
-                       width = width ?? bounds.width
-                       win.bred.hover.view.setBounds({ x: 0, y: bounds.height - height, width, height })
-                     } }
-  win.bred.hover.view.setBackgroundColor((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
-  win.bred.hover.view.webContents.loadURL('about:blank')
-  win.bred.hover.view.setVisible(false)
-  win.contentView.addChildView(win.bred.hover.view)
-  win.bred.hover.resize()
+                height = height ?? 30
+                bounds = win.getBounds()
+                width = width ?? bounds.width
+                d('resize to ' + width + ',' + height)
+                hover.view.setBounds({ x: 0, y: bounds.height - height, width, height })
+              }
+            } }
+  win.bred.hover = hover
+
+  hover.resize()
 
   win.once('ready-to-show', () => {
     win.show()

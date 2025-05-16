@@ -5,21 +5,22 @@ export
 function onOn
 (e, onArgs) {
   const [ text ] = onArgs
-  let win, view
+  let win, hover
 
   win = BrowserWindow.fromWebContents(e.sender)
-  view = win.bred.hover.view
+  hover = win.bred.hover
   d('HOVER on')
   d(text)
-  if (view) {
+  if (hover) {
     let html
 
     // could you inject js here?
+    hover.create()
     html = 'data:text/html,' + globalThis.encodeURIComponent('<html><body style="padding: 0; margin: 0; overflow: hidden;"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
-    view.webContents.loadURL(html)
-    view.setVisible(true)
-    view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {
-      win.bred.hover.resize(wh[0], wh[1])
+    hover.view.webContents.loadURL(html)
+    hover.view.setVisible(true)
+    hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {
+      hover.resize(wh[0], wh[1])
     })
   }
   else

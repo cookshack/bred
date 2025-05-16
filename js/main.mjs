@@ -451,12 +451,14 @@ function createWindow
   win = new BrowserWindow(opts)
   win.bred = win.bred || {}
 
-  hover = { view: 0,
+  hover = { text: 0,
+            view: 0,
             create() {
               // have to recreate it every time so it stays on top of the browser views
               // https://github.com/electron/electron/issues/15899
               if (hover.view)
                 win.contentView.removeChildView(hover.view)
+              hover.text = 0
               hover.view = new WebContentsView()
               hover.view.setBackgroundColor((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
               win.contentView.addChildView(hover.view)

@@ -164,9 +164,6 @@ function initMouse
   globalThis.document.addEventListener('mouseenter', xy)
 
   function xy(e) {
-    let win
-
-    win = Win.current()
     x = e.pageX
     y = e.pageY
     if (e.target?.dataset?.run) {
@@ -180,12 +177,11 @@ function initMouse
         text = Cmd.canon(e.target?.dataset?.run)
       if (hover)
         return
-      win.hover.innerText = text
-      Css.show(win.hover)
+      Tron.acmd('hover.on', [ text ])
       hover = 1
     }
     else if (hover) {
-      Css.hide(win.hover)
+      Tron.acmd('hover.off')
       hover = 0
     }
   }

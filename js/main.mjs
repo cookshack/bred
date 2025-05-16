@@ -1,4 +1,4 @@
-import { app, clipboard as Clipboard, BrowserWindow, ipcMain, Menu /*, protocol, net*/ } from 'electron'
+import { app, clipboard as Clipboard, BrowserWindow, ipcMain, Menu /*, net, protocol*/, WebContentsView } from 'electron'
 import * as Browse from './main-browse.mjs'
 import CheckDeps from '../lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
@@ -6,6 +6,7 @@ import * as Dir from './main-dir.mjs'
 import * as Ext from './main-ext.mjs'
 import * as File from './main-file.mjs'
 import * as Files from './main-files.mjs'
+import * as Hover from './main-hover.mjs'
 import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
 import * as Lsp from './main-lsp.mjs'
@@ -221,6 +222,12 @@ async function onAcmd
 
   if (name == 'file.save.tmp')
     return File.onSaveTmp(e, args)
+
+  if (name == 'hover.on')
+    return Hover.onOn(e, args)
+
+  if (name == 'hover.off')
+    return Hover.onOff(e, args)
 
   if (name == 'peer.get')
     return Peer.onGet(e, args)
@@ -442,6 +449,19 @@ function createWindow
                      preload: Path.join(import.meta.dirname, 'preload.js')
                    } }
   win = new BrowserWindow(opts)
+  win.bred = win.bred || {}
+  win.bred.hover = { view: new WebContentsView() }
+  let x, y, width, height
+
+  x = 0
+  y = 0
+  width = 600
+  height = 100
+  win.bred.hover.view.setBounds({ x, y, width, height })
+  win.bred.hover.view.setBackgroundColor('white')
+  win.bred.hover.view.webContents.loadURL('about:blank')
+  win.bred.hover.view.setVisible(false)
+  win.contentView.addChildView(win.bred.hover.view)
 
   win.once('ready-to-show', () => win.show())
 

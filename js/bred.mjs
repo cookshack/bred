@@ -170,14 +170,17 @@ function initMouse
     x = e.pageX
     y = e.pageY
     if (e.target?.dataset?.run) {
+      let text
+
       if (e.target?.dataset?.run == 'open link')
-        win.hover.innerText = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.path
+        text = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.path
       else if (e.target?.dataset?.run == 'open externally')
-        win.hover.innerText = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.url
+        text = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.url
       else
-        win.hover.innerText = Cmd.canon(e.target?.dataset?.run)
+        text = Cmd.canon(e.target?.dataset?.run)
       if (hover)
         return
+      win.hover.innerText = text
       Css.show(win.hover)
       hover = 1
     }

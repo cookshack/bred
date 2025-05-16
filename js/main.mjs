@@ -452,12 +452,13 @@ function createWindow
   win.bred = win.bred || {}
 
   win.bred.hover = { view: new WebContentsView(),
-                     resize() {
-                       let bounds, height
+                     resize(width, height) {
+                       let bounds
 
+                       height = height ?? 30
                        bounds = win.getBounds()
-                       height = 100
-                       win.bred.hover.view.setBounds({ x: 0, y: bounds.height - height, width: 600, height })
+                       width = width ?? bounds.width
+                       win.bred.hover.view.setBounds({ x: 0, y: bounds.height - height, width, height })
                      } }
   win.bred.hover.view.setBackgroundColor((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
   win.bred.hover.view.webContents.loadURL('about:blank')

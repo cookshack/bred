@@ -451,7 +451,8 @@ function createWindow
   win = new BrowserWindow(opts)
   win.bred = win.bred || {}
 
-  hover = { view: 0,
+  hover = { fg: 0,
+            view: 0,
             text: 0,
             create() {
               if (hover.view)
@@ -466,7 +467,7 @@ function createWindow
               hover.view.setVisible(false)
             },
             on(text) {
-              let html
+              let html, fg
 
               if (text == hover.text)
                 return
@@ -474,8 +475,12 @@ function createWindow
               // https://github.com/electron/electron/issues/15899
               hover.create()
               hover.text = text
+              if (hover.fg && /#[0-9a-fA-F]+/.test(hover.fg))
+                fg = hover.fg
+              else
+                fg = (mode == 'dark' ? '#93a1a1' : '#586e75')
               // could you inject js here?
-              html = 'data:text/html,' + globalThis.encodeURIComponent('<html><body style="padding: 0; margin: 0; overflow: hidden;"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
+              html = 'data:text/html,' + globalThis.encodeURIComponent('<html><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
               hover.view.webContents.loadURL(html)
               hover.view.setVisible(true)
               hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {

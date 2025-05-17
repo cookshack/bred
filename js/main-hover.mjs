@@ -10,10 +10,17 @@ function onCss
   win = BrowserWindow.fromWebContents(e.sender)
   hover = win.bred.hover
   d('HOVER css')
-  d(fg)
-  d(bg)
+  //d(fg)
+  //d(bg)
   hover.fg = fg
   hover.bg = bg
+  if (hover.text) {
+    let text
+
+    text = hover.text
+    hover.off()
+    hover.on(text)
+  }
 }
 
 export

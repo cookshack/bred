@@ -451,11 +451,9 @@ function createWindow
   win = new BrowserWindow(opts)
   win.bred = win.bred || {}
 
-  hover = { text: 0,
-            view: 0,
+  hover = { view: 0,
+            text: 0,
             create() {
-              // have to recreate it every time so it stays on top of the browser views
-              // https://github.com/electron/electron/issues/15899
               if (hover.view)
                 win.contentView.removeChildView(hover.view)
               hover.text = 0
@@ -464,10 +462,25 @@ function createWindow
               win.contentView.addChildView(hover.view)
             },
             off() {
+              hover.text = 0
               hover.view.setVisible(false)
             },
-            on() {
+            on(text) {
+              let html
+
+              if (text == hover.text)
+                return
+              // have to recreate it every time so it stays on top of the browser views
+              // https://github.com/electron/electron/issues/15899
+              hover.create()
+              hover.text = text
+              // could you inject js here?
+              html = 'data:text/html,' + globalThis.encodeURIComponent('<html><body style="padding: 0; margin: 0; overflow: hidden;"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
+              hover.view.webContents.loadURL(html)
               hover.view.setVisible(true)
+              hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {
+                hover.resize(wh[0], wh[1])
+              })
             },
             resize(width, height) {
               if (hover.view) {

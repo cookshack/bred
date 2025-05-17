@@ -1,5 +1,3 @@
-//import * as Bred from './bred.mjs'
-
 console.log('*** preload-web ***')
 
 globalThis.document.addEventListener('click', () => {

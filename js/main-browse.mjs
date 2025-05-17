@@ -72,6 +72,24 @@ function onOpen
       e.sender.send(ch, { ev: 'focus' })
     }
 
+    if ([ 'mouseEnter', 'mouseMove' ].includes(input.type)) {
+      if (0) {
+        d('= input-event')
+        d(JSON.stringify(input))
+      }
+      view.webContents.executeJavaScript(`
+  console.log("HERE3")
+  bredGetLinkText()
+`).then(text => {
+        //d('JS3 OK')
+        //d(text)
+        if (text)
+          win.bred.hover.on('Open Link: ' + text)
+        else
+          win.bred.hover.off()
+      })
+    }
+
     if ((input.type == 'contextMenu')
         || ((input.type == 'mouseDown') && (event.button == 2))) {
       d('= input-event')
@@ -102,6 +120,30 @@ function onOpen
                           url,
                           title })
     })
+    view.webContents.executeJavaScript(`
+  let x, y
+
+  function xy(e) {
+    x = e.pageX
+    y = e.pageY
+  }
+
+  function bredGetLinkText
+  () {
+    let el
+
+    el = document.elementFromPoint(x, y)
+    if (el)
+      return el.href
+  }
+
+  console.log("Bred: setting up xy listener")
+  globalThis.document.addEventListener('mousemove', xy)
+  globalThis.document.addEventListener('mouseenter', xy)
+`).then(() => {
+      d('JS OK')
+    })
+
   })
   view.webContents.on('zoom-changed', (event, dir) => {
     if (dir == 'in')
@@ -110,6 +152,7 @@ function onOpen
       view.webContents.zoomFactor -= 0.1
   })
   view.webContents.loadURL(page)
+  //view.webContents.openDevTools()
   win.contentView.addChildView(view)
   view.setBounds({ x, y, width, height }) // safeDialogs, autoplayPolicy, navigateOnDragDrop, spellcheck
   view.setBackgroundColor('white')

@@ -4436,6 +4436,7 @@ function initTheme
                                       styles: themeStyles(themeTags) })
     themeHighlightingCode = themeCode[0]
     themeExtensionCode = themeCode[1]
+    Tron.acmd('hover.css', [ Theme.meanings.text, Theme.meanings.fill ])
 
     return [ themeExtension, themeHighlighting ]
   }

@@ -223,6 +223,9 @@ async function onAcmd
   if (name == 'file.save.tmp')
     return File.onSaveTmp(e, args)
 
+  if (name == 'hover.css')
+    return Hover.onCss(e, args)
+
   if (name == 'hover.on')
     return Hover.onOn(e, args)
 
@@ -451,7 +454,8 @@ function createWindow
   win = new BrowserWindow(opts)
   win.bred = win.bred || {}
 
-  hover = { fg: 0,
+  hover = { bg: 0,
+            fg: 0,
             view: 0,
             text: 0,
             create() {
@@ -467,7 +471,7 @@ function createWindow
               hover.view.setVisible(false)
             },
             on(text) {
-              let html, fg
+              let html, bg, fg
 
               if (text == hover.text)
                 return
@@ -478,9 +482,13 @@ function createWindow
               if (hover.fg && /#[0-9a-fA-F]+/.test(hover.fg))
                 fg = hover.fg
               else
-                fg = (mode == 'dark' ? '#93a1a1' : '#586e75')
+                fg = (mode == 'dark' ? '#93a1a1' : '#586e75') // --clr-text
+              if (hover.bg && /#[0-9a-fA-F]+/.test(hover.bg))
+                bg = hover.bg
+              else
+                bg = ((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
               // could you inject js here?
-              html = 'data:text/html,' + globalThis.encodeURIComponent('<html><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
+              html = 'data:text/html,' + globalThis.encodeURIComponent('<html><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + '; background-color: ' + bg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
               hover.view.webContents.loadURL(html)
               hover.view.setVisible(true)
               hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {

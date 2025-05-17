@@ -488,7 +488,7 @@ function createWindow
               else
                 bg = ((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
               // could you inject js here?
-              html = 'data:text/html,' + globalThis.encodeURIComponent('<html style="font-family: \'DejaVu Sans\', sans-serif;"><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + '; background-color: ' + bg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
+              html = 'data:text/html,' + globalThis.encodeURIComponent('<html style="font-family: \'DejaVu Sans\', sans-serif;"><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + '; background-color: ' + bg + '; border: 1px solid ' + fg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
               hover.view.webContents.loadURL(html)
               hover.view.setVisible(true)
               hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {

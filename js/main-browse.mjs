@@ -26,6 +26,7 @@ function onOpen
   view = new WebContentsView()
   hist = Hist.make()
   id = views.length
+  d('BROWSE open ' + id)
   views[id] = { view, hist }
   win = BrowserWindow.fromWebContents(e.sender)
   view.webContents.on('before-input-event', (e, input) => {
@@ -78,8 +79,10 @@ function onOpen
         d(JSON.stringify(input))
       }
       view.webContents.executeJavaScript(`
-  console.log("HERE3")
-  bredGetLinkText()
+  if (typeof(bredGetLinkText) == 'undefined') {
+  }
+  else
+    bredGetLinkText()
 `).then(text => {
         //d('JS3 OK')
         //d(text)
@@ -131,6 +134,11 @@ function onOpen
   function bredGetLinkText
   () {
     let el
+
+    if (x == null)
+      return
+    if (y == null)
+      return
 
     el = document.elementFromPoint(x, y)
     if (el)

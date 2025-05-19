@@ -453,6 +453,7 @@ function createWindow
                    } }
   win = new BrowserWindow(opts)
   win.bred = win.bred || {}
+  win.webContents.setMaxListeners(30)
 
   hover = { bg: 0,
             fg: 0,

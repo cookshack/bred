@@ -1023,6 +1023,8 @@ function _viewInit
         return 'sh'
       if (text.startsWith('#!/usr/bin/make'))
         return 'makefile'
+      if (text.startsWith('#!/usr/bin/env python'))
+        return 'python'
     }
     return 0
   }

@@ -455,6 +455,20 @@ function createWindow
   win.bred = win.bred || {}
   win.webContents.setMaxListeners(30)
 
+  win.on('blur', () => {
+    d('BLUR WIN')
+  })
+  win.on('focus', () => {
+    d('FOCUS WIN')
+  })
+
+  win.webContents.on('blur', () => {
+    d('BLUR MAIN')
+  })
+  win.webContents.on('focus', () => {
+    d('FOCUS MAIN')
+  })
+
   hover = { bg: 0,
             fg: 0,
             view: 0,
@@ -465,6 +479,22 @@ function createWindow
               hover.text = 0
               hover.view = new WebContentsView()
               hover.view.setBackgroundColor((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
+              hover.view.webContents.on('blur', () => {
+                d('BLUR')
+              })
+              hover.view.webContents.on('focus', () => {
+                d('FOCUS')
+                // workaround for the view stealing the focus.
+                // https://github.com/electron/electron/issues/42339
+                //
+                // needs to be in a timeout for some reason.
+                setTimeout(() => {
+                  if (win.webContents)
+                    win.webContents.focus()
+                  else
+                    d('MISS')
+                })
+              })
               win.contentView.addChildView(hover.view)
             },
             off() {
@@ -883,6 +913,7 @@ function whenHaveDeps
       createMainWindow()
   })
 }
+
 async function whenReady
 () {
   let program

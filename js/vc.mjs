@@ -302,6 +302,29 @@ function initEqual
   () {
     let p, patch, hunk, iHunk, file, lineNum, text
 
+    function run
+    (view, data, reverse) {
+      Shell.runToString(p.dir,
+                        'patch',
+                        [ ...(reverse ? [ '--reverse' ] : []),
+                          '--no-backup-if-mismatch',
+                          '--force',
+                          '-i', data.file, file ],
+                        0,
+                        (str, code) => {
+                          Tron.cmd('dir.rm', [ data.dir, { recurse: 1 } ], err => {
+                            if (err)
+                              Mess.yell('Error deleting: ' + err.message)
+                          })
+                          if (code) {
+                            Mess.yell('Error: ' + code + ': ' + str)
+                            return
+                          }
+                          // revert to show changes
+                          Ed.Backend.revertV(view, { lineNum })
+                        })
+    }
+
     p = Pane.current()
 
     // Parse the patch.
@@ -356,25 +379,12 @@ function initEqual
                           0,
                           (str, code) => {
                             if (code == 0) {
-                              Mess.yell('Looks like hunk is already applied')
+                              Prompt.yn('Looks like hunk is already applied. Reverse it?',
+                                        {},
+                                        yes => yes && run(view, data, 1))
                               return
                             }
-                            Shell.runToString(p.dir,
-                                              'patch',
-                                              [ '--no-backup-if-mismatch', '--force', '-i', data.file, file ],
-                                              0,
-                                              (str, code) => {
-                                                Tron.cmd('dir.rm', [ data.dir, { recurse: 1 } ], err => {
-                                                  if (err)
-                                                    Mess.yell('Error deleting: ' + err.message)
-                                                })
-                                                if (code) {
-                                                  Mess.yell('Error: ' + code + ': ' + str)
-                                                  return
-                                                }
-                                                // revert to show changes
-                                                Ed.Backend.revertV(view, { lineNum })
-                                              })
+                            run(view, data)
                           })
       })
     })

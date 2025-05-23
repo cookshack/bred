@@ -352,19 +352,29 @@ function initEqual
         }
         Shell.runToString(p.dir,
                           'patch',
-                          [ '-i', data.file, file ],
+                          [ '--dry-run', '--reverse', '-i', data.file, file ],
                           0,
                           (str, code) => {
-                            Tron.cmd('dir.rm', [ data.dir, { recurse: 1 } ], err => {
-                              if (err)
-                                Mess.yell('Error deleting: ' + err.message)
-                            })
-                            if (code) {
-                              Mess.yell('Error: ' + code + ': ' + str)
+                            if (code == 0) {
+                              Mess.yell('Looks like hunk is already applied')
                               return
                             }
-                            // revert to show changes
-                            Ed.Backend.revertV(view, { lineNum })
+                            Shell.runToString(p.dir,
+                                              'patch',
+                                              [ '--no-backup-if-mismatch', '--force', '-i', data.file, file ],
+                                              0,
+                                              (str, code) => {
+                                                Tron.cmd('dir.rm', [ data.dir, { recurse: 1 } ], err => {
+                                                  if (err)
+                                                    Mess.yell('Error deleting: ' + err.message)
+                                                })
+                                                if (code) {
+                                                  Mess.yell('Error: ' + code + ': ' + str)
+                                                  return
+                                                }
+                                                // revert to show changes
+                                                Ed.Backend.revertV(view, { lineNum })
+                                              })
                           })
       })
     })

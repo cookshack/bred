@@ -10,8 +10,11 @@ import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
 //import { d } from './mess.mjs'
 
-function initManpage
+export
+function init
 () {
+  let hist
+
   function refresh
   (view) {
     let w
@@ -19,18 +22,6 @@ function initManpage
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
   }
-
-  Mode.add('Manpage', { viewInitSpec: refresh })
-
-  //Cmd.add("refresh", () => refresh(Pane.current().view), mo)
-
-  //Em.on("g", "refresh", mo)
-}
-
-export
-function init
-() {
-  let hist
 
   function runMan
   (text) {
@@ -78,7 +69,11 @@ function init
 
   hist = Hist.ensure('man')
 
-  Cmd.add('man', () => man())
+  Mode.add('Manpage', { viewInitSpec: refresh })
 
-  initManpage()
+  //Cmd.add("refresh", () => refresh(Pane.current().view), mo)
+
+  //Em.on("g", "refresh", mo)
+
+  Cmd.add('man', () => man())
 }

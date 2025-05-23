@@ -44,7 +44,7 @@ function runToString
   str = ''
   d("runToString '" + sc + ' ' + args.join(' ') + "' in " + dir)
 
-  Tron.on(ch, (err, d) => {
+  Tron.on(ch, (err, data) => {
     let der
 
     der = new TextDecoder()
@@ -54,14 +54,14 @@ function runToString
       return
     }
 
-    if (d.stdout)
-      str += der.decode(d.stdout)
-    if (d.stderr)
-      str += der.decode(d.stderr)
-    if (d.close === undefined) {
+    if (data.stdout)
+      str += der.decode(data.stdout)
+    if (data.stderr)
+      str += der.decode(data.stderr)
+    if (data.close === undefined) {
     }
     else if (cb)
-      cb(str, d.code)
+      cb(str, data.code)
   })
 
   Tron.cmd1('shell', [ ch, dir, sc, args || [], runInShell ? true : false ], (err, tch) => {

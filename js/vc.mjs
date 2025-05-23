@@ -352,7 +352,7 @@ function initEqual
         }
         Shell.runToString(p.dir,
                           'patch',
-                          [ '--dry-run', '--reverse', '-i', data.file, file ],
+                          [ '--dry-run', '--reverse', '--force', '-i', data.file, file ],
                           0,
                           (str, code) => {
                             if (code == 0) {

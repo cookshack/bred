@@ -303,22 +303,26 @@ function initEqual
     let p, patch, hunk, iHunk, file, lineNum, text
 
     function abs
-    (f, dir) {
+    (f, dir, cb) { // (file)
       Tron.acmd('project.root', [ dir ]).then(data => {
-        d(data)
+        d({ data })
+        if (data.dir)
+          cb(Loc.make(data.dir).join(f))
+        else {
+          Mess.say('Outside git, using current dir')
+          cb(Loc.make(dir).join(f))
+        }
       })
-
-      return Loc.make(dir).join(f)
     }
 
     function run
-    (view, data, reverse) {
+    (view, data, f, reverse) {
       Shell.runToString(p.dir,
                         'patch',
                         [ ...(reverse ? [ '--reverse' ] : []),
                           '--no-backup-if-mismatch',
                           '--force',
-                          '-i', data.file, file ],
+                          '-i', data.file, f ],
                         0,
                         (str, code) => {
                           Tron.cmd('dir.rm', [ data.dir, { recurse: 1 } ], err => {
@@ -367,34 +371,38 @@ function initEqual
     text = Diff.formatPatch(patch)
     d(text)
 
-    // Apply it.
+    // Get the actual file name.
 
-    file = abs(file, p.buf.dir)
-    d({ file })
-    // Make sure file is open
-    p.open(file, null, view => {
-      // Must be saved
-      if (p.buf.modified)
-        Mess.toss('Please save first')
-      // put patch in tmp file
-      Tron.acmd('file.save.tmp', [ text ]).then(data => {
-        if (data.err) {
-          Mess.yell('file.save.tmp: ' + data.err.message)
-          return
-        }
-        Shell.runToString(p.dir,
-                          'patch',
-                          [ '--dry-run', '--reverse', '--force', '-i', data.file, file ],
-                          0,
-                          (str, code) => {
-                            if (code == 0) {
-                              Prompt.yn('Looks like hunk is already applied. Reverse it?',
-                                        {},
-                                        yes => yes && run(view, data, 1))
-                              return
-                            }
-                            run(view, data)
-                          })
+    abs(file, p.buf.dir, file => {
+
+      // Apply it.
+
+      d({ file })
+      // Make sure file is open
+      p.open(file, null, view => {
+        // Must be saved
+        if (p.buf.modified)
+          Mess.toss('Please save first')
+        // put patch in tmp file
+        Tron.acmd('file.save.tmp', [ text ]).then(data => {
+          if (data.err) {
+            Mess.yell('file.save.tmp: ' + data.err.message)
+            return
+          }
+          Shell.runToString(p.dir,
+                            'patch',
+                            [ '--dry-run', '--reverse', '--force', '-i', data.file, file ],
+                            0,
+                            (str, code) => {
+                              if (code == 0) {
+                                Prompt.yn('Looks like hunk is already applied. Reverse it?',
+                                          {},
+                                          yes => yes && run(view, data, file, 1))
+                                return
+                              }
+                              run(view, data, file)
+                            })
+        })
       })
     })
   }

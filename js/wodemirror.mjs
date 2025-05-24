@@ -4241,6 +4241,8 @@ function initLangs
       lang.extensions = [ ...(lang.extensions || []), '.Dockerfile' ]
     if (lang.id == 'properties files')
       lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf' ]
+    if (lang.id == patchModeKey())
+      lang.extensions = [ ...(lang.extensions || []), '.PATCH' ]
     lang.path = opt.path
     if (opt.firstLine)
       lang.firstLine = opt.firstLine

@@ -4242,7 +4242,7 @@ function initLangs
     if (lang.id == 'properties files')
       lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf' ]
     if (lang.id == patchModeKey())
-      lang.extensions = [ ...(lang.extensions || []), '.PATCH' ]
+      lang.extensions = [ ...(lang.extensions || []), '.PATCH', '.rej' ]
     lang.path = opt.path
     if (opt.firstLine)
       lang.firstLine = opt.firstLine

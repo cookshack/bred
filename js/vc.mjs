@@ -302,6 +302,11 @@ function initEqual
   () {
     let p, patch, hunk, iHunk, file, lineNum, text
 
+    function abs
+    (f, dir) {
+      return Loc.make(dir).join(f)
+    }
+
     function run
     (view, data, reverse) {
       Shell.runToString(p.dir,
@@ -360,7 +365,7 @@ function initEqual
 
     // Apply it.
 
-    file = Loc.make(p.buf.dir).join(file)
+    file = abs(file, p.buf.dir)
     d({ file })
     // Make sure file is open
     p.open(file, null, view => {

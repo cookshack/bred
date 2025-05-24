@@ -182,6 +182,7 @@ function initMouse
       hover = 0
     }
     to = 0
+    target = 0
   }
 
   function xy
@@ -192,6 +193,7 @@ function initMouse
     if (to)
       // When the timeout runs updateHover will use the new target.
       return
+    updateHover()
     to = setTimeout(updateHover, 360)
   }
 }

@@ -13,21 +13,25 @@ function add
 
   function add
   (lang) {
-    if (p.lsps && p.lsps[lang])
-      return
-    p.lsps = p.lsps || []
-    if ([ 'c', 'javascript' ].includes(lang))
-      p.lsps[lang] = Lsp.make(lang, dir)
+    if (lang) {
+      if (p.lsps && p.lsps[lang])
+        return
+      p.lsps = p.lsps || []
+      if ([ 'c', 'javascript' ].includes(lang))
+        p.lsps[lang] = Lsp.make(lang, dir)
+    }
   }
 
   function open
   (lang, path, bufId) {
-    let lsp
-
     d('PROJ open ' + path)
     add(lang)
-    lsp = p.lsps?.[lang]
-    lsp?.open(lang, path, bufId)
+    if (bufId) {
+      let lsp
+
+      lsp = p.lsps?.[lang]
+      lsp?.open(lang, path, bufId)
+    }
   }
 
   d('PROJ add ' + dir)
@@ -85,10 +89,15 @@ export
 function onRoot
 (e, onArgs) {
   let [ dir ] = onArgs
+  let p
 
   d('PROJ root')
   d(dir)
-  return { xxx: dir }
+  p = get(0, dir)
+
+  if (p.main)
+    return {}
+  return { dir: p.dir }
 }
 
 export

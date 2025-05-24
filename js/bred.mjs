@@ -151,7 +151,7 @@ function initDoc
 
 function initMouse
 () {
-  let x, y, hover
+  let x, y, hover, to, target
 
   mouse = { get x() {
     return x
@@ -163,18 +163,17 @@ function initMouse
   globalThis.document.addEventListener('mousemove', xy)
   globalThis.document.addEventListener('mouseenter', xy)
 
-  function xy(e) {
-    x = e.pageX
-    y = e.pageY
-    if (e.target?.dataset?.run) {
+  function updateHover
+  () {
+    if (target?.dataset?.run) {
       let text
 
-      if (e.target?.dataset?.run == 'open link')
-        text = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.path
-      else if (e.target?.dataset?.run == 'open externally')
-        text = Cmd.canon(e.target.dataset.run) + ': ' + e.target.dataset.url
+      if (target?.dataset?.run == 'open link')
+        text = Cmd.canon(target.dataset.run) + ': ' + target.dataset.path
+      else if (target?.dataset?.run == 'open externally')
+        text = Cmd.canon(target.dataset.run) + ': ' + target.dataset.url
       else
-        text = Cmd.canon(e.target?.dataset?.run)
+        text = Cmd.canon(target?.dataset?.run)
       Tron.acmd('hover.on', [ text ])
       hover = 1
     }
@@ -182,6 +181,18 @@ function initMouse
       Tron.acmd('hover.off')
       hover = 0
     }
+    to = 0
+  }
+
+  function xy
+  (e) {
+    x = e.pageX
+    y = e.pageY
+    target = e.target
+    if (to)
+      // When the timeout runs updateHover will use the new target.
+      return
+    to = setTimeout(updateHover, 360)
   }
 }
 

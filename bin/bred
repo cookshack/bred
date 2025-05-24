@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
 while true; do
+  echo 0 > /tmp/bred-$$-relaunch
+  export BRED_SCRIPT_PID=$$
   if [ -n "$BRED_GDB" ] && [ "$BRED_GDB" -eq 1 ]; then
     npm run start-gdb -- $*
   else
@@ -8,9 +10,12 @@ while true; do
   fi
   CODE=$?
   echo "exit code: $CODE"
-  if [ $CODE -eq 7 ]; then
+  echo /tmp/bred-$$-relaunch:
+  cat /tmp/bred-$$-relaunch
+  if [ "$(cat /tmp/bred-$$-relaunch)" = "1" ]; then
     echo Relaunching...
     continue
   fi
   break
 done
+rm -f /tmp/bred-$$-relaunch

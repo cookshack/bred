@@ -192,6 +192,15 @@ function relaunch
   //quit()
 
   try {
+    d('process.env.PPID ' + process.env.PPID)
+    d('process.env.BRED_SCRIPT_PID ' + process.env.BRED_SCRIPT_PID)
+    d('writing 1 to /tmp/bred-' + process.env.BRED_SCRIPT_PID + '-relaunch')
+    fs.writeFileSync('/tmp/bred-' + process.env.BRED_SCRIPT_PID + '-relaunch', '1', {})
+  }
+  catch (err) {
+    console.log(err.message)
+  }
+  try {
     app.exit(7)
   }
   catch (err) {

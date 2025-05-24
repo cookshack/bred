@@ -259,6 +259,9 @@ async function onAcmd
   if (name == 'profile.prompt.load')
     return Profile.onPromptLoad(e, args)
 
+  if (name == 'project.root')
+    return Project.onRoot(e, args)
+
   d('onAcmd: missing: ' + name)
 
   return { err: { message: 'onAcmd: Missing: ' + name } }

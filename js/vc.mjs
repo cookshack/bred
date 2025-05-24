@@ -304,6 +304,10 @@ function initEqual
 
     function abs
     (f, dir) {
+      Tron.acmd('project.root', [ dir ]).then(data => {
+        d(data)
+      })
+
       return Loc.make(dir).join(f)
     }
 

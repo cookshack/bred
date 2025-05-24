@@ -82,6 +82,16 @@ function get
 }
 
 export
+function onRoot
+(e, onArgs) {
+  let [ dir ] = onArgs
+
+  d('PROJ root')
+  d(dir)
+  return { xxx: dir }
+}
+
+export
 function init
 () {
   let p

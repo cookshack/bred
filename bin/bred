@@ -1,5 +1,13 @@
 #!/usr/bin/env bash
 
+cleanup() {
+  echo Cleaning up...
+  rm -f /tmp/bred-$$-relaunch
+  echo Cleaning up... done.
+}
+
+trap cleanup SIGINT EXIT
+
 while true; do
   echo 0 > /tmp/bred-$$-relaunch
   export BRED_SCRIPT_PID=$$
@@ -18,4 +26,3 @@ while true; do
   fi
   break
 done
-rm -f /tmp/bred-$$-relaunch

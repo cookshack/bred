@@ -609,7 +609,7 @@ function watch
 export
 async function viewInitSpec
 (view,
- spec, // { text, modeWhenText, lineNum, whenReady(view), forceFresh, wextsMode }
+ spec, // { text, modeWhenText, lineNum, whenReady(view), revert, wextsMode }
  cb) {
   let data
 
@@ -623,7 +623,7 @@ async function viewInitSpec
   d({ data })
   _viewInit(makePeer(view.buf.id, data.version),
             view,
-            (spec.forceFresh || data.fresh) ? 0 : data.text,
+            data.fresh ? 0 : data.text,
             spec.modeWhenText,
             spec.lineNum,
             spec.whenReady,
@@ -635,7 +635,7 @@ async function viewInitSpec
 
 function _viewInit
 (peer, view, text, modeWhenText, lineNum, whenReady, placeholder, spec) {
-  let ed, buf, edWW, edW, opts, domEventHandlers
+  let ed, buf, edWW, edW, opts, domEventHandlers, useText
 
   function removeAllKeyBindings
   () {
@@ -1048,7 +1048,11 @@ function _viewInit
     return
   }
 
-  if ((typeof text == 'string') || text instanceof String) {
+  useText = (typeof text == 'string') || text instanceof String
+  if (spec.revert)
+    useText = 0
+
+  if (useText) {
     if (U.defined(lineNum))
       vgotoLine(view, lineNum)
   }
@@ -2691,11 +2695,7 @@ function revertV
   lineNum = spec.lineNum ?? (bepRow(view, vgetBep(view)) + 1)
 
   view.ready = 0 // limit onChange handler
-  // dispatch so that peers get the same
-  view.ed.dispatch({ changes: { from: 0,
-                                to: view.ed.state.doc.length,
-                                insert: '' } })
-  viewInitSpec(view, { forceFresh: 1, // consider peer fresh so will reread file
+  viewInitSpec(view, { revert: 1,
                        lineNum,
                        whenReady: spec.whenReady })
 

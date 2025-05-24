@@ -81,6 +81,15 @@ function onPush
   d('============= PEER ' + id + ' PUSHED (main receiving) ' + received.length)
   d('    version: ' + version)
   d('    buf.version: ' + buf.version)
+  if (0) {
+    d('    updates: ')
+    updates.forEach(u => {
+      d('clientID: ' + u.clientID)
+      d('changes:')
+      d(JSON.stringify(u.changes))
+    })
+    d('==')
+  }
   if (received.length == 0)
     return {}
   applied = []
@@ -88,7 +97,27 @@ function onPush
     // both at same version, new updates received.
   }
   else
-    received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
+    try {
+      received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
+    }
+    catch (err) {
+      d('ERR in rebaseUpdates: ' + err.message)
+      d('== ERR updates: ')
+      updates.forEach(u => {
+        d('clientID: ' + u.clientID)
+        d('changes:')
+        d(JSON.stringify(u.changes))
+      })
+      d('== ERR received: ')
+      received.forEach(r => {
+        d('clientID: ' + r.clientID)
+        d('changes:')
+        d(JSON.stringify(r.changes))
+        d('--')
+      })
+      d('==')
+      throw err
+    }
   try {
     received.forEach(update => {
       //d(JSON.stringify(update, null, 2))

@@ -260,7 +260,7 @@ function make
 
   if (lang == 'javascript')
     tsproc = fork(Path.join(import.meta.dirname,
-                            'lib/typescript-language-server/lib/cli.mjs'),
+                            '../lib/typescript-language-server/lib/cli.mjs'),
                   [ '--stdio', '--log-level', '4' ],
                   { cwd: import.meta.dirname,
                     stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ] })

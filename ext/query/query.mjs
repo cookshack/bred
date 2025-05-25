@@ -1,4 +1,4 @@
-import { append, button, divCl, img } from '../../js/dom.mjs'
+import { append, button, div, divCl, img } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
 import * as Browse from '../../js/browse.mjs'
@@ -12,6 +12,7 @@ import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Opt from '../../js/opt.mjs'
 import * as Pane from '../../js/pane.mjs'
+import * as Panel from '../../js/panel.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import * as Shell from '../../js/shell.mjs'
 import * as Tron from '../../js/tron.mjs'
@@ -20,7 +21,7 @@ import { d } from '../../js/mess.mjs'
 import Ollama from './lib/ollama.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let emo, premo
+let emo, premo, icon
 
 function snippet
 (item) {
@@ -816,6 +817,12 @@ function init
   Em.on('Enter', 'select', mo)
 
   Em.on('C-x i', 'llm insert', 'ed')
+
+  icon = div(divCl('mini-icon',
+                   img(Icon.path('chat'), 'Chat', 'filter-clr-text')),
+             'mini-chat mini-icon onfill mini-em',
+             { 'data-run': 'chat' })
+  Panel.start('mini-panel', icon)
 }
 
 export
@@ -825,4 +832,5 @@ function free
   Cmd.remove('google')
   Cmd.remove('llm')
   Mode.remove('Query')
+  icon.remove()
 }

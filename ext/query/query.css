@@ -104,3 +104,7 @@
 .query-ml-model {
   margin-left: 0.5rem;
 }
+
+.mini-chat .mini-icon {
+  pointer-events: none;
+}

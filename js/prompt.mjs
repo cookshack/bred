@@ -141,7 +141,12 @@ function ask
     spec.under = divCl('bred-prompt-under')
 
   spec.w = spec.w || Ed.divW(0, 0, { extraWWCss: 'bred-prompt-buf-ww bred-prompt-attract',
-                                     extraCo: spec.under })
+                                     extraCo: [ spec.under,
+                                                divCl('bred-prompt-ok',
+                                                      img(Icon.path('arrow-right'),
+                                                          'OK',
+                                                          'filter-clr-text'),
+                                                      { 'data-run': 'ok' }) ] })
   win = Win.current()
   Area.getByName(win, 'bred-float')?.close()
   area = Area.add(win, 'bred-float')

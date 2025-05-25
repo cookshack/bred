@@ -21,7 +21,7 @@ import { d } from '../../js/mess.mjs'
 import Ollama from './lib/ollama.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let emo, premo, icon
+let emo, premo, icons
 
 function snippet
 (item) {
@@ -818,11 +818,16 @@ function init
 
   Em.on('C-x i', 'llm insert', 'ed')
 
-  icon = div(divCl('mini-icon',
-                   img(Icon.path('chat'), 'Chat', 'filter-clr-text')),
-             'mini-chat mini-icon onfill mini-em',
-             { 'data-run': 'chat' })
-  Panel.start('mini-panel', icon)
+  icons = [ div(divCl('mini-icon',
+                      img(Icon.path('search'), 'Web Search', 'filter-clr-text')),
+                'mini-web-search mini-icon onfill mini-em',
+                { 'data-run': 'go' }),
+            div(divCl('mini-icon',
+                      img(Icon.path('chat'), 'Chat', 'filter-clr-text')),
+                'mini-chat mini-icon onfill mini-em',
+                { 'data-run': 'chat' }) ]
+  Panel.start('mini-panel', icons[1])
+  Panel.start('mini-panel', icons[0])
 }
 
 export
@@ -832,5 +837,5 @@ function free
   Cmd.remove('google')
   Cmd.remove('llm')
   Mode.remove('Query')
-  icon.remove()
+  icons.forEach(i => i.remove())
 }

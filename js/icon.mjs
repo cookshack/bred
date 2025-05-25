@@ -124,6 +124,9 @@ function path
     if (name == 'rust')
       return 'lib/svg/devopicons/rust.svg'
 
+    if (name == 'search')
+      return 'lib/svg/octicons/search-24.svg'
+
     if (name == 'save')
       return 'lib/svg/fluentui-system-icons/ic_fluent_save_24_regular.svg'
 

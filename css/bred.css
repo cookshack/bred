@@ -1394,14 +1394,15 @@ div.bred-welcome-rf-h-link:hover {
   border-bottom: 1rem solid var(--clr-nb0);
 }
 
-.bred-prompt-ok {
+.bred-prompt-icons {
   position: absolute;
   top: calc(var(--height-ml) + var(--padding-top-opener) + 4px); /* div holding cm-line has 4px top pad */
   right: 0.5rem;
   height: 1.4rem; /* cm-line has line-height 1.4 */
+  display: flex;
 }
 
-.bred-prompt-ok > img {
+.bred-prompt-icon > img {
   pointer-events: none;
   height: 100%;
 }

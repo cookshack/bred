@@ -142,11 +142,22 @@ function ask
 
   spec.w = spec.w || Ed.divW(0, 0, { extraWWCss: 'bred-prompt-buf-ww bred-prompt-attract',
                                      extraCo: [ spec.under,
-                                                divCl('bred-prompt-ok',
-                                                      img(Icon.path('arrow-right'),
-                                                          'OK',
-                                                          'filter-clr-text'),
-                                                      { 'data-run': 'ok' }) ] })
+                                                divCl('bred-prompt-icons',
+                                                      [ divCl('bred-prompt-icon',
+                                                              img(Icon.path('arrow-up'),
+                                                                  '↑',
+                                                                  'filter-clr-text'),
+                                                              { 'data-run': 'previous history item' }),
+                                                        divCl('bred-prompt-icon',
+                                                              img(Icon.path('arrow-down'),
+                                                                  '↓',
+                                                                  'filter-clr-text'),
+                                                              { 'data-run': 'next history item' }),
+                                                        divCl('bred-prompt-icon',
+                                                              img(Icon.path('arrow-right'),
+                                                                  '→',
+                                                                  'filter-clr-text'),
+                                                              { 'data-run': 'ok' }) ]) ] })
   win = Win.current()
   Area.getByName(win, 'bred-float')?.close()
   area = Area.add(win, 'bred-float')

@@ -607,6 +607,10 @@ function initPrompt2
         p.buf.clear()
         p.view.insert(prev)
       }
+      else if (nth && (nth < 0))
+        p.buf.clear()
+      else
+        Mess.say('End of history')
     }
   }
 

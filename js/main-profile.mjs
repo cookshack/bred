@@ -40,12 +40,6 @@ function initHist
 () {
   let path, db
 
-  function setDbVersion
-  (ver) {
-    db.prepare("INSERT INTO meta (name, value) VALUES ('db_version', ?) ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value")
-      .run(ver)
-  }
-
   function add
   (href, spec) {
     let url, now
@@ -188,6 +182,13 @@ function initHist
 
     // Migration
 
+    function setDbVersion
+    (v) {
+      ver = v
+      db.prepare("INSERT INTO meta (name, value) VALUES ('db_version', ?) ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value")
+        .run(ver)
+    }
+
     row = db.prepare("SELECT value FROM meta WHERE name = 'db_version'").get()
     ver = parseInt(row?.value || 0)
     d('Check migration...')
@@ -199,6 +200,9 @@ function initHist
         setDbVersion(1)
       })()
     }
+    db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, last, count, UNIQUE(href))').run()
+    db.prepare('CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, time)').run()
+
     if (ver == 1) {
       d('Migrating: 1 to 2')
       db.transaction(() => {
@@ -215,12 +219,11 @@ function initHist
         setDbVersion(2)
       })()
     }
+
+    db.prepare('CREATE TABLE IF NOT EXISTS prompts (id INTEGER PRIMARY KEY, name, text, time)').run()
+
     d('Check migration... done.')
   }
-
-  db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, last, count, UNIQUE(href))').run()
-  db.prepare('CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, time)').run()
-  db.prepare('CREATE TABLE IF NOT EXISTS prompts (id INTEGER PRIMARY KEY, name, text, time)').run()
 
   hist = { add,
            get,

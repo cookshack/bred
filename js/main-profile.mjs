@@ -49,7 +49,7 @@ function initHist
 
   function add
   (href, spec) {
-    let url
+    let url, now
 
     d('PROFILE.HIST add ' + href)
     spec = spec || ''
@@ -64,6 +64,7 @@ function initHist
     }
     catch {
     }
+    now = Date.now()
     db.prepare('INSERT INTO visits (type, href, title, hostname, port, pathname, search, hash, time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
       .run(spec.type,
            href,
@@ -73,7 +74,17 @@ function initHist
            url?.pathname ?? '',
            url?.search ?? '',
            url?.hash ?? '',
-           Date.now())
+           now)
+    db.prepare('INSERT INTO urls (type, href, title, hostname, port, pathname, search, hash, last, count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1) ON CONFLICT (href) DO UPDATE SET title = EXCLUDED.title, last = EXCLUDED.last, count = count + 1')
+      .run(spec.type,
+           href,
+           spec.title,
+           url?.hostname ?? '',
+           url?.port ?? 0,
+           url?.pathname ?? '',
+           url?.search ?? '',
+           url?.hash ?? '',
+           now)
     d('PROFILE.HIST added')
   }
 
@@ -169,14 +180,20 @@ function initHist
     // Migration
 
     row = db.prepare("SELECT value FROM meta WHERE name = 'db_version'").get()
-    ver = row?.ver || 0
-    if (ver == 0)
+    ver = parseInt(row?.value || 0)
+    d('Check migration...')
+    d('Current version: ' + ver)
+    if (ver == 0) {
+      d('Migrating: 0 to 1')
       db.transaction(() => {
         db.prepare('ALTER TABLE urls RENAME TO visits').run()
         setDbVersion(1)
       })()
+    }
+    d('Check migration... done.')
   }
 
+  db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, last, count, UNIQUE(href))').run()
   db.prepare('CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, time)').run()
   db.prepare('CREATE TABLE IF NOT EXISTS prompts (id INTEGER PRIMARY KEY, name, text, time)').run()
 

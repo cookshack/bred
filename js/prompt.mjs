@@ -611,12 +611,22 @@ function initPrompt2
 
         sugs = under.querySelectorAll('.bred-prompt-sug')
         if (sugs && sugs.length) {
-          let el
+          let el, index, sug
 
           sug0.firstElementChild.innerText = 'Visit'
+
+          index = sug0.dataset.index
+          if (index == null)
+            index = 0
+          else
+            index++
+          if (index >= sugs.length)
+            index = sugs.length - 1
+          sug = sugs[index]
           el = sug0.firstElementChild.nextElementSibling
-          el.innerText = sugs[0].dataset.path
-          el.dataset.href = sugs[0].dataset.path
+          el.innerText = sug.dataset.path
+          sug0.dataset.href = sug.dataset.path
+          sug0.dataset.index = index
         }
       }
       else
@@ -654,7 +664,7 @@ function initPrompt2
 
       sug0 = under.querySelector('.bred-prompt-sug0')
       if (sug0)
-        term = sug0.firstElementChild.nextElementSibling.dataset.href
+        term = sug0.dataset.href
     }
     term = term || p.text()
     if (term.length == 0)

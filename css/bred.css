@@ -1420,6 +1420,12 @@ div.bred-welcome-rf-h-link:hover {
   margin-right: 0.5rem;
 }
 
+.bred-prompt-sug0-text {
+  overflow-x: hidden;
+  white-space: nowrap;
+  display: flex;
+}
+
 div.bred-prompt-candidate {
   color: var(--clr-nb0);
 }

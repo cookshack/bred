@@ -627,6 +627,9 @@ function initPrompt2
           el.innerText = sug.dataset.path
           sug0.dataset.href = sug.dataset.path
           sug0.dataset.index = index
+
+          sugs.forEach(s => Css.remove(s, 'bred-prompt-candidate'))
+          Css.add(sug, 'bred-prompt-candidate')
         }
       }
       else

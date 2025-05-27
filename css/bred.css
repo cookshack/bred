@@ -1407,6 +1407,10 @@ div.bred-welcome-rf-h-link:hover {
   height: 100%;
 }
 
+.bred-prompt-sug {
+  background: var(--clr-bg);
+}
+
 .bred-prompt-sug0 {
   padding-bottom: 0.5rem;
   display: flex;
@@ -1414,6 +1418,10 @@ div.bred-welcome-rf-h-link:hover {
 
 .bred-prompt-sug0-type {
   margin-right: 0.5rem;
+}
+
+div.bred-prompt-candidate {
+  color: var(--clr-nb0);
 }
 
 .edW.bred-opener-w {

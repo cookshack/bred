@@ -110,11 +110,12 @@ function initHist
 
   function suggest
   (query) {
-    let fuse, rows, urls, min, max, weightFuse, weightTime
+    let fuse, rows, urls, tmin, tmax, fmin, fmax, weightFuse, weightTime, weightFreq
 
     d('SUGGEST')
 
     weightTime = 0.3 // recency
+    weightFreq = 0.3
     weightFuse = 1 - weightTime
 
     // Get all the urls
@@ -131,30 +132,46 @@ function initHist
                       limit: 1000 })
     urls = fuse.search(query)
 
-    // Get min and max time
+    // Get min and max time and freq
 
-    min = -1
-    max = 0
+    tmin = fmin = -1
+    tmax = fmax = 0
     urls.forEach(url => {
-      if ((min == -1)
-          || (url.item.last < min))
-        min = url.item.last
-      if (url.item.last > max)
-        max = url.item.last
+      if ((tmin == -1)
+          || (url.item.last < tmin))
+        tmin = url.item.last
+      if (url.item.last > tmax)
+        tmax = url.item.last
+
+      if ((fmin == -1)
+          || (url.item.count < fmin))
+        fmin = url.item.count
+      if (url.item.count > fmax)
+        fmax = url.item.count
     })
 
-    d(min)
-    d(max)
+    d(tmin)
+    d(tmax)
+    d(fmin)
+    d(fmax)
 
-    if ((min >= 0) && (max >= 0) && (max > min)) {
-      // Normalize times, give each url a composite score
+    if ((tmin >= 0) && (tmax >= 0) && (tmax >= tmin)
+        && (fmin >= 0) && (fmax >= 0) && (fmax >= fmin)) {
+      // Normalize times and frequencies, give each url a composite score
       urls.forEach(url => {
-        url.scoreTime = (url.item.last - min) / (max - min)
+        if (tmin == tmax)
+          url.scoreTime = 0
+        else
+          url.scoreTime = (url.item.last - tmin) / (tmax - tmin)
+        if (fmin == fmax)
+          url.scoreFreq = 0
+        else
+          url.scoreFreq = (url.item.count - fmin) / (fmax - fmin)
         url.scoreFuse = (1 - url.score)
-        url.scoreBred = (url.scoreFuse * weightFuse) + (url.scoreTime * weightTime)
+        url.scoreAll = (url.scoreFuse * weightFuse) + (url.scoreTime * weightTime) + (url.scoreFreq * weightFreq)
       })
       // Sort by the composite score
-      urls.sort((u1, u2) => u2.bredScore - u1.bredScore)
+      urls.sort((u1, u2) => u2.scoreAll - u1.scoreAll)
     }
 
     return { urls: urls.slice(0, 10) }

@@ -597,7 +597,7 @@ function initPrompt2
   let mo
 
   function prevSugg
-  () {
+  (nth) {
     let p, under
 
     p = Pane.current()
@@ -618,10 +618,14 @@ function initPrompt2
           index = sug0.dataset.index
           if (index == null)
             index = 0
-          else
+          else if (nth < 0)
             index++
+          else
+            index--
           if (index >= sugs.length)
             index = sugs.length - 1
+          if (index < 0)
+            index = 0
           sug = sugs[index]
           el = sug0.firstElementChild.nextElementSibling
           el.innerText = sug.dataset.path
@@ -688,6 +692,7 @@ function initPrompt2
   Cmd.add('next history item', () => prevHist(-1), mo)
   Cmd.add('previous history item', () => prevHist(), mo)
   Cmd.add('next suggestion', () => prevSugg(-1), mo)
+  Cmd.add('previous suggestion', () => prevSugg(), mo)
   Cmd.add('ok', () => ok(), mo)
 
   Em.on('ArrowUp', 'previous history item', mo)

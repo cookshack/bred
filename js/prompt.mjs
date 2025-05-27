@@ -611,11 +611,7 @@ function initPrompt2
 
         sugs = under.querySelectorAll('.bred-prompt-sug')
         if (sugs && sugs.length) {
-          let el, index, sug, img
-
-          img = sug0.firstElementChild.firstElementChild
-          img.alt = '→'
-          img.src = Icon.path('arrow-right')
+          let el, index, sug, img, href
 
           index = sug0.dataset.index
           if (index == null)
@@ -630,12 +626,24 @@ function initPrompt2
             index = 0
           sug = sugs[index]
           el = sug0.firstElementChild.nextElementSibling
-          el.innerText = sug.dataset.path
-          sug0.dataset.href = sug.dataset.path
+          href = sug.dataset.path
           sug0.dataset.index = index
+          sug0.dataset.href = href
 
           sugs.forEach(s => Css.remove(s, 'bred-prompt-candidate'))
           Css.add(sug, 'bred-prompt-candidate')
+
+          img = sug0.firstElementChild.firstElementChild
+          if (href.startsWith('search://')) {
+            el.innerText = href.slice('search://'.length)
+            img.alt = '🔍'
+            img.src = Icon.path('search')
+          }
+          else {
+            el.innerText = href
+            img.alt = '→'
+            img.src = Icon.path('arrow-right')
+          }
         }
       }
       else

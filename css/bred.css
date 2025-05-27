@@ -1435,6 +1435,7 @@ div.bred-prompt-sug {
   overflow-x: hidden;
   white-space: nowrap;
   display: flex;
+  align-items: center;
 }
 
 div.bred-prompt-candidate {

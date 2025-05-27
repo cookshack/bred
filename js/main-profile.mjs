@@ -42,9 +42,8 @@ function initHist
 
   function setDbVersion
   (ver) {
-    db.prepare("INSERT INTO meta (name, value) VALUES ('db_version', ?) ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value",
-               String(ver))
-      .run()
+    db.prepare("INSERT INTO meta (name, value) VALUES ('db_version', ?) ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value")
+      .run(ver)
   }
 
   function add
@@ -105,14 +104,7 @@ function initHist
   () {
     let st
 
-    // distinct hrefs with most recent access time
-    st = db.prepare(`WITH ranked_table AS (SELECT *,
-                                           MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
-                                           FROM visits)
-                     SELECT *
-                     FROM ranked_table
-                     WHERE id = first_occurrence_id
-                     ORDER BY time DESC`)
+    st = db.prepare('SELECT * FROM urls;')
     return st.all()
   }
 
@@ -145,10 +137,10 @@ function initHist
     max = 0
     urls.forEach(url => {
       if ((min == -1)
-          || (url.item.time < min))
-        min = url.item.time
-      if (url.item.time > max)
-        max = url.item.time
+          || (url.item.last < min))
+        min = url.item.last
+      if (url.item.last > max)
+        max = url.item.last
     })
 
     d(min)
@@ -157,7 +149,7 @@ function initHist
     if ((min >= 0) && (max >= 0) && (max > min)) {
       // Normalize times, give each url a composite score
       urls.forEach(url => {
-        url.scoreTime = (url.item.time - min) / (max - min)
+        url.scoreTime = (url.item.last - min) / (max - min)
         url.scoreFuse = (1 - url.score)
         url.scoreBred = (url.scoreFuse * weightFuse) + (url.scoreTime * weightTime)
       })
@@ -188,6 +180,22 @@ function initHist
       db.transaction(() => {
         db.prepare('ALTER TABLE urls RENAME TO visits').run()
         setDbVersion(1)
+      })()
+    }
+    if (ver == 1) {
+      d('Migrating: 1 to 2')
+      db.transaction(() => {
+        // distinct hrefs with most recent access time
+        db.prepare(`WITH ranked_table AS (SELECT *,
+                                          MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
+                                          FROM visits)
+                    INSERT INTO urls (type, href, title, hostname, port, pathname, search, hash, last, count)
+                    SELECT type, href, title, hostname, port, pathname, search, hash, time, 1
+                    FROM ranked_table
+                    WHERE id = first_occurrence_id
+                    ORDER BY time DESC`)
+          .run()
+        setDbVersion(2)
       })()
     }
     d('Check migration... done.')

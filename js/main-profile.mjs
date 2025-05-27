@@ -40,6 +40,13 @@ function initHist
 () {
   let path, db
 
+  function setDbVersion
+  (ver) {
+    db.prepare("INSERT INTO meta (name, value) VALUES ('db_version', ?) ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value",
+               String(ver))
+      .run()
+  }
+
   function add
   (href, spec) {
     let url
@@ -57,7 +64,7 @@ function initHist
     }
     catch {
     }
-    db.prepare('INSERT INTO urls (type, href, title, hostname, port, pathname, search, hash, time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    db.prepare('INSERT INTO visits (type, href, title, hostname, port, pathname, search, hash, time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
       .run(spec.type,
            href,
            spec.title,
@@ -75,7 +82,7 @@ function initHist
     let st
 
     st = db.prepare(`SELECT *
-                     FROM urls
+                     FROM visits
                      WHERE type = 'url'
                      AND (href LIKE ? OR title LIKE ?)
                      ORDER BY id DESC
@@ -90,7 +97,7 @@ function initHist
     // distinct hrefs with most recent access time
     st = db.prepare(`WITH ranked_table AS (SELECT *,
                                            MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
-                                           FROM urls)
+                                           FROM visits)
                      SELECT *
                      FROM ranked_table
                      WHERE id = first_occurrence_id
@@ -153,7 +160,24 @@ function initHist
   path = profile.dir + '/hist.db'
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
-  db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, time)').run()
+
+  db.prepare('CREATE TABLE IF NOT EXISTS meta (id INTEGER PRIMARY KEY, name, value, UNIQUE(name))').run()
+
+  {
+    let ver, row
+
+    // Migration
+
+    row = db.prepare("SELECT value FROM meta WHERE name = 'db_version'").get()
+    ver = row?.ver || 0
+    if (ver == 0)
+      db.transaction(() => {
+        db.prepare('ALTER TABLE urls RENAME TO visits').run()
+        setDbVersion(1)
+      })()
+  }
+
+  db.prepare('CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, time)').run()
   db.prepare('CREATE TABLE IF NOT EXISTS prompts (id INTEGER PRIMARY KEY, name, text, time)').run()
 
   hist = { add,

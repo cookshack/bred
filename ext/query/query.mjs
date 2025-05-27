@@ -607,12 +607,12 @@ function init
 
         frag = new globalThis.DocumentFragment()
         append(frag,
-               divCl('query-sug0',
-                     [ divCl('query-sug0-type', 'Search for: '),
-                       query || placeholder ]))
+               divCl('bred-prompt-sug0',
+                     [ divCl('bred-prompt-sug0-type', 'Search for'),
+                       divCl('bred-prompt-sug0-text', query || placeholder) ]))
         data.urls?.forEach(url => {
           append(frag,
-                 divCl('query-sug',
+                 divCl('bred-prompt-sug',
                        url.item.href,
                        { 'data-run': 'close demand',
                          'data-after': 'open link',

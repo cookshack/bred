@@ -597,19 +597,27 @@ function initPrompt2
   let mo
 
   function prevSugg
-  (nth) {
+  () {
     let p, under
 
     p = Pane.current()
     under = p.view.ele.querySelector('.bred-prompt-under')
     if (under) {
-      let sugg
+      let sug0
 
-      if (nth)
-        sugg = under.firstElementChild.nextElementSibling
-      if (sugg) {
-        p.buf.clear()
-        p.view.insert(sugg.dataset.path)
+      sug0 = under.querySelector('.bred-prompt-sug0')
+      if (sug0) {
+        let sugs
+
+        sugs = under.querySelectorAll('.bred-prompt-sug')
+        if (sugs && sugs.length) {
+          let el
+
+          sug0.firstElementChild.innerText = 'Visit'
+          el = sug0.firstElementChild.nextElementSibling
+          el.innerText = sugs[0].dataset.path
+          el.dataset.href = sugs[0].dataset.path
+        }
       }
       else
         Mess.say("That's all")
@@ -637,10 +645,18 @@ function initPrompt2
 
   function ok
   () {
-    let p, cb, term
+    let p, cb, under, term
 
     p = Pane.current()
-    term = p.text()
+    under = p.view.ele.querySelector('.bred-prompt-under')
+    if (under) {
+      let sug0
+
+      sug0 = under.querySelector('.bred-prompt-sug0')
+      if (sug0)
+        term = sug0.firstElementChild.nextElementSibling.dataset.href
+    }
+    term = term || p.text()
     if (term.length == 0)
       term = p.buf.placeholder
     cb = p.buf.vars('prompt').run

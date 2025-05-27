@@ -1407,6 +1407,15 @@ div.bred-welcome-rf-h-link:hover {
   height: 100%;
 }
 
+.bred-prompt-sug0 {
+  padding-bottom: 0.5rem;
+  display: flex;
+}
+
+.bred-prompt-sug0-type {
+  margin-right: 0.5rem;
+}
+
 .edW.bred-opener-w {
   margin-left: 1.6rem;
   width: calc(100% - 1.6rem);

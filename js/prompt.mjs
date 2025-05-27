@@ -611,9 +611,11 @@ function initPrompt2
 
         sugs = under.querySelectorAll('.bred-prompt-sug')
         if (sugs && sugs.length) {
-          let el, index, sug
+          let el, index, sug, img
 
-          sug0.firstElementChild.innerText = 'Visit'
+          img = sug0.firstElementChild.firstElementChild
+          img.alt = '→'
+          img.src = Icon.path('arrow-right')
 
           index = sug0.dataset.index
           if (index == null)

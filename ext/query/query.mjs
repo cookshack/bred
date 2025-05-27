@@ -608,7 +608,8 @@ function init
         frag = new globalThis.DocumentFragment()
         append(frag,
                divCl('bred-prompt-sug0',
-                     [ divCl('bred-prompt-sug0-type', 'Search for'),
+                     [ divCl('bred-prompt-sug0-type',
+                             img(Icon.path('search'), '🔍', 'filter-clr-text')),
                        divCl('bred-prompt-sug0-text', query || placeholder) ]))
         data.urls?.forEach(url => {
           append(frag,

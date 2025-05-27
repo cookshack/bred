@@ -1420,6 +1420,11 @@ div.bred-welcome-rf-h-link:hover {
   margin-right: 0.5rem;
 }
 
+.bred-prompt-sug0-type > img {
+  height: 1.2rem;
+  width: 1.2rem;
+}
+
 .bred-prompt-sug0-text {
   overflow-x: hidden;
   white-space: nowrap;

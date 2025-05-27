@@ -605,6 +605,7 @@ function init
       .then(data => {
         let frag
 
+        d(data)
         frag = new globalThis.DocumentFragment()
         append(frag,
                divCl('bred-prompt-sug0',

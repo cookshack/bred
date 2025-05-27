@@ -100,16 +100,54 @@ function initHist
 
   function suggest
   (query) {
-    let fuse, rows
+    let fuse, rows, urls, min, max, weightFuse, weightTime
+
+    d('SUGGEST')
+
+    weightTime = 0.3 // recency
+    weightFuse = 1 - weightTime
+
+    // Get all the urls
 
     rows = get(query)
 
+    // Fuzzy rank them
+
     fuse = new Fuse(rows,
                     { keys: [ 'title', 'hostname', 'port', 'pathname', 'search', 'hash' ],
+                      includeScore: true,
                       threshold: 0.6,
                       distance: 100,
-                      limit: 10 })
-    return { urls: fuse.search(query) }
+                      limit: 1000 })
+    urls = fuse.search(query)
+
+    // Get min and max time
+
+    min = -1
+    max = 0
+    urls.forEach(url => {
+      if ((min == -1)
+          || (url.item.time < min))
+        min = url.item.time
+      if (url.item.time > max)
+        max = url.item.time
+    })
+
+    d(min)
+    d(max)
+
+    if ((min >= 0) && (max >= 0) && (max > min)) {
+      // Normalize times, give each url a composite score
+      urls.forEach(url => {
+        url.scoreTime = (url.item.time - min) / (max - min)
+        url.scoreFuse = (1 - url.score)
+        url.scoreBred = (url.scoreFuse * weightFuse) + (url.scoreTime * weightTime)
+      })
+      // Sort by the composite score
+      urls.sort((u1, u2) => u2.bredScore - u1.bredScore)
+    }
+
+    return { urls: urls.slice(0, 10) }
   }
 
   path = profile.dir + '/hist.db'

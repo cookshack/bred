@@ -762,6 +762,10 @@ function init
                    Browse.browse(query)
                    return
                  }
+                 if (query.startsWith('file://')) {
+                   Pane.open(query)
+                   return
+                 }
                  search(query, { hist })
                })
   })

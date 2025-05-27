@@ -1407,8 +1407,14 @@ div.bred-welcome-rf-h-link:hover {
   height: 100%;
 }
 
+div.bred-prompt-sug {
+  color: var(--clr-text);
+}
+
 .bred-prompt-sug {
   background: var(--clr-bg);
+  padding: 0.2rem;
+  display: flex;
 }
 
 .bred-prompt-sug0 {

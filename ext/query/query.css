@@ -77,6 +77,15 @@
   padding-bottom: 0.25rem;
 }
 
+.query-sug0 {
+  padding-bottom: 0.5rem;
+  display: flex;
+}
+
+.query-sug0-type {
+  margin-right: 0.5rem;
+}
+
 .query-link,
 .query-ml-icon {
   margin-left: 0.2rem;

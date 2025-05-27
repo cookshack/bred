@@ -600,12 +600,16 @@ function init
   }
 
   function suggest
-  (under, query) {
+  (under, query, placeholder) {
     Tron.acmd('profile.hist.suggest', [ query ])
       .then(data => {
         let frag
 
         frag = new globalThis.DocumentFragment()
+        append(frag,
+               divCl('query-sug0',
+                     [ divCl('query-sug0-type', 'Search for: '),
+                       query || placeholder ]))
         data.urls?.forEach(url => {
           append(frag,
                  divCl('query-sug',

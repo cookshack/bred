@@ -115,15 +115,15 @@ function close
 
 export
 function ask
-(spec, // { hist, text, onReady, suggest, under, w }
+(spec, // { hist, text, onReady, placeholder, suggest, under, w }
  cb) { // (text)
-  let win, p, buf, area, tab, ml, under
+  let win, p, buf, area, tab, ml, under, placeholder
 
   function refresh
   () {
     if (spec.suggest) {
       Css.disable(under)
-      spec.suggest(under, buf.text())
+      spec.suggest(under, buf.text(), placeholder)
     }
   }
 
@@ -167,11 +167,12 @@ function ask
   ml = spec.w.querySelector('.edMl')
   if (ml)
     ml.innerText = spec.text || 'Enter text'
+  placeholder = spec.placeholder ?? spec.hist?.nth(0)?.toString()
   buf = Buf.make({ name: 'Prompt2',
                    modeKey: 'prompt2',
                    content: spec.w,
                    dir: p.dir,
-                   placeholder: spec.placeholder ?? spec.hist?.nth(0)?.toString() })
+                   placeholder })
   buf.vars('ed').fillParent = 0
   buf.opts.set('blankLines.enabled', 0)
   buf.opts.set('core.autocomplete.enabled', 0)
@@ -595,6 +596,26 @@ function initPrompt2
 () {
   let mo
 
+  function prevSugg
+  (nth) {
+    let p, under
+
+    p = Pane.current()
+    under = p.view.ele.querySelector('.bred-prompt-under')
+    if (under) {
+      let sugg
+
+      if (nth)
+        sugg = under.firstElementChild.nextElementSibling
+      if (sugg) {
+        p.buf.clear()
+        p.view.insert(sugg.dataset.path)
+      }
+      else
+        Mess.say("That's all")
+    }
+  }
+
   function prevHist
   (nth) {
     let p, prev, hist
@@ -637,6 +658,7 @@ function initPrompt2
   Cmd.add('close buffer', () => close(), mo)
   Cmd.add('next history item', () => prevHist(-1), mo)
   Cmd.add('previous history item', () => prevHist(), mo)
+  Cmd.add('next suggestion', () => prevSugg(-1), mo)
   Cmd.add('ok', () => ok(), mo)
 
   Em.on('ArrowUp', 'previous history item', mo)
@@ -645,6 +667,8 @@ function initPrompt2
   Em.on('A-n', 'next history item', mo)
   Em.on('C-c C-c', 'ok', mo)
   Em.on('C-g', 'close demand', mo)
+  Em.on('C-n', 'next suggestion', mo)
+  Em.on('C-p', 'previous suggestion', mo)
   Em.on('Escape', 'close demand', mo)
   Em.on('Enter', 'ok', mo)
 }

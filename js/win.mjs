@@ -156,7 +156,7 @@ function add
 (window, spec) { // { devtools, initCss }
   let win, ident
   let areas, context, main, menu
-  let diag, echo, el, outer, frameToggleL, frameToggleR, hover, mini, tip
+  let diag, echo, el, outer, frameToggleL, frameToggleR, menuI, hover, mini, tip
 
   function addArea
   (area) {
@@ -184,6 +184,10 @@ function add
                        img('img/open.svg', 'Open', 'filter-clr-text'),
                        { 'data-run': 'toggle frame right' })
 
+  menuI = divCl('mini-frame mini-icon onfill',
+                img(Icon.path('menu'), 'Menu', 'filter-clr-text'),
+                { 'data-run': 'menu' })
+
   hover = divCl('bred-hover')
 
   mini = divIdCl('mini', 'top',
@@ -198,6 +202,13 @@ function add
                              divCl('mini-icon onfill',
                                    img(Icon.path('welcome'), 'Welcome', 'filter-clr-text'),
                                    { 'data-run': 'welcome' }),
+                             divCl('bred-add-tab onfill',
+                                   img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
+                                   { 'data-run': 'add tab' }),
+                             divCl('bred-restart onfill',
+                                   img('img/restart.svg', 'Restart', 'filter-clr-text'),
+                                   { 'data-run': 'restart' }),
+                             menuI,
                              frameToggleR ]) ])
   outer = divId('outer')
   tip = divCl('bred-tip')
@@ -280,8 +291,7 @@ function add
     area = Area.add(win, 'bred-top')
 
     append(area.el,
-           [ win.menu.el,
-             win.mini ])
+           [ win.mini ])
     area.show()
 
     // hover

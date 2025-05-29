@@ -112,6 +112,9 @@ function path
     if (name == 'markdown')
       return 'lib/svg/devopicons/markdown.svg'
 
+    if (name == 'menu')
+      return 'lib/svg/material-icons/menu/materialicons/24px.svg'
+
     if (name == 'browse')
       return 'lib/svg/material-icons/open_in_browser/materialicons/24px.svg'
 

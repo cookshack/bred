@@ -95,13 +95,7 @@ function make
            places.el,
            divIdCl('menu-panel-mid', 'menu-panel'),
            divIdCl('menu-panel-end', 'menu-panel',
-                   [ divCl('bred-add-tab onfill',
-                           img('img/plus.svg', 'Add Tab', 'filter-clr-text'),
-                           { 'data-run': 'add tab' }),
-                     divCl('bred-restart onfill',
-                           img('img/restart.svg', 'Restart', 'filter-clr-text'),
-                           { 'data-run': 'restart' }),
-                     devtoolsToggle ]))
+                   [ devtoolsToggle ]))
   }
 
   function clear

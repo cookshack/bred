@@ -1,4 +1,4 @@
-import { append, div, divCl, divIdCl, img } from './dom.mjs'
+import { append, div, divCl, divIdCl } from './dom.mjs'
 
 import * as Area from './area.mjs'
 import * as Cmd from './cmd.mjs'
@@ -8,7 +8,6 @@ import * as Frame from './frame.mjs'
 import * as Pane from './pane.mjs'
 import * as Place from './place.mjs'
 import * as Tab from './tab.mjs'
-import * as Tron from './tron.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
@@ -54,8 +53,8 @@ function itemsEl
 
 export
 function make
-(devtools, win) {
-  let places, menu, devtoolsToggle
+(win) {
+  let places, menu
 
   function fill
   (el) {
@@ -94,8 +93,7 @@ function make
                                         itemsEl(item0.items))),
            places.el,
            divIdCl('menu-panel-mid', 'menu-panel'),
-           divIdCl('menu-panel-end', 'menu-panel',
-                   [ devtoolsToggle ]))
+           divIdCl('menu-panel-end', 'menu-panel'))
   }
 
   function clear
@@ -208,10 +206,6 @@ function make
                               { line: 1 },
                               { name: 'About Bred', cmd: 'about' } ] } ],
            //
-           get devtoolsToggle() {
-             return devtoolsToggle
-           },
-           //
            add,
            close,
            fill,
@@ -219,18 +213,6 @@ function make
            open0,
            places,
            toggle }
-
-  devtoolsToggle = divCl('bred-devtools onfill' + (devtools?.open ? ' bred-open' : ''),
-                         img('img/open2.svg', 'Toggle Devtools', 'filter-clr-text'),
-                         { 'data-run': 'toggle devtools' })
-
-  Tron.on('devtools', (err, d) => {
-    if (d.open)
-      Css.add(devtoolsToggle, 'bred-open')
-    else
-      Css.remove(devtoolsToggle, 'bred-open')
-    Css.enable(devtoolsToggle)
-  })
 
   menu.el = divCl('bred-menu')
   build()

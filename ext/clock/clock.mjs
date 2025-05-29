@@ -66,7 +66,7 @@ function init
   })
 
   time = div([], 'mini-time mini-em onfill', { 'data-run': 'clock' })
-  Panel.end('menu-panel-mid', time)
+  Panel.start('mini-panel', time)
   updateTime()
   timer = setInterval(updateTime, 5 * 1000)
 }

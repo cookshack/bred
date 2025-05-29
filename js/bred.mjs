@@ -239,10 +239,10 @@ function initCmds
     let win
 
     win = Win.current()
-    Css.disable(win.menu?.devtoolsToggle)
+    Css.disable(win.devtoolsToggle)
     Tron.cmd1('devtools.toggle', [], err => {
       if (err) {
-        Css.enable(win.menu?.devtoolsToggle)
+        Css.enable(win.devtoolsToggle)
         Mess.toss(err)
       }
     })
@@ -714,10 +714,10 @@ function initCmds
     if (f.panes.length <= 1) {
       if (Css.has(tab.frameLeft.el, 'retracted')
           && Css.has(tab.frameRight.el, 'retracted')) {
-        Css.disable(win.menu?.devtoolsToggle)
+        Css.disable(win.devtoolsToggle)
         Tron.cmd1('devtools.close', [], err => {
           if (err) {
-            Css.enable(win.menu?.devtoolsToggle)
+            Css.enable(win.devtoolsToggle)
             Mess.yell(err.message)
           }
         })

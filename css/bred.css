@@ -550,6 +550,7 @@ div.bred-menu {
   transform: translateY(100%);
   user-select: none;
   width: 100%;
+  padding-right: 0.5rem;
   background-color: var(--clr-fill);
   border-bottom: 1px solid var(--clr-bg);
   color: var(--clr-text);
@@ -578,7 +579,7 @@ div.bred-menu-item.bred-open {
 
 .bred-menu1 {
   position: absolute;
-  left: 0;
+  right: 0;
   bottom: -1px;
   border: 1px solid var(--clr-text);
   background: var(--clr-fill);

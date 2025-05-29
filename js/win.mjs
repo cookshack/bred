@@ -186,7 +186,7 @@ function add
 
   menuI = divCl('mini-frame mini-icon onfill',
                 img(Icon.path('menu'), 'Menu', 'filter-clr-text'),
-                { 'data-run': 'menu' })
+                { 'data-run': 'toggle menu' })
 
   hover = divCl('bred-hover')
 
@@ -291,7 +291,8 @@ function add
     area = Area.add(win, 'bred-top')
 
     append(area.el,
-           [ win.mini ])
+           [ win.menu.el,
+             win.mini ])
     area.show()
 
     // hover

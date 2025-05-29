@@ -360,6 +360,7 @@ textarea:focus-visible {
 }
 
 .bred-area.bred-top {
+  position: relative; /* for bred-menu */
   flex-direction: column;
   height: auto;
   z-index: var(--z-top);
@@ -543,17 +544,22 @@ textarea:focus-visible {
 }
 
 div.bred-menu {
-  position: relative; /* for .bred-restart */
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  transform: translateY(100%);
   user-select: none;
   width: 100%;
-  height: var(--height-menu);
-  min-height: var(--height-menu);
   background-color: var(--clr-fill);
   border-bottom: 1px solid var(--clr-bg);
   color: var(--clr-text);
 
+  display: none;
+}
+
+div.bred-menu.bred-open {
   display: flex;
-  align-items: center;
+  flex-direction: column;
 }
 
 div.bred-menu-item {

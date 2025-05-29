@@ -115,6 +115,20 @@ function make
   function open
   () {
     Css.add(menu.el, 'bred-open')
+  }
+
+  function toggle
+  () {
+    if (Css.has(menu.el, 'bred-open')) {
+      close()
+      return
+    }
+    open()
+  }
+
+  function open0
+  () {
+    Css.add(menu.el, 'bred-open')
     clear()
     for (let i = 0; i < menu.el.children.length; i++)
       menu.el.children[i].onmouseover = () => {
@@ -202,7 +216,9 @@ function make
            close,
            fill,
            open,
-           places }
+           open0,
+           places,
+           toggle }
 
   devtoolsToggle = divCl('bred-devtools onfill' + (devtools?.open ? ' bred-open' : ''),
                          img('img/open2.svg', 'Toggle Devtools', 'filter-clr-text'),

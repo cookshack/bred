@@ -360,6 +360,14 @@ function initCmds
     Win.current().menu.close()
   })
 
+  Cmd.add('open menu', () => {
+    Win.current().menu.open()
+  })
+
+  Cmd.add('toggle menu', () => {
+    Win.current().menu.toggle()
+  })
+
   Cmd.add('open menu item', (u, we) => {
     if (we.e.target.dataset.menu) {
       let el
@@ -375,7 +383,7 @@ function initCmds
           Css.remove(parent, 'bred-open')
         }
         else {
-          Win.current().menu.open()
+          Win.current().menu.open0()
           Css.add(parent, 'bred-open')
         }
       }

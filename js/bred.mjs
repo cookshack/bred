@@ -165,15 +165,22 @@ function initMouse
 
   function updateHover
   () {
-    if (target?.dataset?.run) {
+    function getText
+    (cmd) {
+      if (cmd == 'open link')
+        return Cmd.canon(cmd) + ': ' + target.dataset.path
+      if (cmd == 'open externally')
+        return Cmd.canon(cmd) + ': ' + target.dataset.url
+      return Cmd.canon(cmd)
+    }
+
+    if (target?.dataset?.run?.length) {
       let text
 
-      if (target?.dataset?.run == 'open link')
-        text = Cmd.canon(target.dataset.run) + ': ' + target.dataset.path
-      else if (target?.dataset?.run == 'open externally')
-        text = Cmd.canon(target.dataset.run) + ': ' + target.dataset.url
-      else
-        text = Cmd.canon(target?.dataset?.run)
+      text = getText(target.dataset.run) || 'ERR'
+      // Usually something like Close Demand, so too much info.
+      //if (target.dataset.after?.length)
+      //  text = text + ', then ' + (getText(target.dataset.after) || 'ERR')
       Tron.acmd('hover.on', [ text ])
       hover = 1
     }

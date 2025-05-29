@@ -559,7 +559,6 @@ div.bred-menu {
 
 div.bred-menu.bred-open {
   display: flex;
-  flex-direction: column;
   width: fit-content;
 }
 

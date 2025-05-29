@@ -102,6 +102,17 @@ function make
       Css.remove(menu.el.children[i], 'bred-open')
   }
 
+  function listen
+  () {
+    for (let i = 0; i < menu.el.children.length; i++)
+      menu.el.children[i].onmouseover = () => {
+        if (Css.has(menu.el.children[i], 'bred-open'))
+          return
+        clear()
+        Css.add(menu.el.children[i], 'bred-open')
+      }
+  }
+
   function close
   () {
     Css.remove(menu.el, 'bred-open')
@@ -113,6 +124,7 @@ function make
   function open
   () {
     Css.add(menu.el, 'bred-open')
+    listen()
   }
 
   function toggle
@@ -128,13 +140,7 @@ function make
   () {
     Css.add(menu.el, 'bred-open')
     clear()
-    for (let i = 0; i < menu.el.children.length; i++)
-      menu.el.children[i].onmouseover = () => {
-        if (Css.has(menu.el.children[i], 'bred-open'))
-          return
-        clear()
-        Css.add(menu.el.children[i], 'bred-open')
-      }
+    listen()
   }
 
   places = { el: menu0('Places'),

@@ -91,9 +91,7 @@ function make
     append(menu.el,
            menu.spec.map(item0 => menu0(item0.name,
                                         itemsEl(item0.items))),
-           places.el,
-           divIdCl('menu-panel-mid', 'menu-panel'),
-           divIdCl('menu-panel-end', 'menu-panel'))
+           places.el)
   }
 
   function clear

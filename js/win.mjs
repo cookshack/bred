@@ -10,7 +10,6 @@ import * as Icon from './icon.mjs'
 import * as Menu from './menu.mjs'
 import * as Pane from './pane.mjs'
 import * as Tab from './tab.mjs'
-import * as Tron from './tron.mjs'
 import * as Shell from './shell.mjs'
 import { d } from './mess.mjs'
 
@@ -156,7 +155,7 @@ export
 function add
 (window, spec) { // { devtools, initCss }
   let win, ident
-  let areas, devtoolsToggle, context, main, menu
+  let areas, context, main, menu
   let diag, echo, el, outer, frameToggleL, frameToggleR, menuI, hover, mini, tip
 
   function addArea
@@ -226,9 +225,6 @@ function add
           get context() {
             return context
           },
-          get devtoolsToggle() {
-            return devtoolsToggle
-          },
           get diag() {
             return diag
           },
@@ -279,18 +275,6 @@ function add
           },
           //
           add: addArea }
-
-  devtoolsToggle = divCl('bred-devtools onfill' + (spec.devtools?.open ? ' bred-open' : ''),
-                         img('img/open2.svg', 'Toggle Devtools', 'filter-clr-text'),
-                         { 'data-run': 'toggle devtools' })
-
-  Tron.on('devtools', (err, d) => {
-    if (d.open)
-      Css.add(devtoolsToggle, 'bred-open')
-    else
-      Css.remove(devtoolsToggle, 'bred-open')
-    Css.enable(devtoolsToggle)
-  })
 
   context = makeContext(win)
   menu = Menu.make(win)

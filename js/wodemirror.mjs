@@ -1853,9 +1853,9 @@ function initModeFns
 (mo) {
   function getCallers
   (view,
-   cb, // ({ node, def, callers })
+   cb, // ({ node, def, callers, err })
    cbSig) { // ({ sig })
-    let state
+    let state, err
 
     state = view.ed.state
     if (state) {
@@ -1872,7 +1872,9 @@ function initModeFns
                   cbSig)
       return
     }
-    return { err: 'Missing state' }
+    err = { err: 'Missing state' }
+    cb(err)
+    return err
   }
 
   function clear

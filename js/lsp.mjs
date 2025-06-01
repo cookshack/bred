@@ -7,7 +7,7 @@ let id, cbs
 
 function call
 (lang, path, // absolute
- bufId, method, params, cb) {
+ bufId, method, params, cb) { // (response)
   id = ++id
   if (cb)
     cbs[id] = cb
@@ -15,8 +15,9 @@ function call
   d({ params })
   Tron.cmd1('lsp.req', [ lang, path, bufId, method, id, params || {} ], err => {
     if (err) {
-      Mess.yell('lsp.req: ', err.message)
+      Mess.yell('ERR lsp.req: ' + err.message)
       delete cbs[id]
+      cb({ err })
       return
     }
   })
@@ -36,6 +37,13 @@ function callers
  cb, // ({ callers, def })
  cbSig) { // ({ sig })
   d('LSP callers')
+
+  function empty
+  () {
+    cb()
+    if (cbSig)
+      cbSig()
+  }
 
   if (avail(lang))
     call(lang,
@@ -93,12 +101,11 @@ function callers
                     cbSig({ sig: r3.result })
                   })
            }
-           else {
-             cb()
-             if (cbSig)
-               cbSig()
-           }
+           else
+             empty()
          })
+  else
+    empty()
 }
 
 function kindName
@@ -223,6 +230,8 @@ function init
 
   Tron.on('lsp', (err, data) => {
     d('LSP')
+    d(data?.response?.id)
+    d(data)
     if (data.log)
       Mess.log(data.log)
     if (data.response) {

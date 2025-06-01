@@ -294,6 +294,13 @@ function make
                      log('LSP STDERR: ')
                      d(String(data)?.substring(1, 1000))
                      process.stderr.write(data)
+                     if (data && String(data).trim().endsWith('Warning: Missing Content-Length header, or zero-length message.')) {
+                       d('MISS')
+                       if (win)
+                         win.webContents.send('lsp', { response: { err: String(data) } })
+                       else
+                         console.error('LSP MISSING: win')
+                     }
                    })
 
   encoder = new TextEncoder()

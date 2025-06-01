@@ -1192,6 +1192,7 @@ function viewReopen
         cb(view)
       if (whenReady)
         whenReady(view)
+      runOnCursors(view)
     })
   else
     // probably buf was switched out before init happened.

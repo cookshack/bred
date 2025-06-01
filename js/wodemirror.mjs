@@ -4239,6 +4239,8 @@ function initLangs
     lang.extensions = lang.extensions?.map(e => '.' + e)
     if (lang.id == 'dockerfile')
       lang.extensions = [ ...(lang.extensions || []), '.Dockerfile' ]
+    if (lang.id == 'latex')
+      lang.extensions = [ ...(lang.extensions || []), '.aux' ]
     if (lang.id == 'properties files')
       lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf' ]
     if (lang.id == patchModeKey())

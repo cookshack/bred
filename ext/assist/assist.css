@@ -88,6 +88,7 @@ div.assist-uri {
   padding: 0.25rem;
 }
 
+.assist-page > div,
 .assist-caller-text {
   white-space: nowrap;
 }

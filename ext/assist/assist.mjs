@@ -148,13 +148,17 @@ function init
 
         Ed.vforLines(view, line => {
           0 && d(line)
-          if (next)
+          if (next) {
+            let text
+
+            text = line.text.trim()
             append(el,
                    divCl('assist-page',
-                         [ div(line.text,
+                         [ div(text,
                                { 'data-run': 'open link',
                                  'data-path': view.buf.path,
                                  'data-line': line.number }) ]))
+          }
           if (line.text.startsWith(''))
             next = 1
           else

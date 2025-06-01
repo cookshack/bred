@@ -633,6 +633,11 @@ async function viewInitSpec
     cb(view)
 }
 
+function runOnCursors
+(view) {
+  Ed.onCursors.forEach(oc => oc.cb && oc.cb('cm', view))
+}
+
 function _viewInit
 (peer, view, text, modeWhenText, lineNum, whenReady, placeholder, spec) {
   let ed, buf, edWW, edW, opts, domEventHandlers, useText
@@ -826,7 +831,7 @@ function _viewInit
           diagnose(p?.win, diag)
       })
 
-      Ed.onCursors.forEach(oc => oc.cb && oc.cb('cm', view, update))
+      runOnCursors(view)
     }
 
     if (update.docChanged) {
@@ -1044,6 +1049,7 @@ function _viewInit
 
     if (whenReady)
       whenReady(view)
+    runOnCursors(view)
 
     return
   }
@@ -1130,6 +1136,7 @@ function _viewInit
 
       if (whenReady)
         whenReady(view)
+      runOnCursors(view)
 
       //ed.session.getUndoManager().reset()
 
@@ -1161,6 +1168,7 @@ function _viewInit
 
   decorate(view, buf.mode)
   Css.enable(view.ele)
+  runOnCursors(view)
   d('ready empty ed')
   view.ready = 1
 }

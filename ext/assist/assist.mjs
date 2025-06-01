@@ -96,11 +96,9 @@ function init
         append(el, link(def.name, def.uri, line))
       }
 
-      if (results?.callers) {
-        let el
-
-        el = body.querySelector('.assist-callers')
-        el.innerText = ''
+      el = body.querySelector('.assist-callers')
+      el.innerText = ''
+      if (results?.callers)
         results.callers.forEach(res => {
           append(el,
                  divCl('assist-caller',
@@ -117,7 +115,6 @@ function init
                                                           'data-line': lnum(fr.start.line),
                                                           'data-col': fr.start.character })) ]))
         })
-      }
     }
 
     function setSig

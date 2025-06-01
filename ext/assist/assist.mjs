@@ -80,14 +80,9 @@ function init
       top = body.querySelector('.assist-top')
 
       lang = top.querySelector('.assist-lang')
-      {
-        let name
-
-        name = view.buf.opt('core.lang')
-        lang.innerText = name
-        lang.dataset.run = 'Lang'
-        lang.dataset.id = name.toLowerCase()
-      }
+      lang.dataset.id = view.buf.opt('core.lang')
+      lang.innerText = lang.dataset.id
+      lang.dataset.run = 'Lang'
 
       off = top.querySelector('.assist-offset')
       off.innerText = view.offset

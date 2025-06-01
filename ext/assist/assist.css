@@ -85,6 +85,10 @@ div.assist-uri {
   padding: 0.25rem;
 }
 
+.assist-caller-text {
+  white-space: nowrap;
+}
+
 .assist-caller-num {
   background-color: var(--clr-fill);
 }

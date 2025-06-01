@@ -146,26 +146,33 @@ function init
       el.innerText = ''
 
       if (view.ed) {
-        let next
+        let next, point, prev
 
+        prev = { start: Ed.offToBep(view, 0) }
+        point = view.bep
         Ed.vforLines(view, line => {
           0 && d(line)
           if (next) {
             let text
 
+            if (Ed.bepLtEq(prev.start, point) && Ed.bepGt(line.from, point))
+              Css.add(prev.el, 'assist-page-current')
             text = line.text.trim()
-            append(el,
-                   divCl('assist-page',
-                         [ div(text,
-                               { 'data-run': 'open link',
-                                 'data-path': view.buf.path,
-                                 'data-line': line.number }) ]))
+            prev = { start: line.from,
+                     el: divCl('assist-page',
+                               [ div(text,
+                                     { 'data-run': 'open link',
+                                       'data-path': view.buf.path,
+                                       'data-line': line.number }) ]) }
+            append(el, prev.el)
           }
           if (line.text.startsWith(''))
             next = 1
           else
             next = 0
         })
+        if (prev.el && Ed.bepLtEq(prev.start, point))
+          Css.add(prev.el, 'assist-page-current')
       }
     }
 

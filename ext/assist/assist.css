@@ -96,6 +96,14 @@ div.assist-uri {
   white-space: nowrap;
 }
 
+.assist-page > div {
+  color: var(--clr-text);
+}
+
+.assist-page-current > div {
+  color: var(--clr-emph);
+}
+
 .assist-caller-num {
   background-color: var(--clr-fill);
 }

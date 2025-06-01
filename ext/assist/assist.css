@@ -43,12 +43,15 @@
 .assist-callers-h,
 .assist-callers,
 .assist-def-h,
-.assist-def {
+.assist-def,
+.assist-pages-h,
+.assist-pages {
   padding: 0.25rem;
 }
 
 .assist-callers-h,
-.assist-def-h {
+.assist-def-h,
+.assist-pages-h {
   margin-top: 0.5rem;
   background-color: var(--clr-fill);
   grid-column: 1 / span 2;

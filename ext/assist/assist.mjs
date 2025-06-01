@@ -12,7 +12,7 @@ import * as Pane from '../../js/pane.mjs'
 import * as Panel from '../../js/panel.mjs'
 import * as U from '../../js/util.mjs'
 import * as Win from '../../js/win.mjs'
-//import { d } from '../../js/mess.mjs'
+import { d } from '../../js/mess.mjs'
 
 let onCursor, icon
 
@@ -135,7 +135,36 @@ function init
       }
     }
 
+    function setPages
+    () {
+      let el, body
+
+      body = v.ele.querySelector('.assist-main-body')
+      el = body.querySelector('.assist-pages')
+      el.innerText = ''
+
+      if (view.ed) {
+        let next
+
+        Ed.vforLines(view, line => {
+          0 && d(line)
+          if (next)
+            append(el,
+                   divCl('assist-page',
+                         [ div(line.text,
+                               { 'data-run': 'open link',
+                                 'data-path': view.buf.path,
+                                 'data-line': line.number }) ]))
+          if (line.text.startsWith(''))
+            next = 1
+          else
+            next = 0
+        })
+      }
+    }
+
     view.getCallers(setDefCaller, setSig)
+    setPages()
   }
 
   function update
@@ -161,7 +190,9 @@ function init
            divCl('assist-def-h', 'Def'),
            divCl('assist-def'),
            divCl('assist-callers-h', 'Callers'),
-           divCl('assist-callers'))
+           divCl('assist-callers'),
+           divCl('assist-pages-h', 'Pages'),
+           divCl('assist-pages'))
 
     refresh(view, p.view)
   }

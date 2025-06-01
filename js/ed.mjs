@@ -1016,6 +1016,13 @@ function pageBackwardOrSelf
 }
 
 export
+function vforLines
+(view, cb) { // (line)
+  if (Backend.vforLines)
+    Backend.vforLines(view, cb)
+}
+
+export
 function vwordForward
 (view, u) {
   let backward

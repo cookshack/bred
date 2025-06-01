@@ -3542,6 +3542,21 @@ function vtokenAt
 }
 
 export
+function vforLines(view, cb) { // (line)
+  let bep, end
+
+  bep = 0
+  end = vgetBepEnd(view)
+  while (bep <= end) {
+    let line
+
+    line = view.ed.state.doc.lineAt(bep)
+    cb(line)
+    bep = line.to + 1
+  }
+}
+
+export
 function clearDecorMatch
 (view, decorParent) {
   if (decorParent.decorMatch) {

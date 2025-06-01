@@ -53,7 +53,7 @@ function init
 
     function setDefCaller
     (results) {
-      let lang, off, tok, el, body
+      let lang, off, tok, el, body, top
 
       function lnum
       (num) {
@@ -77,13 +77,15 @@ function init
       body = v.ele.querySelector('.assist-main-body')
       Css.expand(body)
 
-      lang = body.querySelector('.assist-lang')
+      top = body.querySelector('.assist-top')
+
+      lang = top.querySelector('.assist-lang')
       lang.innerText = view.buf.opt('core.lang')
 
-      off = body.querySelector('.assist-offset')
+      off = top.querySelector('.assist-offset')
       off.innerText = view.offset
 
-      tok = body.querySelector('.assist-tok')
+      tok = top.querySelector('.assist-tok')
       tok.innerText = results?.node?.name
 
       el = body.querySelector('.assist-def')
@@ -187,9 +189,10 @@ function init
     p = view.win.frame1.pane
 
     append(body,
-           div('Lang'), divCl('assist-lang'),
-           div('Offset'), divCl('assist-offset'),
-           div('Token'), divCl('assist-tok'),
+           divCl('assist-top',
+                 [ div('Lang'), divCl('assist-lang'),
+                   div('Offset'), divCl('assist-offset'),
+                   div('Token'), divCl('assist-tok') ]),
            divCl('assist-sig'),
            divCl('assist-def-h', 'Def'),
            divCl('assist-def'),

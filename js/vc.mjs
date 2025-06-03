@@ -1155,6 +1155,11 @@ function init
     git('git fetch --all --tags --prune')
   }
 
+  function branch
+  () {
+    git('git branch --all', 'branch')
+  }
+
   moB = Mode.add('branch', { viewInitSpec: Ed.viewInitSpec,
                              viewCopy: Ed.viewCopy,
                              initFns: Ed.initModeFns,
@@ -1168,6 +1173,7 @@ function init
 
   Em.on('+', 'branch add', moB)
   Em.on('*', 'branch *', moB)
+  Em.on('g', 'vc branch', moB)
   Em.on('m', 'branch main', moB)
   Em.on('u', 'branch update', moB)
   Em.on('s', 'branch switch', moB)
@@ -1181,7 +1187,7 @@ function init
   initEqual()
   initStash()
 
-  Cmd.add('vc branch', () => git('git branch --all', 'branch'))
+  Cmd.add('vc branch', () => branch())
   Cmd.add('vc pull', () => git('git-pull-with-name'))
   Cmd.add('vc push', () => git('git push origin HEAD'))
   Cmd.add('vc reset', () => reset())

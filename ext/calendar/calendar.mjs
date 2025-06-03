@@ -29,14 +29,17 @@ function init
       //d("last: " + last)
       last = last.getDate()
       if (last >= 1) {
-        let days, first
+        let day, days, first
 
         days = []
         first = new Date(yr, mo, 1)
         //d("first: " + first)
 
         // add days of previous month to fill back to monday
-        for (let day = first.getDay(); day > 1; day--)
+        day = first.getDay() // 0 sun, 1 mon
+        if (day == 0)
+          day = 7
+        for (; day > 1; day--)
           days.push(divCl('calendar-day'))
         // add all days of month
         for (let day = 1; day <= last; day++)

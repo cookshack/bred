@@ -782,6 +782,8 @@ function _viewInit
   }
 
   updateListener = CMView.EditorView.updateListener.of(update => {
+    let curse
+
     function posChanged
     () {
       if (update.state.selection.main.head == update.startState.selection.main.head)
@@ -831,7 +833,7 @@ function _viewInit
           diagnose(p?.win, diag)
       })
 
-      runOnCursors(view)
+      curse = 1
     }
 
     if (update.docChanged) {
@@ -844,6 +846,8 @@ function _viewInit
 
       if (0)
         d('tell lsp')
+
+      curse = 1
     }
 
     if (update.focusChanged) {
@@ -857,6 +861,9 @@ function _viewInit
         })
 
     }
+
+    if (curse)
+      runOnCursors(view)
   })
 
   domEventHandlers = {

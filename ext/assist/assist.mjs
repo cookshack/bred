@@ -37,6 +37,8 @@ function divW
 export
 function init
 () {
+  let tout
+
   function refresh
   (v, // assist
    view) { // target
@@ -184,10 +186,16 @@ function init
 
   function update
   (view) {
-    Buf.forEach(b => {
-      if (b.mode.key == 'assist')
-        b.views.forEach(v => refresh(v, view))
-    })
+    if (tout)
+      clearTimeout(tout)
+    tout = setTimeout(() => {
+      Buf.forEach(b => {
+        if (b.mode.key == 'assist')
+          b.views.forEach(v => refresh(v, view))
+      })
+      tout = 0
+    },
+                      360)
   }
 
   function viewInitSpec

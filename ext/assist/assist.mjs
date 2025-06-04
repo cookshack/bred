@@ -195,6 +195,8 @@ function init
     (extra) {
       if (extra.head)
         append(body, divCl('assist-extra-h assist-' + extra.key + '-h', extra.head()))
+      if (extra.co)
+        append(body, divCl('assist-extra assist-' + extra.key, extra.co(view)))
     }
 
     body = v.ele.querySelector('.assist-main-body')

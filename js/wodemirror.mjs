@@ -1,4 +1,4 @@
-import { button, divCl, span, img } from './dom.mjs'
+import { append, button, div, divCl, span, img } from './dom.mjs'
 
 import * as Area from './area.mjs'
 import * as Buf from './buf.mjs'
@@ -4299,8 +4299,32 @@ function initLangs
                                head() {
                                  return 'Files'
                                },
-                               co() {
-                                 return 'xx'
+                               co(view) {
+                                 let point, prev, el
+
+                                 el = new globalThis.DocumentFragment()
+                                 prev = { start: Ed.offToBep(view, 0) }
+                                 point = view.bep
+                                 Ed.vforLines(view, line => {
+                                   if (line.text.startsWith('---')) {
+                                     let text
+
+                                     if (Ed.bepLtEq(prev.start, point) && Ed.bepGt(line.from, point))
+                                       Css.add(prev.el, 'assist-patch-files-current')
+                                     text = line.text.slice(3).trim()
+                                     prev = { start: line.from,
+                                              el: divCl('assist-patch-files-file',
+                                                        [ div(text,
+                                                              { 'data-run': 'open link',
+                                                                'data-path': view.buf.path,
+                                                                'data-line': line.number }) ]) }
+                                     append(el, prev.el)
+                                   }
+                                 })
+                                 if (prev.el && Ed.bepLtEq(prev.start, point))
+                                   Css.add(prev.el, 'assist-patch-files-current')
+
+                                 return el
                                } })
     }
     lang.path = opt.path

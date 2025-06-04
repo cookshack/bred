@@ -4294,6 +4294,14 @@ function initLangs
     if (lang.id == patchModeKey()) {
       lang.extensions = [ ...(lang.extensions || []), '.PATCH', '.rej' ]
       opt.assist.pages = 0
+      opt.assist.extras = []
+      opt.assist.extras.push({ key: 'patch-files',
+                               head() {
+                                 return 'Files'
+                               },
+                               co() {
+                                 return 'xx'
+                               } })
     }
     lang.path = opt.path
     if (opt.firstLine)

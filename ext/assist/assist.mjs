@@ -42,6 +42,8 @@ function init
   function refresh
   (v, // assist
    view) { // target
+    let body
+
     function uriPath
     (uri) {
       let home, path
@@ -55,7 +57,7 @@ function init
 
     function setDefCaller
     (results) {
-      let lang, off, tok, el, body, top
+      let lang, off, tok, el, top
 
       function lnum
       (num) {
@@ -76,7 +78,6 @@ function init
 
       }
 
-      body = v.ele.querySelector('.assist-main-body')
       Css.expand(body)
 
       top = body.querySelector('.assist-top')
@@ -125,9 +126,8 @@ function init
 
     function setSig
     (results) {
-      let el, body
+      let el
 
-      body = v.ele.querySelector('.assist-main-body')
       Css.expand(body)
 
       el = body.querySelector('.assist-sig')
@@ -143,9 +143,8 @@ function init
 
     function setPages
     () {
-      let el, head, body
+      let el, head
 
-      body = v.ele.querySelector('.assist-main-body')
       head = body.querySelector('.assist-pages-h')
       el = body.querySelector('.assist-pages')
 
@@ -192,8 +191,21 @@ function init
       }
     }
 
+    function setExtra
+    (extra) {
+      if (extra.head)
+        append(body, divCl('assist-extra-h assist-' + extra.key + '-h', extra.head()))
+    }
+
+    body = v.ele.querySelector('.assist-main-body')
+
     view.getCallers(setDefCaller, setSig)
+
     setPages()
+
+    body.querySelectorAll('.assist-extra-h').forEach(h => h.remove())
+    body.querySelectorAll('.assist-extra').forEach(e => e.remove())
+    view.buf.mode.assist.extras?.forEach(setExtra)
   }
 
   function update

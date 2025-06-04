@@ -4026,7 +4026,8 @@ function addMode
   key = modeFromLang(lang.id)
   d('adding mode for ' + lang.id + ' with exts: ' + exts)
   mode = Mode.add(key,
-                  { name: key,
+                  { assist: spec.assist,
+                    name: key,
                     viewInitSpec,
                     viewCopy,
                     initFns: Ed.initModeFns,
@@ -4280,6 +4281,8 @@ function initLangs
   (langs, lang, ed, opt) {
     //d('lang: ' + lang.name + ' (' + lang.id + ')')
     opt = opt || {}
+    opt.assist = opt.assist ?? {}
+    opt.assist.pages = opt.assist.pages ?? 1
     lang.id = lang.name.toLowerCase()
     lang.extensions = lang.extensions?.map(e => '.' + e)
     if (lang.id == 'dockerfile')
@@ -4288,8 +4291,10 @@ function initLangs
       lang.extensions = [ ...(lang.extensions || []), '.aux' ]
     if (lang.id == 'properties files')
       lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf' ]
-    if (lang.id == patchModeKey())
+    if (lang.id == patchModeKey()) {
       lang.extensions = [ ...(lang.extensions || []), '.PATCH', '.rej' ]
+      opt.assist.pages = 0
+    }
     lang.path = opt.path
     if (opt.firstLine)
       lang.firstLine = opt.firstLine

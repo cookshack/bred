@@ -114,6 +114,8 @@ div.assist-uri {
   background-color: var(--clr-fill);
 }
 
+.assist-pages-h.retracted,
+.assist-pages.retracted,
 .assist-main-body.retracted {
   display: none;
 }

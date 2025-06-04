@@ -69,6 +69,7 @@ function add
     modes.push(m)
   }
 
+  m.assist = spec.assist || {}
   m.opts = Opt.mode(m)
   m.key = key
   m.name = key ? (spec.name || Buf.capitalize(key)) : ''

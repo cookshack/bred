@@ -143,10 +143,22 @@ function init
 
     function setPages
     () {
-      let el, body
+      let el, head, body
 
       body = v.ele.querySelector('.assist-main-body')
+      head = body.querySelector('.assist-pages-h')
       el = body.querySelector('.assist-pages')
+
+      if (view.buf.mode.assist.pages) {
+        Css.expand(head)
+        Css.expand(el)
+      }
+      else {
+        Css.retract(head)
+        Css.retract(el)
+        return
+      }
+
       el.innerText = ''
 
       if (view.ed) {

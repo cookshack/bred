@@ -33,11 +33,11 @@ export let backend
 export let ctags
 
 let bepRow, bepCol, bepGt, bepGtEq, bepLt, bepLtEq, posRow, posCol, tokenRe, nonTokenRe, onCursors
-let bepToPos, offToBep
+let bepToPos, offToBep, posToBep
 let pageBreakRe, pageCmds
 
 export { bepRow, bepCol, bepGt, bepGtEq, bepLt, bepLtEq, posRow, posCol, tokenRe, nonTokenRe, onCursors }
-export { bepToPos, offToBep }
+export { bepToPos, offToBep, posToBep }
 
 mimeByExt = mbe
 
@@ -1298,6 +1298,7 @@ function init
     bepLtEq = Backend.bepLtEq
     bepToPos = Backend.bepToPos
     offToBep = Backend.offToBep
+    posToBep = Backend.posToBep
     posRow = Backend.posRow
     posCol = Backend.posCol
     viewCopy = Backend.viewCopy

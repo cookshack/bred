@@ -420,15 +420,17 @@ function initEqual
     while (1) {
       let line
 
-      d(pos)
-      if (Ed.posRow(pos) >= end)
+      if (Ed.posRow(pos) >= end) {
+        p.view.bufEnd()
         return
+      }
       line = p.view.lineAt(pos)
       d(line)
-      if (line.startsWith('@@'))
+      if (line.startsWith('@@')) {
+        p.view.bep = Ed.posToBep(p.view, pos)
         return
+      }
       Ed.posRowIncr(pos)
-      p.view.lineNext()
     }
   }
 

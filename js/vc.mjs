@@ -232,6 +232,33 @@ function initEqual
 () {
   let mo
 
+  function nextH
+  () {
+    let p, pos, end
+
+    p = Pane.current()
+    p.view.lineStart()
+    p.view.lineNext()
+    pos = p.view.pos
+    end = p.view.len
+
+    while (1) {
+      let line
+
+      if (Ed.posRow(pos) >= end) {
+        p.view.bufEnd()
+        return
+      }
+      line = p.view.lineAt(pos)
+      d(line)
+      if (line.startsWith('@@')) {
+        p.view.bep = Ed.posToBep(p.view, pos)
+        return
+      }
+      Ed.posRowIncr(pos)
+    }
+  }
+
   function prevH
   () {
     let p, pos
@@ -243,14 +270,17 @@ function initEqual
     while (1) {
       let line
 
-      if (Ed.posRow(pos) <= 0)
+      if (Ed.posRow(pos) <= 0) {
+        p.view.bufStart()
         return
+      }
 
       line = p.view.lineAt(pos)
-      if (line.startsWith('@@'))
+      if (line.startsWith('@@')) {
+        p.view.bep = Ed.posToBep(p.view, pos)
         return
+      }
       Ed.posRowDecr(pos)
-      p.view.linePrev()
     }
   }
 
@@ -405,33 +435,6 @@ function initEqual
         })
       })
     })
-  }
-
-  function nextH
-  () {
-    let p, pos, end
-
-    p = Pane.current()
-    p.view.lineStart()
-    p.view.lineNext()
-    pos = p.view.pos
-    end = p.view.len
-
-    while (1) {
-      let line
-
-      if (Ed.posRow(pos) >= end) {
-        p.view.bufEnd()
-        return
-      }
-      line = p.view.lineAt(pos)
-      d(line)
-      if (line.startsWith('@@')) {
-        p.view.bep = Ed.posToBep(p.view, pos)
-        return
-      }
-      Ed.posRowIncr(pos)
-    }
   }
 
   function prev

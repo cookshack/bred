@@ -213,7 +213,7 @@ function init
 
       u8es[0].innerText = u8Hex(char.charCodeAt(0))
       u8es[1].innerText = char
-      u8s = p.view.buf.vars('hex').u8s || Mess.throw('missing u8s')
+      u8s = p.view.buf.vars('hex').u8s || Mess.toss('missing u8s')
       addr = u8es[0].dataset.addr
       u8s[addr] = char.charCodeAt(0)
       forward(1)
@@ -391,7 +391,7 @@ function init
       let u8s, str
 
       Css.disable(view.ele)
-      u8s = view.buf.vars('hex').u8s || Mess.throw('missing u8s')
+      u8s = view.buf.vars('hex').u8s || Mess.toss('missing u8s')
       str = decoder.decode(u8s)
       Tron.cmd('file.save', [ Loc.make(view.buf.path).expand(), str ], (err, data) => {
         Css.enable(view.ele)

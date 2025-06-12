@@ -374,7 +374,7 @@ function initCssRules
     let b, p, tab
 
     p = Pane.current(Win.current().frame1)
-    tab = p.frame?.tab || Mess.throw('Tab missing')
+    tab = p.frame?.tab || Mess.toss('Tab missing')
     if (Css.has(tab.frameRight?.el, 'retracted'))
       Cmd.run('toggle frame right')
 
@@ -611,7 +611,7 @@ function initDom
     let b, p, tab
 
     p = Pane.current(Win.current().frame1)
-    tab = p.frame?.tab || Mess.throw('Tab missing')
+    tab = p.frame?.tab || Mess.toss('Tab missing')
     if (Css.has(tab.frameRight?.el, 'retracted'))
       Cmd.run('toggle frame right')
 

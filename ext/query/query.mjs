@@ -303,7 +303,7 @@ function init
         })
       }
 
-      reader = response.body?.getReader() || Mess.throw('Error reading response body')
+      reader = response.body?.getReader() || Mess.toss('Error reading response body')
 
       decoder = new TextDecoder()
 
@@ -314,7 +314,7 @@ function init
       buf.vars('query').cancel = cancel
     }
 
-    prompt.length || Mess.throw('empty prompt')
+    prompt.length || Mess.toss('empty prompt')
 
     model = model || 'meta-llama/llama-3.3-70b-instruct:free'
 
@@ -336,7 +336,7 @@ function init
             })
           })
       .then(response => {
-        response.ok || Mess.throw('fetch failed')
+        response.ok || Mess.toss('fetch failed')
         return stream(response)
       })
       .catch(err => {

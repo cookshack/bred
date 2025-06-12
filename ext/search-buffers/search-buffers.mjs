@@ -123,9 +123,9 @@ function init
     let p, needle
 
     p = Pane.current()
-    needle = p.buf.vars('Search Buffers').needle ?? Mess.throw('Missing needle')
-    needle.length || Mess.throw('Empty needle')
-    Mess.throw('FIX')
+    needle = p.buf.vars('Search Buffers').needle ?? Mess.toss('Missing needle')
+    needle.length || Mess.toss('Empty needle')
+    Mess.toss('FIX')
   }
 
   function prompt

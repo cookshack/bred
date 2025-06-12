@@ -43,8 +43,8 @@ function init
     let p, needle
 
     p = Pane.current()
-    needle = p.buf.vars('sr').needle ?? Mess.throw('Missing needle')
-    needle.length || Mess.throw('Empty needle')
+    needle = p.buf.vars('sr').needle ?? Mess.toss('Missing needle')
+    needle.length || Mess.toss('Empty needle')
     if (U.defined(p.buf.vars('shell').code)) {
       p.buf.clear()
       Shell.run(p.dir,

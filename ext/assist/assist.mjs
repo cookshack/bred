@@ -251,7 +251,7 @@ function init
   () {
     let found, p, tab
 
-    tab = Win.current().frame1.tab || Mess.throw('Tab missing')
+    tab = Win.current().frame1.tab || Mess.toss('Tab missing')
     tab.framesRight[1]?.retract()
     p = Pane.current(tab.frameRight)
 

@@ -586,6 +586,7 @@ function initEqual
 
   Em.on('a', 'Apply Hunk', mo)
   Em.on('e', 'Goto Source', mo)
+  Em.on('g', 'Vc Equal', mo)
   Em.on('n', 'Next Hunk', mo)
   Em.on('o', 'Goto Source In Other Pane', mo)
   Em.on('p', 'Previous Hunk', mo)

@@ -4290,7 +4290,7 @@ function initLangs
     if (lang.id == 'latex')
       lang.extensions = [ ...(lang.extensions || []), '.aux' ]
     if (lang.id == 'properties files')
-      lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf' ]
+      lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf', '.service' ]
     if (lang.id == patchModeKey()) {
       lang.extensions = [ ...(lang.extensions || []), '.PATCH', '.rej' ]
       opt.assist.pages = 0

@@ -1875,6 +1875,10 @@ div.cm-line.cm-activeLine::after {
   background-color: var(--background-color);
 }
 
+.bred-ed-link {
+  cursor: pointer;
+}
+
 .disabled {
   opacity: 0.5;
   pointer-events: none;

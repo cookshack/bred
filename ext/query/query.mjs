@@ -219,10 +219,18 @@ function init
 
   function appendTool
   (buf, tool) {
-    buf.vars('query').appending = 1
-    buf.append('Run ' + tool.name + '?\n')
-    buf.vars('query').appending = 0
-    buf.vars('query').promptEnd = buf.bepEnd
+    buf.views.forEach(view => {
+      let toolW, toolName
+
+      toolW = view.ele.querySelector('.query-tool-w')
+      toolName = toolW.querySelector('.query-tool-name')
+      toolName.innerText = tool.name
+      Css.expand(toolW)
+    })
+    //buf.vars('query').appending = 1
+    //buf.append('Run ' + tool.name + '? [*Y*es](#yes) [*N*o](#no)')
+    //buf.vars('query').appending = 0
+    //buf.vars('query').promptEnd = buf.bepEnd
   }
 
   function makeExtRo
@@ -710,6 +718,16 @@ function init
                    divCl('ml-close') ])
   }
 
+  function accept
+  () {
+    d('ac')
+  }
+
+  function reject
+  () {
+    d('re')
+  }
+
   Cmd.add('stop response', () => {
     let p
 
@@ -738,10 +756,24 @@ function init
                  if (buf)
                    buf.dir = p.dir
                  else {
-                   let w
+                   let w, toolW, toolName
 
-                   w = Ed.divW(0, 0, { ml: divMl(model, prompt) })
+                   toolName = divCl('query-tool-name')
+                   toolW = divCl('query-tool-w retracted',
+                                 [ div([ 'Run ', toolName, '?' ]),
+                                   divCl('query-tool-y',
+                                         button('Yes',
+                                                'query-tool-button',
+                                                { 'data-run': 'accept tool' })),
+                                   divCl('query-tool-n',
+                                         button('No',
+                                                'query-tool-button',
+                                                { 'data-run': 'reject tool' })) ])
+                   w = Ed.divW(0, 0,
+                               { ml: divMl(model, prompt),
+                                 extraCo: toolW })
                    buf = Buf.add(name, 'richdown', w, p.dir)
+                   buf.vars('ed').fillParent = 0
                    buf.addMode('chat')
                    //buf.addMode('view')
                    buf.icon = 'chat'
@@ -774,7 +806,7 @@ function init
                         tool => {
                           d('cb TOOL')
                           appendTool(buf, tool)
-                          done(buf)
+                          //done(buf)
                         })
                  })
                })
@@ -870,10 +902,12 @@ function init
                                        make: () => extRo,
                                        part: new CMState.Compartment } ] })
 
+  Cmd.add('accept tool', () => accept(), mo)
   Cmd.add('chat more', () => chatMore(), chMo)
   Cmd.add('enter', () => enter(), chMo)
   Cmd.add('next history item', () => prevHist(-1), mo)
   Cmd.add('previous history item', () => prevHist(), mo)
+  Cmd.add('reject tool', () => reject(), mo)
 
   Em.on('+', 'chat more', chMo)
   Em.on('Enter', 'enter', chMo)

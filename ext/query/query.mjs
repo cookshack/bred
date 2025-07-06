@@ -165,10 +165,10 @@ function search
 }
 
 async function searchGutenbergBooks
-(terms) {
+(args) {
   let response, data
 
-  response = await fetch('https://gutendex.com/books?search=' + terms.join(' '))
+  response = await fetch('https://gutendex.com/books?search=' + args.search_terms.join(' '))
   data = await response.json()
   return data.results.map(book => ({ id: book.id,
                                      title: book.title,
@@ -290,7 +290,13 @@ function init
 
       function yes
       () {
-        d('y')
+        tool.cb().then(res => {
+          d(res)
+          buf.vars('query').msgs.push({ role: 'tool',
+                                        toolCallId: tool.id,
+                                        name: tool.name,
+                                        content: JSON.stringify(res) })
+        })
       }
 
       function read
@@ -355,7 +361,12 @@ function init
                         d('ERR already seen call.function.name')
                       else
                         tool = { args: call.function.arguments || '',
-                                 cb: toolMap[call.function.name],
+                                 cb() {
+                                   let json
+
+                                   json = JSON.parse(tool.args)
+                                   return toolMap[call.function.name](json)
+                                 },
                                  id: call.id,
                                  name: call.function.name,
                                  //

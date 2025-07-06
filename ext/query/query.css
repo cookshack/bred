@@ -109,6 +109,7 @@
   padding: 1rem;
   display: flex;
   align-items: center;
+  background-color: var(--clr-bg);
 }
 
 .query-tool-w > div {

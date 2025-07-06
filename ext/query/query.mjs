@@ -304,6 +304,7 @@ function init
                                         toolCallId: tool.id,
                                         name: tool.name,
                                         content: JSON.stringify(res) })
+          go()
         })
       }
 
@@ -410,35 +411,40 @@ function init
       buf.vars('query').cancel = cancel
     }
 
+    function go
+    () {
+      fetch('https://openrouter.ai/api/v1/chat/completions',
+            { method: 'POST',
+              headers: {
+                Authorization: 'Bearer ' + key,
+                'Content-Type': 'application/json'
+              },
+
+              body: JSON.stringify({
+                model,
+                messages: [ { role: 'system',
+                              content: 'You are a helpful assistant.' },
+                            ...msgs ],
+                stream: true,
+                tools
+              })
+            })
+        .then(response => {
+          response.ok || Mess.toss('fetch failed')
+          return stream(response)
+        })
+        .catch(err => {
+          Mess.yell('fetch: ' + err.message)
+        })
+    }
+
     prompt.length || Mess.toss('empty prompt')
 
     model = model || 'meta-llama/llama-3.3-70b-instruct:free'
 
     msgs.push({ role: 'user', content: prompt })
 
-    fetch('https://openrouter.ai/api/v1/chat/completions',
-          { method: 'POST',
-            headers: {
-              Authorization: 'Bearer ' + key,
-              'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify({
-              model,
-              messages: [ { role: 'system',
-                            content: 'You are a helpful assistant.' },
-                          ...msgs ],
-              stream: true,
-              tools
-            })
-          })
-      .then(response => {
-        response.ok || Mess.toss('fetch failed')
-        return stream(response)
-      })
-      .catch(err => {
-        Mess.yell('fetch: ' + err.message)
-      })
+    go()
   }
 
   function refresh

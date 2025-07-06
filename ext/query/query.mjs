@@ -166,10 +166,18 @@ function search
 
 async function searchGutenbergBooks
 (args) {
-  let response, data
+  let response, data, url
 
-  response = await fetch('https://gutendex.com/books?search=' + args.search_terms.join(' '))
-  data = await response.json()
+  url = 'https://gutendex.com/books?search=' + args.search_terms.join(' ')
+  try {
+    response = await fetch(url)
+    data = await response.json()
+  }
+  catch (err) {
+    d('ERR searchGutenbergBooks')
+    d(err.message)
+    throw err
+  }
   return data.results.map(book => ({ id: book.id,
                                      title: book.title,
                                      authors: book.authors }))

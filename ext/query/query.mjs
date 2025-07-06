@@ -338,6 +338,7 @@ function init
               json = JSON.parse(data)
               delta = json.choices[0].delta
               d(delta)
+              buf.vars('query').msgs.push(delta)
               if (delta.content)
                 cb && cb(delta)
               if (delta.tool_calls?.length) {
@@ -354,7 +355,10 @@ function init
                         d('ERR already seen call.function.name')
                       else
                         tool = { args: call.function.arguments || '',
+                                 cb: toolMap[call.function.name],
+                                 id: call.id,
                                  name: call.function.name,
+                                 //
                                  no,
                                  yes }
                     else {
@@ -633,7 +637,6 @@ function init
     chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
          msg => {
            d('CHAT enter append: ' + msg.content)
-           buf.vars('query').msgs.push(msg)
            appendWithEnd(buf, msg.content)
          },
          () => {
@@ -663,7 +666,6 @@ function init
                  chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                       msg => {
                         d('CHAT more append: ' + msg.content)
-                        buf.vars('query').msgs.push(msg)
                         appendWithEnd(buf, msg.content)
                       },
                       () => {
@@ -832,7 +834,6 @@ function init
                    chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                         msg => {
                           d('CHAT append: ' + msg.content)
-                          buf.vars('query').msgs.push(msg)
                           appendWithEnd(buf, msg.content)
                         },
                         () => {

@@ -285,6 +285,7 @@ function init
       () {
         d('n')
         cancel()
+        cbEnd && cbEnd()
       }
 
       function yes
@@ -760,7 +761,7 @@ function init
       toolW = view.ele.querySelector('.query-tool-w')
       Css.retract(toolW)
     })
-    appendWithEnd(p.buf, '\n\n' + 'Declined to run ' + tool.name + '\n\n' + premo + ' ')
+    appendWithEnd(p.buf, '\n\n' + 'Declined to run ' + tool.name)
     tool?.no()
   }
 

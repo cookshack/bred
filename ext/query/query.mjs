@@ -21,7 +21,7 @@ import { d } from '../../js/mess.mjs'
 import Ollama from './lib/ollama.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let emo, premo, icons
+let emo, premo, icons, toolMap
 
 function snippet
 (item) {
@@ -164,10 +164,21 @@ function search
   p.setBuf(buf, {}, () => srch(p.dir, buf, query))
 }
 
+async function searchGutenbergBooks
+(terms) {
+  let response, data
+
+  response = await fetch('https://gutendex.com/books?search=' + terms.join(' '))
+  data = await response.json()
+  return data.results.map(book => ({ id: book.id,
+                                     title: book.title,
+                                     authors: book.authors }))
+}
+
 export
 function init
 () {
-  let hist, mo, chMo, extRo
+  let hist, mo, chMo, extRo, tools
 
   function busy
   (buf) {
@@ -206,6 +217,14 @@ function init
     buf.vars('query').promptEnd = buf.bepEnd
   }
 
+  function appendTool
+  (buf, tool) {
+    buf.vars('query').appending = 1
+    buf.append('Run ' + tool.name + '?\n')
+    buf.vars('query').appending = 0
+    buf.vars('query').promptEnd = buf.bepEnd
+  }
+
   function makeExtRo
   () {
     extRo = CMState.EditorState.transactionFilter.of(tr => {
@@ -240,11 +259,10 @@ function init
   }
 
   function chat
-  (buf, model, key, msgs, prompt, cb, cbEnd) { // (msg), ()
-
+  (buf, model, key, msgs, prompt, cb, cbEnd, cbTool) { // (msg), (), (tool)
     function stream
     (response) {
-      let buffer, reader, decoder, cancelled
+      let buffer, reader, decoder, cancelled, tool
 
       d('CHAT stream')
 
@@ -264,7 +282,10 @@ function init
           if (done) {
             d('CHAT done')
             reader.cancel()
-            cbEnd && cbEnd()
+            if (tool)
+              cbTool && cbTool(tool)
+            else
+              cbEnd && cbEnd()
             return
           }
 
@@ -286,16 +307,45 @@ function init
             buffer = buffer.slice(lineEnd + 1)
 
             if (line.startsWith('data: ')) {
-              let data, delta
+              let data, delta, json
 
               data = line.slice(6)
 
               if (data === '[DONE]')
                 break
 
-              delta = JSON.parse(data).choices[0].delta
+              json = JSON.parse(data)
+              delta = json.choices[0].delta
+              d(delta)
               if (delta.content)
                 cb && cb(delta)
+              if (delta.tool_calls?.length) {
+                let call
+
+                d('TOOL')
+                call = delta.tool_calls[0]
+                if (call.type == 'function') {
+                  if (tool)
+                    tool.args += (call.function.arguments || '')
+                  if (call.function.name)
+                    if (toolMap[call.function.name])
+                      if (tool)
+                        d('ERR already seen call.function.name')
+                      else
+                        tool = { name: call.function.name,
+                                 args: call.function.arguments || '' }
+                    else {
+                      d('TOOL MISSING')
+                      cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
+                      tool = 0
+                    }
+                }
+                else {
+                  d('TYPE MISSING')
+                  cb && cb({ content: 'ERROR: missing tool type: ' + call.type + '\n' })
+                  tool = 0
+                }
+              }
             }
           }
 
@@ -332,7 +382,8 @@ function init
               messages: [ { role: 'system',
                             content: 'You are a helpful assistant.' },
                           ...msgs ],
-              stream: true
+              stream: true,
+              tools
             })
           })
       .then(response => {
@@ -716,7 +767,13 @@ function init
                           appendWithEnd(buf, msg.content)
                         },
                         () => {
+                          d('cb END')
                           appendWithEnd(buf, '\n\n' + premo + ' ')
+                          done(buf)
+                        },
+                        tool => {
+                          d('cb TOOL')
+                          appendTool(buf, tool)
                           done(buf)
                         })
                  })
@@ -780,6 +837,23 @@ function init
                })
   })
 
+  tools = [ { type: 'function',
+              function: { name: 'searchGutenbergBooks',
+                          description: 'Search for books in the Project Gutenberg library based on specified search terms',
+                          parameters: { type: 'object',
+                                        properties: {
+                                          search_terms: {
+                                            type: 'array',
+                                            items: {
+                                              type: 'string'
+                                            },
+                                            description: "List of search terms to find books in the Gutenberg library (e.g. ['dickens', 'great'] to search for books by Dickens with 'great' in the title)"
+                                          }
+                                        },
+                                        required: [ 'search_terms' ] } } } ]
+
+  toolMap = { searchGutenbergBooks }
+  d(toolMap)
   emo = '🗨️'
   premo = '#### ' + emo
   hist = Hist.ensure('llm')

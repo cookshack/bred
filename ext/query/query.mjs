@@ -219,6 +219,7 @@ function init
 
   function appendTool
   (buf, tool) {
+    buf.vars('query').tool = tool
     buf.views.forEach(view => {
       let toolW, toolName
 
@@ -278,6 +279,17 @@ function init
       () {
         cancelled = 1
         reader.cancel()
+      }
+
+      function no
+      () {
+        d('n')
+        cancel()
+      }
+
+      function yes
+      () {
+        d('y')
       }
 
       function read
@@ -340,8 +352,10 @@ function init
                       if (tool)
                         d('ERR already seen call.function.name')
                       else
-                        tool = { name: call.function.name,
-                                 args: call.function.arguments || '' }
+                        tool = { args: call.function.arguments || '',
+                                 name: call.function.name,
+                                 no,
+                                 yes }
                     else {
                       d('TOOL MISSING')
                       cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
@@ -720,12 +734,34 @@ function init
 
   function accept
   () {
-    d('ac')
+    let p, tool
+
+    p = Pane.current()
+    tool = p.buf.vars('query').tool
+    p.buf.views.forEach(view => {
+      let toolW
+
+      toolW = view.ele.querySelector('.query-tool-w')
+      Css.retract(toolW)
+    })
+    appendWithEnd(p.buf, '\n\n' + 'Running ' + tool.name + '...\n\n')
+    tool?.yes()
   }
 
   function reject
   () {
-    d('re')
+    let p, tool
+
+    p = Pane.current()
+    tool = p.buf.vars('query').tool
+    p.buf.views.forEach(view => {
+      let toolW
+
+      toolW = view.ele.querySelector('.query-tool-w')
+      Css.retract(toolW)
+    })
+    appendWithEnd(p.buf, '\n\n' + 'Declined to run ' + tool.name + '\n\n' + premo + ' ')
+    tool?.no()
   }
 
   Cmd.add('stop response', () => {

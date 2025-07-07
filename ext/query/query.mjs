@@ -8,6 +8,7 @@ import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/em.mjs'
 import * as Hist from '../../js/hist.mjs'
 import * as Icon from '../../js/icon.mjs'
+import * as Loc from '../../js/loc.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Opt from '../../js/opt.mjs'
@@ -203,12 +204,51 @@ function ls
     if (err) {
       d('ERR ls')
       d(err.message)
+      cb({ error: err.message })
       return
     }
 
     d('LS data')
     d(data.data)
     cb(data.data)
+  })
+}
+
+function createDir
+(buf, args, cb) { // (json)
+  let path, abs
+
+  path = args.dir_path
+  if (path) {
+    if (path.startsWith('.')
+        || path.startsWith('/')) {
+      cb({ error: 'Error: argument dir_path must be or a relative subdirectory (e.g. src/)',
+           success: false,
+           message: 'Failed to create directory.' })
+      return
+    }
+  }
+  else {
+    cb({ error: 'Error: missing argument dir_path',
+         success: false,
+         message: 'Failed to create directory.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('CREATEDIR abs ' + abs)
+  Tron.cmd('dir.make', abs, err => {
+    if (err) {
+      d('ERR createDir')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           message: 'Failed to create directory.' })
+      return
+    }
+    Mess.say('Added dir ' + abs)
+    cb({ success: true,
+         message: 'Successfully created directory.' })
   })
 }
 
@@ -359,7 +399,7 @@ function init
           }
 
           buffer += decoder.decode(value, { stream: true })
-          d('CHAT buffer: ' + buffer)
+          //d('CHAT buffer: ' + buffer)
 
           // Process complete lines from buffer
 
@@ -458,7 +498,7 @@ function init
               body: JSON.stringify({
                 model,
                 messages: [ { role: 'system',
-                              content: 'You are a helpful assistant.' },
+                              content: 'You are a helpful assistant. You have access to a set of tools. If you are asked to perform a task, then first plan out if and how you could could use the tools to perform the task, before executing the plan, and then reporting on how it went.' },
                             ...msgs ],
                 stream: true,
                 tools
@@ -1001,9 +1041,16 @@ function init
                           parameters: { type: 'object',
                                         properties: { path: { type: 'string',
                                                               description: 'Path to the directory from which to list files (e.g. "src"). Use "" for the current directory.' } },
-                                        required: [ 'path' ] } } } ]
+                                        required: [ 'path' ] } } },
+            { type: 'function',
+              function: { name: 'createDir',
+                          description: 'Create a new directory, returning a JSON object with a success message',
+                          parameters: { type: 'object',
+                                        properties: { dir_path: { type: 'string',
+                                                                  description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+                                        required: [ 'dir_path' ] } } } ]
 
-  toolMap = { searchGutenbergBooks, ls }
+  toolMap = { searchGutenbergBooks, ls, createDir }
   d(toolMap)
   emo = '🗨️'
   premo = '#### ' + emo

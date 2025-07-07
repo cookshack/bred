@@ -165,7 +165,7 @@ function search
 }
 
 function searchGutenbergBooks
-(args, cb) {
+(buf, args, cb) { // (json)
   let url
 
   url = 'https://gutendex.com/books?search=' + args.search_terms.join(' ')
@@ -183,6 +183,33 @@ function searchGutenbergBooks
       d('ERR searchGutenbergBooks')
       d(err.message)
     })
+}
+
+function ls
+(buf, args, cb) { // (json)
+  let path
+
+  path = args.path || ''
+
+  if (path.startsWith('.')
+      || path.startsWith('/')) {
+    cb({ error: 'Error: path must be the empty string, or a relative subdirectory' })
+    return
+  }
+
+  path = path || buf.path
+
+  Tron.cmd('dir.get', path, (err, data) => {
+    if (err) {
+      d('ERR ls')
+      d(err.message)
+      return
+    }
+
+    d('LS data')
+    d(data.data)
+    cb(data.data)
+  })
 }
 
 export
@@ -237,6 +264,7 @@ function init
       toolName = toolW.querySelector('.query-tool-name')
       toolName.innerText = tool.name
       Css.expand(toolW)
+      d(tool)
     })
     //buf.vars('query').appending = 1
     //buf.append('Run ' + tool.name + '? [*Y*es](#yes) [*N*o](#no)')
@@ -301,6 +329,7 @@ function init
       function yes
       () {
         tool.cb(res => {
+          d('TOOL result')
           d(res)
           buf.vars('query').msgs.push({ role: 'tool',
                                         toolCallId: tool.id,
@@ -375,8 +404,10 @@ function init
                                  cb(then) { // (response)
                                    let json
 
-                                   json = JSON.parse(tool.args)
-                                   toolMap[call.function.name](json, then)
+                                   json = {}
+                                   if (tool.args?.trim())
+                                     json = JSON.parse(tool.args)
+                                   toolMap[call.function.name](buf, json, then)
                                  },
                                  id: call.id,
                                  name: call.function.name,
@@ -947,9 +978,16 @@ function init
                                             description: "List of search terms to find books in the Gutenberg library (e.g. ['dickens', 'great'] to search for books by Dickens with 'great' in the title)"
                                           }
                                         },
-                                        required: [ 'search_terms' ] } } } ]
+                                        required: [ 'search_terms' ] } } },
+            { type: 'function',
+              function: { name: 'ls',
+                          description: 'List the files in the current directory or a specified subdirectory. Use "" for the current directory.',
+                          parameters: { type: 'object',
+                                        properties: { path: { type: 'string',
+                                                              description: 'Path to the directory from which to list files (e.g. "src"). Use "" for the current directory.' } },
+                                        required: [ 'path' ] } } } ]
 
-  toolMap = { searchGutenbergBooks }
+  toolMap = { searchGutenbergBooks, ls }
   d(toolMap)
   emo = '🗨️'
   premo = '#### ' + emo

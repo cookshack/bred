@@ -165,25 +165,14 @@ function search
   p.setBuf(buf, {}, () => srch(p.dir, buf, query))
 }
 
-function searchGutenbergBooks
+function finalAnswer
 (buf, args, cb) { // (json)
-  let url
+  let answer
 
-  url = 'https://gutendex.com/books?search=' + args.search_terms.join(' ')
-  fetch(url)
-    .then(response => {
-      response.ok || Mess.toss(response.statusText)
-      return response.json()
-    })
-    .then(data => {
-      cb(data.results.map(book => ({ id: book.id,
-                                     title: book.title,
-                                     authors: book.authors })))
-    })
-    .catch(err => {
-      d('ERR searchGutenbergBooks')
-      d(err.message)
-    })
+  answer = args.answer || ''
+
+  cb({ success: true,
+       answer })
 }
 
 function ls
@@ -376,7 +365,7 @@ function init
 
       function yes
       () {
-        let busy
+        let busy, final
 
         d('YES')
         d(calls)
@@ -385,6 +374,16 @@ function init
         calls?.forEach(tool => tool && tool.cb(res => {
           d('TOOL result')
           d(res)
+          if (final) {
+            d('Error: skipping because already saw finalAnswer')
+            return
+          }
+          if (tool.name == 'finalAnswer') {
+            cb && cb({ content: res.answer })
+            cbEnd && cbEnd()
+            final = 1
+            return
+          }
           buf.vars('query').msgs.push({ role: 'tool',
                                         toolCallId: tool.id,
                                         name: tool.name,
@@ -394,6 +393,8 @@ function init
             go()
         }))
         calls = 0
+        if (final)
+          return
         if (busy == 0)
           go()
       }
@@ -521,17 +522,54 @@ function init
               body: JSON.stringify({
                 model,
                 messages: [ { role: 'system',
-                              content: `You are a helpful assistant.
+                              content: `
+You are BredAssist, a helpful assistant embedded in an Electron-based code editor.
+You have access to a set of tools (functions) that you may call to perform actions or fetch information.
 
-You have access to a set of tools.
+INSTRUCTIONS:
+1. If the user’s request requires a tool, emit exactly one function call in this turn.
+2. After you emit a function call, wait for the tool’s response before calling another tool.
+3. If the user’s request can be answered without any tools, respond in plain text (no function call).
+4. When all required tool calls are complete, emit the \`finalAnswer\` function call to return a human-readable summary.
+5. Do not output any text outside of function calls unless it is your final plain-text answer.
 
-If you are asked to perform a task, then plan and execute the sequence of tool calls needed to undertake the task. Do not just provide the JSON output, but actually run the tools, even when there are multiple tool calls. In the end report the results. Provide the results in a human-readable format, including any relevant error messages or success indicators.
+AVAILABLE TOOLS:
+1) createDir
+   • Purpose: Create a new directory at the given path.
+   • Parameters: { name: string }
+
+2) ls
+   • Purpose: List entries in a directory.
+   • Parameters: { path: string }
+
+3) finalAnswer
+   • Purpose: Signal completion of any tool-based work and return a final summary.
+   • Parameters: { answer: string }
+
+EXAMPLES:
+
+Example A – Multi-step tool usage
+User: “Make a folder named foo and then list its contents.”
+Assistant → (function call)
+{"name":"createDir","arguments":{"name":"foo"}}
+…(tool_response arrives)…
+Assistant → (function call)
+{"name":"ls","arguments":{"path":"foo"}}
+…(tool_response arrives)…
+Assistant → (function call)
+{"name":"finalAnswer","arguments":{"answer":"Done! ‘foo’ now exists and contains: […]"}}
+
+Example B – General question
+User: “What is the precedence of && vs || in JavaScript?”
+Assistant → (plain text answer, streaming via delta.content)
+In JavaScript, the logical AND (\`&&\`) operator has higher precedence than the logical OR (\`||\`).
+This means an expression like \`a && b || c\` is parsed as \`(a && b) || c\`, not \`a && (b || c)\`.
+
+Now handle the user’s request:
 ` },
                             ...msgs ],
                 stream: true,
-                tools
-              })
-            })
+                tools }) })
         .then(response => {
           response.ok || Mess.toss('fetch failed')
           return stream(response)
@@ -1050,19 +1088,13 @@ If you are asked to perform a task, then plan and execute the sequence of tool c
   })
 
   tools = [ { type: 'function',
-              function: { name: 'searchGutenbergBooks',
-                          description: 'Search for books in the Project Gutenberg library based on specified search terms',
+              function: { name: 'finalAnswer',
+                          description: 'Signal completion of any tool-based work and return a final summary.',
                           parameters: { type: 'object',
-                                        properties: {
-                                          search_terms: {
-                                            type: 'array',
-                                            items: {
-                                              type: 'string'
-                                            },
-                                            description: "List of search terms to find books in the Gutenberg library (e.g. ['dickens', 'great'] to search for books by Dickens with 'great' in the title)"
-                                          }
-                                        },
-                                        required: [ 'search_terms' ] } } },
+                                        properties: { answer: { type: 'string',
+                                                                description: 'Human readable freeform answer.' } },
+                                        required: [ 'answer' ] } } },
+            //
             { type: 'function',
               function: { name: 'ls',
                           description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
@@ -1077,8 +1109,9 @@ If you are asked to perform a task, then plan and execute the sequence of tool c
                                         properties: { dir_path: { type: 'string',
                                                                   description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                                         required: [ 'dir_path' ] } } } ]
+  d(tools)
 
-  toolMap = { searchGutenbergBooks, ls, createDir }
+  toolMap = { finalAnswer, ls, createDir }
   d(toolMap)
   emo = '🗨️'
   premo = '#### ' + emo

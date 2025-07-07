@@ -413,8 +413,23 @@ function init
           if (done) {
             d('CHAT done')
             reader.cancel()
-            if (cbTool && calls)
+            if (cbTool && calls) {
+              let delta
+
+              delta = { role: 'assistant',
+                        content: '',
+                        tool_calls: [] }
+              calls.forEach(tool => {
+                delta.tool_calls.push({ type: 'function',
+                                        function: { arguments: tool.args,
+                                                    name: tool.name },
+                                        id: tool.id,
+                                        index: tool.index })
+              })
+              buf.vars('query').msgs.push(delta)
+
               calls.forEach(tool => tool && cbTool(tool))
+            }
             else
               cbEnd && cbEnd()
             return
@@ -448,10 +463,20 @@ function init
               json = JSON.parse(data)
               delta = json.choices[0].delta
               d(delta)
-              buf.vars('query').msgs.push(delta)
-              if (delta.content)
+              if (delta.tool_calls?.length)
+                // clean api shortcuts that some models take
+                for (let i = 0; i < delta.tool_calls.length; i++)
+                  if (calls?.at(i)) {
+                    let call
+
+                    call = delta.tool_calls[i]
+                    call.type = 'function'
+                    call.function.name = calls[i].name
+                  }
+              if (delta.content?.length)
                 cb && cb(delta)
               if (delta.tool_calls?.length)
+                // tool call
                 for (let i = 0; i < delta.tool_calls.length; i++) {
                   let call
 
@@ -462,8 +487,9 @@ function init
                       calls[i].args += (call.function.arguments || '')
                     if (call.function.name)
                       if (toolMap[call.function.name])
-                        if (calls?.at(i))
-                          d('ERR already seen this call to ' + call.function.name)
+                        if (calls?.at(i)) {
+                          // already seen the first call to this function
+                        }
                         else {
                           let index, tool
 
@@ -482,6 +508,7 @@ function init
                                              tool.cb(buf, json, then)
                                            },
                                            id: call.id,
+                                           index: call.index,
                                            name: call.function.name,
                                            //
                                            no,
@@ -499,6 +526,9 @@ function init
                     calls[i] = 0
                   }
                 }
+              else if (delta.content.length)
+                // just content
+                buf.vars('query').msgs.push(delta)
             }
           }
 

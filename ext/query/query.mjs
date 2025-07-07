@@ -194,7 +194,9 @@ function ls
 
   if (path.startsWith('.')
       || path.startsWith('/')) {
-    cb({ error: 'Error: path must be the empty string, or a relative subdirectory' })
+    cb({ error: 'Error: path must be the empty string, or a relative subdirectory',
+         success: false,
+         message: 'Failed to list directory.' })
     return
   }
 
@@ -204,13 +206,17 @@ function ls
     if (err) {
       d('ERR ls')
       d(err.message)
-      cb({ error: err.message })
+      cb({ error: err.message,
+           success: false,
+           message: 'Failed to list directory.' })
       return
     }
 
     d('LS data')
     d(data.data)
-    cb(data.data)
+    cb({ success: true,
+         message: 'Successfully listed directory.',
+         contents: data.data })
   })
 }
 
@@ -1037,14 +1043,14 @@ function init
                                         required: [ 'search_terms' ] } } },
             { type: 'function',
               function: { name: 'ls',
-                          description: 'List the files in the current directory or a specified subdirectory. Use "" for the current directory.',
+                          description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
                           parameters: { type: 'object',
                                         properties: { path: { type: 'string',
                                                               description: 'Path to the directory from which to list files (e.g. "src"). Use "" for the current directory.' } },
                                         required: [ 'path' ] } } },
             { type: 'function',
               function: { name: 'createDir',
-                          description: 'Create a new directory, returning a JSON object with a success message',
+                          description: 'Create a new directory, returning a JSON object with a success message.',
                           parameters: { type: 'object',
                                         properties: { dir_path: { type: 'string',
                                                                   description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },

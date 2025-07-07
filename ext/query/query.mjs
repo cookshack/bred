@@ -250,7 +250,7 @@ function createDir
 export
 function init
 () {
-  let hist, mo, chMo, extRo, tools
+  let hist, mo, chMo, extRo, tools, systemPrompt
 
   function busy
   (buf) {
@@ -455,7 +455,7 @@ function init
                 for (let i = 0; i < delta.tool_calls.length; i++) {
                   let call
 
-                  d('TOOL ' + i)
+                  d('TOOL ' + i + ' parsing')
                   call = delta.tool_calls[i]
                   if (call.type == 'function') {
                     if (calls?.at(i))
@@ -475,6 +475,7 @@ function init
                                            cb(then) { // (response)
                                              let json
 
+                                             d('TOOL ' + index + ' running')
                                              json = {}
                                              if (calls[index].args?.trim())
                                                json = JSON.parse(calls[index].args)
@@ -528,51 +529,7 @@ function init
               body: JSON.stringify({
                 model,
                 messages: [ { role: 'system',
-                              content: `
-You are BredAssist, a helpful assistant embedded in an Electron-based code editor.
-You have access to a set of tools (functions) that you may call to perform actions or fetch information.
-
-INSTRUCTIONS:
-1. If the user’s request requires a tool, emit exactly one function call in this turn.
-2. After you emit a function call, wait for the tool’s response before calling another tool.
-3. If the user’s request can be answered without any tools, respond in plain text (no function call).
-4. When all required tool calls are complete, emit the \`finalAnswer\` function call to return a human-readable summary.
-5. Do not output any text outside of function calls unless it is your final plain-text answer.
-
-AVAILABLE TOOLS:
-1) createDir
-   • Purpose: Create a new directory at the given path.
-   • Parameters: { dir_path: string }
-
-2) ls
-   • Purpose: List entries in a directory.
-   • Parameters: { path: string }
-
-3) finalAnswer
-   • Purpose: Signal completion of any tool-based work and return a final summary.
-   • Parameters: { answer: string }
-
-EXAMPLES:
-
-Example A – Multi-step tool usage
-User: “Make a folder named foo and then list its contents.”
-Assistant → (function call)
-{"name":"createDir","arguments":{"name":"foo"}}
-…(tool_response arrives)…
-Assistant → (function call)
-{"name":"ls","arguments":{"path":"foo"}}
-…(tool_response arrives)…
-Assistant → (function call)
-{"name":"finalAnswer","arguments":{"answer":"Done! ‘foo’ now exists and contains: […]"}}
-
-Example B – General question
-User: “What is the precedence of && vs || in JavaScript?”
-Assistant → (plain text answer, streaming via delta.content)
-In JavaScript, the logical AND (\`&&\`) operator has higher precedence than the logical OR (\`||\`).
-This means an expression like \`a && b || c\` is parsed as \`(a && b) || c\`, not \`a && (b || c)\`.
-
-Now handle the user’s request:
-` },
+                              content: systemPrompt },
                             ...msgs ],
                 stream: true,
                 tools }) })
@@ -1028,7 +985,7 @@ Now handle the user’s request:
                           done(buf)
                         },
                         tool => {
-                          d('cb TOOL')
+                          d('cb TOOL ' + tool.name)
                           appendTool(buf, tool)
                           //done(buf)
                         })
@@ -1093,6 +1050,75 @@ Now handle the user’s request:
                })
   })
 
+  systemPrompt = `
+You are BredAssist, a helpful assistant embedded in an Electron-based code editor.
+You have access to a set of tools (functions) that you may call to perform actions or fetch information.
+
+INSTRUCTIONS:
+1. If the user’s request requires a tool, emit one and only one function call in this turn.
+2. After you emit a function call, wait for the tool’s response before calling another tool.
+3. If the user’s request can be answered without any tools, respond in plain text (no function call).
+4. When all required tool calls are complete, emit the \`finalAnswer\` function call to return a human-readable summary.
+   Make sure to convert the tool output from JSON to human-readable form if the tool output is going into finalAnswer.
+5. Do not output any text outside of function calls unless it is your final plain-text answer.
+
+AVAILABLE TOOLS:
+1) createDir
+   • Purpose: Create a new directory at the given path.
+   • Parameters: { dir_path: string }
+   • Returns (as JSON):
+     - On success: \`{ "success": true }\`
+     - On error:   \`{ "success": false, "error": "…error message…" }\`
+
+2) ls
+   • Purpose: List entries in a directory.
+   • Parameters: { path: string }
+   • Returns (as JSON):
+     - On success:
+       {
+         "success": true,
+         "contents": [
+           { "name": "file1.txt", … },
+           { "name": "subdir", … },
+           …
+         ]
+       }
+     - On error:
+       \`{ "success": false, "error": "…error message…" }\`
+
+3) finalAnswer
+   • Purpose: Signal completion of any tool-based work and return a final summary.
+   • Parameters: { answer: string }
+
+EXAMPLES:
+
+Example A – Multi-step tool usage
+User: “Make a folder named foo and then list its contents.”
+Assistant → (function call)
+{"name":"createDir","arguments":{"dir_path":"foo"}}
+…(tool_response arrives: {"success":true})…
+Assistant → (function call)
+{"name":"ls","arguments":{"path":"foo"}}
+…(tool_response arrives: {"success":true,"contents":[{"name":"foo"}]})…
+Assistant → (function call)
+{"name":"finalAnswer","arguments":{"answer":"Done! ‘foo’ now exists and contains: […]"}}
+
+Example D - Error case
+User: “Make a folder that already exists.”
+Assistant → (function call))
+{"name":"createDir","arguments":{"name":"foo"}}
+…(tool_response arrives: {"success":false,"error":"EEXIST: file already exists"})…
+Assistant → (function call))
+{"name":"finalAnswer","arguments":{"answer":"Could not create ‘foo’: EEXIST: file already exists"}}
+
+Example C – General question
+User: “What is the precedence of && vs || in JavaScript?”
+Assistant → (plain text answer, streaming via delta.content)
+In JavaScript, the logical AND (\`&&\`) operator has higher precedence than the logical OR (\`||\`).
+This means an expression like \`a && b || c\` is parsed as \`(a && b) || c\`, not \`a && (b || c)\`.
+
+Now handle the user’s request:
+`
   tools = [ { type: 'function',
               function: { name: 'finalAnswer',
                           description: 'Signal completion of any tool-based work and return a final summary.',

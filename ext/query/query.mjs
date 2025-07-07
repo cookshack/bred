@@ -292,6 +292,10 @@ function init
   function appendTool
   (buf, tool) {
     buf.vars('query').tool = tool
+    if (tool.autoAccept) {
+      tool.yes()
+      return
+    }
     buf.views.forEach(view => {
       if (view.ele) {
         let toolW, toolName
@@ -461,18 +465,20 @@ function init
                         if (calls?.at(i))
                           d('ERR already seen this call to ' + call.function.name)
                         else {
-                          let index
+                          let index, tool
 
+                          tool = toolMap[call.function.name]
                           index = i
                           calls = calls || []
                           calls[index] = { args: call.function.arguments || '',
+                                           autoAccept: tool.autoAccept,
                                            cb(then) { // (response)
                                              let json
 
                                              json = {}
                                              if (calls[index].args?.trim())
                                                json = JSON.parse(calls[index].args)
-                                             toolMap[call.function.name](buf, json, then)
+                                             tool.cb(buf, json, then)
                                            },
                                            id: call.id,
                                            name: call.function.name,
@@ -1111,7 +1117,11 @@ Now handle the user’s request:
                                         required: [ 'dir_path' ] } } } ]
   d(tools)
 
-  toolMap = { finalAnswer, ls, createDir }
+  toolMap = { finalAnswer: { cb: finalAnswer,
+                             autoAccept: 1 },
+              //
+              ls: { cb: ls },
+              createDir: { cb: createDir } }
   d(toolMap)
   emo = '🗨️'
   premo = '#### ' + emo

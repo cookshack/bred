@@ -357,7 +357,7 @@ function init
   (buf, model, key, msgs, prompt, cb, cbEnd, cbTool) { // (msg), (), (tool)
     function stream
     (response) {
-      let buffer, reader, decoder, cancelled, tool
+      let buffer, reader, decoder, cancelled, calls
 
       d('CHAT stream')
 
@@ -376,7 +376,7 @@ function init
 
       function yes
       () {
-        tool.cb(res => {
+        calls?.forEach(tool => tool.cb(res => {
           d('TOOL result')
           d(res)
           buf.vars('query').msgs.push({ role: 'tool',
@@ -384,7 +384,7 @@ function init
                                         name: tool.name,
                                         content: JSON.stringify(res) })
           go()
-        })
+        }))
       }
 
       function read
@@ -397,8 +397,8 @@ function init
           if (done) {
             d('CHAT done')
             reader.cancel()
-            if (tool)
-              cbTool && cbTool(tool)
+            if (cbTool && calls)
+              calls.forEach(tool => cbTool(tool))
             else
               cbEnd && cbEnd()
             return
@@ -441,37 +441,39 @@ function init
                 d('TOOL')
                 call = delta.tool_calls[0]
                 if (call.type == 'function') {
-                  if (tool)
-                    tool.args += (call.function.arguments || '')
+                  if (calls?.at(0))
+                    calls[0].args += (call.function.arguments || '')
                   if (call.function.name)
                     if (toolMap[call.function.name])
-                      if (tool)
-                        d('ERR already seen call.function.name')
-                      else
-                        tool = { args: call.function.arguments || '',
-                                 cb(then) { // (response)
-                                   let json
+                      if (calls?.at(0))
+                        d('ERR already seen this call to ' + call.function.name)
+                      else {
+                        calls = calls || []
+                        calls[0] = { args: call.function.arguments || '',
+                                     cb(then) { // (response)
+                                       let json
 
-                                   json = {}
-                                   if (tool.args?.trim())
-                                     json = JSON.parse(tool.args)
-                                   toolMap[call.function.name](buf, json, then)
-                                 },
-                                 id: call.id,
-                                 name: call.function.name,
-                                 //
-                                 no,
-                                 yes }
+                                       json = {}
+                                       if (calls[0].args?.trim())
+                                         json = JSON.parse(calls[0].args)
+                                       toolMap[call.function.name](buf, json, then)
+                                     },
+                                     id: call.id,
+                                     name: call.function.name,
+                                     //
+                                     no,
+                                     yes }
+                      }
                     else {
                       d('TOOL MISSING')
                       cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
-                      tool = 0
+                      calls[0] = 0
                     }
                 }
                 else {
                   d('TYPE MISSING')
                   cb && cb({ content: 'ERROR: missing tool type: ' + call.type + '\n' })
-                  tool = 0
+                  calls[0] = 0
                 }
               }
             }

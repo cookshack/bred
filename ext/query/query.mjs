@@ -164,23 +164,25 @@ function search
   p.setBuf(buf, {}, () => srch(p.dir, buf, query))
 }
 
-async function searchGutenbergBooks
-(args) {
-  let response, data, url
+function searchGutenbergBooks
+(args, cb) {
+  let url
 
   url = 'https://gutendex.com/books?search=' + args.search_terms.join(' ')
-  try {
-    response = await fetch(url)
-    data = await response.json()
-  }
-  catch (err) {
-    d('ERR searchGutenbergBooks')
-    d(err.message)
-    throw err
-  }
-  return data.results.map(book => ({ id: book.id,
+  fetch(url)
+    .then(response => {
+      response.ok || Mess.toss(response.statusText)
+      return response.json()
+    })
+    .then(data => {
+      cb(data.results.map(book => ({ id: book.id,
                                      title: book.title,
-                                     authors: book.authors }))
+                                     authors: book.authors })))
+    })
+    .catch(err => {
+      d('ERR searchGutenbergBooks')
+      d(err.message)
+    })
 }
 
 export
@@ -298,7 +300,7 @@ function init
 
       function yes
       () {
-        tool.cb().then(res => {
+        tool.cb(res => {
           d(res)
           buf.vars('query').msgs.push({ role: 'tool',
                                         toolCallId: tool.id,
@@ -370,11 +372,11 @@ function init
                         d('ERR already seen call.function.name')
                       else
                         tool = { args: call.function.arguments || '',
-                                 cb() {
+                                 cb(then) { // (response)
                                    let json
 
                                    json = JSON.parse(tool.args)
-                                   return toolMap[call.function.name](json)
+                                   toolMap[call.function.name](json, then)
                                  },
                                  id: call.id,
                                  name: call.function.name,

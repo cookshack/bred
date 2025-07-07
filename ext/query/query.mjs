@@ -376,15 +376,26 @@ function init
 
       function yes
       () {
-        calls?.forEach(tool => tool.cb(res => {
+        let busy
+
+        d('YES')
+        d(calls)
+        busy = 0
+        calls?.forEach(tool => tool && busy++)
+        calls?.forEach(tool => tool && tool.cb(res => {
           d('TOOL result')
           d(res)
           buf.vars('query').msgs.push({ role: 'tool',
                                         toolCallId: tool.id,
                                         name: tool.name,
                                         content: JSON.stringify(res) })
-          go()
+          busy--
+          if (busy == 0)
+            go()
         }))
+        calls = 0
+        if (busy == 0)
+          go()
       }
 
       function read
@@ -398,7 +409,7 @@ function init
             d('CHAT done')
             reader.cancel()
             if (cbTool && calls)
-              calls.forEach(tool => cbTool(tool))
+              calls.forEach(tool => tool && cbTool(tool))
             else
               cbEnd && cbEnd()
             return
@@ -435,47 +446,51 @@ function init
               buf.vars('query').msgs.push(delta)
               if (delta.content)
                 cb && cb(delta)
-              if (delta.tool_calls?.length) {
-                let call
+              if (delta.tool_calls?.length)
+                for (let i = 0; i < delta.tool_calls.length; i++) {
+                  let call
 
-                d('TOOL')
-                call = delta.tool_calls[0]
-                if (call.type == 'function') {
-                  if (calls?.at(0))
-                    calls[0].args += (call.function.arguments || '')
-                  if (call.function.name)
-                    if (toolMap[call.function.name])
-                      if (calls?.at(0))
-                        d('ERR already seen this call to ' + call.function.name)
+                  d('TOOL ' + i)
+                  call = delta.tool_calls[i]
+                  if (call.type == 'function') {
+                    if (calls?.at(i))
+                      calls[i].args += (call.function.arguments || '')
+                    if (call.function.name)
+                      if (toolMap[call.function.name])
+                        if (calls?.at(i))
+                          d('ERR already seen this call to ' + call.function.name)
+                        else {
+                          let index
+
+                          index = i
+                          calls = calls || []
+                          calls[index] = { args: call.function.arguments || '',
+                                           cb(then) { // (response)
+                                             let json
+
+                                             json = {}
+                                             if (calls[index].args?.trim())
+                                               json = JSON.parse(calls[index].args)
+                                             toolMap[call.function.name](buf, json, then)
+                                           },
+                                           id: call.id,
+                                           name: call.function.name,
+                                           //
+                                           no,
+                                           yes }
+                        }
                       else {
-                        calls = calls || []
-                        calls[0] = { args: call.function.arguments || '',
-                                     cb(then) { // (response)
-                                       let json
-
-                                       json = {}
-                                       if (calls[0].args?.trim())
-                                         json = JSON.parse(calls[0].args)
-                                       toolMap[call.function.name](buf, json, then)
-                                     },
-                                     id: call.id,
-                                     name: call.function.name,
-                                     //
-                                     no,
-                                     yes }
+                        d('TOOL MISSING')
+                        cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
+                        calls[i] = 0
                       }
-                    else {
-                      d('TOOL MISSING')
-                      cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
-                      calls[0] = 0
-                    }
+                  }
+                  else {
+                    d('TYPE MISSING')
+                    cb && cb({ content: 'ERROR: missing tool type: ' + call.type + '\n' })
+                    calls[i] = 0
+                  }
                 }
-                else {
-                  d('TYPE MISSING')
-                  cb && cb({ content: 'ERROR: missing tool type: ' + call.type + '\n' })
-                  calls[0] = 0
-                }
-              }
             }
           }
 
@@ -506,7 +521,12 @@ function init
               body: JSON.stringify({
                 model,
                 messages: [ { role: 'system',
-                              content: 'You are a helpful assistant. You have access to a set of tools. If you are asked to perform a task, then first plan out if and how you could could use the tools to perform the task, before executing the plan, and then reporting on how it went.' },
+                              content: `You are a helpful assistant.
+
+You have access to a set of tools.
+
+If you are asked to perform a task, then plan and execute the sequence of tool calls needed to undertake the task. Do not just provide the JSON output, but actually run the tools, even when there are multiple tool calls. In the end report the results. Provide the results in a human-readable format, including any relevant error messages or success indicators.
+` },
                             ...msgs ],
                 stream: true,
                 tools

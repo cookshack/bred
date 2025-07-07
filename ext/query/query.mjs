@@ -258,13 +258,15 @@ function init
   (buf, tool) {
     buf.vars('query').tool = tool
     buf.views.forEach(view => {
-      let toolW, toolName
+      if (view.ele) {
+        let toolW, toolName
 
-      toolW = view.ele.querySelector('.query-tool-w')
-      toolName = toolW.querySelector('.query-tool-name')
-      toolName.innerText = tool.name
-      Css.expand(toolW)
-      d(tool)
+        toolW = view.ele.querySelector('.query-tool-w')
+        toolName = toolW.querySelector('.query-tool-name')
+        toolName.innerText = tool.name
+        Css.expand(toolW)
+        d(tool)
+      }
     })
     //buf.vars('query').appending = 1
     //buf.append('Run ' + tool.name + '? [*Y*es](#yes) [*N*o](#no)')
@@ -700,6 +702,11 @@ function init
          () => {
            appendWithEnd(buf, '\n\n' + premo + ' ')
            done(buf)
+         },
+         tool => {
+           d('cb TOOL')
+           appendTool(buf, tool)
+           //done(buf)
          })
   }
 
@@ -729,6 +736,11 @@ function init
                       () => {
                         appendWithEnd(buf, '\n\n' + premo + ' ')
                         done(buf)
+                      },
+                      tool => {
+                        d('cb TOOL')
+                        appendTool(buf, tool)
+                        //done(buf)
                       })
                })
   }
@@ -800,10 +812,12 @@ function init
     p = Pane.current()
     tool = p.buf.vars('query').tool
     p.buf.views.forEach(view => {
-      let toolW
+      if (view.ele) {
+        let toolW
 
-      toolW = view.ele.querySelector('.query-tool-w')
-      Css.retract(toolW)
+        toolW = view.ele.querySelector('.query-tool-w')
+        Css.retract(toolW)
+      }
     })
     appendWithEnd(p.buf, '\n\n' + 'Running ' + tool.name + '...\n\n')
     tool?.yes()
@@ -816,10 +830,12 @@ function init
     p = Pane.current()
     tool = p.buf.vars('query').tool
     p.buf.views.forEach(view => {
-      let toolW
+      if (view.ele) {
+        let toolW
 
-      toolW = view.ele.querySelector('.query-tool-w')
-      Css.retract(toolW)
+        toolW = view.ele.querySelector('.query-tool-w')
+        Css.retract(toolW)
+      }
     })
     appendWithEnd(p.buf, '\n\n' + 'Declined to run ' + tool.name)
     tool?.no()

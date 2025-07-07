@@ -376,7 +376,7 @@ function init
         busy = 0
         calls?.forEach(tool => tool && busy++)
         calls?.forEach(tool => tool && tool.cb(res => {
-          d('TOOL result')
+          d('TOOL result for ' + tool.name)
           d(res)
           if (final) {
             d('Error: skipping because already saw finalAnswer')
@@ -542,7 +542,7 @@ INSTRUCTIONS:
 AVAILABLE TOOLS:
 1) createDir
    • Purpose: Create a new directory at the given path.
-   • Parameters: { name: string }
+   • Parameters: { dir_path: string }
 
 2) ls
    • Purpose: List entries in a directory.
@@ -1019,7 +1019,7 @@ Now handle the user’s request:
                    buf.opts.set('core.lint.enabled', 0)
                    chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                         msg => {
-                          d('CHAT append: ' + msg.content)
+                          //d('CHAT append: ' + msg.content)
                           appendWithEnd(buf, msg.content)
                         },
                         () => {

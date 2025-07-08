@@ -269,11 +269,11 @@ function readFile
   }
 
   abs = Loc.make(buf.path).join(path)
-  d('CREATEDIR abs ' + abs)
+  d('READFILE abs ' + abs)
 
   Tron.cmd('file.get', abs, (err, data) => {
     if (err) {
-      d('ERR ls')
+      d('ERR file.get')
       d(err.message)
       cb({ error: err.message,
            success: false,
@@ -286,6 +286,47 @@ function readFile
     cb({ success: true,
          message: 'Successfully read file.',
          contents: data.data })
+  })
+}
+
+function writeFile
+(buf, args, cb) { // (json)
+  let path, abs
+
+  if (args.path)
+    path = args.path
+  else {
+    cb({ error: 'Error: missing or empty argument path',
+         success: false,
+         message: 'Failed to write file.' })
+    return
+  }
+
+  if (path.startsWith('.')
+      || path.startsWith('/')) {
+    cb({ error: 'Error: path must be in the current directory or a subdirectory',
+         success: false,
+         message: 'Failed to write file.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('WRITEFILE abs ' + abs)
+
+  Tron.cmd('file.save', [ abs, args.text || '' ], (err, data) => {
+    if (err) {
+      d('ERR file.save')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           message: 'Failed to write file.' })
+      return
+    }
+
+    d('WRITEFILE data')
+    d(data.data)
+    cb({ success: true,
+         message: 'Successfully wrote file.' })
   })
 }
 
@@ -1165,6 +1206,13 @@ AVAILABLE TOOLS:
      - On success: \`{ "success": true, "data": "…file contents…", "stat": "…file stats…" }\`
      - On error:   \`{ "success": false, "error": "…error message…" }\`
 
+3) writeFile
+   • Purpose: Write a file at the given path.
+   • Parameters: { path: string, text: string }
+   • Returns (as JSON):
+     - On success: \`{ "success": true }\`
+     - On error:   \`{ "success": false, "error": "…error message…" }\`
+
 4) finalAnswer
    • Purpose: Signal completion of any tool-based work and return a final summary.
    • Parameters: { answer: string }
@@ -1226,7 +1274,14 @@ Now handle the user’s request:
                           parameters: { type: 'object',
                                         properties: { path: { type: 'string',
                                                               description: "Path to the file to create (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-                                        required: [ 'dir_path' ] } } } ]
+                                        required: [ 'dir_path' ] } } },
+            { type: 'function',
+              function: { name: 'writeFile',
+                          description: 'Write a file, returning a JSON object with a success message.',
+                          parameters: { type: 'object',
+                                        properties: { path: { type: 'string',
+                                                              description: "Path to the file to write (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+                                        required: [ 'path', 'text' ] } } } ]
   d(tools)
 
   toolMap = { finalAnswer: { cb: finalAnswer,
@@ -1234,7 +1289,8 @@ Now handle the user’s request:
               //
               ls: { cb: ls },
               createDir: { cb: createDir },
-              readFile: { cb: readFile } }
+              readFile: { cb: readFile },
+              writeFile: { cb: writeFile } }
   d(toolMap)
   emo = '🗨️'
   premo = '#### ' + emo

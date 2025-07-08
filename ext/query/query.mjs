@@ -289,6 +289,47 @@ function readFile
   })
 }
 
+function removeFile
+(buf, args, cb) { // (json)
+  let path, abs
+
+  if (args.path)
+    path = args.path
+  else {
+    cb({ error: 'Error: missing or empty argument path',
+         success: false,
+         message: 'Failed to remove file.' })
+    return
+  }
+
+  if (path.startsWith('.')
+      || path.startsWith('/')) {
+    cb({ error: 'Error: path must be in the current directory or a subdirectory',
+         success: false,
+         message: 'Failed to remove file.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('REMOVEFILE abs ' + abs)
+
+  Tron.cmd('file.rm', [ abs ], (err, data) => {
+    if (err) {
+      d('ERR file.rm')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           message: 'Failed to remove file.' })
+      return
+    }
+
+    d('REMOVEFILE data')
+    d(data.data)
+    cb({ success: true,
+         message: 'Successfully removed file.' })
+  })
+}
+
 function writeFile
 (buf, args, cb) { // (json)
   let path, abs
@@ -1213,14 +1254,21 @@ AVAILABLE TOOLS:
      - On success: \`{ "success": true, "data": "…file contents…", "stat": "…file stats…" }\`
      - On error:   \`{ "success": false, "error": "…error message…" }\`
 
-3) writeFile
+3) removeFile
+   • Purpose: Remove file at the given path.
+   • Parameters: { path: string }
+   • Returns (as JSON):
+     - On success: \`{ "success": true }\`
+     - On error:   \`{ "success": false, "error": "…error message…" }\`
+
+4) writeFile
    • Purpose: Write a file at the given path.
    • Parameters: { path: string, text: string }
    • Returns (as JSON):
      - On success: \`{ "success": true }\`
      - On error:   \`{ "success": false, "error": "…error message…" }\`
 
-4) finalAnswer
+5) finalAnswer
    • Purpose: Signal completion of any tool-based work and return a final summary.
    • Parameters: { answer: string }
 
@@ -1283,6 +1331,13 @@ Now handle the user’s request:
                                                               description: "Path to the file to create (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                                         required: [ 'dir_path' ] } } },
             { type: 'function',
+              function: { name: 'removeFile',
+                          description: 'Remove a file, returning a JSON object with a success message.',
+                          parameters: { type: 'object',
+                                        properties: { path: { type: 'string',
+                                                              description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+                                        required: [ 'path', 'text' ] } } },
+            { type: 'function',
               function: { name: 'writeFile',
                           description: 'Write a file, returning a JSON object with a success message.',
                           parameters: { type: 'object',
@@ -1297,6 +1352,7 @@ Now handle the user’s request:
               readDir: { cb: readDir },
               createDir: { cb: createDir },
               readFile: { cb: readFile },
+              removeFile: { cb: removeFile },
               writeFile: { cb: writeFile } }
   d(toolMap)
   emo = '🗨️'

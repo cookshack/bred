@@ -673,6 +673,10 @@ function init
             d('Error: skipping because already saw finalAnswer')
             return
           }
+          buf.vars('query').msgs.push({ role: 'tool',
+                                        toolCallId: tool.id,
+                                        name: tool.name,
+                                        content: JSON.stringify(res) })
           if (tool.name == 'finalAnswer') {
             cb && cb({ content: res.answer })
             cbEnd && cbEnd()

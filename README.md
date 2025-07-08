@@ -107,7 +107,6 @@ then create an AppArmor profile, as in 1 above.
 Run:
 ```sh
 make fix-node-pty
-
 ```
 
 #### 4. "better_sqlite3" errors on startup
@@ -115,5 +114,4 @@ make fix-node-pty
 Run:
 ```sh
 make fix-sqlite3
-
 ```

@@ -63,7 +63,7 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	cd lib/@codemirror/ && find . -type f -name language-data.js | xargs sed -i "s/import('\([^']*\)')/import\('..\/\\1.js'\)/g"
 	cd lib/@codemirror/ && echo 'let bredHackImport = (x) => x.replace(/^(.*)$$/, "../$$1.js")' >> language-data.js
 	cd lib/@codemirror/ && sed -i "s/import(\([^)]\+[^\"']\))/import(bredHackImport(\\1))/g" language-data.js
-	bin/fix-scope kittycad
+	#bin/fix-scope kittycad
 	bin/fix-scope lezer
 	bin/fix-scope marijn
 	bin/fix-scope replit

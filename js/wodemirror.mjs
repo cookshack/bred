@@ -4464,7 +4464,7 @@ function initLangs
            { filename: /^(GNUmakefile|makefile|Makefile)$/,
              onAddMode: m => m.opts.set('core.highlight.leadingSpace.enabled', 1) })
   loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-nasl.js'), 'NASL', { ext: [ 'nasl' ] })
-  loadLang(Loc.appDir().join('lib/@kittycad/codemirror-lang-kcl.js'), 'Kcl', { ext: [ 'kcl' ] })
+  //loadLang(Loc.appDir().join('lib/@kittycad/codemirror-lang-kcl.js'), 'Kcl', { ext: [ 'kcl' ] })
   loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-nix.js'), 'Nix', { ext: [ 'nix' ] })
   loadLang(Loc.appDir().join('lib/@orgajs/codemirror-lang-org.js'), 'Org', { ext: [ 'org' ] })
   loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-peg.js'), 'PEG', { ext: [ 'peg' ] })

@@ -101,6 +101,10 @@
   display: flex;
 }
 
+.query-ml-type {
+  margin-left: 0.5rem;
+}
+
 .query-ml-model {
   margin-left: 0.5rem;
 }

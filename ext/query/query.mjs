@@ -22,7 +22,7 @@ import { d } from '../../js/mess.mjs'
 import Ollama from './lib/ollama.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let emo, premo, icons, toolMap
+let emo, emoAgent, premo, premoAgent, icons, toolMap
 
 function snippet
 (item) {
@@ -766,6 +766,248 @@ function init
     go()
   }
 
+  function chatAgent
+  (buf, model, key, msgs, prompt, cb, cbEnd, cbTool) { // (msg), (), (tool)
+    function stream
+    (response) {
+      let buffer, reader, decoder, cancelled, calls
+
+      d('CHAT stream')
+
+      function cancel
+      () {
+        cancelled = 1
+        reader.cancel()
+      }
+
+      function no
+      () {
+        d('n')
+        cancel()
+        cbEnd && cbEnd()
+      }
+
+      function yes
+      () {
+        let busy, final
+
+        d('YES')
+        d(calls)
+        busy = 0
+        calls?.forEach(tool => tool && busy++)
+        calls?.forEach(tool => tool && tool.cb(res => {
+          d('TOOL result for ' + tool.name)
+          d(res)
+          if (final) {
+            d('Error: skipping because already saw finalAnswer')
+            return
+          }
+          if (tool.name == 'finalAnswer') {
+            cb && cb({ content: res.answer })
+            cbEnd && cbEnd()
+            final = 1
+            return
+          }
+          buf.vars('query').msgs.push({ role: 'tool',
+                                        toolCallId: tool.id,
+                                        name: tool.name,
+                                        content: JSON.stringify(res) })
+          busy--
+          if (busy == 0)
+            go()
+        }))
+        calls = 0
+        if (final)
+          return
+        if (busy == 0)
+          go()
+      }
+
+      function read
+      () {
+        reader.read().then(({ done, value }) => {
+
+          if (cancelled)
+            return
+
+          if (done) {
+            d('CHAT done')
+            reader.cancel()
+            if (cbTool && calls) {
+              let delta
+
+              delta = { role: 'assistant',
+                        content: '',
+                        tool_calls: [] }
+              calls.forEach(tool => {
+                delta.tool_calls.push({ type: 'function',
+                                        function: { arguments: tool.args,
+                                                    name: tool.name },
+                                        id: tool.id,
+                                        index: tool.index })
+              })
+              buf.vars('query').msgs.push(delta)
+
+              calls.forEach(tool => tool && cbTool(tool))
+            }
+            else
+              cbEnd && cbEnd()
+            return
+          }
+
+          buffer += decoder.decode(value, { stream: true })
+          //d('CHAT buffer: ' + buffer)
+
+          // Process complete lines from buffer
+
+          while (true) {
+            let lineEnd, line
+
+            lineEnd = buffer.indexOf('\n')
+
+            if (lineEnd === -1)
+              break
+
+            line = buffer.slice(0, lineEnd).trim()
+
+            buffer = buffer.slice(lineEnd + 1)
+
+            if (line.startsWith('data: ')) {
+              let data, delta, json
+
+              data = line.slice(6)
+
+              if (data === '[DONE]')
+                break
+
+              json = JSON.parse(data)
+              delta = json.choices[0].delta
+              d(delta)
+              if (delta.tool_calls?.length)
+                // clean api shortcuts that some models take
+                for (let i = 0; i < delta.tool_calls.length; i++)
+                  if (calls?.at(i)) {
+                    let call
+
+                    call = delta.tool_calls[i]
+                    call.type = 'function'
+                    call.function.name = calls[i].name
+                  }
+              if (delta.content?.length)
+                cb && cb(delta)
+              if (delta.tool_calls?.length)
+                // tool call
+                for (let i = 0; i < delta.tool_calls.length; i++) {
+                  let call
+
+                  d('TOOL ' + i + ' parsing')
+                  call = delta.tool_calls[i]
+                  if (call.type == 'function') {
+                    if (calls?.at(i))
+                      calls[i].args += (call.function.arguments || '')
+                    if (call.function.name)
+                      if (toolMap[call.function.name])
+                        if (calls?.at(i)) {
+                          // already seen the first call to this function
+                        }
+                        else {
+                          let index, tool
+
+                          tool = toolMap[call.function.name]
+                          index = i
+                          calls = calls || []
+                          calls[index] = { args: call.function.arguments || '',
+                                           autoAccept: tool.autoAccept,
+                                           cb(then) { // (response)
+                                             let json
+
+                                             d('TOOL ' + index + ' running')
+                                             json = {}
+                                             if (calls[index].args?.trim())
+                                               try {
+                                                 json = JSON.parse(calls[index].args)
+                                               }
+                                               catch (err) {
+                                                 Mess.yell('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
+                                                 return
+
+                                               }
+                                             tool.cb(buf, json, then)
+                                           },
+                                           id: call.id,
+                                           index: call.index,
+                                           name: call.function.name,
+                                           //
+                                           no,
+                                           yes }
+                        }
+                      else {
+                        d('TOOL MISSING')
+                        cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
+                        calls[i] = 0
+                      }
+                  }
+                  else {
+                    d('TYPE MISSING')
+                    cb && cb({ content: 'ERROR: missing tool type: ' + call.type + '\n' })
+                    calls[i] = 0
+                  }
+                }
+              else if (delta.content.length)
+                // just content
+                buf.vars('query').msgs.push(delta)
+            }
+          }
+
+          read()
+        })
+      }
+
+      reader = response.body?.getReader() || Mess.toss('Error reading response body')
+
+      decoder = new TextDecoder()
+
+      buffer = ''
+
+      read()
+
+      buf.vars('query').cancel = cancel
+    }
+
+    function go
+    () {
+      fetch('https://openrouter.ai/api/v1/chat/completions',
+            { method: 'POST',
+              headers: {
+                Authorization: 'Bearer ' + key,
+                'Content-Type': 'application/json'
+              },
+
+              body: JSON.stringify({
+                model,
+                messages: [ { role: 'system',
+                              content: systemPrompt },
+                            ...msgs ],
+                stream: true,
+                tools }) })
+        .then(response => {
+          response.ok || Mess.toss('fetch failed')
+          return stream(response)
+        })
+        .catch(err => {
+          Mess.yell('fetch: ' + err.message)
+        })
+    }
+
+    prompt.length || Mess.toss('empty prompt')
+
+    model = model || 'meta-llama/llama-3.3-70b-instruct:free'
+
+    msgs.push({ role: 'user', content: prompt })
+
+    go()
+  }
+
   function refresh
   (view, spec, cb) {
     let w, co
@@ -984,7 +1226,7 @@ function init
            appendWithEnd(buf, msg.content)
          },
          () => {
-           appendWithEnd(buf, '\n\n' + premo + ' ')
+           appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
            done(buf)
          },
          tool => {
@@ -1005,7 +1247,7 @@ function init
       return
     }
     model = buf.vars('query').model || Opt.get('query.model')
-    Prompt.ask({ text: emo + ' ' + model,
+    Prompt.ask({ text: buf.vars('query').emo + ' ' + model,
                  hist },
                prompt => {
                  buf.vars('query').hist.add(prompt)
@@ -1018,7 +1260,7 @@ function init
                         appendWithEnd(buf, msg.content)
                       },
                       () => {
-                        appendWithEnd(buf, '\n\n' + premo + ' ')
+                        appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
                         done(buf)
                       },
                       tool => {
@@ -1057,7 +1299,7 @@ function init
   }
 
   function divMl
-  (model, query) {
+  (model, type, query) {
     let question
 
     query = query.trim()
@@ -1068,6 +1310,7 @@ function init
                  [ divCl('query-ml-icon',
                          img(Icon.path('chat'), 'Chat', 'filter-clr-text'),
                          { 'data-run': 'describe buffer' }),
+                   divCl('query-ml-type', type),
                    divCl('query-ml-model', model),
                    divCl('query-ml-new',
                          button('New',
@@ -1134,21 +1377,22 @@ function init
     if (p.buf.vars('query').busy)
       if (p.buf.vars('query').cancel) {
         p.buf.vars('query').cancel()
-        appendWithEnd(p.buf, ' ...stopped.\n\n' + premo + ' ')
+        appendWithEnd(p.buf, ' ...stopped.\n\n' + p.buf.vars('query').premo + ' ')
         done(p.buf)
       }
       else
         Mess.toss('cancel function missing')
   })
 
-  Cmd.add('chat', (u, we, model) => {
+  function prompt
+  (model, type, cb) {
     model = model || Opt.get('query.model')
-    Prompt.ask({ text: emo + ' ' + model,
+    Prompt.ask({ text: (type == 'Agent' ? emoAgent : emo) + ' ' + model,
                  hist },
                prompt => {
                  let name, buf, p
 
-                 name = 'Chat: ' + prompt
+                 name = type + ': ' + prompt
                  p = Pane.current()
                  buf = Buf.find(b2 => b2.name == name)
 
@@ -1169,9 +1413,11 @@ function init
                                                 'query-tool-button',
                                                 { 'data-run': 'reject tool' })) ])
                    w = Ed.divW(0, 0,
-                               { ml: divMl(model, prompt),
+                               { ml: divMl(model, type, prompt),
                                  extraCo: toolW })
                    buf = Buf.add(name, 'richdown', w, p.dir)
+                   buf.vars('query').emo = (type == 'Agent' ? emoAgent : emo)
+                   buf.vars('query').premo = (type == 'Agent' ? premoAgent : premo)
                    buf.vars('ed').fillParent = 0
                    buf.addMode('chat')
                    //buf.addMode('view')
@@ -1188,26 +1434,34 @@ function init
 
                  buf.clear()
                  p.setBuf(buf, {}, () => {
-                   appendWithEnd(buf, premo + ' ' + prompt + '\n\n')
+                   appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
-                   chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
-                        msg => {
-                          //d('CHAT append: ' + msg.content)
-                          appendWithEnd(buf, msg.content)
-                        },
-                        () => {
-                          d('cb END')
-                          appendWithEnd(buf, '\n\n' + premo + ' ')
-                          done(buf)
-                        },
-                        tool => {
-                          d('cb TOOL ' + tool.name)
-                          appendTool(buf, tool)
-                          //done(buf)
-                        })
+                   cb(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+                      msg => {
+                        //d('CHAT append: ' + msg.content)
+                        appendWithEnd(buf, msg.content)
+                      },
+                      () => {
+                        d('cb END')
+                        appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
+                        done(buf)
+                      },
+                      tool => {
+                        d('cb TOOL ' + tool.name)
+                        appendTool(buf, tool)
+                        //done(buf)
+                      })
                  })
                })
+  }
+
+  Cmd.add('chat', (u, we, model) => {
+    prompt(model, 'Chat', chat)
+  })
+
+  Cmd.add('agent', (u, we, model) => {
+    prompt(model, 'Agent', chatAgent)
   })
 
   Cmd.add('llm insert', () => {
@@ -1429,8 +1683,10 @@ Now handle the user’s request:
               removeFile: { cb: removeFile },
               writeFile: { cb: writeFile } }
   d(toolMap)
-  emo = '🗨️'
+  emo = '🔮' // 🗨️
   premo = '#### ' + emo
+  emoAgent = '🤖' // ✨
+  premoAgent = '#### ' + emoAgent
   hist = Hist.ensure('llm')
 
   Opt.declare('query.model', 'str', 'mistral')

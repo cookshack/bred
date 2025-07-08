@@ -639,11 +639,11 @@ function init
 
   function chatAgent
   (buf, model, key, msgs, prompt, cb, cbEnd, cbTool) { // (msg), (), (tool)
-    function stream
+    function handle
     (response) {
       let buffer, reader, decoder, cancelled, calls
 
-      d('CHAT stream')
+      d('CHAT handle')
 
       function cancel
       () {
@@ -679,10 +679,6 @@ function init
             final = 1
             return
           }
-          buf.vars('query').msgs.push({ role: 'tool',
-                                        toolCallId: tool.id,
-                                        name: tool.name,
-                                        content: JSON.stringify(res) })
           busy--
           if (busy == 0)
             go()
@@ -697,140 +693,103 @@ function init
       function read
       () {
         reader.read().then(({ done, value }) => {
-
           if (cancelled)
             return
 
           if (done) {
+            let json, message
+
             d('CHAT done')
+
             reader.cancel()
-            if (cbTool && calls) {
-              let delta
 
-              delta = { role: 'assistant',
-                        content: '',
-                        tool_calls: [] }
-              calls.forEach(tool => {
-                delta.tool_calls.push({ type: 'function',
-                                        function: { arguments: tool.args,
-                                                    name: tool.name },
-                                        id: tool.id,
-                                        index: tool.index })
-              })
-              buf.vars('query').msgs.push(delta)
+            // parse the buffer
 
-              calls.forEach(tool => tool && cbTool(tool))
+            json = JSON.parse(buffer)
+            d({ json })
+            message = json.choices[0].message
+            d(message)
+            buf.vars('query').msgs.push(message)
+            if (message.content?.length) {
+              d('ERR model sent plain text, just displaying it')
+              cb && cb({ content: message.content })
             }
+
+            // setup tool calls
+
+            if (message.tool_calls?.length)
+              // tool call
+              for (let i = 0; i < message.tool_calls.length; i++) {
+                let call
+
+                d('TOOL ' + i + ' parsing')
+                call = message.tool_calls[i]
+                if (call.type == 'function') {
+                  if (calls?.at(i))
+                    calls[i].args += (call.function.arguments || '')
+                  if (call.function.name)
+                    if (toolMap[call.function.name])
+                      if (calls?.at(i)) {
+                        // already seen the first call to this function
+                      }
+                      else {
+                        let index, tool
+
+                        tool = toolMap[call.function.name]
+                        index = i
+                        calls = calls || []
+                        calls[index] = { args: call.function.arguments || '',
+                                         autoAccept: tool.autoAccept,
+                                         cb(then) { // (response)
+                                           let json
+
+                                           d('TOOL ' + index + ' running')
+                                           json = {}
+                                           if (calls[index].args?.trim())
+                                             try {
+                                               json = JSON.parse(calls[index].args)
+                                             }
+                                             catch (err) {
+                                               d('ARGS:')
+                                               d(calls[index].args)
+                                               Mess.yell('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
+                                               return
+
+                                             }
+                                           tool.cb(buf, json, then)
+                                         },
+                                         id: call.id,
+                                         index: call.index,
+                                         name: call.function.name,
+                                         //
+                                         no,
+                                         yes }
+                      }
+                    else {
+                      d('TOOL MISSING')
+                      cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
+                      calls[i] = 0
+                    }
+                }
+                else {
+                  d('TYPE MISSING')
+                  cb && cb({ content: 'ERROR: missing tool type: ' + call.type + '\n' })
+                  calls[i] = 0
+                }
+              }
+
+            // run the tools
+
+            if (calls)
+              calls.forEach(tool => tool && cbTool(tool))
             else
               cbEnd && cbEnd()
+
             return
           }
 
           buffer += decoder.decode(value, { stream: true })
-          //d('CHAT buffer: ' + buffer)
-
-          // Process complete lines from buffer
-
-          while (true) {
-            let lineEnd, line
-
-            lineEnd = buffer.indexOf('\n')
-
-            if (lineEnd === -1)
-              break
-
-            line = buffer.slice(0, lineEnd).trim()
-
-            buffer = buffer.slice(lineEnd + 1)
-
-            if (line.startsWith('data: ')) {
-              let data, delta, json
-
-              data = line.slice(6)
-
-              if (data === '[DONE]')
-                break
-
-              json = JSON.parse(data)
-              delta = json.choices[0].delta
-              d(delta)
-              if (delta.tool_calls?.length)
-                // clean api shortcuts that some models take
-                for (let i = 0; i < delta.tool_calls.length; i++)
-                  if (calls?.at(i)) {
-                    let call
-
-                    call = delta.tool_calls[i]
-                    call.type = 'function'
-                    call.function.name = calls[i].name
-                  }
-              if (delta.content?.length) {
-                d('ERR model sent plain text')
-                cb && cb(delta)
-              }
-              if (delta.tool_calls?.length)
-                // tool call
-                for (let i = 0; i < delta.tool_calls.length; i++) {
-                  let call
-
-                  d('TOOL ' + i + ' parsing')
-                  call = delta.tool_calls[i]
-                  if (call.type == 'function') {
-                    if (calls?.at(i))
-                      calls[i].args += (call.function.arguments || '')
-                    if (call.function.name)
-                      if (toolMap[call.function.name])
-                        if (calls?.at(i)) {
-                          // already seen the first call to this function
-                        }
-                        else {
-                          let index, tool
-
-                          tool = toolMap[call.function.name]
-                          index = i
-                          calls = calls || []
-                          calls[index] = { args: call.function.arguments || '',
-                                           autoAccept: tool.autoAccept,
-                                           cb(then) { // (response)
-                                             let json
-
-                                             d('TOOL ' + index + ' running')
-                                             json = {}
-                                             if (calls[index].args?.trim())
-                                               try {
-                                                 json = JSON.parse(calls[index].args)
-                                               }
-                                               catch (err) {
-                                                 Mess.yell('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
-                                                 return
-
-                                               }
-                                             tool.cb(buf, json, then)
-                                           },
-                                           id: call.id,
-                                           index: call.index,
-                                           name: call.function.name,
-                                           //
-                                           no,
-                                           yes }
-                        }
-                      else {
-                        d('TOOL MISSING')
-                        cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
-                        calls[i] = 0
-                      }
-                  }
-                  else {
-                    d('TYPE MISSING')
-                    cb && cb({ content: 'ERROR: missing tool type: ' + call.type + '\n' })
-                    calls[i] = 0
-                  }
-                }
-              else if (delta.content.length)
-                // just content
-                buf.vars('query').msgs.push(delta)
-            }
-          }
+          d('CHAT buffer: ' + buffer)
 
           read()
         })
@@ -849,6 +808,8 @@ function init
 
     function go
     () {
+      d('fetching')
+      d({ msgs })
       fetch('https://openrouter.ai/api/v1/chat/completions',
             { method: 'POST',
               headers: {
@@ -861,11 +822,10 @@ function init
                 messages: [ { role: 'system',
                               content: systemPrompt },
                             ...msgs ],
-                stream: true,
                 tools }) })
         .then(response => {
           response.ok || Mess.toss('fetch failed')
-          return stream(response)
+          return handle(response)
         })
         .catch(err => {
           Mess.yell('fetch: ' + err.message)
@@ -1414,11 +1374,11 @@ You are BredAssist, a helpful assistant embedded in an Electron-based code edito
 You have access to a set of tools (functions) that you may call to perform actions or fetch information.
 
 INSTRUCTIONS:
-1. Every user turn must result in exactly one function call.
+1. From here on out, for all time, every user turn must result in exactly one and only one function call.
 2. If the user’s request requires a tool other than finalAnswer, emit that one function call now and wait for its response.
 3. If the user’s request can be answered without needing any other tool, wrap your plain-text answer in a finalAnswer call.
-4. After you emit any tool call, wait for the tool's response before issuing another function call.
-5. Do not output any text outside of a function call.
+4. Stop after you emit any tool call. Wait for the next user turn which will contain the tool's response. When you receive the response, then issue another function call.
+5. Do not output any text outside of a function call. Whatever you send must be sent via a function call.
 
 AVAILABLE TOOLS:
 1) createDir

@@ -949,6 +949,7 @@ function init
 
     p = Pane.current()
     tool = p.buf.vars('query').tool
+    p.buf.rmMode('chat tool')
     p.buf.views.forEach(view => {
       if (view.ele) {
         let toolW
@@ -967,6 +968,7 @@ function init
 
     p = Pane.current()
     tool = p.buf.vars('query').tool
+    p.buf.rmMode('chat tool')
     p.buf.views.forEach(view => {
       if (view.ele) {
         let toolW

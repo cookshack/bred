@@ -194,6 +194,19 @@ function make
     return 0
   }
 
+  // remove minor mode
+  function rmMode
+  (modeOrKey) {
+    let mo
+
+    mo = getMo(modeOrKey)
+    if (mo)
+      if (b.minors.find(m => m == mo)) {
+        b.minors.removeIf(m => m === mo)
+        mo.stop(b)
+      }
+  }
+
   // toggle minor mode
   function toggleMode
   (modeOrKey) {
@@ -541,6 +554,7 @@ function make
         line,
         makePsn,
         remove,
+        rmMode,
         insert,
         off,
         on,

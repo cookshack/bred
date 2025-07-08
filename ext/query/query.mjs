@@ -525,10 +525,10 @@ function init
   }
 
   function chat
-  (buf, model, key, msgs, prompt, cb, cbEnd, cbTool) { // (msg), (), (tool)
+  (buf, model, key, msgs, prompt, cb, cbEnd) { // (msg), ()
     function stream
     (response) {
-      let buffer, reader, decoder, cancelled, calls
+      let buffer, reader, decoder, cancelled
 
       d('CHAT stream')
 
@@ -536,49 +536,6 @@ function init
       () {
         cancelled = 1
         reader.cancel()
-      }
-
-      function no
-      () {
-        d('n')
-        cancel()
-        cbEnd && cbEnd()
-      }
-
-      function yes
-      () {
-        let busy, final
-
-        d('YES')
-        d(calls)
-        busy = 0
-        calls?.forEach(tool => tool && busy++)
-        calls?.forEach(tool => tool && tool.cb(res => {
-          d('TOOL result for ' + tool.name)
-          d(res)
-          if (final) {
-            d('Error: skipping because already saw finalAnswer')
-            return
-          }
-          if (tool.name == 'finalAnswer') {
-            cb && cb({ content: res.answer })
-            cbEnd && cbEnd()
-            final = 1
-            return
-          }
-          buf.vars('query').msgs.push({ role: 'tool',
-                                        toolCallId: tool.id,
-                                        name: tool.name,
-                                        content: JSON.stringify(res) })
-          busy--
-          if (busy == 0)
-            go()
-        }))
-        calls = 0
-        if (final)
-          return
-        if (busy == 0)
-          go()
       }
 
       function read
@@ -591,25 +548,7 @@ function init
           if (done) {
             d('CHAT done')
             reader.cancel()
-            if (cbTool && calls) {
-              let delta
-
-              delta = { role: 'assistant',
-                        content: '',
-                        tool_calls: [] }
-              calls.forEach(tool => {
-                delta.tool_calls.push({ type: 'function',
-                                        function: { arguments: tool.args,
-                                                    name: tool.name },
-                                        id: tool.id,
-                                        index: tool.index })
-              })
-              buf.vars('query').msgs.push(delta)
-
-              calls.forEach(tool => tool && cbTool(tool))
-            }
-            else
-              cbEnd && cbEnd()
+            cbEnd && cbEnd()
             return
           }
 
@@ -641,79 +580,12 @@ function init
               json = JSON.parse(data)
               delta = json.choices[0].delta
               d(delta)
-              if (delta.tool_calls?.length)
-                // clean api shortcuts that some models take
-                for (let i = 0; i < delta.tool_calls.length; i++)
-                  if (calls?.at(i)) {
-                    let call
-
-                    call = delta.tool_calls[i]
-                    call.type = 'function'
-                    call.function.name = calls[i].name
-                  }
-              if (delta.content?.length)
+              if (delta.content?.length) {
                 cb && cb(delta)
-              if (delta.tool_calls?.length)
-                // tool call
-                for (let i = 0; i < delta.tool_calls.length; i++) {
-                  let call
-
-                  d('TOOL ' + i + ' parsing')
-                  call = delta.tool_calls[i]
-                  if (call.type == 'function') {
-                    if (calls?.at(i))
-                      calls[i].args += (call.function.arguments || '')
-                    if (call.function.name)
-                      if (toolMap[call.function.name])
-                        if (calls?.at(i)) {
-                          // already seen the first call to this function
-                        }
-                        else {
-                          let index, tool
-
-                          tool = toolMap[call.function.name]
-                          index = i
-                          calls = calls || []
-                          calls[index] = { args: call.function.arguments || '',
-                                           autoAccept: tool.autoAccept,
-                                           cb(then) { // (response)
-                                             let json
-
-                                             d('TOOL ' + index + ' running')
-                                             json = {}
-                                             if (calls[index].args?.trim())
-                                               try {
-                                                 json = JSON.parse(calls[index].args)
-                                               }
-                                               catch (err) {
-                                                 Mess.yell('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
-                                                 return
-
-                                               }
-                                             tool.cb(buf, json, then)
-                                           },
-                                           id: call.id,
-                                           index: call.index,
-                                           name: call.function.name,
-                                           //
-                                           no,
-                                           yes }
-                        }
-                      else {
-                        d('TOOL MISSING')
-                        cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
-                        calls[i] = 0
-                      }
-                  }
-                  else {
-                    d('TYPE MISSING')
-                    cb && cb({ content: 'ERROR: missing tool type: ' + call.type + '\n' })
-                    calls[i] = 0
-                  }
-                }
-              else if (delta.content.length)
-                // just content
                 buf.vars('query').msgs.push(delta)
+              }
+              if (delta.tool_calls?.length)
+                d('ERR tool call')
             }
           }
 
@@ -744,10 +616,9 @@ function init
               body: JSON.stringify({
                 model,
                 messages: [ { role: 'system',
-                              content: systemPrompt },
+                              content: 'You are a helpful assistant embedded in an Electron-based code editor.' },
                             ...msgs ],
-                stream: true,
-                tools }) })
+                stream: true }) })
         .then(response => {
           response.ok || Mess.toss('fetch failed')
           return stream(response)
@@ -1168,7 +1039,7 @@ function init
     p.view.bufEnd()
     end = p.view.bep
     r = Ed.vfind(p.view,
-                 emo,
+                 p.buf.vars('query').emo,
                  0,
                  { skipCurrent: 0,
                    backwards: 1,
@@ -1181,7 +1052,7 @@ function init
     r || Mess.toss('Failed to find last prompt')
     Ed.Backend.rangeEmpty(r) && Mess.toss('Failed to find last prompt')
     r.to = end
-    r.from += emo.length
+    r.from += p.buf.vars('query').emo.length
     if (r.to < r.from)
       // something went wrong
       r.to = r.from
@@ -1385,7 +1256,12 @@ function init
   })
 
   function prompt
-  (model, type, cb) {
+  (model, type) {
+    let cb
+
+    cb = chat
+    if (type == 'Agent')
+      cb = chatAgent
     model = model || Opt.get('query.model')
     Prompt.ask({ text: (type == 'Agent' ? emoAgent : emo) + ' ' + model,
                  hist },
@@ -1447,6 +1323,7 @@ function init
                         appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
                         done(buf)
                       },
+                      // only used by chatAgent
                       tool => {
                         d('cb TOOL ' + tool.name)
                         appendTool(buf, tool)
@@ -1457,11 +1334,11 @@ function init
   }
 
   Cmd.add('chat', (u, we, model) => {
-    prompt(model, 'Chat', chat)
+    prompt(model, 'Chat')
   })
 
   Cmd.add('agent', (u, we, model) => {
-    prompt(model, 'Agent', chatAgent)
+    prompt(model, 'Agent')
   })
 
   Cmd.add('llm insert', () => {
@@ -1526,30 +1403,28 @@ You are BredAssist, a helpful assistant embedded in an Electron-based code edito
 You have access to a set of tools (functions) that you may call to perform actions or fetch information.
 
 INSTRUCTIONS:
-1. If the user’s request requires a tool, emit one and only one function call in this turn.
-2. When a function call is required, always run the function call instead of printing out the JSON for the call.
-2. After you emit a function call, wait for the tool’s response before calling another tool.
-3. If the user’s request can be answered without any tools, respond in plain text (no function call).
-4. When all required tool calls are complete, emit the \`finalAnswer\` function call to return a human-readable summary.
-   Make sure to convert the tool output from JSON to human-readable form if the tool output is going into finalAnswer.
-5. Do not output any text outside of function calls unless it is your final plain-text answer.
+1. Every user turn must result in exactly one function call.
+2. If the user’s request requires a tool other than finalAnswer, emit that one function call now and wait for its response.
+3. If the user’s request can be answered without needing any other tool, wrap your plain-text answer in a finalAnswer call.
+4. After you emit any tool call, wait for the tool's response before issuing another function call.
+5. Do not output any text outside of a function call.
 
 AVAILABLE TOOLS:
 1) createDir
    • Purpose: Create a new directory at the given path.
    • Parameters: { dir_path: string }
    • Returns (as JSON):
-     - On success: \`{ "success": true }\`
-     - On error:   \`{ "success": false, "error": "…error message…" }\`
+     - On success: { "success": true }
+     - On error:   { "success": false, "error": "…error message…" }
 
-3) moveFile
+2) moveFile
    • Purpose: Move or rename the file at the given path.
    • Parameters: { path_from: string, path_to: string }
    • Returns (as JSON):
-     - On success: \`{ "success": true }\`
-     - On error:   \`{ "success": false, "error": "…error message…" }\`
+     - On success: { "success": true }
+     - On error:   { "success": false, "error": "…error message…" }
 
-2) readDir
+3) readDir
    • Purpose: List entries in a directory.
    • Parameters: { path: string }
    • Returns (as JSON):
@@ -1563,59 +1438,50 @@ AVAILABLE TOOLS:
          ]
        }
      - On error:
-       \`{ "success": false, "error": "…error message…" }\`
+       { "success": false, "error": "…error message…" }
 
-3) readFile
+4) readFile
    • Purpose: Read a file at the given path.
    • Parameters: { path: string }
    • Returns (as JSON):
-     - On success: \`{ "success": true, "data": "…file contents…", "stat": "…file stats…" }\`
-     - On error:   \`{ "success": false, "error": "…error message…" }\`
+     - On success: { "success": true, "data": "…file contents…", "stat": "…file stats…" }
+     - On error:   { "success": false, "error": "…error message…" }
 
-3) removeFile
-   • Purpose: Remove file at the given path.
+5) removeFile
+   • Purpose: Remove a file at the given path.
    • Parameters: { path: string }
    • Returns (as JSON):
-     - On success: \`{ "success": true }\`
-     - On error:   \`{ "success": false, "error": "…error message…" }\`
+     - On success: { "success": true }
+     - On error:   { "success": false, "error": "…error message…" }
 
-4) writeFile
+6) writeFile
    • Purpose: Write a file at the given path.
    • Parameters: { path: string, text: string }
    • Returns (as JSON):
-     - On success: \`{ "success": true }\`
-     - On error:   \`{ "success": false, "error": "…error message…" }\`
+     - On success: { "success": true }
+     - On error:   { "success": false, "error": "…error message…" }
 
-5) finalAnswer
-   • Purpose: Signal completion of any tool-based work and return a final summary.
+7) finalAnswer
+   • Purpose: Signal completion and return a human-readable summary.
    • Parameters: { answer: string }
 
 EXAMPLES:
 
-Example A – Multi-step tool usage
+Example 1 – Creating a dir then listing:
 User: “Make a folder named foo and then list its contents.”
-Assistant → (function call)
+Assistant → createDir
 {"name":"createDir","arguments":{"dir_path":"foo"}}
-…(tool_response arrives: {"success":true})…
-Assistant → (function call)
+…(tool_response arrives)…
+Assistant → readDir
 {"name":"readDir","arguments":{"path":"foo"}}
-…(tool_response arrives: {"success":true,"contents":[{"name":"foo"}]})…
-Assistant → (function call)
+…(tool_response arrives)…
+Assistant → finalAnswer
 {"name":"finalAnswer","arguments":{"answer":"Done! ‘foo’ now exists and contains: […]"}}
 
-Example D - Error case
-User: “Make a folder that already exists.”
-Assistant → (function call))
-{"name":"createDir","arguments":{"name":"foo"}}
-…(tool_response arrives: {"success":false,"error":"EEXIST: file already exists"})…
-Assistant → (function call))
-{"name":"finalAnswer","arguments":{"answer":"Could not create ‘foo’: EEXIST: file already exists"}}
-
-Example C – General question
-User: “What is the precedence of && vs || in JavaScript?”
-Assistant → (plain text answer, streaming via delta.content)
-In JavaScript, the logical AND (\`&&\`) operator has higher precedence than the logical OR (\`||\`).
-This means an expression like \`a && b || c\` is parsed as \`(a && b) || c\`, not \`a && (b || c)\`.
+Example 2 – Direct answer:
+User: “What’s the precedence of && vs || in JavaScript?”
+Assistant → finalAnswer
+{"name":"finalAnswer","arguments":{"answer":"In JavaScript, && has higher precedence than ||, so a && b || c is parsed as (a && b) || c."}}
 
 Now handle the user’s request:
 `

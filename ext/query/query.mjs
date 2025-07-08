@@ -1,4 +1,4 @@
-import { append, button, div, divCl, img } from '../../js/dom.mjs'
+import { append, button, div, divCl, img, span } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
 import * as Browse from '../../js/browse.mjs'
@@ -350,10 +350,6 @@ function init
       }
     })
     buf.addMode('chat tool')
-    //buf.vars('query').appending = 1
-    //buf.append('Run ' + tool.name + '? [*Y*es](#yes) [*N*o](#no)')
-    //buf.vars('query').appending = 0
-    //buf.vars('query').promptEnd = buf.bepEnd
   }
 
   function makeExtRo
@@ -1017,11 +1013,11 @@ function init
                    toolW = divCl('query-tool-w retracted',
                                  [ div([ 'Run ', toolName, '?' ]),
                                    divCl('query-tool-y',
-                                         button('Yes',
+                                         button([ span('Y', 'key'), 'es' ],
                                                 'query-tool-button',
                                                 { 'data-run': 'accept tool' })),
                                    divCl('query-tool-n',
-                                         button('No',
+                                         button([ span('N', 'key'), 'o' ],
                                                 'query-tool-button',
                                                 { 'data-run': 'reject tool' })) ])
                    w = Ed.divW(0, 0,

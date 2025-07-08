@@ -764,8 +764,10 @@ function init
                     call.type = 'function'
                     call.function.name = calls[i].name
                   }
-              if (delta.content?.length)
+              if (delta.content?.length) {
+                d('ERR model sent plain text')
                 cb && cb(delta)
+              }
               if (delta.tool_calls?.length)
                 // tool call
                 for (let i = 0; i < delta.tool_calls.length; i++) {
@@ -1062,7 +1064,7 @@ function init
 
   function enter
   () {
-    let r, p, buf, model, prompt
+    let r, p, buf, model, prompt, cb
 
     p = Pane.current()
 
@@ -1091,20 +1093,23 @@ function init
 
     busy(buf)
     appendWithEnd(buf, '\n\n')
-    chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
-         msg => {
-           d('CHAT enter append: ' + msg.content)
-           appendWithEnd(buf, msg.content)
-         },
-         () => {
-           appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
-           done(buf)
-         },
-         tool => {
-           d('cb TOOL')
-           appendTool(buf, tool)
-           //done(buf)
-         })
+    cb = chat
+    if (p.buf.vars('query').type == 'Agent')
+      cb = chatAgent
+    cb(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+       msg => {
+         d('CHAT enter append: ' + msg.content)
+         appendWithEnd(buf, msg.content)
+       },
+       () => {
+         appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
+         done(buf)
+       },
+       tool => {
+         d('cb TOOL')
+         appendTool(buf, tool)
+         //done(buf)
+       })
   }
 
   function chatMore
@@ -1121,24 +1126,29 @@ function init
     Prompt.ask({ text: buf.vars('query').emo + ' ' + model,
                  hist },
                prompt => {
+                 let cb
+
                  buf.vars('query').hist.add(prompt)
 
                  busy(buf)
                  appendWithEnd(buf, prompt + '\n\n')
-                 chat(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
-                      msg => {
-                        d('CHAT more append: ' + msg.content)
-                        appendWithEnd(buf, msg.content)
-                      },
-                      () => {
-                        appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
-                        done(buf)
-                      },
-                      tool => {
-                        d('cb TOOL')
-                        appendTool(buf, tool)
-                        //done(buf)
-                      })
+                 cb = chat
+                 if (buf.vars('query').type == 'Agent')
+                   cb = chatAgent
+                 cb(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+                    msg => {
+                      d('CHAT more append: ' + msg.content)
+                      appendWithEnd(buf, msg.content)
+                    },
+                    () => {
+                      appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
+                      done(buf)
+                    },
+                    tool => {
+                      d('cb TOOL')
+                      appendTool(buf, tool)
+                      //done(buf)
+                    })
                })
   }
 
@@ -1292,6 +1302,7 @@ function init
                                { ml: divMl(model, type, prompt),
                                  extraCo: toolW })
                    buf = Buf.add(name, 'richdown', w, p.dir)
+                   buf.vars('query').type = type
                    buf.vars('query').emo = (type == 'Agent' ? emoAgent : emo)
                    buf.vars('query').premo = (type == 'Agent' ? premoAgent : premo)
                    buf.vars('ed').fillParent = 0

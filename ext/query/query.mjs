@@ -292,7 +292,7 @@ function readFile
 export
 function init
 () {
-  let hist, mo, chMo, extRo, tools, systemPrompt
+  let hist, mo, chMo, chToolMo, extRo, tools, systemPrompt
 
   function busy
   (buf) {
@@ -349,6 +349,7 @@ function init
         d(tool)
       }
     })
+    buf.addMode('chat tool')
     //buf.vars('query').appending = 1
     //buf.append('Run ' + tool.name + '? [*Y*es](#yes) [*N*o](#no)')
     //buf.vars('query').appending = 0
@@ -1271,6 +1272,12 @@ Now handle the user’s request:
   Em.on('q', 'self insert', chMo)
   Em.on('Backspace', 'delete previous char', chMo)
   Em.on(' ', 'self insert', chMo)
+
+  chToolMo = Mode.add('Chat Tool', { minor: 1 })
+
+  Em.on('y', 'accept tool', chToolMo)
+  Em.on('n', 'reject tool', chToolMo)
+  Em.on('C-g', 'reject tool', chToolMo)
 
   mo = Mode.add('Query', { viewInitSpec: refresh })
 

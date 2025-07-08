@@ -259,7 +259,7 @@ function mainGetActive
   let active, mo, minors
 
   mo = buf?.mode
-  minors = buf?.minors
+  minors = buf?.minors.reverse()
   active = [ root ]
   if (mo) {
     active = [ ...mo.getParentEms(), ...active ]

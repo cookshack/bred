@@ -175,7 +175,7 @@ function finalAnswer
        answer })
 }
 
-function ls
+function readDir
 (buf, args, cb) { // (json)
   let path
 
@@ -185,7 +185,7 @@ function ls
       || path.startsWith('/')) {
     cb({ error: 'Error: path must be the empty string, or a relative subdirectory',
          success: false,
-         message: 'Failed to list directory.' })
+         message: 'Failed to read directory.' })
     return
   }
 
@@ -193,18 +193,18 @@ function ls
 
   Tron.cmd('dir.get', path, (err, data) => {
     if (err) {
-      d('ERR ls')
+      d('ERR dir.get')
       d(err.message)
       cb({ error: err.message,
            success: false,
-           message: 'Failed to list directory.' })
+           message: 'Failed to read directory.' })
       return
     }
 
-    d('LS data')
+    d('READDIR data')
     d(data.data)
     cb({ success: true,
-         message: 'Successfully listed directory.',
+         message: 'Successfully read directory.',
          contents: data.data })
   })
 }
@@ -584,7 +584,14 @@ function init
                                              d('TOOL ' + index + ' running')
                                              json = {}
                                              if (calls[index].args?.trim())
-                                               json = JSON.parse(calls[index].args)
+                                               try {
+                                                 json = JSON.parse(calls[index].args)
+                                               }
+                                               catch (err) {
+                                                 Mess.yell('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
+                                                 return
+
+                                               }
                                              tool.cb(buf, json, then)
                                            },
                                            id: call.id,
@@ -1183,7 +1190,7 @@ AVAILABLE TOOLS:
      - On success: \`{ "success": true }\`
      - On error:   \`{ "success": false, "error": "…error message…" }\`
 
-2) ls
+2) readDir
    • Purpose: List entries in a directory.
    • Parameters: { path: string }
    • Returns (as JSON):
@@ -1225,7 +1232,7 @@ Assistant → (function call)
 {"name":"createDir","arguments":{"dir_path":"foo"}}
 …(tool_response arrives: {"success":true})…
 Assistant → (function call)
-{"name":"ls","arguments":{"path":"foo"}}
+{"name":"readDir","arguments":{"path":"foo"}}
 …(tool_response arrives: {"success":true,"contents":[{"name":"foo"}]})…
 Assistant → (function call)
 {"name":"finalAnswer","arguments":{"answer":"Done! ‘foo’ now exists and contains: […]"}}
@@ -1255,7 +1262,7 @@ Now handle the user’s request:
                                         required: [ 'answer' ] } } },
             //
             { type: 'function',
-              function: { name: 'ls',
+              function: { name: 'readDir',
                           description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
                           parameters: { type: 'object',
                                         properties: { path: { type: 'string',
@@ -1287,7 +1294,7 @@ Now handle the user’s request:
   toolMap = { finalAnswer: { cb: finalAnswer,
                              autoAccept: 1 },
               //
-              ls: { cb: ls },
+              readDir: { cb: readDir },
               createDir: { cb: createDir },
               readFile: { cb: readFile },
               writeFile: { cb: writeFile } }

@@ -247,6 +247,63 @@ function createDir
   })
 }
 
+function moveFile
+(buf, args, cb) { // (json)
+  let path_from, path_to, abs_from, abs_to
+
+  if (args.path_from)
+    path_from = args.path_from
+  else {
+    cb({ error: 'Error: missing or empty argument path_from',
+         success: false,
+         message: 'Failed to move file.' })
+    return
+  }
+
+  if (args.path_to)
+    path_to = args.path_to
+  else {
+    cb({ error: 'Error: missing or empty argument path_to',
+         success: false,
+         message: 'Failed to move file.' })
+    return
+  }
+
+  if (path_from.startsWith('.')
+      || path_from.startsWith('/')) {
+    cb({ error: 'Error: path_from must be in the current directory or a subdirectory',
+         success: false,
+         message: 'Failed to move file.' })
+    return
+  }
+
+  if (path_to.startsWith('.')
+      || path_to.startsWith('/')) {
+    cb({ error: 'Error: path_to must be in the current directory or a subdirectory',
+         success: false,
+         message: 'Failed to move file.' })
+    return
+  }
+
+  abs_from = Loc.make(buf.path).join(path_from)
+  abs_to = Loc.make(buf.path).join(path_to)
+  d('MOVEFILE abs ' + abs_from + ' to ' + abs_to)
+
+  Tron.cmd('file.mv', [ abs_from, abs_to ], err => {
+    if (err) {
+      d('ERR file.mv')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           message: 'Failed to move file.' })
+      return
+    }
+
+    cb({ success: true,
+         message: 'Successfully moved file.' })
+  })
+}
+
 function readFile
 (buf, args, cb) { // (json)
   let path, abs
@@ -1231,6 +1288,13 @@ AVAILABLE TOOLS:
      - On success: \`{ "success": true }\`
      - On error:   \`{ "success": false, "error": "…error message…" }\`
 
+3) moveFile
+   • Purpose: Move or rename the file at the given path.
+   • Parameters: { path_from: string, path_to: string }
+   • Returns (as JSON):
+     - On success: \`{ "success": true }\`
+     - On error:   \`{ "success": false, "error": "…error message…" }\`
+
 2) readDir
    • Purpose: List entries in a directory.
    • Parameters: { path: string }
@@ -1310,6 +1374,15 @@ Now handle the user’s request:
                                         required: [ 'answer' ] } } },
             //
             { type: 'function',
+              function: { name: 'moveFile',
+                          description: 'Move or rename a file, returning a JSON object with a success message.',
+                          parameters: { type: 'object',
+                                        properties: { path_from: { type: 'string',
+                                                                   description: "Path to the file that must be moved. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                                                      path_to: { type: 'string',
+                                                                 description: "New location and name for the file. This path must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+                                        required: [ 'path' ] } } },
+            { type: 'function',
               function: { name: 'readDir',
                           description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
                           parameters: { type: 'object',
@@ -1349,6 +1422,7 @@ Now handle the user’s request:
   toolMap = { finalAnswer: { cb: finalAnswer,
                              autoAccept: 1 },
               //
+              moveFile: { cb: moveFile },
               readDir: { cb: readDir },
               createDir: { cb: createDir },
               readFile: { cb: readFile },

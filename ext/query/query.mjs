@@ -1191,7 +1191,7 @@ function init
                  [ divCl('query-ml-icon',
                          img(Icon.path('chat'), 'Chat', 'filter-clr-text'),
                          { 'data-run': 'describe buffer' }),
-                   divCl('query-ml-type', type),
+                   divCl('query-ml-type', type == 'Agent' ? emoAgent : emo),
                    divCl('query-ml-model', model),
                    divCl('query-ml-new',
                          button('New',

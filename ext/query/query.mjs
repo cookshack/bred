@@ -247,6 +247,48 @@ function createDir
   })
 }
 
+function readFile
+(buf, args, cb) { // (json)
+  let path, abs
+
+  if (args.path)
+    path = args.path
+  else {
+    cb({ error: 'Error: missing or empty argument path',
+         success: false,
+         message: 'Failed to read file.' })
+    return
+  }
+
+  if (path.startsWith('.')
+      || path.startsWith('/')) {
+    cb({ error: 'Error: path must be in the current directory or a subdirectory',
+         success: false,
+         message: 'Failed to read file.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('CREATEDIR abs ' + abs)
+
+  Tron.cmd('file.get', abs, (err, data) => {
+    if (err) {
+      d('ERR ls')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           message: 'Failed to read file.' })
+      return
+    }
+
+    d('READFILE data')
+    d(data.data)
+    cb({ success: true,
+         message: 'Successfully read file.',
+         contents: data.data })
+  })
+}
+
 export
 function init
 () {
@@ -1086,6 +1128,7 @@ You have access to a set of tools (functions) that you may call to perform actio
 
 INSTRUCTIONS:
 1. If the user’s request requires a tool, emit one and only one function call in this turn.
+2. When a function call is required, always run the function call instead of printing out the JSON for the call.
 2. After you emit a function call, wait for the tool’s response before calling another tool.
 3. If the user’s request can be answered without any tools, respond in plain text (no function call).
 4. When all required tool calls are complete, emit the \`finalAnswer\` function call to return a human-readable summary.
@@ -1116,7 +1159,14 @@ AVAILABLE TOOLS:
      - On error:
        \`{ "success": false, "error": "…error message…" }\`
 
-3) finalAnswer
+3) readFile
+   • Purpose: Read a file at the given path.
+   • Parameters: { path: string }
+   • Returns (as JSON):
+     - On success: \`{ "success": true, "data": "…file contents…", "stat": "…file stats…" }\`
+     - On error:   \`{ "success": false, "error": "…error message…" }\`
+
+4) finalAnswer
    • Purpose: Signal completion of any tool-based work and return a final summary.
    • Parameters: { answer: string }
 
@@ -1170,6 +1220,13 @@ Now handle the user’s request:
                           parameters: { type: 'object',
                                         properties: { dir_path: { type: 'string',
                                                                   description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+                                        required: [ 'dir_path' ] } } },
+            { type: 'function',
+              function: { name: 'readFile',
+                          description: 'Read a file, returning a JSON object with a success message and the file contents.',
+                          parameters: { type: 'object',
+                                        properties: { path: { type: 'string',
+                                                              description: "Path to the file to create (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                                         required: [ 'dir_path' ] } } } ]
   d(tools)
 
@@ -1177,7 +1234,8 @@ Now handle the user’s request:
                              autoAccept: 1 },
               //
               ls: { cb: ls },
-              createDir: { cb: createDir } }
+              createDir: { cb: createDir },
+              readFile: { cb: readFile } }
   d(toolMap)
   emo = '🗨️'
   premo = '#### ' + emo

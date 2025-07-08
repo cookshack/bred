@@ -826,7 +826,9 @@ function init
                 messages: [ { role: 'system',
                               content: systemPrompt },
                             ...msgs ],
-                tools }) })
+                tools,
+                tool_choice: tools.map(t => ({ type: 'function',
+                                               function: { name: t.function.name } })) }) })
         .then(response => {
           response.ok || Mess.toss('fetch failed')
           return handle(response)

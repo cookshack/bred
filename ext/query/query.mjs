@@ -177,7 +177,7 @@ function finalAnswer
 
 function readDir
 (buf, args, cb) { // (json)
-  let path
+  let path, abs
 
   path = args.path || ''
 
@@ -191,7 +191,8 @@ function readDir
 
   path = path || buf.path
 
-  Tron.cmd('dir.get', path, (err, data) => {
+  abs = Loc.make(buf.path).join(path)
+  Tron.cmd('dir.get', abs, (err, data) => {
     if (err) {
       d('ERR dir.get')
       d(err.message)
@@ -793,7 +794,7 @@ function init
           }
 
           buffer += decoder.decode(value, { stream: true })
-          d('CHAT buffer: ' + buffer)
+          //d('CHAT buffer: ' + buffer)
 
           read()
         })

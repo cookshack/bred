@@ -816,25 +816,20 @@ function init
                   d('  SUBTOOL ' + args.subtool)
                   subtool = subtoolMap[args.subtool]
                   addCall(args, subtool, call)
-                }
-                else {
-                  d('ERR subtool missing')
-                  remind()
-                  go()
+
+                  // run the tool
+                  calls[0] && cbCall(calls[0])
+
                   return
                 }
-              }
-              else {
-                d('ERR tool/type missing')
+                d('ERR subtool missing')
                 remind()
                 go()
                 return
               }
-
-              // run the tool
-
-              calls.forEach(call => call && cbCall(call))
-
+              d('ERR tool/type missing')
+              remind()
+              go()
               return
             }
 

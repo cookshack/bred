@@ -22,7 +22,7 @@ import { d } from '../../js/mess.mjs'
 import Ollama from './lib/ollama.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let emo, emoAgent, premo, premoAgent, icons, subtoolMap, subtoolArray
+let emo, emoAgent, premo, premoAgent, icons, subtoolMap
 
 function snippet
 (item) {
@@ -666,30 +666,29 @@ function init
 
       function yes
       () {
-        let busy
+        let call
 
         d('YES')
         d(calls)
-        busy = 0
-        calls?.forEach(call => call && busy++)
-        calls?.forEach(call => call && call.cb(res => {
-          d('CALL result for ' + call.name)
-          d(res)
-          if ((call.name == 'sendAnswer')
-              && res.success)
-            cb && cb(res.text)
-          buf.vars('query').msgs.push({ role: 'tool',
-                                        toolCallId: call.id,
-                                        tool_call_id: call.id,
-                                        name: call.subtool,
-                                        content: JSON.stringify(res) })
-          busy--
-          if (busy == 0)
-            go()
-        }))
+        call = calls?.at(0)
         calls = 0
-        if (busy == 0)
-          go()
+        if (call)
+          call.cb(res => {
+            d('CALL result for ' + call.name)
+            d(res)
+            buf.vars('query').msgs.push({ role: 'tool',
+                                          toolCallId: call.id,
+                                          tool_call_id: call.id,
+                                          name: call.name,
+                                          content: JSON.stringify(res) })
+            if ((call.args.subtool == 'sendAnswer')
+                && res.success) {
+              cb && cb({ content: res.text })
+              cbEnd && cbEnd()
+              return
+            }
+            go()
+          })
       }
 
       function read
@@ -752,8 +751,9 @@ function init
                   }
                 if (args.subtool) {
                   d('  SUBTOOL ' + args.subtool)
-                  subtool = subtoolMap[args.subtool] || subtoolMap[subtoolArray[parseInt(args.subtool)]]
+                  subtool = subtoolMap[args.subtool]
                   calls[index] = { args,
+                                   subtool,
                                    autoAccept: subtool.autoAccept,
                                    cb(then) { // (response)
                                      d('CALL ' + index + ' running ' + call.function.name)
@@ -1512,8 +1512,6 @@ Assistant → runSubtool
                  removeFile: { cb: removeFile },
                  writeFile: { cb: writeFile } }
   d(subtoolMap)
-  // same order as in systemPrompt
-  subtoolArray = [ 'createDir', 'moveFile', 'readDir', 'createDir', 'readFile', 'removeFile', 'writeFile', 'sendAnswer' ]
   emo = '🔮' // 🗨️
   premo = '#### ' + emo
   emoAgent = '🤖' // ✨

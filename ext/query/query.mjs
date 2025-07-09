@@ -739,6 +739,28 @@ function init
 
       function read
       () {
+        function addCall
+        (args, subtool, call) {
+          calls[0] = { args,
+                       subtool,
+                       autoAccept: subtool.autoAccept,
+                       cb(then) { // (response)
+                         d('CALL 0 running ' + args.subtool)
+                         if (subtool) {
+                           subtool.cb(buf, args, then)
+                           return
+                         }
+                         d({ args })
+                         d('Error: missing subtool')
+                       },
+                       id: call?.id,
+                       index: call?.index,
+                       name: call?.function.name,
+                       //
+                       no,
+                       yes }
+        }
+
         reader.read().then(({ done, value }) => {
           if (cancelled)
             return
@@ -793,24 +815,7 @@ function init
                 if (args.subtool) {
                   d('  SUBTOOL ' + args.subtool)
                   subtool = subtoolMap[args.subtool]
-                  calls[0] = { args,
-                               subtool,
-                               autoAccept: subtool.autoAccept,
-                               cb(then) { // (response)
-                                 d('CALL 0 running ' + call.function.name)
-                                 if (subtool) {
-                                   subtool.cb(buf, args, then)
-                                   return
-                                 }
-                                 d({ args })
-                                 d('Error: missing subtool')
-                               },
-                               id: call.id,
-                               index: call.index,
-                               name: call.function.name,
-                               //
-                               no,
-                               yes }
+                  addCall(args, subtool, call)
                 }
                 else {
                   d('ERR subtool missing')

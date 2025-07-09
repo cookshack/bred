@@ -878,16 +878,14 @@ function init
 
       fetch('https://openrouter.ai/api/v1/chat/completions',
             { method: 'POST',
-              headers: {
-                Authorization: 'Bearer ' + key,
-                'Content-Type': 'application/json' },
+              headers: { Authorization: 'Bearer ' + key,
+                         'Content-Type': 'application/json' },
 
-              body: JSON.stringify({
-                model,
-                temperature: 0,
-                messages,
-                tools,
-                tool_choice }) })
+              body: JSON.stringify({ model,
+                                     temperature: 0,
+                                     messages,
+                                     tools,
+                                     tool_choice }) })
         .then(response => {
           response.ok || Mess.toss('fetch failed')
           return handle(response)

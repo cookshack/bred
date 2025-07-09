@@ -484,7 +484,7 @@ function init
 
         toolW = view.ele.querySelector('.query-tool-w')
         toolName = toolW.querySelector('.query-tool-name')
-        toolName.innerText = call.name
+        toolName.innerText = call.args.subtool
         Css.expand(toolW)
         d(call)
       }
@@ -820,8 +820,13 @@ function init
 
     function go
     () {
+      let messages
+
       d('---- ' + emoAgent + ' FETCH for agent ----')
-      msgs.forEach(msg => d(msg))
+      messages = [ { role: 'system',
+                     content: systemPrompt },
+                   ...msgs ]
+      messages.forEach(m => d(m))
       fetch('https://openrouter.ai/api/v1/chat/completions',
             { method: 'POST',
               headers: {
@@ -832,9 +837,7 @@ function init
               body: JSON.stringify({
                 model,
                 temperature: 0,
-                messages: [ { role: 'system',
-                              content: systemPrompt },
-                            ...msgs ],
+                messages,
                 tools,
                 tool_choice: tools.map(t => ({ type: 'function',
                                                function: { name: t.function.name } })) }) })
@@ -1205,7 +1208,7 @@ function init
         Css.retract(toolW)
       }
     })
-    appendWithEnd(p.buf, '\n\n' + 'Running ' + call.name + '...\n\n')
+    appendWithEnd(p.buf, '\n\n' + 'Running ' + call.args.subtool + '...\n\n')
     call?.yes()
   }
 
@@ -1224,7 +1227,7 @@ function init
         Css.retract(toolW)
       }
     })
-    appendWithEnd(p.buf, '\n\n' + 'Declined to run ' + call.name)
+    appendWithEnd(p.buf, '\n\n' + 'Declined to run ' + call.args.subtool)
     call?.no()
   }
 

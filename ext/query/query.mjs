@@ -432,7 +432,7 @@ function writeFile
 export
 function init
 () {
-  let hist, mo, chMo, chToolMo, extRo, tools, systemPrompt
+  let hist, mo, chMo, chToolMo, extRo, tools, subs, systemPrompt
 
   function busy
   (buf) {
@@ -828,8 +828,11 @@ function init
                               content: systemPrompt },
                             ...msgs ],
                 tools,
-                tool_choice: tools.map(t => ({ type: 'function',
-                                               function: { name: t.function.name } })) }) })
+                tool_choice: 0
+                  ? tools.map(t => ({ type: 'function',
+                                      function: { name: t.function.name } }))
+                  : { type: 'function',
+                      function: { name: 'runSubtool' } } }) })
         .then(response => {
           response.ok || Mess.toss('fetch failed')
           return handle(response)
@@ -1378,34 +1381,36 @@ function init
 
   systemPrompt = `
 You are BredAssist, a helpful assistant embedded in an Electron-based code editor.
-You have access to a set of tools (functions) that you may call to perform actions or fetch information.
+You have access to a single tool (function) that you must call.
+This tool has seven subtools that you must choose from to perform actions or fetch information.
 
 INSTRUCTIONS:
-1. From here on out, for all time, every user turn must result in exactly one and only one function call.
-2. If the user’s request requires a tool other than finalAnswer, emit that one function call now and wait for its response.
-3. If the user’s request can be answered without needing any other tool, wrap your plain-text answer in a finalAnswer call.
-4. Stop after you emit any tool call. Wait for the next user turn which will contain the tool's response. When you receive the response, then issue another function call.
-5. Do not output any text outside of a function call. Whatever you send must be sent via a function call.
+1. Every user turn must result in exactly one and only one function call.
+2. The function call is always to the tool 'runSubtool'
+3. After calling the function you must wait for a response.
+4. Do not output any text outside of a function call. Whatever you send must be sent via a function call.
 
-AVAILABLE TOOLS:
-1) createDir
-   • Purpose: Create a new directory at the given path.
-   • Parameters: { dir_path: string }
+THE SINGLE AVAILABLE TOOL:
+1) runSubtool
+   • Purpose: Request an operation, send information, or signal that you are done.
+   • Parameters: { subtool: string, args: object }
    • Returns (as JSON):
-     - On success: { "success": true }
+     - On success: { "success": true, "…whatever else the subtools needs to return…" }
      - On error:   { "success": false, "error": "…error message…" }
 
-2) moveFile
+AVAILABLE SUBTOOLS:
+
+1) moveFile
    • Purpose: Move or rename the file at the given path.
-   • Parameters: { path_from: string, path_to: string }
-   • Returns (as JSON):
+   • Args: { path_from: string, path_to: string }
+   • Returns (as the return to runSubtool):
      - On success: { "success": true }
      - On error:   { "success": false, "error": "…error message…" }
 
-3) readDir
+2) readDir
    • Purpose: List entries in a directory.
-   • Parameters: { path: string }
-   • Returns (as JSON):
+   • Args: { path: string }
+   • Returns (as the return to runSubtool):
      - On success:
        {
          "success": true,
@@ -1418,103 +1423,132 @@ AVAILABLE TOOLS:
      - On error:
        { "success": false, "error": "…error message…" }
 
-4) readFile
+3) readFile
    • Purpose: Read a file at the given path.
-   • Parameters: { path: string }
-   • Returns (as JSON):
+   • Args: { path: string }
+   • Returns (as the return to runSubtool):
      - On success: { "success": true, "data": "…file contents…", "stat": "…file stats…" }
      - On error:   { "success": false, "error": "…error message…" }
 
-5) removeFile
+4) removeFile
    • Purpose: Remove a file at the given path.
-   • Parameters: { path: string }
-   • Returns (as JSON):
+   • Args: { path: string }
+   • Returns (as the return to runSubtool):
      - On success: { "success": true }
      - On error:   { "success": false, "error": "…error message…" }
 
-6) writeFile
+5) writeFile
    • Purpose: Write a file at the given path.
-   • Parameters: { path: string, text: string }
-   • Returns (as JSON):
+   • Args: { path: string, text: string }
+   • Returns (as the return to runSubtool):
      - On success: { "success": true }
      - On error:   { "success": false, "error": "…error message…" }
 
-7) finalAnswer
-   • Purpose: Signal completion and return a human-readable summary.
-   • Parameters: { answer: string }
+6) sendAnswer
+   • Purpose: Send plain text as a response
+   • Args: { path: string, text: string }
+   • Returns (as the return to runSubtool):
+     - On success: { "success": true }
+     - On error:   { "success": false, "error": "…error message…" }
+
+7) done
+   • Purpose: Signal completion. Only call this when you are done.
+   • Args: {}
+   • Returns (as the return to runSubtool):
+     - On success: { "success": true }
+     - On error:   { "success": false, "error": "…error message…" }
 
 EXAMPLES:
 
-Example 1 – Creating a dir then listing:
+Example 1 – Creating a dir then list its contents:
 User: “Make a folder named foo and then list its contents.”
 Assistant → createDir
-{"name":"createDir","arguments":{"dir_path":"foo"}}
+{"name":"runSubtool","arguments":{"subtool":"createDir", "dir_path":"foo"}}
 …(tool_response arrives)…
 Assistant → readDir
-{"name":"readDir","arguments":{"path":"foo"}}
+{"name":"runSubtool","arguments":{"subtool":"readDir","path":"foo"}}
 …(tool_response arrives)…
-Assistant → finalAnswer
-{"name":"finalAnswer","arguments":{"answer":"Done! ‘foo’ now exists and contains: […]"}}
+Assistant → sendAnswer
+{"name":"runSubtool","arguments":{"subtool":"sendAnswer","answer":"Done! ‘foo’ now exists and contains: […]"}}
+…(tool_response arrives)…
+Assistant → done
+{"name":"runSubtool","arguments":{"subtool":"done"}}
+…(tool_response arrives)…
 
 Example 2 – Direct answer:
 User: “What’s the precedence of && vs || in JavaScript?”
-Assistant → finalAnswer
-{"name":"finalAnswer","arguments":{"answer":"In JavaScript, && has higher precedence than ||, so a && b || c is parsed as (a && b) || c."}}
+Assistant → sendAnswer
+{"name":"runSubtool","arguments":{"subtool":"sendAnswer","answer":"In JavaScript, && has higher precedence than ||, so a && b || c is parsed as (a && b) || c."}}
+…(tool_response arrives)…
+Assistant → done
+{"name":"runSubtool","arguments":{"subtool":"done"}}
+…(tool_response arrives)…
 
 Now handle the user’s request:
 `
+  subs = [ { type: 'object',
+             description: 'Create a new directory.',
+             properties: { subtool: { const: 'createDir' },
+                           dir_path: { type: 'string' } },
+             required: [ 'subtool', 'dir_path' ] },
+           { type: 'object',
+             description: 'Move or rename a file.',
+             properties: { subtool: { const: 'moveFile' },
+                           path_from: { type: 'string',
+                                        description: "Path to the file that must be moved. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                           path_to: { type: 'string',
+                                      description: "New location and name for the file. This path must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+             required: [ 'subtool', 'path_from', 'path_to' ] },
+           { type: 'object',
+             description: 'Send freeform text',
+             properties: { subtool: { const: 'sendAnswer' },
+                           answer: { type: 'string',
+                                     description: 'Human readable freeform answer.' } },
+             required: [ 'subtool', 'answer' ] },
+           { type: 'object',
+             description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
+             properties: { subtool: { const: 'readDir' },
+                           path: { type: 'string',
+                                   description: 'Path to the directory from which to list files (e.g. "src"). Use "" for the current directory.' } },
+             required: [ 'subtool', 'path' ] },
+           { type: 'object',
+             description: 'Create a new directory, returning a JSON object with a success message.',
+             properties: { subtool: { const: 'createDir' },
+                           answer: { type: 'string',
+                                     description: 'Human readable freeform answer.' },
+                           dir_path: { type: 'string',
+                                       description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+             required: [ 'subtool', 'dir_path' ] },
+           { type: 'object',
+             description: 'Read a file, returning a JSON object that includes a success message and the file contents.',
+             properties: { subtool: { const: 'readFile' },
+                           path: { type: 'string',
+                                   description: "Path to the file to create (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+             required: [ 'subtool', 'path' ] },
+           { type: 'object',
+             description: 'Remove a file, returning a JSON object that contains a success message.',
+             properties: { subtool: { const: 'removeFile' },
+                           path: { type: 'string',
+                                   description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+             required: [ 'subtool', 'path' ] },
+           { type: 'object',
+             description: 'Write a file, returning a JSON object with a success message.',
+             properties: { subtool: { const: 'writeFile' },
+                           path: { type: 'string',
+                                   description: "Path to the file to write (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                           text: { type: 'string',
+                                   description: 'New contents for the file.' } },
+             required: [ 'subtool', 'path', 'text' ] },
+           { type: 'object',
+             description: 'Signal that you are done',
+             properties: { subtool: { const: 'done' } },
+             required: [ 'subtool' ] } ]
+
   tools = [ { type: 'function',
-              function: { name: 'finalAnswer',
-                          description: 'Signal completion of any tool-based work and return a final summary.',
+              function: { name: 'runSubtool',
+                          description: 'Run a subtool.',
                           parameters: { type: 'object',
-                                        properties: { answer: { type: 'string',
-                                                                description: 'Human readable freeform answer.' } },
-                                        required: [ 'answer' ] } } },
-            //
-            { type: 'function',
-              function: { name: 'moveFile',
-                          description: 'Move or rename a file, returning a JSON object with a success message.',
-                          parameters: { type: 'object',
-                                        properties: { path_from: { type: 'string',
-                                                                   description: "Path to the file that must be moved. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
-                                                      path_to: { type: 'string',
-                                                                 description: "New location and name for the file. This path must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-                                        required: [ 'path' ] } } },
-            { type: 'function',
-              function: { name: 'readDir',
-                          description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
-                          parameters: { type: 'object',
-                                        properties: { path: { type: 'string',
-                                                              description: 'Path to the directory from which to list files (e.g. "src"). Use "" for the current directory.' } },
-                                        required: [ 'path' ] } } },
-            { type: 'function',
-              function: { name: 'createDir',
-                          description: 'Create a new directory, returning a JSON object with a success message.',
-                          parameters: { type: 'object',
-                                        properties: { dir_path: { type: 'string',
-                                                                  description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-                                        required: [ 'dir_path' ] } } },
-            { type: 'function',
-              function: { name: 'readFile',
-                          description: 'Read a file, returning a JSON object with a success message and the file contents.',
-                          parameters: { type: 'object',
-                                        properties: { path: { type: 'string',
-                                                              description: "Path to the file to create (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-                                        required: [ 'dir_path' ] } } },
-            { type: 'function',
-              function: { name: 'removeFile',
-                          description: 'Remove a file, returning a JSON object with a success message.',
-                          parameters: { type: 'object',
-                                        properties: { path: { type: 'string',
-                                                              description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-                                        required: [ 'path', 'text' ] } } },
-            { type: 'function',
-              function: { name: 'writeFile',
-                          description: 'Write a file, returning a JSON object with a success message.',
-                          parameters: { type: 'object',
-                                        properties: { path: { type: 'string',
-                                                              description: "Path to the file to write (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-                                        required: [ 'path', 'text' ] } } } ]
+                                        properties: { oneOf: subs } } } } ]
   d(tools)
 
   toolMap = { finalAnswer: { cb: finalAnswer,

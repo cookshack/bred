@@ -693,6 +693,15 @@ function init
 
       function read
       () {
+        function remind
+        () {
+          buf.vars('query').msgs.push({ 'role': 'assistant',
+                                        'name': 'runSubtool',
+                                        'content': JSON.stringify({ 'subtool': 'sendAnswer',
+                                                                    'text': '⚠️ Oops—I need to send exactly one JSON runSubtool call.' }) })
+
+        }
+
         reader.read().then(({ done, value }) => {
           if (cancelled)
             return
@@ -713,10 +722,7 @@ function init
             if (message.content?.length) {
               d('ERR model sent plain text:')
               d(message.content)
-              buf.vars('query').msgs.push({ 'role': 'assistant',
-                                            'name': 'runSubtool',
-                                            'content': JSON.stringify({ 'subtool': 'sendAnswer',
-                                                                        'text': '⚠️ Oops—I need to send exactly one JSON runSubtool call.' }) })
+              remind()
               go()
               return
             }
@@ -772,15 +778,17 @@ function init
                                    yes }
                 }
                 else {
-                  d('SUBTOOL MISSING')
-                  cb && cb({ content: 'ERROR: missing subtool: ' + call.function.arguments + '\n' })
-                  calls[i] = 0
+                  d('ERR subtool missing')
+                  remind()
+                  go()
+                  return
                 }
               }
               else {
-                d('TOOL/TYPE MISSING')
-                cb && cb({ content: 'ERROR: missing type/tool: ' + call.function.name + '\n' })
-                calls[i] = 0
+                d('ERR tool/type missing')
+                remind()
+                go()
+                return
               }
 
               // run the tool
@@ -792,10 +800,7 @@ function init
 
             // model sent 0 or more than one call
             d('ERR 0 or > 1 tool calls')
-            buf.vars('query').msgs.push({ 'role': 'assistant',
-                                          'name': 'runSubtool',
-                                          'content': JSON.stringify({ 'subtool': 'sendAnswer',
-                                                                      'text': '⚠️ Oops—I need to send exactly one JSON runSubtool call.' }) })
+            remind()
             go()
             return
           }
@@ -820,27 +825,31 @@ function init
 
     function go
     () {
-      let messages
+      let messages, tool_choice
 
       d('---- ' + emoAgent + ' FETCH for agent ----')
+
+      tool_choice = tools.map(t => ({ type: 'function',
+                                      function: { name: t.function.name } }))
       messages = [ { role: 'system',
                      content: systemPrompt },
                    ...msgs ]
+
+      d({ tool_choice })
       messages.forEach(m => d(m))
+
       fetch('https://openrouter.ai/api/v1/chat/completions',
             { method: 'POST',
               headers: {
                 Authorization: 'Bearer ' + key,
-                'Content-Type': 'application/json'
-              },
+                'Content-Type': 'application/json' },
 
               body: JSON.stringify({
                 model,
                 temperature: 0,
                 messages,
                 tools,
-                tool_choice: tools.map(t => ({ type: 'function',
-                                               function: { name: t.function.name } })) }) })
+                tool_choice }) })
         .then(response => {
           response.ok || Mess.toss('fetch failed')
           return handle(response)

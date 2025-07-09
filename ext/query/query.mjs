@@ -506,11 +506,13 @@ function init
     }
     buf.views.forEach(view => {
       if (view.ele) {
-        let toolW, toolName
+        let toolW, toolName, toolArgs
 
         toolW = view.ele.querySelector('.query-tool-w')
         toolName = toolW.querySelector('.query-tool-name')
         toolName.innerText = call.args.subtool
+        toolArgs = toolW.querySelector('.query-tool-args')
+        toolArgs.innerText = JSON.stringify(call.args, 0, 2)
         Css.expand(toolW)
         d(call)
       }
@@ -673,7 +675,7 @@ function init
   (buf, model, key, msgs, prompt, cb, cbEnd, cbCall) { // (msg), (), (tool)
     function handle
     (response) {
-      let buffer, reader, decoder, cancelled, calls
+      let buffer, reader, decoder, cancelled, calls, reminds
 
       d('CHAT handle')
 
@@ -681,6 +683,24 @@ function init
       () {
         cancelled = 1
         reader.cancel()
+      }
+
+      function remind
+      () {
+        if (reminds == 10)
+          throw 'Too many reminds in a row, giving up'
+        reminds++
+        buf.vars('query').msgs.push({ 'role': 'assistant',
+                                      'name': 'runSubtool',
+                                      'content': JSON.stringify({ 'subtool': 'sendAnswer',
+                                                                  'text': '⚠️ Oops—I need to send exactly one JSON runSubtool call.' }) })
+
+      }
+
+      function push
+      (msg) {
+        reminds = 0
+        buf.vars('query').msgs.push(msg)
       }
 
       function no
@@ -702,11 +722,11 @@ function init
           call.cb(res => {
             d('CALL result for ' + call.name)
             d(res)
-            buf.vars('query').msgs.push({ role: 'tool',
-                                          toolCallId: call.id,
-                                          tool_call_id: call.id,
-                                          name: call.name,
-                                          content: JSON.stringify(res) })
+            push({ role: 'tool',
+                   toolCallId: call.id,
+                   tool_call_id: call.id,
+                   name: call.name,
+                   content: JSON.stringify(res) })
             if ((call.args.subtool == 'sendAnswer')
                 && res.success) {
               cb && cb({ content: res.text })
@@ -719,15 +739,6 @@ function init
 
       function read
       () {
-        function remind
-        () {
-          buf.vars('query').msgs.push({ 'role': 'assistant',
-                                        'name': 'runSubtool',
-                                        'content': JSON.stringify({ 'subtool': 'sendAnswer',
-                                                                    'text': '⚠️ Oops—I need to send exactly one JSON runSubtool call.' }) })
-
-        }
-
         reader.read().then(({ done, value }) => {
           if (cancelled)
             return
@@ -762,7 +773,7 @@ function init
               calls = []
               i = 0
 
-              buf.vars('query').msgs.push(message)
+              push(message)
 
               d('TOOL ' + i + ' parsing')
               call = message.tool_calls[i]
@@ -838,6 +849,7 @@ function init
         })
       }
 
+      reminds = 0
       reader = response.body?.getReader() || Mess.toss('Error reading response body')
 
       decoder = new TextDecoder()
@@ -1304,15 +1316,17 @@ function init
 
                    toolName = divCl('query-tool-name')
                    toolW = divCl('query-tool-w retracted',
-                                 [ div([ 'Run ', toolName, '?' ]),
-                                   divCl('query-tool-y',
-                                         button([ span('Y', 'key'), 'es' ],
-                                                'query-tool-button',
-                                                { 'data-run': 'accept tool' })),
-                                   divCl('query-tool-n',
-                                         button([ span('N', 'key'), 'o' ],
-                                                'query-tool-button',
-                                                { 'data-run': 'reject tool' })) ])
+                                 [ divCl('query-tool-q',
+                                         [ div([ 'Run ', toolName, '?' ]),
+                                           divCl('query-tool-y',
+                                                 button([ span('Y', 'key'), 'es' ],
+                                                        'query-tool-button',
+                                                        { 'data-run': 'accept tool' })),
+                                           divCl('query-tool-n',
+                                                 button([ span('N', 'key'), 'o' ],
+                                                        'query-tool-button',
+                                                        { 'data-run': 'reject tool' })) ]),
+                                   divCl('query-tool-args') ])
                    w = Ed.divW(0, 0,
                                { ml: divMl(model, type, prompt),
                                  extraCo: toolW })

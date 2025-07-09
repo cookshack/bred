@@ -764,24 +764,22 @@ function init
               return
             }
 
-            // setup tool calls
+            // setup tool call
 
             if (message.tool_calls?.length == 1) {
-              let i, call
+              let call
 
               // tool call
               calls = []
-              i = 0
 
               push(message)
 
-              d('TOOL ' + i + ' parsing')
-              call = message.tool_calls[i]
+              d('TOOL 0 parsing')
+              call = message.tool_calls[0]
               if ((call.type == 'function')
                   && (call.function?.name == 'runSubtool')) {
-                let index, args, subtool
+                let args, subtool
 
-                index = i
                 args = {}
                 if (call.function.arguments?.trim())
                   try {
@@ -795,24 +793,24 @@ function init
                 if (args.subtool) {
                   d('  SUBTOOL ' + args.subtool)
                   subtool = subtoolMap[args.subtool]
-                  calls[index] = { args,
-                                   subtool,
-                                   autoAccept: subtool.autoAccept,
-                                   cb(then) { // (response)
-                                     d('CALL ' + index + ' running ' + call.function.name)
-                                     if (subtool) {
-                                       subtool.cb(buf, args, then)
-                                       return
-                                     }
-                                     d({ args })
-                                     d('Error: missing subtool')
-                                   },
-                                   id: call.id,
-                                   index: call.index,
-                                   name: call.function.name,
-                                   //
-                                   no,
-                                   yes }
+                  calls[0] = { args,
+                               subtool,
+                               autoAccept: subtool.autoAccept,
+                               cb(then) { // (response)
+                                 d('CALL 0 running ' + call.function.name)
+                                 if (subtool) {
+                                   subtool.cb(buf, args, then)
+                                   return
+                                 }
+                                 d({ args })
+                                 d('Error: missing subtool')
+                               },
+                               id: call.id,
+                               index: call.index,
+                               name: call.function.name,
+                               //
+                               no,
+                               yes }
                 }
                 else {
                   d('ERR subtool missing')

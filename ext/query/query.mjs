@@ -471,11 +471,11 @@ function init
     buf.vars('query').promptEnd = buf.bepEnd
   }
 
-  function appendTool
-  (buf, tool) {
-    buf.vars('query').tool = tool
-    if (tool.autoAccept) {
-      tool.yes()
+  function appendCall
+  (buf, call) {
+    buf.vars('query').call = call
+    if (call.autoAccept) {
+      call.yes()
       return
     }
     buf.views.forEach(view => {
@@ -484,9 +484,9 @@ function init
 
         toolW = view.ele.querySelector('.query-tool-w')
         toolName = toolW.querySelector('.query-tool-name')
-        toolName.innerText = tool.name
+        toolName.innerText = call.name
         Css.expand(toolW)
-        d(tool)
+        d(call)
       }
     })
     buf.addMode('chat tool')
@@ -644,7 +644,7 @@ function init
   }
 
   function chatAgent
-  (buf, model, key, msgs, prompt, cb, cbEnd, cbTool) { // (msg), (), (tool)
+  (buf, model, key, msgs, prompt, cb, cbEnd, cbCall) { // (msg), (), (tool)
     function handle
     (response) {
       let buffer, reader, decoder, cancelled, calls
@@ -785,7 +785,7 @@ function init
 
               // run the tool
 
-              calls.forEach(call => call && cbTool(call))
+              calls.forEach(call => call && cbCall(call))
 
               return
             }
@@ -1082,9 +1082,9 @@ function init
          appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
          done(buf)
        },
-       tool => {
-         d('cb TOOL')
-         appendTool(buf, tool)
+       call => {
+         d('cb CALL')
+         appendCall(buf, call)
          //done(buf)
        })
   }
@@ -1121,9 +1121,9 @@ function init
                       appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
                       done(buf)
                     },
-                    tool => {
-                      d('cb TOOL')
-                      appendTool(buf, tool)
+                    call => {
+                      d('cb CALL')
+                      appendCall(buf, call)
                       //done(buf)
                     })
                })
@@ -1192,10 +1192,10 @@ function init
 
   function accept
   () {
-    let p, tool
+    let p, call
 
     p = Pane.current()
-    tool = p.buf.vars('query').tool
+    call = p.buf.vars('query').call
     p.buf.rmMode('chat tool')
     p.buf.views.forEach(view => {
       if (view.ele) {
@@ -1205,16 +1205,16 @@ function init
         Css.retract(toolW)
       }
     })
-    appendWithEnd(p.buf, '\n\n' + 'Running ' + tool.name + '...\n\n')
-    tool?.yes()
+    appendWithEnd(p.buf, '\n\n' + 'Running ' + call.name + '...\n\n')
+    call?.yes()
   }
 
   function reject
   () {
-    let p, tool
+    let p, call
 
     p = Pane.current()
-    tool = p.buf.vars('query').tool
+    call = p.buf.vars('query').call
     p.buf.rmMode('chat tool')
     p.buf.views.forEach(view => {
       if (view.ele) {
@@ -1224,8 +1224,8 @@ function init
         Css.retract(toolW)
       }
     })
-    appendWithEnd(p.buf, '\n\n' + 'Declined to run ' + tool.name)
-    tool?.no()
+    appendWithEnd(p.buf, '\n\n' + 'Declined to run ' + call.name)
+    call?.no()
   }
 
   Cmd.add('stop response', () => {
@@ -1312,9 +1312,9 @@ function init
                         done(buf)
                       },
                       // only used by chatAgent
-                      tool => {
-                        d('cb TOOL ' + tool.name)
-                        appendTool(buf, tool)
+                      call => {
+                        d('cb CALL ' + call.name)
+                        appendCall(buf, call)
                         //done(buf)
                       })
                  })

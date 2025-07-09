@@ -22,7 +22,7 @@ import { d } from '../../js/mess.mjs'
 import Ollama from './lib/ollama.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let emo, emoAgent, premo, premoAgent, icons, toolMap
+let emo, emoAgent, premo, premoAgent, icons, subtoolMap, subtoolArray
 
 function snippet
 (item) {
@@ -165,7 +165,7 @@ function search
   p.setBuf(buf, {}, () => srch(p.dir, buf, query))
 }
 
-function finalAnswer
+function sendAnswer
 (buf, args, cb) { // (json)
   let answer
 
@@ -429,6 +429,11 @@ function writeFile
   })
 }
 
+function finish
+(buf, args, cb) { // (json)
+  cb({ success: true })
+}
+
 export
 function init
 () {
@@ -661,27 +666,27 @@ function init
 
       function yes
       () {
-        let busy, final
+        let busy, finished
 
         d('YES')
         d(calls)
         busy = 0
-        calls?.forEach(tool => tool && busy++)
-        calls?.forEach(tool => tool && tool.cb(res => {
-          d('TOOL result for ' + tool.name)
+        calls?.forEach(call => call && busy++)
+        calls?.forEach(call => call && call.cb(res => {
+          d('CALL result for ' + call.name)
           d(res)
-          if (final) {
-            d('Error: skipping because already saw finalAnswer')
+          if (finished) {
+            d('Error: skipping because already saw finish')
             return
           }
           buf.vars('query').msgs.push({ role: 'tool',
-                                        toolCallId: tool.id,
-                                        name: tool.name,
+                                        toolCallId: call.id,
+                                        tool_call_id: call.id,
+                                        name: call.subtool,
                                         content: JSON.stringify(res) })
-          if (tool.name == 'finalAnswer') {
-            cb && cb({ content: res.answer })
+          if (call.subtool == 'finish') {
             cbEnd && cbEnd()
-            final = 1
+            finished = 1
             return
           }
           busy--
@@ -689,7 +694,7 @@ function init
             go()
         }))
         calls = 0
-        if (final)
+        if (finished)
           return
         if (busy == 0)
           go()
@@ -733,42 +738,51 @@ function init
                   if (calls?.at(i))
                     calls[i].args += (call.function.arguments || '')
                   if (call.function.name)
-                    if (toolMap[call.function.name])
+                    if (call.function.name == 'runSubtool')
                       if (calls?.at(i)) {
                         // already seen the first call to this function
                       }
                       else {
-                        let index, tool
+                        let index, args, subtool
 
-                        tool = toolMap[call.function.name]
                         index = i
                         calls = calls || []
-                        calls[index] = { args: call.function.arguments || '',
-                                         autoAccept: tool.autoAccept,
-                                         cb(then) { // (response)
-                                           let json
-
-                                           d('TOOL ' + index + ' running')
-                                           json = {}
-                                           if (calls[index].args?.trim())
-                                             try {
-                                               json = JSON.parse(calls[index].args)
-                                             }
-                                             catch (err) {
-                                               d('ARGS:')
-                                               d(calls[index].args)
-                                               Mess.yell('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
+                        args = {}
+                        if (call.function.arguments?.trim())
+                          try {
+                            args = JSON.parse(call.function.arguments?.trim())
+                          }
+                          catch (err) {
+                            d('ARGS:')
+                            d(call.function.arguments)
+                            d('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
+                          }
+                        if (args.subtool) {
+                          d('  SUBTOOL ' + args.subtool)
+                          subtool = subtoolMap[args.subtool] || subtoolMap[subtoolArray[parseInt(args.subtool)]]
+                          calls[index] = { args,
+                                           autoAccept: subtool.autoAccept,
+                                           cb(then) { // (response)
+                                             d('CALL ' + index + ' running ' + call.function.name)
+                                             if (subtool) {
+                                               subtool.cb(buf, args, then)
                                                return
-
                                              }
-                                           tool.cb(buf, json, then)
-                                         },
-                                         id: call.id,
-                                         index: call.index,
-                                         name: call.function.name,
-                                         //
-                                         no,
-                                         yes }
+                                             d({ args })
+                                             d('Error: missing subtool')
+                                           },
+                                           id: call.id,
+                                           index: call.index,
+                                           name: call.function.name,
+                                           //
+                                           no,
+                                           yes }
+                        }
+                        else {
+                          d('SUBTOOL MISSING')
+                          cb && cb({ content: 'ERROR: missing subtool: ' + call.function.arguments + '\n' })
+                          calls[i] = 0
+                        }
                       }
                     else {
                       d('TOOL MISSING')
@@ -786,7 +800,7 @@ function init
             // run the tools
 
             if (calls)
-              calls.forEach(tool => tool && cbTool(tool))
+              calls.forEach(call => call && cbTool(call))
             else
               cbEnd && cbEnd()
 
@@ -813,7 +827,7 @@ function init
 
     function go
     () {
-      d('fetching')
+      d('FETCH')
       d({ msgs })
       fetch('https://openrouter.ai/api/v1/chat/completions',
             { method: 'POST',
@@ -1381,33 +1395,38 @@ function init
 
   systemPrompt = `
 You are BredAssist, a helpful assistant embedded in an Electron-based code editor.
-You have access to a single tool (function) that you must call.
-This tool has seven subtools that you must choose from to perform actions or fetch information.
+I am a software developer using the code editor.
+You have access to a single function that you must always call.
+This function gives you eight subtools that you must choose from in order to assist me.
 
 INSTRUCTIONS:
-1. Every user turn must result in exactly one and only one function call.
-2. The function call is always to the tool 'runSubtool'
-3. After calling the function you must wait for a response.
-4. Do not output any text outside of a function call. Whatever you send must be sent via a function call.
+Your entire response must be a JSON function call to runSubtool (no extra text)
 
-THE SINGLE AVAILABLE TOOL:
+THE SINGLE AVAILABLE FUNCTION:
 1) runSubtool
    • Purpose: Request an operation, send information, or signal that you are done.
-   • Parameters: { subtool: string, args: object }
+   • Parameters: { subtool: string, …more properties depending on subtool… }
    • Returns (as JSON):
-     - On success: { "success": true, "…whatever else the subtools needs to return…" }
+     - On success: { "success": true, …whatever else the subtools needs to return… }
      - On error:   { "success": false, "error": "…error message…" }
 
 AVAILABLE SUBTOOLS:
 
-1) moveFile
+1) createDir
+   • Purpose: Create a directory at the given path.
+   • Args: { path: string }
+   • Returns (as the return to runSubtool):
+     - On success: { "success": true }
+     - On error:   { "success": false, "error": "…error message…" }
+
+2) moveFile
    • Purpose: Move or rename the file at the given path.
    • Args: { path_from: string, path_to: string }
    • Returns (as the return to runSubtool):
      - On success: { "success": true }
      - On error:   { "success": false, "error": "…error message…" }
 
-2) readDir
+3) readDir
    • Purpose: List entries in a directory.
    • Args: { path: string }
    • Returns (as the return to runSubtool):
@@ -1423,35 +1442,35 @@ AVAILABLE SUBTOOLS:
      - On error:
        { "success": false, "error": "…error message…" }
 
-3) readFile
+4) readFile
    • Purpose: Read a file at the given path.
    • Args: { path: string }
    • Returns (as the return to runSubtool):
      - On success: { "success": true, "data": "…file contents…", "stat": "…file stats…" }
      - On error:   { "success": false, "error": "…error message…" }
 
-4) removeFile
+5) removeFile
    • Purpose: Remove a file at the given path.
    • Args: { path: string }
    • Returns (as the return to runSubtool):
      - On success: { "success": true }
      - On error:   { "success": false, "error": "…error message…" }
 
-5) writeFile
+6) writeFile
    • Purpose: Write a file at the given path.
    • Args: { path: string, text: string }
    • Returns (as the return to runSubtool):
      - On success: { "success": true }
      - On error:   { "success": false, "error": "…error message…" }
 
-6) sendAnswer
+7) sendAnswer
    • Purpose: Send plain text as a response
    • Args: { path: string, text: string }
    • Returns (as the return to runSubtool):
      - On success: { "success": true }
      - On error:   { "success": false, "error": "…error message…" }
 
-7) done
+8) finish
    • Purpose: Signal completion. Only call this when you are done.
    • Args: {}
    • Returns (as the return to runSubtool):
@@ -1472,7 +1491,7 @@ Assistant → sendAnswer
 {"name":"runSubtool","arguments":{"subtool":"sendAnswer","answer":"Done! ‘foo’ now exists and contains: […]"}}
 …(tool_response arrives)…
 Assistant → done
-{"name":"runSubtool","arguments":{"subtool":"done"}}
+{"name":"runSubtool","arguments":{"subtool":"finish"}}
 …(tool_response arrives)…
 
 Example 2 – Direct answer:
@@ -1481,7 +1500,7 @@ Assistant → sendAnswer
 {"name":"runSubtool","arguments":{"subtool":"sendAnswer","answer":"In JavaScript, && has higher precedence than ||, so a && b || c is parsed as (a && b) || c."}}
 …(tool_response arrives)…
 Assistant → done
-{"name":"runSubtool","arguments":{"subtool":"done"}}
+{"name":"runSubtool","arguments":{"subtool":"finish"}}
 …(tool_response arrives)…
 
 Now handle the user’s request:
@@ -1541,7 +1560,7 @@ Now handle the user’s request:
              required: [ 'subtool', 'path', 'text' ] },
            { type: 'object',
              description: 'Signal that you are done',
-             properties: { subtool: { const: 'done' } },
+             properties: { subtool: { const: 'finish' } },
              required: [ 'subtool' ] } ]
 
   tools = [ { type: 'function',
@@ -1551,16 +1570,20 @@ Now handle the user’s request:
                                         properties: { oneOf: subs } } } } ]
   d(tools)
 
-  toolMap = { finalAnswer: { cb: finalAnswer,
-                             autoAccept: 1 },
-              //
-              moveFile: { cb: moveFile },
-              readDir: { cb: readDir },
-              createDir: { cb: createDir },
-              readFile: { cb: readFile },
-              removeFile: { cb: removeFile },
-              writeFile: { cb: writeFile } }
-  d(toolMap)
+  subtoolMap = { finish: { cb: finish,
+                           autoAccept: 1 },
+                 sendAnswer: { cb: sendAnswer,
+                               autoAccept: 1 },
+                 //
+                 createDir: { cb: createDir },
+                 moveFile: { cb: moveFile },
+                 readDir: { cb: readDir },
+                 readFile: { cb: readFile },
+                 removeFile: { cb: removeFile },
+                 writeFile: { cb: writeFile } }
+  d(subtoolMap)
+  // same order as in systemPrompt
+  subtoolArray = [ 'createDir', 'moveFile', 'readDir', 'createDir', 'readFile', 'removeFile', 'writeFile', 'sendAnswer', 'finish' ]
   emo = '🔮' // 🗨️
   premo = '#### ' + emo
   emoAgent = '🤖' // ✨

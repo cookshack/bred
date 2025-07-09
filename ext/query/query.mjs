@@ -172,6 +172,7 @@ function sendAnswer
   text = args.text || ''
 
   cb({ success: true,
+       subtool: 'sendAnswer',
        text })
 }
 
@@ -185,6 +186,7 @@ function readDir
       || path.startsWith('/')) {
     cb({ error: 'Error: path must be the empty string, or a relative subdirectory',
          success: false,
+         subtool: 'readDir',
          message: 'Failed to read directory.' })
     return
   }
@@ -198,6 +200,7 @@ function readDir
       d(err.message)
       cb({ error: err.message,
            success: false,
+           subtool: 'readDir',
            message: 'Failed to read directory.' })
       return
     }
@@ -205,6 +208,7 @@ function readDir
     d('READDIR data')
     d(data.data)
     cb({ success: true,
+         subtool: 'readDir',
          message: 'Successfully read directory.',
          contents: data.data })
   })
@@ -220,6 +224,7 @@ function createDir
         || path.startsWith('/')) {
       cb({ error: 'Error: argument path must be or a relative subdirectory (e.g. src/)',
            success: false,
+           subtool: 'createDir',
            message: 'Failed to create directory.' })
       return
     }
@@ -227,6 +232,7 @@ function createDir
   else {
     cb({ error: 'Error: missing argument path',
          success: false,
+         subtool: 'createDir',
          message: 'Failed to create directory.' })
     return
   }
@@ -239,11 +245,13 @@ function createDir
       d(err.message)
       cb({ error: err.message,
            success: false,
+           subtool: 'createDir',
            message: 'Failed to create directory.' })
       return
     }
     Mess.say('Added dir ' + abs)
     cb({ success: true,
+         subtool: 'createDir',
          message: 'Successfully created directory.' })
   })
 }
@@ -257,6 +265,7 @@ function moveFile
   else {
     cb({ error: 'Error: missing or empty argument from',
          success: false,
+         subtool: 'moveFile',
          message: 'Failed to move file.' })
     return
   }
@@ -266,6 +275,7 @@ function moveFile
   else {
     cb({ error: 'Error: missing or empty argument to',
          success: false,
+         subtool: 'moveFile',
          message: 'Failed to move file.' })
     return
   }
@@ -274,6 +284,7 @@ function moveFile
       || from.startsWith('/')) {
     cb({ error: 'Error: from must be in the current directory or a subdirectory',
          success: false,
+         subtool: 'moveFile',
          message: 'Failed to move file.' })
     return
   }
@@ -282,6 +293,7 @@ function moveFile
       || to.startsWith('/')) {
     cb({ error: 'Error: to must be in the current directory or a subdirectory',
          success: false,
+         subtool: 'moveFile',
          message: 'Failed to move file.' })
     return
   }
@@ -296,11 +308,13 @@ function moveFile
       d(err.message)
       cb({ error: err.message,
            success: false,
+           subtool: 'moveFile',
            message: 'Failed to move file.' })
       return
     }
 
     cb({ success: true,
+         subtool: 'moveFile',
          message: 'Successfully moved file.' })
   })
 }
@@ -314,6 +328,7 @@ function readFile
   else {
     cb({ error: 'Error: missing or empty argument path',
          success: false,
+         subtool: 'readFile',
          message: 'Failed to read file.' })
     return
   }
@@ -322,6 +337,7 @@ function readFile
       || path.startsWith('/')) {
     cb({ error: 'Error: path must be in the current directory or a subdirectory',
          success: false,
+         subtool: 'readFile',
          message: 'Failed to read file.' })
     return
   }
@@ -335,6 +351,7 @@ function readFile
       d(err.message)
       cb({ error: err.message,
            success: false,
+           subtool: 'readFile',
            message: 'Failed to read file.' })
       return
     }
@@ -342,6 +359,7 @@ function readFile
     d('READFILE data')
     d(data.data)
     cb({ success: true,
+         subtool: 'readFile',
          message: 'Successfully read file.',
          contents: data.data })
   })
@@ -356,6 +374,7 @@ function removeFile
   else {
     cb({ error: 'Error: missing or empty argument path',
          success: false,
+         subtool: 'removeFile',
          message: 'Failed to remove file.' })
     return
   }
@@ -364,6 +383,7 @@ function removeFile
       || path.startsWith('/')) {
     cb({ error: 'Error: path must be in the current directory or a subdirectory',
          success: false,
+         subtool: 'removeFile',
          message: 'Failed to remove file.' })
     return
   }
@@ -377,6 +397,7 @@ function removeFile
       d(err.message)
       cb({ error: err.message,
            success: false,
+           subtool: 'removeFile',
            message: 'Failed to remove file.' })
       return
     }
@@ -384,6 +405,7 @@ function removeFile
     d('REMOVEFILE data')
     d(data.data)
     cb({ success: true,
+         subtool: 'removeFile',
          message: 'Successfully removed file.' })
   })
 }
@@ -397,6 +419,7 @@ function writeFile
   else {
     cb({ error: 'Error: missing or empty argument path',
          success: false,
+         subtool: 'writeFile',
          message: 'Failed to write file.' })
     return
   }
@@ -405,6 +428,7 @@ function writeFile
       || path.startsWith('/')) {
     cb({ error: 'Error: path must be in the current directory or a subdirectory',
          success: false,
+         subtool: 'writeFile',
          message: 'Failed to write file.' })
     return
   }
@@ -418,6 +442,7 @@ function writeFile
       d(err.message)
       cb({ error: err.message,
            success: false,
+           subtool: 'writeFile',
            message: 'Failed to write file.' })
       return
     }
@@ -425,6 +450,7 @@ function writeFile
     d('WRITEFILE data')
     d(data.data)
     cb({ success: true,
+         subtool: 'writeFile',
          message: 'Successfully wrote file.' })
   })
 }

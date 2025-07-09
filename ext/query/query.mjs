@@ -167,12 +167,12 @@ function search
 
 function sendAnswer
 (buf, args, cb) { // (json)
-  let answer
+  let text
 
-  answer = args.answer || ''
+  text = args.text || ''
 
   cb({ success: true,
-       answer })
+       text })
 }
 
 function readDir
@@ -214,18 +214,18 @@ function createDir
 (buf, args, cb) { // (json)
   let path, abs
 
-  path = args.dir_path
+  path = args.path
   if (path) {
     if (path.startsWith('.')
         || path.startsWith('/')) {
-      cb({ error: 'Error: argument dir_path must be or a relative subdirectory (e.g. src/)',
+      cb({ error: 'Error: argument path must be or a relative subdirectory (e.g. src/)',
            success: false,
            message: 'Failed to create directory.' })
       return
     }
   }
   else {
-    cb({ error: 'Error: missing argument dir_path',
+    cb({ error: 'Error: missing argument path',
          success: false,
          message: 'Failed to create directory.' })
     return
@@ -250,44 +250,44 @@ function createDir
 
 function moveFile
 (buf, args, cb) { // (json)
-  let path_from, path_to, abs_from, abs_to
+  let from, to, abs_from, abs_to
 
-  if (args.path_from)
-    path_from = args.path_from
+  if (args.from)
+    from = args.from
   else {
-    cb({ error: 'Error: missing or empty argument path_from',
+    cb({ error: 'Error: missing or empty argument from',
          success: false,
          message: 'Failed to move file.' })
     return
   }
 
-  if (args.path_to)
-    path_to = args.path_to
+  if (args.to)
+    to = args.to
   else {
-    cb({ error: 'Error: missing or empty argument path_to',
+    cb({ error: 'Error: missing or empty argument to',
          success: false,
          message: 'Failed to move file.' })
     return
   }
 
-  if (path_from.startsWith('.')
-      || path_from.startsWith('/')) {
-    cb({ error: 'Error: path_from must be in the current directory or a subdirectory',
+  if (from.startsWith('.')
+      || from.startsWith('/')) {
+    cb({ error: 'Error: from must be in the current directory or a subdirectory',
          success: false,
          message: 'Failed to move file.' })
     return
   }
 
-  if (path_to.startsWith('.')
-      || path_to.startsWith('/')) {
-    cb({ error: 'Error: path_to must be in the current directory or a subdirectory',
+  if (to.startsWith('.')
+      || to.startsWith('/')) {
+    cb({ error: 'Error: to must be in the current directory or a subdirectory',
          success: false,
          message: 'Failed to move file.' })
     return
   }
 
-  abs_from = Loc.make(buf.path).join(path_from)
-  abs_to = Loc.make(buf.path).join(path_to)
+  abs_from = Loc.make(buf.path).join(from)
+  abs_to = Loc.make(buf.path).join(to)
   d('MOVEFILE abs ' + abs_from + ' to ' + abs_to)
 
   Tron.cmd('file.mv', [ abs_from, abs_to ], err => {
@@ -427,11 +427,6 @@ function writeFile
     cb({ success: true,
          message: 'Successfully wrote file.' })
   })
-}
-
-function finish
-(buf, args, cb) { // (json)
-  cb({ success: true })
 }
 
 export
@@ -612,6 +607,9 @@ function init
 
     function go
     () {
+      d({ msgs })
+      d('---- ' + emo + ' FETCH for chat ----')
+      msgs.forEach(msg => d(msg))
       fetch('https://openrouter.ai/api/v1/chat/completions',
             { method: 'POST',
               headers: {
@@ -633,6 +631,8 @@ function init
           Mess.yell('fetch: ' + err.message)
         })
     }
+
+    d('==== ' + emo + ' chat ====')
 
     prompt.length || Mess.toss('empty prompt')
 
@@ -666,7 +666,7 @@ function init
 
       function yes
       () {
-        let busy, finished
+        let busy
 
         d('YES')
         d(calls)
@@ -675,27 +675,19 @@ function init
         calls?.forEach(call => call && call.cb(res => {
           d('CALL result for ' + call.name)
           d(res)
-          if (finished) {
-            d('Error: skipping because already saw finish')
-            return
-          }
+          if ((call.name == 'sendAnswer')
+              && res.success)
+            cb && cb(res.text)
           buf.vars('query').msgs.push({ role: 'tool',
                                         toolCallId: call.id,
                                         tool_call_id: call.id,
                                         name: call.subtool,
                                         content: JSON.stringify(res) })
-          if (call.subtool == 'finish') {
-            cbEnd && cbEnd()
-            finished = 1
-            return
-          }
           busy--
           if (busy == 0)
             go()
         }))
         calls = 0
-        if (finished)
-          return
         if (busy == 0)
           go()
       }
@@ -719,91 +711,92 @@ function init
             d({ json })
             message = json.choices[0].message
             d(message)
-            buf.vars('query').msgs.push(message)
             if (message.content?.length) {
-              d('ERR model sent plain text, just displaying it')
-              cb && cb({ content: message.content })
+              d('ERR model sent plain text:')
+              d(message.content)
+              buf.vars('query').msgs.push({ 'role': 'assistant',
+                                            'name': 'runSubtool',
+                                            'content': JSON.stringify({ 'subtool': 'sendAnswer',
+                                                                        'text': '⚠️ Oops—I need to send exactly one JSON runSubtool call.' }) })
+              go()
+              return
             }
 
             // setup tool calls
 
-            if (message.tool_calls?.length)
+            if (message.tool_calls?.length == 1) {
+              let i, call
+
               // tool call
-              for (let i = 0; i < message.tool_calls.length; i++) {
-                let call
+              calls = []
+              i = 0
 
-                d('TOOL ' + i + ' parsing')
-                call = message.tool_calls[i]
-                if (call.type == 'function') {
-                  if (calls?.at(i))
-                    calls[i].args += (call.function.arguments || '')
-                  if (call.function.name)
-                    if (call.function.name == 'runSubtool')
-                      if (calls?.at(i)) {
-                        // already seen the first call to this function
-                      }
-                      else {
-                        let index, args, subtool
+              buf.vars('query').msgs.push(message)
 
-                        index = i
-                        calls = calls || []
-                        args = {}
-                        if (call.function.arguments?.trim())
-                          try {
-                            args = JSON.parse(call.function.arguments?.trim())
-                          }
-                          catch (err) {
-                            d('ARGS:')
-                            d(call.function.arguments)
-                            d('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
-                          }
-                        if (args.subtool) {
-                          d('  SUBTOOL ' + args.subtool)
-                          subtool = subtoolMap[args.subtool] || subtoolMap[subtoolArray[parseInt(args.subtool)]]
-                          calls[index] = { args,
-                                           autoAccept: subtool.autoAccept,
-                                           cb(then) { // (response)
-                                             d('CALL ' + index + ' running ' + call.function.name)
-                                             if (subtool) {
-                                               subtool.cb(buf, args, then)
-                                               return
-                                             }
-                                             d({ args })
-                                             d('Error: missing subtool')
-                                           },
-                                           id: call.id,
-                                           index: call.index,
-                                           name: call.function.name,
-                                           //
-                                           no,
-                                           yes }
-                        }
-                        else {
-                          d('SUBTOOL MISSING')
-                          cb && cb({ content: 'ERROR: missing subtool: ' + call.function.arguments + '\n' })
-                          calls[i] = 0
-                        }
-                      }
-                    else {
-                      d('TOOL MISSING')
-                      cb && cb({ content: 'ERROR: missing tool: ' + call.function.name + '\n' })
-                      calls[i] = 0
-                    }
+              d('TOOL ' + i + ' parsing')
+              call = message.tool_calls[i]
+              if ((call.type == 'function')
+                  && (call.function?.name == 'runSubtool')) {
+                let index, args, subtool
+
+                index = i
+                args = {}
+                if (call.function.arguments?.trim())
+                  try {
+                    args = JSON.parse(call.function.arguments?.trim())
+                  }
+                  catch (err) {
+                    d('ARGS:')
+                    d(call.function.arguments)
+                    d('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
+                  }
+                if (args.subtool) {
+                  d('  SUBTOOL ' + args.subtool)
+                  subtool = subtoolMap[args.subtool] || subtoolMap[subtoolArray[parseInt(args.subtool)]]
+                  calls[index] = { args,
+                                   autoAccept: subtool.autoAccept,
+                                   cb(then) { // (response)
+                                     d('CALL ' + index + ' running ' + call.function.name)
+                                     if (subtool) {
+                                       subtool.cb(buf, args, then)
+                                       return
+                                     }
+                                     d({ args })
+                                     d('Error: missing subtool')
+                                   },
+                                   id: call.id,
+                                   index: call.index,
+                                   name: call.function.name,
+                                   //
+                                   no,
+                                   yes }
                 }
                 else {
-                  d('TYPE MISSING')
-                  cb && cb({ content: 'ERROR: missing tool type: ' + call.type + '\n' })
+                  d('SUBTOOL MISSING')
+                  cb && cb({ content: 'ERROR: missing subtool: ' + call.function.arguments + '\n' })
                   calls[i] = 0
                 }
               }
+              else {
+                d('TOOL/TYPE MISSING')
+                cb && cb({ content: 'ERROR: missing type/tool: ' + call.function.name + '\n' })
+                calls[i] = 0
+              }
 
-            // run the tools
+              // run the tool
 
-            if (calls)
               calls.forEach(call => call && cbTool(call))
-            else
-              cbEnd && cbEnd()
 
+              return
+            }
+
+            // model sent 0 or more than one call
+            d('ERR 0 or > 1 tool calls')
+            buf.vars('query').msgs.push({ 'role': 'assistant',
+                                          'name': 'runSubtool',
+                                          'content': JSON.stringify({ 'subtool': 'sendAnswer',
+                                                                      'text': '⚠️ Oops—I need to send exactly one JSON runSubtool call.' }) })
+            go()
             return
           }
 
@@ -827,8 +820,8 @@ function init
 
     function go
     () {
-      d('FETCH')
-      d({ msgs })
+      d('---- ' + emoAgent + ' FETCH for agent ----')
+      msgs.forEach(msg => d(msg))
       fetch('https://openrouter.ai/api/v1/chat/completions',
             { method: 'POST',
               headers: {
@@ -838,15 +831,13 @@ function init
 
               body: JSON.stringify({
                 model,
+                temperature: 0,
                 messages: [ { role: 'system',
                               content: systemPrompt },
                             ...msgs ],
                 tools,
-                tool_choice: 0
-                  ? tools.map(t => ({ type: 'function',
-                                      function: { name: t.function.name } }))
-                  : { type: 'function',
-                      function: { name: 'runSubtool' } } }) })
+                tool_choice: tools.map(t => ({ type: 'function',
+                                               function: { name: t.function.name } })) }) })
         .then(response => {
           response.ok || Mess.toss('fetch failed')
           return handle(response)
@@ -855,6 +846,8 @@ function init
           Mess.yell('fetch: ' + err.message)
         })
     }
+
+    d('==== ' + emoAgent + ' chatAgent ====')
 
     prompt.length || Mess.toss('empty prompt')
 
@@ -1393,137 +1386,82 @@ function init
                })
   })
 
-  systemPrompt = `
-You are BredAssist, a helpful assistant embedded in an Electron-based code editor.
-I am a software developer using the code editor.
-You have access to a single function that you must always call.
-This function gives you eight subtools that you must choose from in order to assist me.
+  systemPrompt = `You are BredAssist, an AI helper inside an Electron code editor.
+You only respond by calling runSubtool, formatted as valid JSON:
 
-INSTRUCTIONS:
-Your entire response must be a JSON function call to runSubtool (no extra text)
+  {
+    "name": "runSubtool",
+    "arguments": {
+      "subtool": string,
+      // plus any subtool-specific args
+    }
+  }
 
-THE SINGLE AVAILABLE FUNCTION:
-1) runSubtool
-   • Purpose: Request an operation, send information, or signal that you are done.
-   • Parameters: { subtool: string, …more properties depending on subtool… }
-   • Returns (as JSON):
-     - On success: { "success": true, …whatever else the subtools needs to return… }
-     - On error:   { "success": false, "error": "…error message…" }
+Available subtools:
+- createDir({ path: string })
+- readDir({ path: string })
+- readFile({ path: string })
+- writeFile({ path: string, text: string })
+- moveFile({ from: string, to: string })
+- removeFile({ path: string })
+- sendAnswer({ text: string })
 
-AVAILABLE SUBTOOLS:
+When you want to ask the user something or deliver a final answer, call sendAnswer.
 
-1) createDir
-   • Purpose: Create a directory at the given path.
-   • Args: { path: string }
-   • Returns (as the return to runSubtool):
-     - On success: { "success": true }
-     - On error:   { "success": false, "error": "…error message…" }
+EXAMPLE:
 
-2) moveFile
-   • Purpose: Move or rename the file at the given path.
-   • Args: { path_from: string, path_to: string }
-   • Returns (as the return to runSubtool):
-     - On success: { "success": true }
-     - On error:   { "success": false, "error": "…error message…" }
+User: “Create a file ‘notes/todo.txt’ with the text ‘Buy milk’, then show me its contents.”
 
-3) readDir
-   • Purpose: List entries in a directory.
-   • Args: { path: string }
-   • Returns (as the return to runSubtool):
-     - On success:
-       {
-         "success": true,
-         "contents": [
-           { "name": "file1.txt", … },
-           { "name": "subdir", … },
-           …
-         ]
-       }
-     - On error:
-       { "success": false, "error": "…error message…" }
+Assistant → runSubtool
+{
+  "subtool": "createDir",
+  "path": "notes"
+}
 
-4) readFile
-   • Purpose: Read a file at the given path.
-   • Args: { path: string }
-   • Returns (as the return to runSubtool):
-     - On success: { "success": true, "data": "…file contents…", "stat": "…file stats…" }
-     - On error:   { "success": false, "error": "…error message…" }
+…(tool_response: { "success": true })…
 
-5) removeFile
-   • Purpose: Remove a file at the given path.
-   • Args: { path: string }
-   • Returns (as the return to runSubtool):
-     - On success: { "success": true }
-     - On error:   { "success": false, "error": "…error message…" }
+Assistant → runSubtool
+{
+  "subtool": "writeFile",
+  "path": "notes/todo.txt",
+  "text": "Buy milk"
+}
 
-6) writeFile
-   • Purpose: Write a file at the given path.
-   • Args: { path: string, text: string }
-   • Returns (as the return to runSubtool):
-     - On success: { "success": true }
-     - On error:   { "success": false, "error": "…error message…" }
+…(tool_response: { "success": true })…
 
-7) sendAnswer
-   • Purpose: Send plain text as a response
-   • Args: { path: string, text: string }
-   • Returns (as the return to runSubtool):
-     - On success: { "success": true }
-     - On error:   { "success": false, "error": "…error message…" }
+Assistant → runSubtool
+{
+  "subtool": "readFile",
+  "path": "notes/todo.txt"
+}
 
-8) finish
-   • Purpose: Signal completion. Only call this when you are done.
-   • Args: {}
-   • Returns (as the return to runSubtool):
-     - On success: { "success": true }
-     - On error:   { "success": false, "error": "…error message…" }
+…(tool_response: { "success": true, "data": "Buy milk" })…
 
-EXAMPLES:
-
-Example 1 – Creating a dir then list its contents:
-User: “Make a folder named foo and then list its contents.”
-Assistant → createDir
-{"name":"runSubtool","arguments":{"subtool":"createDir", "dir_path":"foo"}}
-…(tool_response arrives)…
-Assistant → readDir
-{"name":"runSubtool","arguments":{"subtool":"readDir","path":"foo"}}
-…(tool_response arrives)…
-Assistant → sendAnswer
-{"name":"runSubtool","arguments":{"subtool":"sendAnswer","answer":"Done! ‘foo’ now exists and contains: […]"}}
-…(tool_response arrives)…
-Assistant → done
-{"name":"runSubtool","arguments":{"subtool":"finish"}}
-…(tool_response arrives)…
-
-Example 2 – Direct answer:
-User: “What’s the precedence of && vs || in JavaScript?”
-Assistant → sendAnswer
-{"name":"runSubtool","arguments":{"subtool":"sendAnswer","answer":"In JavaScript, && has higher precedence than ||, so a && b || c is parsed as (a && b) || c."}}
-…(tool_response arrives)…
-Assistant → done
-{"name":"runSubtool","arguments":{"subtool":"finish"}}
-…(tool_response arrives)…
-
-Now handle the user’s request:
+Assistant → runSubtool
+{
+  "subtool": "sendAnswer",
+  "text": "Here is notes/todo.txt:\n\nBuy milk"
+}
 `
   subs = [ { type: 'object',
              description: 'Create a new directory.',
              properties: { subtool: { const: 'createDir' },
-                           dir_path: { type: 'string' } },
-             required: [ 'subtool', 'dir_path' ] },
+                           path: { type: 'string' } },
+             required: [ 'subtool', 'path' ] },
            { type: 'object',
              description: 'Move or rename a file.',
              properties: { subtool: { const: 'moveFile' },
-                           path_from: { type: 'string',
-                                        description: "Path to the file that must be moved. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
-                           path_to: { type: 'string',
-                                      description: "New location and name for the file. This path must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-             required: [ 'subtool', 'path_from', 'path_to' ] },
+                           from: { type: 'string',
+                                   description: "Path to the file that must be moved. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                           to: { type: 'string',
+                                 description: "New location and name for the file. This path must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+             required: [ 'subtool', 'from', 'to' ] },
            { type: 'object',
              description: 'Send freeform text',
              properties: { subtool: { const: 'sendAnswer' },
-                           answer: { type: 'string',
-                                     description: 'Human readable freeform answer.' } },
-             required: [ 'subtool', 'answer' ] },
+                           text: { type: 'string',
+                                   description: 'Human readable freeform text.' } },
+             required: [ 'subtool', 'text' ] },
            { type: 'object',
              description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
              properties: { subtool: { const: 'readDir' },
@@ -1533,11 +1471,9 @@ Now handle the user’s request:
            { type: 'object',
              description: 'Create a new directory, returning a JSON object with a success message.',
              properties: { subtool: { const: 'createDir' },
-                           answer: { type: 'string',
-                                     description: 'Human readable freeform answer.' },
-                           dir_path: { type: 'string',
-                                       description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-             required: [ 'subtool', 'dir_path' ] },
+                           path: { type: 'string',
+                                   description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+             required: [ 'subtool', 'path' ] },
            { type: 'object',
              description: 'Read a file, returning a JSON object that includes a success message and the file contents.',
              properties: { subtool: { const: 'readFile' },
@@ -1557,11 +1493,7 @@ Now handle the user’s request:
                                    description: "Path to the file to write (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
                            text: { type: 'string',
                                    description: 'New contents for the file.' } },
-             required: [ 'subtool', 'path', 'text' ] },
-           { type: 'object',
-             description: 'Signal that you are done',
-             properties: { subtool: { const: 'finish' } },
-             required: [ 'subtool' ] } ]
+             required: [ 'subtool', 'path', 'text' ] } ]
 
   tools = [ { type: 'function',
               function: { name: 'runSubtool',
@@ -1570,9 +1502,7 @@ Now handle the user’s request:
                                         properties: { oneOf: subs } } } } ]
   d(tools)
 
-  subtoolMap = { finish: { cb: finish,
-                           autoAccept: 1 },
-                 sendAnswer: { cb: sendAnswer,
+  subtoolMap = { sendAnswer: { cb: sendAnswer,
                                autoAccept: 1 },
                  //
                  createDir: { cb: createDir },
@@ -1583,7 +1513,7 @@ Now handle the user’s request:
                  writeFile: { cb: writeFile } }
   d(subtoolMap)
   // same order as in systemPrompt
-  subtoolArray = [ 'createDir', 'moveFile', 'readDir', 'createDir', 'readFile', 'removeFile', 'writeFile', 'sendAnswer', 'finish' ]
+  subtoolArray = [ 'createDir', 'moveFile', 'readDir', 'createDir', 'readFile', 'removeFile', 'writeFile', 'sendAnswer' ]
   emo = '🔮' // 🗨️
   premo = '#### ' + emo
   emoAgent = '🤖' // ✨

@@ -933,10 +933,14 @@ function init
               body: JSON.stringify({ model,
                                      temperature: 0,
                                      messages,
-                                     // Only use providers that support all parameters in your request
+                                     // Only use providers that support all parameters in this request
                                      provider: { require_parameters: true },
-                                     tools,
-                                     tool_choice }) })
+                                     response_format: { type: 'json_schema',
+                                                        json_schema: { name: 'runSubtool',
+                                                                       strict: true,
+                                                                       schema: { type: 'object',
+                                                                                 oneOf: subs,
+                                                                                 additionalProperties: false } } } }) })
         .then(response => {
           response.ok || Mess.toss('fetch failed')
           return handle(response)

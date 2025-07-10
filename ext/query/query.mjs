@@ -700,7 +700,18 @@ function init
       function push
       (msg) {
         reminds = 0
+        if (model.startsWith('mistralai/') && (msg.role == 'assistant')) {
+          // else mistral err
+          delete msg.refusal
+          delete msg.reasoning
+        }
         buf.vars('query').msgs.push(msg)
+        if (model.startsWith('mistralai/') && (msg.role == 'tool'))
+          // mistral expects assistant after tool
+          buf.vars('query').msgs.push({ 'role': 'assistant',
+                                        'name': 'runSubtool',
+                                        'content': JSON.stringify({ 'subtool': 'sendAnswer',
+                                                                    'text': '' }) })
       }
 
       function no
@@ -723,7 +734,7 @@ function init
             d('CALL result for ' + call.name)
             d(res)
             push({ role: 'tool',
-                   toolCallId: call.id,
+                   //toolCallId: call.id, // else mistral err
                    tool_call_id: call.id,
                    name: call.name,
                    content: JSON.stringify(res) })
@@ -770,16 +781,53 @@ function init
 
             d('CHAT done')
 
+            calls = []
             reader.cancel()
 
             // parse the buffer
 
             json = JSON.parse(buffer)
             d({ json })
+            if (json.error) {
+              d('ERR from llm: ' + json.error.message)
+              if (json.error.metadata)
+                try {
+                  let raw
+
+                  raw = JSON.parse(json.error.metadata.raw)
+                  d({ raw })
+                }
+                catch {
+                }
+              return
+            }
             message = json.choices[0].message
             d(message)
             if (message.content?.length) {
-              d('ERR model sent plain text:')
+              let args
+
+              d('ERR model sent plain text')
+              try {
+                args = JSON.parse(message.content.trim())
+              }
+              catch {
+                d('ERR failed to parse it as json')
+              }
+
+              if (args?.subtool) {
+                let subtool
+
+                d('  SUBTOOL ' + args.subtool)
+                subtool = subtoolMap[args.subtool]
+                if (subtool) {
+                  addCall(args, subtool)
+                  // run the tool
+                  calls[0] && cbCall(calls[0])
+                  return
+                }
+                return
+              }
+              d('ERR failed to find call in plain text:')
               d(message.content)
               remind()
               go()
@@ -792,7 +840,6 @@ function init
               let call
 
               // tool call
-              calls = []
 
               push(message)
 
@@ -865,8 +912,12 @@ function init
 
       d('---- ' + emoAgent + ' FETCH for agent ----')
 
-      tool_choice = tools.map(t => ({ type: 'function',
-                                      function: { name: t.function.name } }))
+      if (0)
+        tool_choice = tools.map(t => ({ type: 'function',
+                                        function: { name: t.function.name } }))
+      else
+        tool_choice = 'auto'
+
       messages = [ { role: 'system',
                      content: systemPrompt },
                    ...msgs ]
@@ -882,6 +933,8 @@ function init
               body: JSON.stringify({ model,
                                      temperature: 0,
                                      messages,
+                                     // Only use providers that support all parameters in your request
+                                     provider: { require_parameters: true },
                                      tools,
                                      tool_choice }) })
         .then(response => {
@@ -1547,7 +1600,7 @@ Assistant → runSubtool
               function: { name: 'runSubtool',
                           description: 'Run a subtool.',
                           parameters: { type: 'object',
-                                        properties: { oneOf: subs } } } } ]
+                                        oneOf: subs } } } ]
   d(tools)
 
   subtoolMap = { sendAnswer: { cb: sendAnswer,

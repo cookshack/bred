@@ -395,6 +395,9 @@ function onCmdCh
   if (name == 'file.mv')
     return wrapOn(e, ch, args, File.onMv)
 
+  if (name == 'file.patch')
+    return wrapOn(e, ch, args, File.onPatch)
+
   if (name == 'file.rm')
     return wrapOn(e, ch, args, File.onRm)
 

@@ -165,17 +165,6 @@ function search
   p.setBuf(buf, {}, () => srch(p.dir, buf, query))
 }
 
-function sendAnswer
-(buf, args, cb) { // (json)
-  let text
-
-  text = args.text || ''
-
-  cb({ success: true,
-       subtool: 'sendAnswer',
-       text })
-}
-
 function readDir
 (buf, args, cb) { // (json)
   let path, abs
@@ -222,7 +211,7 @@ function createDir
   if (path) {
     if (path.startsWith('.')
         || path.startsWith('/')) {
-      cb({ error: 'Error: argument path must be or a relative subdirectory (e.g. src/)',
+      cb({ error: 'Error: argument path must be a relative subdirectory (e.g. src/)',
            success: false,
            subtool: 'createDir',
            message: 'Failed to create directory.' })
@@ -253,6 +242,48 @@ function createDir
     cb({ success: true,
          subtool: 'createDir',
          message: 'Successfully created directory.' })
+  })
+}
+
+function createFile
+(buf, args, cb) { // (json)
+  let path, abs
+
+  path = args.path
+  if (path) {
+    if (path.startsWith('.')
+        || path.startsWith('/')) {
+      cb({ error: 'Error: argument path must be in the current dir or a relative subdirectory (e.g. src/eg.txt)',
+           success: false,
+           subtool: 'createFile',
+           message: 'Failed to create file.' })
+      return
+    }
+  }
+  else {
+    cb({ error: 'Error: missing argument path',
+         success: false,
+         subtool: 'createFile',
+         message: 'Failed to create file.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('CREATEFILE abs ' + abs)
+  Tron.cmd('file.save', [ abs, '' ], err => {
+    if (err) {
+      d('ERR createFile')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           subtool: 'createFile',
+           message: 'Failed to create file.' })
+      return
+    }
+    Mess.say('Added dir ' + abs)
+    cb({ success: true,
+         subtool: 'createFile',
+         message: 'Successfully created file.' })
   })
 }
 
@@ -316,6 +347,53 @@ function moveFile
     cb({ success: true,
          subtool: 'moveFile',
          message: 'Successfully moved file.' })
+  })
+}
+
+function patchFile
+(buf, args, cb) { // (json)
+  let path, abs, patch
+
+  if (args.path)
+    path = args.path
+  else {
+    cb({ error: 'Error: missing or empty argument path',
+         success: false,
+         subtool: 'patchFile',
+         message: 'Failed to patch file.' })
+    return
+  }
+
+  if (path.startsWith('.')
+      || path.startsWith('/')) {
+    cb({ error: 'Error: path must be in the current directory or a subdirectory',
+         success: false,
+         subtool: 'patchFile',
+         message: 'Failed to patch file.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('PATCHFILE abs ' + abs)
+  patch = args.patch || ''
+  d({ patch })
+
+  Tron.cmd('file.patch', [ abs, patch ], (err, data) => {
+    if (err) {
+      d('ERR file.save')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           subtool: 'patchFile',
+           message: 'Failed to patch file.' })
+      return
+    }
+
+    d('PATCHFILE data')
+    d(data.data)
+    cb({ success: true,
+         subtool: 'patchFile',
+         message: 'Successfully patched file.' })
   })
 }
 
@@ -708,18 +786,7 @@ function init
       function push
       (msg) {
         reminds = 0
-        if (model.startsWith('mistralai/') && (msg.role == 'assistant')) {
-          // else mistral err
-          delete msg.refusal
-          delete msg.reasoning
-        }
         buf.vars('query').msgs.push(msg)
-        if (model.startsWith('mistralai/') && (msg.role == 'tool'))
-          // mistral expects assistant after tool
-          buf.vars('query').msgs.push({ 'role': 'assistant',
-                                        'name': 'runSubtool',
-                                        'content': JSON.stringify({ 'subtool': 'sendAnswer',
-                                                                    'text': '' }) })
       }
 
       function no
@@ -743,12 +810,6 @@ function init
             d(res)
             push({ role: 'user',
                    content: JSON.stringify(res) })
-            if ((call.args.subtool == 'sendAnswer')
-                && res.success) {
-              cb && cb({ content: res.text })
-              cbEnd && cbEnd()
-              return
-            }
             go()
           })
       }
@@ -1489,13 +1550,25 @@ The user's response is also valid JSON:
 
 Available subtools:
 - createDir({ path: string })
+- createFile({ path: string })
 - readDir({ path: string })
 - readFile({ path: string })
-- writeFile({ path: string, text: string })
+- patchFile({ path: string, patch: string })
 - moveFile({ from: string, to: string })
 - removeFile({ path: string })
 
 When you want to ask the user something or deliver commentary, use the "answer" field.
+
+Note that the only way to add or modify file contents is to use patchFile. This tool takes
+a unified diff as the 'patch' argument, like this
+\`\`\`
+--- /dev/null
++++ notes/todo.txt
+@@ -0,0 +1 @@
++Buy milk
+
+\`\`\`
+
 
 EXAMPLE:
 
@@ -1514,9 +1587,19 @@ User →
 Assistant →
 {
   "answer": "",
-  "subtool": "writeFile",
+  "subtool": "createFile",
+  "path": "notes/todo.txt"
+}
+
+User →
+{ "success": true }
+
+Assistant →
+{
+  "answer": "",
+  "subtool": "patchFile",
   "path": "notes/todo.txt",
-  "text": "Buy milk"
+  "patch": "--- /dev/null\n+++ notes/todo.txt\n@@ -0,0 +1 @@\n+Buy milk\n\n"
 }
 
 User →
@@ -1538,12 +1621,31 @@ Assistant →
 }
 `
   subs = [ { type: 'object',
-             description: 'Create a new directory.',
+             description: 'Create a new directory, returning a JSON object with a success message.',
              properties: { answer: { type: 'string',
                                      description: 'Human readable freeform text.' },
                            subtool: { const: 'createDir' },
-                           path: { type: 'string' } },
+                           path: { type: 'string',
+                                   description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
              required: [ 'answer', 'subtool', 'path' ] },
+           { type: 'object',
+             description: 'Create a new empty file. Use patchFile to add content.',
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'createFile' },
+                           path: { type: 'string',
+                                   description: "Path to the file to create (e.g. 'src/new.txt'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+             required: [ 'answer', 'subtool', 'path' ] },
+           { type: 'object',
+             description: 'Apply a unified diff to a file, returning a JSON object with a success message.',
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'patchFile' },
+                           path: { type: 'string',
+                                   description: "Path to the file to patch (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                           patch: { type: 'string',
+                                    description: 'A patch to apply to the file, in unified diff format.' } },
+             required: [ 'answer', 'subtool', 'path', 'patch' ] },
            { type: 'object',
              description: 'Move or rename a file.',
              properties: { answer: { type: 'string',
@@ -1568,14 +1670,6 @@ Assistant →
                                    description: 'Path to the directory from which to list files (e.g. "src"). Use "" for the current directory.' } },
              required: [ 'subtool', 'path' ] },
            { type: 'object',
-             description: 'Create a new directory, returning a JSON object with a success message.',
-             properties: { answer: { type: 'string',
-                                     description: 'Human readable freeform text.' },
-                           subtool: { const: 'createDir' },
-                           path: { type: 'string',
-                                   description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-             required: [ 'answer', 'subtool', 'path' ] },
-           { type: 'object',
              description: 'Read a file, returning a JSON object that includes a success message and the file contents.',
              properties: { answer: { type: 'string',
                                      description: 'Human readable freeform text.' },
@@ -1590,17 +1684,7 @@ Assistant →
                            subtool: { const: 'removeFile' },
                            path: { type: 'string',
                                    description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-             required: [ 'answer', 'subtool', 'path' ] },
-           { type: 'object',
-             description: 'Write a file, returning a JSON object with a success message.',
-             properties: { answer: { type: 'string',
-                                     description: 'Human readable freeform text.' },
-                           subtool: { const: 'writeFile' },
-                           path: { type: 'string',
-                                   description: "Path to the file to write (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
-                           text: { type: 'string',
-                                   description: 'New contents for the file.' } },
-             required: [ 'answer', 'subtool', 'path', 'text' ] } ]
+             required: [ 'answer', 'subtool', 'path' ] } ]
 
   tools = [ { type: 'function',
               function: { name: 'runSubtool',
@@ -1609,16 +1693,35 @@ Assistant →
                                         oneOf: subs } } } ]
   d(tools)
 
-  subtoolMap = { sendAnswer: { cb: sendAnswer,
-                               autoAccept: 1 },
-                 //
-                 createDir: { cb: createDir },
+  subtoolMap = { createDir: { cb: createDir },
+                 createFile: { cb: createFile },
                  moveFile: { cb: moveFile },
-                 readDir: { cb: readDir },
-                 readFile: { cb: readFile },
-                 removeFile: { cb: removeFile },
-                 writeFile: { cb: writeFile } }
+                 patchFile: { cb: patchFile },
+                 readDir: { cb: readDir,
+                            autoAccept: 1 },
+                 readFile: { cb: readFile,
+                             autoAccept: 1 },
+                 removeFile: { cb: removeFile } }
   d(subtoolMap)
+
+  {
+    let oldSubs, oldSubtoolMap
+
+    oldSubtoolMap = { writeFile: { cb: writeFile } }
+
+    oldSubs = [ { type: 'object',
+                  description: 'Write a file, returning a JSON object with a success message.',
+                  properties: { answer: { type: 'string',
+                                          description: 'Human readable freeform text.' },
+                                subtool: { const: 'writeFile' },
+                                path: { type: 'string',
+                                        description: "Path to the file to write (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                                text: { type: 'string',
+                                        description: 'New contents for the file.' } },
+                  required: [ 'answer', 'subtool', 'path', 'text' ] } ]
+    0 && d(oldSubs)
+    0 && d(oldSubtoolMap)
+  }
   emo = '🔮' // 🗨️
   premo = '#### ' + emo
   emoAgent = '🤖' // ✨

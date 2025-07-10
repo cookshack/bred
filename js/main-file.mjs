@@ -4,6 +4,8 @@ import Fs from 'node:fs'
 import FsP from 'node:fs/promises'
 import Os from 'node:os'
 import Path from 'node:path'
+
+import * as Diff from '../lib/diff.js'
 import * as U from './util.mjs'
 
 function cpMany
@@ -283,6 +285,39 @@ function onMv
     return
   }
   e.sender.send(ch, errMsg('Paths must be absolute'))
+}
+
+export
+function onPatch
+(e, ch, onArgs) {
+  let [ path, patch ] = onArgs
+
+  path = U.stripFilePrefix(path)
+
+  Fs.readFile(path, 'utf8', (err, data) => {
+    if (err)
+      e.sender.send(ch, { err })
+    else {
+      let out
+
+      try {
+        out = Diff.applyPatch(data.data, patch)
+      }
+      catch (err) {
+        e.sender.send(ch, makeErr(err))
+        return
+      }
+      if (out === false)
+        e.sender.send(ch, { err: { message: 'Failed to apply patch' } })
+      else
+        Fs.writeFile(path, out, { encoding: 'utf8' }, err => {
+          if (err)
+            e.sender.send(ch, { err })
+          else
+            e.sender.send(ch, {})
+        })
+    }
+  })
 }
 
 export

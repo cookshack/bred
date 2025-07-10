@@ -599,6 +599,71 @@ function removeFile
   })
 }
 
+function removeText
+(buf, args, cb) { // (json)
+  let path, abs, position, length
+
+  if (args.path)
+    path = args.path
+  else {
+    cb({ error: 'Error: missing or empty argument path',
+         success: false,
+         subtool: 'removeText',
+         message: 'Failed to remove text.' })
+    return
+  }
+
+  if (path.startsWith('.')
+      || path.startsWith('/')) {
+    cb({ error: 'Error: path must be in the current directory or a subdirectory',
+         success: false,
+         subtool: 'removeText',
+         message: 'Failed to remove text.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('REMOVETEXT abs ' + abs)
+
+  if (typeof args.position == 'undefined') {
+    cb({ error: 'Error: missing argument: position',
+         success: false,
+         subtool: 'removeText',
+         message: 'Failed to remove text.' })
+    return
+  }
+  position = args.position
+
+  if (typeof args.length == 'undefined') {
+    cb({ error: 'Error: missing argument: length',
+         success: false,
+         subtool: 'removeText',
+         message: 'Failed to remove text.' })
+    return
+  }
+  length = parseInt(args.length)
+
+  d({ position })
+  d({ length })
+  Tron.cmd('file.modify', [ abs, [ { type: 'remove', position, length } ] ], (err, data) => {
+    if (err) {
+      d('ERR file.modify')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           subtool: 'removeText',
+           message: 'Failed to remove text.' })
+      return
+    }
+
+    d('REMOVETEXT data')
+    d(data.data)
+    cb({ success: true,
+         subtool: 'removeText',
+         message: 'Successfully inserted text.' })
+  })
+}
+
 function writeFile
 (buf, args, cb) { // (json)
   let path, abs
@@ -1667,8 +1732,8 @@ Available subtools:
 - readDir({ path: string })
 - readFile({ path: string })
 - patchFile({ path: string, patch: string })
-- modifyFile({ path: string, edit: { type: string, from: integer, to: integer, with: string })
 - moveFile({ from: string, to: string })
+- removeText({ path: string, position: integer, length: integer })
 - removeFile({ path: string })
 
 When you want to ask the user something or deliver commentary, use the "answer" field.
@@ -1763,23 +1828,6 @@ Assistant →
                                    description: 'The text to insert.' } },
              required: [ 'answer', 'subtool', 'path', 'position', 'text' ] },
            { type: 'object',
-             description: 'Replace a portion of an existing file.',
-             properties: { answer: { type: 'string',
-                                     description: 'Human readable freeform text.' },
-                           subtool: { const: 'modifyFile' },
-                           path: { type: 'string',
-                                   description: "Path to the file that must be modified. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
-                           edit: { type: 'object',
-                                   properties: { type: { const: 'replace' },
-                                                 from: { type: 'integer',
-                                                         description: 'The position from where the text should be replaced, in number of characters (including newlines) from the start of the file (starting from 0).' },
-                                                 to: { type: 'integer',
-                                                       description: 'The end position of where the replacement should happen, in number of characters (including newlines) from the start of the file (starting from 0).' },
-                                                 with: { type: 'string',
-                                                         description: 'The new text that will go between from and to.' } },
-                                   required: [ 'type', 'from', 'to', 'text' ] } },
-             required: [ 'answer', 'subtool', 'path', 'edit' ] },
-           { type: 'object',
              description: 'Move or rename a file.',
              properties: { answer: { type: 'string',
                                      description: 'Human readable freeform text.' },
@@ -1811,6 +1859,18 @@ Assistant →
                                    description: "Path to the file to create (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
              required: [ 'answer', 'subtool', 'path' ] },
            { type: 'object',
+             description: 'Remove text from a file.',
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'removeText' },
+                           path: { type: 'string',
+                                   description: "Path to the file that must be modified. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                           position: { type: 'integer',
+                                       description: 'The position from where the text should be removed. This is counted in number of characters (including newlines) from the start of the file (starting from 0).' },
+                           length: { type: 'string',
+                                     description: 'The number of characters to remove, including newlines.' } },
+             required: [ 'answer', 'subtool', 'path', 'position', 'length' ] },
+           { type: 'object',
              description: 'Remove a file, returning a JSON object that contains a success message.',
              properties: { answer: { type: 'string',
                                      description: 'Human readable freeform text.' },
@@ -1829,22 +1889,40 @@ Assistant →
   subtoolMap = { createDir: { cb: createDir },
                  createFile: { cb: createFile },
                  insertText: { cb: insertText },
-                 modifyFile: { cb: modifyFile },
                  moveFile: { cb: moveFile },
                  patchFile: { cb: patchFile },
                  readDir: { cb: readDir,
                             autoAccept: 1 },
                  readFile: { cb: readFile,
                              autoAccept: 1 },
+                 removeText: { cb: removeText },
                  removeFile: { cb: removeFile } }
   d(subtoolMap)
 
   {
     let oldSubs, oldSubtoolMap
 
-    oldSubtoolMap = { writeFile: { cb: writeFile } }
+    oldSubtoolMap = { modifyFile: { cb: modifyFile },
+                      writeFile: { cb: writeFile } }
 
     oldSubs = [ { type: 'object',
+                  description: 'Replace a portion of an existing file.',
+                  properties: { answer: { type: 'string',
+                                          description: 'Human readable freeform text.' },
+                                subtool: { const: 'modifyFile' },
+                                path: { type: 'string',
+                                        description: "Path to the file that must be modified. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                                edit: { type: 'object',
+                                        properties: { type: { const: 'replace' },
+                                                      from: { type: 'integer',
+                                                              description: 'The position from where the text should be replaced, in number of characters (including newlines) from the start of the file (starting from 0).' },
+                                                      to: { type: 'integer',
+                                                            description: 'The end position of where the replacement should happen, in number of characters (including newlines) from the start of the file (starting from 0).' },
+                                                      with: { type: 'string',
+                                                              description: 'The new text that will go between from and to.' } },
+                                        required: [ 'type', 'from', 'to', 'text' ] } },
+                  required: [ 'answer', 'subtool', 'path', 'edit' ] },
+                { type: 'object',
                   description: 'Write a file, returning a JSON object with a success message.',
                   properties: { answer: { type: 'string',
                                           description: 'Human readable freeform text.' },

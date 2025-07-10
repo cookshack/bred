@@ -261,8 +261,6 @@ function onModify
               e.sender.send(ch, errMsg('Error in position field of edit ' + i))
               return
             }
-            if (off >= out.length)
-              off = out.length - 1
             out = out.slice(0, off) + (edits[i].text || '') + out.slice(off)
           }
           else if (edits[i].type == 'remove') {

@@ -287,6 +287,61 @@ function createFile
   })
 }
 
+function insertText
+(buf, args, cb) { // (json)
+  let path, abs, pos
+
+  if (args.path)
+    path = args.path
+  else {
+    cb({ error: 'Error: missing or empty argument path',
+         success: false,
+         subtool: 'insertText',
+         message: 'Failed to insert text.' })
+    return
+  }
+
+  if (path.startsWith('.')
+      || path.startsWith('/')) {
+    cb({ error: 'Error: path must be in the current directory or a subdirectory',
+         success: false,
+         subtool: 'insertText',
+         message: 'Failed to insert text.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('INSERTTEXT abs ' + abs)
+
+  if (typeof args.position == 'undefined') {
+    cb({ error: 'Error: missing argument: position',
+         success: false,
+         subtool: 'insertText',
+         message: 'Failed to insert text.' })
+    return
+  }
+  pos = args.position
+
+  d({ pos })
+  Tron.cmd('file.modify', [ abs, [ { type: 'insert', position: pos, text: args.text || '' } ] ], (err, data) => {
+    if (err) {
+      d('ERR file.modify')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           subtool: 'insertText',
+           message: 'Failed to insert text.' })
+      return
+    }
+
+    d('INSERTTEXT data')
+    d(data.data)
+    cb({ success: true,
+         subtool: 'insertText',
+         message: 'Successfully inserted text.' })
+  })
+}
+
 function modifyFile
 (buf, args, cb) { // (json)
   let path, abs, edit
@@ -1608,6 +1663,7 @@ The user's response is also valid JSON:
 Available subtools:
 - createDir({ path: string })
 - createFile({ path: string })
+- insertText({ path: string, position: integer, text: string })
 - readDir({ path: string })
 - readFile({ path: string })
 - patchFile({ path: string, patch: string })
@@ -1644,9 +1700,10 @@ User →
 Assistant →
 {
   "answer": "",
-  "subtool": "modifyFile",
+  "subtool": "insertText",
   "path": "notes/todo.txt",
-  "edit": { type: 'replace', from: 0, to: 0, with: 'Buy milk' }
+  "position": 0,
+  "text": "Buy milk" }
 }
 
 User →
@@ -1693,6 +1750,18 @@ Assistant →
                            patch: { type: 'string',
                                     description: 'A patch to apply to the file, in unified diff format.' } },
              required: [ 'answer', 'subtool', 'path', 'patch' ] },
+           { type: 'object',
+             description: 'Insert text into an existing file.',
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'insertText' },
+                           path: { type: 'string',
+                                   description: "Path to the file that must be modified. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                           position: { type: 'integer',
+                                       description: 'The position from where the text should be insert. This is counted in number of characters (including newlines) from the start of the file (starting from 0).' },
+                           text: { type: 'string',
+                                   description: 'The text to insert.' } },
+             required: [ 'answer', 'subtool', 'path', 'position', 'text' ] },
            { type: 'object',
              description: 'Replace a portion of an existing file.',
              properties: { answer: { type: 'string',
@@ -1759,6 +1828,7 @@ Assistant →
 
   subtoolMap = { createDir: { cb: createDir },
                  createFile: { cb: createFile },
+                 insertText: { cb: insertText },
                  modifyFile: { cb: modifyFile },
                  moveFile: { cb: moveFile },
                  patchFile: { cb: patchFile },

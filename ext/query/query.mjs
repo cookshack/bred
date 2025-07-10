@@ -1178,11 +1178,12 @@ function init
          appendWithEnd(buf, msg.content)
        },
        () => {
-         appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
+         d('cbEnd')
+         appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
          done(buf)
        },
        call => {
-         d('cb CALL')
+         d('cbCall')
          appendCall(buf, call)
          //done(buf)
        })
@@ -1217,7 +1218,7 @@ function init
                       appendWithEnd(buf, msg.content)
                     },
                     () => {
-                      appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
+                      appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
                       done(buf)
                     },
                     call => {
@@ -1399,7 +1400,7 @@ function init
 
                  buf.clear()
                  p.setBuf(buf, {}, () => {
-                   appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n\n')
+                   appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n═════════════════════════════\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    cb(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
@@ -1408,13 +1409,13 @@ function init
                         appendWithEnd(buf, msg.content)
                       },
                       () => {
-                        d('cb END')
-                        appendWithEnd(buf, '\n\n' + buf.vars('query').premo + ' ')
+                        d('cbEnd')
+                        appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
                         done(buf)
                       },
                       // only used by chatAgent
                       call => {
-                        d('cb CALL ' + call.name)
+                        d('cbCall ' + call.name)
                         appendCall(buf, call)
                         //done(buf)
                       })

@@ -285,6 +285,27 @@ function onModify
               to = out.length - 1
             out = out.slice(0, off) + out.slice(to)
           }
+          else if (edits[i].type == 'replace') {
+            let from, to
+
+            from = parseInt(edits[i].from)
+            if (isNaN(from)) {
+              e.sender.send(ch, errMsg('Error in from field of edit ' + i))
+              return
+            }
+            to = parseInt(edits[i].to)
+            if (isNaN(to)) {
+              e.sender.send(ch, errMsg('Error in to field of edit ' + i))
+              return
+            }
+            if (from >= out.length)
+              from = out.length - 1
+            if (to > out.length)
+              to = out.length
+            if (to < from)
+              [ from, to ] = [ to, from ]
+            out = out.slice(0, from) + (edits[i].text || '') + out.slice(to)
+          }
           else {
             e.sender.send(ch, errMsg('Error in type field of edit ' + i))
             return

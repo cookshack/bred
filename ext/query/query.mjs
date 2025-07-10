@@ -289,7 +289,7 @@ function createFile
 
 function modifyFile
 (buf, args, cb) { // (json)
-  let path, abs, edits
+  let path, abs, edit
 
   if (args.path)
     path = args.path
@@ -313,17 +313,18 @@ function modifyFile
   abs = Loc.make(buf.path).join(path)
   d('MODIFYFILE abs ' + abs)
 
-  if (args.edits)
-    edits = args.edits
+  if (args.edit)
+    edit = args.edit
   else {
-    cb({ error: 'Error: missing or empty argument edits',
+    cb({ error: 'Error: missing or empty argument edit',
          success: false,
          subtool: 'modifyFile',
          message: 'Failed to modify file.' })
     return
   }
 
-  Tron.cmd('file.modify', [ abs, edits ], (err, data) => {
+  d({ edit })
+  Tron.cmd('file.modify', [ abs, [ edit ] ], (err, data) => {
     if (err) {
       d('ERR file.modify')
       d(err.message)
@@ -1610,7 +1611,7 @@ Available subtools:
 - readDir({ path: string })
 - readFile({ path: string })
 - patchFile({ path: string, patch: string })
-- modifyFile({ from: string, edits: array })
+- modifyFile({ path: string, edit: { type: string, from: integer, to: integer, with: string })
 - moveFile({ from: string, to: string })
 - removeFile({ path: string })
 
@@ -1645,7 +1646,7 @@ Assistant →
   "answer": "",
   "subtool": "modifyFile",
   "path": "notes/todo.txt",
-  "edits": [ { type: 'insert', position: 0, text: 'Buy milk' } ]
+  "edit": { type: 'replace', from: 0, to: 0, with: 'Buy milk' }
 }
 
 User →
@@ -1693,30 +1694,22 @@ Assistant →
                                     description: 'A patch to apply to the file, in unified diff format.' } },
              required: [ 'answer', 'subtool', 'path', 'patch' ] },
            { type: 'object',
-             description: 'Apply a sequence of modifications to an existing file.',
+             description: 'Replace a portion of an existing file.',
              properties: { answer: { type: 'string',
                                      description: 'Human readable freeform text.' },
                            subtool: { const: 'modifyFile' },
                            path: { type: 'string',
                                    description: "Path to the file that must be modified. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
-                           edits: { type: 'array',
-                                    items: { oneOf: [ { type: 'object',
-                                                        description: 'Insert text at a particular location in a file.',
-                                                        properties: { type: { const: 'insert' },
-                                                                      position: { type: 'integer',
-                                                                                  description: 'The position where text should be inserted. The position where text should be removed. This counted in number of characters from the start of the file, with 0 based indexing.' },
-                                                                      text: { type: 'string',
-                                                                              description: 'The text to insert' } },
-                                                        required: [ 'type', 'position', 'text' ] },
-                                                      { type: 'object',
-                                                        description: 'Remove a length of text from a file.',
-                                                        properties: { type: { const: 'remove' },
-                                                                      position: { type: 'integer',
-                                                                                  description: 'The position where text should be removed. This counted in number of characters from the start of the file, with 0 based indexing.' },
-                                                                      length: { type: 'integer',
-                                                                                description: 'The number of characters to be removed' } },
-                                                        required: [ 'type', 'position', 'length' ] } ] } } },
-             required: [ 'answer', 'subtool', 'path', 'edits' ] },
+                           edit: { type: 'object',
+                                   properties: { type: { const: 'replace' },
+                                                 from: { type: 'integer',
+                                                         description: 'The position from where the text should be replaced, in number of characters (including newlines) from the start of the file (starting from 0).' },
+                                                 to: { type: 'integer',
+                                                       description: 'The end position of where the replacement should happen, in number of characters (including newlines) from the start of the file (starting from 0).' },
+                                                 with: { type: 'string',
+                                                         description: 'The new text that will go between from and to.' } },
+                                   required: [ 'type', 'from', 'to', 'text' ] } },
+             required: [ 'answer', 'subtool', 'path', 'edit' ] },
            { type: 'object',
              description: 'Move or rename a file.',
              properties: { answer: { type: 'string',

@@ -692,11 +692,17 @@ function init
         if (reminds == 10)
           throw 'Too many reminds in a row, giving up'
         reminds++
-        buf.vars('query').msgs.push({ 'role': 'assistant',
-                                      'name': 'runSubtool',
-                                      'content': JSON.stringify({ 'subtool': 'sendAnswer',
-                                                                  'text': '⚠️ Oops—I need to send a valid JSON response.' }) })
+        buf.vars('query').msgs.push({ 'role': 'user',
+                                      'content': JSON.stringify({ 'success': false,
+                                                                  'message': '⚠️ Oops—you need to send a valid JSON response.' }) })
 
+      }
+
+      function wait
+      () {
+        buf.vars('query').msgs.push({ 'role': 'user',
+                                      'content': JSON.stringify({ 'success': false,
+                                                                  'text': '⚠️ Waiting for your response.' }) })
       }
 
       function push
@@ -851,55 +857,8 @@ function init
               return
             }
 
-            // setup tool call
-
-            if (0 || (message.tool_calls?.length == 1)) {
-              let call
-
-              // tool call
-
-              push(message)
-
-              d('TOOL 0 parsing')
-              call = message.tool_calls[0]
-              if ((call.type == 'function')
-                  && (call.function?.name == 'runSubtool')) {
-                let args, subtool
-
-                args = {}
-                if (call.function.arguments?.trim())
-                  try {
-                    args = JSON.parse(call.function.arguments?.trim())
-                  }
-                  catch (err) {
-                    d('ARGS:')
-                    d(call.function.arguments)
-                    d('Error parsing tool args (maybe model tried to combine two calls in one?): ' + err.message)
-                  }
-                if (args.subtool) {
-                  d('  SUBTOOL ' + args.subtool)
-                  subtool = subtoolMap[args.subtool]
-                  addCall(args, subtool, call)
-
-                  // run the tool
-                  calls[0] && cbCall(calls[0])
-
-                  return
-                }
-                d('ERR subtool missing')
-                remind()
-                go()
-                return
-              }
-              d('ERR tool/type missing')
-              remind()
-              go()
-              return
-            }
-
-            // model sent 0 or more than one call
-            d('ERR 0 or > 1 tool calls')
-            remind()
+            d('ERR model sent empty content (happens eg when spinning up)')
+            wait()
             go()
             return
           }

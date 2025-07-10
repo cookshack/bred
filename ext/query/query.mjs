@@ -805,6 +805,8 @@ function init
             if (message.content?.length) {
               let args
 
+              delete message.refusal
+              delete message.reasoning
               push(message)
 
               try {
@@ -829,6 +831,7 @@ function init
                 let subtool
 
                 d('  SUBTOOL ' + args.subtool)
+
                 subtool = subtoolMap[args.subtool]
                 if (subtool) {
                   addCall(args, subtool)

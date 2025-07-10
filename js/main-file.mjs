@@ -265,6 +265,26 @@ function onModify
               off = out.length - 1
             out = out.slice(0, off) + (edits[i].text || '') + out.slice(off)
           }
+          else if (edits[i].type == 'remove') {
+            let off, len, to
+
+            off = parseInt(edits[i].position)
+            if (isNaN(off)) {
+              e.sender.send(ch, errMsg('Error in position field of edit ' + i))
+              return
+            }
+            len = parseInt(edits[i].length)
+            if (isNaN(len)) {
+              e.sender.send(ch, errMsg('Error in length field of edit ' + i))
+              return
+            }
+            if (off >= out.length)
+              off = out.length - 1
+            to = off + len
+            if (to >= out.length)
+              to = out.length - 1
+            out = out.slice(0, off) + out.slice(to)
+          }
           else {
             e.sender.send(ch, errMsg('Error in type field of edit ' + i))
             return

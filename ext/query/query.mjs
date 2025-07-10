@@ -506,13 +506,15 @@ function init
     }
     buf.views.forEach(view => {
       if (view.ele) {
-        let toolW, toolName, toolArgs
+        let toolW, toolName, toolArgs, copy
 
         toolW = view.ele.querySelector('.query-tool-w')
         toolName = toolW.querySelector('.query-tool-name')
         toolName.innerText = call.args.subtool
         toolArgs = toolW.querySelector('.query-tool-args')
-        toolArgs.innerText = JSON.stringify(call.args, 0, 2)
+        copy = { ...call.args }
+        delete copy.answer
+        toolArgs.innerText = JSON.stringify(copy, 0, 2)
         Css.expand(toolW)
         d(call)
       }
@@ -677,7 +679,7 @@ function init
     (response) {
       let buffer, reader, decoder, cancelled, calls, reminds
 
-      d('CHAT handle')
+      d('AGENT handle')
 
       function cancel
       () {
@@ -693,7 +695,7 @@ function init
         buf.vars('query').msgs.push({ 'role': 'assistant',
                                       'name': 'runSubtool',
                                       'content': JSON.stringify({ 'subtool': 'sendAnswer',
-                                                                  'text': '⚠️ Oops—I need to send exactly one JSON runSubtool call.' }) })
+                                                                  'text': '⚠️ Oops—I need to send a valid JSON response.' }) })
 
       }
 
@@ -733,10 +735,7 @@ function init
           call.cb(res => {
             d('CALL result for ' + call.name)
             d(res)
-            push({ role: 'tool',
-                   //toolCallId: call.id, // else mistral err
-                   tool_call_id: call.id,
-                   name: call.name,
+            push({ role: 'user',
                    content: JSON.stringify(res) })
             if ((call.args.subtool == 'sendAnswer')
                 && res.success) {
@@ -779,7 +778,7 @@ function init
           if (done) {
             let json, message
 
-            d('CHAT done')
+            d('AGENT done')
 
             calls = []
             reader.cancel()
@@ -806,12 +805,18 @@ function init
             if (message.content?.length) {
               let args
 
-              d('ERR model sent plain text')
+              push(message)
+
               try {
                 args = JSON.parse(message.content.trim())
               }
-              catch {
-                d('ERR failed to parse it as json')
+              catch (err) {
+                d('ERR failed to parse it as json: ' + err.message)
+              }
+
+              if (args.answer?.length) {
+                cb && cb({ content: args.answer })
+                args?.subtool || (cbEnd && cbEnd())
               }
 
               if (args?.subtool) {
@@ -822,12 +827,15 @@ function init
                 if (subtool) {
                   addCall(args, subtool)
                   // run the tool
-                  calls[0] && cbCall(calls[0])
+                  calls[0] && cbCall(calls[0]) // will call go with response, to fetch again
                   return
                 }
-                return
+                d('ERR map missing subtool: ' + args.subtool)
               }
-              d('ERR failed to find call in plain text:')
+              else if (args?.answer.length == 0)
+                d('ERR empty answer')
+              else
+                d('ERR answer and subtool missing')
               d(message.content)
               remind()
               go()
@@ -836,7 +844,7 @@ function init
 
             // setup tool call
 
-            if (message.tool_calls?.length == 1) {
+            if (0 || (message.tool_calls?.length == 1)) {
               let call
 
               // tool call
@@ -888,7 +896,7 @@ function init
           }
 
           buffer += decoder.decode(value, { stream: true })
-          //d('CHAT buffer: ' + buffer)
+          //d('AGENT buffer: ' + buffer)
 
           read()
         })
@@ -1492,15 +1500,23 @@ function init
                })
   })
 
-  systemPrompt = `You are BredAssist, an AI helper inside an Electron code editor.
-You only respond by calling runSubtool, formatted as valid JSON:
+  systemPrompt = `You are a helpful assitant inside an Electron code editor.
+Your goal is to complete a task by using a sequence of responses.
+You respond with valid JSON that may include a call to a subtool, and then wait for the user's response:
 
   {
-    "name": "runSubtool",
-    "arguments": {
-      "subtool": string,
-      // plus any subtool-specific args
-    }
+    "answer": string,
+    "subtool": string, // optional
+    // plus any subtool-specific args
+  }
+
+The user's response is also valid JSON:
+
+  {
+    success: boolean,
+    subtool: string, // optional
+    message: string // optional
+    // plus any subtool-specific fields
   }
 
 Available subtools:
@@ -1510,96 +1526,113 @@ Available subtools:
 - writeFile({ path: string, text: string })
 - moveFile({ from: string, to: string })
 - removeFile({ path: string })
-- sendAnswer({ text: string })
 
-When you want to ask the user something or deliver a final answer, call sendAnswer.
+When you want to ask the user something or deliver commentary, use the "answer" field.
 
 EXAMPLE:
 
 User: “Create a file ‘notes/todo.txt’ with the text ‘Buy milk’, then show me its contents.”
 
-Assistant → runSubtool
+Assistant →
 {
+  "answer": "I will create the dir first."
   "subtool": "createDir",
   "path": "notes"
 }
 
-…(tool_response: { "success": true })…
+User →
+{ "success": true }
 
-Assistant → runSubtool
+Assistant →
 {
+  "answer": "",
   "subtool": "writeFile",
   "path": "notes/todo.txt",
   "text": "Buy milk"
 }
 
-…(tool_response: { "success": true })…
+User →
+{ "success": true }
 
-Assistant → runSubtool
+Assistant →
 {
+  "answer": "",
   "subtool": "readFile",
   "path": "notes/todo.txt"
 }
 
-…(tool_response: { "success": true, "data": "Buy milk" })…
+User →
+{ "success": true, "contents": "Buy milk" }
 
-Assistant → runSubtool
+Assistant →
 {
-  "subtool": "sendAnswer",
-  "text": "Here is notes/todo.txt:\n\nBuy milk"
+  "answer": "Here is notes/todo.txt:\n\nBuy milk"
 }
 `
   subs = [ { type: 'object',
              description: 'Create a new directory.',
-             properties: { subtool: { const: 'createDir' },
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'createDir' },
                            path: { type: 'string' } },
-             required: [ 'subtool', 'path' ] },
+             required: [ 'answer', 'subtool', 'path' ] },
            { type: 'object',
              description: 'Move or rename a file.',
-             properties: { subtool: { const: 'moveFile' },
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'moveFile' },
                            from: { type: 'string',
                                    description: "Path to the file that must be moved. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
                            to: { type: 'string',
                                  description: "New location and name for the file. This path must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-             required: [ 'subtool', 'from', 'to' ] },
+             required: [ 'answer', 'subtool', 'from', 'to' ] },
            { type: 'object',
              description: 'Send freeform text',
-             properties: { subtool: { const: 'sendAnswer' },
-                           text: { type: 'string',
-                                   description: 'Human readable freeform text.' } },
-             required: [ 'subtool', 'text' ] },
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' } },
+             required: [ 'answer' ] },
            { type: 'object',
              description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
-             properties: { subtool: { const: 'readDir' },
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'readDir' },
                            path: { type: 'string',
                                    description: 'Path to the directory from which to list files (e.g. "src"). Use "" for the current directory.' } },
              required: [ 'subtool', 'path' ] },
            { type: 'object',
              description: 'Create a new directory, returning a JSON object with a success message.',
-             properties: { subtool: { const: 'createDir' },
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'createDir' },
                            path: { type: 'string',
                                    description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-             required: [ 'subtool', 'path' ] },
+             required: [ 'answer', 'subtool', 'path' ] },
            { type: 'object',
              description: 'Read a file, returning a JSON object that includes a success message and the file contents.',
-             properties: { subtool: { const: 'readFile' },
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'readFile' },
                            path: { type: 'string',
                                    description: "Path to the file to create (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-             required: [ 'subtool', 'path' ] },
+             required: [ 'answer', 'subtool', 'path' ] },
            { type: 'object',
              description: 'Remove a file, returning a JSON object that contains a success message.',
-             properties: { subtool: { const: 'removeFile' },
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'removeFile' },
                            path: { type: 'string',
                                    description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-             required: [ 'subtool', 'path' ] },
+             required: [ 'answer', 'subtool', 'path' ] },
            { type: 'object',
              description: 'Write a file, returning a JSON object with a success message.',
-             properties: { subtool: { const: 'writeFile' },
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'writeFile' },
                            path: { type: 'string',
                                    description: "Path to the file to write (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
                            text: { type: 'string',
                                    description: 'New contents for the file.' } },
-             required: [ 'subtool', 'path', 'text' ] } ]
+             required: [ 'answer', 'subtool', 'path', 'text' ] } ]
 
   tools = [ { type: 'function',
               function: { name: 'runSubtool',

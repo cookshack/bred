@@ -769,6 +769,7 @@ function init
         toolArgs = toolW.querySelector('.query-tool-args')
         copy = { ...call.args }
         delete copy.answer
+        delete copy.subtool
         toolArgs.innerText = JSON.stringify(copy, 0, 2)
         Css.expand(toolW)
         d(call)
@@ -1867,7 +1868,7 @@ Assistant →
                                    description: "Path to the file that must be modified. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
                            position: { type: 'integer',
                                        description: 'The position from where the text should be removed. This is counted in number of characters (including newlines) from the start of the file (starting from 0).' },
-                           length: { type: 'string',
+                           length: { type: 'integer',
                                      description: 'The number of characters to remove, including newlines.' } },
              required: [ 'answer', 'subtool', 'path', 'position', 'length' ] },
            { type: 'object',

@@ -392,6 +392,9 @@ function onCmdCh
   if (name == 'file.ln')
     return wrapOn(e, ch, args, File.onLn)
 
+  if (name == 'file.modify')
+    return wrapOn(e, ch, args, File.onModify)
+
   if (name == 'file.mv')
     return wrapOn(e, ch, args, File.onMv)
 

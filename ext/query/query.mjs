@@ -287,6 +287,61 @@ function createFile
   })
 }
 
+function modifyFile
+(buf, args, cb) { // (json)
+  let path, abs, edits
+
+  if (args.path)
+    path = args.path
+  else {
+    cb({ error: 'Error: missing or empty argument path',
+         success: false,
+         subtool: 'modifyFile',
+         message: 'Failed to modify file.' })
+    return
+  }
+
+  if (path.startsWith('.')
+      || path.startsWith('/')) {
+    cb({ error: 'Error: path must be in the current directory or a subdirectory',
+         success: false,
+         subtool: 'modifyFile',
+         message: 'Failed to modify file.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('MODIFYFILE abs ' + abs)
+
+  if (args.edits)
+    edits = args.edits
+  else {
+    cb({ error: 'Error: missing or empty argument edits',
+         success: false,
+         subtool: 'modifyFile',
+         message: 'Failed to modify file.' })
+    return
+  }
+
+  Tron.cmd('file.modify', [ abs, edits ], (err, data) => {
+    if (err) {
+      d('ERR file.modify')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           subtool: 'modifiedFile',
+           message: 'Failed to modified file.' })
+      return
+    }
+
+    d('MODIFYFILE data')
+    d(data.data)
+    cb({ success: true,
+         subtool: 'modifyFile',
+         message: 'Successfully modified file.' })
+  })
+}
+
 function moveFile
 (buf, args, cb) { // (json)
   let from, to, abs_from, abs_to
@@ -579,6 +634,7 @@ function init
   (buf, call) {
     buf.vars('query').call = call
     if (call.autoAccept) {
+      appendWithEnd(buf, '\n\n' + 'Running ' + call.args.subtool + '...\n\n')
       call.yes()
       return
     }
@@ -1554,21 +1610,11 @@ Available subtools:
 - readDir({ path: string })
 - readFile({ path: string })
 - patchFile({ path: string, patch: string })
+- modifyFile({ from: string, edits: array })
 - moveFile({ from: string, to: string })
 - removeFile({ path: string })
 
 When you want to ask the user something or deliver commentary, use the "answer" field.
-
-Note that the only way to add or modify file contents is to use patchFile. This tool takes
-a unified diff as the 'patch' argument, like this
-\`\`\`
---- /dev/null
-+++ notes/todo.txt
-@@ -0,0 +1 @@
-+Buy milk
-
-\`\`\`
-
 
 EXAMPLE:
 
@@ -1597,9 +1643,9 @@ User →
 Assistant →
 {
   "answer": "",
-  "subtool": "patchFile",
+  "subtool": "modifyFile",
   "path": "notes/todo.txt",
-  "patch": "--- /dev/null\n+++ notes/todo.txt\n@@ -0,0 +1 @@\n+Buy milk\n\n"
+  "edits": [ { type: 'insert', position: 0, text: 'Buy milk' } ]
 }
 
 User →
@@ -1629,7 +1675,7 @@ Assistant →
                                    description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
              required: [ 'answer', 'subtool', 'path' ] },
            { type: 'object',
-             description: 'Create a new empty file. Use patchFile to add content.',
+             description: 'Create a new empty file.',
              properties: { answer: { type: 'string',
                                      description: 'Human readable freeform text.' },
                            subtool: { const: 'createFile' },
@@ -1646,6 +1692,22 @@ Assistant →
                            patch: { type: 'string',
                                     description: 'A patch to apply to the file, in unified diff format.' } },
              required: [ 'answer', 'subtool', 'path', 'patch' ] },
+           { type: 'object',
+             description: 'Apply a sequence of modifications to a file.',
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'modifyFile' },
+                           path: { type: 'string',
+                                   description: "Path to the file that must be modified. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                           edits: { type: 'array',
+                                    items: { oneOf: [ { type: 'object',
+                                                        properties: { type: { const: 'insert' },
+                                                                      position: { type: 'integer',
+                                                                                  description: 'The position where text should be inserted (0 based indexing)' },
+                                                                      text: { type: 'string',
+                                                                              description: 'The text to insert' } },
+                                                        required: [ 'type', 'position', 'text' ] } ] } } },
+             required: [ 'answer', 'subtool', 'path', 'edits' ] },
            { type: 'object',
              description: 'Move or rename a file.',
              properties: { answer: { type: 'string',
@@ -1695,6 +1757,7 @@ Assistant →
 
   subtoolMap = { createDir: { cb: createDir },
                  createFile: { cb: createFile },
+                 modifyFile: { cb: modifyFile },
                  moveFile: { cb: moveFile },
                  patchFile: { cb: patchFile },
                  readDir: { cb: readDir,

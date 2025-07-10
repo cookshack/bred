@@ -223,6 +223,67 @@ function onLn
   link(cwd)
 }
 
+export
+function onModify
+(e, ch, onArgs) {
+  let [ path, edits ] = onArgs
+
+  path = U.stripFilePrefix(path)
+
+  if (Array.isArray(edits))
+    if (edits.length) {
+    }
+    else {
+      e.sender.send(ch, errMsg('Error: argument edits is empty'))
+      return
+    }
+  else {
+    e.sender.send(ch, errMsg('Error: argument edits must be an array'))
+    return
+  }
+
+  if (path.startsWith('/'))
+    Fs.readFile(path, 'utf8', (err, data) => {
+      if (err)
+        e.sender.send(ch, { err })
+      else {
+        let out
+
+        // apply edits
+
+        out = data
+        for (let i = 0; i < edits.length; i++)
+          if (edits[i].type == 'insert') {
+            let off
+
+            off = parseInt(edits[i].position)
+            if (isNaN(off)) {
+              e.sender.send(ch, errMsg('Error in position field of edit ' + i))
+              return
+            }
+            if (off >= out.length)
+              off = out.length - 1
+            out = out.slice(0, off) + (edits[i].text || '') + out.slice(off)
+          }
+          else {
+            e.sender.send(ch, errMsg('Error in type field of edit ' + i))
+            return
+          }
+
+        // write file back
+
+        Fs.writeFile(path, out, { encoding: 'utf8' }, err => {
+          if (err)
+            e.sender.send(ch, { err })
+          else
+            e.sender.send(ch, {})
+        })
+      }
+    })
+  else
+    e.sender.send(ch, errMsg('Path must be absolute'))
+}
+
 function mvMany
 (e, ch, from, to) {
   for (let file of from) {
@@ -294,30 +355,33 @@ function onPatch
 
   path = U.stripFilePrefix(path)
 
-  Fs.readFile(path, 'utf8', (err, data) => {
-    if (err)
-      e.sender.send(ch, { err })
-    else {
-      let out
+  if (path.startsWith('/'))
+    Fs.readFile(path, 'utf8', (err, data) => {
+      if (err)
+        e.sender.send(ch, { err })
+      else {
+        let out
 
-      try {
-        out = Diff.applyPatch(data.data, patch)
+        try {
+          out = Diff.applyPatch(data.data, patch)
+        }
+        catch (err) {
+          e.sender.send(ch, makeErr(err))
+          return
+        }
+        if (out === false)
+          e.sender.send(ch, errMsg('Failed to apply patch'))
+        else
+          Fs.writeFile(path, out, { encoding: 'utf8' }, err => {
+            if (err)
+              e.sender.send(ch, { err })
+            else
+              e.sender.send(ch, {})
+          })
       }
-      catch (err) {
-        e.sender.send(ch, makeErr(err))
-        return
-      }
-      if (out === false)
-        e.sender.send(ch, { err: { message: 'Failed to apply patch' } })
-      else
-        Fs.writeFile(path, out, { encoding: 'utf8' }, err => {
-          if (err)
-            e.sender.send(ch, { err })
-          else
-            e.sender.send(ch, {})
-        })
-    }
-  })
+    })
+  else
+    e.sender.send(ch, errMsg('Path must be absolute'))
 }
 
 export

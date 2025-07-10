@@ -910,11 +910,16 @@ function init
                             ...msgs ],
                 stream: true }) })
         .then(response => {
-          response.ok || Mess.toss('fetch failed')
-          return stream(response)
+          if (response.ok)
+            return stream(response)
+          cb && cb({ content: 'fetch failed' })
+          cbEnd && cbEnd()
         })
         .catch(err => {
-          Mess.yell('fetch: ' + err.message)
+          d('ERR fetch:')
+          d(err.message)
+          cb && cb({ content: 'fetch failed: ' + err.message })
+          cbEnd && cbEnd()
         })
     }
 
@@ -1157,11 +1162,16 @@ function init
                                                                                  oneOf: subs,
                                                                                  additionalProperties: false } } } }) })
         .then(response => {
-          response.ok || Mess.toss('fetch failed')
-          return handle(response)
+          if (response.ok)
+            return handle(response)
+          cb && cb({ content: 'fetch failed' })
+          cbEnd && cbEnd()
         })
         .catch(err => {
-          Mess.yell('fetch: ' + err.message)
+          d('ERR fetch:')
+          d(err.message)
+          cb && cb({ content: 'fetch failed: ' + err.message })
+          cbEnd && cbEnd()
         })
     }
 

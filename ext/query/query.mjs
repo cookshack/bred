@@ -816,7 +816,13 @@ function init
 
               if (args.answer?.length) {
                 cb && cb({ content: args.answer })
-                args?.subtool || (cbEnd && cbEnd())
+                if (args?.subtool) {
+                  // below
+                }
+                else {
+                  cbEnd && cbEnd()
+                  return
+                }
               }
 
               if (args?.subtool) {

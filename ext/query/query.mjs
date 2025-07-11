@@ -1152,7 +1152,7 @@ function init
                                                         json_schema: { name: 'runSubtool',
                                                                        strict: true,
                                                                        schema: { type: 'object',
-                                                                                 oneOf: subs,
+                                                                                 oneOf: getSubsSchema(),
                                                                                  additionalProperties: false } } } }) })
         .then(response => {
           if (response.ok)
@@ -1709,6 +1709,11 @@ function init
                  search(query, { hist })
                })
   })
+
+  function getSubsSchema
+  () {
+    return subs.map(s => s)
+  }
 
   systemPrompt = `You are a helpful assitant inside an Electron code editor.
 Your goal is to complete a task by using a sequence of responses.

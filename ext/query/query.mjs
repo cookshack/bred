@@ -1900,6 +1900,7 @@ Assistant →
   subtoolMap = { createDir: { cb: createDir },
                  createFile: { cb: createFile },
                  insertText: { cb: insertText },
+                 modifyFile: { cb: modifyFile },
                  moveFile: { cb: moveFile },
                  patchFile: { cb: patchFile },
                  readDir: { cb: readDir,
@@ -1907,14 +1908,12 @@ Assistant →
                  readFile: { cb: readFile,
                              autoAccept: 1 },
                  removeText: { cb: removeText },
-                 removeFile: { cb: removeFile } }
+                 removeFile: { cb: removeFile },
+                 writeFile: { cb: writeFile } }
   d(subtoolMap)
 
   {
-    let oldSubs, oldSubtoolMap
-
-    oldSubtoolMap = { modifyFile: { cb: modifyFile },
-                      writeFile: { cb: writeFile } }
+    let oldSubs
 
     oldSubs = [ { type: 'object',
                   description: 'Replace a portion of an existing file.',
@@ -1944,7 +1943,6 @@ Assistant →
                                         description: 'New contents for the file.' } },
                   required: [ 'answer', 'subtool', 'path', 'text' ] } ]
     0 && d(oldSubs)
-    0 && d(oldSubtoolMap)
   }
   emo = '🔮' // 🗨️
   premo = '#### ' + emo

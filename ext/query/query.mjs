@@ -1712,7 +1712,24 @@ function init
 
   function getSubsSchema
   () {
-    return subs.map(s => s)
+    let on
+
+    on = [ 'createDir',
+           'createFile',
+           'insertText',
+           'moveFile',
+           'readDir',
+           'readFile',
+           'removeText',
+           'removeFile',
+           'writeFile' ]
+
+    return [ ...subs.filter(s => on.includes(s.properties.subtool.const)),
+             { type: 'object',
+               description: 'Send freeform text',
+               properties: { answer: { type: 'string',
+                                       description: 'Human readable freeform text.' } },
+               required: [ 'answer' ] } ]
   }
 
   systemPrompt = `You are a helpful assitant inside an Electron code editor.
@@ -1846,11 +1863,6 @@ Assistant →
                            to: { type: 'string',
                                  description: "New location and name for the file. This path must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
              required: [ 'answer', 'subtool', 'from', 'to' ] },
-           { type: 'object',
-             description: 'Send freeform text',
-             properties: { answer: { type: 'string',
-                                     description: 'Human readable freeform text.' } },
-             required: [ 'answer' ] },
            { type: 'object',
              description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
              properties: { answer: { type: 'string',

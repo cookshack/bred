@@ -1854,6 +1854,23 @@ Assistant →
                                    description: 'The text to insert.' } },
              required: [ 'answer', 'subtool', 'path', 'position', 'text' ] },
            { type: 'object',
+             description: 'Replace a portion of an existing file.',
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'modifyFile' },
+                           path: { type: 'string',
+                                   description: "Path to the file that must be modified. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                           edit: { type: 'object',
+                                   properties: { type: { const: 'replace' },
+                                                 from: { type: 'integer',
+                                                         description: 'The position from where the text should be replaced, in number of characters (including newlines) from the start of the file (starting from 0).' },
+                                                 to: { type: 'integer',
+                                                       description: 'The end position of where the replacement should happen, in number of characters (including newlines) from the start of the file (starting from 0).' },
+                                                 with: { type: 'string',
+                                                         description: 'The new text that will go between from and to.' } },
+                                   required: [ 'type', 'from', 'to', 'text' ] } },
+             required: [ 'answer', 'subtool', 'path', 'edit' ] },
+           { type: 'object',
              description: 'Move or rename a file.',
              properties: { answer: { type: 'string',
                                      description: 'Human readable freeform text.' },
@@ -1898,7 +1915,17 @@ Assistant →
                            subtool: { const: 'removeFile' },
                            path: { type: 'string',
                                    description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
-             required: [ 'answer', 'subtool', 'path' ] } ]
+             required: [ 'answer', 'subtool', 'path' ] },
+           { type: 'object',
+             description: 'Write a file, returning a JSON object with a success message.',
+             properties: { answer: { type: 'string',
+                                     description: 'Human readable freeform text.' },
+                           subtool: { const: 'writeFile' },
+                           path: { type: 'string',
+                                   description: "Path to the file to write (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                           text: { type: 'string',
+                                   description: 'New contents for the file.' } },
+             required: [ 'answer', 'subtool', 'path', 'text' ] } ]
 
   subtoolMap = { createDir: { cb: createDir },
                  createFile: { cb: createFile },
@@ -1915,38 +1942,6 @@ Assistant →
                  writeFile: { cb: writeFile } }
   d(subtoolMap)
 
-  {
-    let oldSubs
-
-    oldSubs = [ { type: 'object',
-                  description: 'Replace a portion of an existing file.',
-                  properties: { answer: { type: 'string',
-                                          description: 'Human readable freeform text.' },
-                                subtool: { const: 'modifyFile' },
-                                path: { type: 'string',
-                                        description: "Path to the file that must be modified. The file must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
-                                edit: { type: 'object',
-                                        properties: { type: { const: 'replace' },
-                                                      from: { type: 'integer',
-                                                              description: 'The position from where the text should be replaced, in number of characters (including newlines) from the start of the file (starting from 0).' },
-                                                      to: { type: 'integer',
-                                                            description: 'The end position of where the replacement should happen, in number of characters (including newlines) from the start of the file (starting from 0).' },
-                                                      with: { type: 'string',
-                                                              description: 'The new text that will go between from and to.' } },
-                                        required: [ 'type', 'from', 'to', 'text' ] } },
-                  required: [ 'answer', 'subtool', 'path', 'edit' ] },
-                { type: 'object',
-                  description: 'Write a file, returning a JSON object with a success message.',
-                  properties: { answer: { type: 'string',
-                                          description: 'Human readable freeform text.' },
-                                subtool: { const: 'writeFile' },
-                                path: { type: 'string',
-                                        description: "Path to the file to write (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
-                                text: { type: 'string',
-                                        description: 'New contents for the file.' } },
-                  required: [ 'answer', 'subtool', 'path', 'text' ] } ]
-    0 && d(oldSubs)
-  }
   emo = '🔮' // 🗨️
   premo = '#### ' + emo
   emoAgent = '🤖' // ✨

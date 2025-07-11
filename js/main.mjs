@@ -11,6 +11,7 @@ import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
 import * as Lsp from './main-lsp.mjs'
 import { makeErr } from './main-err.mjs'
+import Os from 'node:os'
 import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
 import process from 'node:process'
@@ -149,6 +150,7 @@ function onPaths
            frames: { left: frame.get('frameLeft'),
                      right: frame.get('frameRight') },
            //
+           os: Os.type(),
            version: { bred: version,
                       node: process.versions.node,
                       electron: process.versions.electron,

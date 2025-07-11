@@ -43,12 +43,18 @@ import { v4 as uuidv4 } from '../lib/uuid/index.js'
 
 //import * as Linters from "../lib/ace-linters/ace-linters.js"
 
-let $version, mouse, recents
+let $os, $version, mouse, recents
 
 export
 function version
 () {
   return $version
+}
+
+export
+function os
+() {
+  return $os
 }
 
 function focus
@@ -1634,6 +1640,7 @@ function start1
   U.homeSet(data.home || data.app)
   Loc.iwdSet(data.cwd || data.app) // initial working dir
   $version = data.version
+  $os = data.os
   Loc.configDirSet(data.user)
   Loc.shellSet(data.shell)
   Loc.profileSet(data.profile)

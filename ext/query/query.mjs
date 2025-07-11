@@ -1,6 +1,7 @@
 import { append, button, div, divCl, img, span } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
+import * as Bred from '../../js/bred.mjs'
 import * as Browse from '../../js/browse.mjs'
 import * as Css from '../../js/css.mjs'
 import * as Cmd from '../../js/cmd.mjs'
@@ -1802,7 +1803,7 @@ function init
                          properties: { answer: { type: 'string',
                                                  description: 'Human readable freeform text.' } },
                          required: [ 'answer' ] } ],
-             prompt: `You are a helpful assitant inside an Electron code editor.
+             prompt: 'You are a helpful assitant inside an Electron code editor on a ' + Bred.os() +` system.
 Your goal is to complete a task by using a sequence of responses.
 You respond with valid JSON that may include a call to a subtool, and then wait for the user's response:
 

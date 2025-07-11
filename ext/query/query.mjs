@@ -287,6 +287,48 @@ function createFile
   })
 }
 
+function createFileWithContent
+(buf, args, cb) { // (json)
+  let path, abs
+
+  path = args.path
+  if (path) {
+    if (path.startsWith('.')
+        || path.startsWith('/')) {
+      cb({ error: 'Error: argument path must be in the current dir or a relative subdirectory (e.g. src/eg.txt)',
+           success: false,
+           subtool: 'createFile',
+           message: 'Failed to create file.' })
+      return
+    }
+  }
+  else {
+    cb({ error: 'Error: missing argument path',
+         success: false,
+         subtool: 'createFile',
+         message: 'Failed to create file.' })
+    return
+  }
+
+  abs = Loc.make(buf.path).join(path)
+  d('CREATEFILE abs ' + abs)
+  Tron.cmd('file.save', [ abs, args.text || '' ], err => {
+    if (err) {
+      d('ERR createFile')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           subtool: 'createFile',
+           message: 'Failed to create file.' })
+      return
+    }
+    Mess.say('Added dir ' + abs)
+    cb({ success: true,
+         subtool: 'createFile',
+         message: 'Successfully created file.' })
+  })
+}
+
 function insertText
 (buf, args, cb) { // (json)
   let path, abs, pos
@@ -1744,12 +1786,10 @@ function init
     }
 
     on = [ 'createDir',
-           'createFile',
-           'insertText',
+           'createFileWithContent',
            'moveFile',
            'readDir',
            'readFile',
-           'removeText',
            'removeFile',
            'writeFile' ]
 
@@ -1846,6 +1886,17 @@ Assistant →
                                         subtool: { const: 'createDir' },
                                         path: { type: 'string',
                                                 description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
+                          required: [ 'answer', 'subtool', 'path' ] } },
+              { key: 'createFileWithContent',
+                schema: { type: 'object',
+                          description: 'Create a new file.',
+                          properties: { answer: { type: 'string',
+                                                  description: 'Human readable freeform text.' },
+                                        subtool: { const: 'createFile' },
+                                        path: { type: 'string',
+                                                description: "Path to the file to create (e.g. 'src/new.txt'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." },
+                                        text: { type: 'string',
+                                                description: 'Contents of the new file.' } },
                           required: [ 'answer', 'subtool', 'path' ] } },
               { key: 'createFile',
                 schema: { type: 'object',
@@ -1963,6 +2014,7 @@ Assistant →
 
   subtoolMap = { createDir: { cb: createDir },
                  createFile: { cb: createFile },
+                 createFileWithContent: { cb: createFileWithContent },
                  insertText: { cb: insertText },
                  modifyFile: { cb: modifyFile },
                  moveFile: { cb: moveFile },

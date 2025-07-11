@@ -712,7 +712,7 @@ function writeFile
 export
 function init
 () {
-  let hist, mo, chMo, chToolMo, extRo, tools, subs, systemPrompt
+  let hist, mo, chMo, chToolMo, extRo, subs, systemPrompt
 
   function busy
   (buf) {
@@ -1128,21 +1128,14 @@ function init
 
     function go
     () {
-      let messages, tool_choice
+      let messages
 
       d('---- ' + emoAgent + ' FETCH for agent ----')
-
-      if (0)
-        tool_choice = tools.map(t => ({ type: 'function',
-                                        function: { name: t.function.name } }))
-      else
-        tool_choice = 'auto'
 
       messages = [ { role: 'system',
                      content: systemPrompt },
                    ...msgs ]
 
-      d({ tool_choice })
       messages.forEach(m => d(m))
 
       fetch('https://openrouter.ai/api/v1/chat/completions',
@@ -1889,13 +1882,6 @@ Assistant →
                            path: { type: 'string',
                                    description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
              required: [ 'answer', 'subtool', 'path' ] } ]
-
-  tools = [ { type: 'function',
-              function: { name: 'runSubtool',
-                          description: 'Run a subtool.',
-                          parameters: { type: 'object',
-                                        oneOf: subs } } } ]
-  d(tools)
 
   subtoolMap = { createDir: { cb: createDir },
                  createFile: { cb: createFile },

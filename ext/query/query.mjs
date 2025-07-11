@@ -183,7 +183,7 @@ function readDir
 
   path = path || buf.path
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   Tron.cmd('dir.get', abs, (err, data) => {
     if (err) {
       d('ERR dir.get')
@@ -227,7 +227,7 @@ function createDir
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('CREATEDIR abs ' + abs)
   Tron.cmd('dir.make', abs, err => {
     if (err) {
@@ -269,7 +269,7 @@ function createFile
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('CREATEFILE abs ' + abs)
   Tron.cmd('file.save', [ abs, '' ], err => {
     if (err) {
@@ -311,7 +311,7 @@ function createFileWithContent
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('CREATEFILE abs ' + abs)
   Tron.cmd('file.save', [ abs, args.text || '' ], err => {
     if (err) {
@@ -353,7 +353,7 @@ function insertText
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('INSERTTEXT abs ' + abs)
 
   if (typeof args.position == 'undefined') {
@@ -408,7 +408,7 @@ function modifyFile
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('MODIFYFILE abs ' + abs)
 
   if (args.edit)
@@ -483,8 +483,8 @@ function moveFile
     return
   }
 
-  abs_from = Loc.make(buf.path).join(from)
-  abs_to = Loc.make(buf.path).join(to)
+  abs_from = Loc.make(buf.dir).join(from)
+  abs_to = Loc.make(buf.dir).join(to)
   d('MOVEFILE abs ' + abs_from + ' to ' + abs_to)
 
   Tron.cmd('file.mv', [ abs_from, abs_to ], err => {
@@ -527,7 +527,7 @@ function patchFile
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('PATCHFILE abs ' + abs)
   patch = args.patch || ''
   d({ patch })
@@ -574,7 +574,7 @@ function readFile
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('READFILE abs ' + abs)
 
   Tron.cmd('file.get', abs, (err, data) => {
@@ -620,7 +620,7 @@ function removeFile
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('REMOVEFILE abs ' + abs)
 
   Tron.cmd('file.rm', [ abs ], (err, data) => {
@@ -639,6 +639,33 @@ function removeFile
     cb({ success: true,
          subtool: 'removeFile',
          message: 'Successfully removed file.' })
+  })
+}
+
+function runCommand
+(buf, args, cb) { // (json)
+  let command
+
+  if (args.command)
+    command = args.command
+  else {
+    cb({ error: 'Error: missing or empty argument: command',
+         success: false,
+         subtool: 'runCommand',
+         message: 'Failed to run command.' })
+    return
+  }
+
+  d('RUNCOMMAND ' + command)
+  buf.dir || Mess.toss('Missing dir')
+  Shell.runToString(buf.dir, command, args.args, 0, (str, code) => {
+    d('RUNCOMMAND code')
+    d(code)
+    cb({ success: true,
+         subtool: 'runCommand',
+         message: 'Successfully ran command.',
+         output: str,
+         exitCode: code })
   })
 }
 
@@ -665,7 +692,7 @@ function removeText
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('REMOVETEXT abs ' + abs)
 
   if (typeof args.position == 'undefined') {
@@ -730,7 +757,7 @@ function writeFile
     return
   }
 
-  abs = Loc.make(buf.path).join(path)
+  abs = Loc.make(buf.dir).join(path)
   d('WRITEFILE abs ' + abs)
 
   Tron.cmd('file.save', [ abs, args.text || '' ], (err, data) => {
@@ -1792,6 +1819,7 @@ function init
            'readDir',
            'readFile',
            'removeFile',
+           'runCommand',
            'writeFile' ]
 
     subs = allSubs.filter(s => on.includes(s.key))
@@ -1803,7 +1831,7 @@ function init
                          properties: { answer: { type: 'string',
                                                  description: 'Human readable freeform text.' } },
                          required: [ 'answer' ] } ],
-             prompt: 'You are a helpful assitant inside an Electron code editor on a ' + Bred.os() +` system.
+             prompt: 'You are a helpful assitant inside an Electron code editor on a ' + Bred.os() + ` system.
 Your goal is to complete a task by using a sequence of responses.
 You respond with valid JSON that may include a call to a subtool, and then wait for the user's response:
 
@@ -2001,6 +2029,18 @@ Assistant →
                                         path: { type: 'string',
                                                 description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                           required: [ 'answer', 'subtool', 'path' ] } },
+              { key: 'runCommand',
+                schema: { type: 'object',
+                          description: 'Run a command in the current directory, returning a JSON object that contains a success message.',
+                          properties: { answer: { type: 'string',
+                                                  description: 'Human readable freeform text.' },
+                                        subtool: { const: 'runCommand' },
+                                        command: { type: 'string',
+                                                   description: "The name of the command (e.g. 'ls')." },
+                                        args: { type: 'array',
+                                                items: { type: 'string' },
+                                                description: 'The arguments to pass to the command.' } },
+                          required: [ 'answer', 'subtool', 'command' ] } },
               { key: 'writeFile',
                 schema: { type: 'object',
                           description: 'Write a file, returning a JSON object with a success message.',
@@ -2026,6 +2066,7 @@ Assistant →
                              autoAccept: 1 },
                  removeText: { cb: removeText },
                  removeFile: { cb: removeFile },
+                 runCommand: { cb: runCommand },
                  writeFile: { cb: writeFile } }
   d(subtoolMap)
 

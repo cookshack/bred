@@ -1716,6 +1716,33 @@ function init
   () {
     let on, subs
 
+    function getArgs
+    (props) {
+      let out
+
+      out = ''
+      Object.keys(props).forEach((key, i) => {
+        if (i)
+          out += ', '
+        out += (key + ': ')
+        if (key == 'subtool')
+          out += ('"' + props[key].const + '"')
+        else
+          out += props[key].type
+      })
+      return out
+    }
+
+    function getPromptSubDescr
+    () {
+      let out
+
+      out = ''
+      // - insertText({ path: string, position: integer, text: string })
+      subs.forEach(sub => out += ('\n - ' + sub.schema.properties.subtool.const + '({ ' + getArgs(sub.schema.properties) + ' })' ))
+      return out
+    }
+
     on = [ 'createDir',
            'createFile',
            'insertText',
@@ -1754,16 +1781,7 @@ The user's response is also valid JSON:
     // plus any subtool-specific fields
   }
 
-Available subtools:
-- createDir({ path: string })
-- createFile({ path: string })
-- insertText({ path: string, position: integer, text: string })
-- readDir({ path: string })
-- readFile({ path: string })
-- patchFile({ path: string, patch: string })
-- moveFile({ from: string, to: string })
-- removeText({ path: string, position: integer, length: integer })
-- removeFile({ path: string })
+Available subtools:` + getPromptSubDescr() + `
 
 When you want to ask the user something or deliver commentary, use the "answer" field.
 

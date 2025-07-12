@@ -1140,7 +1140,7 @@ function init
                 d('ERR failed to parse it as json: ' + err.message)
               }
 
-              if (args.answer?.length) {
+              if (args?.answer?.length) {
                 cb && cb({ content: args.answer })
                 if (args?.subtool) {
                   // below

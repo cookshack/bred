@@ -172,6 +172,12 @@ function readDir
 
   path = args.path || ''
 
+  path = path.trim()
+  if (path == '.')
+    path = ''
+  if (path == './')
+    path = ''
+
   if (path.startsWith('.')
       || path.startsWith('/')) {
     cb({ error: 'Error: path must be the empty string, or a relative subdirectory',

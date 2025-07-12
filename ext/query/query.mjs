@@ -1460,7 +1460,7 @@ function init
     buf.vars('query').hist.add(prompt)
 
     busy(buf)
-    appendWithEnd(buf, '\n\n')
+    appendWithEnd(buf, '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
     cb = chat
     if (p.buf.vars('query').type == 'Agent')
       cb = chatAgent
@@ -1692,7 +1692,7 @@ function init
 
                  buf.clear()
                  p.setBuf(buf, {}, () => {
-                   appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n═════════════════════════════\n\n')
+                   appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
                    cb(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,

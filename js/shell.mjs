@@ -42,6 +42,7 @@ function runToString
 
   ch = nextCh()
   str = ''
+  args = args || []
   d("runToString '" + sc + ' ' + args.join(' ') + "' in " + dir)
 
   Tron.on(ch, (err, data) => {

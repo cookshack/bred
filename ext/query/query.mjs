@@ -181,8 +181,6 @@ function readDir
     return
   }
 
-  path = path || buf.path
-
   abs = Loc.make(buf.dir).join(path)
   Tron.cmd('dir.get', abs, (err, data) => {
     if (err) {
@@ -642,28 +640,28 @@ function removeFile
   })
 }
 
-function runCommand
+function execute
 (buf, args, cb) { // (json)
-  let command
+  let name
 
-  if (args.command)
-    command = args.command
+  if (args.name)
+    name = args.name
   else {
-    cb({ error: 'Error: missing or empty argument: command',
+    cb({ error: 'Error: missing or empty argument: name',
          success: false,
-         subtool: 'runCommand',
-         message: 'Failed to run command.' })
+         subtool: 'execute',
+         message: 'Failed to run executable.' })
     return
   }
 
-  d('RUNCOMMAND ' + command)
+  d('EXECUTE ' + name)
   buf.dir || Mess.toss('Missing dir')
-  Shell.runToString(buf.dir, command, args.args, 0, (str, code) => {
-    d('RUNCOMMAND code')
+  Shell.runToString(buf.dir, name, args.args, 0, (str, code) => {
+    d('EXECUTE code')
     d(code)
     cb({ success: true,
-         subtool: 'runCommand',
-         message: 'Successfully ran command.',
+         subtool: 'execute',
+         message: 'Successfully ran executable.',
          output: str,
          exitCode: code })
   })
@@ -1819,7 +1817,7 @@ function init
            'readDir',
            'readFile',
            'removeFile',
-           'runCommand',
+           'execute',
            'writeFile' ]
 
     subs = allSubs.filter(s => on.includes(s.key))
@@ -1854,7 +1852,7 @@ Available subtools:` + getPromptSubDescr() + `
 
 When you want to ask the user something or deliver commentary, use the "answer" field.
 
-EXAMPLE:
+EXAMPLE 1:
 
 User: “Create a file ‘notes/todo.txt’ with the text ‘Buy milk’, then show me its contents.”
 
@@ -1904,6 +1902,24 @@ Assistant →
 {
   "answer": "Here is notes/todo.txt:\n\nBuy milk"
 }
+
+EXAMPLE 2:
+
+User: “Revert the changes to file abc.js”
+
+Assistant →
+{
+  "answer": "I will execute the a command to revert the file."
+  "subtool": "execute",
+  "name": "git"
+  "args": [ "checkout", "HEAD", "--", "abc.js" ]
+}
+
+User →
+{ "success": true,
+  "code": "0",
+  "output": "" }
+
 ` }
   }
 
@@ -2029,18 +2045,39 @@ Assistant →
                                         path: { type: 'string',
                                                 description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                           required: [ 'answer', 'subtool', 'path' ] } },
-              { key: 'runCommand',
+              { key: 'execute',
                 schema: { type: 'object',
-                          description: 'Run a command in the current directory, returning a JSON object that contains a success message.',
+                          description: `Run an command in the current directory, returning a JSON object that contains a success message and the output.
+
+### Examples
+
+\`\`\`json
+{ "answer": "I will now run the command ls -l -a",
+  "subtool": "execute",
+  "name": "ls",
+  "args": [ "-l", "-a", "subdir/" ] }
+
+{ "answer": "",
+  "subtool": "execute",
+  "name": "echo",
+  "args": [ "Hello, world!" ] }
+
+{ "answer": "",
+  "subtool": "execute",
+  "name": "cp",
+  "args": [ "source.txt", "destination.txt" ] }
+
+\`\`\`
+`,
                           properties: { answer: { type: 'string',
                                                   description: 'Human readable freeform text.' },
-                                        subtool: { const: 'runCommand' },
-                                        command: { type: 'string',
-                                                   description: "The name of the command (e.g. 'ls')." },
+                                        subtool: { const: 'execute' },
+                                        name: { type: 'string',
+                                                description: "The name of the executable to run (e.g. 'ls', 'echo', 'git', 'pwd')." },
                                         args: { type: 'array',
                                                 items: { type: 'string' },
-                                                description: 'The arguments to pass to the command.' } },
-                          required: [ 'answer', 'subtool', 'command' ] } },
+                                                description: 'The arguments to pass to the command. (e.g. for `ls`, you might pass `-l` or `-a` in `args`' } },
+                          required: [ 'answer', 'subtool', 'name', 'args' ] } },
               { key: 'writeFile',
                 schema: { type: 'object',
                           description: 'Write a file, returning a JSON object with a success message.',
@@ -2066,7 +2103,7 @@ Assistant →
                              autoAccept: 1 },
                  removeText: { cb: removeText },
                  removeFile: { cb: removeFile },
-                 runCommand: { cb: runCommand },
+                 execute: { cb: execute },
                  writeFile: { cb: writeFile } }
   d(subtoolMap)
 

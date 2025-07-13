@@ -2108,7 +2108,7 @@ User →
                           required: [ 'answer', 'subtool', 'name', 'args' ] } },
               { key: 'writeFile',
                 schema: { type: 'object',
-                          description: 'Write a file, returning a JSON object with a success message.',
+                          description: 'Writes the provided `text` to the file at `path`, overwriting any existing contents. Be sure to include any existing content that should be preserved.',
                           properties: { answer: { type: 'string',
                                                   description: 'Human readable freeform text.' },
                                         subtool: { const: 'writeFile' },

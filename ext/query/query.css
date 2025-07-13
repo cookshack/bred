@@ -125,6 +125,10 @@
   display: block;
 }
 
+.query-tool-text {
+  color: var(--clr-nb3);
+}
+
 .query-tool-name {
   display: inline;
 }

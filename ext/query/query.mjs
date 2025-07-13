@@ -1665,7 +1665,8 @@ function init
                    toolName = divCl('query-tool-name')
                    toolW = divCl('query-tool-w retracted',
                                  [ divCl('query-tool-q',
-                                         [ div([ 'Run ', toolName, '?' ]),
+                                         [ divCl('query-tool-text',
+                                                 [ 'Run ', toolName, '?' ]),
                                            divCl('query-tool-y',
                                                  button([ span('Y', 'key'), 'es' ],
                                                         'query-tool-button',

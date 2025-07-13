@@ -188,9 +188,10 @@ function readDir
   }
 
   abs = Loc.make(buf.dir).join(path)
-  Tron.cmd('dir.get', abs, (err, data) => {
+
+  Tron.cmd('file.stat', abs, (err, stat) => {
     if (err) {
-      d('ERR dir.get')
+      d('ERR file.stat')
       d(err.message)
       cb({ error: err.message,
            success: false,
@@ -199,12 +200,32 @@ function readDir
       return
     }
 
-    d('READDIR data')
-    d(data.data)
-    cb({ success: true,
-         subtool: 'readDir',
-         message: 'Successfully read directory.',
-         contents: data.data })
+    if (stat.data.mode & (1 << 15)) {
+      cb({ error: 'Error: path is a file',
+           success: false,
+           subtool: 'readDir',
+           message: 'Failed to read directory.' })
+      return
+    }
+
+    Tron.cmd('dir.get', abs, (err, data) => {
+      if (err) {
+        d('ERR dir.get')
+        d(err.message)
+        cb({ error: err.message,
+             success: false,
+             subtool: 'readDir',
+             message: 'Failed to read directory.' })
+        return
+      }
+
+      d('READDIR data')
+      d(data.data)
+      cb({ success: true,
+           subtool: 'readDir',
+           message: 'Successfully read directory.',
+           contents: data.data })
+    })
   })
 }
 

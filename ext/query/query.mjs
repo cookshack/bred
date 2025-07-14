@@ -166,6 +166,85 @@ function search
   p.setBuf(buf, {}, () => srch(p.dir, buf, query))
 }
 
+function readFileOrDir
+(buf, args, cb) { // (json)
+  let path, abs
+
+  path = args.path || ''
+
+  path = path.trim()
+  if (path == '.')
+    path = ''
+  if (path == './')
+    path = ''
+
+  if (path.startsWith('.')
+      || path.startsWith('/')) {
+    cb({ error: 'Error: path must be relative',
+         success: false,
+         subtool: 'read',
+         message: 'Failed to read.' })
+    return
+  }
+
+  abs = Loc.make(buf.dir).join(path)
+
+  Tron.cmd('file.stat', abs, (err, stat) => {
+    if (err) {
+      d('ERR file.stat')
+      d(err.message)
+      cb({ error: err.message,
+           success: false,
+           subtool: 'read',
+           message: 'Failed to read.' })
+      return
+    }
+
+    if (stat.data.mode & (1 << 15)) {
+      Tron.cmd('file.get', abs, (err, data) => {
+        if (err) {
+          d('ERR file.get')
+          d(err.message)
+          cb({ error: err.message,
+               success: false,
+               subtool: 'read',
+               message: 'Failed to read.' })
+          return
+        }
+
+        d('READ data')
+        d(data.data)
+        cb({ success: true,
+             subtool: 'readFile',
+             message: 'Successfully read file.',
+             type: 'file',
+             contents: data.data })
+      })
+      return
+    }
+
+    Tron.cmd('dir.get', abs, (err, data) => {
+      if (err) {
+        d('ERR dir.get')
+        d(err.message)
+        cb({ error: err.message,
+             success: false,
+             subtool: 'readDir',
+             message: 'Failed to read directory.' })
+        return
+      }
+
+      d('READ data')
+      d(data.data)
+      cb({ success: true,
+           subtool: 'readDir',
+           message: 'Successfully read directory.',
+           type: 'dir',
+           contents: data.data })
+    })
+  })
+}
+
 function readDir
 (buf, args, cb) { // (json)
   let path, abs
@@ -1842,8 +1921,7 @@ function init
     on = [ 'createDir',
            'createFileWithContent',
            'moveFile',
-           'readDir',
-           'readFile',
+           'readFileOrDir',
            'removeFile',
            'execute',
            'writeFile' ]
@@ -1919,12 +1997,12 @@ User →
 Assistant →
 {
   "answer": "",
-  "subtool": "readFile",
+  "subtool": "readFileOrDir",
   "path": "notes/todo.txt"
 }
 
 User →
-{ "success": true, "contents": "Buy milk" }
+{ "success": true, type: "file", "contents": "Buy milk" }
 
 Assistant →
 {
@@ -2033,6 +2111,15 @@ User →
                                         to: { type: 'string',
                                               description: "New location and name for the file. This path must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                           required: [ 'answer', 'subtool', 'from', 'to' ] } },
+              { key: 'readFileOrDir',
+                schema: { type: 'object',
+                          description: 'Read a file or a directory. Returns a JSON object that includes a success message and, if successful, the directory/file contents.',
+                          properties: { answer: { type: 'string',
+                                                  description: 'Human readable freeform text.' },
+                                        subtool: { const: 'readFileOrDir' },
+                                        path: { type: 'string',
+                                                description: 'Path to the file or directory to read (e.g. "src" or "src/eg.js"). Use "" for the current directory.' } },
+                          required: [ 'subtool', 'path' ] } },
               { key: 'readDir',
                 schema: { type: 'object',
                           description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
@@ -2125,6 +2212,8 @@ User →
                  modifyFile: { cb: modifyFile },
                  moveFile: { cb: moveFile },
                  patchFile: { cb: patchFile },
+                 readFileOrDir: { cb: readFileOrDir,
+                                  autoAccept: 1 },
                  readDir: { cb: readDir,
                             autoAccept: 1 },
                  readFile: { cb: readFile,

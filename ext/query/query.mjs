@@ -1923,7 +1923,6 @@ function init
            'moveFile',
            'readFileOrDir',
            'removeFile',
-           'execute',
            'writeFile' ]
 
     subs = allSubs.filter(s => on.includes(s.key))

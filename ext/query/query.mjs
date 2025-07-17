@@ -1115,6 +1115,8 @@ function init
 
   function chatAgent
   (buf, model, key, msgs, prompt, cb, cbEnd, cbCall) { // (msg), (), (tool)
+    let sys
+
     function handle
     (response) {
       let buffer, reader, decoder, cancelled, calls, reminds
@@ -1315,11 +1317,9 @@ function init
 
     function go
     () {
-      let messages, sys
+      let messages
 
       d('---- ' + emoAgent + ' FETCH for agent ----')
-
-      sys = getSys()
 
       messages = [ { role: 'system',
                      content: sys.prompt },
@@ -1358,6 +1358,8 @@ function init
     }
 
     d('==== ' + emoAgent + ' chatAgent ====')
+
+    sys = getSys()
 
     prompt.length || Mess.toss('empty prompt')
 

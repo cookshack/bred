@@ -166,6 +166,19 @@ function search
   p.setBuf(buf, {}, () => srch(p.dir, buf, query))
 }
 
+function appendWithEnd
+(buf, text) {
+  buf.vars('query').appending = 1
+  buf.append(text)
+  buf.vars('query').appending = 0
+  buf.vars('query').promptEnd = buf.bepEnd
+}
+
+function readFileOrDirAppendStart
+(buf, call) {
+  appendWithEnd(buf, '\n\n' + call.subtool.schema.properties.subtool.const + ': ' + call.args.path + '...')
+}
+
 function readFileOrDir
 (buf, args, cb) { // (json)
   let path, abs
@@ -917,14 +930,6 @@ function init
     })
   }
 
-  function appendWithEnd
-  (buf, text) {
-    buf.vars('query').appending = 1
-    buf.append(text)
-    buf.vars('query').appending = 0
-    buf.vars('query').promptEnd = buf.bepEnd
-  }
-
   function appendRunning
   (buf, call) {
     appendWithEnd(buf, '\n\n' + 'Running ' + call.args.subtool + '...')
@@ -934,7 +939,10 @@ function init
   (buf, call) {
     buf.vars('query').call = call
     if (call.autoAccept) {
-      appendRunning(buf, call)
+      if (call.subtool.appendStart)
+        call.subtool.appendStart(buf, call)
+      else
+        appendRunning(buf, call)
       call.yes(buf)
       return
     }
@@ -2142,7 +2150,8 @@ User →
                                         subtool: { const: 'readFileOrDir' },
                                         path: { type: 'string',
                                                 description: 'Path to the file or directory to read (e.g. "src" or "src/eg.js"). Use "" for the current directory.' } },
-                          required: [ 'subtool', 'path' ] } },
+                          required: [ 'subtool', 'path' ] },
+                appendStart: readFileOrDirAppendStart },
               { key: 'readDir',
                 cb: readDir,
                 autoAccept: 1,

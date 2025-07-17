@@ -925,12 +925,17 @@ function init
     buf.vars('query').promptEnd = buf.bepEnd
   }
 
+  function appendRunning
+  (buf, call) {
+    appendWithEnd(buf, '\n\n' + 'Running ' + call.args.subtool + '...')
+  }
+
   function appendCall
   (buf, call) {
     buf.vars('query').call = call
     if (call.autoAccept) {
-      appendWithEnd(buf, '\n\n' + 'Running ' + call.args.subtool + '...\n\n')
-      call.yes()
+      appendRunning(buf, call)
+      call.yes(buf)
       return
     }
     buf.views.forEach(view => {
@@ -1157,6 +1162,11 @@ function init
       () {
         let call
 
+        function end
+        () {
+          appendWithEnd(buf, ' done.\n\n')
+        }
+
         d('YES')
         d(calls)
         call = calls?.at(0)
@@ -1165,10 +1175,13 @@ function init
           call.cb(res => {
             d('CALL result for ' + call.name)
             d(res)
+            end()
             push({ role: 'user',
                    content: JSON.stringify(res) })
             go()
           })
+        else
+          end()
       }
 
       function read
@@ -1703,8 +1716,8 @@ function init
         Css.retract(toolW)
       }
     })
-    appendWithEnd(p.buf, '\n\n' + 'Running ' + call.args.subtool + '...\n\n')
-    call?.yes()
+    appendRunning(p.buf, call)
+    call?.yes(p.buf)
   }
 
   function reject

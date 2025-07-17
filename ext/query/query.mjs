@@ -23,7 +23,7 @@ import { d } from '../../js/mess.mjs'
 import Ollama from './lib/ollama.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let emo, emoAgent, premo, premoAgent, icons, subtoolMap
+let emo, emoAgent, premo, premoAgent, icons
 
 function snippet
 (item) {
@@ -1271,7 +1271,7 @@ function init
 
                 d('  SUBTOOL ' + args.subtool)
 
-                subtool = subtoolMap[args.subtool]
+                subtool = sys.subs.find(s => s.schema.properties.subtool.const == args.subtool)
                 if (subtool) {
                   addCall(args, subtool)
                   // run the tool
@@ -2044,6 +2044,7 @@ User →
   }
 
   allSubs = [ { key: 'createDir',
+                cb: createDir,
                 schema: { type: 'object',
                           description: 'Create a new directory, returning a JSON object with a success message.',
                           properties: { answer: { type: 'string',
@@ -2053,6 +2054,7 @@ User →
                                                 description: "Path to the directory to create (e.g. 'src/newDir'). Must be a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                           required: [ 'answer', 'subtool', 'path' ] } },
               { key: 'createFileWithContent',
+                cb: createFileWithContent,
                 schema: { type: 'object',
                           description: 'Create a new file.',
                           properties: { answer: { type: 'string',
@@ -2064,6 +2066,7 @@ User →
                                                 description: 'Contents of the new file.' } },
                           required: [ 'answer', 'subtool', 'path' ] } },
               { key: 'createFile',
+                cb: createFile,
                 schema: { type: 'object',
                           description: 'Create a new empty file.',
                           properties: { answer: { type: 'string',
@@ -2073,6 +2076,7 @@ User →
                                                 description: "Path to the file to create (e.g. 'src/new.txt'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                           required: [ 'answer', 'subtool', 'path' ] } },
               { key: 'patchFile',
+                cb: patchFile,
                 schema: { type: 'object',
                           description: 'Apply a unified diff to a file, returning a JSON object with a success message.',
                           properties: { answer: { type: 'string',
@@ -2084,6 +2088,7 @@ User →
                                                  description: 'A patch to apply to the file, in unified diff format.' } },
                           required: [ 'answer', 'subtool', 'path', 'patch' ] } },
               { key: 'insertText',
+                cb: insertText,
                 schema: { type: 'object',
                           description: 'Insert text into an existing file.',
                           properties: { answer: { type: 'string',
@@ -2097,6 +2102,7 @@ User →
                                                 description: 'The text to insert.' } },
                           required: [ 'answer', 'subtool', 'path', 'position', 'text' ] } },
               { key: 'modifyFile',
+                cb: modifyFile,
                 schema: { type: 'object',
                           description: 'Replace a portion of an existing file.',
                           properties: { answer: { type: 'string',
@@ -2115,6 +2121,7 @@ User →
                                                 required: [ 'type', 'from', 'to', 'text' ] } },
                           required: [ 'answer', 'subtool', 'path', 'edit' ] } },
               { key: 'moveFile',
+                cb: moveFile,
                 schema: { type: 'object',
                           description: 'Move or rename a file.',
                           properties: { answer: { type: 'string',
@@ -2126,6 +2133,8 @@ User →
                                               description: "New location and name for the file. This path must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                           required: [ 'answer', 'subtool', 'from', 'to' ] } },
               { key: 'readFileOrDir',
+                cb: readFileOrDir,
+                autoAccept: 1,
                 schema: { type: 'object',
                           description: 'Read a file or a directory. Returns a JSON object that includes a success message and, if successful, the directory/file contents.',
                           properties: { answer: { type: 'string',
@@ -2135,6 +2144,8 @@ User →
                                                 description: 'Path to the file or directory to read (e.g. "src" or "src/eg.js"). Use "" for the current directory.' } },
                           required: [ 'subtool', 'path' ] } },
               { key: 'readDir',
+                cb: readDir,
+                autoAccept: 1,
                 schema: { type: 'object',
                           description: 'List all entries (files and directories) in either the current directory or a specified subdirectory. Use "" for the current directory. Returns a JSON object that includes a success message and, if successful, the directory contents.',
                           properties: { answer: { type: 'string',
@@ -2144,6 +2155,8 @@ User →
                                                 description: 'Path to the directory from which to list files (e.g. "src"). Use "" for the current directory.' } },
                           required: [ 'subtool', 'path' ] } },
               { key: 'readFile',
+                cb: readFile,
+                autoAccept: 1,
                 schema: { type: 'object',
                           description: 'Read a file, returning a JSON object that includes a success message and the file contents.',
                           properties: { answer: { type: 'string',
@@ -2153,6 +2166,7 @@ User →
                                                 description: "Path to the file to create (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                           required: [ 'answer', 'subtool', 'path' ] } },
               { key: 'removeText',
+                cb: removeText,
                 schema: { type: 'object',
                           description: 'Remove text from a file.',
                           properties: { answer: { type: 'string',
@@ -2166,6 +2180,7 @@ User →
                                                   description: 'The number of characters to remove, including newlines.' } },
                           required: [ 'answer', 'subtool', 'path', 'position', 'length' ] } },
               { key: 'removeFile',
+                cb: removeFile,
                 schema: { type: 'object',
                           description: 'Remove a file, returning a JSON object that contains a success message.',
                           properties: { answer: { type: 'string',
@@ -2175,6 +2190,7 @@ User →
                                                 description: "Path to the file to remove (e.g. 'src/eg.js'). Must be in the current directory or a subdirectory of the current directory, so absolute paths are forbidden, as are the files '.' and '..'." } },
                           required: [ 'answer', 'subtool', 'path' ] } },
               { key: 'execute',
+                cb: execute,
                 schema: { type: 'object',
                           description: `Run an command in the current directory, returning a JSON object that contains a success message and the output.
 
@@ -2208,6 +2224,7 @@ User →
                                                 description: 'The arguments to pass to the command. (e.g. for `ls`, you might pass `-l` or `-a` in `args`' } },
                           required: [ 'answer', 'subtool', 'name', 'args' ] } },
               { key: 'writeFile',
+                cb: writeFile,
                 schema: { type: 'object',
                           description: 'Writes the provided `text` to the file at `path`, overwriting any existing contents. Be sure to include any existing content that should be preserved.',
                           properties: { answer: { type: 'string',
@@ -2218,25 +2235,6 @@ User →
                                         text: { type: 'string',
                                                 description: 'New contents for the file.' } },
                           required: [ 'answer', 'subtool', 'path', 'text' ] } } ]
-
-  subtoolMap = { createDir: { cb: createDir },
-                 createFile: { cb: createFile },
-                 createFileWithContent: { cb: createFileWithContent },
-                 insertText: { cb: insertText },
-                 modifyFile: { cb: modifyFile },
-                 moveFile: { cb: moveFile },
-                 patchFile: { cb: patchFile },
-                 readFileOrDir: { cb: readFileOrDir,
-                                  autoAccept: 1 },
-                 readDir: { cb: readDir,
-                            autoAccept: 1 },
-                 readFile: { cb: readFile,
-                             autoAccept: 1 },
-                 removeText: { cb: removeText },
-                 removeFile: { cb: removeFile },
-                 execute: { cb: execute },
-                 writeFile: { cb: writeFile } }
-  d(subtoolMap)
 
   emo = '🔮' // 🗨️
   premo = '#### ' + emo

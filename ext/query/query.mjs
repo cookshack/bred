@@ -1343,8 +1343,10 @@ function init
               body: JSON.stringify({ model,
                                      temperature: 0,
                                      messages,
-                                     // Only use providers that support all parameters in this request
-                                     provider: { require_parameters: true },
+                                     ...(model.startsWith('anthropic/')
+                                         ? {}
+                                         // Only use providers that support all parameters in this request
+                                         : { provider: { require_parameters: true } }),
                                      response_format: { type: 'json_schema',
                                                         json_schema: { name: 'runSubtool',
                                                                        strict: true,

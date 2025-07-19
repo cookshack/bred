@@ -1613,46 +1613,6 @@ function init
        })
   }
 
-  function chatMore
-  () {
-    let p, buf, model
-
-    p = Pane.current()
-    buf = p.buf
-    if (buf.vars('query').busy) {
-      d('busy')
-      return
-    }
-    model = buf.vars('query').model || Opt.get('query.model')
-    Prompt.ask({ text: buf.vars('query').emo + ' ' + model,
-                 hist },
-               prompt => {
-                 let cb
-
-                 buf.vars('query').hist.add(prompt)
-
-                 busy(buf)
-                 appendWithEnd(buf, prompt + '\n\n')
-                 cb = chat
-                 if (buf.vars('query').type == 'Agent')
-                   cb = chatAgent
-                 cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
-                    msg => {
-                      d('CHAT more append: ' + msg.content)
-                      appendWithEnd(buf, msg.content)
-                    },
-                    () => {
-                      appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
-                      done(buf)
-                    },
-                    call => {
-                      d('cb CALL')
-                      appendCall(buf, call)
-                      //done(buf)
-                    })
-               })
-  }
-
   function suggest
   (under, query, placeholder) {
     Tron.acmd('profile.hist.suggest', [ query ])
@@ -2267,13 +2227,11 @@ User →
                                        part: new CMState.Compartment } ] })
 
   Cmd.add('accept tool', () => accept(), mo)
-  Cmd.add('chat more', () => chatMore(), chMo)
   Cmd.add('enter', () => enter(), chMo)
   Cmd.add('next history item', () => prevHist(-1), mo)
   Cmd.add('previous history item', () => prevHist(), mo)
   Cmd.add('reject tool', () => reject(), mo)
 
-  Em.on('+', 'chat more', chMo)
   Em.on('Enter', 'enter', chMo)
   Em.on('A-p', 'previous history item', chMo)
   Em.on('A-n', 'next history item', chMo)

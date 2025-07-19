@@ -1656,7 +1656,7 @@ function init
                    divCl('query-ml-type', type == 'Agent' ? emoAgent : emo),
                    divCl('query-ml-model',
                          model,
-                         { 'data-run': 'change model',
+                         { 'data-run': 'set buffer model',
                            'data-name': model }),
                    divCl('query-ml-new',
                          button('New',
@@ -1839,7 +1839,7 @@ function init
     let buf
 
     buf = Pane.current().buf
-    Prompt.choose('Change model', models.map(m => m.name), {}, choice => {
+    Prompt.choose('Buffer model', models.map(m => m.name), {}, choice => {
       if (choice) {
         buf.vars('query').model = choice
         buf.views.forEach(view => {
@@ -2278,7 +2278,7 @@ User →
                                        part: new CMState.Compartment } ] })
 
   Cmd.add('accept tool', () => accept(), mo)
-  Cmd.add('change model', () => setBufModel(), mo)
+  Cmd.add('set buffer model', () => setBufModel(), mo)
 
   Cmd.add('set agent model', () => setModel('agent'), mo)
   Cmd.add('set chat model', () => setModel('chat'), mo)

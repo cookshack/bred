@@ -1346,7 +1346,8 @@ function init
               body: JSON.stringify({ model,
                                      temperature: 0,
                                      messages,
-                                     ...(model.startsWith('anthropic/')
+                                     ...((model.startsWith('anthropic/')
+                                          || model.startsWith('mistral/'))
                                          ? {}
                                          // Only use providers that support all parameters in this request
                                          : { provider: { require_parameters: true } }),
@@ -2254,6 +2255,7 @@ User →
              { name: 'meta-llama/llama-4-maverick' },
              { name: 'meta-llama/llama-4-scout' },
              { name: 'meta-llama/llama-4-scout:free' },
+             { name: 'mistralai/devstral-small' },
              { name: 'moonshotai/kimi-k2' },
              //
              { name: 'anthropic/claude-sonnet-4' } ]

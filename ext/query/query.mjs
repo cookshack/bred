@@ -1833,6 +1833,15 @@ function init
       if (choice) {
         d('m ' + choice)
         buf.vars('query').model = choice
+        buf.views.forEach(view => {
+          if (view.ready && view.ele) {
+            let el
+
+            el = view.ele.querySelector('.query-ml-model')
+            el.innerText = choice
+            el.dataset.name = choice
+          }
+        })
         return
       }
     })

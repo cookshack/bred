@@ -1656,7 +1656,7 @@ function init
                    divCl('query-ml-type', type == 'Agent' ? emoAgent : emo),
                    divCl('query-ml-model',
                          model,
-                         { 'data-run': 'set model',
+                         { 'data-run': 'change model',
                            'data-name': model }),
                    divCl('query-ml-new',
                          button('New',
@@ -1824,14 +1824,23 @@ function init
   })
 
   function setModel
+  (type) {
+    Prompt.choose('Set ' + type + ' model', models.map(m => m.name), {}, choice => {
+      if (choice) {
+        Opt.set('query.model.' + type, choice)
+        return
+      }
+      Mess.throw('ERR: choice: ' + choice)
+    })
+  }
+
+  function setBufModel
   () {
     let buf
 
-    d('sm')
     buf = Pane.current().buf
-    Prompt.choose('Set model', models.map(m => m.name), { clickCmd: 'choose model' }, choice => {
+    Prompt.choose('Change model', models.map(m => m.name), {}, choice => {
       if (choice) {
-        d('m ' + choice)
         buf.vars('query').model = choice
         buf.views.forEach(view => {
           if (view.ready && view.ele) {
@@ -2269,7 +2278,10 @@ User →
                                        part: new CMState.Compartment } ] })
 
   Cmd.add('accept tool', () => accept(), mo)
-  Cmd.add('set model', () => setModel(), mo)
+  Cmd.add('change model', () => setBufModel(), mo)
+
+  Cmd.add('set agent model', () => setModel('agent'), mo)
+  Cmd.add('set chat model', () => setModel('chat'), mo)
 
   Cmd.add('enter', () => enter(), chMo)
   Cmd.add('next history item', () => prevHist(-1), mo)

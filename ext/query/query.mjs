@@ -86,9 +86,10 @@ function srch
       d(data)
 
       if (query.endsWith('?')) {
-        let que
+        let que, model
 
-        add(buf, buf?.opt('query.model') + ' says:\n\n')
+        model = buf?.opt('query.model.search') || buf?.opt('query.model.chat') || buf?.opt('query.model.agent')
+        add(buf, model + ' says:\n\n')
 
         que = 'You are an expert. Based on the following search results, please provide a summary or answer to my question:\n\n'
         que += 'Search Results:\n'
@@ -99,7 +100,7 @@ function srch
 
         d(que)
 
-        Shell.run(dir, 'llm', [ buf?.opt('query.model'), que ],
+        Shell.run(dir, 'llm', [ model, que ],
                   { onStdout: str => add(buf, str),
                     onStderr: str => add(buf, str) })
       }
@@ -1455,7 +1456,7 @@ function init
     d(que)
     buf = view.buf // in case view changes, still issues if eg buf removed
     bep = view.bep
-    Shell.run(dir, 'llm', [ view.buf?.opt('query.model.code') || view.buf?.opt('query.model'), que ],
+    Shell.run(dir, 'llm', [ view.buf?.opt('query.model.agent'), que ],
               { onStdout: add,
                 onStderr: add })
   }
@@ -1489,7 +1490,7 @@ function init
     suffix = text.slice(off)
     d({ prompt })
     d({ suffix })
-    gen({ model: view.buf?.opt('query.model.code') || view.buf?.opt('query.model'),
+    gen({ model: view.buf?.opt('query.model.agent') || view.buf?.opt('query.model.chat'),
           prompt,
           suffix,
           stream: true,
@@ -1501,7 +1502,7 @@ function init
   }
 
   Cmd.add('llm', (u, we, model) => {
-    model = model || Opt.get('query.model')
+    model = model || Opt.get('query.model.local')
     Prompt.ask({ text: 'Prompt',
                  hist },
                prompt => {
@@ -1731,9 +1732,12 @@ function init
     let cb, model
 
     cb = chat
-    if (type == 'Agent')
+    if (type == 'Agent') {
+      model = Opt.get('query.model.agent')
       cb = chatAgent
-    model = Opt.get('query.model')
+    }
+    else
+      model = Opt.get('query.model.chat')
     Prompt.ask({ text: (type == 'Agent' ? emoAgent : emo) + ' ' + model,
                  hist },
                prompt => {
@@ -2214,7 +2218,10 @@ User →
   premoAgent = '#### ' + emoAgent
   hist = Hist.ensure('llm')
 
-  Opt.declare('query.model', 'str', 'mistral')
+  Opt.declare('query.model.agent', 'str', 'meta-llama/llama-4-maverick')
+  Opt.declare('query.model.chat', 'str', 'deepseek/deepseek-chat-v3-0324')
+  Opt.declare('query.model.local', 'str', 'mistral')
+
   Opt.declare('query.search.url.prefix', 'str', 'https://google.com/search?q=')
   Opt.declare('query.google.cx', 'str', '')
   Opt.declare('query.google.key', 'str', '')

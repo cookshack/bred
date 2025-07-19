@@ -1117,7 +1117,7 @@ function init
 
     prompt.length || Mess.toss('empty prompt')
 
-    model = buf.vars('query').model || Mess.toss('buf missing model')
+    model = buf.opt('query.model.chat') || Mess.toss('Missing query.model.chat')
 
     msgs.push({ role: 'user', content: prompt })
 
@@ -1376,7 +1376,7 @@ function init
 
     prompt.length || Mess.toss('empty prompt')
 
-    model = buf.vars('query').model || Mess.toss('buf missing model')
+    model = buf.opt('query.model.agent') || Mess.toss('Missing query.model.agent')
 
     msgs.push({ role: 'user', content: prompt })
 
@@ -1782,7 +1782,6 @@ function init
                    buf.icon = 'chat'
                  }
                  busy(buf)
-                 buf.vars('query').model = model
                  buf.vars('query').msgs = []
 
                  hist.add(prompt)
@@ -1841,7 +1840,10 @@ function init
     buf = Pane.current().buf
     Prompt.choose('Buffer model', models.map(m => m.name), {}, choice => {
       if (choice) {
-        buf.vars('query').model = choice
+        if (buf.vars('query').type == 'Agent')
+          buf.opts.set('query.model.agent', choice)
+        else
+          buf.opts.set('query.model.chat', choice)
         buf.views.forEach(view => {
           if (view.ready && view.ele) {
             let el

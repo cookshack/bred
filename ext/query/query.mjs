@@ -999,7 +999,9 @@ function init
   }
 
   function chat
-  (buf, model, key, msgs, prompt, cb, cbEnd) { // (msg), ()
+  (buf, key, msgs, prompt, cb, cbEnd) { // (msg), ()
+    let model
+
     function stream
     (response) {
       let buffer, reader, decoder, cancelled
@@ -1114,7 +1116,7 @@ function init
 
     prompt.length || Mess.toss('empty prompt')
 
-    model = model || 'meta-llama/llama-3.3-70b-instruct:free'
+    model = buf.vars('query').model || Mess.toss('buf missing model')
 
     msgs.push({ role: 'user', content: prompt })
 
@@ -1122,8 +1124,8 @@ function init
   }
 
   function chatAgent
-  (buf, model, key, msgs, prompt, cb, cbEnd, cbCall) { // (msg), (), (tool)
-    let sys
+  (buf, key, msgs, prompt, cb, cbEnd, cbCall) { // (msg), (), (tool)
+    let sys, model
 
     function handle
     (response) {
@@ -1373,7 +1375,7 @@ function init
 
     prompt.length || Mess.toss('empty prompt')
 
-    model = model || 'meta-llama/llama-3.3-70b-instruct:free'
+    model = buf.vars('query').model || Mess.toss('buf missing model')
 
     msgs.push({ role: 'user', content: prompt })
 
@@ -1563,7 +1565,7 @@ function init
 
   function enter
   () {
-    let r, p, buf, model, prompt, cb
+    let r, p, buf, prompt, cb
 
     p = Pane.current()
 
@@ -1587,7 +1589,6 @@ function init
 
     // run chat
 
-    model = buf.vars('query').model || Opt.get('query.model')
     buf.vars('query').hist.add(prompt)
 
     busy(buf)
@@ -1595,7 +1596,7 @@ function init
     cb = chat
     if (p.buf.vars('query').type == 'Agent')
       cb = chatAgent
-    cb(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+    cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
        msg => {
          d('CHAT enter append: ' + msg.content)
          appendWithEnd(buf, msg.content)
@@ -1635,7 +1636,7 @@ function init
                  cb = chat
                  if (buf.vars('query').type == 'Agent')
                    cb = chatAgent
-                 cb(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+                 cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                     msg => {
                       d('CHAT more append: ' + msg.content)
                       appendWithEnd(buf, msg.content)
@@ -1766,13 +1767,13 @@ function init
   })
 
   function prompt
-  (model, type) {
-    let cb
+  (type) {
+    let cb, model
 
     cb = chat
     if (type == 'Agent')
       cb = chatAgent
-    model = model || Opt.get('query.model')
+    model = Opt.get('query.model')
     Prompt.ask({ text: (type == 'Agent' ? emoAgent : emo) + ' ' + model,
                  hist },
                prompt => {
@@ -1827,7 +1828,7 @@ function init
                    appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
                    buf.opts.set('core.lint.enabled', 0)
-                   cb(buf, model, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+                   cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
                       msg => {
                         //d('CHAT append: ' + msg.content)
                         appendWithEnd(buf, msg.content)
@@ -1847,12 +1848,12 @@ function init
                })
   }
 
-  Cmd.add('chat', (u, we, model) => {
-    prompt(model, 'Chat')
+  Cmd.add('chat', () => {
+    prompt('Chat')
   })
 
-  Cmd.add('agent', (u, we, model) => {
-    prompt(model, 'Agent')
+  Cmd.add('agent', () => {
+    prompt('Agent')
   })
 
   Cmd.add('llm insert', () => {

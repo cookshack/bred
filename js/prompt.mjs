@@ -18,7 +18,7 @@ import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
-let buf, $callerView, ynEm, ynCb, open
+let buf, $callerView, ynEm, ynCb, chooseEm, chooseCb, open
 
 export
 function callerView
@@ -45,6 +45,33 @@ function yn
                                  button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
                                  button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }),
                                  button([ span('c', 'key'), 'ancel' ], '', { 'data-run': 'close demand' }) ]),
+                         spec.under ])),
+           divCl('float-shade') ])
+}
+
+export
+function choose
+(content,
+ choices,
+ spec, // { icon, under }
+ cb) { // (choice)
+  let list
+
+  spec = spec || {}
+  chooseCb = cb
+  d(chooseCb)
+  list = choices?.map(choice => divCl('float-choice', choice, { 'data-run': 'choose' }))
+  demand(chooseEm,
+         [ divCl('float-ww',
+                 divCl('float-w',
+                       [ divCl('float-h',
+                               [ divCl('float-icon' + (spec.icon ? '' : ' retracted'),
+                                       img(Icon.path(spec.icon || 'blank'),
+                                           Icon.alt(spec.icon),
+                                           'filter-clr-nb3')),
+                                 divCl('float-text', content),
+                                 button([ span('c', 'key'), 'ancel' ], '', { 'data-run': 'close choice' }) ]),
+                         list,
                          spec.under ])),
            divCl('float-shade') ])
 }
@@ -756,6 +783,19 @@ function init
     ynCb = null
     Cmd.run('close demand')
   })
+  Cmd.add('close choice', () => {
+    chooseCb = null
+    Cmd.run('close demand')
+  })
+  Cmd.add('choose', (u, we) => {
+    Cmd.run('close demand')
+    if (chooseCb) {
+      let choice
+
+      choice = we.e.target.innerText
+      chooseCb(choice)
+    }
+  })
 
   ynEm = Em.make('YN')
   ynEm.on('y', 'yes')
@@ -763,6 +803,13 @@ function init
   ynEm.on('c', 'close yes/no')
   Em.on('C-g', 'close yes/no', ynEm)
   Em.on('Escape', 'close yes/no', ynEm)
+
+  chooseEm = Em.make('Choose')
+  chooseEm.on('y', 'yes')
+  chooseEm.on('n', 'no')
+  chooseEm.on('c', 'close yes/no')
+  Em.on('C-g', 'close yes/no', chooseEm)
+  Em.on('Escape', 'close yes/no', chooseEm)
 
   mo = Mode.add('Prompt', { viewInitSpec: Ed.viewInitSpec,
                             viewCopy: Ed.viewCopy,

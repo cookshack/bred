@@ -900,7 +900,7 @@ function writeFile
 export
 function init
 () {
-  let hist, mo, chMo, chToolMo, extRo, allSubs
+  let hist, mo, chMo, chToolMo, extRo, allSubs, models
 
   function busy
   (buf) {
@@ -1084,7 +1084,7 @@ function init
     function go
     () {
       d({ msgs })
-      d('---- ' + emo + ' FETCH for chat ----')
+      d('---- ' + emo + ' FETCH for chat from ' + model + ' ----')
       msgs.forEach(msg => d(msg))
       fetch('https://openrouter.ai/api/v1/chat/completions',
             { method: 'POST',
@@ -1330,7 +1330,7 @@ function init
     () {
       let messages
 
-      d('---- ' + emoAgent + ' FETCH for agent ----')
+      d('---- ' + emoAgent + ' FETCH for agent for ' + model + ' ----')
 
       messages = [ { role: 'system',
                      content: sys.prompt },
@@ -1654,7 +1654,10 @@ function init
                          img(Icon.path('chat'), 'Chat', 'filter-clr-text'),
                          { 'data-run': 'describe buffer' }),
                    divCl('query-ml-type', type == 'Agent' ? emoAgent : emo),
-                   divCl('query-ml-model', model),
+                   divCl('query-ml-model',
+                         model,
+                         { 'data-run': 'set model',
+                           'data-name': model }),
                    divCl('query-ml-new',
                          button('New',
                                 'bred-ml-button',
@@ -1819,6 +1822,21 @@ function init
   Cmd.add('agent', () => {
     prompt('Agent')
   })
+
+  function setModel
+  () {
+    let buf
+
+    d('sm')
+    buf = Pane.current().buf
+    Prompt.choose('Set model', models.map(m => m.name), { clickCmd: 'choose model' }, choice => {
+      if (choice) {
+        d('m ' + choice)
+        buf.vars('query').model = choice
+        return
+      }
+    })
+  }
 
   Cmd.add('llm insert', () => {
     Prompt.ask({ text: 'Describe what should be inserted',
@@ -2212,6 +2230,14 @@ User →
                                                 description: 'New contents for the file.' } },
                           required: [ 'answer', 'subtool', 'path', 'text' ] } } ]
 
+  models = [ { name: 'deepseek/deepseek-chat-v3-0324' },
+             { name: 'meta-llama/llama-4-maverick' },
+             { name: 'meta-llama/llama-4-scout' },
+             { name: 'meta-llama/llama-4-scout:free' },
+             { name: 'moonshotai/kimi-k2' },
+             //
+             { name: 'anthropic/claude-sonnet-4' } ]
+
   emo = '🔮' // 🗨️
   premo = '#### ' + emo
   emoAgent = '🤖' // ✨
@@ -2234,6 +2260,8 @@ User →
                                        part: new CMState.Compartment } ] })
 
   Cmd.add('accept tool', () => accept(), mo)
+  Cmd.add('set model', () => setModel(), mo)
+
   Cmd.add('enter', () => enter(), chMo)
   Cmd.add('next history item', () => prevHist(-1), mo)
   Cmd.add('previous history item', () => prevHist(), mo)

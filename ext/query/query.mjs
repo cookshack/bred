@@ -2252,11 +2252,14 @@ User →
                           required: [ 'answer', 'subtool', 'path', 'text' ] } } ]
 
   models = [ { name: 'deepseek/deepseek-chat-v3-0324' },
+             { name: 'deepseek/deepseek-chat-v3-0324:free' },
              { name: 'meta-llama/llama-4-maverick' },
              { name: 'meta-llama/llama-4-scout' },
              { name: 'meta-llama/llama-4-scout:free' },
              { name: 'mistralai/devstral-small' },
+             { name: 'mistralai/devstral-small-2505:free' },
              { name: 'moonshotai/kimi-k2' },
+             { name: 'moonshotai/kimi-k2:free' },
              //
              { name: 'anthropic/claude-sonnet-4' } ]
 

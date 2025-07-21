@@ -91,10 +91,11 @@
   pointer-events: none;
 }
 
-.query-ml-new {
+.query-ml-credits {
   margin-left: auto;
 }
 
+.query-ml-credits,
 .query-ml-new,
 .query-ml-stop {
   margin-right: 0.5rem;

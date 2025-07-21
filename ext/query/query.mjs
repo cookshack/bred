@@ -902,6 +902,47 @@ function init
 () {
   let hist, mo, chMo, chToolMo, extRo, allSubs, models
 
+  function updateCredits
+  (buf, key) {
+    fetch('https://openrouter.ai/api/v1/auth/key',
+          { method: 'GET',
+            headers: { Authorization: 'Bearer ' + key,
+                       'Content-Type': 'application/json' } })
+      .then(response => {
+        if (response.ok) {
+          response.json().then(data => {
+            d({ data })
+            d(data.data.limit_remaining)
+            buf.views.forEach(view => {
+              if (view.ele) {
+                let el
+
+                el = view.ele.querySelector('.query-ml-credits')
+                if (el) {
+                  let dol
+
+                  dol = parseFloat(data.data.limit_remaining)
+                  if (isNaN(dol))
+                    el.innerText = '$'
+                  else
+                    el.innerText = '$' + dol.toFixed(2)
+                }
+              }
+            })
+          })
+            .catch(err => {
+              d('ERR .json: ' + err.message)
+            })
+          return
+        }
+        d('Error fetching credit info')
+      })
+      .catch(err => {
+        d('ERR fetch:')
+        d(err.message)
+      })
+  }
+
   function busy
   (buf) {
     buf.vars('query').busy = 1
@@ -1100,6 +1141,7 @@ function init
                             ...msgs ],
                 stream: true }) })
         .then(response => {
+          updateCredits(buf, key)
           if (response.ok)
             return stream(response)
           cb && cb({ content: 'fetch failed' })
@@ -1358,6 +1400,7 @@ function init
                                                                                  oneOf: sys.schema,
                                                                                  additionalProperties: false } } } }) })
         .then(response => {
+          updateCredits(buf, key)
           if (response.ok)
             return handle(response)
           cb && cb({ content: 'fetch failed' })
@@ -1659,6 +1702,7 @@ function init
                          model,
                          { 'data-run': 'set buffer model',
                            'data-name': model }),
+                   divCl('query-ml-credits', '$'),
                    divCl('query-ml-new',
                          button('New',
                                 'bred-ml-button',

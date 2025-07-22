@@ -1,5 +1,6 @@
 import { append, button, div, divCl, span, img } from './dom.mjs'
 
+import * as Browse from './browse.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
@@ -1460,6 +1461,28 @@ function init
       Mess.say('Move to a file first')
   }
 
+  function browse
+  () {
+    let el
+
+    el = current()
+    if (el && el.dataset.path)
+      Browse.browse('file://' + el.dataset.path)
+    else
+      Mess.say('Move to a file first')
+  }
+
+  function extern
+  () {
+    let el
+
+    el = current()
+    if (el && el.dataset.path)
+      Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => err && Mess.yell('shell.open: ' + err.message))
+    else
+      Mess.say('Move to a file first')
+  }
+
   function toggle
   () {
     let p, old, marked, lines
@@ -1638,6 +1661,8 @@ function init
   Em.on('D', 'delete', 'Dir')
   Em.on('T', 'touch', 'Dir')
   Em.on('U', 'clear marks', 'Dir')
+  Em.on('w', 'open in web browser', 'Dir')
+  Em.on('W', 'open in external web browser', 'Dir')
   Em.on('=', 'equal', 'Dir')
   Em.on('^', 'up', 'Dir')
   Em.on('!', 'shell command on file', 'Dir')
@@ -1653,6 +1678,8 @@ function init
   Cmd.add('next line', nextLine, m)
   Cmd.add('previous line', prevLine, m)
   Cmd.add('open in other pane', () => other(), m)
+  Cmd.add('open in web browser', () => browse(), m)
+  Cmd.add('open in external web browser', () => extern(), m)
 
   Cmd.add('home', () => add(Pane.current(), ':'))
   Cmd.add('root', () => add(Pane.current(), '/'))

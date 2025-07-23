@@ -1076,7 +1076,6 @@ span.core-leadingSpace,
 .float-ww {
   bottom: auto;
   width: 100%;
-  min-height: 3rem;
   border-bottom: 2px solid var(--clr-nb3);
   background: var(--clr-bg);
   padding: 1rem;

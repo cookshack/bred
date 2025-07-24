@@ -2,6 +2,7 @@ import { append, divCl, img } from './dom.mjs'
 
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
+import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Hist from './hist.mjs'
@@ -21,8 +22,12 @@ let reErr, reFile
 export
 function divW
 () {
+  let exitW
+
+  exitW = divCl('shell-exit-w shell-busy', '⋯') // 🌀
   return Ed.divW(0, 0, { extraWWCss: 'shell-ww',
-                         extraWCss: 'shell-w' })
+                         extraWCss: 'shell-w',
+                         extraCo: exitW })
 }
 
 let chInt
@@ -98,7 +103,8 @@ function run
  //   onStdout, // (str)
  //   onStderr, // (str)
  //   multi, // keep listening for more commands
- //   onClose } // (buf, code)
+ //   onClose // (buf, code)
+ //   onErr } // (buf, err)
  spec) {
   let ch, bep, b
 
@@ -173,6 +179,8 @@ function run
     if (data.err) {
       if (b)
         b.ml.set('busy', 'exit err')
+      if (spec.onErr)
+        spec.onErr(b, err)
       Mess.say('SC err: ' + sc + ': ' + err.message)
     }
   })
@@ -205,7 +213,8 @@ function shellOrSpawn1
  //   hist,
  //   shell,
  //   multi, // keep listening for more commands
- //   onClose } // (buf, code)
+ //   onClose // (buf, code)
+ //   onErr } // (buf, err)
  spec,
  // (buf)
  cb) {
@@ -245,6 +254,7 @@ function shellOrSpawn1
       w = divW()
       b = Buf.add(name, 'Shell', w, dir)
       b.icon = 'shell'
+      b.vars('ed').fillParent = 0
       setMl(w)
     }
 
@@ -253,6 +263,43 @@ function shellOrSpawn1
       if (cb)
         cb(b)
     })
+  }
+
+  function onClose
+  (b, code) {
+    b.views.forEach(view => {
+      if (view.ele) {
+        let el
+
+        el = view.ele.querySelector('.shell-exit-w')
+        if (el) {
+          Css.remove(el, 'shell-busy')
+          if (code == 0)
+            el.innerHTML = '✔ ' + code // 🏁 ✔✔✔ 🎉 ✅
+          else
+            el.innerHTML = '✘ ' + code // 🚨 ✘✘✘ 🚫 ❌
+        }
+      }
+    })
+    if (spec.onClose)
+      spec.onClose(b, code)
+  }
+
+  function onErr
+  (b, err) {
+    b.views.forEach(view => {
+      if (view.ele) {
+        let el
+
+        el = view.ele.querySelector('.shell-exit-w')
+        if (el) {
+          Css.remove(el, 'shell-busy')
+          el.innerHTML = '☠️ ERR ' + err.message
+        }
+      }
+    })
+    if (spec.onErr)
+      spec.onErr(b, err)
   }
 
   spec = spec || {}
@@ -271,7 +318,8 @@ function shellOrSpawn1
                  afterEndPoint: spec.afterEndPoint,
                  runInShell: spec.shell,
                  multi: spec.multi,
-                 onClose: spec.onClose })
+                 onClose,
+                 onErr })
            if (cb)
              cb(buf)
          })

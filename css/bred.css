@@ -1854,6 +1854,13 @@ div.cm-line.cm-activeLine::after {
   box-shadow: inset 0 -1px 0 0 var(--clr-active-line);
 }
 
+.shell-exit-w {
+  padding: 0.25rem;
+  padding-bottom: 0;
+  background: var(--clr-busy);
+  font-size: 0.9rem;
+}
+
 .diff-refine-minus,
 .diff-refine-plus,
 .diff-refine-minus > span,

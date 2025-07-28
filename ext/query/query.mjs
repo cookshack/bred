@@ -2298,6 +2298,7 @@ User →
   models = [ { name: 'deepseek/deepseek-chat-v3-0324' },
              { name: 'deepseek/deepseek-chat-v3-0324:free' },
              { name: 'qwen/qwen3-coder' },
+             { name: 'qwen/qwen3-coder:free' },
              { name: 'meta-llama/llama-4-maverick' },
              { name: 'meta-llama/llama-4-scout' },
              { name: 'meta-llama/llama-4-scout:free' },

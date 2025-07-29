@@ -897,6 +897,11 @@ function writeFile
   })
 }
 
+function stamp
+() {
+  return new Date().toISOString()
+}
+
 export
 function init
 () {
@@ -1161,7 +1166,9 @@ function init
 
     model = buf.opt('query.model.chat') || Mess.toss('Missing query.model.chat')
 
-    msgs.push({ role: 'user', content: prompt })
+    msgs.push({ role: 'user',
+                content: JSON.stringify({ message: prompt,
+                                          date: stamp() }) })
 
     go()
   }
@@ -1187,17 +1194,19 @@ function init
         if (reminds == 10)
           throw 'Too many reminds in a row, giving up'
         reminds++
-        buf.vars('query').msgs.push({ 'role': 'user',
-                                      'content': JSON.stringify({ 'success': false,
-                                                                  'message': '⚠️ Oops—you need to send a valid JSON response.' }) })
+        buf.vars('query').msgs.push({ role: 'user',
+                                      content: JSON.stringify({ success: false,
+                                                                date: stamp(),
+                                                                message: '⚠️ Oops—you need to send a valid JSON response.' }) })
 
       }
 
       function wait
       () {
-        buf.vars('query').msgs.push({ 'role': 'user',
-                                      'content': JSON.stringify({ 'success': false,
-                                                                  'text': '⚠️ Waiting for your response.' }) })
+        buf.vars('query').msgs.push({ role: 'user',
+                                      content: JSON.stringify({ success: false,
+                                                                date: stamp(),
+                                                                message: '⚠️ Waiting for your response.' }) })
       }
 
       function push
@@ -1422,7 +1431,9 @@ function init
 
     model = buf.opt('query.model.agent') || Mess.toss('Missing query.model.agent')
 
-    msgs.push({ role: 'user', content: prompt })
+    msgs.push({ role: 'user',
+                content: JSON.stringify({ message: prompt,
+                                          date: stamp() }) })
 
     go()
   }
@@ -2007,9 +2018,9 @@ function init
                          properties: { answer: { type: 'string',
                                                  description: 'Human readable freeform text.' } },
                          required: [ 'answer' ] } ],
-             prompt: 'You are a helpful assitant inside an Electron code editor on a ' + Bred.os() + ` system.
+             prompt: 'You are a helpful assistant inside an Electron code editor on a ' + Bred.os() + ` system.
 Your goal is to complete a task by using a sequence of responses.
-You respond with valid JSON that may include a call to a subtool, and then wait for the user's response:
+You respond with valid JSON that may include a call to a subtool:
 
   {
     "answer": string,
@@ -2017,7 +2028,7 @@ You respond with valid JSON that may include a call to a subtool, and then wait 
     // plus any subtool-specific args
   }
 
-The user's response is also valid JSON:
+and then you wait for the user's response.  The user's response is also valid JSON:
 
   {
     success: boolean,
@@ -2030,9 +2041,15 @@ Available subtools:` + getPromptSubDescr() + `
 
 When you want to ask the user something or deliver commentary, use the "answer" field.
 
+Current Date: ${stamp()}
+
 EXAMPLE 1:
 
-User: “Create a file ‘notes/todo.txt’ with the text ‘Buy milk’, then show me its contents.”
+User →
+{
+  "message": "Create a file ‘notes/todo.txt’ with the text ‘Buy milk’, then show me its contents.",
+  "date": "2025-07-29T13:00:37.938Z"
+}
 
 Assistant →
 {
@@ -2083,7 +2100,11 @@ Assistant →
 
 EXAMPLE 2:
 
-User: “Revert the changes to file abc.js”
+User →
+{
+  "message": "Revert the changes to file abc.js",
+  "date": "2025-07-29T15:34:08.082Z"
+}
 
 Assistant →
 {
@@ -2094,11 +2115,11 @@ Assistant →
 }
 
 User →
-{ "success": true,
+{
+  "success": true,
   "code": "0",
-  "output": "" }
-
-` }
+  "output": ""
+}` }
   }
 
   allSubs = [ { key: 'createDir',

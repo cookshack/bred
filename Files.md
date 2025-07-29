@@ -1,5 +1,22 @@
 # Bred Source Files and Exported Functions
 
+## Overview
+
+Bred is an Electron-based code editor that supports multiple editing backends including CodeMirror, Monaco, and Ace. It is designed as a modern, extensible editor with features commonly found in Emacs-style editors, such as advanced navigation, multiple panes, and customizable key bindings.
+
+The codebase is organized into several categories:
+- Core application files that handle initialization and main functionality
+- Editor backend implementations for different editing engines
+- Electron process communication files for secure context isolation
+- Main process file system operations
+- Main process specialized functionality (browser, LSP, shell)
+- User interface management files (panes, tabs, windows)
+- Configuration and utility files
+- Extension system files
+- Version control integration
+- Prompt and execution systems
+- Directory and file browsing functionality
+
 ## Core Application Files
 
 ### js/main.mjs
@@ -509,3 +526,386 @@ CSS manipulation utilities.
 - `expand(ele)` - Expands element
 - `retract(ele)` - Retracts element
 - `initCss(cb)` - Initializes CSS
+
+### js/util.mjs
+
+General utility functions.
+
+**Functions:**
+- `homeSet(h)` - Sets the home directory
+- `home()` - Gets the home directory
+- `arrRm1(arr, pred)` - Removes an element from an array
+- `stripFilePrefix(path)` - Strips file:// prefix from path
+- `stripAnsi(str)` - Strips ANSI escape codes from string
+- `bool(x)` - Converts value to boolean
+- `defined(arg)` - Checks if argument is defined
+- `urlAt(l, pos)` - Gets URL at position in line
+- `includes(text, needle, foldCase)` - Checks if text includes needle
+- `use()` - Utility function to prevent warnings about unused arguments
+
+## Extension System Files
+
+### js/ext.mjs
+
+Extension management system
+
+**Functions:**
+- `load(dir, name, cb)` - Loads an extension
+- `loadAll()` - Loads all extensions
+- `get(name)` - Gets an extension by name
+- `init()` - Initializes the extension system
+
+## Version Control Integration Files
+
+### js/vc.mjs
+
+Version control integration (Git)
+
+**Functions:**
+- `initStash()` - Initializes stash functionality
+- `initCommit()` - Initializes commit functionality
+- `applyHunkTooPrecise(view, hunk)` - Applies a precise hunk
+- `initEqual()` - Initializes diff/patch viewing
+- `initLog()` - Initializes Git log viewing
+- `initAnnotate()` - Initializes Git annotate (blame) functionality
+- `init()` - Initializes the VC system
+
+## Prompt and Execution System Files
+
+### js/exec.mjs
+
+Command execution interface
+
+**Functions:**
+- `divW()` - Creates execution window
+- `init()` - Initializes the execution system
+
+### js/prompt.mjs
+
+Prompt system for user input
+
+**Functions:**
+- `callerView()` - Gets the caller view
+- `yn(content, spec, cb)` - Shows yes/no prompt
+- `choose(content, choices, spec, cb)` - Shows choice prompt
+- `demand(em, co)` - Shows a demand prompt
+- `demandBuf(w, spec)` - Shows a demand buffer
+- `close()` - Closes the prompt
+- `ask(spec, cb)` - Shows an ask prompt
+- `dir(spec)` - Shows directory prompt
+- `file(spec)` - Shows file prompt
+- `init()` - Initializes the prompt system
+
+## Directory and File Browsing Files
+
+### js/dir.mjs
+
+Directory browsing and file management
+
+**Functions:**
+- `nav(path, run)` - Creates navigation elements
+- `formatTime(date, tz, timeFormat, includeSeconds)` - Formats a time
+- `getMarked(b)` - Gets marked files
+- `add(p, dir, initialFile)` - Adds a directory buffer
+- `init()` - Initializes directory functionality
+
+### js/browse.mjs
+
+Web browsing functionality
+
+**Functions:**
+- `browse(href)` - Opens a web browser
+- `init()` - Initializes browsing functionality
+
+## Additional Utility Files
+
+### js/about.mjs
+
+About/help system
+
+**Functions:**
+- `initDescribeKey()` - Initializes key description functionality
+- `initDescribeCmd()` - Initializes command description functionality
+- `initDescribeWord()` - Initializes word description functionality
+- `init()` - Initializes the about/help system
+
+### js/apt.mjs
+
+APT package management interface
+
+**Functions:**
+- `run(cmd)` - Runs an APT command
+- `init()` - Initializes APT functionality
+
+### js/area.mjs
+
+UI area management
+
+**Functions:**
+- `add(win, name)` - Adds an area
+- `current(win)` - Gets the current area
+- `getByName(win, name)` - Gets an area by name
+- `hide(win, name)` - Hides an area
+- `show(win, name)` - Shows an area
+- `forEach(cb)` - Iterates through areas
+
+### js/cut.mjs
+
+Cut/copy/paste functionality
+
+**Functions:**
+- `nth(i)` - Gets nth cut item
+- `add(str)` - Adds a string to cut buffer
+- `clear()` - Clears cut buffer
+
+### js/em.mjs
+
+Emacs-style key binding system
+
+**Functions:**
+- `init()` - Initializes key binding system
+- `on(key, cmd, modeKey)` - Registers a key binding
+- `replace(em)` - Replaces current keymap
+- `make(prefix)` - Creates a new keymap
+- `seq(cmd, buf)` - Gets key sequence for command
+- `look(wes, nth, buf, cb)` - Looks up a key sequence
+
+### js/frame.mjs
+
+Frame management (subdivisions of areas)
+
+**Functions:**
+- `add(tab, spec)` - Adds a frame
+- `current(tab)` - Gets current frame
+- `find(cb)` - Finds a frame
+- `forEach(cb)` - Iterates through frames
+
+### js/hist.mjs
+
+History management
+
+**Functions:**
+- `ensure(name)` - Ensures a history exists
+- `add(name, item)` - Adds an item to history
+- `get(name)` - Gets history by name
+- `forEach(cb)` - Iterates through histories
+
+### js/icon.mjs
+
+Icon management
+
+**Functions:**
+- `path(name)` - Gets icon path
+- `alt(name)` - Gets icon alt text
+- `mode(name)` - Gets mode icon
+- `modePath(name)` - Gets mode icon path
+
+### js/lsp.mjs
+
+Language Server Protocol client
+
+**Functions:**
+- `init()` - Initializes LSP client
+
+### js/man.mjs
+
+Manual page viewer
+
+**Functions:**
+- `init()` - Initializes manual page viewer
+
+### js/menu.mjs
+
+Menu system
+
+**Functions:**
+- `make(win)` - Creates a menu
+- `init()` - Initializes menu system
+
+### js/open.mjs
+
+File opening functionality
+
+**Functions:**
+- `init()` - Initializes file opening functionality
+
+### js/panel.mjs
+
+Panel management
+
+**Functions:**
+- `add(spec)` - Adds a panel
+- `get(name)` - Gets a panel by name
+- `forEach(cb)` - Iterates through panels
+
+### js/point.mjs
+
+Cursor/point management
+
+**Functions:**
+- `make(elePane, ele)` - Creates a point
+- `init()` - Initializes point system
+
+### js/recent.mjs
+
+Recent files management
+
+**Functions:**
+- `add(path, type)` - Adds a file to recent list
+- `get()` - Gets recent files
+- `init()` - Initializes recent files system
+
+### js/scroll.mjs
+
+Scrolling functionality
+
+**Functions:**
+- `redraw(view, spec, cb)` - Redraws scrollable content
+- `show(surf, numLines)` - Shows scrollable content
+
+### js/shell.mjs
+
+Shell command execution
+
+**Functions:**
+- `run(dir, sc, args, spec)` - Runs a shell command
+- `runToString(dir, sc, args, multi, cb)` - Runs shell command and captures output
+- `spawn1(sc, args, spec, cb)` - Spawns a shell command
+- `shell1(cmd, spec, cb)` - Runs a shell command with default settings
+- `edit()` - Edits current file
+- `nextErr(nth)` - Moves to next error
+- `init()` - Initializes shell functionality
+
+### js/step.mjs
+
+Debugging/stepping functionality
+
+**Functions:**
+- `init()` - Initializes stepping functionality
+
+### js/switch.mjs
+
+Switch/choice interface
+
+**Functions:**
+- `divW(choices, spec)` - Creates switch window
+- `init()` - Initializes switch functionality
+
+### js/view.mjs
+
+View management
+
+**Functions:**
+- `make(b, spec, cb)` - Creates a view
+
+### js/view-mode.mjs
+
+View mode functionality
+
+**Functions:**
+- `init()` - Initializes view mode
+
+### js/welcome.mjs
+
+Welcome screen
+
+**Functions:**
+- `init()` - Initializes welcome screen
+
+## Theme Files
+
+### js/theme-solarized.js
+
+Solarized theme implementation
+
+**Functions:**
+- `toX(r)` - Converts to hex
+- `toHex(c)` - Converts color to hex
+- `init(name, clrs, meanings, filterMeanings)` - Initializes theme
+
+### js/theme-solarized-dark.mjs
+
+Solarized dark theme
+
+**Functions:**
+- `init()` - Initializes dark theme
+
+### js/theme-solarized-light.mjs
+
+Solarized light theme
+
+**Functions:**
+- `init()` - Initializes light theme
+
+## Directory Overview
+
+### css/
+
+Contains CSS stylesheets for the application UI:
+
+- `bred.css` - Main application styles
+- `browse.css` - Browser component styles
+- `buffers.css` - Buffer-related styles
+- `cut.css` - Cut/copy/paste styles
+- `describe-cmd.css` - Command description styles
+- `describe-key.css` - Key description styles
+- `dir.css` - Directory browsing styles
+- `ed.css` - Editor component styles
+- `exec.css` - Execution interface styles
+- `exts.css` - Extension management styles
+- `lang.css` - Language-specific styles
+- `langs.css` - Language list styles
+- `manpage.css` - Manual page styles
+- `mess.css` - Messaging system styles
+- `options.css` - Options/preferences styles
+- `recent.css` - Recent files styles
+- `switch.css` - Switch/choice interface styles
+- `test-buffer.css` - Test buffer styles
+- `vc.css` - Version control styles
+- `web.css` - Web browsing styles
+
+### img/
+
+Contains SVG and PNG icons used throughout the application:
+
+- Application icons (logo, bred.svg)
+- UI element icons (x.svg, plus.svg, split.svg, etc.)
+- File type icons (csv.svg)
+- Action icons (calendar.svg, restart.svg, etc.)
+- Navigation icons (up.svg, down.svg, open.svg, etc.)
+
+### lib/
+
+Contains third-party libraries and dependencies:
+
+- `@babel/` - Babel JavaScript compiler
+- `@codemirror/` - CodeMirror editor components
+- `@lezer/` - Lezer parser library
+- `ace/` - ACE editor components
+- Various utility libraries (diff.js, crelt.js, style-mod.js, etc.)
+- Language server protocol implementation
+- Type definitions and JSON data files
+
+### etc/
+
+Contains miscellaneous files:
+
+- `shot.png` - Screenshot
+- `single.bashrc` - Bash configuration for single command execution
+- `swab.xcf` - GIMP image file
+
+### ext/
+
+Contains extension modules that can be added to enhance functionality:
+
+- Extension-specific JavaScript and CSS files
+- Configuration files for each extension
+
+### bin/
+
+Contains executable scripts and utilities:
+
+- Git-related scripts (git-stash-apply, git-stash-drop, etc.)
+- System integration scripts
+- Utility scripts for various operations
+

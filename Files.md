@@ -361,14 +361,129 @@ CSS manipulation utilities.
 ### Other Notable Files
 
 1. **js/preload.js** - Electron preload script for secure context isolation
+
+**Functions:**
+- `tron.cmd(name, args)` - Invokes a command in the main process
+- `tron.acmd(name, args)` - Asynchronously invokes a command in the main process
+- `tron.send(ch, ...args)` - Sends a message to the main process
+- `tron.receive(ch, cb)` - Receives a one-time response from the main process
+- `tron.on(ch, cb)` - Registers a listener for messages from the main process
+- `tron.off(ch, cb)` - Unregisters a listener for messages from the main process
+
 2. **js/main-file.mjs** - File operation handlers in main process
+
+**Functions:**
+- `onCp(e, ch, onArgs)` - Handles file copy operations
+- `onExists(e, ch, onArgs)` - Checks if a file exists
+- `onGet(e, ch, onArgs)` - Reads a file
+- `onLn(e, ch, onArgs)` - Creates symbolic links
+- `onModify(e, ch, onArgs)` - Modifies a file with edits
+- `onMv(e, ch, onArgs)` - Moves files
+- `onPatch(e, ch, onArgs)` - Applies a patch to a file
+- `onRm(e, ch, onArgs)` - Removes a file
+- `onSave(e, ch, onArgs)` - Saves a file
+- `onSaveTmp(e, onArgs)` - Saves a temporary file
+- `onStat(e, ch, onArgs)` - Gets file statistics
+- `onTouch(e, ch, onArgs)` - Updates file access/modify times
+- `onWatch(e, ch, onArgs)` - Watches a file for changes
+
 3. **js/main-dir.mjs** - Directory operation handlers in main process
+
+**Functions:**
+- `onGet(e, ch, dir)` - Reads directory contents
+- `onMake(e, ch, dir)` - Creates a directory
+- `onRm(e, ch, onArgs)` - Removes a directory
+- `onWatch(e, ch, onArgs)` - Watches a directory for changes
+
 4. **js/main-browse.mjs** - File browser functionality
+
+**Functions:**
+- `onOpen(e, ch, onArgs)` - Opens a web browser view
+- `onZoom(e, onArgs)` - Zooms the browser view
+- `onBack(e, onArgs)` - Navigates back in browser history
+- `onClose(e, onArgs)` - Closes a browser view
+- `onReload(e, onArgs)` - Reloads a browser view
+- `onReopen(e, onArgs)` - Reopens a browser view
+- `onPass(e, onArgs)` - Passes input events to a browser view
+- `init()` - Initializes the browser module
+
 5. **js/main-lsp.mjs** - Language Server Protocol integration
+
+**Functions:**
+- `setWin(w)` - Sets the main window reference
+- `onEdit(e, ch, onArgs)` - Handles LSP edit notifications
+- `onReq(e, ch, onArgs)` - Handles LSP requests
+- `make(lang, dir)` - Creates an LSP client for a language
+
 6. **js/main-shell.mjs** - Shell command execution
+
+**Functions:**
+- `on(e, ch, onArgs, ctx)` - Executes shell commands with default settings
+- `onRun(e, ch, onArgs, ctx)` - Executes shell commands with custom settings
+- `onOpen(e, ch, onArgs)` - Opens URLs in external applications
+- `onShow(e, ch, onArgs)` - Shows files in system file manager
+
 7. **js/opt.mjs** - Option and configuration management
+
+**Functions:**
+- `load(cb)` - Loads options from storage
+- `check(name)` - Validates option name format
+- `declare(name, type, value)` - Declares an option with type and default value
+- `get(name)` - Gets an option value
+- `set(name, value)` - Sets an option value
+- `toggle(name)` - Toggles a boolean option
+- `type(name)` - Gets an option type
+- `onSet1(name, cb)` - Registers a callback for when an option changes
+- `onSet(nameOrArray, cb)` - Registers callbacks for when options change
+- `onSetBuf1(name, cb)` - Registers a callback for when a buffer option changes
+- `onSetBuf(nameOrArray, cb)` - Registers callbacks for when buffer options change
+- `forEach(cb)` - Iterates through all options
+- `map(cb)` - Maps over all options
+- `sort()` - Returns sorted option entries
+- `buf(buffer)` - Creates buffer-specific options interface
+- `mode()` - Creates mode-specific options interface
+- `init()` - Initializes the options system
+
 8. **js/pane.mjs** - Pane management and layout
+
+**Functions:**
+- `init()` - Initializes the pane system
+- `current(frame)` - Gets the current pane in a frame
+- `focusView(view, skipEd, skipEle)` - Focuses a pane containing a view
+- `add(frame, b, lineNum)` - Adds a new pane
+- `nextOrSplit()` - Gets the next pane or creates a new split
+- `split()` - Splits the current pane
+- `max()` - Maximizes the current pane
+- `holding(el)` - Gets the pane containing an element
+- `holdingView(view)` - Gets the pane containing a view
+- `bury(pane)` - Buries the buffer in a pane
+- `clearBuf(buf)` - Clears a buffer from all panes
+- `cancel()` - Cancels current operation
+- `recenter()` - Recenters the current view
+- `openFile(path, lineNum, whenReady)` - Opens a file in the current pane
+- `openDir(path)` - Opens a directory in the current pane
+- `open(path, lineNum, whenReady)` - Opens a file or directory
+- `length()` - Gets the number of panes in the current frame
+- `top(frame)` - Gets the top pane in a frame
+- `forEach(cb)` - Iterates through all panes
+
 9. **js/tab.mjs** - Tab management and navigation
+
+**Functions:**
+- `init()` - Initializes the tab system
+- `add(area, options)` - Adds a new tab
+- `get(area, id)` - Gets a tab by ID
+- `getByIndex(area, i)` - Gets a tab by index
+- `current(area)` - Gets the current tab in an area
+- `forEach(area, cb)` - Iterates through tabs in an area
+- `every(area, cb)` - Checks if all tabs in an area satisfy a condition
+
 10. **js/win.mjs** - Window management
 
-These files contain various utility functions and specialized functionality but were not fully documented here due to length constraints. Each typically exports functions related to their specific domain such as file operations, directory management, LSP integration, shell commands, option handling, pane management, tab navigation, and window operations.
+**Functions:**
+- `add(window, spec)` - Adds a new window
+- `current()` - Gets the current window
+- `forEach(cb)` - Iterates through all windows
+- `root()` - Checks if this is the root window
+- `shared()` - Gets shared window data
+- `init()` - Initializes the window system

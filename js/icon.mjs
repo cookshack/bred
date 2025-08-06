@@ -15,6 +15,9 @@ function path
   if (name == 'csv')
     return 'img/csv.svg'
 
+  if (name == 'menu')
+    return 'img/menu.svg'
+
   if (name == 'prompt')
     return 'img/prompt-square.svg'
 

@@ -2323,6 +2323,7 @@ User →
              { name: 'meta-llama/llama-4-scout:free' },
              { name: 'mistralai/devstral-small' },
              { name: 'mistralai/devstral-small-2505:free' },
+             { name: 'qwen/qwen3-235b-a22b-thinking-2507' },
              { name: 'qwen/qwen3-coder' },
              { name: 'qwen/qwen3-coder:free' },
              { name: 'z-ai/glm-4.5' },

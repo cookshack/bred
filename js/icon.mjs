@@ -9,6 +9,9 @@ function setHave
 export
 function path
 (name) {
+  if (name == 'assist')
+    return 'img/assist.svg'
+
   if (name == 'bred')
     return 'img/bred.svg'
 

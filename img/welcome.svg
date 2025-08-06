@@ -6,7 +6,7 @@
    fill="none"
    version="1.1"
    id="svg1827"
-   sodipodi:docname="assist.svg"
+   sodipodi:docname="welcome.svg"
    inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -40,17 +40,18 @@
      d="M 22.013976,8.6020094 C 22.013976,11.013652 22,16.28467 22,20 c 0,1.108 -0.892,2 -2,2 H 4 C 2.892,22 2,21.108 2,20 V 4 C 2,2.892 2.892,2 4,2 h 12.278667"
      sodipodi:nodetypes="ccsssssc" />
   <!-- Top: Thin section divider (for sections) -->
-  <path
-     id="line1821"
-     style="stroke:#000000;stroke-dasharray:4,2;stroke-width:2;stroke-dashoffset:0"
-     d="M 5.1778594,4 V 16.600844 20"
-     sodipodi:nodetypes="ccc" />
   <!-- Middle: Upward arrow (caller relationships) -->
-  <path
-     d="M 15.467947,12 9.3037312,7.4850399 V 16.51496 Z"
-     fill="#000000;"
-     stroke="none"
-     id="path1823"
-     style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1" />
   <!-- Bottom: Dotted line (patch fragments) -->
+  <rect
+     style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+     id="rect3331"
+     width="13.035615"
+     height="12.312244"
+     x="5.4138956"
+     y="9.6990433" />
+  <path
+     style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;stroke-dasharray:none"
+     d="m 3.0025887,9.6990434 8.9291153,-8.03958 9.052332,8.03958 H 18.44951 5.4138955 Z"
+     id="path3387"
+     sodipodi:nodetypes="cccccc" />
 </svg>

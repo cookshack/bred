@@ -27,6 +27,9 @@ function path
   if (name == 'warning')
     return 'img/warning.svg'
 
+  if (name == 'welcome')
+    return 'img/welcome.svg'
+
   if (have) {
     if (name == 'assist')
       return 'lib/svg/file-icons/Manpage.svg'

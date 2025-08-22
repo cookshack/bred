@@ -2316,7 +2316,9 @@ User →
                                                 description: 'New contents for the file.' } },
                           required: [ 'answer', 'subtool', 'path', 'text' ] } } ]
 
-  models = [ { name: 'deepseek/deepseek-chat-v3-0324' },
+  models = [ { name: 'deepseek/deepseek-chat-v3.1' },
+             { name: 'deepseek/deepseek-chat-v3.1:free' },
+             { name: 'deepseek/deepseek-chat-v3-0324' },
              { name: 'deepseek/deepseek-chat-v3-0324:free' },
              { name: 'meta-llama/llama-4-maverick' },
              { name: 'meta-llama/llama-4-scout' },

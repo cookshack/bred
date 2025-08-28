@@ -78,7 +78,7 @@ function savePoss
 
 export
 function make
-(spec = {}) { // { name, modeKey, content, dir, file, placeholder, vars }
+(spec = {}) { // { name, modeKey, content, dir, file, placeholder, single, vars }
   let { name, modeKey, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk, ed
   let placeholder
@@ -488,6 +488,9 @@ function make
         },
         get placeholder() {
           return placeholder
+        },
+        get single() {
+          return spec.single
         },
         get syntaxTreeStr() {
           return syntaxTreeStr(b)

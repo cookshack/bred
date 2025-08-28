@@ -609,7 +609,7 @@ function watch
 export
 async function viewInitSpec
 (view,
- spec, // { text, modeWhenText, lineNum, whenReady(view), revert, wextsMode }
+ spec, // { text, modeWhenText, lineNum, whenReady(view), revert, single, wextsMode }
  cb) {
   let data
 
@@ -621,7 +621,7 @@ async function viewInitSpec
   data = await Tron.acmd('peer.get', [ view.buf.id ])
   d('peer.get ' + view.buf.id + ' ok (' + view.buf.name + ')')
   d({ data })
-  _viewInit(makePeer(view.buf.id, data.version),
+  _viewInit(spec.single ? 0 : makePeer(view.buf.id, data.version),
             view,
             data.fresh ? 0 : data.text,
             spec.modeWhenText,

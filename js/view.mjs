@@ -501,6 +501,7 @@ function make
                           { lineNum,
                             whenReady,
                             placeholder: b.placeholder,
+                            single: b.single,
                             wextsMode: mode.wexts },
                           cb)
       }

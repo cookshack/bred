@@ -199,7 +199,8 @@ function ask
                    modeKey: 'prompt2',
                    content: spec.w,
                    dir: p.dir,
-                   placeholder })
+                   placeholder,
+                   single: 1 })
   buf.vars('ed').fillParent = 0
   buf.opts.set('blankLines.enabled', 0)
   buf.opts.set('core.autocomplete.enabled', 0)

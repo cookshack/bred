@@ -1104,6 +1104,10 @@ function init
               delta = json.choices[0].delta
               d(delta)
               if (delta.content?.length) {
+                // sometimes the response is formatted entirely into a very narrow column, hoping this helps
+                // if msg starts w/ nl then strip nl
+                if (delta.content.startsWith('\n'))
+                  delta.content = delta.content.slice(1)
                 cb && cb(delta)
                 buf.vars('query').msgs.push(delta)
               }

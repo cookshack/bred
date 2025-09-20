@@ -13,7 +13,7 @@ modes = Mk.array
 
 export
 function add
-(key, spec) {
+(key, spec) { // { ..., onRemove }
   let m
 
   function getParentEms
@@ -83,6 +83,7 @@ function add
   m.icon = spec.icon
   m.mime = spec.mime
   m.onEmEmpty = spec.onEmEmpty
+  m.onRemove = spec.onRemove
   m.start = start
   m.stop = stop
   m.seize = spec.seize

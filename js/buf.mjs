@@ -130,6 +130,8 @@ function make
       if (p2.buf && (p2.buf.id == b.id))
         p2.setBuf(buf)
     })
+    if (mode?.onRemove)
+      mode.onRemove(b)
     onRemoves.forEach(cb => cb(b))
   }
 

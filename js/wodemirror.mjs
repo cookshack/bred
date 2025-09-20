@@ -4005,6 +4005,15 @@ function addMode
 (lang, spec) {
   let mode, exts, mime, key
 
+  function remove
+  (buf) {
+    d(lang.id + ' removing in ' + buf.name)
+    buf.views.forEach(view => {
+      if (view.ed)
+        view.ed.destroy()
+    })
+  }
+
   function seizeLang
   (b) {
     d(lang.id + ' seizing ' + b.name)
@@ -4036,6 +4045,7 @@ function addMode
                     wexts: spec.wexts,
                     mime,
                     //
+                    onRemove: remove,
                     seize: seizeLang })
   lang.mode = mode
 

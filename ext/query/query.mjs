@@ -1575,6 +1575,23 @@ function init
                })
   })
 
+  function lineStart
+  () {
+    let p, end
+
+    p = Pane.current()
+    end = p.view.buf?.vars('query').promptEnd
+    if (end == null) {
+      Cmd.run('line start')
+      return
+    }
+    if (end < p.view.bep) {
+      p.view.bep = end
+      return
+    }
+    Cmd.run('line start')
+  }
+
   function prevHist
   (nth) {
     let p, prev, hist
@@ -2360,21 +2377,18 @@ User →
 
   makeExtRo()
 
+  Cmd.add('set agent model', () => setModel('agent'))
+  Cmd.add('set chat model', () => setModel('chat'))
+
   chMo = Mode.add('Chat', { minor: 1,
                             wexts: [ { backend: 'cm',
                                        make: () => extRo,
                                        part: new CMState.Compartment } ] })
 
-  Cmd.add('accept tool', () => accept(), mo)
-  Cmd.add('set buffer model', () => setBufModel(), mo)
-
-  Cmd.add('set agent model', () => setModel('agent'), mo)
-  Cmd.add('set chat model', () => setModel('chat'), mo)
-
   Cmd.add('enter', () => enter(), chMo)
-  Cmd.add('next history item', () => prevHist(-1), mo)
-  Cmd.add('previous history item', () => prevHist(), mo)
-  Cmd.add('reject tool', () => reject(), mo)
+  Cmd.add('line start', () => lineStart(), chMo)
+  Cmd.add('next history item', () => prevHist(-1), chMo)
+  Cmd.add('previous history item', () => prevHist(), chMo)
 
   Em.on('Enter', 'enter', chMo)
   Em.on('A-p', 'previous history item', chMo)
@@ -2388,6 +2402,10 @@ User →
   Em.on(' ', 'self insert', chMo)
 
   chToolMo = Mode.add('Chat Tool', { minor: 1 })
+
+  Cmd.add('accept tool', () => accept(), chToolMo)
+  Cmd.add('reject tool', () => reject(), chToolMo)
+  Cmd.add('set buffer model', () => setBufModel(), chToolMo)
 
   Em.on('y', 'accept tool', chToolMo)
   Em.on('n', 'reject tool', chToolMo)

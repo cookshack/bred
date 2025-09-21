@@ -2,6 +2,7 @@ import * as Buf from './buf.mjs'
 import * as Hist from './hist.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
+//import { d } from './mess.mjs'
 
 import getCurrentLine from '../lib/get-current-line.js'
 
@@ -86,13 +87,18 @@ function get
 
   name = canon(name)
   mo = buf?.mode
+  //d('GET ' + name)
+  //d(mo)
   if (mo) {
+    //d(buf.minors)
     if (buf.minors)
       for (let mi = 0; mi < buf.minors.length; mi++)
         if (buf.minors[mi].cmds && buf.minors[mi].cmds[name])
           return buf.minors[mi].cmds[name]
+    //d(mo.cmds)
     if (mo.cmds && mo.cmds[name])
       return mo.cmds[name]
+    //d(mo.parentsForEm)
     if (mo.parentsForEm)
       for (let i = 0; i < mo.parentsForEm.length; i++) {
         let pmo
@@ -233,7 +239,7 @@ function add
   let fname
 
   fname = fName(name)
-  //D("cmd.add: " + (mo ? (mo.key + ": ") : "") + fname + (cb ? "" : " (to be defined)"))
+  //d("cmd.add: " + (mo ? (mo.key + ": ") : "") + fname + (cb ? "" : " (to be defined)"))
   if (cb)
     //Object.defineProperty(cb, 'name', {value: fname, writable: false})
     fCmds[fname] = cb

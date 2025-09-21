@@ -1590,7 +1590,7 @@ function init
         d(r)
         Ed.Backend.remove(p.view.ed, r)
         d(prev)
-        p.buf.append(' ' + prev)
+        p.buf.append(prev)
       }
     }
   }

@@ -1619,6 +1619,9 @@ function init
     if (r.to < r.from)
       // something went wrong
       r.to = r.from
+    if (r.from < r.to)
+      // skip the space. Handy for prevHist that wants to rm range
+      r.from++
 
     return r
   }

@@ -2344,16 +2344,20 @@ User →
              { name: 'deepseek/deepseek-chat-v3.1:free' },
              { name: 'deepseek/deepseek-chat-v3-0324' },
              { name: 'deepseek/deepseek-chat-v3-0324:free' },
+             { name: 'inclusionai/ling-1t' },
              { name: 'meta-llama/llama-4-maverick' },
              { name: 'meta-llama/llama-4-scout' },
              { name: 'meta-llama/llama-4-scout:free' },
+             { name: 'minimax/minimax-m2' },
+             { name: 'minimax/minimax-m2:free' },
              { name: 'mistralai/devstral-small' },
              { name: 'mistralai/devstral-small-2505:free' },
              { name: 'qwen/qwen3-235b-a22b-thinking-2507' },
              { name: 'qwen/qwen3-coder' },
              { name: 'qwen/qwen3-coder:free' },
-             { name: 'z-ai/glm-4.5' },
-             { name: 'z-ai/glm-4.5-air' }, // cheaper
+             { name: 'qwen/qwen3-v1-235b-a22b-instruct' },
+             { name: 'z-ai/glm-4.6' },
+             { name: 'z-ai/glm-4.6:exacto' },
              { name: 'z-ai/glm-4-32b' }, // chat only
              { name: 'z-ai/glm-4-32b:free' },
              //

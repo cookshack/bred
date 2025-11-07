@@ -69,7 +69,7 @@ function modeFor
     lang = langs.find(l => l.path && l.path.test(path))
       || langs.find(l => l.filename && l.filename.test(filename))
       || langs.find(l => l.filenames?.some(fn => filename == fn))
-      || langs.find(l => l.extensions?.some(e => path.endsWith(e)))
+      || langs.find(l => l.extensions?.some(e => path.toLowerCase().endsWith(e.toLowerCase())))
     d('modeFor lang: ' + lang?.id)
     return modeFromLang(lang?.id)
   }

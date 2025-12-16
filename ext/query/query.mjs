@@ -2344,6 +2344,7 @@ User →
              { name: 'deepseek/deepseek-chat-v3.1:free' },
              { name: 'deepseek/deepseek-chat-v3-0324' },
              { name: 'deepseek/deepseek-chat-v3-0324:free' },
+             { name: 'deepseek/deepseek-v3.2' },
              { name: 'deepseek/deepseek-v3.2-exp' },
              { name: 'deepseek/deepseek-v3.1-terminus' },
              { name: 'inclusionai/ling-1t' },

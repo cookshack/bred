@@ -2355,6 +2355,7 @@ User →
              { name: 'minimax/minimax-m2:free' },
              { name: 'mistralai/devstral-small' },
              { name: 'mistralai/devstral-small-2505:free' },
+             { name: 'openai/gpt-oss-120b' },
              { name: 'qwen/qwen3-235b-a22b-thinking-2507' },
              { name: 'qwen/qwen3-coder' },
              { name: 'qwen/qwen3-coder:free' },

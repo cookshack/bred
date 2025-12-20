@@ -1810,96 +1810,102 @@ function init
         Mess.toss('cancel function missing')
   })
 
-  function prompt
-  (type) {
-    let cb, model
+  function runPrompt
+  (prompt, type, model) {
+    let name, buf, p, cb
 
     cb = chat
-    if (type == 'Agent') {
-      model = Opt.get('query.model.agent')
+    if (type == 'Agent')
       cb = chatAgent
+
+    name = type + ': ' + prompt
+    p = Pane.current()
+    buf = Buf.find(b2 => b2.name == name)
+
+    if (buf)
+      buf.dir = p.dir
+    else {
+      let w, toolW, toolName
+
+      toolName = divCl('query-tool-name')
+      toolW = divCl('query-tool-w retracted',
+                    [ divCl('query-tool-q',
+                            [ divCl('query-tool-text',
+                                    [ 'Run ', toolName, '?' ]),
+                              divCl('query-tool-y',
+                                    button([ span('Y', 'key'), 'es' ],
+                                           'query-tool-button',
+                                           { 'data-run': 'accept tool' })),
+                              divCl('query-tool-n',
+                                    button([ span('N', 'key'), 'o' ],
+                                           'query-tool-button',
+                                           { 'data-run': 'reject tool' })) ]),
+                      divCl('query-tool-args') ])
+      w = Ed.divW(0, 0,
+                  { ml: divMl(model, type, prompt),
+                    extraCo: toolW })
+      buf = Buf.add(name, 'richdown', w, p.dir)
+      buf.vars('query').type = type
+      buf.vars('query').emo = (type == 'Agent' ? emoAgent : emo)
+      buf.vars('query').premo = (type == 'Agent' ? premoAgent : premo)
+      buf.vars('ed').fillParent = 0
+      buf.addMode('chat')
+      //buf.addMode('view')
+      buf.icon = 'chat'
     }
-    else
-      model = Opt.get('query.model.chat')
-    Prompt.ask({ text: (type == 'Agent' ? emoAgent : emo) + ' ' + model,
-                 hist },
-               prompt => {
-                 let name, buf, p
+    busy(buf)
+    buf.vars('query').msgs = []
 
-                 name = type + ': ' + prompt
-                 p = Pane.current()
-                 buf = Buf.find(b2 => b2.name == name)
+    hist.add(prompt)
+    buf.vars('query').hist = Hist.ensure(name)
+    if (buf.vars('query').hist.length == 0)
+      buf.vars('query').hist.add(prompt)
 
-                 if (buf)
-                   buf.dir = p.dir
-                 else {
-                   let w, toolW, toolName
-
-                   toolName = divCl('query-tool-name')
-                   toolW = divCl('query-tool-w retracted',
-                                 [ divCl('query-tool-q',
-                                         [ divCl('query-tool-text',
-                                                 [ 'Run ', toolName, '?' ]),
-                                           divCl('query-tool-y',
-                                                 button([ span('Y', 'key'), 'es' ],
-                                                        'query-tool-button',
-                                                        { 'data-run': 'accept tool' })),
-                                           divCl('query-tool-n',
-                                                 button([ span('N', 'key'), 'o' ],
-                                                        'query-tool-button',
-                                                        { 'data-run': 'reject tool' })) ]),
-                                   divCl('query-tool-args') ])
-                   w = Ed.divW(0, 0,
-                               { ml: divMl(model, type, prompt),
-                                 extraCo: toolW })
-                   buf = Buf.add(name, 'richdown', w, p.dir)
-                   buf.vars('query').type = type
-                   buf.vars('query').emo = (type == 'Agent' ? emoAgent : emo)
-                   buf.vars('query').premo = (type == 'Agent' ? premoAgent : premo)
-                   buf.vars('ed').fillParent = 0
-                   buf.addMode('chat')
-                   //buf.addMode('view')
-                   buf.icon = 'chat'
-                 }
-                 busy(buf)
-                 buf.vars('query').msgs = []
-
-                 hist.add(prompt)
-                 buf.vars('query').hist = Hist.ensure(name)
-                 if (buf.vars('query').hist.length == 0)
-                   buf.vars('query').hist.add(prompt)
-
-                 buf.clear()
-                 p.setBuf(buf, {}, () => {
-                   appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
-                   buf.opts.set('core.line.wrap.enabled', 1)
-                   buf.opts.set('core.lint.enabled', 0)
-                   cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
-                      msg => {
-                        //d('CHAT append: ' + msg.content)
-                        appendWithEnd(buf, msg.content)
-                      },
-                      () => {
-                        d('cbEnd')
-                        appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
-                        done(buf)
-                      },
-                      // only used by chatAgent
-                      call => {
-                        d('cbCall ' + call.name)
-                        appendCall(buf, call)
-                        //done(buf)
-                      })
-                 })
-               })
+    buf.clear()
+    p.setBuf(buf, {}, () => {
+      appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
+      buf.opts.set('core.line.wrap.enabled', 1)
+      buf.opts.set('core.lint.enabled', 0)
+      cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+         msg => {
+           //d('CHAT append: ' + msg.content)
+           appendWithEnd(buf, msg.content)
+         },
+         () => {
+           d('cbEnd')
+           appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
+           done(buf)
+         },
+         // only used by chatAgent
+         call => {
+           d('cbCall ' + call.name)
+           appendCall(buf, call)
+           //done(buf)
+         })
+    })
   }
 
-  Cmd.add('chat', () => {
-    prompt('Chat')
-  })
+  function prompt
+  (type, model) {
+    Prompt.ask({ text: (type == 'Agent' ? emoAgent : emo) + ' ' + model,
+                 hist },
+               prompt => runPrompt(prompt, type, model))
+  }
 
   Cmd.add('agent', () => {
-    prompt('Agent')
+    prompt('Agent', Opt.get('query.model.agent'))
+  })
+
+  Cmd.add('chat', () => {
+    prompt('Chat', Opt.get('query.model.chat'))
+  })
+
+  Cmd.add('agent buffer', () => {
+    runPrompt(Pane.current().buf.text(), 'Agent', Opt.get('query.model.agent'))
+  })
+
+  Cmd.add('chat buffer', () => {
+    runPrompt(Pane.current().buf.text(), 'Chat', Opt.get('query.model.chat'))
   })
 
   function setModel

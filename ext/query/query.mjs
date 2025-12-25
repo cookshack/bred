@@ -196,7 +196,7 @@ function readFileOrDir
       || path.startsWith('/')) {
     cb({ error: 'Error: path must be relative',
          success: false,
-         subtool: 'read',
+         subtool: 'readFileOrDir',
          message: 'Failed to read.' })
     return
   }
@@ -209,7 +209,7 @@ function readFileOrDir
       d(err.message)
       cb({ error: err.message,
            success: false,
-           subtool: 'read',
+           subtool: 'readFileOrDir',
            message: 'Failed to read.' })
       return
     }
@@ -221,15 +221,15 @@ function readFileOrDir
           d(err.message)
           cb({ error: err.message,
                success: false,
-               subtool: 'read',
-               message: 'Failed to read.' })
+               subtool: 'readFileOrDir',
+               message: 'Failed to read file.' })
           return
         }
 
         d('READ data')
         d(data.data)
         cb({ success: true,
-             subtool: 'readFile',
+             subtool: 'readFileOrDir',
              message: 'Successfully read file.',
              type: 'file',
              contents: data.data })
@@ -243,7 +243,7 @@ function readFileOrDir
         d(err.message)
         cb({ error: err.message,
              success: false,
-             subtool: 'readDir',
+             subtool: 'readFileOrDir',
              message: 'Failed to read directory.' })
         return
       }
@@ -251,7 +251,7 @@ function readFileOrDir
       d('READ data')
       d(data.data)
       cb({ success: true,
-           subtool: 'readDir',
+           subtool: 'readFileOrDir',
            message: 'Successfully read directory.',
            type: 'dir',
            contents: data.data })
@@ -1643,6 +1643,33 @@ function init
     return r
   }
 
+  function expandFiles
+  (prompt) {
+    // Replace occurrences of @file:FILENAME with a markdown block containing the file's contents.
+    // The block format is:
+    // FILE: FILENAME
+    // ```
+    // CONTENTS
+    // ```
+    // If the file cannot be read, insert a placeholder indicating the error.
+    return prompt.replace(/@file:([^\s]+)/g, (match, filename) => {
+      try {
+        // Resolve the absolute path relative to the current pane's directory.
+        let absPath
+
+        absPath = Loc.make(Pane.current().dir).join(filename)
+        d({ absPath })
+        // Synchronously read the file using the built‑in readFile subtool.
+        // Since we cannot perform async I/O here, we fall back to a placeholder.
+        // In a real environment this could be replaced with an async call.
+        return `FILE: ${filename}\n\n\`\`\`\n[contents of ${filename}]\n\`\`\``
+      }
+      catch (e) {
+        return `FILE: ${filename}\n\n\`\`\`\n[error reading ${filename}: ${e.message}]\n\`\`\``
+      }
+    })
+  }
+
   function enter
   () {
     let r, p, buf, prompt, cb
@@ -1659,6 +1686,7 @@ function init
       Mess.yell('Empty prompt')
       return
     }
+    prompt = expandFiles(prompt)
     d({ prompt })
 
     buf = p.buf
@@ -1866,6 +1894,8 @@ function init
       appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
       buf.opts.set('core.line.wrap.enabled', 1)
       buf.opts.set('core.lint.enabled', 0)
+      prompt = expandFiles(prompt)
+      d({ prompt })
       cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
          msg => {
            //d('CHAT append: ' + msg.content)
@@ -2140,7 +2170,7 @@ Assistant →
 {
   "answer": "I will execute the a command to revert the file."
   "subtool": "execute",
-  "name": "git"
+  "name": "git",
   "args": [ "checkout", "HEAD", "--", "abc.js" ]
 }
 

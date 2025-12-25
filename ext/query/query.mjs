@@ -1644,30 +1644,49 @@ function init
   }
 
   function expandFiles
-  (prompt) {
-    // Replace occurrences of @file:FILENAME with a markdown block containing the file's contents.
-    // The block format is:
-    // FILE: FILENAME
-    // ```
-    // CONTENTS
-    // ```
-    // If the file cannot be read, insert a placeholder indicating the error.
-    return prompt.replace(/@file:([^\s]+)/g, (match, filename) => {
-      try {
-        // Resolve the absolute path relative to the current pane's directory.
-        let absPath
+  (buf, prompt, cb) {
+    let regex, files, match, index
 
-        absPath = Loc.make(Pane.current().dir).join(filename)
-        d({ absPath })
-        // Synchronously read the file using the built‑in readFile subtool.
-        // Since we cannot perform async I/O here, we fall back to a placeholder.
-        // In a real environment this could be replaced with an async call.
-        return `FILE: ${filename}\n\n\`\`\`\n[contents of ${filename}]\n\`\`\``
-      }
-      catch (e) {
-        return `FILE: ${filename}\n\n\`\`\`\n[error reading ${filename}: ${e.message}]\n\`\`\``
-      }
-    })
+    function processNext
+    () {
+      let path
+
+      path = files[index]
+      readFileOrDir(buf, { path }, result => {
+        buf.vars('query').msgs.push({ role: 'assistant',
+                                      content: JSON.stringify({ answer: 'I will read the contents of ' + path,
+                                                                subtool: 'readFileOrDir',
+                                                                path }) })
+        result = result || {}
+        result.success || Mess.yell('@file:' + path + ': ' + (result.error || 'Failed to read file'))
+        buf.vars('query').msgs.push({ role: 'user',
+                                      content: JSON.stringify(result) })
+        // Move to the next file
+        index++
+        if (index < files.length)
+          processNext()
+        else
+          // All files processed. Return the cleaned prompt via callback.
+          cb(prompt.replace(regex, '').trim())
+      })
+    }
+
+    regex = /@file:([^\s]+)/g
+    files = []
+
+    // Find all @file:PATH occurrences in the prompt
+    while ((match = regex.exec(prompt)))
+      files.push(match[1])
+
+    if (files.length == 0) {
+      cb(prompt)
+      return
+    }
+
+    buf.vars('query').msgs = buf.vars('query').msgs || []
+
+    index = 0
+    processNext()
   }
 
   function enter
@@ -1686,7 +1705,6 @@ function init
       Mess.yell('Empty prompt')
       return
     }
-    prompt = expandFiles(prompt)
     d({ prompt })
 
     buf = p.buf
@@ -1894,24 +1912,25 @@ function init
       appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
       buf.opts.set('core.line.wrap.enabled', 1)
       buf.opts.set('core.lint.enabled', 0)
-      prompt = expandFiles(prompt)
-      d({ prompt })
-      cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
-         msg => {
-           //d('CHAT append: ' + msg.content)
-           appendWithEnd(buf, msg.content)
-         },
-         () => {
-           d('cbEnd')
-           appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
-           done(buf)
-         },
-         // only used by chatAgent
-         call => {
-           d('cbCall ' + call.name)
-           appendCall(buf, call)
-           //done(buf)
-         })
+      prompt = expandFiles(buf, prompt, prompt => {
+        d({ prompt })
+        cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+           msg => {
+             //d('CHAT append: ' + msg.content)
+             appendWithEnd(buf, msg.content)
+           },
+           () => {
+             d('cbEnd')
+             appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
+             done(buf)
+           },
+           // only used by chatAgent
+           call => {
+             d('cbCall ' + call.name)
+             appendCall(buf, call)
+             //done(buf)
+           })
+      })
     })
   }
 

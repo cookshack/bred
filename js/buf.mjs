@@ -778,6 +778,7 @@ function view
                   lineNum: spec.lineNum,
                   whenReady: spec.whenReady },
                 cb)
+  console.log('buf.views.length: ' + buf.views.length + ' (' + buf.name.slice(0, 20) + ')')
   return v
 }
 

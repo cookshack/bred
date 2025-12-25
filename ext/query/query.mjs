@@ -2408,6 +2408,7 @@ User →
              { name: 'meta-llama/llama-4-scout:free' },
              { name: 'minimax/minimax-m2' },
              { name: 'minimax/minimax-m2:free' },
+             { name: 'minimax/minimax-m2.1' },
              { name: 'mistralai/devstral-small' },
              { name: 'mistralai/devstral-small-2505:free' },
              { name: 'openai/gpt-oss-120b' },
@@ -2416,8 +2417,7 @@ User →
              { name: 'qwen/qwen3-coder:free' },
              { name: 'qwen/qwen3-coder-30b-a3b-instruct' },
              { name: 'qwen/qwen3-v1-235b-a22b-instruct' },
-             { name: 'z-ai/glm-4.6' },
-             { name: 'z-ai/glm-4.6:exacto' },
+             { name: 'z-ai/glm-4.7' },
              { name: 'z-ai/glm-4-32b' }, // chat only
              { name: 'z-ai/glm-4-32b:free' },
              //

@@ -132,7 +132,15 @@ function make
     })
     if (mode?.onRemove)
       mode.onRemove(b)
-    onRemoves.forEach(cb => cb(b))
+    onRemoves.forEach(cb => {
+      try {
+        cb(b)
+      }
+      catch (err) {
+        Mess.warn('Error in buffer onRemove handler: ' + err.message)
+      }
+    })
+    onRemoves.length = 0 // Clear the array to prevent memory leaks
   }
 
   function setMode

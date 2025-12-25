@@ -43,20 +43,23 @@ function nextCh
 export
 function runToString
 (dir, sc, args, runInShell, cb) { // (str, code)
-  let ch, str
+  let ch, str, handler
 
   ch = nextCh()
   str = ''
   args = args || []
   d("runToString '" + sc + ' ' + args.join(' ') + "' in " + dir)
 
-  Tron.on(ch, (err, data) => {
+  // Define the IPC handler so we can remove it later
+  handler = (err, data) => {
     let der
 
     der = new TextDecoder()
 
     if (err) {
       Mess.yell('Shell.runToString: ' + err.message)
+      // Clean up listener on error
+      Tron.off(ch, handler)
       return
     }
 
@@ -65,10 +68,17 @@ function runToString
     if (data.stderr)
       str += der.decode(data.stderr)
     if (data.close === undefined) {
+      // still running, do nothing
     }
-    else if (cb)
+    else if (cb) {
+      // Invoke callback with final output and exit code
       cb(str, data.code)
-  })
+      // Clean up listener after completion
+      Tron.off(ch, handler)
+    }
+  }
+
+  Tron.on(ch, handler)
 
   Tron.cmd1('shell', [ ch, dir, sc, args || [], runInShell ? true : false ], (err, tch) => {
     if (err)
@@ -106,7 +116,7 @@ function run
  //   onClose // (buf, code)
  //   onErr } // (buf, err)
  spec) {
-  let ch, bep, b
+  let ch, bep, b, handler
 
   spec = spec || {}
   b = spec.buf
@@ -126,12 +136,15 @@ function run
     })
   }
 
-  Tron.on(ch, (err, data) => {
+  // Define the IPC handler so we can remove it after the command finishes
+  handler = (err, data) => {
     let decoder
 
     decoder = new TextDecoder()
     if (err) {
       Mess.yell('Shell.run: ' + err.message)
+      // Clean up on error
+      Tron.off(ch, handler)
       return
     }
 
@@ -171,6 +184,8 @@ function run
       if (spec.onClose)
         spec.onClose(b, data.code)
       Mess.log('SC exit: ' + sc + ': ' + data.code)
+      // Clean up listener after command finishes
+      Tron.off(ch, handler)
     }
 
     if (spec.onStderr && data.stderr)
@@ -182,8 +197,12 @@ function run
       if (spec.onErr)
         spec.onErr(b, err)
       Mess.say('SC err: ' + sc + ': ' + err.message)
+      // Clean up on error condition as well
+      Tron.off(ch, handler)
     }
-  })
+  }
+
+  Tron.on(ch, handler)
 
   if (b) {
     b.ml.set('busy', 'busy')

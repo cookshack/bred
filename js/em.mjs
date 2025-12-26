@@ -62,7 +62,11 @@ function make
         kb = to.ons[w.name]
       }
       else {
+        let key
+
         d('look1  ' + w.e.code + ' ' + w.e.key)
+
+        key = w.e.key
 
         // Have to do it this way in case capslock is set as an extra ctrl
         // in the os. If so then on down of capslock the browser sends
@@ -73,6 +77,9 @@ function make
           if (kb && kb.to && kb.to.ons) {
             d('look1  Control is a map')
             to = kb.to
+            // For control+space Chrome now sends: key=Unidentified, code=Space
+            if (w.e.code == 'Space')
+              key = ' '
           }
           else if (kb && kb.to) {
             Mess.warn('Control bound to cmd')
@@ -97,7 +104,7 @@ function make
             return 0
         }
 
-        kb = to.ons[w.e.key]
+        kb = to.ons[key]
       }
 
       kb = kb || otherwise

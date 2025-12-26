@@ -18,7 +18,7 @@
   "author": "Matt Mundell",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^36.0.1",
+    "electron": "^39.2.7",
     "globals": "^16.0.0",
     "husky": "^9.0.11",
     "jshint": "^2.13.6",
@@ -62,7 +62,7 @@
     "ace-builds": "1.35",
     "ace-code": "1.35",
     "ace-linters": "^1.2.2",
-    "better-sqlite3": "^11.9.1",
+    "better-sqlite3": "^12.5.0",
     "blamejs": "^1.0.0",
     "callsites": "^4.1.0",
     "check-dependencies": "^2.0.0",
@@ -85,7 +85,8 @@
     "mime": "^4.0.7",
     "monaco-editor": "^0.48.0",
     "monaco-themes": "^0.4.4",
-    "node-pty": "^1.0.0",
+    "node-abi": "^4.24.0",
+    "node-pty": "^1.1.0",
     "typescript": "^5.5.2",
     "typescript-language-server": "^4.3.3",
     "uuid": "^10.0.0"

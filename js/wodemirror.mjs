@@ -2382,23 +2382,29 @@ function selectAll() {
 }
 
 function lineIsClear
-(line) {
+(line, extras) {
   let text
 
   text = line.text
-  return (text.length == 0) || text.startsWith(' ') || text.startsWith('\t')
+  if ((text.length == 0) || text.startsWith(' ') || text.startsWith('\t'))
+    return 1
+  if (extras)
+    for (let i = 0; i < extras.length; i++)
+      if (text.startsWith(extras[i]))
+        return 1
+  return 0
 }
 
 function lineIsText
-(line) {
-  if (lineIsClear(line))
+(line, extras) {
+  if (lineIsClear(line, extras))
     return 0
   return 1
 }
 
 export
 function topLevelStart
-() {
+(extras) {
   let p, bep, l
 
   p = Pane.current()
@@ -2406,12 +2412,12 @@ function topLevelStart
   bep = vgetBep(p.view)
   //d('endLine: ' + endLine)
   l = p.view.ed.state.doc.lineAt(bep)
-  while ((l.number > 1) && lineIsText(l)) {
+  while ((l.number > 1) && lineIsText(l, extras)) {
     bep = l.from - 1
     l = p.view.ed.state.doc.lineAt(bep)
   }
 
-  while ((l.number > 1) && lineIsClear(l)) {
+  while ((l.number > 1) && lineIsClear(l, extras)) {
     bep = l.from - 1
     l = p.view.ed.state.doc.lineAt(bep)
   }
@@ -2424,7 +2430,7 @@ function topLevelStart
 
 export
 function topLevelEnd
-() {
+(extras) {
   let p, bep, endLine, l
 
   p = Pane.current()
@@ -2432,12 +2438,12 @@ function topLevelEnd
   endLine = vlen(p.view)
   //d('endLine: ' + endLine)
   l = p.view.ed.state.doc.lineAt(bep)
-  while ((l.number < endLine) && lineIsText(l)) {
+  while ((l.number < endLine) && lineIsText(l, extras)) {
     bep = l.to + 1
     l = p.view.ed.state.doc.lineAt(bep)
   }
 
-  while ((l.number < endLine) && lineIsClear(l)) {
+  while ((l.number < endLine) && lineIsClear(l, extras)) {
     bep = l.to + 1
     l = p.view.ed.state.doc.lineAt(bep)
   }
@@ -4000,6 +4006,16 @@ function modeLang
   return id
 }
 
+function cTopLevelStart
+() {
+  topLevelStart([ '#if', '#end' ])
+}
+
+function cTopLevelEnd
+() {
+  topLevelEnd([ '#if', '#end' ])
+}
+
 export
 function addMode
 (lang, spec) {
@@ -4065,6 +4081,10 @@ function addMode
   }
   else if (lang.id == 'markdown')
     Em.on('C-c C-c', 'rich', 'markdown')
+  else if (lang.id == 'c') {
+    Cmd.add('top level start', () => cTopLevelStart(), mode)
+    Cmd.add('top level end', () => cTopLevelEnd(), mode)
+  }
 
   if ([ 'javascript', 'css', 'cpp' ].includes(lang.id))
     Em.on('}', 'self insert and indent', mode)

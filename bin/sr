@@ -8,4 +8,4 @@ FIXED="--ignore-case --fixed-strings"
 if [ "$3" -eq "1" ]; then
   FIXED=""
 fi
-find . -type f -not -name \*.BAK -not -name \*.CKP -not -name \*~ $DEPTH 2>/dev/null | sort | uniq | xargs grep $FIXED --line-number "$1" -H -I 2>/dev/null # -I -e -H 2>/dev/null
+find . -type f -not -name \*.BAK -not -name \*.CKP -not -name \*~ $DEPTH 2>/dev/null | sort | uniq | xargs grep $FIXED --line-number -H -I -- "$1" 2>/dev/null # -I -e -H 2>/dev/null

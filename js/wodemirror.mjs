@@ -2537,19 +2537,17 @@ function lineEle
 
 function lineFullyVisible
 (view, rect, lineStart) {
-  if (lineStart) {
-    let ele, lineRect
+  let ele, lineRect
 
-    ele = lineEle(view, lineStart)
-    if (ele)
-      lineRect = makeRect(ele.getBoundingClientRect(), ele)
-    return rect && lineRect && containsVertically(rect, lineRect)
-  }
+  ele = lineEle(view, lineStart)
+  if (ele)
+    lineRect = makeRect(ele.getBoundingClientRect(), ele)
+  return rect && lineRect && containsVertically(rect, lineRect)
 }
 
 function xBep
 (view, bottom) {
-  let rect, xEdge, yEdge, bep, scroller, first, leeway
+  let rect, xEdge, yEdge, bep, scroller, first
 
   //return view.ed.viewport.from
   //return view.ed.visibleRanges.at(0)?.from || 0
@@ -2561,34 +2559,46 @@ function xBep
   yEdge = bottom ? rect.bottom : rect.top
   xEdge = rect.x
 
-  // a little leeway because the text is still visible even when the
-  // line is slightly outside the scroller.
-  leeway = 3
-  if (bottom) {
-    rect.bottom += leeway
-    rect.height += leeway
-  }
-  else
-    if (rect.top > leeway) {
-      rect.top -= leeway
-      rect.y -= leeway
+  if (0) {
+    let leeway
+
+    // a little leeway because the text is still visible even when the
+    // line is slightly outside the scroller.
+    leeway = 3
+    if (bottom) {
+      rect.bottom += leeway
       rect.height += leeway
     }
-    else {
-      rect.height -= rect.top
-      rect.top = 0
-      rect.y = 0
-    }
+    else
+      if (rect.top > leeway) {
+        rect.top -= leeway
+        rect.y -= leeway
+        rect.height += leeway
+      }
+      else {
+        rect.height -= rect.top
+        rect.top = 0
+        rect.y = 0
+      }
+  }
 
   //d(rect)
   bep = view.ed.posAtCoords({ x: xEdge, y: yEdge }) || 0
   bep = vlineStart(view, bep)
   first = bep
   for (let i = 0; i < 10; i++) {
-    //d('bep: ' + bep + ' line: ' + view.ed.state.doc.lineAt(bep).number)
-    if (lineFullyVisible(view, rect, bep))
-      return bep
-    bep = vlineStart(view, bep + (bottom ? -1 : 1))
+    let line
+
+    line = view.ed.state.doc.lineAt(bep)
+    if (line) {
+      d('bep: ' + bep + ' line: ' + line.number)
+      if (lineFullyVisible(view, rect, bep))
+        return bep
+      if (bottom)
+        bep = vlineStart(view, line.from - 1)
+      else
+        bep = line.to + 1
+    }
   }
   return first
 }

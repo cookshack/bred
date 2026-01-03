@@ -126,17 +126,19 @@ function init
     Prompt.ask({ text: 'Opencode',
                  hist },
                async prompt => {
-                 let p, buf, c, session
+                 let p, buf, c
 
                  p = Pane.current()
                  hist.add(prompt)
 
                  try {
-                   c = await ensureClient()
-                   session = await c.session.create({ body: { title: prompt } })
+                   let res
 
-                   buf = Buf.add('Opencode: ' + prompt, 'opencode', divW(session.id, prompt), p.dir)
-                   buf.vars('opencode').sessionId = session.id
+                   c = await ensureClient()
+                   res = await c.session.create({ body: { title: prompt } })
+
+                   buf = Buf.add('Opencode: ' + prompt, 'opencode', divW(res.data.id, prompt), p.dir)
+                   buf.vars('opencode').sessionId = res.data.id
                    buf.vars('opencode').prompt = prompt
 
                    p.setBuf(buf, {}, () => {

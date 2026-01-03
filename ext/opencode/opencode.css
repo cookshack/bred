@@ -24,7 +24,6 @@
 }
 
 .opencode-title {
-  font-weight: bold;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -54,15 +53,13 @@
 }
 
 .opencode-msg-role {
-  font-size: 0.75em;
-  font-weight: bold;
   margin-bottom: 2px;
   color: var(--clr-nb3);
   text-transform: uppercase;
 }
 
 .opencode-msg-user .opencode-msg-role {
-  color: var(--clr-ac);
+  color: var(--clr-emph);
 }
 
 .opencode-msg-text {
@@ -73,8 +70,7 @@
 }
 
 .opencode-msg-user .opencode-msg-text {
-  background: var(--clr-ac);
-  color: var(--clr-bg);
+  background: var(--clr-bg);
 }
 
 .opencode-msg-assistant .opencode-msg-text {

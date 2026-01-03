@@ -1919,7 +1919,13 @@ function initModeFns
     // the view will be reused if the buffer is shown in a pane again.
     b.views.forEach(v => {
       if (v.ed)
-        setValue(v.ed, '', true)
+        try {
+          setValue(v.ed, '', true)
+        }
+        catch (e) {
+          // I dunno, maybe ed was already destroyed.
+          d('clear: ' + e)
+        }
     })
   }
 

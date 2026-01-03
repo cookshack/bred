@@ -84,6 +84,7 @@ function init
       }
     }
 
+    d('SW getRing')
     all = Buf.getRing()
     // put current buf at end
     if (all.length) {
@@ -100,10 +101,13 @@ function init
         all.push(old)
     }
 
+    d('SW recents')
     Recent.get(0, (err, recents) => {
 
       if (err)
         Mess.toss(err)
+
+      d('SW got recents')
 
       rec = []
       recents.forEach(r => {
@@ -330,6 +334,7 @@ function init
     dir = p.dir
     p.setBuf(buf, {}, () => {
       // view has been created
+      buf.clear()
       buf.dir = dir
 
       ml = p.view.ele.querySelector('.edMl')

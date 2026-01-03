@@ -360,15 +360,25 @@ function add
         //
         // Input buffering state
         initializing: false,
-        enqueueInput(ev) {
-          inputQueue.push({ ...ev, timestamp: Date.now() })
+        enqueueInput(we) {
+          d('PANE enqueue')
+          d({ we })
+          d('PANE we.name ' + we.name)
+          inputQueue.push(we)
         },
         flushInput() {
-          let events
+          let wes
 
           p.initializing = false
-          events = inputQueue.splice(0) // Clear and get all events
-          events.forEach(ev => Em.handle(ev))
+          wes = inputQueue.splice(0) // Clear and get all events
+          if (wes.length) {
+            d('PANE flush')
+            d({ wes })
+          }
+          wes.forEach(we => {
+            we.buf = view?.buf
+            Em.handle(we, view)
+          })
         },
         clearInput() {
           inputQueue.length = 0

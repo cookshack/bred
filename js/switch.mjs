@@ -310,7 +310,7 @@ function init
       ml.innerText = 'Switch to buffer'
 
     if (buf)
-      buf = buf
+      buf.clear()
     else {
       buf = Buf.make({ name: 'Switch',
                        modeKey: 'switch',
@@ -334,7 +334,6 @@ function init
     dir = p.dir
     p.setBuf(buf, {}, () => {
       // view has been created
-      buf.clear()
       buf.dir = dir
 
       ml = p.view.ele.querySelector('.edMl')

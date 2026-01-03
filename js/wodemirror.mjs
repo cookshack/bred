@@ -1911,8 +1911,16 @@ function initModeFns
     let view
 
     view = b.anyView()
-    if (view)
+    if (view) {
       setValue(view.ed, '', true)
+      return
+    }
+    // When the buffer was in some pane, but is no longer in any pane, then
+    // the view will be reused if the buffer is shown in a pane again.
+    b.views.forEach(v => {
+      if (v.ed)
+        setValue(v.ed, '', true)
+    })
   }
 
   function clearLine

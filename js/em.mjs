@@ -9,8 +9,8 @@ import * as EvParser from '../lib/ev-parser.mjs'
 
 let root, wes, ems, getActive, d
 
-d = () => {}
-//d = Mess.d
+//d = () => {}
+d = Mess.d
 
 export
 function init
@@ -321,7 +321,9 @@ function originalHandle
     Mess.echoMore(name)
   }
 
+  d('EM originalHandle')
   buf = view?.buf
+  d({ buf })
 
   if (we.mouse) {
     // Primary (often left)
@@ -468,15 +470,14 @@ function handle
 
   pane = Pane.current()
 
+  Mess.d('EM handle')
+  Mess.d({ we })
+  Mess.d('EM we.name ' + we.name)
+
   // Check if current pane is initializing and needs input buffering
 
   if (pane && pane.initializing) {
-    // Reconstruct the proper 'we' object that Em expects
-    pane.enqueueInput({ e: we.e, // The raw DOM event
-                        mouse: U.defined(we.mouse), // Detect mouse events
-                        name: we.name || (we.e.type + (U.defined(we.e.button) ? `:${we.e.button}` : '')),
-                        timestamp: Date.now() })
-
+    pane.enqueueInput(we)
     // Prevent the event from bubbling to the (not-ready) view
     if (we.e?.preventDefault)
       we.e.preventDefault()

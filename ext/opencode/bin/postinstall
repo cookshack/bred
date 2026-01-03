@@ -1,0 +1,5 @@
+#!/bin/bash
+
+mkdir -p lib/
+cp node_modules/@opencode-ai/sdk/dist/client.js lib/opencode.js
+cp -r node_modules/@opencode-ai/sdk/dist/gen lib/gen

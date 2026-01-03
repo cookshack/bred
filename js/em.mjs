@@ -470,10 +470,6 @@ function handle
 
   pane = Pane.current()
 
-  Mess.d('EM handle')
-  Mess.d({ we })
-  Mess.d('EM we.name ' + we.name)
-
   // Check if current pane is initializing and needs input buffering
 
   if (pane && pane.initializing) {

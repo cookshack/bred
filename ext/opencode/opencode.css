@@ -1,0 +1,65 @@
+.opencode-ww {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.opencode-h {
+  font-weight: bold;
+  padding: 4px;
+  border-bottom: 1px solid #444;
+  margin-bottom: 8px;
+}
+
+.opencode-results {
+  flex: 1;
+  overflow: auto;
+  font-family: monospace;
+  white-space: pre-wrap;
+}
+
+.opencode-output {
+  color: #ccc;
+}
+
+.opencode-error {
+  color: #f55;
+  margin-top: 8px;
+}
+
+.opencode-result {
+  padding: 8px;
+  border-bottom: 1px solid #333;
+}
+
+.opencode-result-path {
+  color: #6ae;
+  font-weight: bold;
+}
+
+.opencode-result-title {
+  color: #6ea;
+  font-weight: bold;
+}
+
+.opencode-result-url {
+  color: #888;
+  font-size: 0.9em;
+}
+
+.opencode-result-snippet {
+  color: #ccc;
+  margin-top: 4px;
+}
+
+.opencode-result-code {
+  color: #da8;
+  margin-top: 4px;
+}
+
+.opencode-agent-response {
+  color: #cea;
+  line-height: 1.5;
+}

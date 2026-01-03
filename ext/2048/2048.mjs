@@ -70,8 +70,8 @@ function init
     smile()
   }
 
-  function refresh
-  (view) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     let w
 
     restartB = button('🙂', '', { id: 'two048-restart',
@@ -89,6 +89,8 @@ function init
                  [ button('Easy', '', { 'data-run': 'easy' }),
                    button('Normal', '', { 'data-run': 'normal' }),
                    button('Hard', '', { 'data-run': 'hard' }) ]))
+    if (cb)
+      cb(view)
   }
 
   function start2048
@@ -103,7 +105,7 @@ function init
       make(p)
   }
 
-  mo = Mode.add('2048', { viewInitSpec: refresh })
+  mo = Mode.add('2048', { viewInitSpec })
 
   Cmd.add('smile', () => smile(), mo)
   Cmd.add('easy', () => easy(), mo)

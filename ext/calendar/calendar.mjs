@@ -15,8 +15,9 @@ function init
 () {
   let mode
 
-  function refresh
-  (view, full) {
+  function viewInitSpec
+  (view, spec, cb, // (view)
+   full) {
     let w, now, months, year, month, today
 
     function addMonth
@@ -83,6 +84,14 @@ function init
     }
 
     append(w, months)
+
+    if (cb)
+      cb(view)
+  }
+
+  function refresh
+  (view, full) {
+    viewInitSpec(view, 0, 0, full)
   }
 
   function year
@@ -106,7 +115,7 @@ function init
     p.setBuf(b)
   }
 
-  mode = Mode.add('Calendar', { viewInitSpec: view => refresh(view) })
+  mode = Mode.add('Calendar', { viewInitSpec })
 
   Cmd.add('year', () => year(), mode)
   Em.on('y', 'year', mode)

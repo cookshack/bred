@@ -1442,7 +1442,7 @@ function init
     go()
   }
 
-  function refresh
+  function viewInitSpec
   (view, spec, cb) {
     let w, co
 
@@ -2475,7 +2475,7 @@ User →
   Em.on('n', 'reject tool', chToolMo)
   Em.on('C-g', 'reject tool', chToolMo)
 
-  mo = Mode.add('Query', { viewInitSpec: refresh })
+  mo = Mode.add('Query', { viewInitSpec })
 
   Cmd.add('next', () => next(), mo)
   Cmd.add('previous', () => next(-1), mo)

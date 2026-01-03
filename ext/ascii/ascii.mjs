@@ -30,8 +30,8 @@ function init
 () {
   let mo, verbose
 
-  function refresh
-  (view) {
+  function viewInitSpec
+  (view, spec, cb) {
     let co, cols, last, rows, code, w
 
     function seq
@@ -62,7 +62,7 @@ function init
       return ''
     }
 
-    function spec
+    function specifier
     (code) {
       if (code < 32)
         return controls[code]?.spec || ''
@@ -77,7 +77,7 @@ function init
                div(code.toString(8)),
                divCl('ascii-col-c', charAcro(code)),
                divCl('ascii-col-ctrl', ctrl(code)),
-               divCl('ascii-col-spec', spec(code)),
+               divCl('ascii-col-specifier', specifier(code)),
                divCl('ascii-col-long', charLong(code)) ]
     }
 
@@ -108,7 +108,7 @@ function init
                                   head('O'),
                                   head('C', 'ascii-h-c'),
                                   head([], 'ascii-h-ctrl'),
-                                  head([], 'ascii-h-spec'),
+                                  head([], 'ascii-h-specifier'),
                                   head([], 'ascii-h-long') ]))
 
     code = 0
@@ -123,12 +123,15 @@ function init
                   button('v', '', { 'data-run': 'toggle verbose' })))
 
     append(w, co)
+
+    if (cb)
+      cb(view)
   }
 
   function toggle
   () {
     verbose = verbose ? 0 : 1
-    refresh(Pane.current().view)
+    viewInitSpec(Pane.current().view)
   }
 
   function ascii
@@ -219,10 +222,10 @@ function init
 
   verbose = 0
 
-  mo = Mode.add('ASCII', { viewInitSpec: refresh,
+  mo = Mode.add('ASCII', { viewInitSpec,
                            context: [ { cmd: 'Toggle Verbose' } ] })
 
-  Cmd.add('refresh', () => refresh(Pane.current().view), mo)
+  Cmd.add('refresh', () => viewInitSpec(Pane.current().view), mo)
   Cmd.add('toggle verbose', () => toggle(), mo)
 
   Em.on('g', 'refresh', mo)

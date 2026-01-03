@@ -479,8 +479,8 @@ function init
     view.vars('hex').toScroll = setTimeout(e => redraw(view, e), 100)
   }
 
-  function refresh
-  (view) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     let surf, end, frag, first, shown, lastScrollTop, lineCount, u8s
 
     lineCount = view.buf.vars('hex').lineCount
@@ -510,6 +510,8 @@ function init
         onscroll(view, e)
       }
 
+    if (cb)
+      cb(view)
   }
 
   function hex
@@ -524,7 +526,7 @@ function init
   encoder = new TextEncoder()
   decoder = new TextDecoder()
 
-  mo = Mode.add('Hex', { viewInitSpec: refresh,
+  mo = Mode.add('Hex', { viewInitSpec,
                          icon: { name: 'binary' } })
 
   Cmd.add('hex', () => hex())

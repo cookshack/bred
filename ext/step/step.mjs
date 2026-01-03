@@ -83,8 +83,8 @@ function initCssComp
     return ret
   }
 
-  function refresh
-  (view, spec, cb) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     let w, el
 
     el = view.buf.vars('css comp').el
@@ -126,7 +126,7 @@ function initCssComp
     comp(xyEl(we))
   })
 
-  mo = Mode.add('Css Comp', { viewInitSpec: refresh })
+  mo = Mode.add('Css Comp', { viewInitSpec })
   d(mo)
 
   return { comp }
@@ -352,8 +352,8 @@ function initCssRules
     Comp.comp(el, 1)
   }
 
-  function refresh
-  (view, spec, cb) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     let w, el
 
     el = view.buf.vars('css rules').el
@@ -410,7 +410,7 @@ function initCssRules
     rulesRight(el, 1)
   })
 
-  mo = Mode.add('Css Rules', { viewInitSpec: refresh })
+  mo = Mode.add('Css Rules', { viewInitSpec })
 
   Cmd.add('Computed', computed, mo)
 
@@ -565,8 +565,8 @@ function initDom
     return ret
   }
 
-  function refresh
-  (view, spec, cb) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     let w, id
 
     id = view.buf.vars('dom').id
@@ -645,7 +645,7 @@ function initDom
     Rules.right(el, 1)
   })
 
-  mo = Mode.add('Dom', { viewInitSpec: refresh })
+  mo = Mode.add('Dom', { viewInitSpec })
   d(mo)
 
   Cmd.add('Expand', expand, mo)
@@ -665,8 +665,8 @@ function init
     return divCl('step-ww', divCl('step-w bred-surface'))
   }
 
-  function refresh
-  (view, spec, cb) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     let w, wv, preload
 
     w = view.ele.firstElementChild.firstElementChild
@@ -702,7 +702,7 @@ function init
       cb(view)
   }
 
-  Mode.add('Step', { viewInitSpec: refresh })
+  Mode.add('Step', { viewInitSpec })
 
   Cmd.add('Webview Devtools', () => {
     webview?.openDevTools()

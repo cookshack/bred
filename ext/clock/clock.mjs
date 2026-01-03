@@ -12,7 +12,7 @@ export
 function init
 () {
   function viewInitSpec
-  (view) {
+  (view, spec, cb) {
     let w, time
 
     function updateTime
@@ -31,6 +31,9 @@ function init
 
     updateTime()
     setInterval(updateTime, 1 * 1000)
+
+    if (cb)
+      cb(view)
   }
 
   function make

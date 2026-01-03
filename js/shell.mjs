@@ -64,9 +64,16 @@ function runToString
     }
 
     if (data.stdout)
-      str += der.decode(data.stdout)
+      if (typeof data.stdout == 'string')
+        str += data.stdout
+      else
+        str += der.decode(data.stdout)
     if (data.stderr)
-      str += der.decode(data.stderr)
+      if (typeof data.stderr == 'string')
+        str += data.stderr
+      else
+        str += der.decode(data.stderr)
+
     if (data.close === undefined) {
       // still running, do nothing
     }
@@ -140,6 +147,13 @@ function run
   handler = (err, data) => {
     let decoder
 
+    function decode
+    (str) {
+      if (typeof str == 'string')
+        return str
+      return decoder.decode(str)
+    }
+
     decoder = new TextDecoder()
     if (err) {
       Mess.yell('Shell.run: ' + err.message)
@@ -151,28 +165,28 @@ function run
     //d({ data })
 
     if (0 && data.stdout)
-      d('OUT: ' + decoder.decode(data.stdout))
+      d('OUT: ' + decode(data.stdout))
     if (0 && data.stderr)
-      d('ERR: ' + decoder.decode(data.stderr))
+      d('ERR: ' + decode(data.stderr))
 
     if (b && data.stdout) {
       if (spec.end)
-        b.append(decoder.decode(data.stdout), spec.afterEndPoint)
+        b.append(decode(data.stdout), spec.afterEndPoint)
       else
-        b.insert(decoder.decode(data.stdout), bep, spec.afterEndPoint)
+        b.insert(decode(data.stdout), bep, spec.afterEndPoint)
       b.vars('Shell').lastLineText = b.line(-1)
       //d('lastLineText: ' + b.vars('Shell').lastLineText)
       spec.afterEndPoint = 0
     }
 
     if (spec.onStdout && data.stdout)
-      spec.onStdout(decoder.decode(data.stdout))
+      spec.onStdout(decode(data.stdout))
 
     if (b && data.stderr) {
       if (spec.end)
-        b.append(decoder.decode(data.stderr), spec.afterEndPoint)
+        b.append(decode(data.stderr), spec.afterEndPoint)
       else
-        b.insert(decoder.decode(data.stderr), bep, spec.afterEndPoint)
+        b.insert(decode(data.stderr), bep, spec.afterEndPoint)
       spec.afterEndPoint = 0
     }
 
@@ -189,7 +203,7 @@ function run
     }
 
     if (spec.onStderr && data.stderr)
-      spec.onStderr(decoder.decode(data.stderr))
+      spec.onStderr(decode(data.stderr))
 
     if (data.err) {
       if (b)

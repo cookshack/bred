@@ -7,15 +7,56 @@ import * as U from './util.mjs'
 function run
 (e, ch, dir, sc, args, spec, ctx) {
   let proc, closedProc, closedErr, closedOut, sender
-  let runInShell
+  let runInShell, stdoutBuffer, stderrBuffer, lastFlushTime, flushTimer
+
+  function flushBuffers
+  () {
+    if (stdoutBuffer.length > 0) {
+      sender.send(ch, { stdout: stdoutBuffer })
+      stdoutBuffer = ''
+    }
+    if (stderrBuffer.length > 0) {
+      sender.send(ch, { stderr: stderrBuffer })
+      stderrBuffer = ''
+    }
+    lastFlushTime = Date.now()
+  }
+
+  function scheduleFlush
+  () {
+    const now = Date.now()
+    const timeSinceLastFlush = now - lastFlushTime
+
+    // Flush if enough time has passed (100ms) or if buffers are large
+    if (timeSinceLastFlush > 100 || stdoutBuffer.length > 8192 || stderrBuffer.length > 8192)
+      flushBuffers()
+    else if (flushTimer) {
+    }
+    else
+      // Schedule a flush for later
+      flushTimer = setTimeout(() => {
+        flushBuffers()
+        flushTimer = null
+      }, 100 - timeSinceLastFlush)
+  }
 
   function close
   () {
+    if (flushTimer) {
+      clearTimeout(flushTimer)
+      flushTimer = null
+    }
+    // Flush any remaining buffered data before closing
+    flushBuffers()
     if (closedProc && closedErr && closedOut) {
       //ipcMain.removeAllListeners(ch)
     }
   }
 
+  stdoutBuffer = ''
+  stderrBuffer = ''
+  lastFlushTime = Date.now()
+  flushTimer = null
   sender = e.sender
   runInShell = spec.runInShell
 
@@ -103,18 +144,30 @@ function run
     }
 
     proc.onData(data => {
-      d(`${ch}: data: ${data}`)
-      sender.send(ch, { stdout: data })
+      d(ch + ' data: ' + data)
+      d(ch + ' typeof data: ' + typeof data)
+      stdoutBuffer += data
+      scheduleFlush()
       closedOut = 1
-      close()
     })
 
     proc.onExit(ret => {
-      d(`${ch}: child process exited with code ${ret.exitCode}`)
+      d(ch + ': child process exited with code ' + ret.exitCode)
+      // Ensure all buffered data is sent before closing
+      flushBuffers()
       sender.send(ch, { close: 1, code: ret.exitCode })
       closedProc = 1
       close()
     })
+
+    // seems node-pty doesn't have this
+    if (0)
+      proc.onError(err => {
+        d(ch + ': child process error: ' + err)
+        stderrBuffer += ('Process error: ' + err.message + '\n')
+        scheduleFlush()
+        closedErr = 1
+      })
 
     ipcMain.on(ch, (e, data) => {
       d(ch + ': on: ' + JSON.stringify(data))
@@ -125,7 +178,7 @@ function run
     })
   }
   catch (err) {
-    d(`${ch}: child process caught err ${err}`)
+    d(ch + ' child process caught err ' + err)
     sender.send(ch, { err })
   }
 }

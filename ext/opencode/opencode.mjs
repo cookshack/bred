@@ -1,16 +1,19 @@
-import { append, divCl } from '../../js/dom.mjs'
+import { append, divCl, img } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
+import * as Em from '../../js/em.mjs'
 import * as Hist from '../../js/hist.mjs'
+import * as Icon from '../../js/icon.mjs'
 import * as Mess from '../../js/mess.mjs'
+import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/pane.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import { d } from '../../js/mess.mjs'
 
 import * as OpenCode from './lib/opencode.js'
 
-let client, session
+let client
 
 export
 function init
@@ -20,11 +23,12 @@ function init
   async function ensureClient
   () {
     if (client)
-      return
+      return client
 
     try {
       client = OpenCode.createOpencodeClient({ baseUrl: 'http://127.0.0.1:4096' })
       d('OPENCODE client started')
+      return client
     }
     catch (err) {
       Mess.yell('Failed to start opencode client: ' + err.message)
@@ -32,94 +36,120 @@ function init
     }
   }
 
-  async function ensureSession
-  (title) {
-    await ensureClient()
+  function appendMsg
+  (buf, role, text) {
+    buf.views.forEach(view => {
+      if (view.ele) {
+        let w
 
-    if (session?.id)
-      return session
-
-    try {
-      const res = await client.session.create({
-        body: { title }
-      })
-      session = res.data
-      d('Session created: ' + session.id)
-      return session
-    }
-    catch (err) {
-      Mess.yell('Failed to create session: ' + err.message)
-      throw err
-    }
+        w = view.ele.querySelector('.opencode-w')
+        append(w, divCl('opencode-msg opencode-msg-' + role,
+                        [ divCl('opencode-msg-role', role === 'user' ? 'You' : 'Assistant'),
+                          divCl('opencode-msg-text', text) ]))
+        w.scrollTop = w.scrollHeight
+      }
+    })
   }
 
   function divW
-  (title) {
+  (sessionId, prompt) {
     return divCl('opencode-ww',
-                 [ divCl('opencode-h', 'Opencode: ' + title),
-                   divCl('opencode-results', 'Starting opencode...') ])
+                 [ divCl('opencode-h',
+                         [ divCl('opencode-icon',
+                                 img(Icon.path('chat'), 'Chat', 'filter-clr-text')),
+                           divCl('opencode-title', prompt) ]),
+                   divCl('opencode-w') ])
   }
 
-  async function runAgent
-  (buf, query) {
+  async function send
+  (buf, text) {
+    let sessionId, c, res, msg, content
+
+    sessionId = buf.vars('opencode').sessionId
+    c = await ensureClient()
+
+    appendMsg(buf, 'user', text)
+
     try {
-      let sess, res
-
-      await ensureClient()
-
-      sess = await ensureSession('Agent: ' + query)
-
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let w
-
-          w = view.ele.querySelector('.opencode-results')
-          w.innerText = 'Running agent...'
-        }
+      res = await c.session.prompt({
+        path: { id: sessionId },
+        body: { parts: [ { type: 'text', text } ] }
       })
 
-      res = await client.session.prompt({ path: { id: sess.id },
-                                          body: { parts: [ { type: 'text', text: query } ] } })
-
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let w
-
-          w = view.ele.querySelector('.opencode-results')
-          w.innerHTML = ''
-          if (res.data.parts?.length)
-            append(w, res.data.parts.map(p => divCl('opencode-agent-response', p.text || JSON.stringify(p))))
-          else
-            w.innerText = 'No response'
-        }
-      })
+      d(res)
+      msg = res.data
+      content = msg.parts?.map(p => p.text).join('') || '(no response)'
+      appendMsg(buf, 'assistant', content)
     }
     catch (err) {
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let w
-
-          w = view.ele.querySelector('.opencode-results')
-          w.innerText = 'Error: ' + err.message
-        }
-      })
+      d(err)
+      appendMsg(buf, 'assistant', 'Error: ' + err.message)
     }
+  }
+
+  function next
+  () {
+    let p, buf
+
+    p = Pane.current()
+    buf = p.buf
+
+    if (buf?.vars('opencode')?.sessionId) {
+      // OK
+    }
+    else
+      return
+
+    if (buf.vars('opencode').busy) {
+      d('busy')
+      return
+    }
+
+    Prompt.ask({ text: 'Message',
+                 hist },
+               prompt => {
+                 hist.add(prompt)
+                 send(buf, prompt)
+               })
+  }
+
+  function viewInitSpec
+  (view, spec, cb) {
+    if (cb)
+      cb(view)
   }
 
   hist = Hist.ensure('opencode')
+  Mode.add('opencode', { viewInitSpec })
 
   Cmd.add('opencode', () => {
-    Prompt.ask({ text: 'Opencode query',
+    Prompt.ask({ text: 'Opencode',
                  hist },
-               async query => {
-                 let p, buf
+               async prompt => {
+                 let p, buf, c, session
 
                  p = Pane.current()
-                 hist.add(query)
-                 buf = Buf.add('Opencode: ' + query, 'opencode', divW(query), p.dir)
-                 p.setBuf(buf, {}, async () => {
-                   await runAgent(buf, query)
-                 })
+                 hist.add(prompt)
+
+                 try {
+                   c = await ensureClient()
+                   session = await c.session.create({ body: { title: prompt } })
+
+                   buf = Buf.add('Opencode: ' + prompt, 'opencode', divW(session.id, prompt), p.dir)
+                   buf.vars('opencode').sessionId = session.id
+                   buf.vars('opencode').prompt = prompt
+
+                   p.setBuf(buf, {}, () => {
+                     send(buf, prompt)
+                   })
+                 }
+                 catch (err) {
+                   Mess.yell('Failed: ' + err.message)
+                 }
                })
+  })
+
+  Em.on('+', 'opencode', () => {
+    next()
   })
 }

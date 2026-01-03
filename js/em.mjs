@@ -311,8 +311,8 @@ function look
     cb()
 }
 
-export
-function handle
+// Original handle function, wrapped by handle.
+function originalHandle
 (we, view) {
   let active, buf, targetEm
 
@@ -458,6 +458,33 @@ function handle
            reset()
          }
        })
+}
+
+// Handle input with buffering support
+export
+function handle
+(we, view) {
+  let pane
+
+  pane = Pane.current()
+
+  // Check if current pane is initializing and needs input buffering
+
+  if (pane && pane.initializing) {
+    // Reconstruct the proper 'we' object that Em expects
+    pane.enqueueInput({ e: we.e, // The raw DOM event
+                        mouse: U.defined(we.mouse), // Detect mouse events
+                        name: we.name || (we.e.type + (U.defined(we.e.button) ? `:${we.e.button}` : '')),
+                        timestamp: Date.now() })
+
+    // Prevent the event from bubbling to the (not-ready) view
+    if (we.e?.preventDefault)
+      we.e.preventDefault()
+    return
+  }
+
+  // Normal handling when pane is ready
+  return originalHandle(we, view)
 }
 
 export

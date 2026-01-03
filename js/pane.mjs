@@ -74,7 +74,7 @@ function chPx
 export
 function add
 (frame, b, lineNum) {
-  let p, curr, view, ele, elePoint, elePointLine, eleHead, eleLint, paneW
+  let p, curr, view, ele, elePoint, elePointLine, eleHead, eleLint, paneW, inputQueue
 
   function cols
   () {
@@ -195,6 +195,8 @@ function add
   (b2,
    spec, // { lineNum, whenReady, bury }
    cb) { // (view)
+    let isNewView
+
     if (b2 == undefined) {
       if (cb)
         cb(view)
@@ -205,6 +207,18 @@ function add
 
     spec = spec || {}
     d('PANE setBuf ' + (b2?.name || '??'))
+
+    // Determine if we're creating a new view
+    isNewView = 1
+    if (view?.buf == b2)
+      isNewView = 0
+
+    // Set flag for new views only
+    if (isNewView) {
+      p.initializing = true
+      p.clearInput()
+    }
+
     if (view?.buf == b2) {
       d('setBuf to same buf')
       b = b2
@@ -241,6 +255,11 @@ function add
                           Css.add(ele?.parentNode, 'ed')
                         else
                           Css.remove(ele?.parentNode, 'ed')
+
+                        // View is ready - clear flag and flush any buffered input
+                        p.initializing = false
+                        p.flushInput()
+
                         if (cb)
                           cb(view)
                       })
@@ -292,6 +311,7 @@ function add
       Css.hide(eleLint)
   }
 
+  inputQueue = []
   frame = frame || Frame.current()
 
   b = b || Buf.top() || getBootBuf()
@@ -337,6 +357,22 @@ function add
         elePoint,
         ele,
         id,
+        //
+        // Input buffering state
+        initializing: false,
+        enqueueInput(ev) {
+          inputQueue.push({ ...ev, timestamp: Date.now() })
+        },
+        flushInput() {
+          let events
+
+          p.initializing = false
+          events = inputQueue.splice(0) // Clear and get all events
+          events.forEach(ev => Em.handle(ev))
+        },
+        clearInput() {
+          inputQueue.length = 0
+        },
         //
         get buf() {
           return view?.buf

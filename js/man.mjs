@@ -15,12 +15,15 @@ function init
 () {
   let hist
 
-  function refresh
-  (view) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     let w
 
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
+
+    if (cb)
+      cb(view)
   }
 
   function runMan
@@ -69,7 +72,7 @@ function init
 
   hist = Hist.ensure('man')
 
-  Mode.add('Manpage', { viewInitSpec: refresh })
+  Mode.add('Manpage', { viewInitSpec })
 
   //Cmd.add("refresh", () => refresh(Pane.current().view), mo)
 

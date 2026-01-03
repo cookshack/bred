@@ -76,13 +76,16 @@ function init
   }
 
   function viewInitSpec
-  (view) {
+  (view, spec, cb) { // (view)
     let w
 
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
     needle = ''
     refresh(w)
+
+    if (cb)
+      cb(view)
   }
 
   function delPrev

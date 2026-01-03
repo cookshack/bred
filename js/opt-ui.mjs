@@ -27,8 +27,8 @@ function init
     return String(val)
   }
 
-  function refresh
-  (view) {
+  function viewInitSpec
+  (view, spec, cb) {
     let w, all
 
     w = view.ele.firstElementChild.firstElementChild
@@ -51,6 +51,8 @@ function init
            divCl('options-h', 'Options'),
            divCl('options-all', all),
            divCl('options-note'))
+    if (cb)
+      cb(view)
   }
 
   Opt.onSet(0, (val, name) => {
@@ -69,7 +71,7 @@ function init
   if (Win.root())
     Win.shared().options = {}
 
-  mo = Mode.add('Options', { viewInitSpec: refresh })
+  mo = Mode.add('Options', { viewInitSpec })
 
   Cmd.add('options', () => {
     let p, buf
@@ -77,7 +79,7 @@ function init
     buf = Win.shared().options.buf
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, {}, view => refresh(view))
+      p.setBuf(buf, {}, view => viewInitSpec(view))
     else {
       buf = Buf.add('Options', 'Options', divW(), p.dir)
       Win.shared().options.buf = buf
@@ -91,7 +93,7 @@ function init
     let p
 
     p = Pane.current()
-    refresh(p.view)
+    viewInitSpec(p.view)
   },
           mo)
 

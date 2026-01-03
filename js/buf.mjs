@@ -703,8 +703,8 @@ function init
       Mess.say('Missing target ID')
   }
 
-  function refresh
-  (view) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     let all
 
     all = shared().ring
@@ -725,6 +725,9 @@ function init
                                     { 'data-id': b.id,
                                       'data-run': 'open buffer' }),
                               divCl('buffers-path', b.path) ]))
+
+    if (cb)
+      cb(view)
   }
 
   if (Win.root())
@@ -732,7 +735,7 @@ function init
                          ring: Mk.array,
                          id: 1 }
 
-  mo = Mode.add('Buffers', { viewInitSpec: refresh })
+  mo = Mode.add('Buffers', { viewInitSpec })
 
   Cmd.add('buffers', () => {
     let p, bBuffers
@@ -741,7 +744,7 @@ function init
     bBuffers = shared().bBuffers
     p = Pane.current()
     if (bBuffers)
-      p.setBuf(bBuffers, {}, view => refresh(view))
+      p.setBuf(bBuffers, {}, view => viewInitSpec(view))
     else {
       bBuffers = add('Buffers', 'Buffers', divW(), p.dir)
       shared().bBuffers = bBuffers
@@ -753,7 +756,7 @@ function init
   Em.on('C-x A-b', 'buffers')
 
   Cmd.add('open buffer', open, mo)
-  Cmd.add('refresh', () => refresh(Pane.current().view), mo)
+  Cmd.add('refresh', () => viewInitSpec(Pane.current().view), mo)
 
   Em.on('g', 'refresh', mo)
   Em.on('Enter', 'select', mo)

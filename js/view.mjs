@@ -318,8 +318,10 @@ function make
   function ready1
   () {
     // timeout so behaves like viewinit,viewcopy
+    d('VIEW ready1 timeout')
     setTimeout(() => {
       ready = 1
+      d('VIEW ready1 cb')
       if (cb)
         cb(v)
       if (whenReady)

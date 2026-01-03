@@ -122,8 +122,8 @@ function init
     return divCl('bred-exts-ww', divCl('bred-exts-w bred-surface', ''))
   }
 
-  function refresh
-  (view) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     let w, all
 
     w = view.ele.firstElementChild.firstElementChild
@@ -152,6 +152,8 @@ function init
       append(w,
              divCl('bred-exts-h', 'Extensions'),
              divCl('bred-exts-all', all))
+      if (cb)
+        cb(view)
     })
   }
 
@@ -222,7 +224,7 @@ function init
 
   exts = {}
 
-  mo = Mode.add('Exts', { viewInitSpec: refresh })
+  mo = Mode.add('Exts', { viewInitSpec })
 
   Cmd.add('add extension', add, mo)
   Cmd.add('remove extension', remove, mo)
@@ -233,7 +235,7 @@ function init
     buf = Win.shared().exts.buf
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, {}, view => refresh(view))
+      p.setBuf(buf, {}, view => viewInitSpec(view))
     else {
       buf = Buf.add('Extensions', 'Exts', divW(), p.dir)
       Win.shared().exts.buf = buf
@@ -247,7 +249,7 @@ function init
     let p
 
     p = Pane.current()
-    refresh(p.view)
+    viewInitSpec(p.view)
   },
           mo)
 

@@ -1536,8 +1536,8 @@ function initRecent
                    divCl('recent-w') ])
   }
 
-  function refresh
-  (view) {
+  function viewInitSpec
+  (view, spec, cb) { // (view)
     Recent.get(0, (err, all) => {
       let w, co
 
@@ -1557,17 +1557,19 @@ function initRecent
                                     'data-path': r.href }))
 
       append(w, co)
+      if (cb)
+        cb(view)
     })
   }
 
-  Mode.add('Recent', { viewInitSpec: refresh })
+  Mode.add('Recent', { viewInitSpec })
 
   Cmd.add('Open Recent', () => {
     let p
 
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, {}, view => refresh(view))
+      p.setBuf(buf, {}, view => viewInitSpec(view))
     else {
       buf = Buf.add('Recent', 'Recent', divW(), p.dir)
       buf.addMode('view')

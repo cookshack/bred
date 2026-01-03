@@ -735,8 +735,8 @@ function initLogBadIdea
     return divCl('vc_log-ww', divCl('vc_log-w bred-surface', ''))
   }
 
-  function refresh
-  (view) {
+  function viewInitSpec
+  (view, spec, cb) {
     let p
 
     p = Pane.current()
@@ -744,6 +744,8 @@ function initLogBadIdea
     w.innerHTML = ''
     Shell.run(p.dir, 'git', [ 'log' ], { onStdin,
                                          onStdout })
+    if (cb)
+      cb(view)
   }
 
   function onStdin
@@ -759,14 +761,14 @@ function initLogBadIdea
     d(str)
   }
 
-  Mode.add('Bad Idea', { viewInitSpec: refresh })
+  Mode.add('Bad Idea', { viewInitSpec })
 
   Cmd.add('bad idea vc log', () => {
     let p
 
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, {}, view => refresh(view))
+      p.setBuf(buf, {}, view => viewInitSpec(view))
     else {
       buf = Buf.add('Bad Idea', 'Bad Idea', divW(), p.dir)
       buf.icon = 'log'

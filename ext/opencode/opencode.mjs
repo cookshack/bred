@@ -54,77 +54,16 @@ function init
   }
 
   function divW
-  (title, type) {
+  (title) {
     return divCl('opencode-ww',
-                 [ divCl('opencode-h', 'Opencode ' + type + ': ' + title),
+                 [ divCl('opencode-h', 'Opencode: ' + title),
                    divCl('opencode-results', 'Starting opencode...') ])
-  }
-
-  async function runSearch
-  (buf, query, searchType) {
-    try {
-      let results
-
-      await ensureClient()
-      await ensureSession('Search: ' + query)
-
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let w
-
-          w = view.ele.querySelector('.opencode-results')
-          w.innerText = 'Searching...'
-        }
-      })
-
-      if (searchType === 'code') {
-        let res
-
-        res = await client.find.text({ query: { pattern: query } })
-        results = res.data.map(r => ({
-          path: r.path,
-          lines: r.lines,
-          line_number: r.line_number
-        }))
-      }
-      else {
-        let res
-
-        res = await client.find.files({ query: { query: searchType === 'web' ? query : '*' } })
-        results = res.data
-      }
-
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let w
-
-          w = view.ele.querySelector('.opencode-results')
-          w.innerHTML = ''
-          if (results?.length)
-            append(w, results.map(r => divCl('opencode-result',
-                                             [ divCl('opencode-result-path', r.path || JSON.stringify(r)),
-                                               divCl('opencode-result-snippet', r.lines || r.lines?.content || '') ])))
-          else
-            w.innerText = 'No results'
-        }
-      })
-    }
-    catch (err) {
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let w
-
-          w = view.ele.querySelector('.opencode-results')
-          w.innerText = 'Error: ' + err.message
-        }
-      })
-    }
   }
 
   async function runAgent
   (buf, query) {
     try {
-      let sess
+      let sess, res
 
       await ensureClient()
 
@@ -139,8 +78,8 @@ function init
         }
       })
 
-      const res = await client.session.prompt({ path: { id: sess.id },
-                                                body: { parts: [ { type: 'text', text: query } ] } })
+      res = await client.session.prompt({ path: { id: sess.id },
+                                          body: { parts: [ { type: 'text', text: query } ] } })
 
       buf.views.forEach(view => {
         if (view.ele) {
@@ -167,41 +106,20 @@ function init
     }
   }
 
-  function chooseAction
-  (query) {
-    let p, buf
-
-    p = Pane.current()
-    buf = Buf.add('Opencode: ' + query, 'opencode', divW(query, 'search'), p.dir)
-
-    p.setBuf(buf, {}, () => {
-      Prompt.choose('What would you like to do?',
-                    [ 'Search code', 'Search web', 'Run as agent' ],
-                    {},
-                    async choice => {
-                      let newBuf
-
-                      newBuf = Buf.add('Opencode: ' + query, 'opencode', divW(query, choice), p.dir)
-                      p.setBuf(newBuf, {}, async () => {
-                        if (choice === 'Search code')
-                          await runSearch(newBuf, query, 'code')
-                        else if (choice === 'Search web')
-                          await runSearch(newBuf, query, 'web')
-                        else if (choice === 'Run as agent')
-                          await runAgent(newBuf, query)
-                      })
-                    })
-    })
-  }
-
   hist = Hist.ensure('opencode')
 
   Cmd.add('opencode', () => {
     Prompt.ask({ text: 'Opencode query',
                  hist },
-               query => {
+               async query => {
+                 let p, buf
+
+                 p = Pane.current()
                  hist.add(query)
-                 chooseAction(query)
+                 buf = Buf.add('Opencode: ' + query, 'opencode', divW(query), p.dir)
+                 p.setBuf(buf, {}, async () => {
+                   await runAgent(buf, query)
+                 })
                })
   })
 }

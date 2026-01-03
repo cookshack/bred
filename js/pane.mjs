@@ -235,6 +235,7 @@ function add
                         lineNum: spec.lineNum,
                         whenReady: spec.whenReady },
                       v => {
+                        d('PANE view ready')
                         view = v
                         if (view.ed)
                           Css.add(ele?.parentNode, 'ed')

@@ -221,6 +221,7 @@ function ask
   tab.frame.pane.setBuf(buf,
                         {},
                         view => {
+                          d('PROMPT buf set')
                           area.show()
                           tab.frame.pane.focus()
                           spec.onReady && spec.onReady(tab.frame.pane)

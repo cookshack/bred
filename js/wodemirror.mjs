@@ -613,13 +613,13 @@ async function viewInitSpec
  cb) {
   let data
 
-  d('peer.get ' + view.buf.id)
-  d('vi vid: ' + view.vid)
+  d('WODE peer.get ' + view.buf.id)
+  d('WODE vi vid: ' + view.vid)
   view.buf.modified = 0
   Ed.setIcon(view.buf, '.edMl-mod', 'blank')
   view.ready = 0
   data = await Tron.acmd('peer.get', [ view.buf.id ])
-  d('peer.get ' + view.buf.id + ' ok (' + view.buf.name + ')')
+  d('WODE peer.get ' + view.buf.id + ' ok (' + view.buf.name + ')')
   d({ data })
   _viewInit(spec.single ? 0 : makePeer(view.buf.id, data.version),
             view,
@@ -629,6 +629,7 @@ async function viewInitSpec
             spec.whenReady,
             spec.placeholder,
             spec)
+  d('WODE after _viewInit')
   if (cb)
     cb(view)
 }
@@ -682,7 +683,7 @@ function _viewInit
     }
   }
 
-  d('================== viewInit')
+  d('WODE ================== viewInit')
 
   spec = spec || {}
 

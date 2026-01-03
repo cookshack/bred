@@ -314,23 +314,22 @@ function init
                        dir: p.dir })
       buf.icon = 'prompt'
       needOn = 1
+      buf.vars('ed').fillParent = 0
+      buf.opts.set('core.autocomplete.enabled', 0)
+      buf.opts.set('core.brackets.close.enabled', 0)
+      buf.opts.set('core.folding.enabled', 0)
+      buf.opts.set('core.line.numbers.show', 0)
+      buf.opts.set('core.lint.enabled', 0)
+      buf.opts.set('minimap.enabled', 0)
+      hist.reset()
+      buf.file = 0
+      //buf.dir = 0
     }
     buf.vars('switch').oldBuf = old
 
-    buf.vars('ed').fillParent = 0
-    buf.opts.set('core.autocomplete.enabled', 0)
-    buf.opts.set('core.brackets.close.enabled', 0)
-    buf.opts.set('core.folding.enabled', 0)
-    buf.opts.set('core.line.numbers.show', 0)
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('minimap.enabled', 0)
-    hist.reset()
-    buf.file = 0
-    //buf.dir = 0
     dir = p.dir
     p.setBuf(buf, {}, () => {
       // view has been created
-      buf.clear()
       buf.dir = dir
 
       ml = p.view.ele.querySelector('.edMl')

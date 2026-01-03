@@ -9,8 +9,8 @@ import * as EvParser from '../lib/ev-parser.mjs'
 
 let root, wes, ems, getActive, d
 
-//d = () => {}
-d = Mess.d
+d = () => {}
+//d = Mess.d
 
 export
 function init

@@ -18,7 +18,7 @@ let client
 export
 function init
 () {
-  let hist
+  let hist, mo
 
   async function ensureClient
   () {
@@ -120,7 +120,7 @@ function init
   }
 
   hist = Hist.ensure('opencode')
-  Mode.add('opencode', { viewInitSpec })
+  mo = Mode.add('opencode', { viewInitSpec })
 
   Cmd.add('opencode', () => {
     Prompt.ask({ text: 'Opencode',
@@ -151,7 +151,9 @@ function init
                })
   })
 
-  Em.on('+', 'opencode', () => {
+  Cmd.add('opencode chat', () => {
     next()
-  })
+  }, mo)
+
+  Em.on('+', 'opencode chat', mo)
 }

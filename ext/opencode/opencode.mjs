@@ -99,7 +99,7 @@ function init
   }
 
   function appendToolMsg
-  (buf, tool, info) {
+  (buf, tool, info, under) {
     let label
 
     if (tool == 'read')
@@ -121,7 +121,8 @@ function init
 
         w = view.ele.querySelector('.opencode-w')
         append(w, divCl('opencode-msg opencode-msg-tool',
-                        [ divCl('opencode-msg-text', label) ]))
+                        [ divCl('opencode-msg-text', label),
+                          under && divCl('opencode-msg-text', under) ]))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -252,7 +253,7 @@ function init
                 exitCode = part.state.metadata?.exit
                 if (command) {
                   d('OC bash completed: ' + command + ' (exit ' + exitCode + ')')
-                  appendToolMsg(buf, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')')
+                  appendToolMsg(buf, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
                 }
               }
               else

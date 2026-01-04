@@ -2,6 +2,7 @@ import { append, divCl, img } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
+import * as Css from '../../js/css.mjs'
 import * as Em from '../../js/em.mjs'
 import * as Hist from '../../js/hist.mjs'
 import * as Icon from '../../js/icon.mjs'
@@ -60,11 +61,18 @@ function init
         w = view.ele.querySelector('.opencode-w')
         msgs = w.querySelectorAll('.opencode-msg')
         if (msgs.length > 0) {
-          let role
+          let last
 
-          role = msgs[msgs.length - 1].querySelector('.opencode-msg-role')
-          if (role?.innerText == 'You')
+          last = msgs[msgs.length - 1]
+          if (Css.has(last, 'opencode-msg-tool'))
             lastIsUser = 1
+          else {
+            let role
+
+            role = msgs[msgs.length - 1].querySelector('.opencode-msg-role')
+            if (role?.innerText == 'You')
+              lastIsUser = 1
+          }
         }
         if (lastIsUser)
           el = 0

@@ -105,7 +105,7 @@ function init
     if (tool == 'read')
       label = 'Read file ' + info
     else
-      return
+      label = 'Tool call: ' + tool
 
     buf.views.forEach(view => {
       if (view.ele) {
@@ -173,6 +173,8 @@ function init
                   appendToolMsg(buf, 'read', path)
                 }
               }
+              else
+                appendToolMsg(buf, part.tool)
             }
           }
         }

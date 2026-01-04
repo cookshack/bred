@@ -104,6 +104,8 @@ function init
 
     if (tool == 'read')
       label = 'Read file ' + info
+    else if (tool == 'grep')
+      label = 'Grep ' + info
     else
       label = 'Tool call: ' + tool
 
@@ -171,6 +173,16 @@ function init
                 if (path) {
                   d('OC read file: ' + path)
                   appendToolMsg(buf, 'read', path)
+                }
+              }
+              else if (part.tool == 'grep' && part.state?.status == 'running') {
+                let pattern, path
+
+                pattern = part.state.input.pattern
+                path = part.state.input.path
+                if (pattern) {
+                  d('OC grep: ' + pattern + ' in ' + path)
+                  appendToolMsg(buf, 'grep', '"' + pattern + '" in ' + (path || '.'))
                 }
               }
               else

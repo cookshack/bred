@@ -29,7 +29,7 @@ function init
 
     try {
       client = OpenCode.createOpencodeClient({ baseUrl: 'http://127.0.0.1:4096' })
-      d('OPENCODE client started')
+      d('OC client started')
       return client
     }
     catch (err) {
@@ -87,22 +87,32 @@ function init
       d('stream obtained')
       ;(async () => {
         for await (const event of stream) {
+          let sessionID
+
           d({ event })
-          if (event.type == 'message.part.updated') {
-            const part = event.properties.part
-            const sessionID = part.sessionID || part.messageID
+
+          sessionID = buf && buf.vars('opencode')?.sessionID
+          if ((event.type == 'message.part.updated')
+              && (event.properties.part.sessionID == sessionID)) {
+            let part
+
+            part = event.properties.part
             if (part.type == 'text') {
-              const existing = textBuffer.get(sessionID) || ''
-              textBuffer.set(sessionID, existing + part.text)
+              d('OC text part')
+              d('OC update text: ' + part.text)
+              textBuffer.set(part.id, part.text)
             }
             else if (part.type == 'reasoning') {
-              const buffered = textBuffer.get(sessionID) || ''
+              let buffered
+
+              d('OC reasoning part')
+
+              buffered = textBuffer.get(part.id) || ''
               if (buffered) {
-                d('reasoning update with buffered text len: ' + buffered.length)
-                if (buf && buf.vars('opencode')?.sessionID == sessionID)
-                  appendThinking(buf, buffered)
+                d('OC reasoning append: ' + buffered)
+                appendThinking(buf, buffered)
               }
-              textBuffer.delete(sessionID)
+              textBuffer.delete(part.id)
             }
           }
         }

@@ -108,6 +108,10 @@ function init
       label = '➔ Grep ' + info
     else if (tool == 'grep-done')
       label = '➔ Grep ' + info
+    else if (tool == 'bash-running')
+      label = '➔ bash: ' + info
+    else if (tool == 'bash-done')
+      label = '➔ bash: ' + info
     else
       label = 'Tool call: ' + tool + (info ? (' ' + info) : '')
 
@@ -143,6 +147,38 @@ function init
           d({ event })
 
           sessionID = buf && buf.vars('opencode')?.sessionID
+
+          if ((event.type == 'permission.updated')
+              && (event.properties.sessionID == sessionID)) {
+            let req
+
+            req = event.properties
+            d('OC permission asked: ' + req.type)
+            if (req.type == 'bash') {
+              let command
+
+              command = req.metadata?.command
+              if (command) {
+                d('OC bash permission: ' + command)
+                Prompt.yn('Run "' + command + '"?',
+                          {},
+                          async yes => {
+                            let c
+
+                            c = await ensureClient()
+                            d('OC permission reply: ' + yes)
+                            try {
+                              await c.permission.reply({ requestID: req.id,
+                                                         reply: yes ? 'once' : 'reject' })
+                            }
+                            catch (err) {
+                              Mess.yell('OC permission reply error: ' + err.message)
+                            }
+                          })
+              }
+            }
+          }
+
           if ((event.type == 'message.part.updated')
               && (event.properties.part.sessionID == sessionID)) {
             let part
@@ -195,6 +231,25 @@ function init
                 if (matches) {
                   d('OC grep completed with ' + matches + ' matches')
                   appendToolMsg(buf, 'grep-done', '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)')
+                }
+              }
+              else if (part.tool == 'bash' && part.state?.status == 'running') {
+                let command
+
+                command = part.state.input.command
+                if (command) {
+                  d('OC bash: ' + command)
+                  appendToolMsg(buf, 'bash-running', command)
+                }
+              }
+              else if (part.tool == 'bash' && part.state?.status == 'completed') {
+                let command, exitCode
+
+                command = part.state.input.command
+                exitCode = part.state.metadata?.exit
+                if (command) {
+                  d('OC bash completed: ' + command + ' (exit ' + exitCode + ')')
+                  appendToolMsg(buf, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')')
                 }
               }
               else

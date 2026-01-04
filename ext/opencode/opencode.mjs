@@ -146,7 +146,10 @@ function init
     try {
       res = await c.session.prompt({
         path: { id: sessionID },
-        body: { parts: [ { type: 'text', text } ] }
+        body: {
+          model: { providerID: 'opencode', modelID: 'minimax-m2.1-free' },
+          parts: [ { type: 'text', text } ]
+        }
       })
 
       d({ res })
@@ -238,6 +241,30 @@ function init
   Cmd.add('opencode chat', () => {
     next()
   }, mo)
+
+  Cmd.add('opencode models', async () => {
+    let c, res
+
+    try {
+      let models
+
+      models = ''
+      c = await ensureClient()
+      res = await c.config.providers({})
+      res.data.providers.forEach(p => {
+        models += ('provider: ' + p.id + ' - ' + p.name + '\n')
+        d('provider: ' + p.id + ' - ' + p.name)
+        Object.keys(p.models).forEach(m => {
+          models += '  model: ' + m + '\n'
+          d('  model: ' + m)
+        })
+      })
+      Mess.say(models)
+    }
+    catch (err) {
+      Mess.yell('Failed: ' + err.message)
+    }
+  })
 
   Em.on('+', 'opencode chat', mo)
 }

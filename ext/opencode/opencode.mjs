@@ -99,7 +99,7 @@ function init
               const buffered = textBuffer.get(sessionID) || ''
               if (buffered) {
                 d('reasoning update with buffered text len: ' + buffered.length)
-                if (buf && buf.vars('opencode')?.sessionId == sessionID)
+                if (buf && buf.vars('opencode')?.sessionID == sessionID)
                   appendThinking(buf, buffered)
               }
               textBuffer.delete(sessionID)
@@ -111,7 +111,7 @@ function init
   }
 
   function divW
-  (sessionId, prompt) {
+  (sessionID, prompt) {
     return divCl('opencode-ww',
                  [ divCl('opencode-h',
                          [ divCl('opencode-icon',
@@ -122,9 +122,9 @@ function init
 
   async function send
   (buf, text) {
-    let sessionId, c, res, content
+    let sessionID, c, res, content
 
-    sessionId = buf.vars('opencode').sessionId
+    sessionID = buf.vars('opencode').sessionID
     c = await ensureClient()
 
     appendMsg(buf, 'user', text)
@@ -133,17 +133,17 @@ function init
 
     try {
       res = await c.session.prompt({
-        path: { id: sessionId },
+        path: { id: sessionID },
         body: { parts: [ { type: 'text', text } ] }
       })
 
       d({ res })
 
-      const buffered = textBuffer.get(sessionId)
+      const buffered = textBuffer.get(sessionID)
       if (buffered) {
         d('found buffered text on prompt return, len: ' + buffered.length)
         appendThinking(buf, buffered)
-        textBuffer.delete(sessionId)
+        textBuffer.delete(sessionID)
       }
 
       content = res.data.parts?.filter(p => p.type == 'text').map(p => p.text).join('') || '(no response)'
@@ -162,7 +162,7 @@ function init
     p = Pane.current()
     buf = p.buf
 
-    if (buf?.vars('opencode')?.sessionId) {
+    if (buf?.vars('opencode')?.sessionID) {
       // OK
     }
     else
@@ -198,7 +198,7 @@ function init
                    res = await c.session.create({ body: { title: prompt } })
 
                    buf = Buf.add('Opencode: ' + prompt, 'opencode', divW(res.data.id, prompt), p.dir)
-                   buf.vars('opencode').sessionId = res.data.id
+                   buf.vars('opencode').sessionID = res.data.id
                    buf.vars('opencode').prompt = prompt
 
                    p.setBuf(buf, {}, () => {

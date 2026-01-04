@@ -89,27 +89,25 @@ function init
   () {
     if (eventSub)
       return
+    eventSub = true
 
-    ensureClient().then(c => {
+    ensureClient().then(async c => {
       d('Starting event subscription')
-      c.event.subscribe.sse({})
-        .then(async ({ stream }) => {
-          d('Event subscription started')
-          for await (const event of stream) {
-            d({ event })
-            if (event.data?.type === 'message.part.updated') {
-              const part = event.data.properties.part
-              if (part.type === 'reasoning') {
-                d('reasoning update')
-                updateThinking(part.messageId, part.text)
-              }
+      const events = await c.event.subscribe({})
+      const { stream } = events
+      d('stream obtained')
+      ;(async () => {
+        for await (const event of stream) {
+          d({ event })
+          if (event.type == 'message.part.updated') {
+            const part = event.properties.part
+            if (part.type == 'reasoning') {
+              d('reasoning update')
+              updateThinking(part.messageId, part.text)
             }
           }
-        })
-        .catch(err => {
-          d('Event subscription error: ' + err.message)
-          eventSub = null
-        })
+        }
+      })()
     })
   }
 

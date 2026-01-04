@@ -15,12 +15,10 @@ import * as OpenCode from './lib/opencode.js'
 
 let client, eventSub
 
-const textBuffer = new Map()
-
 export
 function init
 () {
-  let hist, mo
+  let hist, mo, textBuffer
 
   async function ensureClient
   () {
@@ -57,11 +55,29 @@ function init
   (buf, text) {
     buf.views.forEach(view => {
       if (view.ele) {
-        let w, el, current
+        let w, el, msgs, lastIsUser
 
         w = view.ele.querySelector('.opencode-w')
-        el = view.ele.querySelector('.opencode-msg-thinking')
+        msgs = w.querySelectorAll('.opencode-msg')
+        if (msgs.length > 0) {
+          let role
+
+          role = msgs[msgs.length - 1].querySelector('.opencode-msg-role')
+          if (role?.innerText == 'You')
+            lastIsUser = 1
+        }
+        if (lastIsUser)
+          el = 0
+        else {
+          let all
+
+          all = w.querySelectorAll('.opencode-msg-thinking')
+          if (all.length)
+            el = all[all.length - 1]
+        }
         if (el) {
+          let current
+
           current = el.querySelector('.opencode-msg-text').innerText
           el.querySelector('.opencode-msg-text').innerText = current + text
         }
@@ -81,12 +97,13 @@ function init
     eventSub = true
 
     ensureClient().then(async c => {
-      d('Starting event subscription')
-      const events = await c.event.subscribe({})
-      const { stream } = events
-      d('stream obtained')
+      let events
+
+      d('OC starting event subscription')
+      events = await c.event.subscribe({})
+      d('OC stream obtained')
       ;(async () => {
-        for await (const event of stream) {
+        for await (let event of events.stream) {
           let sessionID
 
           d(event.type)
@@ -144,6 +161,8 @@ function init
     startEventSub(buf)
 
     try {
+      let buffered
+
       res = await c.session.prompt({
         path: { id: sessionID },
         body: {
@@ -154,7 +173,7 @@ function init
 
       d({ res })
 
-      const buffered = textBuffer.get(sessionID)
+      buffered = textBuffer.get(sessionID)
       if (buffered) {
         d('found buffered text on prompt return, len: ' + buffered.length)
         appendThinking(buf, buffered)
@@ -232,6 +251,7 @@ function init
       cb(view)
   }
 
+  textBuffer = new Map()
   hist = Hist.ensure('opencode')
   mo = Mode.add('opencode', { viewInitSpec })
 

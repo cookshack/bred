@@ -55,7 +55,6 @@
 .opencode-msg-role {
   margin-bottom: 2px;
   color: var(--clr-nb3);
-  text-transform: uppercase;
 }
 
 .opencode-msg-user .opencode-msg-role {

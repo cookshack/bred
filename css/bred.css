@@ -196,10 +196,11 @@ html {
   --font-monospace: 'DejaVu Sans Mono', monospace;
   font-family: 'DejaVu Sans', sans-serif;
   text-rendering: optimizeLegibility;
+  font-size: 16px;
 }
 
 body {
-  font-size: 16px;
+  font-size: 1rem;
   background-color: var(--clr-bg);
   /* prevent extra flash on buttons on chrome on mobile */
   -webkit-tap-highlight-color: transparent;

@@ -90,6 +90,27 @@ function init
     })
   }
 
+  function appendToolMsg
+  (buf, tool, info) {
+    let label
+
+    if (tool == 'read')
+      label = 'Read file ' + info
+    else
+      return
+
+    buf.views.forEach(view => {
+      if (view.ele) {
+        let w
+
+        w = view.ele.querySelector('.opencode-w')
+        append(w, divCl('opencode-msg opencode-msg-tool',
+                        [ divCl('opencode-msg-text', '➔ ' + label) ]))
+        w.scrollTop = w.scrollHeight
+      }
+    })
+  }
+
   function startEventSub
   (buf) {
     if (eventSub)
@@ -132,6 +153,18 @@ function init
                 appendThinking(buf, buffered)
               }
               textBuffer.delete(part.id)
+            }
+            else if (part.type == 'tool') {
+              d('OC tool: ' + part.tool)
+              if (part.tool == 'read' && part.state?.status == 'running') {
+                let path
+
+                path = part.state.input.filePath
+                if (path) {
+                  d('OC read file: ' + path)
+                  appendToolMsg(buf, 'read', path)
+                }
+              }
             }
           }
         }

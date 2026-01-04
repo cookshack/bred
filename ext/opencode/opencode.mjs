@@ -15,7 +15,6 @@ import * as OpenCode from './lib/opencode.js'
 
 let client, eventSub
 
-const thinking = new Map()
 const textBuffer = new Map()
 
 export
@@ -75,28 +74,8 @@ function init
     })
   }
 
-  function updateThinking
-  (messageID, text) {
-    let buf
-
-    for (let [ , v ] of thinking)
-      if (v.messageID == messageID) {
-        buf = v.buf
-        break
-      }
-
-    if (buf) {
-    }
-    else {
-      d('no matching buf for messageID: ' + messageID)
-      return
-    }
-
-    appendThinking(buf, text)
-  }
-
   function startEventSub
-  () {
+  (buf) {
     if (eventSub)
       return
     eventSub = true
@@ -111,21 +90,19 @@ function init
           d({ event })
           if (event.type == 'message.part.updated') {
             const part = event.properties.part
+            const sessionID = part.sessionID || part.messageID
             if (part.type == 'text') {
-              let existing
-
-              existing = textBuffer.get(part.messageID) || ''
-              textBuffer.set(part.messageID, existing + part.text)
+              const existing = textBuffer.get(sessionID) || ''
+              textBuffer.set(sessionID, existing + part.text)
             }
             else if (part.type == 'reasoning') {
-              let buffered
-
-              buffered = textBuffer.get(part.messageID) || ''
+              const buffered = textBuffer.get(sessionID) || ''
               if (buffered) {
                 d('reasoning update with buffered text len: ' + buffered.length)
-                updateThinking(part.messageID, buffered)
+                if (buf && buf.vars('opencode')?.sessionId == sessionID)
+                  appendThinking(buf, buffered)
               }
-              textBuffer.delete(part.messageID)
+              textBuffer.delete(sessionID)
             }
           }
         }
@@ -145,14 +122,14 @@ function init
 
   async function send
   (buf, text) {
-    let sessionId, c, res, msg, content, reasoning
+    let sessionId, c, res, content
 
     sessionId = buf.vars('opencode').sessionId
     c = await ensureClient()
 
     appendMsg(buf, 'user', text)
 
-    startEventSub()
+    startEventSub(buf)
 
     try {
       res = await c.session.prompt({
@@ -161,15 +138,15 @@ function init
       })
 
       d({ res })
-      msg = res.data
 
-      thinking.set(buf, { buf, messageID: msg.id })
+      const buffered = textBuffer.get(sessionId)
+      if (buffered) {
+        d('found buffered text on prompt return, len: ' + buffered.length)
+        appendThinking(buf, buffered)
+        textBuffer.delete(sessionId)
+      }
 
-      reasoning = msg.parts?.filter(p => p.type == 'reasoning').map(p => p.text).join('\n') || ''
-      if (reasoning)
-        appendThinking(buf, reasoning)
-
-      content = msg.parts?.filter(p => p.type == 'text').map(p => p.text).join('') || '(no response)'
+      content = res.data.parts?.filter(p => p.type == 'text').map(p => p.text).join('') || '(no response)'
       appendMsg(buf, 'assistant', content)
     }
     catch (err) {

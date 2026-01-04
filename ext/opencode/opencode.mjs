@@ -155,24 +155,27 @@ function init
             req = event.properties
             d('OC permission asked: ' + req.type)
             if (req.type == 'bash') {
-              let command
+              let description, command
 
-              command = req.metadata?.command
+              description = req.metadata?.description
+              command = req.metadata?.command || req.metadata?.pattern
               if (command) {
                 d('OC bash permission: ' + command)
-                Prompt.yn('Run "' + command + '"?',
+                Prompt.yn('Run "' + (description || command) + '"?',
                           {},
                           async yes => {
-                            let c
+                            let c, response
 
                             c = await ensureClient()
-                            d('OC permission reply: ' + yes)
+                            response = yes ? 'once' : 'reject'
+                            d('OC permission reply: ' + response)
                             try {
-                              await c.permission.reply({ requestID: req.id,
-                                                         reply: yes ? 'once' : 'reject' })
+                              await c.postSessionIdPermissionsPermissionId({ path: { id: sessionID,
+                                                                                     permissionID: req.id },
+                                                                             body: { response } })
                             }
                             catch (err) {
-                              Mess.yell('OC permission reply error: ' + err.message)
+                              d('OC permission respond error: ' + err.message)
                             }
                           })
               }

@@ -16,6 +16,7 @@ import * as OpenCode from './lib/opencode.js'
 let client, eventSub
 
 const thinking = new Map()
+const textBuffer = new Map()
 
 export
 function init
@@ -110,13 +111,21 @@ function init
           d({ event })
           if (event.type == 'message.part.updated') {
             const part = event.properties.part
-            d('part id: ' + part.id)
-            d('part messageID: ' + part.messageID)
-            d('part type: ' + part.type)
-            d('part text len: ' + (part.text?.length || 0))
-            if (part.type == 'reasoning') {
-              d('reasoning update for messageID: ' + part.messageID)
-              updateThinking(part.messageID, part.text)
+            if (part.type == 'text') {
+              let existing
+
+              existing = textBuffer.get(part.messageID) || ''
+              textBuffer.set(part.messageID, existing + part.text)
+            }
+            else if (part.type == 'reasoning') {
+              let buffered
+
+              buffered = textBuffer.get(part.messageID) || ''
+              if (buffered) {
+                d('reasoning update with buffered text len: ' + buffered.length)
+                updateThinking(part.messageID, buffered)
+              }
+              textBuffer.delete(part.messageID)
             }
           }
         }

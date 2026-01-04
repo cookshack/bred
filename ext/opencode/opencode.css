@@ -59,6 +59,7 @@
 }
 
 .opencode-msg-user .opencode-msg-role {
+  display: none;
   color: var(--clr-emph);
   justify-content: flex-end;
   padding-right: 12px;
@@ -72,7 +73,7 @@
 }
 
 .opencode-msg-user .opencode-msg-text {
-  background: var(--clr-bg);
+  background: var(--clr-fill);
 }
 
 .opencode-msg-assistant .opencode-msg-text {

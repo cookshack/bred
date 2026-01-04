@@ -89,6 +89,7 @@ function init
         for await (const event of stream) {
           let sessionID
 
+          d(event.type)
           d({ event })
 
           sessionID = buf && buf.vars('opencode')?.sessionID
@@ -98,16 +99,17 @@ function init
 
             part = event.properties.part
             if (part.type == 'text') {
-              d('OC text part')
+              d('OC text part' + part.id)
               d('OC update text: ' + part.text)
               textBuffer.set(part.id, part.text)
             }
             else if (part.type == 'reasoning') {
               let buffered
 
-              d('OC reasoning part')
+              d('OC reasoning part ' + part.id)
 
               buffered = textBuffer.get(part.id) || ''
+              buffered += (event.properties.delta || '')
               if (buffered) {
                 d('OC reasoning append: ' + buffered)
                 appendThinking(buf, buffered)

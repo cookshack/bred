@@ -113,16 +113,8 @@ function init
                })
   }
 
-  function viewInitSpec
-  (view, spec, cb) {
-    if (cb)
-      cb(view)
-  }
-
-  hist = Hist.ensure('opencode')
-  mo = Mode.add('opencode', { viewInitSpec })
-
-  Cmd.add('opencode', () => {
+  function opencode
+  () {
     Prompt.ask({ text: 'Opencode',
                  hist },
                async prompt => {
@@ -149,7 +141,19 @@ function init
                    Mess.yell('Failed: ' + err.message)
                  }
                })
-  })
+  }
+
+  function viewInitSpec
+  (view, spec, cb) {
+    if (cb)
+      cb(view)
+  }
+
+  hist = Hist.ensure('opencode')
+  mo = Mode.add('opencode', { viewInitSpec })
+
+  Cmd.add('opencode', opencode)
+  Cmd.add('code', opencode)
 
   Cmd.add('opencode chat', () => {
     next()

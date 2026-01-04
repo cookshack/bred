@@ -103,11 +103,13 @@ function init
     let label
 
     if (tool == 'read')
-      label = 'Read file ' + info
-    else if (tool == 'grep')
-      label = 'Grep ' + info
+      label = '➔ Read file ' + info
+    else if (tool == 'grep-running')
+      label = '➔ Grep ' + info
+    else if (tool == 'grep-done')
+      label = '➔ Grep ' + info
     else
-      label = 'Tool call: ' + tool
+      label = 'Tool call: ' + tool + (info ? (' ' + info) : '')
 
     buf.views.forEach(view => {
       if (view.ele) {
@@ -115,7 +117,7 @@ function init
 
         w = view.ele.querySelector('.opencode-w')
         append(w, divCl('opencode-msg opencode-msg-tool',
-                        [ divCl('opencode-msg-text', '➔ ' + label) ]))
+                        [ divCl('opencode-msg-text', label) ]))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -182,11 +184,21 @@ function init
                 path = part.state.input.path
                 if (pattern) {
                   d('OC grep: ' + pattern + ' in ' + path)
-                  appendToolMsg(buf, 'grep', '"' + pattern + '" in ' + (path || '.'))
+                  appendToolMsg(buf, 'grep-running', '"' + pattern + '" in ' + (path || '.'))
+                }
+              }
+              else if (part.tool == 'grep' && part.state?.status == 'completed') {
+                let matches, path
+
+                matches = part.state.metadata?.matches
+                path = part.state.input.path
+                if (matches) {
+                  d('OC grep completed with ' + matches + ' matches')
+                  appendToolMsg(buf, 'grep-done', '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)')
                 }
               }
               else
-                appendToolMsg(buf, part.tool)
+                appendToolMsg(buf, part.tool, part.state?.status && ('(' + part.state?.status + ')'))
             }
           }
         }

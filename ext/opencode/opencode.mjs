@@ -44,8 +44,8 @@ function init
         let w
 
         w = view.ele.querySelector('.opencode-w')
-        append(w, divCl('opencode-msg opencode-msg-' + role,
-                        [ divCl('opencode-msg-role', role == 'user' ? 'You' : 'Assistant'),
+        append(w, divCl('opencode-msg opencode-msg-' + (role == 'user' ? 'user' : 'assistant'),
+                        [ divCl('opencode-msg-role', role == 'user' ? 'You' : role),
                           divCl('opencode-msg-text', text) ]))
         w.scrollTop = w.scrollHeight
       }
@@ -222,7 +222,7 @@ function init
       }
 
       content = res.data.parts?.filter(p => p.type == 'text').map(p => p.text).join('') || '(no response)'
-      appendMsg(buf, 'assistant', content)
+      appendMsg(buf, res.data.info.modelID || 'Assistant', content)
     }
     catch (err) {
       d(err)

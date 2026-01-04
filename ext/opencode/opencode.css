@@ -76,3 +76,25 @@
 .opencode-msg-assistant .opencode-msg-text {
   background: var(--clr-fill);
 }
+
+.opencode-msg-thinking {
+  align-self: flex-start;
+  max-width: 90%;
+  margin-top: 4px;
+}
+
+.opencode-msg-thinking .opencode-msg-role {
+  color: var(--clr-nb2);
+  font-size: 0.75rem;
+  margin-bottom: 2px;
+}
+
+.opencode-msg-thinking .opencode-msg-text {
+  background: var(--clr-fill);
+  padding: 8px 12px;
+  border-radius: 8px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  font-style: italic;
+  color: var(--clr-nb3);
+}

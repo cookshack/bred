@@ -13,7 +13,9 @@ import { d } from '../../js/mess.mjs'
 
 import * as OpenCode from './lib/opencode.js'
 
-let client
+let client, eventSub
+
+const Thinking = new Map()
 
 export
 function init
@@ -44,10 +46,70 @@ function init
 
         w = view.ele.querySelector('.opencode-w')
         append(w, divCl('opencode-msg opencode-msg-' + role,
-                        [ divCl('opencode-msg-role', role === 'user' ? 'You' : 'Assistant'),
+                        [ divCl('opencode-msg-role', role == 'user' ? 'You' : 'Assistant'),
                           divCl('opencode-msg-text', text) ]))
         w.scrollTop = w.scrollHeight
       }
+    })
+  }
+
+  function appendThinking
+  (buf, text) {
+    buf.views.forEach(view => {
+      if (view.ele) {
+        let w, el
+
+        w = view.ele.querySelector('.opencode-w')
+        el = view.ele.querySelector('.opencode-msg-thinking')
+        if (el)
+          el.querySelector('.opencode-msg-text').innerText = text
+        else
+          append(w, divCl('opencode-msg opencode-msg-thinking',
+                          [ divCl('opencode-msg-role', 'Thinking...'),
+                            divCl('opencode-msg-text', text) ]))
+        w.scrollTop = w.scrollHeight
+      }
+    })
+  }
+
+  function updateThinking
+  (messageId, text) {
+    let buf
+
+    for (let [ , val ] of Thinking)
+      if (val.messageId == messageId) {
+        buf = val.buf
+        break
+      }
+    if (buf)
+      appendThinking(buf, text)
+  }
+
+  function startEventSub
+  () {
+    if (eventSub)
+      return
+
+    ensureClient().then(c => {
+      d('Starting event subscription')
+      c.event.subscribe.sse({})
+        .then(async ({ stream }) => {
+          d('Event subscription started')
+          for await (const event of stream) {
+            d({ event })
+            if (event.data?.type === 'message.part.updated') {
+              const part = event.data.properties.part
+              if (part.type === 'reasoning') {
+                d('reasoning update')
+                updateThinking(part.messageId, part.text)
+              }
+            }
+          }
+        })
+        .catch(err => {
+          d('Event subscription error: ' + err.message)
+          eventSub = null
+        })
     })
   }
 
@@ -63,12 +125,14 @@ function init
 
   async function send
   (buf, text) {
-    let sessionId, c, res, msg, content
+    let sessionId, c, res, msg, content, reasoning
 
     sessionId = buf.vars('opencode').sessionId
     c = await ensureClient()
 
     appendMsg(buf, 'user', text)
+
+    startEventSub()
 
     try {
       res = await c.session.prompt({
@@ -78,7 +142,14 @@ function init
 
       d(res)
       msg = res.data
-      content = msg.parts?.map(p => p.text).join('') || '(no response)'
+
+      Thinking.set(buf, { buf, messageId: msg.id })
+
+      reasoning = msg.parts?.filter(p => p.type == 'reasoning').map(p => p.text).join('\n') || ''
+      if (reasoning)
+        appendThinking(buf, reasoning)
+
+      content = msg.parts?.filter(p => p.type == 'text').map(p => p.text).join('') || '(no response)'
       appendMsg(buf, 'assistant', content)
     }
     catch (err) {

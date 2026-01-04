@@ -15,7 +15,7 @@ import * as OpenCode from './lib/opencode.js'
 
 let client, eventSub
 
-const Thinking = new Map()
+const thinking = new Map()
 
 export
 function init
@@ -57,12 +57,14 @@ function init
   (buf, text) {
     buf.views.forEach(view => {
       if (view.ele) {
-        let w, el
+        let w, el, current
 
         w = view.ele.querySelector('.opencode-w')
         el = view.ele.querySelector('.opencode-msg-thinking')
-        if (el)
-          el.querySelector('.opencode-msg-text').innerText = text
+        if (el) {
+          current = el.querySelector('.opencode-msg-text').innerText
+          el.querySelector('.opencode-msg-text').innerText = current + text
+        }
         else
           append(w, divCl('opencode-msg opencode-msg-thinking',
                           [ divCl('opencode-msg-role', 'Thinking...'),
@@ -73,16 +75,23 @@ function init
   }
 
   function updateThinking
-  (messageId, text) {
+  (messageID, text) {
     let buf
 
-    for (let [ , val ] of Thinking)
-      if (val.messageId == messageId) {
-        buf = val.buf
+    for (let [ , v ] of thinking)
+      if (v.messageID == messageID) {
+        buf = v.buf
         break
       }
-    if (buf)
-      appendThinking(buf, text)
+
+    if (buf) {
+    }
+    else {
+      d('no matching buf for messageID: ' + messageID)
+      return
+    }
+
+    appendThinking(buf, text)
   }
 
   function startEventSub
@@ -101,9 +110,13 @@ function init
           d({ event })
           if (event.type == 'message.part.updated') {
             const part = event.properties.part
+            d('part id: ' + part.id)
+            d('part messageID: ' + part.messageID)
+            d('part type: ' + part.type)
+            d('part text len: ' + (part.text?.length || 0))
             if (part.type == 'reasoning') {
-              d('reasoning update')
-              updateThinking(part.messageId, part.text)
+              d('reasoning update for messageID: ' + part.messageID)
+              updateThinking(part.messageID, part.text)
             }
           }
         }
@@ -138,10 +151,10 @@ function init
         body: { parts: [ { type: 'text', text } ] }
       })
 
-      d(res)
+      d({ res })
       msg = res.data
 
-      Thinking.set(buf, { buf, messageId: msg.id })
+      thinking.set(buf, { buf, messageID: msg.id })
 
       reasoning = msg.parts?.filter(p => p.type == 'reasoning').map(p => p.text).join('\n') || ''
       if (reasoning)

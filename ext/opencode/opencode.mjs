@@ -135,6 +135,8 @@ function init
       label = '➔ bash: ' + info
     else if (tool == 'bash-done')
       label = '➔ bash: ' + info
+    else if (tool == 'websearch')
+      label = '➔ ' + info
     else
       label = 'Tool call: ' + tool + (info ? (' ' + info) : '')
 
@@ -391,6 +393,42 @@ function init
                   d('OC edit file: ' + path)
                   appendToolMsg(buf, part, 'edit', path,
                                 part.state?.input?.content) // under
+                }
+              }
+              else if (part.tool == 'websearch' && part.state?.status == 'running') {
+                let query
+
+                query = part.state.input.query
+                if (query) {
+                  d('OC websearch: ' + query)
+                  appendToolMsg(buf, part, 'websearch', 'Web search: ' + query)
+                }
+              }
+              else if (part.tool == 'websearch' && part.state?.status == 'completed') {
+                let query, results
+
+                query = part.state.input.query
+                results = part.state.metadata?.results
+                if (query) {
+                  d('OC websearch completed with ' + results + ' results')
+                  appendToolMsg(buf,
+                                part,
+                                'websearch',
+                                'Web search: ' + query + ' (' + results + ' results)',
+                                part.state.output) // under
+                }
+              }
+              else if (part.tool == 'websearch' && part.state?.status == 'error') {
+                let query
+
+                query = part.state.input.query
+                if (query) {
+                  d('OC websearch error')
+                  appendToolMsg(buf,
+                                part,
+                                'websearch',
+                                'Web search: ' + query,
+                                part.state.error) // under
                 }
               }
               else

@@ -17,6 +17,7 @@ import * as Peer from './main-peer.mjs'
 import process from 'node:process'
 import * as Profile from './main-profile.mjs'
 import * as Project from './main-project.mjs'
+import * as Code from './main-code.mjs'
 import fs from 'node:fs'
 import * as Shell from './main-shell.mjs'
 import * as Step from './main-step.mjs'
@@ -290,6 +291,12 @@ function onCmdCh
 
   if (name == 'browse.open')
     return wrapOn(e, ch, args, Browse.onOpen)
+
+  if (name == 'code.spawn')
+    return Code.onSpawn(e, ch, args)
+
+  if (name == 'code.close')
+    return Code.onClose(e, ch, args)
 
   if (name == 'profile.get')
     return Profile.onGet(e, args[0], args[1])
@@ -995,6 +1002,7 @@ async function whenReady
 
   Browse.init()
   Project.init()
+  Code.init()
 
   Menu.setApplicationMenu(null) // Apparently good for performance
 

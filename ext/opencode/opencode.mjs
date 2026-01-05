@@ -11,6 +11,7 @@ import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/pane.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import { d } from '../../js/mess.mjs'
+import * as Tron from '../../js/tron.mjs'
 
 import * as OpenCode from './lib/opencode.js'
 
@@ -27,16 +28,22 @@ function init
     if (client)
       return client
 
-    try {
-      client = OpenCode.createOpencodeClient({ baseUrl: 'http://127.0.0.1:4096' })
-      buf.vars('opencode').client = client
-      d('OC client started')
-      return client
-    }
-    catch (err) {
-      Mess.yell('Failed to start opencode client: ' + err.message)
-      throw err
-    }
+    return new Promise((resolve, reject) => {
+      Tron.cmd('code.spawn', [ buf.id, buf.dir ], (err, ret) => {
+        let url
+
+        if (err) {
+          reject(err)
+          return
+        }
+        url = ret.url
+        client = OpenCode.createOpencodeClient({ baseUrl: url })
+        buf.vars('opencode').client = client
+        buf.vars('opencode').serverUrl = url
+        d('OC client started: ' + url)
+        resolve(client)
+      })
+    })
   }
 
   function appendX
@@ -691,7 +698,11 @@ function init
   }
 
   hist = Hist.ensure('opencode')
-  mo = Mode.add('opencode', { viewInitSpec })
+  mo = Mode.add('opencode',
+                { viewInitSpec,
+                  onRemove(buf) {
+                    Tron.cmd('code.close', [ buf.id ])
+                  } })
 
   Cmd.add('opencode', opencode)
   Cmd.add('code', opencode)

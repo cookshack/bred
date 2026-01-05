@@ -105,6 +105,9 @@ sync-others:
 	cp node_modules/typescript-language-server/package.json lib/typescript-language-server/package.json # cli.mjs reads version from here
 	mkdir -p lib/uuid/
 	cp node_modules/uuid/dist/esm-browser/* lib/uuid/
+	mkdir -p lib/opencode/gen
+	cp node_modules/@opencode-ai/sdk/dist/v2/server.js lib/opencode/server.js
+	cp -r node_modules/@opencode-ai/sdk/dist/v2/gen lib/opencode/
 
 sync-codemirror:
 	rm -rf lib/@codemirror

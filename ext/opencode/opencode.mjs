@@ -358,7 +358,8 @@ function init
                 path = part.state.input.filePath
                 if (path) {
                   d('OC write file: ' + path)
-                  appendToolMsg(buf, part, 'write', path)
+                  appendToolMsg(buf, part, 'write', path,
+                                part.state?.input?.content) // under
                 }
               }
               else if (part.tool == 'edit' && part.state?.status == 'running') {

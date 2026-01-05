@@ -152,7 +152,7 @@ function init
         appendX(w,
                 divCl('opencode-msg opencode-msg-tool',
                       [ divCl('opencode-msg-text', label),
-                        under && divCl('opencode-msg-text', under) ],
+                        under && divCl('opencode-msg-text opencode-msg-under', under) ],
                       { 'data-callid': callID }))
         w.scrollTop = w.scrollHeight
       }

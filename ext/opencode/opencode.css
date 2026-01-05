@@ -113,6 +113,11 @@
   white-space: pre;
 }
 
+.opencode-msg-tool .opencode-msg-text.opencode-msg-under {
+  font-family: var(--font-monospace);
+  font-style: normal;
+}
+
 .opencode-msg-permission {
   align-self: flex-start;
   max-width: 90%;

@@ -214,6 +214,12 @@ function relaunch
 
 async function onAcmd
 (e, name, args) {
+  if (name == 'code.spawn')
+    return Code.onSpawn(e, args)
+
+  if (name == 'code.close')
+    return Code.onClose(e, args)
+
   if (name == 'browse.back')
     return Browse.onBack(e, args)
 
@@ -231,6 +237,12 @@ async function onAcmd
 
   if (name == 'browse.zoom')
     return Browse.onZoom(e, args)
+
+  if (name == 'code.close')
+    return Code.onClose(e, args)
+
+  if (name == 'code.spawn')
+    return Code.onSpawn(e, args)
 
   if (name == 'file.save.tmp')
     return File.onSaveTmp(e, args)
@@ -291,12 +303,6 @@ function onCmdCh
 
   if (name == 'browse.open')
     return wrapOn(e, ch, args, Browse.onOpen)
-
-  if (name == 'code.spawn')
-    return Code.onSpawn(e, ch, args)
-
-  if (name == 'code.close')
-    return Code.onClose(e, ch, args)
 
   if (name == 'profile.get')
     return Profile.onGet(e, args[0], args[1])

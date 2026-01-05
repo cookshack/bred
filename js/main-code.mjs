@@ -21,8 +21,8 @@ function init() {
 }
 
 export
-async function onSpawn(e, ch, onArgs) {
-  let [ bufferID, workingDir ] = onArgs
+async function onSpawn(e, args) {
+  let [ bufferID, workingDir ] = args
   let port
 
   port = getFreePort()
@@ -46,8 +46,8 @@ async function onSpawn(e, ch, onArgs) {
 }
 
 export
-function onClose(e, ch, onArgs) {
-  let [ bufferID ] = onArgs
+function onClose(e, args) {
+  let [ bufferID ] = args
   let server
 
   server = servers.get(bufferID)

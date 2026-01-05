@@ -22,28 +22,21 @@ function init
 
   async function ensureClient
   (buf) {
-    let client
+    let client, ret
 
     client = buf.vars('opencode').client
     if (client)
       return client
 
-    return new Promise((resolve, reject) => {
-      Tron.cmd('code.spawn', [ buf.id, buf.dir ], (err, ret) => {
-        let url
+    ret = await Tron.acmd('code.spawn', [ buf.id, buf.dir ])
 
-        if (err) {
-          reject(err)
-          return
-        }
-        url = ret.url
-        client = OpenCode.createOpencodeClient({ baseUrl: url })
-        buf.vars('opencode').client = client
-        buf.vars('opencode').serverUrl = url
-        d('OC client started: ' + url)
-        resolve(client)
-      })
-    })
+    if (ret.err)
+      throw new Error(ret.err.message)
+
+    client = OpenCode.createOpencodeClient({ baseUrl: ret.url })
+    buf.vars('opencode').client = client
+    buf.vars('opencode').serverUrl = ret.url
+    return client
   }
 
   function appendX
@@ -701,7 +694,7 @@ function init
   mo = Mode.add('opencode',
                 { viewInitSpec,
                   onRemove(buf) {
-                    Tron.cmd('code.close', [ buf.id ])
+                    Tron.acmd('code.close', [ buf.id ])
                   } })
 
   Cmd.add('opencode', opencode)

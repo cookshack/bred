@@ -17,7 +17,7 @@ import * as OpenCode from './lib/opencode.js'
 export
 function init
 () {
-  let hist, mo, textBuffer
+  let hist, mo
 
   async function ensureClient
   (buf) {
@@ -48,6 +48,22 @@ function init
       under.before(el)
     else
       append(w, el)
+  }
+
+  function appendModel
+  (buf, model) {
+    buf.views.forEach(view => {
+      if (view.ele) {
+        let w
+
+        w = view.ele.querySelector('.opencode-w')
+        appendX(w,
+                divCl('opencode-msg opencode-msg-assistant',
+                      [ divCl('opencode-msg-role', model),
+                        divCl('opencode-msg-text opencode-msg-hidden') ]))
+        w.scrollTop = w.scrollHeight
+      }
+    })
   }
 
   function appendMsg
@@ -332,7 +348,6 @@ function init
               }
               else if (part.type == 'text') {
                 d('OC text part' + part.id)
-                //textBuffer.set(part.id, part.text)
                 if (buf.vars('opencode').stepActive) {
                   d('OC update text: ' + part.text)
                   appendMsg(buf, 0, part.text, part.id)
@@ -345,13 +360,11 @@ function init
 
                 //d('OC reasoning part ' + part.id)
 
-                buffered = textBuffer.get(part.id) || ''
-                buffered += (event.properties.delta || '')
+                buffered = (event.properties.delta || '')
                 if (buffered) {
                   d('OC reasoning append: ' + buffered)
                   appendThinking(buf, buffered)
                 }
-                textBuffer.delete(part.id)
               }
               else if (part.type == 'tool') {
                 d('OC tool: ' + part.tool)
@@ -580,7 +593,7 @@ function init
 
   async function send
   (buf, text) {
-    let sessionID, c, res, content
+    let sessionID, c, res
 
     sessionID = buf.vars('opencode').sessionID
     c = await ensureClient(buf)
@@ -590,8 +603,6 @@ function init
     startEventSub(buf)
 
     try {
-      let buffered
-
       d('SEND')
 
       res = await c.session.prompt({
@@ -605,15 +616,7 @@ function init
       d('SEND done')
       d({ res })
 
-      buffered = textBuffer.get(sessionID)
-      if (buffered) {
-        d('found buffered text on prompt return, len: ' + buffered.length)
-        appendThinking(buf, buffered)
-        textBuffer.delete(sessionID)
-      }
-
-      content = 0 //res.data.parts?.filter(p => p.type == 'text').map(p => p.text).join('') || '(no response)'
-      appendMsg(buf, res.data.info.modelID || 'Assistant', content)
+      appendModel(buf, res.data.info.modelID || '???')
     }
     catch (err) {
       d(err)
@@ -687,7 +690,6 @@ function init
       cb(view)
   }
 
-  textBuffer = new Map()
   hist = Hist.ensure('opencode')
   mo = Mode.add('opencode', { viewInitSpec })
 

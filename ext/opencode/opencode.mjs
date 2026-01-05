@@ -14,20 +14,22 @@ import { d } from '../../js/mess.mjs'
 
 import * as OpenCode from './lib/opencode.js'
 
-let client, eventSub
-
 export
 function init
 () {
   let hist, mo, textBuffer
 
   async function ensureClient
-  () {
+  (buf) {
+    let client
+
+    client = buf.vars('opencode').client
     if (client)
       return client
 
     try {
       client = OpenCode.createOpencodeClient({ baseUrl: 'http://127.0.0.1:4096' })
+      buf.vars('opencode').client = client
       d('OC client started')
       return client
     }
@@ -125,9 +127,11 @@ function init
 
     buf.views.forEach(view => {
       if (view.ele) {
-        let w
+        let w, els
 
         w = view.ele.querySelector('.opencode-w')
+        els = w.querySelectorAll('.opencode-msg-tool[data-callid="' + part.callID + '"]')
+        els?.forEach(el => el.remove())
         append(w, divCl('opencode-msg opencode-msg-tool',
                         [ divCl('opencode-msg-text', label),
                           under && divCl('opencode-msg-text', under) ],
@@ -163,7 +167,7 @@ function init
     response = yes ? 'once' : 'reject'
 
     d('OC permission reply: ' + response)
-    ensureClient().then(async c => {
+    ensureClient(buf).then(async c => {
       try {
         await c.postSessionIdPermissionsPermissionId({ path: { id: sessionID, permissionID: id },
                                                        body: { response } })
@@ -172,7 +176,7 @@ function init
             let w, el
 
             w = view.ele.querySelector('.opencode-w')
-            el = w.querySelector('.opencode-msg-permission[data-permissionid="' + id + '"')
+            el = w.querySelector('.opencode-msg-permission[data-permissionid="' + id + '"]')
             el?.remove()
           }
         })
@@ -197,11 +201,11 @@ function init
 
   function startEventSub
   (buf) {
-    if (eventSub)
+    if (buf.vars('opencode').eventSub)
       return
-    eventSub = true
+    buf.vars('opencode').eventSub = 1
 
-    ensureClient().then(async c => {
+    ensureClient(buf).then(async c => {
       let events
 
       d('OC starting event subscription')
@@ -355,7 +359,7 @@ function init
   }
 
   function divW
-  (sessionID, prompt) {
+  (prompt) {
     return divCl('opencode-ww',
                  [ divCl('opencode-h',
                          [ divCl('opencode-icon',
@@ -369,7 +373,7 @@ function init
     let sessionID, c, res, content
 
     sessionID = buf.vars('opencode').sessionID
-    c = await ensureClient()
+    c = await ensureClient(buf)
 
     appendMsg(buf, 'user', text)
 
@@ -446,12 +450,13 @@ function init
                  try {
                    let res
 
-                   c = await ensureClient()
+                   buf = Buf.add('Opencode: ' + prompt, 'opencode', divW(prompt), p.dir)
+                   buf.vars('opencode').prompt = prompt
+
+                   c = await ensureClient(buf)
                    res = await c.session.create({ body: { title: prompt } })
 
-                   buf = Buf.add('Opencode: ' + prompt, 'opencode', divW(res.data.id, prompt), p.dir)
                    buf.vars('opencode').sessionID = res.data.id
-                   buf.vars('opencode').prompt = prompt
 
                    p.setBuf(buf, {}, () => {
                      send(buf, prompt)
@@ -477,30 +482,6 @@ function init
   Cmd.add('code', opencode)
 
   Cmd.add('respond', () => next(), mo)
-
-  Cmd.add('opencode models', async () => {
-    let c, res
-
-    try {
-      let models
-
-      models = ''
-      c = await ensureClient()
-      res = await c.config.providers({})
-      res.data.providers.forEach(p => {
-        models += ('provider: ' + p.id + ' - ' + p.name + '\n')
-        d('provider: ' + p.id + ' - ' + p.name)
-        Object.keys(p.models).forEach(m => {
-          models += '  model: ' + m + '\n'
-          d('  model: ' + m)
-        })
-      })
-      Mess.say(models)
-    }
-    catch (err) {
-      Mess.yell('Failed: ' + err.message)
-    }
-  })
 
   Cmd.add('yes', () => yn(1), mo)
   Cmd.add('no', () => yn(), mo)

@@ -1,21 +1,57 @@
 import * as Server from '../lib/opencode/server.js'
+import Net from 'node:net'
 import { d } from './main-log.mjs'
 
 let servers
 
 servers = new Map()
 
-function getFreePort() {
+async function isPortInUse
+(port) {
+  return new Promise(resolve => {
+    let timedOut
+
+    setTimeout(() => {
+      timedOut = 1
+      resolve(1)
+    }, 1000)
+
+    const server = Net.createServer()
+    server.once('error', err => {
+      if (timedOut)
+        return
+      if (err.code === 'EADDRINUSE')
+        resolve(1)
+      else
+        resolve(0)
+    })
+    server.once('listening', () => {
+      if (timedOut) {
+        server.close()
+        return
+      }
+      server.close()
+      resolve(0)
+    })
+    server.listen(port, '127.0.0.1')
+  })
+}
+
+async function getFreePort
+() {
   let port
 
   port = 4096
-  while (servers.has(port))
-    port++
-  return port
+  while (1)
+    if (servers.has(port) || await isPortInUse(port))
+      port++
+    else
+      return port
 }
 
 export
-function init() {
+function init
+() {
   d('CODE init')
   servers = new Map()
 }
@@ -46,7 +82,8 @@ async function onSpawn(e, args) {
 }
 
 export
-function onClose(e, args) {
+function onClose
+(e, args) {
   let [ bufferID ] = args
   let server
 

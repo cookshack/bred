@@ -86,7 +86,7 @@ function prepend
   shared().buf?.views.forEach(view => {
     if (view.ele)
       Dom.prepend(view.ele.firstElementChild.firstElementChild,
-                  divCl('cuts-cut', cut))
+                  divCl('cuts-cut', cut, { 'data-cut': cut, 'data-run': 'insert cut' }))
   })
 }
 
@@ -99,7 +99,7 @@ function init
   (view, spec, cb) { // (view)
     view.ele.firstElementChild.firstElementChild.innerHTML = ''
     append(view.ele.firstElementChild.firstElementChild,
-           shared().ring.map(cut => divCl('cuts-cut', cut)))
+           shared().ring.map(cut => divCl('cuts-cut', cut, { 'data-cut': cut, 'data-run': 'insert cut' })))
     if (cb)
       cb(view)
   }
@@ -112,22 +112,44 @@ function init
   Cmd.add('refresh', () => viewInitSpec(Pane.current().view), mo)
 
   Cmd.add('cuts', () => {
-    let p, buf
+    let p, buf, sourceBuf
 
     buf = shared().buf
     p = Pane.current()
+    sourceBuf = p.buf
     if (buf)
-      p.setBuf(buf, {}, view => viewInitSpec(view))
+      p.setBuf(buf, {}, view => {
+        shared().sourceBuf = sourceBuf
+        viewInitSpec(view)
+      })
     else {
       buf = Buf.add('Cuts', 'Cuts', divW(), p.dir)
       shared().buf = buf
+      shared().sourceBuf = sourceBuf
       buf.icon = 'clipboard'
       buf.addMode('view')
       p.setBuf(buf)
     }
   })
 
+  Cmd.add('insert cut', (u, we) => {
+    let cut, sourceBuf
+
+    cut = we?.e.target.dataset.cut
+    if (cut) {
+      sourceBuf = shared().sourceBuf
+      if (sourceBuf)
+        sourceBuf.insert(cut, sourceBuf.bep)
+      else
+        Mess.yell('Missing buffer to insert into')
+    }
+    else
+      Mess.yell('Missing cut')
+  })
+
   Em.on('g', 'refresh', mo)
+
+  Em.on('Enter', 'insert cut', mo)
 
   Em.on('C-c C-r', 'cuts')
 

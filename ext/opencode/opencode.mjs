@@ -137,6 +137,8 @@ function init
       label = '➔ bash: ' + info
     else if (tool == 'websearch')
       label = '➔ ' + info
+    else if (tool == 'webfetch')
+      label = '➔ ' + info
     else
       label = 'Tool call: ' + tool + (info ? (' ' + info) : '')
 
@@ -428,6 +430,41 @@ function init
                                 part,
                                 'websearch',
                                 'Web search: ' + query,
+                                part.state.error) // under
+                }
+              }
+              else if (part.tool == 'webfetch' && part.state?.status == 'running') {
+                let url
+
+                url = part.state.input.url
+                if (url) {
+                  d('OC webfetch: ' + url)
+                  appendToolMsg(buf, part, 'webfetch', 'Fetch ' + url)
+                }
+              }
+              else if (part.tool == 'webfetch' && part.state?.status == 'completed') {
+                let url, size
+
+                url = part.state.input.url
+                size = part.state.output?.length
+                if (url) {
+                  d('OC webfetch completed, size: ' + size)
+                  appendToolMsg(buf,
+                                part,
+                                'webfetch',
+                                'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
+                }
+              }
+              else if (part.tool == 'webfetch' && part.state?.status == 'error') {
+                let url
+
+                url = part.state.input.url
+                if (url) {
+                  d('OC webfetch error')
+                  appendToolMsg(buf,
+                                part,
+                                'webfetch',
+                                'Fetch ' + url,
                                 part.state.error) // under
                 }
               }

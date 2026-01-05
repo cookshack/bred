@@ -326,7 +326,11 @@ function init
                 path = part.state.input.path
                 if (matches) {
                   d('OC grep completed with ' + matches + ' matches')
-                  appendToolMsg(buf, part, 'grep-done', '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)')
+                  appendToolMsg(buf,
+                                part,
+                                'grep-done',
+                                '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
+                                part.state.output) // under
                 }
               }
               else if (part.tool == 'bash' && part.state?.status == 'running') {

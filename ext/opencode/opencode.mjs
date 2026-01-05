@@ -282,6 +282,7 @@ function init
                 path = req.metadata?.filepath
                 if (path) {
                   d('OC permission file: ' + path)
+                  buf.vars('opencode').patch = req.metadata?.diff
                   appendToolMsg(buf, req.tool.callID, 'edit', path,
                                 req.metadata?.diff) // under
                 }
@@ -408,6 +409,16 @@ function init
                                   part.state?.input?.content) // under
                   }
                 }
+                else if (part.tool == 'write' && part.state?.status == 'completed') {
+                  let path
+
+                  path = part.state.input.filePath
+                  if (path) {
+                    d('OC write file: ' + path)
+                    appendToolMsg(buf, part.callID, 'write', path + ' (done)',
+                                  part.state?.input?.content) // under
+                  }
+                }
                 else if (part.tool == 'edit' && part.state?.status == 'running') {
                   let path
 
@@ -415,7 +426,8 @@ function init
                   if (path) {
                     d('OC edit file: ' + path)
                     appendToolMsg(buf, part.callID, 'edit', path,
-                                  part.state?.input?.content) // under
+                                  // under
+                                  '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString)
                   }
                 }
                 else if (part.tool == 'edit' && part.state?.status == 'completed') {
@@ -423,9 +435,13 @@ function init
 
                   path = part.state.input.filePath
                   if (path) {
+                    let under
+
                     d('OC edit completed: ' + path)
+                    under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
+                    under = buf.vars('opencode').patch || under
                     appendToolMsg(buf, part.callID, 'edit', path + ' (done)',
-                                  part.state.output)
+                                  under)
                   }
                 }
                 else if (part.tool == 'websearch' && part.state?.status == 'running') {

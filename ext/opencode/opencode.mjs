@@ -334,6 +334,15 @@ function init
                     appendToolMsg(buf, part.callID, 'read', path)
                   }
                 }
+                else if (part.tool == 'read' && part.state?.status == 'completed') {
+                  let path
+
+                  path = part.state.input.filePath
+                  if (path) {
+                    d('OC read file completed: ' + path)
+                    appendToolMsg(buf, part.callID, 'read', path + ' (done)')
+                  }
+                }
                 else if (part.tool == 'glob' && part.state?.status == 'running') {
                   let pattern
 

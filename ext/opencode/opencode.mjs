@@ -104,6 +104,8 @@ function init
 
     if (tool == 'read')
       label = '➔ Read file ' + info
+    else if (tool == 'write')
+      label = '➔ Write file ' + info
     else if (tool == 'grep-running')
       label = '➔ Grep ' + info
     else if (tool == 'grep-done')
@@ -170,6 +172,31 @@ function init
                             c = await ensureClient()
                             response = yes ? 'once' : 'reject'
                             d('OC permission reply: ' + response)
+                            try {
+                              await c.postSessionIdPermissionsPermissionId({ path: { id: sessionID,
+                                                                                     permissionID: req.id },
+                                                                             body: { response } })
+                            }
+                            catch (err) {
+                              d('OC permission respond error: ' + err.message)
+                            }
+                          })
+              }
+            }
+            else if (req.type == 'write') {
+              let filePath
+
+              filePath = req.metadata?.filePath
+              if (filePath) {
+                d('OC edit permission: ' + filePath)
+                Prompt.yn('Write "' + filePath + '"?',
+                          {},
+                          async yes => {
+                            let c, response
+
+                            c = await ensureClient()
+                            response = yes ? 'once' : 'reject'
+                            d('OC edit permission reply: ' + response)
                             try {
                               await c.postSessionIdPermissionsPermissionId({ path: { id: sessionID,
                                                                                      permissionID: req.id },
@@ -254,6 +281,15 @@ function init
                 if (command) {
                   d('OC bash completed: ' + command + ' (exit ' + exitCode + ')')
                   appendToolMsg(buf, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+                }
+              }
+              else if (part.tool == 'write' && part.state?.status == 'running') {
+                let path
+
+                path = part.state.input.filePath
+                if (path) {
+                  d('OC write file: ' + path)
+                  appendToolMsg(buf, 'write', path)
                 }
               }
               else

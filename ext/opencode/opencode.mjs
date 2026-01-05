@@ -114,7 +114,7 @@ function init
   }
 
   function appendToolMsg
-  (buf, part, tool, info, under) {
+  (buf, callID, tool, info, under) {
     let label
 
     if (tool == 'read')
@@ -147,13 +147,13 @@ function init
         let w, els
 
         w = view.ele.querySelector('.opencode-w')
-        els = w.querySelectorAll('.opencode-msg-tool[data-callid="' + part.callID + '"]')
+        els = w.querySelectorAll('.opencode-msg-tool[data-callid="' + callID + '"]')
         els?.forEach(el => el.remove())
         appendX(w,
                 divCl('opencode-msg opencode-msg-tool',
                       [ divCl('opencode-msg-text', label),
                         under && divCl('opencode-msg-text', under) ],
-                      { 'data-callid': part.callID }))
+                      { 'data-callid': callID }))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -169,7 +169,7 @@ function init
         appendX(w,
                 divCl('opencode-msg opencode-msg-permission',
                       [ divCl('opencode-msg-text',
-                              [ 'Allow?',
+                              [ '▣ Allow?',
                                 button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
                                 button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }) ]) ],
                       { 'data-permissionid': id }))
@@ -268,12 +268,32 @@ function init
               && (event.properties.sessionID == sessionID))
             updateStatus(buf, event.properties)
 
+          if ((event.type == 'permission.asked')
+              && (event.properties.sessionID == sessionID)) {
+            let req
+
+            req = event.properties
+            d('OC permission asked: ' + req.permission)
+            buf.vars('opencode').permissionID = req.id
+            if (req.permission == 'edit') {
+              let path
+
+              path = req.metadata?.filepath
+              if (path) {
+                d('OC permission file: ' + path)
+                appendToolMsg(buf, req.tool.callID, 'edit', path,
+                              req.metadata?.diff) // under
+              }
+            }
+            appendPermission(buf, req.id)
+          }
+
           if ((event.type == 'permission.updated')
               && (event.properties.sessionID == sessionID)) {
             let req
 
             req = event.properties
-            d('OC permission asked: ' + req.type)
+            d('OC permission updated: ' + req.type)
             buf.vars('opencode').permissionID = req.id
             appendPermission(buf, req.id)
           }
@@ -309,7 +329,7 @@ function init
                 path = part.state.input.filePath
                 if (path) {
                   d('OC read file: ' + path)
-                  appendToolMsg(buf, part, 'read', path)
+                  appendToolMsg(buf, part.callID, 'read', path)
                 }
               }
               else if (part.tool == 'glob' && part.state?.status == 'running') {
@@ -318,7 +338,7 @@ function init
                 pattern = part.state.input.pattern
                 if (pattern) {
                   d('OC glob: ' + pattern)
-                  appendToolMsg(buf, part, 'glob', '"' + pattern)
+                  appendToolMsg(buf, part.callID, 'glob', '"' + pattern)
                 }
               }
               else if (part.tool == 'glob' && part.state?.status == 'completed') {
@@ -328,7 +348,7 @@ function init
                 if (1) {
                   d('OC glob completed with ' + count + ' matches')
                   appendToolMsg(buf,
-                                part,
+                                part.callID,
                                 'glob-done',
                                 '"' + part.state.input.pattern + ' (' + count + ' matches)',
                                 part.state.output) // under
@@ -341,7 +361,7 @@ function init
                 path = part.state.input.path
                 if (pattern) {
                   d('OC grep: ' + pattern + ' in ' + path)
-                  appendToolMsg(buf, part, 'grep', '"' + pattern + '" in ' + (path || '.'))
+                  appendToolMsg(buf, part.callID, 'grep', '"' + pattern + '" in ' + (path || '.'))
                 }
               }
               else if (part.tool == 'grep' && part.state?.status == 'completed') {
@@ -352,7 +372,7 @@ function init
                 if (matches) {
                   d('OC grep completed with ' + matches + ' matches')
                   appendToolMsg(buf,
-                                part,
+                                part.callID,
                                 'grep-done',
                                 '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
                                 part.state.output) // under
@@ -364,7 +384,7 @@ function init
                 command = part.state.input.command
                 if (command) {
                   d('OC bash: ' + command)
-                  appendToolMsg(buf, part, 'bash-running', command)
+                  appendToolMsg(buf, part.callID, 'bash-running', command)
                 }
               }
               else if (part.tool == 'bash' && part.state?.status == 'completed') {
@@ -374,7 +394,7 @@ function init
                 exitCode = part.state.metadata?.exit
                 if (command) {
                   d('OC bash completed: ' + command + ' (exit ' + exitCode + ')')
-                  appendToolMsg(buf, part, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+                  appendToolMsg(buf, part.callID, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
                 }
               }
               else if (part.tool == 'write' && part.state?.status == 'running') {
@@ -383,7 +403,7 @@ function init
                 path = part.state.input.filePath
                 if (path) {
                   d('OC write file: ' + path)
-                  appendToolMsg(buf, part, 'write', path,
+                  appendToolMsg(buf, part.callID, 'write', path,
                                 part.state?.input?.content) // under
                 }
               }
@@ -393,7 +413,7 @@ function init
                 path = part.state.input.filePath
                 if (path) {
                   d('OC edit file: ' + path)
-                  appendToolMsg(buf, part, 'edit', path,
+                  appendToolMsg(buf, part.callID, 'edit', path,
                                 part.state?.input?.content) // under
                 }
               }
@@ -403,7 +423,7 @@ function init
                 query = part.state.input.query
                 if (query) {
                   d('OC websearch: ' + query)
-                  appendToolMsg(buf, part, 'websearch', 'Web search: ' + query)
+                  appendToolMsg(buf, part.callID, 'websearch', 'Web search: ' + query)
                 }
               }
               else if (part.tool == 'websearch' && part.state?.status == 'completed') {
@@ -414,7 +434,7 @@ function init
                 if (query) {
                   d('OC websearch completed with ' + results + ' results')
                   appendToolMsg(buf,
-                                part,
+                                part.callID,
                                 'websearch',
                                 'Web search: ' + query + ' (' + results + ' results)',
                                 part.state.output) // under
@@ -427,7 +447,7 @@ function init
                 if (query) {
                   d('OC websearch error')
                   appendToolMsg(buf,
-                                part,
+                                part.callID,
                                 'websearch',
                                 'Web search: ' + query,
                                 part.state.error) // under
@@ -439,7 +459,7 @@ function init
                 url = part.state.input.url
                 if (url) {
                   d('OC webfetch: ' + url)
-                  appendToolMsg(buf, part, 'webfetch', 'Fetch ' + url)
+                  appendToolMsg(buf, part.callID, 'webfetch', 'Fetch ' + url)
                 }
               }
               else if (part.tool == 'webfetch' && part.state?.status == 'completed') {
@@ -450,7 +470,7 @@ function init
                 if (url) {
                   d('OC webfetch completed, size: ' + size)
                   appendToolMsg(buf,
-                                part,
+                                part.callID,
                                 'webfetch',
                                 'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
                 }
@@ -462,14 +482,14 @@ function init
                 if (url) {
                   d('OC webfetch error')
                   appendToolMsg(buf,
-                                part,
+                                part.callID,
                                 'webfetch',
                                 'Fetch ' + url,
                                 part.state.error) // under
                 }
               }
               else
-                appendToolMsg(buf, part, part.tool, part.state?.status && ('(' + part.state?.status + ')'))
+                appendToolMsg(buf, part.callID, part.tool, part.state?.status && ('(' + part.state?.status + ')'))
             }
           }
         }

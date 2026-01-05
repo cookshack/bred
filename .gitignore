@@ -19,6 +19,7 @@ lib/*
 !lib/monaco-patches
 !lib/codemirror-patches
 node_modules/
+opencode-src
 /out/
 /public/js/l*-sw.js
 /public/js/pages.js

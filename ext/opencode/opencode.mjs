@@ -256,242 +256,258 @@ function init
       events = await c.event.subscribe({})
       d('OC stream obtained')
       ;(async () => {
-        for await (let event of events.stream) {
-          let sessionID
+        try {
+          for await (let event of events.stream) {
+            let sessionID
 
-          d(event.type)
-          d({ event })
+            d(event.type)
+            d({ event })
 
-          sessionID = buf && buf.vars('opencode')?.sessionID
+            sessionID = buf && buf.vars('opencode')?.sessionID
 
-          if ((event.type == 'session.status')
-              && (event.properties.sessionID == sessionID))
-            updateStatus(buf, event.properties)
+            if ((event.type == 'session.status')
+                && (event.properties.sessionID == sessionID))
+              updateStatus(buf, event.properties)
 
-          if ((event.type == 'permission.asked')
-              && (event.properties.sessionID == sessionID)) {
-            let req
+            if ((event.type == 'permission.asked')
+                && (event.properties.sessionID == sessionID)) {
+              let req
 
-            req = event.properties
-            d('OC permission asked: ' + req.permission)
-            buf.vars('opencode').permissionID = req.id
-            if (req.permission == 'edit') {
-              let path
-
-              path = req.metadata?.filepath
-              if (path) {
-                d('OC permission file: ' + path)
-                appendToolMsg(buf, req.tool.callID, 'edit', path,
-                              req.metadata?.diff) // under
-              }
-            }
-            appendPermission(buf, req.id)
-          }
-
-          if ((event.type == 'permission.updated')
-              && (event.properties.sessionID == sessionID)) {
-            let req
-
-            req = event.properties
-            d('OC permission updated: ' + req.type)
-            buf.vars('opencode').permissionID = req.id
-            appendPermission(buf, req.id)
-          }
-
-          if ((event.type == 'message.part.updated')
-              && (event.properties.part.sessionID == sessionID)) {
-            let part
-
-            part = event.properties.part
-            if (part.type == 'text') {
-              d('OC text part' + part.id)
-              d('OC update text: ' + part.text)
-              textBuffer.set(part.id, part.text)
-            }
-            else if (part.type == 'reasoning') {
-              let buffered
-
-              d('OC reasoning part ' + part.id)
-
-              buffered = textBuffer.get(part.id) || ''
-              buffered += (event.properties.delta || '')
-              if (buffered) {
-                d('OC reasoning append: ' + buffered)
-                appendThinking(buf, buffered)
-              }
-              textBuffer.delete(part.id)
-            }
-            else if (part.type == 'tool') {
-              d('OC tool: ' + part.tool)
-              if (part.tool == 'read' && part.state?.status == 'running') {
+              req = event.properties
+              d('OC permission asked: ' + req.permission)
+              buf.vars('opencode').permissionID = req.id
+              if (req.permission == 'edit') {
                 let path
 
-                path = part.state.input.filePath
+                path = req.metadata?.filepath
                 if (path) {
-                  d('OC read file: ' + path)
-                  appendToolMsg(buf, part.callID, 'read', path)
+                  d('OC permission file: ' + path)
+                  appendToolMsg(buf, req.tool.callID, 'edit', path,
+                                req.metadata?.diff) // under
                 }
               }
-              else if (part.tool == 'glob' && part.state?.status == 'running') {
-                let pattern
+              appendPermission(buf, req.id)
+            }
 
-                pattern = part.state.input.pattern
-                if (pattern) {
-                  d('OC glob: ' + pattern)
-                  appendToolMsg(buf, part.callID, 'glob', '"' + pattern)
-                }
-              }
-              else if (part.tool == 'glob' && part.state?.status == 'completed') {
-                let count
+            if ((event.type == 'permission.updated')
+                && (event.properties.sessionID == sessionID)) {
+              let req
 
-                count = part.state.metadata?.count
-                if (1) {
-                  d('OC glob completed with ' + count + ' matches')
-                  appendToolMsg(buf,
-                                part.callID,
-                                'glob-done',
-                                '"' + part.state.input.pattern + ' (' + count + ' matches)',
-                                part.state.output) // under
-                }
-              }
-              else if (part.tool == 'grep' && part.state?.status == 'running') {
-                let pattern, path
+              req = event.properties
+              d('OC permission updated: ' + req.type)
+              buf.vars('opencode').permissionID = req.id
+              appendPermission(buf, req.id)
+            }
 
-                pattern = part.state.input.pattern
-                path = part.state.input.path
-                if (pattern) {
-                  d('OC grep: ' + pattern + ' in ' + path)
-                  appendToolMsg(buf, part.callID, 'grep', '"' + pattern + '" in ' + (path || '.'))
-                }
-              }
-              else if (part.tool == 'grep' && part.state?.status == 'completed') {
-                let matches, path
+            if ((event.type == 'message.part.updated')
+                && (event.properties.part.sessionID == sessionID)) {
+              let part
 
-                matches = part.state.metadata?.matches
-                path = part.state.input.path
-                if (matches) {
-                  d('OC grep completed with ' + matches + ' matches')
-                  appendToolMsg(buf,
-                                part.callID,
-                                'grep-done',
-                                '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
-                                part.state.output) // under
-                }
+              part = event.properties.part
+              if (part.type == 'text') {
+                d('OC text part' + part.id)
+                d('OC update text: ' + part.text)
+                textBuffer.set(part.id, part.text)
               }
-              else if (part.tool == 'bash' && part.state?.status == 'running') {
-                let command
+              else if (part.type == 'reasoning') {
+                let buffered
 
-                command = part.state.input.command
-                if (command) {
-                  d('OC bash: ' + command)
-                  appendToolMsg(buf, part.callID, 'bash-running', command)
-                }
-              }
-              else if (part.tool == 'bash' && part.state?.status == 'completed') {
-                let command, exitCode
+                d('OC reasoning part ' + part.id)
 
-                command = part.state.input.command
-                exitCode = part.state.metadata?.exit
-                if (command) {
-                  d('OC bash completed: ' + command + ' (exit ' + exitCode + ')')
-                  appendToolMsg(buf, part.callID, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+                buffered = textBuffer.get(part.id) || ''
+                buffered += (event.properties.delta || '')
+                if (buffered) {
+                  d('OC reasoning append: ' + buffered)
+                  appendThinking(buf, buffered)
                 }
+                textBuffer.delete(part.id)
               }
-              else if (part.tool == 'write' && part.state?.status == 'running') {
-                let path
+              else if (part.type == 'tool') {
+                d('OC tool: ' + part.tool)
+                if (part.tool == 'read' && part.state?.status == 'running') {
+                  let path
 
-                path = part.state.input.filePath
-                if (path) {
-                  d('OC write file: ' + path)
-                  appendToolMsg(buf, part.callID, 'write', path,
-                                part.state?.input?.content) // under
+                  path = part.state.input.filePath
+                  if (path) {
+                    d('OC read file: ' + path)
+                    appendToolMsg(buf, part.callID, 'read', path)
+                  }
                 }
-              }
-              else if (part.tool == 'edit' && part.state?.status == 'running') {
-                let path
+                else if (part.tool == 'glob' && part.state?.status == 'running') {
+                  let pattern
 
-                path = part.state.input.filePath
-                if (path) {
-                  d('OC edit file: ' + path)
-                  appendToolMsg(buf, part.callID, 'edit', path,
-                                part.state?.input?.content) // under
+                  pattern = part.state.input.pattern
+                  if (pattern) {
+                    d('OC glob: ' + pattern)
+                    appendToolMsg(buf, part.callID, 'glob', '"' + pattern)
+                  }
                 }
-              }
-              else if (part.tool == 'websearch' && part.state?.status == 'running') {
-                let query
+                else if (part.tool == 'glob' && part.state?.status == 'completed') {
+                  let count
 
-                query = part.state.input.query
-                if (query) {
-                  d('OC websearch: ' + query)
-                  appendToolMsg(buf, part.callID, 'websearch', 'Web search: ' + query)
+                  count = part.state.metadata?.count
+                  if (1) {
+                    d('OC glob completed with ' + count + ' matches')
+                    appendToolMsg(buf,
+                                  part.callID,
+                                  'glob-done',
+                                  '"' + part.state.input.pattern + ' (' + count + ' matches)',
+                                  part.state.output) // under
+                  }
                 }
-              }
-              else if (part.tool == 'websearch' && part.state?.status == 'completed') {
-                let query, results
+                else if (part.tool == 'grep' && part.state?.status == 'running') {
+                  let pattern, path
 
-                query = part.state.input.query
-                results = part.state.metadata?.results
-                if (query) {
-                  d('OC websearch completed with ' + results + ' results')
-                  appendToolMsg(buf,
-                                part.callID,
-                                'websearch',
-                                'Web search: ' + query + ' (' + results + ' results)',
-                                part.state.output) // under
+                  pattern = part.state.input.pattern
+                  path = part.state.input.path
+                  if (pattern) {
+                    d('OC grep: ' + pattern + ' in ' + path)
+                    appendToolMsg(buf, part.callID, 'grep', '"' + pattern + '" in ' + (path || '.'))
+                  }
                 }
-              }
-              else if (part.tool == 'websearch' && part.state?.status == 'error') {
-                let query
+                else if (part.tool == 'grep' && part.state?.status == 'completed') {
+                  let matches, path
 
-                query = part.state.input.query
-                if (query) {
-                  d('OC websearch error')
-                  appendToolMsg(buf,
-                                part.callID,
-                                'websearch',
-                                'Web search: ' + query,
-                                part.state.error) // under
+                  matches = part.state.metadata?.matches
+                  path = part.state.input.path
+                  if (matches) {
+                    d('OC grep completed with ' + matches + ' matches')
+                    appendToolMsg(buf,
+                                  part.callID,
+                                  'grep-done',
+                                  '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
+                                  part.state.output) // under
+                  }
                 }
-              }
-              else if (part.tool == 'webfetch' && part.state?.status == 'running') {
-                let url
+                else if (part.tool == 'bash' && part.state?.status == 'running') {
+                  let command
 
-                url = part.state.input.url
-                if (url) {
-                  d('OC webfetch: ' + url)
-                  appendToolMsg(buf, part.callID, 'webfetch', 'Fetch ' + url)
+                  command = part.state.input.command
+                  if (command) {
+                    d('OC bash: ' + command)
+                    appendToolMsg(buf, part.callID, 'bash-running', command)
+                  }
                 }
-              }
-              else if (part.tool == 'webfetch' && part.state?.status == 'completed') {
-                let url, size
+                else if (part.tool == 'bash' && part.state?.status == 'completed') {
+                  let command, exitCode
 
-                url = part.state.input.url
-                size = part.state.output?.length
-                if (url) {
-                  d('OC webfetch completed, size: ' + size)
-                  appendToolMsg(buf,
-                                part.callID,
-                                'webfetch',
-                                'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
+                  command = part.state.input.command
+                  exitCode = part.state.metadata?.exit
+                  if (command) {
+                    d('OC bash completed: ' + command + ' (exit ' + exitCode + ')')
+                    appendToolMsg(buf, part.callID, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+                  }
                 }
-              }
-              else if (part.tool == 'webfetch' && part.state?.status == 'error') {
-                let url
+                else if (part.tool == 'write' && part.state?.status == 'running') {
+                  let path
 
-                url = part.state.input.url
-                if (url) {
-                  d('OC webfetch error')
-                  appendToolMsg(buf,
-                                part.callID,
-                                'webfetch',
-                                'Fetch ' + url,
-                                part.state.error) // under
+                  path = part.state.input.filePath
+                  if (path) {
+                    d('OC write file: ' + path)
+                    appendToolMsg(buf, part.callID, 'write', path,
+                                  part.state?.input?.content) // under
+                  }
                 }
+                else if (part.tool == 'edit' && part.state?.status == 'running') {
+                  let path
+
+                  path = part.state.input.filePath
+                  if (path) {
+                    d('OC edit file: ' + path)
+                    appendToolMsg(buf, part.callID, 'edit', path,
+                                  part.state?.input?.content) // under
+                  }
+                }
+                else if (part.tool == 'edit' && part.state?.status == 'completed') {
+                  let path
+
+                  path = part.state.input.filePath
+                  if (path) {
+                    d('OC edit completed: ' + path)
+                    appendToolMsg(buf, part.callID, 'edit', path + ' (done)',
+                                  part.state.output)
+                  }
+                }
+                else if (part.tool == 'websearch' && part.state?.status == 'running') {
+                  let query
+
+                  query = part.state.input.query
+                  if (query) {
+                    d('OC websearch: ' + query)
+                    appendToolMsg(buf, part.callID, 'websearch', 'Web search: ' + query)
+                  }
+                }
+                else if (part.tool == 'websearch' && part.state?.status == 'completed') {
+                  let query, results
+
+                  query = part.state.input.query
+                  results = part.state.metadata?.results
+                  if (query) {
+                    d('OC websearch completed with ' + results + ' results')
+                    appendToolMsg(buf,
+                                  part.callID,
+                                  'websearch',
+                                  'Web search: ' + query + ' (' + results + ' results)',
+                                  part.state.output) // under
+                  }
+                }
+                else if (part.tool == 'websearch' && part.state?.status == 'error') {
+                  let query
+
+                  query = part.state.input.query
+                  if (query) {
+                    d('OC websearch error')
+                    appendToolMsg(buf,
+                                  part.callID,
+                                  'websearch',
+                                  'Web search: ' + query,
+                                  part.state.error) // under
+                  }
+                }
+                else if (part.tool == 'webfetch' && part.state?.status == 'running') {
+                  let url
+
+                  url = part.state.input.url
+                  if (url) {
+                    d('OC webfetch: ' + url)
+                    appendToolMsg(buf, part.callID, 'webfetch', 'Fetch ' + url)
+                  }
+                }
+                else if (part.tool == 'webfetch' && part.state?.status == 'completed') {
+                  let url, size
+
+                  url = part.state.input.url
+                  size = part.state.output?.length
+                  if (url) {
+                    d('OC webfetch completed, size: ' + size)
+                    appendToolMsg(buf,
+                                  part.callID,
+                                  'webfetch',
+                                  'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
+                  }
+                }
+                else if (part.tool == 'webfetch' && part.state?.status == 'error') {
+                  let url
+
+                  url = part.state.input.url
+                  if (url) {
+                    d('OC webfetch error')
+                    appendToolMsg(buf,
+                                  part.callID,
+                                  'webfetch',
+                                  'Fetch ' + url,
+                                  part.state.error) // under
+                  }
+                }
+                else
+                  appendToolMsg(buf, part.callID, part.tool, part.state?.status && ('(' + part.state?.status + ')'))
               }
-              else
-                appendToolMsg(buf, part.callID, part.tool, part.state?.status && ('(' + part.state?.status + ')'))
             }
           }
+        }
+        catch (err) {
+          d('OC event stream error: ' + err.message)
+          d(err.stack)
         }
       })()
     })

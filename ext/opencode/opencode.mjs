@@ -660,4 +660,9 @@ function init
   Em.on('y', 'yes', mo)
   Em.on('n', 'no', mo)
   Em.on('+', 'respond', mo)
+  Em.on('enter', 'respond', mo)
+
+  Em.on('q', 'bury', mo)
+  Em.on('Backspace', 'scroll up', mo)
+  Em.on(' ', 'scroll down', mo)
 }

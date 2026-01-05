@@ -76,6 +76,10 @@
   padding-right: 12px;
 }
 
+.opencode-msg-role.opencode-role-hidden {
+  display: none;
+}
+
 .opencode-msg-text {
   padding: 8px 12px;
   border-radius: 8px;

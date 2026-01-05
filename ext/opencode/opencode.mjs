@@ -59,7 +59,8 @@ function init
         w = view.ele.querySelector('.opencode-w')
         appendX(w,
                 divCl('opencode-msg opencode-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                      [ divCl('opencode-msg-role', role == 'user' ? 'You' : role),
+                      [ divCl('opencode-msg-role' + (role ? '' : ' opencode-role-hidden'),
+                              role == 'user' ? 'You' : (role || '')),
                         divCl('opencode-msg-text', text) ]))
         w.scrollTop = w.scrollHeight
       }
@@ -308,7 +309,8 @@ function init
               if (part.type == 'text') {
                 d('OC text part' + part.id)
                 d('OC update text: ' + part.text)
-                textBuffer.set(part.id, part.text)
+                //textBuffer.set(part.id, part.text)
+                appendMsg(buf, 0, part.text)
               }
               else if (part.type == 'reasoning') {
                 let buffered

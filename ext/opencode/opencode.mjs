@@ -106,6 +106,8 @@ function init
       label = '➔ Read file ' + info
     else if (tool == 'write')
       label = '➔ Write file ' + info
+    else if (tool == 'edit')
+      label = '➔ Edit file ' + info
     else if (tool == 'grep-running')
       label = '➔ Grep ' + info
     else if (tool == 'grep-done')
@@ -138,6 +140,8 @@ function init
       label = 'Run "' + (info || 'command') + '"? [y/n]'
     else if (type == 'write')
       label = 'Write "' + info + '"? [y/n]'
+    else if (type == 'edit')
+      label = 'Edit "' + info + '"? [y/n]'
     else
       label = 'Permission: ' + type + ' [y/n]'
 
@@ -218,7 +222,17 @@ function init
               command = req.metadata?.command || req.metadata?.pattern
               if (command) {
                 d('OC bash permission: ' + command)
-                appendPermission(buf, 'bash', description || command)
+                appendPermission(buf, req.type, description || command)
+                buf.vars('opencode').permissionID = req.id
+              }
+            }
+            else if (req.type == 'edit') {
+              let filePath
+
+              filePath = req.metadata?.filePath
+              if (filePath) {
+                d('OC edit permission: ' + filePath)
+                appendPermission(buf, req.type, filePath)
                 buf.vars('opencode').permissionID = req.id
               }
             }
@@ -228,7 +242,7 @@ function init
               filePath = req.metadata?.filePath
               if (filePath) {
                 d('OC write permission: ' + filePath)
-                appendPermission(buf, 'write', filePath)
+                appendPermission(buf, req.type, filePath)
                 buf.vars('opencode').permissionID = req.id
               }
             }
@@ -314,6 +328,15 @@ function init
                 if (path) {
                   d('OC write file: ' + path)
                   appendToolMsg(buf, 'write', path)
+                }
+              }
+              else if (part.tool == 'edit' && part.state?.status == 'running') {
+                let path
+
+                path = part.state.input.filePath
+                if (path) {
+                  d('OC edit file: ' + path)
+                  appendToolMsg(buf, 'edit', path)
                 }
               }
               else

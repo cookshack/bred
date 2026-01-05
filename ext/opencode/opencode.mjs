@@ -130,6 +130,60 @@ function init
     })
   }
 
+  function appendPermission
+  (buf, type, info) {
+    let label
+
+    if (type == 'bash')
+      label = 'Run "' + (info || 'command') + '"? [y/n]'
+    else if (type == 'write')
+      label = 'Write "' + info + '"? [y/n]'
+    else
+      label = 'Permission: ' + type + ' [y/n]'
+
+    buf.views.forEach(view => {
+      if (view.ele) {
+        let w
+
+        w = view.ele.querySelector('.opencode-w')
+        append(w, divCl('opencode-msg opencode-msg-permission',
+                        [ divCl('opencode-msg-text', label) ]))
+        w.scrollTop = w.scrollHeight
+      }
+    })
+  }
+
+  function handlePermission
+  (buf, id, yes) {
+    let sessionID, response
+
+    sessionID = buf.vars('opencode')?.sessionID
+    response = yes ? 'once' : 'reject'
+
+    d('OC permission reply: ' + response)
+    ensureClient().then(async c => {
+      try {
+        await c.postSessionIdPermissionsPermissionId({ path: { id: sessionID, permissionID: id },
+                                                       body: { response } })
+      }
+      catch (err) {
+        d('OC permission respond error: ' + err.message)
+      }
+    })
+
+    buf.vars('opencode').permissionID = 0
+  }
+
+  function yn
+  (yes) {
+    let buf, id
+
+    buf = Pane.current()?.buf
+    id = buf?.vars('opencode')?.permissionID
+    if (id)
+      handlePermission(buf, id, yes)
+  }
+
   function startEventSub
   (buf) {
     if (eventSub)
@@ -164,23 +218,8 @@ function init
               command = req.metadata?.command || req.metadata?.pattern
               if (command) {
                 d('OC bash permission: ' + command)
-                Prompt.yn('Run "' + (description || command) + '"?',
-                          {},
-                          async yes => {
-                            let c, response
-
-                            c = await ensureClient()
-                            response = yes ? 'once' : 'reject'
-                            d('OC permission reply: ' + response)
-                            try {
-                              await c.postSessionIdPermissionsPermissionId({ path: { id: sessionID,
-                                                                                     permissionID: req.id },
-                                                                             body: { response } })
-                            }
-                            catch (err) {
-                              d('OC permission respond error: ' + err.message)
-                            }
-                          })
+                appendPermission(buf, 'bash', description || command)
+                buf.vars('opencode').permissionID = req.id
               }
             }
             else if (req.type == 'write') {
@@ -188,24 +227,9 @@ function init
 
               filePath = req.metadata?.filePath
               if (filePath) {
-                d('OC edit permission: ' + filePath)
-                Prompt.yn('Write "' + filePath + '"?',
-                          {},
-                          async yes => {
-                            let c, response
-
-                            c = await ensureClient()
-                            response = yes ? 'once' : 'reject'
-                            d('OC edit permission reply: ' + response)
-                            try {
-                              await c.postSessionIdPermissionsPermissionId({ path: { id: sessionID,
-                                                                                     permissionID: req.id },
-                                                                             body: { response } })
-                            }
-                            catch (err) {
-                              d('OC permission respond error: ' + err.message)
-                            }
-                          })
+                d('OC write permission: ' + filePath)
+                appendPermission(buf, 'write', filePath)
+                buf.vars('opencode').permissionID = req.id
               }
             }
           }
@@ -448,5 +472,10 @@ function init
     }
   })
 
+  Cmd.add('yes', () => yn(1), mo)
+  Cmd.add('no', () => yn(), mo)
+
+  Em.on('y', 'yes', mo)
+  Em.on('n', 'no', mo)
   Em.on('+', 'opencode chat', mo)
 }

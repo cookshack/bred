@@ -33,7 +33,7 @@ function init
     if (ret.err)
       throw new Error(ret.err.message)
 
-    client = OpenCode.createOpencodeClient({ baseUrl: ret.url })
+    client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
     buf.vars('opencode').client = client
     buf.vars('opencode').serverUrl = ret.url
     return client
@@ -606,11 +606,9 @@ function init
       d('SEND')
 
       res = await c.session.prompt({
-        path: { id: sessionID },
-        body: {
-          model: { providerID: 'opencode', modelID: 'minimax-m2.1-free' },
-          parts: [ { type: 'text', text } ]
-        }
+        sessionID,
+        model: { providerID: 'opencode', modelID: 'minimax-m2.1-free' },
+        parts: [ { type: 'text', text } ]
       })
 
       d('SEND done')
@@ -670,7 +668,7 @@ function init
                    buf.vars('opencode').prompt = prompt
 
                    c = await ensureClient(buf)
-                   res = await c.session.create({ body: { title: prompt } })
+                   res = await c.session.create({ title: prompt })
 
                    buf.vars('opencode').sessionID = res.data.id
 

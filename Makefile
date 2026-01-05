@@ -107,6 +107,9 @@ sync-others:
 	cp node_modules/uuid/dist/esm-browser/* lib/uuid/
 	mkdir -p lib/opencode/gen
 	cp node_modules/@opencode-ai/sdk/dist/v2/server.js lib/opencode/server.js
+	sed -i "s/signal: options.signal,/signal: options.signal,\n        cwd: options.config?.root,/" lib/opencode/server.js
+	sed -i "s/proc.stderr?.on(\"data\", (chunk) => {/proc.stderr?.on(\"data\", (chunk) => {\n            console.error(chunk.toString());/" lib/opencode/server.js
+	sed -i "s/proc.stdout?.on(\"data\", (chunk) => {/proc.stdout?.on(\"data\", (chunk) => {\n            console.log(chunk.toString());/" lib/opencode/server.js
 	cp -r node_modules/@opencode-ai/sdk/dist/v2/gen lib/opencode/
 
 sync-codemirror:

@@ -57,13 +57,14 @@ function init
 }
 
 export
-async function onSpawn(e, args) {
+async function onSpawn
+(e, args) {
   let [ bufferID, workingDir ] = args
   let port
 
-  port = getFreePort()
+  port = await getFreePort()
 
-  d('CODE spawn ' + bufferID + ' on port ' + port)
+  d('CODE spawn ' + bufferID + ' on port ' + port + ' in ' + workingDir)
 
   try {
     let server

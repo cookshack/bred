@@ -382,6 +382,9 @@ function init
     p = Pane.current()
     buf = p.buf
 
+    if (buf.vars('opencode').permissionID)
+      return
+
     if (buf?.vars('opencode')?.sessionID) {
       // OK
     }
@@ -444,9 +447,7 @@ function init
   Cmd.add('opencode', opencode)
   Cmd.add('code', opencode)
 
-  Cmd.add('opencode chat', () => {
-    next()
-  }, mo)
+  Cmd.add('respond', () => next(), mo)
 
   Cmd.add('opencode models', async () => {
     let c, res
@@ -477,5 +478,5 @@ function init
 
   Em.on('y', 'yes', mo)
   Em.on('n', 'no', mo)
-  Em.on('+', 'opencode chat', mo)
+  Em.on('+', 'respond', mo)
 }

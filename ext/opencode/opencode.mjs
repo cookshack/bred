@@ -138,7 +138,7 @@ function init
   }
 
   function appendPermission
-  (buf) {
+  (buf, id) {
     buf.views.forEach(view => {
       if (view.ele) {
         let w
@@ -148,7 +148,8 @@ function init
                         [ divCl('opencode-msg-text',
                                 [ 'Allow?',
                                   button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
-                                  button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }) ]) ]))
+                                  button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }) ]) ],
+                        { 'data-permissionid': id }))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -166,6 +167,15 @@ function init
       try {
         await c.postSessionIdPermissionsPermissionId({ path: { id: sessionID, permissionID: id },
                                                        body: { response } })
+        buf.views.forEach(view => {
+          if (view.ele) {
+            let w, el
+
+            w = view.ele.querySelector('.opencode-w')
+            el = w.querySelector('.opencode-msg-permission[data-permissionid="' + id + '"')
+            el?.remove()
+          }
+        })
       }
       catch (err) {
         d('OC permission respond error: ' + err.message)
@@ -212,37 +222,8 @@ function init
 
             req = event.properties
             d('OC permission asked: ' + req.type)
-            if (req.type == 'bash') {
-              let description, command
-
-              description = req.metadata?.description
-              command = req.metadata?.command || req.metadata?.pattern
-              if (command) {
-                d('OC bash permission: ' + command)
-                appendPermission(buf, req.type, description || command)
-                buf.vars('opencode').permissionID = req.id
-              }
-            }
-            else if (req.type == 'edit') {
-              let filePath
-
-              filePath = req.metadata?.filePath
-              if (filePath) {
-                d('OC edit permission: ' + filePath)
-                appendPermission(buf, req.type, filePath)
-                buf.vars('opencode').permissionID = req.id
-              }
-            }
-            else if (req.type == 'write') {
-              let filePath
-
-              filePath = req.metadata?.filePath
-              if (filePath) {
-                d('OC write permission: ' + filePath)
-                appendPermission(buf, req.type, filePath)
-                buf.vars('opencode').permissionID = req.id
-              }
-            }
+            buf.vars('opencode').permissionID = req.id
+            appendPermission(buf, req.id)
           }
 
           if ((event.type == 'message.part.updated')

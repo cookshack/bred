@@ -12,6 +12,7 @@ Build an OpenCode UI inside the bred editor.
 - **Permission prompts** - Use `Prompt.yn()` for yes/no, not `Prompt.ask()` with options
 - **SDK method** - `c.postSessionIdPermissionsPermissionId()` on the client
 - **Read TUI code** - When uncertain about API usage, check `~/src/opencode/packages/opencode/src/cli/cmd/tui/` for reference patterns
+- **Files must end in newlines** - Always end files with a trailing newline
 
 ## Files
 

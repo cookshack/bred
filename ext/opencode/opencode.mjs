@@ -99,7 +99,7 @@ function init
   }
 
   function appendToolMsg
-  (buf, tool, info, under) {
+  (buf, part, tool, info, under) {
     let label
 
     if (tool == 'read')
@@ -126,7 +126,8 @@ function init
         w = view.ele.querySelector('.opencode-w')
         append(w, divCl('opencode-msg opencode-msg-tool',
                         [ divCl('opencode-msg-text', label),
-                          under && divCl('opencode-msg-text', under) ]))
+                          under && divCl('opencode-msg-text', under) ],
+                        { 'data-callid': part.callID }))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -279,7 +280,7 @@ function init
                 path = part.state.input.filePath
                 if (path) {
                   d('OC read file: ' + path)
-                  appendToolMsg(buf, 'read', path)
+                  appendToolMsg(buf, part, 'read', path)
                 }
               }
               else if (part.tool == 'grep' && part.state?.status == 'running') {
@@ -289,7 +290,7 @@ function init
                 path = part.state.input.path
                 if (pattern) {
                   d('OC grep: ' + pattern + ' in ' + path)
-                  appendToolMsg(buf, 'grep-running', '"' + pattern + '" in ' + (path || '.'))
+                  appendToolMsg(buf, part, 'grep-running', '"' + pattern + '" in ' + (path || '.'))
                 }
               }
               else if (part.tool == 'grep' && part.state?.status == 'completed') {
@@ -299,7 +300,7 @@ function init
                 path = part.state.input.path
                 if (matches) {
                   d('OC grep completed with ' + matches + ' matches')
-                  appendToolMsg(buf, 'grep-done', '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)')
+                  appendToolMsg(buf, part, 'grep-done', '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)')
                 }
               }
               else if (part.tool == 'bash' && part.state?.status == 'running') {
@@ -308,7 +309,7 @@ function init
                 command = part.state.input.command
                 if (command) {
                   d('OC bash: ' + command)
-                  appendToolMsg(buf, 'bash-running', command)
+                  appendToolMsg(buf, part, 'bash-running', command)
                 }
               }
               else if (part.tool == 'bash' && part.state?.status == 'completed') {
@@ -318,7 +319,7 @@ function init
                 exitCode = part.state.metadata?.exit
                 if (command) {
                   d('OC bash completed: ' + command + ' (exit ' + exitCode + ')')
-                  appendToolMsg(buf, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+                  appendToolMsg(buf, part, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
                 }
               }
               else if (part.tool == 'write' && part.state?.status == 'running') {
@@ -327,7 +328,7 @@ function init
                 path = part.state.input.filePath
                 if (path) {
                   d('OC write file: ' + path)
-                  appendToolMsg(buf, 'write', path)
+                  appendToolMsg(buf, part, 'write', path)
                 }
               }
               else if (part.tool == 'edit' && part.state?.status == 'running') {
@@ -336,11 +337,11 @@ function init
                 path = part.state.input.filePath
                 if (path) {
                   d('OC edit file: ' + path)
-                  appendToolMsg(buf, 'edit', path)
+                  appendToolMsg(buf, part, 'edit', path)
                 }
               }
               else
-                appendToolMsg(buf, part.tool, part.state?.status && ('(' + part.state?.status + ')'))
+                appendToolMsg(buf, part, part.tool, part.state?.status && ('(' + part.state?.status + ')'))
             }
           }
         }

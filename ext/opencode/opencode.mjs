@@ -51,17 +51,30 @@ function init
   }
 
   function appendMsg
-  (buf, role, text) {
+  (buf, role, text, partID) {
     buf.views.forEach(view => {
       if (view.ele) {
         let w
 
         w = view.ele.querySelector('.opencode-w')
+        if (role == 'user') {
+        }
+        else {
+          let el
+
+          el = w.querySelector('.opencode-msg-assistant[data-partid="' + partID + '"]')
+          if (el) {
+            el.firstElementChild.nextElementSibling.innerText = text
+            w.scrollTop = w.scrollHeight
+            return
+          }
+        }
         appendX(w,
                 divCl('opencode-msg opencode-msg-' + (role == 'user' ? 'user' : 'assistant'),
                       [ divCl('opencode-msg-role' + (role ? '' : ' opencode-role-hidden'),
                               role == 'user' ? 'You' : (role || '')),
-                        divCl('opencode-msg-text', text) ]))
+                        divCl('opencode-msg-text', text) ],
+                      { 'data-partid': partID }))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -310,7 +323,7 @@ function init
                 d('OC text part' + part.id)
                 d('OC update text: ' + part.text)
                 //textBuffer.set(part.id, part.text)
-                appendMsg(buf, 0, part.text)
+                appendMsg(buf, 0, part.text, part.id)
               }
               else if (part.type == 'reasoning') {
                 let buffered

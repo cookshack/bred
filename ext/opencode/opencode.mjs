@@ -219,8 +219,9 @@ function init
     d('OC permission reply: ' + response)
     ensureClient(buf).then(async c => {
       try {
-        await c.postSessionIdPermissionsPermissionId({ path: { id: sessionID, permissionID: id },
-                                                       body: { response } })
+        await c.permission.respond({ sessionID,
+                                     permissionID: id,
+                                     response })
         buf.views.forEach(view => {
           if (view.ele) {
             let w, el

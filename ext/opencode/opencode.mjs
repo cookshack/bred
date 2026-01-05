@@ -214,6 +214,31 @@ function init
       handlePermission(buf, id, yes)
   }
 
+  function updateStatus
+  (buf, req) {
+    function update
+    (co) {
+      buf.views.forEach(view => {
+        if (view.ele) {
+          let el
+
+          el = view.ele.querySelector('.opencode-w > .opencode-under')
+          if (el) {
+            el.innerHTML = ''
+            append(el, co)
+          }
+        }
+      })
+    }
+
+    if (req.status?.type == 'busy')
+      update('BUSY')
+    else if (req.status?.type == 'idle')
+      update('IDLE')
+    else if (req.status?.type)
+      d('FIX status: ' + req.status?.type)
+  }
+
   function startEventSub
   (buf) {
     if (buf.vars('opencode').eventSub)
@@ -234,6 +259,10 @@ function init
           d({ event })
 
           sessionID = buf && buf.vars('opencode')?.sessionID
+
+          if ((event.type == 'session.status')
+              && (event.properties.sessionID == sessionID))
+            updateStatus(buf, event.properties)
 
           if ((event.type == 'permission.updated')
               && (event.properties.sessionID == sessionID)) {

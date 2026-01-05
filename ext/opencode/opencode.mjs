@@ -39,6 +39,17 @@ function init
     }
   }
 
+  function appendX
+  (w, el) {
+    let under
+
+    under = w.querySelector('.opencode-under')
+    if (under)
+      under.before(el)
+    else
+      append(w, el)
+  }
+
   function appendMsg
   (buf, role, text) {
     buf.views.forEach(view => {
@@ -46,9 +57,10 @@ function init
         let w
 
         w = view.ele.querySelector('.opencode-w')
-        append(w, divCl('opencode-msg opencode-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                        [ divCl('opencode-msg-role', role == 'user' ? 'You' : role),
-                          divCl('opencode-msg-text', text) ]))
+        appendX(w,
+                divCl('opencode-msg opencode-msg-' + (role == 'user' ? 'user' : 'assistant'),
+                      [ divCl('opencode-msg-role', role == 'user' ? 'You' : role),
+                        divCl('opencode-msg-text', text) ]))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -92,9 +104,10 @@ function init
           el.querySelector('.opencode-msg-text').innerText = current + text
         }
         else
-          append(w, divCl('opencode-msg opencode-msg-thinking',
-                          [ divCl('opencode-msg-role', 'Thinking...'),
-                            divCl('opencode-msg-text', text) ]))
+          appendX(w,
+                  divCl('opencode-msg opencode-msg-thinking',
+                        [ divCl('opencode-msg-role', 'Thinking...'),
+                          divCl('opencode-msg-text', text) ]))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -132,10 +145,11 @@ function init
         w = view.ele.querySelector('.opencode-w')
         els = w.querySelectorAll('.opencode-msg-tool[data-callid="' + part.callID + '"]')
         els?.forEach(el => el.remove())
-        append(w, divCl('opencode-msg opencode-msg-tool',
-                        [ divCl('opencode-msg-text', label),
-                          under && divCl('opencode-msg-text', under) ],
-                        { 'data-callid': part.callID }))
+        appendX(w,
+                divCl('opencode-msg opencode-msg-tool',
+                      [ divCl('opencode-msg-text', label),
+                        under && divCl('opencode-msg-text', under) ],
+                      { 'data-callid': part.callID }))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -148,12 +162,13 @@ function init
         let w
 
         w = view.ele.querySelector('.opencode-w')
-        append(w, divCl('opencode-msg opencode-msg-permission',
-                        [ divCl('opencode-msg-text',
-                                [ 'Allow?',
-                                  button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
-                                  button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }) ]) ],
-                        { 'data-permissionid': id }))
+        appendX(w,
+                divCl('opencode-msg opencode-msg-permission',
+                      [ divCl('opencode-msg-text',
+                              [ 'Allow?',
+                                button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
+                                button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }) ]) ],
+                      { 'data-permissionid': id }))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -365,7 +380,7 @@ function init
                          [ divCl('opencode-icon',
                                  img(Icon.path('chat'), 'Chat', 'filter-clr-text')),
                            divCl('opencode-title', prompt) ]),
-                   divCl('opencode-w') ])
+                   divCl('opencode-w', divCl('opencode-under', '...')) ])
   }
 
   async function send

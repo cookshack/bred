@@ -127,3 +127,8 @@
   display: flex;
   align-items: center;
 }
+
+.opencode-under {
+  display: flex;
+  justify-content: center;
+}

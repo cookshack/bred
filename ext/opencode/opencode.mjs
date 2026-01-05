@@ -108,10 +108,14 @@ function init
       label = '➔ Write file ' + info
     else if (tool == 'edit')
       label = '➔ Edit file ' + info
-    else if (tool == 'grep-running')
+    else if (tool == 'grep')
       label = '➔ Grep ' + info
     else if (tool == 'grep-done')
       label = '➔ Grep ' + info
+    else if (tool == 'glob')
+      label = '➔ Glob ' + info
+    else if (tool == 'glob-done')
+      label = '➔ Glob ' + info
     else if (tool == 'bash-running')
       label = '➔ bash: ' + info
     else if (tool == 'bash-done')
@@ -283,6 +287,28 @@ function init
                   appendToolMsg(buf, part, 'read', path)
                 }
               }
+              else if (part.tool == 'glob' && part.state?.status == 'running') {
+                let pattern
+
+                pattern = part.state.input.pattern
+                if (pattern) {
+                  d('OC glob: ' + pattern)
+                  appendToolMsg(buf, part, 'glob', '"' + pattern)
+                }
+              }
+              else if (part.tool == 'glob' && part.state?.status == 'completed') {
+                let count
+
+                count = part.state.metadata?.count
+                if (1) {
+                  d('OC glob completed with ' + count + ' matches')
+                  appendToolMsg(buf,
+                                part,
+                                'glob-done',
+                                '"' + part.state.input.pattern + ' (' + count + ' matches)',
+                                part.state.output) // under
+                }
+              }
               else if (part.tool == 'grep' && part.state?.status == 'running') {
                 let pattern, path
 
@@ -290,7 +316,7 @@ function init
                 path = part.state.input.path
                 if (pattern) {
                   d('OC grep: ' + pattern + ' in ' + path)
-                  appendToolMsg(buf, part, 'grep-running', '"' + pattern + '" in ' + (path || '.'))
+                  appendToolMsg(buf, part, 'grep', '"' + pattern + '" in ' + (path || '.'))
                 }
               }
               else if (part.tool == 'grep' && part.state?.status == 'completed') {

@@ -71,9 +71,10 @@ function init
         }
         appendX(w,
                 divCl('opencode-msg opencode-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                      [ divCl('opencode-msg-role' + (role ? '' : ' opencode-role-hidden'),
+                      [ divCl('opencode-msg-role' + (role ? '' : ' opencode-msg-hidden'),
                               role == 'user' ? 'You' : (role || '')),
-                        divCl('opencode-msg-text', text) ],
+                        divCl('opencode-msg-text' + (text ? '' : ' opencode-msg-hidden'),
+                              text) ],
                       { 'data-partid': partID }))
         w.scrollTop = w.scrollHeight
       }
@@ -319,16 +320,28 @@ function init
               let part
 
               part = event.properties.part
-              if (part.type == 'text') {
+              if (part.type == 'step-start') {
+                d('OC step-start')
+                buf.vars('opencode').stepActive = 1
+              }
+              else if (part.type == 'step-finish') {
+                d('OC step-finish')
+                buf.vars('opencode').stepActive = 0
+              }
+              else if (part.type == 'text') {
                 d('OC text part' + part.id)
-                d('OC update text: ' + part.text)
                 //textBuffer.set(part.id, part.text)
-                appendMsg(buf, 0, part.text, part.id)
+                if (buf.vars('opencode').stepActive) {
+                  d('OC update text: ' + part.text)
+                  appendMsg(buf, 0, part.text, part.id)
+                }
+                else
+                  d('OD text outside step: ' + part.text)
               }
               else if (part.type == 'reasoning') {
                 let buffered
 
-                d('OC reasoning part ' + part.id)
+                //d('OC reasoning part ' + part.id)
 
                 buffered = textBuffer.get(part.id) || ''
                 buffered += (event.properties.delta || '')
@@ -594,7 +607,7 @@ function init
         textBuffer.delete(sessionID)
       }
 
-      content = res.data.parts?.filter(p => p.type == 'text').map(p => p.text).join('') || '(no response)'
+      content = 0 //res.data.parts?.filter(p => p.type == 'text').map(p => p.text).join('') || '(no response)'
       appendMsg(buf, res.data.info.modelID || 'Assistant', content)
     }
     catch (err) {

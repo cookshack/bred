@@ -254,6 +254,8 @@ function init
       update('BUSY')
     else if (req.status?.type == 'idle')
       update('IDLE')
+    else if (req.status?.type == 'retry')
+      update('BUSY retry' + (req.status.message ? ': ' + req.status.message : ''))
     else if (req.status?.type)
       d('FIX status: ' + req.status?.type)
   }
@@ -590,6 +592,8 @@ function init
     try {
       let buffered
 
+      d('SEND')
+
       res = await c.session.prompt({
         path: { id: sessionID },
         body: {
@@ -598,6 +602,7 @@ function init
         }
       })
 
+      d('SEND done')
       d({ res })
 
       buffered = textBuffer.get(sessionID)

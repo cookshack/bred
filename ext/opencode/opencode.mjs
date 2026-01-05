@@ -1,4 +1,4 @@
-import { append, divCl, img } from '../../js/dom.mjs'
+import { append, button, divCl, img, span } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
@@ -138,25 +138,17 @@ function init
   }
 
   function appendPermission
-  (buf, type, info) {
-    let label
-
-    if (type == 'bash')
-      label = 'Run "' + (info || 'command') + '"? [y/n]'
-    else if (type == 'write')
-      label = 'Write "' + info + '"? [y/n]'
-    else if (type == 'edit')
-      label = 'Edit "' + info + '"? [y/n]'
-    else
-      label = 'Permission: ' + type + ' [y/n]'
-
+  (buf) {
     buf.views.forEach(view => {
       if (view.ele) {
         let w
 
         w = view.ele.querySelector('.opencode-w')
         append(w, divCl('opencode-msg opencode-msg-permission',
-                        [ divCl('opencode-msg-text', label) ]))
+                        [ divCl('opencode-msg-text',
+                                [ 'Allow?',
+                                  button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
+                                  button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }) ]) ]))
         w.scrollTop = w.scrollHeight
       }
     })
@@ -368,7 +360,8 @@ function init
                 path = part.state.input.filePath
                 if (path) {
                   d('OC edit file: ' + path)
-                  appendToolMsg(buf, part, 'edit', path)
+                  appendToolMsg(buf, part, 'edit', path,
+                                part.state?.input?.content) // under
                 }
               }
               else

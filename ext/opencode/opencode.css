@@ -117,12 +117,13 @@
   align-self: flex-start;
   max-width: 90%;
   margin-top: 4px;
-  background: var(--clr-fill);
-  border: 1px solid var(--clr-emph);
 }
 
 .opencode-msg-permission .opencode-msg-text {
   font-size: 0.9rem;
   font-style: normal;
   padding: 8px 12px;
+  gap: 0.5rem;
+  display: flex;
+  align-items: center;
 }

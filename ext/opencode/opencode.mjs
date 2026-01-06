@@ -41,11 +41,11 @@ function init
 
   function appendX
   (w, el) {
-    let under
+    let underW
 
-    under = w.querySelector('.opencode-under')
-    if (under)
-      under.before(el)
+    underW = w.querySelector('.opencode-under')
+    if (underW)
+      underW.before(el)
     else
       append(w, el)
   }
@@ -258,7 +258,7 @@ function init
         if (view.ele) {
           let el
 
-          el = view.ele.querySelector('.opencode-w > .opencode-under')
+          el = view.ele.querySelector('.opencode-w > .opencode-under-w > .opencode-under')
           if (el) {
             el.innerHTML = ''
             append(el, co)
@@ -600,7 +600,9 @@ function init
                          [ divCl('opencode-icon',
                                  img(Icon.path('assist'), 'Code', 'filter-clr-text')),
                            divCl('opencode-title', dir) ]),
-                   divCl('opencode-w', divCl('opencode-under', '...')) ])
+                   divCl('opencode-w',
+                         divCl('opencode-under-w',
+                               divCl('opencode-under', '...'))) ])
   }
 
   async function send

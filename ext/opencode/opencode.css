@@ -148,6 +148,11 @@
   align-items: center;
 }
 
+.opencode-under-w {
+  width: 100%;
+  display: flex;
+}
+
 .opencode-under {
   display: flex;
 }

@@ -251,30 +251,76 @@ function init
   }
 
   function updateStatus
-  (buf, req) {
+  (buf, req, tokenInfo) {
     function update
-    (co) {
+    (co, tokens) {
       buf.views.forEach(view => {
         if (view.ele) {
-          let el
+          let underW, statusEl, tokenEl
 
-          el = view.ele.querySelector('.opencode-w > .opencode-under-w > .opencode-under')
-          if (el) {
-            el.innerHTML = ''
-            append(el, co)
+          underW = view.ele.querySelector('.opencode-under-w')
+          if (underW) {
+            statusEl = underW.querySelector('.opencode-under-status')
+            tokenEl = underW.querySelector('.opencode-under-tokens')
+            if (statusEl)
+              statusEl.innerHTML = co
+            if (tokenEl)
+              if (tokens)
+                tokenEl.innerText = tokens
+              else
+                tokenEl.innerText = ''
           }
         }
       })
     }
 
     if (req.status?.type == 'busy')
-      update('BUSY')
+      update('BUSY', tokenInfo)
     else if (req.status?.type == 'idle')
-      update('IDLE')
+      update('IDLE', tokenInfo)
     else if (req.status?.type == 'retry')
-      update('BUSY retry' + (req.status.message ? ': ' + req.status.message : ''))
+      update('BUSY retry' + (req.status.message ? ': ' + req.status.message : ''), tokenInfo)
     else if (req.status?.type)
       d('FIX status: ' + req.status?.type)
+  }
+
+  function calculateTokenPercentage
+  (buf) {
+    let tokens, modelLimit
+
+    tokens = buf.vars('opencode')?.lastTokens
+    modelLimit = buf.vars('opencode')?.modelContextLimit
+    if (tokens && modelLimit)
+      return Math.round((tokens / modelLimit) * 100) + '%'
+    return ''
+  }
+
+  async function updateModelContextLimit
+  (buf) {
+    let providerID, modelID, c, providers, model
+
+    providerID = buf.vars('opencode')?.lastProviderID
+    modelID = buf.vars('opencode')?.lastModelID
+    if (providerID && modelID) {
+    }
+    else
+      return
+
+    try {
+      c = await ensureClient(buf)
+      providers = await c.config.providers({})
+      providers.data.providers?.some(p => {
+        if (p.id == providerID) {
+          model = p.models?.[modelID]
+          return true
+        }
+      })
+      if (model?.limit?.context)
+        buf.vars('opencode').modelContextLimit = model.limit.context
+    }
+    catch (err) {
+      d('OC failed to get providers: ' + err.message)
+    }
   }
 
   function handleEvent
@@ -288,7 +334,7 @@ function init
 
     if ((event.type == 'session.status')
         && (event.properties.sessionID == sessionID))
-      updateStatus(buf, event.properties)
+      updateStatus(buf, event.properties, calculateTokenPercentage(buf))
 
     if ((event.type == 'permission.asked')
         && (event.properties.sessionID == sessionID)) {
@@ -326,6 +372,23 @@ function init
       let part
 
       part = event.properties.part
+
+      if (part.tokens) {
+        let total
+
+        total = (part.tokens.input || 0)
+              + (part.tokens.output || 0)
+              + (part.tokens.reasoning || 0)
+              + (part.tokens.cache?.read || 0)
+              + (part.tokens.cache?.write || 0)
+        if (total > 0) {
+          buf.vars('opencode').lastTokens = total
+          buf.vars('opencode').lastProviderID = part.providerID
+          buf.vars('opencode').lastModelID = part.modelID
+          updateModelContextLimit(buf)
+        }
+      }
+
       if (part.type == 'step-start') {
         d('OC step-start')
         buf.vars('opencode').stepActive = 1
@@ -602,7 +665,8 @@ function init
                            divCl('opencode-title', dir) ]),
                    divCl('opencode-w',
                          divCl('opencode-under-w',
-                               divCl('opencode-under', '...'))) ])
+                               [ divCl('opencode-under opencode-under-status', '...'),
+                                 divCl('opencode-under opencode-under-tokens', '') ])) ])
   }
 
   async function send
@@ -666,45 +730,54 @@ function init
   }
 
   function opencode
-  () {
+  (given) {
     let pane, buf, dir, name
+
+    async function run
+    (prompt) {
+      let c
+
+      hist.add(prompt)
+
+      try {
+        let res
+
+        buf = Buf.add(name, 'opencode', divW(dir), pane.dir)
+        buf.vars('opencode').prompt = prompt
+
+        c = await ensureClient(buf)
+        res = await c.session.create({ title: prompt })
+
+        buf.vars('opencode').sessionID = res.data.id
+
+        pane.setBuf(buf, {}, () => {
+          send(buf, prompt)
+        })
+      }
+      catch (err) {
+        Mess.yell('Failed: ' + err.message)
+      }
+    }
 
     pane = Pane.current()
     dir = pane.dir
     name = 'OC ' + dir
-    buf = Buf.find(b => b.name == name)
-    if (buf) {
-      pane.setBuf(buf)
-      return
+    {
+      let buf
+
+      buf = Buf.find(b => b.name == name)
+      if (buf) {
+        pane.setBuf(buf)
+        return
+      }
     }
 
-    Prompt.ask({ text: 'Opencode',
-                 hist },
-               async prompt => {
-                 let p, buf, c
-
-                 p = Pane.current()
-                 hist.add(prompt)
-
-                 try {
-                   let res
-
-                   buf = Buf.add(name, 'opencode', divW(dir), p.dir)
-                   buf.vars('opencode').prompt = prompt
-
-                   c = await ensureClient(buf)
-                   res = await c.session.create({ title: prompt })
-
-                   buf.vars('opencode').sessionID = res.data.id
-
-                   p.setBuf(buf, {}, () => {
-                     send(buf, prompt)
-                   })
-                 }
-                 catch (err) {
-                   Mess.yell('Failed: ' + err.message)
-                 }
-               })
+    if (given)
+      run(given)
+    else
+      Prompt.ask({ text: 'Opencode',
+                   hist },
+                 prompt => run(prompt))
   }
 
   function viewInitSpec
@@ -721,8 +794,7 @@ function init
                     Tron.acmd('code.close', [ buf.id ])
                   } })
 
-  Cmd.add('opencode', opencode)
-  Cmd.add('code', opencode)
+  Cmd.add('code', () => opencode())
 
   Cmd.add('respond', () => next(), mo)
 
@@ -737,4 +809,8 @@ function init
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
+
+  Cmd.add('code buffer', () => {
+    opencode(Pane.current().buf.text())
+  })
 }

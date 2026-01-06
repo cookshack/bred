@@ -180,6 +180,7 @@ async function wrapOn
 function quit
 () {
   try {
+    Code.closeAll()
     app.quit()
   }
   catch (err) {
@@ -204,6 +205,7 @@ function relaunch
     console.log(err.message)
   }
   try {
+    Code.closeAll()
     app.exit(7)
   }
   catch (err) {

@@ -99,3 +99,16 @@ function onClose
   }
   return {}
 }
+
+export
+function closeAll
+() {
+  d('CODE closing ' + servers.size + ' servers')
+
+  for (const [ bufferID, server ] of servers) {
+    d('CODE closing server for buffer ' + bufferID)
+    server.close()
+  }
+
+  servers = new Map()
+}

@@ -43,7 +43,7 @@ function init
   (w, el) {
     let underW
 
-    underW = w.querySelector('.opencode-under')
+    underW = w.querySelector('.opencode-under-w')
     if (underW)
       underW.before(el)
     else

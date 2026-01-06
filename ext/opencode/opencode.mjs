@@ -252,8 +252,9 @@ function init
 
   function updateStatus
   (buf, req, tokenInfo) {
+
     function update
-    (co, tokens) {
+    (co) {
       buf.views.forEach(view => {
         if (view.ele) {
           let underW, statusEl, tokenEl
@@ -265,14 +266,17 @@ function init
             if (statusEl)
               statusEl.innerHTML = co
             if (tokenEl)
-              if (tokens)
-                tokenEl.innerText = tokens
+              if (tokenInfo)
+                tokenEl.innerText = tokenInfo
               else
                 tokenEl.innerText = ''
           }
         }
       })
     }
+
+    d('OC updateStatus')
+    d({ tokenInfo })
 
     if (req.status?.type == 'busy')
       update('BUSY', tokenInfo)
@@ -286,26 +290,37 @@ function init
 
   function calculateTokenPercentage
   (buf) {
-    let tokens, modelLimit
+    let tokens, modelLimit, ret
 
-    tokens = buf.vars('opencode')?.lastTokens
-    modelLimit = buf.vars('opencode')?.modelContextLimit
-    if (tokens && modelLimit)
-      return Math.round((tokens / modelLimit) * 100) + '%'
-    return ''
+    ret = ''
+    tokens = buf.vars('opencode').lastTokens
+    modelLimit = buf.vars('opencode').modelContextLimit
+    if (tokens) {
+      ret += ('T:' + tokens)
+      if (modelLimit)
+        ret += (' ' + Math.round((tokens / modelLimit) * 100) + '%')
+    }
+    return ret
   }
 
   async function updateModelContextLimit
-  (buf) {
-    let providerID, modelID, c, providers, model
+  (buf, providerID, modelID) {
+    let lastProviderID, lastModelID, c, providers, model
 
-    providerID = buf.vars('opencode')?.lastProviderID
-    modelID = buf.vars('opencode')?.lastModelID
-    if (providerID && modelID) {
-    }
-    else
+    d('OC updateModelContextLimit')
+
+    lastProviderID = buf.vars('opencode').lastProviderID
+    lastModelID = buf.vars('opencode').lastModelID
+    if (providerID
+        && modelID
+        && (providerID == lastProviderID)
+        && (modelID == lastModelID)) {
+      d('OC same')
       return
+    }
 
+    buf.vars('opencode').lastProviderID = providerID
+    buf.vars('opencode').lastModelID = modelID
     try {
       c = await ensureClient(buf)
       providers = await c.config.providers({})
@@ -315,8 +330,14 @@ function init
           return true
         }
       })
-      if (model?.limit?.context)
+      if (model?.limit?.context) {
+        d('OC modelContextLimit ' + model.limit.context)
         buf.vars('opencode').modelContextLimit = model.limit.context
+      }
+      else {
+        d('OC modelContextLimit missing')
+        d({ providers })
+      }
     }
     catch (err) {
       d('OC failed to get providers: ' + err.message)
@@ -327,7 +348,7 @@ function init
   (buf, event) {
     let sessionID
 
-    d(event.type)
+    d('OC ' + event.type)
     d({ event })
 
     sessionID = buf && buf.vars('opencode')?.sessionID
@@ -367,6 +388,26 @@ function init
       appendPermission(buf, req.id)
     }
 
+    if ((event.type == 'message.updated')
+        && (event.properties.info.sessionID == sessionID)) {
+      let info
+
+      info = event.properties.info
+      if (info.tokens) {
+        let total
+
+        total = (info.tokens.input || 0)
+              + (info.tokens.output || 0)
+              + (info.tokens.reasoning || 0)
+              + (info.tokens.cache?.read || 0)
+              + (info.tokens.cache?.write || 0)
+        if (total > 0)
+          buf.vars('opencode').lastTokens = total
+      }
+      if (info.model)
+        updateModelContextLimit(buf, info.model.providerID, info.model.modelID)
+    }
+
     if ((event.type == 'message.part.updated')
         && (event.properties.part.sessionID == sessionID)) {
       let part
@@ -381,12 +422,8 @@ function init
               + (part.tokens.reasoning || 0)
               + (part.tokens.cache?.read || 0)
               + (part.tokens.cache?.write || 0)
-        if (total > 0) {
+        if (total > 0)
           buf.vars('opencode').lastTokens = total
-          buf.vars('opencode').lastProviderID = part.providerID
-          buf.vars('opencode').lastModelID = part.modelID
-          updateModelContextLimit(buf)
-        }
       }
 
       if (part.type == 'step-start') {
@@ -404,7 +441,7 @@ function init
           appendMsg(buf, 0, part.text, part.id)
         }
         else
-          d('OD text outside step: ' + part.text)
+          d('OC text outside step: ' + part.text)
       }
       else if (part.type == 'reasoning') {
         let buffered
@@ -681,7 +718,7 @@ function init
     startEventSub(buf)
 
     try {
-      d('SEND')
+      d('OC SEND')
 
       res = await c.session.prompt({
         sessionID,
@@ -689,7 +726,7 @@ function init
         parts: [ { type: 'text', text } ]
       })
 
-      d('SEND done')
+      d('OC SEND done')
       d({ res })
 
       appendModel(buf, res.data.info.modelID || '???')

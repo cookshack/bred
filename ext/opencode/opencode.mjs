@@ -563,15 +563,20 @@ function init
 
   function startEventSub
   (buf) {
+    let abortController
+
     if (buf.vars('opencode').eventSub)
       return
     buf.vars('opencode').eventSub = 1
+
+    abortController = new AbortController()
+    buf.vars('opencode').eventAbort = abortController
 
     ensureClient(buf).then(async c => {
       let events
 
       d('OC starting event subscription')
-      events = await c.event.subscribe({})
+      events = await c.event.subscribe({}, { signal: abortController.signal })
       d('OC stream obtained')
       ;(async () => {
         try {
@@ -579,6 +584,8 @@ function init
             handleEvent(buf, event)
         }
         catch (err) {
+          if (err.name == 'AbortError')
+            return
           d('OC event stream error: ' + err.message)
           d(err.stack)
         }
@@ -697,6 +704,7 @@ function init
   mo = Mode.add('opencode',
                 { viewInitSpec,
                   onRemove(buf) {
+                    buf.vars('opencode').eventAbort?.abort()
                     Tron.acmd('code.close', [ buf.id ])
                   } })
 

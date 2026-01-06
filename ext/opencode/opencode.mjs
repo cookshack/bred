@@ -665,6 +665,16 @@ function init
 
   function opencode
   () {
+    let pane, buf, name
+
+    pane = Pane.current()
+    name = 'OC ' + pane.dir
+    buf = Buf.find(b => b.name == name)
+    if (buf) {
+      pane.setBuf(buf)
+      return
+    }
+
     Prompt.ask({ text: 'Opencode',
                  hist },
                async prompt => {
@@ -676,7 +686,7 @@ function init
                  try {
                    let res
 
-                   buf = Buf.add('Opencode: ' + prompt, 'opencode', divW(prompt), p.dir)
+                   buf = Buf.add(name, 'opencode', divW(prompt), p.dir)
                    buf.vars('opencode').prompt = prompt
 
                    c = await ensureClient(buf)

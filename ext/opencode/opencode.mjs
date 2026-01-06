@@ -594,12 +594,12 @@ function init
   }
 
   function divW
-  (prompt) {
+  (dir) {
     return divCl('opencode-ww',
                  [ divCl('opencode-h',
                          [ divCl('opencode-icon',
-                                 img(Icon.path('chat'), 'Chat', 'filter-clr-text')),
-                           divCl('opencode-title', prompt) ]),
+                                 img(Icon.path('assist'), 'Code', 'filter-clr-text')),
+                           divCl('opencode-title', dir) ]),
                    divCl('opencode-w', divCl('opencode-under', '...')) ])
   }
 
@@ -665,10 +665,11 @@ function init
 
   function opencode
   () {
-    let pane, buf, name
+    let pane, buf, dir, name
 
     pane = Pane.current()
-    name = 'OC ' + pane.dir
+    dir = pane.dir
+    name = 'OC ' + dir
     buf = Buf.find(b => b.name == name)
     if (buf) {
       pane.setBuf(buf)
@@ -686,7 +687,7 @@ function init
                  try {
                    let res
 
-                   buf = Buf.add(name, 'opencode', divW(prompt), p.dir)
+                   buf = Buf.add(name, 'opencode', divW(dir), p.dir)
                    buf.vars('opencode').prompt = prompt
 
                    c = await ensureClient(buf)

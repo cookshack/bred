@@ -13,6 +13,10 @@ import * as Prompt from '../../js/prompt.mjs'
 import { d } from '../../js/mess.mjs'
 import * as Tron from '../../js/tron.mjs'
 
+import * as CMState from '../../lib/@codemirror/state.js'
+import * as CMView from '../../lib/@codemirror/view.js'
+import { diff } from '../../lib/codemirror-lang-diff.js'
+
 import * as OpenCode from './lib/opencode.js'
 
 export
@@ -48,6 +52,19 @@ function init
       underW.before(el)
     else
       append(w, el)
+  }
+
+  function appendPatchEd
+  (text) {
+    let el, state, ed
+
+    el = divCl('opencode-patch-ed')
+    state = CMState.EditorState.create({ doc: text,
+                                         extensions: [ CMView.EditorView.editable.of(false),
+                                                       CMView.EditorView.lineWrapping,
+                                                       diff() ] })
+    ed = new CMView.EditorView({ state, parent: el })
+    return { el, ed }
   }
 
   function appendModel
@@ -175,15 +192,25 @@ function init
 
     buf.views.forEach(view => {
       if (view.ele) {
-        let w, els
+        let w, els, underEl
 
         w = view.ele.querySelector('.opencode-w')
         els = w.querySelectorAll('.opencode-msg-tool[data-callid="' + callID + '"]')
         els?.forEach(el => el.remove())
+        if (under && (tool == 'edit')) {
+          let patchResult
+
+          patchResult = appendPatchEd(under)
+          underEl = patchResult.el
+          view.vars('opencode').eds = view.vars('opencode').eds || []
+          view.vars('opencode').eds.push(patchResult.ed)
+        }
+        else if (under)
+          underEl = divCl('opencode-msg-text opencode-msg-under', under)
         appendX(w,
                 divCl('opencode-msg opencode-msg-tool',
                       [ divCl('opencode-msg-text', label),
-                        under && divCl('opencode-msg-text opencode-msg-under', under) ],
+                        underEl ],
                       { 'data-callid': callID }))
         w.scrollTop = w.scrollHeight
       }
@@ -835,6 +862,9 @@ function init
                 { viewInitSpec,
                   onRemove(buf) {
                     buf.vars('opencode').eventAbort?.abort()
+                    buf.views?.forEach(view => {
+                      view.vars('opencode').eds?.forEach(ed => ed.destroy())
+                    })
                     Tron.acmd('code.close', [ buf.id ])
                   } })
 

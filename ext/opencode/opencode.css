@@ -156,3 +156,20 @@
 .opencode-under {
   display: flex;
 }
+
+.opencode-patch-ed {
+  font-family: var(--font-monospace);
+  margin-top: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.opencode-patch-ed .cm-editor {
+  height: auto;
+  max-height: 300px;
+  overflow: auto;
+}
+
+.opencode-patch-view .cm-scroller {
+  font-family: var(--font-monospace);
+}

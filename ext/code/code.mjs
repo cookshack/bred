@@ -17,6 +17,7 @@ import * as Tron from '../../js/tron.mjs'
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 import { diff } from '../../lib/codemirror-lang-diff.js'
+import { markdown } from '../../lib/@codemirror/lang-markdown.js'
 import { themeExtension } from '../../js/wodemirror.mjs'
 
 import * as OpenCode from './lib/opencode.js'
@@ -119,6 +120,20 @@ function init
     return { el, ed }
   }
 
+  function makeMarkdownEd
+  (text) {
+    let el, state, ed
+
+    el = divCl('code-markdown-ed')
+    state = CMState.EditorState.create({ doc: text,
+                                         extensions: [ CMView.EditorView.editable.of(false),
+                                                       CMView.EditorView.lineWrapping,
+                                                       markdown(),
+                                                       themeExtension ] })
+    ed = new CMView.EditorView({ state, parent: el })
+    return { el, ed }
+  }
+
   function appendModel
   (buf, model) {
     buf.views.forEach(view => {
@@ -148,7 +163,12 @@ function init
 
           el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
           if (el) {
-            setText(w, el.firstElementChild.nextElementSibling, text)
+            let mdEd
+
+            mdEd = makeMarkdownEd(text)
+            withScroll(w, () => el.firstElementChild.nextElementSibling.replaceWith(mdEd.el))
+            view.vars('code').eds = view.vars('code').eds || []
+            view.vars('code').eds.push(mdEd.ed)
             return
           }
         }
@@ -156,8 +176,9 @@ function init
                 divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
                       [ divCl('code-msg-role' + (role ? '' : ' code-msg-hidden'),
                               role == 'user' ? 'You' : (role || '')),
-                        divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'),
-                              text) ],
+                        (role == 'user')
+                          ? divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
+                          : makeMarkdownEd(text || '').el ],
                       { 'data-partid': partID }))
         if (role == 'user') {
           let underW

@@ -169,3 +169,14 @@
 .code-patch-view .cm-scroller {
   font-family: var(--font-monospace);
 }
+
+.code-markdown-ed {
+  margin-top: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.code-markdown-ed .cm-editor {
+  height: auto;
+  overflow: auto;
+}

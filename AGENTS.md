@@ -14,6 +14,12 @@ Build an OpenCode UI inside the bred editor.
 - **Read TUI code** - When uncertain about API usage, check `opencode-src/packages/opencode/src/cli/cmd/tui/` for reference patterns
 - **OpenCode src path** - Use `opencode-src/` instead of full path (it's a symlink to the actual source)
 - **Files must end in newlines** - Always end files with a trailing newline
+- **Code style** - Follow `@cookshack/eslint-config` (see `node_modules/@cookshack/eslint-config/index.js`):
+  - No semicolons, single quotes
+  - No linebreaks in arrays/function calls: `fn([ { a: 1 }, { b: 2 } ])`
+  - Space after `[` and before `]`, space around `{` in objects
+  - `let` with blank line before following `let`
+  - Stroustrup brace style
 
 ## Files
 

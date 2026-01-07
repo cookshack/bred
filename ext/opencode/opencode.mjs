@@ -8,6 +8,7 @@ import * as Hist from '../../js/hist.mjs'
 import * as Icon from '../../js/icon.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
+import * as Opt from '../../js/opt.mjs'
 import * as Pane from '../../js/pane.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import { d } from '../../js/mess.mjs'
@@ -749,7 +750,7 @@ function init
   }
 
   async function send
-  (buf, text) {
+  (buf, text, provider, model) {
     let sessionID, c, res
 
     sessionID = buf.vars('opencode').sessionID
@@ -764,7 +765,7 @@ function init
 
       res = await c.session.prompt({
         sessionID,
-        model: { providerID: 'opencode', modelID: 'minimax-m2.1-free' },
+        model: { providerID: provider, modelID: model },
         parts: [ { type: 'text', text } ]
       })
 
@@ -804,13 +805,16 @@ function init
                  hist },
                prompt => {
                  hist.add(prompt)
-                 send(buf, prompt)
+                 send(buf,
+                      prompt,
+                      buf.vars('opencode').provider,
+                      buf.vars('opencode').model)
                })
   }
 
   function opencode
   (given) {
-    let pane, buf, dir, name
+    let pane, buf, dir, name, provider, model
 
     async function run
     (prompt) {
@@ -823,6 +827,8 @@ function init
 
         buf = Buf.add(name, 'opencode', divW(dir), pane.dir)
         buf.vars('opencode').prompt = prompt
+        buf.vars('opencode').provider = provider
+        buf.vars('opencode').model = model
 
         c = await ensureClient(buf)
         res = await c.session.create({ title: prompt })
@@ -830,7 +836,7 @@ function init
         buf.vars('opencode').sessionID = res.data.id
 
         pane.setBuf(buf, {}, () => {
-          send(buf, prompt)
+          send(buf, prompt, provider, model)
         })
       }
       catch (err) {
@@ -851,10 +857,12 @@ function init
       }
     }
 
+    provider = Opt.get('opencode.provider.agent')
+    model = Opt.get('opencode.model.agent')
     if (given)
       run(given)
     else
-      Prompt.ask({ text: 'Opencode',
+      Prompt.ask({ text: provider + '/' + model,
                    hist },
                  prompt => run(prompt))
   }
@@ -866,6 +874,8 @@ function init
   }
 
   hist = Hist.ensure('opencode')
+  Opt.declare('opencode.model.agent', 'str', 'minimax-m2.1-free')
+  Opt.declare('opencode.provider.agent', 'str', 'opencode')
   mo = Mode.add('opencode',
                 { viewInitSpec,
                   onRemove(buf) {

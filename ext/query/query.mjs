@@ -2431,8 +2431,8 @@ User →
   premoAgent = '#### ' + emoAgent
   hist = Hist.ensure('llm')
 
-  Opt.declare('query.model.agent', 'str', 'meta-llama/llama-4-maverick')
-  Opt.declare('query.model.chat', 'str', 'deepseek/deepseek-chat-v3-0324')
+  Opt.declare('query.model.agent', 'str', 'minimax/minimax-m2')
+  Opt.declare('query.model.chat', 'str', 'deepseek/deepseek-v3.2')
   Opt.declare('query.model.local', 'str', 'mistral')
 
   Opt.declare('query.search.url.prefix', 'str', 'https://google.com/search?q=')

@@ -1,4 +1,4 @@
-.opencode-ww {
+.code-ww {
   width: 100%;
   height: 100%;
   padding: 0;
@@ -6,7 +6,7 @@
   flex-direction: column;
 }
 
-.opencode-w {
+.code-w {
   width: 100%;
   position: relative;
   height: min-content;
@@ -16,7 +16,7 @@
   flex-direction: column;
 }
 
-.opencode-h {
+.code-h {
   display: flex;
   align-items: center;
   padding: 4px 8px;
@@ -24,23 +24,23 @@
   gap: 8px;
 }
 
-.opencode-icon {
+.code-icon {
   width: 20px;
   height: 20px;
 }
 
-.opencode-icon > img {
+.code-icon > img {
   width: 100%;
   height: 100%;
 }
 
-.opencode-title {
+.code-title {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.opencode-w {
+.code-w {
   flex: 1;
   padding: 8px;
   display: flex;
@@ -48,64 +48,64 @@
   gap: 8px;
 }
 
-.opencode-msg {
+.code-msg {
   display: flex;
   flex-direction: column;
 }
 
-.opencode-msg-user {
+.code-msg-user {
   align-self: flex-end;
 }
 
-.opencode-msg-assistant {
+.code-msg-assistant {
   align-self: flex-start;
 }
 
-.opencode-msg-role {
+.code-msg-role {
   margin-bottom: 2px;
   color: var(--clr-nb3);
   display: flex;
 }
 
-.opencode-msg-user .opencode-msg-role {
+.code-msg-user .code-msg-role {
   display: none;
   color: var(--clr-emph);
   justify-content: flex-end;
   padding-right: 12px;
 }
 
-.opencode-msg-text {
+.code-msg-text {
   padding: 8px 12px;
   border-radius: 8px;
   line-height: 1.4;
   white-space: pre-wrap;
 }
 
-.opencode-msg-text.opencode-msg-hidden {
+.code-msg-text.code-msg-hidden {
   display: none;
 }
 
-.opencode-msg-user .opencode-msg-text {
+.code-msg-user .code-msg-text {
   background: var(--clr-fill);
 }
 
-.opencode-msg-assistant .opencode-msg-text {
+.code-msg-assistant .code-msg-text {
   background: var(--clr-fill);
 }
 
-.opencode-msg-thinking {
+.code-msg-thinking {
   align-self: flex-start;
   margin-top: 4px;
 }
 
-.opencode-msg-thinking .opencode-msg-role {
+.code-msg-thinking .code-msg-role {
   display: none;
   color: var(--clr-nb2);
   font-size: 0.75rem;
   margin-bottom: 2px;
 }
 
-.opencode-msg-thinking .opencode-msg-text {
+.code-msg-thinking .code-msg-text {
   padding: 8px 12px;
   border-radius: 8px;
   line-height: 1.4;
@@ -113,28 +113,28 @@
   font-style: italic;
 }
 
-.opencode-msg-tool {
+.code-msg-tool {
   gap: 8px;
   margin-top: 4px;
 }
 
-.opencode-msg-tool .opencode-msg-text {
+.code-msg-tool .code-msg-text {
   font-size: 0.85rem;
   font-style: italic;
   white-space: pre;
 }
 
-.opencode-msg-tool .opencode-msg-text.opencode-msg-under {
+.code-msg-tool .code-msg-text.code-msg-under {
   font-family: var(--font-monospace);
   font-style: normal;
 }
 
-.opencode-msg-permission {
+.code-msg-permission {
   align-self: flex-start;
   margin-top: 4px;
 }
 
-.opencode-msg-permission .opencode-msg-text {
+.code-msg-permission .code-msg-text {
   font-size: 0.9rem;
   font-style: normal;
   padding: 8px 12px;
@@ -143,29 +143,29 @@
   align-items: center;
 }
 
-.opencode-under-w {
+.code-under-w {
   width: 100%;
   display: flex;
   justify-content: space-between;
 }
 
-.opencode-under {
+.code-under {
   display: flex;
 }
 
-.opencode-patch-ed {
+.code-patch-ed {
   font-family: var(--font-monospace);
   margin-top: 4px;
   border-radius: 4px;
   overflow: hidden;
 }
 
-.opencode-patch-ed .cm-editor {
+.code-patch-ed .cm-editor {
   height: auto;
   max-height: 300px;
   overflow: auto;
 }
 
-.opencode-patch-view .cm-scroller {
+.code-patch-view .cm-scroller {
   font-family: var(--font-monospace);
 }

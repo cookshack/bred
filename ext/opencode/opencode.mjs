@@ -30,7 +30,7 @@ function init
   (buf) {
     let client, ret
 
-    client = buf.vars('opencode').client
+    client = buf.vars('code').client
     if (client)
       return client
 
@@ -40,8 +40,8 @@ function init
       throw new Error(ret.err.message)
 
     client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
-    buf.vars('opencode').client = client
-    buf.vars('opencode').serverUrl = ret.url
+    buf.vars('code').client = client
+    buf.vars('code').serverUrl = ret.url
     return client
   }
 
@@ -49,7 +49,7 @@ function init
   (w, el) {
     let underW
 
-    underW = w.querySelector('.opencode-under-w')
+    underW = w.querySelector('.code-under-w')
     if (underW)
       underW.before(el)
     else
@@ -71,7 +71,7 @@ function init
   (text) {
     let el, state, ed
 
-    el = divCl('opencode-patch-ed')
+    el = divCl('code-patch-ed')
     state = CMState.EditorState.create({ doc: text,
                                          extensions: [ CMView.EditorView.editable.of(false),
                                                        CMView.EditorView.lineWrapping,
@@ -87,11 +87,11 @@ function init
       if (view.ele) {
         let w
 
-        w = view.ele.querySelector('.opencode-w')
+        w = view.ele.querySelector('.code-w')
         appendX(w,
-                divCl('opencode-msg opencode-msg-assistant',
-                      [ divCl('opencode-msg-role', model),
-                        divCl('opencode-msg-text opencode-msg-hidden') ]))
+                divCl('code-msg code-msg-assistant',
+                      [ divCl('code-msg-role', model),
+                        divCl('code-msg-text code-msg-hidden') ]))
       }
     })
   }
@@ -102,13 +102,13 @@ function init
       if (view.ele) {
         let w
 
-        w = view.ele.querySelector('.opencode-w')
+        w = view.ele.querySelector('.code-w')
         if (role == 'user') {
         }
         else {
           let el
 
-          el = w.querySelector('.opencode-msg-assistant[data-partid="' + partID + '"]')
+          el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
           if (el) {
             el.firstElementChild.nextElementSibling.innerText = text
             autoScroll(w)
@@ -116,10 +116,10 @@ function init
           }
         }
         appendX(w,
-                divCl('opencode-msg opencode-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                      [ divCl('opencode-msg-role' + (role ? '' : ' opencode-msg-hidden'),
+                divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
+                      [ divCl('code-msg-role' + (role ? '' : ' code-msg-hidden'),
                               role == 'user' ? 'You' : (role || '')),
-                        divCl('opencode-msg-text' + (text ? '' : ' opencode-msg-hidden'),
+                        divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'),
                               text) ],
                       { 'data-partid': partID }))
       }
@@ -132,18 +132,18 @@ function init
       if (view.ele) {
         let w, el, msgs, lastIsUser
 
-        w = view.ele.querySelector('.opencode-w')
-        msgs = w.querySelectorAll('.opencode-msg')
+        w = view.ele.querySelector('.code-w')
+        msgs = w.querySelectorAll('.code-msg')
         if (msgs.length > 0) {
           let last
 
           last = msgs[msgs.length - 1]
-          if (Css.has(last, 'opencode-msg-tool'))
+          if (Css.has(last, 'code-msg-tool'))
             lastIsUser = 1
           else {
             let role
 
-            role = msgs[msgs.length - 1].querySelector('.opencode-msg-role')
+            role = msgs[msgs.length - 1].querySelector('.code-msg-role')
             if (role?.innerText == 'You')
               lastIsUser = 1
           }
@@ -153,21 +153,21 @@ function init
         else {
           let all
 
-          all = w.querySelectorAll('.opencode-msg-thinking')
+          all = w.querySelectorAll('.code-msg-thinking')
           if (all.length)
             el = all[all.length - 1]
         }
         if (el) {
           let current
 
-          current = el.querySelector('.opencode-msg-text').innerText
-          el.querySelector('.opencode-msg-text').innerText = current + text
+          current = el.querySelector('.code-msg-text').innerText
+          el.querySelector('.code-msg-text').innerText = current + text
         }
         else
           appendX(w,
-                  divCl('opencode-msg opencode-msg-thinking',
-                        [ divCl('opencode-msg-role', 'Thinking...'),
-                          divCl('opencode-msg-text', text) ]))
+                  divCl('code-msg code-msg-thinking',
+                        [ divCl('code-msg-role', 'Thinking...'),
+                          divCl('code-msg-text', text) ]))
       }
     })
   }
@@ -205,22 +205,22 @@ function init
       if (view.ele) {
         let w, els, underEl
 
-        w = view.ele.querySelector('.opencode-w')
-        els = w.querySelectorAll('.opencode-msg-tool[data-callid="' + callID + '"]')
+        w = view.ele.querySelector('.code-w')
+        els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
         els?.forEach(el => el.remove())
         if (under && (tool == 'edit')) {
           let patchResult
 
           patchResult = makePatchEd(under)
           underEl = patchResult.el
-          view.vars('opencode').eds = view.vars('opencode').eds || []
-          view.vars('opencode').eds.push(patchResult.ed)
+          view.vars('code').eds = view.vars('code').eds || []
+          view.vars('code').eds.push(patchResult.ed)
         }
         else if (under)
-          underEl = divCl('opencode-msg-text opencode-msg-under', under)
+          underEl = divCl('code-msg-text code-msg-under', under)
         appendX(w,
-                divCl('opencode-msg opencode-msg-tool',
-                      [ divCl('opencode-msg-text', label),
+                divCl('code-msg code-msg-tool',
+                      [ divCl('code-msg-text', label),
                         underEl ],
                       { 'data-callid': callID }))
       }
@@ -233,10 +233,10 @@ function init
       if (view.ele) {
         let w
 
-        w = view.ele.querySelector('.opencode-w')
+        w = view.ele.querySelector('.code-w')
         appendX(w,
-                divCl('opencode-msg opencode-msg-permission',
-                      [ divCl('opencode-msg-text',
+                divCl('code-msg code-msg-permission',
+                      [ divCl('code-msg-text',
                               [ '▣ Allow?',
                                 button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
                                 button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }) ]) ],
@@ -249,7 +249,7 @@ function init
   (buf, id, yes) {
     let sessionID, response
 
-    sessionID = buf.vars('opencode')?.sessionID
+    sessionID = buf.vars('code')?.sessionID
     response = yes ? 'once' : 'reject'
 
     d('OC permission reply: ' + response)
@@ -262,8 +262,8 @@ function init
           if (view.ele) {
             let w, el
 
-            w = view.ele.querySelector('.opencode-w')
-            el = w.querySelector('.opencode-msg-permission[data-permissionid="' + id + '"]')
+            w = view.ele.querySelector('.code-w')
+            el = w.querySelector('.code-msg-permission[data-permissionid="' + id + '"]')
             el?.remove()
           }
         })
@@ -273,7 +273,7 @@ function init
       }
     })
 
-    buf.vars('opencode').permissionID = 0
+    buf.vars('code').permissionID = 0
   }
 
   function yn
@@ -281,7 +281,7 @@ function init
     let buf, id
 
     buf = Pane.current()?.buf
-    id = buf?.vars('opencode')?.permissionID
+    id = buf?.vars('code')?.permissionID
     if (id)
       handlePermission(buf, id, yes)
   }
@@ -295,10 +295,10 @@ function init
         if (view.ele) {
           let underW, statusEl, tokenEl
 
-          underW = view.ele.querySelector('.opencode-under-w')
+          underW = view.ele.querySelector('.code-under-w')
           if (underW) {
-            statusEl = underW.querySelector('.opencode-under-status')
-            tokenEl = underW.querySelector('.opencode-under-tokens')
+            statusEl = underW.querySelector('.code-under-status')
+            tokenEl = underW.querySelector('.code-under-tokens')
             if (statusEl)
               statusEl.innerHTML = co
             if (tokenEl)
@@ -329,8 +329,8 @@ function init
     let tokens, modelLimit, ret
 
     ret = ''
-    tokens = buf.vars('opencode').lastTokens
-    modelLimit = buf.vars('opencode').modelContextLimit
+    tokens = buf.vars('code').lastTokens
+    modelLimit = buf.vars('code').modelContextLimit
     if (tokens) {
       ret += ('T:' + tokens)
       if (modelLimit)
@@ -345,8 +345,8 @@ function init
 
     d('OC updateModelContextLimit')
 
-    lastProviderID = buf.vars('opencode').lastProviderID
-    lastModelID = buf.vars('opencode').lastModelID
+    lastProviderID = buf.vars('code').lastProviderID
+    lastModelID = buf.vars('code').lastModelID
     if (providerID
         && modelID
         && (providerID == lastProviderID)
@@ -355,8 +355,8 @@ function init
       return
     }
 
-    buf.vars('opencode').lastProviderID = providerID
-    buf.vars('opencode').lastModelID = modelID
+    buf.vars('code').lastProviderID = providerID
+    buf.vars('code').lastModelID = modelID
     try {
       c = await ensureClient(buf)
       providers = await c.config.providers({})
@@ -368,7 +368,7 @@ function init
       })
       if (model?.limit?.context) {
         d('OC modelContextLimit ' + model.limit.context)
-        buf.vars('opencode').modelContextLimit = model.limit.context
+        buf.vars('code').modelContextLimit = model.limit.context
       }
       else {
         d('OC modelContextLimit missing')
@@ -386,14 +386,14 @@ function init
 
     function checkForPatch
     (buf, req) {
-      buf.vars('opencode').permissionID = req.id
+      buf.vars('code').permissionID = req.id
       if ((req.permission == 'edit') || (req.type == 'edit')) {
         let path
 
         path = (req.metadata?.filepath || req.metadata?.filePath)
         if (path) {
           d('OC permission file: ' + path)
-          buf.vars('opencode').patch = req.metadata?.diff
+          buf.vars('code').patch = req.metadata?.diff
           appendToolMsg(buf, (req.callID || req.tool.callID), 'edit', path,
                         req.metadata?.diff) // under
         }
@@ -403,7 +403,7 @@ function init
     d('OC ' + event.type)
     d({ event })
 
-    sessionID = buf && buf.vars('opencode')?.sessionID
+    sessionID = buf && buf.vars('code')?.sessionID
 
     if ((event.type == 'session.status')
         && (event.properties.sessionID == sessionID))
@@ -416,7 +416,7 @@ function init
       req = event.properties
       d('OC permission asked: ' + req.permission)
       checkForPatch(buf, req)
-      buf.vars('opencode').permissionID = req.id
+      buf.vars('code').permissionID = req.id
       appendPermission(buf, req.id)
     }
 
@@ -427,7 +427,7 @@ function init
       req = event.properties
       d('OC permission updated: ' + req.type)
       checkForPatch(buf, req)
-      buf.vars('opencode').permissionID = req.id
+      buf.vars('code').permissionID = req.id
       appendPermission(buf, req.id)
     }
 
@@ -445,7 +445,7 @@ function init
               + (info.tokens.cache?.read || 0)
               + (info.tokens.cache?.write || 0)
         if (total > 0)
-          buf.vars('opencode').lastTokens = total
+          buf.vars('code').lastTokens = total
       }
       if (info.model)
         updateModelContextLimit(buf, info.model.providerID, info.model.modelID)
@@ -466,20 +466,20 @@ function init
               + (part.tokens.cache?.read || 0)
               + (part.tokens.cache?.write || 0)
         if (total > 0)
-          buf.vars('opencode').lastTokens = total
+          buf.vars('code').lastTokens = total
       }
 
       if (part.type == 'step-start') {
         d('OC step-start')
-        buf.vars('opencode').stepActive = 1
+        buf.vars('code').stepActive = 1
       }
       else if (part.type == 'step-finish') {
         d('OC step-finish')
-        buf.vars('opencode').stepActive = 0
+        buf.vars('code').stepActive = 0
       }
       else if (part.type == 'text') {
         d('OC text part' + part.id)
-        if (buf.vars('opencode').stepActive) {
+        if (buf.vars('code').stepActive) {
           d('OC update text: ' + part.text)
           appendMsg(buf, 0, part.text, part.id)
         }
@@ -622,7 +622,7 @@ function init
 
             d('OC edit completed: ' + path)
             under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
-            under = buf.vars('opencode').patch || under
+            under = buf.vars('code').patch || under
             appendToolMsg(buf, part.callID, 'edit', path + ' (done)',
                           under)
           }
@@ -708,12 +708,12 @@ function init
   (buf) {
     let abortController
 
-    if (buf.vars('opencode').eventSub)
+    if (buf.vars('code').eventSub)
       return
-    buf.vars('opencode').eventSub = 1
+    buf.vars('code').eventSub = 1
 
     abortController = new AbortController()
-    buf.vars('opencode').eventAbort = abortController
+    buf.vars('code').eventAbort = abortController
 
     ensureClient(buf).then(async c => {
       let events
@@ -738,22 +738,22 @@ function init
 
   function divW
   (dir) {
-    return divCl('opencode-ww',
-                 [ divCl('opencode-h',
-                         [ divCl('opencode-icon',
+    return divCl('code-ww',
+                 [ divCl('code-h',
+                         [ divCl('code-icon',
                                  img(Icon.path('assist'), 'Code', 'filter-clr-text')),
-                           divCl('opencode-title', dir) ]),
-                   divCl('opencode-w',
-                         divCl('opencode-under-w',
-                               [ divCl('opencode-under opencode-under-status', '...'),
-                                 divCl('opencode-under opencode-under-tokens', '') ])) ])
+                           divCl('code-title', dir) ]),
+                   divCl('code-w',
+                         divCl('code-under-w',
+                               [ divCl('code-under code-under-status', '...'),
+                                 divCl('code-under code-under-tokens', '') ])) ])
   }
 
   async function send
   (buf, text, provider, model) {
     let sessionID, c, res
 
-    sessionID = buf.vars('opencode').sessionID
+    sessionID = buf.vars('code').sessionID
     c = await ensureClient(buf)
 
     appendMsg(buf, 'user', text)
@@ -787,16 +787,16 @@ function init
     p = Pane.current()
     buf = p.buf
 
-    if (buf.vars('opencode').permissionID)
+    if (buf.vars('code').permissionID)
       return
 
-    if (buf?.vars('opencode')?.sessionID) {
+    if (buf?.vars('code')?.sessionID) {
       // OK
     }
     else
       return
 
-    if (buf.vars('opencode').busy) {
+    if (buf.vars('code').busy) {
       d('busy')
       return
     }
@@ -807,12 +807,12 @@ function init
                  hist.add(prompt)
                  send(buf,
                       prompt,
-                      buf.vars('opencode').provider,
-                      buf.vars('opencode').model)
+                      buf.vars('code').provider,
+                      buf.vars('code').model)
                })
   }
 
-  function opencode
+  function code
   (given) {
     let pane, buf, dir, name, provider, model
 
@@ -825,15 +825,15 @@ function init
       try {
         let res
 
-        buf = Buf.add(name, 'opencode', divW(dir), pane.dir)
-        buf.vars('opencode').prompt = prompt
-        buf.vars('opencode').provider = provider
-        buf.vars('opencode').model = model
+        buf = Buf.add(name, 'code', divW(dir), pane.dir)
+        buf.vars('code').prompt = prompt
+        buf.vars('code').provider = provider
+        buf.vars('code').model = model
 
         c = await ensureClient(buf)
         res = await c.session.create({ title: prompt })
 
-        buf.vars('opencode').sessionID = res.data.id
+        buf.vars('code').sessionID = res.data.id
 
         pane.setBuf(buf, {}, () => {
           send(buf, prompt, provider, model)
@@ -857,8 +857,8 @@ function init
       }
     }
 
-    provider = Opt.get('opencode.provider.agent')
-    model = Opt.get('opencode.model.agent')
+    provider = Opt.get('code.provider.agent')
+    model = Opt.get('code.model.agent')
     if (given)
       run(given)
     else
@@ -873,20 +873,20 @@ function init
       cb(view)
   }
 
-  hist = Hist.ensure('opencode')
-  Opt.declare('opencode.model.agent', 'str', 'minimax-m2.1-free')
-  Opt.declare('opencode.provider.agent', 'str', 'opencode')
-  mo = Mode.add('opencode',
+  hist = Hist.ensure('code')
+  Opt.declare('code.model.agent', 'str', 'minimax-m2.1-free')
+  Opt.declare('code.provider.agent', 'str', 'opencode')
+  mo = Mode.add('code',
                 { viewInitSpec,
                   onRemove(buf) {
-                    buf.vars('opencode').eventAbort?.abort()
+                    buf.vars('code').eventAbort?.abort()
                     buf.views?.forEach(view => {
-                      view.vars('opencode').eds?.forEach(ed => ed.destroy())
+                      view.vars('code').eds?.forEach(ed => ed.destroy())
                     })
                     Tron.acmd('code.close', [ buf.id ])
                   } })
 
-  Cmd.add('code', () => opencode())
+  Cmd.add('code', () => code())
 
   Cmd.add('respond', () => next(), mo)
 
@@ -903,6 +903,6 @@ function init
   Em.on(' ', 'scroll down', mo)
 
   Cmd.add('code buffer', () => {
-    opencode(Pane.current().buf.text())
+    code(Pane.current().buf.text())
   })
 }

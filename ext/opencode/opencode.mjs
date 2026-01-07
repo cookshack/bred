@@ -15,19 +15,10 @@ import * as Tron from '../../js/tron.mjs'
 
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
-import * as CMLang from '../../lib/@codemirror/language.js'
 import { diff } from '../../lib/codemirror-lang-diff.js'
-import * as LZTags from '../../lib/@lezer/highlight.js'
+import { themeExtension } from '../../js/wodemirror.mjs'
 
 import * as OpenCode from './lib/opencode.js'
-
-let patchHighlight
-
-function initPatchHighlight
-() {
-  patchHighlight = CMLang.syntaxHighlighting(CMLang.HighlightStyle.define([ { tag: LZTags.tags.inserted, color: '#2e7d32' },
-                                                                            { tag: LZTags.tags.deleted, color: '#c62828' } ]))
-}
 
 export
 function init
@@ -73,7 +64,7 @@ function init
                                          extensions: [ CMView.EditorView.editable.of(false),
                                                        CMView.EditorView.lineWrapping,
                                                        diff(),
-                                                       patchHighlight ] })
+                                                       themeExtension ] })
     ed = new CMView.EditorView({ state, parent: el })
     return { el, ed }
   }
@@ -869,7 +860,6 @@ function init
   }
 
   hist = Hist.ensure('opencode')
-  initPatchHighlight()
   mo = Mode.add('opencode',
                 { viewInitSpec,
                   onRemove(buf) {

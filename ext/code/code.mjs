@@ -45,40 +45,33 @@ function init
     return client
   }
 
-  function atBottom
-  (w) {
-    let paneW
+  function underVisible
+  (w, underW) {
+    if (underW) {
+      let rU, rW
 
-    paneW = w.parentElement?.parentElement
-    if (paneW) {
-      d(paneW.scrollTop)
-      d(paneW.clientHeight)
-      d(paneW.scrollHeight)
-      if ((paneW.scrollTop + paneW.clientHeight) >= (paneW.scrollHeight - 10)) {
-        d('CO at bottom')
-        return paneW
-      }
-      d('CO above bottom')
+      rU = underW.getBoundingClientRect()
+      rW = w.getBoundingClientRect()
+      return rU.top < rW.bottom
     }
-    else
-      d('CO ERR paneW missing')
     return 0
   }
 
   function appendX
   (w, el) {
-    let underW, paneW
-
-    paneW = atBottom(w)
+    let underW, wasVisible
 
     underW = w.querySelector('.code-under-w')
+
+    wasVisible = underVisible(w, underW)
+
     if (underW)
       underW.before(el)
     else
       append(w, el)
 
-    if (paneW)
-      paneW.scrollTop = paneW.scrollHeight
+    if (wasVisible && underW)
+      underW.scrollIntoView({ block: 'end', inline: 'nearest' })
   }
 
   function makePatchEd
@@ -120,14 +113,15 @@ function init
         if (role == 'user') {
         }
         else {
-          let el, paneW
+          let el, underW, wasVisible
 
-          paneW = atBottom(w)
           el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
           if (el) {
+            underW = w.querySelector('.code-under-w')
+            wasVisible = underVisible(w, underW)
             el.firstElementChild.nextElementSibling.innerText = text
-            if (paneW)
-              paneW.scrollTop = paneW.scrollHeight
+            if (wasVisible && underW)
+              underW.scrollIntoView({ block: 'end', inline: 'nearest' })
             return
           }
         }
@@ -138,6 +132,12 @@ function init
                         divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'),
                               text) ],
                       { 'data-partid': partID }))
+        if (role == 'user') {
+          let underW
+
+          underW = w.querySelector('.code-under-w')
+          underW.scrollIntoView({ block: 'end', inline: 'nearest' })
+        }
       }
     })
   }

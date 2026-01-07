@@ -18,7 +18,7 @@ import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 import { diff } from '../../lib/codemirror-lang-diff.js'
 import { markdown } from '../../lib/@codemirror/lang-markdown.js'
-import { themeExtension } from '../../js/wodemirror.mjs'
+import { themeExtension, langs } from '../../js/wodemirror.mjs'
 
 import * as OpenCode from './lib/opencode.js'
 
@@ -128,7 +128,7 @@ function init
     state = CMState.EditorState.create({ doc: text,
                                          extensions: [ CMView.EditorView.editable.of(false),
                                                        CMView.EditorView.lineWrapping,
-                                                       markdown(),
+                                                       markdown({ codeLanguages: langs }),
                                                        themeExtension ] })
     ed = new CMView.EditorView({ state, parent: el })
     return { el, ed }

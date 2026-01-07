@@ -45,26 +45,40 @@ function init
     return client
   }
 
+  function atBottom
+  (w) {
+    let paneW
+
+    paneW = w.parentElement?.parentElement
+    if (paneW) {
+      d(paneW.scrollTop)
+      d(paneW.clientHeight)
+      d(paneW.scrollHeight)
+      if ((paneW.scrollTop + paneW.clientHeight) >= (paneW.scrollHeight - 10)) {
+        d('CO at bottom')
+        return paneW
+      }
+      d('CO above bottom')
+    }
+    else
+      d('CO ERR paneW missing')
+    return 0
+  }
+
   function appendX
   (w, el) {
-    let underW
+    let underW, paneW
+
+    paneW = atBottom(w)
 
     underW = w.querySelector('.code-under-w')
     if (underW)
       underW.before(el)
     else
       append(w, el)
-    autoScroll(w)
-  }
 
-  function autoScroll
-  (w) {
-    let paneW
-
-    paneW = w.parentElement?.parentElement
     if (paneW)
-      if (paneW.scrollTop + paneW.clientHeight >= paneW.scrollHeight - 10)
-        paneW.scrollTop = paneW.scrollHeight
+      paneW.scrollTop = paneW.scrollHeight
   }
 
   function makePatchEd
@@ -106,12 +120,14 @@ function init
         if (role == 'user') {
         }
         else {
-          let el
+          let el, paneW
 
+          paneW = atBottom(w)
           el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
           if (el) {
             el.firstElementChild.nextElementSibling.innerText = text
-            autoScroll(w)
+            if (paneW)
+              paneW.scrollTop = paneW.scrollHeight
             return
           }
         }

@@ -1,8 +1,8 @@
 {
-  "name": "bred-ext-opencode",
+  "name": "bred-ext-code",
   "version": "0.1.0",
-  "description": "Opencode UI.",
-  "main": "opencode.mjs",
+  "description": "Code with an agent",
+  "main": "code.mjs",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "bin/postinstall && touch .READY"

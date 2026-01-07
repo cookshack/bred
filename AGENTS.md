@@ -1,6 +1,6 @@
-# OpenCode Extension
+# Code Extension
 
-Build an OpenCode UI inside the bred editor.
+We're busy building an OpenCode UI inside the Bred editor.
 
 ## Conventions
 
@@ -8,7 +8,7 @@ Build an OpenCode UI inside the bred editor.
 - **String formatting** - Use `'xxx' + var`, not template literals `` `xxx${var}` ``
 - **Variable naming** - No capitals: `textBuffer`, not `TextBuffer`
 - **Event structure** - `event.properties.part`, not `event.data.properties.part`
-- **Session matching** - Match events by `sessionID` from `buf.vars('opencode').sessionID`
+- **Session matching** - Match events by `sessionID` from `buf.vars('code`
 - **Permission prompts** - Use `Prompt.yn()` for yes/no, not `Prompt.ask()` with options
 - **SDK method** - `c.postSessionIdPermissionsPermissionId()` on the client
 - **Read TUI code** - When uncertain about API usage, check `opencode-src/packages/opencode/src/cli/cmd/tui/` for reference patterns
@@ -23,10 +23,10 @@ Build an OpenCode UI inside the bred editor.
 
 ## Files
 
-- `ext/opencode/opencode.mjs` - Main extension code
-- `ext/opencode/opencode.css` - Styles
-- `ext/opencode/lib/opencode.js` - SDK wrapper
-- `ext/opencode/lib/gen/` - Generated SDK (v1.1.1)
+- `ext/code/code.mjs` - Main extension code
+- `ext/code/code.css` - Styles
+- `ext/code/lib/opencode.js` - SDK wrapper
+- `ext/code/lib/gen/` - Generated SDK (v1.1.1)
 
 ## SDK Usage
 
@@ -173,7 +173,7 @@ Set the model in the prompt body:
 res = await client.session.prompt({
   path: { id: sessionID },
   body: {
-    model: { providerID: 'opencode', modelID: 'minimax-m2.1-free' },
+    model: { providerID: 'opencode', modelID: 'minimax-m2.1-free' }, // FIX uses Opt now
     parts: [ { type: 'text', text } ]
   }
 })
@@ -181,10 +181,8 @@ res = await client.session.prompt({
 
 ## Commands
 
-- `opencode` - Start a new OpenCode chat
-- `code` - Alias for `opencode`
-- `opencode chat` (in opencode mode) - Continue the chat
-- `opencode models` - List available providers and models
+- `code` - Start a new coding chat
+- `code chat` (in code mode) - Continue the chat
 
 ## Debugging
 
@@ -194,7 +192,7 @@ Use `d()` to log debug output:
 import { d } from '../../js/mess.mjs'
 
 d('some message')
-d({ object }) // Single arg only
+d({ object }) // NB this takes a single arg only
 ```
 
 Check the dev console (Ctrl+Shift+I) to see logs.

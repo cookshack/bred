@@ -45,33 +45,64 @@ function init
     return client
   }
 
+  function scroll
+  (underW) {
+    d('CO SCROLL')
+    underW.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' })
+  }
+
   function underVisible
   (w, underW) {
     if (underW) {
-      let rU, rW
+      let paneW
 
-      rU = underW.getBoundingClientRect()
-      rW = w.getBoundingClientRect()
-      return rU.top < rW.bottom
+      // paneW > pane > code-ww > code-w
+      paneW = w.parentElement?.parentElement?.parentElement
+      if (paneW) {
+        let rU, rPW
+
+        rU = underW.getBoundingClientRect()
+        rPW = paneW.getBoundingClientRect()
+        d('CO ' + rU.bottom + ' < ' + rPW.bottom + '?')
+        return rU.top < rPW.bottom
+      }
+      else
+        d('CO ERR paneW missing')
     }
     return 0
   }
 
-  function appendX
-  (w, el) {
+  function withScroll
+  (w, cb) { // (under)
     let underW, wasVisible
 
     underW = w.querySelector('.code-under-w')
 
     wasVisible = underVisible(w, underW)
+    d({ wasVisible })
 
-    if (underW)
-      underW.before(el)
-    else
-      append(w, el)
+    if (cb)
+      cb(underW)
 
     if (wasVisible && underW)
-      underW.scrollIntoView({ block: 'end', inline: 'nearest' })
+      scroll(underW)
+  }
+
+  function appendX
+  (w, el) {
+    withScroll(w, underW => {
+      if (underW)
+        underW.before(el)
+      else
+        append(w, el)
+    })
+  }
+
+  function setText
+  (w, el, text) {
+    withScroll(w, () => {
+      el.innerText = text
+    })
   }
 
   function makePatchEd
@@ -113,15 +144,11 @@ function init
         if (role == 'user') {
         }
         else {
-          let el, underW, wasVisible
+          let el
 
           el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
           if (el) {
-            underW = w.querySelector('.code-under-w')
-            wasVisible = underVisible(w, underW)
-            el.firstElementChild.nextElementSibling.innerText = text
-            if (wasVisible && underW)
-              underW.scrollIntoView({ block: 'end', inline: 'nearest' })
+            setText(w, el.firstElementChild.nextElementSibling, text)
             return
           }
         }
@@ -136,7 +163,7 @@ function init
           let underW
 
           underW = w.querySelector('.code-under-w')
-          underW.scrollIntoView({ block: 'end', inline: 'nearest' })
+          scroll(underW)
         }
       }
     })
@@ -177,7 +204,7 @@ function init
           let current
 
           current = el.querySelector('.code-msg-text').innerText
-          el.querySelector('.code-msg-text').innerText = current + text
+          setText(w, el.querySelector('.code-msg-text'), current + text)
         }
         else
           appendX(w,
@@ -359,17 +386,13 @@ function init
   (buf, providerID, modelID) {
     let lastProviderID, lastModelID, c, providers, model
 
-    d('OC updateModelContextLimit')
-
     lastProviderID = buf.vars('code').lastProviderID
     lastModelID = buf.vars('code').lastModelID
     if (providerID
         && modelID
         && (providerID == lastProviderID)
-        && (modelID == lastModelID)) {
-      d('OC same')
+        && (modelID == lastModelID))
       return
-    }
 
     buf.vars('code').lastProviderID = providerID
     buf.vars('code').lastModelID = modelID

@@ -348,6 +348,22 @@ function init
   (buf, event) {
     let sessionID
 
+    function checkForPatch
+    (buf, req) {
+      buf.vars('opencode').permissionID = req.id
+      if ((req.permission == 'edit') || (req.type == 'edit')) {
+        let path
+
+        path = (req.metadata?.filepath || req.metadata?.filePath)
+        if (path) {
+          d('OC permission file: ' + path)
+          buf.vars('opencode').patch = req.metadata?.diff
+          appendToolMsg(buf, (req.callID || req.tool.callID), 'edit', path,
+                        req.metadata?.diff) // under
+        }
+      }
+    }
+
     d('OC ' + event.type)
     d({ event })
 
@@ -363,18 +379,8 @@ function init
 
       req = event.properties
       d('OC permission asked: ' + req.permission)
+      checkForPatch(buf, req)
       buf.vars('opencode').permissionID = req.id
-      if (req.permission == 'edit') {
-        let path
-
-        path = req.metadata?.filepath
-        if (path) {
-          d('OC permission file: ' + path)
-          buf.vars('opencode').patch = req.metadata?.diff
-          appendToolMsg(buf, req.tool.callID, 'edit', path,
-                        req.metadata?.diff) // under
-        }
-      }
       appendPermission(buf, req.id)
     }
 
@@ -384,6 +390,7 @@ function init
 
       req = event.properties
       d('OC permission updated: ' + req.type)
+      checkForPatch(buf, req)
       buf.vars('opencode').permissionID = req.id
       appendPermission(buf, req.id)
     }

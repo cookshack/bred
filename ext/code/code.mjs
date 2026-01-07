@@ -295,7 +295,7 @@ function init
     sessionID = buf.vars('code')?.sessionID
     response = yes ? 'once' : 'reject'
 
-    d('OC permission reply: ' + response)
+    d('CO permission reply: ' + response)
     ensureClient(buf).then(async c => {
       try {
         await c.permission.respond({ sessionID,
@@ -312,7 +312,7 @@ function init
         })
       }
       catch (err) {
-        d('OC permission respond error: ' + err.message)
+        d('CO permission respond error: ' + err.message)
       }
     })
 
@@ -354,7 +354,7 @@ function init
       })
     }
 
-    d('OC updateStatus')
+    d('CO updateStatus')
     d({ tokenInfo })
 
     if (req.status?.type == 'busy')
@@ -406,16 +406,16 @@ function init
         }
       })
       if (model?.limit?.context) {
-        d('OC modelContextLimit ' + model.limit.context)
+        d('CO modelContextLimit ' + model.limit.context)
         buf.vars('code').modelContextLimit = model.limit.context
       }
       else {
-        d('OC modelContextLimit missing')
+        d('CO modelContextLimit missing')
         d({ providers })
       }
     }
     catch (err) {
-      d('OC failed to get providers: ' + err.message)
+      d('CO failed to get providers: ' + err.message)
     }
   }
 
@@ -431,7 +431,7 @@ function init
 
         path = (req.metadata?.filepath || req.metadata?.filePath)
         if (path) {
-          d('OC permission file: ' + path)
+          d('CO permission file: ' + path)
           buf.vars('code').patch = req.metadata?.diff
           appendToolMsg(buf, (req.callID || req.tool.callID), 'edit', path,
                         req.metadata?.diff) // under
@@ -439,7 +439,7 @@ function init
       }
     }
 
-    d('OC ' + event.type)
+    d('CO ' + event.type)
     d({ event })
 
     sessionID = buf && buf.vars('code')?.sessionID
@@ -453,7 +453,7 @@ function init
       let req
 
       req = event.properties
-      d('OC permission asked: ' + req.permission)
+      d('CO permission asked: ' + req.permission)
       checkForPatch(buf, req)
       buf.vars('code').permissionID = req.id
       appendPermission(buf, req.id)
@@ -464,7 +464,7 @@ function init
       let req
 
       req = event.properties
-      d('OC permission updated: ' + req.type)
+      d('CO permission updated: ' + req.type)
       checkForPatch(buf, req)
       buf.vars('code').permissionID = req.id
       appendPermission(buf, req.id)
@@ -509,41 +509,41 @@ function init
       }
 
       if (part.type == 'step-start') {
-        d('OC step-start')
+        d('CO step-start')
         buf.vars('code').stepActive = 1
       }
       else if (part.type == 'step-finish') {
-        d('OC step-finish')
+        d('CO step-finish')
         buf.vars('code').stepActive = 0
       }
       else if (part.type == 'text') {
-        d('OC text part' + part.id)
+        d('CO text part' + part.id)
         if (buf.vars('code').stepActive) {
-          d('OC update text: ' + part.text)
+          d('CO update text: ' + part.text)
           appendMsg(buf, 0, part.text, part.id)
         }
         else
-          d('OC text outside step: ' + part.text)
+          d('CO text outside step: ' + part.text)
       }
       else if (part.type == 'reasoning') {
         let buffered
 
-        //d('OC reasoning part ' + part.id)
+        //d('CO reasoning part ' + part.id)
 
         buffered = (event.properties.delta || '')
         if (buffered) {
-          d('OC reasoning append: ' + buffered)
+          d('CO reasoning append: ' + buffered)
           appendThinking(buf, buffered)
         }
       }
       else if (part.type == 'tool') {
-        d('OC tool: ' + part.tool)
+        d('CO tool: ' + part.tool)
         if (part.tool == 'read' && part.state?.status == 'running') {
           let path
 
           path = part.state.input.filePath
           if (path) {
-            d('OC read file: ' + path)
+            d('CO read file: ' + path)
             appendToolMsg(buf, part.callID, 'read', path)
           }
         }
@@ -552,7 +552,7 @@ function init
 
           path = part.state.input.filePath
           if (path) {
-            d('OC read file completed: ' + path)
+            d('CO read file completed: ' + path)
             appendToolMsg(buf, part.callID, 'read', path + ' (done)')
           }
         }
@@ -561,7 +561,7 @@ function init
 
           pattern = part.state.input.pattern
           if (pattern) {
-            d('OC glob: ' + pattern)
+            d('CO glob: ' + pattern)
             appendToolMsg(buf, part.callID, 'glob', '"' + pattern)
           }
         }
@@ -570,7 +570,7 @@ function init
 
           count = part.state.metadata?.count
           if (1) {
-            d('OC glob completed with ' + count + ' matches')
+            d('CO glob completed with ' + count + ' matches')
             appendToolMsg(buf,
                           part.callID,
                           'glob-done',
@@ -584,7 +584,7 @@ function init
           pattern = part.state.input.pattern
           path = part.state.input.path
           if (pattern) {
-            d('OC grep: ' + pattern + ' in ' + path)
+            d('CO grep: ' + pattern + ' in ' + path)
             appendToolMsg(buf, part.callID, 'grep', '"' + pattern + '" in ' + (path || '.'))
           }
         }
@@ -594,7 +594,7 @@ function init
           matches = part.state.metadata?.matches
           path = part.state.input.path
           if (matches) {
-            d('OC grep completed with ' + matches + ' matches')
+            d('CO grep completed with ' + matches + ' matches')
             appendToolMsg(buf,
                           part.callID,
                           'grep-done',
@@ -607,7 +607,7 @@ function init
 
           command = part.state.input.command
           if (command) {
-            d('OC bash: ' + command)
+            d('CO bash: ' + command)
             appendToolMsg(buf, part.callID, 'bash-running', command)
           }
         }
@@ -617,7 +617,7 @@ function init
           command = part.state.input.command
           exitCode = part.state.metadata?.exit
           if (command) {
-            d('OC bash completed: ' + command + ' (exit ' + exitCode + ')')
+            d('CO bash completed: ' + command + ' (exit ' + exitCode + ')')
             appendToolMsg(buf, part.callID, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
           }
         }
@@ -626,7 +626,7 @@ function init
 
           path = part.state.input.filePath
           if (path) {
-            d('OC write file: ' + path)
+            d('CO write file: ' + path)
             appendToolMsg(buf, part.callID, 'write', path,
                           part.state?.input?.content) // under
           }
@@ -636,7 +636,7 @@ function init
 
           path = part.state.input.filePath
           if (path) {
-            d('OC write file: ' + path)
+            d('CO write file: ' + path)
             appendToolMsg(buf, part.callID, 'write', path + ' (done)',
                           part.state?.input?.content) // under
           }
@@ -646,7 +646,7 @@ function init
 
           path = part.state.input.filePath
           if (path) {
-            d('OC edit file: ' + path)
+            d('CO edit file: ' + path)
             appendToolMsg(buf, part.callID, 'edit', path,
                           // under
                           '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString)
@@ -659,7 +659,7 @@ function init
           if (path) {
             let under
 
-            d('OC edit completed: ' + path)
+            d('CO edit completed: ' + path)
             under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
             under = buf.vars('code').patch || under
             appendToolMsg(buf, part.callID, 'edit', path + ' (done)',
@@ -671,7 +671,7 @@ function init
 
           query = part.state.input.query
           if (query) {
-            d('OC websearch: ' + query)
+            d('CO websearch: ' + query)
             appendToolMsg(buf, part.callID, 'websearch', 'Web search: ' + query)
           }
         }
@@ -681,7 +681,7 @@ function init
           query = part.state.input.query
           results = part.state.metadata?.results
           if (query) {
-            d('OC websearch completed with ' + results + ' results')
+            d('CO websearch completed with ' + results + ' results')
             appendToolMsg(buf,
                           part.callID,
                           'websearch',
@@ -694,7 +694,7 @@ function init
 
           query = part.state.input.query
           if (query) {
-            d('OC websearch error')
+            d('CO websearch error')
             appendToolMsg(buf,
                           part.callID,
                           'websearch',
@@ -707,7 +707,7 @@ function init
 
           url = part.state.input.url
           if (url) {
-            d('OC webfetch: ' + url)
+            d('CO webfetch: ' + url)
             appendToolMsg(buf, part.callID, 'webfetch', 'Fetch ' + url)
           }
         }
@@ -717,7 +717,7 @@ function init
           url = part.state.input.url
           size = part.state.output?.length
           if (url) {
-            d('OC webfetch completed, size: ' + size)
+            d('CO webfetch completed, size: ' + size)
             appendToolMsg(buf,
                           part.callID,
                           'webfetch',
@@ -729,7 +729,7 @@ function init
 
           url = part.state.input.url
           if (url) {
-            d('OC webfetch error')
+            d('CO webfetch error')
             appendToolMsg(buf,
                           part.callID,
                           'webfetch',
@@ -757,9 +757,9 @@ function init
     ensureClient(buf).then(async c => {
       let events
 
-      d('OC starting event subscription')
+      d('CO starting event subscription')
       events = await c.event.subscribe({}, { signal: abortController.signal })
-      d('OC stream obtained')
+      d('CO stream obtained')
       ;(async () => {
         try {
           for await (let event of events.stream)
@@ -768,7 +768,7 @@ function init
         catch (err) {
           if (err.name == 'AbortError')
             return
-          d('OC event stream error: ' + err.message)
+          d('CO event stream error: ' + err.message)
           d(err.stack)
         }
       })()
@@ -800,7 +800,7 @@ function init
     startEventSub(buf)
 
     try {
-      d('OC SEND')
+      d('CO SEND')
 
       res = await c.session.prompt({
         sessionID,
@@ -808,7 +808,7 @@ function init
         parts: [ { type: 'text', text } ]
       })
 
-      d('OC SEND done')
+      d('CO SEND done')
       d({ res })
 
       appendModel(buf, res.data.info.modelID || '???')
@@ -885,7 +885,7 @@ function init
 
     pane = Pane.current()
     dir = pane.dir
-    name = 'OC ' + dir
+    name = 'CO ' + dir
     {
       let buf
 

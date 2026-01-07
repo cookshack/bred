@@ -53,9 +53,20 @@ function init
       underW.before(el)
     else
       append(w, el)
+    autoScroll(w)
   }
 
-  function appendPatchEd
+  function autoScroll
+  (w) {
+    let paneW
+
+    paneW = w.parentElement?.parentElement
+    if (paneW)
+      if (paneW.scrollTop + paneW.clientHeight >= paneW.scrollHeight - 10)
+        paneW.scrollTop = paneW.scrollHeight
+  }
+
+  function makePatchEd
   (text) {
     let el, state, ed
 
@@ -80,7 +91,6 @@ function init
                 divCl('opencode-msg opencode-msg-assistant',
                       [ divCl('opencode-msg-role', model),
                         divCl('opencode-msg-text opencode-msg-hidden') ]))
-        w.scrollTop = w.scrollHeight
       }
     })
   }
@@ -100,7 +110,7 @@ function init
           el = w.querySelector('.opencode-msg-assistant[data-partid="' + partID + '"]')
           if (el) {
             el.firstElementChild.nextElementSibling.innerText = text
-            w.scrollTop = w.scrollHeight
+            autoScroll(w)
             return
           }
         }
@@ -111,7 +121,6 @@ function init
                         divCl('opencode-msg-text' + (text ? '' : ' opencode-msg-hidden'),
                               text) ],
                       { 'data-partid': partID }))
-        w.scrollTop = w.scrollHeight
       }
     })
   }
@@ -158,7 +167,6 @@ function init
                   divCl('opencode-msg opencode-msg-thinking',
                         [ divCl('opencode-msg-role', 'Thinking...'),
                           divCl('opencode-msg-text', text) ]))
-        w.scrollTop = w.scrollHeight
       }
     })
   }
@@ -202,7 +210,7 @@ function init
         if (under && (tool == 'edit')) {
           let patchResult
 
-          patchResult = appendPatchEd(under)
+          patchResult = makePatchEd(under)
           underEl = patchResult.el
           view.vars('opencode').eds = view.vars('opencode').eds || []
           view.vars('opencode').eds.push(patchResult.ed)
@@ -214,7 +222,6 @@ function init
                       [ divCl('opencode-msg-text', label),
                         underEl ],
                       { 'data-callid': callID }))
-        w.scrollTop = w.scrollHeight
       }
     })
   }
@@ -233,7 +240,6 @@ function init
                                 button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
                                 button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }) ]) ],
                       { 'data-permissionid': id }))
-        w.scrollTop = w.scrollHeight
       }
     })
   }

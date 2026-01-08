@@ -19,6 +19,9 @@ improvements for me, as apposed to making is accessible to others.
 - **Event structure** - `event.properties.part`, not `event.data.properties.part`
 - **Permission prompts** - Use `Prompt.yn()` for yes/no, not `Prompt.ask()` with options
 - **Files must end in newlines** - Always end files with a trailing newline
+- **Booleans use 1/0** - Use `1` and `0` instead of `true` and `false`
+- **No explicit 0 for falsy** - Don't set variables to `0` when they are implicitly false/undefined
+- **No curly braces for single statements** - Omit `{}` for single-statement if/for/else bodies
 - **Code style** - Follow `@cookshack/eslint-config` (please read `node_modules/@cookshack/eslint-config/index.js`):
   - No semicolons, single quotes
   - No linebreaks in arrays/function calls: `fn([ { a: 1 }, { b: 2 } ])`

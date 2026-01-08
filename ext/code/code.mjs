@@ -537,6 +537,8 @@ function init
         d('CO step-finish')
         buf.vars('code').stepActive = 0
       }
+      else if (buf.vars('code').agentStopped)
+        d('CO agent stopped, skipping: ' + part.type)
       else if (part.type == 'text') {
         d('CO text part' + part.id)
         if (buf.vars('code').stepActive) {
@@ -816,6 +818,8 @@ function init
     sessionID = buf.vars('code').sessionID
     c = await ensureClient(buf)
 
+    buf.vars('code').agentStopped = 0
+
     appendMsg(buf, 'user', text)
 
     startEventSub(buf)
@@ -842,6 +846,7 @@ function init
 
   function stopAgent
   (buf, sessionID) {
+    buf.vars('code').agentStopped = 1
     ensureClient(buf).then(async client => {
       try {
         await client.session.abort({ sessionID, directory: buf.dir })

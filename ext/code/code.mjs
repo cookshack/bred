@@ -848,18 +848,22 @@ function init
     buf = p.buf
     sessionID = buf.vars('code')?.sessionID
     if (sessionID) {
+      Mess.yell('Stopping agent...')
       d('CO stop session: ' + sessionID)
 
       ensureClient(buf).then(async client => {
         try {
-          await client.session.abort({ path: { sessionID } })
+          await client.session.abort({ sessionID, directory: buf.dir })
           d('CO stop done')
+          Mess.yell('Stopped agent')
         }
         catch (err) {
           d('CO stop error: ' + err.message)
         }
       })
     }
+    else
+      Mess.yell('missing sessionID')
   }
 
   function next

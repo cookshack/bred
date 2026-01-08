@@ -687,6 +687,21 @@ function init
                           under)
           }
         }
+        else if (part.tool == 'edit' && part.state?.status == 'error') {
+          let path
+
+          path = part.state.input.filePath
+          if (path) {
+            let under
+
+            d('CO edit error: ' + path)
+            under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
+            under = buf.vars('code').patch || under
+            appendToolMsg(buf, part.callID, 'edit', path + ' (error)',
+                          under)
+            appendMsg(buf, 0, part.state?.error, part.id)
+          }
+        }
         else if (part.tool == 'websearch' && part.state?.status == 'running') {
           let query
 

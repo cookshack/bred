@@ -179,7 +179,7 @@ function init
                         (role == 'user')
                           ? divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
                           : makeMarkdownEd(text || '').el ],
-                      { 'data-partid': partID }))
+                      { 'data-partid': partID || 0 }))
         if (role == 'user') {
           let underW
 
@@ -380,8 +380,14 @@ function init
 
     if (req.status?.type == 'busy')
       update('BUSY', tokenInfo)
-    else if (req.status?.type == 'idle')
+    else if (req.status?.type == 'idle') {
       update('IDLE', tokenInfo)
+      if (buf.vars('code').agentStopped) {
+        buf.vars('code').agentStopped = 0
+        appendMsg(buf, 0, '...stopped')
+        buf.vars('code').stepActive = 0
+      }
+    }
     else if (req.status?.type == 'retry')
       update('BUSY retry' + (req.status.message ? ': ' + req.status.message : ''), tokenInfo)
     else if (req.status?.type)

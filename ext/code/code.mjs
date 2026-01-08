@@ -562,7 +562,7 @@ function init
           path = part.state.input.filePath
           if (path) {
             d('CO read file completed: ' + path)
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' (done)'))
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' ✔️'))
           }
         }
         else if (part.tool == 'glob' && part.state?.status == 'running') {
@@ -643,7 +643,7 @@ function init
           path = part.state.input.filePath
           if (path) {
             d('CO write file: ' + path)
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' (done)'), part.state?.input?.content)
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️'), part.state?.input?.content)
           }
         }
         else if (part.tool == 'edit' && part.state?.status == 'running') {
@@ -666,7 +666,7 @@ function init
             d('CO edit completed: ' + path)
             under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
             under = buf.vars('code').patch || under
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' (done)'), under)
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️'), under)
           }
         }
         else if (part.tool == 'edit' && part.state?.status == 'error') {
@@ -679,7 +679,7 @@ function init
             d('CO edit error: ' + path)
             under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
             under = buf.vars('code').patch || under
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' (error)'), under)
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✘'), under)
             appendMsg(buf, 0, part.state?.error, part.id)
           }
         }

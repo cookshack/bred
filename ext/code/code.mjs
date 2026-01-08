@@ -25,7 +25,7 @@ import * as OpenCode from './lib/opencode.js'
 export
 function init
 () {
-  let hist, mo
+  let hist, mo, stopTimeout
 
   async function ensureClient
   (buf) {
@@ -840,28 +840,53 @@ function init
     }
   }
 
+  function stopAgent
+  (buf, sessionID) {
+    ensureClient(buf).then(async client => {
+      try {
+        await client.session.abort({ sessionID, directory: buf.dir })
+        d('CO stop done')
+        Mess.yell('Stopped agent')
+      }
+      catch (err) {
+        d('CO stop error: ' + err.message)
+      }
+    })
+  }
+
   function stop
   () {
-    let p, buf, sessionID
+    let p, sessionID
 
     p = Pane.current()
-    buf = p.buf
-    sessionID = buf.vars('code')?.sessionID
-    if (sessionID) {
-      Mess.yell('Stopping agent...')
-      d('CO stop session: ' + sessionID)
+    sessionID = p.buf.vars('code')?.sessionID
 
-      ensureClient(buf).then(async client => {
-        try {
-          await client.session.abort({ sessionID, directory: buf.dir })
-          d('CO stop done')
-          Mess.yell('Stopped agent')
-        }
-        catch (err) {
-          d('CO stop error: ' + err.message)
-        }
-      })
-    }
+    if (sessionID)
+      stopAgent(p.buf, sessionID)
+    else
+      Mess.yell('missing sessionID')
+  }
+
+  function stopWithCaution
+  () {
+    let p, sessionID
+
+    p = Pane.current()
+    sessionID = p.buf.vars('code')?.sessionID
+
+    if (sessionID)
+      if (stopTimeout) {
+        clearTimeout(stopTimeout)
+        stopTimeout = 0
+        stopAgent(p.buf, sessionID)
+      }
+      else {
+        Mess.yell('Again to stop agent')
+        stopTimeout = setTimeout(() => {
+          stopTimeout = 0
+          Mess.yell('stop timed out')
+        }, 5000)
+      }
     else
       Mess.yell('missing sessionID')
   }
@@ -977,7 +1002,8 @@ function init
 
   Cmd.add('respond', () => next(), mo)
 
-  Cmd.add('stop', () => stop(), mo)
+  Cmd.add('stop', stop, mo)
+  Cmd.add('stop with caution', stopWithCaution, mo)
 
   Cmd.add('yes', () => yn(1), mo)
   Cmd.add('no', () => yn(), mo)
@@ -990,6 +1016,7 @@ function init
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
+  Em.on('s', 'stop with caution', mo)
 
   Cmd.add('code buffer', () => {
     code(Pane.current().buf.text())

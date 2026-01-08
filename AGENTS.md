@@ -1,9 +1,15 @@
 # Code Extension
 
-We're improving the Bred editor.
+You and I are improving the Bred editor.
 
 See Specification.md for a general overview.
 See Files.md for an overview of the source files.
+
+## Context
+
+Bred is my personal project that I use for daily work. It's highly likely that I
+will be the only one who ever uses and/or develops it. So the focus must be on
+improvements for me, as apposed to making is accessible to others.
 
 ## Conventions
 
@@ -13,7 +19,7 @@ See Files.md for an overview of the source files.
 - **Event structure** - `event.properties.part`, not `event.data.properties.part`
 - **Permission prompts** - Use `Prompt.yn()` for yes/no, not `Prompt.ask()` with options
 - **Files must end in newlines** - Always end files with a trailing newline
-- **Code style** - Follow `@cookshack/eslint-config` (see `node_modules/@cookshack/eslint-config/index.js`):
+- **Code style** - Follow `@cookshack/eslint-config` (please read `node_modules/@cookshack/eslint-config/index.js`):
   - No semicolons, single quotes
   - No linebreaks in arrays/function calls: `fn([ { a: 1 }, { b: 2 } ])`
   - Space after `[` and before `]`, space around `{` in objects

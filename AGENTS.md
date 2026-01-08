@@ -1,6 +1,9 @@
 # Code Extension
 
-We're busy building an OpenCode UI inside the Bred editor.
+We're improving the Bred editor.
+
+See Specification.md for a general overview.
+See Files.md for an overview of the source files.
 
 ## Conventions
 
@@ -8,11 +11,7 @@ We're busy building an OpenCode UI inside the Bred editor.
 - **String formatting** - Use `'xxx' + var`, not template literals `` `xxx${var}` ``
 - **Variable naming** - No capitals: `textBuffer`, not `TextBuffer`
 - **Event structure** - `event.properties.part`, not `event.data.properties.part`
-- **Session matching** - Match events by `sessionID` from `buf.vars('code`
 - **Permission prompts** - Use `Prompt.yn()` for yes/no, not `Prompt.ask()` with options
-- **SDK method** - `c.postSessionIdPermissionsPermissionId()` on the client
-- **Read TUI code** - When uncertain about API usage, check `opencode-src/packages/opencode/src/cli/cmd/tui/` for reference patterns
-- **OpenCode src path** - Use `opencode-src/` instead of full path (it's a symlink to the actual source)
 - **Files must end in newlines** - Always end files with a trailing newline
 - **Code style** - Follow `@cookshack/eslint-config` (see `node_modules/@cookshack/eslint-config/index.js`):
   - No semicolons, single quotes
@@ -21,14 +20,36 @@ We're busy building an OpenCode UI inside the Bred editor.
   - `let` with blank line before following `let`
   - Stroustrup brace style
 
-## Files
+## Debugging
+
+Use `d()` to log debug output:
+
+```javascript
+import { d } from '../../js/mess.mjs'
+
+d('some message')
+d({ object }) // NB this takes a single arg only
+```
+
+Check the dev console (Ctrl+Shift+I) to see logs.
+
+## ext/code: Opencode UI
+
+### Conventions
+
+- **Session matching** - Match events by `sessionID` from `buf.vars('code`
+- **SDK method** - `c.postSessionIdPermissionsPermissionId()` on the client
+- **Read TUI code** - When uncertain about API usage, check `opencode-src/packages/opencode/src/cli/cmd/tui/` for reference patterns
+- **OpenCode src path** - Use `opencode-src/` instead of full path (it's a symlink to the actual source)
+
+### Files
 
 - `ext/code/code.mjs` - Main extension code
 - `ext/code/code.css` - Styles
 - `ext/code/lib/opencode.js` - SDK wrapper
 - `ext/code/lib/gen/` - Generated SDK (v1.1.1)
 
-## SDK Usage
+### SDK Usage
 
 The OpenCode SDK provides a client that connects to the local server at `http://127.0.0.1:4096`.
 
@@ -38,7 +59,7 @@ import * as OpenCode from './lib/opencode.js'
 client = OpenCode.createOpencodeClient({ baseUrl: 'http://127.0.0.1:4096' })
 ```
 
-### Key SDK Methods
+#### Key SDK Methods
 
 - `client.session.create({ body: { title } })` - Create a new session
 - `client.session.prompt({ path: { id }, body: { parts, model } })` - Send a prompt
@@ -46,7 +67,7 @@ client = OpenCode.createOpencodeClient({ baseUrl: 'http://127.0.0.1:4096' })
 - `client.config.providers({})` - List available providers and models
 - `client.postSessionIdPermissionsPermissionId({ path: { id, permissionID }, body: { response } })` - Respond to permission requests
 
-### Event Stream
+#### Event Stream
 
 ```javascript
 const { stream } = await client.event.subscribe({})
@@ -56,9 +77,9 @@ for await (const event of stream) {
 }
 ```
 
-## Event Types
+### Event Types
 
-### message.part.updated
+#### message.part.updated
 
 Tool, text, and reasoning parts arrive through this event.
 
@@ -71,7 +92,7 @@ if (event.type == 'message.part.updated') {
 }
 ```
 
-### permission.updated
+#### permission.updated
 
 Permission requests for tools like `bash`:
 
@@ -85,9 +106,9 @@ if (event.type == 'permission.updated') {
 }
 ```
 
-## Tool Events
+### Tool Events
 
-### read
+#### read
 
 Shows `➔ Read file {path}` when running.
 
@@ -97,7 +118,7 @@ if (part.tool == 'read' && part.state?.status == 'running') {
 }
 ```
 
-### grep
+#### grep
 
 Shows `➔ Grep "{pattern}" in {path}` when running.
 Shows `➔ Grep "{pattern}" in {path} ({N} matches)` when done.
@@ -112,7 +133,7 @@ if (part.tool == 'grep' && part.state?.status == 'completed') {
 }
 ```
 
-### bash
+#### bash
 
 Shows `➔ bash: {command}` when running.
 Shows `➔ bash: $ {command} (exit {code})` with output underneath when done.
@@ -129,7 +150,7 @@ if (part.tool == 'bash' && part.state?.status == 'completed') {
 }
 ```
 
-## Permission Handling
+### Permission Handling
 
 For bash commands, show a Y/N prompt and respond:
 
@@ -144,7 +165,7 @@ Prompt.yn('Run "' + (description || command) + '"?', {}, async yes => {
 
 Response options: `'once'` | `'always'` | `'reject'`
 
-## Thinking Content
+### Thinking Content
 
 Thinking arrives as `reasoning` parts. Text parts arrive first, buffered by `part.messageID`. When the reasoning event arrives, display the buffered text as thinking.
 
@@ -165,7 +186,7 @@ if (part.type == 'reasoning') {
 }
 ```
 
-## Model Selection
+### Model Selection
 
 Set the model in the prompt body:
 
@@ -179,25 +200,12 @@ res = await client.session.prompt({
 })
 ```
 
-## Commands
+### Commands
 
 - `code` - Start a new coding chat
 - `code chat` (in code mode) - Continue the chat
 
-## Debugging
-
-Use `d()` to log debug output:
-
-```javascript
-import { d } from '../../js/mess.mjs'
-
-d('some message')
-d({ object }) // NB this takes a single arg only
-```
-
-Check the dev console (Ctrl+Shift+I) to see logs.
-
-## Known Issues
+### Known Issues
 
 - Event stream must be started before sending prompts
 - Each buffer needs its own event subscription handling

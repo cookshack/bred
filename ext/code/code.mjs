@@ -840,6 +840,28 @@ function init
     }
   }
 
+  function stop
+  () {
+    let p, buf, sessionID
+
+    p = Pane.current()
+    buf = p.buf
+    sessionID = buf.vars('code')?.sessionID
+    if (sessionID) {
+      d('CO stop session: ' + sessionID)
+
+      ensureClient(buf).then(async client => {
+        try {
+          await client.session.abort({ path: { sessionID } })
+          d('CO stop done')
+        }
+        catch (err) {
+          d('CO stop error: ' + err.message)
+        }
+      })
+    }
+  }
+
   function next
   () {
     let p, buf
@@ -889,6 +911,7 @@ function init
         buf.vars('code').prompt = prompt
         buf.vars('code').provider = provider
         buf.vars('code').model = model
+        buf.opt('core.lint.enabled', 1)
 
         c = await ensureClient(buf)
         res = await c.session.create({ title: prompt })
@@ -922,7 +945,7 @@ function init
     if (given)
       run(given)
     else
-      Prompt.ask({ text: provider + '/' + model,
+      Prompt.ask({ text: '🧩 ' + provider + '/' + model,
                    hist },
                  prompt => run(prompt))
   }
@@ -949,6 +972,8 @@ function init
   Cmd.add('code', () => code())
 
   Cmd.add('respond', () => next(), mo)
+
+  Cmd.add('stop', () => stop(), mo)
 
   Cmd.add('yes', () => yn(1), mo)
   Cmd.add('no', () => yn(), mo)

@@ -273,10 +273,10 @@ function make
     let b
 
     b = v.buf
-    if (b.mode?.vinsertAll)
-      b.mode.vinsertAll(v, 1, str)
+    if (b.mode?.vinsert)
+      b.mode.vinsert(v, 1, str)
     else
-      Mess.toss('buf.add: vinsertAll missing')
+      Mess.toss('view.make: vinsertAll missing')
   }
 
   function lang

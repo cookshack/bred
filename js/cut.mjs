@@ -112,20 +112,17 @@ function init
   Cmd.add('refresh', () => viewInitSpec(Pane.current().view), mo)
 
   Cmd.add('cuts', () => {
-    let p, buf, sourceBuf
+    let p, buf
 
     buf = shared().buf
     p = Pane.current()
-    sourceBuf = p.buf
     if (buf)
       p.setBuf(buf, {}, view => {
-        shared().sourceBuf = sourceBuf
         viewInitSpec(view)
       })
     else {
       buf = Buf.add('Cuts', 'Cuts', divW(), p.dir)
       shared().buf = buf
-      shared().sourceBuf = sourceBuf
       buf.icon = 'clipboard'
       buf.addMode('view')
       p.setBuf(buf)
@@ -133,15 +130,24 @@ function init
   })
 
   Cmd.add('insert cut', (u, we) => {
-    let cut, sourceBuf
+    let cut
 
-    cut = we?.e.target.dataset.cut
+    if (we?.e && (we.e.button == 0))
+      cut = we.e.target.dataset.cut
+    else {
+      let p, el
+
+      p = Pane.current()
+      el = p.view.point.over()
+      if (el)
+        cut = el.dataset.cut
+    }
     if (cut) {
-      sourceBuf = shared().sourceBuf
-      if (sourceBuf)
-        sourceBuf.insert(cut, sourceBuf.bep)
-      else
-        Mess.yell('Missing buffer to insert into')
+      let p
+
+      Cmd.run('bury')
+      p = Pane.current()
+      p.view.insert(cut, p.view.bep)
     }
     else
       Mess.yell('Missing cut')

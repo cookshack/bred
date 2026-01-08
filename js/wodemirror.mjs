@@ -2028,7 +2028,6 @@ function initModeFns
   mo.syntaxTreeStr = syntaxTreeStr
   mo.text = text
   mo.viewReopen = viewReopen
-  mo.vinsertAll = vinsert1
 }
 
 function edexec
@@ -2257,6 +2256,7 @@ function selReverse
                                          head: anchor } })
 }
 
+export
 function addMarkAt
 (view, bep) {
   view.marks.push(bep)
@@ -2971,6 +2971,12 @@ function vinsert1
 
   bep = vgetBep(view)
   vinsertAt(view, bep, u, text, 1)
+}
+
+export
+function vinsertAll
+(view, u, text) {
+  vinsert1(view, u, text)
 }
 
 export

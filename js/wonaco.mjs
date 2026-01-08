@@ -822,7 +822,6 @@ function initModeFns
   mo.setBep = vsetBep
   mo.text = text
   mo.viewReopen = viewReopen
-  mo.vinsertAll = vinsertAll
 }
 
 function edexec
@@ -958,6 +957,7 @@ function nextLine(v, u) {
   utimes(u, () => vexec(v, 'cursorDown', 'cursorDownSelect'))
 }
 
+export
 function addMarkAt
 (view, off) {
   view.marks.push(off)
@@ -1469,6 +1469,7 @@ function vinsertAt
   })
 }
 
+export
 function vinsertAll
 (view, u, text) {
   let pos

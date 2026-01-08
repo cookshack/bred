@@ -864,6 +864,16 @@ function initCTags
   addCTags(file)
 }
 
+function vinsert
+(view, u, str) {
+  let bep
+
+  bep = view.bep
+  Backend.vinsertAt(view, bep, u, str)
+  // have to do this after otherwise the insert moves the mark
+  Backend.addMarkAt && Backend.addMarkAt(view, bep)
+}
+
 export
 function initModeFns
 (mo) {
@@ -905,9 +915,12 @@ function initModeFns
     let view
 
     view = b.anyView()
-    if (view?.ed)
+    if (view?.ed) {
       //d(b.name + ": insert: " + str)
       Backend.vinsertAt(view, bep, 1, str)
+      // have to do this after otherwise the insert moves the mark
+      Backend.addMarkAt && Backend.addMarkAt(view, bep)
+    }
   }
 
   mo.append = append
@@ -917,6 +930,7 @@ function initModeFns
   mo.bufStart = Backend.vbufStart
   mo.ensurePointVisible = Backend.ensurePointVisible
   mo.insert = insert
+  mo.vinsert = vinsert
   mo.forward = Backend.vforward
   mo.len = Backend.vlen
   mo.offset = v => Backend.bepToOff(v, Backend.vgetBep(v))

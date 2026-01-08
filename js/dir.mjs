@@ -365,7 +365,6 @@ function nextLine
 
 function nearestLine
 (v) {
-
   let h, el
 
   h = v.ele.querySelector('.dir-h')

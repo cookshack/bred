@@ -588,7 +588,6 @@ function initModeFns
   mo.nextLine = nextLine
   mo.text = text
   mo.viewReopen = viewReopen
-  mo.vinsertAll = vinsertAll
 }
 
 function edexec
@@ -1128,6 +1127,7 @@ function vinsertAt
   })
 }
 
+export
 function vinsertAll
 (view, u, text) {
   let bep

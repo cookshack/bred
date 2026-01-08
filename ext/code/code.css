@@ -154,6 +154,8 @@
   margin-top: 4px;
   border-radius: 4px;
   overflow: hidden;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .code-patch-ed .cm-editor {
@@ -171,6 +173,8 @@
   border-radius: 4px;
   overflow: hidden;
   background: var(--clr-fill);
+  width: fit-content;
+  max-width: 100%;
 }
 
 .code-markdown-ed .cm-editor {

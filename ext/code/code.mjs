@@ -803,7 +803,7 @@ function init
                          [ divCl('code-icon',
                                  img(Icon.path('assist'), 'Code', 'filter-clr-text')),
                            divCl('code-title', dir) ]),
-                   divCl('code-w',
+                   divCl('code-w bred-scroller',
                          divCl('code-under-w',
                                [ divCl('code-under code-under-status', '...'),
                                  divCl('code-under code-under-tokens', '') ])) ])

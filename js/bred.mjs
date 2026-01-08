@@ -631,21 +631,23 @@ function initCmds
   })
 
   Cmd.add('scroll up', () => {
-    let ele
+    let el
 
-    ele = Pane.current().ele.parentNode
-    ele.scrollTo({ top: ele.scrollTop - (ele.clientHeight * 0.9),
-                   left: 0,
-                   behavior: 'auto' })
+    el = Pane.current().ele
+    el = el.querySelector('.bred-scroller') || el.parentNode
+    el.scrollTo({ top: el.scrollTop - (el.clientHeight * 0.9),
+                  left: 0,
+                  behavior: 'auto' })
   })
 
   Cmd.add('scroll down', () => {
-    let ele
+    let el
 
-    ele = Pane.current().ele.parentNode
-    ele.scrollTo({ top: ele.scrollTop + (ele.clientHeight * 0.9),
-                   left: 0,
-                   behavior: 'auto' })
+    el = Pane.current().ele
+    el = el.querySelector('.bred-scroller') || el.parentNode
+    el.scrollTo({ top: el.scrollTop + (el.clientHeight * 0.9),
+                  left: 0,
+                  behavior: 'auto' })
   })
 
   function incrFont

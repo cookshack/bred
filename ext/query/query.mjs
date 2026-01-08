@@ -2431,7 +2431,7 @@ User →
   premoAgent = '#### ' + emoAgent
   hist = Hist.ensure('llm')
 
-  Opt.declare('query.model.agent', 'str', 'minimax/minimax-m2')
+  Opt.declare('query.model.agent', 'str', 'minimax/minimax-m2.1')
   Opt.declare('query.model.chat', 'str', 'deepseek/deepseek-v3.2')
   Opt.declare('query.model.local', 'str', 'mistral')
 

@@ -988,6 +988,24 @@ function init
       cb(view)
   }
 
+  function bufEnd
+  (v) {
+    let w
+
+    w = v.ele.querySelector('.code-w')
+    if (w)
+      w.scrollTop = w.scrollHeight
+  }
+
+  function bufStart
+  (v) {
+    let w
+
+    w = v.ele.querySelector('.code-w')
+    if (w)
+      w.scrollTop = 0
+  }
+
   hist = Hist.ensure('code')
   Opt.declare('code.model.agent', 'str', 'minimax-m2.1-free')
   Opt.declare('code.provider.agent', 'str', 'opencode')
@@ -1000,6 +1018,9 @@ function init
                     })
                     Tron.acmd('code.close', [ buf.id ])
                   } })
+
+  mo.bufEnd = bufEnd
+  mo.bufStart = bufStart
 
   Cmd.add('code', () => code())
 

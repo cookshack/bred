@@ -238,7 +238,9 @@ function init
   function fileLabel
   (buf, tool, path, status) {
     return [ '➔ ' + tool + ' file ',
-             span(makeRelative(buf, path), '', { 'data-run': 'open link', 'data-path': path }),
+             divCl('code-file',
+                   makeRelative(buf, path),
+                   { 'data-run': 'open link', 'data-path': path }),
              status || '' ]
   }
 

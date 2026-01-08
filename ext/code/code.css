@@ -181,3 +181,9 @@
   height: auto;
   overflow: auto;
 }
+
+.code-file {
+  display: inline;
+  font-family: var(--font-monospace);
+  font-style: normal;
+}

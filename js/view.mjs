@@ -19,7 +19,7 @@ function make
         lineNum,
         whenReady } // called when file loaded (FIX also ready1)
     = spec
-  let v, active, ready, point, modeVars, onCloses
+  let v, active, ready, point, modeVars, onCloses, scrollTop
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
   let reserved, win, existing
@@ -53,6 +53,11 @@ function make
     ready = 0
     active = 0
     if (ele) {
+      let scrollEl
+
+      scrollEl = ele.querySelector('.bred-scroller')
+      if (scrollEl)
+        scrollTop = scrollEl.scrollTop
       reserved = [ ...ele.children ]
       reserved.forEach(e => e.remove())
       //ele.innerHTML = ''
@@ -72,6 +77,13 @@ function make
     append(ele, reserved)
     reserved = 0
     prep()
+    if (scrollTop) {
+      let scrollEl
+
+      scrollEl = ele.querySelector('.bred-scroller')
+      if (scrollEl)
+        scrollEl.scrollTop = scrollTop
+    }
     if (mode && mode.viewReopen)
       mode.viewReopen(v, lineNum, whenReady, cb)
     else

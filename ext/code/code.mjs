@@ -235,35 +235,15 @@ function init
     return path
   }
 
+  function fileLabel
+  (buf, tool, path, status) {
+    return [ '➔ ' + tool + ' file ',
+             span(makeRelative(buf, path), '', { 'data-run': 'open link', 'data-path': path }),
+             status || '' ]
+  }
+
   function appendToolMsg
-  (buf, callID, tool, info, under) {
-    let label
-
-    if (tool == 'read')
-      label = '➔ Read file ' + makeRelative(buf, info)
-    else if (tool == 'write')
-      label = '➔ Write file ' + makeRelative(buf, info)
-    else if (tool == 'edit')
-      label = '➔ Edit file ' + makeRelative(buf, info)
-    else if (tool == 'grep')
-      label = '➔ Grep ' + info
-    else if (tool == 'grep-done')
-      label = '➔ Grep ' + info
-    else if (tool == 'glob')
-      label = '➔ Glob ' + info
-    else if (tool == 'glob-done')
-      label = '➔ Glob ' + info
-    else if (tool == 'bash-running')
-      label = '➔ bash: ' + info
-    else if (tool == 'bash-done')
-      label = '➔ bash: ' + info
-    else if (tool == 'websearch')
-      label = '➔ ' + info
-    else if (tool == 'webfetch')
-      label = '➔ ' + info
-    else
-      label = 'Tool call: ' + tool + (info ? (' ' + info) : '')
-
+  (buf, callID, label, under, tool) {
     buf.views.forEach(view => {
       if (view.ele) {
         let w, els, underEl
@@ -459,8 +439,7 @@ function init
         if (path) {
           d('CO permission file: ' + path)
           buf.vars('code').patch = req.metadata?.diff
-          appendToolMsg(buf, (req.callID || req.tool.callID), 'edit', path,
-                        req.metadata?.diff) // under
+          appendToolMsg(buf, (req.callID || req.tool.callID), fileLabel(buf, 'Edit', path), req.metadata?.diff, 'edit')
         }
       }
     }
@@ -572,7 +551,7 @@ function init
           path = part.state.input.filePath
           if (path) {
             d('CO read file: ' + path)
-            appendToolMsg(buf, part.callID, 'read', path)
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path))
           }
         }
         else if (part.tool == 'read' && part.state?.status == 'completed') {
@@ -581,7 +560,7 @@ function init
           path = part.state.input.filePath
           if (path) {
             d('CO read file completed: ' + path)
-            appendToolMsg(buf, part.callID, 'read', path + ' (done)')
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' (done)'))
           }
         }
         else if (part.tool == 'glob' && part.state?.status == 'running') {
@@ -590,7 +569,7 @@ function init
           pattern = part.state.input.pattern
           if (pattern) {
             d('CO glob: ' + pattern)
-            appendToolMsg(buf, part.callID, 'glob', '"' + pattern)
+            appendToolMsg(buf, part.callID, '➔ Glob "' + pattern)
           }
         }
         else if (part.tool == 'glob' && part.state?.status == 'completed') {
@@ -601,9 +580,8 @@ function init
             d('CO glob completed with ' + count + ' matches')
             appendToolMsg(buf,
                           part.callID,
-                          'glob-done',
-                          '"' + part.state.input.pattern + ' (' + count + ' matches)',
-                          part.state.output) // under
+                          '➔ Glob "' + part.state.input.pattern + ' (' + count + ' matches)',
+                          part.state.output)
           }
         }
         else if (part.tool == 'grep' && part.state?.status == 'running') {
@@ -613,7 +591,7 @@ function init
           path = part.state.input.path
           if (pattern) {
             d('CO grep: ' + pattern + ' in ' + path)
-            appendToolMsg(buf, part.callID, 'grep', '"' + pattern + '" in ' + (path || '.'))
+            appendToolMsg(buf, part.callID, '➔ Grep "' + pattern + '" in ' + (path || '.'))
           }
         }
         else if (part.tool == 'grep' && part.state?.status == 'completed') {
@@ -625,9 +603,8 @@ function init
             d('CO grep completed with ' + matches + ' matches')
             appendToolMsg(buf,
                           part.callID,
-                          'grep-done',
-                          '"' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
-                          part.state.output) // under
+                          '➔ Grep "' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
+                          part.state.output)
           }
         }
         else if (part.tool == 'bash' && part.state?.status == 'running') {
@@ -636,7 +613,7 @@ function init
           command = part.state.input.command
           if (command) {
             d('CO bash: ' + command)
-            appendToolMsg(buf, part.callID, 'bash-running', command)
+            appendToolMsg(buf, part.callID, '➔ bash: ' + command)
           }
         }
         else if (part.tool == 'bash' && part.state?.status == 'completed') {
@@ -646,7 +623,7 @@ function init
           exitCode = part.state.metadata?.exit
           if (command) {
             d('CO bash completed: ' + command + ' (exit ' + exitCode + ')')
-            appendToolMsg(buf, part.callID, 'bash-done', '$ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+            appendToolMsg(buf, part.callID, '➔ bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
           }
         }
         else if (part.tool == 'write' && part.state?.status == 'running') {
@@ -655,8 +632,7 @@ function init
           path = part.state.input.filePath
           if (path) {
             d('CO write file: ' + path)
-            appendToolMsg(buf, part.callID, 'write', path,
-                          part.state?.input?.content) // under
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path), part.state?.input?.content)
           }
         }
         else if (part.tool == 'write' && part.state?.status == 'completed') {
@@ -665,8 +641,7 @@ function init
           path = part.state.input.filePath
           if (path) {
             d('CO write file: ' + path)
-            appendToolMsg(buf, part.callID, 'write', path + ' (done)',
-                          part.state?.input?.content) // under
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' (done)'), part.state?.input?.content)
           }
         }
         else if (part.tool == 'edit' && part.state?.status == 'running') {
@@ -675,8 +650,7 @@ function init
           path = part.state.input.filePath
           if (path) {
             d('CO edit file: ' + path)
-            appendToolMsg(buf, part.callID, 'edit', path,
-                          // under
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path),
                           '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString)
           }
         }
@@ -690,8 +664,7 @@ function init
             d('CO edit completed: ' + path)
             under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
             under = buf.vars('code').patch || under
-            appendToolMsg(buf, part.callID, 'edit', path + ' (done)',
-                          under)
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' (done)'), under)
           }
         }
         else if (part.tool == 'edit' && part.state?.status == 'error') {
@@ -704,8 +677,7 @@ function init
             d('CO edit error: ' + path)
             under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
             under = buf.vars('code').patch || under
-            appendToolMsg(buf, part.callID, 'edit', path + ' (error)',
-                          under)
+            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' (error)'), under)
             appendMsg(buf, 0, part.state?.error, part.id)
           }
         }
@@ -715,7 +687,7 @@ function init
           query = part.state.input.query
           if (query) {
             d('CO websearch: ' + query)
-            appendToolMsg(buf, part.callID, 'websearch', 'Web search: ' + query)
+            appendToolMsg(buf, part.callID, '➔ Web search: ' + query)
           }
         }
         else if (part.tool == 'websearch' && part.state?.status == 'completed') {
@@ -727,9 +699,8 @@ function init
             d('CO websearch completed with ' + results + ' results')
             appendToolMsg(buf,
                           part.callID,
-                          'websearch',
-                          'Web search: ' + query + ' (' + results + ' results)',
-                          part.state.output) // under
+                          '➔ Web search: ' + query + ' (' + results + ' results)',
+                          part.state.output)
           }
         }
         else if (part.tool == 'websearch' && part.state?.status == 'error') {
@@ -740,9 +711,8 @@ function init
             d('CO websearch error')
             appendToolMsg(buf,
                           part.callID,
-                          'websearch',
-                          'Web search: ' + query,
-                          part.state.error) // under
+                          '➔ Web search: ' + query,
+                          part.state.error)
           }
         }
         else if (part.tool == 'webfetch' && part.state?.status == 'running') {
@@ -751,7 +721,7 @@ function init
           url = part.state.input.url
           if (url) {
             d('CO webfetch: ' + url)
-            appendToolMsg(buf, part.callID, 'webfetch', 'Fetch ' + url)
+            appendToolMsg(buf, part.callID, '➔ Fetch ' + url)
           }
         }
         else if (part.tool == 'webfetch' && part.state?.status == 'completed') {
@@ -763,8 +733,7 @@ function init
             d('CO webfetch completed, size: ' + size)
             appendToolMsg(buf,
                           part.callID,
-                          'webfetch',
-                          'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
+                          '➔ Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
           }
         }
         else if (part.tool == 'webfetch' && part.state?.status == 'error') {
@@ -775,13 +744,14 @@ function init
             d('CO webfetch error')
             appendToolMsg(buf,
                           part.callID,
-                          'webfetch',
-                          'Fetch ' + url,
-                          part.state.error) // under
+                          '➔ Fetch ' + url,
+                          part.state.error)
           }
         }
         else
-          appendToolMsg(buf, part.callID, part.tool, part.state?.status && ('(' + part.state?.status + ')'))
+          appendToolMsg(buf,
+                        part.callID,
+                        'Tool call: ' + part.tool + (part.state?.status ? (' (' + part.state?.status + ')') : ''))
       }
     }
   }

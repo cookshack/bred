@@ -55,29 +55,21 @@ function init
   function underVisible
   (w, underW) {
     if (underW) {
-      let paneW
+      let rU, rW
 
-      // paneW > pane > code-ww > code-w
-      paneW = w.parentElement?.parentElement?.parentElement
-      if (paneW) {
-        let rU, rPW
-
-        rU = underW.getBoundingClientRect()
-        rPW = paneW.getBoundingClientRect()
-        d('CO ' + rU.bottom + ' < ' + rPW.bottom + '?')
-        return rU.top < rPW.bottom
-      }
-      else
-        d('CO ERR paneW missing')
+      rU = underW.getBoundingClientRect()
+      rW = w.getBoundingClientRect()
+      d('CO ' + rU.bottom + ' < ' + rW.bottom + '?')
+      return rU.top < rW.bottom
     }
     return 0
   }
 
   function withScroll
-  (w, cb) { // (under)
+  (w, cb) { // (underW)
     let underW, wasVisible
 
-    underW = w.querySelector('.code-under-w')
+    underW = w.querySelector('.code-under-w') || d('CO underW missing')
 
     wasVisible = underVisible(w, underW)
     d({ wasVisible })

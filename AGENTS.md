@@ -13,6 +13,7 @@ improvements for me, as apposed to making is accessible to others.
 
 ## Conventions
 
+- **Code style** - Follow `@cookshack/eslint-config` (please read `node_modules/@cookshack/eslint-config/index.js`)
 - **`d()` takes single arg** - Use `d('msg')` or `d({ obj })`, never multiple args
 - **String formatting** - Use `'xxx' + var`, not template literals `` `xxx${var}` ``
 - **Variable naming** - No capitals: `textBuffer`, not `TextBuffer`
@@ -22,12 +23,15 @@ improvements for me, as apposed to making is accessible to others.
 - **Booleans use 1/0** - Use `1` and `0` instead of `true` and `false`
 - **No explicit 0 for falsy** - Don't set variables to `0` when they are implicitly false/undefined
 - **No curly braces for single statements** - Omit `{}` for single-statement if/for/else bodies
-- **Code style** - Follow `@cookshack/eslint-config` (please read `node_modules/@cookshack/eslint-config/index.js`):
-  - No semicolons, single quotes
-  - No linebreaks in arrays/function calls: `fn([ { a: 1 }, { b: 2 } ])`
-  - Space after `[` and before `]`, space around `{` in objects
-  - `let` with blank line before following `let`
-  - Stroustrup brace style
+- No semicolons, single quotes
+- No linebreaks in arrays/function calls: `fn([ { a: 1 }, { b: 2 } ])`
+- Space after `[` and before `]`, space around `{` in objects
+- `let` with blank line before code
+- Stroustrup brace style
+- Use the positive sense - commit hooks prevent:
+  - Logical negation: `!condition`, `!=`, `!==`
+  - Comparisons to 0/null/undefined
+- prefer == to === for comparison
 
 ## Debugging
 

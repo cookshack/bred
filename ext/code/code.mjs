@@ -228,16 +228,23 @@ function init
     })
   }
 
+  function makeRelative
+  (buf, path) {
+    if (path?.startsWith(buf.dir))
+      return path.slice(buf.dir.length)
+    return path
+  }
+
   function appendToolMsg
   (buf, callID, tool, info, under) {
     let label
 
     if (tool == 'read')
-      label = '➔ Read file ' + info
+      label = '➔ Read file ' + makeRelative(buf, info)
     else if (tool == 'write')
-      label = '➔ Write file ' + info
+      label = '➔ Write file ' + makeRelative(buf, info)
     else if (tool == 'edit')
-      label = '➔ Edit file ' + info
+      label = '➔ Edit file ' + makeRelative(buf, info)
     else if (tool == 'grep')
       label = '➔ Grep ' + info
     else if (tool == 'grep-done')

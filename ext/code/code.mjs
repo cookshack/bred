@@ -13,6 +13,7 @@ import * as Pane from '../../js/pane.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import { d } from '../../js/mess.mjs'
 import * as Tron from '../../js/tron.mjs'
+import { v4 as uuidv4 } from '../../lib/uuid/index.js'
 
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
@@ -807,6 +808,9 @@ function init
   (buf, text, provider, model) {
     let sessionID, c, res
 
+    provider = provider || buf.vars('code').provider || 'opencode'
+    model = model || buf.vars('code').model || 'minimax-m2.1-free'
+
     sessionID = buf.vars('code').sessionID
     c = await ensureClient(buf)
 
@@ -821,14 +825,17 @@ function init
 
       res = await c.session.prompt({
         sessionID,
+        providerID: provider,
+        modelID: model,
         model: { providerID: provider, modelID: model },
-        parts: [ { type: 'text', text } ]
+        agent: 'build',
+        parts: [ { id: uuidv4(), type: 'text', text } ]
       })
 
       d('CO SEND done')
       d({ res })
 
-      appendModel(buf, res.data.info.modelID || '???')
+      appendModel(buf, res.data?.info?.modelID || '???')
     }
     catch (err) {
       d(err)
@@ -966,8 +973,8 @@ function init
       }
     }
 
-    provider = Opt.get('code.provider.agent')
-    model = Opt.get('code.model.agent')
+    provider = Opt.get('code.provider.agent') || 'opencode'
+    model = Opt.get('code.model.agent') || 'minimax-m2.1-free'
     if (given)
       run(given)
     else

@@ -586,7 +586,7 @@ function createWindow
   win.setBounds(options.bounds || Profile.stores.state.get('bounds'))
 
   try {
-    win.webContents.debugger.attach('1.3')
+    //win.webContents.debugger.attach('1.3')
   }
   catch (err) {
     log('ERR debugger.attach: ', err.message)

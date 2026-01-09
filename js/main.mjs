@@ -991,7 +991,7 @@ function whenHaveDeps
 
 async function whenReady
 () {
-  let program
+  let program, profileStart
 
   setVersion()
 
@@ -1026,10 +1026,12 @@ async function whenReady
     console.warn('failed to get userData: ' + err.message)
   }
 
+  profileStart = performance.now()
   if (Profile.init(options.profile, dirUserData)) {
     app.quit()
     return
   }
+  d('timing: profile.init: ' + Math.round(performance.now() - profileStart) + 'ms')
 
   if (options.logfile) {
     let file

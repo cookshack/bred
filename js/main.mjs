@@ -25,7 +25,7 @@ import Util from 'node:util'
 import { spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
-let version, options, dirUserData, shell, lastClipWrite, _win
+let version, options, dirUserData, shell, lastClipWrite, _win, mainStart
 
 function cmdDevtoolsClose
 (e) {
@@ -696,6 +696,7 @@ function createMainWindow
 
   _win = createWindow(html)
   Lsp.setWin(_win)
+  d('timing: main startup: ' + Math.round(performance.now() - mainStart) + 'ms')
 
   process.on('uncaughtException', err => {
     console.log(err.message)
@@ -1021,4 +1022,5 @@ async function whenReady
   checkDeps(() => whenHaveDeps(program))
 }
 
+mainStart = performance.now()
 app.whenReady().then(whenReady)

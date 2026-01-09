@@ -32,6 +32,7 @@ import * as Shell from './shell.mjs'
 import * as Style from './style.mjs'
 import * as Switch from './switch.mjs'
 import * as Tab from './tab.mjs'
+import * as Timing from './timing.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as Vc from './vc.mjs'
@@ -872,6 +873,37 @@ function initCmds
 
   Cmd.add('toss', () => {
     Mess.toss('test toss')
+  })
+
+  Cmd.add('show timing', () => {
+    let p, timing, content, line, total
+
+    timing = Timing.get()
+    if (timing.length == 0) {
+      Mess.say('No timing data available')
+      return
+    }
+
+    content = [ 'Phase                  Time' ]
+    total = 0
+    timing.forEach(phase => {
+      line = phase[0].padEnd(24) + Math.round(phase[2]) + 'ms'
+      content.push(line)
+      total += phase[2]
+    })
+    content.push(''.padEnd(24) + Math.round(total) + 'ms')
+
+    p = Pane.current()
+    //buf = Buf.add('Timing', 'Text', divCl('bred-timing-w', content.join('\n')), p.dir)
+    Ed.make(p,
+            { name: 'Timing',
+              dir: p.dir },
+            view => {
+              view.buf.file = 'Timing'
+              view.insert(content.join('\n'))
+              view.buf.modified = 0
+              view.buf.addMode('view')
+            })
   })
 }
 
@@ -1774,6 +1806,8 @@ function initShared
 export
 function init
 () {
+  Timing.init()
+  Timing.start('bred.init')
   initShared()
   Opt.init()
 
@@ -1802,6 +1836,7 @@ function init
 
     start0(start2)
   })
+  Timing.stop('bred.init')
 }
 
 export

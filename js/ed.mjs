@@ -14,6 +14,7 @@ import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
+import * as Timing from './timing.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import { d } from './mess.mjs'
@@ -860,8 +861,10 @@ function initCTags
 () {
   let file
 
+  Timing.start('ed.initCTags')
   file = Loc.appDir().join('TAGS.mjs')
   addCTags(file)
+  Timing.stop('ed.initCTags')
 }
 
 function vinsert

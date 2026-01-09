@@ -1,5 +1,6 @@
 import * as Ed from './ed.mjs'
 import * as Mess from './mess.mjs'
+import * as Timing from './timing.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
@@ -212,6 +213,7 @@ function complete
 export
 function init
 () {
+  Timing.start('lsp.init')
   function handleReqResponse
   (response) {
     let id, cb
@@ -246,4 +248,6 @@ function init
       }
     }
   })
+
+  Timing.stop('lsp.init')
 }

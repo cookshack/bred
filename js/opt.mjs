@@ -1,4 +1,5 @@
 import * as Tron from './tron.mjs'
+import * as Timing from './timing.mjs'
 
 export let inherit, missing
 
@@ -14,6 +15,7 @@ missing = {}
 export
 function load
 (cb) { // (err)
+  Timing.start('opt.load')
   function load1
   (prefix, data) {
     let values
@@ -37,6 +39,7 @@ function load
     load1('', data.data)
     cb()
   })
+  Timing.stop('opt.load')
 }
 
 export

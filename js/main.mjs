@@ -838,7 +838,36 @@ function checkDepsWin
 
 function checkDeps
 (whenHaveDeps) {
-  let win
+  let win, lastCheckFile, lastCheckCommit, currentCommit
+
+  lastCheckFile = Path.join(dirUserData, '.last-deps-check')
+
+  try {
+    lastCheckCommit = fs.readFileSync(lastCheckFile, 'utf8').trim()
+  }
+  catch {
+    lastCheckCommit = ''
+  }
+
+  try {
+    let res
+
+    res = spawnSync('git', [ 'rev-parse', 'HEAD' ],
+                    { cwd: app.getAppPath(), encoding: 'utf8' })
+    if (res.error)
+      throw res.error
+    currentCommit = res.stdout.trim()
+  }
+  catch (e) {
+    d('Failed to get current commit: ' + e.message)
+    currentCommit = ''
+  }
+
+  if (lastCheckCommit && currentCommit && lastCheckCommit === currentCommit) {
+    d('Dependencies already checked for commit ' + currentCommit)
+    whenHaveDeps()
+    return
+  }
 
   d('Creating check window...')
   win = checkDepsWin()
@@ -857,6 +886,16 @@ function checkDeps
         return
       }
       d('Checking dependencies... OK')
+
+      // Record the commit we checked
+      if (currentCommit)
+        try {
+          fs.writeFileSync(lastCheckFile, currentCommit)
+        }
+        catch (e) {
+          d('Failed to write last deps check: ' + e.message)
+        }
+
       setTimeout(() => win.close())
       whenHaveDeps()
     })

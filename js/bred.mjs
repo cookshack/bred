@@ -1649,6 +1649,7 @@ function start1
 (data, start2) {
   let path
 
+  Timing.start('bred.start1')
   d('start1')
 
   Tron.on('thrown', err => {
@@ -1697,12 +1698,14 @@ function start1
 
   d('initCss')
   Style.initCss(Mess.yell)
+  Timing.stop('bred.start1')
 }
 
 function start2
 (devtools, frames) {
   let p, tab
 
+  Timing.start('bred.start2')
   d('start2 (backend is loaded)')
 
   initDivMode()
@@ -1737,11 +1740,13 @@ function start2
     makeScratch(p, () => start3(tab))
     return
   }
+  Timing.stop('bred.start2')
   start3(tab)
 }
 
 function start3
 (tab) {
+  Timing.start('bred.start3')
   d('running welcome')
   if (Opt.get('core.welcome.enabled'))
     Cmd.run('welcome')
@@ -1763,10 +1768,12 @@ function start3
     Ed.make(Pane.current(), { name: 'Main', dir: Loc.home() })
     Mess.yell('Ready!')
   }
+  Timing.stop('bred.start3')
 }
 
 function start0
 (start2) {
+  Timing.start('bred.start0')
   d('get paths')
 
   Tron.cmd1('paths', [], (err, d) => {
@@ -1776,7 +1783,10 @@ function start0
     }
 
     // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
-    setTimeout(() => start1(d, start2))
+    setTimeout(() => {
+      Timing.stop('bred.start0')
+      start1(d, start2)
+    })
   })
 }
 

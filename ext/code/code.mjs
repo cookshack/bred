@@ -332,48 +332,52 @@ function init
       ynRespond(buf, id, yes)
   }
 
+  function updateBufStatus
+  (buf, co, tokenInfo) {
+    buf.views.forEach(view => {
+      if (view.ele) {
+        let underW, statusEl, tokenEl
+
+        underW = view.ele.querySelector('.code-under-w')
+        if (underW) {
+          statusEl = underW.querySelector('.code-under-status')
+          tokenEl = underW.querySelector('.code-under-tokens')
+          if (statusEl)
+            statusEl.innerHTML = co
+          if (tokenEl)
+            if (tokenInfo)
+              tokenEl.innerText = tokenInfo
+            else
+              tokenEl.innerText = ''
+        }
+      }
+    })
+  }
+
+  function updateIdle
+  (buf, tokenInfo) {
+    updateBufStatus(buf, 'IDLE', tokenInfo)
+    if (buf.vars('code').agentStopped) {
+      buf.vars('code').agentStopped = 0
+      appendMsg(buf, 0, '...stopped')
+      buf.vars('code').stepActive = 0
+    }
+  }
+
   function updateStatus
   (buf, req, tokenInfo) {
-
-    function update
-    (co) {
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let underW, statusEl, tokenEl
-
-          underW = view.ele.querySelector('.code-under-w')
-          if (underW) {
-            statusEl = underW.querySelector('.code-under-status')
-            tokenEl = underW.querySelector('.code-under-tokens')
-            if (statusEl)
-              statusEl.innerHTML = co
-            if (tokenEl)
-              if (tokenInfo)
-                tokenEl.innerText = tokenInfo
-              else
-                tokenEl.innerText = ''
-          }
-        }
-      })
-    }
 
     d('CO updateStatus')
     d({ tokenInfo })
 
     if (req.status?.type == 'busy')
-      update('BUSY', tokenInfo)
-    else if (req.status?.type == 'idle') {
-      update('IDLE', tokenInfo)
-      if (buf.vars('code').agentStopped) {
-        buf.vars('code').agentStopped = 0
-        appendMsg(buf, 0, '...stopped')
-        buf.vars('code').stepActive = 0
-      }
-    }
+      updateBufStatus(buf, 'BUSY', tokenInfo)
+    else if (req.status?.type == 'idle')
+      updateIdle(buf, tokenInfo)
     else if (req.status?.type == 'retry')
-      update('BUSY retry' + (req.status.message ? ': ' + req.status.message : ''), tokenInfo)
+      updateBufStatus(buf, 'BUSY retry' + (req.status.message ? ': ' + req.status.message : ''), tokenInfo)
     else if (req.status?.type)
-      d('FIX status: ' + req.status?.type)
+      d('🌱 TODO status: ' + req.status?.type)
   }
 
   function calculateTokenPercentage
@@ -756,6 +760,13 @@ function init
     d({ event })
 
     sessionID = buf && buf.vars('code')?.sessionID
+
+    // Already done by session.status. Maybe planned replacement.
+    if ((event.type == 'session.idle')
+        && (event.properties.sessionID == sessionID)) {
+      updateIdle(buf, calculateTokenPercentage(buf))
+      return
+    }
 
     if ((event.type == 'session.status')
         && (event.properties.sessionID == sessionID)) {

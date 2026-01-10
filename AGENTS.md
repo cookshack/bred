@@ -23,6 +23,7 @@ improvements for me, as apposed to making is accessible to others.
 - **Booleans use 1/0** - Use `1` and `0` instead of `true` and `false`
 - **No explicit 0 for falsy** - Don't set variables to `0` when they are implicitly false/undefined
 - **No curly braces for single statements** - Omit `{}` for single-statement if/for/else bodies
+- **Colors** - Use CSS variables: `--clr-emph` for emphasis, `--clr-fill` for backgrounds, `--clr-nb3` for important text
 - No semicolons, single quotes
 - No linebreaks in arrays/function calls: `fn([ { a: 1 }, { b: 2 } ])`
 - Space after `[` and before `]`, space around `{` in objects

@@ -472,6 +472,23 @@ function init
     handlePermission(buf, req)
   }
 
+  function handleSessionUpdated
+  (buf, event) {
+    let title
+
+    title = event.properties.info?.title
+    if (title)
+      buf.views.forEach(view => {
+        if (view.ele) {
+          let titleEl
+
+          titleEl = view.ele.querySelector('.code-session-title')
+          if (titleEl)
+            titleEl.innerText = title
+        }
+      })
+  }
+
   function handleMessageUpdated
   (buf, event) {
     let info
@@ -786,6 +803,12 @@ function init
       return
     }
 
+    if ((event.type == 'session.updated')
+        && (event.properties.info.id == sessionID)) {
+      handleSessionUpdated(buf, event)
+      return
+    }
+
     if ((event.type == 'message.updated')
         && (event.properties.info.sessionID == sessionID)) {
       handleMessageUpdated(buf, event)
@@ -844,9 +867,10 @@ function init
                                  img(Icon.path('assist'), 'Code', 'filter-clr-text')),
                            divCl('code-title', dir) ]),
                    divCl('code-w bred-scroller',
-                         divCl('code-under-w',
-                               [ divCl('code-under code-under-status', '...'),
-                                 divCl('code-under code-under-tokens', '') ])) ])
+                         [ divCl('code-session-title'),
+                           divCl('code-under-w',
+                                 [ divCl('code-under code-under-status', '...'),
+                                   divCl('code-under code-under-tokens', '') ]) ]) ])
   }
 
   async function send

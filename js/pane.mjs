@@ -271,11 +271,12 @@ function add
   (path, lineNum, whenReady) { // (view)
     path = Loc.make(path)
     path.expand()
-    Ed.make(p, { name: path.filename,
-                 dir: path.dirname,
-                 file: path.filename,
-                 lineNum,
-                 whenReady })
+    Ed.make(p,
+            { name: path.filename,
+              dir: path.dirname,
+              file: path.filename,
+              lineNum },
+            whenReady)
   }
 
   function openDir
@@ -286,8 +287,8 @@ function add
   // open file/dir in the pane
   function open
   (path,
-   lineNum, // only if file
-   whenReady) { // (view) only if file
+   lineNum, // only used if path is a file
+   whenReady) { // (view) only runs if path is a file
     Tron.cmd('file.stat', Loc.make(path).expand(), (err, data) => {
       let name
 

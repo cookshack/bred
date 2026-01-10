@@ -10,14 +10,13 @@ export
 function make
 (b,
  spec, // { ..., exts }
- cb) { // called when buf ready to use
+ whenReady) { // called when buf ready to use
   let { vid,
         mode,
         views,
         ele, // pane element
         elePoint,
-        lineNum,
-        whenReady } // called when file loaded (FIX also ready1)
+        lineNum }
     = spec
   let v, active, ready, point, modeVars, onCloses, scrollTop
   // Keep ele content here when closed, until opened.
@@ -66,7 +65,7 @@ function make
   }
 
   function reopen
-  (newPaneEle, newPointEle, lineNum, whenReady, cb) {
+  (newPaneEle, newPointEle, lineNum, whenReady) {
     d('VIEW reopen ' + vid)
     ready = 0
     active = 1
@@ -85,17 +84,14 @@ function make
         scrollEl.scrollTop = scrollTop
     }
     if (mode && mode.viewReopen)
-      mode.viewReopen(v, lineNum, whenReady, cb)
-    else {
+      mode.viewReopen(v, lineNum, whenReady)
+    else
       // timeout so behaves like viewReopen
       setTimeout(() => {
         ready = 1
         if (whenReady)
           whenReady(v)
       })
-      if (cb)
-        cb(v)
-    }
   }
 
   function region
@@ -335,9 +331,7 @@ function make
     d('VIEW ready1 timeout')
     setTimeout(() => {
       ready = 1
-      d('VIEW ready1 cb')
-      if (cb)
-        cb(v)
+      d('VIEW ready1 whenReady')
       if (whenReady)
         whenReady(v)
     })
@@ -370,7 +364,7 @@ function make
   v = views.find(v1 => (v1.win == win) && (v1.active == 0))
   if (v) {
     d('VIEW reusing view ' + v.vid)
-    v.reopen(ele, elePoint, lineNum, whenReady, cb)
+    v.reopen(ele, elePoint, lineNum, whenReady)
     return v
   }
   modeVars = []
@@ -498,7 +492,7 @@ function make
         d('  clone: ' + clone.innerHTML)
         append(ele, clone)
       }
-      mode.viewCopy(v, views[0], lineNum, whenReady, cb)
+      mode.viewCopy(v, views[0], lineNum, whenReady)
     }
     else {
       append(ele, [ ...views[0].ele.children ].map(e => e.cloneNode(1)))
@@ -515,14 +509,13 @@ function make
         d('VIEW  placeholder: ' + b.placeholder)
         mode.viewInitSpec(v,
                           { lineNum,
-                            whenReady, // Called when the view is ready.
                             placeholder: b.placeholder,
                             single: b.single,
                             wextsMode: mode.wexts },
-                          cb)
+                          whenReady)
       }
       else if (mode && mode.viewInit) // remove when ace,mon have viewInitSpec (BUT also used by div views)
-        mode.viewInit(v, 0, 0, lineNum, whenReady, cb)
+        mode.viewInit(v, 0, 0, lineNum, whenReady)
       else
         ready1()
     }

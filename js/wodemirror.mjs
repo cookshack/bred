@@ -612,12 +612,11 @@ async function viewInitSpec
  // { text,
  //   modeWhenText,
  //   lineNum,
- //   whenReady(view),  // Runs when the view is ready.
  //   revert,
  //   single,
  //   wextsMode }
  spec,
- cb) { // (view) Runs at synchronous end of this function. FIX caller may as well just run something after?
+ whenReady) { // (view) // Runs when the view is ready and any file is loaded
   let data
 
   d('WODE peer.get ' + view.buf.id)
@@ -633,12 +632,9 @@ async function viewInitSpec
             data.fresh ? 0 : data.text,
             spec.modeWhenText,
             spec.lineNum,
-            spec.whenReady,
+            whenReady,
             spec.placeholder,
             spec)
-  d('WODE viewInitSpec exit')
-  if (cb)
-    cb(view)
 }
 
 function runOnCursors
@@ -1163,14 +1159,16 @@ function _viewInit
 
   decorate(view, buf.mode)
   Css.enable(view.ele)
-  runOnCursors(view)
   d('ready empty ed')
   view.ready = 1
+  if (whenReady)
+    whenReady(view)
+  runOnCursors(view)
 }
 
 export
 function viewReopen
-(view, lineNum, whenReady, cb) {
+(view, lineNum, whenReady) {
   d('================== viewReopen')
   if (view.ele && view.ed)
     // timeout so behaves like viewInit
@@ -1183,8 +1181,6 @@ function viewReopen
       else
         view.ed.dispatch({ effects: CMView.EditorView.scrollIntoView(view.ed.state.selection.main.head,
                                                                      { y: 'center' }) })
-      if (cb)
-        cb(view)
       if (whenReady)
         whenReady(view)
       runOnCursors(view)
@@ -1192,9 +1188,8 @@ function viewReopen
   else
     // probably buf was switched out before init happened.
     viewInitSpec(view,
-                 { lineNum,
-                   whenReady },
-                 cb)
+                 { lineNum },
+                 whenReady)
 }
 
 export

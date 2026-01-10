@@ -155,8 +155,8 @@ function langs
 export
 function make
 (p,
- spec, // { name, dir, file, lineNum, whenReady(view) }
- cb) { // (view)
+ spec, // { name, dir, file, lineNum }
+ whenReady) { // (view)
   let modeKey
 
   function makeBuf
@@ -172,13 +172,12 @@ function make
                      spec.dir,
                      { file: spec.file,
                        lineNum: spec.lineNum }),
-             { lineNum: spec.lineNum,
-               whenReady: spec.whenReady },
+             { lineNum: spec.lineNum },
              view => {
                p.buf.icon = icon
                spec.file || (p.buf.file = spec.name)
-               if (cb)
-                 cb(view)
+               if (whenReady)
+                 whenReady(view)
              })
   }
 
@@ -196,7 +195,7 @@ function make
     if (spec.file)
       exist = Buf.find(b => (b.file == spec.file) && (b.dir == spec.dir.path))
     if (exist) {
-      p.setBuf(exist, { lineNum: spec.lineNum, whenReady: spec.whenReady }, cb)
+      p.setBuf(exist, { lineNum: spec.lineNum }, whenReady)
       return
     }
     if (spec.lineNum === undefined) {

@@ -118,17 +118,16 @@ function initBrowse
   let mo
 
   function viewCopy
-  (to, from, lineNum, whenReady, cb) {
+  (to, from, lineNum, whenReady) {
     d('================== browse viewCopy')
     to.buf.vars('browse').url = from.buf.vars('browse')?.url
     viewInitSpec(to,
-                 { lineNum,
-                   whenReady },
-                 cb)
+                 { lineNum },
+                 whenReady)
   }
 
   function viewReopen
-  (view, lineNum, whenReady, cb) {
+  (view, lineNum, whenReady) {
     let id
 
     d('================== browse viewReopen')
@@ -139,9 +138,8 @@ function initBrowse
     else
       // probably buf was switched out before init happened.
       viewInitSpec(view,
-                   { lineNum,
-                     whenReady },
-                   cb)
+                   { lineNum },
+                   whenReady)
 
   }
 

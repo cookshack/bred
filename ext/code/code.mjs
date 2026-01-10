@@ -904,7 +904,8 @@ function init
         elapsed = Date.now() - buf.vars('code').lastEventTime
         if (elapsed > 35000) { // heartbeat is sent every 30s
           d('CO no events for ' + elapsed + 'ms, restarting stream')
-          buf.vars('code').eventStreamResolve?.()
+          if (buf.vars('code').eventStreamResolve)
+            buf.vars('code').eventStreamResolve()
         }
       }
     }, 5000)

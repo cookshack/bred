@@ -319,15 +319,19 @@ function init
       }
     })
 
-    buf.vars('code').permissionID = 0
+    buf.vars('code').permissions = buf.vars('code').permissions.slice(1)
+    if (buf.vars('code').permissions.length)
+      // Ask about the next one.
+      appendPermission(buf, buf.vars('code').permissions[0])
   }
 
   function yn
   (yes) {
-    let buf, id
+    let buf, id, perms
 
     buf = Pane.current()?.buf
-    id = buf?.vars('code')?.permissionID
+    perms = buf?.vars('code')?.permissions
+    id = perms?.length && perms[0]
     if (id)
       ynRespond(buf, id, yes)
   }
@@ -434,7 +438,6 @@ function init
 
   function checkForPatch
   (buf, req) {
-    buf.vars('code').permissionID = req.id
     if ((req.permission == 'edit') || (req.type == 'edit')) {
       let path
 
@@ -450,8 +453,11 @@ function init
   function handlePermission
   (buf, req) {
     checkForPatch(buf, req)
-    buf.vars('code').permissionID = req.id
-    appendPermission(buf, req.id)
+    buf.vars('code').permissions = buf.vars('code').permissions || []
+    buf.vars('code').permissions.push(req.id)
+    if (buf.vars('code').permissions.length == 1)
+      // Free to ask.
+      appendPermission(buf, req.id)
   }
 
   function handlePermissionAsked
@@ -1023,7 +1029,7 @@ function init
     p = Pane.current()
     buf = p.buf
 
-    if (buf.vars('code').permissionID)
+    if (buf.vars('code').permissions?.length)
       return
 
     if (buf?.vars('code')?.sessionID) {

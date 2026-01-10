@@ -609,8 +609,15 @@ function watch
 export
 async function viewInitSpec
 (view,
- spec, // { text, modeWhenText, lineNum, whenReady(view), revert, single, wextsMode }
- cb) {
+ // { text,
+ //   modeWhenText,
+ //   lineNum,
+ //   whenReady(view),  // Runs when the view is ready.
+ //   revert,
+ //   single,
+ //   wextsMode }
+ spec,
+ cb) { // (view) Runs at synchronous end of this function. FIX caller may as well just run something after?
   let data
 
   d('WODE peer.get ' + view.buf.id)
@@ -629,7 +636,7 @@ async function viewInitSpec
             spec.whenReady,
             spec.placeholder,
             spec)
-  d('WODE after _viewInit')
+  d('WODE viewInitSpec exit')
   if (cb)
     cb(view)
 }

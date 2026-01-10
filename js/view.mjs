@@ -86,14 +86,16 @@ function make
     }
     if (mode && mode.viewReopen)
       mode.viewReopen(v, lineNum, whenReady, cb)
-    else
+    else {
       // timeout so behaves like viewReopen
       setTimeout(() => {
         ready = 1
-        if (cb)
-          cb(v)
-        // whenready?
+        if (whenReady)
+          whenReady(v)
       })
+      if (cb)
+        cb(v)
+    }
   }
 
   function region
@@ -513,7 +515,7 @@ function make
         d('VIEW  placeholder: ' + b.placeholder)
         mode.viewInitSpec(v,
                           { lineNum,
-                            whenReady,
+                            whenReady, // Called when the view is ready.
                             placeholder: b.placeholder,
                             single: b.single,
                             wextsMode: mode.wexts },

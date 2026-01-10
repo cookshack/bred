@@ -428,6 +428,266 @@ function init
     }
   }
 
+  function handlePart
+  (buf, event) {
+    let part
+
+    part = event.properties.part
+
+    if (part.tokens) {
+      let total
+
+      total = (part.tokens.input || 0)
+        + (part.tokens.output || 0)
+        + (part.tokens.reasoning || 0)
+        + (part.tokens.cache?.read || 0)
+        + (part.tokens.cache?.write || 0)
+      if (total > 0)
+        buf.vars('code').lastTokens = total
+    }
+
+    if (part.type == 'step-start') {
+      d('CO step-start')
+      buf.vars('code').stepActive = 1
+    }
+    else if (part.type == 'step-finish') {
+      d('CO step-finish')
+      buf.vars('code').stepActive = 0
+    }
+    else if (buf.vars('code').agentStopped)
+      d('CO agent stopped, skipping: ' + part.type)
+    else if (part.type == 'text') {
+      d('CO text part' + part.id)
+      if (buf.vars('code').stepActive) {
+        d('CO update text: ' + part.text)
+        appendMsg(buf, 0, part.text, part.id)
+      }
+      else
+        d('CO text outside step: ' + part.text)
+    }
+    else if (part.type == 'reasoning') {
+      let buffered
+
+      //d('CO reasoning part ' + part.id)
+
+      buffered = (event.properties.delta || '')
+      if (buffered) {
+        d('CO reasoning append: ' + buffered)
+        appendThinking(buf, buffered)
+      }
+    }
+    else if (part.type == 'tool') {
+      d('CO tool: ' + part.tool)
+      if (part.tool == 'read' && part.state?.status == 'running') {
+        let path
+
+        path = part.state.input.filePath
+        if (path) {
+          d('CO read file: ' + path)
+          appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path))
+        }
+      }
+      else if (part.tool == 'read' && part.state?.status == 'completed') {
+        let path
+
+        path = part.state.input.filePath
+        if (path) {
+          d('CO read file completed: ' + path)
+          appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' ✔️'))
+        }
+      }
+      else if (part.tool == 'glob' && part.state?.status == 'running') {
+        let pattern
+
+        pattern = part.state.input.pattern
+        if (pattern) {
+          d('CO glob: ' + pattern)
+          appendToolMsg(buf, part.callID, '➔ Glob "' + pattern)
+        }
+      }
+      else if (part.tool == 'glob' && part.state?.status == 'completed') {
+        let count
+
+        count = part.state.metadata?.count
+        if (1) {
+          d('CO glob completed with ' + count + ' matches')
+          appendToolMsg(buf,
+                        part.callID,
+                        '➔ Glob "' + part.state.input.pattern + ' (' + count + ' matches)',
+                        part.state.output)
+        }
+      }
+      else if (part.tool == 'grep' && part.state?.status == 'running') {
+        let pattern, path
+
+        pattern = part.state.input.pattern
+        path = part.state.input.path
+        if (pattern) {
+          d('CO grep: ' + pattern + ' in ' + path)
+          appendToolMsg(buf, part.callID, '➔ Grep "' + pattern + '" in ' + (path || '.'))
+        }
+      }
+      else if (part.tool == 'grep' && part.state?.status == 'completed') {
+        let matches, path
+
+        matches = part.state.metadata?.matches
+        path = part.state.input.path
+        if (matches) {
+          d('CO grep completed with ' + matches + ' matches')
+          appendToolMsg(buf,
+                        part.callID,
+                        '➔ Grep "' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
+                        part.state.output)
+        }
+      }
+      else if (part.tool == 'bash' && part.state?.status == 'running') {
+        let command
+
+        command = part.state.input.command
+        if (command) {
+          d('CO bash: ' + command)
+          appendToolMsg(buf, part.callID, '➔ bash: ' + command)
+        }
+      }
+      else if (part.tool == 'bash' && part.state?.status == 'completed') {
+        let command, exitCode
+
+        command = part.state.input.command
+        exitCode = part.state.metadata?.exit
+        if (command) {
+          d('CO bash completed: ' + command + ' (exit ' + exitCode + ')')
+          appendToolMsg(buf, part.callID, '➔ bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+        }
+      }
+      else if (part.tool == 'write' && part.state?.status == 'running') {
+        let path
+
+        path = part.state.input.filePath
+        if (path) {
+          d('CO write file: ' + path)
+          appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path), part.state?.input?.content)
+        }
+      }
+      else if (part.tool == 'write' && part.state?.status == 'completed') {
+        let path
+
+        path = part.state.input.filePath
+        if (path) {
+          d('CO write file: ' + path)
+          appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️'), part.state?.input?.content)
+        }
+      }
+      else if (part.tool == 'edit' && part.state?.status == 'running') {
+        let path
+
+        path = part.state.input.filePath
+        if (path) {
+          d('CO edit file: ' + path)
+          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path),
+                        '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString)
+        }
+      }
+      else if (part.tool == 'edit' && part.state?.status == 'completed') {
+        let path
+
+        path = part.state.input.filePath
+        if (path) {
+          let under
+
+          d('CO edit completed: ' + path)
+          under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
+          under = buf.vars('code').patch || under
+          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️'), under)
+        }
+      }
+      else if (part.tool == 'edit' && part.state?.status == 'error') {
+        let path
+
+        path = part.state.input.filePath
+        if (path) {
+          let under
+
+          d('CO edit error: ' + path)
+          under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
+          under = buf.vars('code').patch || under
+          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✘'), under)
+          appendMsg(buf, 0, part.state?.error, part.id)
+        }
+      }
+      else if (part.tool == 'websearch' && part.state?.status == 'running') {
+        let query
+
+        query = part.state.input.query
+        if (query) {
+          d('CO websearch: ' + query)
+          appendToolMsg(buf, part.callID, '➔ Web search: ' + query)
+        }
+      }
+      else if (part.tool == 'websearch' && part.state?.status == 'completed') {
+        let query, results
+
+        query = part.state.input.query
+        results = part.state.metadata?.results
+        if (query) {
+          d('CO websearch completed with ' + results + ' results')
+          appendToolMsg(buf,
+                        part.callID,
+                        '➔ Web search: ' + query + ' (' + results + ' results)',
+                        part.state.output)
+        }
+      }
+      else if (part.tool == 'websearch' && part.state?.status == 'error') {
+        let query
+
+        query = part.state.input.query
+        if (query) {
+          d('CO websearch error')
+          appendToolMsg(buf,
+                        part.callID,
+                        '➔ Web search: ' + query,
+                        part.state.error)
+        }
+      }
+      else if (part.tool == 'webfetch' && part.state?.status == 'running') {
+        let url
+
+        url = part.state.input.url
+        if (url) {
+          d('CO webfetch: ' + url)
+          appendToolMsg(buf, part.callID, '➔ Fetch ' + url)
+        }
+      }
+      else if (part.tool == 'webfetch' && part.state?.status == 'completed') {
+        let url, size
+
+        url = part.state.input.url
+        size = part.state.output?.length
+        if (url) {
+          d('CO webfetch completed, size: ' + size)
+          appendToolMsg(buf,
+                        part.callID,
+                        '➔ Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
+        }
+      }
+      else if (part.tool == 'webfetch' && part.state?.status == 'error') {
+        let url
+
+        url = part.state.input.url
+        if (url) {
+          d('CO webfetch error')
+          appendToolMsg(buf,
+                        part.callID,
+                        '➔ Fetch ' + url,
+                        part.state.error)
+        }
+      }
+      else
+        appendToolMsg(buf,
+                      part.callID,
+                      'Tool call: ' + part.tool + (part.state?.status ? (' (' + part.state?.status + ')') : ''))
+    }
+  }
+
   function handleEvent
   (buf, event) {
     let sessionID
@@ -500,262 +760,8 @@ function init
 
     if ((event.type == 'message.part.updated')
         && (event.properties.part.sessionID == sessionID)) {
-      let part
-
-      part = event.properties.part
-
-      if (part.tokens) {
-        let total
-
-        total = (part.tokens.input || 0)
-              + (part.tokens.output || 0)
-              + (part.tokens.reasoning || 0)
-              + (part.tokens.cache?.read || 0)
-              + (part.tokens.cache?.write || 0)
-        if (total > 0)
-          buf.vars('code').lastTokens = total
-      }
-
-      if (part.type == 'step-start') {
-        d('CO step-start')
-        buf.vars('code').stepActive = 1
-      }
-      else if (part.type == 'step-finish') {
-        d('CO step-finish')
-        buf.vars('code').stepActive = 0
-      }
-      else if (buf.vars('code').agentStopped)
-        d('CO agent stopped, skipping: ' + part.type)
-      else if (part.type == 'text') {
-        d('CO text part' + part.id)
-        if (buf.vars('code').stepActive) {
-          d('CO update text: ' + part.text)
-          appendMsg(buf, 0, part.text, part.id)
-        }
-        else
-          d('CO text outside step: ' + part.text)
-      }
-      else if (part.type == 'reasoning') {
-        let buffered
-
-        //d('CO reasoning part ' + part.id)
-
-        buffered = (event.properties.delta || '')
-        if (buffered) {
-          d('CO reasoning append: ' + buffered)
-          appendThinking(buf, buffered)
-        }
-      }
-      else if (part.type == 'tool') {
-        d('CO tool: ' + part.tool)
-        if (part.tool == 'read' && part.state?.status == 'running') {
-          let path
-
-          path = part.state.input.filePath
-          if (path) {
-            d('CO read file: ' + path)
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path))
-          }
-        }
-        else if (part.tool == 'read' && part.state?.status == 'completed') {
-          let path
-
-          path = part.state.input.filePath
-          if (path) {
-            d('CO read file completed: ' + path)
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' ✔️'))
-          }
-        }
-        else if (part.tool == 'glob' && part.state?.status == 'running') {
-          let pattern
-
-          pattern = part.state.input.pattern
-          if (pattern) {
-            d('CO glob: ' + pattern)
-            appendToolMsg(buf, part.callID, '➔ Glob "' + pattern)
-          }
-        }
-        else if (part.tool == 'glob' && part.state?.status == 'completed') {
-          let count
-
-          count = part.state.metadata?.count
-          if (1) {
-            d('CO glob completed with ' + count + ' matches')
-            appendToolMsg(buf,
-                          part.callID,
-                          '➔ Glob "' + part.state.input.pattern + ' (' + count + ' matches)',
-                          part.state.output)
-          }
-        }
-        else if (part.tool == 'grep' && part.state?.status == 'running') {
-          let pattern, path
-
-          pattern = part.state.input.pattern
-          path = part.state.input.path
-          if (pattern) {
-            d('CO grep: ' + pattern + ' in ' + path)
-            appendToolMsg(buf, part.callID, '➔ Grep "' + pattern + '" in ' + (path || '.'))
-          }
-        }
-        else if (part.tool == 'grep' && part.state?.status == 'completed') {
-          let matches, path
-
-          matches = part.state.metadata?.matches
-          path = part.state.input.path
-          if (matches) {
-            d('CO grep completed with ' + matches + ' matches')
-            appendToolMsg(buf,
-                          part.callID,
-                          '➔ Grep "' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
-                          part.state.output)
-          }
-        }
-        else if (part.tool == 'bash' && part.state?.status == 'running') {
-          let command
-
-          command = part.state.input.command
-          if (command) {
-            d('CO bash: ' + command)
-            appendToolMsg(buf, part.callID, '➔ bash: ' + command)
-          }
-        }
-        else if (part.tool == 'bash' && part.state?.status == 'completed') {
-          let command, exitCode
-
-          command = part.state.input.command
-          exitCode = part.state.metadata?.exit
-          if (command) {
-            d('CO bash completed: ' + command + ' (exit ' + exitCode + ')')
-            appendToolMsg(buf, part.callID, '➔ bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
-          }
-        }
-        else if (part.tool == 'write' && part.state?.status == 'running') {
-          let path
-
-          path = part.state.input.filePath
-          if (path) {
-            d('CO write file: ' + path)
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path), part.state?.input?.content)
-          }
-        }
-        else if (part.tool == 'write' && part.state?.status == 'completed') {
-          let path
-
-          path = part.state.input.filePath
-          if (path) {
-            d('CO write file: ' + path)
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️'), part.state?.input?.content)
-          }
-        }
-        else if (part.tool == 'edit' && part.state?.status == 'running') {
-          let path
-
-          path = part.state.input.filePath
-          if (path) {
-            d('CO edit file: ' + path)
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path),
-                          '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString)
-          }
-        }
-        else if (part.tool == 'edit' && part.state?.status == 'completed') {
-          let path
-
-          path = part.state.input.filePath
-          if (path) {
-            let under
-
-            d('CO edit completed: ' + path)
-            under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
-            under = buf.vars('code').patch || under
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️'), under)
-          }
-        }
-        else if (part.tool == 'edit' && part.state?.status == 'error') {
-          let path
-
-          path = part.state.input.filePath
-          if (path) {
-            let under
-
-            d('CO edit error: ' + path)
-            under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
-            under = buf.vars('code').patch || under
-            appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✘'), under)
-            appendMsg(buf, 0, part.state?.error, part.id)
-          }
-        }
-        else if (part.tool == 'websearch' && part.state?.status == 'running') {
-          let query
-
-          query = part.state.input.query
-          if (query) {
-            d('CO websearch: ' + query)
-            appendToolMsg(buf, part.callID, '➔ Web search: ' + query)
-          }
-        }
-        else if (part.tool == 'websearch' && part.state?.status == 'completed') {
-          let query, results
-
-          query = part.state.input.query
-          results = part.state.metadata?.results
-          if (query) {
-            d('CO websearch completed with ' + results + ' results')
-            appendToolMsg(buf,
-                          part.callID,
-                          '➔ Web search: ' + query + ' (' + results + ' results)',
-                          part.state.output)
-          }
-        }
-        else if (part.tool == 'websearch' && part.state?.status == 'error') {
-          let query
-
-          query = part.state.input.query
-          if (query) {
-            d('CO websearch error')
-            appendToolMsg(buf,
-                          part.callID,
-                          '➔ Web search: ' + query,
-                          part.state.error)
-          }
-        }
-        else if (part.tool == 'webfetch' && part.state?.status == 'running') {
-          let url
-
-          url = part.state.input.url
-          if (url) {
-            d('CO webfetch: ' + url)
-            appendToolMsg(buf, part.callID, '➔ Fetch ' + url)
-          }
-        }
-        else if (part.tool == 'webfetch' && part.state?.status == 'completed') {
-          let url, size
-
-          url = part.state.input.url
-          size = part.state.output?.length
-          if (url) {
-            d('CO webfetch completed, size: ' + size)
-            appendToolMsg(buf,
-                          part.callID,
-                          '➔ Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
-          }
-        }
-        else if (part.tool == 'webfetch' && part.state?.status == 'error') {
-          let url
-
-          url = part.state.input.url
-          if (url) {
-            d('CO webfetch error')
-            appendToolMsg(buf,
-                          part.callID,
-                          '➔ Fetch ' + url,
-                          part.state.error)
-          }
-        }
-        else
-          appendToolMsg(buf,
-                        part.callID,
-                        'Tool call: ' + part.tool + (part.state?.status ? (' (' + part.state?.status + ')') : ''))
-      }
+      handlePart(buf, event)
+      return
     }
   }
 

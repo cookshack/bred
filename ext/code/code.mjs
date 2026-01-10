@@ -26,7 +26,7 @@ import * as OpenCode from './lib/opencode.js'
 export
 function init
 () {
-  let hist, mo, stopTimeout
+  let hist, chatHist, mo, stopTimeout
 
   async function ensureClient
   (buf) {
@@ -1036,10 +1036,10 @@ function init
       return
     }
 
-    Prompt.ask({ text: 'Message',
-                 hist },
+    Prompt.ask({ text: '🗩 Message',
+                 hist: chatHist },
                prompt => {
-                 hist.add(prompt)
+                 chatHist.add(prompt)
                  send(buf,
                       prompt,
                       buf.vars('code').provider,
@@ -1128,6 +1128,7 @@ function init
   }
 
   hist = Hist.ensure('code')
+  chatHist = Hist.ensure('code.chat')
   Opt.declare('code.model.agent', 'str', 'minimax-m2.1-free')
   Opt.declare('code.provider.agent', 'str', 'opencode')
   mo = Mode.add('code',

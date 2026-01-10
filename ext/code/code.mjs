@@ -291,7 +291,7 @@ function init
     })
   }
 
-  function handlePermission
+  function ynRespond
   (buf, id, yes) {
     let sessionID, response
 
@@ -329,7 +329,7 @@ function init
     buf = Pane.current()?.buf
     id = buf?.vars('code')?.permissionID
     if (id)
-      handlePermission(buf, id, yes)
+      ynRespond(buf, id, yes)
   }
 
   function updateStatus
@@ -426,6 +426,66 @@ function init
     catch (err) {
       d('CO failed to get providers: ' + err.message)
     }
+  }
+
+  function checkForPatch
+  (buf, req) {
+    buf.vars('code').permissionID = req.id
+    if ((req.permission == 'edit') || (req.type == 'edit')) {
+      let path
+
+      path = (req.metadata?.filepath || req.metadata?.filePath)
+      if (path) {
+        d('CO permission file: ' + path)
+        buf.vars('code').patch = req.metadata?.diff
+        appendToolMsg(buf, (req.callID || req.tool.callID), fileLabel(buf, 'Edit', path), req.metadata?.diff, 'edit')
+      }
+    }
+  }
+
+  function handlePermission
+  (buf, req) {
+    checkForPatch(buf, req)
+    buf.vars('code').permissionID = req.id
+    appendPermission(buf, req.id)
+  }
+
+  function handlePermissionAsked
+  (buf, event) {
+    let req
+
+    req = event.properties
+    d('CO permission asked: ' + req.permission)
+    handlePermission(buf, req)
+  }
+
+  function handlePermissionUpdated
+  (buf, event) {
+    let req
+
+    req = event.properties
+    d('CO permission updated: ' + req.type)
+    handlePermission(buf, req)
+  }
+
+  function handleMessageUpdated
+  (buf, event) {
+    let info
+
+    info = event.properties.info
+    if (info.tokens) {
+      let total
+
+      total = (info.tokens.input || 0)
+        + (info.tokens.output || 0)
+        + (info.tokens.reasoning || 0)
+        + (info.tokens.cache?.read || 0)
+        + (info.tokens.cache?.write || 0)
+      if (total > 0)
+        buf.vars('code').lastTokens = total
+    }
+    if (info.model)
+      updateModelContextLimit(buf, info.model.providerID, info.model.modelID)
   }
 
   function handlePart
@@ -692,21 +752,6 @@ function init
   (buf, event) {
     let sessionID
 
-    function checkForPatch
-    (buf, req) {
-      buf.vars('code').permissionID = req.id
-      if ((req.permission == 'edit') || (req.type == 'edit')) {
-        let path
-
-        path = (req.metadata?.filepath || req.metadata?.filePath)
-        if (path) {
-          d('CO permission file: ' + path)
-          buf.vars('code').patch = req.metadata?.diff
-          appendToolMsg(buf, (req.callID || req.tool.callID), fileLabel(buf, 'Edit', path), req.metadata?.diff, 'edit')
-        }
-      }
-    }
-
     d('CO ' + event.type)
     d({ event })
 
@@ -718,44 +763,20 @@ function init
 
     if ((event.type == 'permission.asked')
         && (event.properties.sessionID == sessionID)) {
-      let req
-
-      req = event.properties
-      d('CO permission asked: ' + req.permission)
-      checkForPatch(buf, req)
-      buf.vars('code').permissionID = req.id
-      appendPermission(buf, req.id)
+      handlePermissionAsked(buf, event)
+      return
     }
 
     if ((event.type == 'permission.updated')
         && (event.properties.sessionID == sessionID)) {
-      let req
-
-      req = event.properties
-      d('CO permission updated: ' + req.type)
-      checkForPatch(buf, req)
-      buf.vars('code').permissionID = req.id
-      appendPermission(buf, req.id)
+      handlePermissionUpdated(buf, event)
+      return
     }
 
     if ((event.type == 'message.updated')
         && (event.properties.info.sessionID == sessionID)) {
-      let info
-
-      info = event.properties.info
-      if (info.tokens) {
-        let total
-
-        total = (info.tokens.input || 0)
-              + (info.tokens.output || 0)
-              + (info.tokens.reasoning || 0)
-              + (info.tokens.cache?.read || 0)
-              + (info.tokens.cache?.write || 0)
-        if (total > 0)
-          buf.vars('code').lastTokens = total
-      }
-      if (info.model)
-        updateModelContextLimit(buf, info.model.providerID, info.model.modelID)
+      handleMessageUpdated(buf, event)
+      return
     }
 
     if ((event.type == 'message.part.updated')

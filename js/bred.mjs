@@ -1764,10 +1764,8 @@ function start3
       Mess.yell('Ready!')
     })
   }
-  else {
-    Ed.make(Pane.current(), { name: 'Main', dir: Loc.home() })
+  else
     Mess.yell('Ready!')
-  }
   Timing.stop('bred.start3')
 }
 

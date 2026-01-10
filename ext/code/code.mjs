@@ -834,29 +834,80 @@ function init
     if (buf.vars('code').eventSub)
       return
     buf.vars('code').eventSub = 1
+    buf.vars('code').reconnectAttempt = 0
 
     abortController = new AbortController()
     buf.vars('code').eventAbort = abortController
+    buf.vars('code').lastEventTime = Date.now()
 
-    ensureClient(buf).then(async c => {
-      let events
+    updateBufStatus(buf, 'CONNECTING', '')
 
-      d('CO starting event subscription')
-      events = await c.event.subscribe({}, { signal: abortController.signal })
-      d('CO stream obtained')
-      ;(async () => {
+    ;(async () => {
+      while (buf.vars('code').eventSub) {
+        let c
+
+        if (abortController.signal.aborted)
+          break
+
         try {
-          for await (let event of events.stream)
-            handleEvent(buf, event)
+          c = await ensureClient(buf)
+        }
+        catch (err) {
+          d('CO ensureClient error: ' + err.message)
+          await new Promise(r => setTimeout(r, 1000))
+          continue
+        }
+
+        let events
+
+        d('CO starting event subscription')
+        try {
+          events = await c.event.subscribe({}, { signal: abortController.signal })
+          d('CO stream obtained')
+          updateBufStatus(buf, 'CONNECTED', '')
         }
         catch (err) {
           if (err.name == 'AbortError')
             return
-          d('CO event stream error: ' + err.message)
-          d(err.stack)
+          d('CO event subscribe error: ' + err.message)
+          await new Promise(r => setTimeout(r, 1000))
+          continue
         }
-      })()
-    })
+
+        ;(async () => {
+          try {
+            for await (let event of events.stream) {
+              buf.vars('code').lastEventTime = Date.now()
+              handleEvent(buf, event)
+            }
+          }
+          catch (err) {
+            if (err.name == 'AbortError')
+              return
+            d('CO event stream error: ' + err.message)
+          }
+        })()
+
+        await new Promise(r => {
+          buf.vars('code').eventStreamResolve = r
+        })
+        buf.vars('code').eventStreamResolve = 0
+        buf.vars('code').reconnectAttempt++
+        updateBufStatus(buf, 'RECONNECTING...', '')
+      }
+    })()
+
+    buf.vars('code').eventCheckInterval = setInterval(() => {
+      if (buf.vars('code').eventSub) {
+        let elapsed
+
+        elapsed = Date.now() - buf.vars('code').lastEventTime
+        if (elapsed > 35000) { // heartbeat is sent every 30s
+          d('CO no events for ' + elapsed + 'ms, restarting stream')
+          buf.vars('code').eventStreamResolve?.()
+        }
+      }
+    }, 5000)
   }
 
   function divW

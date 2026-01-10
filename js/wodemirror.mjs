@@ -613,7 +613,7 @@ async function viewInitSpec
  //   modeWhenText,
  //   lineNum,
  //   revert,
- //   single,
+ //   single,        // skip peer (for bufs that only appear in 1 place, like prompts)
  //   wextsMode }
  spec,
  whenReady) { // (view) // Runs when the view is ready and any file is loaded
@@ -713,7 +713,6 @@ function _viewInit
   view.wode.comp.extsMode = new CMState.Compartment
   view.wode.wextsMinors = [] // [ { name, wexts: [ wext ] } ]
   view.wode.comp.extsMinors = new CMState.Compartment
-  view.wode.peer = new CMState.Compartment
   view.wode.placeholder = new CMState.Compartment
 
   let decorator
@@ -954,10 +953,10 @@ function _viewInit
 
   wexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
 
-  if (peer)
+  if (peer) {
+    view.wode.peer = new CMState.Compartment
     opts.push(view.wode.peer.of([ peer ]))
-  else
-    opts.push(view.wode.peer.of([]))
+  }
 
   opts.push(view.wode.comp.extsMode.of(makeExtsMode(view)))
   opts.push(view.wode.comp.extsMinors.of(makeExtsMinors(view)))

@@ -1042,26 +1042,6 @@ function _viewInit
     return 0
   }
 
-  if (0 && ((typeof text == 'string') || text instanceof String)) {
-    let mode
-
-    d('given mode: ' + modeWhenText)
-    mode = modeFromFirstLine(text) || modeWhenText
-    mode = mode || 'text'
-    d('chose mode 1: ' + mode)
-    Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
-    vsetLang(view, modeLang(mode))
-    if (U.defined(lineNum))
-      //ed.renderer.once('afterRender', () => recenter(ed))
-      vgotoLine(view, lineNum)
-
-    if (whenReady)
-      whenReady(view)
-    runOnCursors(view)
-
-    return
-  }
-
   useText = (typeof text == 'string') || text instanceof String
   if (spec.revert)
     useText = 0

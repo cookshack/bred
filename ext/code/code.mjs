@@ -85,8 +85,16 @@ function init
   function appendX
   (w, el) {
     withScroll(w, underW => {
-      if (underW)
-        underW.before(el)
+      if (underW) {
+        let prev
+
+        prev = underW.previousElementSibling
+        if (prev && Css.has(prev, 'code-msg-permission'))
+          // keep the permission check at the end
+          prev.before(el)
+        else
+          underW.before(el)
+      }
       else
         append(w, el)
     })

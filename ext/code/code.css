@@ -10,8 +10,8 @@
 .code-h {
   display: flex;
   align-items: center;
-  padding: 4px 8px;
-  gap: 8px;
+  padding: 0.5rem;
+  gap: 0.5rem;
   position: sticky;
   top: 0;
   z-index: 1;
@@ -49,7 +49,7 @@
   padding-top: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
   overflow-y: auto;
 }
 
@@ -76,12 +76,10 @@
   display: none;
   color: var(--clr-emph);
   justify-content: flex-end;
-  padding-right: 12px;
 }
 
 .code-msg-text {
-  padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   line-height: 1.4;
   white-space: pre-wrap;
 }
@@ -111,16 +109,15 @@
 }
 
 .code-msg-thinking .code-msg-text {
-  padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: 0.5rem;
   line-height: 1.4;
   white-space: pre-wrap;
   font-style: italic;
 }
 
 .code-msg-tool {
-  gap: 8px;
-  margin-top: 4px;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }
 
 .code-msg-tool .code-msg-text {
@@ -131,6 +128,18 @@
 .code-msg-tool .code-msg-text.code-msg-under {
   font-family: var(--font-monospace);
   font-style: normal;
+  position: relative;
+  padding-left: 0.75rem;
+}
+
+.code-msg-tool .code-msg-text.code-msg-under::before {
+  content: '';
+  position: absolute;
+  left: 0.25rem;
+  top: 0;
+  bottom: 0;
+  width: 0.25rem;
+  background: var(--clr-fill);
 }
 
 .code-msg-permission {
@@ -140,7 +149,6 @@
 
 .code-msg-permission .code-msg-text {
   font-style: normal;
-  padding: 8px 12px;
   gap: 0.5rem;
   display: flex;
   align-items: center;

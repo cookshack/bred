@@ -4541,12 +4541,6 @@ function initTheme
   () {
     let themeSettings
 
-    if (Opt.get('core.theme.mode') == 'light')
-      Theme = ThemeLight
-    else
-      Theme = ThemeDark
-    Ed.initTheme(Theme)
-
     themeTags = LZHighlight.tags
     themeSettings = { backgroundImage: '',
                       foreground: Theme.meanings.text,
@@ -4576,6 +4570,12 @@ function initTheme
 
     return [ themeExtension, themeHighlighting ]
   }
+
+  if (Opt.get('core.theme.mode') == 'light')
+    Theme = ThemeLight
+  else
+    Theme = ThemeDark
+  Ed.initTheme(Theme)
 
   themeExtensionPart = new CMState.Compartment
 

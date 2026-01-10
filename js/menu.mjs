@@ -153,7 +153,6 @@ function make
                append(menu1,
                       [ item('Home', 'goto home'),
                         item('Bred', 'goto bred'),
-                        item('Scratch', 'goto scratch'),
                         line(),
                         item('/', 'root'),
                         item('/tmp', 'open link', { 'data-path': '/tmp/' }),

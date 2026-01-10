@@ -212,21 +212,6 @@ function initMouse
   }
 }
 
-function makeScratch
-(p, cb) {
-  Ed.make(p,
-          { name: 'Scratch.js',
-            dir: Loc.home() },
-          view => {
-            view.buf.file = 'Scratch.js'
-            view.insert(scratchMessage())
-            view.buf.modified = 0
-            Ed.setIcon(view.buf, '.edMl-mod', 'blank')
-            if (cb)
-              cb()
-          })
-}
-
 function initCmds
 () {
   Cmd.add('click', click)
@@ -516,19 +501,6 @@ function initCmds
 
   Cmd.add('goto bred', () => Pane.open(Loc.appDir().path))
   Cmd.add('goto home', () => Pane.open(Loc.home()))
-  Cmd.add('goto scratch', () => {
-    let p, buf
-
-    p = Pane.current()
-
-    buf = Buf.find(b => b.name == 'Scratch.js')
-    if (buf) {
-      p.setBuf(buf)
-      return
-    }
-
-    makeScratch(p)
-  })
 
   Cmd.add('evaluate expression', () => {
     d('ee')
@@ -1612,11 +1584,6 @@ function initRecent
   })
 }
 
-function scratchMessage
-() {
-  return '// This is your Javascript scratch buffer. For notes, tests or whatever.\n\n'
-}
-
 function initFontSize
 () {
   let px
@@ -1735,11 +1702,6 @@ function start2
   Cmd.run('messages')
   p = Pane.current(tab.frame1)
   p.focus()
-  if (Win.root()) {
-    d('creating Scratch.js')
-    makeScratch(p, () => start3(tab))
-    return
-  }
   Timing.stop('bred.start2')
   start3(tab)
 }

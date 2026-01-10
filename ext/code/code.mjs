@@ -758,8 +758,10 @@ function init
     sessionID = buf && buf.vars('code')?.sessionID
 
     if ((event.type == 'session.status')
-        && (event.properties.sessionID == sessionID))
+        && (event.properties.sessionID == sessionID)) {
       updateStatus(buf, event.properties, calculateTokenPercentage(buf))
+      return
+    }
 
     if ((event.type == 'permission.asked')
         && (event.properties.sessionID == sessionID)) {
@@ -784,6 +786,11 @@ function init
       handlePart(buf, event)
       return
     }
+
+    if (event.type == 'server.heartbeat')
+      return
+
+    d('🌱 TODO handle ' + event.type)
   }
 
   function startEventSub

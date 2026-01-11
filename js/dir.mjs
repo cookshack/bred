@@ -396,7 +396,7 @@ function nearestLine
 }
 
 function fill
-(p, bak, hid, sort, currentFile, marked) {
+(buf, dir, bak, hid, sort, currentFile, marked) {
   let path, toScroll
 
   function makeF
@@ -517,9 +517,9 @@ function fill
 
   d('DIR fill')
 
-  marked = marked || Marked.make(p.buf)
+  marked = marked || Marked.make(buf)
 
-  path = Loc.make(p.dir)
+  path = Loc.make(dir)
   path.ensureSlash()
 
   sort = sort || Opt.get('dir.sort')
@@ -570,23 +570,23 @@ function fill
       co = co.sort().reverse()
 
     lines = co.map(makeF)
-    p.buf.vars('dir').lines = lines
-    p.buf.vars('dir').marked = marked
+    buf.vars('dir').lines = lines
+    buf.vars('dir').marked = marked
     bak = bak ? 1 : 0
-    p.buf.opts.set('dir.show.backups', bak)
+    buf.opts.set('dir.show.backups', bak)
     hid = hid ? 1 : 0
-    p.buf.opts.set('dir.show.hidden', hid)
-    p.buf.opts.set('dir.sort', sort)
+    buf.opts.set('dir.show.hidden', hid)
+    buf.opts.set('dir.sort', sort)
 
-    p.buf.content = dirW(path,
-                         [ lines.length ? null : divCl('dir-empty', 'Empty directory'),
-                           divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }),
-                           divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }) ],
-                         { 'data-bak': bak,
-                           'data-hid': hid,
-                           'data-sort': sort })
+    buf.content = dirW(path,
+                       [ lines.length ? null : divCl('dir-empty', 'Empty directory'),
+                         divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }),
+                         divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }) ],
+                       { 'data-bak': bak,
+                         'data-hid': hid,
+                         'data-sort': sort })
 
-    p.buf.views.forEach(v => {
+    buf.views.forEach(v => {
       if (v.ele) {
         init(v)
 
@@ -677,7 +677,7 @@ function add
   b.fileType = 'dir'
   b.addMode('view')
   p.setBuf(b, {}, () => {
-    fill(p, undefined, undefined, sort, initialFile)
+    fill(b, p.dir, undefined, undefined, sort, initialFile)
     watch(dir.path)
   })
 }
@@ -703,12 +703,12 @@ function refresh
   if (p.dir && p.buf.file) {
     p.buf.clear()
     if (currentFile)
-      fill(p, bak, hid, sort, currentFile, marked)
+      fill(p.buf, p.dir, bak, hid, sort, currentFile, marked)
     else {
       let el
 
       el = p.view.point.over()
-      fill(p, bak, hid, sort, el?.dataset.name, marked)
+      fill(p.buf, p.dir, bak, hid, sort, el?.dataset.name, marked)
     }
   }
   else

@@ -410,9 +410,19 @@ function make
     return val
   }
 
+  // Return one of the active views, if there are any.
   function anyView
-  () {
-    return b.views.find(view => view.ready && view.ele)
+  (lax) { // resort to closed views if needed
+    let b
+
+    b = b.views.find(view => view.ready && view.ele)
+    if (b)
+      return b
+
+    if (lax)
+      return b.views.length && b.views[0]
+
+    return 0
   }
 
   if (name) {

@@ -18,10 +18,11 @@ function make
         elePoint,
         lineNum }
     = spec
-  let v, active, ready, point, modeVars, onCloses, scrollTop
+  let v, active, ready, point, modeVars, onCloses, scrollTop, win, existing
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
-  let reserved, win, existing
+  // Like a stash.
+  let reserved
 
   // used by wace,won  remove when they do peer
   function sync
@@ -52,14 +53,15 @@ function make
     ready = 0
     active = 0
     if (ele) {
-      let scrollEl
+      let scrollEl, els
 
       scrollEl = ele.querySelector('.bred-scroller')
       if (scrollEl)
         scrollTop = scrollEl.scrollTop
-      reserved = [ ...ele.children ]
-      reserved.forEach(e => e.remove())
-      //ele.innerHTML = ''
+      els = [ ...ele.children ]
+      els.forEach(e => e.remove())
+      reserved = new globalThis.DocumentFragment()
+      append(reserved, els)
       ele = null
     }
   }
@@ -422,11 +424,6 @@ function make
         get ele() {
           return ele // the pane element
         },
-        get content() {
-          if (ele)
-            return [ ...ele.children ]
-          return reserved
-        },
         set content(co) {
           if (ele) {
             ele.innerHTML = ''
@@ -434,8 +431,10 @@ function make
               append(ele, co)
             point.init()
           }
-          else
-            reserved = [ co ]
+          else {
+            reserved = new globalThis.DocumentFragment()
+            append(reserved, co)
+          }
           ready = 1
         },
         get region() {

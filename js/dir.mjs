@@ -586,22 +586,26 @@ function fill
                            'data-hid': hid,
                            'data-sort': sort })
 
-    p.buf.views.forEach(v => v.ele && init(v))
+    p.buf.views.forEach(v => {
+      if (v.ele) {
+        init(v)
 
-    if (currentFile) {
-      let el
+        if (currentFile) {
+          let el
 
-      el = p.view.ele?.querySelector('.dir-name[data-name="' + currentFile + '"]')
-      if (el)
-        put(p.view, el)
-    }
-    else {
-      let first
+          el = v.ele?.querySelector('.dir-name[data-name="' + currentFile + '"]')
+          if (el)
+            put(v, el)
+        }
+        else {
+          let first
 
-      first = p.view.ele?.querySelector('.dir-name')
-      if (first)
-        put(p.view, first)
-    }
+          first = v.ele?.querySelector('.dir-name')
+          if (first)
+            put(v, first)
+        }
+      }
+    })
   })
 }
 

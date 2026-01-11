@@ -476,7 +476,7 @@ function fill
                     cols: 7 },
                   (frag, i) => lines[i].forEach(cell => append(frag, cell)))
     if (visible(el))
-      put(p.view, el)
+      put(view, el)
     else
       nearestLine(view)
     toScroll = 0

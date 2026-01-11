@@ -634,15 +634,15 @@ function watch
             && (pane.buf.path == path)) {
           if (data.bak) {
             if (pane.buf.opt('dir.show.backups'))
-              refreshKeep(pane, { file: currentFile() })
+              refreshKeep(pane, { file: currentFile(pane) })
             return
           }
           if (data.hidden) {
             if (pane.buf.opt('dir.show.hidden'))
-              refreshKeep(pane, { file: currentFile() })
+              refreshKeep(pane, { file: currentFile(pane) })
             return
           }
-          refreshKeep(pane, { file: currentFile() })
+          refreshKeep(pane, { file: currentFile(pane) })
         }
       })
     })
@@ -793,11 +793,8 @@ function current
 }
 
 function currentFile
-() {
-  let el
-
-  el = current()
-  return el?.dataset.name
+(p) {
+  return current(p)?.dataset.name
 }
 
 function initChmod
@@ -1629,7 +1626,12 @@ function init
   Cmd.add('equal', () => equal(), m)
   Cmd.add('link', () => link(), m)
   Cmd.add('mark', mark, m)
-  Cmd.add('refresh', () => refreshKeep(Pane.current(), { file: currentFile() }), m)
+  Cmd.add('refresh', () => {
+    let p
+
+    p = Pane.current()
+    refreshKeep(p, { file: currentFile(p) })
+  }, m)
   Cmd.add('rename', () => rename(), m)
   Cmd.add('scroll down', () => scrollDown(), m)
   Cmd.add('scroll up', () => scrollDown(1), m)

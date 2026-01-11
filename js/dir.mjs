@@ -396,7 +396,7 @@ function nearestLine
 }
 
 function fill
-(buf, dir, bak, hid, sort, currentFile, marked) {
+(buf, bak, hid, sort, currentFile, marked) {
   let path, toScroll
 
   function makeF
@@ -519,7 +519,7 @@ function fill
 
   marked = marked || Marked.make(buf)
 
-  path = Loc.make(dir)
+  path = Loc.make(buf.dir)
   path.ensureSlash()
 
   sort = sort || Opt.get('dir.sort')
@@ -677,7 +677,7 @@ function add
   b.fileType = 'dir'
   b.addMode('view')
   p.setBuf(b, {}, () => {
-    fill(b, p.dir, undefined, undefined, sort, initialFile)
+    fill(b, undefined, undefined, sort, initialFile)
     watch(dir.path)
   })
 }
@@ -703,12 +703,12 @@ function refresh
   if (p.dir && p.buf.file) {
     p.buf.clear()
     if (currentFile)
-      fill(p.buf, p.dir, bak, hid, sort, currentFile, marked)
+      fill(p.buf, bak, hid, sort, currentFile, marked)
     else {
       let el
 
       el = p.view.point.over()
-      fill(p.buf, p.dir, bak, hid, sort, el?.dataset.name, marked)
+      fill(p.buf, bak, hid, sort, el?.dataset.name, marked)
     }
   }
   else

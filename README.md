@@ -1,7 +1,7 @@
 > [!WARNING]
 > Use at your own risk! This is experimental, and far from stable or secure.
 
-I'm playing with CodeMirror and Ace inside Electron.
+I'm playing with CodeMirror inside Electron.
 
 ![4 Breds](https://git.sr.ht/~mattmundell/bred/blob/main/etc/shot.png)
 

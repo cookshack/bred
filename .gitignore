@@ -13,7 +13,6 @@ TAGS.mjs
 ext/*/lib/
 ext/*/package-lock.json
 lib/*
-!lib/ace.js
 !lib/codemirror.js
 !lib/ev.pegjs
 !lib/codemirror-patches

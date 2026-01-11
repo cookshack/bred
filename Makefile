@@ -13,7 +13,7 @@ fix-node-pty:
 fix-sqlite3:
 	npx electron-rebuild -f -w better-sqlite3
 
-prep: version-sqlite fix-others fix-ace fix-codemirror prep-mime
+prep: version-sqlite fix-others fix-codemirror prep-mime
 	rm -f lib/callsites.js
 	cp -r node_modules/callsites/index.js lib/callsites.mjs
 	npx peggy --format es -o lib/ev-parser.mjs lib/ev.pegjs
@@ -29,13 +29,6 @@ version-sqlite:
 	echo -n '{ "version": "' > lib/sqlite.json
 	grep -m 1 -oE 'version ([0-9]+\.[0-9]+\.[0-9]+)' node_modules/better-sqlite3/deps/sqlite3/sqlite3.c | cut -d' ' -f2- | tr -d '\n' >> lib/sqlite.json
 	echo '" }' >> lib/sqlite.json
-
-version-ace:
-	echo -n '{ "version": "' > lib/ace/version.json
-	(cd node_modules/ace-builds && node -p "require('./package.json').version") | tr -d '\n' >> lib/ace/version.json
-	echo '" }' >> lib/ace/version.json
-
-fix-ace: sync-ace version-ace
 
 version-codemirror:
 	echo -n '{ "version": "' > lib/@codemirror/version.json
@@ -157,19 +150,6 @@ sync-codemirror:
 	cp node_modules/@lezer/php/dist/index.cjs lib/@lezer/php.js # .js is missing
 	for DIR in node_modules/@uiw/*; do mkdir -p lib/@uiw/$$(basename $$DIR)/; cp $$DIR/esm/*.js lib/@uiw/$$(basename $$DIR)/; done
 
-sync-ace:
-	touch lib/unicode.js
-	rm lib/unicode.js
-	cat node_modules/ace-code/src/unicode.js | sed -e 's/var wordChars/export var wordChars/g' | sed -e 's/exports.wordChars/wordChars/g' > lib/unicode.mjs
-	rm -rf lib/ace/
-	mkdir -p lib/ace/
-	cp -r node_modules/ace-builds/src-noconflict/* lib/ace/
-	rm -rf lib/ace-linters/
-	mkdir -p lib/ace-linters/
-	cp -r node_modules/ace-linters/build/* lib/ace-linters
-#	cp -r ../ace-builds/src-noconflict/* lib/ace/
-#	cp -r ../ace/build/src-noconflict/* lib/ace/
-
 gen-pngs:
 	inkscape --export-filename=img/logo.png --batch-process -w 256 -h 256 img/logo.svg
 	inkscape --export-filename=img/logom.png --batch-process -w 256 -h 256 img/logom.svg
@@ -183,7 +163,6 @@ sync-icons:
 pack:
 #	npx webpack --config ./pack/pack.config.js
 	echo ERR in main.html now
-#	npx webpack --config ./pack/wack-ace.config.js
 
 release:
 	npm run make # FIX fails due to symlinks

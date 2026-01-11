@@ -1224,14 +1224,14 @@ function lineAt
   return l.text
 }
 
-// pos here is bred pos (vs ace/mon pos)
+// pos here is bred pos (vs the pos's that were in the old ace/mon backends)
 export
 function vsetPos
 (view, pos, reveal) {
   return vsetBepSpec(view, posToBep(view, pos), { reveal })
 }
 
-// pos here is bred pos (vs ace/mon pos)
+// pos here is bred pos (vs the pos's that were in the old ace/mon backends)
 export
 function vgetPos
 (view) {

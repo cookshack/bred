@@ -960,8 +960,6 @@ function initSearch
         && lastNeedle)
       s.st.needle = lastNeedle
 
-    // seems ace keeps some state when the find is active that messes up the backward search
-    //vexec(s.st.view, "keyboardQuit")
     range = vfind(s.st.view,
                   s.st.needle,
                   s.st,

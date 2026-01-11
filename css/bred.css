@@ -908,55 +908,6 @@ div#mini-panel {
   padding-right: 0.3rem;
 }
 
-/* override ace */
-
-.emacs-mode .ace_cursor {
-  border: none!important;
-  box-sizing: border-box!important;
-  background-color: var(--clr-point-current);
-  opacity: 1;
-}
-
-.emacs-mode .ace_hidden-cursors .ace_cursor{
-  opacity: 1;
-  background-color: var(--clr-point);
-}
-
-.paneWW.current .ace_cursor {
-  background-color: var(--clr-point-current);
-  width: 3px !important;
-}
-
-.emacs-mode .ace_overwrite-cursors .ace_cursor {
-  opacity: 1;
-  background-color: transparent;
-  border-width: 0 0 2px 2px !important;
-  border: 3px var(--clr-point-current) solid!important;
-}
-
-/* div prefix makes these more specific, else dyn loaded css takes pref */
-
-.ace-solarized-light div.ace_gutter-active-line {
-  background-color: var(--clr-fill);
-  color: var(--clr-nb0);
-}
-
-.paneWW.current > .paneW > .pane > .edWW > .edW > .ace_gutter > .ace_layer > div.ace_gutter-active-line {
-  color: var(--clr-nb3);
-  background-color: var(--clr-bg);
-}
-
-.ace-solarized-light div.ace_gutter {
-  background-color: var(--clr-fill);
-  color: var(--clr-text-light);
-}
-
-.ace-solarized-light .ace_marker-layer div.ace_bracket {
-  margin: -1px 0 0 -1px;
-  border: 1px solid var(--clr-nb3);
-  background: var(--clr-fill);
-}
-
 /* codemirror */
 
 .cm-editor {

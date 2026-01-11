@@ -2,7 +2,7 @@
 
 ## Overview
 
-eBred is an Electron-based code editor that supports multiple editing backends including CodeMirror and Ace. It is designed as a modern, extensible editor with features commonly found in Emacs-style editors, such as advanced navigation, multiple panes, and customizable key bindings.
+Bred is an Electron-based code editor that supports multiple editing backends (currently only CodeMirror). It is designed as a modern, extensible editor with features commonly found in Emacs-style editors, such as advanced navigation, multiple panes, and customizable key bindings.
 
 The codebase is organized into several categories:
 - Core application files that handle initialization and main functionality

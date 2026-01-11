@@ -75,7 +75,6 @@
   max-height: 100%;
   min-height: var(--height-ml);
   display: flex;
-  /* override ace */
   font-size: 1rem;
   font-family: var(--font-monospace);
 }

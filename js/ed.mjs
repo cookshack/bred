@@ -19,7 +19,6 @@ import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
-import { wordChars } from '../lib/unicode.mjs'
 import escapeStringRegexp from '../lib/escape-string-regexp.js'
 
 import mbe from '../lib/mime-by-ext.json' with { type: 'json' }
@@ -799,16 +798,11 @@ function setBackend
   }
 
   backend = be
-  //backend = "ace"
   //backend = "codemirror"
 
   if (backend == 'codemirror') {
     Mess.log('Backend: CodeMirror')
     load('./wodemirror.mjs')
-  }
-  else if (backend == 'ace') {
-    Mess.log('Backend: Ace')
-    load('./wace.mjs')
   }
   else
     Mess.toss('Ed:init caller must specify backend')
@@ -1293,9 +1287,8 @@ function init
   // Here so it loads before backend.
   Opt.declare('core.theme.mode', 'str', 'light')
 
-  // these two from ace
-  tokenRe = new RegExp('[' + wordChars + '\\$_]+', 'g')
-  nonTokenRe = new RegExp('(?:[^' + wordChars + '\\$_]|\\s])+', 'g')
+  tokenRe = new RegExp('[\\p{L}\\p{N}_$]+', 'g')
+  nonTokenRe = new RegExp('(?:[^\\p{L}\\p{N}_$]|\\s)+', 'g')
 
   setBackend(backend, err => {
     if (err)

@@ -514,7 +514,7 @@ function make
                             wextsMode: mode.wexts },
                           whenReady)
       }
-      else if (mode && mode.viewInit) // remove when ace,mon have viewInitSpec (BUT also used by div views)
+      else if (mode && mode.viewInit) // remove BUT used by div views
         mode.viewInit(v, 0, 0, lineNum, whenReady)
       else
         ready1()

@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <!-- style-src for codemirror, blob for ace, script-src unsafe eval for Evaluate Line -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:* https://www.googleapis.com/customsearch/v1 https://openrouter.ai/api/v1/chat/completions https://openrouter.ai/api/v1/auth/key https://gutendex.com/; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; img-src 'self' https: data:;">
+    <!-- style-src for codemirror, script-src unsafe eval for Evaluate Line -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' http://127.0.0.1:* https://www.googleapis.com/customsearch/v1 https://openrouter.ai/api/v1/chat/completions https://openrouter.ai/api/v1/auth/key https://gutendex.com/; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self'; img-src 'self' https: data:;">
     <title>Bred</title>
   </head>
   <body id="body">

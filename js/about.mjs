@@ -19,7 +19,6 @@ import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scroll from './scroll.mjs'
-import Vace from '../lib/ace/version.json' with { type: 'json' }
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 import Vqlite from '../lib/sqlite.json' with { type: 'json' }
 import * as Win from './win.mjs'
@@ -70,7 +69,6 @@ function initAbout
                                  ver('Electron', v.electron),
                                  ver('Chrome', v.chrome),
                                  ver('V8', v.v8),
-                                 ver('Ace', Vace.version || 'missing'),
                                  ver('CodeMirror', Vode.version),
                                  ver('SQLite', Vqlite.version),
                                  ver('Backend', Ed.backend),

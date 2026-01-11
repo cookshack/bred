@@ -623,26 +623,31 @@ function watch
       return
     }
     Tron.on(ch, (err, data) => {
+      let file, getFile
+
       // NB Beware of doing anything in here that modifies any dir being watched,
       //    eg logging in dir.get when --logfile, because that causes recursive
       //    behaviour.
       d('--- watch ev ---')
       d({ data })
+      getFile = 1
       Pane.forEach(pane => {
         if (pane.buf
             && (pane.buf.mode?.key == 'dir')
             && (pane.buf.path == path)) {
+          file = getFile && currentFile(pane)
+          getFile = 0
           if (data.bak) {
             if (pane.buf.opt('dir.show.backups'))
-              refreshKeep(pane, { file: currentFile(pane) })
+              refreshKeep(pane, { file })
             return
           }
           if (data.hidden) {
             if (pane.buf.opt('dir.show.hidden'))
-              refreshKeep(pane, { file: currentFile(pane) })
+              refreshKeep(pane, { file })
             return
           }
-          refreshKeep(pane, { file: currentFile(pane) })
+          refreshKeep(pane, { file })
         }
       })
     })

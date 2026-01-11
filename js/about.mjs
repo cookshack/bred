@@ -22,7 +22,6 @@ import * as Scroll from './scroll.mjs'
 import Vace from '../lib/ace/version.json' with { type: 'json' }
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 import Vqlite from '../lib/sqlite.json' with { type: 'json' }
-import Vonaco from '../lib/monaco/version.json' with { type: 'json' }
 import * as Win from './win.mjs'
 
 import * as Welcome from './welcome.mjs'
@@ -73,7 +72,6 @@ function initAbout
                                  ver('V8', v.v8),
                                  ver('Ace', Vace.version || 'missing'),
                                  ver('CodeMirror', Vode.version),
-                                 ver('Monaco', Vonaco.version),
                                  ver('SQLite', Vqlite.version),
                                  ver('Backend', Ed.backend),
                                  ver('Profile', Loc.profile()) ]),

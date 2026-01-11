@@ -800,16 +800,11 @@ function setBackend
 
   backend = be
   //backend = "ace"
-  //backend = "monaco"
   //backend = "codemirror"
 
   if (backend == 'codemirror') {
     Mess.log('Backend: CodeMirror')
     load('./wodemirror.mjs')
-  }
-  else if (backend == 'monaco') {
-    Mess.log('Backend: Monaco')
-    load('./wonaco.mjs')
   }
   else if (backend == 'ace') {
     Mess.log('Backend: Ace')

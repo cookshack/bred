@@ -84,8 +84,6 @@
     "get-current-line": "^7.4.0",
     "lezer-utils": "^0.3.1",
     "mime": "^4.0.7",
-    "monaco-editor": "^0.48.0",
-    "monaco-themes": "^0.4.4",
     "node-abi": "^4.24.0",
     "node-pty": "^1.1.0",
     "typescript": "^5.5.2",

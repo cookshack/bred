@@ -16,7 +16,6 @@ lib/*
 !lib/ace.js
 !lib/codemirror.js
 !lib/ev.pegjs
-!lib/monaco-patches
 !lib/codemirror-patches
 node_modules/
 opencode-src

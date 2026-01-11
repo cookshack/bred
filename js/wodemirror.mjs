@@ -653,12 +653,6 @@ function _viewInit
     // remove all built-in and extension-provided bindings
   }
 
-  function clearHandlers
-  () {
-    //edW.onkeydown = undefined
-    //edW.onkeyup = undefined
-  }
-
   function onChange
   (update) {
     if (view?.ele) {
@@ -1013,11 +1007,6 @@ function _viewInit
     if (view.ev_onDidBlurEditorWidget)
       view.ev_onDidBlurEditorWidget.dispose()
     view.ev_onDidBlurEditorWidget = ed.onDidBlurEditorWidget('XonDidBlurEditorWidget')
-  }
-  // problems, now done via lib/monaco-patches/02-turn-off-onkeydown.patch
-  if (0) {
-    ed.onDidChangeModelLanguageConfiguration(clearHandlers) // first init
-    ed.onDidLayoutChange(clearHandlers) // every init
   }
 
   //// load file

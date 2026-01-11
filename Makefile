@@ -13,7 +13,7 @@ fix-node-pty:
 fix-sqlite3:
 	npx electron-rebuild -f -w better-sqlite3
 
-prep: version-sqlite fix-others fix-ace fix-monaco fix-codemirror prep-mime
+prep: version-sqlite fix-others fix-ace fix-codemirror prep-mime
 	rm -f lib/callsites.js
 	cp -r node_modules/callsites/index.js lib/callsites.mjs
 	npx peggy --format es -o lib/ev-parser.mjs lib/ev.pegjs
@@ -24,16 +24,6 @@ prep-mime:
 	echo \{\} > lib/mime-by-ext.json
 	cp -r node_modules/mime-db/db.json lib/mime.json
 	npm run mime
-
-fix-main:
-	cd lib/monaco/ && sed -i "s/\(import\|export\) \(.*\)';/\\1 \\2.js';/g" vs/editor/editor.main.js
-
-# must run before fix-monaco so sync-monaco first to test it alone
-fix-css:
-#	cd lib/monaco/ && find . -type f -name \*.js | xargs grep "import .*\\.css" | sed "s;\\./\(.\+\)/.*:import '\\.\(.*\).css'.*;<link rel=\"stylesheet\" type=\"text/css\" href=\"lib/monaco/\1\2.css\"\/>;g" #> ../css.html
-	echo export let sheets = \[ > lib/sheets.mjs
-	cd lib/monaco/ && find . -type f -name \*.js | xargs grep "import .*\\.css" | sed "s;\\./\(.\+\)/.*:import '\\.\(.*\).css'.*;'lib/monaco/\1\2.css',;g" >> ../sheets.mjs
-	echo \] >> lib/sheets.mjs
 
 version-sqlite:
 	echo -n '{ "version": "' > lib/sqlite.json
@@ -166,37 +156,6 @@ sync-codemirror:
 	cp node_modules/w3c-keyname/index.js lib/w3c-keyname.js
 	cp node_modules/@lezer/php/dist/index.cjs lib/@lezer/php.js # .js is missing
 	for DIR in node_modules/@uiw/*; do mkdir -p lib/@uiw/$$(basename $$DIR)/; cp $$DIR/esm/*.js lib/@uiw/$$(basename $$DIR)/; done
-
-version-monaco:
-	echo -n '{ "version": "' > lib/monaco/version.json
-	(cd node_modules/monaco-editor && node -p "require('./package.json').version") | tr -d '\n' >> lib/monaco/version.json
-	echo '" }' >> lib/monaco/version.json
-
-patch-monaco:
-	cd lib/monaco/ && for P in ../monaco-patches/*.patch; do echo "  $$P"; cat $$P | patch --ignore-whitespace -p 0; done
-
-# must run after any sync-monaco-*
-# must sync-monaco before repeating this
-fix-monaco: sync-monaco fix-main fix-css patch-monaco version-monaco
-	cd lib/monaco/ && find . -type f -name \*.js | xargs sed -i "s/import \(.*\)\\.css'/console.log(\\1\\.css'); import \\1.css' with { type: 'css' }/g"
-
-fix-monaco-local: sync-monaco-local fix-main fix-css patch-monaco version-monaco
-	cd lib/monaco/ && find . -type f -name \*.js | xargs sed -i "s/import \(.*\)\\.css'/console.log(\\1\\.css'); import \\1.css' with { type: 'css' }/g"
-
-sync-monaco-local:
-	rm -rf lib/monaco/
-	mkdir -p lib/monaco/
-	cp -r ~/src/monaco-editor/out/monaco-editor/esm/* lib/monaco/
-
-sync-monaco:
-	rm -rf lib/monaco/
-	mkdir -p lib/monaco/
-	cp -r node_modules/monaco-editor/esm/* lib/monaco/
-
-sync-monaco-themes:
-	rm -rf lib/monaco-themes/
-	mkdir -p lib/monaco-themes/
-	cp -r node_modules/monaco-themes/themes/* lib/monaco-themes/
 
 sync-ace:
 	touch lib/unicode.js

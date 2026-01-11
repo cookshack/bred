@@ -2,7 +2,7 @@
 
 ## Overview
 
-Bred is an Electron-based code editor that supports multiple editing backends including CodeMirror, Monaco, and Ace. It is designed as a modern, extensible editor with features commonly found in Emacs-style editors, such as advanced navigation, multiple panes, and customizable key bindings.
+Bred is an Electron-based code editor that supports multiple editing backends including CodeMirror and Ace. It is designed as a modern, extensible editor with features commonly found in Emacs-style editors, such as advanced navigation, multiple panes, and customizable key bindings.
 
 ## Core Architecture
 
@@ -20,7 +20,6 @@ Communication between processes occurs via IPC (Inter-Process Communication) cha
 Bred supports three major editing backends:
 
 - **CodeMirror** (Primary): A versatile, modular code editor for the web
-- **Monaco**: Microsoft's powerful editor used in VS Code
 - **Ace**: A standalone code editor with high performance
 
 Each backend is integrated through adapter modules that expose a consistent API to the rest of the application.

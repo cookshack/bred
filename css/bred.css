@@ -941,25 +941,11 @@ div#mini-panel {
   color: var(--clr-nb0);
 }
 
-/* in theme
-div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
-  --vscode-menu-selectionForeground: var(--clr-text);
-  --vscode-menu-selectionBackground: var(--clr-fill);
-  --vscode-quickInputList-focusForeground: var(--clr-text);
-  --vscode-quickInputList-focusBackground: var(--clr-fill);
-  --vscode-editorHoverWidget-background: var(--clr-fill);
-}
-*/
-
-.current-line, /* monaco */
-.monaco-editor div.line-numbers.active-line-number,
 .paneWW.current > .paneW > .pane > .edWW > .edW > .ace_gutter > .ace_layer > div.ace_gutter-active-line {
   color: var(--clr-nb3);
   background-color: var(--clr-bg);
 }
 
-.monaco-editor div.margin,
-.monaco-editor div.line-numbers,
 .ace-solarized-light div.ace_gutter {
   background-color: var(--clr-fill);
   color: var(--clr-text-light);
@@ -969,15 +955,6 @@ div.monaco-editor, div.monaco-diff-editor, div.monaco-component {
   margin: -1px 0 0 -1px;
   border: 1px solid var(--clr-nb3);
   background: var(--clr-fill);
-}
-
-.monaco-editor .cursors-layer div.cursor {
-  background: var(--clr-point-current);
-}
-
-.monaco-editor .cursors-layer div.cursor.bred-blur {
-  background: var(--clr-point);
-  visibility: visible!important;
 }
 
 /* codemirror */

@@ -630,15 +630,15 @@ function watch
             && (pane.buf.path == path)) {
           if (data.bak) {
             if (pane.buf.opt('dir.show.backups'))
-              refreshKeep(pane, 0, 0, 0, currentFile())
+              refreshKeep(pane, { file: currentFile() })
             return
           }
           if (data.hidden) {
             if (pane.buf.opt('dir.show.hidden'))
-              refreshKeep(pane, 0, 0, 0, currentFile())
+              refreshKeep(pane, { file: currentFile() })
             return
           }
-          refreshKeep(pane, 0, 0, 0, currentFile())
+          refreshKeep(pane, { file: currentFile() })
         }
       })
     })
@@ -661,7 +661,7 @@ function add
 
   exist = Buf.find(b => (b.mode?.key == 'dir') && (b.dir == dir.path))
   if (exist) {
-    p.setBuf(exist, {}, () => refreshKeep(p, undefined, undefined, sort, initialFile))
+    p.setBuf(exist, {}, () => refreshKeep(p, { sort, file: initialFile }))
     return
   }
 
@@ -712,15 +712,16 @@ function refresh
 }
 
 function refreshKeep
-(p, bak, hid, sort, currentFile) {
+(p, spec) { // { bak, hid, sort, file }
   let marked
 
-  bak = bak ?? p.buf.opt('dir.show.backups')
-  hid = hid ?? p.buf.opt('dir.show.hidden')
-  sort = sort ?? p.buf.opt('dir.sort')
+  spec = spec || {}
+  spec.bak = spec.bak ?? p.buf.opt('dir.show.backups')
+  spec.hid = spec.hid ?? p.buf.opt('dir.show.hidden')
+  spec.sort = spec.sort ?? p.buf.opt('dir.sort')
 
   marked = getMarked(p.buf)
-  refresh(p, bak, hid, sort, marked, currentFile)
+  refresh(p, spec.bak, spec.hid, spec.sort, marked, spec.file)
 }
 
 function sortBy
@@ -737,9 +738,9 @@ function sortBy
       d = d + (ss[1] == 'asc' ? '-desc' : '-asc')
   }
   refreshKeep(p,
-              p.buf.opt('dir.show.backups'),
-              p.buf.opt('dir.show.hidden'),
-              d)
+              { bak: p.buf.opt('dir.show.backups'),
+                hid: p.buf.opt('dir.show.hidden'),
+                sort: d })
 }
 
 function showBak
@@ -748,9 +749,9 @@ function showBak
 
   p = Pane.current()
   refreshKeep(p,
-              p.buf.opt('dir.show.backups') ? 0 : 1,
-              p.buf.opt('dir.show.hidden'),
-              p.buf.opt('dir.sort'))
+              { bak: p.buf.opt('dir.show.backups') ? 0 : 1,
+                hid: p.buf.opt('dir.show.hidden'),
+                sort: p.buf.opt('dir.sort') })
 }
 
 function showHid
@@ -759,9 +760,9 @@ function showHid
 
   p = Pane.current()
   refreshKeep(p,
-              p.buf.opt('dir.show.backups'),
-              p.buf.opt('dir.show.hidden') ? 0 : 1,
-              p.buf.opt('dir.sort'))
+              { bak: p.buf.opt('dir.show.backups'),
+                hid: p.buf.opt('dir.show.hidden') ? 0 : 1,
+                sort: p.buf.opt('dir.sort') })
 }
 
 export
@@ -1624,7 +1625,7 @@ function init
   Cmd.add('equal', () => equal(), m)
   Cmd.add('link', () => link(), m)
   Cmd.add('mark', mark, m)
-  Cmd.add('refresh', () => refreshKeep(Pane.current(), 0, 0, 0, currentFile()), m)
+  Cmd.add('refresh', () => refreshKeep(Pane.current(), { file: currentFile() }), m)
   Cmd.add('rename', () => rename(), m)
   Cmd.add('scroll down', () => scrollDown(), m)
   Cmd.add('scroll up', () => scrollDown(1), m)

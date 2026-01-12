@@ -11,6 +11,8 @@ Bred is my personal project that I use for daily work. It's highly likely that I
 will be the only one who ever uses and/or develops it. So the focus must be on
 improvements for me, as apposed to making is accessible to others.
 
+Bred is designed to run out of a git checkout. It's always a development build.
+
 ## Conventions
 
 - **Code style** - Follow `@cookshack/eslint-config` (please read `node_modules/@cookshack/eslint-config/index.js`)
@@ -46,6 +48,17 @@ d({ object }) // NB this takes a single arg only
 ```
 
 Check the dev console (Ctrl+Shift+I) to see logs.
+
+## Read Core Documentation First
+
+Before making changes to the core codebase, read `js/README.md` to understand Bred's model:
+
+- **Hierarchy**: Tab → Frame → Pane → View → Buf
+- **Buf, View, Pane roles** and their relationships
+- **Editor vs div views**: When a mode uses `view.ed` vs pure DOM
+- **Mode system**: Major/minor modes, hooks (`viewInitSpec`, `append`, `insert`, etc.), keybinding inheritance via `parentsForEm`
+
+This is especially important when working with `buf.mjs`, `view.mjs`, `pane.mjs`, `frame.mjs`, `tab.mjs`, or `mode.mjs`.
 
 ## ext/code: Opencode UI
 

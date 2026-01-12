@@ -1118,7 +1118,7 @@ function init
                  prompt => run(prompt))
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) {
     if (cb)
       cb(view)
@@ -1147,7 +1147,7 @@ function init
   Opt.declare('code.model.agent', 'str', 'minimax-m2.1-free')
   Opt.declare('code.provider.agent', 'str', 'opencode')
   mo = Mode.add('code',
-                { viewInitSpec,
+                { viewInit,
                   onRemove(buf) {
                     buf.vars('code').eventAbort?.abort()
                     buf.views?.forEach(view => {

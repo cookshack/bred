@@ -105,7 +105,7 @@ User runs: open file.txt
     │                 │
     │                 └─> View.make(buf, { ele, mode: Mode.get('ed') })
     │                       │
-    │                       └─> Mode provides viewInitSpec, editing ops
+    │                       └─> Mode provides viewInit, editing ops
     │
     └─> pane.focus()
 ```

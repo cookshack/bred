@@ -30,7 +30,7 @@ function init
 () {
   let mo, verbose
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) {
     let co, cols, last, rows, code, w
 
@@ -131,7 +131,7 @@ function init
   function toggle
   () {
     verbose = verbose ? 0 : 1
-    viewInitSpec(Pane.current().view)
+    viewInit(Pane.current().view)
   }
 
   function ascii
@@ -222,10 +222,10 @@ function init
 
   verbose = 0
 
-  mo = Mode.add('ASCII', { viewInitSpec,
+  mo = Mode.add('ASCII', { viewInit,
                            context: [ { cmd: 'Toggle Verbose' } ] })
 
-  Cmd.add('refresh', () => viewInitSpec(Pane.current().view), mo)
+  Cmd.add('refresh', () => viewInit(Pane.current().view), mo)
   Cmd.add('toggle verbose', () => toggle(), mo)
 
   Em.on('g', 'refresh', mo)

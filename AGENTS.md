@@ -134,7 +134,7 @@ Before making changes to the core codebase, read `js/README.md` to understand Br
 - **Hierarchy**: Tab → Frame → Pane → View → Buf
 - **Buf, View, Pane roles** and their relationships
 - **Editor vs div views**: When a mode uses `view.ed` vs pure DOM
-- **Mode system**: Major/minor modes, hooks (`viewInitSpec`, `append`, `insert`, etc.), keybinding inheritance via `parentsForEm`
+- **Mode system**: Major/minor modes, hooks (`viewInit`, `append`, `insert`, etc.), keybinding inheritance via `parentsForEm`
 
 This is especially important when working with `buf.mjs`, `view.mjs`, `pane.mjs`, `frame.mjs`, `tab.mjs`, or `mode.mjs`.
 

@@ -11,7 +11,7 @@ let time, timer
 export
 function init
 () {
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) {
     let w, time
 
@@ -55,7 +55,7 @@ function init
     time.innerText = String(d.getHours()).padStart(2, '0') + 'h' + String(d.getMinutes()).padStart(2, '0')
   }
 
-  Mode.add('Clock', { viewInitSpec })
+  Mode.add('Clock', { viewInit })
 
   Cmd.add('clock', () => {
     let found, p

@@ -70,7 +70,7 @@ function init
     smile()
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     let w
 
@@ -105,7 +105,7 @@ function init
       make(p)
   }
 
-  mo = Mode.add('2048', { viewInitSpec })
+  mo = Mode.add('2048', { viewInit })
 
   Cmd.add('smile', () => smile(), mo)
   Cmd.add('easy', () => easy(), mo)

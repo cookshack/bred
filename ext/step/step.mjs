@@ -83,7 +83,7 @@ function initCssComp
     return ret
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     let w, el
 
@@ -126,7 +126,7 @@ function initCssComp
     comp(xyEl(we))
   })
 
-  mo = Mode.add('Css Comp', { viewInitSpec })
+  mo = Mode.add('Css Comp', { viewInit })
   d(mo)
 
   return { comp }
@@ -352,7 +352,7 @@ function initCssRules
     Comp.comp(el, 1)
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     let w, el
 
@@ -410,7 +410,7 @@ function initCssRules
     rulesRight(el, 1)
   })
 
-  mo = Mode.add('Css Rules', { viewInitSpec })
+  mo = Mode.add('Css Rules', { viewInit })
 
   Cmd.add('Computed', computed, mo)
 
@@ -565,7 +565,7 @@ function initDom
     return ret
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     let w, id
 
@@ -645,7 +645,7 @@ function initDom
     Rules.right(el, 1)
   })
 
-  mo = Mode.add('Dom', { viewInitSpec })
+  mo = Mode.add('Dom', { viewInit })
   d(mo)
 
   Cmd.add('Expand', expand, mo)
@@ -665,7 +665,7 @@ function init
     return divCl('step-ww', divCl('step-w bred-surface'))
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     let w, wv, preload
 
@@ -702,7 +702,7 @@ function init
       cb(view)
   }
 
-  Mode.add('Step', { viewInitSpec })
+  Mode.add('Step', { viewInit })
 
   Cmd.add('Webview Devtools', () => {
     webview?.openDevTools()

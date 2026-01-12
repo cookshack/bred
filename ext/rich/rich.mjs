@@ -164,7 +164,7 @@ function init
       Mess.yell('Missing path')
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     if (cb)
       cb(view)
@@ -179,7 +179,7 @@ function init
     open(p.buf.path)
   }
 
-  mo = Mode.add('Rich', { viewInitSpec,
+  mo = Mode.add('Rich', { viewInit,
                           icon: { name: 'markdown' } })
 
   Cmd.add('rich', () => rich())

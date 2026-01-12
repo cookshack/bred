@@ -224,7 +224,7 @@ function init
                       360)
   }
 
-  function viewInitSpec
+  function viewInit
   (view) {
     let p, body
 
@@ -262,7 +262,7 @@ function init
 
   onCursor = Ed.onCursor((be, view) => update(view))
 
-  Mode.add('Assist', { viewInitSpec,
+  Mode.add('Assist', { viewInit,
                        icon: { name: 'assist' } })
 
   Cmd.add('assist', () => assist())

@@ -135,10 +135,10 @@ b = Buf.add('ASCII', 'ASCII', divW(), p.dir)
 b.addMode('view')  // enables basic view operations
 p.setBuf(b)
 
-// 3. Mode provides viewInitSpec to build UI
-mo = Mode.add('ASCII', { viewInitSpec })
+// 3. Mode provides viewInit to build UI
+mo = Mode.add('ASCII', { viewInit })
 
-function viewInitSpec(view, spec, cb) {
+function viewInit(view, spec, cb) {
   let w = view.ele.firstElementChild.firstElementChild
   w.innerHTML = ''
   // Build DOM content programmatically...
@@ -153,7 +153,7 @@ Key differences from editor buffers:
 |--------|--------------|------------|
 | Content | Text file | DOM elements |
 | `view.ed` | Defined (codemirror) | undefined |
-| Core hook | `viewInit` | `viewInitSpec` |
+| Core hook | `viewInit` | `viewInit` |
 | Editing ops | `insert`, `append`, etc. | None |
 
 Div buffers are used for custom interfaces like:
@@ -178,7 +178,7 @@ Modes provide functionality through these properties:
 
 | Category | Properties |
 |----------|------------|
-| View lifecycle | `viewInitSpec`, `viewCopy`, `viewReopen` |
+| View lifecycle | `viewInit`, `viewCopy`, `viewReopen` |
 | Editing ops | `seize`, `append`, `insert`, `text`, `save`, `clear`, `line` |
 | Navigation | `pos`, `bep`, `setBep`, `gotoLine`, `forward`, `backward` |
 | Lifecycle | `start()`, `stop()`, `onRemove` |

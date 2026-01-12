@@ -165,7 +165,7 @@ CodeMirror backend implementation.
 - `makeDecor(spec)` - Creates a decoration
 - `findLang(id)` - Finds a language by ID
 - `register(spec)` - Registers a component
-- `viewInitSpec(view, spec, cb)` - Initializes view specification
+- `viewInit(view, spec, cb)` - Initializes view specification
 - `viewReopen(view, lineNum, whenReady, cb)` - Reopens a view
 - `viewCopy(to, from, lineNum, whenReady, cb)` - Copies a view
 - `makeBep(view, row, col)` - Creates a backend position

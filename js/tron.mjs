@@ -1,9 +1,11 @@
+// ASYNC: IPC bridge - all calls cross to main process via Electron IPC
 export
 function send
 (ch, ...args) {
   globalThis.tron.send(ch, ...args)
 }
 
+// ASYNC: IPC bridge - command with one-shot callback
 export
 function cmd1
 (name, args, cb) { // (err, ch)
@@ -19,6 +21,7 @@ function cmd1
     })
 }
 
+// ASYNC: IPC bridge - command with event stream callback
 export
 function cmd
 (name, args, cb) {
@@ -42,12 +45,14 @@ function cmd
                                        err => cb(err))
 }
 
+// ASYNC: IPC bridge - async command
 export
 async function acmd
 (name, args) {
   return await globalThis.tron.acmd(name, args)
 }
 
+// ASYNC: IPC bridge - event listener registration
 export
 function on
 (ch, cb) { // (err, data)

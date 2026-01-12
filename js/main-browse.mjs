@@ -17,6 +17,7 @@ function makeEventFromInput
            isAutoRepeat: input.isAutoRepeat || false }
 }
 
+// ASYNC: browser - create new web view
 export
 function onOpen
 (e, ch, onArgs) {
@@ -175,6 +176,7 @@ function onOpen
   e.sender.send(ch, { id })
 }
 
+// ASYNC: browser - zoom view
 export
 function onZoom
 (e, onArgs) {
@@ -189,6 +191,7 @@ function onZoom
       view.view.webContents.zoomFactor -= 0.1
 }
 
+// ASYNC: browser - navigate back in history
 export
 function onBack
 (e, onArgs) {
@@ -213,6 +216,7 @@ function onBack
   return {}
 }
 
+// ASYNC: browser - close web view
 export
 function onClose
 (e, onArgs) {
@@ -238,6 +242,7 @@ function onClose
   return {}
 }
 
+// ASYNC: browser - reload page
 export
 function onReload
 (e, onArgs) {
@@ -256,6 +261,7 @@ function onReload
   return {}
 }
 
+// ASYNC: browser - reopen closed view
 export
 function onReopen
 (e, onArgs) {
@@ -272,6 +278,7 @@ function onReopen
   return {}
 }
 
+// ASYNC: browser - pass input event to view
 export
 function onPass
 (e, onArgs) {

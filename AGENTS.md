@@ -61,6 +61,24 @@ Read `doc/Dependencies.md` for the module dependency graph and data flow:
 
 This helps understand the overall architecture before diving into specific modules.
 
+## Async Boundaries
+
+Bred has several async boundaries that are potential bottlenecks. Look for `// ASYNC:` markers in the code:
+
+- **IPC to main process** (`tron.mjs`): All file system and subprocess operations cross IPC
+- **File system** (`main-file.mjs`, `main-dir.mjs`): Blocking I/O operations
+- **Shell commands** (`main-shell.mjs`): Spawns pty, streams output
+- **LSP** (`main-lsp.mjs`): Network requests to language servers
+- **Browser views** (`main-browse.mjs`): WebContents operations
+
+Key files:
+- `js/tron.mjs` - IPC bridge (ASYNC markers on all exports)
+- `js/main-file.mjs` - file operations (ASYNC on all on* functions)
+- `js/main-dir.mjs` - directory operations (ASYNC on all on* functions)
+- `js/main-shell.mjs` - shell execution (ASYNC on run(), on*, onOpen, onShow)
+- `js/main-lsp.mjs` - LSP client (ASYNC on onEdit, onReq, make)
+- `js/main-browse.mjs` - browser views (ASYNC on all on* functions)
+
 ## Read Core Documentation First
 
 Before making changes to the core codebase, read `js/README.md` to understand Bred's model:

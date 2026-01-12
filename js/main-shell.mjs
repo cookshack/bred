@@ -4,6 +4,7 @@ import { makeErr } from './main-err.mjs'
 import * as Pty from 'node-pty'
 import * as U from './util.mjs'
 
+// ASYNC: shell - spawn pty and stream output
 function run
 (e, ch, dir, sc, args, spec, ctx) {
   let proc, closedProc, closedErr, closedOut, sender
@@ -183,6 +184,7 @@ function run
   }
 }
 
+// ASYNC: shell - run command with default settings
 export
 function on
 (e, ch, onArgs, ctx) {
@@ -194,6 +196,7 @@ function on
              ctx)
 }
 
+// ASYNC: shell - run command with custom settings
 export
 function onRun
 (e, ch, onArgs, ctx) {
@@ -202,6 +205,7 @@ function onRun
   return run(e, clientCh, dir, sc, args, spec, ctx)
 }
 
+// ASYNC: shell - open URL in external browser
 export
 function onOpen
 (e, ch, onArgs) {
@@ -214,6 +218,7 @@ function onOpen
     .catch(err => sender.send(ch, makeErr(err)))
 }
 
+// ASYNC: shell - show file in system file manager
 export
 function onShow
 (e, ch, onArgs) {

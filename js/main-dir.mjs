@@ -4,6 +4,7 @@ import Fs from 'node:fs'
 import Path from 'node:path'
 import { spawn } from 'node:child_process'
 
+// ASYNC: file system - read directory contents (blocking I/O)
 export
 function onGet
 (e, ch, dir) {
@@ -122,6 +123,7 @@ function onGet
   })
 }
 
+// ASYNC: file system - create directory
 export
 function onMake
 (e, ch, dir) {
@@ -134,6 +136,7 @@ function onMake
   })
 }
 
+// ASYNC: file system - remove directory
 export
 function onRm
 (e, ch, onArgs) {
@@ -162,6 +165,7 @@ function onRm
     e.sender.send(ch, errMsg('Path must be absolute'))
 }
 
+// ASYNC: file system - watch directory for changes
 export
 function onWatch
 (e, ch, onArgs) {

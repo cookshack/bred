@@ -32,6 +32,7 @@ function cpMany
   return
 }
 
+// ASYNC: file system - copy file(s)
 export
 function onCp
 (e, ch, onArgs) {
@@ -67,6 +68,7 @@ function onCp
   e.sender.send(ch, errMsg('Paths must be absolute'))
 }
 
+// ASYNC: file system - check if file exists
 export
 function onExists
 (e, ch, onArgs) {
@@ -76,6 +78,7 @@ function onExists
   e.sender.send(ch, { exists: Fs.existsSync(path) })
 }
 
+// ASYNC: file system - read file (blocking I/O)
 export
 function onGet
 (e, ch, onArgs) {
@@ -94,6 +97,7 @@ function onGet
   })
 }
 
+// ASYNC: file system - create symbolic link
 export
 function onLn
 (e, ch, onArgs) {
@@ -223,6 +227,7 @@ function onLn
   link(cwd)
 }
 
+// ASYNC: file system - apply edits to file
 export
 function onModify
 (e, ch, onArgs) {
@@ -347,6 +352,7 @@ function mvMany
   return
 }
 
+// ASYNC: file system - move/rename file(s)
 export
 function onMv
 (e, ch, onArgs) {
@@ -387,6 +393,7 @@ function onMv
   e.sender.send(ch, errMsg('Paths must be absolute'))
 }
 
+// ASYNC: file system - apply patch to file
 export
 function onPatch
 (e, ch, onArgs) {
@@ -423,6 +430,7 @@ function onPatch
     e.sender.send(ch, errMsg('Path must be absolute'))
 }
 
+// ASYNC: file system - delete file
 export
 function onRm
 (e, ch, onArgs) {
@@ -440,6 +448,7 @@ function onRm
     e.sender.send(ch, errMsg('Path must be absolute'))
 }
 
+// ASYNC: file system - write file (blocking I/O)
 export
 function onSave
 (e, ch, onArgs) {
@@ -453,6 +462,7 @@ function onSave
   })
 }
 
+// ASYNC: file system - save to temp file and return path
 export
 async function onSaveTmp
 (e, onArgs) {
@@ -471,6 +481,7 @@ async function onSaveTmp
   }
 }
 
+// ASYNC: file system - get file stats (follows symlinks)
 export
 function onStat
 (e, ch, onArgs) {
@@ -501,6 +512,7 @@ function onStat
   })
 }
 
+// ASYNC: file system - update file access/modify times
 export
 function onTouch
 (e, ch, onArgs) {
@@ -518,6 +530,7 @@ function onTouch
   e.sender.send(ch, {})
 }
 
+// ASYNC: file system - watch file for changes
 export
 function onWatch
 (e, ch, onArgs) {

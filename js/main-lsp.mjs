@@ -12,6 +12,7 @@ function setWin
   win = w
 }
 
+// ASYNC: LSP - notify of buffer edit
 export
 function onEdit
 (e, ch, onArgs) {
@@ -35,6 +36,7 @@ function onEdit
   e.sender.send(ch, {})
 }
 
+// ASYNC: LSP - send request to language server (network)
 export
 function onReq
 (e, ch, onArgs) {
@@ -55,6 +57,7 @@ function onReq
   return {}
 }
 
+// ASYNC: LSP - spawn language server process (network to server)
 export
 function make
 (lang, dir) {

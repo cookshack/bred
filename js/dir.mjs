@@ -532,7 +532,7 @@ function fill
 
   path = path.expand()
   Tron.cmd('dir.get', path, (err, data) => {
-    let co, lines
+    let co, lines, vars
 
     if (err) {
       Mess.yell('Dir.fill: ' + err.message)
@@ -578,6 +578,8 @@ function fill
     buf.opts.set('dir.show.hidden', hid)
     buf.opts.set('dir.sort', sort)
 
+    vars = buf.vars('dir')
+
     buf.content = dirW(path,
                        [ lines.length ? null : divCl('dir-empty', 'Empty directory'),
                          divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }),
@@ -606,6 +608,16 @@ function fill
         }
       }
     })
+
+    vars.refreshing = 0
+    if (vars.pendingRefresh?.length) {
+      let pending
+
+      pending = vars.pendingRefresh[0]
+      vars.pendingRefresh = vars.pendingRefresh.slice(1)
+      d('DIR fill pending refresh')
+      refresh(pending.p, pending.bak, pending.hid, pending.sort, pending.marked, pending.file)
+    }
   })
 }
 
@@ -635,7 +647,15 @@ function watch
         if (pane.buf
             && (pane.buf.mode?.key == 'dir')
             && (pane.buf.path == path)) {
+          if (pane.buf.vars('dir').refreshing) {
+            // it's likely that the refresh that's in progress covers the change.
+            // Also currentFile() could be wrong if the refresh in progress has
+            // cleared the buf content.
+            d('DIR watch skip')
+            return
+          }
           file = getFile && currentFile(pane)
+          console.log('DIR FILE: ' + file)
           getFile = 0
           if (data.bak) {
             if (pane.buf.opt('dir.show.backups'))
@@ -704,17 +724,28 @@ function up
 }
 
 function refresh
-(p, bak, hid, sort, marked, currentFile) {
-  if (p.dir && p.buf.file) {
-    p.buf.clear()
-    if (currentFile)
-      fill(p.buf, bak, hid, sort, currentFile, marked)
-    else {
-      let el
+(p, bak, hid, sort, marked, file) {
+  let vars
 
-      el = p.view.point.over()
-      fill(p.buf, bak, hid, sort, el?.dataset.name, marked)
-    }
+  d('DIR refresh')
+
+  vars = p.buf.vars('dir')
+
+  if (vars.refreshing) {
+    d('DIR refresh pend')
+    vars.pendingRefresh = vars.pendingRefresh || []
+    vars.pendingRefresh.push({ p, bak, hid, sort, marked, file })
+    return
+  }
+
+  d('DIR refresh go')
+
+  vars.refreshing = 1
+
+  if (p.dir && p.buf.file) {
+    file = file || currentFile() // must run before clear
+    p.buf.clear()
+    fill(p.buf, bak, hid, sort, file, marked)
   }
   else
     Mess.yell('Missing dir/file')

@@ -21,7 +21,7 @@ function initCss1
 export
 function initCss
 (yell) {
-  let files, file
+  let files
 
   files = [ 'bred.css',
             'browse.css',
@@ -44,12 +44,4 @@ function initCss
             'vc.css',
             'web.css' ]
   files.forEach(f => initCss1(Loc.appDir().join('css/' + f), yell))
-
-  file = '../lib/sheets.mjs'
-  import(file)
-    .then(m => {
-      m.sheets.forEach(f => initCss1(Loc.appDir().join(f)))
-    },
-          err => yell('Failed to load ' + file + ': ' + err.message))
-    .catch(err => yell('Failed to import ' + file + ': ' + err.message))
 }

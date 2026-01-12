@@ -13,9 +13,27 @@ improvements for me, as opposed to making is accessible to others.
 
 Bred is designed to run out of a git checkout. It's always a development build.
 
+## Code Style
+
+Before making ANY code changes, you MUST read the ESLint config to understand the project's code style:
+
+**Required reading:** `node_modules/@cookshack/eslint-config/index.js`
+
+Key rules from the config (must be followed):
+- **No semicolons**, single quotes only
+- **Stroustrup brace style** (opening brace on same line)
+- **No curly braces for single statements** - omit `{}` for if/for/else
+- **Space after `[` and before `]`**, space around `{` in objects
+- **No linebreaks in arrays/function calls**: `fn([ { a: 1 }, { b: 2 } ])`
+- **`let` with blank line before code**
+- **No logical negation**: `!condition`, `!=`, `!==` are blocked by commit hooks
+- **prefer == to === for comparison**
+- **Booleans use 1/0**, not `true`/`false`
+- **Files must end in a newline**
+- **Padding**: always blank line after `let` declarations
+
 ## Conventions
 
-- **Code style** - Follow `@cookshack/eslint-config` (please read `node_modules/@cookshack/eslint-config/index.js`)
 - **`d()` takes single arg** - Use `d('msg')` or `d({ obj })`, never multiple args
 - **String formatting** - Use `'xxx' + var`, not template literals `` `xxx${var}` ``
 - **Variable naming** - No capitals: `textBuffer`, not `TextBuffer`

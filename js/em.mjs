@@ -263,20 +263,30 @@ function on
 export
 function mainGetActive
 (buf, targetEm) {
-  let active, mo, minors
+  let active, mo
 
-  mo = buf?.mode
-  minors = buf?.minors.reverse()
   active = [ root ]
+  mo = buf?.mode
+
   if (mo) {
-    active = [ ...mo.getParentEms(), ...active ]
+    let parents, minors
+
+    parents = mo.getParentEms()
+    for (let i = 0; i < parents.length; i++)
+      active.push(parents[i])
+
     if (mo.em)
-      active.unshift(mo?.em)
+      active.unshift(mo.em)
+
+    minors = buf?.minors
     if (minors)
-      active = [ ...minors.map(m => m.em), ...active ]
+      for (let i = minors.length - 1; i >= 0; i--)
+        active.push(minors[i].em)
   }
+
   if (targetEm)
     active.unshift(targetEm)
+
   return active
 }
 

@@ -1287,8 +1287,8 @@ function init
   // Here so it loads before backend.
   Opt.declare('core.theme.mode', 'str', 'light')
 
-  tokenRe = new RegExp('[\\p{L}\\p{N}_$]+', 'g')
-  nonTokenRe = new RegExp('(?:[^\\p{L}\\p{N}_$]|\\s)+', 'g')
+  tokenRe = new RegExp('[\\p{L}\\p{N}_$]+', 'gu')
+  nonTokenRe = new RegExp('(?:[^\\p{L}\\p{N}_$]|\\s)+', 'gu')
 
   setBackend(backend, err => {
     if (err)

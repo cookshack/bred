@@ -7,9 +7,9 @@ See Files.md for an overview of the source files.
 
 ## Context
 
-Bred is my personal project that I use for daily work. It's highly likely that I
-will be the only one who ever uses and/or develops it. So the focus must be on
-improvements for me, as apposed to making is accessible to others.
+Bred is my personal project. I use for daily work, and it's highly likely that I
+will be the only one to ever uses and/or develop Bred. So the focus must be on
+improvements for me, as opposed to making is accessible to others.
 
 Bred is designed to run out of a git checkout. It's always a development build.
 
@@ -43,11 +43,23 @@ Use `d()` to log debug output:
 ```javascript
 import { d } from '../../js/mess.mjs'
 
+let a
+
+a = 1
 d('some message')
-d({ object }) // NB this takes a single arg only
+d({ a }) // NB this takes a single arg only
+
 ```
 
-Check the dev console (Ctrl+Shift+I) to see logs.
+## Architecture
+
+Read `doc/Dependencies.md` for the module dependency graph and data flow:
+- Module hierarchy (bred → buf → view → pane → frame → tab → win)
+- Editor vs div views comparison
+- Init order and key relationships
+- IPC communication patterns
+
+This helps understand the overall architecture before diving into specific modules.
 
 ## Read Core Documentation First
 
@@ -80,12 +92,6 @@ This is especially important when working with `buf.mjs`, `view.mjs`, `pane.mjs`
 
 The OpenCode SDK provides a client that connects to the local server at `http://127.0.0.1:4096`.
 
-```javascript
-import * as OpenCode from './lib/opencode.js'
-
-client = OpenCode.createOpencodeClient({ baseUrl: 'http://127.0.0.1:4096' })
-```
-
 #### Key SDK Methods
 
 - `client.session.create({ body: { title } })` - Create a new session
@@ -93,139 +99,6 @@ client = OpenCode.createOpencodeClient({ baseUrl: 'http://127.0.0.1:4096' })
 - `client.event.subscribe({})` - Subscribe to events (returns `{ stream }`)
 - `client.config.providers({})` - List available providers and models
 - `client.postSessionIdPermissionsPermissionId({ path: { id, permissionID }, body: { response } })` - Respond to permission requests
-
-#### Event Stream
-
-```javascript
-const { stream } = await client.event.subscribe({})
-for await (const event of stream) {
-  // event.type
-  // event.properties
-}
-```
-
-### Event Types
-
-#### message.part.updated
-
-Tool, text, and reasoning parts arrive through this event.
-
-```javascript
-if (event.type == 'message.part.updated') {
-  const part = event.properties.part
-  // part.type: 'text' | 'reasoning' | 'tool'
-  // part.sessionID
-  // part.messageID
-}
-```
-
-#### permission.updated
-
-Permission requests for tools like `bash`:
-
-```javascript
-if (event.type == 'permission.updated') {
-  const req = event.properties
-  // req.id - permission ID
-  // req.type - 'bash', 'read', 'grep', etc.
-  // req.metadata - tool input (command, pattern, description, etc.)
-  // req.sessionID
-}
-```
-
-### Tool Events
-
-#### read
-
-Shows `➔ Read file {path}` when running.
-
-```javascript
-if (part.tool == 'read' && part.state?.status == 'running') {
-  const path = part.state.input.filePath
-}
-```
-
-#### grep
-
-Shows `➔ Grep "{pattern}" in {path}` when running.
-Shows `➔ Grep "{pattern}" in {path} ({N} matches)` when done.
-
-```javascript
-if (part.tool == 'grep' && part.state?.status == 'running') {
-  const pattern = part.state.input.pattern
-  const path = part.state.input.path
-}
-if (part.tool == 'grep' && part.state?.status == 'completed') {
-  const matches = part.state.metadata?.matches
-}
-```
-
-#### bash
-
-Shows `➔ bash: {command}` when running.
-Shows `➔ bash: $ {command} (exit {code})` with output underneath when done.
-
-```javascript
-if (part.tool == 'bash' && part.state?.status == 'running') {
-  const command = part.state.input.command
-  const description = part.state.input.description
-}
-if (part.tool == 'bash' && part.state?.status == 'completed') {
-  const command = part.state.input.command
-  const exitCode = part.state.metadata?.exit
-  const output = part.state.output
-}
-```
-
-### Permission Handling
-
-For bash commands, show a Y/N prompt and respond:
-
-```javascript
-Prompt.yn('Run "' + (description || command) + '"?', {}, async yes => {
-  await client.postSessionIdPermissionsPermissionId({
-    path: { id: sessionID, permissionID: req.id },
-    body: { response: yes ? 'once' : 'reject' }
-  })
-})
-```
-
-Response options: `'once'` | `'always'` | `'reject'`
-
-### Thinking Content
-
-Thinking arrives as `reasoning` parts. Text parts arrive first, buffered by `part.messageID`. When the reasoning event arrives, display the buffered text as thinking.
-
-```javascript
-const textBuffer = new Map()
-
-// Text parts buffer
-if (part.type == 'text') {
-  const existing = textBuffer.get(part.messageID) || ''
-  textBuffer.set(part.messageID, existing + part.text)
-}
-
-// Reasoning event - show thinking
-if (part.type == 'reasoning') {
-  const buffered = textBuffer.get(part.messageID) || ''
-  appendThinking(buf, buffered)
-  textBuffer.delete(part.messageID)
-}
-```
-
-### Model Selection
-
-Set the model in the prompt body:
-
-```javascript
-res = await client.session.prompt({
-  path: { id: sessionID },
-  body: {
-    model: { providerID: 'opencode', modelID: 'minimax-m2.1-free' }, // FIX uses Opt now
-    parts: [ { type: 'text', text } ]
-  }
-})
-```
 
 ### Commands
 

@@ -94,6 +94,21 @@ Key files:
 - `js/main-lsp.mjs` - LSP client (ASYNC on onEdit, onReq, make)
 - `js/main-browse.mjs` - browser views (ASYNC on all on* functions)
 
+## Global State
+
+Read `js/Globals.md` for singleton modules and global state:
+
+- `Win.current()` - current window (Electron BrowserWindow wrapper)
+- `Pane.current()` - focused pane in current frame
+- `Buf.shared()` - shared buffer state (buffers array, MRU ring, IDs)
+- `Em.root` - global event map for key bindings
+- `Area.current()` - current area in window
+
+Key patterns:
+- `globalThis.bred._shared()` provides access to shared state
+- `Win.shared().win.wins[]` tracks all open windows
+- Event listeners set up in `bred.html` (keydown, click, resize, etc.)
+
 ## Read Core Documentation First
 
 Before making changes to the core codebase, read `js/README.md` to understand Bred's model:

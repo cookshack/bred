@@ -1,3 +1,5 @@
+let classCache
+
 export
 function has
 (el, name) {
@@ -9,9 +11,27 @@ function has
 export
 function add
 (el, name) {
-  if (el && name)
-    el.classList.add.apply(el.classList,
-                           name.trim().split(' ').filter(s => s.length))
+  function get
+  () {
+    let classes
+
+    classCache = classCache || new Map()
+    classes = classCache.get(name)
+    if (classes)
+      return classes
+    classes = name.trim().split(' ').filter(s => s.length)
+    classCache.set(name, classes)
+    return classes
+  }
+
+  if (el && name) {
+    if (name.indexOf(' ') == -1) {
+      el.classList.add(name)
+      return
+    }
+
+    el.classList.add.apply(el.classList, get())
+  }
 }
 
 export

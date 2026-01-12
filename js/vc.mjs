@@ -92,7 +92,7 @@ function initStash
     }
   })
 
-  moS = Mode.add('stash', { viewInitSpec: Ed.viewInitSpec,
+  moS = Mode.add('stash', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
@@ -147,7 +147,7 @@ function initCommit
   reErr = /^([^:]+):([0-9]+):([0-9]+):.*$/d
   reFile = /^([^:\s]+):([^0-9]+.*)?$/d
 
-  mo = Mode.add('Commit Result', { viewInitSpec: Ed.viewInitSpec,
+  mo = Mode.add('Commit Result', { viewInit: Ed.viewInit,
                                    viewCopy: Ed.viewCopy,
                                    initFns: Ed.initModeFns,
                                    parentsForEm: 'ed',
@@ -677,7 +677,7 @@ function initLog
       showHash(tok.text)
   }
 
-  mo = Mode.add('VC Log', { viewInitSpec: Ed.viewInitSpec,
+  mo = Mode.add('VC Log', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
@@ -735,7 +735,7 @@ function initLogBadIdea
     return divCl('vc_log-ww', divCl('vc_log-w bred-surface', ''))
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) {
     let p
 
@@ -761,14 +761,14 @@ function initLogBadIdea
     d(str)
   }
 
-  Mode.add('Bad Idea', { viewInitSpec })
+  Mode.add('Bad Idea', { viewInit })
 
   Cmd.add('bad idea vc log', () => {
     let p
 
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, {}, view => viewInitSpec(view))
+      p.setBuf(buf, {}, view => viewInit(view))
     else {
       buf = Buf.add('Bad Idea', 'Bad Idea', divW(), p.dir)
       buf.icon = 'log'
@@ -1009,7 +1009,7 @@ function initAnnotate
 
   decorInfoJoin = Ed.makeDecor({ attr: { style: 'visibility: hidden;' } })
 
-  mo = Mode.add('VC Annotate', { viewInitSpec: Ed.viewInitSpec,
+  mo = Mode.add('VC Annotate', { viewInit: Ed.viewInit,
                                  viewCopy: Ed.viewCopy,
                                  initFns: Ed.initModeFns,
                                  parentsForEm: 'ed',
@@ -1168,7 +1168,7 @@ function init
     git('git branch --all', 'branch')
   }
 
-  moB = Mode.add('branch', { viewInitSpec: Ed.viewInitSpec,
+  moB = Mode.add('branch', { viewInit: Ed.viewInit,
                              viewCopy: Ed.viewCopy,
                              initFns: Ed.initModeFns,
                              parentsForEm: 'ed' })

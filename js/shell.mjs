@@ -473,7 +473,7 @@ function initCompile
   compileHist = Hist.ensure('compile')
 
   mo = Mode.add('Compile',
-                { viewInitSpec: Ed.viewInitSpec,
+                { viewInit: Ed.viewInit,
                   viewCopy: Ed.viewCopy,
                   initFns: Ed.initModeFns,
                   parentsForEm: 'ed',
@@ -679,7 +679,7 @@ function initShell
 
   hist = Hist.ensure('shell')
 
-  mo = Mode.add('Shell', { viewInitSpec: Ed.viewInitSpec,
+  mo = Mode.add('Shell', { viewInit: Ed.viewInit,
                            viewCopy: Ed.viewCopy,
                            initFns: Ed.initModeFns,
                            parentsForEm: 'ed' })

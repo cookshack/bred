@@ -904,7 +904,7 @@ function init
     view.vars('mess').toScroll = setTimeout(e => redraw(view, e), 100)
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     let surf, end, frag, first, messages, shown, lastScrollTop
 
@@ -968,7 +968,7 @@ function init
     })
   }
 
-  mo = Mode.add('Messages', { viewInitSpec })
+  mo = Mode.add('Messages', { viewInit })
 
   Cmd.add('messages', () => {
     let p, buf
@@ -976,7 +976,7 @@ function init
     p = Pane.current()
     buf = Win.shared().messages.buf
     if (buf)
-      p.setBuf(buf, {}, () => viewInitSpec(p.view))
+      p.setBuf(buf, {}, () => viewInit(p.view))
     else
       p.setBuf(addBuf(p))
   })
@@ -984,7 +984,7 @@ function init
   Em.on('C-h s', 'messages')
   Em.on('C-h u', 'man')
 
-  Cmd.add('refresh', () => viewInitSpec(Pane.current().view), mo)
+  Cmd.add('refresh', () => viewInit(Pane.current().view), mo)
 
   Em.on('g', 'refresh', mo)
 

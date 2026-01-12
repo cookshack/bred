@@ -329,7 +329,7 @@ function make
 
   function ready1
   () {
-    // timeout so behaves like viewInitSpec,viewCopy
+    // timeout so behaves like viewInit,viewCopy
     d('VIEW ready1 timeout')
     setTimeout(() => {
       ready = 1
@@ -504,14 +504,14 @@ function make
     if (b.co) {
       d('VIEW     buffer has co')
       append(ele, b.co.cloneNode(1))
-      if (mode && mode.viewInitSpec) {
+      if (mode && mode.viewInit) {
         d('VIEW  placeholder: ' + b.placeholder)
-        mode.viewInitSpec(v,
-                          { lineNum,
-                            placeholder: b.placeholder,
-                            single: b.single,
-                            wextsMode: mode.wexts },
-                          whenReady)
+        mode.viewInit(v,
+                      { lineNum,
+                        placeholder: b.placeholder,
+                        single: b.single,
+                        wextsMode: mode.wexts },
+                      whenReady)
       }
       else
         ready1()

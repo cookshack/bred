@@ -26,7 +26,7 @@ import mbe from '../lib/mime-by-ext.json' with { type: 'json' }
 export let Backend
 export let mimeByExt
 export let viewCopy
-export let viewInitSpec
+export let viewInit
 export let vfind
 export let emRevert
 export let backend
@@ -573,7 +573,7 @@ function initQR
   }
 
   moQr = Mode.add('QR', { hidePoint: 1,
-                          viewInitSpec,
+                          viewInit,
                           initFns: initModeFns,
                           parentsForEm: 'ed' })
 
@@ -1306,7 +1306,7 @@ function init
     posRow = Backend.posRow
     posCol = Backend.posCol
     viewCopy = Backend.viewCopy
-    viewInitSpec = Backend.viewInitSpec
+    viewInit = Backend.viewInit
     vfind = Backend.vfind
 
     d('init theme')
@@ -1321,7 +1321,7 @@ function init
 
     d('add ed mode')
     mo = Mode.add('Ed', { hidePoint: 1,
-                          viewInitSpec: Backend.viewInitSpec,
+                          viewInit: Backend.viewInit,
                           viewCopy: Backend.viewCopy,
                           viewReopen: Backend.viewReopen,
                           initFns: initModeFns })

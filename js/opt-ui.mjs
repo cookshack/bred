@@ -27,7 +27,7 @@ function init
     return String(val)
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) {
     let w, all
 
@@ -71,7 +71,7 @@ function init
   if (Win.root())
     Win.shared().options = {}
 
-  mo = Mode.add('Options', { viewInitSpec })
+  mo = Mode.add('Options', { viewInit })
 
   Cmd.add('options', () => {
     let p, buf
@@ -79,7 +79,7 @@ function init
     buf = Win.shared().options.buf
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, {}, view => viewInitSpec(view))
+      p.setBuf(buf, {}, view => viewInit(view))
     else {
       buf = Buf.add('Options', 'Options', divW(), p.dir)
       Win.shared().options.buf = buf
@@ -93,7 +93,7 @@ function init
     let p
 
     p = Pane.current()
-    viewInitSpec(p.view)
+    viewInit(p.view)
   },
           mo)
 

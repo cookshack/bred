@@ -23,7 +23,7 @@ function initWeb
     return divCl('web-ww', divCl('web-w bred-surface', ''))
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) {
     let w, wv, preload
 
@@ -54,7 +54,7 @@ function initWeb
       cb(view)
   }
 
-  mo = Mode.add('Web', { viewInitSpec })
+  mo = Mode.add('Web', { viewInit })
   d(mo)
 
   Cmd.add('web', () => {
@@ -121,9 +121,9 @@ function initBrowse
   (to, from, lineNum, whenReady) {
     d('================== browse viewCopy')
     to.buf.vars('browse').url = from.buf.vars('browse')?.url
-    viewInitSpec(to,
-                 { lineNum },
-                 whenReady)
+    viewInit(to,
+             { lineNum },
+             whenReady)
   }
 
   function viewReopen
@@ -137,13 +137,13 @@ function initBrowse
       Tron.acmd('browse.reopen', [ id ])
     else
       // probably buf was switched out before init happened.
-      viewInitSpec(view,
-                   { lineNum },
-                   whenReady)
+      viewInit(view,
+               { lineNum },
+               whenReady)
 
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) {
     let r, id, url
 
@@ -249,7 +249,7 @@ function initBrowse
                if (view.ele)
                  obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.ele)
                else
-                 Mess.log('FIX browser viewInitSpec view.ele missing for ResizeObserver')
+                 Mess.log('FIX browser viewInit view.ele missing for ResizeObserver')
                d({ obs })
                id = data.id
                view.vars('Browse').id = id
@@ -379,7 +379,7 @@ function initBrowse
     Tron.acmd('browse.zoom', [ id, inward ])
   }
 
-  mo = Mode.add('Browse', { viewInitSpec,
+  mo = Mode.add('Browse', { viewInit,
                             viewReopen,
                             viewCopy,
                             onEmEmpty(view, wes, updateMini) {

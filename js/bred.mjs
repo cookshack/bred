@@ -1493,7 +1493,7 @@ function initTest
     })
   }
 
-  mo = Mode.add('Test Buffer', { viewInitSpec: vinit })
+  mo = Mode.add('Test Buffer', { viewInit: vinit })
   Cmd.add('test buffer', () => {
     let b, p
 
@@ -1542,7 +1542,7 @@ function initRecent
                    divCl('recent-w') ])
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     Recent.get(0, (err, all) => {
       let w, co
@@ -1568,14 +1568,14 @@ function initRecent
     })
   }
 
-  Mode.add('Recent', { viewInitSpec })
+  Mode.add('Recent', { viewInit })
 
   Cmd.add('Open Recent', () => {
     let p
 
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, {}, view => viewInitSpec(view))
+      p.setBuf(buf, {}, view => viewInit(view))
     else {
       buf = Buf.add('Recent', 'Recent', divW(), p.dir)
       buf.addMode('view')

@@ -95,7 +95,7 @@ function init
 () {
   let mo
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     view.ele.firstElementChild.firstElementChild.innerHTML = ''
     append(view.ele.firstElementChild.firstElementChild,
@@ -107,9 +107,9 @@ function init
   if (Win.root())
     Win.shared().cut = { ring: [] }
 
-  mo = Mode.add('Cuts', { viewInitSpec })
+  mo = Mode.add('Cuts', { viewInit })
 
-  Cmd.add('refresh', () => viewInitSpec(Pane.current().view), mo)
+  Cmd.add('refresh', () => viewInit(Pane.current().view), mo)
 
   Cmd.add('cuts', () => {
     let p, buf
@@ -118,7 +118,7 @@ function init
     p = Pane.current()
     if (buf)
       p.setBuf(buf, {}, view => {
-        viewInitSpec(view)
+        viewInit(view)
       })
     else {
       buf = Buf.add('Cuts', 'Cuts', divW(), p.dir)

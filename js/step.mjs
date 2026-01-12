@@ -20,7 +20,7 @@ function init
     return divCl('step-ww', divCl('step-w bred-surface', ''))
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     let w, wv, preload
 
@@ -51,7 +51,7 @@ function init
       cb(view)
   }
 
-  mo = Mode.add('Step', { viewInitSpec })
+  mo = Mode.add('Step', { viewInit })
   d(mo)
 
   Cmd.add('stepper', () => {

@@ -15,7 +15,7 @@ function init
 () {
   let hist
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     let w
 
@@ -72,7 +72,7 @@ function init
 
   hist = Hist.ensure('man')
 
-  Mode.add('Manpage', { viewInitSpec })
+  Mode.add('Manpage', { viewInit })
 
   //Cmd.add("refresh", () => refresh(Pane.current().view), mo)
 

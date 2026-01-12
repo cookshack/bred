@@ -353,7 +353,7 @@ function init
   hist = Hist.ensure('switch')
 
   mo = Mode.add('Switch', { hidePoint: 1,
-                            viewInitSpec: Ed.viewInitSpec,
+                            viewInit: Ed.viewInit,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
 

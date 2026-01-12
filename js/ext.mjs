@@ -122,7 +122,7 @@ function init
     return divCl('bred-exts-ww', divCl('bred-exts-w bred-surface', ''))
   }
 
-  function viewInitSpec
+  function viewInit
   (view, spec, cb) { // (view)
     let w, all
 
@@ -224,7 +224,7 @@ function init
 
   exts = {}
 
-  mo = Mode.add('Exts', { viewInitSpec })
+  mo = Mode.add('Exts', { viewInit })
 
   Cmd.add('add extension', add, mo)
   Cmd.add('remove extension', remove, mo)
@@ -235,7 +235,7 @@ function init
     buf = Win.shared().exts.buf
     p = Pane.current()
     if (buf)
-      p.setBuf(buf, {}, view => viewInitSpec(view))
+      p.setBuf(buf, {}, view => viewInit(view))
     else {
       buf = Buf.add('Extensions', 'Exts', divW(), p.dir)
       Win.shared().exts.buf = buf
@@ -249,7 +249,7 @@ function init
     let p
 
     p = Pane.current()
-    viewInitSpec(p.view)
+    viewInit(p.view)
   },
           mo)
 

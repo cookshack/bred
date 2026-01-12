@@ -607,7 +607,7 @@ function watch
 }
 
 export
-async function viewInitSpec
+async function viewInit
 (view,
  // { text,
  //   modeWhenText,
@@ -1053,7 +1053,7 @@ function _viewInit
         Mess.log('file: ' + buf.file)
         Mess.log(' dir: ' + buf.dir)
         Mess.log('path: ' + path)
-        Mess.toss('Wodemirror viewInitSpec: ' + err.message)
+        Mess.toss('Wodemirror viewInit: ' + err.message)
         return
       }
 
@@ -1159,7 +1159,7 @@ function viewReopen
 (view, lineNum, whenReady) {
   d('================== viewReopen')
   if (view.ele && view.ed)
-    // timeout so behaves like viewInitSpec
+    // timeout so behaves like viewInit
     setTimeout(() => {
       view.ready = 1
       //view.ed.resize()
@@ -1175,21 +1175,21 @@ function viewReopen
     })
   else
     // probably buf was switched out before init happened.
-    viewInitSpec(view,
-                 { lineNum },
-                 whenReady)
+    viewInit(view,
+             { lineNum },
+             whenReady)
 }
 
 export
 function viewCopy
 (to, from, lineNum, whenReady, cb) {
   d('================== viewCopy')
-  viewInitSpec(to,
-               { text: from.ed.state.doc.toString(),
-                 modeWhenText: from.buf.opt('core.lang'),
-                 lineNum,
-                 whenReady },
-               cb)
+  viewInit(to,
+           { text: from.ed.state.doc.toString(),
+             modeWhenText: from.buf.opt('core.lang'),
+             lineNum,
+             whenReady },
+           cb)
 }
 
 function charAt
@@ -2726,9 +2726,9 @@ function revertV
   lineNum = spec.lineNum ?? (bepRow(view, vgetBep(view)) + 1)
 
   view.ready = 0 // limit onChange handler
-  viewInitSpec(view, { revert: 1,
-                       lineNum,
-                       whenReady: spec.whenReady })
+  viewInit(view, { revert: 1,
+                   lineNum,
+                   whenReady: spec.whenReady })
 
   d('=====>>>>>>>>>> revertV done')
 }
@@ -4054,7 +4054,7 @@ function addMode
   mode = Mode.add(key,
                   { assist: spec.assist,
                     name: key,
-                    viewInitSpec,
+                    viewInit,
                     viewCopy,
                     initFns: Ed.initModeFns,
                     parentsForEm: 'ed',

@@ -9,7 +9,7 @@
 .ascii-w {
   max-width: 50rem;
   display: grid;
-  grid-template-columns: repeat(4, 1fr 1fr 1fr 1fr);
+  grid-template-columns: repeat(4, 1fr 1fr 1fr 1fr 1fr);
   grid-gap: 0;
   border-right: solid 1rem var(--clr-fill);
 }

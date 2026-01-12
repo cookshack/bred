@@ -61,6 +61,21 @@ Read `doc/Dependencies.md` for the module dependency graph and data flow:
 
 This helps understand the overall architecture before diving into specific modules.
 
+## Event System
+
+Read `js/Em.md` for the event map system:
+- Key binding hierarchy and lookup algorithm
+- `Em.on()`, `Em.make()`, `Em.handle()` usage
+- Key sequence parsing and nesting
+- Input buffering during view initialization
+- Mode integration and parent inheritance
+
+Key concepts:
+- Event maps form trees for `C-x C-f` style sequences
+- `Em.look()` at lines 44-129 implements the lookup algorithm
+- `split()` at lines 173-245 parses sequences into nested maps
+- Active maps stack determines binding precedence
+
 ## Async Boundaries
 
 Bred has several async boundaries that are potential bottlenecks. Look for `// ASYNC:` markers in the code:

@@ -2,14 +2,14 @@ import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Em from './em.mjs'
 import * as Mess from './mess.mjs'
-import Mk from './mk.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import { d } from './mess.mjs'
 
 let modes
 
-modes = Mk.array
+// Map maintains insertion order so mode precedence is preserved
+modes = new Map()
 
 export
 function add
@@ -66,7 +66,7 @@ function add
   else {
     //d('mode.add: ' + key)
     m = {}
-    modes.push(m)
+    modes.set(key, m)
   }
 
   m.assist = spec.assist || {}
@@ -129,7 +129,7 @@ function remove
   m = get(key)
   if (m) {
     Cmd.remove(m.key + ' mode')
-    modes.removeIf(m1 => m1.key == m.key)
+    modes.delete(key)
   }
 }
 
@@ -137,7 +137,7 @@ export
 function get
 (key) {
   if (key)
-    return modes.find(m => m.key == key.toLowerCase())
+    return modes.get(key.toLowerCase())
   return 0
 }
 
@@ -161,11 +161,18 @@ function forEach
 export
 function find
 (cb) { // (m,i)
-  return modes.find(cb)
+  for (let m of modes.values())
+    if (cb(m))
+      return m
+  return undefined
 }
 
 export
 function map
 (cb) { // (m,i)
-  return modes.map(cb)
+  let result
+
+  result = []
+  modes.forEach((m, k) => result.push(cb(m, k)))
+  return result
 }

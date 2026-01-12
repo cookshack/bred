@@ -28,6 +28,7 @@ import * as Pane from './pane.mjs'
 import * as Place from './place.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
+import * as Scroll from './scroll.mjs'
 import * as Shell from './shell.mjs'
 import * as Style from './style.mjs'
 import * as Switch from './switch.mjs'
@@ -93,6 +94,7 @@ function initPackages
   // order is important
   d('init packages')
   // Opt already happened
+  Scroll.init()
   Hist.init()
   Area.init()
   Cmd.init()

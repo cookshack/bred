@@ -1,4 +1,25 @@
 import { d } from './mess.mjs'
+import * as Opt from './opt.mjs'
+
+let lineHeightCache
+
+function computeLineHeightPx
+(surf) {
+  let px
+
+  px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
+  px *= (parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1)
+  return px
+}
+
+function getLineHeightPx
+(surf) {
+  if (lineHeightCache.dirty) {
+    lineHeightCache.px = computeLineHeightPx(surf)
+    lineHeightCache.dirty = 1
+  }
+  return lineHeightCache.px
+}
 
 // number of lines to show
 export
@@ -7,9 +28,7 @@ function show
   let avail, px, rect
 
   rect = surf.getBoundingClientRect()
-  //d('SCROLL surf height: ' + rect.height)
-  px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
-  px *= (parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1)
+  px = getLineHeightPx(surf)
 
   avail = Math.ceil(rect.height / px)
   return Math.min(avail, numLines)
@@ -36,8 +55,7 @@ function redraw
     dbg('SCROLL redraw')
 
     rect = surf.getBoundingClientRect()
-    px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
-    px *= (parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1)
+    px = getLineHeightPx(surf)
 
     avail = Math.ceil(rect.height / px)
 
@@ -129,4 +147,14 @@ function redraw
 
     dbg('SCROLL redraw done')
   }
+}
+
+export
+function init
+() {
+  lineHeightCache = { dirty: 1 }
+
+  Opt.onSet('core.fontSize', () => {
+    lineHeightCache.dirty = 1
+  })
 }

@@ -680,7 +680,7 @@ function _viewInit
     }
   }
 
-  d('WODE ================== viewInit')
+  d('WODE ================== _viewInit')
 
   spec = spec || {}
 
@@ -1053,7 +1053,7 @@ function _viewInit
         Mess.log('file: ' + buf.file)
         Mess.log(' dir: ' + buf.dir)
         Mess.log('path: ' + path)
-        Mess.toss('Wodemirror viewinitSpec: ' + err.message)
+        Mess.toss('Wodemirror viewInitSpec: ' + err.message)
         return
       }
 
@@ -1159,7 +1159,7 @@ function viewReopen
 (view, lineNum, whenReady) {
   d('================== viewReopen')
   if (view.ele && view.ed)
-    // timeout so behaves like viewInit
+    // timeout so behaves like viewInitSpec
     setTimeout(() => {
       view.ready = 1
       //view.ed.resize()

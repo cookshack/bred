@@ -329,7 +329,7 @@ function make
 
   function ready1
   () {
-    // timeout so behaves like viewinit,viewcopy
+    // timeout so behaves like viewInitSpec,viewCopy
     d('VIEW ready1 timeout')
     setTimeout(() => {
       ready = 1
@@ -513,8 +513,6 @@ function make
                             wextsMode: mode.wexts },
                           whenReady)
       }
-      else if (mode && mode.viewInit) // remove BUT used by div views
-        mode.viewInit(v, 0, 0, lineNum, whenReady)
       else
         ready1()
     }

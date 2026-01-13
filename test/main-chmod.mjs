@@ -6,7 +6,7 @@ let tests, parseModePerm
 function test
 (group, name, cb) {
   tests[group] = tests[group] || []
-  tests[group].push({ name: name, cb: cb })
+  tests[group].push({ name, cb })
 }
 
 tests = {}

@@ -377,6 +377,7 @@ function add
             d({ wes })
           }
           wes.forEach(we => {
+            // test comment for vc eq
             we.buf = view?.buf
             Em.handle(we, view)
           })

@@ -265,24 +265,28 @@ function mainGetActive
 (buf, targetEm) {
   let active, mo
 
-  active = [ root ]
+  active = []
   mo = buf?.mode
 
   if (mo) {
     let parents, minors
 
-    parents = mo.getParentEms()
-    for (let i = 0; i < parents.length; i++)
-      active.push(parents[i])
-
-    if (mo.em)
-      active.unshift(mo.em)
-
     minors = buf?.minors
     if (minors)
       for (let i = minors.length - 1; i >= 0; i--)
         active.push(minors[i].em)
+
+    if (mo.em)
+      active.push(mo.em)
+
+    parents = mo.getParentEms()
+    for (let i = 0; i < parents.length; i++)
+      active.push(parents[i])
+
+    active.push(root)
   }
+  else
+    active.push(root)
 
   if (targetEm)
     active.unshift(targetEm)

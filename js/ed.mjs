@@ -1343,6 +1343,7 @@ function init
     Cmd.add('trim', () => Backend.trim(), mo)
     Cmd.add('comment region', Backend.commentRegion, mo)
     Cmd.add('count region', () => countRegion(), mo)
+    Cmd.add('sort buffer lines', () => Backend.sortLines(), mo)
     Cmd.add('capitalize word', () => Backend.capitalizeWord(), mo)
     Cmd.add('lowercase word', () => Backend.caseWord(w => w.toLowerCase()), mo)
     Cmd.add('uppercase word', () => Backend.caseWord(w => w.toUpperCase()), mo)

@@ -3362,6 +3362,27 @@ function indentBuffer
 }
 
 export
+function sortLines
+() {
+  let p, lines, sorted, iter, lastWasBreak
+
+  p = Pane.current()
+  lines = []
+  iter = p.view.ed.state.doc.iter()
+  while (1) {
+    line = iter.next()
+    if (iter.done)
+      break
+    lastWasBreak = iter.lineBreak
+    iter.lineBreak || lines.push(line.value)
+  }
+  sorted = lines.sort((a, b) => a.localeCompare(b))
+  p.view.ed.dispatch({ changes: { from: 0,
+                                  to: p.view.ed.state.doc.length,
+                                  insert: sorted.map(l => l).join('\n') + (lastWasBreak ? '\n' : '') } })
+}
+
+export
 function insertTwoSpaces() {
   vinsert1(Pane.current().view, 1, '  ')
 }

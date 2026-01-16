@@ -1032,7 +1032,7 @@ function init
 
   function next
   () {
-    let p, buf
+    let p, buf, provider, model
 
     p = Pane.current()
     buf = p.buf
@@ -1051,7 +1051,9 @@ function init
       return
     }
 
-    Prompt.ask({ text: '🗩 Message',
+    provider = Opt.get('code.provider.agent') || 'opencode'
+    model = Opt.get('code.model.agent') || 'minimax-m2.1-free'
+    Prompt.ask({ text: '🗩 ' + provider + '/' + model,
                  hist: chatHist },
                prompt => {
                  chatHist.add(prompt)

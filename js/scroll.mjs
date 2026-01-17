@@ -15,18 +15,8 @@ function getLineHeightPx
 }
 
 export function make
-(surf, opts) {
-  let itemCount
-  let renderItem
-  let idForItem
-  let state
-  let rafId
-
-  itemCount = opts.itemCount || 0
-  renderItem = opts.renderItem || (() => {})
-  idForItem = opts.idForItem || (i => i)
-  state = { firstVisible: 0, onScroll: null }
-  rafId = 0
+(surf, spec) {
+  let onScrollCb, rafId
 
   function getFirstVisible() {
     return Math.floor(surf.scrollTop / getLineHeightPx(surf))
@@ -36,7 +26,7 @@ export function make
     let avail
 
     avail = Math.ceil(surf.getBoundingClientRect().height / getLineHeightPx(surf))
-    return Math.min(avail, itemCount)
+    return Math.min(avail, spec.itemCount)
   }
 
   function render() {
@@ -45,7 +35,7 @@ export function make
     px = getLineHeightPx(surf)
     first = getFirstVisible()
     needed = visibleCount()
-    last = Math.min(first + needed + 5, itemCount)
+    last = Math.min(first + needed + 5, spec.itemCount)
 
     frag = new globalThis.DocumentFragment()
 
@@ -58,75 +48,73 @@ export function make
       item = globalThis.document.createElement('div')
       item.style.height = px + 'px'
       item.dataset.index = i
-      item.dataset.id = idForItem(i)
-      renderItem(item, i)
+      item.dataset.id = spec.idForItem(i)
+      spec.renderItem(item, i)
       while (item.firstChild)
         frag.append(item.firstChild)
     }
 
     padBottom = globalThis.document.createElement('div')
-    padBottom.style.height = ((itemCount - last) * px) + 'px'
+    padBottom.style.height = ((spec.itemCount - last) * px) + 'px'
     padBottom.className = 'bred-gap'
     frag.append(padBottom)
 
     surf.innerHTML = ''
     surf.append(frag)
-
-    state.firstVisible = first
   }
 
   function onScroll() {
-    if (rafId || state.onScroll == null)
+    if (rafId || onScrollCb == null)
       return
     rafId = globalThis.requestAnimationFrame(() => {
       rafId = 0
-      state.onScroll()
+      onScrollCb()
     })
   }
 
+  spec = spec || {}
+  spec.itemCount = spec.itemCount || 0
+  spec.renderItem = spec.renderItem || (() => {})
+  spec.idForItem = spec.idForItem || (i => i)
+
+  rafId = 0
+
   surf.addEventListener('scroll', onScroll)
 
-  return {
-    set onScroll(fn) {
-      state.onScroll = fn
-    },
+  return { set onScroll(fn) {
+    onScrollCb = fn
+  },
 
-    set renderItem(fn) {
-      renderItem = fn
-    },
+           set renderItem(fn) {
+             spec.renderItem = fn
+           },
 
-    get firstVisible() {
-      return state.firstVisible
-    },
+           get visibleCount() {
+             return visibleCount()
+           },
 
-    get visibleCount() {
-      return visibleCount()
-    },
+           scrollTo(index) {
+             surf.scrollTop = index * getLineHeightPx(surf)
+           },
 
-    scrollTo(index) {
-      surf.scrollTop = index * getLineHeightPx(surf)
-    },
+           scrollBy(delta) {
+             surf.scrollTop += delta * getLineHeightPx(surf)
+           },
 
-    scrollBy(delta) {
-      surf.scrollTop += delta * getLineHeightPx(surf)
-    },
+           refresh() {
+             surf.scrollTop = 0
+             render()
+           },
 
-    refresh() {
-      surf.scrollTop = 0
-      render()
-    },
+           updateItemCount(n) {
+             spec.itemCount = n
+           },
 
-    updateItemCount(n) {
-      itemCount = n
-    },
+           render,
 
-    render() {
-      render()
-    },
-
-    destroy() {
-      surf.removeEventListener('scroll', onScroll)
-    }
+           destroy() {
+             surf.removeEventListener('scroll', onScroll)
+           }
   }
 }
 

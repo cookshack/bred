@@ -836,6 +836,11 @@ function init
       return
     }
 
+    if (event.type == 'server.connected') {
+      updateBufStatus(buf, 'IDLE', '') // clears the CONNECTED after reconnect
+      return
+    }
+
     if (event.type == 'server.heartbeat')
       return
 

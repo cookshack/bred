@@ -186,16 +186,18 @@ function redraw
 export
 function setup
 (view, surf, redraw) {
-  let toScroll
+  let toScroll, inRedraw
 
   view.scroll = { manual: 1 }
   surf.onscroll = () => {
-    if (toScroll)
+    if (toScroll || inRedraw)
       return
-    toScroll = setTimeout(() => {
+    toScroll = globalThis.requestAnimationFrame(() => {
+      inRedraw = 1
       redraw(view)
+      inRedraw = 0
       toScroll = 0
-    }, 100)
+    })
   }
 }
 

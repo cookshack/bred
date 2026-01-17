@@ -692,7 +692,7 @@ function init
           d('CO edit completed: ' + path)
           under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
           under = part.state?.metadata?.diff || buf.vars('code').patch || under
-          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️'), under)
+          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️'), under ,'edit')
         }
       }
       else if (part.tool == 'edit' && part.state?.status == 'error') {

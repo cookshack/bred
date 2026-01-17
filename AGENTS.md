@@ -32,6 +32,10 @@ Key rules from the config (must be followed):
 - **Files must end in a newline**
 - **Padding**: always blank line after `let` declarations
 
+## Linting
+
+Run `npm run check` to verify code style before you're done.
+
 ## Conventions
 
 - **`d()` takes single arg** - Use `d('msg')` or `d({ obj })`, never multiple args

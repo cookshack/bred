@@ -397,7 +397,7 @@ function nearestLine
 
 function fill
 (buf, bak, hid, sort, currentFile, marked) {
-  let path, toScroll
+  let path
 
   function makeF
   (f) {
@@ -479,15 +479,6 @@ function fill
       put(view, el)
     else
       nearestLine(view)
-    toScroll = 0
-  }
-
-  function onscroll
-  (view) {
-    d('scr')
-    if (toScroll)
-      return
-    toScroll = setTimeout(e => redraw(view, e), 100)
   }
 
   function init
@@ -508,9 +499,7 @@ function fill
     end.style.height = 'calc(' + (lines.length - shown) + ' * var(--line-height))'
     first.dataset.shown = shown
 
-    surf.onscroll = e => {
-      onscroll(view, e)
-    }
+    Scroll.setup(view, surf, redraw)
   }
 
   ////

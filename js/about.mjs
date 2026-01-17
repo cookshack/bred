@@ -894,19 +894,11 @@ function init
                   { numLines: messages.length,
                     cols: 4 },
                   (frag, i) => appendM(frag, messages[i]))
-    view.vars('mess').toScroll = 0
-  }
-
-  function onscroll
-  (view) {
-    if (view.vars('mess').toScroll)
-      return
-    view.vars('mess').toScroll = setTimeout(e => redraw(view, e), 100)
   }
 
   function viewInit
   (view, spec, cb) { // (view)
-    let surf, end, frag, first, messages, shown, lastScrollTop
+    let surf, end, frag, first, messages, shown
 
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // mess-ww > mess-h,mess-w
     surf.innerHTML = ''
@@ -925,12 +917,8 @@ function init
     end.style.height = 'calc(' + (messages.length - shown) + ' * var(--line-height))'
     0 && surf.scrollIntoView({ block: 'end', inline: 'nearest' })
     first.dataset.shown = shown
-    surf.onscroll = e => {
-      if (surf.scrollTop == lastScrollTop)
-        return
-      lastScrollTop = surf.scrollTop
-      onscroll(view, e)
-    }
+
+    Scroll.setup(view, surf, redraw)
 
     if (cb)
       cb(view)

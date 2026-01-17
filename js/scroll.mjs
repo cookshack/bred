@@ -150,6 +150,22 @@ function redraw
 }
 
 export
+function setup
+(view, surf, redraw) {
+  let toScroll
+
+  view.scroll = { manual: 1 }
+  surf.onscroll = () => {
+    if (toScroll)
+      return
+    toScroll = setTimeout(() => {
+      redraw(view)
+      toScroll = 0
+    }, 100)
+  }
+}
+
+export
 function init
 () {
   lineHeightCache = { dirty: 1 }

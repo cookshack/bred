@@ -468,20 +468,11 @@ function init
       Css.add(mid.firstElementChild?.children[1], 'hex-cur')
       Css.add(mid.firstElementChild?.nextElementSibling.children[0], 'hex-cur')
     }
-
-    view.vars('hex').toScroll = 0
-  }
-
-  function onscroll
-  (view) {
-    if (view.vars('hex').toScroll)
-      return
-    view.vars('hex').toScroll = setTimeout(e => redraw(view, e), 100)
   }
 
   function viewInit
   (view, spec, cb) { // (view)
-    let surf, end, frag, first, shown, lastScrollTop, lineCount, u8s
+    let surf, end, frag, first, shown, lineCount, u8s
 
     lineCount = view.buf.vars('hex').lineCount
     u8s = view.buf.vars('hex').u8s
@@ -502,13 +493,8 @@ function init
     end.style.height = 'calc(' + (lineCount - shown) + ' * var(--line-height))'
     0 && surf.scrollIntoView({ block: 'end', inline: 'nearest' })
     first.dataset.shown = shown
-    if (1)
-      surf.onscroll = e => {
-        if (surf.scrollTop == lastScrollTop)
-          return
-        lastScrollTop = surf.scrollTop
-        onscroll(view, e)
-      }
+
+    Scroll.setup(view, surf, redraw)
 
     if (cb)
       cb(view)

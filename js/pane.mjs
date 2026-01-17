@@ -347,6 +347,8 @@ function add
   paneW.onscroll = () => {
     if (p.view.ed)
       return
+    if (p.view.scroll?.manual)
+      return
     p.view.point.ensureInView()
   }
 

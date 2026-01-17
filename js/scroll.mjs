@@ -185,8 +185,14 @@ function setup
     if (toScroll || inRedraw)
       return
     toScroll = globalThis.requestAnimationFrame(() => {
+      let scrollTop
+
       inRedraw = 1
+      scrollTop = surf.scrollTop
+
       redraw(view)
+
+      surf.scrollTop = scrollTop
       inRedraw = 0
       toScroll = 0
     })

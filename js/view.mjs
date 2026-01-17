@@ -476,7 +476,7 @@ function make
   ele.innerHTML = ''
   ready = 0
   prep()
-  existing = views.find(v2 => v2.ele && (v2.win == b.win))
+  existing = views.find(v2 => v2.ele && (v2.win == v.win))
   if (existing) {
     // use content from existing view
     d('VIEW   reuse content')

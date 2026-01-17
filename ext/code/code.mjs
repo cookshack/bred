@@ -1140,6 +1140,57 @@ function init
       cb(view)
   }
 
+  function viewCopy
+  (to, from, lineNum, cb) {
+    let fromW, toW
+
+    fromW = from.ele.querySelector('.code-w')
+    toW = to.ele.querySelector('.code-w')
+    if (fromW && toW) {
+      let fromTitle, toTitle, toUnderW
+
+      fromTitle = fromW.querySelector('.code-session-title')
+      toTitle = toW.querySelector('.code-session-title')
+      if (fromTitle && toTitle)
+        toTitle.innerText = fromTitle.innerText
+      toUnderW = toW.querySelector('.code-under-w')
+      if (toUnderW) {
+        let fromUnderW
+
+        fromUnderW = fromW.querySelector('.code-under-w')
+        if (fromUnderW) {
+          let statusEl, tokensEl
+
+          statusEl = toUnderW.querySelector('.code-under-status')
+          if (statusEl) {
+            let fromStatus
+
+            fromStatus = fromUnderW.querySelector('.code-under-status')
+            if (fromStatus)
+              statusEl.innerHTML = fromStatus.innerHTML
+          }
+          tokensEl = toUnderW.querySelector('.code-under-tokens')
+          if (tokensEl) {
+            let fromTokens
+
+            fromTokens = fromUnderW.querySelector('.code-under-tokens')
+            if (fromTokens)
+              tokensEl.innerText = fromTokens.innerText
+          }
+        }
+      }
+      ;[ ...fromW.children ].forEach(child => {
+        if (Css.has(child, 'code-session-title'))
+          return
+        if (Css.has(child, 'code-under-w'))
+          return
+        toW.insertBefore(child.cloneNode(1), toUnderW)
+      })
+    }
+    if (cb)
+      cb(to)
+  }
+
   function bufEnd
   (v) {
     let w
@@ -1164,6 +1215,7 @@ function init
   Opt.declare('code.provider.agent', 'str', 'opencode')
   mo = Mode.add('code',
                 { viewInit,
+                  viewCopy,
                   onRemove(buf) {
                     buf.vars('code').eventAbort?.abort()
                     buf.views?.forEach(view => {

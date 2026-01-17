@@ -16,7 +16,7 @@ function getLineHeightPx
 (surf) {
   if (lineHeightCache.dirty) {
     lineHeightCache.px = computeLineHeightPx(surf)
-    lineHeightCache.dirty = 1
+    lineHeightCache.dirty = 0
   }
   return lineHeightCache.px
 }

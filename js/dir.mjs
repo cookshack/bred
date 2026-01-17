@@ -467,14 +467,13 @@ function fill
 
   function redraw
   (view) {
-    let lines, el
+    let lines, el, scroll
 
     lines = view.buf.vars('dir').lines
     el = view.buf.vars('dir').current
-    Scroll.redraw(view,
-                  { numLines: lines.length,
-                    cols: 7 },
-                  (frag, i) => lines[i].forEach(cell => append(frag, cell)))
+    scroll = view.buf.vars('dir').scroll
+    scroll.updateTotal(lines.length)
+    scroll.render((frag, i) => lines[i].forEach(cell => append(frag, cell)))
     if (visible(el))
       put(view, el)
     else
@@ -483,10 +482,13 @@ function fill
 
   function init
   (view) {
-    let surf, first, frag, lines, shown, end
+    let surf, first, frag, lines, shown, end, scroll
 
     lines = view.buf.vars('dir').lines
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
+
+    if (view.buf.vars('dir').scroll)
+      view.buf.vars('dir').scroll.destroy()
 
     first = surf.firstElementChild
     frag = new globalThis.DocumentFragment()
@@ -499,7 +501,9 @@ function fill
     end.style.height = 'calc(' + (lines.length - shown) + ' * var(--line-height))'
     first.dataset.shown = shown
 
-    Scroll.setup(view, surf, redraw)
+    scroll = Scroll.make(surf, { totalLines: lines.length, colsPerLine: 7 })
+    view.buf.vars('dir').scroll = scroll
+    scroll.onScroll = () => redraw(view)
   }
 
   ////

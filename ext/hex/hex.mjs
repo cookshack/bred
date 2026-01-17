@@ -428,17 +428,15 @@ function init
 
   function redraw
   (view) {
-    let lineCount, line, u8s, first, last, addr, surf
+    let lineCount, line, u8s, first, last, addr, surf, scroll
 
     surf = view.ele.querySelector('.hex-main-body')
     lineCount = view.buf.vars('hex').lineCount
     u8s = view.buf.vars('hex').u8s
     line = currentLine(surf)
-    Scroll.redraw(view,
-                  { numLines: lineCount,
-                    cols: 1,
-                    surf },
-                  (frag, i) => appendLine(frag, u8s, i))
+    scroll = view.buf.vars('hex').scroll
+    scroll.updateTotal(lineCount)
+    scroll.render((frag, i) => appendLine(frag, u8s, i, 0))
     u8s = line?.querySelectorAll('.hex-cur')
     addr = u8s?.length && u8s[0].dataset.addr
     //d('REDRAW addr ' + line?.dataset.addr)
@@ -472,7 +470,7 @@ function init
 
   function viewInit
   (view, spec, cb) { // (view)
-    let surf, end, frag, first, shown, lineCount, u8s
+    let surf, end, frag, first, shown, lineCount, u8s, scroll
 
     lineCount = view.buf.vars('hex').lineCount
     u8s = view.buf.vars('hex').u8s
@@ -494,7 +492,9 @@ function init
     0 && surf.scrollIntoView({ block: 'end', inline: 'nearest' })
     first.dataset.shown = shown
 
-    Scroll.setup(view, surf, redraw)
+    scroll = Scroll.make(surf, { totalLines: lineCount, colsPerLine: 1 })
+    view.buf.vars('hex').scroll = scroll
+    scroll.onScroll = () => redraw(view)
 
     if (cb)
       cb(view)

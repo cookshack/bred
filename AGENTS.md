@@ -34,7 +34,8 @@ Key rules from the config (must be followed):
 
 ## Linting
 
-Run `npm run check` to verify code style before you're done.
+Run `npm run check` (exactly as given, without args or piping) to verify code
+style before you're done.
 
 ## Conventions
 

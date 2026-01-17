@@ -887,18 +887,17 @@ function init
 
   function redraw
   (view) {
-    let messages
+    let messages, scroll
 
     messages = Mess.messages()
-    Scroll.redraw(view,
-                  { numLines: messages.length,
-                    cols: 4 },
-                  (frag, i) => appendM(frag, messages[i]))
+    scroll = view.buf.vars('messages').scroll
+    scroll.updateTotal(messages.length)
+    scroll.render((frag, i) => appendM(frag, messages[i]))
   }
 
   function viewInit
   (view, spec, cb) { // (view)
-    let surf, end, frag, first, messages, shown
+    let surf, end, frag, first, messages, shown, scroll
 
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // mess-ww > mess-h,mess-w
     surf.innerHTML = ''
@@ -918,7 +917,9 @@ function init
     0 && surf.scrollIntoView({ block: 'end', inline: 'nearest' })
     first.dataset.shown = shown
 
-    Scroll.setup(view, surf, redraw)
+    scroll = Scroll.make(surf, { totalLines: messages.length, colsPerLine: 4 })
+    view.buf.vars('messages').scroll = scroll
+    scroll.onScroll = () => redraw(view)
 
     if (cb)
       cb(view)

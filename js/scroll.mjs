@@ -1,210 +1,166 @@
-import { d } from './mess.mjs'
 import * as Opt from './opt.mjs'
 
-let lineHeightCache
-
-function computeLineHeightPx
-(surf) {
-  let px
-
-  px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
-  px *= (parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1)
-  return px
-}
+let lineHeightPx
 
 function getLineHeightPx
 (surf) {
-  if (lineHeightCache.dirty) {
-    lineHeightCache.px = computeLineHeightPx(surf)
-    lineHeightCache.dirty = 0
+  if (lineHeightPx == null) {
+    let base, mult
+
+    base = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
+    mult = parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1
+    lineHeightPx = base * mult
   }
-  return lineHeightCache.px
+  return lineHeightPx
 }
 
-// number of lines to show
+export
+function make
+(surf, spec) {
+  let toScroll, inRender
+  let state
+  let totalLines
+  let colsPerLine
+
+  state = { above: 0, shown: 0 }
+  totalLines = spec.totalLines || 0
+  colsPerLine = spec.colsPerLine || 1
+
+  function visibleLines
+  () {
+    let px, avail
+
+    px = getLineHeightPx(surf)
+    avail = Math.ceil(surf.getBoundingClientRect().height / px)
+    return Math.min(avail, totalLines - state.above)
+  }
+
+  function render
+  (renderItem) {
+    let px, first, end, above, mustShow
+    let frag, i
+
+    if (inRender)
+      return
+    inRender = 1
+
+    px = getLineHeightPx(surf)
+    above = surf.scrollTop == 0 ? 0 : Math.floor(surf.scrollTop / px)
+
+    first = surf.firstElementChild
+    end = surf.lastElementChild
+
+    if (above > state.above) {
+      for (i = 0; i < (above - state.above) * colsPerLine; i++)
+        if (first.nextElementSibling == end)
+          break
+        else if (first.nextElementSibling)
+          first.nextElementSibling.remove()
+      state.shown -= (above - state.above)
+    }
+    else if (above < state.above) {
+      frag = new globalThis.DocumentFragment()
+      for (i = 0; i < (state.above - above); i++) {
+        renderItem(frag, i + above)
+        state.shown++
+      }
+      first.after(frag)
+    }
+
+    first.style.height = (above * px) + 'px'
+
+    mustShow = Math.min(visibleLines(), totalLines - above)
+
+    if (state.shown < mustShow) {
+      frag = new globalThis.DocumentFragment()
+      while (state.shown < mustShow) {
+        renderItem(frag, above + state.shown)
+        state.shown++
+      }
+      end.before(frag)
+    }
+    else if (state.shown > mustShow)
+      while (mustShow < state.shown) {
+        for (i = 0; i < colsPerLine; i++)
+          if (end.previousElementSibling)
+            end.previousElementSibling.remove()
+        state.shown--
+      }
+
+    end.style.height = ((totalLines - state.shown - above) * px) + 'px'
+
+    state.above = above
+    inRender = 0
+  }
+
+  function onScroll
+  () {
+    if (toScroll || inRender)
+      return
+    toScroll = globalThis.requestAnimationFrame(() => {
+      toScroll = 0
+      if (state.onScroll)
+        state.onScroll()
+    })
+  }
+
+  surf.onscroll = onScroll
+
+  return { set onScroll(fn) {
+    state.onScroll = fn
+  },
+
+           get above() {
+             return state.above
+           },
+
+           get shown() {
+             return state.shown
+           },
+
+           scrollTo(line) {
+             surf.scrollTop = line * getLineHeightPx(surf)
+           },
+
+           scrollBy(delta) {
+             surf.scrollTop += delta * getLineHeightPx(surf)
+           },
+
+           render,
+
+           updateTotal(n) {
+             totalLines = n
+           },
+
+           refresh(renderItem) {
+             state.above = 0
+             state.shown = 0
+             surf.scrollTop = 0
+             render(renderItem)
+           },
+
+           destroy() {
+             surf.onscroll = null
+           } }
+}
+
 export
 function show
 (surf, numLines) {
-  let avail, px, rect
+  let px, rect, avail
 
-  rect = surf.getBoundingClientRect()
   px = getLineHeightPx(surf)
-
+  rect = surf.getBoundingClientRect()
   avail = Math.ceil(rect.height / px)
   return Math.min(avail, numLines)
 }
 
 export
-function redraw
-(view,
- spec, // { numLines, colsPerLine?, surf? }
- addLine) {
-  let surf, dbg, colsPerLine
-
-  // The redraw function implements virtual scrolling - it only creates DOM nodes
-  // for visible lines and uses spacer divs (first, end) for off-screen content.
-  // This avoids creating thousands of DOM nodes for large buffers.
-  //
-  // Structure of surf:
-  //   surf
-  //   ├── first (top spacer div) - min-height tracks scroll position
-  //   ├── ...line elements...     - visible line DOM nodes
-  //   └── end (bottom spacer div) - min-height tracks remaining lines
-  //
-  // Dataset attributes track state:
-  //   first.dataset.above  - number of lines above the viewport
-  //   first.dataset.shown  - number of lines currently rendered
-  //   first.dataset.scrolltop - last scrollTop we processed (for debouncing)
-
-  dbg = () => {}
-  //dbg = d
-
-  spec = spec || {}
-  colsPerLine = spec.cols || 7
-  surf = spec.surf || view.ele?.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
-  if (surf) {
-    let px, rect, avail, frag, shown, above
-    let first // top spacer div
-    let end // bottom spacer div
-
-    dbg('SCROLL redraw')
-
-    // Get surface dimensions and line height
-    rect = surf.getBoundingClientRect()
-    px = getLineHeightPx(surf)
-
-    // Calculate how many lines fit in the viewport
-    avail = Math.ceil(rect.height / px)
-
-    // Get references to spacer elements
-    first = surf.firstElementChild
-    end = surf.lastElementChild
-
-    // Initialize dataset values if not present
-    first.dataset.above = first.dataset.above || 0
-    first.dataset.scrolltop = first.dataset.scrolltop || 0
-    shown = parseInt(first.dataset.shown)
-
-    dbg('first.dataset.above: ' + first.dataset.above)
-    dbg('first.dataset.scrolltop: ' + first.dataset.scrolltop)
-    dbg('first.dataset.shown: ' + first.dataset.shown)
-
-    // Record current scroll position at start to prevent loops
-    first.dataset.scrolltop = Math.floor(surf.scrollTop)
-
-    // Calculate 'above' - how many lines are scrolled off the top
-    if (surf.scrollTop == 0)
-      above = 0
-    else
-      above = Math.floor(surf.scrollTop / px)
-    dbg('above: ' + above)
-
-    end = surf.lastElementChild
-
-    // PHASE 1: Adjust lines ABOVE the viewport
-
-    if (above > first.dataset.above) {
-      // We scrolled down (above increased), remove excess lines from the top
-      dbg('= remove ' + (above - first.dataset.above) + ' lines above')
-      // Remove lines until we have (above - previous_above) fewer lines
-      for (let i = 0; i < (above - first.dataset.above) * colsPerLine; i++)
-        if (first.nextElementSibling == end) // stop before bottom spacer
-          break
-        else if (first.nextElementSibling)
-          first.nextElementSibling.remove()
-      shown -= (above - first.dataset.above)
-    }
-    else if (above < first.dataset.above) {
-      // We scrolled up (above decreased), add lines to the top
-      dbg('= add ' + (first.dataset.above - above) + ' lines above')
-      frag = new globalThis.DocumentFragment()
-      for (let i = 0; i < (first.dataset.above - above); i++) {
-        addLine(frag, i + above)
-        shown++
-      }
-      first.after(frag)
-    }
-
-    // Update top spacer height to match scroll position
-    // This creates the illusion of content before the first visible line
-    first.style.height = (above * px) + 'px'
-    first.dataset.above = above
-
-    // PHASE 2: Adjust lines BELOW the viewport
-
-    // Ensure we have enough visible lines to fill the viewport
-    {
-      let mustShow
-
-      // How many lines should be visible (limited by available space and total lines)
-      mustShow = Math.min(avail, (spec.numLines - above))
-      dbg({ shown })
-      dbg({ mustShow })
-
-      if (shown < mustShow) {
-        // We need more lines, add them before the bottom spacer
-        frag = new globalThis.DocumentFragment()
-        dbg('= add ' + (mustShow - shown) + ' lines below')
-        while (shown < mustShow) {
-          dbg('add line ' + (above + shown))
-          addLine(frag, above + shown)
-          shown++
-        }
-        end.before(frag)
-      }
-      else if (shown > mustShow) {
-        // We have too many lines, remove from the bottom
-        0 && d('= remove ' + (shown - mustShow) + ' lines below')
-        while (mustShow < shown) {
-          dbg('remove last line')
-          // Remove colsPerLine elements (multi-column layout)
-          for (let i = 0; i < colsPerLine; i++)
-            if (end.previousElementSibling)
-              end.previousElementSibling.remove()
-          shown--
-        }
-      }
-    }
-
-    // Update bottom spacer height to account for remaining lines
-    // This creates the illusion of content after the last visible line
-    end.style.height = ((spec.numLines - shown - above) * px) + 'px'
-    first.dataset.shown = shown
-
-    dbg('SCROLL redraw done')
-  }
-}
-
-export
-function setup
-(view, surf, redraw) {
-  let toScroll, inRedraw
-
-  view.scroll = { manual: 1 }
-  surf.onscroll = () => {
-    if (toScroll || inRedraw)
-      return
-    toScroll = globalThis.requestAnimationFrame(() => {
-      let scrollTop
-
-      inRedraw = 1
-      scrollTop = surf.scrollTop
-
-      redraw(view)
-
-      surf.scrollTop = scrollTop
-      inRedraw = 0
-      toScroll = 0
-    })
-  }
-}
-
-export
 function init
 () {
-  lineHeightCache = { dirty: 1 }
+  lineHeightPx = null
 
   Opt.onSet('core.fontSize', () => {
-    lineHeightCache.dirty = 1
+    lineHeightPx = null
   })
 }

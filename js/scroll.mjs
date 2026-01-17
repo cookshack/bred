@@ -1,6 +1,5 @@
-import { d } from './mess.mjs'
-
 import * as Opt from './opt.mjs'
+//import { d } from './mess.mjs'
 
 let lineHeights
 
@@ -15,7 +14,7 @@ function getLineHeightPx
   mult = parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1
   px = base * mult
 
-  d({ base, mult, px, surfClass: surf.className })
+  //d({ base, mult, px, surfClass: surf.className })
 
   lineHeights.set(surf, px)
 

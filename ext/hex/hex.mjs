@@ -83,7 +83,7 @@ function appendLine
 }
 
 function divW
-(dir, name) {
+(dir, name, lineCount) {
   let addr, hascii, hhexs
 
   addr = 0
@@ -104,7 +104,9 @@ function divW
                                [ divCl('hex-main-h',
                                        [ divCl('hex-hexs', hhexs),
                                          divCl('hex-ascii', hascii) ]),
-                                 divCl('hex-main-body') ]) ]) ])
+                                 divCl('hex-main-body',
+                                       [ divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }),
+                                         divCl('bred-gap', [], { style: 'height: calc(' + lineCount + ' * var(--line-height));' }) ]) ]) ]) ])
 }
 
 export
@@ -126,7 +128,7 @@ function open
     lineCount = Math.floor(u8s.byteLength / 16) + ((u8s.byteLength % 16) ? 1 : 0)
     buf = Buf.add('Hex: ' + loc.filename,
                   'Hex',
-                  divW(loc.dirname, loc.filename),
+                  divW(loc.dirname, loc.filename, lineCount),
                   loc.dirname,
                   { file: loc.filename,
                     vars: { hex: { u8s,

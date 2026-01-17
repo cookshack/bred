@@ -859,7 +859,7 @@ function init
 
     ;(async () => {
       while (buf.vars('code').eventSub) {
-        let c
+        let c, events
 
         if (abortController.signal.aborted)
           break
@@ -872,8 +872,6 @@ function init
           await new Promise(r => setTimeout(r, 1000))
           continue
         }
-
-        let events
 
         d('CO starting event subscription')
         try {
@@ -907,6 +905,7 @@ function init
           buf.vars('code').eventStreamResolve = r
         })
         buf.vars('code').eventStreamResolve = 0
+        buf.vars('code').client = 0
         buf.vars('code').reconnectAttempt++
         updateBufStatus(buf, 'RECONNECTING...', '')
       }
@@ -920,6 +919,7 @@ function init
         elapsed = Date.now() - last
         if (elapsed > 35000) { // heartbeat is sent every 30s
           d('CO server quiet for ' + elapsed + 'ms, restarting stream')
+          buf.vars('code').lastEventTime = Date.now()
           if (buf.vars('code').eventStreamResolve)
             buf.vars('code').eventStreamResolve()
         }

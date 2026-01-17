@@ -60,7 +60,7 @@ function init
 
       rU = underW.getBoundingClientRect()
       rW = w.getBoundingClientRect()
-      d('CO ' + rU.bottom + ' < ' + rW.bottom + '?')
+      //d('CO ' + rU.bottom + ' < ' + rW.bottom + '?')
       return rU.top < rW.bottom
     }
     return 0
@@ -857,6 +857,7 @@ function init
 
     updateBufStatus(buf, 'CONNECTING', '')
 
+    // Outer IFFE
     ;(async () => {
       while (buf.vars('code').eventSub) {
         let c, events
@@ -887,6 +888,7 @@ function init
           continue
         }
 
+        // Inner IFFE
         ;(async () => {
           try {
             for await (let event of events.stream) {
@@ -907,6 +909,11 @@ function init
         buf.vars('code').eventStreamResolve = 0
         buf.vars('code').client = 0
         buf.vars('code').reconnectAttempt++
+        if (buf.vars('code').eventAbort)
+          buf.vars('code').eventAbort.abort()
+        // Need a new abortController, otherwise the outer IFFE will also exit
+        abortController = new AbortController()
+        buf.vars('code').eventAbort = abortController
         updateBufStatus(buf, 'RECONNECTING...', '')
       }
     })()

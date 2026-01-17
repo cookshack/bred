@@ -691,7 +691,7 @@ function init
 
           d('CO edit completed: ' + path)
           under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
-          under = buf.vars('code').patch || under
+          under = part.state?.metadata?.diff || buf.vars('code').patch || under
           appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️'), under)
         }
       }
@@ -913,11 +913,12 @@ function init
 
     buf.vars('code').eventCheckInterval = setInterval(() => {
       if (buf.vars('code').eventSub) {
-        let elapsed
+        let elapsed, last
 
-        elapsed = Date.now() - buf.vars('code').lastEventTime
+        last = buf.vars('code').lastEventTime
+        elapsed = Date.now() - last
         if (elapsed > 35000) { // heartbeat is sent every 30s
-          d('CO no events for ' + elapsed + 'ms, restarting stream')
+          d('CO server quiet for ' + elapsed + 'ms, restarting stream')
           if (buf.vars('code').eventStreamResolve)
             buf.vars('code').eventStreamResolve()
         }

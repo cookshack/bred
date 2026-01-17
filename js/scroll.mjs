@@ -14,149 +14,120 @@ function getLineHeightPx
   return lineHeightPx
 }
 
-export
-function make
-(surf, spec) {
-  let toScroll, inRender
+export function make
+(surf, opts) {
+  let itemCount
+  let renderItem
+  let idForItem
   let state
-  let totalLines
-  let colsPerLine
+  let rafId
 
-  state = { above: 0, shown: 0 }
-  totalLines = spec.totalLines || 0
-  colsPerLine = spec.colsPerLine || 1
+  itemCount = opts.itemCount || 0
+  renderItem = opts.renderItem || (() => {})
+  idForItem = opts.idForItem || (i => i)
+  state = { firstVisible: 0, onScroll: null }
+  rafId = 0
 
-  function visibleLines
-  () {
-    let px, avail
-
-    px = getLineHeightPx(surf)
-    avail = Math.ceil(surf.getBoundingClientRect().height / px)
-    return Math.min(avail, totalLines - state.above)
+  function getFirstVisible() {
+    return Math.floor(surf.scrollTop / getLineHeightPx(surf))
   }
 
-  function render
-  (renderItem) {
-    let px, first, end, above, mustShow
-    let frag, i
+  function visibleCount() {
+    let avail
 
-    if (inRender)
-      return
-    inRender = 1
-
-    px = getLineHeightPx(surf)
-    above = surf.scrollTop == 0 ? 0 : Math.floor(surf.scrollTop / px)
-
-    first = surf.firstElementChild
-    end = surf.lastElementChild
-
-    if (above > state.above) {
-      for (i = 0; i < (above - state.above) * colsPerLine; i++)
-        if (first.nextElementSibling == end)
-          break
-        else if (first.nextElementSibling)
-          first.nextElementSibling.remove()
-      state.shown -= (above - state.above)
-    }
-    else if (above < state.above) {
-      frag = new globalThis.DocumentFragment()
-      for (i = 0; i < (state.above - above); i++) {
-        renderItem(frag, i + above)
-        state.shown++
-      }
-      first.after(frag)
-    }
-
-    first.style.height = (above * px) + 'px'
-
-    mustShow = Math.min(visibleLines(), totalLines - above)
-
-    if (state.shown < mustShow) {
-      frag = new globalThis.DocumentFragment()
-      while (state.shown < mustShow) {
-        renderItem(frag, above + state.shown)
-        state.shown++
-      }
-      end.before(frag)
-    }
-    else if (state.shown > mustShow)
-      while (mustShow < state.shown) {
-        for (i = 0; i < colsPerLine; i++)
-          if (end.previousElementSibling)
-            end.previousElementSibling.remove()
-        state.shown--
-      }
-
-    end.style.height = ((totalLines - state.shown - above) * px) + 'px'
-
-    state.above = above
-    inRender = 0
+    avail = Math.ceil(surf.getBoundingClientRect().height / getLineHeightPx(surf))
+    return Math.min(avail, itemCount)
   }
 
-  function onScroll
-  () {
-    if (toScroll || inRender)
+  function render() {
+    let first, needed, last, frag, padTop, padBottom, i, item, px
+
+    px = getLineHeightPx(surf)
+    first = getFirstVisible()
+    needed = visibleCount()
+    last = Math.min(first + needed + 5, itemCount)
+
+    frag = new globalThis.DocumentFragment()
+
+    padTop = globalThis.document.createElement('div')
+    padTop.style.height = (first * px) + 'px'
+    frag.append(padTop)
+
+    for (i = first; i < last; i++) {
+      item = globalThis.document.createElement('div')
+      item.style.height = px + 'px'
+      item.dataset.index = i
+      item.dataset.id = idForItem(i)
+      renderItem(item, i)
+      frag.append(item)
+    }
+
+    padBottom = globalThis.document.createElement('div')
+    padBottom.style.height = ((itemCount - last) * px) + 'px'
+    frag.append(padBottom)
+
+    surf.innerHTML = ''
+    surf.append(frag)
+
+    state.firstVisible = first
+  }
+
+  function onScroll() {
+    if (rafId || state.onScroll == null)
       return
-    toScroll = globalThis.requestAnimationFrame(() => {
-      toScroll = 0
-      if (state.onScroll)
-        state.onScroll()
+    rafId = globalThis.requestAnimationFrame(() => {
+      rafId = 0
+      state.onScroll()
     })
   }
 
-  surf.onscroll = onScroll
+  surf.addEventListener('scroll', onScroll)
 
-  return { set onScroll(fn) {
-    state.onScroll = fn
-  },
+  return {
+    set onScroll(fn) {
+      state.onScroll = fn
+    },
 
-           get above() {
-             return state.above
-           },
+    set renderItem(fn) {
+      renderItem = fn
+    },
 
-           get shown() {
-             return state.shown
-           },
+    get firstVisible() {
+      return state.firstVisible
+    },
 
-           scrollTo(line) {
-             surf.scrollTop = line * getLineHeightPx(surf)
-           },
+    get visibleCount() {
+      return visibleCount()
+    },
 
-           scrollBy(delta) {
-             surf.scrollTop += delta * getLineHeightPx(surf)
-           },
+    scrollTo(index) {
+      surf.scrollTop = index * getLineHeightPx(surf)
+    },
 
-           render,
+    scrollBy(delta) {
+      surf.scrollTop += delta * getLineHeightPx(surf)
+    },
 
-           updateTotal(n) {
-             totalLines = n
-           },
+    refresh() {
+      surf.scrollTop = 0
+      render()
+    },
 
-           refresh(renderItem) {
-             state.above = 0
-             state.shown = 0
-             surf.scrollTop = 0
-             render(renderItem)
-           },
+    updateItemCount(n) {
+      itemCount = n
+    },
 
-           destroy() {
-             surf.onscroll = null
-           } }
+    render() {
+      render()
+    },
+
+    destroy() {
+      surf.removeEventListener('scroll', onScroll)
+    }
+  }
 }
 
-export
-function show
-(surf, numLines) {
-  let px, rect, avail
-
-  px = getLineHeightPx(surf)
-  rect = surf.getBoundingClientRect()
-  avail = Math.ceil(rect.height / px)
-  return Math.min(avail, numLines)
-}
-
-export
-function init
+export function init
 () {
   lineHeightPx = null
 

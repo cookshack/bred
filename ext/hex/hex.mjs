@@ -435,33 +435,24 @@ function init
     u8s = view.buf.vars('hex').u8s
     line = currentLine(surf)
     scroll = view.buf.vars('hex').scroll
-    scroll.updateTotal(lineCount)
-    scroll.render((frag, i) => appendLine(frag, u8s, i, 0))
+    scroll.updateItemCount(lineCount)
+    scroll.render()
     u8s = line?.querySelectorAll('.hex-cur')
     addr = u8s?.length && u8s[0].dataset.addr
-    //d('REDRAW addr ' + line?.dataset.addr)
     first = lineFirst(surf)
-    //d('REDRAW first ' + first?.dataset.addr)
     last = lineLast(surf)
-    //d('REDRAW last ' + last?.dataset.addr)
     if (addr && first && last
         && ((addr < first.dataset.addr) || (addr > last.dataset.addr))) {
       let mid
 
-      //d('REDRAW remove from ' + line.dataset.addr)
       Css.remove(line, 'hex-cur')
       u8s.forEach(u8 => Css.remove(u8, 'hex-cur'))
 
       addr = parseInt(first.dataset.addr)
-      //d('REDRAW addr ' + addr)
       addr += (parseInt(last.dataset.addr) - parseInt(first.dataset.addr)) / 2
-      //d('REDRAW addr ' + addr)
       addr = addr - (addr %= 16)
-      //d('REDRAW addr ' + addr)
       mid = surf.querySelector('.hex-line[data-addr="' + addr + '"]')
-      //d('REDRAW mid ' + mid)
       mid = mid || first
-      //d('REDRAW add to ' + mid.dataset.addr)
       Css.add(mid, 'hex-cur')
       Css.add(mid.firstElementChild?.children[1], 'hex-cur')
       Css.add(mid.firstElementChild?.nextElementSibling.children[0], 'hex-cur')
@@ -470,31 +461,18 @@ function init
 
   function viewInit
   (view, spec, cb) { // (view)
-    let surf, end, frag, first, shown, lineCount, u8s, scroll
+    let surf, lineCount, u8s, scroll
 
     lineCount = view.buf.vars('hex').lineCount
     u8s = view.buf.vars('hex').u8s
 
     surf = view.ele.querySelector('.hex-main-body')
-    surf.innerHTML = ''
-    frag = new globalThis.DocumentFragment()
 
-    first = divCl('bred-gap', [], { style: 'min-height: calc(0 * var(--line-height));' })
-    end = divCl('bred-gap', [], { style: 'min-height: calc(' + lineCount + ' * var(--line-height));' })
-    append(surf, first, end)
-
-    shown = Scroll.show(surf, lineCount)
-    for (let i = 0; i < shown; i++)
-      appendLine(frag, u8s, i, 0)
-    end.before(frag)
-
-    end.style.height = 'calc(' + (lineCount - shown) + ' * var(--line-height))'
-    0 && surf.scrollIntoView({ block: 'end', inline: 'nearest' })
-    first.dataset.shown = shown
-
-    scroll = Scroll.make(surf, { totalLines: lineCount, colsPerLine: 1 })
+    scroll = Scroll.make(surf, { itemCount: lineCount })
+    scroll.renderItem = (el, i) => appendLine(el, u8s, i, 0)
     view.buf.vars('hex').scroll = scroll
     scroll.onScroll = () => redraw(view)
+    scroll.render()
 
     if (cb)
       cb(view)

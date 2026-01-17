@@ -891,35 +891,22 @@ function init
 
     messages = Mess.messages()
     scroll = view.buf.vars('messages').scroll
-    scroll.updateTotal(messages.length)
-    scroll.render((frag, i) => appendM(frag, messages[i]))
+    scroll.updateItemCount(messages.length)
+    scroll.render()
   }
 
   function viewInit
   (view, spec, cb) { // (view)
-    let surf, end, frag, first, messages, shown, scroll
+    let surf, messages, scroll
 
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // mess-ww > mess-h,mess-w
-    surf.innerHTML = ''
-    frag = new globalThis.DocumentFragment()
     messages = Mess.messages()
 
-    first = divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' })
-    end = divCl('bred-gap', [], { style: 'height: calc(' + messages.length + ' * var(--line-height));' })
-    append(surf, first, end)
-
-    shown = Scroll.show(surf, messages.length)
-    for (let i = 0; i < shown; i++)
-      appendM(frag, messages[i])
-    end.before(frag)
-
-    end.style.height = 'calc(' + (messages.length - shown) + ' * var(--line-height))'
-    0 && surf.scrollIntoView({ block: 'end', inline: 'nearest' })
-    first.dataset.shown = shown
-
-    scroll = Scroll.make(surf, { totalLines: messages.length, colsPerLine: 4 })
+    scroll = Scroll.make(surf, { itemCount: messages.length })
+    scroll.renderItem = (el, i) => appendM(el, messages[i])
     view.buf.vars('messages').scroll = scroll
     scroll.onScroll = () => redraw(view)
+    scroll.render()
 
     if (cb)
       cb(view)

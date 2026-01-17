@@ -1,4 +1,4 @@
-import { append, button, div, divCl, span, img } from './dom.mjs'
+import { button, div, divCl, span, img } from './dom.mjs'
 
 import * as Browse from './browse.mjs'
 import * as Buf from './buf.mjs'
@@ -472,8 +472,8 @@ function fill
     lines = view.buf.vars('dir').lines
     el = view.buf.vars('dir').current
     scroll = view.buf.vars('dir').scroll
-    scroll.updateTotal(lines.length)
-    scroll.render((frag, i) => lines[i].forEach(cell => append(frag, cell)))
+    scroll.updateItemCount(lines.length)
+    scroll.render()
     if (visible(el))
       put(view, el)
     else
@@ -482,28 +482,22 @@ function fill
 
   function init
   (view) {
-    let surf, first, frag, lines, shown, end, scroll
+    let surf, scroll
 
-    lines = view.buf.vars('dir').lines
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
 
     if (view.buf.vars('dir').scroll)
       view.buf.vars('dir').scroll.destroy()
 
-    first = surf.firstElementChild
-    frag = new globalThis.DocumentFragment()
-    shown = Scroll.show(surf, lines.length)
-    for (let i = 0; i < shown; i++)
-      lines[i].forEach(cell => append(frag, cell))
-    first.after(frag)
-
-    end = surf.lastElementChild
-    end.style.height = 'calc(' + (lines.length - shown) + ' * var(--line-height))'
-    first.dataset.shown = shown
-
-    scroll = Scroll.make(surf, { totalLines: lines.length, colsPerLine: 7 })
+    scroll = Scroll.make(surf, { itemCount: view.buf.vars('dir').lines.length })
+    scroll.renderItem = (el, i) => {
+      el.style.display = 'grid'
+      el.style.gridTemplateColumns = 'repeat(7, auto)'
+      view.buf.vars('dir').lines[i].forEach(cell => el.append(cell.cloneNode(true)))
+    }
     view.buf.vars('dir').scroll = scroll
     scroll.onScroll = () => redraw(view)
+    scroll.render()
   }
 
   ////

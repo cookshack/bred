@@ -51,6 +51,7 @@ export function make
 
     padTop = globalThis.document.createElement('div')
     padTop.style.height = (first * px) + 'px'
+    padTop.className = 'bred-gap'
     frag.append(padTop)
 
     for (i = first; i < last; i++) {
@@ -59,11 +60,13 @@ export function make
       item.dataset.index = i
       item.dataset.id = idForItem(i)
       renderItem(item, i)
-      frag.append(item)
+      while (item.firstChild)
+        frag.append(item.firstChild)
     }
 
     padBottom = globalThis.document.createElement('div')
     padBottom.style.height = ((itemCount - last) * px) + 'px'
+    padBottom.className = 'bred-gap'
     frag.append(padBottom)
 
     surf.innerHTML = ''

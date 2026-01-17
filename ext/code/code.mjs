@@ -254,7 +254,8 @@ function init
   }
 
   function appendToolMsg
-  (buf, callID, label, under, tool) {
+  (buf, callID, label, under, spec) {
+    spec = spec || {}
     buf.views.forEach(view => {
       if (view.ele) {
         let w, els, underEl
@@ -262,7 +263,7 @@ function init
         w = view.ele.querySelector('.code-w')
         els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
         els?.forEach(el => el.remove())
-        if (under && (tool == 'edit')) {
+        if (under && (spec.format == 'patch')) {
           let patchResult
 
           patchResult = makePatchEd(under)
@@ -453,7 +454,7 @@ function init
       if (path) {
         d('CO permission file: ' + path)
         buf.vars('code').patch = req.metadata?.diff
-        appendToolMsg(buf, (req.callID || req.tool.callID), fileLabel(buf, 'Edit', path), req.metadata?.diff, 'edit')
+        appendToolMsg(buf, (req.callID || req.tool.callID), fileLabel(buf, 'Edit', path), req.metadata?.diff, { format: 'patch' })
       }
     }
   }
@@ -692,7 +693,7 @@ function init
           d('CO edit completed: ' + path)
           under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
           under = part.state?.metadata?.diff || buf.vars('code').patch || under
-          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️'), under ,'edit')
+          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️'), under , { format: 'patch' })
         }
       }
       else if (part.tool == 'edit' && part.state?.status == 'error') {

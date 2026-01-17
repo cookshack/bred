@@ -1,17 +1,29 @@
+import { d } from './mess.mjs'
+
 import * as Opt from './opt.mjs'
 
-let lineHeightPx
+let lineHeights
 
 function getLineHeightPx
 (surf) {
-  if (lineHeightPx == null) {
-    let base, mult
+  let base, mult, px
 
-    base = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
-    mult = parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1
-    lineHeightPx = base * mult
-  }
-  return lineHeightPx
+  if (lineHeights.has(surf))
+    return lineHeights.get(surf)
+
+  base = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
+  mult = parseFloat(globalThis.getComputedStyle(surf).getPropertyValue('--line-height') || 1) || 1
+  px = base * mult
+
+  d({ base, mult, px, surfClass: surf.className })
+
+  lineHeights.set(surf, px)
+
+  surf.addEventListener('scroll-mjs.destroy', () => {
+    lineHeights.delete(surf)
+  })
+
+  return px
 }
 
 export function make
@@ -120,9 +132,9 @@ export function make
 
 export function init
 () {
-  lineHeightPx = null
+  lineHeights = new Map()
 
   Opt.onSet('core.fontSize', () => {
-    lineHeightPx = null
+    lineHeights.clear()
   })
 }

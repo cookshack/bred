@@ -63,7 +63,7 @@ function redraw
   colsPerLine = spec.cols || 7
   surf = spec.surf || view.ele?.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
   if (surf) {
-    let px, rect, avail, frag, shown, above, height
+    let px, rect, avail, frag, shown, above
     let first // top spacer div
     let end // bottom spacer div
 
@@ -133,8 +133,7 @@ function redraw
 
     // Update top spacer height to match scroll position
     // This creates the illusion of content before the first visible line
-    height = 'calc(' + above + ' * var(--line-height))'
-    first.style.minHeight = height
+    first.style.height = (above * px) + 'px'
     first.dataset.above = above
 
     // PHASE 2: Adjust lines BELOW the viewport
@@ -175,8 +174,7 @@ function redraw
 
     // Update bottom spacer height to account for remaining lines
     // This creates the illusion of content after the last visible line
-    height = 'calc(' + (spec.numLines - shown - above) + ' * var(--line-height))'
-    end.style.minHeight = height
+    end.style.height = ((spec.numLines - shown - above) * px) + 'px'
     first.dataset.shown = shown
 
     dbg('SCROLL redraw done')

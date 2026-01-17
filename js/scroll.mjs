@@ -89,13 +89,7 @@ function redraw
     dbg('first.dataset.scrolltop: ' + first.dataset.scrolltop)
     dbg('first.dataset.shown: ' + first.dataset.shown)
 
-    // If scroll position hasn't changed since last redraw, nothing to do
-    if (first.dataset.scrolltop == Math.floor(surf.scrollTop)) {
-      0 && d('same')
-      return
-    }
-
-    // Record current scroll position
+    // Record current scroll position at start to prevent loops
     first.dataset.scrolltop = Math.floor(surf.scrollTop)
 
     // Calculate 'above' - how many lines are scrolled off the top

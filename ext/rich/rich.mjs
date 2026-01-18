@@ -119,7 +119,7 @@ function divW
 
   return divCl('rich-ww',
                [ Ed.divMl(dir, name, { icon: 'markdown' }),
-                 divCl('rich-w', co) ])
+                 divCl('rich-w bred-scroller', co) ])
 }
 
 export

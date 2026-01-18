@@ -1846,7 +1846,8 @@ function perf
     name: b.name,
     id: b.id,
     mode: b.mode?.key,
-    views: b.views.length
+    views: b.views.length,
+    domElements: b.views.reduce((sum, v) => sum + (v.ele?.querySelectorAll('*').length || 0), 0)
   }))
 
   results.domElements = globalThis.document.querySelectorAll('*').length
@@ -1884,7 +1885,11 @@ function perf
   Mess.log('Clock Buffers: ' + results.clockBuffers)
   Mess.log('Total Views: ' + results.viewsTotal)
   Mess.log('Views per buffer: min: ' + results.viewsMin + ' max: ' + results.viewsMax + ' avg: ' + results.viewsAvg)
-  Mess.log('Total buffers: ' + results.buffers.length)
+
+  Mess.log('Buffers:')
+  results.buffers.forEach(b => {
+    Mess.log('  ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + ' view(s)')
+  })
 
   return results
 }

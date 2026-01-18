@@ -851,34 +851,25 @@ function init
     if (messs?.length)
       Win.shared().messages.buf?.views.forEach(view => {
         if (view.ele) {
-          let w
+          let w, scroll, wasAtEnd, paneW
 
           w = view.ele.firstElementChild?.firstElementChild?.nextElementSibling
           if (w && Css.has(w, 'mess-w')) {
-            let wasAtEnd, paneW
-
             paneW = view.ele.parentNode
 
             if (paneW.scrollHeight == paneW.clientHeight)
-              // existing content fits entirely in pane, scroll if needed
               wasAtEnd = 0
             else
               wasAtEnd = Math.abs((paneW.scrollHeight - Math.ceil(paneW.scrollTop)) - paneW.clientHeight)
-            //atEnd = paneW.scrollTop === (paneW.scrollHeight - paneW.offsetHeight)
+            wasAtEnd = (wasAtEnd < 10)
 
-            //lineHeight = (parseFloat(globalThis.getComputedStyle(w).getPropertyValue('--line-height') || 1) || 1)
-            //spaceForLine = wasAtEnd < lineHeight
-            wasAtEnd = (wasAtEnd < 10) // close enough
-            if (wasAtEnd) {
-              let gap
+            scroll = view.buf.vars('messages')?.scroll
+            if (scroll) {
+              scroll.updateItemCount(Mess.messages().length)
+              scroll.render()
 
-              gap = w.lastElementChild
-              messs.forEach(mess => appendM(gap, mess))
-              if (paneW.scrollHeight == paneW.clientHeight) {
-                // content still fits entirely in pane
-              }
-              else if (wasAtEnd)
-                w.scrollIntoView({ block: 'end', inline: 'nearest' })
+              if (wasAtEnd)
+                scroll.scrollTo(Mess.messages().length - 1)
             }
           }
         }

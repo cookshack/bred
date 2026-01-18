@@ -15,8 +15,8 @@ contextBridge.exposeInMainWorld('tron', {
     let w
 
     w = (e, d) => cb(d)
-    ons.ch = ons.ch || []
-    ons.ch.push({ cb, w })
+    ons[ch] = ons[ch] || []
+    ons[ch].push({ cb, w })
     ipcRenderer.on(ch, w)
   },
   off(ch, cb) {
@@ -28,5 +28,9 @@ contextBridge.exposeInMainWorld('tron', {
         }
         return 1
       })
+  },
+  // For performance analysis
+  perf() {
+    return { ons }
   }
 })

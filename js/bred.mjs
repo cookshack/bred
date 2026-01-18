@@ -1757,6 +1757,7 @@ function initShared
 
   window = globalThis
   window.bred = {}
+  window.bred.perf = perf
   if (window.opener) {
     let root
 
@@ -1824,3 +1825,66 @@ function initNewWindow
 }
 
 export { mouse }
+
+export
+function perf
+() {
+  let results, viewCounts, tPerf
+
+  results = {}
+
+  tPerf = globalThis.tron.perf()
+  if (tPerf) {
+    results.tronHandlers = Object.keys(tPerf.ons).map(ch => ({
+      channel: ch,
+      count: tPerf.ons[ch].length
+    }))
+    results.tronTotal = results.tronHandlers.reduce((sum, h) => sum + h.count, 0)
+  }
+
+  results.buffers = Buf.shared().buffers.map(b => ({
+    name: b.name,
+    id: b.id,
+    mode: b.mode?.key,
+    views: b.views.length
+  }))
+
+  results.domElements = globalThis.document.querySelectorAll('*').length
+
+  results.codeBuffers = results.buffers.filter(b => b.mode == 'code').length
+  results.clockBuffers = results.buffers.filter(b => b.mode == 'clock').length
+
+  viewCounts = results.buffers.map(b => b.views)
+  results.viewsMin = Math.min(...viewCounts)
+  results.viewsMax = Math.max(...viewCounts)
+  results.viewsTotal = viewCounts.reduce((a, b) => a + b, 0)
+  results.viewsAvg = (results.viewsTotal / viewCounts.length).toFixed(1)
+
+  if (globalThis.performance?.memory) {
+    results.memoryUsed = (globalThis.performance.memory.usedJSHeapSize / 1048576).toFixed(1) + ' MB'
+    results.memoryTotal = (globalThis.performance.memory.totalJSHeapSize / 1048576).toFixed(1) + ' MB'
+    results.memoryLimit = (globalThis.performance.memory.jsHeapSizeLimit / 1048576).toFixed(1) + ' MB'
+    results.memoryPercent = ((globalThis.performance.memory.usedJSHeapSize / globalThis.performance.memory.jsHeapSizeLimit) * 100).toFixed(1) + '%'
+  }
+  else {
+    results.memoryUsed = 'N/A'
+    results.memoryTotal = 'N/A'
+    results.memoryLimit = 'N/A'
+    results.memoryPercent = 'N/A'
+  }
+
+  Mess.log('Bred Diagnostics')
+  Mess.log('----------------')
+  Mess.log('Memory: ' + results.memoryUsed + ' / ' + results.memoryLimit + ' (' + results.memoryPercent + ')')
+  Mess.log('Tron Handlers: ' + results.tronTotal)
+  results.tronHandlers?.forEach(h => Mess.log('  ' + h.channel + ': ' + h.count))
+  Mess.log('DOM Elements: ' + results.domElements)
+  Mess.log('Total Buffers: ' + results.buffers.length)
+  Mess.log('Code Buffers: ' + results.codeBuffers)
+  Mess.log('Clock Buffers: ' + results.clockBuffers)
+  Mess.log('Total Views: ' + results.viewsTotal)
+  Mess.log('Views per buffer: min: ' + results.viewsMin + ' max: ' + results.viewsMax + ' avg: ' + results.viewsAvg)
+  Mess.log('Total buffers: ' + results.buffers.length)
+
+  return results
+}

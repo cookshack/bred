@@ -246,12 +246,19 @@ function init
 
   function fileLabel
   (buf, tool, path, status, spec) {
+    function bounds
+    () {
+      if (spec.input?.offset)
+        return ' ' + spec.input.offset + '-' + (spec.input.offset + (spec.input?.limit || 0))
+      return ''
+    }
+
     spec = spec || {}
     return [ '➔ ' + tool + ' file ',
              divCl('code-file',
                    makeRelative(buf, path),
                    { 'data-run': 'open link', 'data-path': path }),
-             spec.input?.offset ? (' ' + spec.input.offset + '-' + (spec.input.offset + (spec.input?.limit || 0))) : '',
+             bounds(),
              status || '' ]
   }
 

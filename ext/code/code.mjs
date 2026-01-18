@@ -586,8 +586,11 @@ function init
       }
     }
     else if (part.type == 'tool') {
-      d('CO tool: ' + icon(part.tool) + part.tool + ' ' + part.state?.status)
-      if (part.tool == 'read' && part.state?.status == 'running') {
+      let status
+
+      status = part.state?.status
+      d('CO tool: ' + icon(part.tool) + part.tool + ' ' + status)
+      if (part.tool == 'read' && status == 'running') {
         let path
 
         path = part.state.input.filePath
@@ -597,7 +600,7 @@ function init
                                                     { input: part.state.input }))
         }
       }
-      else if (part.tool == 'read' && part.state?.status == 'completed') {
+      else if (part.tool == 'read' && status == 'completed') {
         let path
 
         path = part.state.input.filePath
@@ -607,7 +610,7 @@ function init
                                                     { input: part.state.input }))
         }
       }
-      else if (part.tool == 'glob' && part.state?.status == 'running') {
+      else if (part.tool == 'glob' && status == 'running') {
         let pattern
 
         pattern = part.state.input.pattern
@@ -616,7 +619,7 @@ function init
           appendToolMsg(buf, part.callID, '➔ Glob "' + pattern)
         }
       }
-      else if (part.tool == 'glob' && part.state?.status == 'completed') {
+      else if (part.tool == 'glob' && status == 'completed') {
         let count
 
         count = part.state.metadata?.count
@@ -628,7 +631,7 @@ function init
                         part.state.output)
         }
       }
-      else if (part.tool == 'grep' && part.state?.status == 'running') {
+      else if (part.tool == 'grep' && status == 'running') {
         let pattern, path
 
         pattern = part.state.input.pattern
@@ -638,7 +641,7 @@ function init
           appendToolMsg(buf, part.callID, '➔ Grep "' + pattern + '" in ' + (path || '.'))
         }
       }
-      else if (part.tool == 'grep' && part.state?.status == 'completed') {
+      else if (part.tool == 'grep' && status == 'completed') {
         let matches, path
 
         matches = part.state.metadata?.matches
@@ -651,7 +654,7 @@ function init
                         part.state.output)
         }
       }
-      else if (part.tool == 'bash' && part.state?.status == 'running') {
+      else if (part.tool == 'bash' && status == 'running') {
         let command
 
         command = part.state.input.command
@@ -660,7 +663,7 @@ function init
           appendToolMsg(buf, part.callID, '➔ bash: ' + command)
         }
       }
-      else if (part.tool == 'bash' && part.state?.status == 'completed') {
+      else if (part.tool == 'bash' && status == 'completed') {
         let command, exitCode
 
         command = part.state.input.command
@@ -670,7 +673,7 @@ function init
           appendToolMsg(buf, part.callID, '➔ bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
         }
       }
-      else if (part.tool == 'write' && part.state?.status == 'running') {
+      else if (part.tool == 'write' && status == 'running') {
         let path
 
         path = part.state.input.filePath
@@ -681,7 +684,7 @@ function init
                         part.state?.input?.content)
         }
       }
-      else if (part.tool == 'write' && part.state?.status == 'completed') {
+      else if (part.tool == 'write' && status == 'completed') {
         let path
 
         path = part.state.input.filePath
@@ -692,7 +695,7 @@ function init
                         part.state?.input?.content)
         }
       }
-      else if (part.tool == 'edit' && part.state?.status == 'running') {
+      else if (part.tool == 'edit' && status == 'running') {
         let path
 
         path = part.state.input.filePath
@@ -703,7 +706,7 @@ function init
                         '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString)
         }
       }
-      else if (part.tool == 'edit' && part.state?.status == 'completed') {
+      else if (part.tool == 'edit' && status == 'completed') {
         let path
 
         path = part.state.input.filePath
@@ -718,7 +721,7 @@ function init
                         under , { format: 'patch' })
         }
       }
-      else if (part.tool == 'edit' && part.state?.status == 'error') {
+      else if (part.tool == 'edit' && status == 'error') {
         let path
 
         path = part.state.input.filePath
@@ -734,7 +737,7 @@ function init
           appendMsg(buf, 0, part.state?.error, part.id)
         }
       }
-      else if (part.tool == 'websearch' && part.state?.status == 'running') {
+      else if (part.tool == 'websearch' && status == 'running') {
         let query
 
         query = part.state.input.query
@@ -743,7 +746,7 @@ function init
           appendToolMsg(buf, part.callID, '➔ Web search: ' + query)
         }
       }
-      else if (part.tool == 'websearch' && part.state?.status == 'completed') {
+      else if (part.tool == 'websearch' && status == 'completed') {
         let query, results
 
         query = part.state.input.query
@@ -756,7 +759,7 @@ function init
                         part.state.output)
         }
       }
-      else if (part.tool == 'websearch' && part.state?.status == 'error') {
+      else if (part.tool == 'websearch' && status == 'error') {
         let query
 
         query = part.state.input.query
@@ -768,7 +771,7 @@ function init
                         part.state.error)
         }
       }
-      else if (part.tool == 'webfetch' && part.state?.status == 'running') {
+      else if (part.tool == 'webfetch' && status == 'running') {
         let url
 
         url = part.state.input.url
@@ -777,7 +780,7 @@ function init
           appendToolMsg(buf, part.callID, '➔ Fetch ' + url)
         }
       }
-      else if (part.tool == 'webfetch' && part.state?.status == 'completed') {
+      else if (part.tool == 'webfetch' && status == 'completed') {
         let url, size
 
         url = part.state.input.url
@@ -789,7 +792,7 @@ function init
                         '➔ Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
         }
       }
-      else if (part.tool == 'webfetch' && part.state?.status == 'error') {
+      else if (part.tool == 'webfetch' && status == 'error') {
         let url
 
         url = part.state.input.url
@@ -804,7 +807,7 @@ function init
       else
         appendToolMsg(buf,
                       part.callID,
-                      'Tool call: ' + part.tool + (part.state?.status ? (' (' + part.state?.status + ')') : ''))
+                      'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
     }
   }
 

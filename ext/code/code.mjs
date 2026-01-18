@@ -14,12 +14,11 @@ import * as Prompt from '../../js/prompt.mjs'
 import { d } from '../../js/mess.mjs'
 import * as Tron from '../../js/tron.mjs'
 import { v4 as uuidv4 } from '../../lib/uuid/index.js'
-
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 import { diff } from '../../lib/codemirror-lang-diff.js'
 import { markdown } from '../../lib/@codemirror/lang-markdown.js'
-import { themeExtension, langs } from '../../js/wodemirror.mjs'
+import { themeExtension, langs, modeFor } from '../../js/wodemirror.mjs'
 
 import * as OpenCode from './lib/opencode.js'
 
@@ -131,6 +130,22 @@ function init
                                                        CMView.EditorView.lineWrapping,
                                                        markdown({ codeLanguages: langs }),
                                                        themeExtension ] })
+    ed = new CMView.EditorView({ state, parent: el })
+    return { el, ed }
+  }
+
+  function makeCodeEd
+  (path, text) {
+    let el, state, ed, lang, exts
+
+    el = divCl('code-code-ed')
+    lang = langs.find(l => l.id == modeFor(path))
+    exts = [ CMView.EditorView.editable.of(false),
+             CMView.EditorView.lineWrapping,
+             themeExtension ]
+    if (lang?.language)
+      exts.unshift(lang.language)
+    state = CMState.EditorState.create({ doc: text, extensions: exts })
     ed = new CMView.EditorView({ state, parent: el })
     return { el, ed }
   }
@@ -272,7 +287,15 @@ function init
         w = view.ele.querySelector('.code-w')
         els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
         els?.forEach(el => el.remove())
-        if (under && (spec.format == 'patch')) {
+        if (under && (spec.format == 'code')) {
+          let codeResult
+
+          codeResult = makeCodeEd(spec.path, under)
+          underEl = codeResult.el
+          view.vars('code').eds = view.vars('code').eds || []
+          view.vars('code').eds.push(codeResult.ed)
+        }
+        else if (under && (spec.format == 'patch')) {
           let patchResult
 
           patchResult = makePatchEd(under)
@@ -688,7 +711,8 @@ function init
           d('CO write file: ' + path)
           appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, 0,
                                                     { input: part.state.input }),
-                        part.state?.input?.content)
+                        part.state?.input?.content,
+                        { format: 'code', path })
         }
       }
       else if (part.tool == 'write' && status == 'completed') {
@@ -699,7 +723,8 @@ function init
           d('CO write file: ' + path)
           appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️',
                                                     { input: part.state.input }),
-                        part.state?.input?.content)
+                        part.state?.input?.content,
+                        { format: 'code', path })
         }
       }
       else if (part.tool == 'edit' && status == 'running') {

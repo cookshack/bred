@@ -197,6 +197,20 @@
   overflow: auto;
 }
 
+.code-code-ed {
+  margin-top: 4px;
+  border-radius: 4px;
+  overflow: hidden;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.code-code-ed .cm-editor {
+  height: auto;
+  max-height: 600px;
+  overflow: auto;
+}
+
 .code-file {
   display: inline;
   font-family: var(--font-monospace);

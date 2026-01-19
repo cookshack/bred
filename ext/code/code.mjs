@@ -1250,6 +1250,24 @@ function init
       cb(to)
   }
 
+  function viewReopen
+  (view, lineNum, whenReady) {
+    d('================== code viewReopen')
+
+    if (view.ele)
+      // timeout so behaves like viewInit
+      setTimeout(() => {
+        bufEnd(view)
+        if (whenReady)
+          whenReady(view)
+      })
+    else
+      // probably buf was switched out before init happened.
+      viewInit(view,
+               { lineNum },
+               whenReady)
+  }
+
   function bufEnd
   (v) {
     let w
@@ -1275,6 +1293,7 @@ function init
   mo = Mode.add('code',
                 { viewInit,
                   viewCopy,
+                  viewReopen,
                   onRemove(buf) {
                     buf.vars('code').eventAbort?.abort()
                     buf.views?.forEach(view => {

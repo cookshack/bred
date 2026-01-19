@@ -11,6 +11,23 @@ let modes
 // Map maintains insertion order so mode precedence is preserved
 modes = new Map()
 
+function genericViewReopen
+(mode, view, lineNum, whenReady) {
+  d('================== generic viewReopen')
+
+  if (view.ele)
+    // timeout so behaves like viewInit
+    setTimeout(() => {
+      if (whenReady)
+        whenReady(view)
+    })
+  else
+    // probably buf was switched out before init happened.
+    mode.viewInit(view,
+                  { lineNum },
+                  whenReady)
+}
+
 export
 function add
 (key, spec) { // { ..., onRemove }
@@ -87,9 +104,26 @@ function add
   m.start = start
   m.stop = stop
   m.seize = spec.seize
+
+  if (spec.viewCopy?.length < 4) {
+    Mess.log('🚨 ERR: ' + m.name + ': viewCopy must have a whenReady arg')
+    d({ spec })
+  }
   m.viewCopy = spec.viewCopy
+  if (spec.viewInit?.length < 3) {
+    Mess.log('🚨 ERR: ' + m.name + ': viewInit must have a whenReady arg')
+    d({ spec })
+  }
   m.viewInit = spec.viewInit
-  m.viewReopen = spec.viewReopen
+  if (spec.viewReopen?.length < 3) {
+    Mess.log('🚨 ERR: ' + m.name + ': viewReopen must have a whenReady arg')
+    d({ spec })
+  }
+  if (m.viewCopy || m.viewInit) {
+    (m.viewCopy && m.viewInit) || Mess.log('🚨 ERR: ' + m.name + ': specify both of viewCopy and viewInit')
+    m.viewReopen = spec.viewReopen || ((view, lineNum, whenReady) => genericViewReopen(m, view, lineNum, whenReady))
+  }
+
   m.parentsForEm = (typeof spec.parentsForEm == 'string') ? [ spec.parentsForEm ] : spec.parentsForEm
   //
   m.getParentEms = getParentEms

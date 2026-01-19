@@ -22,7 +22,7 @@ function add
  // { singleFrame,
  //   buf,
  //   setBufCb } // (view)
- options) {
+ spec) {
   let tab, id, frames, elName, elIcon, icon
 
   function close
@@ -71,7 +71,7 @@ function add
     Css.add(tab.elBar, 'current')
   }
 
-  options = options || {}
+  spec = spec || {}
   id = ++lastId
   frames = []
   elName = divCl('tabbar-tab-name', 'x')
@@ -115,11 +115,11 @@ function add
   append(area.el, tab.el)
   append(area.tabbar, tab.elBar)
   tab.framesRight = []
-  if (options.singleFrame)
-    tab.frame1 = Frame.add(tab, { width: 100, buf: options.buf, setBufCb: options.setBufCb })
+  if (spec.singleFrame)
+    tab.frame1 = Frame.add(tab, { width: 100, buf: spec.buf, setBufCb: spec.setBufCb })
   else {
     tab.frameLeft = Frame.add(tab)
-    tab.frame1 = Frame.add(tab, { buf: options.buf, setBufCb: options.setBufCb })
+    tab.frame1 = Frame.add(tab, { buf: spec.buf, setBufCb: spec.setBufCb })
     tab.frameRight = Frame.add(tab)
     tab.framesRight = [ tab.frameRight,
                         Frame.add(tab) ]

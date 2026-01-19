@@ -86,7 +86,7 @@ This helps understand the overall architecture before diving into specific modul
 
 ## Event System
 
-Read `js/Em.md` for the event map system:
+Read `doc/Em.md` for the event map system:
 - Key binding hierarchy and lookup algorithm
 - `Em.on()`, `Em.make()`, `Em.handle()` usage
 - Key sequence parsing and nesting
@@ -119,7 +119,7 @@ Key files:
 
 ## Global State
 
-Read `js/Globals.md` for singleton modules and global state:
+Read `doc/Globals.md` for singleton modules and global state:
 
 - `Win.current()` - current window (Electron BrowserWindow wrapper)
 - `Pane.current()` - focused pane in current frame

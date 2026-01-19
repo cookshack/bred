@@ -882,6 +882,54 @@ function initCmds
               view.buf.addMode('view')
             })
   })
+
+  Cmd.add('show performance', () => {
+    let results
+
+    results = perf()
+
+    if (results) {
+      let p, content
+
+      content = [ 'Performance',
+                  '',
+                  'Memory: ' + results.memoryUsed + ' / ' + results.memoryLimit + ' (' + results.memoryPercent + ')',
+                  'DOM Elements: ' + results.domElements,
+                  '',
+                  'Buffers: ' + results.buffers.length,
+                  '  Code: ' + results.codeBuffers,
+                  '  Clock: ' + results.clockBuffers,
+                  '',
+                  'Views: ' + results.viewsTotal,
+                  '  per buffer: min: ' + results.viewsMin + ' max: ' + results.viewsMax + ' avg: ' + results.viewsAvg,
+                  '',
+                  'Tron Handlers: ' + results.tronTotal ]
+
+      results.tronHandlers?.forEach(h => {
+        content.push('  ' + h.channel + ': ' + h.count)
+      })
+
+      content.push('')
+      content.push('Buffers:')
+
+      results.buffers.forEach(b => {
+        content.push('  ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + ' view(s)')
+      })
+
+      p = Pane.current()
+      Ed.make(p,
+              { name: 'Performance',
+                dir: p.dir },
+              view => {
+                view.buf.file = 'Performance'
+                view.insert(content.join('\n') + '\n')
+                view.buf.modified = 0
+                view.buf.addMode('view')
+              })
+    }
+    else
+      Mess.yell('Missing performance data')
+  })
 }
 
 export

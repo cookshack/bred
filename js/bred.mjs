@@ -1693,7 +1693,9 @@ function start2
   if (frames.left == 0)
     tab.frameLeft.retract()
   if (frames.right == 0)
-    tab.framesRight.forEach(fr => fr.retract())
+    tab.frameRight.retract()
+  if (frames.right2 == 0)
+    tab.framesRight[1]?.retract()
   p = Pane.current(tab.frameLeft)
   p.focus()
   Cmd.run('home')
@@ -1802,6 +1804,7 @@ function init
       tab = Tab.current(Win.current().main)
       tab.frameLeft.save()
       tab.frameRight.save()
+      tab.framesRight[1]?.save()
       Buf.savePoss()
     }
 

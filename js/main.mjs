@@ -149,7 +149,8 @@ function onPaths
            backend: options.backend,
            devtools: { open: win.webContents.isDevToolsOpened() ? 1 : 0 },
            frames: { left: frame.get('frameLeft'),
-                     right: frame.get('frameRight') },
+                     right: frame.get('frameRight'),
+                     right2: frame.get('frameRight2') },
            //
            os: Os.type(),
            version: { bred: version,

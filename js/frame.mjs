@@ -144,6 +144,11 @@ function add
         if (err)
           Mess.warn('Failed to save state of frameRight')
       })
+    else if (tab.framesRight && f == tab.framesRight[1])
+      Tron.cmd1('profile.set', [ 'frame', 'frameRight2', Css.has(f.el, 'retracted') ? 0 : 1 ], err => {
+        if (err)
+          Mess.warn('Failed to save state of frameRight2')
+      })
   }
 
   function retract

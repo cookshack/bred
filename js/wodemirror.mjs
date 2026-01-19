@@ -1182,14 +1182,14 @@ function viewReopen
 
 export
 function viewCopy
-(to, from, lineNum, whenReady, cb) {
+(to, from, lineNum, whenReady) {
   d('================== viewCopy')
   viewInit(to,
            { text: from.ed.state.doc.toString(),
              modeWhenText: from.buf.opt('core.lang'),
              lineNum,
              whenReady },
-           cb)
+           whenReady)
 }
 
 function charAt
@@ -2715,7 +2715,9 @@ function vsave
 
 export
 function revertV
-(view, spec) { // { lineNum, whenReady }
+(view,
+ spec, // { lineNum }
+ whenReady) {
   let lineNum
 
   d('=====>>>>>>>>>> revertV')
@@ -2726,9 +2728,7 @@ function revertV
   lineNum = spec.lineNum ?? (bepRow(view, vgetBep(view)) + 1)
 
   view.ready = 0 // limit onChange handler
-  viewInit(view, { revert: 1,
-                   lineNum,
-                   whenReady: spec.whenReady })
+  viewInit(view, { revert: 1, lineNum }, whenReady)
 
   d('=====>>>>>>>>>> revertV done')
 }

@@ -229,6 +229,7 @@ function add
       if (U.defined(sbSpec.lineNum))
         Ed.Backend.vgotoLine(p.view, sbSpec.lineNum)
       b.reconf()
+      p.flushInput()
       if (whenReady)
         whenReady(view)
       return
@@ -258,12 +259,13 @@ function add
                           Css.remove(ele?.parentNode, 'ed')
 
                         // View is ready - clear flag and flush any buffered input
-                        p.initializing = false
                         p.flushInput()
 
                         if (whenReady)
                           whenReady(view)
                       })
+    else
+      p.flushInput()
     p.frame.tab.name = b?.name || 'Empty'
     p.frame.tab.icon = b?.icon
   }
@@ -374,10 +376,11 @@ function add
         flushInput() {
           let wes
 
+          d('PANE flushInput')
           p.initializing = false
           wes = inputQueue.splice(0) // Clear and get all events
           if (wes.length) {
-            d('PANE flush')
+            d('PANE flush ' + wes.length)
             d({ wes })
           }
           wes.forEach(we => {

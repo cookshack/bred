@@ -225,7 +225,7 @@ function init
   }
 
   function viewInit
-  (view) {
+  (view, spec, cb) { // (view)
     let p, body
 
     body = view.ele.querySelector('.assist-main-body')
@@ -245,6 +245,9 @@ function init
            divCl('assist-pages'))
 
     refresh(view, p.view)
+
+    if (cb)
+      cb(view)
   }
 
   function assist
@@ -252,6 +255,7 @@ function init
     let found, p, tab
 
     tab = Win.current().frame1.tab || Mess.toss('Tab missing')
+    tab.framesRight[0]?.expand()
     tab.framesRight[1]?.retract()
     p = Pane.current(tab.frameRight)
 

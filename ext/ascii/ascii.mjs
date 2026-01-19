@@ -31,7 +31,7 @@ function init
   let mo, verbose
 
   function viewInit
-  (view, spec, cb) {
+  (view, spec, cb) { // (view)
     let co, cols, last, rows, code, w
 
     function seq

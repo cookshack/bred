@@ -1194,7 +1194,7 @@ function init
   }
 
   function viewInit
-  (view, spec, cb) {
+  (view, spec, cb) { // (view)
     if (cb)
       cb(view)
   }

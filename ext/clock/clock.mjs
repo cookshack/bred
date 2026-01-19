@@ -12,7 +12,7 @@ export
 function init
 () {
   function viewInit
-  (view, spec, cb) {
+  (view, spec, cb) { // (view)
     let w, time
 
     function updateTime

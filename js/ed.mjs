@@ -821,8 +821,11 @@ function addCTags
 
   function prep
   (t) {
-    t.loc = Loc.make(dir)
-    t.loc.join(t.path)
+    let loc
+
+    loc = Loc.make(dir)
+    loc.join(t.path)
+    t.path = loc.path
     if (t.pattern) {
       if (t.pattern.startsWith('/^')
           && t.pattern.endsWith('$/'))

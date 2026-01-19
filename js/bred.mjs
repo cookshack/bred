@@ -481,8 +481,8 @@ function initCmds
     if (ctag) {
       d(ctag)
       d('def: ' + def)
-      d('opening: ' + ctag.loc.path)
-      Pane.open(ctag.loc, 1, view => {
+      d('opening: ' + ctag.path)
+      Pane.open(ctag.path, 1, view => {
         let ret
 
         d('going to line: ' + ctag.regex)

@@ -199,15 +199,13 @@ function add
   // run out of order and the prompt would freeze.
   function setBuf
   (b2,
-   sbSpec, // { lineNum, whenReady, bury }
-   cb) { // (view)
+   sbSpec, // { lineNum, bury }
+   whenReady) { // (view)
     let isNewView
 
     if (b2 == undefined) {
-      if (cb)
-        cb(view)
-      if (sbSpec.whenReady)
-        sbSpec.whenReady(view)
+      if (whenReady)
+        whenReady(view)
       return
     }
 
@@ -231,10 +229,8 @@ function add
       if (U.defined(sbSpec.lineNum))
         Ed.Backend.vgotoLine(p.view, sbSpec.lineNum)
       b.reconf()
-      if (cb)
-        cb(view)
-      if (sbSpec.whenReady)
-        sbSpec.whenReady(view)
+      if (whenReady)
+        whenReady(view)
       return
     }
     if (b) {
@@ -252,8 +248,7 @@ function add
       view = Buf.view(b,
                       { ele,
                         elePoint,
-                        lineNum: sbSpec.lineNum,
-                        whenReady: sbSpec.whenReady },
+                        lineNum: sbSpec.lineNum },
                       v => {
                         d('PANE view ready ' + (v.buf?.id || '??') + ' ' + (v.buf?.name || '???'))
                         view = v
@@ -266,8 +261,8 @@ function add
                         p.initializing = false
                         p.flushInput()
 
-                        if (cb)
-                          cb(view)
+                        if (whenReady)
+                          whenReady(view)
                       })
     p.frame.tab.name = b?.name || 'Empty'
     p.frame.tab.icon = b?.icon

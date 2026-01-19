@@ -776,8 +776,11 @@ function init
 export
 function view
 (buf,
- spec, // { ele /* pane element */, elePoint, lineNum, whenReady /* FIX called when file loaded */ }
- cb) { // called when buf ready to use
+ // { ele,        // pane element
+ //   elePoint,
+ //   lineNum }
+ spec,
+ whenReady) { // called when buf ready to use
   let mode, v
 
   buf.vid++
@@ -788,9 +791,8 @@ function view
                   views: buf.views,
                   ele: spec.ele,
                   elePoint: spec.elePoint,
-                  lineNum: spec.lineNum,
-                  whenReady: spec.whenReady },
-                cb)
+                  lineNum: spec.lineNum },
+                whenReady)
   console.log('buf.views.length: ' + buf.views.length + ' (' + (buf.name ? buf.name.slice(0, 20) : '') + ')')
   return v
 }

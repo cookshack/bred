@@ -9,7 +9,7 @@ import { d } from './mess.mjs'
 export
 function make
 (b,
- spec, // { ..., exts }
+ spec, // { ... }
  whenReady) { // called when buf ready to use
   let { vid,
         mode,

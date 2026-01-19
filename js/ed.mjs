@@ -27,6 +27,7 @@ export let Backend
 export let mimeByExt
 export let viewCopy
 export let viewInit
+export let viewReopen
 export let vfind
 export let emRevert
 export let backend
@@ -573,7 +574,9 @@ function initQR
   }
 
   moQr = Mode.add('QR', { hidePoint: 1,
+                          viewCopy,
                           viewInit,
+                          viewReopen,
                           initFns: initModeFns,
                           parentsForEm: 'ed' })
 
@@ -1310,6 +1313,7 @@ function init
     posCol = Backend.posCol
     viewCopy = Backend.viewCopy
     viewInit = Backend.viewInit
+    viewReopen = Backend.viewReopen
     vfind = Backend.vfind
 
     d('init theme')

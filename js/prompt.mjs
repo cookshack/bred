@@ -159,6 +159,8 @@ function ask
     refresh()
   }
 
+  d('PROMPT ask')
+
   spec = spec || {}
 
   if (spec.under && spec.suggest)
@@ -188,7 +190,6 @@ function ask
   win = Win.current()
   Area.getByName(win, 'bred-float')?.close()
   area = Area.add(win, 'bred-float')
-  tab = Tab.add(area, { singleFrame: 1 })
 
   p = Pane.current()
   ml = spec.w.querySelector('.edMl')
@@ -218,28 +219,29 @@ function ask
   spec.hist?.reset()
   buf.vars('prompt').hist = spec.hist
   buf.off('change', onChange)
-  tab.frame.pane.setBuf(buf,
-                        {},
-                        view => {
-                          d('PROMPT buf set')
-                          area.show()
-                          tab.frame.pane.focus()
-                          spec.onReady && spec.onReady(tab.frame.pane)
-                          setTimeout(() => {
-                            buf.views.forEach(v => {
-                              let w
+  tab = Tab.add(area,
+                { singleFrame: 1,
+                  buf,
+                  setBufCb: view => {
+                    d('PROMPT buf set')
+                    area.show()
+                    tab.frame.pane.focus()
+                    spec.onReady && spec.onReady(tab.frame.pane)
+                    setTimeout(() => {
+                      buf.views.forEach(v => {
+                        let w
 
-                              w = v.ele.querySelector('.bred-prompt-buf-ww')
-                              Css.remove(w, 'bred-prompt-attract')
-                            })
-                          },
-                                     0.35 * 1000)
-                          if (spec.suggest) {
-                            under = view.ele.querySelector('.bred-prompt-under') || Mess.toss('under missing')
-                            refresh()
-                            buf.on('change', onChange)
-                          }
-                        })
+                        w = v.ele.querySelector('.bred-prompt-buf-ww')
+                        Css.remove(w, 'bred-prompt-attract')
+                      })
+                    },
+                               0.35 * 1000)
+                    if (spec.suggest) {
+                      under = view.ele.querySelector('.bred-prompt-under') || Mess.toss('under missing')
+                      refresh()
+                      buf.on('change', onChange)
+                    }
+                  } })
   return p
 }
 

@@ -73,7 +73,9 @@ function chPx
 
 export
 function add
-(frame, b, lineNum) {
+(frame, b, lineNum,
+ // { setBufCb } // (view) // when b is set on the added frame
+ spec) {
   let p, curr, view, ele, elePoint, elePointLine, eleHead, eleLint, paneW, inputQueue
 
   function cols
@@ -191,21 +193,25 @@ function add
     return pane
   }
 
+  // TODO if this is called twice in succession there can be timing issues.
+  // eg prompt.ask used to call Tab.add and let it pick the buf (which calls setBuf)
+  // and then call setBuf itself, but the setBuf callbacks would sometimes
+  // run out of order and the prompt would freeze.
   function setBuf
   (b2,
-   spec, // { lineNum, whenReady, bury }
+   sbSpec, // { lineNum, whenReady, bury }
    cb) { // (view)
     let isNewView
 
     if (b2 == undefined) {
       if (cb)
         cb(view)
-      if (spec.whenReady)
-        spec.whenReady(view)
+      if (sbSpec.whenReady)
+        sbSpec.whenReady(view)
       return
     }
 
-    spec = spec || {}
+    sbSpec = sbSpec || {}
     d('PANE setBuf ' + (b2?.name || '??'))
 
     // Determine if we're creating a new view
@@ -222,20 +228,20 @@ function add
     if (view?.buf == b2) {
       d('setBuf to same buf')
       b = b2
-      if (U.defined(spec.lineNum))
-        Ed.Backend.vgotoLine(p.view, spec.lineNum)
+      if (U.defined(sbSpec.lineNum))
+        Ed.Backend.vgotoLine(p.view, sbSpec.lineNum)
       b.reconf()
       if (cb)
         cb(view)
-      if (spec.whenReady)
-        spec.whenReady(view)
+      if (sbSpec.whenReady)
+        sbSpec.whenReady(view)
       return
     }
     if (b) {
       Buf.queue(b)
       // this was done in the cb in the Bury cmd, but then if you do Bury in dataset.run and eg Options in dataset.after
       // then Options runs before the Bury cb because it's async.
-      if (spec.bury)
+      if (sbSpec.bury)
         b.bury()
     }
     b = b2
@@ -246,10 +252,10 @@ function add
       view = Buf.view(b,
                       { ele,
                         elePoint,
-                        lineNum: spec.lineNum,
-                        whenReady: spec.whenReady },
+                        lineNum: sbSpec.lineNum,
+                        whenReady: sbSpec.whenReady },
                       v => {
-                        d('PANE view ready')
+                        d('PANE view ready ' + (v.buf?.id || '??') + ' ' + (v.buf?.name || '???'))
                         view = v
                         if (view.ed)
                           Css.add(ele?.parentNode, 'ed')
@@ -312,6 +318,7 @@ function add
       Css.hide(eleLint)
   }
 
+  spec = spec || {}
   inputQueue = []
   frame = frame || Frame.current()
 
@@ -430,7 +437,7 @@ function add
   id++
 
   b || Mess.toss('buffer required')
-  p.setBuf(b, { lineNum })
+  p.setBuf(b, { lineNum }, spec.setBufCb)
 
   curr = current(frame)
   if (curr && curr.w) {

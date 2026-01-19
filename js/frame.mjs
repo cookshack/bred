@@ -14,7 +14,11 @@ function init
 
 export
 function add
-(tab, spec) {
+(tab,
+ // { width,
+ //   buf,
+ //   setBufCb } // (view)
+ spec) {
   let f, sm, sep
 
   function focus
@@ -242,7 +246,7 @@ function add
 
   append(tab.el, f.el)
   tab.frames.push(f)
-  Pane.add(f)
+  Pane.add(f, spec.buf, undefined, { setBufCb: spec.setBufCb })
   f.focus()
 
   return f

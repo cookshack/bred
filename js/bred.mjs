@@ -125,12 +125,14 @@ function initPackages
     OptUi.init()
 
     globalThis.bred = { ...globalThis.bred,
+                        Area,
                         Buf,
                         Cmd,
                         Dom,
                         Ed,
                         Em,
                         Ext,
+                        Frame,
                         Hist,
                         Loc,
                         Opt,
@@ -142,6 +144,7 @@ function initPackages
                         Dir,
                         Exec,
                         Shell,
+                        Tab,
                         Win }
 
     cb()

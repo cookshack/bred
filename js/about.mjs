@@ -890,6 +890,9 @@ function init
   (view, spec, cb) { // (view)
     let surf, messages, scroll
 
+    view.ele.innerHTML = ''
+    append(view.ele, divW())
+
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // mess-ww > mess-h,mess-w
     messages = Mess.messages()
 

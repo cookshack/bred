@@ -7,6 +7,27 @@ export { shrug }
 shrug = '¯\\_(ツ)_/¯'
 
 export
+function compressedExt
+(path) {
+  let exts
+
+  exts = [ '.gz' ]
+
+  return exts.find(e => path.toLowerCase().endsWith(e))
+}
+
+export
+function stripCompressedExt
+(path) {
+  let ext
+
+  ext = compressedExt(path)
+  if (ext)
+    return path.slice(0, -ext.length)
+  return path
+}
+
+export
 function homeSet
 (h) {
   h = h || '/'

@@ -4,9 +4,17 @@ import Fs from 'node:fs'
 import FsP from 'node:fs/promises'
 import Os from 'node:os'
 import Path from 'node:path'
+import Zlib from 'node:zlib'
 
 import * as Diff from '../lib/diff.js'
 import * as U from './util.mjs'
+
+function decompress
+(data, path) {
+  if (path.toLowerCase().endsWith('.gz') || path.toLowerCase().endsWith('.tgz'))
+    return Zlib.gunzipSync(data)
+  return data
+}
 
 function cpMany
 (e, ch, from, to) {
@@ -82,10 +90,26 @@ function onExists
 export
 function onGet
 (e, ch, onArgs) {
-  let path
+  let [ path, raw ] = onArgs
 
-  path = onArgs
   path = U.stripFilePrefix(path)
+
+  if (raw) {
+  }
+  else if (U.compressedExt(path))
+    Fs.readFile(path, (err, data) => {
+      if (err)
+        e.sender.send(ch, { err })
+      else {
+        let decompressed
+
+        decompressed = decompress(data, path)
+        e.sender.send(ch, { data: decompressed.toString('utf8'),
+                            stat: Fs.statSync(path, { throwIfNoEntry: false }),
+                            realpath: Fs.realpathSync(path) })
+      }
+      return
+    })
 
   Fs.readFile(path, 'utf8', (err, data) => {
     if (err)

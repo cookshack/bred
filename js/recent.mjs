@@ -55,7 +55,7 @@ function get
 
   recents = []
   path = xbelPath()
-  Tron.cmd('file.get', path, (err, data) => {
+  Tron.cmd('file.get', [ path ], (err, data) => {
     let parser, xml, byType
 
     if (err) {

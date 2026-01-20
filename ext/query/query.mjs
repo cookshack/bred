@@ -215,7 +215,7 @@ function readFileOrDir
     }
 
     if (stat.data.mode & (1 << 15)) {
-      Tron.cmd('file.get', abs, (err, data) => {
+      Tron.cmd('file.get', [ abs ], (err, data) => {
         if (err) {
           d('ERR file.get')
           d(err.message)
@@ -695,7 +695,7 @@ function readFile
   abs = Loc.make(buf.dir).join(path)
   d('READFILE abs ' + abs)
 
-  Tron.cmd('file.get', abs, (err, data) => {
+  Tron.cmd('file.get', [ abs ], (err, data) => {
     if (err) {
       d('ERR file.get')
       d(err.message)

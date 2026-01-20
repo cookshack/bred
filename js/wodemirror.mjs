@@ -64,8 +64,9 @@ function modeFor
   if (path) {
     let lang, filename
 
-    //d("modeFor path: " + path)
+    d('modeFor path: ' + path)
     filename = Loc.make(path).filename
+    filename = U.stripCompressedExt(filename)
     lang = langs.find(l => l.path && l.path.test(path))
       || langs.find(l => l.filename && l.filename.test(filename))
       || langs.find(l => l.filenames?.some(fn => filename == fn))
@@ -1046,7 +1047,7 @@ function _viewInit
 
     path = buf.path
     d('get file')
-    Tron.cmd('file.get', path, (err, data) => {
+    Tron.cmd('file.get', [ path ], (err, data) => {
       let mode
 
       if (err) {

@@ -261,6 +261,7 @@ function supports
   return Mode.find(yes) ? 1 : 0
 }
 
+// caller must strip off .gz etc
 export
 function supportsExt
 (ext) {

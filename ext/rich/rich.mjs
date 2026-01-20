@@ -125,7 +125,7 @@ function divW
 export
 function open
 (path) {
-  Tron.cmd('file.get', path, (err, data) => {
+  Tron.cmd('file.get', [ path ], (err, data) => {
     let p, buf, loc
 
     if (err) {

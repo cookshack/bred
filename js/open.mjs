@@ -59,19 +59,25 @@ function link
   if (path.startsWith('/'))
     path = 'file://' + path
   if (path.startsWith('file://')) {
+    let real
+
     if (path.endsWith('/')) {
       // dir
       // check needed because dir name may include dots
       Pane.open(path, line)
       return
     }
-    if (path.includes('.')) {
+
+    real = U.stripCompressedExt(path)
+    d({ real })
+    if (real.includes('.')) {
       // file with ext
-      ext = path.slice(path.lastIndexOf('.') + 1)
+      ext = real.slice(real.lastIndexOf('.') + 1)
+      d({ ext })
       mtype = Ed.mtypeFromExt(ext)
       // check ext first because mime-db missing eg.py
       if (ext && Ed.supportsExt(ext))
-        // file with supported ext: eg.js
+        // file with supported ext: eg.js (or eg.js.gz)
         open(path, mtype)
       else if (mtype && Ed.supports(mtype))
         // file with supported mime type (via ext)

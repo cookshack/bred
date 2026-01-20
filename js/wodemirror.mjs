@@ -48,7 +48,7 @@ import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 export let langs, themeExtension, themeExtensionPart, Theme
 
 let theme, themeTags, themeHighlighting
-let themeCode, themeHighlightingCode, themeExtensionCode
+let themeHighlightingCode, themeExtensionCode
 let completionNextLine, completionPreviousLine, bredView, spRe
 let wexts, wextIds, registeredOpts, watching, extPatch, extPatchDecor
 
@@ -4543,7 +4543,9 @@ function initLangs
 
 function initTheme
 () {
-  function makeTheme
+  let themeCode, themeExtension, themeHighlighting
+
+  function init
   () {
     let themeSettings
 
@@ -4573,7 +4575,10 @@ function initTheme
     themeHighlightingCode = themeCode[0]
     themeExtensionCode = themeCode[1]
     Tron.acmd('hover.css', [ Theme.meanings.text, Theme.meanings.fill ])
+  }
 
+  function makeTheme
+  () {
     return [ themeExtension, themeHighlighting ]
   }
 
@@ -4582,6 +4587,7 @@ function initTheme
   else
     Theme = ThemeDark
   Ed.initTheme(Theme)
+  init()
 
   themeExtensionPart = new CMState.Compartment
 

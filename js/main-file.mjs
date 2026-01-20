@@ -1,4 +1,4 @@
-import { log } from './main-log.mjs'
+import { d, log } from './main-log.mjs'
 import { errMsg, makeErr } from './main-err.mjs'
 import Fs from 'node:fs'
 import FsP from 'node:fs/promises'
@@ -94,9 +94,11 @@ function onGet
 
   path = U.stripFilePrefix(path)
 
+  d('FILE onGet')
   if (raw) {
   }
-  else if (U.compressedExt(path))
+  else if (U.compressedExt(path)) {
+    d('FILE read compressed')
     Fs.readFile(path, (err, data) => {
       if (err)
         e.sender.send(ch, { err })
@@ -108,9 +110,11 @@ function onGet
                             stat: Fs.statSync(path, { throwIfNoEntry: false }),
                             realpath: Fs.realpathSync(path) })
       }
-      return
     })
+    return
+  }
 
+  d('FILE read plain')
   Fs.readFile(path, 'utf8', (err, data) => {
     if (err)
       e.sender.send(ch, { err })

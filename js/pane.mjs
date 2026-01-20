@@ -210,7 +210,7 @@ function add
     }
 
     sbSpec = sbSpec || {}
-    d('PANE setBuf ' + (b2?.name || '??'))
+    d('PANE ✨ setBuf ' + (b2?.name || '??'))
 
     // Determine if we're creating a new view
     isNewView = 1

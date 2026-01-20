@@ -65,8 +65,9 @@ function modeFor
     let lang, filename
 
     d('modeFor path: ' + path)
+    path = U.stripCompressedExt(path)
+    d('modeFor real: ' + path)
     filename = Loc.make(path).filename
-    filename = U.stripCompressedExt(filename)
     lang = langs.find(l => l.path && l.path.test(path))
       || langs.find(l => l.filename && l.filename.test(filename))
       || langs.find(l => l.filenames?.some(fn => filename == fn))

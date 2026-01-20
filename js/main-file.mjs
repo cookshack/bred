@@ -477,8 +477,14 @@ export
 function onSave
 (e, ch, onArgs) {
   let [ path, text ] = onArgs
+  let data
 
-  Fs.writeFile(path, text, { encoding: 'utf8' }, err => {
+  if (U.compressedExt(path))
+    data = Zlib.gzipSync(Buffer.from(text, 'utf8'))
+  else
+    data = text
+
+  Fs.writeFile(path, data, err => {
     if (err)
       e.sender.send(ch, { err })
     else

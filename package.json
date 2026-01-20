@@ -33,7 +33,10 @@
     "@codemirror/language": "$@codemirror/language",
     "@codemirror/commands": "$@codemirror/commands",
     "@codemirror/search": "$@codemirror/search",
-    "@codemirror/lint": "$@codemirror/lint"
+    "@codemirror/lint": "$@codemirror/lint",
+    "@lezer/common": "1.5.0",
+    "@lezer/highlight": "1.2.3",
+    "@lezer/lr": "1.4.7"
   },
   "dependencies": {
     "@babel/runtime": "^7.24.6",

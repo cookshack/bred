@@ -28,7 +28,6 @@ contextBridge.exposeInMainWorld('tron', {
 
       ons[ch] = ons[ch].filter(on => {
         if (on.w == w) {
-          console.log('PRELOAD match')
           ipcRenderer.off(ch, on.w)
           return 0
         }
@@ -39,7 +38,7 @@ contextBridge.exposeInMainWorld('tron', {
         console.log('PRELOAD ' + ch + ' now has ' + ons[ch].length + ' handlers')
       else {
         delete ons[ch]
-        console.log('PRELOAD ' + ch + ' removed')
+        console.log('PRELOAD ' + ch + ' rm')
       }
     }
   },

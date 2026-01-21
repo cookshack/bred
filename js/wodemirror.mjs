@@ -4054,18 +4054,19 @@ function cTopLevelEnd
 }
 
 export
+function onBufRemove
+(buf) {
+  d('WODE handling remove of buf ' + buf.name)
+  buf.views.forEach(view => {
+    if (view.ed)
+      view.ed.destroy()
+  })
+}
+
+export
 function addMode
 (lang, spec) {
   let mode, exts, mime, key
-
-  function remove
-  (buf) {
-    d(lang.id + ' removing in ' + buf.name)
-    buf.views.forEach(view => {
-      if (view.ed)
-        view.ed.destroy()
-    })
-  }
 
   function seizeLang
   (b) {
@@ -4098,7 +4099,7 @@ function addMode
                     wexts: spec.wexts,
                     mime,
                     //
-                    onRemove: remove,
+                    onRemove: onBufRemove,
                     seize: seizeLang })
   lang.mode = mode
 

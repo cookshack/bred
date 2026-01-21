@@ -1332,7 +1332,9 @@ function init
                           viewInit: Backend.viewInit,
                           viewCopy: Backend.viewCopy,
                           viewReopen: Backend.viewReopen,
-                          initFns: initModeFns })
+                          initFns: initModeFns,
+                          //
+                          onRemove: Backend.onBufRemove })
 
     d('init backend')
     Backend.init(mo)

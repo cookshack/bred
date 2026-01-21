@@ -3,6 +3,7 @@ import { append } from './dom.mjs'
 import * as Css from './css.mjs'
 import * as Mess from './mess.mjs'
 import * as Point from './point.mjs'
+import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
@@ -18,7 +19,7 @@ function make
         elePoint,
         lineNum }
     = spec
-  let v, active, ready, point, modeVars, onCloses, scrollTop, win, existing
+  let v, active, ready, point, modeVars, onCloses, onRemoves, scrollTop, win, existing
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
   // Like a stash.
@@ -63,6 +64,12 @@ function make
       reserved = new globalThis.DocumentFragment()
       append(reserved, els)
       ele = null
+    }
+
+    if (b.views.length > 1) {
+      d('VIEW ' + b.id + '.' + vid + ' remove')
+      U.arrRm1(b.views, v1 => v == v1)
+      onRemoves.forEach(cb => cb(v))
     }
   }
 
@@ -371,6 +378,7 @@ function make
   }
   modeVars = []
   onCloses = []
+  onRemoves = []
   active = 1
 
   point = Point.make(ele, elePoint)
@@ -466,6 +474,7 @@ function make
         linePrev,
         insert,
         onClose: cb => onCloses.push(cb),
+        onRemove: cb => onRemoves.push(cb),
         reconfHead,
         reopen,
         close,

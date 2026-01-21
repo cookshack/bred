@@ -916,6 +916,13 @@ function initCmds
         content.push('  ' + b.id + ' ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + (b.views == 1 ? ' view' : ' views') + (b.closedViews ? ' (+ ' + b.closedViews + ' closed)' : ''))
       })
 
+      content.push('')
+      content.push('Views:')
+
+      results.views.forEach(v => {
+        content.push('  ' + (v.buf?.id || '?') + '.' + v.vid + (v.ele ? '' : ' closed'))
+      })
+
       p = Pane.current()
       Ed.make(p,
               { name: 'Performance',
@@ -1896,6 +1903,7 @@ function perf
     results.tronTotal = results.tronHandlers.reduce((sum, h) => sum + h.count, 0)
   }
 
+  results.views = []
   results.buffers = Buf.shared().buffers.map(b => {
     let openViews
     let closedViews
@@ -1907,6 +1915,7 @@ function perf
         openViews++
       else
         closedViews++
+      results.views.push(v)
     })
     return {
       name: b.name,
@@ -1957,6 +1966,11 @@ function perf
   Mess.log('Buffers:')
   results.buffers.forEach(b => {
     Mess.log('  ' + b.id + ' ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + (b.views == 1 ? ' view' : ' views') + (b.closedViews ? ' (+ ' + b.closedViews + ' closed)' : ''))
+  })
+
+  Mess.log('Views:')
+  results.views.forEach(v => {
+    Mess.log('  ' + (v.buf?.id || '?') + '.' + v.vid + (v.ele ? '' : ' closed'))
   })
 
   return results

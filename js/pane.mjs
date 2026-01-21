@@ -137,6 +137,8 @@ function add
     }
 
     i = frame.panes.findIndex(p2 => p.id == p2.id)
+    if (view)
+      view.close()
     p.w.remove()
     if (i == -1) {
       Mess.warn('pane.close: missing')

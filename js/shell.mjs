@@ -43,7 +43,7 @@ function nextCh
 export
 function runToString
 (dir, sc, args, runInShell, cb) { // (str, code)
-  let ch, str, handler
+  let ch, str, handler, off
 
   ch = nextCh()
   str = ''
@@ -59,7 +59,7 @@ function runToString
     if (err) {
       Mess.yell('Shell.runToString: ' + err.message)
       // Clean up listener on error
-      Tron.off(ch, handler)
+      off()
       return
     }
 
@@ -81,11 +81,11 @@ function runToString
       // Invoke callback with final output and exit code
       cb(str, data.code)
       // Clean up listener after completion
-      Tron.off(ch, handler)
+      off()
     }
   }
 
-  Tron.on(ch, handler)
+  off = Tron.on(ch, handler)
 
   Tron.cmd1('shell', [ ch, dir, sc, args || [], runInShell ? true : false ], (err, tch) => {
     if (err)
@@ -123,14 +123,26 @@ function run
  //   onClose // (buf, code)
  //   onErr } // (buf, err)
  spec) {
-  let ch, bep, b, handler
+  let ch, bep, b, handler, chOff
+
+  function on
+  () {
+    d('SHELL ' + ch + ' on')
+    chOff = Tron.on(ch, handler)
+  }
+
+  function off
+  () {
+    d('SHELL ' + ch + ' off')
+    chOff()
+  }
 
   spec = spec || {}
   b = spec.buf
   ch = nextCh()
   bep = b && (b.anyView()?.bep || 0)
 
-  d("run '" + sc + "' [" + args + '] in ' + dir)
+  d("SHELL run '" + sc + "' [" + args + '] in ' + dir)
 
   if (b) {
     b.vars('shell').sc = sc
@@ -138,7 +150,7 @@ function run
     b.vars('shell').spec = spec
     b.vars('shell').code = null
     b.onRemove(() => {
-      d('RUN remove ch ' + ch)
+      d('SHELL exit ' + ch)
       Tron.send(ch, { exit: 1 })
     })
   }
@@ -158,16 +170,16 @@ function run
     if (err) {
       Mess.yell('Shell.run: ' + err.message)
       // Clean up on error
-      Tron.off(ch, handler)
+      off()
       return
     }
 
     //d({ data })
 
     if (0 && data.stdout)
-      d('OUT: ' + decode(data.stdout))
+      d('SHELL OUT: ' + decode(data.stdout))
     if (0 && data.stderr)
-      d('ERR: ' + decode(data.stderr))
+      d('SHELL ERR: ' + decode(data.stderr))
 
     if (b && data.stdout) {
       if (spec.end)
@@ -175,7 +187,7 @@ function run
       else
         b.insert(decode(data.stdout), bep, spec.afterEndPoint)
       b.vars('Shell').lastLineText = b.line(-1)
-      //d('lastLineText: ' + b.vars('Shell').lastLineText)
+      //d('SHELL lastLineText: ' + b.vars('Shell').lastLineText)
       spec.afterEndPoint = 0
     }
 
@@ -199,7 +211,7 @@ function run
         spec.onClose(b, data.code)
       Mess.log('SC exit: ' + sc + ': ' + data.code)
       // Clean up listener after command finishes
-      Tron.off(ch, handler)
+      off()
     }
 
     if (spec.onStderr && data.stderr)
@@ -212,11 +224,11 @@ function run
         spec.onErr(b, err)
       Mess.say('SC err: ' + sc + ': ' + err.message)
       // Clean up on error condition as well
-      Tron.off(ch, handler)
+      off()
     }
   }
 
-  Tron.on(ch, handler)
+  on()
 
   if (b) {
     b.ml.set('busy', 'busy')
@@ -228,13 +240,15 @@ function run
                                          multi: spec.multi,
                                          cols: spec.cols } ],
             (err, tch) => {
-              if (err)
+              if (err) {
+                off()
                 Mess.toss(err)
-              if (ch == tch) {
-                // good
               }
-              else
-                Mess.warn('tron ch should be ' + ch + ': ' + tch)
+              if (ch == tch)
+                // good
+                return
+              off()
+              Mess.warn('tron ch should be ' + ch + ': ' + tch)
             })
 }
 

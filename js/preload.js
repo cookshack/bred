@@ -14,20 +14,29 @@ contextBridge.exposeInMainWorld('tron', {
   on(ch, cb) {
     let w
 
+    console.log('PRELOAD ' + ch + ' on')
+
     w = (e, d) => cb(d)
+
     ons[ch] = ons[ch] || []
     ons[ch].push({ cb, w })
+
     ipcRenderer.on(ch, w)
-  },
-  off(ch, cb) {
-    if (ons[ch])
+
+    return () => {
+      console.log('PRELOAD ' + ch + ' off')
+
       ons[ch] = ons[ch].filter(on => {
-        if (on.cb == cb) {
+        if (on.w == w) {
+          console.log('PRELOAD match')
           ipcRenderer.off(ch, on.w)
           return 0
         }
         return 1
       })
+
+      console.log('PRELOAD ' + ch + ' now has ' + ons[ch].length + ' handlers')
+    }
   },
   // For performance analysis
   perf() {

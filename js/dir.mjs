@@ -627,7 +627,7 @@ function watch
       // NB Beware of doing anything in here that modifies any dir being watched,
       //    eg logging in dir.get when --logfile, because that causes recursive
       //    behaviour.
-      d('--- watch ev ---')
+      d('DIR 👀 watch ev')
       d({ data })
       getFile = 1
       Pane.forEach(pane => {

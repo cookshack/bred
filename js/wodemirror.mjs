@@ -334,7 +334,7 @@ function makePeer
 
     destroy() {
       this.done = true
-      Tron.off(this.ch, this.pullCb)
+      this.pullCb()
     }
   })
 
@@ -1159,7 +1159,7 @@ function _viewInit
 export
 function viewReopen
 (view, lineNum, whenReady) {
-  d('================== viewReopen')
+  d('WODE ================== viewReopen')
   if (view.ele && view.ed)
     // timeout so behaves like viewInit
     setTimeout(() => {
@@ -1185,7 +1185,7 @@ function viewReopen
 export
 function viewCopy
 (to, from, lineNum, whenReady) {
-  d('================== viewCopy')
+  d('WODE ================== viewCopy')
   viewInit(to,
            { text: from.ed.state.doc.toString(),
              modeWhenText: from.buf.opt('core.lang'),
@@ -2722,7 +2722,7 @@ function revertV
  whenReady) {
   let lineNum
 
-  d('=====>>>>>>>>>> revertV')
+  d('WODE =====>>>>>>>>>> revertV')
 
   spec = spec || {}
 
@@ -2732,7 +2732,7 @@ function revertV
   view.ready = 0 // limit onChange handler
   viewInit(view, { revert: 1, lineNum }, whenReady)
 
-  d('=====>>>>>>>>>> revertV done')
+  d('WODE =====>>>>>>>>>> revertV done')
 }
 
 export
@@ -4056,7 +4056,7 @@ function addMode
 
   function seizeLang
   (b) {
-    d(lang.id + ' seizing ' + b.name)
+    d('WODE ' + lang.id + ' seizing ' + b.name)
     seize(b, mode)
     b.opts.set('core.lang', lang.id)
   }

@@ -147,7 +147,7 @@ function make
   (key) {
     let mo
 
-    d('buf.setMode')
+    d('BUF setMode')
     mo = Mode.getOrAdd(key)
     if (mo) {
       mode?.stop(b)

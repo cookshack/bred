@@ -53,6 +53,8 @@ async function acmd
 }
 
 // ASYNC: IPC bridge - event listener registration
+//
+// returns an off fn.
 export
 function on
 (ch, cb) { // (err, data)

@@ -266,7 +266,7 @@ function makePeer
       this.view = view
       version = CMCollab.getSyncedVersion(this.view.state)
       this.ch = 'peer.pull/' + uuidv4()
-      this.pullCb = Tron.on(this.ch, this.pull.bind(this))
+      this.chOff = Tron.on(this.ch, this.pull.bind(this))
       Tron.cmd('peer.pull', [ id, version, this.ch ], err => {
         if (err) {
           d('peer.pull: ' + err.message)
@@ -334,7 +334,7 @@ function makePeer
 
     destroy() {
       this.done = true
-      this.pullCb()
+      this.chOff && this.chOff()
     }
   })
 
@@ -586,14 +586,16 @@ function watch
 (buf, path) {
   if (watching.has(path))
     return
-  watching.add(path)
+
   Tron.cmd1('file.watch', [ path ], (err, ch) => {
     if (err) {
       Mess.log('watch failed on ' + path)
       watching.delete(path)
       return
     }
-    Tron.on(ch, (err, data) => {
+    let off
+
+    off = Tron.on(ch, (err, data) => {
       // NB Beware of doing anything in here that modifies the file being watched,
       //    because that may cause recursive behaviour. Eg d when --logfile and
       //    log file is open in a buffer.
@@ -604,6 +606,17 @@ function watch
           return
         buf.modifiedOnDisk = 1
       }
+    })
+
+    watching.set(path, off)
+
+    buf.onRemove(() => {
+      let off
+
+      off = watching.get(path)
+      if (off)
+        off()
+      watching.delete(path)
     })
   })
 }
@@ -4696,7 +4709,7 @@ function init
   completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run
   completionPreviousLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowUp').run
 
-  watching = new Set()
+  watching = new Map()
 
   initLangs()
   initTheme()

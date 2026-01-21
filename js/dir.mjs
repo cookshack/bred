@@ -22,7 +22,7 @@ import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
-let Marked
+let Marked, watching
 
 Marked = {
   make(buf) {
@@ -608,20 +608,20 @@ function fill
   })
 }
 
-let watching
-
 function watch
 (path) {
   if (watching.has(path))
     return
-  watching.add(path)
   Tron.cmd1('dir.watch', [ path ], (err, ch) => {
+    let off
+
     if (err) {
       Mess.log('watch failed on ' + path)
       watching.delete(path)
       return
     }
-    Tron.on(ch, (err, data) => {
+
+    off = Tron.on(ch, (err, data) => {
       let file, getFile
 
       // NB Beware of doing anything in here that modifies any dir being watched,
@@ -658,7 +658,19 @@ function watch
         }
       })
     })
+
+    watching.set(path, off)
   })
+}
+
+function stopWatching
+(path) {
+  let off
+
+  off = watching.get(path)
+  if (off)
+    off()
+  watching.delete(path)
 }
 
 export
@@ -690,6 +702,7 @@ function add
   b.addMode('view')
   p.setBuf(b, {}, () => {
     fill(b, undefined, undefined, sort, initialFile)
+    b.onRemove(() => stopWatching(dir.path))
     watch(dir.path)
   })
 }
@@ -1629,7 +1642,7 @@ function init
       Mess.say('Move to a file first')
   }
 
-  watching = new Set()
+  watching = new Map()
 
   hist = Hist.ensure('dir')
 

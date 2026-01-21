@@ -191,6 +191,9 @@ function initBrowse
       d('view.onClose')
       d(id)
 
+      if (view.vars('Browse').off)
+        view.vars('Browse').off()
+
       data = await Tron.acmd('browse.close', [ id ])
       d('wasF: ' + data.wasFocused)
       if (data.wasFocused)
@@ -217,7 +220,7 @@ function initBrowse
                  return
                }
 
-               Tron.on(data.ch, (err, data) => {
+               view.vars('Browse').off = Tron.on(data.ch, (err, data) => {
                  d('--- browse ev ---')
                  d({ data })
                  if (data.ev == 'focus') {

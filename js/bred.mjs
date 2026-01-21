@@ -889,39 +889,7 @@ function initCmds
     results = perf()
 
     if (results) {
-      let p, content
-
-      content = [ 'Performance',
-                  '',
-                  'Memory: ' + results.memoryUsed + ' / ' + results.memoryLimit + ' (' + results.memoryPercent + ')',
-                  'DOM Elements: ' + results.domElements,
-                  '',
-                  'Buffers: ' + results.buffers.length,
-                  '  Code: ' + results.codeBuffers,
-                  '  Clock: ' + results.clockBuffers,
-                  '',
-                  'Views: ' + results.viewsTotal,
-                  '  per buffer: min: ' + results.viewsMin + ' max: ' + results.viewsMax + ' avg: ' + results.viewsAvg,
-                  '',
-                  'Tron Handlers: ' + results.tronTotal ]
-
-      results.tronHandlers?.forEach(h => {
-        content.push('  ' + h.channel + ': ' + h.count)
-      })
-
-      content.push('')
-      content.push('Buffers:')
-
-      results.buffers.forEach(b => {
-        content.push('  ' + b.id + ' ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + (b.views == 1 ? ' view' : ' views') + (b.closedViews ? ' (+ ' + b.closedViews + ' closed)' : ''))
-      })
-
-      content.push('')
-      content.push('Views:')
-
-      results.views.forEach(v => {
-        content.push('  ' + (v.buf?.id || '?') + '.' + v.vid + (v.ele ? '' : ' closed'))
-      })
+      let p
 
       p = Pane.current()
       Ed.make(p,
@@ -929,7 +897,7 @@ function initCmds
                 dir: p.dir },
               view => {
                 view.buf.file = 'Performance'
-                view.insert(content.join('\n') + '\n')
+                view.insert(results.content.join('\n') + '\n')
                 view.buf.modified = 0
                 view.buf.addMode('view')
               })
@@ -1890,7 +1858,7 @@ export { mouse }
 export
 function perf
 () {
-  let results, viewCounts, tPerf
+  let results, viewCounts, tPerf, content
 
   results = {}
 
@@ -1951,27 +1919,39 @@ function perf
     results.memoryPercent = 'N/A'
   }
 
-  Mess.log('Bred Diagnostics')
-  Mess.log('----------------')
-  Mess.log('Memory: ' + results.memoryUsed + ' / ' + results.memoryLimit + ' (' + results.memoryPercent + ')')
-  Mess.log('Tron Handlers: ' + results.tronTotal)
-  results.tronHandlers?.forEach(h => Mess.log('  ' + h.channel + ': ' + h.count))
-  Mess.log('DOM Elements: ' + results.domElements)
-  Mess.log('Total Buffers: ' + results.buffers.length)
-  Mess.log('Code Buffers: ' + results.codeBuffers)
-  Mess.log('Clock Buffers: ' + results.clockBuffers)
-  Mess.log('Total Views: ' + results.viewsTotal)
-  Mess.log('Views per buffer: min: ' + results.viewsMin + ' max: ' + results.viewsMax + ' avg: ' + results.viewsAvg)
+  content = [ 'Diagnostics',
+              '',
+              'Memory: ' + results.memoryUsed + ' / ' + results.memoryLimit + ' (' + results.memoryPercent + ')',
+              'DOM Elements: ' + results.domElements,
+              '',
+              'Buffers: ' + results.buffers.length,
+              '  Code: ' + results.codeBuffers,
+              '  Clock: ' + results.clockBuffers,
+              '',
+              'Views: ' + results.viewsTotal,
+              '  per buffer: min: ' + results.viewsMin + ' max: ' + results.viewsMax + ' avg: ' + results.viewsAvg,
+              '',
+              'Tron Handlers: ' + results.tronTotal ]
 
-  Mess.log('Buffers:')
+  results.tronHandlers?.forEach(h => {
+    content.push('  ' + h.channel + ': ' + h.count)
+  })
+
+  content.push('')
+  content.push('Buffers:')
+
   results.buffers.forEach(b => {
-    Mess.log('  ' + b.id + ' ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + (b.views == 1 ? ' view' : ' views') + (b.closedViews ? ' (+ ' + b.closedViews + ' closed)' : ''))
+    content.push('  ' + b.id + ' ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + (b.views == 1 ? ' view' : ' views') + (b.closedViews ? ' (+ ' + b.closedViews + ' closed)' : ''))
   })
 
-  Mess.log('Views:')
+  content.push('')
+  content.push('Views:')
+
   results.views.forEach(v => {
-    Mess.log('  ' + (v.buf?.id || '?') + '.' + v.vid + (v.ele ? '' : ' closed'))
+    content.push('  ' + (v.buf?.id || '?') + '.' + v.vid + (v.ele ? '' : ' closed'))
   })
 
+  Mess.log(content.join('\n'))
+  results.content = content
   return results
 }

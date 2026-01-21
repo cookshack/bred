@@ -35,7 +35,12 @@ contextBridge.exposeInMainWorld('tron', {
         return 1
       })
 
-      console.log('PRELOAD ' + ch + ' now has ' + ons[ch].length + ' handlers')
+      if (ons[ch].length)
+        console.log('PRELOAD ' + ch + ' now has ' + ons[ch].length + ' handlers')
+      else {
+        delete ons[ch]
+        console.log('PRELOAD ' + ch + ' removed')
+      }
     }
   },
   // For performance analysis

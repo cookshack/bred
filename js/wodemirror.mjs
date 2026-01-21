@@ -1018,13 +1018,18 @@ function _viewInit
     voffFocus(view, view.ev_onFocus)
   view.ev_onFocus = vonFocus(onFocus)
 
-  // FIX if we're reopening this will duplicate
-  view.onRemove(() => {
-    if (view.ed) {
-      view.ed.destroy()
-      view.ed = null
+  if (view.ev_onRemove) {
+    // This view has been initialized before.
+  }
+  else {
+    view.ev_onRemove = () => {
+      if (view.ed) {
+        view.ed.destroy()
+        view.ed = null
+      }
     }
-  })
+    view.onRemove(view.ev_onRemove)
+  }
 
   if (0) {
     if (view.ev_onDidBlurEditorWidget)

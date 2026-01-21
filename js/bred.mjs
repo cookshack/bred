@@ -913,7 +913,7 @@ function initCmds
       content.push('Buffers:')
 
       results.buffers.forEach(b => {
-        content.push('  ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + ' view(s)')
+        content.push('  ' + b.id + ' ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + (b.views == 1 ? ' view' : ' views') + (b.closedViews ? ' (+ ' + b.closedViews + ' closed)' : ''))
       })
 
       p = Pane.current()
@@ -1896,13 +1896,27 @@ function perf
     results.tronTotal = results.tronHandlers.reduce((sum, h) => sum + h.count, 0)
   }
 
-  results.buffers = Buf.shared().buffers.map(b => ({
-    name: b.name,
-    id: b.id,
-    mode: b.mode?.key,
-    views: b.views.length,
-    domElements: b.views.reduce((sum, v) => sum + (v.ele?.querySelectorAll('*').length || 0), 0)
-  }))
+  results.buffers = Buf.shared().buffers.map(b => {
+    let openViews
+    let closedViews
+
+    openViews = 0
+    closedViews = 0
+    b.views.forEach(v => {
+      if (v.ele)
+        openViews++
+      else
+        closedViews++
+    })
+    return {
+      name: b.name,
+      id: b.id,
+      mode: b.mode?.key,
+      views: openViews,
+      closedViews,
+      domElements: b.views.reduce((sum, v) => sum + (v.ele?.querySelectorAll('*').length || 0), 0)
+    }
+  })
 
   results.domElements = globalThis.document.querySelectorAll('*').length
 
@@ -1942,7 +1956,7 @@ function perf
 
   Mess.log('Buffers:')
   results.buffers.forEach(b => {
-    Mess.log('  ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + ' view(s)')
+    Mess.log('  ' + b.id + ' ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + (b.views == 1 ? ' view' : ' views') + (b.closedViews ? ' (+ ' + b.closedViews + ' closed)' : ''))
   })
 
   return results

@@ -48,7 +48,7 @@ function make
 
   function close
   () {
-    d('VIEW ' + vid + ' closing')
+    d('VIEW ' + b.id + '.' + vid + ' closing')
     onCloses.forEach(cb => cb())
     ready = 0
     active = 0
@@ -68,7 +68,7 @@ function make
 
   function reopen
   (newPaneEle, newPointEle, lineNum, whenReady) {
-    d('VIEW ' + vid + ' reopen ')
+    d('VIEW ' + b.id + '.' + vid + ' reopen ')
     ready = 0
     active = 1
     ele = newPaneEle
@@ -365,7 +365,7 @@ function make
   win = Win.current()
   v = views.find(v1 => (v1.win == win) && (v1.active == 0))
   if (v) {
-    d('VIEW ' + v.vid + ' being reused')
+    d('VIEW ' + b.id + '.' + v.vid + ' being reused')
     v.reopen(ele, elePoint, lineNum, whenReady)
     return v
   }
@@ -472,20 +472,20 @@ function make
         sync,
         vars }
 
-  d('VIEW ' + vid + ' new view ' + v.vid + ' for ' + (b.name || '??'))
+  d('VIEW ' + b.id + '.' + vid + ' new view for ' + (b.name || '??'))
   ele.innerHTML = ''
   ready = 0
   prep()
   existing = views.find(v2 => v2.ele && (v2.win == v.win))
   if (existing) {
     // use content from existing view
-    d('VIEW ' + vid + ' reuse content')
+    d('VIEW ' + b.id + '.' + vid + ' reuse content')
     if (mode && mode.viewCopy) {
-      d('VIEW ' + vid + ' mode has viewCopy')
+      d('VIEW ' + b.id + '.' + vid + ' mode has viewCopy')
       if (b.co) {
         let clone
 
-        d('VIEW ' + vid + ' buf has co')
+        d('VIEW ' + b.id + '.' + vid + ' buf has co')
 
         clone = b.co.cloneNode(1)
         d('  clone: ' + clone.innerHTML)
@@ -500,12 +500,12 @@ function make
   }
   else {
     if (1)
-      d('VIEW ' + vid + ' fresh content')
+      d('VIEW ' + b.id + '.' + vid + ' fresh content')
     if (b.co) {
-      d('VIEW ' + vid + ' buffer has co')
+      d('VIEW ' + b.id + '.' + vid + ' buffer has co')
       append(ele, b.co.cloneNode(1))
       if (mode && mode.viewInit) {
-        d('VIEW ' + vid + ' placeholder: ' + b.placeholder)
+        d('VIEW ' + b.id + '.' + vid + ' placeholder: ' + b.placeholder)
         mode.viewInit(v,
                       { lineNum,
                         placeholder: b.placeholder,

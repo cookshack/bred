@@ -591,6 +591,8 @@ function initShell
 
     p.view.lineEnd()
     p.view.insert('\n')
+    // FIX else leaves point in place
+    p.view.bep = Ed.Backend.vbepIncr(p.view, p.view.bep)
     if (ch) {
       let h
 

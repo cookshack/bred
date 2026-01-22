@@ -82,7 +82,7 @@ function init
   (view) {
     let format
 
-    format = String
+    format = num => String(num || 1)
     if (Ext.get('blankLines') && view.buf.opt('blankLines.enabled'))
       format = formatLineNumber
     if (view.buf.opt('core.line.numbers.show'))

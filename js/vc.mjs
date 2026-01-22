@@ -1200,7 +1200,7 @@ function init
   Cmd.add('vc push', () => git('git push origin HEAD'))
   Cmd.add('vc reset', () => reset())
   Cmd.add('vc show', () => showHash())
-  Cmd.add('vc stash', () => git('git stash'))
+  Cmd.add('vc stash', () => git('git stash --include-untracked'))
   Cmd.add('vc stash apply', () => git(Loc.appDir().join('bin/git-stash-apply')))
   Cmd.add('vc stash drop', () => git(Loc.appDir().join('bin/git-stash-drop')))
   Cmd.add('vc stash enumerate', () => git('git stash list', 'stash', [], 1))

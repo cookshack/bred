@@ -24,7 +24,7 @@ function divW
 () {
   let exitW
 
-  exitW = divCl('shell-exit-w shell-busy', '⋯') // 🌀
+  exitW = divCl('shell-exit-w shell-busy', '🌊 BUSY') // 🌀 🌊 🔥
   return Ed.divW(0, 0, { extraWWCss: 'shell-ww',
                          extraWCss: 'shell-w',
                          extraCo: exitW })

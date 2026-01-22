@@ -442,7 +442,7 @@ function initCmds
     col--
     // mv back over word chars to get start
     while (1)
-      if (/[_a-zA-Z0-9]/.test(l[col])) {
+      if (/[._a-zA-Z0-9]/.test(l[col])) {
         if (col == 0)
           break
         col--
@@ -459,7 +459,7 @@ function initCmds
     end = l.length
     // mv forward over word chars to get end
     while (1)
-      if (/[_a-zA-Z0-9]/.test(l[col])) {
+      if (/[._a-zA-Z0-9]/.test(l[col])) {
         col++
         if (col == end)
           break

@@ -815,6 +815,15 @@ function setBackend
 export
 function getCTag
 (name) {
+  // {"_type": "tag", "name": "divW", "path": "js/shell.mjs", "pattern": "/^function divW$/", "kind": "function"},
+  if (name.includes('.')) {
+    let split, ctag
+
+    // Hack for finding eg Ed.divW in ed.mjs instead of in about.mjs
+    split = name.split('.')
+    ctag = ctags.find(c => (c.name == split[1]) && (c.path.includes('/' + split[0].toLowerCase() + '.')))
+    return ctag || ctags.find(c => c.name == name)
+  }
   return ctags.find(c => c.name == name)
 }
 

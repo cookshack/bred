@@ -19,12 +19,17 @@ import { d } from './mess.mjs'
 
 let reErr, reFile
 
+function busyCo
+() {
+  return '🌊 BUSY' // 🌀 🌊 🔥
+}
+
 export
 function divW
 () {
   let exitW
 
-  exitW = divCl('shell-exit-w shell-busy', '🌊 BUSY') // 🌀 🌊 🔥
+  exitW = divCl('shell-exit-w shell-busy', busyCo())
   return Ed.divW(0, 0, { extraWWCss: 'shell-ww',
                          extraWCss: 'shell-w',
                          extraCo: exitW })
@@ -274,7 +279,7 @@ function shellOrSpawn1
     function setMl
     (w) {
       if (w) {
-        let ml
+        let ml, el
 
         ml = w.querySelector('.edMl')
         if (ml) {
@@ -284,6 +289,12 @@ function shellOrSpawn1
                  divCl('ml-name', name),
                  divCl('ml-busy'),
                  divCl('ml-close'))
+        }
+
+        el = w.querySelector('.shell-exit-w')
+        if (el) {
+          Css.add(el, 'shell-busy')
+          el.innerHTML = busyCo()
         }
       }
     }

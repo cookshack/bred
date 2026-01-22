@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+check_modules_changed() {
+  CURRENT_HASH=$(sha256sum package-lock.json 2>/dev/null | cut -d' ' -f1)
+  STORED_HASH=$(cat .bred-module-hash 2>/dev/null || echo "")
+
+  if [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
+    echo "Modules changed, running make prep..."
+    make prep
+    echo "$CURRENT_HASH" > .bred-module-hash
+  fi
+}
+
 cleanup() {
   echo Cleaning up...
   rm -f /tmp/bred-$$-relaunch
@@ -9,6 +20,7 @@ cleanup() {
 trap cleanup SIGINT EXIT
 
 while true; do
+  check_modules_changed
   echo 0 > /tmp/bred-$$-relaunch
   export BRED_SCRIPT_PID=$$
   if [ -n "$BRED_GDB" ] && [ "$BRED_GDB" -eq 1 ]; then

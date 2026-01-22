@@ -13,12 +13,12 @@
     "check": "./node_modules/@cookshack/build/bin/check js/*.mjs js/*.js ext/*/*.mjs",
     "format": "./node_modules/@cookshack/build/bin/format js/*.mjs js/*.js ext/*/*.mjs",
     "prepare": "husky",
-    "postinstall": "make prep"
+    "postinstall": "make prep && sha256sum package-lock.json | cut -d' ' -f1 > .bred-module-hash"
   },
   "author": "Matt Mundell",
   "license": "CC0-1.0",
   "devDependencies": {
-    "electron": "^39.2.7",
+    "electron": "^40.0.0",
     "globals": "^16.0.0",
     "husky": "^9.0.11",
     "jshint": "^2.13.6",
@@ -61,7 +61,7 @@
     "@cookshack/codemirror-lang-zig": "^0.1.2",
     "@cookshack/codemirror-ruler": "^0.2.3",
     "@cookshack/eslint-config": "^1.2.0",
-    "@electron/rebuild": "^3.6.0",
+    "@electron/rebuild": "^4.0.2",
     "@fluentui/svg-icons": "^1.1.240",
     "@markdoc/markdoc": "^0.4.0",
     "@opencode-ai/sdk": "^1.1.28",

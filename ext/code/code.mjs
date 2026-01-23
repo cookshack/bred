@@ -877,6 +877,19 @@ function init
       return
     }
 
+    if ((event.type == 'session.error')
+        && (event.properties?.sessionID == sessionID)) {
+      let error
+
+      error = event.properties.error
+      d({ error })
+      if (error)
+        Mess.yell('🚨 session.error: ' + (error.name || '??') + ' ' + (error.data?.message || '????'))
+      else
+        Mess.yell('🚨 session.error: error missing')
+      return
+    }
+
     if ((event.type == 'session.updated')
         && (event.properties.info.id == sessionID)) {
       handleSessionUpdated(buf, event)

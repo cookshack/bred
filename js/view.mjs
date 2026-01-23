@@ -432,6 +432,9 @@ function make
         get ele() {
           return ele // the pane element
         },
+        get eleOrReserved() {
+          return ele || reserved
+        },
         set content(co) {
           if (ele) {
             ele.innerHTML = ''

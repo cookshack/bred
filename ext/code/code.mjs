@@ -153,10 +153,10 @@ function init
   function appendModel
   (buf, model) {
     buf.views.forEach(view => {
-      if (view.ele) {
+      if (view.eleOrReserved) {
         let w
 
-        w = view.ele.querySelector('.code-w')
+        w = view.eleOrReserved.querySelector('.code-w')
         appendX(w,
                 divCl('code-msg code-msg-assistant',
                       [ divCl('code-msg-role', model),
@@ -168,10 +168,10 @@ function init
   function appendMsg
   (buf, role, text, partID) {
     buf.views.forEach(view => {
-      if (view.ele) {
+      if (view.eleOrReserved) {
         let w
 
-        w = view.ele.querySelector('.code-w')
+        w = view.eleOrReserved.querySelector('.code-w')
         if (role == 'user') {
         }
         else {
@@ -209,10 +209,10 @@ function init
   function appendThinking
   (buf, text) {
     buf.views.forEach(view => {
-      if (view.ele) {
+      if (view.eleOrReserved) {
         let w, el, msgs, lastIsUser
 
-        w = view.ele.querySelector('.code-w')
+        w = view.eleOrReserved.querySelector('.code-w')
         msgs = w.querySelectorAll('.code-msg')
         if (msgs.length > 0) {
           let last
@@ -281,10 +281,10 @@ function init
   (buf, callID, label, under, spec) {
     spec = spec || {}
     buf.views.forEach(view => {
-      if (view.ele) {
+      if (view.eleOrReserved) {
         let w, els, underEl
 
-        w = view.ele.querySelector('.code-w')
+        w = view.eleOrReserved.querySelector('.code-w')
         els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
         els?.forEach(el => el.remove())
         if (under && (spec.format == 'code')) {
@@ -317,10 +317,10 @@ function init
   function appendPermission
   (buf, id) {
     buf.views.forEach(view => {
-      if (view.ele) {
+      if (view.eleOrReserved) {
         let w
 
-        w = view.ele.querySelector('.code-w')
+        w = view.eleOrReserved.querySelector('.code-w')
         appendX(w,
                 divCl('code-msg code-msg-permission',
                       [ divCl('code-msg-text',
@@ -346,10 +346,10 @@ function init
                                      permissionID: id,
                                      response })
         buf.views.forEach(view => {
-          if (view.ele) {
+          if (view.eleOrReserved) {
             let w, el
 
-            w = view.ele.querySelector('.code-w')
+            w = view.eleOrReserved.querySelector('.code-w')
             el = w.querySelector('.code-msg-permission[data-permissionid="' + id + '"]')
             el?.remove()
           }
@@ -380,10 +380,10 @@ function init
   function updateBufStatus
   (buf, co, tokenInfo) {
     buf.views.forEach(view => {
-      if (view.ele) {
+      if (view.eleOrReserved) {
         let underW, statusEl, tokenEl
 
-        underW = view.ele.querySelector('.code-under-w')
+        underW = view.eleOrReserved.querySelector('.code-under-w')
         if (underW) {
           statusEl = underW.querySelector('.code-under-status')
           tokenEl = underW.querySelector('.code-under-tokens')
@@ -526,10 +526,10 @@ function init
     title = event.properties.info?.title
     if (title)
       buf.views.forEach(view => {
-        if (view.ele) {
+        if (view.eleOrReserved) {
           let titleEl
 
-          titleEl = view.ele.querySelector('.code-session-title')
+          titleEl = view.eleOrReserved.querySelector('.code-session-title')
           if (titleEl)
             titleEl.innerText = title
         }

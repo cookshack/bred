@@ -46,6 +46,55 @@ function init
     return client
   }
 
+  function updateCredits
+  (buf) {
+    let key
+
+    key = Opt.get('code.key')
+    if (key.length == 0)
+      key = Opt.get('query.key')
+    if (key.length == 0)
+      return
+
+    fetch('https://openrouter.ai/api/v1/auth/key',
+          { method: 'GET',
+            headers: { Authorization: 'Bearer ' + key,
+                       'Content-Type': 'application/json' } })
+      .then(response => {
+        if (response.ok) {
+          response.json().then(data => {
+            d({ data })
+            d(data.data.limit_remaining)
+            buf.views.forEach(view => {
+              if (view.eleOrReserved) {
+                let el
+
+                el = view.eleOrReserved.querySelector('.code-under-credits')
+                if (el) {
+                  let dol
+
+                  dol = parseFloat(data.data.limit_remaining)
+                  if (isNaN(dol))
+                    el.innerText = '$'
+                  else
+                    el.innerText = '$' + dol.toFixed(2)
+                }
+              }
+            })
+          })
+            .catch(err => {
+              d('ERR .json: ' + err.message)
+            })
+          return
+        }
+        d('Error fetching credit info')
+      })
+      .catch(err => {
+        d('ERR fetch:')
+        d(err.message)
+      })
+  }
+
   function scroll
   (underW) {
     d('CO SCROLL')
@@ -1022,6 +1071,7 @@ function init
                          [ divCl('code-session-title'),
                            divCl('code-under-w',
                                  [ divCl('code-under code-under-status', '...'),
+                                   divCl('code-under code-under-credits', ''),
                                    divCl('code-under code-under-tokens', '') ]) ]) ])
   }
 
@@ -1057,6 +1107,8 @@ function init
       d({ res })
 
       appendModel(buf, res.data?.info?.modelID || '???')
+      if (provider == 'openrouter')
+        updateCredits(buf)
     }
     catch (err) {
       d(err)
@@ -1192,6 +1244,8 @@ function init
       buf = Buf.find(b => b.name == name)
       if (buf) {
         pane.setBuf(buf)
+        if (provider == 'openrouter')
+          updateCredits(buf)
         return
       }
     }
@@ -1303,6 +1357,7 @@ function init
   chatHist = Hist.ensure('code.chat')
   Opt.declare('code.model.agent', 'str', 'minimax-m2.1-free')
   Opt.declare('code.provider.agent', 'str', 'opencode')
+  Opt.declare('code.key', 'str', '')
   mo = Mode.add('code',
                 { viewInit,
                   viewCopy,

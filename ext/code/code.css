@@ -157,11 +157,15 @@
 .code-under-w {
   width: 100%;
   display: flex;
-  justify-content: space-between;
 }
 
 .code-under {
   display: flex;
+}
+
+.code-under-credits {
+  margin-left: auto;
+  margin-right: 0.5rem;
 }
 
 .code-patch-ed {

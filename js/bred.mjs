@@ -972,9 +972,11 @@ function initSearch
       s.st.stack.push({ range, needle: s.st.needle, backwards: 0 })
       Css.remove(s.st.echo, 'mini-search-fail')
     }
-    else
+    else {
       //d("got all")
+      s.st.stack.push({ failed: 1, needle: s.st.needle })
       Css.add(s.st.echo, 'mini-search-fail')
+    }
 
     s.st.echo.innerText = s.st.needle
   }
@@ -997,11 +999,14 @@ function initSearch
                     caseSensitive: 0,
                     wholeWord: 0,
                     regExp: 0 })
-    s.st.stack.push({ range, needle: s.st.needle, backwards: 1 })
-    if (range)
+    if (range) {
+      s.st.stack.push({ range, needle: s.st.needle, backwards: 1 })
       Css.remove(s.st.echo, 'mini-search-fail')
-    else
+    }
+    else {
+      s.st.stack.push({ failed: 1, needle: s.st.needle })
       Css.add(s.st.echo, 'mini-search-fail')
+    }
 
     s.st.echo.innerText = s.st.needle
   }
@@ -1042,6 +1047,11 @@ function initSearch
         bep = match.backwards ? spec.Backend?.rangeStartBep(match.range) : spec.Backend?.rangeEndBep(match.range)
         spec.Backend?.vsetBep(s.st.view, bep, 1)
       }
+
+      if (match.failed)
+        Css.add(s.st.echo, 'mini-search-fail')
+      else
+        Css.remove(s.st.echo, 'mini-search-fail')
     }
     else
       d('stack was empty')

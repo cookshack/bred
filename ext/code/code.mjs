@@ -1078,7 +1078,15 @@ function init
     model = model || buf.vars('code').model || 'minimax-m2.1-free'
 
     sessionID = buf.vars('code').sessionID
-    c = await ensureClient(buf)
+
+    try {
+      c = await ensureClient(buf)
+    }
+    catch (err) {
+      d(err)
+      appendMsg(buf, 'assistant', 'Error: ' + err.message)
+      return
+    }
 
     buf.vars('code').agentStopped = 0
 

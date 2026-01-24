@@ -35,14 +35,32 @@ function init
     if (client)
       return client
 
+    if (buf.vars('code').spawning) {
+      let check
+
+      return await new Promise(r => {
+        check = setInterval(() => {
+          if (buf.vars('code').spawning == 0) {
+            clearInterval(check)
+            r(buf.vars('code').client)
+          }
+        }, 50)
+      })
+    }
+
+    buf.vars('code').spawning = 1
+
     ret = await Tron.acmd('code.spawn', [ buf.id, buf.dir ])
 
-    if (ret.err)
+    if (ret.err) {
+      buf.vars('code').spawning = 0
       throw new Error(ret.err.message)
+    }
 
     client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
     buf.vars('code').client = client
     buf.vars('code').serverUrl = ret.url
+    buf.vars('code').spawning = 0
     return client
   }
 
@@ -970,96 +988,73 @@ function init
 
   function startEventSub
   (buf) {
-    let abortController
+    let state
 
-    if (buf.vars('code').eventSub)
-      return
-    buf.vars('code').eventSub = 1
-    buf.vars('code').reconnectAttempt = 0
-
-    abortController = new AbortController()
-    buf.vars('code').eventAbort = abortController
-    buf.vars('code').lastEventTime = Date.now()
-
+    state = buf.vars('code')
+    if (state.streamActive) return
+    state.streamActive = 1
+    state.lastEventTime = Date.now()
     updateBufStatus(buf, 'CONNECTING', '')
 
-    // Outer IFFE
-    ;(async () => {
-      while (buf.vars('code').eventSub) {
-        let c, events
+    async function runStream
+    (client) {
+      let events, iter
 
-        if (abortController.signal.aborted)
-          break
+      try {
+        events = await client.event.subscribe({})
+        iter = events.stream[Symbol.asyncIterator]()
+      }
+      catch (err) {
+        if (err.name == 'AbortError') return
+        d('CO subscribe error: ' + err.message)
+        setTimeout(() => tryReconnect(), 1000)
+        return
+      }
 
-        try {
-          c = await ensureClient(buf)
-        }
-        catch (err) {
-          d('CO ensureClient error: ' + err.message)
-          await new Promise(r => setTimeout(r, 1000))
-          continue
-        }
+      updateBufStatus(buf, 'CONNECTED', '')
 
-        d('CO starting event subscription')
-        try {
-          events = await c.event.subscribe({}, { signal: abortController.signal })
-          d('CO stream obtained')
-          updateBufStatus(buf, 'CONNECTED', '')
-        }
-        catch (err) {
-          if (err.name == 'AbortError')
-            return
-          d('CO event subscribe error: ' + err.message)
-          await new Promise(r => setTimeout(r, 1000))
-          continue
-        }
+      while (state.streamActive) {
+        let timeoutMs, timeoutPromise, result
 
-        // Inner IFFE
-        ;(async () => {
-          try {
-            for await (let event of events.stream) {
-              buf.vars('code').lastEventTime = Date.now()
-              handleEvent(buf, event)
-            }
-          }
-          catch (err) {
-            if (err.name == 'AbortError')
-              return
-            d('CO event stream error: ' + err.message)
-          }
-        })()
-
-        await new Promise(r => {
-          buf.vars('code').eventStreamResolve = r
+        timeoutMs = 35000
+        timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('heartbeat-timeout')), timeoutMs)
         })
-        buf.vars('code').eventStreamResolve = 0
-        buf.vars('code').client = 0
-        buf.vars('code').reconnectAttempt++
-        if (buf.vars('code').eventAbort)
-          buf.vars('code').eventAbort.abort()
-        // Need a new abortController, otherwise the outer IFFE will also exit
-        abortController = new AbortController()
-        buf.vars('code').eventAbort = abortController
-        updateBufStatus(buf, 'RECONNECTING...', '')
-      }
-    })()
 
-    if (buf.vars('code').eventCheckInterval)
-      clearInterval(buf.vars('code').eventCheckInterval)
-    buf.vars('code').eventCheckInterval = setInterval(() => {
-      if (buf.vars('code').eventSub) {
-        let elapsed, last
+        try {
+          result = await Promise.race([ iter.next(), timeoutPromise ])
 
-        last = buf.vars('code').lastEventTime
-        elapsed = Date.now() - last
-        if (elapsed > 35000) { // heartbeat is sent every 30s
-          d('CO server quiet for ' + elapsed + 'ms, restarting stream')
-          buf.vars('code').lastEventTime = Date.now()
-          if (buf.vars('code').eventStreamResolve)
-            buf.vars('code').eventStreamResolve()
+          state.lastEventTime = Date.now()
+          if (result.done) {
+            tryReconnect()
+            return
+          }
+          handleEvent(buf, result.value)
+        }
+        catch (err) {
+          if (err.message == 'heartbeat-timeout') {
+            d('CO heartbeat timeout, reconnecting')
+            tryReconnect()
+            return
+          }
+          if (err.name == 'AbortError') return
+          d('CO stream error: ' + err.message)
+          tryReconnect()
+          return
         }
       }
-    }, 5000)
+    }
+
+    function tryReconnect
+    () {
+      if (state.streamActive == 0) return
+      state.client = 0
+      state.lastEventTime = Date.now()
+      updateBufStatus(buf, 'RECONNECTING...', '')
+      ensureClient(buf).then(runStream)
+    }
+
+    ensureClient(buf).then(runStream)
   }
 
   function divW
@@ -1365,9 +1360,7 @@ function init
                   viewCopy,
                   viewReopen,
                   onRemove(buf) {
-                    if (buf.vars('code').eventCheckInterval)
-                      clearInterval(buf.vars('code').eventCheckInterval)
-                    buf.vars('code').eventAbort?.abort()
+                    buf.vars('code').streamActive = 0
                     buf.views?.forEach(view => {
                       view.vars('code').eds?.forEach(ed => ed.destroy())
                     })

@@ -19,6 +19,7 @@ lib/*
 !lib/codemirror-patches
 node_modules/
 opencode-src
+codemirror-src
 /out/
 /public/js/l*-sw.js
 /public/js/pages.js

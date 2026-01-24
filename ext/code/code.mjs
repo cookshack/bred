@@ -461,7 +461,7 @@ function init
 
   function updateIdle
   (buf, tokenInfo) {
-    updateBufStatus(buf, 'IDLE', tokenInfo)
+    updateBufStatus(buf, 'OK', tokenInfo)
     if (buf.vars('code').agentStopped) {
       buf.vars('code').agentStopped = 0
       appendMsg(buf, 0, '...stopped')
@@ -476,11 +476,11 @@ function init
     d({ tokenInfo })
 
     if (req.status?.type == 'busy')
-      updateBufStatus(buf, 'BUSY', tokenInfo)
+      updateBufStatus(buf, '🌊', tokenInfo)
     else if (req.status?.type == 'idle')
       updateIdle(buf, tokenInfo)
     else if (req.status?.type == 'retry')
-      updateBufStatus(buf, 'BUSY retry' + (req.status.message ? ': ' + req.status.message : ''), tokenInfo)
+      updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), tokenInfo)
     else if (req.status?.type)
       d('🌱 TODO status: ' + req.status?.type)
   }
@@ -969,7 +969,7 @@ function init
     }
 
     if (event.type == 'server.connected') {
-      updateBufStatus(buf, 'IDLE', '') // clears the CONNECTED after reconnect
+      updateBufStatus(buf, 'OK', '') // clears the CONNECTED after reconnect
       return
     }
 
@@ -987,7 +987,7 @@ function init
     if (state.streamActive) return
     state.streamActive = 1
     state.lastEventTime = Date.now()
-    updateBufStatus(buf, 'CONNECTING', '')
+    updateBufStatus(buf, '🔁 CONNECTING', '')
 
     async function runStream
     (client) {
@@ -1004,7 +1004,7 @@ function init
         return
       }
 
-      updateBufStatus(buf, 'CONNECTED', '')
+      updateBufStatus(buf, '🔁 CONNECTED', '')
 
       while (state.streamActive) {
         let timeoutMs, timeoutPromise, result
@@ -1043,7 +1043,7 @@ function init
       if (state.streamActive == 0) return
       state.client = 0
       state.lastEventTime = Date.now()
-      updateBufStatus(buf, 'RECONNECTING...', '')
+      updateBufStatus(buf, '🔁 RECONNECTING', '')
       ensureClient(buf).then(runStream).catch(() => {
         d('CO reconnect spawn failed')
         setTimeout(tryReconnect, 1000)

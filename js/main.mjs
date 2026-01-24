@@ -618,8 +618,6 @@ function createWindow
                  let html, win
 
                  html = 'bred-new-window.html'
-                 if (options.backend == 'ace')
-                   html = 'bred-ace-new-window.html'
                  win = createWindow(html, opts)
                  return win?.webContents
                } }
@@ -692,8 +690,6 @@ function createMainWindow
   let html
 
   html = 'bred.html'
-  if (options.backend == 'ace')
-    html = 'bred-ace.html'
 
   _win = createWindow(html)
   Lsp.setWin(_win)

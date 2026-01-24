@@ -29,38 +29,29 @@ function init
 
   async function ensureClient
   (buf) {
-    let client, ret
+    let client, ret, spawnPromise
 
     client = buf.vars('code').client
     if (client)
       return client
 
-    if (buf.vars('code').spawning) {
-      let check
+    if (buf.vars('code').spawnPromise)
+      return buf.vars('code').spawnPromise
 
-      return await new Promise(r => {
-        check = setInterval(() => {
-          if (buf.vars('code').spawning == 0) {
-            clearInterval(check)
-            r(buf.vars('code').client)
-          }
-        }, 50)
-      })
-    }
+    spawnPromise = Tron.acmd('code.spawn', [ buf.id, buf.dir ])
+    buf.vars('code').spawnPromise = spawnPromise
 
-    buf.vars('code').spawning = 1
-
-    ret = await Tron.acmd('code.spawn', [ buf.id, buf.dir ])
+    ret = await spawnPromise
 
     if (ret.err) {
-      buf.vars('code').spawning = 0
+      buf.vars('code').spawnPromise = 0
       throw new Error(ret.err.message)
     }
 
     client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
     buf.vars('code').client = client
     buf.vars('code').serverUrl = ret.url
-    buf.vars('code').spawning = 0
+    buf.vars('code').spawnPromise = 0
     return client
   }
 

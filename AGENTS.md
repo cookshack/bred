@@ -25,7 +25,7 @@ Key rules from the config (must be followed):
 - **No curly braces for single statements** - omit `{}` for if/for/else
 - **Space after `[` and before `]`**, space around `{` in objects
 - **No linebreaks in arrays/function calls**: `fn([ { a: 1 }, { b: 2 } ])`
-- **`let` with blank line before code**
+- **`let` with blank line before code** Group all `let`s together at the top of the block
 - **No logical negation**: `!condition`, `!=`, `!==` are blocked by commit hooks
 - **prefer == to === for comparison**
 - **Booleans use 1/0**, not `true`/`false`

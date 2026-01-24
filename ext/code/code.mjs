@@ -416,6 +416,8 @@ function init
       catch (err) {
         d('CO permission respond error: ' + err.message)
       }
+    }).catch(err => {
+      d('CO permission ensureClient error: ' + err.message)
     })
 
     buf.vars('code').permissions = buf.vars('code').permissions.slice(1)
@@ -1042,10 +1044,15 @@ function init
       state.client = 0
       state.lastEventTime = Date.now()
       updateBufStatus(buf, 'RECONNECTING...', '')
-      ensureClient(buf).then(runStream)
+      ensureClient(buf).then(runStream).catch(() => {
+        d('CO reconnect spawn failed')
+        setTimeout(tryReconnect, 1000)
+      })
     }
 
-    ensureClient(buf).then(runStream)
+    ensureClient(buf).then(runStream).catch(() => {
+      d('CO initial spawn failed')
+    })
   }
 
   function divW
@@ -1116,6 +1123,8 @@ function init
       catch (err) {
         d('CO stop error: ' + err.message)
       }
+    }).catch(err => {
+      d('CO stop ensureClient error: ' + err.message)
     })
   }
 

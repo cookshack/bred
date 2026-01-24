@@ -1044,6 +1044,8 @@ function init
       }
     })()
 
+    if (buf.vars('code').eventCheckInterval)
+      clearInterval(buf.vars('code').eventCheckInterval)
     buf.vars('code').eventCheckInterval = setInterval(() => {
       if (buf.vars('code').eventSub) {
         let elapsed, last
@@ -1363,6 +1365,8 @@ function init
                   viewCopy,
                   viewReopen,
                   onRemove(buf) {
+                    if (buf.vars('code').eventCheckInterval)
+                      clearInterval(buf.vars('code').eventCheckInterval)
                     buf.vars('code').eventAbort?.abort()
                     buf.views?.forEach(view => {
                       view.vars('code').eds?.forEach(ed => ed.destroy())

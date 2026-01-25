@@ -676,7 +676,7 @@ function _viewInit
     if (view?.ele) {
       //d('onChange ' + vlen(view))
       //d(update)
-      if (view.ready) {
+      if (view.ready && buf.reverting == null) {
         //d("modified")
         buf.modified = 1
         Ed.setIcon(buf, '.edMl-mod', 'save', 'save')
@@ -2763,7 +2763,12 @@ function revertV
   lineNum = spec.lineNum ?? (bepRow(view, vgetBep(view)) + 1)
 
   view.ready = 0 // limit onChange handler
-  viewInit(view, { revert: 1, lineNum }, whenReady)
+  view.buf.reverting = 1
+  viewInit(view, { revert: 1, lineNum }, view => {
+    view.buf.reverting = 0 // TODO might run before other views get the onChanges?
+    if (whenReady)
+      whenReady(view)
+  })
 
   d('WODE =====>>>>>>>>>> revertV done')
 }

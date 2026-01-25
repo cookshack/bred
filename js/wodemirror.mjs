@@ -588,19 +588,22 @@ function watch
     return
 
   Tron.cmd1('file.watch', [ path ], (err, ch) => {
+    let off
+
+    d('WODE 👀 watch ' + path)
+
     if (err) {
       Mess.log('watch failed on ' + path)
       watching.delete(path)
       return
     }
-    let off
 
     off = Tron.on(ch, (err, data) => {
       // NB Beware of doing anything in here that modifies the file being watched,
       //    because that may cause recursive behaviour. Eg d when --logfile and
       //    log file is open in a buffer.
-      //d('--- file watch ev ---')
-      //d({ data })
+      console.log('WODE 👀 watch ev')
+      console.log({ data })
       if (data.type == 'change') {
         if (buf.stat?.mtimeMs == data.stat?.mtimeMs)
           return
@@ -710,7 +713,6 @@ function _viewInit
   buf.ed = 1
   buf.modified = 0
   Ed.setIcon(view.buf, '.edMl-mod', 'blank')
-  buf.modifiedOnDisk = 0
   view.ready = 0
   view.marks = []
   view.wode = { comp: {} }
@@ -1066,6 +1068,9 @@ function _viewInit
     useText = 0
 
   if (useText) {
+    if (buf.modifiedOnDisk)
+      // Reset it so the revert dialog will appear (it will just skip existing views)
+      buf.modifiedOnDisk = 1
     if (U.defined(lineNum))
       vgotoLine(view, lineNum)
   }
@@ -1073,7 +1078,7 @@ function _viewInit
     let path
 
     path = buf.path
-    d('get file')
+    d('WODE get file')
     Tron.cmd('file.get', [ path ], (err, data) => {
       let mode
 
@@ -1085,10 +1090,12 @@ function _viewInit
         return
       }
 
-      d('got file')
+      d('WODE got file')
 
+      buf.modifiedOnDisk = 0
       buf.stat = data.stat
-      d(buf.stat)
+      d('WODE new mtime ' + buf.stat.mtimeMs)
+
       watch(buf, path)
 
       if (data.realpath) {

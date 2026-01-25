@@ -546,11 +546,12 @@ function make
           modifiedOnDisk = val ? 1 : 0
           if (modifiedOnDisk)
             b.views.forEach(view => {
-              let ww
+              let ele, ww
 
-              if (view.ele?.querySelector('.bred-info-w.bred-info-disk'))
+              ele = view.eleOrReserved
+              if (ele?.querySelector('.bred-info-w.bred-info-disk'))
                 return
-              ww = view.ele?.querySelector('.bred-info-ww')
+              ww = ele?.querySelector('.bred-info-ww')
               if (ww)
                 Dom.append(ww,
                            divCl('bred-info-w bred-info-disk',
@@ -561,7 +562,7 @@ function make
             })
           else
             b.views.forEach(view => {
-              view.ele?.querySelectorAll('.bred-info-w.bred-info-disk').forEach(w => w.remove())
+              view.eleOrReserved?.querySelectorAll('.bred-info-w.bred-info-disk').forEach(w => w.remove())
             })
         },
         set placeholder(val) {

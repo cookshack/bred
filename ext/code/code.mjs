@@ -1060,7 +1060,8 @@ function init
     }
 
     ensureClient(buf).then(runStream).catch(() => {
-      d('CO initial spawn failed')
+      d('CO spawn failed, retrying')
+      setTimeout(() => startEventSub(buf), 1000)
     })
   }
 
@@ -1127,6 +1128,15 @@ function init
       appendMsg(buf, 'assistant', 'Error: ' + err.message)
       buf.vars('code').client = 0
       buf.vars('code').streamActive = 0
+      startEventSub(buf)
+    }
+
+    if (res?.error) {
+      d({ resError: res.error })
+      appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
+      buf.vars('code').client = 0
+      buf.vars('code').streamActive = 0
+      startEventSub(buf)
     }
   }
 

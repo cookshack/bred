@@ -51,6 +51,7 @@ function init
     client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
     buf.vars('code').client = client
     buf.vars('code').serverUrl = ret.url
+    buf.vars('code').spawnedBufferID = buf.id
     buf.vars('code').spawnPromise = 0
     return client
   }
@@ -1038,9 +1039,13 @@ function init
       }
     }
 
-    function tryReconnect
+    async function tryReconnect
     () {
       if (state.streamActive == 0) return
+      if (state.spawnedBufferID) {
+        await Tron.acmd('code.close', [ state.spawnedBufferID ])
+        state.spawnedBufferID = 0
+      }
       state.client = 0
       state.lastEventTime = Date.now()
       updateBufStatus(buf, '🔁 RECONNECTING', '')

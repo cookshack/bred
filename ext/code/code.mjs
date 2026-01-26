@@ -1001,6 +1001,7 @@ function init
       catch (err) {
         if (err.name == 'AbortError') return
         d('CO subscribe error: ' + err.message)
+        state.client = 0
         setTimeout(() => tryReconnect(), 1000)
         return
       }
@@ -1020,6 +1021,7 @@ function init
 
           state.lastEventTime = Date.now()
           if (result.done) {
+            state.client = 0
             tryReconnect()
             return
           }
@@ -1028,11 +1030,13 @@ function init
         catch (err) {
           if (err.message == 'heartbeat-timeout') {
             d('CO heartbeat timeout, reconnecting')
+            state.client = 0
             tryReconnect()
             return
           }
           if (err.name == 'AbortError') return
           d('CO stream error: ' + err.message)
+          state.client = 0
           tryReconnect()
           return
         }

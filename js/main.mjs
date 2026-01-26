@@ -11,6 +11,7 @@ import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
 import * as Lsp from './main-lsp.mjs'
 import { makeErr } from './main-err.mjs'
+import Net from 'node:net'
 import Os from 'node:os'
 import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
@@ -904,6 +905,88 @@ function checkDeps
 //protocol.registerSchemesAsPrivileged([ { scheme: 'bf',
 //                                         privileges: { bypassCSP: true } } ])
 
+function socket
+(program) {
+  let profile, sockPath, pendingPaths, server
+
+  profile = options.profile || 'Main'
+  sockPath = Path.join(process.env.XDG_RUNTIME_DIR || '/tmp', 'bred-' + profile + '.sock')
+  pendingPaths = {}
+
+  if (program.args.length > 1) {
+    console.error('Multiple files given: ' + program.args.join(' '))
+    program.help()
+    return
+  }
+
+  if (program.args.length > 0 && fs.existsSync(sockPath)) {
+    let client, path
+
+    path = Path.join(process.env.BRED_ORIGINAL_DIR || '.', program.args[0])
+    client = Net.connect(sockPath)
+    client.on('connect', () => {
+      let json
+
+      json = JSON.stringify({ path }) + '\n'
+      d('to client: ' + json)
+      client.write(json)
+    })
+    client.on('data', data => {
+      let str
+
+      str = data.toString().trim()
+      d('from client: ' + str)
+      if (str == 'done')
+        app.quit()
+    })
+
+    return 1
+  }
+
+  if (fs.existsSync(sockPath)) {
+    console.error('Bred is already running for profile ' + profile + ', on ' + sockPath)
+    app.quit()
+    return 1
+  }
+
+  server = Net.createServer(conn => {
+    conn.on('data', data => {
+      let msg
+
+      msg = JSON.parse(data)
+      d('SOCKET in ' + data)
+      if (pendingPaths[msg.path]) {
+        d('SOCKET ERR already editing')
+        conn.end('Error: already editing this path')
+      }
+      else if (_win) {
+        pendingPaths[msg.path] = conn
+        d('SOCKET to renderer: socket-open-file: ' + msg.path)
+        _win.webContents.send('socket-open-file', { path: msg.path })
+        conn.write('ok\n')
+      }
+      else {
+        d('SOCKET ERR missing window')
+        conn.end('Error: missing window')
+      }
+    })
+  })
+
+  server.listen(sockPath)
+  d('SOCKET listening on ' + sockPath)
+
+  ipcMain.on('socket-file-done', (e, path) => {
+    let conn
+
+    conn = pendingPaths[path]
+    if (conn)
+      conn.write('done\n')
+    delete pendingPaths[path]
+  })
+
+  return 0
+}
+
 function whenHaveDeps
 (program) {
   if (options.bounds) {
@@ -972,18 +1055,22 @@ function whenHaveDeps
   ipcMain.handle('acmd', onAcmd)
   ipcMain.handle('cmd', onCmd)
 
-  d('creating window')
-  createMainWindow()
+  if (socket(program))
+    console.log('File ' + program.args[0] + ' sent to running editor. Waiting for it to be closed there...')
+  else {
+    d('creating window')
+    createMainWindow()
 
-  d('setting up clipboard watcher')
-  watchClip()
+    d('setting up clipboard watcher')
+    watchClip()
 
-  d('setting app handlers')
+    d('setting app handlers')
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0)
-      createMainWindow()
-  })
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0)
+        createMainWindow()
+    })
+  }
 }
 
 async function whenReady
@@ -995,6 +1082,7 @@ async function whenReady
   program = new Commander.Command()
 
   program
+    .argument('[file]', 'File to open')
     .option('--skip-init', 'Skip loading of your init.js file')
     .addOption(new Commander.Option('--devtools <state>', 'Initial state of devtools').choices([ 'auto', 'on', 'off' ]).default('auto'))
     .option('--wait-for-devtools', 'Wait for devtools to load before starting. Slower, but useful for debugging startup.')

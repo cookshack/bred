@@ -13,6 +13,9 @@ improvements for me, as opposed to making is accessible to others.
 
 Bred is designed to run out of a git checkout. It's always a development build.
 
+Portability is of extremely low priority. It's highly likely that Bred will
+always run on a Debian derived distro.
+
 ## Code Style
 
 Before making ANY code changes, you MUST read the ESLint config to understand the project's code style:

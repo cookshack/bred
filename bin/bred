@@ -19,6 +19,11 @@ cleanup() {
 
 trap cleanup SIGINT EXIT
 
+export BRED_ORIGINAL_DIR=`pwd`
+echo BRED_ORIGINAL_DIR: $BRED_ORIGINAL_DIR
+
+cd "$(dirname "$(realpath "$0")")/.."
+
 while true; do
   check_modules_changed
   echo 0 > /tmp/bred-$$-relaunch

@@ -1661,6 +1661,19 @@ function start1
       Mess.log(err.stack)
   })
 
+  Tron.on('socket-open-file', (err, data) => {
+    let path
+
+    path = data.path
+    d('📥 socket-open-file: ' + path)
+    Pane.open(path, 1, view => {
+      view.buf.onRemove(() => {
+        d('socket file closed: ' + path)
+        Tron.send('socket-file-done', path)
+      })
+    })
+  })
+
   Mess.log('backend: ' + data.backend)
   initPackages(data.backend, err => {
     err && Mess.toss('Init error: ' + err.message)

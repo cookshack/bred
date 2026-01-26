@@ -922,7 +922,10 @@ function socket
   if (program.args.length > 0 && fs.existsSync(sockPath)) {
     let client, path
 
-    path = Path.join(process.env.BRED_ORIGINAL_DIR || '.', program.args[0])
+    if (program.args[0].startsWith('/'))
+      path = program.args[0]
+    else
+      path = Path.join(process.env.BRED_ORIGINAL_DIR || '.', program.args[0])
     client = Net.connect(sockPath)
     client.on('connect', () => {
       let json

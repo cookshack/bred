@@ -1121,6 +1121,8 @@ function init
     catch (err) {
       d(err)
       appendMsg(buf, 'assistant', 'Error: ' + err.message)
+      buf.vars('code').client = 0
+      buf.vars('code').streamActive = 0
     }
   }
 

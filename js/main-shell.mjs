@@ -7,16 +7,22 @@ import * as U from './util.mjs'
 // ASYNC: shell - spawn pty and stream output
 function run
 (e, ch, dir, sc, args, spec, ctx) {
-  let proc, closedProc, closedErr, closedOut, sender
+  let proc, sender
   let runInShell, stdoutBuffer, stderrBuffer, lastFlushTime, flushTimer
 
   function flushBuffers
   () {
-    if (stdoutBuffer.length > 0) {
+    let stdOutLen, stdErrLen
+
+    stdOutLen = stdoutBuffer.length
+    stdErrLen = stderrBuffer.length
+    if (stdOutLen > 0) {
+      d(ch + ' flush stdout ' + stdOutLen)
       sender.send(ch, { stdout: stdoutBuffer })
       stdoutBuffer = ''
     }
-    if (stderrBuffer.length > 0) {
+    if (stdErrLen > 0) {
+      d(ch + ' flush stderr ' + stdErrLen)
       sender.send(ch, { stderr: stderrBuffer })
       stderrBuffer = ''
     }
@@ -25,17 +31,20 @@ function run
 
   function scheduleFlush
   () {
-    const now = Date.now()
-    const timeSinceLastFlush = now - lastFlushTime
+    let timeSinceLastFlush
+
+    timeSinceLastFlush = Date.now() - lastFlushTime
 
     // Flush if enough time has passed (100ms) or if buffers are large
+    d(ch + ' scheduleFlush: timeSinceLastFlush=' + timeSinceLastFlush + ' stdOut=' + stdoutBuffer.length + ' stdErr=' + stderrBuffer.length)
     if (timeSinceLastFlush > 100 || stdoutBuffer.length > 8192 || stderrBuffer.length > 8192)
       flushBuffers()
-    else if (flushTimer) {
-    }
+    else if (flushTimer)
+      d(ch + ' scheduleFlush: timer already scheduled')
     else
       // Schedule a flush for later
       flushTimer = setTimeout(() => {
+        d(ch + ' timer flush')
         flushBuffers()
         flushTimer = null
       }, 100 - timeSinceLastFlush)
@@ -44,14 +53,12 @@ function run
   function close
   () {
     if (flushTimer) {
+      d(ch + ' close: clearing timer')
       clearTimeout(flushTimer)
       flushTimer = null
     }
     // Flush any remaining buffered data before closing
     flushBuffers()
-    if (closedProc && closedErr && closedOut) {
-      //ipcMain.removeAllListeners(ch)
-    }
   }
 
   stdoutBuffer = ''
@@ -145,19 +152,19 @@ function run
     }
 
     proc.onData(data => {
+      d(ch + ' data: ' + data.length + ' bytes')
       d(ch + ' data: ' + data)
       d(ch + ' typeof data: ' + typeof data)
       stdoutBuffer += data
       scheduleFlush()
-      closedOut = 1
     })
 
     proc.onExit(ret => {
-      d(ch + ': child process exited with code ' + ret.exitCode)
+      d(ch + ': child process exited with code ' + ret.exitCode + ' stdOut=' + stdoutBuffer.length + ' stdErr=' + stderrBuffer.length)
       // Ensure all buffered data is sent before closing
       flushBuffers()
+      d(ch + ': sent close')
       sender.send(ch, { close: 1, code: ret.exitCode })
-      closedProc = 1
       close()
     })
 
@@ -167,7 +174,6 @@ function run
         d(ch + ': child process error: ' + err)
         stderrBuffer += ('Process error: ' + err.message + '\n')
         scheduleFlush()
-        closedErr = 1
       })
 
     ipcMain.on(ch, (e, data) => {

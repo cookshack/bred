@@ -916,7 +916,7 @@ function socket
   if (program.args.length > 1) {
     console.error('Multiple files given: ' + program.args.join(' '))
     program.help()
-    return
+    return 0
   }
 
   if (program.args.length > 0 && fs.existsSync(sockPath)) {
@@ -943,6 +943,7 @@ function socket
         app.quit()
     })
 
+    console.log('File ' + program.args[0] + ' sent to running editor. Waiting for it to be closed there...')
     return 1
   }
 
@@ -1059,21 +1060,20 @@ function whenHaveDeps
   ipcMain.handle('cmd', onCmd)
 
   if (socket(program))
-    console.log('File ' + program.args[0] + ' sent to running editor. Waiting for it to be closed there...')
-  else {
-    d('creating window')
-    createMainWindow()
+    return
 
-    d('setting up clipboard watcher')
-    watchClip()
+  d('creating window')
+  createMainWindow()
 
-    d('setting app handlers')
+  d('setting up clipboard watcher')
+  watchClip()
 
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0)
-        createMainWindow()
-    })
-  }
+  d('setting app handlers')
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0)
+      createMainWindow()
+  })
 }
 
 async function whenReady

@@ -1078,7 +1078,7 @@ function init
                            divCl('code-title', dir),
                            divCl('code-h-right',
                                  divCl('code-thought code-icon',
-                                       img(Icon.path('thinking'), 'Thinking', 'filter-clr-text'),
+                                       img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
                                        { 'data-run': 'toggle thinking' })) ]),
                    divCl('code-w bred-scroller',
                          [ divCl('code-session-title'),
@@ -1219,12 +1219,12 @@ function init
           if (Css.has(w, 'code-thinking-hidden')) {
             w.classList.remove('code-thinking-hidden')
             if (img)
-              img.src = Icon.path('thinking')
+              img.src = Icon.path('thinking.active')
           }
           else {
             w.classList.add('code-thinking-hidden')
             if (img)
-              img.src = Icon.path('thinking-off')
+              img.src = Icon.path('thinking.zen')
           }
         }
       }

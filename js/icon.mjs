@@ -24,6 +24,12 @@ function path
   if (name == 'prompt')
     return 'img/prompt-square.svg'
 
+  if (name == 'thinking.active')
+    return 'img/thinking-active.svg'
+
+  if (name == 'thinking.zen')
+    return 'img/thinking-zen.svg'
+
   if (name == 'warning')
     return 'img/warning.svg'
 
@@ -159,12 +165,6 @@ function path
 
     if (name == 'stop')
       return 'lib/svg/material-icons/stop_circle/materialicons/24px.svg'
-
-    if (name == 'thinking')
-      return 'lib/svg/material-icons/psychology/materialiconsoutlined/24px.svg'
-
-    if (name == 'thinking-off')
-      return 'lib/svg/material-icons/psychology_alt/materialiconsoutlined/24px.svg'
 
     if (name == 'tex')
       return 'lib/svg/file-icons/LaTeX.svg'

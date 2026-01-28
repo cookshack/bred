@@ -1213,9 +1213,10 @@ function init
 
         w = view.eleOrReserved.querySelector('.code-w')
         if (w) {
-          let img
+          let img, h
 
-          img = w.querySelector('.code-thought img')
+          h = view.eleOrReserved.querySelector('.code-h')
+          img = h.querySelector('.code-thought img')
           if (Css.has(w, 'code-thinking-hidden')) {
             w.classList.remove('code-thinking-hidden')
             if (img)

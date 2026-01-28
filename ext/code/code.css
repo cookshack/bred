@@ -24,7 +24,7 @@
   height: 1rem;
 }
 
-.code-icon:hover {
+div.code-thought:hover {
   background-color: var(--clr-bg);
 }
 

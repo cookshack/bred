@@ -1075,7 +1075,11 @@ function init
                  [ divCl('code-h',
                          [ divCl('code-icon',
                                  img(Icon.path('assist'), 'Code', 'filter-clr-text')),
-                           divCl('code-title', dir) ]),
+                           divCl('code-title', dir),
+                           divCl('code-h-right',
+                                 divCl('code-thought code-icon',
+                                       img(Icon.path('thinking'), 'Thinking', 'filter-clr-text'),
+                                       { 'data-run': 'toggle thinking' })) ]),
                    divCl('code-w bred-scroller',
                          [ divCl('code-session-title'),
                            divCl('code-under-w',
@@ -1196,6 +1200,35 @@ function init
       }
     else
       Mess.yell('missing sessionID')
+  }
+
+  function toggleThinking
+  () {
+    let p
+
+    p = Pane.current()
+    p.buf.views.forEach(view => {
+      if (view.eleOrReserved) {
+        let w
+
+        w = view.eleOrReserved.querySelector('.code-w')
+        if (w) {
+          let img
+
+          img = w.querySelector('.code-thought img')
+          if (Css.has(w, 'code-thinking-hidden')) {
+            w.classList.remove('code-thinking-hidden')
+            if (img)
+              img.src = Icon.path('thinking')
+          }
+          else {
+            w.classList.add('code-thinking-hidden')
+            if (img)
+              img.src = Icon.path('thinking-off')
+          }
+        }
+      }
+    })
   }
 
   function next
@@ -1422,6 +1455,8 @@ function init
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
   Em.on('s', 'stop with caution', mo)
+
+  Cmd.add('toggle thinking', toggleThinking, mo)
 
   Cmd.add('code buffer', () => {
     code(Pane.current().buf.text())

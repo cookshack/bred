@@ -160,6 +160,12 @@ function path
     if (name == 'stop')
       return 'lib/svg/material-icons/stop_circle/materialicons/24px.svg'
 
+    if (name == 'thinking')
+      return 'lib/svg/material-icons/psychology/materialiconsoutlined/24px.svg'
+
+    if (name == 'thinking-off')
+      return 'lib/svg/material-icons/psychology_alt/materialiconsoutlined/24px.svg'
+
     if (name == 'tex')
       return 'lib/svg/file-icons/LaTeX.svg'
 

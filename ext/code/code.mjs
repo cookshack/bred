@@ -13,6 +13,7 @@ import * as Pane from '../../js/pane.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import { d } from '../../js/mess.mjs'
 import * as Tron from '../../js/tron.mjs'
+import * as U from '../../js/util.mjs'
 import { v4 as uuidv4 } from '../../lib/uuid/index.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
@@ -1025,6 +1026,9 @@ function init
             tryReconnect()
             return
           }
+
+          // give event loop a chance, in case flurry of events is freezing ui
+          await U.cede()
           handleEvent(buf, result.value)
         }
         catch (err) {

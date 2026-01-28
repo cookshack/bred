@@ -7,6 +7,13 @@ export { shrug }
 shrug = '¯\\_(ツ)_/¯'
 
 export
+function cede
+(ms) {
+  ms = ms || 0
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+export
 function compressedExt
 (path) {
   let exts

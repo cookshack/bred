@@ -132,8 +132,9 @@ function run
 
   function on
   () {
-    d('SHELL ' + ch + ' on')
+    d('SHELL ' + ch + ' on - setting up listener')
     chOff = Tron.on(ch, handler)
+    d('SHELL ' + ch + ' on - listener set up')
   }
 
   function off
@@ -162,6 +163,7 @@ function run
 
   // Define the IPC handler so we can remove it after the command finishes
   handler = (err, data) => {
+    d('SHELL ' + ch + ' received: ' + JSON.stringify(Object.keys(data)))
     let decoder
 
     function decode
@@ -235,6 +237,7 @@ function run
 
   on()
 
+  d('SHELL ' + ch + ' calling Tron.cmd1')
   if (b) {
     b.ml.set('busy', 'busy')
     b.vars('Shell').ch = ch
@@ -245,6 +248,7 @@ function run
                                          multi: spec.multi,
                                          cols: spec.cols } ],
             (err, tch) => {
+              d('SHELL ' + ch + ' Tron.cmd1 callback: err=' + err + ' tch=' + tch)
               if (err) {
                 off()
                 Mess.toss(err)

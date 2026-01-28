@@ -10,6 +10,10 @@ function run
   let proc, sender
   let runInShell, stdoutBuffer, stderrBuffer, lastFlushTime, flushTimer
 
+  d(ch + ' run: starting')
+  d(ch + ' run: cmd=' + sc + ' args=' + JSON.stringify(args))
+  d(ch + ' run: dir=' + dir)
+
   function flushBuffers
   () {
     let stdOutLen, stdErrLen
@@ -19,11 +23,13 @@ function run
     if (stdOutLen > 0) {
       d(ch + ' flush stdout ' + stdOutLen)
       sender.send(ch, { stdout: stdoutBuffer })
+      d(ch + ' sent stdout to renderer')
       stdoutBuffer = ''
     }
     if (stdErrLen > 0) {
       d(ch + ' flush stderr ' + stdErrLen)
       sender.send(ch, { stderr: stderrBuffer })
+      d(ch + ' sent stderr to renderer')
       stderrBuffer = ''
     }
     lastFlushTime = Date.now()
@@ -165,7 +171,9 @@ function run
       flushBuffers()
       d(ch + ': sent close')
       sender.send(ch, { close: 1, code: ret.exitCode })
+      d(ch + ': close sent, calling close()')
       close()
+      d(ch + ': close() done')
     })
 
     // seems node-pty doesn't have this

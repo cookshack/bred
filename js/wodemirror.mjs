@@ -261,13 +261,11 @@ function makePeer
   plugin = CMView.ViewPlugin.fromClass(class {
     constructor
     (view) {
-      let version
-
       this.view = view
-      version = CMCollab.getSyncedVersion(this.view.state)
+      this.version = CMCollab.getSyncedVersion(this.view.state)
       this.ch = 'peer.pull/' + uuidv4()
       this.chOff = Tron.on(this.ch, this.pull.bind(this))
-      Tron.cmd('peer.pull', [ id, version, this.ch ], err => {
+      Tron.cmd('peer.pull', [ id, this.version, this.ch ], err => {
         if (err) {
           d('peer.pull: ' + err.message)
           return
@@ -319,6 +317,15 @@ function makePeer
 
       if (this.done)
         return
+
+      if (data.updates.length) {
+        let version
+
+        version = CMCollab.getSyncedVersion(this.view.state)
+        if (this.version >= version)
+          return
+        this.version = version
+      }
 
       updates = data.updates.map(u => ({ changes: CMState.ChangeSet.fromJSON(u.changes),
                                          clientID: u.clientID }))

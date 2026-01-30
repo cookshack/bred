@@ -1,0 +1,14 @@
+# fixes cursorPageUp jumping to top
+# See https://github.com/codemirror/dev/issues/1666
+# Patch needed until 4b908ab4403af6418290a3c87367b7d6b5e785fe is released. Probably view > 6.39.11.
+
+--- @codemirror/view.js.orig	2026-01-30 09:38:16.132095903 +0200
++++ @codemirror/view.js	2026-01-30 09:37:52.223120345 +0200
+@@ -3737,6 +3737,7 @@
+         if (scanY == null)
+             break;
+         if (block.type == BlockType.Text) {
++            if (scanY < 0 ? block.to < view.viewport.from : block.from > view.viewport.to) break
+             // Check whether we aren't landing the top/bottom padding of the line
+             let rect = view.docView.coordsAt(scanY < 0 ? block.from : block.to, scanY);
+             if (rect && (scanY < 0 ? rect.top <= yOffset + docTop : rect.bottom >= yOffset + docTop))

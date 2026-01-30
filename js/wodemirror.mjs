@@ -698,7 +698,7 @@ function _viewInit
 
   function onFocus
   () {
-    //d("ed foc")
+    //d('WODE focus')
     if (view?.ele) {
       view.ele.querySelectorAll('.cursor.monaco-mouse-cursor-text').forEach(cur => Css.remove(cur, 'bred-blur'))
       Pane.focusView(view, 1)
@@ -821,6 +821,8 @@ function _viewInit
     if (update.selectionSet) {
       let sel, range, str
 
+      //d('WODE selectionSet hack')
+
       sel = view.ed.state.selection.main
       if (sel.head > sel.anchor)
         range = { from: sel.anchor, to: sel.head }
@@ -835,9 +837,11 @@ function _viewInit
       }
     }
 
-    //d('update')
+    //d('WODE update')
     if (posChanged(update)) {
       let col, p
+
+      //d('WODE pos changed')
 
       p = Pane.holdingView(view)
       col = p?.head?.querySelector('.bred-head-col')
@@ -858,7 +862,7 @@ function _viewInit
     }
 
     if (update.docChanged) {
-      //d('docChanged')
+      //d('WODE docChanged')
       if (view.onChanges)
         view.onChanges.forEach(on => {
           //d('onChange: ' + on)
@@ -872,7 +876,7 @@ function _viewInit
     }
 
     if (update.focusChanged) {
-      0 && d('focusChanged')
+      0 && d('WODE focusChanged')
       //d(view)
       //d(globalThis.document.activeElement)
       if (view.onFocuss)

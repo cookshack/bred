@@ -153,23 +153,18 @@ Buffer management for handling text documents and their views.
 
 ## Editor Backend Files
 
-### js/wodemirror.mjs
+### js/wode.mjs
 
-CodeMirror backend implementation.
+CodeMirror backend implementation (main module).
 
 **Functions:**
 - `version()` - Returns CodeMirror version
-- `modeFor(path)` - Determines mode for a file path
-- `setValue(ed, text, addToHistory)` - Sets editor value
 - `viewFromState(state)` - Gets view from editor state
-- `makeDecor(spec)` - Creates a decoration
 - `findLang(id)` - Finds a language by ID
 - `register(spec)` - Registers a component
-- `viewInit(view, spec, cb)` - Initializes view specification
-- `viewReopen(view, lineNum, whenReady, cb)` - Reopens a view
-- `viewCopy(to, from, lineNum, whenReady, cb)` - Copies a view
 - `makeBep(view, row, col)` - Creates a backend position
 - `lineAtBep(view, bep)` - Gets line at backend position
+- `lineAt(view, pos)` - Gets line at position
 - `vsetPos(view, pos, reveal)` - Sets position in view
 - `vgetPos(view)` - Gets position from view
 - `vsetBepSpec(view, bep, spec)` - Sets backend position with options
@@ -189,13 +184,8 @@ CodeMirror backend implementation.
 - `vbepIncr(view, bep)` - Increments backend position
 - `vbepEq(bep1, bep2)` - Checks if backend positions are equal
 - `bepRightOverSpace(view, bep)` - Moves position right over space
-- `makeRange(from, to)` - Creates a range
-- `rangeEmpty(range)` - Checks if range is empty
-- `rangeOrder(range)` - Orders a range
-- `rangeStartBep(range)` - Gets start backend position of range
-- `rangeEndBep(range)` - Gets end backend position of range
-- `textFromRange(view, range)` - Gets text from range
 - `vgotoLine(view, num)` - Goes to a line
+- `vlen(view)` - Gets line count
 - `makePsn(view, bep)` - Makes a position object
 - `vregion(view)` - Gets current region
 - `initModeFns(mo)` - Initializes mode functions
@@ -226,22 +216,18 @@ CodeMirror backend implementation.
 - `scrollDown()` - Scrolls down
 - `toggleOverwrite()` - Toggles overwrite mode
 - `selectAll()` - Selects all
-- `topLevelStart()` - Goes to top level start
-- `topLevelEnd()` - Goes to top level end
+- `topLevelStart(extras)` - Goes to top level start
+- `topLevelEnd(extras)` - Goes to top level end
 - `topOfPane()` - Goes to top of pane
 - `bottomOfPane()` - Goes to bottom of pane
 - `recenter(view)` - Recenters view
 - `cancel()` - Cancels current operation
 - `vsaveAs(view, cb)` - Saves as
 - `vsave(view, cb)` - Saves view
-- `revertV(view, spec)` - Reverts view
-- `revert()` - Reverts buffer
 - `undo()` - Undoes last action
 - `redo()` - Redoes last action
-- `vrangeText(view, range)` - Gets text from range
 - `setDecorMatch(decorParent, view, range)` - Sets match decoration
 - `setDecorAll(decorParent, view, needle)` - Sets all decorations
-- `vfind(view, needle, decorParent, opts)` - Finds text
 - `vinsertAt(v, bep, u, text, setBep, to)` - Inserts text at position
 - `vreplaceAt(view, range, text, more)` - Replaces text at range
 - `vreplaceAtAll(view, range, text, more)` - Replaces text at all ranges
@@ -256,8 +242,6 @@ CodeMirror backend implementation.
 - `delPrevChar()` - Deletes previous character
 - `delNextChar()` - Deletes next character
 - `cutLine()` - Cuts line
-- `remove(ed, range)` - Removes text in range
-- `vremove(view, range)` - Removes text in view range
 - `delNextWordBound(n)` - Deletes next word boundary
 - `suggest()` - Shows suggestions
 - `nextSuggest()` - Shows next suggestion
@@ -266,6 +250,7 @@ CodeMirror backend implementation.
 - `indentLine()` - Indents line
 - `indentRegion()` - Indents region
 - `indentBuffer()` - Indents buffer
+- `sortLines()` - Sorts lines
 - `insertTwoSpaces()` - Inserts two spaces
 - `transposeChars()` - Transposes characters
 - `trim()` - Trims whitespace
@@ -278,19 +263,145 @@ CodeMirror backend implementation.
 - `find(st)` - Finds text
 - `replace(st, all, search)` - Replaces text
 - `vgoXY(view, x, y)` - Goes to X,Y coordinates
-- `vtokenAt(view, x, y)` - Gets token at coordinates
 - `vforLines(view, cb)` - Iterates through lines
-- `clearDecorMatch(view, decorParent)` - Clears match decoration
-- `clearDecorAll(view, decorParent)` - Clears all decorations
-- `makeSearcher(view)` - Creates searcher
+- `vwordForward(view, u)` - Moves word forward
+- `save(fn, cb)` - Saves file
+- `enable(u, name)` - Enables option
+- `enableBuf(u, name)` - Enables buffer option
 - `initComplete()` - Initializes completion
-- `patchModeKey()` - Returns patch mode key
+- `addMarkAt(view, bep)` - Adds mark at position
+- `topBep(view)` - Gets top visible position
+- `bottomBep(view)` - Gets bottom visible position
 - `addMode(lang, spec)` - Adds a language mode
-- `addModes()` - Adds language modes
 - `code(el, langId, text)` - Renders code
 - `fill(view, col)` - Fills to column
-- `flushTrailing()` - Flushes trailing whitespace
+
+### js/wode-common.mjs
+
+Common utilities for CodeMirror backend.
+
+**Functions:**
+- `bredView()` - Returns bred view facet
+- `runOnCursors(view)` - Runs cursor callbacks
+- `setValue(ed, text, addToHistory)` - Sets editor value
 - `init()` - Initializes module
+
+### js/wode-complete.mjs
+
+Completion functionality for CodeMirror.
+
+**Functions:**
+- `init()` - Initializes completion
+
+### js/wode-decor.mjs
+
+Decoration handling for CodeMirror.
+
+**Functions:**
+- `markFromDec(dec)` - Creates mark from decoration
+- `makeDecor(spec)` - Creates a decoration
+- `makeDecorator(spec)` - Creates a decorator
+- `decorate(view, mode)` - Applies decorations
+
+### js/wode-find.mjs
+
+Search functionality for CodeMirror.
+
+**Functions:**
+- `vfind(view, needle, decorParent, opts)` - Finds text in view
+
+### js/wode-hi.mjs
+
+Highlighting system for CodeMirror.
+
+**Functions:**
+- `highlighters` - Highlighter registry
+- `stateHighlighters` - State field for highlighters
+- `init()` - Initializes highlighters
+
+### js/wode-lang.mjs
+
+Language support for CodeMirror.
+
+**Functions:**
+- `langs` - Available languages
+- `init()` - Initializes language support
+
+### js/wode-mode.mjs
+
+Mode system for CodeMirror.
+
+**Functions:**
+- `wexts` - Wode extensions
+- `modeFromLang(id)` - Gets mode from language ID
+- `modeLang(id)` - Gets language from mode ID
+- `modeFor(path)` - Determines mode for file path
+- `patchModeKey()` - Returns patch mode key
+- `makeExtsMode(view)` - Makes mode extensions
+- `makeExtsMinors(view)` - Makes minor mode extensions
+- `seize(b, mode)` - Seizes buffer for mode
+- `addMode(lang, spec)` - Adds a language mode
+- `init()` - Initializes mode system
+
+### js/wode-patch.mjs
+
+Patch mode support for CodeMirror.
+
+**Functions:**
+- `extPatch` - Patch extension
+- `extPatchDecor` - Patch decoration extension
+- `init()` - Initializes patch support
+
+### js/wode-peer.mjs
+
+Peer collaboration support for CodeMirror.
+
+**Functions:**
+- `make(id, startVersion)` - Creates peer collaboration plugin
+
+### js/wode-range.mjs
+
+Range handling for CodeMirror.
+
+**Functions:**
+- `make(view, from, to)` - Creates a range
+- `fromPoints(view, pos1, pos2)` - Creates range from positions
+
+### js/wode-theme.mjs
+
+Theme support for CodeMirror.
+
+**Functions:**
+- `themeExtension` - Theme extension
+- `themeExtensionPart` - Theme extension compartment
+- `Theme` - Theme object
+- `themeHighlightingCode` - Code theme highlighting
+- `themeExtensionCode` - Code theme extension
+- `handleCustomTags(m)` - Handles custom syntax tags
+- `init()` - Initializes theme
+
+### js/wode-view.mjs
+
+View management for CodeMirror.
+
+**Functions:**
+- `vonChange(view, cb)` - Registers change callback
+- `voffChange(view, cb)` - Unregisters change callback
+- `vonFocus(view, cb)` - Registers focus callback
+- `voffFocus(view, cb)` - Unregisters focus callback
+- `makePlaceholder(ph)` - Creates placeholder
+- `init(view, spec, whenReady)` - Initializes view
+- `reopen(view, lineNum, whenReady)` - Reopens view
+- `copy(to, from, lineNum, whenReady)` - Copies view
+- `revertV(view, spec, whenReady)` - Reverts view
+
+### js/wode-watch.mjs
+
+File watching for CodeMirror.
+
+**Functions:**
+- `watch(buf, path)` - Watches file for changes
+- `init()` - Initializes watcher
 
 ### js/ed.mjs
 

@@ -51,7 +51,7 @@ export { themeExtension, themeExtensionPart, Theme } from './wode-theme.mjs'
 export { reopen as viewReopen, copy as viewCopy } from './wode-view.mjs'
 
 let completionNextLine, completionPreviousLine, spRe
-let wexts, wextIds, registeredOpts, watching
+let wextIds, registeredOpts, watching
 
 export
 function version
@@ -199,17 +199,6 @@ async function pushUpdates
                                  changes: u.changes.toJSON() }))
   await Tron.acmd('peer.push', [ id, version, updates ])
   cb()
-}
-
-// Make cm extensions for the wexts of every minor mode.
-//
-function makeExtsMinors
-(view) {
-  let exts
-
-  exts = []
-  view.buf?.minors.forEach(mode => mode.wexts?.filter(w => w.make).forEach(w => exts.push(w.make(view))))
-  return exts
 }
 
 function makePlaceholder
@@ -379,7 +368,7 @@ function reconfigureOpt
   //d('reconfigureOpt ' + name)
   buf.views.forEach(view => {
     if (view.ed && (view.win == Win.current()))
-      wexts.forEach(b => {
+      WodeMode.wexts.forEach(b => {
         if (b.spec.make && b.spec.reconfOpts && b.spec.reconfOpts.includes(name))
           view.ed.dispatch({ effects: b.spec.part.reconfigure(b.spec.make(view)) })
       })
@@ -400,7 +389,7 @@ function register
 
     function free
     () {
-      wexts.removeIf(b => b.id === wext.id)
+      WodeMode.wexts.removeIf(b => b.id === wext.id)
       // remove from existing views
       Buf.forEach(buf => buf.views.forEach(v => (v.win == Win.current()) && v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
       // reconfigure exts opts on all bufs, in case any other extensions use the opt
@@ -439,7 +428,7 @@ function register
                return id
              } }
 
-    wexts.push(wext)
+    WodeMode.wexts.push(wext)
 
     return wext
   }
@@ -824,7 +813,7 @@ function _viewInit
 
            view.wode.comp.exts.of([]) ]
 
-  wexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
+  WodeMode.wexts.forEach(b => b.spec.make && opts.push(b.spec.part.of(b.spec.make(view))))
 
   if (peer) {
     view.wode.peer = new CMState.Compartment
@@ -832,7 +821,7 @@ function _viewInit
   }
 
   opts.push(view.wode.comp.extsMode.of(WodeMode.makeExtsMode(view)))
-  opts.push(view.wode.comp.extsMinors.of(makeExtsMinors(view)))
+  opts.push(view.wode.comp.extsMinors.of(WodeMode.makeExtsMinors(view)))
 
   edWW = view.ele.firstElementChild
   edW = edWW.querySelector('.edW')
@@ -1472,7 +1461,7 @@ function addMinor
       let effects, exts
 
       // remove old minor specific extensions, add new ones
-      exts = makeExtsMinors(v)
+      exts = WodeMode.makeExtsMinors(v)
       effects = v.wode.comp.extsMinors.reconfigure(exts)
       v.ed.dispatch({ effects })
     })
@@ -3997,7 +3986,6 @@ export
 function init
 () {
   wextIds = 0
-  wexts = Mk.array
   registeredOpts = new Set()
 
   completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run
@@ -4007,6 +3995,7 @@ function init
 
   WodeCommon.init()
   WodeLang.init()
+  WodeMode.init() // before theme
   WodeTheme.init()
   initActiveLine()
   WodePatch.init()

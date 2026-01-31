@@ -3,12 +3,15 @@ import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
+import Mk from './mk.mjs'
 import * as Mode from './mode.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import * as Wode from './wodemirror.mjs'
 import * as WodeDecor from './wode-decor.mjs'
 import { d } from './mess.mjs'
+
+export let wexts
 
 export
 function modeFromLang
@@ -60,6 +63,18 @@ function makeExtsMode
   if (view.wode.wextsMode)
     return view.wode.wextsMode.filter(b => b.make).map(b => b.make(view))
   return []
+}
+
+// Make cm extensions for the wexts of every minor mode.
+//
+export
+function makeExtsMinors
+(view) {
+  let exts
+
+  exts = []
+  view.buf?.minors.forEach(mode => mode.wexts?.filter(w => w.make).forEach(w => exts.push(w.make(view))))
+  return exts
 }
 
 function seize
@@ -156,4 +171,10 @@ function addMode
 
   if (spec?.onAddMode)
     spec.onAddMode(mode)
+}
+
+export
+function init
+() {
+  wexts = Mk.array
 }

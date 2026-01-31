@@ -4,8 +4,8 @@ import * as Ed from './ed.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Tron from './tron.mjs'
-import * as Wode from './wodemirror.mjs'
 import * as WodeMode from './wode-mode.mjs'
+import * as WodePatch from './wode-patch.mjs'
 import * as WodeTheme from './wode-theme.mjs'
 import { d } from './mess.mjs'
 
@@ -193,7 +193,7 @@ function init
            { ext: [ 'diff', 'patch' ],
              wexts: [ { backend: 'cm',
                         name: 'extPatch',
-                        make: () => ([ Wode.extPatch, Wode.extPatchDecor ]),
+                        make: () => ([ WodePatch.extPatch, WodePatch.extPatchDecor ]),
                         part: new CMState.Compartment } ] })
   loadLang(Loc.appDir().join('lib/codemirror-lang-elixir.js'), 'Elixir', { ext: [ 'ex', 'exs' ] })
   loadLang(Loc.appDir().join('lib/@codemirror/lang-lezer.js'), 'Lezer', { ext: [ 'grammar' ] })

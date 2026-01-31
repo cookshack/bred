@@ -30,6 +30,7 @@ import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
 import { colorPicker } from '../lib/@replit/codemirror-css-color-picker.js'
 
+export
 function vonChange
 (view, cb) { // (update)
   if (view.ed) {
@@ -42,6 +43,7 @@ function vonChange
   }
 }
 
+export
 function voffChange
 (view, cb) {
   if (view.ed) {
@@ -50,6 +52,7 @@ function voffChange
   }
 }
 
+export
 function vonFocus
 (view, cb) {
   if (view.ed) {
@@ -62,6 +65,7 @@ function vonFocus
   }
 }
 
+export
 function voffFocus
 (view, cb) {
   if (view.ed) {

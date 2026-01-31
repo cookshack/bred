@@ -1,4 +1,4 @@
-import * as Wode from './wodemirror.mjs'
+import * as Wode from './wode.mjs'
 
 export
 function make

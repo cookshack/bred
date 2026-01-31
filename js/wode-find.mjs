@@ -1,5 +1,5 @@
 import * as U from './util.mjs'
-import * as Wode from './wodemirror.mjs'
+import * as Wode from './wode.mjs'
 import * as WodeHi from './wode-hi.mjs'
 import * as WodeRange from './wode-range.mjs'
 import { d } from './mess.mjs'

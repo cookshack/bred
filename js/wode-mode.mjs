@@ -7,7 +7,7 @@ import Mk from './mk.mjs'
 import * as Mode from './mode.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'
-import * as Wode from './wodemirror.mjs'
+import * as Wode from './wode.mjs'
 import * as WodeDecor from './wode-decor.mjs'
 import { d } from './mess.mjs'
 

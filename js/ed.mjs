@@ -804,7 +804,7 @@ function setBackend
 
   if (backend == 'codemirror') {
     Mess.log('Backend: CodeMirror')
-    load('./wodemirror.mjs')
+    load('./wode.mjs')
   }
   else
     Mess.toss('Ed:init caller must specify backend')

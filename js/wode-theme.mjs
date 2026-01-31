@@ -3,7 +3,7 @@ import * as Ed from './ed.mjs'
 import * as Tron from './tron.mjs'
 import * as Opt from './opt.mjs'
 import * as Win from './win.mjs'
-import * as Wode from './wodemirror.mjs'
+import * as Wode from './wode.mjs'
 
 import * as CMTheme from '../lib/@uiw/codemirror-themes/index.js'
 import * as CMState from '../lib/@codemirror/state.js'

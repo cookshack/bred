@@ -3,7 +3,7 @@ import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './pane.mjs'
-import * as Wode from './wodemirror.mjs'
+import * as Wode from './wode.mjs'
 import * as WodeRange from './wode-range.mjs'
 import { d } from './mess.mjs'
 

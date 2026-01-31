@@ -19,7 +19,9 @@ import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 import { diff } from '../../lib/codemirror-lang-diff.js'
 import { markdown } from '../../lib/@codemirror/lang-markdown.js'
-import { themeExtension, langs, modeFor } from '../../js/wodemirror.mjs'
+import { langs } from '../../js/wode-lang.mjs'
+import { modeFor } from '../../js/wode-mode.mjs'
+import { themeExtension } from '../../js/wode-theme.mjs'
 
 import * as OpenCode from './lib/opencode.js'
 

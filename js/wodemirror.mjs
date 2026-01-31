@@ -1,4 +1,4 @@
-import { append, button, div, divCl, span, img } from './dom.mjs'
+import { button, divCl, span, img } from './dom.mjs'
 
 import * as Area from './area.mjs'
 import * as Buf from './buf.mjs'
@@ -6,14 +6,12 @@ import * as Cut from './cut.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
-import * as Em from './em.mjs'
 import * as Frame from './frame.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Lsp from './lsp.mjs'
 import * as Mess from './mess.mjs'
 import Mk from './mk.mjs'
-import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Patch from './patch.mjs'
 import * as Pane from './pane.mjs'
@@ -25,6 +23,7 @@ import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import * as WodeCommon from './wode-common.mjs'
 import * as WodeDecor from './wode-decor.mjs'
+import * as WodeLang from './wode-lang.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodeTheme from './wode-theme.mjs'
 import { d } from './mess.mjs'
@@ -33,7 +32,6 @@ import * as CMAuto from '../lib/@codemirror/autocomplete.js'
 import * as CMCollab from '../lib/@codemirror/collab.js'
 import * as CMComm from '../lib/@codemirror/commands.js'
 import * as CMCont from '../lib/@valtown/codemirror-continue.js'
-import * as CMData from '../lib/@codemirror/language-data.js'
 import * as CMLang from '../lib/@codemirror/language.js'
 import * as LezUtils from '../lib/lezer-utils.js'
 import * as CMLint from '../lib/@codemirror/lint.js'
@@ -45,14 +43,16 @@ import { colorPicker } from '../lib/@replit/codemirror-css-color-picker.js'
 import * as Wrap from '../lib/fast-word-wrap.js'
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 
-export { modeFor, patchModeKey } from './wode-mode.mjs'
 export { makeDecor } from './wode-decor.mjs'
+export { langs } from './wode-lang.mjs'
+export { modeFor, patchModeKey } from './wode-mode.mjs'
 export { themeExtension, themeExtensionPart, Theme } from './wode-theme.mjs'
 
-export let langs
-
 let completionNextLine, completionPreviousLine, spRe
-let wexts, wextIds, registeredOpts, watching, extPatch, extPatchDecor
+let wexts, wextIds, registeredOpts, watching
+
+export let extPatch // FIX
+export let extPatchDecor // FIX
 
 export
 function version
@@ -135,7 +135,7 @@ function setValue
 function vsetLang
 (view, id) {
   id = id || 'text'
-  langs.find(l => l.id == id) || Mess.toss('missing lang: ' + id)
+  WodeLang.langs.find(l => l.id == id) || Mess.toss('missing lang: ' + id)
   d('vsetLang ' + id)
   view.buf.opts.set('core.lang', id)
   // this should happen in the opt
@@ -209,13 +209,6 @@ async function pushUpdates
                                  changes: u.changes.toJSON() }))
   await Tron.acmd('peer.push', [ id, version, updates ])
   cb()
-}
-
-function makeExtsMode
-(view) {
-  if (view.wode.wextsMode)
-    return view.wode.wextsMode.filter(b => b.make).map(b => b.make(view))
-  return []
 }
 
 // Make cm extensions for the wexts of every minor mode.
@@ -406,7 +399,7 @@ function reconfigureOpt
 export
 function findLang
 (id) {
-  return langs.find(l => l.id == id)
+  return WodeLang.langs.find(l => l.id == id)
 }
 
 export
@@ -853,7 +846,7 @@ function _viewInit
     opts.push(view.wode.peer.of([ peer ]))
   }
 
-  opts.push(view.wode.comp.extsMode.of(makeExtsMode(view)))
+  opts.push(view.wode.comp.extsMode.of(WodeMode.makeExtsMode(view)))
   opts.push(view.wode.comp.extsMinors.of(makeExtsMinors(view)))
 
   edWW = view.ele.firstElementChild
@@ -930,7 +923,7 @@ function _viewInit
     if (text && text.length) {
       let l
 
-      l = langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(text))
+      l = WodeLang.langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(text))
       if (l)
         return WodeMode.modeFromLang(l.id)
       if (text.startsWith('#!/bin/sh'))
@@ -1059,7 +1052,7 @@ function _viewInit
 
       d('mode from buf: ' + mode)
       lang = WodeMode.modeLang(mode)
-      if (lang && langs.find(l => l.id == lang))
+      if (lang && WodeLang.langs.find(l => l.id == lang))
         vsetLang(view, lang)
     }
   }
@@ -1524,23 +1517,6 @@ function vlen
   return line.number
 }
 
-function seize
-(b, mode) {
-  d('ed seizing ' + b.name + ' for ' + mode.name)
-  b.views.forEach(v => {
-    let effects, exts
-
-    // remove old mode specific extensions, add new ones
-    v.wode.wextsMode = v.buf.mode.wexts
-    exts = makeExtsMode(v)
-    effects = v.wode.comp.extsMode.reconfigure(exts)
-    v.ed.dispatch({ effects })
-
-    if (v.ed && (v.win == Win.current()))
-      WodeDecor.decorate(v, b.mode)
-  })
-}
-
 function addMinor
 (b, mode) {
   //d(' ed adding minor ' + mode.name + ' to ' + b.name)
@@ -1911,7 +1887,7 @@ function initModeFns
   mo.prevLine = prevLine
   mo.region = vregion
   mo.nextLine = nextLine
-  mo.seize = mo.seize || (b => seize(b, mo))
+  mo.seize = mo.seize || (b => WodeMode.seize(b, mo))
   mo.setBep = vsetBep
   mo.setPlaceholder = setPlaceholder
   mo.syntaxTreeStr = syntaxTreeStr
@@ -3930,16 +3906,6 @@ function initComplete
   return complete
 }
 
-function cTopLevelStart
-() {
-  topLevelStart([ '#if', '#end' ])
-}
-
-function cTopLevelEnd
-() {
-  topLevelEnd([ '#if', '#end' ])
-}
-
 export
 function onBufRemove
 (buf) {
@@ -3948,75 +3914,6 @@ function onBufRemove
     if (view.ed)
       view.ed.destroy()
   })
-}
-
-export
-function addMode
-(lang, spec) {
-  let mode, exts, mime, key
-
-  function seizeLang
-  (b) {
-    d('WODE ' + lang.id + ' seizing ' + b.name)
-    seize(b, mode)
-    b.opts.set('core.lang', lang.id)
-  }
-
-  function minfo
-  (exts) {
-    if (exts)
-      return exts.map(e => Ed.mimeByExt[e]).filter(mi => mi)
-
-    return []
-  }
-
-  spec = spec || {}
-  exts = lang.extensions?.map(e => e.slice(1))
-  mime = minfo(exts)
-  key = WodeMode.modeFromLang(lang.id)
-  d('adding mode for ' + lang.id + ' with exts: ' + exts)
-  mode = Mode.add(key,
-                  { assist: spec.assist,
-                    name: key,
-                    viewInit,
-                    viewCopy,
-                    initFns: Ed.initModeFns,
-                    parentsForEm: 'ed',
-                    exts,
-                    wexts: spec.wexts,
-                    mime,
-                    //
-                    onRemove: onBufRemove,
-                    seize: seizeLang })
-  lang.mode = mode
-
-  if (lang.id == 'css') {
-    //Cmd.add('insert }', (u,we) => insertClose(u, we, mode), mode)
-    //Em.on('}', 'insert }', mode)
-  }
-  else if (lang.id == 'richdown') {
-    Em.on('e', 'markdown mode', 'richdown')
-    Em.on('C-c C-c', 'markdown mode', 'richdown')
-    // should use view mode
-    Em.on('n', 'next line', 'richdown')
-    Em.on('p', 'previous line', 'richdown')
-    Em.on('q', 'bury', 'richdown')
-    Em.on('Backspace', 'scroll up', 'richdown')
-    Em.on(' ', 'scroll down', 'richdown')
-  }
-  else if (lang.id == 'markdown')
-    Em.on('C-c C-c', 'rich', 'markdown')
-  else if (lang.id == 'c') {
-    Cmd.add('top level start', () => cTopLevelStart(), mode)
-    Cmd.add('top level end', () => cTopLevelEnd(), mode)
-  }
-
-  if ([ 'javascript', 'css', 'cpp' ].includes(lang.id))
-    Em.on('}', 'self insert and indent', mode)
-  mode.icon = Icon.mode(mode.key)
-
-  if (spec?.onAddMode)
-    spec.onAddMode(mode)
 }
 
 export
@@ -4149,220 +4046,6 @@ function flushTrailing
     vreplaceAt(p.view, r, text.replace(/[^\S\r\n]+$/gm, ''))
 }
 
-function initLangs
-() {
-  let languages
-
-  function addLang
-  (langs, lang, ed, opt) {
-    //d('lang: ' + lang.name + ' (' + lang.id + ')')
-    opt = opt || {}
-    opt.assist = opt.assist ?? {}
-    opt.assist.pages = opt.assist.pages ?? 1
-    lang.id = lang.name.toLowerCase()
-    lang.extensions = lang.extensions?.map(e => '.' + e)
-    if (lang.id == 'dockerfile')
-      lang.extensions = [ ...(lang.extensions || []), '.Dockerfile' ]
-    if (lang.id == 'latex')
-      lang.extensions = [ ...(lang.extensions || []), '.aux' ]
-    if (lang.id == 'properties files')
-      lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf', '.service' ]
-    if (lang.id == WodeMode.patchModeKey()) {
-      lang.extensions = [ ...(lang.extensions || []), '.PATCH', '.rej' ]
-      opt.assist.pages = 0
-      opt.assist.extras = []
-      opt.assist.extras.push({ key: 'patch-files',
-                               head() {
-                                 return 'Files'
-                               },
-                               co(view) {
-                                 let point, prev, el
-
-                                 el = new globalThis.DocumentFragment()
-                                 prev = { start: Ed.offToBep(view, 0) }
-                                 point = view.bep
-                                 Ed.vforLines(view, line => {
-                                   if (line.text.startsWith('---')) {
-                                     let text
-
-                                     if (Ed.bepLtEq(prev.start, point) && Ed.bepGt(line.from, point))
-                                       Css.add(prev.el, 'assist-patch-files-current')
-                                     text = line.text.slice(3).trim()
-                                     prev = { start: line.from,
-                                              el: divCl('assist-patch-files-file',
-                                                        [ div(text,
-                                                              { 'data-run': 'open link',
-                                                                'data-path': view.buf.path,
-                                                                'data-line': line.number }) ]) }
-                                     append(el, prev.el)
-                                   }
-                                 })
-                                 if (prev.el && Ed.bepLtEq(prev.start, point))
-                                   Css.add(prev.el, 'assist-patch-files-current')
-
-                                 return el
-                               } })
-    }
-    lang.path = opt.path
-    if (opt.firstLine)
-      lang.firstLine = opt.firstLine
-    if (lang.id == 'cmake')
-      lang.filenames = [ ...(lang.filenames || []), 'CMakeLists.txt' ]
-    else if (lang.id == 'ruby')
-      lang.filenames = [ ...(lang.filenames || []), 'Vagrantfile' ]
-    if (lang.id == 'rust')
-      lang.alias = [ ...(lang.alias || []), 'rs' ]
-    if (lang.load)
-      lang.load().then(l => lang.language = l)
-    if (opt.front)
-      langs.unshift(lang)
-    else
-      langs.push(lang)
-    if (ed)
-      addMode(lang, opt)
-  }
-
-  function loadLang
-  (file, name, opt) {
-    d('Loading lang: ' + file)
-    opt = opt || {}
-    Tron.cmd('file.exists', file, (err, data) => {
-      if (err) {
-        Mess.log('file: ' + file)
-        Mess.toss('Wode init: ' + err.message)
-        return
-      }
-      if (data.exists) {
-        let lang
-
-        lang = CMLang.LanguageDescription.of({ name,
-                                               extensions: opt.ext,
-                                               filename: opt.filename,
-                                               load() {
-                                                 return import(file).then(m => {
-                                                   let ls
-
-                                                   try {
-                                                     if (opt.preload)
-                                                       opt.preload(m)
-
-                                                     if (opt.load)
-                                                       ls = opt.load(m)
-                                                     else if (m['language'])
-                                                       ls = m['language']()
-                                                     else if (m[name.toLowerCase()])
-                                                       ls = m[name.toLowerCase()]()
-                                                     else
-                                                       Mess.toss('missing loader for ' + name)
-
-                                                     if (opt.postload)
-                                                       opt.postload(m, ls)
-
-                                                     WodeTheme.Theme.handleCustomTags(m)
-
-                                                     d('Initialised lang: ' + file)
-                                                   }
-                                                   catch (err) {
-                                                     d('loadLang load: ' + file + ': ' + err.message)
-                                                     //debugger
-                                                   }
-
-                                                   return ls
-                                                 })
-                                               } })
-        if (opt.module === undefined)
-          lang.module = file.match(/^.\/lib\/(.*)\.js$/)?.at(1)
-        else
-          lang.module = opt.module
-        languages.push(lang)
-        addLang(langs, lang, opt.ed ?? 1, opt)
-      }
-      else
-        Mess.warn('Missing: ' + file)
-    })
-  }
-
-  languages = CMData.languages.filter(l => [ 'diff', 'javascript', 'markdown' ].includes(l.name.toLowerCase()) ? 0 : 1)
-  langs = []
-
-  languages.forEach(l => addLang(langs, l, 1))
-  langs.unshift({ id: 'text',
-                  alias: [],
-                  name: 'Text',
-                  extensions: [ '.txt' ] })
-  addMode(langs[0])
-  d({ langs })
-
-  loadLang(Loc.appDir().join('lib/@codemirror/lang-javascript.js'),
-           'JavaScript',
-           { ext: [ 'js', 'mjs', 'cjs' ],
-             firstLine: '^#!.*\\b(node|gjs)',
-             preload(m) {
-               let lang, props, indents
-
-               indents = {
-                 // Prevent indent when export/params are on their own line.
-                 'ExportDeclaration FunctionDeclaration': CMLang.flatIndent,
-                 // Flush switch case to block
-                 SwitchBody: ctx => {
-                   let closed, isCase
-
-                   closed = /^\s*\}/.test(ctx.textAfter)
-                   isCase = /^\s*(case|default)\b/.test(ctx.textAfter)
-                   return ctx.baseIndent + (((closed || isCase) ? 0 : 1) * ctx.unit)
-                 }
-                 // always indent ternary like eslint (eg in array def overhang was flat)
-                 // too weird, turned off eslint ternary indent instead
-                 //ConditionalExpression: CMLang.continuedIndent({ units: 1 })
-               }
-               props = [ CMLang.indentNodeProp.add(indents) ]
-               lang = m.javascriptLanguage
-               lang.parser = lang.parser.configure({ props })
-             } })
-
-  loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-csharp.js'), 'Csharp', { ext: [ 'cs', 'csx' ] })
-  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-csv.js'), 'Csv', { ext: [ 'csv' ] })
-  loadLang(Loc.appDir().join('lib/codemirror-lang-diff.js'), 'Diff',
-           { ext: [ 'diff', 'patch' ],
-             wexts: [ { backend: 'cm',
-                        name: 'extPatch',
-                        make: () => ([ extPatch, extPatchDecor ]),
-                        part: new CMState.Compartment } ] })
-  loadLang(Loc.appDir().join('lib/codemirror-lang-elixir.js'), 'Elixir', { ext: [ 'ex', 'exs' ] })
-  loadLang(Loc.appDir().join('lib/@codemirror/lang-lezer.js'), 'Lezer', { ext: [ 'grammar' ] })
-  loadLang(Loc.appDir().join('lib/codemirror-lang-git-log.js'), 'Git Log',
-           { ed: 0 }) // prevent mode creation, already have VC Log mode
-  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-ini.js'), 'Ini',
-           { exts: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
-             path: /\.git\/config$/ })
-  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-lezer-tree.js'), 'Lezer Tree', { ext: [ 'leztree' ] })
-  loadLang(Loc.appDir().join('lib/codemirror-lang-makefile.js'), 'Makefile',
-           { filename: /^(GNUmakefile|makefile|Makefile)$/,
-             onAddMode: m => m.opts.set('core.highlight.leadingSpace.enabled', 1) })
-  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-nasl.js'), 'NASL', { ext: [ 'nasl' ] })
-  //loadLang(Loc.appDir().join('lib/@kittycad/codemirror-lang-kcl.js'), 'Kcl', { ext: [ 'kcl' ] })
-  loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-nix.js'), 'Nix', { ext: [ 'nix' ] })
-  loadLang(Loc.appDir().join('lib/@orgajs/codemirror-lang-org.js'), 'Org', { ext: [ 'org' ] })
-  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-peg.js'), 'PEG', { ext: [ 'peg' ] })
-  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-zig.js'), 'Zig', { ext: [ 'zig' ] })
-
-  loadLang(Loc.appDir().join('lib/@codemirror/lang-markdown.js'),
-           'Markdown',
-           { ext: [ 'md', 'markdown', 'mkd' ],
-             load(m) {
-               return m.markdown({ codeLanguages: langs })
-             } })
-
-  loadLang(Loc.appDir().join('lib/codemirror-lang-richdown.js'),
-           'Richdown',
-           { front: 0, // priority goes to markdown
-             ext: [ 'md' ],
-             module: 0,
-             load(m) {
-               return m.richdown({ lezer: { codeLanguages: langs } })
-             } })
-}
-
 function initPatchExt
 () {
   let decorPlus, decorMinus, decorEffect
@@ -4464,7 +4147,7 @@ function init
   watching = new Map()
 
   WodeCommon.init()
-  initLangs()
+  WodeLang.init()
   WodeTheme.init()
   initActiveLine()
   initPatchExt()

@@ -46,7 +46,7 @@ import * as LZHighlight from '../lib/@lezer/highlight.js'
 import * as Wrap from '../lib/fast-word-wrap.js'
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 
-export { patchModeKey } from './wode-mode.mjs'
+export { modeFor, patchModeKey } from './wode-mode.mjs'
 
 export let langs, themeExtension, themeExtensionPart, Theme
 
@@ -59,26 +59,6 @@ export
 function version
 () {
   return Vode.version
-}
-
-export
-function modeFor
-(path) {
-  if (path) {
-    let lang, filename
-
-    d('modeFor path: ' + path)
-    path = U.stripCompressedExt(path)
-    d('modeFor real: ' + path)
-    filename = Loc.make(path).filename
-    lang = langs.find(l => l.path && l.path.test(path))
-      || langs.find(l => l.filename && l.filename.test(filename))
-      || langs.find(l => l.filenames?.some(fn => filename == fn))
-      || langs.find(l => l.extensions?.some(e => path.toLowerCase().endsWith(e.toLowerCase())))
-    d('modeFor lang: ' + lang?.id)
-    return modeFromLang(lang?.id)
-  }
-  return 'Ed'
 }
 
 function updateMarks
@@ -1063,7 +1043,7 @@ function _viewInit
 
       l = langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(text))
       if (l)
-        return modeFromLang(l.id)
+        return WodeMode.modeFromLang(l.id)
       if (text.startsWith('#!/bin/sh'))
         return 'sh'
       if (text.startsWith('#!/bin/bash'))
@@ -1122,7 +1102,7 @@ function _viewInit
         Ed.setMlDir(buf, buf.dir)
       }
 
-      mode = modeFor(path)
+      mode = WodeMode.modeFor(path)
       if (mode == 'Ed')
         mode = 'text'
       d('mode offered: ' + mode)
@@ -1130,7 +1110,7 @@ function _viewInit
         mode = modeFromFirstLine(data.data) || mode
 
       mode = mode || 'text'
-      vsetLang(view, modeLang(mode))
+      vsetLang(view, WodeMode.modeLang(mode))
       d('chose mode 2: ' + mode)
       buf.mode = mode
       Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
@@ -1189,7 +1169,7 @@ function _viewInit
       let lang
 
       d('mode from buf: ' + mode)
-      lang = modeLang(mode)
+      lang = WodeMode.modeLang(mode)
       if (lang && langs.find(l => l.id == lang))
         vsetLang(view, lang)
     }
@@ -4061,22 +4041,6 @@ function initComplete
   return complete
 }
 
-function modeFromLang
-(id) {
-  if (id == 'shell')
-    return 'sh'
-  if (id == 'plaintext')
-    return 'text'
-  return id
-}
-
-function modeLang
-(id) {
-  if (id == 'sh')
-    return 'shell'
-  return id
-}
-
 function cTopLevelStart
 () {
   topLevelStart([ '#if', '#end' ])
@@ -4120,7 +4084,7 @@ function addMode
   spec = spec || {}
   exts = lang.extensions?.map(e => e.slice(1))
   mime = minfo(exts)
-  key = modeFromLang(lang.id)
+  key = WodeMode.modeFromLang(lang.id)
   d('adding mode for ' + lang.id + ' with exts: ' + exts)
   mode = Mode.add(key,
                   { assist: spec.assist,

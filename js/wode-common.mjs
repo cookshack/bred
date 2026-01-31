@@ -17,6 +17,15 @@ function runOnCursors
 }
 
 export
+function setValue
+(ed, text, addToHistory) {
+  ed.dispatch({ changes: { from: 0,
+                           to: ed.state.doc.length,
+                           insert: text },
+                annotations: [ CMState.Transaction.addToHistory.of(addToHistory) ] })
+}
+
+export
 function init
 () {
   facet = CMState.Facet.define({ combine: values => values.length ? values[0] : null })

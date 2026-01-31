@@ -122,15 +122,6 @@ function updateMarks
   dbg('==')
 }
 
-export
-function setValue
-(ed, text, addToHistory) {
-  ed.dispatch({ changes: { from: 0,
-                           to: ed.state.doc.length,
-                           insert: text },
-                annotations: [ CMState.Transaction.addToHistory.of(addToHistory) ] })
-}
-
 function vsetLang
 (view, id) {
   id = id || 'text'
@@ -1010,7 +1001,7 @@ function _viewInit
                    mtype ? mtype.type : 'text/plain')
       }
 
-      setValue(ed, data.data, false)
+      WodeCommon.setValue(ed, data.data, false)
       if (view == Pane.current().view)
         ed.focus()
       if (U.defined(lineNum)) {
@@ -1733,7 +1724,7 @@ function initModeFns
 
     view = b.anyView()
     if (view) {
-      setValue(view.ed, '', true)
+      WodeCommon.setValue(view.ed, '', true)
       return
     }
     // When the buffer was in some pane, but is no longer in any pane, then
@@ -1741,7 +1732,7 @@ function initModeFns
     b.views.forEach(v => {
       if (v.ed)
         try {
-          setValue(v.ed, '', true)
+          WodeCommon.setValue(v.ed, '', true)
         }
         catch (e) {
           // I dunno, maybe ed was already destroyed.

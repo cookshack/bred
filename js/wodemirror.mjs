@@ -23,6 +23,7 @@ import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'
+import * as WodeMode from './wode-mode.mjs'
 import { d } from './mess.mjs'
 
 import * as CMAuto from '../lib/@codemirror/autocomplete.js'
@@ -44,6 +45,8 @@ import { colorPicker } from '../lib/@replit/codemirror-css-color-picker.js'
 import * as LZHighlight from '../lib/@lezer/highlight.js'
 import * as Wrap from '../lib/fast-word-wrap.js'
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
+
+export { patchModeKey } from './wode-mode.mjs'
 
 export let langs, themeExtension, themeExtensionPart, Theme
 
@@ -4058,12 +4061,6 @@ function initComplete
   return complete
 }
 
-export
-function patchModeKey
-() {
-  return 'diff'
-}
-
 function modeFromLang
 (id) {
   if (id == 'shell')
@@ -4396,7 +4393,7 @@ function initLangs
       lang.extensions = [ ...(lang.extensions || []), '.aux' ]
     if (lang.id == 'properties files')
       lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf', '.service' ]
-    if (lang.id == patchModeKey()) {
+    if (lang.id == WodeMode.patchModeKey()) {
       lang.extensions = [ ...(lang.extensions || []), '.PATCH', '.rej' ]
       opt.assist.pages = 0
       opt.assist.extras = []
@@ -4673,8 +4670,8 @@ function initPatchExt
     return builder.finish()
   }
 
-  decorPlus = CMView.Decoration.mark({ class: patchModeKey() + '-refine-plus' })
-  decorMinus = CMView.Decoration.mark({ class: patchModeKey() + '-refine-minus' })
+  decorPlus = CMView.Decoration.mark({ class: WodeMode.patchModeKey() + '-refine-plus' })
+  decorMinus = CMView.Decoration.mark({ class: WodeMode.patchModeKey() + '-refine-minus' })
 
   decorEffect = CMState.StateEffect.define()
 
@@ -4706,7 +4703,7 @@ function initPatchExt
               })
               Patch.refine(update.view.state.doc.toString(),
                            refines => {
-                             buf.vars(patchModeKey()).refines = refines
+                             buf.vars(WodeMode.patchModeKey()).refines = refines
                              update.view.dispatch({
                                effects: decorEffect.of(decorateRefines(update.view, refines))
                              })
@@ -4715,7 +4712,7 @@ function initPatchExt
           else
             setTimeout(() => update.view.dispatch({
               effects: decorEffect.of(decorateRefines(update.view,
-                                                      buf.vars(patchModeKey()).refines))
+                                                      buf.vars(WodeMode.patchModeKey()).refines))
             }))
       }
     }
@@ -4726,7 +4723,7 @@ function initPatchExt
 
                    buf = ed.bred?.view?.buf
                    if (buf)
-                     buf.vars(patchModeKey()).refines = refines
+                     buf.vars(WodeMode.patchModeKey()).refines = refines
                    ed.dispatch({
                      effects: decorEffect.of(decorateRefines(ed, refines))
                    })

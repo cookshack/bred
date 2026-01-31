@@ -22,11 +22,13 @@ import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import * as WodeCommon from './wode-common.mjs'
 import * as WodeDecor from './wode-decor.mjs'
+import * as WodeHi from './wode-hi.mjs'
 import * as WodeLang from './wode-lang.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodePatch from './wode-patch.mjs'
 import * as WodeTheme from './wode-theme.mjs'
 import * as WodeView from './wode-view.mjs'
+import * as WodeWatch from './wode-watch.mjs'
 import { d } from './mess.mjs'
 
 import * as CMAuto from '../lib/@codemirror/autocomplete.js'
@@ -51,7 +53,7 @@ export { themeExtension, themeExtensionPart, Theme } from './wode-theme.mjs'
 export { reopen as viewReopen, copy as viewCopy } from './wode-view.mjs'
 
 let completionNextLine, completionPreviousLine, spRe
-let wextIds, registeredOpts, watching
+let wextIds, registeredOpts
 
 export
 function version
@@ -138,59 +140,6 @@ function vsetLang
       if (data.lang)
         Mess.yell('Opened in lang server ' + data.lang + ': ' + view.buf.path)
     })
-}
-
-let highlighters, stateHighlighters
-
-{
-  let all, id, effectHighlighters
-
-  id = 0
-  all = Mk.array
-
-  highlighters = {
-    add(highlight, update) {
-      let h
-
-      h = { id: id++,
-            //
-            highlight,
-            remove() {
-              all.removeIf(h1 => h1.id == h.id)
-            },
-            update }
-      all.push(h)
-      return h
-    },
-    forEach(cb) {
-      all.forEach(cb)
-    }
-  }
-
-  /// failed attempt to fake view change to refresh highlights
-
-  //view.ed.dispatch({ effects: effectHighlighters.of('dummy') })
-
-  effectHighlighters = CMState.StateEffect.define()
-
-  {
-    let tick
-
-    tick = 0
-
-    stateHighlighters = CMState.StateField.define({
-      create() {
-        return { tick: ++tick }
-      },
-      update(value, tr) {
-        for (let effect of tr.effects)
-          if (effect.is(effectHighlighters))
-            value = { tick: ++tick }
-        return value
-      }
-    })
-    d({ stateHighlighters })
-  }
 }
 
 async function pushUpdates
@@ -434,48 +383,6 @@ function register
   }
 }
 
-function watch
-(buf, path) {
-  if (watching.has(path))
-    return
-
-  Tron.cmd1('file.watch', [ path ], (err, ch) => {
-    let off
-
-    d('WODE 👀 watch ' + path)
-
-    if (err) {
-      Mess.log('watch failed on ' + path)
-      watching.delete(path)
-      return
-    }
-
-    off = Tron.on(ch, (err, data) => {
-      // NB Beware of doing anything in here that modifies the file being watched,
-      //    because that may cause recursive behaviour. Eg d when --logfile and
-      //    log file is open in a buffer.
-      console.log('WODE 👀 watch ev')
-      console.log({ data })
-      if (data.type == 'change') {
-        if (buf.stat?.mtimeMs == data.stat?.mtimeMs)
-          return
-        buf.modifiedOnDisk = 1
-      }
-    })
-
-    watching.set(path, off)
-
-    buf.onRemove(() => {
-      let off
-
-      off = watching.get(path)
-      if (off)
-        off()
-      watching.delete(path)
-    })
-  })
-}
-
 export
 async function viewInit
 (view,
@@ -614,15 +521,15 @@ function _viewInit
         while ((i < (visibles.length - 1)) && (range.to > visibles[i + 1].from))
           to = visibles[++i].to
         //d('h.hi ' + range.from + ' ' + to)
-        highlighters.forEach(h => h.highlight(this.view.state,
-                                              range.from,
-                                              to,
-                                              // add
-                                              (f, t, m, p) => ranges.push({ f,
-                                                                            t,
-                                                                            decorMark: m,
-                                                                            // higher comes first
-                                                                            precedence: p })))
+        WodeHi.highlighters.forEach(h => h.highlight(this.view.state,
+                                                     range.from,
+                                                     to,
+                                                     // add
+                                                     (f, t, m, p) => ranges.push({ f,
+                                                                                   t,
+                                                                                   decorMark: m,
+                                                                                   // higher comes first
+                                                                                   precedence: p })))
       }
       builder = new CMState.RangeSetBuilder()
       ranges.sort(compare)
@@ -947,7 +854,7 @@ function _viewInit
       buf.stat = data.stat
       d('WODE new mtime ' + buf.stat.mtimeMs)
 
-      watch(buf, path)
+      WodeWatch.watch(buf, path)
 
       if (data.realpath) {
         let real
@@ -2705,7 +2612,7 @@ function vfind
     if (decorParent) {
       if (decorParent.decorAll)
         decorParent.decorAll.remove()
-      decorParent.decorAll = highlighters.add((state, from, to, add) => { // highlight
+      decorParent.decorAll = WodeHi.highlighters.add((state, from, to, add) => { // highlight
         query.highlight(state, from, to, (from, to) => {
           let selected
 
@@ -2717,14 +2624,14 @@ function vfind
               10)
         })
       },
-                                              data => { // update
-                                                needle = data.needle
-                                                init()
-                                              })
+                                                     data => { // update
+                                                       needle = data.needle
+                                                       init()
+                                                     })
 
       if (decorParent.decorMatch)
         decorParent.decorMatch.remove()
-      decorParent.decorMatch = highlighters.add((state, from, to, add) => { // highlight
+      decorParent.decorMatch = WodeHi.highlighters.add((state, from, to, add) => { // highlight
         let selected
 
         // is range selected?
@@ -2734,13 +2641,13 @@ function vfind
             CMView.Decoration.mark({ class: 'bred-search-match' + (selected ? ' bred-search-selected' : '') }),
             11)
       },
-                                                data => { // update
-                                                  d('decor match update')
-                                                  if (0) {
-                                                    needle = data.needle
-                                                    init()
-                                                  }
-                                                })
+                                                       data => { // update
+                                                         d('decor match update')
+                                                         if (0) {
+                                                           needle = data.needle
+                                                           init()
+                                                         }
+                                                       })
     }
 
     if (opts.stayInPlace)
@@ -3991,12 +3898,12 @@ function init
   completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run
   completionPreviousLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowUp').run
 
-  watching = new Map()
-
   WodeCommon.init()
+  WodeHi.init()
   WodeLang.init()
   WodeMode.init() // before theme
   WodeTheme.init()
   initActiveLine()
   WodePatch.init()
+  WodeWatch.init()
 }

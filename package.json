@@ -50,7 +50,7 @@
     "@codemirror/lint": "^6.9.2",
     "@codemirror/search": "^6.6.0",
     "@codemirror/state": "^6.5.4",
-    "@codemirror/view": "^6.39.11",
+    "@codemirror/view": "^6.39.12",
     "@cookshack/build": "^0.3.0",
     "@cookshack/codemirror-bracket-matching": "^0.3.1",
     "@cookshack/codemirror-lang-csv": "^0.1.0",

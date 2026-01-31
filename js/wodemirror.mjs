@@ -324,7 +324,6 @@ function makePeer
         version = CMCollab.getSyncedVersion(this.view.state)
         if (this.version >= version)
           return
-        this.version = version
       }
 
       updates = data.updates.map(u => ({ changes: CMState.ChangeSet.fromJSON(u.changes),
@@ -337,6 +336,8 @@ function makePeer
       }
       tr = CMCollab.receiveUpdates(this.view.state, updates)
       this.view.dispatch(tr)
+      if (data.updates.length)
+        this.version = CMCollab.getSyncedVersion(this.view.state)
     }
 
     destroy() {

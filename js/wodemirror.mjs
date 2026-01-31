@@ -23,6 +23,8 @@ import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'
+import * as WodeCommon from './wode-common.mjs'
+import * as WodeDecor from './wode-decor.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import { d } from './mess.mjs'
 
@@ -47,12 +49,13 @@ import * as Wrap from '../lib/fast-word-wrap.js'
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 
 export { modeFor, patchModeKey } from './wode-mode.mjs'
+export { makeDecor } from './wode-decor.mjs'
 
 export let langs, themeExtension, themeExtensionPart, Theme
 
 let theme, themeTags, themeHighlighting
 let themeHighlightingCode, themeExtensionCode
-let completionNextLine, completionPreviousLine, bredView, spRe
+let completionNextLine, completionPreviousLine, spRe
 let wexts, wextIds, registeredOpts, watching, extPatch, extPatchDecor
 
 export
@@ -335,117 +338,7 @@ function makePeer
 export
 function viewFromState
 (state) {
-  return state.facet(bredView)
-}
-
-function markFromDec
-(dec) {
-  let m
-
-  if (dec.ref)
-    return { ref: dec.ref }
-
-  m = {}
-
-  if (dec.rules)
-    m.class = dec.rules.map(c => 'bred-rule-' + c).join(' ')
-  if (dec.attr)
-    m.attributes = dec.attr
-
-  if (dec.line)
-    return { line: CMView.Decoration.line(m) }
-  return { mark: CMView.Decoration.mark(m) }
-}
-
-export
-function makeDecor
-(spec) {
-  return markFromDec(spec)
-}
-
-function makeDecorator
-(spec) {
-  let marks
-
-  function decorate
-  (edview) {
-    let builder
-
-    builder = new CMState.RangeSetBuilder()
-
-    for (let { from, to } of edview.visibleRanges)
-      for (let pos = from; pos <= to;) {
-        let line, match
-
-        line = edview.state.doc.lineAt(pos)
-        match = line.text.match(spec.regex)
-        if (match)
-          for (let i = 1; i < match.indices.length; i++) {
-            let index, from, to, mark
-
-            index = match.indices[i]
-            from = line.from + index[0]
-            to = line.from + index[1]
-            //d('adding ' + from + ' ' + to)
-            mark = marks[i - 1]
-            if (mark?.ref) {
-              let markR, view
-
-              view = edview.state.facet(bredView)
-              if (view) {
-                markR = mark.ref(view, match, line)
-                if (markR?.mark)
-                  builder.add(from, to, markR.mark)
-                else if (markR?.line)
-                  builder.add(line.from, line.from, markR.line)
-                else
-                  d('decorate: ref missing mark')
-              }
-              else
-                d('decorate: missing view')
-            }
-            else if (mark?.mark)
-              builder.add(from, to, mark.mark)
-            else if (mark?.line)
-              builder.add(line.from, line.from, mark.line)
-            else
-              d('decorate: missing mark')
-          }
-        pos = line.to + 1
-      }
-
-    return builder.finish()
-  }
-
-  class Pv {
-    constructor(ed) {
-      this.decorations = decorate(ed)
-    }
-
-    update(update) {
-      if (update.docChanged || update.viewportChanged)
-        this.decorations = decorate(update.view)
-    }
-  }
-
-  marks = spec.decor.map(markFromDec)
-
-  return CMView.ViewPlugin.fromClass(Pv, { decorations: v => v.decorations })
-}
-
-function decorate
-(view, mode) {
-  if (mode?.decorators) {
-    let decorators
-
-    decorators = []
-    mode.decorators.forEach(dec => {
-      d(dec)
-      decorators.push(makeDecorator(dec))
-    })
-
-    view.ed.dispatch({ effects: view.wode.decorMode.reconfigure(decorators) })
-  }
+  return state.facet(WodeCommon.bredView())
 }
 
 function diagnose
@@ -947,7 +840,7 @@ function _viewInit
            //stateHighlighters,
            CMState.Prec.low(decorator),
 
-           bredView.of(view),
+           WodeCommon.bredView().of(view),
 
            colorPicker,
 
@@ -1114,7 +1007,7 @@ function _viewInit
       d('chose mode 2: ' + mode)
       buf.mode = mode
       Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
-      decorate(view, buf.mode)
+      WodeDecor.decorate(view, buf.mode)
 
       {
         let mtype
@@ -1175,7 +1068,7 @@ function _viewInit
     }
   }
 
-  decorate(view, buf.mode)
+  WodeDecor.decorate(view, buf.mode)
   Css.enable(view.ele)
   d('ready empty ed')
   view.ready = 1
@@ -1648,7 +1541,7 @@ function seize
     v.ed.dispatch({ effects })
 
     if (v.ed && (v.win == Win.current()))
-      decorate(v, b.mode)
+      WodeDecor.decorate(v, b.mode)
   })
 }
 
@@ -4703,13 +4596,13 @@ function init
   wextIds = 0
   wexts = Mk.array
   registeredOpts = new Set()
-  bredView = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
 
   completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run
   completionPreviousLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowUp').run
 
   watching = new Map()
 
+  WodeCommon.init()
   initLangs()
   initTheme()
   initActiveLine()

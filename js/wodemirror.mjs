@@ -26,6 +26,7 @@ import * as WodeLang from './wode-lang.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodePatch from './wode-patch.mjs'
 import * as WodeTheme from './wode-theme.mjs'
+import * as WodeView from './wode-view.mjs'
 import { d } from './mess.mjs'
 
 import * as CMAuto from '../lib/@codemirror/autocomplete.js'
@@ -47,6 +48,7 @@ export { makeDecor } from './wode-decor.mjs'
 export { langs } from './wode-lang.mjs'
 export { modeFor, patchModeKey } from './wode-mode.mjs'
 export { themeExtension, themeExtensionPart, Theme } from './wode-theme.mjs'
+export { reopen as viewReopen, copy as viewCopy } from './wode-view.mjs'
 
 let completionNextLine, completionPreviousLine, spRe
 let wexts, wextIds, registeredOpts, watching
@@ -525,11 +527,6 @@ async function viewInit
             spec)
 }
 
-function runOnCursors
-(view) {
-  Ed.onCursors.forEach(oc => oc.cb && oc.cb('cm', view))
-}
-
 function _viewInit
 (peer, view, text, modeWhenText, lineNum, whenReady, placeholder, spec) {
   let ed, buf, edWW, edW, opts, domEventHandlers, useText
@@ -751,7 +748,7 @@ function _viewInit
     }
 
     if (curse)
-      runOnCursors(view)
+      WodeCommon.runOnCursors(view)
   })
 
   domEventHandlers = {
@@ -1024,7 +1021,7 @@ function _viewInit
 
       if (whenReady)
         whenReady(view)
-      runOnCursors(view)
+      WodeCommon.runOnCursors(view)
 
       //ed.session.getUndoManager().reset()
 
@@ -1060,45 +1057,7 @@ function _viewInit
   view.ready = 1
   if (whenReady)
     whenReady(view)
-  runOnCursors(view)
-}
-
-export
-function viewReopen
-(view, lineNum, whenReady) {
-  d('WODE ================== viewReopen')
-  if (view.ele && view.ed)
-    // timeout so behaves like viewInit
-    setTimeout(() => {
-      view.ready = 1
-      //view.ed.resize()
-      view.ed.focus()
-      if (U.defined(lineNum))
-        vgotoLine(view, lineNum)
-      else
-        view.ed.dispatch({ effects: CMView.EditorView.scrollIntoView(view.ed.state.selection.main.head,
-                                                                     { y: 'center' }) })
-      if (whenReady)
-        whenReady(view)
-      runOnCursors(view)
-    })
-  else
-    // probably buf was switched out before init happened.
-    viewInit(view,
-             { lineNum },
-             whenReady)
-}
-
-export
-function viewCopy
-(to, from, lineNum, whenReady) {
-  d('WODE ================== viewCopy')
-  viewInit(to,
-           { text: from.ed.state.doc.toString(),
-             modeWhenText: from.buf.opt('core.lang'),
-             lineNum,
-             whenReady },
-           whenReady)
+  WodeCommon.runOnCursors(view)
 }
 
 function charAt
@@ -1889,7 +1848,7 @@ function initModeFns
   mo.setPlaceholder = setPlaceholder
   mo.syntaxTreeStr = syntaxTreeStr
   mo.text = text
-  mo.viewReopen = viewReopen
+  mo.viewReopen = WodeView.reopen
 }
 
 function edexec

@@ -1044,7 +1044,7 @@ function initSearch
       if (match.range) {
         let bep
 
-        bep = match.backwards ? spec.Backend?.rangeStartBep(match.range) : spec.Backend?.rangeEndBep(match.range)
+        bep = match.backwards ? match.range.startBep : match.range.endBep
         spec.Backend?.vsetBep(s.st.view, bep, 1)
       }
 
@@ -1074,7 +1074,7 @@ function initSearch
           spec.Backend?.vsetBep(s.st.view, bep)
         }
         else
-          spec.Backend?.vsetBep(s.st.view, spec.Backend?.rangeStartBep(match.range))
+          spec.Backend?.vsetBep(s.st.view, match.range.startBep)
 
       if (s.st.backward)
         previous(0)
@@ -1094,7 +1094,7 @@ function initSearch
       // about to search forward
       match = s.st.stack?.at(-1)
       if (match)
-        spec.Backend?.vsetBep(s.st.view, spec.Backend?.rangeStartBep(match.range))
+        spec.Backend?.vsetBep(s.st.view, match.range.endBep)
 
       needleRe = Ed.escapeForRe(s.st.needle) + '[^a-zA-Z0-9]*[a-zA-Z0-9]+'
       //d("needleRe: " + needleRe)
@@ -1108,7 +1108,7 @@ function initSearch
                       wholeWord: 0,
                       regExp: 1 })
       if (range) {
-        s.st.needle = spec.Backend?.vrangeText(s.st.view, range)
+        s.st.needle = range.text
         s.st.stack.push({ range, needle: s.st.needle, backwards: 0 })
         s.st.echo.innerText = s.st.needle
       }

@@ -24,6 +24,7 @@ import escapeStringRegexp from '../lib/escape-string-regexp.js'
 import mbe from '../lib/mime-by-ext.json' with { type: 'json' }
 
 export let Backend
+export let makeRange
 export let mimeByExt
 export let viewCopy
 export let viewInit
@@ -324,16 +325,13 @@ function initFlushLines
           start = psn.bep
           psn.lineEnd()
           atEnd = psn.charRight()
-          range = Backend.makeRange(start, psn.bep)
+          range = makeRange(p.view, start, psn.bep)
 
           // mv back to start of line to be removed, so that psn is right
           atEnd || psn.linePrev()
           psn.lineStart()
 
-          p.buf.views.forEach(view => {
-            if (view.ele && view.ed)
-              Backend.remove(view.ed, range)
-          })
+          range.remove()
         }
         if (psn.charLeft())
           break
@@ -1080,7 +1078,7 @@ function getNextWord
               caseSensitive: 0,
               wholeWord: 0,
               regExp: 1 })
-  if (Backend.rangeEmpty(r))
+  if (r.empty)
     return 0
   return r
 }
@@ -1097,8 +1095,8 @@ function transposeWords
   if (r1 && r2) {
     let t1, t2
 
-    t1 = Backend.vrangeText(p.view, r1)
-    t2 = Backend.vrangeText(p.view, r2)
+    t1 = r1.text
+    t2 = r2.text
     d({ t1 })
     d({ t2 })
     Backend.vreplaceAtAll(p.view, r1, t2, [ { range: r2, text: t1 } ])
@@ -1120,12 +1118,10 @@ function delNextWord
 
   bep2 = Backend.vgetBep(p.view)
 
-  range = Backend.makeRange(bep1, bep2)
-  text = Backend.vrangeText(p.view, range)
+  range = makeRange(p.view, bep1, bep2)
+  text = range.text
   if (text && text.length) {
-    p.buf.views.forEach(view => {
-      Backend.remove(view.ed, range)
-    })
+    range.remove()
     Cut.add(text)
   }
 }
@@ -1346,6 +1342,7 @@ function init
     viewInit = Backend.viewInit
     viewReopen = Backend.viewReopen
     vfind = Backend.vfind
+    makeRange = Backend.makeRange
 
     d('init theme')
     if (Backend.Theme)

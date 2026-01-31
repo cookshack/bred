@@ -206,9 +206,7 @@ function applyHunkTooPrecise
       from = off
       to = from + line.length - 1 /* - */ + 1 /* nl */
       d('remove ' + from + '-' + to)
-      Ed.Backend.vremove(view,
-                         { from,
-                           to })
+      Ed.makeRange(view, from, to).remove()
     }
     else if (line.startsWith('+')) {
       let text

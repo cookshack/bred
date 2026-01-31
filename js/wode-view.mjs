@@ -19,6 +19,7 @@ import * as WodeHi from './wode-hi.mjs'
 import * as WodeLang from './wode-lang.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodePeer from './wode-peer.mjs'
+import * as WodeRange from './wode-range.mjs'
 import * as WodeWatch from './wode-watch.mjs'
 import { d } from './mess.mjs'
 
@@ -428,10 +429,10 @@ function _viewInit
 
       sel = view.ed.state.selection.main
       if (sel.head > sel.anchor)
-        range = { from: sel.anchor, to: sel.head }
+        range = WodeRange.make(view, sel.anchor, sel.head)
       else
-        range = { from: sel.head, to: sel.anchor }
-      str = Wode.vrangeText(view, range)
+        range = WodeRange.make(view, sel.head, sel.anchor)
+      str = range.text
       if (str && str.length) {
         if (selectTimeout)
           clearTimeout(selectTimeout)

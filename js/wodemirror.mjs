@@ -16,6 +16,7 @@ import * as WodeHi from './wode-hi.mjs'
 import * as WodeLang from './wode-lang.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodePatch from './wode-patch.mjs'
+import * as WodeRange from './wode-range.mjs'
 import * as WodeTheme from './wode-theme.mjs'
 import * as WodeView from './wode-view.mjs'
 import * as WodeWatch from './wode-watch.mjs'
@@ -33,9 +34,11 @@ import * as CMView from '../lib/@codemirror/view.js'
 import * as Wrap from '../lib/fast-word-wrap.js'
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 
+export { init as initComplete } from './wode-complete.mjs'
 export { makeDecor } from './wode-decor.mjs'
 export { langs } from './wode-lang.mjs'
 export { modeFor, patchModeKey } from './wode-mode.mjs'
+export { make as makeRange } from './wode-range.mjs'
 export { themeExtension, themeExtensionPart, Theme } from './wode-theme.mjs'
 export { init as viewInit, copy as viewCopy, reopen as viewReopen, revertV } from './wode-view.mjs'
 
@@ -125,11 +128,7 @@ function register
   }
 }
 
-function charAt
-(view, bep) {
-  return view.ed.state.sliceDoc(bep, bep + 1)
-}
-
+export
 function vlineStart
 (view, bep) {
   let l
@@ -149,6 +148,7 @@ function lineAtBep
   return l.text
 }
 
+export
 function lineAt
 (view, pos) {
   let l
@@ -369,73 +369,6 @@ export
 function offToBep
 (view, off) {
   return off
-}
-
-export
-function makeRange
-(from, to) {
-  return { from, to }
-}
-
-export
-function rangeEmpty
-(range) {
-  return range.from == range.to
-}
-
-export
-function rangeOrder
-(range) {
-  if (range.from > range.to) {
-    let tmp
-
-    tmp = range.to
-    range.to = range.from
-    range.from = tmp
-
-    return range
-  }
-  return range
-}
-
-export
-function rangeStartBep
-(range) {
-  return range.from
-}
-
-export
-function rangeEndBep
-(range) {
-  return range.to
-}
-
-function rangeStart
-(view, range) {
-  return bepToPos(view, range.from)
-}
-
-function rangeEnd
-(view, range) {
-  return bepToPos(view, range.to)
-}
-
-function rangeFromPoints
-(view, pos1, pos2) {
-  return makeRange(posToBep(view, pos1), posToBep(view, pos2))
-}
-
-function rangeContains
-(view, range, pos) {
-  let bep
-
-  bep = posToBep(view, pos)
-  return (range.from <= bep) && (range.to >= bep)
-}
-
-function textFromRange
-(view, range) {
-  return view.ed.state.sliceDoc(range.from, range.to)
 }
 
 function line
@@ -786,10 +719,10 @@ function initModeFns
       start = vgetPos(view)
       l = lineAt(view, start)
       if (l.length) {
-        r = rangeFromPoints(view,
-                            Ed.makePos(start.row, 0),
-                            Ed.makePos(start.row, l.length))
-        remove(view.ed, r)
+        r = WodeRange.fromPoints(view,
+                                 Ed.makePos(start.row, 0),
+                                 Ed.makePos(start.row, l.length))
+        r.remove()
       }
     }
   }
@@ -1071,14 +1004,19 @@ function clearSelection
 }
 
 function setSelection
-(view, range) {
-  return view.ed.dispatch({ selection: { anchor: range.from,
-                                         head: range.to } })
+(view, fromTo) {
+  return view.ed.dispatch({ selection: { anchor: fromTo.from,
+                                         head: fromTo.to } })
 }
 
 function regionRange
 (view) {
   let head
+
+  function range
+  (from, to) {
+    return WodeRange.make(view, from, to)
+  }
 
   head = view.ed.state.selection.main.head
   if (view.marks.length) {
@@ -1086,10 +1024,10 @@ function regionRange
 
     mark = view.marks.at(-1)
     if (head > mark)
-      return { from: mark, to: head }
-    return { from: head, to: mark }
+      return range(mark, head)
+    return range(head, mark)
   }
-  return { from: head, to: head }
+  return range(head, head)
 }
 
 function selReverse
@@ -1315,16 +1253,6 @@ function topLevelEnd
     vsetBep(p.view, l.from, 1)
 }
 
-function bottomPos
-(view) {
-  return bepToPos(view, bottomBep(view))
-}
-
-function endPos
-(view) {
-  return bepToPos(view, vendBep(view))
-}
-
 function containsVertically
 (rect1, rect2) {
   //d(rect2)
@@ -1442,25 +1370,16 @@ function xBep
   return first
 }
 
+export
 function bottomBep
 (view) {
   return xBep(view, 1)
 }
 
+export
 function topBep
 (view) {
   return xBep(view)
-}
-
-function topRow
-(view) {
-  let bep, l
-
-  bep = topBep(view)
-  l = view.ed.state.doc.lineAt(bep)
-  if (l)
-    return l.number - 1
-  return 0
 }
 
 export
@@ -1593,19 +1512,12 @@ function redo
 }
 
 export
-function vrangeText
-(view, range) {
-  rangeOrder(range)
-  return view.ed.state.sliceDoc(range.from, range.to)
-}
-
-export
 function setDecorMatch
 (decorParent, view, range) {
   if (decorParent.decorMatch) {
     d('redecorate match')
     if (0)
-      decorParent.decorMatch.update({ needle: vrangeText(view, range) })
+      decorParent.decorMatch.update({ needle: range.text })
   }
 }
 
@@ -1891,10 +1803,10 @@ function caseWord(cb) {
   CMComm.selectGroupRight(p.view.ed)
   sel = p.view.ed.state.selection.main
   if (sel.head > sel.anchor)
-    range = { from: sel.anchor, to: sel.head }
+    range = WodeRange.make(p.view, sel.anchor, sel.head)
   else
-    range = { from: sel.head, to: sel.anchor }
-  str = vrangeText(p.view, range)
+    range = WodeRange.make(p.view, sel.head, sel.anchor)
+  str = range.text
   str = cb(str, p.view)
   vsetBep(p.view, bep)
 
@@ -1906,7 +1818,7 @@ function caseWord(cb) {
     vorigHead = view.ed.state.selection.head
     vorigAnch = view.ed.state.selection.anchor
     clearSelection(view)
-    remove(view.ed, range)
+    range.remove()
     vinsertAt(view, bep, 1, str)
     view.ed.state.selection.head = vorigHead
     view.ed.state.selection.anchor = vorigAnch
@@ -1992,31 +1904,16 @@ function cutLine() {
   p = Pane.current()
   bep = vgetBep(p.view)
   line = p.view.ed.state.doc.lineAt(bep)
-  range = { from: bep, to: line.to }
-  str = vrangeText(p.view, range)
+  range = WodeRange.make(p.view, bep, line.to)
+  str = range.text
   if (str.length) {
-    remove(p.view.ed, range)
+    range.remove()
     Cut.add(str)
   }
   else {
     delNextChar()
     Cut.add('\n')
   }
-}
-
-export
-function remove
-(ed, range) {
-  rangeOrder(range)
-  ed.dispatch({ changes: { from: range.from,
-                           to: range.to,
-                           insert: '' } })
-}
-
-export
-function vremove
-(view, range) {
-  return remove(view.ed, range)
 }
 
 export
@@ -2033,12 +1930,12 @@ function delNextWordBound
     edexec(p.view.ed, p.view.markActive, CMComm.cursorGroupRight)
   end = vgetBep(p.view)
   if (end >= start)
-    range = { from: start, to: end }
+    range = WodeRange.make(p.view, start, end)
   else
-    range = { from: end, to: start }
-  text = vrangeText(p.view, range)
+    range = WodeRange.make(p.view, end, start)
+  text = range.text
   if (text && text.length) {
-    remove(p.view.ed, range)
+    range.remove()
     Cut.add(text)
   }
   return p
@@ -2216,16 +2113,12 @@ function trim() {
   l = p.view.ed.state.doc.lineAt(start)
   spRe.lastIndex = 0
   if (spRe.exec(l.text.slice(start - l.from)))
-    remove(p.view.ed,
-           { from: start,
-             to: start + spRe.lastIndex })
+    WodeRange.make(p.view, start, start + spRe.lastIndex).remove()
   if (start > l.from) {
     str = [ ...l.text.slice(0, start - l.from) ].reverse().join('')
     spRe.lastIndex = 0
     if (spRe.exec(str))
-      remove(p.view.ed,
-             { from: start - spRe.lastIndex,
-               to: start })
+      WodeRange.make(p.view, start - spRe.lastIndex, start).remove()
   }
 }
 
@@ -2277,9 +2170,9 @@ function vcutOrCopy
 
     sel = view.ed.state.selection.main
     if (sel.head > sel.anchor)
-      range = { from: sel.anchor, to: sel.head }
+      range = WodeRange.make(view, sel.anchor, sel.head)
     else
-      range = { from: sel.head, to: sel.anchor }
+      range = WodeRange.make(view, sel.head, sel.anchor)
   }
   else {
     let point, mark
@@ -2293,14 +2186,14 @@ function vcutOrCopy
     }
     mark = view.marks.at(view.marks.length - 1)
     if (point > mark)
-      range = { from: mark, to: point }
+      range = WodeRange.make(view, mark, point)
     else
-      range = { from: point, to: mark }
+      range = WodeRange.make(view, point, mark)
   }
-  str = vrangeText(view, range)
+  str = range.text
   if (str && str.length) {
     if (cut)
-      remove(view.ed, range)
+      range.remove()
     Cut.add(str)
   }
   if (cut)
@@ -2406,7 +2299,7 @@ function vtokenAt
   node = tree.resolve(bep)
   if (node)
     return { name: node.name,
-             text: vrangeText(view, makeRange(node.from, node.to)) }
+             text: WodeRange.make(view, node.from, node.to).text }
   return null
 }
 
@@ -2441,382 +2334,6 @@ function clearDecorAll
     decorParent.decorAll.remove()
     decorParent.decorAll = 0
   }
-}
-
-function makeSearcher
-(view) {
-  let opts
-
-  function set
-  (o) {
-    opts = o
-    opts.stayInPlace = 1
-    return opts
-  }
-
-  function find
-  () {
-    let range, pos
-
-    pos = vgetPos(view)
-    if (opts.start)
-      // have to change cursor because vfind searches from cursor
-      vsetPos(view, opts.start)
-    range = vfind(view, opts.needle, 0, opts)
-    if (range) {
-      opts.start = rangeEnd(view, range) // for next time
-      if (opts.range) {
-        if (rangeContains(view, opts.range, rangeStart(view, range))) {
-          vsetPos(view, pos)
-          return range
-        }
-        vsetPos(view, pos)
-        return 0
-      }
-    }
-    vsetPos(view, pos)
-    return range
-  }
-  return { set,
-           find }
-}
-
-export
-function initComplete
-() {
-  let last
-
-  function isWhite
-  (ch) {
-    return ch.charCodeAt(0) <= 32
-  }
-
-  // Get the word before point
-  //
-  function getWord
-  (p) {
-    let bep, bep1, word, start
-
-    bep = vgetBep(p.view)
-    start = vlineStart(p.view, bep)
-
-    if (bep <= start)
-      return 0
-
-    bep1 = bep
-    d('[' + charAt(p.view, bep1) + ']')
-    // mv backwards over any space
-    while (isWhite(charAt(p.view, bep1)))
-      bep1--
-    if (bep1 < start)
-      return 0
-
-    // mv backwards to start of word
-    while (1) {
-      if (bep1 == start)
-        break
-      d('[' + charAt(p.view, bep1) + ']')
-      if (isWhite(charAt(p.view, bep1))) {
-        bep1++
-        break
-      }
-      bep1--
-    }
-    if (bep1 < start)
-      // can this happen?
-      return 0
-    word = textFromRange(p.view, { from: bep1, to: bep })
-    word = word.trim() // safety
-    if (word.length == 0)
-      return 0
-    return word
-  }
-
-  // Get a potential completion.
-  //
-  function getRest
-  (word, p, pos, phase, bufs, buf, ctags) {
-    let srch
-
-    function getBuf
-    () {
-      let b
-
-      if (buf)
-        return buf
-      pos = Ed.makePos(0, 0)
-      b = Buf.find(b => {
-        if (bufs.includes(b))
-          return 0
-        return b.anyView()?.ed
-      })
-      if (b) {
-        d('fresh buf')
-        bufs.push(b)
-      }
-      else
-        d('out of bufs')
-      return b
-    }
-
-    // Make a search function
-    //
-    function makeSrch
-    (view, pos1, bw, startRow, end, endLen) {
-      let s, range
-
-      if (bw)
-        range = rangeFromPoints(view, Ed.makePos(startRow, 0), pos1)
-      else
-        range = rangeFromPoints(view, pos1, Ed.makePos(end, endLen))
-      d({ range })
-      d(rangeEnd(view, range))
-      d(posRow(rangeEnd(view, range)))
-      d('search for ' + word + ' '
-        + (bw ? 'backward' : 'forward')
-        + ' from (' + posRow(pos1) + ', ' + posCol(pos1) + ')'
-        + ' in range (' + posRow(rangeStart(view, range)) + ',' + posCol(rangeStart(view, range)) + ')-'
-        + '(' + posRow(rangeEnd(view, range)) + ',' + posCol(rangeEnd(view, range)) + ')')
-      s = makeSearcher(view)
-      // looking for the word followed by some chars, will either be at beginning of line or after space.
-      // '\t\f\cK ' for horizontal whitespace, see https://stackoverflow.com/questions/3469080/match-whitespace-but-not-newlines
-      s.set({ needle: '(^' + Ed.escapeForRe(word) + '[^\\s]+|[\t\f\cK ]' + Ed.escapeForRe(word) + '[^\\s]+)',
-              //needle: Ed.escapeForRe(word) + '[^\\s]+',
-              //needle: "(^" + Ed.escapeForRe(word) + "|\\s+" + Ed.escapeForRe(word) + ")",
-              regExp: 1,
-              caseSensitive: 1,
-              skipCurrent: 0,
-              start: pos1,
-              backwards: bw,
-              wholeWord: 0,
-              wrap: 0,
-              range })
-      return s
-    }
-
-    // Prep match info for return
-    //
-    function pack
-    (view, r, pos1, bw, phase) {
-      let text
-
-      text = vrangeText(view, r)
-      d({ pos1 })
-      d('pack text: [' + text + ']')
-      d('found at: (' + posRow(pos1) + ',' + posCol(pos1) + ')')
-      return { text: text.trim().slice(word.length), // trim to remove leading space introduced by regex
-               pos: pos1,
-               phase,
-               buf }
-    }
-
-    phase = phase || 0
-    d('word: [' + word + ']')
-
-    // search visible lines before
-    if (phase <= 0) {
-      let r
-
-      phase = 0
-      d('== 0 search visible before')
-      srch = makeSrch(p.view, pos, 1, topRow(p.view))
-      while ((r = srch.find())) {
-        let pos1
-
-        d(r)
-        //pos1 = Ed.makePos(posRow(rangeStart(p.view, r)), posCol(rangeStart(p.view, r)) - 1)
-        pos1 = rangeStart(p.view, r)
-        return pack(p.view, r, pos1, 1, phase)
-      }
-    }
-
-    // search visible lines after
-    if (phase <= 1) {
-      let r, end, endLen
-
-      phase = 1
-      d('== 1 search visible after')
-      end = bottomPos(p.view).row
-      d({ end })
-      endLen = lineAt(p.view, Ed.makePos(end, 0)).length
-      d({ endLen })
-      srch = makeSrch(p.view, pos, 0, topRow(p.view), end, endLen)
-      while ((r = srch.find())) {
-        let pos1
-
-        pos1 = rangeEnd(p.view, r)
-        return pack(p.view, r, pos1, 0, phase)
-      }
-    }
-
-    // search buffer before
-    if (phase <= 2) {
-      let r
-
-      phase = 2
-      d('== 2 search current buffer before')
-      srch = makeSrch(p.view, pos, 1, 0)
-      while ((r = srch.find())) {
-        let pos1
-
-        pos1 = rangeStart(p.view, r)
-        return pack(p.view, r, pos1, 1, phase)
-      }
-    }
-
-    // search buffer after
-    if (phase <= 3) {
-      let r, end, endLen
-
-      phase = 3
-      d('== 3 search current buffer after')
-      end = endPos(p.view).row
-      endLen = lineAt(p.view, Ed.makePos(end, 0)).length
-      srch = makeSrch(p.view, pos, 0, 0, end, endLen)
-      while ((r = srch.find())) {
-        let pos1
-
-        pos1 = rangeEnd(p.view, r)
-        return pack(p.view, r, pos1, 0, phase)
-      }
-
-      bufs.push(p.buf) // prevent research below
-    }
-
-    // search visible parts of other buffers in panes
-    // search other buffers in panes
-
-    // search remaining buffers
-    if (phase <= 6) {
-      phase = 6
-      d('== 6 search remaining buffers')
-      while ((buf = getBuf())) { // will skip buf if first in buf is in tries?
-        let r, view, end, endLen
-
-        d('= search buffer ' + buf.name)
-        view = buf.anyView()
-        end = endPos(view).row
-        endLen = lineAt(view, Ed.makePos(end, 0)).length
-        srch = makeSrch(view, pos, 0, 0, end, endLen)
-        while ((r = srch.find())) {
-          let pos1
-
-          pos1 = rangeEnd(view, r)
-          return pack(view, r, pos1, 0, phase)
-        }
-        buf = 0
-      }
-    }
-
-    // search TAGS
-    if (phase <= 7) {
-      phase = 7
-      d('== 7 search TAGS')
-      for (let count = 0, i = 0; i < Ed.ctags.length; i++) {
-        let ctag
-
-        ctag = Ed.ctags[i]
-        if ((ctag.name.length > word.length) && ctag.name.startsWith(word)) {
-          count++
-          if (count <= ctags)
-            // already used
-            continue
-          //d('found ' + Ed.ctags[i].name)
-          return { text: ctag.name.slice(word.length),
-                   pos,
-                   phase,
-                   buf,
-                   ctag }
-        }
-      }
-    }
-
-    return 0
-  }
-
-  // the complete command, on a-/, similar to emacs dabbrev-expand
-  //
-  function complete
-  () {
-    let p, rest, word, pos, phase, tries, bufs, buf, replace, orig
-    let ctags // count of ctags to skip in phase 7
-
-    d('=== complete')
-    p = Pane.current()
-    replace = last && (Cmd.last() == 'Complete')
-
-    if (replace) {
-      d('replace last candidate')
-      word = last.word
-      pos = last.pos
-      phase = last.phase
-      tries = last.tries
-      bufs = last.bufs
-      buf = last.buf
-      orig = last.orig
-      ctags = last.ctags || 0
-    }
-    else {
-      d('fresh start')
-      pos = vgetPos(p.view)
-      word = getWord(p)
-      phase = 0
-      tries = []
-      bufs = []
-      buf = 0
-      orig = vgetBep(p.view)
-      ctags = 0
-    }
-
-    if (word == 0) {
-      Mess.yell('word empty')
-      return
-    }
-
-    while ((rest = getRest(word, p, pos, phase, bufs, buf, ctags))
-           && tries.includes(rest.text)) {
-      d('already used')
-      pos = rest.pos
-      phase = rest.phase
-      buf = rest.buf
-      if (rest.ctag)
-        ctags++
-    }
-    if (replace) {
-      let r
-
-      r = makeRange(last.orig, posToBep(p.view, last.end))
-      d('remove from ' + r.from + ' to ' + r.to)
-      remove(p.view.ed, r)
-    }
-    if (rest) {
-      let point
-
-      d(rest)
-      point = vgetPos(p.view)
-      vsetBep(p.view, orig)
-      vinsert1(p.view, 1, rest.text)
-      tries.push(rest.text)
-      if (rest.ctag)
-        ctags++
-      last = { tries,
-               bufs,
-               orig,
-               start: point,
-               end: vgetPos(p.view),
-               word,
-               pos: rest.pos,
-               phase: rest.phase,
-               buf: rest.buf,
-               ctags }
-    }
-    else {
-      Mess.say("That's all")
-      last = 0
-    }
-  }
-
-  return complete
 }
 
 export
@@ -2910,8 +2427,7 @@ function para
       break
     end = view.ed.state.doc.lineAt(end.to + 1)
   }
-  return { from: start.from,
-           to: end.to }
+  return WodeRange.make(view, start.from, end.to)
 }
 
 export
@@ -2920,7 +2436,7 @@ function fill
   let range, text
 
   range = para(view)
-  text = vrangeText(view, range)
+  text = range.text
   if (text.length) {
     let wrap, prep, bep
 
@@ -2952,9 +2468,8 @@ function flushTrailing
       r.to = vgetBepEnd(p.view)
   }
   else
-    r = { from: vgetBep(p.view),
-          to: vgetBepEnd(p.view) }
-  text = vrangeText(p.view, r)
+    r = WodeRange.make(p.view, vgetBep(p.view), vgetBepEnd(p.view))
+  text = r.text
   if (text.length)
     vreplaceAt(p.view, r, text.replace(/[^\S\r\n]+$/gm, ''))
 }

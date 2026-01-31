@@ -1069,7 +1069,7 @@ function initSearch
         if (s.st.backward) {
           let bep
 
-          bep = spec.Backend?.rangeEndBep(match.range)
+          bep = match.range.endBep
           bep = spec.Backend?.vbepIncr(s.st.view, bep)
           spec.Backend?.vsetBep(s.st.view, bep)
         }

@@ -1,5 +1,6 @@
 import * as U from './util.mjs'
 import * as Wode from './wode.mjs'
+import * as WodeCommon from './wode-common.mjs'
 import * as WodeHi from './wode-hi.mjs'
 import * as WodeRange from './wode-range.mjs'
 import { d } from './mess.mjs'
@@ -22,7 +23,7 @@ function vfind
 
   function range
   (fromTo) {
-    return WodeRange.make(fromTo.from, fromTo.to)
+    return WodeRange.make(view, fromTo.from, fromTo.to)
   }
 
   function init
@@ -118,7 +119,7 @@ function vfind
 
     bep = opts.backwards ? ret.from : ret.to
     if (initialSel)
-      Wode.vsetSel(view, initialSel.from, bep, opts.reveal ?? 1)
+      WodeCommon.vsetSel(view, initialSel.from, bep, opts.reveal ?? 1)
     else
       Wode.vsetBep(view, bep, opts.reveal ?? 1)
     return range(ret)

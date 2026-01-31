@@ -193,14 +193,6 @@ function vsetBepSpec
   return view.ed.dispatch(tr)
 }
 
-function vsetSel
-(view, from, to, reveal) {
-  d('vsetSel')
-  return view.ed.dispatch({ selection: { anchor: from,
-                                         head: to },
-                            ...(reveal ? { scrollIntoView: true } : {}) })
-}
-
 export
 function ensurePointVisible
 (view) {
@@ -1222,7 +1214,7 @@ function topLevelStart
   }
 
   if (p.view.markActive)
-    vsetSel(p.view, p.view.ed.state.selection.main.to, l.from, 1)
+    WodeCommon.vsetSel(p.view, p.view.ed.state.selection.main.to, l.from, 1)
   else
     vsetBep(p.view, l.from, 1)
 }
@@ -1248,7 +1240,7 @@ function topLevelEnd
   }
 
   if (p.view.markActive)
-    vsetSel(p.view, p.view.ed.state.selection.main.from, l.from, 1)
+    WodeCommon.vsetSel(p.view, p.view.ed.state.selection.main.from, l.from, 1)
   else
     vsetBep(p.view, l.from, 1)
 }

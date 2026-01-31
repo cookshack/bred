@@ -1,4 +1,5 @@
 import * as Ed from './ed.mjs'
+import { d } from './mess.mjs'
 
 import * as CMState from '../lib/@codemirror/state.js'
 
@@ -23,6 +24,15 @@ function setValue
                            to: ed.state.doc.length,
                            insert: text },
                 annotations: [ CMState.Transaction.addToHistory.of(addToHistory) ] })
+}
+
+export
+function vsetSel
+(view, from, to, reveal) {
+  d('vsetSel')
+  return view.ed.dispatch({ selection: { anchor: from,
+                                         head: to },
+                            ...(reveal ? { scrollIntoView: true } : {}) })
 }
 
 export

@@ -840,3 +840,28 @@ function copy
                   whenReady },
                 whenReady)
 }
+
+export
+function revertV
+(view,
+ spec, // { lineNum }
+ whenReady) {
+  let lineNum
+
+  d('WODE =====>>>>>>>>>> revertV')
+
+  spec = spec || {}
+
+  Css.disable(view.ele)
+  lineNum = spec.lineNum ?? (Wode.bepRow(view, Wode.vgetBep(view)) + 1)
+
+  view.ready = 0 // limit onChange handler
+  view.buf.reverting = 1
+  init(view, { revert: 1, lineNum }, view => {
+    view.buf.reverting = 0 // TODO might run before other views get the onChanges?
+    if (whenReady)
+      whenReady(view)
+  })
+
+  d('WODE =====>>>>>>>>>> revertV done')
+}

@@ -1,17 +1,13 @@
-import { button, divCl, span, img } from './dom.mjs'
-
 import * as Buf from './buf.mjs'
 import * as Cut from './cut.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
-import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Lsp from './lsp.mjs'
 import * as Mess from './mess.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
-import * as Prompt from './prompt.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'
@@ -41,7 +37,7 @@ export { makeDecor } from './wode-decor.mjs'
 export { langs } from './wode-lang.mjs'
 export { modeFor, patchModeKey } from './wode-mode.mjs'
 export { themeExtension, themeExtensionPart, Theme } from './wode-theme.mjs'
-export { init as viewInit, copy as viewCopy, reopen as viewReopen } from './wode-view.mjs'
+export { init as viewInit, copy as viewCopy, reopen as viewReopen, revertV } from './wode-view.mjs'
 
 let completionNextLine, completionPreviousLine, spRe
 let wextIds, registeredOpts
@@ -1569,53 +1565,6 @@ function vsave
 
   else if (cb)
     cb(new Error('Must be an Ed buf'))
-}
-
-export
-function revertV
-(view,
- spec, // { lineNum }
- whenReady) {
-  let lineNum
-
-  d('WODE =====>>>>>>>>>> revertV')
-
-  spec = spec || {}
-
-  Css.disable(view.ele)
-  lineNum = spec.lineNum ?? (bepRow(view, vgetBep(view)) + 1)
-
-  view.ready = 0 // limit onChange handler
-  view.buf.reverting = 1
-  WodeView.init(view, { revert: 1, lineNum }, view => {
-    view.buf.reverting = 0 // TODO might run before other views get the onChanges?
-    if (whenReady)
-      whenReady(view)
-  })
-
-  d('WODE =====>>>>>>>>>> revertV done')
-}
-
-export
-function revert
-() {
-  let p
-
-  p = Pane.current()
-  if (p.view.buf.path) {
-    if (p.view.buf.modified) {
-      Prompt.demand(Ed.emRevert,
-                    divCl('float-h',
-                          [ divCl('float-icon', img(Icon.path('trash'), 'Trash', 'filter-clr-nb3')),
-                            divCl('float-text', 'Buffer is modified. Discard changes?'),
-                            button([ span('y', 'key'), 'es' ], '', { 'data-run': 'discard and revert' }),
-                            button([ span('n', 'key'), 'o' ], '', { 'data-run': 'close demand' }) ]))
-      return
-    }
-    revertV(p.view)
-  }
-  else
-    Mess.toss('Buf needs path')
 }
 
 // modify

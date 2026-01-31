@@ -1258,6 +1258,27 @@ function save
   })
 }
 
+function revert
+() {
+  let p
+
+  p = Pane.current()
+  if (p.view.buf.path) {
+    if (p.view.buf.modified) {
+      Prompt.demand(emRevert,
+                    divCl('float-h',
+                          [ divCl('float-icon', img(Icon.path('trash'), 'Trash', 'filter-clr-nb3')),
+                            divCl('float-text', 'Buffer is modified. Discard changes?'),
+                            button([ span('y', 'key'), 'es' ], '', { 'data-run': 'discard and revert' }),
+                            button([ span('n', 'key'), 'o' ], '', { 'data-run': 'close demand' }) ]))
+      return
+    }
+    Backend.revertV(p.view)
+  }
+  else
+    Mess.toss('Buf needs path')
+}
+
 function selfInsertIndent
 (u, we) {
   Backend.selfInsert(u, we)
@@ -1431,7 +1452,7 @@ function init
     Cmd.add('cut', () => Backend.cut(), mo)
     Cmd.add('copy', () => Backend.copy(), mo)
 
-    Cmd.add('revert buffer', () => Backend.revert(), mo)
+    Cmd.add('revert buffer', () => revert(), mo)
     Cmd.add('discard and revert', () => discardAndRevert()) // global because call from prompt area
 
     Em.on('Escape', 'cancel', mo)

@@ -77,6 +77,7 @@ function makeExtsMinors
   return exts
 }
 
+export
 function seize
 (b, mode) {
   d('ed seizing ' + b.name + ' for ' + mode.name)

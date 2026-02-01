@@ -81,7 +81,8 @@ function onPush
   d('============= PEER ' + id + ' PUSHED (main receiving) ' + received.length)
   d('    version: ' + version)
   d('    buf.version: ' + buf.version)
-  if (0) {
+  if (1) {
+    d('    received: ' + received.length)
     d('    updates: ')
     updates.forEach(u => {
       d('clientID: ' + u.clientID)
@@ -98,6 +99,8 @@ function onPush
   }
   else
     try {
+      if (1)
+        d('over: ' + JSON.stringify(buf.updates.slice(version)))
       received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
     }
     catch (err) {
@@ -119,8 +122,10 @@ function onPush
       throw err
     }
   try {
+    if (1)
+      d('    received 2: ' + received.length)
     received.forEach(update => {
-      //d(JSON.stringify(update, null, 2))
+      d(JSON.stringify(update, null, 2))
       buf.updates.push(update)
       buf.text = update.changes.apply(buf.text)
       applied.push(update)

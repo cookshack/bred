@@ -22,11 +22,13 @@ function make
   plugin = CMView.ViewPlugin.fromClass(class {
     constructor
     (view) {
+      let version
+
       this.view = view
-      this.version = CMCollab.getSyncedVersion(this.view.state)
+      version = CMCollab.getSyncedVersion(this.view.state)
       this.ch = 'peer.pull/' + uuidv4()
       this.chOff = Tron.on(this.ch, this.pull.bind(this))
-      Tron.cmd('peer.pull', [ id, this.version, this.ch ], err => {
+      Tron.cmd('peer.pull', [ id, version, this.ch ], err => {
         if (err) {
           d('peer.pull: ' + err.message)
           return
@@ -47,7 +49,7 @@ function make
       updates = CMCollab.sendableUpdates(this.view.state)
       if (this.pushing || (updates.length == 0))
         return
-      if (0) {
+      if (1) {
         d('UPDATES')
         updates.forEach((u,i) => {
           d(i + ': ' + u.changes?.toJSON())
@@ -55,7 +57,7 @@ function make
       }
       this.pushing = true
       version = CMCollab.getSyncedVersion(this.view.state)
-      //d('SYNCED VERSION ' + version)
+      d('SYNCED VERSION ' + version)
       pushUpdates(id, (version ?? 0) + 1, updates, () => {
         this.pushing = false
         // Regardless of whether the push failed or new updates came in
@@ -79,17 +81,9 @@ function make
       if (this.done)
         return
 
-      if (data.updates.length) {
-        let version
-
-        version = CMCollab.getSyncedVersion(this.view.state)
-        if (this.version >= version)
-          return
-      }
-
       updates = data.updates.map(u => ({ changes: CMState.ChangeSet.fromJSON(u.changes),
                                          clientID: u.clientID }))
-      if (0) {
+      if (1) {
         d('RECEIVE')
         updates.forEach((u,i) => {
           d(i + ': ' + u.changes?.toJSON())
@@ -97,8 +91,6 @@ function make
       }
       tr = CMCollab.receiveUpdates(this.view.state, updates)
       this.view.dispatch(tr)
-      if (data.updates.length)
-        this.version = CMCollab.getSyncedVersion(this.view.state)
     }
 
     destroy() {

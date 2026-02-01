@@ -64,7 +64,7 @@
     "@electron/rebuild": "^4.0.2",
     "@fluentui/svg-icons": "^1.1.240",
     "@markdoc/markdoc": "^0.4.0",
-    "@opencode-ai/sdk": "^1.1.47",
+    "@opencode-ai/sdk": "^1.1.48",
     "@orgajs/cm-lang": "^1.1.4",
     "@replit/codemirror-css-color-picker": "^6.1.1",
     "@replit/codemirror-lang-csharp": "^6.2.0",

@@ -896,36 +896,41 @@ function initModeFns
   function append
   (b, str,
    afterEndPoint) { // if point at end, then final position of point will be before str.
-    b.views.forEach(view => {
-      if (view.ed) {
-        let atEnd, end, bep, movePoint
+    let view
 
-        bep = Backend.vgetBep(view)
-        end = Backend.vgetBepEnd(view)
-        atEnd = Backend.vbepEq(bep, end)
-        if (afterEndPoint && atEnd)
-          movePoint = 0
-        else if (atEnd)
-          movePoint = 1
-        else
-          movePoint = 0
-        //d(b.name + ": append: " + str)
-        Backend.vinsertAt(view, end, 1, str, movePoint)
-      }
-    })
+    view = b.anyView(1) || Mess.log('ED append missing view')
+    if (view?.ed) {
+      let atEnd, end, bep, movePoint
+
+      bep = Backend.vgetBep(view)
+      end = Backend.vgetBepEnd(view)
+      atEnd = Backend.vbepEq(bep, end)
+      if (afterEndPoint && atEnd)
+        movePoint = 0
+      else if (atEnd)
+        movePoint = 1
+      else
+        movePoint = 0
+      //d(b.name + ": append: " + str)
+      Backend.vinsertAt(view, end, 1, str, movePoint)
+    }
+    else
+      Mess.log('ED append missing view.ed')
   }
 
   function insert
   (b, str, bep) {
     let view
 
-    view = b.anyView()
+    view = b.anyView() || Mess.log('ED insert missing view')
     if (view?.ed) {
       //d(b.name + ": insert: " + str)
       Backend.vinsertAt(view, bep, 1, str)
       // have to do this after otherwise the insert moves the mark
       Backend.addMarkAt && Backend.addMarkAt(view, bep)
     }
+    else
+      Mess.log('ED insert missing view.ed')
   }
 
   mo.append = append

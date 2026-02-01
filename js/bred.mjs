@@ -1094,10 +1094,10 @@ function initSearch
       // about to search forward
       match = s.st.stack?.at(-1)
       if (match)
-        spec.Backend?.vsetBep(s.st.view, match.range.endBep)
+        spec.Backend?.vsetBep(s.st.view, match.range.startBep)
 
       needleRe = Ed.escapeForRe(s.st.needle) + '[^a-zA-Z0-9]*[a-zA-Z0-9]+'
-      //d("needleRe: " + needleRe)
+      //d('addWordToSearch needleRe: ' + needleRe)
       range = vfind(s.st.view,
                     needleRe,
                     s.st,

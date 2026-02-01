@@ -719,6 +719,7 @@ function initLog
   Em.on('C-Tab', 'previous commit', mo)
   Em.on('e', 'show', mo)
   Em.on('Enter', 'show', mo)
+  Em.on('=', 'show', mo)
 }
 
 function initLogBadIdea

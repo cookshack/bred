@@ -8,7 +8,6 @@ import * as Loc from './loc.mjs'
 import Mk from './mk.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './pane.mjs'
-import * as Recent from './recent.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
@@ -736,23 +735,7 @@ function _viewInit
       Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
       WodeDecor.decorate(view, buf.mode)
 
-      {
-        let mtype
-
-        if (buf.mode.mime) {
-          let i
-
-          i = buf.file.lastIndexOf('.')
-          if (i >= 0) {
-            let ext
-
-            ext = buf.file.slice(i + 1)
-            mtype = buf.mode?.mime?.find(mi => mi.ext == ext)
-          }
-        }
-        Recent.add(Loc.make(buf.dir).join(buf.file),
-                   mtype ? mtype.type : 'text/plain')
-      }
+      buf.addToRecents()
 
       WodeCommon.setValue(ed, data.data, false)
       if (view == Pane.current().view)

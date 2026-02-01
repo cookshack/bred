@@ -177,6 +177,7 @@ function init
             () => {
               // delayed otherwise Ed tries to open file
               p.buf.file = text
+              p.buf.addToRecents()
             })
   }
 

@@ -10,6 +10,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
+import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
 import * as View from './view.mjs'
 import * as Win from './win.mjs'
@@ -82,6 +83,25 @@ function make
   let { name, modeKey, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk, ed
   let placeholder
+
+  function addToRecents
+  () {
+    let mtype
+
+    if (b.mode.mime) {
+      let i
+
+      i = b.file.lastIndexOf('.')
+      if (i >= 0) {
+        let ext
+
+        ext = b.file.slice(i + 1)
+        mtype = b.mode?.mime?.find(mi => mi.ext == ext)
+      }
+    }
+    Recent.add(Loc.make(b.dir).join(b.file),
+               mtype ? mtype.type : 'text/plain')
+  }
 
   function makePsn
   () {
@@ -570,6 +590,7 @@ function make
         },
         //
         addMode,
+        addToRecents,
         append,
         anyView,
         bury,

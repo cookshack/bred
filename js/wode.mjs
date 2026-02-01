@@ -407,6 +407,7 @@ function vgotoLine
   vsetBep(view, bep, 2)
 }
 
+export
 function vendBep
 (v) {
   return v.ed.state.doc.length

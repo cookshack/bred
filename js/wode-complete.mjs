@@ -12,11 +12,6 @@ function charAt
   return view.ed.state.sliceDoc(bep, bep + 1)
 }
 
-function textFromRange
-(view, range) {
-  return view.ed.state.sliceDoc(range.from, range.to)
-}
-
 function bottomPos
 (view) {
   return Wode.bepToPos(view, Wode.bottomBep(view))
@@ -120,7 +115,7 @@ function init
     if (bep1 < start)
       // can this happen?
       return 0
-    word = textFromRange(p.view, { from: bep1, to: bep })
+    word = WodeRange.make(p.view, bep1, bep).text
     word = word.trim() // safety
     if (word.length == 0)
       return 0

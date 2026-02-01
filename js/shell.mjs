@@ -591,21 +591,27 @@ function initShell
     l = p.view.line
     //d('l: [' + l + ']')
 
-    input = l.slice(last.length).trim()
+    if (last) {
+      input = l.slice(last.length).trim()
 
-    p.view.lineEnd()
-    p.view.insert('\n')
-    // FIX else leaves point in place
-    p.view.bep = Ed.Backend.vbepIncr(p.view, p.view.bep)
-    if (ch) {
-      let h
+      p.view.lineEnd()
+      p.view.insert('\n')
+      // FIX else leaves point in place
+      p.view.bep = Ed.Backend.vbepIncr(p.view, p.view.bep)
+      if (ch) {
+        let h
 
-      h = p.buf.vars('Shell').hist || hist
-      if (h)
-        h.add(input)
-      d('sending to ch ' + ch + ': ' + input)
-      Tron.send(ch, { input: input + '\n' })
+        h = p.buf.vars('Shell').hist || hist
+        if (h)
+          h.add(input)
+        d('sending to ch ' + ch + ': ' + input)
+        Tron.send(ch, { input: input + '\n' })
+      }
+
+      return
     }
+
+    d('SH probably enter before received any input')
   }
 
   function prep

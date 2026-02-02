@@ -1,4 +1,5 @@
 .code-ww {
+  --cm-pad: 4px; /* used to match pad of embedded cm eds */
   width: 100%;
   height: 100%;
   padding: 0;
@@ -72,15 +73,17 @@ div.code-thought:hover {
 
 .code-msg-user {
   align-self: flex-end;
+  border-right: 0.25rem solid var(--clr-syntax3);
 }
 
 .code-msg-assistant {
   align-self: flex-start;
+  border-left: 0.25rem solid var(--clr-syntax3);
 }
 
 .code-msg-role {
-  margin-bottom: 2px;
   color: var(--clr-nb3);
+  padding: var(--cm-pad);
   display: flex;
 }
 
@@ -91,11 +94,13 @@ div.code-thought:hover {
 }
 
 .code-msg-text {
-  border-radius: 0.5rem;
   line-height: 1.4;
   white-space: pre-wrap;
+  padding-left: var(--cm-pad);
+  padding-right: var(--cm-pad);
 }
 
+.code-msg-role.code-msg-hidden,
 .code-msg-text.code-msg-hidden {
   display: none;
 }
@@ -121,7 +126,6 @@ div.code-thought:hover {
 }
 
 .code-msg-thinking .code-msg-text {
-  border-radius: 0.5rem;
   line-height: 1.4;
   white-space: pre-wrap;
   font-style: italic;
@@ -160,7 +164,6 @@ div.code-thought:hover {
 
 .code-msg-permission {
   align-self: flex-start;
-  margin-top: 4px;
 }
 
 .code-msg-permission .code-msg-text {
@@ -186,8 +189,6 @@ div.code-thought:hover {
 
 .code-patch-ed {
   font-family: var(--font-monospace);
-  margin-top: 4px;
-  border-radius: 4px;
   overflow: hidden;
   width: fit-content;
   max-width: 100%;
@@ -204,12 +205,11 @@ div.code-thought:hover {
 }
 
 .code-markdown-ed {
-  margin-top: 4px;
-  border-radius: 4px;
   overflow: hidden;
   background: var(--clr-fill);
   width: fit-content;
   max-width: 100%;
+  padding-right: var(--cm-pad);
 }
 
 .code-markdown-ed .cm-editor {
@@ -219,7 +219,6 @@ div.code-thought:hover {
 
 .code-code-ed {
   margin-top: 4px;
-  border-radius: 4px;
   overflow: hidden;
   width: fit-content;
   max-width: 100%;

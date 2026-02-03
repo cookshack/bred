@@ -10,6 +10,6 @@
   "author": "Matt Mundell",
   "license": "CC0-1.0",
   "dependencies": {
-    "@opencode-ai/sdk": "^1.1.48"
+    "@opencode-ai/sdk": "^1.1.49"
   }
 }

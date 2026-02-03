@@ -301,15 +301,6 @@ function topLine
   }
 }
 
-function lastLine
-(v) {
-  let all
-
-  all = v.ele.querySelectorAll('.dir-name')
-  if (all)
-    put(v, all[all.length - 1])
-}
-
 function lastVisibleLine
 (v) {
   let all
@@ -969,7 +960,7 @@ function init
       if (top)
         topLine(p.view)
       else
-        lastLine(p.view)
+        setTimeout(() => lastVisibleLine(p.view))
     }
   }
 

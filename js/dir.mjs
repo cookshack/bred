@@ -310,6 +310,23 @@ function lastLine
     put(v, all[all.length - 1])
 }
 
+function lastVisibleLine
+(v) {
+  let all
+
+  all = v.ele.querySelectorAll('.dir-name')
+  if (all && all.length) {
+    let surf, last
+
+    surf = all[0].closest('.dir-w')
+    for (let i = 0; i < all.length; i++)
+      if (visible(all[i], surf))
+        last = all[i]
+    if (last)
+      put(v, last)
+  }
+}
+
 function visible
 (el, surf) {
   if (el) {
@@ -1710,6 +1727,8 @@ function init
   Em.on('!', 'shell command on file', 'Dir')
   Em.on('+', 'make dir', 'Dir')
   Em.on('Enter', 'select', 'Dir')
+  Em.on('A-,', 'top of pane', 'Dir')
+  Em.on('A-.', 'bottom of pane', 'Dir')
 
   Em.on('s b', 'show backups', 'Dir')
   Em.on('s h', 'show hidden', 'Dir')
@@ -1717,6 +1736,8 @@ function init
   Em.on('s s', 'sort by size', 'Dir')
   Em.on('s t', 'sort by time', 'Dir')
 
+  Cmd.add('top of pane', () => topLine(Pane.current().view), m)
+  Cmd.add('bottom of pane', () => lastVisibleLine(Pane.current().view), m)
   Cmd.add('next line', nextLine, m)
   Cmd.add('previous line', prevLine, m)
   Cmd.add('open in other pane', () => other(), m)

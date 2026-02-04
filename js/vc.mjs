@@ -704,11 +704,83 @@ function initLog
     })
   })
 
+  Cmd.add('vc log one-line', () => {
+    let p, buf
+
+    p = Pane.current()
+    buf = Buf.add('VC Log One-Line', 'VC Log One-Line', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
+    buf.icon = 'log'
+    buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('minimap.enabled', 0)
+    //buf.opts.set('core.lang', 'git log')
+    buf.mode = 'VC Log One-Line'
+    p.setBuf(buf, {}, () => {
+      buf.clear()
+      Shell.run(p.dir, 'git', [ 'log', '--oneline' ], { buf, end: 1, afterEndPoint: 1 })
+    })
+  })
+
   Cmd.add('click', click, mo)
 
   Em.on('click', 'click', mo)
 
   // should use view mode
+  Em.on('q', 'bury', mo)
+  Em.on('Backspace', 'scroll up', mo)
+  Em.on(' ', 'scroll down', mo)
+
+  Em.on('n', 'next commit', mo)
+  Em.on('Tab', 'next commit', mo)
+  Em.on('p', 'previous commit', mo)
+  Em.on('C-Tab', 'previous commit', mo)
+  Em.on('e', 'show', mo)
+  Em.on('Enter', 'show', mo)
+  Em.on('=', 'show', mo)
+}
+
+function initLogOneLine
+() {
+  let mo
+
+  function next
+  (n) {
+    let p
+
+    if (n == 0)
+      return
+    p = Pane.current()
+    Ed.vfind(p.view,
+             '^[0-9a-f]+(( |\t).*)?$',
+             0,
+             { skipCurrent: 1,
+               backwards: n < 0,
+               wrap: 0,
+               caseSensitive: 0,
+               wholeWord: 0,
+               regExp: 1 })
+    Cmd.run('line start')
+  }
+
+  function show
+  () {
+    let p, l, hash
+
+    p = Pane.current()
+    l = p.line()
+    hash = /^([0-9a-f]+)/.exec(l)?.[1]
+    if (hash)
+      showHash(hash)
+  }
+
+  mo = Mode.add('VC Log One-Line', { viewInit: Ed.viewInit,
+                                     viewCopy: Ed.viewCopy,
+                                     initFns: Ed.initModeFns,
+                                     parentsForEm: 'ed' })
+
+  Cmd.add('next commit', () => next(1), mo)
+  Cmd.add('previous commit', () => next(-1), mo)
+  Cmd.add('show', () => show(), mo)
+
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
@@ -1190,6 +1262,7 @@ function init
   initAnnotate()
   initCommit()
   initLog()
+  initLogOneLine()
   initLogBadIdea()
   initEqual()
   initStash()
@@ -1213,7 +1286,8 @@ function init
   Em.on('C-x v e', 'vc stash enumerate')
   Em.on('C-x v g', 'vc annotate')
   Em.on('C-x v i', 'vc show')
-  Em.on('C-x v l', 'vc log')
+  Em.on('C-x v L', 'vc log')
+  Em.on('C-x v l', 'vc log one-line')
   Em.on('C-x v o', 'vc stash pop')
   Em.on('C-x v p', 'vc push')
   Em.on('C-x v r', 'vc reset')

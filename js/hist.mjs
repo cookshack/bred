@@ -26,7 +26,7 @@ function ensure
     return h
   h = make(name)
   hists.push(h)
-  d('HIST added ' + name)
+  //d('HIST added ' + name)
   return h
 }
 

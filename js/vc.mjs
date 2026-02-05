@@ -716,7 +716,7 @@ function initLog
     buf.mode = 'VC Log One-Line'
     p.setBuf(buf, {}, () => {
       buf.clear()
-      Shell.run(p.dir, 'git', [ 'log', '--oneline' ], { buf, end: 1, afterEndPoint: 1 })
+      Shell.run(p.dir, 'git', [ 'log', '--oneline', '--no-decorate' ], { buf, end: 1, afterEndPoint: 1 })
     })
   })
 

@@ -1605,7 +1605,7 @@ function init
 
         r = promptRange(p)
         d(r)
-        Ed.Backend.remove(p.view.ed, r)
+        r.remove()
         d(prev)
         p.buf.append(prev)
       }
@@ -1630,7 +1630,7 @@ function init
                    regExp: 0,
                    reveal: 2 })
     r || Mess.toss('Failed to find last prompt')
-    Ed.Backend.rangeEmpty(r) && Mess.toss('Failed to find last prompt')
+    r.empty && Mess.toss('Failed to find last prompt')
     r.to = end
     r.from += p.buf.vars('query').emo.length
     if (r.to < r.from)
@@ -1699,7 +1699,7 @@ function init
 
     r = promptRange(p)
 
-    prompt = Ed.Backend.vrangeText(p.view, r)
+    prompt = r.text
     prompt = prompt.trim()
     if (prompt.length == 0) {
       Mess.yell('Empty prompt')

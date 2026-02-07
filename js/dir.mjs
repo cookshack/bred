@@ -284,6 +284,19 @@ function put
   }
 }
 
+function putByIndex
+(v, idx) {
+  let lines, path, el
+
+  lines = v.buf.vars('dir').lines
+  if ((idx < 0) || (idx >= lines.length))
+    return
+  path = lines[idx].at(-1).firstElementChild.dataset.path
+  el = v.ele.querySelector('.dir-name[data-path="' + path + '"]')
+  if (el)
+    put(v, el)
+}
+
 function topLine
 (v) {
   let all
@@ -335,40 +348,35 @@ function visible
 
 function nextLine
 (u) {
-  let bw
+  let bw, h, v, lines, idx, over
 
-  //d('nextLine')
   u = u || 1
   bw = u < 0
   u = Math.abs(u)
-  for (let i = 0; i < u; i++) {
-    let h, el, v
+  v = Pane.current().view
+  h = v.ele.querySelector('.dir-h')
+  lines = v.buf.vars('dir').lines
 
-    v = Pane.current().view
-    h = v.ele.querySelector('.dir-h')
-    if (v.point.over(h)) {
-      //d('over')
-      topLine(v)
-      return
-    }
-    el = v.point.over()
-    if (el
-        // only search when inside the dir-w
-        && el.closest('.dir-w')) {
-      el = el.parentNode
-      //d(el.className)
-      while ((el = (bw ? el.previousElementSibling : el.nextElementSibling)))
-        if (Css.has(el.firstElementChild, 'dir-name')) {
-          put(v, el.firstElementChild)
-          break
-        }
-      if (el)
-        continue
-    }
-    else
-      topLine(v)
+  if (v.point.over(h)) {
+    putByIndex(v, 0)
     return
   }
+
+  over = v.point.over()
+  idx = lines.findIndex(line => {
+    let nameEl
+
+    nameEl = line.at(-1).firstElementChild
+    return nameEl.dataset.path == over.dataset.path
+  })
+
+  if (idx == -1) {
+    topLine(v)
+    return
+  }
+
+  idx = Math.max(0, Math.min(idx + (bw ? -u : u), lines.length - 1))
+  putByIndex(v, idx)
 }
 
 function nearestLine

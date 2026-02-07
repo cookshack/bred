@@ -371,7 +371,10 @@ function nextLine
   })
 
   if (idx == -1) {
-    topLine(v)
+    if (bw)
+      topLine(v)
+    else
+      lastVisibleLine(v)
     return
   }
 

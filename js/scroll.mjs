@@ -104,6 +104,16 @@ export function make
              return visibleCount()
            },
 
+           toIndex(idx) {
+             let px, scrollTop
+
+             px = getLineHeightPx(surf)
+             scrollTop = idx * px
+             surf.scrollTop = scrollTop
+             render()
+             return surf.querySelector('[data-index="' + idx + '"]')
+           },
+
            scrollTo(index) {
              surf.scrollTop = index * getLineHeightPx(surf)
            },

@@ -286,15 +286,21 @@ function put
 
 function putByIndex
 (v, idx) {
-  let lines, path, el
+  let lines, scroll, el, path, surf
 
   lines = v.buf.vars('dir').lines
   if ((idx < 0) || (idx >= lines.length))
     return
+  scroll = v.vars('dir').scroll
   path = lines[idx].at(-1).firstElementChild.dataset.path
   el = v.ele.querySelector('.dir-name[data-path="' + path + '"]')
-  if (el)
+  surf = v.ele.querySelector('.dir-w')
+  if (el && (visible(el, surf))) {
     put(v, el)
+    return
+  }
+  el = scroll.toIndex(idx)
+  put(v, el)
 }
 
 function topLine
@@ -490,7 +496,7 @@ function fill
 
     lines = view.buf.vars('dir').lines
     el = view.buf.vars('dir').current
-    scroll = view.buf.vars('dir').scroll
+    scroll = view.vars('dir').scroll
     scroll.updateItemCount(lines.length)
     scroll.render()
     if (visible(el))
@@ -505,8 +511,8 @@ function fill
 
     surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
 
-    if (view.buf.vars('dir').scroll)
-      view.buf.vars('dir').scroll.destroy()
+    if (view.vars('dir').scroll)
+      view.vars('dir').scroll.destroy()
 
     scroll = Scroll.make(surf, { itemCount: view.buf.vars('dir').lines.length })
     scroll.renderItem = (el, i) => {
@@ -514,7 +520,7 @@ function fill
       el.style.gridTemplateColumns = 'repeat(7, auto)'
       view.buf.vars('dir').lines[i].forEach(cell => el.append(cell.cloneNode(true)))
     }
-    view.buf.vars('dir').scroll = scroll
+    view.vars('dir').scroll = scroll
     scroll.onScroll = () => redraw(view)
     scroll.render()
   }

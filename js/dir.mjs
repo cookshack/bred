@@ -300,6 +300,7 @@ function putByIndex
     return
   }
   el = scroll.toIndex(idx)
+  el = v.ele.querySelector('.dir-name[data-path="' + path + '"]')
   put(v, el)
 }
 

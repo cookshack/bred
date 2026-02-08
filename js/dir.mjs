@@ -728,9 +728,9 @@ function add
   b.addMode('view')
   p.setBuf(b, {}, () => {
     fill(b, undefined, undefined, sort, initialFile)
-    b.onRemove(() => stopWatching(dir.path))
-    watch(dir.path)
   })
+  b.onRemove(() => stopWatching(dir.path))
+  watch(dir.path)
 }
 
 function up

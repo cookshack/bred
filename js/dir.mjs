@@ -1670,9 +1670,15 @@ function init
 
   watching = new Map()
 
+  function viewInit(view, spec, cb) {
+    d('DIR viewInit')
+    if (cb)
+      cb(view)
+  }
+
   hist = Hist.ensure('dir')
 
-  m = Mode.add('Dir')
+  m = Mode.add('Dir', { viewInit })
 
   Opt.declare('dir.show.backups', 'bool', 0)
   Opt.declare('dir.show.hidden', 'bool', 0)

@@ -23,7 +23,7 @@ async function add
   let p
 
   if (mtype == 'inode/directory') {
-    d('================ DIR')
+    //d('================ DIR')
     Tron.acmd('profile.hist.add', [ path, { type: 'dir' } ])
     return
   }

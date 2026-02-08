@@ -1,4 +1,4 @@
-import { button, div, divCl, span, img } from './dom.mjs'
+import { div, divCl, span, img } from './dom.mjs'
 
 import * as Browse from './browse.mjs'
 import * as Buf from './buf.mjs'
@@ -110,25 +110,12 @@ function nav
   return hco
 }
 
-function dirW
-(path, co, args) {
-  let hco
-
-  hco = []
-
-  hco.push([ divCl('edMl-type',
-                   img(Icon.modePath('dir'), 'Dir', 'filter-clr-text')) ])
-
-  hco.push(nav(path))
-
-  hco.push(button(img('img/tick.svg', 'clear', 'filter-clr-text'),
-                  'dir-h-clear hidden',
-                  { 'data-run': 'clear marks' }))
-
+function divW
+(path) {
   return divCl('dir-ww',
-               [ divCl('dir-h', hco),
-                 divCl('dir-w bred-surface', co) ],
-               args)
+               [ divCl('dir-h', ''),
+                 divCl('dir-w bred-surface', '') ],
+               { 'data-path': path })
 }
 
 /*
@@ -593,16 +580,17 @@ function fill
 
     vars = buf.vars('dir')
 
-    buf.content = dirW(path,
-                       [ lines.length ? null : divCl('dir-empty', 'Empty directory'),
-                         divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }),
-                         divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }) ],
-                       { 'data-bak': bak,
-                         'data-hid': hid,
-                         'data-sort': sort })
-
     buf.views.forEach(v => {
       if (v.ele) {
+        let surf
+
+        surf = v.ele.querySelector('.dir-w')
+        surf.innerHTML = ''
+        if (lines.length == 0)
+          surf.append(divCl('dir-empty', 'Empty directory'))
+        surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
+        surf.append(divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }))
+
         init(v)
 
         if (currentFile) {
@@ -715,20 +703,22 @@ function add
 
   exist = Buf.find(b => (b.mode?.key == 'dir') && (b.dir == dir.path))
   if (exist) {
-    p.setBuf(exist, {}, () => refreshKeep(p, { sort, file: initialFile }))
+    exist.vars('dir').sort = sort
+    exist.vars('dir').initialFile = initialFile
+    p.setBuf(exist)
     return
   }
 
   if (dir.path.length > 1)
     dir.removeSlash()
 
-  b = Buf.add(dir.filename, 'Dir', 0, dir.dirname, { file: dir.filename })
+  b = Buf.add(dir.filename, 'Dir', divW(dir.path), dir.dirname, { file: dir.filename })
   b.icon = Icon.mode('dir').name
   b.fileType = 'dir'
   b.addMode('view')
-  p.setBuf(b, {}, () => {
-    fill(b, undefined, undefined, sort, initialFile)
-  })
+  b.vars('dir').sort = sort
+  b.vars('dir').initialFile = initialFile
+  p.setBuf(b)
   b.onRemove(() => stopWatching(dir.path))
   watch(dir.path)
 }
@@ -1672,6 +1662,20 @@ function init
 
   function viewInit(view, spec, cb) {
     d('DIR viewInit')
+    let dirVars, sort, bak, hid, surf
+
+    dirVars = view.buf.vars('dir')
+    sort = dirVars.sort || Opt.get('dir.sort')
+    bak = dirVars.bak ?? view.buf.opt('dir.show.backups')
+    hid = dirVars.hid ?? view.buf.opt('dir.show.hidden')
+
+    surf = view.ele.querySelector('.dir-w')
+    surf.innerHTML = ''
+    surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
+    surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
+
+    fill(view.buf, bak, hid, sort, dirVars.initialFile)
+
     if (cb)
       cb(view)
   }

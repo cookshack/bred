@@ -141,3 +141,81 @@ export
 function use
 () {
 }
+
+export
+function formatTime
+(date,
+ tz,
+ timeFormat,
+ includeSeconds) {
+  let p, options, timeDivider, seconds, timeSuffix
+
+  date = date || new Date()
+
+  options = {}
+  if (timeFormat == 2) {
+    options.hour = 'numeric'
+    options.minute = '2-digit'
+    options.hour12 = true
+    options.dayPeriod = 'short'
+    timeDivider = ':'
+  }
+  else {
+    options.hour = '2-digit'
+    options.minute = '2-digit'
+    options.hour12 = false
+    timeDivider = 'h'
+  }
+
+  if (includeSeconds)
+    options.second = '2-digit'
+
+  if (tz)
+    options.timeZone = tz
+
+  p = Intl.DateTimeFormat('UTC', options)
+    .formatToParts(date)
+
+  seconds = ''
+  if (includeSeconds) {
+    if (timeFormat == 2)
+      seconds = ':'
+    else
+      seconds = 'm'
+    seconds += p.find(e => e.type == 'second').value
+  }
+
+  timeSuffix = ''
+  if (timeFormat == 2)
+    timeSuffix = date.getHours() >= 12 ? ' PM' : ' AM'
+
+  return String(p.find(e => e.type == 'hour').value).padStart(2, ' ')
+    + timeDivider
+    + p.find(e => e.type == 'minute').value
+    + seconds
+    + timeSuffix
+}
+
+export
+function formatDateMonthDay
+(date, tz) {
+  let p, options
+
+  date = date || new Date()
+
+  options = { month: 'short', day: '2-digit' }
+
+  if (tz)
+    options.timeZone = tz
+
+  p = Intl.DateTimeFormat('UTC', options)
+    .formatToParts(date)
+
+  return p.find(e => e.type == 'month').value + ' ' + p.find(e => e.type == 'day').value
+}
+
+export
+function formatDate
+(date, tz, timeFormat) {
+  return formatDateMonthDay(date, tz) + ', ' + formatTime(date, tz, timeFormat)
+}

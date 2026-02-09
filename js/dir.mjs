@@ -20,6 +20,7 @@ import * as Scib from './scib.mjs'
 import * as Scroll from './scroll.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
 let Marked, watching
@@ -172,95 +173,6 @@ function printMode
       + frob(1, 'w')
       + frob(0, 'x')
   return '?????????'
-}
-
-export
-function formatTime
-(date,
- tz, // else use local tz (on client side: from browser)
- timeFormat,
- includeSeconds) {
-  let p, options, timeDivider, seconds, timeSuffix
-
-  // 1: 14h16
-  // 2: 2:16 PM
-
-  date = date || new Date()
-
-  options = {}
-  if (timeFormat == 2) {
-    // 9:07am 9:07pm
-    options.hour = 'numeric'
-    options.minute = '2-digit'
-    options.hour12 = true
-    options.dayPeriod = 'short'
-    timeDivider = ':'
-  }
-  else {
-    // 09h07 21h07
-    options.hour = '2-digit'
-    options.minute = '2-digit'
-    options.hour12 = false
-    timeDivider = 'h'
-  }
-
-  if (includeSeconds)
-    options.second = '2-digit'
-
-  if (tz)
-    options.timeZone = tz
-
-  p = Intl.DateTimeFormat('UTC', options)
-    .formatToParts(date)
-
-  seconds = ''
-  if (includeSeconds) {
-    if (timeFormat == 2)
-      seconds = ':'
-    else
-      seconds = 'm'
-    seconds += p.find(e => e.type == 'second').value
-  }
-
-  timeSuffix = ''
-  if (timeFormat == 2)
-    timeSuffix = date.getHours() >= 12 ? ' PM' : ' AM'
-
-  return String(p.find(e => e.type == 'hour').value).padStart(2, ' ')
-    + timeDivider
-    + p.find(e => e.type == 'minute').value
-    + seconds
-    + timeSuffix
-}
-
-function formatDateMonthDay
-(date,
- tz) { // else use local tz (on client side: from browser)
-  let p, options
-
-  // Jan 23
-
-  date = date || new Date()
-
-  options = { month: 'short', day: '2-digit' }
-
-  if (tz)
-    options.timeZone = tz
-
-  p = Intl.DateTimeFormat('UTC', options)
-    .formatToParts(date)
-
-  return p.find(e => e.type == 'month').value + ' ' + p.find(e => e.type == 'day').value
-}
-
-function formatDate
-(date,
- tz, // else use local tz (on client side: from browser)
- timeFormat) {
-  // 1: Jan 23, 14h16
-  // 2: Jan 23, 2:16 PM
-
-  return formatDateMonthDay(date, tz) + ', ' + formatTime(date, tz, timeFormat)
 }
 
 function put
@@ -474,7 +386,7 @@ function fill
              divCl(on, f.user || f.stat?.uid),
              divCl(on, f.group || f.stat?.gid),
              divCl('dir-size' + on, f.stat ? size() : '?'),
-             divCl('dir-date' + on, f.stat ? formatDate(new Date(f.stat.mtimeMs)) : '?'),
+             divCl('dir-date' + on, f.stat ? U.formatDate(new Date(f.stat.mtimeMs)) : '?'),
              divCl('dir-name-w' + on, name) ]
   }
 

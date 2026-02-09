@@ -1,4 +1,4 @@
-import { div, divCl, span, img } from './dom.mjs'
+import { button, div, divCl, span, img } from './dom.mjs'
 
 import * as Browse from './browse.mjs'
 import * as Buf from './buf.mjs'
@@ -115,9 +115,22 @@ function nav
 
 function divW
 (path) {
+  let hco
+
+  hco = []
+
+  hco.push([ divCl('edMl-type',
+                   img(Icon.modePath('dir'), 'Dir', 'filter-clr-text')) ])
+
+  hco.push(nav(path))
+
+  hco.push(button(img('img/tick.svg', 'clear', 'filter-clr-text'),
+                  'dir-h-clear hidden',
+                  { 'data-run': 'clear marks' }))
+
   return divCl('dir-ww',
-               [ divCl('dir-h', ''),
-                 divCl('dir-w bred-surface', '') ],
+               [ divCl('dir-h', hco),
+                 divCl('dir-w bred-surface') ],
                { 'data-path': path })
 }
 

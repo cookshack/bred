@@ -495,10 +495,10 @@ function fill
     vars = buf.vars('dir')
 
     buf.views.forEach(v => {
-      if (v.ele) {
+      if (v.eleOrReserved) {
         let surf
 
-        surf = v.ele.querySelector('.dir-w')
+        surf = v.eleOrReserved.querySelector('.dir-w')
         surf.innerHTML = ''
         if (lines.length == 0)
           surf.append(divCl('dir-empty', 'Empty directory'))
@@ -510,14 +510,14 @@ function fill
         if (currentFile) {
           let el
 
-          el = v.ele?.querySelector('.dir-name[data-name="' + currentFile + '"]')
+          el = v.eleOrReserved.querySelector('.dir-name[data-name="' + currentFile + '"]')
           if (el)
             put(v, el)
         }
         else {
           let first
 
-          first = v.ele?.querySelector('.dir-name')
+          first = v.eleOrReserved.querySelector('.dir-name')
           if (first)
             put(v, first)
         }
@@ -674,7 +674,13 @@ function refresh
 
   if (p.dir && p.buf.file) {
     file = file || currentFile() // must run before clear
-    p.buf.clear()
+    // Clear it before the async file.get so that it flashes
+    if (p.view.ele) {
+      let surf
+
+      surf = p.view.ele.querySelector('.dir-w')
+      surf.innerHTML = ''
+    }
     fill(p.buf, bak, hid, sort, file, marked)
   }
   else

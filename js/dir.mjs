@@ -4,6 +4,7 @@ import * as Browse from './browse.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
+import * as DirCommon from './dir-common.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Ext from './ext.mjs'
@@ -21,6 +22,7 @@ import * as Scroll from './scroll.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
+import * as DirOps from './dir-ops.mjs'
 import { d } from './mess.mjs'
 
 let Marked, watching
@@ -761,109 +763,6 @@ function currentFile
   return current(p)?.dataset.name
 }
 
-function initChmod
-(m) {
-  let hist
-
-  function chmodMarked
-  (dir, marked) {
-    let list
-
-    list = under(dir, marked)
-    Prompt.ask({ text: 'Update mode of these files',
-                 hist,
-                 under: divCl('float-files', list.divs) },
-               mode => {
-                 hist.add(mode)
-                 list.paths.forEach(item => {
-                   let absPath
-
-                   absPath = abs(item.path, dir)
-                   Tron.cmd('file.chmod', [ mode, absPath ], err => {
-                     if (err) {
-                       Mess.yell('file.chmod: ' + err.message)
-                       return
-                     }
-                   })
-                 })
-               })
-  }
-
-  function chmod
-  (u, we) {
-    let p, el, path, marked
-
-    function run
-    (mode, dir) {
-      let absPath
-
-      absPath = abs(path, dir)
-      hist.add(mode)
-      Tron.cmd('file.chmod', [ mode, absPath ], err => {
-        if (err) {
-          Mess.yell('file.chmod: ' + err.message)
-          return
-        }
-        Mess.say('Mode changed')
-      })
-    }
-
-    p = Pane.current()
-
-    marked = getMarked(p.buf)
-    if (marked.length) {
-      chmodMarked(Loc.make(p.dir).ensureSlash(), marked)
-      return
-    }
-
-    if (we?.e && (we.e.button == 0)) {
-      let next
-
-      next = we.e.target
-      while (next) {
-        if (Css.has(next, 'dir-name-w'))
-          break
-        next = next.nextElementSibling
-      }
-      if (next)
-        put(p.view, next)
-    }
-
-    el = current()
-    if (el && el.dataset.path)
-      path = el.dataset.name ?? el.dataset.path
-    else {
-      Mess.say('Move to a file first')
-      return
-    }
-
-    Prompt.ask({ text: 'Update mode of ' + path,
-                 hist },
-               mode => run(mode, p.dir))
-  }
-
-  hist = Hist.ensure('dir.chmod')
-  Cmd.add('chmod', chmod, m)
-  Em.on('M', 'chmod', 'Dir')
-}
-
-function under
-(dir, marked) {
-  let divs, paths
-
-  paths = []
-  divs = marked.map(m => {
-    let path
-
-    path = Loc.make(dir).join(m.name)
-    paths.push({ name: m.name, isDir: m.type == 'd', path })
-    return [ divCl('float-f-name', m.name),
-             divCl('float-f-path', path) ]
-  })
-
-  return { divs, paths }
-}
-
 export
 function init
 () {
@@ -908,7 +807,7 @@ function init
   (dir, marked) {
     let list
 
-    list = under(dir, marked)
+    list = DirCommon.under(dir, marked)
     Prompt.yn('Delete these?',
               { icon: 'trash',
                 under: divCl('float-files', list.divs) },
@@ -1081,7 +980,7 @@ function init
   (dir, marked) {
     let list
 
-    list = under(dir, marked)
+    list = DirCommon.under(dir, marked)
     Prompt.ask({ text: 'Copy these files to',
                  hist,
                  under: divCl('float-files', list.divs) },
@@ -1186,7 +1085,7 @@ function init
   (dir, marked) {
     let list
 
-    list = under(dir, marked)
+    list = DirCommon.under(dir, marked)
     Prompt.ask({ text: 'Move these files to',
                  hist,
                  under: divCl('float-files', list.divs) },
@@ -1678,5 +1577,5 @@ function init
   Cmd.add('home', () => add(Pane.current(), ':'))
   Cmd.add('root', () => add(Pane.current(), '/'))
 
-  initChmod(m)
+  DirOps.init(m)
 }

@@ -269,14 +269,14 @@ function make
     init()
   }
 
-  function contains
-  (r, x, y) {
-    let rr, rb, yes
+  function intersects
+  (r1, r2) {
+    let yes
 
-    //D("contains r " + x + " " + y)
-    rr = r.x + r.width
-    rb = r.y + r.height
-    yes = (r.x <= x) && (rr >= x) && (r.y <= y) && (rb >= y)
+    yes = ((r1.right >= r2.left)
+           && (r1.left <= r2.right)
+           && (r1.bottom >= r2.top)
+           && (r1.top <= r2.bottom))
     return yes
   }
 
@@ -286,7 +286,7 @@ function make
 
     rp = elePoint.getBoundingClientRect()
     if (element)
-      return contains(element.getBoundingClientRect(), rp.x + 2, rp.y + 2)
+      return intersects(element.getBoundingClientRect(), rp)
     return globalThis.document.elementFromPoint(rp.x + 2, rp.y + 2)
   }
 

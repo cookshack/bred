@@ -981,7 +981,7 @@ function vpageForward
     Backend.lineStart(view)
   else
     Backend.lineEnd(view)
-  for (let i = 0; i < u; i++)
+  for (let i = 0; i < u; i++) {
     if (vfind(view,
               pageBreakRe,
               0,
@@ -990,14 +990,14 @@ function vpageForward
                 wrap: 0,
                 caseSensitive: 0,
                 wholeWord: 0,
-                regExp: 1 })
-        == 0) {
-      if (backward)
-        Backend.vbufStart(view)
-      else
-        Backend.vbufEnd(view)
-      break
-    }
+                regExp: 1 }))
+      continue
+    if (backward)
+      Backend.vbufStart(view)
+    else
+      Backend.vbufEnd(view)
+    break
+  }
 }
 
 function pageForward

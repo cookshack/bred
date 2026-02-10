@@ -990,7 +990,8 @@ function vpageForward
                 wrap: 0,
                 caseSensitive: 0,
                 wholeWord: 0,
-                regExp: 1 }))
+                regExp: 1,
+                reveal: 3 })) // if scroll, land in middle
       continue
     if (backward)
       Backend.vbufStart(view)

@@ -173,7 +173,7 @@ function vgetPos
 
 export
 function vsetBepSpec
-(view, bep, spec) { // { reveal /* 1 nearest 2 center */, keepSelection, goalCol }
+(view, bep, spec) { // { reveal /* 1 nearest 2 center 3 center-if-off-screen */, keepSelection, goalCol }
   let tr
 
   d('goalCol: ' + spec.goalCol)
@@ -190,7 +190,35 @@ function vsetBepSpec
     tr.effects = CMView.EditorView.scrollIntoView(bep, { y: 'nearest' })
   else if (spec.reveal == 2)
     tr.effects = CMView.EditorView.scrollIntoView(bep, { y: 'center' })
+  else if (spec.reveal == 3)
+    if (bepVisible(view, bep)) {
+    }
+    else
+      tr.effects = CMView.EditorView.scrollIntoView(bep, { y: 'center' })
   return view.ed.dispatch(tr)
+}
+
+function lineFullyVisible
+(view, rect, lineStart) {
+  let ele, lineRect
+
+  ele = lineEle(view, lineStart)
+  if (ele)
+    lineRect = makeRect(ele.getBoundingClientRect(), ele)
+  return rect && lineRect && containsVertically(rect, lineRect)
+}
+
+export
+function bepVisible
+(view, bep) {
+  if (view?.ed) {
+    let scroller, rect
+
+    scroller = view.ed.scrollDOM
+    rect = makeRect(scroller.getBoundingClientRect(), scroller)
+    return lineFullyVisible(view, rect, bep)
+  }
+  return 1
 }
 
 export
@@ -1293,16 +1321,6 @@ function lineEle
     ele = ele.parentNode
   }
   return ele
-}
-
-function lineFullyVisible
-(view, rect, lineStart) {
-  let ele, lineRect
-
-  ele = lineEle(view, lineStart)
-  if (ele)
-    lineRect = makeRect(ele.getBoundingClientRect(), ele)
-  return rect && lineRect && containsVertically(rect, lineRect)
 }
 
 function xBep

@@ -720,6 +720,28 @@ function initLog
     })
   })
 
+  Cmd.add('vc log search', () => {
+    Prompt.ask({ text: 'VC Log Search:',
+                 placeholder: '',
+                 hist: Hist.ensure('vc-log-search') },
+               text => {
+                 if (text && text.trim().length) {
+                   let p, buf
+
+                   p = Pane.current()
+                   buf = Buf.add('VC Log: ' + text, 'VC Log', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
+                   buf.icon = 'log'
+                   buf.opts.set('core.lint.enabled', 0)
+                   buf.opts.set('minimap.enabled', 0)
+                   buf.opts.set('core.lang', 'git log')
+                   p.setBuf(buf, {}, () => {
+                     buf.clear()
+                     Shell.run(p.dir, 'git', [ 'log', '-S', text ], { buf, end: 1, afterEndPoint: 1 })
+                   })
+                 }
+               })
+  })
+
   Cmd.add('click', click, mo)
 
   Em.on('click', 'click', mo)
@@ -1292,6 +1314,7 @@ function init
   Em.on('C-x v p', 'vc push')
   Em.on('C-x v r', 'vc reset')
   Em.on('C-x v s', 'vc status')
+  Em.on('C-x v S', 'vc log search')
   Em.on('C-x v u', 'vc pull')
   Em.on('C-x v w', 'vc stash')
   Em.on('C-x v =', 'vc equal')

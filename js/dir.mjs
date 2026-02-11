@@ -22,70 +22,11 @@ import * as Scroll from './scroll.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
+import * as DirMarked from './dir-marked.mjs'
 import * as DirOps from './dir-ops.mjs'
 import { d } from './mess.mjs'
 
-let Marked, watching
-
-Marked = {
-  make(buf) {
-    let marked, items
-
-    function hideB
-    () {
-      buf?.views.forEach(view => Css.hide(view?.ele?.querySelector('.dir-h-clear')))
-    }
-
-    function add
-    (name, type) {
-      buf?.views.forEach(view => Css.show(view?.ele?.querySelector('.dir-h-clear')))
-      if (has(name))
-        return
-      items.push({ name, type })
-    }
-
-    function at
-    (i) {
-      return items.at(i)
-    }
-
-    function has
-    (name) {
-      return items.find(item => item.name == name)
-    }
-
-    function map
-    (cb) {
-      return items.map(item => cb && cb(item))
-    }
-
-    function rm
-    (name) {
-      items = items.filter(item => {
-        if (item.name == name)
-          return 0
-        return 1
-      })
-      if (items.length == 0)
-        hideB()
-    }
-
-    items = []
-    marked = { add,
-               at,
-               has,
-               map,
-               rm,
-               //
-               get length() {
-                 return items.length
-               } }
-
-    hideB()
-
-    return marked
-  }
-}
+let watching
 
 export
 function nav
@@ -444,7 +385,7 @@ function fill
 
   d('DIR fill')
 
-  marked = marked || Marked.make(buf)
+  marked = marked || DirMarked.make(buf)
 
   path = Loc.make(buf.dir)
   path.ensureSlash()
@@ -759,7 +700,7 @@ function getMarked
 (b) {
   let marked
 
-  marked = b.vars('dir').marked || Marked.make(b)
+  marked = b.vars('dir').marked || DirMarked.make(b)
   b.vars('dir').marked = marked
   return marked
 }
@@ -1373,7 +1314,7 @@ function init
     // toggle marks in lines,marked
     p = Pane.current()
     old = getMarked(p.buf)
-    marked = Marked.make(p.buf)
+    marked = DirMarked.make(p.buf)
     lines = p.buf.vars('dir').lines
     lines.forEach(line => {
       let ch, name, type
@@ -1444,7 +1385,7 @@ function init
     let p
 
     p = Pane.current()
-    p.buf.vars('dir').marked = Marked.make(p.buf)
+    p.buf.vars('dir').marked = DirMarked.make(p.buf)
     clearViews(p.buf)
   }
 

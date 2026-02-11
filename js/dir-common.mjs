@@ -37,3 +37,11 @@ function current
   p = p || Pane.current()
   return p?.view?.point?.over()
 }
+
+export
+function abs
+(to, dir) {
+  if (to.startsWith('/'))
+    return to
+  return Loc.make(dir).join(to)
+}

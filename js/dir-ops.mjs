@@ -73,6 +73,44 @@ function chmod
              })
 }
 
+function link
+() {
+  let p, el, target
+
+  function run
+  (from, target, dir) {
+    let absTarget
+
+    absTarget = DirCommon.abs(target, dir)
+    Tron.cmd('file.ln', [ absTarget, from ], (err, data) => {
+      Mess.log('file.ln:  ' + data.from + ' ⎘ ' + data.target + ' in ' + data.cwd)
+      Mess.log('file.ln: (' + data.absFrom + ' ⎘ ' + data.absTarget + ')')
+      if (err) {
+        Mess.yell('file.ln: ' + err.message)
+        return
+      }
+      Mess.say(from + ' ⮜⮞ ' + target)
+    })
+  }
+
+  p = Pane.current()
+  if (DirCommon.getMarked(p.buf).length) {
+    Mess.yell('Clear marks first')
+    return
+  }
+
+  el = DirCommon.current(p)
+  if (el && el.dataset.path)
+    target = el.dataset.name ?? el.dataset.path
+  else {
+    Mess.say('Move to a file first')
+    return
+  }
+
+  Prompt.ask({ text: 'Link from:' },
+             name => run(name, target, p.dir))
+}
+
 function equal
 () {
   let p, el, marked, one, two
@@ -143,6 +181,8 @@ function init
 (m) {
   Cmd.add('chmod', chmod, m)
   Cmd.add('equal', equal, m)
+  Cmd.add('link', link, m)
   Em.on('M', 'chmod', 'Dir')
   Em.on('=', 'equal', 'Dir')
+  Em.on('l', 'link', 'Dir')
 }

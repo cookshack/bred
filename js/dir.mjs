@@ -694,13 +694,6 @@ function showHid
                 sort: p.buf.opt('dir.sort') })
 }
 
-function abs
-(to, dir) {
-  if (to.startsWith('/'))
-    return to
-  return Loc.make(dir).join(to)
-}
-
 function currentFile
 (p) {
   return DirCommon.current(p)?.dataset.name
@@ -816,44 +809,6 @@ function init
       Mess.say('Move to a file first')
   }
 
-  function link
-  () {
-    let p, el, target
-
-    function run
-    (from, target, dir) {
-      let absTarget
-
-      absTarget = abs(target, dir)
-      Tron.cmd('file.ln', [ absTarget, from ], (err, data) => {
-        Mess.log('file.ln:  ' + data.from + ' ⎘ ' + data.target + ' in ' + data.cwd)
-        Mess.log('file.ln: (' + data.absFrom + ' ⎘ ' + data.absTarget + ')')
-        if (err) {
-          Mess.yell('file.ln: ' + err.message)
-          return
-        }
-        Mess.say(from + ' ⮜⮞ ' + target)
-      })
-    }
-
-    p = Pane.current()
-    if (DirCommon.getMarked(p.buf).length) {
-      Mess.yell('Clear marks first')
-      return
-    }
-
-    el = DirCommon.current()
-    if (el && el.dataset.path)
-      target = el.dataset.name ?? el.dataset.path
-    else {
-      Mess.say('Move to a file first')
-      return
-    }
-
-    Prompt.ask({ text: 'Link from:' },
-               name => run(name, target, p.dir))
-  }
-
   function cpMarked
   (dir, marked) {
     let list
@@ -867,7 +822,7 @@ function init
 
                  hist.add(dest)
 
-                 absDest = abs(dest, dir)
+                 absDest = DirCommon.abs(dest, dir)
                  Tron.cmd('file.cp', [ list.paths.map(p => p.path), absDest ], err => {
                    if (err) {
                      Mess.yell('file.cp: ' + err.message)
@@ -903,8 +858,8 @@ function init
                   yes => yes && ok())
       }
 
-      to = abs(to, dir)
-      from = abs(from, dir)
+      to = DirCommon.abs(to, dir)
+      from = DirCommon.abs(from, dir)
       Tron.cmd('file.stat', to, (err, data) => {
         if (err)
           if (err.code == 'ENOENT')
@@ -972,7 +927,7 @@ function init
 
                  hist.add(dest)
 
-                 absDest = abs(dest, dir)
+                 absDest = DirCommon.abs(dest, dir)
                  Tron.cmd('file.mv', [ list.paths.map(p => p.path), absDest ], err => {
                    if (err) {
                      Mess.yell('file.mv: ' + err.message)
@@ -989,8 +944,8 @@ function init
     function run
     (from, to, dir) {
       d('run from: ' + from)
-      to = abs(to, dir)
-      from = abs(from, dir)
+      to = DirCommon.abs(to, dir)
+      from = DirCommon.abs(from, dir)
       hist.add(to)
       Tron.cmd('file.mv', [ from, to ], err => {
         if (err?.exists) {
@@ -1384,7 +1339,6 @@ function init
   Cmd.add('delete', () => del(), m)
   Cmd.add('edit', () => edit(), m)
   Cmd.add('edit if supported', () => editIfSupported(), m)
-  Cmd.add('link', () => link(), m)
   Cmd.add('mark', mark, m)
   Cmd.add('refresh', () => {
     let p
@@ -1414,7 +1368,6 @@ function init
   Em.on('E', 'edit if supported', 'Dir')
   Em.on('f', 'show in folder', 'Dir')
   Em.on('g', 'refresh', 'Dir')
-  Em.on('l', 'link', 'Dir')
   Em.on('m', 'mark', 'Dir')
   Em.on('n', 'next line', 'Dir')
   Em.on('o', 'open in other pane', 'Dir')

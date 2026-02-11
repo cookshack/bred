@@ -19,7 +19,6 @@ import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Scib from './scib.mjs'
 import * as Scroll from './scroll.mjs'
-import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as DirMarked from './dir-marked.mjs'
@@ -650,7 +649,7 @@ function refreshKeep
   spec.hid = spec.hid ?? p.buf.opt('dir.show.hidden')
   spec.sort = spec.sort ?? p.buf.opt('dir.sort')
 
-  marked = getMarked(p.buf)
+  marked = DirCommon.getMarked(p.buf)
   refresh(p, spec.bak, spec.hid, spec.sort, marked, spec.file)
 }
 
@@ -695,16 +694,6 @@ function showHid
                 sort: p.buf.opt('dir.sort') })
 }
 
-export
-function getMarked
-(b) {
-  let marked
-
-  marked = b.vars('dir').marked || DirMarked.make(b)
-  b.vars('dir').marked = marked
-  return marked
-}
-
 function abs
 (to, dir) {
   if (to.startsWith('/'))
@@ -712,15 +701,9 @@ function abs
   return Loc.make(dir).join(to)
 }
 
-function current
-(p) {
-  p = p || Pane.current()
-  return p?.view?.point?.over()
-}
-
 function currentFile
 (p) {
-  return current(p)?.dataset.name
+  return DirCommon.current(p)?.dataset.name
 }
 
 export
@@ -792,12 +775,12 @@ function init
 
     p = Pane.current()
 
-    marked = getMarked(p.buf)
+    marked = DirCommon.getMarked(p.buf)
     if (marked.length) {
       delMarked(Loc.make(p.dir).ensureSlash(), marked)
       return
     }
-    el = current(p)
+    el = DirCommon.current(p)
     if (el && el.dataset.path) {
       let msg, dir
 
@@ -833,71 +816,6 @@ function init
       Mess.say('Move to a file first')
   }
 
-  function equal
-  () {
-    let p, el, marked, one, two
-
-    function finish
-    (b) {
-      b.mode = Ed.patchModeKey()
-      b.opts.set('core.lint.enabled', 0)
-      b.addMode('equal')
-      b.addMode('view')
-    }
-
-    function run
-    () {
-      d('one: ' + one)
-      d('two: ' + two)
-      Shell.spawn1('diff',
-                   [ '-u', one, two ],
-                   { end: 1, afterEndPoint: 1 },
-                   finish)
-    }
-
-    function create
-    () {
-      Mess.yell('File must exist')
-    }
-
-    function open
-    (path) {
-      two = path
-      run()
-    }
-
-    p = Pane.current()
-
-    marked = getMarked(p.buf)
-    if (marked.length) {
-      if (marked.length == 2) {
-        one = Loc.make(p.dir).join(marked.at(0).name)
-        two = Loc.make(p.dir).join(marked.at(1).name)
-        run()
-        return
-      }
-      else if (marked.length > 2) {
-        Mess.say('Too many marked files')
-        return
-      }
-      one = Loc.make(p.dir).join(marked.at(0).name)
-    }
-    el = current(p)
-    if (el && el.dataset.path) {
-      let dir
-
-      dir = el.dataset.type == 'd'
-      if (dir) {
-        Mess.say("That's a directory")
-        return
-      }
-      one = one || el.dataset.path
-      Prompt.file({ create, open })
-    }
-    else
-      Mess.say('Move to a file first')
-  }
-
   function link
   () {
     let p, el, target
@@ -919,12 +837,12 @@ function init
     }
 
     p = Pane.current()
-    if (getMarked(p.buf).length) {
+    if (DirCommon.getMarked(p.buf).length) {
       Mess.yell('Clear marks first')
       return
     }
 
-    el = current()
+    el = DirCommon.current()
     if (el && el.dataset.path)
       target = el.dataset.name ?? el.dataset.path
     else {
@@ -1017,7 +935,7 @@ function init
     }
 
     p = Pane.current()
-    marked = getMarked(p.buf)
+    marked = DirCommon.getMarked(p.buf)
     if (marked.length) {
       cpMarked(Loc.make(p.dir).ensureSlash(), marked)
       return
@@ -1025,7 +943,7 @@ function init
     else {
       let el, file
 
-      el = current()
+      el = DirCommon.current()
       if (el && el.dataset.path)
         file = el.dataset.path
       else {
@@ -1099,7 +1017,7 @@ function init
     }
 
     p = Pane.current()
-    marked = getMarked(p.buf)
+    marked = DirCommon.getMarked(p.buf)
     if (marked.length) {
       renameMarked(Loc.make(p.dir).ensureSlash(), marked)
       return
@@ -1107,7 +1025,7 @@ function init
     else {
       let el, file
 
-      el = current()
+      el = DirCommon.current()
       if (el && el.dataset.path)
         file = el.dataset.path
       else {
@@ -1128,14 +1046,14 @@ function init
     let p, marked, files, dir
 
     p = Pane.current()
-    marked = getMarked(p.buf)
+    marked = DirCommon.getMarked(p.buf)
     dir = Loc.make(p.dir).ensureSlash()
     if (marked.length)
       files = marked.map(m => Loc.make(dir).join(m.name))
     else {
       let el
 
-      el = current(p)
+      el = DirCommon.current(p)
       if (el && el.dataset.path)
         files = [ el.dataset.path ]
       else {
@@ -1160,7 +1078,7 @@ function init
   () {
     let el
 
-    el = current()
+    el = DirCommon.current()
     if (el && el.dataset.path)
       Scib.scib(pane => {
         pane.view.buf.append(' ' + el.dataset.path)
@@ -1184,7 +1102,7 @@ function init
       let start
 
       // pressed m
-      start = current()
+      start = DirCommon.current()
       next = start
       while (next) {
         if (Css.has(next, 'dir-name'))
@@ -1212,7 +1130,7 @@ function init
         if (Css.has(next, 'dir-name-w')) {
           let marked
 
-          marked = getMarked(Pane.current().buf)
+          marked = DirCommon.getMarked(Pane.current().buf)
           if (Css.has(next, 'on'))
             marked.add(next.firstElementChild.dataset.name,
                        next.firstElementChild.dataset.type)
@@ -1230,7 +1148,7 @@ function init
   () {
     let el
 
-    el = current()
+    el = DirCommon.current()
     if (el && el.dataset.path)
       Pane.open(el.dataset.path)
     else
@@ -1241,7 +1159,7 @@ function init
   () {
     let el
 
-    el = current()
+    el = DirCommon.current()
     if (el && el.dataset.path) {
       if (el.dataset.type == 'd') {
         Pane.open(el.dataset.path)
@@ -1278,7 +1196,7 @@ function init
   () {
     let el
 
-    el = current()
+    el = DirCommon.current()
     if (el && el.dataset.path)
       Pane.nextOrSplit().open(el.dataset.path)
     else
@@ -1289,7 +1207,7 @@ function init
   () {
     let el
 
-    el = current()
+    el = DirCommon.current()
     if (el && el.dataset.path)
       Browse.browse('file://' + el.dataset.path)
     else
@@ -1300,7 +1218,7 @@ function init
   () {
     let el
 
-    el = current()
+    el = DirCommon.current()
     if (el && el.dataset.path)
       Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => err && Mess.yell('shell.open: ' + err.message))
     else
@@ -1313,7 +1231,7 @@ function init
 
     // toggle marks in lines,marked
     p = Pane.current()
-    old = getMarked(p.buf)
+    old = DirCommon.getMarked(p.buf)
     marked = DirMarked.make(p.buf)
     lines = p.buf.vars('dir').lines
     lines.forEach(line => {
@@ -1368,7 +1286,7 @@ function init
   () {
     let el
 
-    el = current()
+    el = DirCommon.current()
     if (el && el.dataset.path)
       Tron.cmd('shell.show', [ 'file://' + el.dataset.path ], err => {
         if (err) {
@@ -1393,7 +1311,7 @@ function init
   () {
     let el
 
-    el = current()
+    el = DirCommon.current()
     if (el && el.dataset.path) {
       if (el.dataset.type == 'd') {
         Pane.open(el.dataset.path)
@@ -1466,7 +1384,6 @@ function init
   Cmd.add('delete', () => del(), m)
   Cmd.add('edit', () => edit(), m)
   Cmd.add('edit if supported', () => editIfSupported(), m)
-  Cmd.add('equal', () => equal(), m)
   Cmd.add('link', () => link(), m)
   Cmd.add('mark', mark, m)
   Cmd.add('refresh', () => {
@@ -1512,7 +1429,6 @@ function init
   Em.on('U', 'clear marks', 'Dir')
   Em.on('w', 'open in web browser', 'Dir')
   Em.on('W', 'open in external web browser', 'Dir')
-  Em.on('=', 'equal', 'Dir')
   Em.on('^', 'up', 'Dir')
   Em.on('!', 'shell command on file', 'Dir')
   Em.on('+', 'make dir', 'Dir')

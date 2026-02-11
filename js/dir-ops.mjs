@@ -8,6 +8,7 @@ import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
+import * as Scib from './scib.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
@@ -214,6 +215,20 @@ function extern
     Mess.say('Move to a file first')
 }
 
+function scof
+() {
+  let el
+
+  el = DirCommon.current()
+  if (el && el.dataset.path)
+    Scib.scib(pane => {
+      pane.view.buf.append(' ' + el.dataset.path)
+      Cmd.runMo('buffer start', 'Ed', 1)
+    })
+  else
+    Mess.say('Move to a file first')
+}
+
 export
 function init
 (m) {
@@ -222,7 +237,9 @@ function init
   Cmd.add('open in external web browser', () => extern(), m)
   Cmd.add('link', link, m)
   Cmd.add('open in other pane', other, m)
+  Cmd.add('shell command on file', () => scof(), m)
   Cmd.add('show in folder', showInFolder, m)
+  Em.on('!', 'shell command on file', 'Dir')
   Em.on('M', 'chmod', 'Dir')
   Em.on('=', 'equal', 'Dir')
   Em.on('f', 'show in folder', 'Dir')

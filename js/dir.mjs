@@ -17,7 +17,6 @@ import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
-import * as Scib from './scib.mjs'
 import * as Scroll from './scroll.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
@@ -1029,21 +1028,6 @@ function init
     })
   }
 
-  function scof
-  () {
-    let el
-
-    el = DirCommon.current()
-    if (el && el.dataset.path)
-      Scib.scib(pane => {
-        pane.view.buf.append(' ' + el.dataset.path)
-        //pane.view.point.bufStart() // two points
-        Cmd.runMo('buffer start', 'Ed', 1)
-      })
-    else
-      Mess.say('Move to a file first')
-  }
-
   function mark
   (u, we, remove) {
     let next, set
@@ -1314,7 +1298,6 @@ function init
   Cmd.add('sort by name', () => sortBy('name'), m)
   Cmd.add('sort by size', () => sortBy('size'), m)
   Cmd.add('sort by time', () => sortBy('time'), m)
-  Cmd.add('shell command on file', () => scof(), m)
   Cmd.add('show backups', () => showBak(), m)
   Cmd.add('show hidden', () => showHid(), m)
   Cmd.add('toggle marks', () => toggle(), m)
@@ -1341,7 +1324,6 @@ function init
   Em.on('U', 'clear marks', 'Dir')
   Em.on('w', 'open in web browser', 'Dir')
   Em.on('^', 'up', 'Dir')
-  Em.on('!', 'shell command on file', 'Dir')
   Em.on('+', 'make dir', 'Dir')
   Em.on('Enter', 'select', 'Dir')
   Em.on('A-,', 'top of pane', 'Dir')

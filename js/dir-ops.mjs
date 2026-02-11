@@ -176,13 +176,31 @@ function equal
     Mess.say('Move to a file first')
 }
 
+function showInFolder
+() {
+  let el
+
+  el = DirCommon.current()
+  if (el && el.dataset.path)
+    Tron.cmd('shell.show', [ 'file://' + el.dataset.path ], err => {
+      if (err) {
+        Mess.yell('shell.show: ' + err.message)
+        return
+      }
+    })
+  else
+    Mess.say('Move to a file first')
+}
+
 export
 function init
 (m) {
   Cmd.add('chmod', chmod, m)
   Cmd.add('equal', equal, m)
   Cmd.add('link', link, m)
+  Cmd.add('show in folder', showInFolder, m)
   Em.on('M', 'chmod', 'Dir')
   Em.on('=', 'equal', 'Dir')
+  Em.on('f', 'show in folder', 'Dir')
   Em.on('l', 'link', 'Dir')
 }

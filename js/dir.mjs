@@ -1237,22 +1237,6 @@ function init
     })
   }
 
-  function showInFolder
-  () {
-    let el
-
-    el = DirCommon.current()
-    if (el && el.dataset.path)
-      Tron.cmd('shell.show', [ 'file://' + el.dataset.path ], err => {
-        if (err) {
-          Mess.yell('shell.show: ' + err.message)
-          return
-        }
-      })
-    else
-      Mess.say('Move to a file first')
-  }
-
   function clear
   () {
     let p
@@ -1349,7 +1333,6 @@ function init
   Cmd.add('rename', () => rename(), m)
   Cmd.add('scroll down', () => scrollDown(), m)
   Cmd.add('scroll up', () => scrollDown(1), m)
-  Cmd.add('show in folder', () => showInFolder(), m)
   Cmd.add('sort by name', () => sortBy('name'), m)
   Cmd.add('sort by size', () => sortBy('size'), m)
   Cmd.add('sort by time', () => sortBy('time'), m)
@@ -1366,7 +1349,6 @@ function init
   Em.on('d', 'delete', 'Dir')
   Em.on('e', 'edit', 'Dir')
   Em.on('E', 'edit if supported', 'Dir')
-  Em.on('f', 'show in folder', 'Dir')
   Em.on('g', 'refresh', 'Dir')
   Em.on('m', 'mark', 'Dir')
   Em.on('n', 'next line', 'Dir')

@@ -192,15 +192,28 @@ function showInFolder
     Mess.say('Move to a file first')
 }
 
+function other
+() {
+  let el
+
+  el = DirCommon.current()
+  if (el && el.dataset.path)
+    Pane.nextOrSplit().open(el.dataset.path)
+  else
+    Mess.say('Move to a file first')
+}
+
 export
 function init
 (m) {
   Cmd.add('chmod', chmod, m)
   Cmd.add('equal', equal, m)
   Cmd.add('link', link, m)
+  Cmd.add('open in other pane', other, m)
   Cmd.add('show in folder', showInFolder, m)
   Em.on('M', 'chmod', 'Dir')
   Em.on('=', 'equal', 'Dir')
   Em.on('f', 'show in folder', 'Dir')
   Em.on('l', 'link', 'Dir')
+  Em.on('o', 'open in other pane', 'Dir')
 }

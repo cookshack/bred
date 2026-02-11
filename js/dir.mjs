@@ -1147,17 +1147,6 @@ function init
     nextLine(-u)
   }
 
-  function other
-  () {
-    let el
-
-    el = DirCommon.current()
-    if (el && el.dataset.path)
-      Pane.nextOrSplit().open(el.dataset.path)
-    else
-      Mess.say('Move to a file first')
-  }
-
   function browse
   () {
     let el
@@ -1352,7 +1341,6 @@ function init
   Em.on('g', 'refresh', 'Dir')
   Em.on('m', 'mark', 'Dir')
   Em.on('n', 'next line', 'Dir')
-  Em.on('o', 'open in other pane', 'Dir')
   Em.on('p', 'previous line', 'Dir')
   Em.on('q', 'bury', 'Dir')
   Em.on('r', 'rename', 'Dir')
@@ -1381,7 +1369,6 @@ function init
   Cmd.add('bottom of pane', () => lastVisibleLine(Pane.current().view), m)
   Cmd.add('next line', nextLine, m)
   Cmd.add('previous line', prevLine, m)
-  Cmd.add('open in other pane', () => other(), m)
   Cmd.add('open in web browser', () => browse(), m)
   Cmd.add('open in external web browser', () => extern(), m)
 

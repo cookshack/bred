@@ -203,11 +203,23 @@ function other
     Mess.say('Move to a file first')
 }
 
+function extern
+() {
+  let el
+
+  el = DirCommon.current()
+  if (el && el.dataset.path)
+    Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => err && Mess.yell('shell.open: ' + err.message))
+  else
+    Mess.say('Move to a file first')
+}
+
 export
 function init
 (m) {
   Cmd.add('chmod', chmod, m)
   Cmd.add('equal', equal, m)
+  Cmd.add('open in external web browser', () => extern(), m)
   Cmd.add('link', link, m)
   Cmd.add('open in other pane', other, m)
   Cmd.add('show in folder', showInFolder, m)
@@ -216,4 +228,5 @@ function init
   Em.on('f', 'show in folder', 'Dir')
   Em.on('l', 'link', 'Dir')
   Em.on('o', 'open in other pane', 'Dir')
+  Em.on('W', 'open in external web browser', 'Dir')
 }

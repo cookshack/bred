@@ -749,7 +749,7 @@ function initLog
 
 function initLogOneLine
 () {
-  let mo
+  let mo, buf
 
   function next
   (n) {
@@ -782,11 +782,16 @@ function initLogOneLine
   }
 
   Cmd.add('vc log one-line', () => {
-    let p, buf
+    let p
 
     p = Pane.current()
-    buf = Buf.add('VC Log One-Line', 'VC Log One-Line', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
-    buf.icon = 'log'
+    if (buf)
+      buf.dir = p.dir
+    else {
+      buf = Buf.add('VC Log One-Line', 'VC Log One-Line', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
+      buf.icon = 'log'
+      //buf.addMode("view") // overrides n,p
+    }
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
     //buf.opts.set('core.lang', 'git log')

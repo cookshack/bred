@@ -809,6 +809,7 @@ function initLogOneLine
                                      initFns: Ed.initModeFns,
                                      parentsForEm: 'ed' })
 
+  Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('next commit', () => next(1), mo)
   Cmd.add('previous commit', () => next(-1), mo)
   Cmd.add('show', () => show(), mo)
@@ -817,6 +818,9 @@ function initLogOneLine
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
+  Em.on('g', 'refresh', mo)
+  Em.on('l', 'vc log one-line', mo)
+  Em.on('L', 'vc log', mo)
   Em.on('n', 'next commit', mo)
   Em.on('Tab', 'next commit', mo)
   Em.on('p', 'previous commit', mo)

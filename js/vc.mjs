@@ -638,10 +638,7 @@ function initLog
   }
 
   function refresh
-  () {
-    let p
-
-    p = Pane.current()
+  (p) {
     p.buf.clear()
     Shell.run(p.dir, 'git', [ 'log' ], { buf, end: 1, afterEndPoint: 1 })
   }
@@ -678,7 +675,7 @@ function initLog
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
 
-  Cmd.add('refresh', () => refresh(), mo)
+  Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('next commit', () => next(1), mo)
   Cmd.add('previous commit', () => next(-1), mo)
   Cmd.add('show', () => show(), mo)
@@ -697,8 +694,8 @@ function initLog
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
     buf.opts.set('core.lang', 'git log')
-    p.setBuf(buf, {}, view => {
-      refresh(view)
+    p.setBuf(buf, {}, () => {
+      refresh(p)
     })
   })
 
@@ -751,6 +748,12 @@ function initLogOneLine
 () {
   let mo, buf
 
+  function refresh
+  (p) {
+    p.buf.clear()
+    Shell.run(p.dir, 'git', [ 'log', '--oneline', '--no-decorate' ], { buf, end: 1, afterEndPoint: 1 })
+  }
+
   function next
   (n) {
     let p
@@ -797,8 +800,7 @@ function initLogOneLine
     //buf.opts.set('core.lang', 'git log')
     buf.mode = 'VC Log One-Line'
     p.setBuf(buf, {}, () => {
-      buf.clear()
-      Shell.run(p.dir, 'git', [ 'log', '--oneline', '--no-decorate' ], { buf, end: 1, afterEndPoint: 1 })
+      refresh(p)
     })
   })
 

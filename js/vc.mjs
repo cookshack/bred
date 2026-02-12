@@ -702,22 +702,6 @@ function initLog
     })
   })
 
-  Cmd.add('vc log one-line', () => {
-    let p, buf
-
-    p = Pane.current()
-    buf = Buf.add('VC Log One-Line', 'VC Log One-Line', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
-    buf.icon = 'log'
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('minimap.enabled', 0)
-    //buf.opts.set('core.lang', 'git log')
-    buf.mode = 'VC Log One-Line'
-    p.setBuf(buf, {}, () => {
-      buf.clear()
-      Shell.run(p.dir, 'git', [ 'log', '--oneline', '--no-decorate' ], { buf, end: 1, afterEndPoint: 1 })
-    })
-  })
-
   Cmd.add('vc log search', () => {
     Prompt.ask({ text: 'VC Log Search:',
                  hist },
@@ -796,6 +780,22 @@ function initLogOneLine
     if (hash)
       showHash(hash)
   }
+
+  Cmd.add('vc log one-line', () => {
+    let p, buf
+
+    p = Pane.current()
+    buf = Buf.add('VC Log One-Line', 'VC Log One-Line', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
+    buf.icon = 'log'
+    buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('minimap.enabled', 0)
+    //buf.opts.set('core.lang', 'git log')
+    buf.mode = 'VC Log One-Line'
+    p.setBuf(buf, {}, () => {
+      buf.clear()
+      Shell.run(p.dir, 'git', [ 'log', '--oneline', '--no-decorate' ], { buf, end: 1, afterEndPoint: 1 })
+    })
+  })
 
   mo = Mode.add('VC Log One-Line', { viewInit: Ed.viewInit,
                                      viewCopy: Ed.viewCopy,

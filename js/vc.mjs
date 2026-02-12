@@ -639,12 +639,10 @@ function initLog
 
   function refresh
   () {
-    let p, dir
+    let p
 
     p = Pane.current()
-    dir = Loc.make(p.buf.dir)
-    dir.ensureSlash()
-    dir = dir.path || Loc.home()
+    p.buf.clear()
     Shell.run(p.dir, 'git', [ 'log' ], { buf, end: 1, afterEndPoint: 1 })
   }
 
@@ -680,6 +678,7 @@ function initLog
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
 
+  Cmd.add('refresh', () => refresh(), mo)
   Cmd.add('next commit', () => next(1), mo)
   Cmd.add('previous commit', () => next(-1), mo)
   Cmd.add('show', () => show(), mo)
@@ -699,7 +698,6 @@ function initLog
     buf.opts.set('minimap.enabled', 0)
     buf.opts.set('core.lang', 'git log')
     p.setBuf(buf, {}, view => {
-      buf.clear()
       refresh(view)
     })
   })
@@ -753,6 +751,9 @@ function initLog
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
+  Em.on('g', 'refresh', mo)
+  Em.on('l', 'vc log one-line', mo)
+  Em.on('L', 'vc log', mo)
   Em.on('n', 'next commit', mo)
   Em.on('Tab', 'next commit', mo)
   Em.on('p', 'previous commit', mo)

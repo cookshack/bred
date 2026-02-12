@@ -638,8 +638,14 @@ function initLog
   }
 
   function oneLine
-  () {
-    Cmd.run('vc log one-line')
+  (u, we) {
+    let p
+
+    p = Pane.current()
+    if (p.buf.vars('vc log').search)
+      Cmd.run('vc log search one-line', 0, 1, we, p.buf.vars('vc log').search)
+    else
+      Cmd.run('vc log one-line')
   }
 
   function refresh
@@ -710,29 +716,35 @@ function initLog
     })
   })
 
-  Cmd.add('vc log search', () => {
-    Prompt.ask({ text: 'VC Log Search:',
-                 hist },
-               text => {
-                 if (text && text.trim().length) {
-                   let p, buf
+  Cmd.add('vc log search', (u, we, term) => {
+    function go
+    (text) {
+      if (text && text.trim().length) {
+        let p, buf
 
-                   p = Pane.current()
-                   buf = Buf.add('VC Log: ' + text,
-                                 'VC Log',
-                                 Ed.divW(0, 0, { hideMl: 1 }),
-                                 p.dir)
-                   buf.icon = 'log'
-                   buf.opts.set('core.lint.enabled', 0)
-                   buf.opts.set('minimap.enabled', 0)
-                   buf.opts.set('core.lang', 'git log')
-                   hist.add(text)
-                   buf.vars('vc log').search = text
-                   p.setBuf(buf, {}, () => {
-                     refresh(p)
-                   })
-                 }
-               })
+        p = Pane.current()
+        buf = Buf.add('VC Log: ' + text,
+                      'VC Log',
+                      Ed.divW(0, 0, { hideMl: 1 }),
+                      p.dir)
+        buf.icon = 'log'
+        buf.opts.set('core.lint.enabled', 0)
+        buf.opts.set('minimap.enabled', 0)
+        buf.opts.set('core.lang', 'git log')
+        hist.add(text)
+        buf.vars('vc log').search = text
+        p.setBuf(buf, {}, () => {
+          refresh(p)
+        })
+      }
+    }
+
+    if (term)
+      go(term)
+    else
+      Prompt.ask({ text: 'VC Log Search:',
+                   hist },
+                 go)
   })
 
   hist = Hist.ensure('vc-log-search')
@@ -748,6 +760,7 @@ function initLog
 
   Em.on('g', 'refresh', mo)
   Em.on('l', 'one-line', mo)
+  Em.on('L', 'refresh', mo)
   Em.on('n', 'next commit', mo)
   Em.on('Tab', 'next commit', mo)
   Em.on('p', 'previous commit', mo)
@@ -764,8 +777,14 @@ function initLogOneLine
   let mo, buf
 
   function full
-  () {
-    Cmd.run('vc log')
+  (u, we) {
+    let p
+
+    p = Pane.current()
+    if (p.buf.vars('vc log one-line').search)
+      Cmd.run('vc log search', 0, 1, we, p.buf.vars('vc log one-line').search)
+    else
+      Cmd.run('vc log')
   }
 
   function refresh
@@ -829,29 +848,35 @@ function initLogOneLine
     })
   })
 
-  Cmd.add('vc log search one-line', () => {
-    Prompt.ask({ text: 'VC Log Search:',
-                 hist },
-               text => {
-                 if (text && text.trim().length) {
-                   let p, buf
+  Cmd.add('vc log search one-line', (u, we, term) => {
+    function go
+    (text) {
+      if (text && text.trim().length) {
+        let p, buf
 
-                   p = Pane.current()
-                   buf = Buf.add('VC Log1: ' + text,
-                                 'VC Log One-Line',
-                                 Ed.divW(0, 0, { hideMl: 1 }),
-                                 p.dir)
-                   buf.icon = 'log'
-                   buf.opts.set('core.lint.enabled', 0)
-                   buf.opts.set('minimap.enabled', 0)
-                   //buf.opts.set('core.lang', 'git log')
-                   hist.add(text)
-                   buf.vars('vc log one-line').search = text
-                   p.setBuf(buf, {}, () => {
-                     refresh(p)
-                   })
-                 }
-               })
+        p = Pane.current()
+        buf = Buf.add('VC Log1: ' + text,
+                      'VC Log One-Line',
+                      Ed.divW(0, 0, { hideMl: 1 }),
+                      p.dir)
+        buf.icon = 'log'
+        buf.opts.set('core.lint.enabled', 0)
+        buf.opts.set('minimap.enabled', 0)
+        //buf.opts.set('core.lang', 'git log')
+        hist.add(text)
+        buf.vars('vc log one-line').search = text
+        p.setBuf(buf, {}, () => {
+          refresh(p)
+        })
+      }
+    }
+
+    if (term)
+      go(term)
+    else
+      Prompt.ask({ text: 'VC Log Search:',
+                   hist },
+                 go)
   })
 
   mo = Mode.add('VC Log One-Line', { viewInit: Ed.viewInit,
@@ -859,7 +884,7 @@ function initLogOneLine
                                      initFns: Ed.initModeFns,
                                      parentsForEm: 'ed' })
 
-  Cmd.add('one-line', () => full(Pane.current()), mo)
+  Cmd.add('full', () => full(Pane.current()), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('next commit', () => next(1), mo)
   Cmd.add('previous commit', () => next(-1), mo)
@@ -870,8 +895,8 @@ function initLogOneLine
   Em.on(' ', 'scroll down', mo)
 
   Em.on('g', 'refresh', mo)
-  Em.on('l', 'vc log one-line', mo)
-  Em.on('L', 'vc log', mo)
+  Em.on('l', 'refresh', mo)
+  Em.on('L', 'full', mo)
   Em.on('n', 'next commit', mo)
   Em.on('Tab', 'next commit', mo)
   Em.on('p', 'previous commit', mo)

@@ -637,10 +637,20 @@ function initLog
     Cmd.run('line start')
   }
 
+  function oneLine
+  () {
+    Cmd.run('vc log one-line')
+  }
+
   function refresh
   (p) {
+    let args
+
+    args = [ 'log' ]
     p.buf.clear()
-    Shell.run(p.dir, 'git', [ 'log' ], { buf, end: 1, afterEndPoint: 1 })
+    if (p.buf.vars('vc log').search)
+      args = [ ...args, '-S', p.buf.vars('vc log').search ]
+    Shell.run(p.dir, 'git', args, { buf: p.buf, end: 1, afterEndPoint: 1 })
   }
 
   function show
@@ -675,6 +685,7 @@ function initLog
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
 
+  Cmd.add('one-line', () => oneLine(Pane.current()), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('next commit', () => next(1), mo)
   Cmd.add('previous commit', () => next(-1), mo)
@@ -707,15 +718,18 @@ function initLog
                    let p, buf
 
                    p = Pane.current()
-                   buf = Buf.add('VC Log: ' + text, 'VC Log', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
+                   buf = Buf.add('VC Log: ' + text,
+                                 'VC Log',
+                                 Ed.divW(0, 0, { hideMl: 1 }),
+                                 p.dir)
                    buf.icon = 'log'
                    buf.opts.set('core.lint.enabled', 0)
                    buf.opts.set('minimap.enabled', 0)
                    buf.opts.set('core.lang', 'git log')
                    hist.add(text)
+                   buf.vars('vc log').search = text
                    p.setBuf(buf, {}, () => {
-                     buf.clear()
-                     Shell.run(p.dir, 'git', [ 'log', '-S', text ], { buf, end: 1, afterEndPoint: 1 })
+                     refresh(p)
                    })
                  }
                })
@@ -733,8 +747,7 @@ function initLog
   Em.on(' ', 'scroll down', mo)
 
   Em.on('g', 'refresh', mo)
-  Em.on('l', 'vc log one-line', mo)
-  Em.on('L', 'vc log', mo)
+  Em.on('l', 'one-line', mo)
   Em.on('n', 'next commit', mo)
   Em.on('Tab', 'next commit', mo)
   Em.on('p', 'previous commit', mo)
@@ -742,16 +755,28 @@ function initLog
   Em.on('e', 'show', mo)
   Em.on('Enter', 'show', mo)
   Em.on('=', 'show', mo)
+
+  return hist
 }
 
 function initLogOneLine
-() {
+(hist) {
   let mo, buf
+
+  function full
+  () {
+    Cmd.run('vc log')
+  }
 
   function refresh
   (p) {
+    let args
+
+    args = [ 'log', '--oneline', '--no-decorate' ]
     p.buf.clear()
-    Shell.run(p.dir, 'git', [ 'log', '--oneline', '--no-decorate' ], { buf, end: 1, afterEndPoint: 1 })
+    if (p.buf.vars('vc log one-line').search)
+      args = [ ...args, '-S', p.buf.vars('vc log one-line').search ]
+    Shell.run(p.dir, 'git', args, { buf: p.buf, end: 1, afterEndPoint: 1 })
   }
 
   function next
@@ -804,11 +829,37 @@ function initLogOneLine
     })
   })
 
+  Cmd.add('vc log search one-line', () => {
+    Prompt.ask({ text: 'VC Log Search:',
+                 hist },
+               text => {
+                 if (text && text.trim().length) {
+                   let p, buf
+
+                   p = Pane.current()
+                   buf = Buf.add('VC Log1: ' + text,
+                                 'VC Log One-Line',
+                                 Ed.divW(0, 0, { hideMl: 1 }),
+                                 p.dir)
+                   buf.icon = 'log'
+                   buf.opts.set('core.lint.enabled', 0)
+                   buf.opts.set('minimap.enabled', 0)
+                   //buf.opts.set('core.lang', 'git log')
+                   hist.add(text)
+                   buf.vars('vc log one-line').search = text
+                   p.setBuf(buf, {}, () => {
+                     refresh(p)
+                   })
+                 }
+               })
+  })
+
   mo = Mode.add('VC Log One-Line', { viewInit: Ed.viewInit,
                                      viewCopy: Ed.viewCopy,
                                      initFns: Ed.initModeFns,
                                      parentsForEm: 'ed' })
 
+  Cmd.add('one-line', () => full(Pane.current()), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('next commit', () => next(1), mo)
   Cmd.add('previous commit', () => next(-1), mo)
@@ -1297,8 +1348,7 @@ function init
   initClrs()
   initAnnotate()
   initCommit()
-  initLog()
-  initLogOneLine()
+  initLogOneLine(initLog())
   initLogBadIdea()
   initEqual()
   initStash()
@@ -1327,9 +1377,10 @@ function init
   Em.on('C-x v o', 'vc stash pop')
   Em.on('C-x v p', 'vc push')
   Em.on('C-x v r', 'vc reset')
-  Em.on('C-x v s', 'vc status')
+  Em.on('C-x v s', 'vc log search one-line')
   Em.on('C-x v S', 'vc log search')
   Em.on('C-x v u', 'vc pull')
+  Em.on('C-x v v', 'vc status')
   Em.on('C-x v w', 'vc stash')
   Em.on('C-x v =', 'vc equal')
 }

@@ -616,7 +616,7 @@ function showHash
 
 function initLog
 () {
-  let mo, buf
+  let mo, buf, hist
 
   function next
   (n) {
@@ -722,8 +722,7 @@ function initLog
 
   Cmd.add('vc log search', () => {
     Prompt.ask({ text: 'VC Log Search:',
-                 placeholder: '',
-                 hist: Hist.ensure('vc-log-search') },
+                 hist },
                text => {
                  if (text && text.trim().length) {
                    let p, buf
@@ -734,6 +733,7 @@ function initLog
                    buf.opts.set('core.lint.enabled', 0)
                    buf.opts.set('minimap.enabled', 0)
                    buf.opts.set('core.lang', 'git log')
+                   hist.add(text)
                    p.setBuf(buf, {}, () => {
                      buf.clear()
                      Shell.run(p.dir, 'git', [ 'log', '-S', text ], { buf, end: 1, afterEndPoint: 1 })
@@ -741,6 +741,8 @@ function initLog
                  }
                })
   })
+
+  hist = Hist.ensure('vc-log-search')
 
   Cmd.add('click', click, mo)
 

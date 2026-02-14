@@ -791,7 +791,6 @@ function init
                     return
                   }
                   Mess.say('Deleted dir ' + el.dataset.path)
-                  refreshKeep(p)
                 })
               })
               return
@@ -801,7 +800,6 @@ function init
             return
           }
           Mess.say('Deleted ' + (dir ? 'dir' : 'file') + ' ' + el.dataset.path)
-          refreshKeep(p)
         }))
     }
     else

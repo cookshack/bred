@@ -730,16 +730,6 @@ function init
       el.scrollBy(0, (el.clientHeight / 2) * (up ? -1 : 1))
   }
 
-  function placeholder
-  (p, from) {
-    let next
-
-    next = p.next
-    if (next
-        && (next.buf?.mode.key == 'dir'))
-      return Loc.make(next.buf.path).join(Loc.make(from).filename)
-  }
-
   function delMarked
   (dir, marked) {
     let list
@@ -806,88 +796,6 @@ function init
     }
     else
       Mess.say('Move to a file first')
-  }
-
-  function renameMarked
-  (dir, marked) {
-    let list
-
-    list = DirCommon.under(dir, marked)
-    Prompt.ask({ text: 'Move these files to',
-                 hist,
-                 under: divCl('float-files', list.divs) },
-               dest => {
-                 let absDest
-
-                 hist.add(dest)
-
-                 absDest = DirCommon.abs(dest, dir)
-                 Tron.cmd('file.mv', [ list.paths.map(p => p.path), absDest ], err => {
-                   if (err) {
-                     Mess.yell('file.mv: ' + err.message)
-                     return
-                   }
-                 })
-               })
-  }
-
-  function rename
-  () {
-    let p, marked
-
-    function run
-    (from, to, dir) {
-      d('run from: ' + from)
-      to = DirCommon.abs(to, dir)
-      from = DirCommon.abs(from, dir)
-      hist.add(to)
-      Tron.cmd('file.mv', [ from, to ], err => {
-        if (err?.exists) {
-          Prompt.yn('File exists. Overwrite?',
-                    { icon: 'warning' },
-                    yes => {
-                      if (yes)
-                        Tron.cmd('file.mv', [ from, to, { overwrite: 1 } ], err => {
-                          if (err) {
-                            Mess.yell('file.mv: ' + err.message)
-                            return
-                          }
-                          Mess.say(from + ' ⮞ ' + to)
-                        })
-                    })
-          return
-        }
-        if (err) {
-          Mess.yell('file.mv: ' + err.message)
-          return
-        }
-        Mess.say(from + ' ⮞ ' + to)
-      })
-    }
-
-    p = Pane.current()
-    marked = DirCommon.getMarked(p.buf)
-    if (marked.length) {
-      renameMarked(Loc.make(p.dir).ensureSlash(), marked)
-      return
-    }
-    else {
-      let el, file
-
-      el = DirCommon.current()
-      if (el && el.dataset.path)
-        file = el.dataset.path
-      else {
-        Mess.say('Move to a file first')
-        return
-      }
-
-      d({ file })
-      Prompt.ask({ text: 'Rename to:',
-                   placeholder: placeholder(p, file),
-                   hist },
-                 name => run(file, name, p.dir))
-    }
   }
 
   function mark
@@ -1153,7 +1061,6 @@ function init
     p = Pane.current()
     refreshKeep(p, { file: currentFile(p) })
   }, m)
-  Cmd.add('rename', () => rename(), m)
   Cmd.add('scroll down', () => scrollDown(), m)
   Cmd.add('scroll up', () => scrollDown(1), m)
   Cmd.add('sort by name', () => sortBy('name'), m)
@@ -1174,7 +1081,6 @@ function init
   Em.on('n', 'next line', 'Dir')
   Em.on('p', 'previous line', 'Dir')
   Em.on('q', 'bury', 'Dir')
-  Em.on('r', 'rename', 'Dir')
   Em.on('t', 'toggle marks', 'Dir')
   Em.on('u', 'unmark', 'Dir')
   Em.on('v', 'view', 'Dir')

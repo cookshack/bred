@@ -13,6 +13,16 @@ import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
+function placeholder
+(p, from) {
+  let next
+
+  next = p.next
+  if (next
+      && (next.buf?.mode.key == 'dir'))
+    return Loc.make(next.buf.path).join(Loc.make(from).filename)
+}
+
 function chmodMarked
 (dir, marked) {
   let hist, list
@@ -363,7 +373,93 @@ function copy
     }
 
     Prompt.ask({ text: 'Copy to:',
-                 placeholder: file,
+                 placeholder: placeholder(p, file),
+                 hist },
+               name => run(file, name, p.dir))
+  }
+}
+
+export
+function rename
+() {
+  let p, marked, hist
+
+  p = Pane.current()
+  hist = p.buf.vars('dir').hist
+
+  function renameMarked
+  (dir, marked) {
+    let list
+
+    list = DirCommon.under(dir, marked)
+    Prompt.ask({ text: 'Move these files to',
+                 hist,
+                 under: divCl('float-files', list.divs) },
+               dest => {
+                 let absDest
+
+                 hist.add(dest)
+
+                 absDest = DirCommon.abs(dest, dir)
+                 Tron.cmd('file.mv', [ list.paths.map(p => p.path), absDest ], err => {
+                   if (err) {
+                     Mess.yell('file.mv: ' + err.message)
+                     return
+                   }
+                 })
+               })
+  }
+
+  function run
+  (from, to, dir) {
+    d('run from: ' + from)
+    to = DirCommon.abs(to, dir)
+    from = DirCommon.abs(from, dir)
+    hist.add(to)
+    Tron.cmd('file.mv', [ from, to ], err => {
+      if (err?.exists) {
+        Prompt.yn('File exists. Overwrite?',
+                  { icon: 'warning' },
+                  yes => {
+                    if (yes)
+                      Tron.cmd('file.mv', [ from, to, { overwrite: 1 } ], err => {
+                        if (err) {
+                          Mess.yell('file.mv: ' + err.message)
+                          return
+                        }
+                        Mess.say(from + ' ⮞ ' + to)
+                      })
+                  })
+        return
+      }
+      if (err) {
+        Mess.yell('file.mv: ' + err.message)
+        return
+      }
+      Mess.say(from + ' ⮞ ' + to)
+    })
+  }
+
+  p = Pane.current()
+  marked = DirCommon.getMarked(p.buf)
+  if (marked.length) {
+    renameMarked(Loc.make(p.dir).ensureSlash(), marked)
+    return
+  }
+  else {
+    let el, file
+
+    el = DirCommon.current()
+    if (el && el.dataset.path)
+      file = el.dataset.path
+    else {
+      Mess.say('Move to a file first')
+      return
+    }
+
+    d({ file })
+    Prompt.ask({ text: 'Rename to:',
+                 placeholder: placeholder(p, file),
                  hist },
                name => run(file, name, p.dir))
   }
@@ -378,6 +474,7 @@ function init
   Cmd.add('open in external web browser', () => extern(), m)
   Cmd.add('link', link, m)
   Cmd.add('open in other pane', other, m)
+  Cmd.add('rename', rename, m)
   Cmd.add('shell command on file', () => scof(), m)
   Cmd.add('show in folder', showInFolder, m)
   Cmd.add('touch', touch, m)
@@ -388,6 +485,7 @@ function init
   Em.on('f', 'show in folder', 'Dir')
   Em.on('l', 'link', 'Dir')
   Em.on('o', 'open in other pane', 'Dir')
+  Em.on('r', 'rename', 'Dir')
   Em.on('W', 'open in external web browser', 'Dir')
   Em.on('T', 'touch', 'Dir')
 }

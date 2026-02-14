@@ -230,6 +230,39 @@ function scof
 }
 
 export
+function touch
+() {
+  let p, marked, files, dir
+
+  p = Pane.current()
+  marked = DirCommon.getMarked(p.buf)
+  dir = Loc.make(p.dir).ensureSlash()
+  if (marked.length)
+    files = marked.map(m => Loc.make(dir).join(m.name))
+  else {
+    let el
+
+    el = DirCommon.current(p)
+    if (el && el.dataset.path)
+      files = [ el.dataset.path ]
+    else {
+      Mess.say('Move to a file first')
+      return
+    }
+  }
+  Tron.cmd('file.touch', files, err => {
+    if (err) {
+      Mess.yell('Error touching: ' + err.message)
+      return
+    }
+    if (files.length > 1)
+      Mess.say('Touched files')
+    else
+      Mess.say('Touched file ' + files[0])
+  })
+}
+
+export
 function init
 (m) {
   Cmd.add('chmod', chmod, m)
@@ -239,6 +272,7 @@ function init
   Cmd.add('open in other pane', other, m)
   Cmd.add('shell command on file', () => scof(), m)
   Cmd.add('show in folder', showInFolder, m)
+  Cmd.add('touch', touch, m)
   Em.on('!', 'shell command on file', 'Dir')
   Em.on('M', 'chmod', 'Dir')
   Em.on('=', 'equal', 'Dir')
@@ -246,4 +280,5 @@ function init
   Em.on('l', 'link', 'Dir')
   Em.on('o', 'open in other pane', 'Dir')
   Em.on('W', 'open in external web browser', 'Dir')
+  Em.on('T', 'touch', 'Dir')
 }

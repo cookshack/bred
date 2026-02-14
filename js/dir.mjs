@@ -993,38 +993,6 @@ function init
     }
   }
 
-  function touch
-  () {
-    let p, marked, files, dir
-
-    p = Pane.current()
-    marked = DirCommon.getMarked(p.buf)
-    dir = Loc.make(p.dir).ensureSlash()
-    if (marked.length)
-      files = marked.map(m => Loc.make(dir).join(m.name))
-    else {
-      let el
-
-      el = DirCommon.current(p)
-      if (el && el.dataset.path)
-        files = [ el.dataset.path ]
-      else {
-        Mess.say('Move to a file first')
-        return
-      }
-    }
-    Tron.cmd('file.touch', files, err => {
-      if (err) {
-        Mess.yell('Error touching: ' + err.message)
-        return
-      }
-      if (files.length > 1)
-        Mess.say('Touched files')
-      else
-        Mess.say('Touched file ' + files[0])
-    })
-  }
-
   function mark
   (u, we, remove) {
     let next, set
@@ -1298,7 +1266,6 @@ function init
   Cmd.add('show backups', () => showBak(), m)
   Cmd.add('show hidden', () => showHid(), m)
   Cmd.add('toggle marks', () => toggle(), m)
-  Cmd.add('touch', () => touch(), m)
   Cmd.add('unmark', (u, we) => mark(u, we, 1), m)
   Cmd.add('up', () => up(), m)
   Cmd.add('view', () => view(), m)
@@ -1317,7 +1284,6 @@ function init
   Em.on('u', 'unmark', 'Dir')
   Em.on('v', 'view', 'Dir')
   Em.on('D', 'delete', 'Dir')
-  Em.on('T', 'touch', 'Dir')
   Em.on('U', 'clear marks', 'Dir')
   Em.on('w', 'open in web browser', 'Dir')
   Em.on('^', 'up', 'Dir')

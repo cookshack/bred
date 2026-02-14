@@ -784,48 +784,6 @@ function init
       Mess.yell('Move to a file line first')
   }
 
-  function edit
-  () {
-    let el
-
-    el = DirCommon.current()
-    if (el && el.dataset.path)
-      Pane.open(el.dataset.path)
-    else
-      Mess.say('Move to a file first')
-  }
-
-  function editIfSupported
-  () {
-    let el
-
-    el = DirCommon.current()
-    if (el && el.dataset.path) {
-      if (el.dataset.type == 'd') {
-        Pane.open(el.dataset.path)
-        return
-      }
-      if (el.dataset.path.includes('.')) {
-        let ext, mtype
-
-        ext = el.dataset.path.slice(el.dataset.path.lastIndexOf('.') + 1)
-        mtype = Ed.mtypeFromExt(ext)
-        if (mtype && Ed.supports(mtype)) {
-          Pane.open(el.dataset.path)
-          return
-        }
-      }
-      Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => {
-        if (err) {
-          Mess.yell('shell.open: ' + err.message)
-          return
-        }
-      })
-    }
-    else
-      Mess.say('Move to a file first')
-  }
-
   function prevLine
   (u) {
     u = u || 1
@@ -982,8 +940,6 @@ function init
   Cmd.add('buffer start', () => scrollBottom(1), m)
   Cmd.add('buffer end', () => scrollBottom(), m)
   Cmd.add('clear marks', () => clear(), m)
-  Cmd.add('edit', () => edit(), m)
-  Cmd.add('edit if supported', () => editIfSupported(), m)
   Cmd.add('mark', mark, m)
   Cmd.add('refresh', () => {
     let p
@@ -1003,8 +959,6 @@ function init
   Cmd.add('up', () => up(), m)
   Cmd.add('view', () => view(), m)
 
-  Em.on('e', 'edit', 'Dir')
-  Em.on('E', 'edit if supported', 'Dir')
   Em.on('g', 'refresh', 'Dir')
   Em.on('m', 'mark', 'Dir')
   Em.on('n', 'next line', 'Dir')

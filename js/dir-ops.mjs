@@ -535,11 +535,57 @@ function delMarked
 }
 
 export
+function edit
+() {
+  let el
+
+  el = DirCommon.current()
+  if (el && el.dataset.path)
+    Pane.open(el.dataset.path)
+  else
+    Mess.say('Move to a file first')
+}
+
+export
+function editIfSupported
+() {
+  let el
+
+  el = DirCommon.current()
+  if (el && el.dataset.path) {
+    if (el.dataset.type == 'd') {
+      Pane.open(el.dataset.path)
+      return
+    }
+    if (el.dataset.path.includes('.')) {
+      let ext, mtype
+
+      ext = el.dataset.path.slice(el.dataset.path.lastIndexOf('.') + 1)
+      mtype = Ed.mtypeFromExt(ext)
+      if (mtype && Ed.supports(mtype)) {
+        Pane.open(el.dataset.path)
+        return
+      }
+    }
+    Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => {
+      if (err) {
+        Mess.yell('shell.open: ' + err.message)
+        return
+      }
+    })
+  }
+  else
+    Mess.say('Move to a file first')
+}
+
+export
 function init
 (m) {
   Cmd.add('chmod', chmod, m)
   Cmd.add('copy file', copy, m)
   Cmd.add('delete', del, m)
+  Cmd.add('edit', edit, m)
+  Cmd.add('edit if supported', editIfSupported, m)
   Cmd.add('equal', equal, m)
   Cmd.add('open in external web browser', () => extern(), m)
   Cmd.add('link', link, m)
@@ -550,6 +596,8 @@ function init
   Cmd.add('touch', touch, m)
   Em.on('!', 'shell command on file', 'Dir')
   Em.on('c', 'copy file', 'Dir')
+  Em.on('e', 'edit', 'Dir')
+  Em.on('E', 'edit if supported', 'Dir')
   Em.on('M', 'chmod', 'Dir')
   Em.on('=', 'equal', 'Dir')
   Em.on('f', 'show in folder', 'Dir')

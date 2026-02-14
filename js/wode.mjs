@@ -1975,6 +1975,24 @@ function sortLines
 }
 
 export
+function sortRegion
+() {
+  let p, region, from, to, lines, sorted
+
+  p = Pane.current()
+  region = regionRange(p.view)
+  from = region.from
+  to = region.to
+  if (from == to) {
+    sortLines()
+    return
+  }
+  lines = p.view.ed.state.sliceDoc(from, to).split('\n')
+  sorted = lines.sort((a, b) => a.localeCompare(b))
+  p.view.ed.dispatch({ changes: { from, to, insert: sorted.join('\n') } })
+}
+
+export
 function insertTwoSpaces() {
   vinsert1(Pane.current().view, 1, '  ')
 }

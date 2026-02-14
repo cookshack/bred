@@ -239,12 +239,15 @@ function init
 
           el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
           if (el) {
-            let mdEd
+            let textEl, mdEd
 
-            mdEd = makeMarkdownEd(text)
-            withScroll(w, () => el.firstElementChild.nextElementSibling.replaceWith(mdEd.el))
-            view.vars('code').eds = view.vars('code').eds || []
-            view.vars('code').eds.push(mdEd.ed)
+            textEl = el.querySelector('.code-msg-text')
+            if (textEl) {
+              mdEd = makeMarkdownEd(text)
+              withScroll(w, () => textEl.replaceWith(mdEd.el))
+              view.vars('code').eds = view.vars('code').eds || []
+              view.vars('code').eds.push(mdEd.ed)
+            }
             return
           }
         }
@@ -908,6 +911,27 @@ function init
     }
   }
 
+  function handlePartDelta
+  (buf, event) {
+    let delta, field, msgEl, textEl
+
+    delta = event.properties.delta
+    field = event.properties.field
+    buf.views.forEach(view => {
+      if (view.eleOrReserved) {
+        let w
+
+        w = view.eleOrReserved.querySelector('.code-w')
+        msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
+        if (msgEl) {
+          textEl = msgEl.querySelector('.code-msg-text')
+          if (textEl && field == 'text')
+            textEl.innerText = (textEl.innerText || '') + delta
+        }
+      }
+    })
+  }
+
   function handleEvent
   (buf, event) {
     let sessionID
@@ -970,6 +994,12 @@ function init
     if ((event.type == 'message.part.updated')
         && (event.properties.part.sessionID == sessionID)) {
       handlePart(buf, event)
+      return
+    }
+
+    if ((event.type == 'message.part.delta')
+        && (event.properties.sessionID == sessionID)) {
+      handlePartDelta(buf, event)
       return
     }
 

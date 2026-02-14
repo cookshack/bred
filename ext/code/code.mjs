@@ -281,13 +281,8 @@ function init
           last = msgs[msgs.length - 1]
           if (Css.has(last, 'code-msg-tool'))
             lastIsUser = 1
-          else {
-            let msg
-
-            msg = msgs[msgs.length - 1].querySelector('.code-msg')
-            if (Css.has(msg, 'code-msg-user'))
-              lastIsUser = 1
-          }
+          else if (Css.has(last, 'code-msg-user'))
+            lastIsUser = 1
         }
         if (lastIsUser)
           el = 0

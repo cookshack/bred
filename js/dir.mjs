@@ -1024,7 +1024,6 @@ function init
         Mess.say('Touched files')
       else
         Mess.say('Touched file ' + files[0])
-      refreshKeep(p)
     })
   }
 

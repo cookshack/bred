@@ -239,12 +239,14 @@ function init
 
           el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
           if (el) {
-            let textEl, mdEd
+            let oldMdEl
 
-            textEl = el.querySelector('.code-msg-text')
-            if (textEl) {
+            oldMdEl = el.querySelector('.code-markdown-ed')
+            if (oldMdEl) {
+              let mdEd
+
               mdEd = makeMarkdownEd(text)
-              withScroll(w, () => textEl.replaceWith(mdEd.el))
+              withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
               view.vars('code').eds = view.vars('code').eds || []
               view.vars('code').eds.push(mdEd.ed)
             }

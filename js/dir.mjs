@@ -1,6 +1,5 @@
 import { button, div, divCl, span, img } from './dom.mjs'
 
-import * as Browse from './browse.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
@@ -790,17 +789,6 @@ function init
     nextLine(-u)
   }
 
-  function browse
-  () {
-    let el
-
-    el = DirCommon.current()
-    if (el && el.dataset.path)
-      Browse.browse('file://' + el.dataset.path)
-    else
-      Mess.say('Move to a file first')
-  }
-
   function toggle
   () {
     let p, old, marked, lines
@@ -969,7 +957,6 @@ function init
   Em.on('v', 'view', 'Dir')
   Em.on('D', 'delete', 'Dir')
   Em.on('U', 'clear marks', 'Dir')
-  Em.on('w', 'open in web browser', 'Dir')
   Em.on('^', 'up', 'Dir')
   Em.on('+', 'make dir', 'Dir')
   Em.on('Enter', 'select', 'Dir')
@@ -986,7 +973,6 @@ function init
   Cmd.add('bottom of pane', () => lastVisibleLine(Pane.current().view), m)
   Cmd.add('next line', nextLine, m)
   Cmd.add('previous line', prevLine, m)
-  Cmd.add('open in web browser', () => browse(), m)
 
   Cmd.add('home', () => add(Pane.current(), ':'))
   Cmd.add('root', () => add(Pane.current(), '/'))

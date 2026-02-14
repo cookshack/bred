@@ -1,4 +1,5 @@
 import { div, divCl, span } from './dom.mjs'
+import * as Browse from './browse.mjs'
 import * as Cmd from './cmd.mjs'
 import * as DirCommon from './dir-common.mjs'
 import * as Ed from './ed.mjs'
@@ -221,6 +222,17 @@ function extern
   el = DirCommon.current()
   if (el && el.dataset.path)
     Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => err && Mess.yell('shell.open: ' + err.message))
+  else
+    Mess.say('Move to a file first')
+}
+
+function browse
+() {
+  let el
+
+  el = DirCommon.current()
+  if (el && el.dataset.path)
+    Browse.browse('file://' + el.dataset.path)
   else
     Mess.say('Move to a file first')
 }
@@ -590,6 +602,7 @@ function init
   Cmd.add('link', link, m)
   Cmd.add('open in external web browser', () => extern(), m)
   Cmd.add('open in other pane', other, m)
+  Cmd.add('open in web browser', () => browse(), m)
   Cmd.add('rename', rename, m)
   Cmd.add('shell command on file', () => scof(), m)
   Cmd.add('show in folder', showInFolder, m)
@@ -607,4 +620,5 @@ function init
   Em.on('r', 'rename', 'Dir')
   Em.on('T', 'touch', 'Dir')
   Em.on('W', 'open in external web browser', 'Dir')
+  Em.on('w', 'open in web browser', 'Dir')
 }

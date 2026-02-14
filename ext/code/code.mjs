@@ -24,6 +24,7 @@ import { modeFor } from '../../js/wode-mode.mjs'
 import { themeExtension } from '../../js/wode-theme.mjs'
 
 import * as OpenCode from './lib/opencode.js'
+import VopenCode from './lib/version.json' with { type: 'json' }
 
 export
 function init
@@ -442,17 +443,23 @@ function init
   }
 
   function updateBufStatus
-  (buf, co, tokenInfo) {
+  (buf, co, tokenInfo, versionInfo) {
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
-        let underW, statusEl, tokenEl
+        let underW, statusEl, versionEl, tokenEl
 
         underW = view.eleOrReserved.querySelector('.code-under-w')
         if (underW) {
           statusEl = underW.querySelector('.code-under-status')
+          versionEl = underW.querySelector('.code-under-version')
           tokenEl = underW.querySelector('.code-under-tokens')
           if (statusEl)
             statusEl.innerHTML = co
+          if (versionEl)
+            if (versionInfo)
+              versionEl.innerText = versionInfo
+            else
+              versionEl.innerText = ''
           if (tokenEl)
             if (tokenInfo)
               tokenEl.innerText = tokenInfo
@@ -465,7 +472,7 @@ function init
 
   function updateIdle
   (buf, tokenInfo) {
-    updateBufStatus(buf, 'OK', tokenInfo)
+    updateBufStatus(buf, 'OK', tokenInfo, VopenCode.version)
     if (buf.vars('code').agentStopped) {
       buf.vars('code').agentStopped = 0
       appendMsg(buf, 0, '...stopped')
@@ -480,11 +487,11 @@ function init
     d({ tokenInfo })
 
     if (req.status?.type == 'busy')
-      updateBufStatus(buf, '🌊', tokenInfo)
+      updateBufStatus(buf, '🌊', tokenInfo, VopenCode.version)
     else if (req.status?.type == 'idle')
       updateIdle(buf, tokenInfo)
     else if (req.status?.type == 'retry')
-      updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), tokenInfo)
+      updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), tokenInfo, VopenCode.version)
     else if (req.status?.type)
       d('🌱 TODO status: ' + req.status?.type)
   }
@@ -973,7 +980,7 @@ function init
     }
 
     if (event.type == 'server.connected') {
-      updateBufStatus(buf, 'OK', '') // clears the CONNECTED after reconnect
+      updateBufStatus(buf, 'OK', '', VopenCode.version) // clears the CONNECTED after reconnect
       return
     }
 
@@ -1009,7 +1016,7 @@ function init
         return
       }
 
-      updateBufStatus(buf, '🔁 CONNECTED', '')
+      updateBufStatus(buf, '🔁 CONNECTED', '', VopenCode.version)
 
       while (state.streamActive) {
         let timeoutMs, timeoutPromise, result
@@ -1087,6 +1094,7 @@ function init
                            divCl('code-under-w',
                                  [ divCl('code-under code-under-status', '...'),
                                    divCl('code-under code-under-credits', ''),
+                                   divCl('code-under code-under-version', ''),
                                    divCl('code-under code-under-tokens', '') ]) ]) ])
   }
 
@@ -1351,7 +1359,7 @@ function init
 
         fromUnderW = fromW.querySelector('.code-under-w')
         if (fromUnderW) {
-          let statusEl, tokensEl
+          let statusEl, versionEl, tokensEl
 
           statusEl = toUnderW.querySelector('.code-under-status')
           if (statusEl) {
@@ -1360,6 +1368,14 @@ function init
             fromStatus = fromUnderW.querySelector('.code-under-status')
             if (fromStatus)
               statusEl.innerHTML = fromStatus.innerHTML
+          }
+          versionEl = toUnderW.querySelector('.code-under-version')
+          if (versionEl) {
+            let fromVersion
+
+            fromVersion = fromUnderW.querySelector('.code-under-version')
+            if (fromVersion)
+              versionEl.innerText = fromVersion.innerText
           }
           tokensEl = toUnderW.querySelector('.code-under-tokens')
           if (tokensEl) {

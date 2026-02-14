@@ -187,6 +187,10 @@ div.code-thought:hover {
   margin-right: 0.5rem;
 }
 
+.code-under-version {
+  margin-right: 0.5rem;
+}
+
 .code-patch-ed {
   font-family: var(--font-monospace);
   overflow: hidden;

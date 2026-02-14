@@ -3,3 +3,5 @@
 mkdir -p lib/
 cp node_modules/@opencode-ai/sdk/dist/v2/client.js lib/opencode.js
 cp -r node_modules/@opencode-ai/sdk/dist/v2/gen lib/gen
+VERSION=$(cat node_modules/@opencode-ai/sdk/package.json | grep '"version"' | head -1 | sed 's/.*: *"\([^"]*\)".*/\1/')
+echo "{ \"version\": \"$VERSION\" }" > lib/version.json

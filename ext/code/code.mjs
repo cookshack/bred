@@ -799,8 +799,7 @@ function init
         if (path) {
           d('CO edit file: ' + path)
           appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, 0,
-                                                    { input: part.state.input }),
-                        '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString)
+                                                    { input: part.state.input }))
         }
       }
       else if (part.tool == 'edit' && status == 'completed') {

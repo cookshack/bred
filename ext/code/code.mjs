@@ -913,7 +913,7 @@ function init
 
   function handlePartDelta
   (buf, event) {
-    let delta, field, msgEl, textEl
+    let delta, field, msgEl, textEl, thinkingEls
 
     delta = event.properties.delta
     field = event.properties.field
@@ -926,6 +926,15 @@ function init
         if (msgEl) {
           textEl = msgEl.querySelector('.code-msg-text')
           if (textEl && field == 'text')
+            textEl.innerText = (textEl.innerText || '') + delta
+        }
+        thinkingEls = w.querySelectorAll('.code-msg-thinking')
+        if (thinkingEls.length > 0 && field == 'text') {
+          let lastThinking
+
+          lastThinking = thinkingEls[thinkingEls.length - 1]
+          textEl = lastThinking.querySelector('.code-msg-text')
+          if (textEl)
             textEl.innerText = (textEl.innerText || '') + delta
         }
       }

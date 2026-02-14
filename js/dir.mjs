@@ -957,7 +957,6 @@ function init
   Em.on('v', 'view', 'Dir')
   Em.on('U', 'clear marks', 'Dir')
   Em.on('^', 'up', 'Dir')
-  Em.on('+', 'make dir', 'Dir')
   Em.on('Enter', 'select', 'Dir')
   Em.on('A-,', 'top of pane', 'Dir')
   Em.on('A-.', 'bottom of pane', 'Dir')

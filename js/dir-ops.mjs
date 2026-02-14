@@ -609,6 +609,7 @@ function init
   Cmd.add('touch', touch, m)
   Em.on('!', 'shell command on file', 'Dir')
   Em.on('=', 'equal', 'Dir')
+  Em.on('+', 'make dir', 'Dir')
   Em.on('c', 'copy file', 'Dir')
   Em.on('d', 'delete', 'Dir')
   Em.on('D', 'delete', 'Dir')

@@ -263,9 +263,117 @@ function touch
 }
 
 export
+function copy
+() {
+  let p, marked, hist
+
+  p = Pane.current()
+  hist = p.buf.vars('dir').hist
+
+  function cpMarked
+  (dir, marked) {
+    let list
+
+    list = DirCommon.under(dir, marked)
+    Prompt.ask({ text: 'Copy these files to',
+                 hist,
+                 under: divCl('float-files', list.divs) },
+               dest => {
+                 let absDest
+
+                 hist.add(dest)
+
+                 absDest = DirCommon.abs(dest, dir)
+                 Tron.cmd('file.cp', [ list.paths.map(p => p.path), absDest ], err => {
+                   if (err) {
+                     Mess.yell('file.cp: ' + err.message)
+                     return
+                   }
+                 })
+               })
+  }
+
+  function run
+  (from, to, dir) {
+
+    function ok
+    () {
+      hist.add(to)
+      Tron.cmd('file.cp', [ from, to ], err => {
+        if (err) {
+          Mess.yell('file.cp: ' + err.message)
+          return
+        }
+        Mess.say(from + ' ⧉⮞ ' + to)
+      })
+    }
+
+    function confirm
+    () {
+      Prompt.yn('File exists. Overwrite?',
+                { icon: 'warning' },
+                yes => yes && ok())
+    }
+
+    to = DirCommon.abs(to, dir)
+    from = DirCommon.abs(from, dir)
+    Tron.cmd('file.stat', to, (err, data) => {
+      if (err)
+        if (err.code == 'ENOENT')
+          // new file
+          ok()
+        else
+          Mess.toss('file.stat: ' + err.message)
+      else
+        // dest exists
+        if (data.data.mode & (1 << 15))
+          // dest is file
+          confirm()
+        else {
+          // dest is dir, cp file into that dir
+          to = Loc.make(to).join(Loc.make(from).filename)
+          Tron.cmd('file.stat', to, err => {
+            if (err)
+              if (err.code == 'ENOENT')
+                // new file
+                ok()
+              else
+                Mess.toss('file.stat: ' + err.message)
+            else
+              confirm()
+          })
+        }
+    })
+  }
+
+  marked = DirCommon.getMarked(p.buf)
+  if (marked.length) {
+    cpMarked(Loc.make(p.dir).ensureSlash(), marked)
+    return
+  }
+  else {
+    let el, file
+
+    el = DirCommon.current()
+    if (el && el.dataset.path)
+      file = el.dataset.path
+    else {
+      Mess.say('Move to a file first')
+      return
+    }
+
+    Prompt.ask({ text: 'Copy to:',
+                 placeholder: file,
+                 hist },
+               name => run(file, name, p.dir))
+  }
+}
+
+export
 function init
 (m) {
   Cmd.add('chmod', chmod, m)
+  Cmd.add('copy file', copy, m)
   Cmd.add('equal', equal, m)
   Cmd.add('open in external web browser', () => extern(), m)
   Cmd.add('link', link, m)
@@ -274,6 +382,7 @@ function init
   Cmd.add('show in folder', showInFolder, m)
   Cmd.add('touch', touch, m)
   Em.on('!', 'shell command on file', 'Dir')
+  Em.on('c', 'copy file', 'Dir')
   Em.on('M', 'chmod', 'Dir')
   Em.on('=', 'equal', 'Dir')
   Em.on('f', 'show in folder', 'Dir')

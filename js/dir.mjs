@@ -24,7 +24,7 @@ import * as DirMarked from './dir-marked.mjs'
 import * as DirOps from './dir-ops.mjs'
 import { d } from './mess.mjs'
 
-let watching
+let watching, hist
 
 export
 function nav
@@ -571,6 +571,7 @@ function add
   if (exist) {
     exist.vars('dir').sort = sort
     exist.vars('dir').initialFile = initialFile
+    exist.vars('dir').hist = hist
     p.setBuf(exist)
     return
   }
@@ -584,6 +585,7 @@ function add
   b.addMode('view')
   b.vars('dir').sort = sort
   b.vars('dir').initialFile = initialFile
+  b.vars('dir').hist = hist
   p.setBuf(b)
   b.onRemove(() => stopWatching(dir.path))
   watch(dir.path)
@@ -701,7 +703,7 @@ function currentFile
 export
 function init
 () {
-  let m, hist
+  let m
 
   function scrollBottom
   (top) {
@@ -804,111 +806,6 @@ function init
     }
     else
       Mess.say('Move to a file first')
-  }
-
-  function cpMarked
-  (dir, marked) {
-    let list
-
-    list = DirCommon.under(dir, marked)
-    Prompt.ask({ text: 'Copy these files to',
-                 hist,
-                 under: divCl('float-files', list.divs) },
-               dest => {
-                 let absDest
-
-                 hist.add(dest)
-
-                 absDest = DirCommon.abs(dest, dir)
-                 Tron.cmd('file.cp', [ list.paths.map(p => p.path), absDest ], err => {
-                   if (err) {
-                     Mess.yell('file.cp: ' + err.message)
-                     return
-                   }
-                 })
-               })
-  }
-
-  function copy
-  () {
-    let p, marked
-
-    function run
-    (from, to, dir) {
-
-      function ok
-      () {
-        hist.add(to)
-        Tron.cmd('file.cp', [ from, to ], err => {
-          if (err) {
-            Mess.yell('file.cp: ' + err.message)
-            return
-          }
-          Mess.say(from + ' ⧉⮞ ' + to)
-        })
-      }
-
-      function confirm
-      () {
-        Prompt.yn('File exists. Overwrite?',
-                  { icon: 'warning' },
-                  yes => yes && ok())
-      }
-
-      to = DirCommon.abs(to, dir)
-      from = DirCommon.abs(from, dir)
-      Tron.cmd('file.stat', to, (err, data) => {
-        if (err)
-          if (err.code == 'ENOENT')
-            // new file
-            ok()
-          else
-            Mess.toss('file.stat: ' + err.message)
-        else
-          // dest exists
-          if (data.data.mode & (1 << 15))
-            // dest is file
-            confirm()
-          else {
-            // dest is dir, cp file into that dir
-            to = Loc.make(to).join(Loc.make(from).filename)
-            Tron.cmd('file.stat', to, err => {
-              if (err)
-                if (err.code == 'ENOENT')
-                  // new file
-                  ok()
-                else
-                  Mess.toss('file.stat: ' + err.message)
-              else
-                confirm()
-            })
-          }
-      })
-    }
-
-    p = Pane.current()
-    marked = DirCommon.getMarked(p.buf)
-    if (marked.length) {
-      cpMarked(Loc.make(p.dir).ensureSlash(), marked)
-      return
-    }
-    else {
-      let el, file
-
-      el = DirCommon.current()
-      if (el && el.dataset.path)
-        file = el.dataset.path
-      else {
-        Mess.say('Move to a file first')
-        return
-      }
-
-      //d({ file })
-      Prompt.ask({ text: 'Copy to:',
-                   placeholder: placeholder(p, file),
-                   hist },
-                 name => run(file, name, p.dir))
-    }
   }
 
   function renameMarked
@@ -1246,7 +1143,6 @@ function init
   Cmd.add('buffer start', () => scrollBottom(1), m)
   Cmd.add('buffer end', () => scrollBottom(), m)
   Cmd.add('clear marks', () => clear(), m)
-  Cmd.add('copy file', () => copy(), m)
   Cmd.add('delete', () => del(), m)
   Cmd.add('edit', () => edit(), m)
   Cmd.add('edit if supported', () => editIfSupported(), m)
@@ -1270,7 +1166,6 @@ function init
   Cmd.add('up', () => up(), m)
   Cmd.add('view', () => view(), m)
 
-  Em.on('c', 'copy file', 'Dir')
   Em.on('d', 'delete', 'Dir')
   Em.on('e', 'edit', 'Dir')
   Em.on('E', 'edit if supported', 'Dir')

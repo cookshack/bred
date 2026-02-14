@@ -649,6 +649,7 @@ function init
   Cmd.add('show in folder', showInFolder, m)
   Cmd.add('touch', touch, m)
   Cmd.add('view', () => view(), m)
+  Em.on('Enter', 'select', 'Dir')
   Em.on('!', 'shell command on file', 'Dir')
   Em.on('=', 'equal', 'Dir')
   Em.on('+', 'make dir', 'Dir')

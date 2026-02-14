@@ -220,10 +220,7 @@ function init
         let w
 
         w = view.eleOrReserved.querySelector('.code-w')
-        appendX(w,
-                divCl('code-msg code-msg-assistant',
-                      [ divCl('code-msg-role', model),
-                        divCl('code-msg-text code-msg-hidden') ]))
+        appendX(w, divCl('code-msg code-msg-role', model))
       }
     })
   }
@@ -253,9 +250,7 @@ function init
         }
         appendX(w,
                 divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                      [ divCl('code-msg-role' + (role ? '' : ' code-msg-hidden'),
-                              role == 'user' ? 'You' : (role || '')),
-                        (role == 'user')
+                      [ (role == 'user')
                           ? divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
                           : makeMarkdownEd(text || '').el ],
                       { 'data-partid': partID || 0 }))
@@ -284,10 +279,10 @@ function init
           if (Css.has(last, 'code-msg-tool'))
             lastIsUser = 1
           else {
-            let role
+            let msg
 
-            role = msgs[msgs.length - 1].querySelector('.code-msg-role')
-            if (role?.innerText == 'You')
+            msg = msgs[msgs.length - 1].querySelector('.code-msg')
+            if (Css.has(msg, 'code-msg-user'))
               lastIsUser = 1
           }
         }
@@ -309,8 +304,7 @@ function init
         else
           appendX(w,
                   divCl('code-msg code-msg-thinking',
-                        [ divCl('code-msg-role', 'Thinking...'),
-                          divCl('code-msg-text', text) ]))
+                        [ divCl('code-msg-text', text) ]))
       }
     })
   }

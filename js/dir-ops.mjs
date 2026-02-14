@@ -611,6 +611,7 @@ function init
   Em.on('=', 'equal', 'Dir')
   Em.on('c', 'copy file', 'Dir')
   Em.on('d', 'delete', 'Dir')
+  Em.on('D', 'delete', 'Dir')
   Em.on('E', 'edit if supported', 'Dir')
   Em.on('e', 'edit', 'Dir')
   Em.on('f', 'show in folder', 'Dir')

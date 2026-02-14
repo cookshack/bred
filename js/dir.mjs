@@ -955,7 +955,6 @@ function init
   Em.on('t', 'toggle marks', 'Dir')
   Em.on('u', 'unmark', 'Dir')
   Em.on('v', 'view', 'Dir')
-  Em.on('D', 'delete', 'Dir')
   Em.on('U', 'clear marks', 'Dir')
   Em.on('^', 'up', 'Dir')
   Em.on('+', 'make dir', 'Dir')

@@ -1127,8 +1127,6 @@ function init
 
       res = await c.session.prompt({
         sessionID,
-        providerID: provider,
-        modelID: model,
         model: { providerID: provider, modelID: model },
         agent: 'build',
         parts: [ { id: uuidv4(), type: 'text', text } ]

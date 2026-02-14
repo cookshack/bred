@@ -1,4 +1,4 @@
-import { divCl } from './dom.mjs'
+import { div, divCl, span } from './dom.mjs'
 import * as Cmd from './cmd.mjs'
 import * as DirCommon from './dir-common.mjs'
 import * as Ed from './ed.mjs'
@@ -466,10 +466,80 @@ function rename
 }
 
 export
+function del
+() {
+  let p, el, marked
+
+  p = Pane.current()
+
+  marked = DirCommon.getMarked(p.buf)
+  if (marked.length) {
+    delMarked(Loc.make(p.dir).ensureSlash(), marked)
+    return
+  }
+  el = DirCommon.current(p)
+  if (el && el.dataset.path) {
+    let msg, dir
+
+    dir = el.dataset.type == 'd'
+    msg = div([ 'Delete ' + (dir ? 'dir' : 'file') + ' ',
+                span(el.dataset.path, 'bold'), '?' ])
+    Prompt.yn(msg, { icon: 'trash' }, yes =>
+      yes && Tron.cmd(dir ? 'dir.rm' : 'file.rm', [ el.dataset.path ], err => {
+        if (err) {
+          if (err.code == 'ENOTEMPTY') {
+            msg = div([ 'RECURSIVELY delete ', span(el.dataset.path, 'bold'), '?' ])
+            Prompt.yn(msg, { icon: 'trash' }, yes => {
+              yes && Tron.cmd('dir.rm', [ el.dataset.path, { recurse: 1 } ], err => {
+                if (err) {
+                  Mess.yell('Error deleting: ' + err.message)
+                  return
+                }
+                Mess.say('Deleted dir ' + el.dataset.path)
+              })
+            })
+            return
+          }
+          else
+            Mess.yell('Error deleting: ' + err.message)
+          return
+        }
+        Mess.say('Deleted ' + (dir ? 'dir' : 'file') + ' ' + el.dataset.path)
+      }))
+  }
+  else
+    Mess.say('Move to a file first')
+}
+
+function delMarked
+(dir, marked) {
+  let list
+
+  list = DirCommon.under(dir, marked)
+  Prompt.yn('Delete these?',
+            { icon: 'trash',
+              under: divCl('float-files', list.divs) },
+            yes => {
+              if (yes)
+                list.paths.forEach(item =>
+                  Tron.cmd(item.isDir ? 'dir.rm' : 'file.rm',
+                           [ item.path ],
+                           err => {
+                             if (err) {
+                               Mess.yell('Error deleting: ' + err.message)
+                               return
+                             }
+                             marked.rm(item.name)
+                           }))
+            })
+}
+
+export
 function init
 (m) {
   Cmd.add('chmod', chmod, m)
   Cmd.add('copy file', copy, m)
+  Cmd.add('delete', del, m)
   Cmd.add('equal', equal, m)
   Cmd.add('open in external web browser', () => extern(), m)
   Cmd.add('link', link, m)
@@ -483,6 +553,7 @@ function init
   Em.on('M', 'chmod', 'Dir')
   Em.on('=', 'equal', 'Dir')
   Em.on('f', 'show in folder', 'Dir')
+  Em.on('d', 'delete', 'Dir')
   Em.on('l', 'link', 'Dir')
   Em.on('o', 'open in other pane', 'Dir')
   Em.on('r', 'rename', 'Dir')

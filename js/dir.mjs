@@ -15,7 +15,6 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
-import * as Prompt from './prompt.mjs'
 import * as Recent from './recent.mjs'
 import * as Scroll from './scroll.mjs'
 import * as Tron from './tron.mjs'
@@ -730,74 +729,6 @@ function init
       el.scrollBy(0, (el.clientHeight / 2) * (up ? -1 : 1))
   }
 
-  function delMarked
-  (dir, marked) {
-    let list
-
-    list = DirCommon.under(dir, marked)
-    Prompt.yn('Delete these?',
-              { icon: 'trash',
-                under: divCl('float-files', list.divs) },
-              yes => {
-                if (yes)
-                  list.paths.forEach(item =>
-                    Tron.cmd(item.isDir ? 'dir.rm' : 'file.rm',
-                             [ item.path ],
-                             err => {
-                               if (err) {
-                                 Mess.yell('Error deleting: ' + err.message)
-                                 return
-                               }
-                               marked.rm(item.name)
-                             }))
-              })
-  }
-
-  function del
-  () {
-    let p, el, marked
-
-    p = Pane.current()
-
-    marked = DirCommon.getMarked(p.buf)
-    if (marked.length) {
-      delMarked(Loc.make(p.dir).ensureSlash(), marked)
-      return
-    }
-    el = DirCommon.current(p)
-    if (el && el.dataset.path) {
-      let msg, dir
-
-      dir = el.dataset.type == 'd'
-      msg = div([ 'Delete ' + (dir ? 'dir' : 'file') + ' ',
-                  span(el.dataset.path, 'bold'), '?' ])
-      Prompt.yn(msg, { icon: 'trash' }, yes =>
-        yes && Tron.cmd(dir ? 'dir.rm' : 'file.rm', [ el.dataset.path ], err => {
-          if (err) {
-            if (err.code == 'ENOTEMPTY') {
-              msg = div([ 'RECURSIVELY delete ', span(el.dataset.path, 'bold'), '?' ])
-              Prompt.yn(msg, { icon: 'trash' }, yes => {
-                yes && Tron.cmd('dir.rm', [ el.dataset.path, { recurse: 1 } ], err => {
-                  if (err) {
-                    Mess.yell('Error deleting: ' + err.message)
-                    return
-                  }
-                  Mess.say('Deleted dir ' + el.dataset.path)
-                })
-              })
-              return
-            }
-            else
-              Mess.yell('Error deleting: ' + err.message)
-            return
-          }
-          Mess.say('Deleted ' + (dir ? 'dir' : 'file') + ' ' + el.dataset.path)
-        }))
-    }
-    else
-      Mess.say('Move to a file first')
-  }
-
   function mark
   (u, we, remove) {
     let next, set
@@ -1051,7 +982,6 @@ function init
   Cmd.add('buffer start', () => scrollBottom(1), m)
   Cmd.add('buffer end', () => scrollBottom(), m)
   Cmd.add('clear marks', () => clear(), m)
-  Cmd.add('delete', () => del(), m)
   Cmd.add('edit', () => edit(), m)
   Cmd.add('edit if supported', () => editIfSupported(), m)
   Cmd.add('mark', mark, m)
@@ -1073,7 +1003,6 @@ function init
   Cmd.add('up', () => up(), m)
   Cmd.add('view', () => view(), m)
 
-  Em.on('d', 'delete', 'Dir')
   Em.on('e', 'edit', 'Dir')
   Em.on('E', 'edit if supported', 'Dir')
   Em.on('g', 'refresh', 'Dir')

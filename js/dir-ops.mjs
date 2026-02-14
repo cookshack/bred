@@ -4,6 +4,7 @@ import * as Cmd from './cmd.mjs'
 import * as DirCommon from './dir-common.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
+import * as Ext from './ext.mjs'
 import * as Hist from './hist.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
@@ -590,6 +591,46 @@ function editIfSupported
     Mess.say('Move to a file first')
 }
 
+function view
+() {
+  let el
+
+  el = DirCommon.current()
+  if (el && el.dataset.path) {
+    if (el.dataset.type == 'd') {
+      Pane.open(el.dataset.path)
+      return
+    }
+    if (el.dataset.path.includes('.')) {
+      let ext, mtype
+
+      ext = el.dataset.path.slice(el.dataset.path.lastIndexOf('.') + 1)
+      mtype = Ed.mtypeFromExt(ext)
+      if (mtype) {
+        let rich
+
+        rich = Ext.get('rich')
+        if (rich && rich.supports(mtype)) {
+          rich.open(el.dataset.path)
+          return
+        }
+      }
+      if (mtype && Ed.supports(mtype)) {
+        Pane.open(el.dataset.path)
+        return
+      }
+    }
+    Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => {
+      if (err) {
+        Mess.yell('shell.open: ' + err.message)
+        return
+      }
+    })
+  }
+  else
+    Mess.say('Move to a file first')
+}
+
 export
 function init
 (m) {
@@ -607,6 +648,7 @@ function init
   Cmd.add('shell command on file', () => scof(), m)
   Cmd.add('show in folder', showInFolder, m)
   Cmd.add('touch', touch, m)
+  Cmd.add('view', () => view(), m)
   Em.on('!', 'shell command on file', 'Dir')
   Em.on('=', 'equal', 'Dir')
   Em.on('+', 'make dir', 'Dir')
@@ -622,5 +664,6 @@ function init
   Em.on('r', 'rename', 'Dir')
   Em.on('T', 'touch', 'Dir')
   Em.on('W', 'open in external web browser', 'Dir')
+  Em.on('v', 'view', 'Dir')
   Em.on('w', 'open in web browser', 'Dir')
 }

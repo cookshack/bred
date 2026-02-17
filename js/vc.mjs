@@ -1351,6 +1351,20 @@ function init
     git('git branch --all', 'branch')
   }
 
+  function mainOrMaster
+  () {
+    Shell.runToString(Pane.current().dir,
+                      'git',
+                      [ 'branch', '--list', 'main' ],
+                      0,
+                      out => {
+                        if (out.trim())
+                          git('git switch main')
+                        else
+                          git('git switch master')
+                      })
+  }
+
   moB = Mode.add('branch', { viewInit: Ed.viewInit,
                              viewCopy: Ed.viewCopy,
                              initFns: Ed.initModeFns,
@@ -1379,6 +1393,7 @@ function init
   initStash()
 
   Cmd.add('vc branch', () => branch())
+  Cmd.add('vc main', () => mainOrMaster())
   Cmd.add('vc pull', () => git('git-pull-with-name'))
   Cmd.add('vc push', () => git('git push origin HEAD'))
   Cmd.add('vc reset', () => reset())
@@ -1399,6 +1414,7 @@ function init
   Em.on('C-x v i', 'vc show')
   Em.on('C-x v L', 'vc log')
   Em.on('C-x v l', 'vc log one-line')
+  Em.on('C-x v m', 'vc main')
   Em.on('C-x v o', 'vc stash pop')
   Em.on('C-x v p', 'vc push')
   Em.on('C-x v r', 'vc reset')

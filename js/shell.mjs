@@ -115,11 +115,12 @@ function run
  //   // and point is at the end of the view, then point's
  //   // placement after the insert/append will be before
  //   // the added text.
- //
+ //   //
  //   // Used to prevent scroll on input, eg for c-c c (compile).
- //
+ //   //
  //   // Only used if buf.
  //   afterEndPoint,
+ //
  //   cols,
  //   runInShell,
  //   onStdout, // (str)

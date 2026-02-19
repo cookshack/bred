@@ -19,6 +19,19 @@ import * as Diff from '../lib/diff.js'
 
 let clrs
 
+function clearBusy
+(p, text) {
+  p.buf.views.forEach(view => {
+    if (view.eleOrReserved) {
+      let el
+
+      el = view.eleOrReserved.querySelector('.shell-exit-w')
+      if (el)
+        el.innerHTML = text
+    }
+  })
+}
+
 function git
 (cmd, mode, minors, afterEndPoint) {
   // these use shell1 instead of spawn1 so that .bashrc is loaded (needed eg for nvm init)
@@ -656,7 +669,12 @@ function initLog
     p.buf.clear()
     if (p.buf.vars('vc log').search)
       args = [ ...args, '-S', p.buf.vars('vc log').search ]
-    Shell.run(p.dir, 'git', args, { buf: p.buf, end: 1, afterEndPoint: 1 })
+    Shell.run(p.dir, 'git', args,
+              { buf: p.buf,
+                end: 1,
+                afterEndPoint: 1,
+                onClose: (buf, code) => clearBusy(p, String(code)),
+                onErr: (buf, err) => clearBusy(p, err.message) })
   }
 
   function show
@@ -698,13 +716,17 @@ function initLog
   Cmd.add('show', () => show(), mo)
 
   Cmd.add('vc log', () => {
-    let p
+    let p, busyW
 
+    busyW = divCl('shell-exit-w', '🌊')
     p = Pane.current()
     if (buf)
       buf.dir = p.dir
     else {
-      buf = Buf.add('VC Log', 'VC Log', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
+      buf = Buf.add('VC Log',
+                    'VC Log',
+                    Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
+                    p.dir)
       buf.icon = 'log'
       //buf.addMode("view") // overrides n,p
     }
@@ -720,12 +742,13 @@ function initLog
     function go
     (text) {
       if (text && text.trim().length) {
-        let p, buf
+        let p, buf, busyW
 
+        busyW = divCl('shell-exit-w', '🌊')
         p = Pane.current()
         buf = Buf.add('VC Log: ' + text,
                       'VC Log',
-                      Ed.divW(0, 0, { hideMl: 1 }),
+                      Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
                       p.dir)
         buf.icon = 'log'
         buf.opts.set('core.lint.enabled', 0)
@@ -795,7 +818,12 @@ function initLogOneLine
     p.buf.clear()
     if (p.buf.vars('vc log one-line').search)
       args = [ ...args, '-S', p.buf.vars('vc log one-line').search ]
-    Shell.run(p.dir, 'git', args, { buf: p.buf, end: 1, afterEndPoint: 1 })
+    Shell.run(p.dir, 'git', args,
+              { buf: p.buf,
+                end: 1,
+                afterEndPoint: 1,
+                onClose: (buf, code) => clearBusy(p, String(code)),
+                onErr: (buf, err) => clearBusy(p, err.message) })
   }
 
   function next
@@ -835,7 +863,12 @@ function initLogOneLine
     if (buf)
       buf.dir = p.dir
     else {
-      buf = Buf.add('VC Log One-Line', 'VC Log One-Line', Ed.divW(0, 0, { hideMl: 1 }), p.dir)
+      let busyW
+
+      busyW = divCl('shell-exit-w', '🌊')
+      buf = Buf.add('VC Log One-Line', 'VC Log One-Line',
+                    Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
+                    p.dir)
       buf.icon = 'log'
       //buf.addMode("view") // overrides n,p
     }
@@ -852,12 +885,13 @@ function initLogOneLine
     function go
     (text) {
       if (text && text.trim().length) {
-        let p, buf
+        let p, buf, busyW
 
+        busyW = divCl('shell-exit-w', '🌊')
         p = Pane.current()
         buf = Buf.add('VC Log1: ' + text,
                       'VC Log One-Line',
-                      Ed.divW(0, 0, { hideMl: 1 }),
+                      Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
                       p.dir)
         buf.icon = 'log'
         buf.opts.set('core.lint.enabled', 0)

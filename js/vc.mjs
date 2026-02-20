@@ -24,7 +24,7 @@ function busyCo
   return '🌊 BUSY'
 }
 
-function clearBusy
+function busyClear
 (p, text) {
   p.buf.views.forEach(view => {
     if (view.eleOrReserved) {
@@ -35,6 +35,19 @@ function clearBusy
         el.innerHTML = text
     }
   })
+}
+
+function busyClose
+(p, code) {
+  if (code == 0)
+    busyClear(p, '✔ ' + code) // 🏁 ✔✔✔ 🎉 ✅
+  else
+    busyClear(p, '✘ ' + code) // 🚨 ✘✘✘ 🚫 ❌
+}
+
+function busyErr
+(p, err) {
+  busyClear(p, '☠️ ERR ' + err.message)
 }
 
 function git
@@ -678,8 +691,8 @@ function initLog
               { buf: p.buf,
                 end: 1,
                 afterEndPoint: 1,
-                onClose: (buf, code) => clearBusy(p, String(code)),
-                onErr: (buf, err) => clearBusy(p, err.message) })
+                onClose: (buf, code) => busyClose(p, code),
+                onErr: (buf, err) => busyErr(p, err) })
   }
 
   function show
@@ -827,8 +840,8 @@ function initLogOneLine
               { buf: p.buf,
                 end: 1,
                 afterEndPoint: 1,
-                onClose: (buf, code) => clearBusy(p, String(code)),
-                onErr: (buf, err) => clearBusy(p, err.message) })
+                onClose: (buf, code) => busyClose(p, code),
+                onErr: (buf, err) => busyErr(p, err) })
   }
 
   function next

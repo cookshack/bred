@@ -28,11 +28,11 @@ function busyClear
 (p, text) {
   p.buf.views.forEach(view => {
     if (view.eleOrReserved) {
-      let el
+      let busyW
 
-      el = view.eleOrReserved.querySelector('.shell-exit-w')
-      if (el)
-        el.innerHTML = text
+      busyW = view.eleOrReserved.querySelector('.shell-exit-w')
+      if (busyW)
+        busyW.innerHTML = text
     }
   })
 }
@@ -745,6 +745,7 @@ function initLog
                     'VC Log',
                     Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
                     p.dir)
+      buf.vars('ed').fillParent = 0
       buf.icon = 'log'
       //buf.addMode("view") // overrides n,p
     }
@@ -768,6 +769,7 @@ function initLog
                       'VC Log',
                       Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
                       p.dir)
+        buf.vars('ed').fillParent = 0
         buf.icon = 'log'
         buf.opts.set('core.lint.enabled', 0)
         buf.opts.set('minimap.enabled', 0)
@@ -887,6 +889,7 @@ function initLogOneLine
       buf = Buf.add('VC Log One-Line', 'VC Log One-Line',
                     Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
                     p.dir)
+      buf.vars('ed').fillParent = 0
       buf.icon = 'log'
       //buf.addMode("view") // overrides n,p
     }
@@ -911,6 +914,7 @@ function initLogOneLine
                       'VC Log One-Line',
                       Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
                       p.dir)
+        buf.vars('ed').fillParent = 0
         buf.icon = 'log'
         buf.opts.set('core.lint.enabled', 0)
         buf.opts.set('minimap.enabled', 0)

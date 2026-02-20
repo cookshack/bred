@@ -19,6 +19,11 @@ import * as Diff from '../lib/diff.js'
 
 let clrs
 
+function busyCo
+() {
+  return '🌊 BUSY'
+}
+
 function clearBusy
 (p, text) {
   p.buf.views.forEach(view => {
@@ -718,7 +723,7 @@ function initLog
   Cmd.add('vc log', () => {
     let p, busyW
 
-    busyW = divCl('shell-exit-w', '🌊')
+    busyW = divCl('shell-exit-w', busyCo())
     p = Pane.current()
     if (buf)
       buf.dir = p.dir
@@ -744,7 +749,7 @@ function initLog
       if (text && text.trim().length) {
         let p, buf, busyW
 
-        busyW = divCl('shell-exit-w', '🌊')
+        busyW = divCl('shell-exit-w', busyCo())
         p = Pane.current()
         buf = Buf.add('VC Log: ' + text,
                       'VC Log',
@@ -865,7 +870,7 @@ function initLogOneLine
     else {
       let busyW
 
-      busyW = divCl('shell-exit-w', '🌊')
+      busyW = divCl('shell-exit-w', busyCo())
       buf = Buf.add('VC Log One-Line', 'VC Log One-Line',
                     Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
                     p.dir)
@@ -887,7 +892,7 @@ function initLogOneLine
       if (text && text.trim().length) {
         let p, buf, busyW
 
-        busyW = divCl('shell-exit-w', '🌊')
+        busyW = divCl('shell-exit-w', busyCo())
         p = Pane.current()
         buf = Buf.add('VC Log1: ' + text,
                       'VC Log One-Line',

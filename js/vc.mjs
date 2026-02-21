@@ -1,10 +1,11 @@
-import { append, divCl } from './dom.mjs'
+import { append, divCl, img } from './dom.mjs'
 
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
 import * as Hist from './hist.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
@@ -18,6 +19,16 @@ import { d } from './mess.mjs'
 import * as Diff from '../lib/diff.js'
 
 let clrs
+
+function vcMl
+(cmd, mode) {
+  return divCl('ml edMl',
+               [ divCl('edMl-type',
+                       img(Icon.path('log'), mode, 'filter-clr-text')),
+                 divCl('ml-name', cmd),
+                 divCl('ml-busy'),
+                 divCl('ml-close') ])
+}
 
 function busyCo
 () {
@@ -681,13 +692,8 @@ function initLog
 
   function refresh
   (p) {
-    let args
-
-    args = [ 'log' ]
     p.buf.clear()
-    if (p.buf.vars('vc log').search)
-      args = [ ...args, '-S', p.buf.vars('vc log').search ]
-    Shell.run(p.dir, 'git', args,
+    Shell.run(p.dir, 'git', p.buf.vars('vc log').args,
               { buf: p.buf,
                 end: 1,
                 afterEndPoint: 1,
@@ -743,12 +749,14 @@ function initLog
     else {
       buf = Buf.add('VC Log',
                     'VC Log',
-                    Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
+                    Ed.divW(0, 0, { ml: vcMl('git log',
+                                             'VC Log'),
+                                    extraCo: busyW }),
                     p.dir)
       buf.vars('ed').fillParent = 0
       buf.icon = 'log'
-      //buf.addMode("view") // overrides n,p
     }
+    buf.vars('vc log').args = [ 'log' ]
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
     buf.opts.set('core.lang', 'git log')
@@ -767,15 +775,18 @@ function initLog
         p = Pane.current()
         buf = Buf.add('VC Log: ' + text,
                       'VC Log',
-                      Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
+                      Ed.divW(0, 0, { ml: vcMl('git log -S ' + text,
+                                               'VC Log'),
+                                      extraCo: busyW }),
                       p.dir)
+        buf.vars('vc log').args = [ 'log', '-S', text ]
+        buf.vars('vc log').search = text
         buf.vars('ed').fillParent = 0
         buf.icon = 'log'
         buf.opts.set('core.lint.enabled', 0)
         buf.opts.set('minimap.enabled', 0)
         buf.opts.set('core.lang', 'git log')
         hist.add(text)
-        buf.vars('vc log').search = text
         p.setBuf(buf, {}, () => {
           refresh(p)
         })
@@ -832,13 +843,8 @@ function initLogOneLine
 
   function refresh
   (p) {
-    let args
-
-    args = [ 'log', '--oneline', '--no-decorate' ]
     p.buf.clear()
-    if (p.buf.vars('vc log one-line').search)
-      args = [ ...args, '-S', p.buf.vars('vc log one-line').search ]
-    Shell.run(p.dir, 'git', args,
+    Shell.run(p.dir, 'git', p.buf.vars('vc log one-line').args,
               { buf: p.buf,
                 end: 1,
                 afterEndPoint: 1,
@@ -887,12 +893,14 @@ function initLogOneLine
 
       busyW = divCl('shell-exit-w', busyCo())
       buf = Buf.add('VC Log One-Line', 'VC Log One-Line',
-                    Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
+                    Ed.divW(0, 0, { ml: vcMl('git log --oneline --no-decorate',
+                                             'VC Log One-Line'),
+                                    extraCo: busyW }),
                     p.dir)
       buf.vars('ed').fillParent = 0
       buf.icon = 'log'
-      //buf.addMode("view") // overrides n,p
     }
+    buf.vars('vc log one-line').args = [ 'log', '--oneline', '--no-decorate' ]
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
     //buf.opts.set('core.lang', 'git log')
@@ -912,15 +920,18 @@ function initLogOneLine
         p = Pane.current()
         buf = Buf.add('VC Log1: ' + text,
                       'VC Log One-Line',
-                      Ed.divW(0, 0, { hideMl: 1, extraCo: busyW }),
+                      Ed.divW(0, 0, { ml: vcMl('git log --oneline --no-decorate -S ' + text,
+                                               'VC Log One-Line'),
+                                      extraCo: busyW }),
                       p.dir)
+        buf.vars('vc log one-line').search = text
+        buf.vars('vc log one-line').args = [ 'log', '--oneline', '--no-decorate', '-S', text ]
         buf.vars('ed').fillParent = 0
         buf.icon = 'log'
         buf.opts.set('core.lint.enabled', 0)
         buf.opts.set('minimap.enabled', 0)
         //buf.opts.set('core.lang', 'git log')
         hist.add(text)
-        buf.vars('vc log one-line').search = text
         p.setBuf(buf, {}, () => {
           refresh(p)
         })

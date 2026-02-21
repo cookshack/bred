@@ -656,6 +656,27 @@ function showHash
                })
 }
 
+function viewCopy
+(to, from, lineNum, whenReady) {
+  Ed.viewCopy(to,
+              from,
+              lineNum,
+              v => {
+                let busyW
+
+                busyW = v.ele.querySelector('.shell-exit-w')
+                if (busyW) {
+                  let fromBusyW
+
+                  fromBusyW = from.ele.querySelector('.shell-exit-w')
+                  if (fromBusyW)
+                    busyW.innerText = fromBusyW.innerText
+                }
+                if (whenReady)
+                  whenReady(v)
+              })
+}
+
 function initLog
 () {
   let mo, buf, hist
@@ -729,7 +750,7 @@ function initLog
   }
 
   mo = Mode.add('VC Log', { viewInit: Ed.viewInit,
-                            viewCopy: Ed.viewCopy,
+                            viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
 
@@ -947,7 +968,7 @@ function initLogOneLine
   })
 
   mo = Mode.add('VC Log One-Line', { viewInit: Ed.viewInit,
-                                     viewCopy: Ed.viewCopy,
+                                     viewCopy,
                                      initFns: Ed.initModeFns,
                                      parentsForEm: 'ed' })
 

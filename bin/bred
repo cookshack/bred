@@ -7,7 +7,7 @@ check_modules_changed() {
   if [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
     echo "Modules changed, running make prep..."
     make prep
-    if [ $? ]; then
+    if [ $? -ne 0 ]; then
       echo "ERR make prep failed"
       exit 1
     fi

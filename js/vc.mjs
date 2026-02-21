@@ -35,9 +35,9 @@ function busyCo
   return '🌊 BUSY'
 }
 
-function busyClear
-(p, text) {
-  p.buf.views.forEach(view => {
+function busySet
+(buf, text) {
+  buf.views.forEach(view => {
     if (view.eleOrReserved) {
       let busyW
 
@@ -51,14 +51,14 @@ function busyClear
 function busyClose
 (p, code) {
   if (code == 0)
-    busyClear(p, '✔ ' + code) // 🏁 ✔✔✔ 🎉 ✅
+    busySet(p.buf, '✔ ' + code) // 🏁 ✔✔✔ 🎉 ✅
   else
-    busyClear(p, '✘ ' + code) // 🚨 ✘✘✘ 🚫 ❌
+    busySet(p.buf, '✘ ' + code) // 🚨 ✘✘✘ 🚫 ❌
 }
 
 function busyErr
 (p, err) {
-  busyClear(p, '☠️ ERR ' + err.message)
+  busySet(p.buf, '☠️ ERR ' + err.message)
 }
 
 function git
@@ -774,8 +774,10 @@ function initLog
 
     args = [ 'log' ]
     p = Pane.current()
-    if (buf)
+    if (buf) {
       buf.dir = p.dir
+      busySet(buf, busyCo())
+    }
     else {
       buf = Buf.add('VC Log',
                     'VC Log',
@@ -913,8 +915,10 @@ function initLogOneLine
 
     args = [ 'log', '--oneline', '--no-decorate' ]
     p = Pane.current()
-    if (buf)
+    if (buf) {
       buf.dir = p.dir
+      busySet(buf, busyCo())
+    }
     else {
       buf = Buf.add('VC Log One-Line', 'VC Log One-Line',
                     divW('VC Log One-Line', args),

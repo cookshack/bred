@@ -164,8 +164,9 @@ function run
 
   // Define the IPC handler so we can remove it after the command finishes
   handler = (err, data) => {
-    d('SHELL ' + ch + ' received: ' + JSON.stringify(Object.keys(data)))
     let decoder
+
+    //d('SHELL ' + ch + ' received: ' + JSON.stringify(Object.keys(data)))
 
     function decode
     (str) {

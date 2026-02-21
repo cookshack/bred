@@ -7,6 +7,10 @@ check_modules_changed() {
   if [ "$CURRENT_HASH" != "$STORED_HASH" ]; then
     echo "Modules changed, running make prep..."
     make prep
+    if [ $? ]; then
+      echo "ERR make prep failed"
+      exit 1
+    fi
     echo "$CURRENT_HASH" > .bred-module-hash
   fi
 }

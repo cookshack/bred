@@ -21,11 +21,11 @@ import * as Diff from '../lib/diff.js'
 let clrs
 
 function vcMl
-(cmd, mode) {
+(args, mode) {
   return divCl('ml edMl',
                [ divCl('edMl-type',
                        img(Icon.path('log'), mode, 'filter-clr-text')),
-                 divCl('ml-name', cmd),
+                 divCl('ml-name', 'git ' + args.join(' ')),
                  divCl('ml-busy'),
                  divCl('ml-close') ])
 }
@@ -740,8 +740,9 @@ function initLog
   Cmd.add('show', () => show(), mo)
 
   Cmd.add('vc log', () => {
-    let p, busyW
+    let args, p, busyW
 
+    args = [ 'log' ]
     busyW = divCl('shell-exit-w', busyCo())
     p = Pane.current()
     if (buf)
@@ -749,14 +750,13 @@ function initLog
     else {
       buf = Buf.add('VC Log',
                     'VC Log',
-                    Ed.divW(0, 0, { ml: vcMl('git log',
-                                             'VC Log'),
+                    Ed.divW(0, 0, { ml: vcMl(args, 'VC Log'),
                                     extraCo: busyW }),
                     p.dir)
       buf.vars('ed').fillParent = 0
       buf.icon = 'log'
     }
-    buf.vars('vc log').args = [ 'log' ]
+    buf.vars('vc log').args = args
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
     buf.opts.set('core.lang', 'git log')
@@ -769,17 +769,17 @@ function initLog
     function go
     (text) {
       if (text && text.trim().length) {
-        let p, buf, busyW
+        let args, p, buf, busyW
 
+        args = [ 'log', '-S', text ]
         busyW = divCl('shell-exit-w', busyCo())
         p = Pane.current()
         buf = Buf.add('VC Log: ' + text,
                       'VC Log',
-                      Ed.divW(0, 0, { ml: vcMl('git log -S ' + text,
-                                               'VC Log'),
+                      Ed.divW(0, 0, { ml: vcMl(args, 'VC Log'),
                                       extraCo: busyW }),
                       p.dir)
-        buf.vars('vc log').args = [ 'log', '-S', text ]
+        buf.vars('vc log').args = args
         buf.vars('vc log').search = text
         buf.vars('ed').fillParent = 0
         buf.icon = 'log'
@@ -883,8 +883,9 @@ function initLogOneLine
   }
 
   Cmd.add('vc log one-line', () => {
-    let p
+    let args, p
 
+    args = [ 'log', '--oneline', '--no-decorate' ]
     p = Pane.current()
     if (buf)
       buf.dir = p.dir
@@ -893,14 +894,13 @@ function initLogOneLine
 
       busyW = divCl('shell-exit-w', busyCo())
       buf = Buf.add('VC Log One-Line', 'VC Log One-Line',
-                    Ed.divW(0, 0, { ml: vcMl('git log --oneline --no-decorate',
-                                             'VC Log One-Line'),
+                    Ed.divW(0, 0, { ml: vcMl(args, 'VC Log One-Line'),
                                     extraCo: busyW }),
                     p.dir)
       buf.vars('ed').fillParent = 0
       buf.icon = 'log'
     }
-    buf.vars('vc log one-line').args = [ 'log', '--oneline', '--no-decorate' ]
+    buf.vars('vc log one-line').args = args
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
     //buf.opts.set('core.lang', 'git log')
@@ -914,18 +914,18 @@ function initLogOneLine
     function go
     (text) {
       if (text && text.trim().length) {
-        let p, buf, busyW
+        let args, p, buf, busyW
 
+        args = [ 'log', '--oneline', '--no-decorate', '-S', text ]
         busyW = divCl('shell-exit-w', busyCo())
         p = Pane.current()
         buf = Buf.add('VC Log1: ' + text,
                       'VC Log One-Line',
-                      Ed.divW(0, 0, { ml: vcMl('git log --oneline --no-decorate -S ' + text,
-                                               'VC Log One-Line'),
+                      Ed.divW(0, 0, { ml: vcMl(args, 'VC Log One-Line'),
                                       extraCo: busyW }),
                       p.dir)
         buf.vars('vc log one-line').search = text
-        buf.vars('vc log one-line').args = [ 'log', '--oneline', '--no-decorate', '-S', text ]
+        buf.vars('vc log one-line').args = args
         buf.vars('ed').fillParent = 0
         buf.icon = 'log'
         buf.opts.set('core.lint.enabled', 0)

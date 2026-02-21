@@ -656,6 +656,15 @@ function showHash
                })
 }
 
+function divW
+(mode, args) {
+  let busyW
+
+  busyW = divCl('shell-exit-w', busyCo())
+  return Ed.divW(0, 0, { ml: vcMl(args, mode),
+                         extraCo: busyW })
+}
+
 function viewCopy
 (to, from, lineNum, whenReady) {
   Ed.viewCopy(to,
@@ -761,18 +770,16 @@ function initLog
   Cmd.add('show', () => show(), mo)
 
   Cmd.add('vc log', () => {
-    let args, p, busyW
+    let args, p
 
     args = [ 'log' ]
-    busyW = divCl('shell-exit-w', busyCo())
     p = Pane.current()
     if (buf)
       buf.dir = p.dir
     else {
       buf = Buf.add('VC Log',
                     'VC Log',
-                    Ed.divW(0, 0, { ml: vcMl(args, 'VC Log'),
-                                    extraCo: busyW }),
+                    divW('VC Log', args),
                     p.dir)
       buf.vars('ed').fillParent = 0
       buf.icon = 'log'
@@ -790,15 +797,13 @@ function initLog
     function go
     (text) {
       if (text && text.trim().length) {
-        let args, p, buf, busyW
+        let args, p, buf
 
         args = [ 'log', '-S', text ]
-        busyW = divCl('shell-exit-w', busyCo())
         p = Pane.current()
         buf = Buf.add('VC Log: ' + text,
                       'VC Log',
-                      Ed.divW(0, 0, { ml: vcMl(args, 'VC Log'),
-                                      extraCo: busyW }),
+                      divW('VC Log', args),
                       p.dir)
         buf.vars('vc log').args = args
         buf.vars('vc log').search = text
@@ -911,12 +916,8 @@ function initLogOneLine
     if (buf)
       buf.dir = p.dir
     else {
-      let busyW
-
-      busyW = divCl('shell-exit-w', busyCo())
       buf = Buf.add('VC Log One-Line', 'VC Log One-Line',
-                    Ed.divW(0, 0, { ml: vcMl(args, 'VC Log One-Line'),
-                                    extraCo: busyW }),
+                    divW('VC Log One-Line', args),
                     p.dir)
       buf.vars('ed').fillParent = 0
       buf.icon = 'log'
@@ -935,15 +936,13 @@ function initLogOneLine
     function go
     (text) {
       if (text && text.trim().length) {
-        let args, p, buf, busyW
+        let args, p, buf
 
         args = [ 'log', '--oneline', '--no-decorate', '-S', text ]
-        busyW = divCl('shell-exit-w', busyCo())
         p = Pane.current()
         buf = Buf.add('VC Log1: ' + text,
                       'VC Log One-Line',
-                      Ed.divW(0, 0, { ml: vcMl(args, 'VC Log One-Line'),
-                                      extraCo: busyW }),
+                      divW('VC Log One-Line', args),
                       p.dir)
         buf.vars('vc log one-line').search = text
         buf.vars('vc log one-line').args = args

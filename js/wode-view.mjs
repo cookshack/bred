@@ -1,7 +1,6 @@
 import * as Area from './area.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
-import * as Em from './em.mjs'
 import * as Frame from './frame.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
@@ -495,19 +494,8 @@ function _viewInit
   })
 
   domEventHandlers = {
-    click(e) {
-      let target
-
-      // same as handleMouse in bred.mjs
-      d('WODE VIEW domEventHandlers click')
-      target = globalThis.document.elementFromPoint(e.clientX, e.clientY)
-      view = Pane.holding(target)?.view
-
-      // seems like even with `return true` the ev gets to Bred.handleClick
-      e.stopPropagation()
-
-      Em.handle({ mouse: 1, name: 'click', e, buf: view?.buf },
-                view)
+    click() {
+      // prevent click from moving point
       return true
     },
     contextmenu() {

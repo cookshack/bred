@@ -502,15 +502,13 @@ function _viewInit
       // prevent right click from moving point
       return true
     },
-    mousedown(event) {
+    mousedown() {
       // prevent right click from moving point
-      if (event.button == 2)
-        return true
+      return true
     },
-    mouseup(event) {
+    mouseup() {
       // prevent right click from moving point
-      if (event.button == 2)
-        return true
+      return true
     },
     paste(event, ed) {
       try {

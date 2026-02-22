@@ -1,7 +1,7 @@
 import * as Area from './area.mjs'
-import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
+import * as Em from './em.mjs'
 import * as Frame from './frame.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
@@ -496,26 +496,19 @@ function _viewInit
 
   domEventHandlers = {
     click(e) {
-      let run, target
+      let target
 
-      // duplicated from Em.handle
-      // Required for data-run eg of file name in A-x Search Files when core.highlight.occurrences.enabled.
-      // In Em.handle the target is the activeLine instead of the activeLine > selectionMatch which has the data-run.
-
+      // same as handleMouse in bred.mjs
+      d('WODE VIEW domEventHandlers click')
       target = globalThis.document.elementFromPoint(e.clientX, e.clientY)
-      run = target?.dataset?.run
-      if (run) {
-        let p
+      view = Pane.holding(target)?.view
 
-        p = Pane.holding(target)
-        if (p)
-          p.focus()
-        Mess.say('')
+      // seems like even with `return true` the ev gets to Bred.handleClick
+      e.stopPropagation()
 
-        d('wode cmd on data-run: ' + run)
-        d(run)
-        Cmd.run(run, buf, Cmd.universal(run), { mouse: 1, name: 'click', e, buf: p?.buf })
-      }
+      Em.handle({ mouse: 1, name: 'click', e, buf: view?.buf },
+                view)
+      return true
     },
     contextmenu() {
       // prevent right click from moving point

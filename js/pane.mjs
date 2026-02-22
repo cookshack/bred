@@ -392,6 +392,7 @@ function add
           })
         },
         clearInput() {
+          d('PANE clearInput')
           inputQueue.length = 0
         },
         //

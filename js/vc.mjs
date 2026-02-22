@@ -910,6 +910,17 @@ function initLogOneLine
       showHash(hash)
   }
 
+  function showCommit
+  () {
+    let p, l, hash
+
+    p = Pane.current()
+    l = p.line()
+    hash = /^([0-9a-f]+)/.exec(l)?.[1]
+    if (hash)
+      showHash(hash)
+  }
+
   Cmd.add('vc log one-line', () => {
     let args, p
 
@@ -975,12 +986,14 @@ function initLogOneLine
                                      initFns: Ed.initModeFns,
                                      parentsForEm: 'ed',
                                      decorators: [ { regex: /^([0-9a-f]{7})/d,
-                                                     decor: [ { attr: { class: 'vc_log-hash' } } ] } ] })
+                                                     decor: [ { attr: { class: 'vc_log-hash',
+                                                                        'data-run': 'show' } } ] } ] })
   Cmd.add('full', () => full(Pane.current()), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('next commit', () => next(1), mo)
   Cmd.add('previous commit', () => next(-1), mo)
   Cmd.add('show', () => show(), mo)
+  Cmd.add('show commit', () => showCommit(), mo)
 
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
@@ -993,9 +1006,9 @@ function initLogOneLine
   Em.on('Tab', 'next commit', mo)
   Em.on('p', 'previous commit', mo)
   Em.on('C-Tab', 'previous commit', mo)
-  Em.on('e', 'show', mo)
-  Em.on('Enter', 'show', mo)
-  Em.on('=', 'show', mo)
+  Em.on('e', 'show commit', mo)
+  Em.on('Enter', 'show commit', mo)
+  Em.on('=', 'show commit', mo)
 }
 
 function initLogBadIdea

@@ -9,8 +9,8 @@ import * as EvParser from '../lib/ev-parser.mjs'
 
 let root, wes, ems, getActive, d
 
-d = () => {}
-//d = Mess.d
+//d = () => {}
+d = Mess.d
 
 export
 function init
@@ -481,6 +481,10 @@ export
 function handle
 (we, view) {
   let pane
+
+  d('EM handle')
+  d({ we })
+  d({ view })
 
   pane = Pane.current()
 

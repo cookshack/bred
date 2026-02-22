@@ -23,8 +23,9 @@
   display: flex;
 }
 
-.vc_log-hash {
-  color: var(--clr-emph);
+.vc_log-hash,
+span.vc_log-hash[data-run] {
+  color: var(--rule-clr-comment);
 }
 
 .vc-bg::before {

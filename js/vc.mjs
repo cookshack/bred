@@ -973,8 +973,9 @@ function initLogOneLine
   mo = Mode.add('VC Log One-Line', { viewInit: Ed.viewInit,
                                      viewCopy,
                                      initFns: Ed.initModeFns,
-                                     parentsForEm: 'ed' })
-
+                                     parentsForEm: 'ed',
+                                     decorators: [ { regex: /^([0-9a-f]{7})/d,
+                                                     decor: [ { attr: { class: 'vc_log-hash' } } ] } ] })
   Cmd.add('full', () => full(Pane.current()), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('next commit', () => next(1), mo)

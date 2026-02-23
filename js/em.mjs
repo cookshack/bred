@@ -325,6 +325,19 @@ function look
     cb()
 }
 
+function weRun
+(we) {
+  if (we.e) {
+    let targets
+
+    targets = globalThis.document.elementsFromPoint(we.e.clientX, we.e.clientY)
+    for (let i = 0; i < targets.length; i++)
+      if (targets[i].dataset.run)
+        return { after: targets[i].dataset.after,
+                 cmd: targets[i].dataset.run }
+  }
+}
+
 // Original handle function, wrapped by handle.
 function originalHandle
 (we, view) {
@@ -345,7 +358,7 @@ function originalHandle
       let name, run, target
 
       target = we.e?.target
-      run = target?.dataset?.run
+      run = weRun(we)
       if (run) {
         let p
 
@@ -362,10 +375,10 @@ function originalHandle
 
         Css.remove(target.parentNode?.parentNode, 'bred-open')
 
-        d('cmd on data-run: ' + run)
-        Cmd.run(run, buf, Cmd.universal(run), we)
-        if (target.dataset.after)
-          Cmd.run(target.dataset.after, buf, 1, we)
+        d('cmd on data-run: ' + run.cmd)
+        Cmd.run(run.cmd, buf, Cmd.universal(run.cmd), we)
+        if (run.after)
+          Cmd.run(run.after, buf, 1, we)
         return
       }
 

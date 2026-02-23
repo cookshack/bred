@@ -1318,6 +1318,17 @@ function initBindings
   Em.on('A-g h', 'goto home')
 }
 
+export
+function handleMouse
+(name, e) {
+  let target, view
+
+  target = globalThis.document.elementFromPoint(e.clientX, e.clientY)
+  view = Pane.holding(target)?.view
+  Em.handle({ mouse: 1, name, e, buf: view?.buf },
+            view)
+}
+
 function initHandlers
 () {
 
@@ -1327,16 +1338,6 @@ function initHandlers
 
     view = Pane.current()?.view
     Em.handle({ mouse: 0, e, buf: view?.buf },
-              view)
-  }
-
-  function handleMouse
-  (name, e) {
-    let target, view
-
-    target = globalThis.document.elementFromPoint(e.clientX, e.clientY)
-    view = Pane.holding(target)?.view
-    Em.handle({ mouse: 1, name, e, buf: view?.buf },
               view)
   }
 

@@ -1,4 +1,5 @@
 import * as Area from './area.mjs'
+import * as Bred from './bred.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Frame from './frame.mjs'
@@ -494,21 +495,29 @@ function _viewInit
   })
 
   domEventHandlers = {
-    click() {
-      // prevent click from moving point
-      return true
+    click(e) {
+      d('WODE VIEW dom click')
+      globalThis.requestAnimationFrame(() => {
+        Bred.handleMouse('click', e)
+      })
+      return false
     },
     contextmenu() {
+      d('WODE VIEW dom context')
       // prevent right click from moving point
       return true
     },
-    mousedown() {
+    mousedown(event) {
+      d('WODE VIEW dom mousedown')
       // prevent right click from moving point
-      return true
+      if (event.button == 2)
+        return true
     },
-    mouseup() {
+    mouseup(event) {
+      d('WODE VIEW dom mouseup')
       // prevent right click from moving point
-      return true
+      if (event.button == 2)
+        return true
     },
     paste(event, ed) {
       try {

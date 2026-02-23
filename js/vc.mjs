@@ -985,7 +985,7 @@ function initLogOneLine
                                      viewCopy,
                                      initFns: Ed.initModeFns,
                                      parentsForEm: 'ed',
-                                     decorators: [ { regex: /^([0-9a-f]{7})/d,
+                                     decorators: [ { regex: /^([0-9a-f]+)/d,
                                                      decor: [ { attr: { class: 'vc_log-hash',
                                                                         'data-run': 'show' } } ] } ] })
   Cmd.add('full', () => full(Pane.current()), mo)

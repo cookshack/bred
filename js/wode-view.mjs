@@ -495,13 +495,6 @@ function _viewInit
   })
 
   domEventHandlers = {
-    click(e) {
-      d('WODE VIEW dom click')
-      globalThis.requestAnimationFrame(() => {
-        Bred.handleMouse('click', e)
-      })
-      return false
-    },
     contextmenu() {
       d('WODE VIEW dom context')
       // prevent right click from moving point
@@ -512,12 +505,15 @@ function _viewInit
       // prevent right click from moving point
       if (event.button == 2)
         return true
+      return false
     },
     mouseup(event) {
       d('WODE VIEW dom mouseup')
       // prevent right click from moving point
       if (event.button == 2)
         return true
+      Bred.handleMouse('click', event)
+      return false
     },
     paste(event, ed) {
       try {

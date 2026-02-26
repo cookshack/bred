@@ -509,10 +509,19 @@ function _viewInit
     },
     mouseup(event) {
       d('WODE VIEW dom mouseup')
-      // prevent right click from moving point
+
+      if (event.button == 1) {
+        // middle click, let cm paste, then run any handlers
+        setTimeout(() => Bred.handleMouse('click', event))
+        return false
+      }
+
       if (event.button == 2)
+        // right click, prevent cm from moving point
         return true
-      Bred.handleMouse('click', event)
+
+      // else let cm move point, then run any handlers
+      setTimeout(() => Bred.handleMouse('click', event))
       return false
     },
     paste(event, ed) {

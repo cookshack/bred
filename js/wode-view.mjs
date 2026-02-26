@@ -496,19 +496,19 @@ function _viewInit
 
   domEventHandlers = {
     contextmenu() {
-      d('WODE VIEW dom context')
+      //d('WODE VIEW dom context')
       // prevent right click from moving point
       return true
     },
     mousedown(event) {
-      d('WODE VIEW dom mousedown')
+      //d('WODE VIEW dom mousedown')
       // prevent right click from moving point
       if (event.button == 2)
         return true
       return false
     },
     mouseup(event) {
-      d('WODE VIEW dom mouseup')
+      //d('WODE VIEW dom mouseup')
 
       if (event.button == 1) {
         // middle click, let cm paste, then run any handlers

@@ -1349,7 +1349,7 @@ function initHandlers
           && (e.target.getAttribute('type') == 'color'))
         // special case for color picker
         return
-      d('BRED handleClick')
+      //d('BRED handleClick')
       handleMouse('click', e)
     }
     else if (e.button == 1)

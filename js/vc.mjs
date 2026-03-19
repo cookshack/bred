@@ -286,11 +286,15 @@ function initHub
   Cmd.add('next notification', () => go(1), mo)
   Cmd.add('previous notification', () => go(-1), mo)
 
+  // should use view mode
   Em.on('q', 'bury', mo)
+  Em.on('Backspace', 'scroll up', mo)
+  Em.on(' ', 'scroll down', mo)
+
   Em.on('g', 'vc hub refresh', mo)
   Em.on('m', 'mark read', mo)
-  Em.on('n', 'next notification', mo)
-  Em.on('p', 'previous notification', mo)
+  Em.on('n', 'next line', mo)
+  Em.on('p', 'previous line', mo)
   Em.on('e', 'open notification', mo)
   Em.on('Enter', 'open notification', mo)
 

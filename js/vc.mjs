@@ -193,6 +193,8 @@ function initHub
     fetchNotifications(data => {
       let out
 
+      d({ data })
+
       out = ''
       data.forEach(n => {
         let repo, subject, reason, updated, url, prNum, ownerRepo

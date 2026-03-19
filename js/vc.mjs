@@ -1,6 +1,7 @@
 import { append, divCl, img } from './dom.mjs'
 
 import * as Buf from './buf.mjs'
+import * as Browse from './browse.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
@@ -241,21 +242,19 @@ function initHub
 
   function openNotification
   () {
-    let p, line, parts, url
+    let p, url
 
     p = Pane.current()
-    line = p.line()
-    parts = line.split('\t')
-    if (parts.length < 2) {
-      Mess.say('No notification on line')
-      return
-    }
     url = p.view.buf.vars('hub').urls[p.view.pos.row]
     if (url)
-      Tron.cmd('browse.open', url, err => {
-        if (err)
-          Mess.yell('browse.open: ' + err.message)
+      Tron.cmd('shell.open', [ url ], err => {
+        if (err) {
+          Mess.yell('shell.open: ' + err.message)
+          return
+        }
       })
+    else if (0)
+      Browse.browse(url)
     else
       Mess.yell('Missing URL')
   }

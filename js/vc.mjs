@@ -195,18 +195,19 @@ function initHub
 
       out = ''
       data.forEach(n => {
-        let repo, subject, reason, updated, url
+        let repo, subject, reason, updated, url, prNum
 
         repo = n.repository.full_name
         subject = n.subject.title
         reason = n.reason
         updated = formatDate(n.updated_at)
-        out += repo + '\t' + subject + '\t' + reason + '\t' + updated + '\n'
-        p.buf.vars('hub').threadIds.push(n.id)
         url = n.subject.latest_comment_url || n.subject.url
         url = url?.replace('https://api.github.com/repos', 'https://github.com')
         url = url?.replace('/pulls/', '/pull/')
         p.buf.vars('hub').urls.push(url)
+        prNum = url?.match(/\/pull\/(\d+)/)?.[1] || ''
+        out += prNum + '\t' + repo + '\t' + subject + '\t' + reason + '\t' + updated + '\n'
+        p.buf.vars('hub').threadIds.push(n.id)
       })
       p.buf.append(out, 1)
       p.view.lineStart()
@@ -314,6 +315,7 @@ function initHub
       buf.icon = 'log'
     }
     buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('core.line.wrap.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
     p.setBuf(buf, {}, () => refresh(p))
   })

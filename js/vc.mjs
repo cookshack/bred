@@ -17,6 +17,7 @@ import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
 import * as Diff from '../lib/diff.js'
+import * as Opt from './opt.mjs'
 
 let clrs
 
@@ -144,6 +145,173 @@ function initStash
   Em.on('e', 'stash open', moS)
   Em.on('g', 'vc stash enumerate', moS)
   Em.on('Enter', 'stash open', moS)
+}
+
+export
+function initHub
+() {
+  let mo, buf
+
+  function getToken
+  () {
+    let token
+
+    token = Opt.get('core.vc.github.token')
+    token.length || Mess.toss('core.vc.github.token not set')
+    return token
+  }
+
+  function formatDate
+  (str) {
+    if (str?.length)
+      return str.slice(0, 10)
+    return ''
+  }
+
+  function fetchNotifications
+  (cb) {
+    let token, url
+
+    token = getToken()
+    url = 'https://api.github.com/notifications'
+    fetch(url, { headers: { Authorization: 'token ' + token } })
+      .then(res => {
+        if (res.ok)
+          return res.json()
+        throw new Error('HTTP ' + res.status)
+      })
+      .then(data => cb(data))
+      .catch(err => Mess.yell('Hub: ' + err.message))
+  }
+
+  function refresh
+  (p) {
+    p.buf.clear()
+    p.buf.vars('hub').threadIds = []
+    p.buf.vars('hub').urls = []
+    fetchNotifications(data => {
+      let out
+
+      out = ''
+      data.forEach(n => {
+        let repo, subject, reason, updated, url
+
+        repo = n.repository.full_name
+        subject = n.subject.title
+        reason = n.reason
+        updated = formatDate(n.updated_at)
+        out += repo + '\t' + subject + '\t' + reason + '\t' + updated + '\n'
+        p.buf.vars('hub').threadIds.push(n.id)
+        url = n.subject.latest_comment_url || n.subject.url
+        p.buf.vars('hub').urls.push(url?.replace('https://api.github.com/repos', 'https://github.com'))
+      })
+      p.buf.append(out, 1)
+      p.view.lineStart()
+    })
+  }
+
+  function markRead
+  () {
+    let p, line, parts, threadId
+
+    p = Pane.current()
+    line = p.line()
+    parts = line.split('\t')
+    if (parts.length < 2) {
+      Mess.say('No notification on line')
+      return
+    }
+    threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
+    if (threadId)
+      fetch('https://api.github.com/notifications/threads/' + threadId,
+            { method: 'PATCH',
+              headers: { Authorization: 'token ' + getToken() } })
+        .then(res => {
+          if (res.ok) {
+            Mess.say('Marked as read')
+            refresh(p)
+            return
+          }
+          throw new Error('HTTP ' + res.status)
+        })
+        .catch(err => Mess.yell('Hub: ' + err.message))
+    else
+      Mess.yell('Missing thread ID')
+  }
+
+  function openNotification
+  () {
+    let p, line, parts, url
+
+    p = Pane.current()
+    line = p.line()
+    parts = line.split('\t')
+    if (parts.length < 2) {
+      Mess.say('No notification on line')
+      return
+    }
+    url = p.view.buf.vars('hub').urls[p.view.pos.row]
+    if (url)
+      Tron.cmd('browse.open', url, err => {
+        if (err)
+          Mess.yell('browse.open: ' + err.message)
+      })
+    else
+      Mess.yell('Missing URL')
+  }
+
+  function go
+  (n) {
+    if (n == 0)
+      return
+    if (n > 0)
+      Cmd.run('next line')
+    else
+      Cmd.run('previous line')
+  }
+
+  Opt.declare('core.vc.github.token', 'str', '')
+
+  mo = Mode.add('Vc Hub', { viewInit: Ed.viewInit,
+                            viewCopy: Ed.viewCopy,
+                            initFns: Ed.initModeFns,
+                            parentsForEm: 'ed',
+                            decorators: [ { regex: /^[^ ]+/d,
+                                            decor: [ { attr: { class: 'vc_hub-repo',
+                                                               'data-run': 'open notification' } } ] } ] })
+
+  Cmd.add('vc hub refresh', () => refresh(Pane.current()), mo)
+  Cmd.add('open notification', () => openNotification(), mo)
+  Cmd.add('mark read', () => markRead(), mo)
+  Cmd.add('next notification', () => go(1), mo)
+  Cmd.add('previous notification', () => go(-1), mo)
+
+  Em.on('q', 'bury', mo)
+  Em.on('g', 'vc hub refresh', mo)
+  Em.on('m', 'mark read', mo)
+  Em.on('n', 'next notification', mo)
+  Em.on('p', 'previous notification', mo)
+  Em.on('e', 'open notification', mo)
+  Em.on('Enter', 'open notification', mo)
+
+  Cmd.add('vc hub', () => {
+    let p
+
+    p = Pane.current()
+    if (buf) {
+      buf.vars('hub').threadIds = []
+      buf.vars('hub').urls = []
+    }
+    else {
+      buf = Buf.add('Vc Hub', 'Vc Hub', Ed.divW(0, 0), p.dir)
+      buf.vars('hub').threadIds = []
+      buf.vars('hub').urls = []
+      buf.icon = 'log'
+    }
+    buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('minimap.enabled', 0)
+    p.setBuf(buf, {}, () => refresh(p))
+  })
 }
 
 export
@@ -1496,6 +1664,7 @@ function init
   initLogBadIdea()
   initEqual()
   initStash()
+  initHub()
 
   Cmd.add('vc branch', () => branch())
   Cmd.add('vc main', () => mainOrMaster())
@@ -1516,6 +1685,7 @@ function init
   Em.on('C-x v d', 'vc stash drop')
   Em.on('C-x v e', 'vc stash enumerate')
   Em.on('C-x v g', 'vc annotate')
+  Em.on('C-x v h', 'vc hub')
   Em.on('C-x v i', 'vc show')
   Em.on('C-x v L', 'vc log')
   Em.on('C-x v l', 'vc log one-line')

@@ -204,7 +204,9 @@ function initHub
         out += repo + '\t' + subject + '\t' + reason + '\t' + updated + '\n'
         p.buf.vars('hub').threadIds.push(n.id)
         url = n.subject.latest_comment_url || n.subject.url
-        p.buf.vars('hub').urls.push(url?.replace('https://api.github.com/repos', 'https://github.com'))
+        url = url?.replace('https://api.github.com/repos', 'https://github.com')
+        url = url?.replace('/pulls/', '/pull/')
+        p.buf.vars('hub').urls.push(url)
       })
       p.buf.append(out, 1)
       p.view.lineStart()

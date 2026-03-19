@@ -195,9 +195,10 @@ function initHub
 
       out = ''
       data.forEach(n => {
-        let repo, subject, reason, updated, url, prNum
+        let repo, subject, reason, updated, url, prNum, ownerRepo
 
-        repo = n.repository.full_name
+        repo = n.repository.name
+        ownerRepo = n.repository.full_name
         subject = n.subject.title
         reason = n.reason
         updated = formatDate(n.updated_at)
@@ -205,9 +206,9 @@ function initHub
         url = url?.replace('https://api.github.com/repos', 'https://github.com')
         url = url?.replace('/pulls/', '/pull/')
         p.buf.vars('hub').urls.push(url)
-        prNum = (url?.match(/\/pull\/(\d+)/)?.[1] || '').padStart(4)
-        out += prNum + '\t' + repo + '\t' + subject + '\t' + reason + '\t' + updated + '\n'
         p.buf.vars('hub').threadIds.push(n.id)
+        prNum = (url?.match(/\/pull\/(\d+)/)?.[1] || '').padStart(4)
+        out += prNum + '\t' + repo + '\t' + subject + '\t' + reason + '\t' + updated + '\t' + ownerRepo + '\n'
       })
       p.buf.append(out, 1)
       p.view.lineStart()

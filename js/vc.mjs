@@ -246,6 +246,35 @@ function initHub
       Mess.yell('Missing thread ID')
   }
 
+  function markDone
+  () {
+    let p, line, parts, threadId
+
+    p = Pane.current()
+    line = p.line()
+    parts = line.split('\t')
+    if (parts.length < 2) {
+      Mess.say('No notification on line')
+      return
+    }
+    threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
+    if (threadId)
+      fetch('https://api.github.com/notifications/threads/' + threadId,
+            { method: 'DELETE',
+              headers: { Authorization: 'token ' + getToken() } })
+        .then(res => {
+          if (res.ok) {
+            Mess.say('Marked as done')
+            refresh(p)
+            return
+          }
+          throw new Error('HTTP ' + res.status)
+        })
+        .catch(err => Mess.yell('Hub: ' + err.message))
+    else
+      Mess.yell('Missing thread ID')
+  }
+
   function openNotification
   () {
     let p, url
@@ -288,6 +317,7 @@ function initHub
   Cmd.add('vc hub refresh', () => refresh(Pane.current()), mo)
   Cmd.add('open notification', () => openNotification(), mo)
   Cmd.add('mark read', () => markRead(), mo)
+  Cmd.add('mark done', () => markDone(), mo)
   Cmd.add('next notification', () => go(1), mo)
   Cmd.add('previous notification', () => go(-1), mo)
 
@@ -298,6 +328,7 @@ function initHub
 
   Em.on('g', 'vc hub refresh', mo)
   Em.on('m', 'mark read', mo)
+  Em.on('d', 'mark done', mo)
   Em.on('n', 'next line', mo)
   Em.on('p', 'previous line', mo)
   Em.on('e', 'open notification', mo)

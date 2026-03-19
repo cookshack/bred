@@ -205,7 +205,7 @@ function initHub
         url = url?.replace('https://api.github.com/repos', 'https://github.com')
         url = url?.replace('/pulls/', '/pull/')
         p.buf.vars('hub').urls.push(url)
-        prNum = url?.match(/\/pull\/(\d+)/)?.[1] || ''
+        prNum = (url?.match(/\/pull\/(\d+)/)?.[1] || '').padStart(4)
         out += prNum + '\t' + repo + '\t' + subject + '\t' + reason + '\t' + updated + '\n'
         p.buf.vars('hub').threadIds.push(n.id)
       })

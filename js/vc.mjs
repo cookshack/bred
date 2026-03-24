@@ -20,7 +20,7 @@ import { d } from './mess.mjs'
 import * as Diff from '../lib/diff.js'
 import * as Opt from './opt.mjs'
 
-let clrs
+let clrs, cachedNotifications
 
 function vcMl
 (args, mode) {
@@ -151,7 +151,7 @@ function initStash
 export
 function initHub
 () {
-  let mo, buf
+  let mo, buf, lastModified
 
   function getToken
   () {
@@ -171,19 +171,31 @@ function initHub
 
   function fetchNotifications
   (cb) {
-    let token, url
+    let token, url, headers
 
     token = getToken()
     url = 'https://api.github.com/notifications'
-    fetch(url, { headers: { Authorization: 'Bearer ' + token,
-                            Accept: 'application/vnd.github+json',
-                            'X-GitHub-Api-Version': '2026-03-10' } })
+    headers = { Authorization: 'Bearer ' + token,
+                Accept: 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2026-03-10' }
+    if (lastModified)
+      headers['If-Modified-Since'] = lastModified
+    fetch(url, { headers })
       .then(res => {
-        if (res.ok)
+        if (res.status == 304) {
+          d('VC 304 using cached notifications')
+          return cachedNotifications
+        }
+        if (res.ok) {
+          lastModified = res.headers.get('Last-Modified')
           return res.json()
+        }
         throw new Error('HTTP ' + res.status)
       })
-      .then(data => cb(data))
+      .then(data => {
+        cachedNotifications = data
+        cb(data)
+      })
       .catch(err => Mess.yell('Hub: ' + err.message))
   }
 

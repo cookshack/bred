@@ -180,6 +180,8 @@ function initHub
                 'X-GitHub-Api-Version': '2026-03-10' }
     if (lastModified)
       headers['If-Modified-Since'] = lastModified
+    d('fetch ' + url)
+    d({ headers })
     fetch(url, { headers })
       .then(res => {
         if (res.status == 304) {
@@ -255,6 +257,13 @@ function initHub
       p.buf.append(out, 1)
       p.view.lineStart()
     })
+  }
+
+  function refreshFull
+  () {
+    cachedNotifications = 0
+    lastModified = 0
+    refresh(Pane.current())
   }
 
   function markRead
@@ -383,8 +392,8 @@ function initHub
                                                      { attr: { style: 'color: var(--clr-syntax0)' } },
                                                      { attr: {} } ] } ] })
 
-  Cmd.add('vc hub refresh', () => refresh(Pane.current()), mo)
-
+  Cmd.add('refresh', () => refresh(Pane.current()), mo)
+  Cmd.add('refresh full', () => refreshFull(), mo)
   Cmd.add('open notification', () => openNotification(), mo)
   Cmd.add('mark read', () => markRead(), mo)
   Cmd.add('mark done', () => markDone(), mo)
@@ -396,7 +405,8 @@ function initHub
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
-  Em.on('g', 'vc hub refresh', mo)
+  Em.on('g', 'refresh', mo)
+  Em.on('G', 'refresh full', mo)
   Em.on('r', 'mark read', mo)
   Em.on('d', 'mark done', mo)
   Em.on('n', 'next line', mo)

@@ -345,13 +345,25 @@ function initHub
     return 0
   }
 
+  function getRefRepo
+  (view, match) {
+    let ownerRepo
+
+    ownerRepo = match[5]
+    if (ownerRepo)
+      return Ed.makeDecor({ attr: { style: 'color: var(--rule-clr-comment)',
+                                    'data-run': 'open externally',
+                                    'data-url': 'https://github.com/' + ownerRepo } })
+    return 0
+  }
+
   mo = Mode.add('Vc Hub', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed',
                             decorators: [ { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+?(subscribed|review_requested|mention|state_change|activity|unknown)\s+(\d{4}-\d{2}-\d{2}) (\S+)/d,
                                             decor: [ { ref: getRefPr },
-                                                     { attr: { style: 'color: var(--clr-nb2)' } },
+                                                     { ref: getRefRepo },
                                                      { attr: { style: 'color: var(--clr-syntax0)' } } ] } ] })
 
   Cmd.add('vc hub refresh', () => refresh(Pane.current()), mo)

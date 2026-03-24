@@ -66,6 +66,9 @@ function makeDecorator
                   builder.add(from, to, markR.mark)
                 else if (markR?.line)
                   builder.add(line.from, line.from, markR.line)
+                else if (markR) {
+                  // intentionally skipped
+                }
                 else
                   d('decorate: ref missing mark')
               }
@@ -76,6 +79,9 @@ function makeDecorator
               builder.add(from, to, mark.mark)
             else if (mark?.line)
               builder.add(line.from, line.from, mark.line)
+            else if (mark) {
+              // intentionally skipped
+            }
             else
               d('decorate: missing mark')
           }

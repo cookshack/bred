@@ -344,10 +344,13 @@ function initHub
 
     prNum = match[1]?.trim()
     ownerRepo = match[4]
-    if (prNum && ownerRepo)
-      return Ed.makeDecor({ attr: { style: 'color: var(--clr-syntax1)',
-                                    'data-run': 'open externally',
-                                    'data-url': 'https://github.com/' + ownerRepo + '/pull/' + prNum } })
+    if (ownerRepo) {
+      if (prNum)
+        return Ed.makeDecor({ attr: { style: 'color: var(--clr-syntax1)',
+                                      'data-run': 'open externally',
+                                      'data-url': 'https://github.com/' + ownerRepo + '/pull/' + prNum } })
+      return {}
+    }
     return 0
   }
 

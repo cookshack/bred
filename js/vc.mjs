@@ -339,8 +339,10 @@ function initHub
                             decorators: [ { regex: /^[^ ]+/d,
                                             decor: [ { attr: { class: 'vc_hub-repo',
                                                                'data-run': 'open notification' } } ] },
-                                          { regex: /.+?(subscribed|review_requested|mention|state_change|activity|unknown)\s+\d{4}-\d{2}-\d{2}/d,
-                                            decor: [ { attr: { style: 'color: var(--clr-nb2)' } } ] } ] })
+                                          { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+?(subscribed|review_requested|mention|state_change|activity|unknown)\s+(\d{4}-\d{2}-\d{2})/d,
+                                            decor: [ { attr: { style: 'color: var(--clr-syntax1)' } },
+                                                     { attr: { style: 'color: var(--clr-nb2)' } },
+                                                     { attr: { style: 'color: var(--clr-syntax0)' } } ] } ] })
 
   Cmd.add('vc hub refresh', () => refresh(Pane.current()), mo)
   Cmd.add('open notification', () => openNotification(), mo)

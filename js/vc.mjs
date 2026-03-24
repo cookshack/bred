@@ -230,6 +230,15 @@ function initHub
       .catch(err => Mess.yell('Hub: ' + err.message))
   }
 
+  function shortReason
+  (reason) {
+    if (reason == 'review_requested')
+      return 'review'
+    if (reason == 'subscribed')
+      return 'sub'
+    return reason
+  }
+
   function refresh
   (p) {
     p.buf.clear()
@@ -256,7 +265,7 @@ function initHub
           prNum,
           repo: n.repository.name,
           subject: n.subject.title,
-          reason: n.reason,
+          reason: shortReason(n.reason),
           updated: formatDate(n.updated_at),
           ownerRepo,
           url,

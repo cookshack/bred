@@ -174,7 +174,7 @@ function initHub
     let token, url, headers
 
     token = getToken()
-    url = 'https://api.github.com/notifications'
+    url = 'https://api.github.com/notifications?all=true'
     headers = { Authorization: 'Bearer ' + token,
                 Accept: 'application/vnd.github+json',
                 'X-GitHub-Api-Version': '2026-03-10' }
@@ -268,6 +268,44 @@ function initHub
     refresh(Pane.current())
   }
 
+  function json
+  () {
+    let p, threadId
+
+    p = Pane.current()
+    threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
+    d('VC json ' + threadId)
+    if (threadId)
+      fetch('https://api.github.com/notifications/threads/' + threadId,
+            { method: 'GET',
+              headers: { Authorization: 'Bearer ' + getToken(),
+                         Accept: 'application/vnd.github+json',
+                         'X-GitHub-Api-Version': '2026-03-10' } })
+        .then(res => {
+          d('VC json ' + res.status)
+          if (res.ok)
+            return res.json()
+          throw new Error('HTTP ' + res.status)
+        })
+        .then(data => {
+          let file
+
+          file = 'vc-hub-' + threadId + '.json'
+          Ed.make(p,
+                  { name: file,
+                    dir: p.dir },
+                  view => {
+                    view.buf.file = file
+                    view.buf.opts.set('core.lang', 'json')
+                    view.insert(JSON.stringify(data, null, 2))
+                    view.buf.modified = 0
+                  })
+        })
+        .catch(err => Mess.yell('Hub: ' + err.message))
+    else
+      Mess.yell('Missing thread ID')
+  }
+
   function markRead
   () {
     let p, threadId
@@ -351,8 +389,6 @@ function initHub
       Cmd.run('previous line')
   }
 
-  Opt.declare('core.vc.github.token', 'str', '')
-
   function getRefPr
   (view, match) {
     let prNum, ownerRepo
@@ -381,6 +417,8 @@ function initHub
     return 0
   }
 
+  Opt.declare('core.vc.github.token', 'str', '')
+
   mo = Mode.add('Vc Hub', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
@@ -394,6 +432,7 @@ function initHub
                                                      { attr: { style: 'color: var(--clr-syntax0)' } },
                                                      { attr: {} } ] } ] })
 
+  Cmd.add('json', () => json(), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('refresh full', () => refreshFull(), mo)
   Cmd.add('open notification', () => openNotification(), mo)
@@ -409,6 +448,7 @@ function initHub
 
   Em.on('g', 'refresh', mo)
   Em.on('G', 'refresh full', mo)
+  Em.on('j', 'json', mo)
   Em.on('r', 'mark read', mo)
   Em.on('d', 'mark done', mo)
   Em.on('n', 'next line', mo)

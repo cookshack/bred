@@ -205,7 +205,9 @@ function initHub
   (useCache, cb) {
     let url
 
-    url = 'https://api.github.com/notifications?all=true'
+    url = 'https://api.github.com/notifications'
+    if (Opt.get('core.vc.github.notifications.all'))
+      url += '?all=true'
     d('fetch ' + url)
     get(url, useCache)
       .then(res => {
@@ -392,6 +394,12 @@ function initHub
       Mess.yell('Missing URL')
   }
 
+  function toggleHidden
+  () {
+    Opt.toggle('core.vc.github.notifications.all')
+    refreshFull()
+  }
+
   function go
   (n) {
     if (n == 0)
@@ -431,6 +439,7 @@ function initHub
   }
 
   Opt.declare('core.vc.github.token', 'str', '')
+  Opt.declare('core.vc.github.notifications.all', 'bool', 1)
 
   mo = Mode.add('Vc Hub', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
@@ -453,6 +462,7 @@ function initHub
   Cmd.add('mark done', () => markDone(), mo)
   Cmd.add('next notification', () => go(1), mo)
   Cmd.add('previous notification', () => go(-1), mo)
+  Cmd.add('toggle hidden', () => toggleHidden(), mo)
 
   // should use view mode
   Em.on('q', 'bury', mo)
@@ -461,6 +471,7 @@ function initHub
 
   Em.on('g', 'refresh', mo)
   Em.on('G', 'refresh full', mo)
+  Em.on('h', 'toggle hidden', mo)
   Em.on('j', 'json', mo)
   Em.on('r', 'mark read', mo)
   Em.on('d', 'mark done', mo)

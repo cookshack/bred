@@ -276,8 +276,8 @@ function initHub
       widths = [ 4, 0, 0, 0, 10, 0 ]
       rows.forEach(r => {
         widths[1] = Math.max(widths[1], r.repo.length)
-        widths[2] = Math.max(widths[2], r.subject.length)
-        widths[3] = Math.max(widths[3], r.reason.length)
+        widths[2] = Math.max(widths[2], r.reason.length)
+        widths[3] = Math.max(widths[3], r.subject.length)
         widths[5] = Math.max(widths[5], r.ownerRepo.length)
       })
 
@@ -287,8 +287,8 @@ function initHub
         p.buf.vars('hub').urls.push(r.url)
         out += r.prNum.padStart(widths[0]) + ' ' +
                r.repo.padEnd(widths[1]) + ' ' +
-               r.subject.padEnd(widths[2]) + ' ' +
-               r.reason.padEnd(widths[3]) + ' ' +
+               r.reason.padEnd(widths[2]) + ' ' +
+               r.subject.padEnd(widths[3]) + ' ' +
                r.updated.padEnd(widths[4]) + ' ' +
                r.ownerRepo + '\n'
       })
@@ -461,10 +461,10 @@ function initHub
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed',
-                            //   11 repo1 Fix: example text review_requested 2025-01-01 owner/repo1
-                            // 1234    r2 Fix: example text review_requested 2025-01-01 owner/r2
-                            // 99999    r2 Fix: example text review_requested 2025-01-01 owner/r2
-                            decorators: [ { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+?([^ ]+)\s+(?:\d{4}-\d{2}-\d{2}) (\S+)/d,
+                            //   11 repo1 review Fix: example text 2025-01-01 owner/repo1
+                            // 1234 r2    review Fix: example text 2025-01-01 owner/r2
+                            // 99999 r2    review Fix: example text 2025-01-01 owner/r2
+                            decorators: [ { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2}) (\S+)/d,
                                             decor: [ { ref: getRefPr },
                                                      { ref: getRefRepo },
                                                      { attr: { style: 'color: var(--clr-syntax0)' } },

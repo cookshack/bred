@@ -212,8 +212,16 @@ function initHub
           state = '?'
           if (data.merged)
             state = 'M'
+          else if (data.review_decision == 'APPROVED')
+            state = 'A'
+          else if (data.review_decision == 'CHANGES_REQUESTED')
+            state = 'R'
+          else if (data.review_decision == 'PENDING')
+            state = 'P'
+          else if (data.draft)
+            state = 'D'
           else if (data.state)
-            state = data.state.slice(0, 1)
+            state = data.state.slice(0, 1).toUpperCase()
 
           d('VC ' + state + ' ' + data.state)
           cachedPrState[key] = state

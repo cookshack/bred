@@ -343,7 +343,7 @@ function initHub
     let prNum, ownerRepo
 
     prNum = match[1]?.trim()
-    ownerRepo = match[5]
+    ownerRepo = match[4]
     if (prNum && ownerRepo)
       return Ed.makeDecor({ attr: { style: 'color: var(--clr-syntax1)',
                                     'data-run': 'open externally',
@@ -355,7 +355,7 @@ function initHub
   (view, match) {
     let ownerRepo
 
-    ownerRepo = match[5]
+    ownerRepo = match[4]
     if (ownerRepo)
       return Ed.makeDecor({ attr: { style: 'color: var(--rule-clr-comment)',
                                     'data-run': 'open externally',
@@ -367,10 +367,14 @@ function initHub
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed',
-                            decorators: [ { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+?([^ ]+)\s+(\d{4}-\d{2}-\d{2}) (\S+)/d,
+                            //   11 repo1 Fix: example text review_requested 2025-01-01 owner/repo1
+                            // 1234    r2 Fix: example text review_requested 2025-01-01 owner/r2
+                            // 99999    r2 Fix: example text review_requested 2025-01-01 owner/r2
+                            decorators: [ { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+?([^ ]+)\s+(?:\d{4}-\d{2}-\d{2}) (\S+)/d,
                                             decor: [ { ref: getRefPr },
                                                      { ref: getRefRepo },
-                                                     { attr: { style: 'color: var(--clr-syntax0)' } } ] } ] })
+                                                     { attr: { style: 'color: var(--clr-syntax0)' } },
+                                                     { attr: {} } ] } ] })
 
   Cmd.add('vc hub refresh', () => refresh(Pane.current()), mo)
   Cmd.add('open notification', () => openNotification(), mo)

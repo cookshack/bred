@@ -497,6 +497,35 @@ function initHub
       Cmd.run('previous line')
   }
 
+  function stateClr
+  (state) {
+    if (state == 'M')
+      return '--clr-syntax3'
+    if (state == 'A')
+      return '--clr-syntax0'
+    if (state == 'R')
+      return '--clr-emph'
+    if (state == 'P')
+      return '--clr-syntax4'
+    if (state == 'D')
+      return '--clr-text'
+    if (state == 'O')
+      return '--clr-syntax1'
+    if (state == 'C')
+      return '--clr-nb2'
+    return '--clr-text'
+  }
+
+  function getRefState
+  (view, match) {
+    let state
+
+    state = match[1]?.trim()
+    if (state)
+      return Ed.makeDecor({ attr: { style: 'color: var(' + stateClr(state) + ')' } })
+    return 0
+  }
+
   function getRefPr
   (view, match) {
     let prNum, ownerRepo
@@ -537,8 +566,9 @@ function initHub
                             //   11 repo1 review Fix: example text 2025-01-01 owner/repo1
                             // 1234 r2    review Fix: example text 2025-01-01 owner/r2
                             // 99999 r2    review Fix: example text 2025-01-01 owner/r2
-                            decorators: [ { regex: /^. (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2}) (\S+)/d,
-                                            decor: [ { ref: getRefPr },
+                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2}) (\S+)/d,
+                                            decor: [ { ref: getRefState },
+                                                     { ref: getRefPr },
                                                      { ref: getRefRepo },
                                                      { attr: { style: 'color: var(--clr-syntax0)' } },
                                                      { attr: {} } ] } ] })

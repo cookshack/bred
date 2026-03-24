@@ -332,15 +332,25 @@ function initHub
 
   Opt.declare('core.vc.github.token', 'str', '')
 
+  function getRefPr
+  (view, match) {
+    let prNum, ownerRepo
+
+    prNum = match[1]?.trim()
+    ownerRepo = match[5]
+    if (prNum && ownerRepo)
+      return Ed.makeDecor({ attr: { style: 'color: var(--clr-syntax1)',
+                                    'data-run': 'open externally',
+                                    'data-url': 'https://github.com/' + ownerRepo + '/pull/' + prNum } })
+    return 0
+  }
+
   mo = Mode.add('Vc Hub', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed',
-                            decorators: [ { regex: /^[^ ]+/d,
-                                            decor: [ { attr: { class: 'vc_hub-repo',
-                                                               'data-run': 'open notification' } } ] },
-                                          { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+?(subscribed|review_requested|mention|state_change|activity|unknown)\s+(\d{4}-\d{2}-\d{2})/d,
-                                            decor: [ { attr: { style: 'color: var(--clr-syntax1)' } },
+                            decorators: [ { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+?(subscribed|review_requested|mention|state_change|activity|unknown)\s+(\d{4}-\d{2}-\d{2}) (\S+)/d,
+                                            decor: [ { ref: getRefPr },
                                                      { attr: { style: 'color: var(--clr-nb2)' } },
                                                      { attr: { style: 'color: var(--clr-syntax0)' } } ] } ] })
 

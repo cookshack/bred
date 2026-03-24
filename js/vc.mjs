@@ -169,20 +169,45 @@ function initHub
     return ''
   }
 
-  function fetchNotifications
-  (useCache, cb) {
-    let token, url, headers
+  function fetchArg
+  (method, useCache) {
+    let headers
 
-    token = getToken()
-    url = 'https://api.github.com/notifications?all=true'
-    headers = { Authorization: 'Bearer ' + token,
+    headers = { Authorization: 'Bearer ' + getToken(),
                 Accept: 'application/vnd.github+json',
                 'X-GitHub-Api-Version': '2026-03-10' }
+
     if (useCache && lastModified)
       headers['If-Modified-Since'] = lastModified
+
+    return { method,
+             mode: 'cors',
+             cache: 'no-store',
+             headers }
+  }
+
+  function del
+  (url) {
+    return fetch(url, fetchArg('DELETE'))
+  }
+
+  function get
+  (url, useCache) {
+    return fetch(url, fetchArg('GET', useCache))
+  }
+
+  function patch
+  (url) {
+    return fetch(url, fetchArg('PATCH'))
+  }
+
+  function getNotifications
+  (useCache, cb) {
+    let url
+
+    url = 'https://api.github.com/notifications?all=true'
     d('fetch ' + url)
-    d({ headers })
-    fetch(url, { headers })
+    get(url, useCache)
       .then(res => {
         if (res.status == 304) {
           d('VC 304 using cached notifications')
@@ -208,7 +233,7 @@ function initHub
     p.buf.clear()
     p.buf.vars('hub').threadIds = []
     p.buf.vars('hub').urls = []
-    fetchNotifications(1, data => {
+    getNotifications(1, data => {
       let out, rows, widths
 
       if (data.length == 0) {
@@ -276,11 +301,7 @@ function initHub
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
     d('VC json ' + threadId)
     if (threadId)
-      fetch('https://api.github.com/notifications/threads/' + threadId,
-            { method: 'GET',
-              headers: { Authorization: 'Bearer ' + getToken(),
-                         Accept: 'application/vnd.github+json',
-                         'X-GitHub-Api-Version': '2026-03-10' } })
+      get('https://api.github.com/notifications/threads/' + threadId)
         .then(res => {
           d('VC json ' + res.status)
           if (res.ok)
@@ -314,11 +335,7 @@ function initHub
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
     d('markRead threadId=' + threadId)
     if (threadId)
-      fetch('https://api.github.com/notifications/threads/' + threadId,
-            { method: 'PATCH',
-              headers: { Authorization: 'Bearer ' + getToken(),
-                         Accept: 'application/vnd.github+json',
-                         'X-GitHub-Api-Version': '2026-03-10' } })
+      patch('https://api.github.com/notifications/threads/' + threadId)
         .then(res => {
           d('markRead res=' + res.status)
           if (res.ok) {
@@ -341,11 +358,7 @@ function initHub
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
     d('markRead threadId=' + threadId)
     if (threadId)
-      fetch('https://api.github.com/notifications/threads/' + threadId,
-            { method: 'DELETE',
-              headers: { Authorization: 'Bearer ' + getToken(),
-                         Accept: 'application/vnd.github+json',
-                         'X-GitHub-Api-Version': '2026-03-10' } })
+      del('https://api.github.com/notifications/threads/' + threadId)
         .then(res => {
           d('markDone res=' + res.status)
           if (res.ok) {
@@ -480,7 +493,7 @@ function initHub
   })
 
   Cmd.add('vc hub json', () => {
-    fetchNotifications(0, data => {
+    getNotifications(0, data => {
       let p
 
       p = Pane.current()

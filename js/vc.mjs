@@ -20,7 +20,7 @@ import { d } from './mess.mjs'
 import * as Diff from '../lib/diff.js'
 import * as Opt from './opt.mjs'
 
-let clrs, cachedNotifications
+let clrs, cachedNotifications, cachedPrState
 
 function vcMl
 (args, mode) {
@@ -186,6 +186,43 @@ function initHub
              headers }
   }
 
+  function getPrState
+  (owner, repo, prNum) {
+    let key
+
+    key = owner + '/' + repo + '/' + prNum
+    if (cachedPrState[key])
+      return Promise.resolve(cachedPrState[key])
+
+    return fetch('https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum,
+                 { headers: { Authorization: 'Bearer ' + getToken(),
+                              Accept: 'application/vnd.github+json',
+                              'X-GitHub-Api-Version': '2026-03-10',
+                              mode: 'cors',
+                              cache: 'no-store' } })
+      .then(res => {
+        if (res.ok)
+          return res.json()
+        return null
+      })
+      .then(data => {
+        if (data) {
+          let state
+
+          state = '?'
+          if (data.merged)
+            state = 'M'
+          else if (data.state)
+            state = data.state.slice(0, 1)
+
+          d('VC ' + state + ' ' + data.state)
+          cachedPrState[key] = state
+          return state
+        }
+        return null
+      })
+  }
+
   function del
   (url) {
     return fetch(url, fetchArg('DELETE'))
@@ -253,16 +290,19 @@ function initHub
       }
 
       rows = data.map(n => {
-        let url, ownerRepo, prNum
+        let url, ownerRepo, prNum, isPr
 
         url = n.subject.latest_comment_url || n.subject.url
         ownerRepo = n.repository.full_name
         prNum = url?.match(/\/pulls\/(\d+)/)?.[1] || ''
+        isPr = prNum && (n.subject.type == 'PullRequest')
         url = url?.replace('https://api.github.com/repos', 'https://github.com')
         url = url?.replace('/pulls/', '/pull/')
 
         return {
           prNum,
+          isPr,
+          prState: '',
           repo: n.repository.name,
           subject: n.subject.title,
           reason: shortReason(n.reason),
@@ -273,27 +313,49 @@ function initHub
         }
       })
 
-      widths = [ 4, 0, 0, 0, 10, 0 ]
+      widths = [ 1, 4, 0, 0, 0, 10, 0 ]
       rows.forEach(r => {
-        widths[1] = Math.max(widths[1], r.repo.length)
-        widths[2] = Math.max(widths[2], r.reason.length)
-        widths[3] = Math.max(widths[3], r.subject.length)
-        widths[5] = Math.max(widths[5], r.ownerRepo.length)
+        widths[2] = Math.max(widths[2], r.repo.length)
+        widths[3] = Math.max(widths[3], r.reason.length)
+        widths[4] = Math.max(widths[4], r.subject.length)
+        widths[6] = Math.max(widths[6], r.ownerRepo.length)
       })
 
       out = ''
       rows.forEach(r => {
         p.buf.vars('hub').threadIds.push(r.id)
         p.buf.vars('hub').urls.push(r.url)
-        out += r.prNum.padStart(widths[0]) + ' ' +
-               r.repo.padEnd(widths[1]) + ' ' +
-               r.reason.padEnd(widths[2]) + ' ' +
-               r.subject.padEnd(widths[3]) + ' ' +
-               r.updated.padEnd(widths[4]) + ' ' +
-               r.ownerRepo + '\n'
+        out += r.prState.padStart(widths[0])
+               + ' ' + r.prNum.padStart(widths[1])
+               + ' ' + r.repo.padEnd(widths[2])
+               + ' ' + r.reason.padEnd(widths[3])
+               + ' ' + r.subject.padEnd(widths[4])
+               + ' ' + r.updated.padEnd(widths[5])
+               + ' ' + r.ownerRepo + '\n'
       })
       p.buf.append(out, 1)
       p.view.lineStart()
+
+      rows.forEach((r, index) => {
+        if (r.isPr) {
+          let split
+
+          split = r.ownerRepo.split('/')
+          getPrState(split[0], split[1], r.prNum).then(state => {
+            if (state) {
+              let from, range
+
+              r.prState = state
+              from = Ed.posToBep(p.view, Ed.makePos(index, 0))
+              range = Ed.makeRange(p.view,
+                                   from,
+                                   Ed.posToBep(p.view, Ed.makePos(index, 1)))
+              range.remove()
+              p.buf.insert(state, from)
+            }
+          })
+        }
+      })
     })
   }
 
@@ -301,6 +363,7 @@ function initHub
   () {
     cachedNotifications = 0
     lastModified = 0
+    cachedPrState = {}
     refresh(Pane.current())
   }
 
@@ -457,6 +520,8 @@ function initHub
   Opt.declare('core.vc.github.token', 'str', '')
   Opt.declare('core.vc.github.notifications.all', 'bool', 1)
 
+  cachedPrState = {}
+
   mo = Mode.add('Vc Hub', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
@@ -464,7 +529,7 @@ function initHub
                             //   11 repo1 review Fix: example text 2025-01-01 owner/repo1
                             // 1234 r2    review Fix: example text 2025-01-01 owner/r2
                             // 99999 r2    review Fix: example text 2025-01-01 owner/r2
-                            decorators: [ { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2}) (\S+)/d,
+                            decorators: [ { regex: /^. (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2}) (\S+)/d,
                                             decor: [ { ref: getRefPr },
                                                      { ref: getRefRepo },
                                                      { attr: { style: 'color: var(--clr-syntax0)' } },

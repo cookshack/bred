@@ -380,7 +380,10 @@ function initHub
     }
     buf.opts.set('core.lint.enabled', 0)
     buf.opts.set('core.line.wrap.enabled', 0)
+    buf.opts.set('core.line.numbers.show', 0)
+    buf.opts.set('core.folding.enabled', 0)
     buf.opts.set('minimap.enabled', 0)
+    buf.opts.set('ruler.enabled', 0)
     p.setBuf(buf, {}, () => refresh(p))
   })
 }

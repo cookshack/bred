@@ -361,7 +361,7 @@ function initHub
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed',
-                            decorators: [ { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+?(subscribed|review_requested|mention|state_change|activity|unknown)\s+(\d{4}-\d{2}-\d{2}) (\S+)/d,
+                            decorators: [ { regex: /^(    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+?([^ ]+)\s+(\d{4}-\d{2}-\d{2}) (\S+)/d,
                                             decor: [ { ref: getRefPr },
                                                      { ref: getRefRepo },
                                                      { attr: { style: 'color: var(--clr-syntax0)' } } ] } ] })

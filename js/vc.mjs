@@ -530,8 +530,8 @@ function initHub
   (view, match) {
     let prNum, ownerRepo
 
-    prNum = match[1]?.trim()
-    ownerRepo = match[4]
+    prNum = match[2]?.trim()
+    ownerRepo = match[5]
     if (ownerRepo) {
       if (prNum)
         return Ed.makeDecor({ attr: { style: 'color: var(--clr-syntax1)',
@@ -546,7 +546,7 @@ function initHub
   (view, match) {
     let ownerRepo
 
-    ownerRepo = match[4]
+    ownerRepo = match[5]
     if (ownerRepo)
       return Ed.makeDecor({ attr: { style: 'color: var(--rule-clr-comment)',
                                     'data-run': 'open externally',

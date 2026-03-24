@@ -176,7 +176,8 @@ function initHub
     token = getToken()
     url = 'https://api.github.com/notifications'
     fetch(url, { headers: { Authorization: 'Bearer ' + token,
-                            Accept: 'application/vnd.github+json' } })
+                            Accept: 'application/vnd.github+json',
+                            'X-GitHub-Api-Version': '2026-03-10' } })
       .then(res => {
         if (res.ok)
           return res.json()
@@ -259,7 +260,9 @@ function initHub
     if (threadId)
       fetch('https://api.github.com/notifications/threads/' + threadId,
             { method: 'PATCH',
-              headers: { Authorization: 'Bearer ' + getToken() } })
+              headers: { Authorization: 'Bearer ' + getToken(),
+                         Accept: 'application/vnd.github+json',
+                         'X-GitHub-Api-Version': '2026-03-10' } })
         .then(res => {
           if (res.ok) {
             Mess.say('Marked as read')
@@ -288,7 +291,9 @@ function initHub
     if (threadId)
       fetch('https://api.github.com/notifications/threads/' + threadId,
             { method: 'DELETE',
-              headers: { Authorization: 'Bearer ' + getToken() } })
+              headers: { Authorization: 'Bearer ' + getToken(),
+                         Accept: 'application/vnd.github+json',
+                         'X-GitHub-Api-Version': '2026-03-10' } })
         .then(res => {
           if (res.ok) {
             Mess.say('Marked as done')

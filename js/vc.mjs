@@ -191,26 +191,52 @@ function initHub
     p.buf.vars('hub').threadIds = []
     p.buf.vars('hub').urls = []
     fetchNotifications(data => {
-      let out
+      let out, rows, widths
 
-      d({ data })
+      if (data.length == 0) {
+        p.buf.append('No notifications\n', 1)
+        return
+      }
 
-      out = ''
-      data.forEach(n => {
-        let repo, subject, reason, updated, url, prNum, ownerRepo
+      rows = data.map(n => {
+        let url, ownerRepo, prNum
 
-        repo = n.repository.name
-        ownerRepo = n.repository.full_name
-        subject = n.subject.title
-        reason = n.reason
-        updated = formatDate(n.updated_at)
         url = n.subject.latest_comment_url || n.subject.url
+        ownerRepo = n.repository.full_name
+        prNum = url?.match(/\/pulls\/(\d+)/)?.[1] || ''
         url = url?.replace('https://api.github.com/repos', 'https://github.com')
         url = url?.replace('/pulls/', '/pull/')
-        p.buf.vars('hub').urls.push(url)
-        p.buf.vars('hub').threadIds.push(n.id)
-        prNum = (url?.match(/\/pull\/(\d+)/)?.[1] || '').padStart(4)
-        out += prNum + '\t' + repo + '\t' + subject + '\t' + reason + '\t' + updated + '\t' + ownerRepo + '\n'
+
+        return {
+          prNum,
+          repo: n.repository.name,
+          subject: n.subject.title,
+          reason: n.reason,
+          updated: formatDate(n.updated_at),
+          ownerRepo,
+          url,
+          id: n.id
+        }
+      })
+
+      widths = [ 4, 0, 0, 0, 10, 0 ]
+      rows.forEach(r => {
+        widths[1] = Math.max(widths[1], r.repo.length)
+        widths[2] = Math.max(widths[2], r.subject.length)
+        widths[3] = Math.max(widths[3], r.reason.length)
+        widths[5] = Math.max(widths[5], r.ownerRepo.length)
+      })
+
+      out = ''
+      rows.forEach(r => {
+        p.buf.vars('hub').threadIds.push(r.id)
+        p.buf.vars('hub').urls.push(r.url)
+        out += r.prNum.padStart(widths[0]) + ' ' +
+               r.repo.padEnd(widths[1]) + ' ' +
+               r.subject.padEnd(widths[2]) + ' ' +
+               r.reason.padEnd(widths[3]) + ' ' +
+               r.updated.padEnd(widths[4]) + ' ' +
+               r.ownerRepo + '\n'
       })
       p.buf.append(out, 1)
       p.view.lineStart()

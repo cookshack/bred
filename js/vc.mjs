@@ -263,6 +263,7 @@ function initHub
 
     p = Pane.current()
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
+    d('markRead threadId=' + threadId)
     if (threadId)
       fetch('https://api.github.com/notifications/threads/' + threadId,
             { method: 'PATCH',
@@ -270,6 +271,7 @@ function initHub
                          Accept: 'application/vnd.github+json',
                          'X-GitHub-Api-Version': '2026-03-10' } })
         .then(res => {
+          d('markRead res=' + res.status)
           if (res.ok) {
             Mess.say('Marked as read')
             refresh(p)
@@ -288,6 +290,7 @@ function initHub
 
     p = Pane.current()
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
+    d('markRead threadId=' + threadId)
     if (threadId)
       fetch('https://api.github.com/notifications/threads/' + threadId,
             { method: 'DELETE',
@@ -295,6 +298,7 @@ function initHub
                          Accept: 'application/vnd.github+json',
                          'X-GitHub-Api-Version': '2026-03-10' } })
         .then(res => {
+          d('markDone res=' + res.status)
           if (res.ok) {
             Mess.say('Marked as done')
             refresh(p)
@@ -380,6 +384,7 @@ function initHub
                                                      { attr: {} } ] } ] })
 
   Cmd.add('vc hub refresh', () => refresh(Pane.current()), mo)
+
   Cmd.add('open notification', () => openNotification(), mo)
   Cmd.add('mark read', () => markRead(), mo)
   Cmd.add('mark done', () => markDone(), mo)
@@ -392,7 +397,7 @@ function initHub
   Em.on(' ', 'scroll down', mo)
 
   Em.on('g', 'vc hub refresh', mo)
-  Em.on('m', 'mark read', mo)
+  Em.on('r', 'mark read', mo)
   Em.on('d', 'mark done', mo)
   Em.on('n', 'next line', mo)
   Em.on('p', 'previous line', mo)
@@ -420,6 +425,37 @@ function initHub
     buf.opts.set('minimap.enabled', 0)
     buf.opts.set('ruler.enabled', 0)
     p.setBuf(buf, {}, () => refresh(p))
+  })
+
+  Cmd.add('vc hub json', () => {
+    let token, url, headers
+
+    token = getToken()
+    url = 'https://api.github.com/notifications'
+    headers = { Authorization: 'Bearer ' + token,
+                Accept: 'application/vnd.github+json',
+                'X-GitHub-Api-Version': '2026-03-10' }
+    fetch(url, { headers })
+      .then(res => {
+        if (res.ok)
+          return res.json()
+        throw new Error('HTTP ' + res.status)
+      })
+      .then(data => {
+        let p
+
+        p = Pane.current()
+        Ed.make(p,
+                { name: 'vc-hub.json',
+                  dir: p.dir },
+                view => {
+                  view.buf.file = 'vc-hub.json'
+                  view.buf.opts.set('core.lang', 'json')
+                  view.insert(JSON.stringify(data, null, 2))
+                  view.buf.modified = 0
+                })
+      })
+      .catch(err => Mess.yell('Hub: ' + err.message))
   })
 }
 
@@ -1795,6 +1831,7 @@ function init
   Em.on('C-x v e', 'vc stash enumerate')
   Em.on('C-x v g', 'vc annotate')
   Em.on('C-x v h', 'vc hub')
+  Em.on('C-x v H', 'vc hub json')
   Em.on('C-x v i', 'vc show')
   Em.on('C-x v L', 'vc log')
   Em.on('C-x v l', 'vc log one-line')

@@ -338,7 +338,9 @@ function initHub
                             parentsForEm: 'ed',
                             decorators: [ { regex: /^[^ ]+/d,
                                             decor: [ { attr: { class: 'vc_hub-repo',
-                                                               'data-run': 'open notification' } } ] } ] })
+                                                               'data-run': 'open notification' } } ] },
+                                          { regex: /.+?(subscribed|review_requested|mention|state_change|activity|unknown)\s+\d{4}-\d{2}-\d{2}/d,
+                                            decor: [ { attr: { style: 'color: var(--clr-nb2)' } } ] } ] })
 
   Cmd.add('vc hub refresh', () => refresh(Pane.current()), mo)
   Cmd.add('open notification', () => openNotification(), mo)

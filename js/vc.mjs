@@ -354,25 +354,32 @@ function initHub
 
   function markDone
   () {
-    let p, threadId
+    function ok
+    () {
+      let p, threadId
 
-    p = Pane.current()
-    threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
-    d('markRead threadId=' + threadId)
-    if (threadId)
-      del('https://api.github.com/notifications/threads/' + threadId)
-        .then(res => {
-          d('markDone res=' + res.status)
-          if (res.ok) {
-            Mess.say('Marked as done')
-            refresh(p)
-            return
-          }
-          throw new Error('HTTP ' + res.status)
-        })
-        .catch(err => Mess.yell('Hub: ' + err.message))
-    else
-      Mess.yell('Missing thread ID')
+      p = Pane.current()
+      threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
+      d('markRead threadId=' + threadId)
+      if (threadId)
+        del('https://api.github.com/notifications/threads/' + threadId)
+          .then(res => {
+            d('markDone res=' + res.status)
+            if (res.ok) {
+              Mess.say('Marked as done')
+              refresh(p)
+              return
+            }
+            throw new Error('HTTP ' + res.status)
+          })
+          .catch(err => Mess.yell('Hub: ' + err.message))
+      else
+        Mess.yell('Missing thread ID')
+    }
+
+    Prompt.yn('You sure? Done and read look the same in the API',
+              { icon: 'warning' },
+              yes => yes && ok())
   }
 
   function openNotification

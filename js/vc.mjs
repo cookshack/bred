@@ -170,7 +170,7 @@ function initHub
   }
 
   function fetchNotifications
-  (cb) {
+  (useCache, cb) {
     let token, url, headers
 
     token = getToken()
@@ -178,7 +178,7 @@ function initHub
     headers = { Authorization: 'Bearer ' + token,
                 Accept: 'application/vnd.github+json',
                 'X-GitHub-Api-Version': '2026-03-10' }
-    if (lastModified)
+    if (useCache && lastModified)
       headers['If-Modified-Since'] = lastModified
     d('fetch ' + url)
     d({ headers })
@@ -189,13 +189,15 @@ function initHub
           return cachedNotifications
         }
         if (res.ok) {
-          lastModified = res.headers.get('Last-Modified')
+          if (useCache)
+            lastModified = res.headers.get('Last-Modified')
           return res.json()
         }
         throw new Error('HTTP ' + res.status)
       })
       .then(data => {
-        cachedNotifications = data
+        if (useCache)
+          cachedNotifications = data
         cb(data)
       })
       .catch(err => Mess.yell('Hub: ' + err.message))
@@ -206,7 +208,7 @@ function initHub
     p.buf.clear()
     p.buf.vars('hub').threadIds = []
     p.buf.vars('hub').urls = []
-    fetchNotifications(data => {
+    fetchNotifications(1, data => {
       let out, rows, widths
 
       if (data.length == 0) {
@@ -438,34 +440,20 @@ function initHub
   })
 
   Cmd.add('vc hub json', () => {
-    let token, url, headers
+    fetchNotifications(0, data => {
+      let p
 
-    token = getToken()
-    url = 'https://api.github.com/notifications'
-    headers = { Authorization: 'Bearer ' + token,
-                Accept: 'application/vnd.github+json',
-                'X-GitHub-Api-Version': '2026-03-10' }
-    fetch(url, { headers })
-      .then(res => {
-        if (res.ok)
-          return res.json()
-        throw new Error('HTTP ' + res.status)
-      })
-      .then(data => {
-        let p
-
-        p = Pane.current()
-        Ed.make(p,
-                { name: 'vc-hub.json',
-                  dir: p.dir },
-                view => {
-                  view.buf.file = 'vc-hub.json'
-                  view.buf.opts.set('core.lang', 'json')
-                  view.insert(JSON.stringify(data, null, 2))
-                  view.buf.modified = 0
-                })
-      })
-      .catch(err => Mess.yell('Hub: ' + err.message))
+      p = Pane.current()
+      Ed.make(p,
+              { name: 'vc-hub.json',
+                dir: p.dir },
+              view => {
+                view.buf.file = 'vc-hub.json'
+                view.buf.opts.set('core.lang', 'json')
+                view.insert(JSON.stringify(data, null, 2))
+                view.buf.modified = 0
+              })
+    })
   })
 }
 

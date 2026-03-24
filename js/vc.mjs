@@ -247,15 +247,9 @@ function initHub
 
   function markRead
   () {
-    let p, line, parts, threadId
+    let p, threadId
 
     p = Pane.current()
-    line = p.line()
-    parts = line.split('\t')
-    if (parts.length < 2) {
-      Mess.say('No notification on line')
-      return
-    }
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
     if (threadId)
       fetch('https://api.github.com/notifications/threads/' + threadId,
@@ -278,15 +272,9 @@ function initHub
 
   function markDone
   () {
-    let p, line, parts, threadId
+    let p, threadId
 
     p = Pane.current()
-    line = p.line()
-    parts = line.split('\t')
-    if (parts.length < 2) {
-      Mess.say('No notification on line')
-      return
-    }
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
     if (threadId)
       fetch('https://api.github.com/notifications/threads/' + threadId,

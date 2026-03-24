@@ -175,7 +175,8 @@ function initHub
 
     token = getToken()
     url = 'https://api.github.com/notifications'
-    fetch(url, { headers: { Authorization: 'token ' + token } })
+    fetch(url, { headers: { Authorization: 'token ' + token,
+                            Accept: 'application/vnd.github+json' } })
       .then(res => {
         if (res.ok)
           return res.json()

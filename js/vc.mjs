@@ -223,7 +223,7 @@ function initHub
           else if (data.state)
             state = data.state.slice(0, 1).toUpperCase()
 
-          d('VC ' + state + ' ' + data.state)
+          //d('VC ' + state + ' ' + data.state)
           cachedPrState[key] = state
           return state
         }
@@ -520,7 +520,7 @@ function initHub
   (view, match) {
     let state
 
-    state = match[1]?.trim()
+    state = match[1]
     if (state)
       return Ed.makeDecor({ attr: { style: 'color: var(' + stateClr(state) + ')' } })
     return 0

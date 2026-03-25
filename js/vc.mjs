@@ -166,14 +166,26 @@ function initHub
   function formatDate
   (str) {
     if (str?.length) {
-      let date
+      let date, now
 
       date = new Date(str)
-      return date.getFullYear()
-             + '-' + String(date.getMonth() + 1).padStart(2, '0')
-             + '-' + String(date.getDate()).padStart(2, '0')
-             + ' ' + String(date.getHours()).padStart(2, '0')
+      now = new Date()
+
+      if ((date.getFullYear() == now.getFullYear())
+          && (date.getMonth() == now.getMonth())
+          && (date.getDate() == now.getDate())) {
+        let time
+
+        time = String(date.getHours()).padStart(2, '0')
              + 'h' + String(date.getMinutes()).padStart(2, '0')
+        return time.padEnd(16)
+      }
+
+      return date.getFullYear()
+           + '-' + String(date.getMonth() + 1).padStart(2, '0')
+           + '-' + String(date.getDate()).padStart(2, '0')
+           + ' ' + String(date.getHours()).padStart(2, '0')
+           + 'h' + String(date.getMinutes()).padStart(2, '0')
     }
 
     return ''
@@ -576,7 +588,7 @@ function initHub
                             //   11 repo1 review Fix: example text 2025-01-01 owner/repo1
                             // 1234 r2    review Fix: example text 2025-01-01 owner/r2
                             // 99999 r2    review Fix: example text 2025-01-01 owner/r2
-                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2} \d{2}h\d{2}) (\S+)/d,
+                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) (\S+)/d,
                                             decor: [ { ref: getRefState },
                                                      { ref: getRefPr },
                                                      { ref: getRefRepo },

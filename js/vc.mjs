@@ -563,6 +563,19 @@ function initHub
   (p, dir, name) {
     let path
 
+    function open
+    () {
+      Mess.say('Now in ' + name)
+      Pane.openDir(path)
+    }
+
+    function checkout
+    () {
+      Mess.say('Checking out ' + name)
+      Shell.run(path, 'git', [ 'checkout', name ],
+                { onClose: open })
+    }
+
     path = Loc.make(dir).expand()
 
     Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (out, code) => {
@@ -575,6 +588,7 @@ function initHub
 
       currentBranch = out.trim()
       if (currentBranch == name) {
+        Mess.say('Already in ' + name)
         Pane.openDir(path)
         return
       }
@@ -584,14 +598,11 @@ function initHub
           Mess.yell('git status failed')
         else if (out.trim().length)
           Mess.yell('Changes in ' + currentBranch + '. Commit or stash first')
-        else
+        else {
+          Mess.say('Fetching ' + name)
           Shell.run(path, 'git', [ 'fetch', 'origin', name + ':' + name ],
-                    { end: 1 },
-                    () => {
-                      Shell.run(path, 'git', [ 'checkout', name ],
-                                { end: 1 },
-                                () => Pane.openDir(path))
-                    })
+                    { onClose: checkout })
+        }
       })
     })
   }
@@ -626,9 +637,9 @@ function initHub
 
       ownerRepo = url.match(/github\.com\/([^/]+\/[^/]+)\/pull\//)?.[1]
       if (ownerRepo)
-        branchOwnerRepo(p, url)
+        branchOwnerRepo(p, ownerRepo)
       else
-        Mess.yell('This is for PR notifications')
+        Mess.yell('This command is for PR notifications')
       return
     }
     Mess.yell('Missing URL')

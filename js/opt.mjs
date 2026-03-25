@@ -52,7 +52,7 @@ function check
 export
 function declare
 (name,
- type, // bool, decimal, int, float, str
+ type, // array, bool, decimal, float, int, str, struct
  value) {
   check(name)
   shared().types[name] = type
@@ -75,6 +75,20 @@ function clean
     return val
   if (shared().types[name] == 'bool')
     return val ? true : false
+  if (shared().types[name] == 'struct') {
+    if (val === null)
+      throw new Error('opt ' + name + ' must be a struct, got null')
+    if (Array.isArray(val))
+      throw new Error('opt ' + name + ' must be a struct, got an array')
+    if (typeof val == 'object')
+      return val
+    throw new Error('opt ' + name + ' must be a struct, got ' + typeof val)
+  }
+  if (shared().types[name] == 'array') {
+    if (Array.isArray(val))
+      return val
+    throw new Error('opt ' + name + ' must be an array')
+  }
   return val
 }
 

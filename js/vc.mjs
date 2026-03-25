@@ -447,9 +447,7 @@ function initHub
 
     p = Pane.current()
     url = p.view.buf.vars('hub').urls[p.view.pos.row]
-    if (url == null)
-      Mess.yell('Missing URL')
-    else {
+    if (url) {
       ownerRepo = url?.match(/github\.com\/([^/]+\/[^/]+)\/pull\//)?.[1]
       prNum = url?.match(/\/pull\/(\d+)/)?.[1]
       if (ownerRepo && prNum)
@@ -477,6 +475,8 @@ function initHub
       else
         Mess.yell('This is for PR notifications')
     }
+    else
+      Mess.yell('Missing URL')
   }
 
   function markRead
@@ -557,6 +557,33 @@ function initHub
     refreshFull()
   }
 
+  function branch
+  () {
+    let p, url, ownerRepo, dirs, dir
+
+    p = Pane.current()
+    url = p.view.buf.vars('hub').urls[p.view.pos.row]
+    if (url == null) {
+      Mess.yell('Missing URL')
+      return
+    }
+    ownerRepo = url?.match(/github\.com\/([^/]+\/[^/]+)\/pull\//)?.[1]
+    if (ownerRepo) {
+      dirs = Opt.get('core.vc.github.pr.dirs')
+      dir = dirs && dirs[ownerRepo]
+      if (dir) {
+        let path
+
+        path = Loc.make(dir).expand()
+        Pane.openDir(path)
+        return
+      }
+      Mess.yell('Need a dir in core.vc.github.pr.dirs for ' + ownerRepo)
+      return
+    }
+    Mess.yell('This is for PR notifications')
+  }
+
   function go
   (n) {
     if (n == 0)
@@ -626,6 +653,7 @@ function initHub
 
   Opt.declare('core.vc.github.token', 'str', '')
   Opt.declare('core.vc.github.notifications.all', 'bool', 1)
+  Opt.declare('core.vc.github.pr.dirs', 'struct', {})
 
   cachedPrState = {}
 
@@ -644,6 +672,7 @@ function initHub
                                                      { attr: {} },
                                                      { attr: {} } ] } ] })
 
+  Cmd.add('branch', () => branch(), mo)
   Cmd.add('json', () => json(), mo)
   Cmd.add('json pr', () => jsonPr(), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
@@ -672,6 +701,7 @@ function initHub
   Em.on('p', 'previous line', mo)
   Em.on('e', 'open notification', mo)
   Em.on('Enter', 'open notification', mo)
+  Em.on('b', 'branch', mo)
 
   Cmd.add('vc hub', () => {
     let p

@@ -1482,7 +1482,7 @@ function init
   mo.bufEnd = bufEnd
   mo.bufStart = bufStart
 
-  Cmd.add('code', () => code())
+  Cmd.add('code', (u, we, prompt) => code(prompt))
 
   Cmd.add('respond', () => next(), mo)
 

@@ -645,6 +645,54 @@ function initHub
     Mess.yell('Missing URL')
   }
 
+  function review
+  (u, we) {
+    let p, dir, branch
+
+    p = Pane.current()
+    dir = p.dir
+    Shell.runToString(dir, 'git', [ 'branch', '--show-current' ], 0, (out, code) => {
+      if (code) {
+        Mess.yell('Error getting current branch')
+        return
+      }
+      branch = out.trim()
+      Prompt.ask({ text: 'PR Number:',
+                   placeholder: '' },
+                 prNum => {
+                   if (prNum && prNum.trim().length)
+                     Shell.runToString(dir, 'git', [ 'remote', 'get-url', 'origin' ], 0, (out, code) => {
+                       let remote, ownerRepo
+
+                       if (code) {
+                         Mess.yell('Could not get git remote')
+                         return
+                       }
+
+                       remote = out.trim()
+                       ownerRepo = remote.match(/[:/]([^/]+\/[^/]+)(\.git)?$/)?.[1]
+                       if (ownerRepo) {
+                         ownerRepo = ownerRepo.replace(/\.git$/, '')
+                         getPrState(ownerRepo.split('/')[0], ownerRepo.split('/')[1], prNum)
+                           .then(res => {
+                             if (res)
+                               if (res.branch == branch)
+                                 Cmd.run('code', 0, 1, we, 'Please review PR https://github.com/pull/' + prNum + '. The branch is checked out in the current dir, if that helps.')
+                               else
+                                 Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
+                             else
+                               Mess.yell('getPrState failed')
+                           })
+                         return
+                       }
+                       Mess.yell('Failed to parse owner/repo from ' + remote)
+                     })
+                   else
+                     Mess.yell('Need a PR num')
+                 })
+    })
+  }
+
   function go
   (n) {
     if (n == 0)
@@ -806,6 +854,8 @@ function initHub
               })
     })
   })
+
+  Cmd.add('vc review', review)
 }
 
 export
@@ -2188,6 +2238,7 @@ function init
   Em.on('C-x v o', 'vc stash pop')
   Em.on('C-x v p', 'vc push')
   Em.on('C-x v r', 'vc reset')
+  Em.on('C-x v R', 'vc review')
   Em.on('C-x v s', 'vc log search one-line')
   Em.on('C-x v S', 'vc log search')
   Em.on('C-x v u', 'vc pull')

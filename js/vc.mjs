@@ -15,6 +15,7 @@ import * as Prompt from './prompt.mjs'
 import * as Scib from './scib.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
 import * as Diff from '../lib/diff.js'
@@ -584,6 +585,7 @@ function initHub
   Cmd.add('toggle hidden', () => toggleHidden(), mo)
 
   // should use view mode
+  Cmd.add('self insert', () => Mess.say(U.shrug), mo)
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)

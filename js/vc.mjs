@@ -677,7 +677,7 @@ function initHub
                            .then(res => {
                              if (res)
                                if (res.branch == branch)
-                                 Cmd.run('code', 0, 1, we, 'Please review PR https://github.com/pull/' + prNum + '. The branch is checked out in the current dir, if that helps.')
+                                 Cmd.run('code', 0, 1, we, 'Please review PR https://github.com/' + ownerRepo + '/pull/' + prNum + '. The branch is already checked out locally, into the current directory, in case that helps you. Focus on reviewing the changes, I will do the CI checks.')
                                else
                                  Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
                              else

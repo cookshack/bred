@@ -217,12 +217,7 @@ function initHub
     if (cachedPrState[key])
       return Promise.resolve(cachedPrState[key])
 
-    return fetch('https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum,
-                 { headers: { Authorization: 'Bearer ' + getToken(),
-                              Accept: 'application/vnd.github+json',
-                              'X-GitHub-Api-Version': '2026-03-10',
-                              mode: 'cors',
-                              cache: 'no-store' } })
+    return get('https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum)
       .then(res => {
         if (res.ok)
           return res.json()
@@ -276,7 +271,7 @@ function initHub
     url = 'https://api.github.com/notifications'
     if (Opt.get('core.vc.github.notifications.all'))
       url += '?all=true'
-    d('fetch ' + url)
+    d('get ' + url)
     get(url, useCache)
       .then(res => {
         if (res.status == 304) {

@@ -364,6 +364,7 @@ function initHub
       rows.forEach(r => {
         p.buf.vars('hub').threadIds.push(r.id)
         p.buf.vars('hub').urls.push(r.url)
+        p.buf.vars('hub').rows.push(r)
         out += makeLine(r)
       })
       p.buf.append(out, 1)
@@ -396,6 +397,7 @@ function initHub
     p.buf.clear()
     p.buf.vars('hub').threadIds = []
     p.buf.vars('hub').urls = []
+    p.buf.vars('hub').rows = []
     getNotifications(1, refreshData)
   }
 
@@ -557,31 +559,79 @@ function initHub
     refreshFull()
   }
 
-  function branch
-  () {
-    let p, url, ownerRepo, dirs, dir
+  function branchDir
+  (p, dir, name) {
+    let path
 
-    p = Pane.current()
-    url = p.view.buf.vars('hub').urls[p.view.pos.row]
-    if (url == null) {
-      Mess.yell('Missing URL')
-      return
-    }
-    ownerRepo = url?.match(/github\.com\/([^/]+\/[^/]+)\/pull\//)?.[1]
-    if (ownerRepo) {
-      dirs = Opt.get('core.vc.github.pr.dirs')
-      dir = dirs && dirs[ownerRepo]
-      if (dir) {
-        let path
+    path = Loc.make(dir).expand()
 
-        path = Loc.make(dir).expand()
+    Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (out, code) => {
+      let currentBranch
+
+      if (code) {
+        Mess.yell('Is this a git dir? ' + path)
+        return
+      }
+
+      currentBranch = out.trim()
+      if (currentBranch == name) {
         Pane.openDir(path)
         return
       }
-      Mess.yell('Need a dir in core.vc.github.pr.dirs for ' + ownerRepo)
+
+      Shell.runToString(path, 'git', [ 'status', '--porcelain' ], 0, (out, code) => {
+        if (code)
+          Mess.yell('git status failed')
+        else if (out.trim().length)
+          Mess.yell('Changes in ' + currentBranch + '. Commit or stash first')
+        else
+          Shell.run(path, 'git', [ 'fetch', 'origin', name + ':' + name ],
+                    { end: 1 },
+                    () => {
+                      Shell.run(path, 'git', [ 'checkout', name ],
+                                { end: 1 },
+                                () => Pane.openDir(path))
+                    })
+      })
+    })
+  }
+
+  function branchOwnerRepo
+  (p, ownerRepo) {
+    let dirs, dir
+
+    dirs = Opt.get('core.vc.github.pr.dirs')
+    dir = dirs && dirs[ownerRepo]
+    if (dir) {
+      let row
+
+      row = p.view.buf.vars('hub').rows[p.view.pos.row]
+      if (row?.branch)
+        branchDir(p, dir, row.branch)
+      else
+        Mess.yell('Branch missing')
       return
     }
-    Mess.yell('This is for PR notifications')
+    Mess.yell('Need a dir in core.vc.github.pr.dirs for ' + ownerRepo)
+  }
+
+  function branch
+  () {
+    let p, url
+
+    p = Pane.current()
+    url = p.view.buf.vars('hub').urls[p.view.pos.row]
+    if (url) {
+      let ownerRepo
+
+      ownerRepo = url.match(/github\.com\/([^/]+\/[^/]+)\/pull\//)?.[1]
+      if (ownerRepo)
+        branchOwnerRepo(p, url)
+      else
+        Mess.yell('This is for PR notifications')
+      return
+    }
+    Mess.yell('Missing URL')
   }
 
   function go
@@ -710,11 +760,13 @@ function initHub
     if (buf) {
       buf.vars('hub').threadIds = []
       buf.vars('hub').urls = []
+      buf.vars('hub').rows = []
     }
     else {
       buf = Buf.add('Vc Hub', 'Vc Hub', Ed.divW(0, 0), p.dir)
       buf.vars('hub').threadIds = []
       buf.vars('hub').urls = []
+      buf.vars('hub').rows = []
       buf.icon = 'log'
     }
     buf.opts.set('core.lint.enabled', 0)

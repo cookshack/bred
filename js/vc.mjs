@@ -247,8 +247,8 @@ function initHub
             state = data.state.slice(0, 1).toUpperCase()
 
           //d('VC ' + state + ' ' + data.state)
-          cachedPrState[key] = state
-          return state
+          cachedPrState[key] = { state, branch: data.head.ref }
+          return { state, branch: data.head.ref }
         }
         return null
       })
@@ -334,6 +334,7 @@ function initHub
           prNum,
           isPr,
           prState: '',
+          branch: '',
           repo: n.repository.name,
           subject: n.subject.title,
           reason: shortReason(n.reason),
@@ -344,12 +345,13 @@ function initHub
         }
       })
 
-      widths = [ 1, 4, 0, 0, 0, 16, 0 ]
+      widths = [ 1, 4, 0, 0, 0, 16, 0, 0 ]
       rows.forEach(r => {
         widths[2] = Math.max(widths[2], r.repo.length)
         widths[3] = Math.max(widths[3], r.reason.length)
         widths[4] = Math.max(widths[4], r.subject.length)
         widths[6] = Math.max(widths[6], r.ownerRepo.length)
+        widths[7] = Math.max(widths[7], r.branch.length)
       })
 
       out = ''
@@ -362,7 +364,8 @@ function initHub
                + ' ' + r.reason.padEnd(widths[3])
                + ' ' + r.subject.padEnd(widths[4])
                + ' ' + r.updated.padEnd(widths[5])
-               + ' ' + r.ownerRepo + '\n'
+               + ' ' + r.ownerRepo.padEnd(widths[6])
+               + ' ' + r.branch + '\n'
       })
       p.buf.append(out, 1)
       p.view.lineStart()
@@ -372,17 +375,18 @@ function initHub
           let split
 
           split = r.ownerRepo.split('/')
-          getPrState(split[0], split[1], r.prNum).then(state => {
-            if (state) {
+          getPrState(split[0], split[1], r.prNum).then(res => {
+            if (res) {
               let from, range
 
-              r.prState = state
+              r.prState = res.state
+              r.branch = res.branch
               from = Ed.posToBep(p.view, Ed.makePos(index, 0))
               range = Ed.makeRange(p.view,
                                    from,
                                    Ed.posToBep(p.view, Ed.makePos(index, 1)))
               range.remove()
-              p.buf.insert(state, from)
+              p.buf.insert(res.state, from)
             }
           })
         }

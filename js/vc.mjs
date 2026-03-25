@@ -165,8 +165,17 @@ function initHub
 
   function formatDate
   (str) {
-    if (str?.length)
-      return str.slice(0, 10)
+    if (str?.length) {
+      let date
+
+      date = new Date(str)
+      return date.getFullYear()
+             + '-' + String(date.getMonth() + 1).padStart(2, '0')
+             + '-' + String(date.getDate()).padStart(2, '0')
+             + ' ' + String(date.getHours()).padStart(2, '0')
+             + 'h' + String(date.getMinutes()).padStart(2, '0')
+    }
+
     return ''
   }
 
@@ -322,7 +331,7 @@ function initHub
         }
       })
 
-      widths = [ 1, 4, 0, 0, 0, 10, 0 ]
+      widths = [ 1, 4, 0, 0, 0, 16, 0 ]
       rows.forEach(r => {
         widths[2] = Math.max(widths[2], r.repo.length)
         widths[3] = Math.max(widths[3], r.reason.length)
@@ -567,7 +576,7 @@ function initHub
                             //   11 repo1 review Fix: example text 2025-01-01 owner/repo1
                             // 1234 r2    review Fix: example text 2025-01-01 owner/r2
                             // 99999 r2    review Fix: example text 2025-01-01 owner/r2
-                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2}) (\S+)/d,
+                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2} \d{2}h\d{2}) (\S+)/d,
                                             decor: [ { ref: getRefState },
                                                      { ref: getRefPr },
                                                      { ref: getRefRepo },

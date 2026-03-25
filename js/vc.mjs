@@ -436,6 +436,44 @@ function initHub
       Mess.yell('Missing thread ID')
   }
 
+  function jsonPr
+  () {
+    let p, url, ownerRepo, prNum
+
+    p = Pane.current()
+    url = p.view.buf.vars('hub').urls[p.view.pos.row]
+    if (url == null)
+      Mess.yell('Missing URL')
+    else {
+      ownerRepo = url?.match(/github\.com\/([^/]+\/[^/]+)\/pull\//)?.[1]
+      prNum = url?.match(/\/pull\/(\d+)/)?.[1]
+      if (ownerRepo && prNum)
+        get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum)
+          .then(res => {
+            if (res.ok)
+              return res.json()
+            throw new Error('HTTP ' + res.status)
+          })
+          .then(data => {
+            let file
+
+            file = 'vc-hub-pr-' + prNum + '.json'
+            Ed.make(p,
+                    { name: file,
+                      dir: p.dir },
+                    view => {
+                      view.buf.file = file
+                      view.buf.opts.set('core.lang', 'json')
+                      view.insert(JSON.stringify(data, null, 2))
+                      view.buf.modified = 0
+                    })
+          })
+          .catch(err => Mess.yell('Hub: ' + err.message))
+      else
+        Mess.yell('This is for PR notifications')
+    }
+  }
+
   function markRead
   () {
     let p, threadId
@@ -601,6 +639,7 @@ function initHub
                                                      { attr: {} } ] } ] })
 
   Cmd.add('json', () => json(), mo)
+  Cmd.add('json pr', () => jsonPr(), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('refresh full', () => refreshFull(), mo)
   Cmd.add('open notification', () => openNotification(), mo)
@@ -620,6 +659,7 @@ function initHub
   Em.on('G', 'refresh full', mo)
   Em.on('h', 'toggle hidden', mo)
   Em.on('j', 'json', mo)
+  Em.on('J', 'json pr', mo)
   Em.on('r', 'mark read', mo)
   Em.on('d', 'mark done', mo)
   Em.on('n', 'next line', mo)

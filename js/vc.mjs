@@ -171,9 +171,10 @@ function initHub
       date = new Date(str)
       now = new Date()
 
-      if ((date.getFullYear() == now.getFullYear())
-          && (date.getMonth() == now.getMonth())
-          && (date.getDate() == now.getDate())) {
+      if (((date.getFullYear() == now.getFullYear())
+           && (date.getMonth() == now.getMonth())
+           && (date.getDate() == now.getDate()))
+          || ((now - date) < (24 * 60 * 60 * 1000))) {
         let time
 
         time = String(date.getHours()).padStart(2, '0')

@@ -304,11 +304,22 @@ function initHub
 
   function refresh
   (p) {
-    p.buf.clear()
-    p.buf.vars('hub').threadIds = []
-    p.buf.vars('hub').urls = []
-    getNotifications(1, data => {
+    function refreshData
+    (data) {
       let out, rows, widths
+
+      function makeLine
+      (r) {
+        return r.prState.padStart(widths[0])
+          + ' ' + r.prNum.padStart(widths[1])
+          + ' ' + r.repo.padEnd(widths[2])
+          + ' ' + r.reason.padEnd(widths[3])
+          + ' ' + r.subject.padEnd(widths[4])
+          + ' ' + r.updated.padEnd(widths[5])
+          + ' ' + r.ownerRepo.padStart(widths[6])
+          + (r.branch?.length ? (' ' + r.branch) : '')
+          + '\n'
+      }
 
       if (data.length == 0) {
         p.buf.append('No notifications\n', 1)
@@ -353,14 +364,7 @@ function initHub
       rows.forEach(r => {
         p.buf.vars('hub').threadIds.push(r.id)
         p.buf.vars('hub').urls.push(r.url)
-        out += r.prState.padStart(widths[0])
-               + ' ' + r.prNum.padStart(widths[1])
-               + ' ' + r.repo.padEnd(widths[2])
-               + ' ' + r.reason.padEnd(widths[3])
-               + ' ' + r.subject.padEnd(widths[4])
-               + ' ' + r.updated.padEnd(widths[5])
-               + ' ' + r.ownerRepo.padEnd(widths[6])
-               + ' ' + r.branch + '\n'
+        out += makeLine(r)
       })
       p.buf.append(out, 1)
       p.view.lineStart()
@@ -372,21 +376,27 @@ function initHub
           split = r.ownerRepo.split('/')
           getPrState(split[0], split[1], r.prNum).then(res => {
             if (res) {
-              let from, range
+              let from, range, line
 
               r.prState = res.state
               r.branch = res.branch
               from = Ed.posToBep(p.view, Ed.makePos(index, 0))
               range = Ed.makeRange(p.view,
                                    from,
-                                   Ed.posToBep(p.view, Ed.makePos(index, 1)))
+                                   Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
               range.remove()
-              p.buf.insert(res.state, from)
+              line = makeLine(r)
+              p.buf.insert(line, from)
             }
           })
         }
       })
-    })
+    }
+
+    p.buf.clear()
+    p.buf.vars('hub').threadIds = []
+    p.buf.vars('hub').urls = []
+    getNotifications(1, refreshData)
   }
 
   function refreshFull
@@ -626,11 +636,12 @@ function initHub
                             //   11 repo1 review Fix: example text 2025-01-01 owner/repo1
                             // 1234 r2    review Fix: example text 2025-01-01 owner/r2
                             // 99999 r2    review Fix: example text 2025-01-01 owner/r2
-                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) (\S+)/d,
+                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+)(| \S+)/d,
                                             decor: [ { ref: getRefState },
                                                      { ref: getRefPr },
                                                      { ref: getRefRepo },
                                                      { attr: { style: 'color: var(--clr-syntax0)' } },
+                                                     { attr: {} },
                                                      { attr: {} } ] } ] })
 
   Cmd.add('json', () => json(), mo)

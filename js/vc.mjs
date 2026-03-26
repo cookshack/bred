@@ -154,6 +154,15 @@ function initHub
 () {
   let mo, buf, lastModified
 
+  function hubMl
+  () {
+    return divCl('ml edMl',
+                 [ divCl('edMl-type',
+                         img(Icon.path('list'), 'hub', 'filter-clr-text')),
+                   divCl('ml-name', 'VC Hub'),
+                   divCl('ml-close') ])
+  }
+
   function getToken
   () {
     let token
@@ -930,7 +939,9 @@ function initHub
       buf.vars('hub').rows = []
     }
     else {
-      buf = Buf.add('Vc Hub', 'Vc Hub', Ed.divW(0, 0), p.dir)
+      buf = Buf.add('Vc Hub', 'Vc Hub',
+                    Ed.divW(0, 0, { ml: hubMl() }),
+                    p.dir)
       buf.vars('hub').threadIds = []
       buf.vars('hub').urls = []
       buf.vars('hub').rows = []

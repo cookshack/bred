@@ -241,12 +241,28 @@ function initHub
           else if (data.state)
             state = data.state.slice(0, 1).toUpperCase()
 
-          //d('VC ' + state + ' ' + data.state)
-          cachedPrState[key] = { state, branch: data.head.ref }
+          for (let k in cachedPrState)
+            if (k.startsWith(owner + '/' + repo + '/') && cachedPrState[k].branch == data.head.ref)
+              delete cachedPrState[k]
+
+          cachedPrState[key] = { state, branch: data.head.ref, prNum }
           return { state, branch: data.head.ref }
         }
         return null
       })
+  }
+
+  function findPrNumByBranch
+  (ownerRepo, branch) {
+    for (let key in cachedPrState) {
+      let cached
+
+      cached = cachedPrState[key]
+
+      if ((cached.branch == branch) && key.startsWith(ownerRepo + '/'))
+        return cached.prNum
+    }
+    return 0
   }
 
   function del
@@ -714,6 +730,29 @@ function initHub
       return 'Please review https://github.com/' + ownerRepo + '/pull/' + prNum + '. The PR is on branch ' + branch + ', which I\'ve already checked out in the current directory. Focus on reviewing the changes, I will do the CI checks.'
     }
 
+    function run
+    (ownerRepo, branch, prNum) {
+      let owner, repo
+
+      Mess.say('Getting PR ' + prNum)
+      owner = ownerRepo.split('/')[0]
+      repo = ownerRepo.split('/')[1]
+      getPrState(owner, repo, prNum)
+        .then(res => {
+          if (res)
+            if (res.branch == branch)
+              ensureMainUpToDate(dir,
+                                 () => {
+                                   Mess.say('Starting agent')
+                                   Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branch))
+                                 })
+            else
+              Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
+          else
+            Mess.yell('getPrState failed')
+        })
+    }
+
     p = Pane.current()
     dir = p.dir
     Mess.say('Setting up branch')
@@ -726,44 +765,39 @@ function initHub
                           return
                         }
                         branch = out.trim()
-                        Prompt.ask({ text: 'PR Number:',
-                                     placeholder: '' },
-                                   prNum => {
-                                     if (prNum && prNum.trim().length)
-                                       Shell.runToString(dir, 'git', [ 'remote', 'get-url', 'origin' ], 0, (out, code) => {
-                                         let remote, ownerRepo
+                        Shell.runToString(dir, 'git', [ 'remote', 'get-url', 'origin' ], 0,
+                                          (out, code) => {
+                                            let remote, ownerRepo
 
-                                         if (code) {
-                                           Mess.yell('Error getting git remote')
-                                           d(out)
-                                           return
-                                         }
+                                            if (code) {
+                                              Mess.yell('Error getting git remote')
+                                              d(out)
+                                              return
+                                            }
 
-                                         remote = out.trim()
-                                         ownerRepo = remote.match(/[:/]([^/]+\/[^/]+)(\.git)?$/)?.[1]
-                                         if (ownerRepo) {
-                                           ownerRepo = ownerRepo.replace(/\.git$/, '')
-                                           getPrState(ownerRepo.split('/')[0], ownerRepo.split('/')[1], prNum)
-                                             .then(res => {
-                                               if (res)
-                                                 if (res.branch == branch)
-                                                   ensureMainUpToDate(dir,
-                                                                      () => {
-                                                                        Mess.say('Starting agent')
-                                                                        Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branch))
-                                                                      })
-                                                 else
-                                                   Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
-                                               else
-                                                 Mess.yell('getPrState failed')
-                                             })
-                                           return
-                                         }
-                                         Mess.yell('Failed to parse owner/repo from ' + remote)
-                                       })
-                                     else
-                                       Mess.yell('Need a PR num')
-                                   })
+                                            remote = out.trim()
+                                            ownerRepo = remote.match(/[:/]([^/]+\/[^/]+)(\.git)?$/)?.[1]
+                                            if (ownerRepo) {
+                                              let cachedPrNum
+
+                                              ownerRepo = ownerRepo.replace(/\.git$/, '')
+                                              cachedPrNum = findPrNumByBranch(ownerRepo, branch)
+
+                                              if (cachedPrNum)
+                                                run(ownerRepo, branch, cachedPrNum)
+                                              else
+                                                Prompt.ask({ text: 'PR Number:' },
+                                                           prNum => {
+                                                             prNum = parseInt(prNum)
+                                                             if (prNum)
+                                                               run(ownerRepo, branch, prNum)
+                                                             else
+                                                               Mess.yell('Need a PR num')
+                                                           })
+                                              return
+                                            }
+                                            Mess.yell('Failed to parse owner/repo from ' + remote)
+                                          })
                       })
   }
 

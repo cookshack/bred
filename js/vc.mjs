@@ -487,14 +487,14 @@ function initHub
 
     p = Pane.current()
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
-    d('markRead threadId=' + threadId)
+    d('VC markRead ' + threadId)
     if (threadId)
       patch('https://api.github.com/notifications/threads/' + threadId)
         .then(res => {
-          d('markRead res=' + res.status)
+          d('VC markRead res ' + res.status)
           if (res.ok) {
             Mess.say('Marked as read')
-            refresh(p)
+            refreshFull(p)
             return
           }
           throw new Error('HTTP ' + res.status)
@@ -512,14 +512,14 @@ function initHub
 
       p = Pane.current()
       threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
-      d('markRead threadId=' + threadId)
+      d('VC markDone ' + threadId)
       if (threadId)
         del('https://api.github.com/notifications/threads/' + threadId)
           .then(res => {
-            d('markDone res=' + res.status)
+            d('VC res ' + res.status)
             if (res.ok) {
               Mess.say('Marked as done')
-              refresh(p)
+              refreshFull(p)
               return
             }
             throw new Error('HTTP ' + res.status)
@@ -645,52 +645,126 @@ function initHub
     Mess.yell('Missing URL')
   }
 
+  function ensureMainUpToDate
+  (dir, onDone) {
+    Mess.say('Ensuring main is up to date')
+    Shell.runToString(dir, 'git', [ 'fetch', 'origin' ], 0,
+                      (out, code) => {
+                        if (code) {
+                          Mess.yell('Failed to fetch origin')
+                          return
+                        }
+                        Shell.runToString(dir,
+                                          'git',
+                                          [ 'symbolic-ref', 'refs/remotes/origin/HEAD' ],
+                                          0,
+                                          (out, code) => {
+                                            let defaultBranch
+
+                                            if (code) {
+                                              Mess.yell('Failed to get default branch')
+                                              return
+                                            }
+                                            defaultBranch = out.trim().replace('refs/remotes/origin/', '')
+                                            Shell.runToString(dir,
+                                                              'git',
+                                                              [ 'rev-parse', defaultBranch ],
+                                                              0,
+                                                              (out, code) => {
+                                                                let localMain
+
+                                                                if (code) {
+                                                                  Mess.yell('Local ' + defaultBranch + ' missing')
+                                                                  return
+                                                                }
+                                                                localMain = out.trim()
+                                                                Shell.runToString(dir,
+                                                                                  'git',
+                                                                                  [ 'rev-parse', 'origin/' + defaultBranch ],
+                                                                                  0,
+                                                                                  (out, code) => {
+                                                                                    let remoteMain
+
+                                                                                    if (code) {
+                                                                                      Mess.yell('Missing origin/' + defaultBranch)
+                                                                                      return
+                                                                                    }
+                                                                                    remoteMain = out.trim()
+                                                                                    if (localMain == remoteMain)
+                                                                                      onDone()
+                                                                                    else {
+                                                                                      Mess.say('Updating ' + defaultBranch + ' to latest')
+                                                                                      Shell.run(dir,
+                                                                                                'git',
+                                                                                                [ 'fetch', 'origin', defaultBranch + ':' + defaultBranch ],
+                                                                                                { onClose: (b, code) => code ? Mess.yell('fetch failed') : onDone() })
+                                                                                    }
+                                                                                  })
+                                                              })
+                                          })
+                      })
+  }
+
   function review
   (u, we) {
-    let p, dir, branch
+    let p, dir
+
+    function prompt
+    (ownerRepo, prNum, branch) {
+      return 'Please review https://github.com/' + ownerRepo + '/pull/' + prNum + '. The PR is on branch ' + branch + ', which I\'ve already checked out in the current directory. Focus on reviewing the changes, I will do the CI checks.'
+    }
 
     p = Pane.current()
     dir = p.dir
-    Shell.runToString(dir, 'git', [ 'branch', '--show-current' ], 0, (out, code) => {
-      if (code) {
-        Mess.yell('Error getting current branch')
-        return
-      }
-      branch = out.trim()
-      Prompt.ask({ text: 'PR Number:',
-                   placeholder: '' },
-                 prNum => {
-                   if (prNum && prNum.trim().length)
-                     Shell.runToString(dir, 'git', [ 'remote', 'get-url', 'origin' ], 0, (out, code) => {
-                       let remote, ownerRepo
+    Mess.say('Setting up branch')
+    Shell.runToString(dir, 'git', [ 'branch', '--show-current' ], 0,
+                      (out, code) => {
+                        let branch
 
-                       if (code) {
-                         Mess.yell('Could not get git remote')
-                         return
-                       }
+                        if (code) {
+                          Mess.yell('Error getting current branch')
+                          return
+                        }
+                        branch = out.trim()
+                        Prompt.ask({ text: 'PR Number:',
+                                     placeholder: '' },
+                                   prNum => {
+                                     if (prNum && prNum.trim().length)
+                                       Shell.runToString(dir, 'git', [ 'remote', 'get-url', 'origin' ], 0, (out, code) => {
+                                         let remote, ownerRepo
 
-                       remote = out.trim()
-                       ownerRepo = remote.match(/[:/]([^/]+\/[^/]+)(\.git)?$/)?.[1]
-                       if (ownerRepo) {
-                         ownerRepo = ownerRepo.replace(/\.git$/, '')
-                         getPrState(ownerRepo.split('/')[0], ownerRepo.split('/')[1], prNum)
-                           .then(res => {
-                             if (res)
-                               if (res.branch == branch)
-                                 Cmd.run('code', 0, 1, we, 'Please review PR https://github.com/' + ownerRepo + '/pull/' + prNum + '. The branch is already checked out locally, into the current directory, in case that helps you. Focus on reviewing the changes, I will do the CI checks.')
-                               else
-                                 Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
-                             else
-                               Mess.yell('getPrState failed')
-                           })
-                         return
-                       }
-                       Mess.yell('Failed to parse owner/repo from ' + remote)
-                     })
-                   else
-                     Mess.yell('Need a PR num')
-                 })
-    })
+                                         if (code) {
+                                           Mess.yell('Error getting git remote')
+                                           d(out)
+                                           return
+                                         }
+
+                                         remote = out.trim()
+                                         ownerRepo = remote.match(/[:/]([^/]+\/[^/]+)(\.git)?$/)?.[1]
+                                         if (ownerRepo) {
+                                           ownerRepo = ownerRepo.replace(/\.git$/, '')
+                                           getPrState(ownerRepo.split('/')[0], ownerRepo.split('/')[1], prNum)
+                                             .then(res => {
+                                               if (res)
+                                                 if (res.branch == branch)
+                                                   ensureMainUpToDate(dir,
+                                                                      () => {
+                                                                        Mess.say('Starting agent')
+                                                                        Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branch))
+                                                                      })
+                                                 else
+                                                   Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
+                                               else
+                                                 Mess.yell('getPrState failed')
+                                             })
+                                           return
+                                         }
+                                         Mess.yell('Failed to parse owner/repo from ' + remote)
+                                       })
+                                     else
+                                       Mess.yell('Need a PR num')
+                                   })
+                      })
   }
 
   function go

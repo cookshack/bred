@@ -21,7 +21,7 @@ import { d } from './mess.mjs'
 import * as Diff from '../lib/diff.js'
 import * as Opt from './opt.mjs'
 
-let clrs, cachedNotifications, cachedPrState
+let clrs, cachedNotifications, cachedPrState, cachedUser
 
 function vcMl
 (args, mode) {
@@ -149,6 +149,133 @@ function initStash
   Em.on('Enter', 'stash open', moS)
 }
 
+function stateClr
+(state) {
+  if (state == 'M')
+    return '--clr-syntax3'
+  if (state == 'A')
+    return '--clr-syntax0'
+  if (state == 'R')
+    return '--clr-emph'
+  if (state == 'P')
+    return '--clr-syntax4'
+  if (state == 'D')
+    return '--clr-text'
+  if (state == 'O')
+    return '--clr-syntax1'
+  if (state == 'C')
+    return '--clr-nb2'
+  return '--clr-text'
+}
+
+function getToken
+() {
+  let token
+
+  token = Opt.get('core.vc.github.token')
+  token.length || Mess.toss('core.vc.github.token not set')
+  return token
+}
+
+function fetchArg
+(method, lastModified) {
+  let headers
+
+  headers = { Authorization: 'Bearer ' + getToken(),
+              Accept: 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2026-03-10' }
+
+  if (lastModified)
+    headers['If-Modified-Since'] = lastModified
+
+  return { method,
+           mode: 'cors',
+           cache: 'no-store',
+           headers }
+}
+
+function del
+(url) {
+  return fetch(url, fetchArg('DELETE'))
+}
+
+function get
+(url, useCache) {
+  return fetch(url, fetchArg('GET', useCache))
+}
+
+function patch
+(url) {
+  return fetch(url, fetchArg('PATCH'))
+}
+
+function formatDate
+(str) {
+  if (str?.length) {
+    let date, now
+
+    date = new Date(str)
+    now = new Date()
+
+    if (((date.getFullYear() == now.getFullYear())
+         && (date.getMonth() == now.getMonth())
+         && (date.getDate() == now.getDate()))
+        || ((now - date) < (24 * 60 * 60 * 1000))) {
+      let time
+
+      time = String(date.getHours()).padStart(2, '0')
+        + 'h' + String(date.getMinutes()).padStart(2, '0')
+      return time.padEnd(16)
+    }
+
+    return date.getFullYear()
+      + '-' + String(date.getMonth() + 1).padStart(2, '0')
+      + '-' + String(date.getDate()).padStart(2, '0')
+      + ' ' + String(date.getHours()).padStart(2, '0')
+      + 'h' + String(date.getMinutes()).padStart(2, '0')
+  }
+
+  return ''
+}
+
+function getRefState
+(view, match) {
+  let state
+
+  state = match[1]
+  if (state)
+    return Ed.makeDecor({ attr: { style: 'color: var(' + stateClr(state) + ')' } })
+  return 0
+}
+
+function getRefPr
+(view, match) {
+  let prNum, ownerRepo
+
+  prNum = match[2]?.trim()
+  ownerRepo = match[5]
+  if (ownerRepo) {
+    if (prNum)
+      return Ed.makeDecor({ attr: { style: 'color: var(--clr-syntax1)',
+                                    'data-run': 'open externally',
+                                    'data-url': 'https://github.com/' + ownerRepo + '/pull/' + prNum } })
+    return {}
+  }
+  return 0
+}
+
+function getRefRepo
+(view, match) {
+  let ownerRepo
+
+  ownerRepo = match[5]
+  if (ownerRepo)
+    return Ed.makeDecor({ attr: { style: 'color: var(--rule-clr-comment)',
+                                  'data-run': 'open externally',
+                                  'data-url': 'https://github.com/' + ownerRepo } })
+  return 0
+}
+
 export
 function initHub
 () {
@@ -161,61 +288,6 @@ function initHub
                          img(Icon.path('list'), 'hub', 'filter-clr-text')),
                    divCl('ml-name', 'VC Hub'),
                    divCl('ml-close') ])
-  }
-
-  function getToken
-  () {
-    let token
-
-    token = Opt.get('core.vc.github.token')
-    token.length || Mess.toss('core.vc.github.token not set')
-    return token
-  }
-
-  function formatDate
-  (str) {
-    if (str?.length) {
-      let date, now
-
-      date = new Date(str)
-      now = new Date()
-
-      if (((date.getFullYear() == now.getFullYear())
-           && (date.getMonth() == now.getMonth())
-           && (date.getDate() == now.getDate()))
-          || ((now - date) < (24 * 60 * 60 * 1000))) {
-        let time
-
-        time = String(date.getHours()).padStart(2, '0')
-             + 'h' + String(date.getMinutes()).padStart(2, '0')
-        return time.padEnd(16)
-      }
-
-      return date.getFullYear()
-           + '-' + String(date.getMonth() + 1).padStart(2, '0')
-           + '-' + String(date.getDate()).padStart(2, '0')
-           + ' ' + String(date.getHours()).padStart(2, '0')
-           + 'h' + String(date.getMinutes()).padStart(2, '0')
-    }
-
-    return ''
-  }
-
-  function fetchArg
-  (method, useCache) {
-    let headers
-
-    headers = { Authorization: 'Bearer ' + getToken(),
-                Accept: 'application/vnd.github+json',
-                'X-GitHub-Api-Version': '2026-03-10' }
-
-    if (useCache && lastModified)
-      headers['If-Modified-Since'] = lastModified
-
-    return { method,
-             mode: 'cors',
-             cache: 'no-store',
-             headers }
   }
 
   function getPrState
@@ -274,21 +346,6 @@ function initHub
     return 0
   }
 
-  function del
-  (url) {
-    return fetch(url, fetchArg('DELETE'))
-  }
-
-  function get
-  (url, useCache) {
-    return fetch(url, fetchArg('GET', useCache))
-  }
-
-  function patch
-  (url) {
-    return fetch(url, fetchArg('PATCH'))
-  }
-
   function getNotifications
   (useCache, cb) {
     let url
@@ -297,7 +354,7 @@ function initHub
     if (Opt.get('core.vc.github.notifications.all'))
       url += '?all=true'
     d('get ' + url)
-    get(url, useCache)
+    get(url, useCache && lastModified)
       .then(res => {
         if (res.status == 304) {
           d('VC 304 using cached notifications')
@@ -820,63 +877,6 @@ function initHub
       Cmd.run('previous line')
   }
 
-  function stateClr
-  (state) {
-    if (state == 'M')
-      return '--clr-syntax3'
-    if (state == 'A')
-      return '--clr-syntax0'
-    if (state == 'R')
-      return '--clr-emph'
-    if (state == 'P')
-      return '--clr-syntax4'
-    if (state == 'D')
-      return '--clr-text'
-    if (state == 'O')
-      return '--clr-syntax1'
-    if (state == 'C')
-      return '--clr-nb2'
-    return '--clr-text'
-  }
-
-  function getRefState
-  (view, match) {
-    let state
-
-    state = match[1]
-    if (state)
-      return Ed.makeDecor({ attr: { style: 'color: var(' + stateClr(state) + ')' } })
-    return 0
-  }
-
-  function getRefPr
-  (view, match) {
-    let prNum, ownerRepo
-
-    prNum = match[2]?.trim()
-    ownerRepo = match[5]
-    if (ownerRepo) {
-      if (prNum)
-        return Ed.makeDecor({ attr: { style: 'color: var(--clr-syntax1)',
-                                      'data-run': 'open externally',
-                                      'data-url': 'https://github.com/' + ownerRepo + '/pull/' + prNum } })
-      return {}
-    }
-    return 0
-  }
-
-  function getRefRepo
-  (view, match) {
-    let ownerRepo
-
-    ownerRepo = match[5]
-    if (ownerRepo)
-      return Ed.makeDecor({ attr: { style: 'color: var(--rule-clr-comment)',
-                                    'data-run': 'open externally',
-                                    'data-url': 'https://github.com/' + ownerRepo } })
-    return 0
-  }
-
   Opt.declare('core.vc.github.token', 'str', '')
   Opt.declare('core.vc.github.notifications.all', 'bool', 1)
   Opt.declare('core.vc.github.pr.dirs', 'struct', {})
@@ -975,6 +975,192 @@ function initHub
   })
 
   Cmd.add('vc review', review)
+}
+
+function initPrs
+() {
+  let mo, buf
+
+  function prsMl
+  () {
+    return divCl('ml edMl',
+                 [ divCl('edMl-type',
+                         img(Icon.path('log'), 'PRs', 'filter-clr-text')),
+                   divCl('ml-name', 'VC PRs'),
+                   divCl('ml-close') ])
+  }
+
+  function refresh
+  (p) {
+    function refreshData
+    (data) {
+      let out, rows, widths
+
+      function makeLine
+      (r) {
+        return r.state.padStart(widths[0])
+          + ' ' + r.num.padStart(widths[1])
+          + ' ' + r.repo.padEnd(widths[2])
+          + ' ' + r.title.padEnd(widths[3])
+          + ' ' + r.updated.padEnd(widths[4])
+          + ' ' + r.ownerRepo.padStart(widths[5])
+          + (r.branch?.length ? (' ' + r.branch) : '')
+          + '\n'
+      }
+
+      if (data.items.length == 0) {
+        p.buf.append('Empty\n', 1)
+        return
+      }
+
+      rows = data.items.map(pr => {
+        let state, repo, ownerRepo, url
+
+        url = pr.html_url
+        ownerRepo = pr.repository_url?.replace('https://api.github.com/repos/', '') || ''
+        state = pr.state == 'open' ? 'O' : (pr.merged ? 'M' : 'C')
+        repo = ownerRepo.split('/')[1] || ''
+
+        return {
+          num: String(pr.number),
+          state,
+          repo,
+          ownerRepo,
+          title: pr.title,
+          updated: formatDate(pr.updated_at),
+          branch: pr.head?.ref || '',
+          url
+        }
+      })
+
+      widths = [ 1, 4, 0, 0, 0, 0 ]
+      rows.forEach(r => {
+        widths[2] = Math.max(widths[2], r.repo.length)
+        widths[3] = Math.max(widths[3], r.title.length)
+        widths[4] = Math.max(widths[4], r.updated.length)
+        widths[5] = Math.max(widths[5], r.ownerRepo.length)
+      })
+
+      out = ''
+      rows.forEach(r => {
+        p.buf.vars('prs').urls.push(r.url)
+        p.buf.vars('prs').rows.push(r)
+        out += makeLine(r)
+      })
+      p.buf.append(out, 1)
+      p.view.lineStart()
+    }
+
+    p.buf.clear()
+    p.buf.vars('prs').urls = []
+    p.buf.vars('prs').rows = []
+
+    if (cachedUser)
+      get('https://api.github.com/search/issues?q=is:pr+author:' + cachedUser + '+sort:updated-desc&per_page=50')
+        .then(res => {
+          if (res.ok)
+            return res.json()
+          throw new Error('HTTP ' + res.status)
+        })
+        .then(data => refreshData(data))
+        .catch(err => Mess.yell('PRs: ' + err.message))
+    else {
+      Mess.say('Fetching user...')
+      get('https://api.github.com/user')
+        .then(res => {
+          if (res.ok)
+            return res.json()
+          throw new Error('HTTP ' + res.status)
+        })
+        .then(data => {
+          cachedUser = data.login
+          d('VC user: ' + cachedUser)
+          Mess.say('')
+          refresh(p)
+        })
+        .catch(err => Mess.yell('Get PRs: ' + err.message))
+    }
+  }
+
+  function openPr
+  () {
+    let p, url
+
+    p = Pane.current()
+    url = p.view.buf.vars('prs').urls[p.view.pos.row]
+    if (url)
+      Tron.cmd('shell.open', [ url ], err => {
+        if (err) {
+          Mess.yell('shell.open: ' + err.message)
+          return
+        }
+      })
+    else
+      Mess.yell('Missing URL')
+  }
+
+  function go
+  (n) {
+    if (n == 0)
+      return
+    if (n > 0)
+      Cmd.run('next line')
+    else
+      Cmd.run('previous line')
+  }
+
+  mo = Mode.add('VC PRs', { viewInit: Ed.viewInit,
+                            viewCopy: Ed.viewCopy,
+                            initFns: Ed.initModeFns,
+                            parentsForEm: 'ed',
+                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+\s+(\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+)(| \S+)/d,
+                                            decor: [ { ref: getRefState },
+                                                     { ref: getRefPr },
+                                                     { ref: getRefRepo },
+                                                     { attr: {} },
+                                                     { attr: {} },
+                                                     { attr: {} } ] } ] })
+
+  Cmd.add('refresh', () => refresh(Pane.current()), mo)
+  Cmd.add('open pr', () => openPr(), mo)
+  Cmd.add('next pr', () => go(1), mo)
+  Cmd.add('previous pr', () => go(-1), mo)
+
+  Em.on('q', 'bury', mo)
+  Em.on('Backspace', 'scroll up', mo)
+  Em.on(' ', 'scroll down', mo)
+
+  Em.on('g', 'refresh', mo)
+  Em.on('n', 'next line', mo)
+  Em.on('p', 'previous line', mo)
+  Em.on('e', 'open pr', mo)
+  Em.on('Enter', 'open pr', mo)
+
+  Cmd.add('vc prs', () => {
+    let p
+
+    p = Pane.current()
+    if (buf) {
+      buf.vars('prs').urls = []
+      buf.vars('prs').rows = []
+    }
+    else {
+      buf = Buf.add('VC PRs', 'VC PRs',
+                    Ed.divW(0, 0, { ml: prsMl() }),
+                    p.dir)
+      buf.vars('prs').urls = []
+      buf.vars('prs').rows = []
+      buf.icon = 'log'
+    }
+    buf.opts.set('core.lint.enabled', 0)
+    buf.opts.set('core.line.wrap.enabled', 0)
+    buf.opts.set('core.line.numbers.show', 0)
+    buf.opts.set('core.folding.enabled', 0)
+    buf.opts.set('highlightIndent.enabled', 0)
+    buf.opts.set('minimap.enabled', 0)
+    buf.opts.set('ruler.enabled', 0)
+    p.setBuf(buf, {}, () => refresh(p))
+  })
 }
 
 export
@@ -2328,6 +2514,7 @@ function init
   initEqual()
   initStash()
   initHub()
+  initPrs()
 
   Cmd.add('vc branch', () => branch())
   Cmd.add('vc main', () => mainOrMaster())
@@ -2356,6 +2543,7 @@ function init
   Em.on('C-x v m', 'vc main')
   Em.on('C-x v o', 'vc stash pop')
   Em.on('C-x v p', 'vc push')
+  Em.on('C-x v P', 'vc prs')
   Em.on('C-x v r', 'vc reset')
   Em.on('C-x v R', 'vc review')
   Em.on('C-x v s', 'vc log search one-line')

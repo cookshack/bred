@@ -195,8 +195,16 @@ function fetchArg
 }
 
 function del
-(url) {
+(url, cb) {
   return fetch(url, fetchArg('DELETE'))
+    .then(res => {
+      if (res.ok) {
+        cb()
+        return
+      }
+      throw new Error('HTTP ' + res.status)
+    })
+    .catch(err => cb(err))
 }
 
 function get
@@ -596,17 +604,15 @@ function initHub
       threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
       d('VC markDone ' + threadId)
       if (threadId)
-        del('https://api.github.com/notifications/threads/' + threadId)
-          .then(res => {
-            d('VC res ' + res.status)
-            if (res.ok) {
+        del('https://api.github.com/notifications/threads/' + threadId,
+            err => {
+              if (err) {
+                Mess.yell('Hub: ' + err.message)
+                return
+              }
               Mess.say('Marked as done')
               refreshFull(p)
-              return
-            }
-            throw new Error('HTTP ' + res.status)
-          })
-          .catch(err => Mess.yell('Hub: ' + err.message))
+            })
       else
         Mess.yell('Missing thread ID')
     }

@@ -195,7 +195,7 @@ function fetchArg
 }
 
 function del
-(url, cb) {
+(url, cb) { // (err)
   return fetch(url, fetchArg('DELETE'))
     .then(res => {
       if (res.ok) {
@@ -208,12 +208,20 @@ function del
 }
 
 function get
-(url, useCache) {
+(url, useCache, cb) { // (err, status, data, headers)
   return fetch(url, fetchArg('GET', useCache))
+    .then(res => {
+      if (res.ok) {
+        res.json().then(data => cb(0, res.status, data, res.headers))
+        return
+      }
+      cb(new Error('HTTP ' + res.status), res.status, 0, res.headers)
+    })
+    .catch(err => cb(err))
 }
 
 function patch
-(url, cb) {
+(url, cb) { // (err)
   return fetch(url, fetchArg('PATCH'))
     .then(res => {
       if (res.ok) {
@@ -307,46 +315,49 @@ function initHub
   }
 
   function getPrState
-  (owner, repo, prNum) {
+  (owner, repo, prNum, cb) { // (res)
     let key
 
     key = owner + '/' + repo + '/' + prNum
     if (cachedPrState[key])
       return Promise.resolve(cachedPrState[key])
 
-    return get('https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum)
-      .then(res => {
-        if (res.ok)
-          return res.json()
-        return null
-      })
-      .then(data => {
-        if (data) {
-          let state
+    return get('https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum,
+               0,
+               (err, status, data) => {
+                 if (err) {
+                   cb()
+                   return
+                 }
 
-          state = '?'
-          if (data.merged)
-            state = 'M'
-          else if (data.review_decision == 'APPROVED')
-            state = 'A'
-          else if (data.review_decision == 'CHANGES_REQUESTED')
-            state = 'R'
-          else if (data.review_decision == 'PENDING')
-            state = 'P'
-          else if (data.draft)
-            state = 'D'
-          else if (data.state)
-            state = data.state.slice(0, 1).toUpperCase()
+                 if (data) {
+                   let state
 
-          for (let k in cachedPrState)
-            if (k.startsWith(owner + '/' + repo + '/') && cachedPrState[k].branch == data.head.ref)
-              delete cachedPrState[k]
+                   state = '?'
+                   if (data.merged)
+                     state = 'M'
+                   else if (data.review_decision == 'APPROVED')
+                     state = 'A'
+                   else if (data.review_decision == 'CHANGES_REQUESTED')
+                     state = 'R'
+                   else if (data.review_decision == 'PENDING')
+                     state = 'P'
+                   else if (data.draft)
+                     state = 'D'
+                   else if (data.state)
+                     state = data.state.slice(0, 1).toUpperCase()
 
-          cachedPrState[key] = { state, branch: data.head.ref, prNum }
-          return { state, branch: data.head.ref }
-        }
-        return null
-      })
+                   for (let k in cachedPrState)
+                     if (k.startsWith(owner + '/' + repo + '/') && cachedPrState[k].branch == data.head.ref)
+                       delete cachedPrState[k]
+
+                   cachedPrState[key] = { state, branch: data.head.ref, prNum }
+                   cb({ state, branch: data.head.ref })
+                   return
+                 }
+
+                 cb()
+               })
   }
 
   function findPrNumByBranch
@@ -370,25 +381,24 @@ function initHub
     if (Opt.get('core.vc.github.notifications.all'))
       url += '?all=true'
     d('get ' + url)
-    get(url, useCache && lastModified)
-      .then(res => {
-        if (res.status == 304) {
-          d('VC 304 using cached notifications')
-          return cachedNotifications
-        }
-        if (res.ok) {
-          if (useCache)
-            lastModified = res.headers.get('Last-Modified')
-          return res.json()
-        }
-        throw new Error('HTTP ' + res.status)
-      })
-      .then(data => {
-        if (useCache)
-          cachedNotifications = data
-        cb(data)
-      })
-      .catch(err => Mess.yell('Hub: ' + err.message))
+    get(url,
+        useCache && lastModified,
+        (err, status, data, headers) => {
+          if (err) {
+            if (status == 304) {
+              d('VC 304 using cached notifications')
+              cb(cachedNotifications)
+              return
+            }
+            Mess.yell('Hub: ' + err.message)
+            return
+          }
+          if (useCache) {
+            lastModified = headers.get('Last-Modified')
+            cachedNotifications = data
+          }
+          cb(data)
+        })
   }
 
   function shortReason
@@ -473,21 +483,22 @@ function initHub
           let split
 
           split = r.ownerRepo.split('/')
-          getPrState(split[0], split[1], r.prNum).then(res => {
-            if (res) {
-              let from, range, line
+          getPrState(split[0], split[1], r.prNum,
+                     res => {
+                       if (res) {
+                         let from, range, line
 
-              r.prState = res.state
-              r.branch = res.branch
-              from = Ed.posToBep(p.view, Ed.makePos(index, 0))
-              range = Ed.makeRange(p.view,
-                                   from,
-                                   Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
-              range.remove()
-              line = makeLine(r)
-              p.buf.insert(line, from)
-            }
-          })
+                         r.prState = res.state
+                         r.branch = res.branch
+                         from = Ed.posToBep(p.view, Ed.makePos(index, 0))
+                         range = Ed.makeRange(p.view,
+                                              from,
+                                              Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
+                         range.remove()
+                         line = makeLine(r)
+                         p.buf.insert(line, from)
+                       }
+                     })
         }
       })
     }
@@ -515,28 +526,27 @@ function initHub
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
     d('VC json ' + threadId)
     if (threadId)
-      get('https://api.github.com/notifications/threads/' + threadId)
-        .then(res => {
-          d('VC json ' + res.status)
-          if (res.ok)
-            return res.json()
-          throw new Error('HTTP ' + res.status)
-        })
-        .then(data => {
-          let file
+      get('https://api.github.com/notifications/threads/' + threadId,
+          0,
+          (err, status, data) => {
+            let file
 
-          file = 'vc-hub-' + threadId + '.json'
-          Ed.make(p,
-                  { name: file,
-                    dir: p.dir },
-                  view => {
-                    view.buf.file = file
-                    view.buf.opts.set('core.lang', 'json')
-                    view.insert(JSON.stringify(data, null, 2))
-                    view.buf.modified = 0
-                  })
-        })
-        .catch(err => Mess.yell('Hub: ' + err.message))
+            if (err) {
+              Mess.yell('Hub: ' + err.message)
+              return
+            }
+
+            file = 'vc-hub-' + threadId + '.json'
+            Ed.make(p,
+                    { name: file,
+                      dir: p.dir },
+                    view => {
+                      view.buf.file = file
+                      view.buf.opts.set('core.lang', 'json')
+                      view.insert(JSON.stringify(data, null, 2))
+                      view.buf.modified = 0
+                    })
+          })
     else
       Mess.yell('Missing thread ID')
   }
@@ -551,27 +561,27 @@ function initHub
       ownerRepo = url?.match(/github\.com\/([^/]+\/[^/]+)\/pull\//)?.[1]
       prNum = url?.match(/\/pull\/(\d+)/)?.[1]
       if (ownerRepo && prNum)
-        get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum)
-          .then(res => {
-            if (res.ok)
-              return res.json()
-            throw new Error('HTTP ' + res.status)
-          })
-          .then(data => {
-            let file
+        get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum,
+            0,
+            (err, status, data) => {
+              let file
 
-            file = 'vc-hub-pr-' + prNum + '.json'
-            Ed.make(p,
-                    { name: file,
-                      dir: p.dir },
-                    view => {
-                      view.buf.file = file
-                      view.buf.opts.set('core.lang', 'json')
-                      view.insert(JSON.stringify(data, null, 2))
-                      view.buf.modified = 0
-                    })
-          })
-          .catch(err => Mess.yell('Hub: ' + err.message))
+              if (err) {
+                Mess.yell('Hub: ' + err.message)
+                return
+              }
+
+              file = 'vc-hub-pr-' + prNum + '.json'
+              Ed.make(p,
+                      { name: file,
+                        dir: p.dir },
+                      view => {
+                        view.buf.file = file
+                        view.buf.opts.set('core.lang', 'json')
+                        view.insert(JSON.stringify(data, null, 2))
+                        view.buf.modified = 0
+                      })
+            })
       else
         Mess.yell('This is for PR notifications')
     }
@@ -815,20 +825,20 @@ function initHub
       Mess.say('Getting PR ' + prNum)
       owner = ownerRepo.split('/')[0]
       repo = ownerRepo.split('/')[1]
-      getPrState(owner, repo, prNum)
-        .then(res => {
-          if (res)
-            if (res.branch == branch)
-              ensureMainUpToDate(dir,
-                                 () => {
-                                   Mess.say('Starting agent')
-                                   Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branch))
-                                 })
-            else
-              Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
-          else
-            Mess.yell('getPrState failed')
-        })
+      getPrState(owner, repo, prNum,
+                 res => {
+                   if (res)
+                     if (res.branch == branch)
+                       ensureMainUpToDate(dir,
+                                          () => {
+                                            Mess.say('Starting agent')
+                                            Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branch))
+                                          })
+                     else
+                       Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
+                   else
+                     Mess.yell('getPrState failed')
+                 })
     }
 
     p = Pane.current()
@@ -1068,29 +1078,23 @@ function initPrs
     p.buf.vars('prs').rows = []
 
     if (cachedUser)
-      get('https://api.github.com/search/issues?q=is:pr+author:' + cachedUser + '+sort:updated-desc&per_page=50')
-        .then(res => {
-          if (res.ok)
-            return res.json()
-          throw new Error('HTTP ' + res.status)
-        })
-        .then(data => refreshData(data))
-        .catch(err => Mess.yell('PRs: ' + err.message))
+      get('https://api.github.com/search/issues?q=is:pr+author:' + cachedUser + '+sort:updated-desc&per_page=50',
+          0,
+          (err, status, data) => err ? Mess.yell('PRs: ' + err.message) : refreshData(data))
     else {
       Mess.say('Fetching user...')
-      get('https://api.github.com/user')
-        .then(res => {
-          if (res.ok)
-            return res.json()
-          throw new Error('HTTP ' + res.status)
-        })
-        .then(data => {
-          cachedUser = data.login
-          d('VC user: ' + cachedUser)
-          Mess.say('')
-          refresh(p)
-        })
-        .catch(err => Mess.yell('Get PRs: ' + err.message))
+      get('https://api.github.com/user',
+          0,
+          (err, status, data) => {
+            if (err) {
+              Mess.yell('Get PRs: ' + err.message)
+              return
+            }
+            cachedUser = data.login
+            d('VC user: ' + cachedUser)
+            Mess.say('')
+            refresh(p)
+          })
     }
   }
 

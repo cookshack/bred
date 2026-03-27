@@ -947,8 +947,7 @@ function initHub
   Em.on('d', 'mark done', mo)
   Em.on('n', 'next line', mo)
   Em.on('p', 'previous line', mo)
-  Em.on('e', 'open notification', mo)
-  Em.on('Enter', 'open notification', mo)
+  Em.on('w', 'open notification', mo)
   Em.on('b', 'branch', mo)
 
   Cmd.add('vc hub', () => {
@@ -1149,8 +1148,7 @@ function initPrs
   Em.on('g', 'refresh', mo)
   Em.on('n', 'next line', mo)
   Em.on('p', 'previous line', mo)
-  Em.on('e', 'open pr', mo)
-  Em.on('Enter', 'open pr', mo)
+  Em.on('w', 'open pr', mo)
 
   Cmd.add('vc prs', () => {
     let p

@@ -213,8 +213,16 @@ function get
 }
 
 function patch
-(url) {
+(url, cb) {
   return fetch(url, fetchArg('PATCH'))
+    .then(res => {
+      if (res.ok) {
+        cb()
+        return
+      }
+      throw new Error('HTTP ' + res.status)
+    })
+    .catch(err => cb(err))
 }
 
 function formatDate
@@ -579,17 +587,15 @@ function initHub
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
     d('VC markRead ' + threadId)
     if (threadId)
-      patch('https://api.github.com/notifications/threads/' + threadId)
-        .then(res => {
-          d('VC markRead res ' + res.status)
-          if (res.ok) {
-            Mess.say('Marked as read')
-            refreshFull(p)
-            return
-          }
-          throw new Error('HTTP ' + res.status)
-        })
-        .catch(err => Mess.yell('Hub: ' + err.message))
+      patch('https://api.github.com/notifications/threads/' + threadId,
+            err => {
+              if (err) {
+                Mess.yell('Hub: ' + err.message)
+                return
+              }
+              Mess.say('Marked as read')
+              refreshFull(p)
+            })
     else
       Mess.yell('Missing thread ID')
   }

@@ -433,6 +433,7 @@ function getAndShowPr
                   view => {
                     view.buf.file = 'PR-' + num + '.md'
                     view.buf.opts.set('core.lang', 'markdown')
+                    view.buf.addMode('view')
                     view.insert('# ' + title + '\n\n' + body)
                     view.buf.modified = 0
                   })

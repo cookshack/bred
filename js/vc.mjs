@@ -300,6 +300,56 @@ function getRefRepo
   return 0
 }
 
+function getPrState
+(owner, repo, prNum, cb) { // (res)
+  let key, cached, url
+
+  key = owner + '/' + repo + '/' + prNum
+  cached = cachedPrState[key]
+  url = 'https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum
+
+  get(url, cached?.lastModified,
+      (err, status, data, headers) => {
+        let state
+
+        if (err) {
+          if ((status == 304) && cached) {
+            cb(cached)
+            return
+          }
+          cb()
+          return
+        }
+
+        if (data) {
+          state = '?'
+          if (data.merged)
+            state = 'M'
+          else if (data.review_decision == 'APPROVED')
+            state = 'A'
+          else if (data.review_decision == 'CHANGES_REQUESTED')
+            state = 'R'
+          else if (data.review_decision == 'PENDING')
+            state = 'P'
+          else if (data.draft)
+            state = 'D'
+          else if (data.state)
+            state = data.state.slice(0, 1).toUpperCase()
+
+          for (let k in cachedPrState)
+            if (k.startsWith(owner + '/' + repo + '/') && cachedPrState[k].branch == data.head.ref)
+              delete cachedPrState[k]
+
+          cachedPrState[key] = { state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified') }
+          cb(cachedPrState[key])
+          return
+        }
+
+        cb()
+      })
+
+}
+
 export
 function initHub
 () {
@@ -312,56 +362,6 @@ function initHub
                          img(Icon.path('list'), 'hub', 'filter-clr-text')),
                    divCl('ml-name', 'VC Hub'),
                    divCl('ml-close') ])
-  }
-
-  function getPrState
-  (owner, repo, prNum, cb) { // (res)
-    let key, cached, url
-
-    key = owner + '/' + repo + '/' + prNum
-    cached = cachedPrState[key]
-    url = 'https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum
-
-    get(url, cached?.lastModified,
-        (err, status, data, headers) => {
-          let state
-
-          if (err) {
-            if ((status == 304) && cached) {
-              cb(cached)
-              return
-            }
-            cb()
-            return
-          }
-
-          if (data) {
-            state = '?'
-            if (data.merged)
-              state = 'M'
-            else if (data.review_decision == 'APPROVED')
-              state = 'A'
-            else if (data.review_decision == 'CHANGES_REQUESTED')
-              state = 'R'
-            else if (data.review_decision == 'PENDING')
-              state = 'P'
-            else if (data.draft)
-              state = 'D'
-            else if (data.state)
-              state = data.state.slice(0, 1).toUpperCase()
-
-            for (let k in cachedPrState)
-              if (k.startsWith(owner + '/' + repo + '/') && cachedPrState[k].branch == data.head.ref)
-                delete cachedPrState[k]
-
-            cachedPrState[key] = { state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified') }
-            cb(cachedPrState[key])
-            return
-          }
-
-          cb()
-        })
-
   }
 
   function findPrNumByBranch
@@ -1083,11 +1083,12 @@ function initPrs
         return {
           num: String(pr.number),
           state,
+          prState: '',
           repo,
           ownerRepo,
           title: pr.title,
           updated: formatDate(pr.updated_at),
-          branch: pr.head?.ref || '',
+          branch: '',
           url
         }
       })
@@ -1107,6 +1108,30 @@ function initPrs
       })
       p.buf.append(out, 1)
       p.view.lineStart()
+
+      rows.forEach((r, index) => {
+        let split
+
+        if (r.ownerRepo) {
+          split = r.ownerRepo.split('/')
+          getPrState(split[0], split[1], r.num,
+                     res => {
+                       if (res) {
+                         let from, range, line
+
+                         r.prState = res.state
+                         r.branch = res.branch
+                         from = Ed.posToBep(p.view, Ed.makePos(index, 0))
+                         range = Ed.makeRange(p.view,
+                                              from,
+                                              Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
+                         range.remove()
+                         line = makeLine(r)
+                         p.buf.insert(line, from)
+                       }
+                     })
+        }
+      })
     }
 
     p.buf.clear()

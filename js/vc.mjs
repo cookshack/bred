@@ -1018,6 +1018,33 @@ function initPrs
                    divCl('ml-close') ])
   }
 
+  function ensureUser
+  (cb) {
+    if (cachedUser) {
+      cb(cachedUser)
+      return
+    }
+
+    Mess.say('Fetching user...')
+    get('https://api.github.com/user',
+        0,
+        (err, status, data) => {
+          if (err) {
+            Mess.yell('Get user: ' + err.message)
+            return
+          }
+          cachedUser = data.login
+          d('VC user: ' + cachedUser)
+          Mess.say('')
+          cb(cachedUser)
+        })
+  }
+
+  function prsUrl
+  (user) {
+    return 'https://api.github.com/search/issues?q=is:pr+author:' + user + '+sort:updated-desc&per_page=50'
+  }
+
   function refresh
   (p) {
     function refreshData
@@ -1081,25 +1108,9 @@ function initPrs
     p.buf.clear()
     p.buf.vars('prs').rows = []
 
-    if (cachedUser)
-      get('https://api.github.com/search/issues?q=is:pr+author:' + cachedUser + '+sort:updated-desc&per_page=50',
-          0,
-          (err, status, data) => err ? Mess.yell('PRs: ' + err.message) : refreshData(data))
-    else {
-      Mess.say('Fetching user...')
-      get('https://api.github.com/user',
-          0,
-          (err, status, data) => {
-            if (err) {
-              Mess.yell('Get PRs: ' + err.message)
-              return
-            }
-            cachedUser = data.login
-            d('VC user: ' + cachedUser)
-            Mess.say('')
-            refresh(p)
-          })
-    }
+    ensureUser(user => get(prsUrl(user),
+                           0,
+                           (err, status, data) => err ? Mess.yell('PRs: ' + err.message) : refreshData(data)))
   }
 
   function openPr
@@ -1155,9 +1166,33 @@ function initPrs
   Em.on(' ', 'scroll down', mo)
 
   Em.on('g', 'refresh', mo)
+  Em.on('J', 'vc prs json', mo)
   Em.on('n', 'next line', mo)
   Em.on('p', 'previous line', mo)
   Em.on('w', 'open pr', mo)
+
+  Cmd.add('vc prs json', () => {
+    let p
+
+    p = Pane.current()
+    ensureUser(user => get(prsUrl(user),
+                           0,
+                           (err, status, data) => {
+                             if (err) {
+                               Mess.yell('PRs: ' + err.message)
+                               return
+                             }
+                             Ed.make(p,
+                                     { name: 'vc-prs.json',
+                                       dir: p.dir },
+                                     view => {
+                                       view.buf.file = 'vc-prs.json'
+                                       view.buf.opts.set('core.lang', 'json')
+                                       view.insert(JSON.stringify(data, null, 2))
+                                       view.buf.modified = 0
+                                     })
+                           }))
+  })
 
   Cmd.add('vc prs', () => {
     let p

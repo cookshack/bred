@@ -1,9 +1,9 @@
-import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Em from './em.mjs'
 import * as Mess from './mess.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
+import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
 let modes
@@ -89,7 +89,7 @@ function add
   m.assist = spec.assist || {}
   m.opts = Opt.mode(m)
   m.key = key
-  m.name = key ? (spec.name || Buf.capitalize(key)) : ''
+  m.name = key ? (spec.name || U.capitalize(key)) : ''
   m.minor = spec.minor ? 1 : 0
   m.context = spec.context
   m.decorators = spec.decorators

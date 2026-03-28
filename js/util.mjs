@@ -7,6 +7,12 @@ export { shrug }
 shrug = '¯\\_(ツ)_/¯'
 
 export
+function capitalize
+(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase()
+}
+
+export
 function cede
 (ms) {
   ms = ms || 0

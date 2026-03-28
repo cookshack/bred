@@ -1,12 +1,12 @@
 import { append, divCl, img } from './dom.mjs'
 
 import * as Area from './area.mjs'
-import * as Buf from './buf.mjs'
 import * as Css from './css.mjs'
 import * as Icon from './icon.mjs'
 import * as Frame from './frame.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './pane.mjs'
+import * as U from './util.mjs'
 
 let lastId
 
@@ -54,7 +54,7 @@ function add
   (name) {
     icon = name || 'blank'
     elIcon.firstElementChild.src = Icon.path(icon)
-    elIcon.firstElementChild.alt = Buf.capitalize(icon)
+    elIcon.firstElementChild.alt = U.capitalize(icon)
     return icon
   }
 

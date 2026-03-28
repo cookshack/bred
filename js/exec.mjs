@@ -6,6 +6,7 @@ import * as Css from './css.mjs'
 import * as Em from './em.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
+import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
 export
@@ -59,7 +60,7 @@ function init
       needles = all[0].split(' ').map((word, i) => {
         //d({word})
         if (ns[i])
-          return Buf.capitalize(ns[i]) + ' '.repeat(word.length - ns[i].length + 1 /* for space between */)
+          return U.capitalize(ns[i]) + ' '.repeat(word.length - ns[i].length + 1 /* for space between */)
         return ''
       })
       //d(needles)

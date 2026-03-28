@@ -324,17 +324,17 @@ function getPr
         if (data) {
           state = '?'
           if (data.merged)
-            state = 'M'
+            state = 'Merged'
           else if (data.review_decision == 'APPROVED')
-            state = 'A'
+            state = 'Approved'
           else if (data.review_decision == 'CHANGES_REQUESTED')
-            state = 'R'
+            state = 'Request for changes'
           else if (data.review_decision == 'PENDING')
-            state = 'P'
+            state = 'Pending'
           else if (data.draft)
-            state = 'D'
+            state = 'Draft'
           else if (data.state)
-            state = data.state.slice(0, 1).toUpperCase()
+            state = U.capitalize(data.state)
 
           for (let k in cachedPrs)
             if (k.startsWith(ownerRepo + '/') && cachedPrs[k].branch == data.head.ref)
@@ -366,8 +366,23 @@ function getPr
                                                      user: c.user.login,
                                                      created: c.created_at }))
 
-                      cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), commits, commitsLastModified: headers2?.get('Last-Modified'), comments, commentsLastModified: headers3?.get('Last-Modified') }
-                      cb(cachedPrs[key])
+                      get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/reviews',
+                          cached?.reviewsLastModified,
+                          (err4, status4, data4, headers4) => {
+                            let reviews
+
+                            reviews = []
+                            if ((status4 == 304) && cached?.reviews)
+                              reviews = cached.reviews
+                            else if (data4)
+                              reviews = data4.map(r => ({ body: r.body,
+                                                          user: r.user.login,
+                                                          state: r.state,
+                                                          submitted: r.submitted_at }))
+
+                            cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), commits, commitsLastModified: headers2?.get('Last-Modified'), comments, commentsLastModified: headers3?.get('Last-Modified'), reviews, reviewsLastModified: headers4?.get('Last-Modified') }
+                            cb(cachedPrs[key])
+                          })
                     })
               })
           return
@@ -476,6 +491,19 @@ function getAndShowPr
             })
           }
 
+          if (res.reviews?.length) {
+            text += '\n## Reviews\n\n'
+            res.reviews.forEach(r => {
+              let date
+
+              date = formatDate(r.submitted)
+              text += '**' + r.user + '** ' + r.state + ' ' + date + '\n\n'
+              if (r.body)
+                text += r.body + '\n\n'
+              text += '---\n\n'
+            })
+          }
+
           Ed.make(p,
                   { name: 'PR ' + num,
                     dir: p.dir },
@@ -574,7 +602,7 @@ function initHub
 
       function makeLine
       (r) {
-        return pad(r.prState, 0)
+        return pad(r.prState.slice(0, 1), 0)
           + ' ' + pad(r.prNum, 1)
           + ' ' + padEnd(r.repo, 2)
           + ' ' + padEnd(r.reason, 3)
@@ -1141,7 +1169,7 @@ function initPrs
 
       function makeLine
       (r) {
-        return r.state.padStart(widths[0])
+        return r.state.slice(0, 1).padStart(widths[0])
           + ' ' + r.num.padStart(widths[1])
           + ' ' + r.repo.padEnd(widths[2])
           + ' ' + r.title.padEnd(widths[3])

@@ -100,7 +100,7 @@ function loadAll
 function canon
 (name) {
   // 'blank-lines' => 'blankLines'
-  //return name.split('-').map((w,i) => i ? Buf.capitalize(w) : w).join('')
+  //return name.split('-').map((w,i) => i ? U.capitalize(w) : w).join('')
 
   // 'blankLines' => 'blank-lines'
   return name.split(/(?=[A-Z])/).map(w => w.toLowerCase()).join('-')

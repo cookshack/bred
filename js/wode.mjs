@@ -9,6 +9,7 @@ import * as Mess from './mess.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import * as WodeCommon from './wode-common.mjs'
 import * as WodeFind from './wode-find.mjs'
@@ -1718,12 +1719,12 @@ function capitalizeWord() {
     // better go beginning of word
     Ed.nonTokenRe.lastIndex = 0
     if (Ed.nonTokenRe.exec(str) === null)
-      str = Buf.capitalize(str)
+      str = U.capitalize(str)
     else {
       let i
 
       i = Ed.nonTokenRe.lastIndex
-      str = str.slice(0, i) + Buf.capitalize(str.slice(i))
+      str = str.slice(0, i) + U.capitalize(str.slice(i))
     }
     return str
   })

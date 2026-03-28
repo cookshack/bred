@@ -1,7 +1,7 @@
-import * as Buf from './buf.mjs'
 import * as Hist from './hist.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
+import * as U from './util.mjs'
 //import { d } from './mess.mjs'
 
 import getCurrentLine from '../lib/get-current-line.js'
@@ -194,7 +194,7 @@ function runMo
 
 function fName
 (name) {
-  return name.trim().split(' ').map((w,i) => i == 0 ? w : Buf.capitalize(w)).join('')
+  return name.trim().split(' ').map((w,i) => i == 0 ? w : U.capitalize(w)).join('')
 }
 
 export
@@ -202,7 +202,7 @@ function canon
 (name) {
   // buffer end => Buffer End
   if (name)
-    return name.trim().split(' ').map(w => Buf.capitalize(w)).join(' ')
+    return name.trim().split(' ').map(w => U.capitalize(w)).join(' ')
   return ''
 }
 

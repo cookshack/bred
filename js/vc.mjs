@@ -454,7 +454,7 @@ function initHub
         type = n.subject.type
         url = n.repository.html_url
         if (type == 'Release')
-          url = url + '/tag/' + n.subject.title
+          url = url + '/releases/tag/' + n.subject.title
         else if (type == 'PullRequest') {
           prNum = n.subject.url?.split('/pulls/').pop() || n.subject.latest_comment_url?.split('/pulls/').pop()
           prNum || Mess.log('VC PullRequest missing prNum')

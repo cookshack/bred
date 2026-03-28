@@ -441,7 +441,9 @@ function getAndShowPr
 
           title = res.pr?.title || ('PR ' + num)
           body = res.pr?.body || ''
-          text = '# ' + title + '\n\n' + body + '\n\n'
+          text = '*Branch* ' + res.branch + '\n*State*  ' + res.state + ' (' + res.pr.state + ')\n\n'
+          text += '# ' + title + '\n\n'
+          text += body + '\n\n'
 
           if (res.commits?.length) {
             text += '## Commits (' + res.commits.length + ')\n\n'

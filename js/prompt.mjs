@@ -605,6 +605,7 @@ function initFile
   Em.on('C-r', 'Idle', mo)
 
   Cmd.add('idle', () => {})
+  Cmd.add('shrug', () => Mess.say(U.shrug))
 
   return open
 }

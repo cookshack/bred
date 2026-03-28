@@ -936,8 +936,8 @@ function initHub
 
   // should use view mode
   Cmd.add('self insert', () => Mess.say(U.shrug), mo)
-  Em.on('Enter', 'Idle', mo)
-  Em.on('Tab', 'Idle', mo)
+  Em.on('Enter', 'Shrug', mo)
+  Em.on('Tab', 'Shrug', mo)
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
@@ -1189,8 +1189,8 @@ function initPrs
 
   // should use view mode
   Cmd.add('self insert', () => Mess.say(U.shrug), mo)
-  Em.on('Enter', 'Idle', mo)
-  Em.on('Tab', 'Idle', mo)
+  Em.on('Enter', 'Shrug', mo)
+  Em.on('Tab', 'Shrug', mo)
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)

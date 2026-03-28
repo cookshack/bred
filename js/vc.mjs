@@ -946,17 +946,18 @@ function initHub
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
+  Em.on('b', 'branch', mo)
+  Em.on('d', 'mark done', mo)
   Em.on('g', 'refresh', mo)
   Em.on('G', 'refresh full', mo)
   Em.on('h', 'toggle hidden', mo)
   Em.on('j', 'json', mo)
-  Em.on('J', 'json pr', mo)
-  Em.on('r', 'mark read', mo)
-  Em.on('d', 'mark done', mo)
+  Em.on('J', 'vc hub json', mo)
   Em.on('n', 'next line', mo)
   Em.on('p', 'previous line', mo)
+  Em.on('P', 'json pr', mo)
+  Em.on('r', 'mark read', mo)
   Em.on('w', 'open notification', mo)
-  Em.on('b', 'branch', mo)
 
   Cmd.add('vc hub', () => {
     let p
@@ -2555,7 +2556,6 @@ function init
   Em.on('C-x v e', 'vc stash enumerate')
   Em.on('C-x v g', 'vc annotate')
   Em.on('C-x v h', 'vc hub')
-  Em.on('C-x v H', 'vc hub json')
   Em.on('C-x v i', 'vc show')
   Em.on('C-x v L', 'vc log')
   Em.on('C-x v l', 'vc log one-line')

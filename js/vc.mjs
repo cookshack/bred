@@ -414,6 +414,31 @@ function branchOwnerRepo
   Mess.yell('Need a dir in core.vc.github.pr.dirs for ' + ownerRepo)
 }
 
+function getAndShowPr
+(p, ownerRepo, num) {
+  getPr(ownerRepo, num,
+        res => {
+          let title, body
+
+          if (res == null) {
+            Mess.yell('PR not found')
+            return
+          }
+
+          title = res.pr.title || ('PR ' + num)
+          body = res.pr.body || ''
+          Ed.make(p,
+                  { name: 'PR ' + num,
+                    dir: p.dir },
+                  view => {
+                    view.buf.file = 'PR-' + num + '.md'
+                    view.buf.opts.set('core.lang', 'markdown')
+                    view.insert('# ' + title + '\n\n' + body)
+                    view.buf.modified = 0
+                  })
+        })
+}
+
 export
 function initHub
 () {
@@ -745,7 +770,7 @@ function initHub
 
     p = Pane.current()
     row = p.view.buf.vars('hub').rows[p.view.pos.row]
-    if (row.type == 'pullRequest') {
+    if (row.type == 'PullRequest') {
       if (row.ownerRepo)
         branchOwnerRepo(p, row, row.ownerRepo)
       else
@@ -901,6 +926,21 @@ function initHub
       Cmd.run('previous line')
   }
 
+  function showPr
+  () {
+    let p, row
+
+    p = Pane.current()
+    row = p.view.buf.vars('hub').rows[p.view.pos.row]
+    if (row.type == 'PullRequest')
+      if (row.ownerRepo && row.prNum)
+        getAndShowPr(p, row.ownerRepo, row.prNum)
+      else
+        Mess.yell('Missing ownerRepo or prNum')
+    else
+      Mess.yell('This is for PR notifications')
+  }
+
   Opt.declare('core.vc.github.token', 'str', '')
   Opt.declare('core.vc.github.notifications.all', 'bool', 1)
   Opt.declare('core.vc.github.pr.dirs', 'struct', {})
@@ -932,6 +972,7 @@ function initHub
   Cmd.add('mark done', () => markDone(), mo)
   Cmd.add('next notification', () => go(1), mo)
   Cmd.add('previous notification', () => go(-1), mo)
+  Cmd.add('show pr', () => showPr(), mo)
   Cmd.add('toggle hidden', () => toggleHidden(), mo)
 
   // should use view mode
@@ -942,6 +983,7 @@ function initHub
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
+  Em.on('Enter', 'show pr', mo)
   Em.on('b', 'branch', mo)
   Em.on('d', 'mark done', mo)
   Em.on('g', 'refresh', mo)
@@ -1154,27 +1196,7 @@ function initPrs
     p = Pane.current()
     row = p.view.buf.vars('prs').rows[p.view.pos.row]
     if (row.ownerRepo && row.num)
-      getPr(row.ownerRepo, row.num,
-            res => {
-              let title, body
-
-              if (res == null) {
-                Mess.yell('PR not found')
-                return
-              }
-
-              title = res.pr.title || row.pr.title || 'PR ' + row.num
-              body = res.pr.body || ''
-              Ed.make(p,
-                      { name: 'PR ' + row.num + ': ' + title,
-                        dir: p.dir },
-                      view => {
-                        view.buf.file = 'PR-' + row.num + '.md'
-                        view.buf.opts.set('core.lang', 'markdown')
-                        view.insert('# ' + title + '\n\n' + body)
-                        view.buf.modified = 0
-                      })
-            })
+      getAndShowPr(p, row.ownerRepo, row.num)
     else
       Mess.yell('Missing ownerRepo or num')
   }
@@ -1227,9 +1249,9 @@ function initPrs
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
+  Em.on('Enter', 'show pr', mo)
   Em.on('b', 'branch', mo)
   Em.on('g', 'refresh', mo)
-  Em.on('Enter', 'show pr', mo)
   Em.on('J', 'vc prs json', mo)
   Em.on('n', 'next line', mo)
   Em.on('p', 'previous line', mo)

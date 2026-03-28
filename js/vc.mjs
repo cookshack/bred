@@ -316,48 +316,52 @@ function initHub
 
   function getPrState
   (owner, repo, prNum, cb) { // (res)
-    let key
+    let key, cached, url
 
     key = owner + '/' + repo + '/' + prNum
-    if (cachedPrState[key])
-      return Promise.resolve(cachedPrState[key])
+    cached = cachedPrState[key]
+    url = 'https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum
 
-    return get('https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum,
-               0,
-               (err, status, data) => {
-                 if (err) {
-                   cb()
-                   return
-                 }
+    get(url, cached?.lastModified,
+        (err, status, data, headers) => {
+          let state
 
-                 if (data) {
-                   let state
+          if (err) {
+            if ((status == 304) && cached) {
+              cb(cached)
+              return
+            }
+            cb()
+            return
+          }
 
-                   state = '?'
-                   if (data.merged)
-                     state = 'M'
-                   else if (data.review_decision == 'APPROVED')
-                     state = 'A'
-                   else if (data.review_decision == 'CHANGES_REQUESTED')
-                     state = 'R'
-                   else if (data.review_decision == 'PENDING')
-                     state = 'P'
-                   else if (data.draft)
-                     state = 'D'
-                   else if (data.state)
-                     state = data.state.slice(0, 1).toUpperCase()
+          if (data) {
+            state = '?'
+            if (data.merged)
+              state = 'M'
+            else if (data.review_decision == 'APPROVED')
+              state = 'A'
+            else if (data.review_decision == 'CHANGES_REQUESTED')
+              state = 'R'
+            else if (data.review_decision == 'PENDING')
+              state = 'P'
+            else if (data.draft)
+              state = 'D'
+            else if (data.state)
+              state = data.state.slice(0, 1).toUpperCase()
 
-                   for (let k in cachedPrState)
-                     if (k.startsWith(owner + '/' + repo + '/') && cachedPrState[k].branch == data.head.ref)
-                       delete cachedPrState[k]
+            for (let k in cachedPrState)
+              if (k.startsWith(owner + '/' + repo + '/') && cachedPrState[k].branch == data.head.ref)
+                delete cachedPrState[k]
 
-                   cachedPrState[key] = { state, branch: data.head.ref, prNum }
-                   cb({ state, branch: data.head.ref })
-                   return
-                 }
+            cachedPrState[key] = { state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified') }
+            cb(cachedPrState[key])
+            return
+          }
 
-                 cb()
-               })
+          cb()
+        })
+
   }
 
   function findPrNumByBranch

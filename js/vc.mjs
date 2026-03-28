@@ -340,8 +340,22 @@ function getPr
             if (k.startsWith(ownerRepo + '/') && cachedPrs[k].branch == data.head.ref)
               delete cachedPrs[k]
 
-          cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified') }
-          cb(cachedPrs[key])
+          get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/commits',
+              cached?.commitsLastModified,
+              (err2, status2, data2, headers2) => {
+                let commits
+
+                commits = []
+                if ((status2 == 304) && cached?.commits)
+                  commits = cached.commits
+                else if (data2)
+                  commits = data2.map(c => ({ sha: c.sha,
+                                              message: c.commit.message.split('\n')[0],
+                                              author: c.commit.author.name }))
+
+                cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), commits, commitsLastModified: headers2?.get('Last-Modified') }
+                cb(cachedPrs[key])
+              })
           return
         }
 
@@ -418,15 +432,24 @@ function getAndShowPr
 (p, ownerRepo, num) {
   getPr(ownerRepo, num,
         res => {
-          let title, body
+          let title, body, text
 
           if (res == null) {
             Mess.yell('PR not found')
             return
           }
 
-          title = res.pr.title || ('PR ' + num)
-          body = res.pr.body || ''
+          title = res.pr?.title || ('PR ' + num)
+          body = res.pr?.body || ''
+          text = '# ' + title + '\n\n' + body + '\n\n'
+
+          if (res.commits?.length) {
+            text += '## Commits (' + res.commits.length + ')\n\n'
+            res.commits.forEach(c => {
+              text += '- ' + c.sha.slice(0, 7) + ' ' + c.message + '\n'
+            })
+          }
+
           Ed.make(p,
                   { name: 'PR ' + num,
                     dir: p.dir },
@@ -434,7 +457,7 @@ function getAndShowPr
                     view.buf.file = 'PR-' + num + '.md'
                     view.buf.opts.set('core.lang', 'markdown')
                     view.buf.addMode('view')
-                    view.insert('# ' + title + '\n\n' + body)
+                    view.insert(text)
                     view.buf.modified = 0
                   })
         })

@@ -353,8 +353,22 @@ function getPr
                                               message: c.commit.message.split('\n')[0],
                                               author: c.commit.author.name }))
 
-                cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), commits, commitsLastModified: headers2?.get('Last-Modified') }
-                cb(cachedPrs[key])
+                get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/comments',
+                    cached?.commentsLastModified,
+                    (err3, status3, data3, headers3) => {
+                      let comments
+
+                      comments = []
+                      if ((status3 == 304) && cached?.comments)
+                        comments = cached.comments
+                      else if (data3)
+                        comments = data3.map(c => ({ body: c.body,
+                                                     user: c.user.login,
+                                                     created: c.created_at }))
+
+                      cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), commits, commitsLastModified: headers2?.get('Last-Modified'), comments, commentsLastModified: headers3?.get('Last-Modified') }
+                      cb(cachedPrs[key])
+                    })
               })
           return
         }
@@ -449,6 +463,16 @@ function getAndShowPr
             text += '## Commits (' + res.commits.length + ')\n\n'
             res.commits.forEach(c => {
               text += '- ' + c.sha.slice(0, 7) + ' ' + c.message + '\n'
+            })
+          }
+
+          if (res.comments?.length) {
+            text += '\n## Comments (' + res.comments.length + ')\n\n'
+            res.comments.forEach(c => {
+              let date
+
+              date = formatDate(c.created)
+              text += '**' + c.user + '** ' + date + '\n\n' + c.body + '\n\n'
             })
           }
 

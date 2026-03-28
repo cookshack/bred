@@ -456,17 +456,9 @@ function initHub
         if (type == 'Release')
           url = url + '/tag/' + n.subject.title
         else if (type == 'PullRequest') {
-          let surl
-
-          surl = n.subject.latest_comment_url || n.subject.url
-          if (surl) {
-            prNum = surl.split('/').pop()
-            url = url + '/' + prNum
-          }
-          else {
-            Mess.log('VC PullRequest missing url')
-            d({ n })
-          }
+          prNum = n.subject.url?.split('/pulls/').pop() || n.subject.latest_comment_url?.split('/pulls/').pop()
+          prNum || Mess.log('VC PullRequest missing prNum')
+          prNum || d({ n })
         }
 
         return {

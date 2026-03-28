@@ -21,7 +21,7 @@ import { d } from './mess.mjs'
 import * as Diff from '../lib/diff.js'
 import * as Opt from './opt.mjs'
 
-let clrs, cachedNotifications, cachedPrState, cachedUser
+let clrs, cachedNotifications, cachedPrs, cachedUser
 
 function vcMl
 (args, mode) {
@@ -300,12 +300,12 @@ function getRefRepo
   return 0
 }
 
-function getPrState
+function getPr
 (ownerRepo, prNum, cb) { // (res)
   let key, cached, url
 
   key = ownerRepo + '/' + prNum
-  cached = cachedPrState[key]
+  cached = cachedPrs[key]
   url = 'https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum
 
   get(url, cached?.lastModified,
@@ -336,12 +336,12 @@ function getPrState
           else if (data.state)
             state = data.state.slice(0, 1).toUpperCase()
 
-          for (let k in cachedPrState)
-            if (k.startsWith(ownerRepo + '/') && cachedPrState[k].branch == data.head.ref)
-              delete cachedPrState[k]
+          for (let k in cachedPrs)
+            if (k.startsWith(ownerRepo + '/') && cachedPrs[k].branch == data.head.ref)
+              delete cachedPrs[k]
 
-          cachedPrState[key] = { state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified') }
-          cb(cachedPrState[key])
+          cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified') }
+          cb(cachedPrs[key])
           return
         }
 
@@ -430,10 +430,10 @@ function initHub
 
   function findPrNumByBranch
   (ownerRepo, branch) {
-    for (let key in cachedPrState) {
+    for (let key in cachedPrs) {
       let cached
 
-      cached = cachedPrState[key]
+      cached = cachedPrs[key]
 
       if ((cached.branch == branch) && key.startsWith(ownerRepo + '/'))
         return cached.prNum
@@ -564,22 +564,22 @@ function initHub
 
       rows.forEach((r, index) => {
         if (r.type == 'PullRequest')
-          getPrState(r.ownerRepo, r.prNum,
-                     res => {
-                       if (res) {
-                         let from, range, line
+          getPr(r.ownerRepo, r.prNum,
+                res => {
+                  if (res) {
+                    let from, range, line
 
-                         r.prState = res.state
-                         r.branch = res.branch
-                         from = Ed.posToBep(p.view, Ed.makePos(index, 0))
-                         range = Ed.makeRange(p.view,
-                                              from,
-                                              Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
-                         range.remove()
-                         line = makeLine(r)
-                         p.buf.insert(line, from)
-                       }
-                     })
+                    r.prState = res.state
+                    r.branch = res.branch
+                    from = Ed.posToBep(p.view, Ed.makePos(index, 0))
+                    range = Ed.makeRange(p.view,
+                                         from,
+                                         Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
+                    range.remove()
+                    line = makeLine(r)
+                    p.buf.insert(line, from)
+                  }
+                })
       })
     }
 
@@ -593,7 +593,7 @@ function initHub
   () {
     cachedNotifications = 0
     lastModified = 0
-    cachedPrState = {}
+    cachedPrs = {}
     refresh(Pane.current())
   }
 
@@ -827,20 +827,20 @@ function initHub
     function run
     (ownerRepo, branch, prNum) {
       Mess.say('Getting PR ' + prNum)
-      getPrState(ownerRepo, prNum,
-                 res => {
-                   if (res)
-                     if (res.branch == branch)
-                       ensureMainUpToDate(dir,
-                                          () => {
-                                            Mess.say('Starting agent')
-                                            Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branch))
-                                          })
-                     else
-                       Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
-                   else
-                     Mess.yell('getPrState failed')
-                 })
+      getPr(ownerRepo, prNum,
+            res => {
+              if (res)
+                if (res.branch == branch)
+                  ensureMainUpToDate(dir,
+                                     () => {
+                                       Mess.say('Starting agent')
+                                       Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branch))
+                                     })
+                else
+                  Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
+              else
+                Mess.yell('getPrState failed')
+            })
     }
 
     p = Pane.current()
@@ -905,7 +905,7 @@ function initHub
   Opt.declare('core.vc.github.notifications.all', 'bool', 1)
   Opt.declare('core.vc.github.pr.dirs', 'struct', {})
 
-  cachedPrState = {}
+  cachedPrs = {}
 
   mo = Mode.add('Vc Hub', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
@@ -1103,22 +1103,22 @@ function initPrs
 
       rows.forEach((r, index) => {
         if (r.ownerRepo)
-          getPrState(r.ownerRepo, r.num,
-                     res => {
-                       if (res) {
-                         let from, range, line
+          getPr(r.ownerRepo, r.num,
+                res => {
+                  if (res) {
+                    let from, range, line
 
-                         r.prState = res.state
-                         r.branch = res.branch
-                         from = Ed.posToBep(p.view, Ed.makePos(index, 0))
-                         range = Ed.makeRange(p.view,
-                                              from,
-                                              Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
-                         range.remove()
-                         line = makeLine(r)
-                         p.buf.insert(line, from)
-                       }
-                     })
+                    r.prState = res.state
+                    r.branch = res.branch
+                    from = Ed.posToBep(p.view, Ed.makePos(index, 0))
+                    range = Ed.makeRange(p.view,
+                                         from,
+                                         Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
+                    range.remove()
+                    line = makeLine(r)
+                    p.buf.insert(line, from)
+                  }
+                })
       })
     }
 
@@ -1145,6 +1145,38 @@ function initPrs
       })
     else
       Mess.yell('Missing URL')
+  }
+
+  function showPr
+  () {
+    let p, row
+
+    p = Pane.current()
+    row = p.view.buf.vars('prs').rows[p.view.pos.row]
+    if (row.ownerRepo && row.num)
+      getPr(row.ownerRepo, row.num,
+            res => {
+              let title, body
+
+              if (res == null) {
+                Mess.yell('PR not found')
+                return
+              }
+
+              title = res.pr.title || row.pr.title || 'PR ' + row.num
+              body = res.pr.body || ''
+              Ed.make(p,
+                      { name: 'PR ' + row.num + ': ' + title,
+                        dir: p.dir },
+                      view => {
+                        view.buf.file = 'PR-' + row.num + '.md'
+                        view.buf.opts.set('core.lang', 'markdown')
+                        view.insert('# ' + title + '\n\n' + body)
+                        view.buf.modified = 0
+                      })
+            })
+    else
+      Mess.yell('Missing ownerRepo or num')
   }
 
   function go
@@ -1184,12 +1216,12 @@ function initPrs
   Cmd.add('branch', () => branch(), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('open pr', () => openPr(), mo)
+  Cmd.add('show pr', () => showPr(), mo)
   Cmd.add('next pr', () => go(1), mo)
   Cmd.add('previous pr', () => go(-1), mo)
 
   // should use view mode
   Cmd.add('self insert', () => Mess.say(U.shrug), mo)
-  Em.on('Enter', 'Shrug', mo)
   Em.on('Tab', 'Shrug', mo)
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
@@ -1197,6 +1229,7 @@ function initPrs
 
   Em.on('b', 'branch', mo)
   Em.on('g', 'refresh', mo)
+  Em.on('Enter', 'show pr', mo)
   Em.on('J', 'vc prs json', mo)
   Em.on('n', 'next line', mo)
   Em.on('p', 'previous line', mo)

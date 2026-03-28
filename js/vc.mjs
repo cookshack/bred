@@ -301,12 +301,12 @@ function getRefRepo
 }
 
 function getPrState
-(owner, repo, prNum, cb) { // (res)
+(ownerRepo, prNum, cb) { // (res)
   let key, cached, url
 
-  key = owner + '/' + repo + '/' + prNum
+  key = ownerRepo + '/' + prNum
   cached = cachedPrState[key]
-  url = 'https://api.github.com/repos/' + owner + '/' + repo + '/pulls/' + prNum
+  url = 'https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum
 
   get(url, cached?.lastModified,
       (err, status, data, headers) => {
@@ -337,7 +337,7 @@ function getPrState
             state = data.state.slice(0, 1).toUpperCase()
 
           for (let k in cachedPrState)
-            if (k.startsWith(owner + '/' + repo + '/') && cachedPrState[k].branch == data.head.ref)
+            if (k.startsWith(ownerRepo + '/') && cachedPrState[k].branch == data.head.ref)
               delete cachedPrState[k]
 
           cachedPrState[key] = { state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified') }
@@ -499,11 +499,8 @@ function initHub
       p.view.lineStart()
 
       rows.forEach((r, index) => {
-        if (r.type == 'PullRequest') {
-          let split
-
-          split = r.ownerRepo.split('/')
-          getPrState(split[0], split[1], r.prNum,
+        if (r.type == 'PullRequest')
+          getPrState(r.ownerRepo, r.prNum,
                      res => {
                        if (res) {
                          let from, range, line
@@ -519,7 +516,6 @@ function initHub
                          p.buf.insert(line, from)
                        }
                      })
-        }
       })
     }
 
@@ -830,12 +826,8 @@ function initHub
 
     function run
     (ownerRepo, branch, prNum) {
-      let owner, repo
-
       Mess.say('Getting PR ' + prNum)
-      owner = ownerRepo.split('/')[0]
-      repo = ownerRepo.split('/')[1]
-      getPrState(owner, repo, prNum,
+      getPrState(ownerRepo, prNum,
                  res => {
                    if (res)
                      if (res.branch == branch)
@@ -1110,11 +1102,8 @@ function initPrs
       p.view.lineStart()
 
       rows.forEach((r, index) => {
-        let split
-
-        if (r.ownerRepo) {
-          split = r.ownerRepo.split('/')
-          getPrState(split[0], split[1], r.num,
+        if (r.ownerRepo)
+          getPrState(r.ownerRepo, r.num,
                      res => {
                        if (res) {
                          let from, range, line
@@ -1130,7 +1119,6 @@ function initPrs
                          p.buf.insert(line, from)
                        }
                      })
-        }
       })
     }
 

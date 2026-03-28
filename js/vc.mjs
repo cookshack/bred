@@ -416,15 +416,28 @@ function initHub
     (data) {
       let out, rows, widths
 
+      function pad
+      (col, n, end) {
+        col = col || ''
+        if (end)
+          return col.padEnd(widths[n])
+        return col.padStart(widths[n])
+      }
+
+      function padEnd
+      (col, n) {
+        return pad(col, n, 1)
+      }
+
       function makeLine
       (r) {
-        return r.prState.padStart(widths[0])
-          + ' ' + r.prNum.padStart(widths[1])
-          + ' ' + r.repo.padEnd(widths[2])
-          + ' ' + r.reason.padEnd(widths[3])
-          + ' ' + r.subject.padEnd(widths[4])
-          + ' ' + r.updated.padEnd(widths[5])
-          + ' ' + r.ownerRepo.padStart(widths[6])
+        return pad(r.prState, 0)
+          + ' ' + pad(r.prNum, 1)
+          + ' ' + padEnd(r.repo, 2)
+          + ' ' + padEnd(r.reason, 3)
+          + ' ' + padEnd(r.subject, 4)
+          + ' ' + padEnd(r.updated, 5)
+          + ' ' + pad(r.ownerRepo, 6)
           + (r.branch?.length ? (' ' + r.branch) : '')
           + '\n'
       }
@@ -435,18 +448,30 @@ function initHub
       }
 
       rows = data.map(n => {
-        let url, ownerRepo, prNum, isPr
+        let url, ownerRepo, prNum, type
 
-        url = n.subject.latest_comment_url || n.subject.url
         ownerRepo = n.repository.full_name
-        prNum = url?.match(/\/pulls\/(\d+)/)?.[1] || ''
-        isPr = prNum && (n.subject.type == 'PullRequest')
-        url = url?.replace('https://api.github.com/repos', 'https://github.com')
-        url = url?.replace('/pulls/', '/pull/')
+        type = n.subject.type
+        url = n.repository.html_url
+        if (type == 'Release')
+          url = url + '/tag/' + n.subject.title
+        else if (type == 'PullRequest') {
+          let surl
+
+          surl = n.subject.latest_comment_url || n.subject.url
+          if (surl) {
+            prNum = surl.split('/').pop()
+            url = url + '/' + prNum
+          }
+          else {
+            Mess.log('VC PullRequest missing url')
+            d({ n })
+          }
+        }
 
         return {
           prNum,
-          isPr,
+          type,
           prState: '',
           branch: '',
           repo: n.repository.name,
@@ -471,7 +496,6 @@ function initHub
       out = ''
       rows.forEach(r => {
         p.buf.vars('hub').threadIds.push(r.id)
-        p.buf.vars('hub').urls.push(r.url)
         p.buf.vars('hub').rows.push(r)
         out += makeLine(r)
       })
@@ -479,7 +503,7 @@ function initHub
       p.view.lineStart()
 
       rows.forEach((r, index) => {
-        if (r.isPr) {
+        if (r.type == 'PullRequest') {
           let split
 
           split = r.ownerRepo.split('/')
@@ -505,7 +529,6 @@ function initHub
 
     p.buf.clear()
     p.buf.vars('hub').threadIds = []
-    p.buf.vars('hub').urls = []
     p.buf.vars('hub').rows = []
     getNotifications(1, refreshData)
   }
@@ -553,15 +576,13 @@ function initHub
 
   function jsonPr
   () {
-    let p, url, ownerRepo, prNum
+    let p, row
 
     p = Pane.current()
-    url = p.view.buf.vars('hub').urls[p.view.pos.row]
-    if (url) {
-      ownerRepo = url?.match(/github\.com\/([^/]+\/[^/]+)\/pull\//)?.[1]
-      prNum = url?.match(/\/pull\/(\d+)/)?.[1]
-      if (ownerRepo && prNum)
-        get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum,
+    row = p.view.buf.vars('hub').rows[p.view.pos.row] || Mess.toss('Missing row')
+    if (row.type == 'PullRequest')
+      if (row.ownerRepo && row.prNum)
+        get('https://api.github.com/repos/' + row.ownerRepo + '/pulls/' + row.prNum,
             0,
             (err, status, data) => {
               let file
@@ -571,7 +592,7 @@ function initHub
                 return
               }
 
-              file = 'vc-hub-pr-' + prNum + '.json'
+              file = 'vc-hub-pr-' + row.prNum + '.json'
               Ed.make(p,
                       { name: file,
                         dir: p.dir },
@@ -583,10 +604,9 @@ function initHub
                       })
             })
       else
-        Mess.yell('This is for PR notifications')
-    }
+        Mess.yell('Missing ownerRepo or prNum')
     else
-      Mess.yell('Missing URL')
+      Mess.yell('This is for PR notifications')
   }
 
   function markRead
@@ -643,7 +663,7 @@ function initHub
     let p, url
 
     p = Pane.current()
-    url = p.view.buf.vars('hub').urls[p.view.pos.row]
+    url = p.view.buf.vars('hub').rows[p.view.pos.row].url
     if (url)
       Tron.cmd('shell.open', [ url ], err => {
         if (err) {
@@ -712,15 +732,12 @@ function initHub
   }
 
   function branchOwnerRepo
-  (p, ownerRepo) {
+  (p, row, ownerRepo) {
     let dirs, dir
 
     dirs = Opt.get('core.vc.github.pr.dirs')
     dir = dirs && dirs[ownerRepo]
     if (dir) {
-      let row
-
-      row = p.view.buf.vars('hub').rows[p.view.pos.row]
       if (row?.branch)
         branchDir(p, dir, row.branch)
       else
@@ -732,21 +749,18 @@ function initHub
 
   function branch
   () {
-    let p, url
+    let p, row
 
     p = Pane.current()
-    url = p.view.buf.vars('hub').urls[p.view.pos.row]
-    if (url) {
-      let ownerRepo
-
-      ownerRepo = url.match(/github\.com\/([^/]+\/[^/]+)\/pull\//)?.[1]
-      if (ownerRepo)
-        branchOwnerRepo(p, ownerRepo)
+    row = p.view.buf.vars('hub').rows[p.view.pos.row]
+    if (row.type == 'pullRequest') {
+      if (row.ownerRepo)
+        branchOwnerRepo(p, row, row.ownerRepo)
       else
-        Mess.yell('This command is for PR notifications')
+        Mess.yell('Missing ownerRepo')
       return
     }
-    Mess.yell('Missing URL')
+    Mess.yell('This command is for PR notifications')
   }
 
   function ensureMainUpToDate
@@ -956,7 +970,6 @@ function initHub
     p = Pane.current()
     if (buf) {
       buf.vars('hub').threadIds = []
-      buf.vars('hub').urls = []
       buf.vars('hub').rows = []
     }
     else {
@@ -964,7 +977,6 @@ function initHub
                     Ed.divW(0, 0, { ml: hubMl() }),
                     p.dir)
       buf.vars('hub').threadIds = []
-      buf.vars('hub').urls = []
       buf.vars('hub').rows = []
       buf.icon = 'log'
     }
@@ -1064,7 +1076,6 @@ function initPrs
 
       out = ''
       rows.forEach(r => {
-        p.buf.vars('prs').urls.push(r.url)
         p.buf.vars('prs').rows.push(r)
         out += makeLine(r)
       })
@@ -1073,7 +1084,6 @@ function initPrs
     }
 
     p.buf.clear()
-    p.buf.vars('prs').urls = []
     p.buf.vars('prs').rows = []
 
     if (cachedUser)
@@ -1102,7 +1112,7 @@ function initPrs
     let p, url
 
     p = Pane.current()
-    url = p.view.buf.vars('prs').urls[p.view.pos.row]
+    url = p.view.buf.vars('prs').rows[p.view.pos.row].url
     if (url)
       Tron.cmd('shell.open', [ url ], err => {
         if (err) {
@@ -1154,15 +1164,12 @@ function initPrs
     let p
 
     p = Pane.current()
-    if (buf) {
-      buf.vars('prs').urls = []
+    if (buf)
       buf.vars('prs').rows = []
-    }
     else {
       buf = Buf.add('VC PRs', 'VC PRs',
                     Ed.divW(0, 0, { ml: prsMl() }),
                     p.dir)
-      buf.vars('prs').urls = []
       buf.vars('prs').rows = []
       buf.icon = 'log'
     }

@@ -350,6 +350,70 @@ function getPrState
 
 }
 
+function branchDir
+(p, dir, name) {
+  let path
+
+  function open
+  () {
+    Mess.say('Now in ' + name)
+    Pane.openDir(path)
+  }
+
+  function checkout
+  () {
+    Mess.say('Checking out ' + name)
+    Shell.run(path, 'git', [ 'checkout', name ],
+              { onClose: open })
+  }
+
+  path = Loc.make(dir).expand()
+
+  Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (out, code) => {
+    let currentBranch
+
+    if (code) {
+      Mess.yell('Is this a git dir? ' + path)
+      return
+    }
+
+    currentBranch = out.trim()
+    if (currentBranch == name) {
+      Mess.say('Already in ' + name)
+      Pane.openDir(path)
+      return
+    }
+
+    Shell.runToString(path, 'git', [ 'status', '--porcelain' ], 0, (out, code) => {
+      if (code)
+        Mess.yell('git status failed')
+      else if (out.trim().length)
+        Mess.yell('Changes in ' + currentBranch + '. Commit or stash first')
+      else {
+        Mess.say('Fetching ' + name)
+        Shell.run(path, 'git', [ 'fetch', 'origin', name + ':' + name ],
+                  { onClose: checkout })
+      }
+    })
+  })
+}
+
+function branchOwnerRepo
+(p, row, ownerRepo) {
+  let dirs, dir
+
+  dirs = Opt.get('core.vc.github.pr.dirs')
+  dir = dirs && dirs[ownerRepo]
+  if (dir) {
+    if (row?.branch)
+      branchDir(p, dir, row.branch)
+    else
+      Mess.yell('Branch missing')
+    return
+  }
+  Mess.yell('Need a dir in core.vc.github.pr.dirs for ' + ownerRepo)
+}
+
 export
 function initHub
 () {
@@ -673,70 +737,6 @@ function initHub
   () {
     Opt.toggle('core.vc.github.notifications.all')
     refreshFull()
-  }
-
-  function branchDir
-  (p, dir, name) {
-    let path
-
-    function open
-    () {
-      Mess.say('Now in ' + name)
-      Pane.openDir(path)
-    }
-
-    function checkout
-    () {
-      Mess.say('Checking out ' + name)
-      Shell.run(path, 'git', [ 'checkout', name ],
-                { onClose: open })
-    }
-
-    path = Loc.make(dir).expand()
-
-    Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (out, code) => {
-      let currentBranch
-
-      if (code) {
-        Mess.yell('Is this a git dir? ' + path)
-        return
-      }
-
-      currentBranch = out.trim()
-      if (currentBranch == name) {
-        Mess.say('Already in ' + name)
-        Pane.openDir(path)
-        return
-      }
-
-      Shell.runToString(path, 'git', [ 'status', '--porcelain' ], 0, (out, code) => {
-        if (code)
-          Mess.yell('git status failed')
-        else if (out.trim().length)
-          Mess.yell('Changes in ' + currentBranch + '. Commit or stash first')
-        else {
-          Mess.say('Fetching ' + name)
-          Shell.run(path, 'git', [ 'fetch', 'origin', name + ':' + name ],
-                    { onClose: checkout })
-        }
-      })
-    })
-  }
-
-  function branchOwnerRepo
-  (p, row, ownerRepo) {
-    let dirs, dir
-
-    dirs = Opt.get('core.vc.github.pr.dirs')
-    dir = dirs && dirs[ownerRepo]
-    if (dir) {
-      if (row?.branch)
-        branchDir(p, dir, row.branch)
-      else
-        Mess.yell('Branch missing')
-      return
-    }
-    Mess.yell('Need a dir in core.vc.github.pr.dirs for ' + ownerRepo)
   }
 
   function branch
@@ -1157,6 +1157,18 @@ function initPrs
       Cmd.run('previous line')
   }
 
+  function branch
+  () {
+    let p, row
+
+    p = Pane.current()
+    row = p.view.buf.vars('prs').rows[p.view.pos.row]
+    if (row.ownerRepo)
+      branchOwnerRepo(p, row, row.ownerRepo)
+    else
+      Mess.yell('Missing ownerRepo')
+  }
+
   mo = Mode.add('VC PRs', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
@@ -1169,6 +1181,7 @@ function initPrs
                                                      { attr: {} },
                                                      { attr: {} } ] } ] })
 
+  Cmd.add('branch', () => branch(), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('open pr', () => openPr(), mo)
   Cmd.add('next pr', () => go(1), mo)
@@ -1182,6 +1195,7 @@ function initPrs
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
+  Em.on('b', 'branch', mo)
   Em.on('g', 'refresh', mo)
   Em.on('J', 'vc prs json', mo)
   Em.on('n', 'next line', mo)

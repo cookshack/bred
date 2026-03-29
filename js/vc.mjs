@@ -178,15 +178,16 @@ function getToken
 }
 
 function fetchArg
-(method, lastModified) {
+(method, spec) { // { lastModified, accept }}
   let headers
 
+  spec = spec || {}
   headers = { Authorization: 'Bearer ' + getToken(),
-              Accept: 'application/vnd.github+json',
+              Accept: spec.accept || 'application/vnd.github+json',
               'X-GitHub-Api-Version': '2026-03-10' }
 
-  if (lastModified)
-    headers['If-Modified-Since'] = lastModified
+  if (spec.lastModified)
+    headers['If-Modified-Since'] = spec.lastModified
 
   return { method,
            mode: 'cors',
@@ -208,11 +209,17 @@ function del
 }
 
 function get
-(url, useCache, cb) { // (err, status, data, headers)
-  return fetch(url, fetchArg('GET', useCache))
+(url,
+ spec, // { lastModified, accept }
+ cb) { // (err, status, data, headers)
+  spec = spec || {}
+  return fetch(url, fetchArg('GET', spec))
     .then(res => {
       if (res.ok) {
-        res.json().then(data => cb(0, res.status, data, res.headers))
+        if (spec.accept?.endsWith('diff'))
+          res.text().then(data => cb(0, res.status, data, res.headers))
+        else
+          res.json().then(data => cb(0, res.status, data, res.headers))
         return
       }
       cb(new Error('HTTP ' + res.status), res.status, 0, res.headers)
@@ -308,7 +315,8 @@ function getPr
   cached = cachedPrs[key]
   url = 'https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum
 
-  get(url, cached?.lastModified,
+  get(url,
+      { lastModified: cached?.lastModified },
       (err, status, data, headers) => {
         let state
 
@@ -341,7 +349,7 @@ function getPr
               delete cachedPrs[k]
 
           get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/commits',
-              cached?.commitsLastModified,
+              { lastModified: cached?.commitsLastModified },
               (err2, status2, data2, headers2) => {
                 let commits
 
@@ -354,7 +362,7 @@ function getPr
                                               author: c.commit.author.name }))
 
                 get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/comments',
-                    cached?.commentsLastModified,
+                    { lastModified: cached?.commentsLastModified },
                     (err3, status3, data3, headers3) => {
                       let comments
 
@@ -367,7 +375,7 @@ function getPr
                                                      created: c.created_at }))
 
                       get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/reviews',
-                          cached?.reviewsLastModified,
+                          { lastModified: cached?.reviewsLastModified },
                           (err4, status4, data4, headers4) => {
                             let reviews
 
@@ -517,6 +525,33 @@ function getAndShowPr
         })
 }
 
+function prEqual
+(ownerRepo, prNum, p) {
+  let url
+
+  url = 'https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '.diff'
+  d('get ' + url)
+  get(url,
+      { accept: 'application/vnd.github.diff' },
+      (err, status, data) => {
+        if (err) {
+          Mess.yell('Hub: ' + err.message)
+          return
+        }
+
+        Ed.make(p,
+                { name: 'PR-' + prNum + '.diff',
+                  dir: p.dir },
+                view => {
+                  view.buf.file = 'PR-' + prNum + '.diff'
+                  view.buf.mode = Ed.patchModeKey()
+                  view.buf.addMode('view')
+                  view.insert(data)
+                  view.buf.modified = 0
+                })
+      })
+}
+
 export
 function initHub
 () {
@@ -553,7 +588,7 @@ function initHub
       url += '?all=true'
     d('get ' + url)
     get(url,
-        useCache && lastModified,
+        { lastModified: useCache && lastModified },
         (err, status, data, headers) => {
           if (err) {
             if (status == 304) {
@@ -1019,6 +1054,21 @@ function initHub
       Mess.yell('This is for PR notifications')
   }
 
+  function equal
+  () {
+    let p, row
+
+    p = Pane.current()
+    row = p.view.buf.vars('hub').rows[p.view.pos.row]
+    if (row.type == 'PullRequest')
+      if (row.ownerRepo || row.prNum)
+        prEqual(row.ownerRepo, row.prNum, p)
+      else
+        Mess.yell('Missing ownerRepo or prNum')
+    else
+      Mess.yell('This is for PR notifications')
+  }
+
   Opt.declare('core.vc.github.token', 'str', '')
   Opt.declare('core.vc.github.notifications.all', 'bool', 1)
   Opt.declare('core.vc.github.pr.dirs', 'struct', {})
@@ -1041,6 +1091,7 @@ function initHub
                                                      { attr: {} } ] } ] })
 
   Cmd.add('branch', () => branch(), mo)
+  Cmd.add('equal', () => equal(), mo)
   Cmd.add('json', () => json(), mo)
   Cmd.add('json pr', () => jsonPr(), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
@@ -1062,6 +1113,7 @@ function initHub
   Em.on(' ', 'scroll down', mo)
 
   Em.on('Enter', 'show pr', mo)
+  Em.on('=', 'equal', mo)
   Em.on('b', 'branch', mo)
   Em.on('d', 'mark done', mo)
   Em.on('g', 'refresh', mo)
@@ -1279,6 +1331,18 @@ function initPrs
       Mess.yell('Missing ownerRepo or num')
   }
 
+  function equal
+  () {
+    let p, row
+
+    p = Pane.current()
+    row = p.view.buf.vars('prs').rows[p.view.pos.row]
+    if (row.ownerRepo || row.num)
+      prEqual(row.ownerRepo, row.num, p)
+    else
+      Mess.yell('Missing ownerRepo or num')
+  }
+
   function go
   (n) {
     if (n == 0)
@@ -1314,6 +1378,7 @@ function initPrs
                                                      { attr: {} } ] } ] })
 
   Cmd.add('branch', () => branch(), mo)
+  Cmd.add('equal', () => equal(), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('open pr', () => openPr(), mo)
   Cmd.add('show pr', () => showPr(), mo)
@@ -1328,6 +1393,7 @@ function initPrs
   Em.on(' ', 'scroll down', mo)
 
   Em.on('Enter', 'show pr', mo)
+  Em.on('=', 'equal', mo)
   Em.on('b', 'branch', mo)
   Em.on('g', 'refresh', mo)
   Em.on('J', 'vc prs json', mo)

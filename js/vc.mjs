@@ -700,25 +700,37 @@ function initHub
       p.buf.append(out, 1)
       p.view.lineStart()
 
-      rows.forEach((r, index) => {
-        if (r.type == 'PullRequest')
-          getPr(r.ownerRepo, r.prNum,
-                res => {
-                  if (res) {
-                    let from, range, line
+      {
+        let pending
 
-                    r.prState = res.state
-                    r.branch = res.branch
-                    from = Ed.posToBep(p.view, Ed.makePos(index, 0))
-                    range = Ed.makeRange(p.view,
-                                         from,
-                                         Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
-                    range.remove()
-                    line = makeLine(r)
-                    p.buf.insert(line, from)
-                  }
-                })
-      })
+        pending = rows.filter(r => r.type == 'PullRequest').length
+        rows.forEach(r => {
+          if (r.type == 'PullRequest')
+            getPr(r.ownerRepo, r.prNum,
+                  res => {
+                    if (res) {
+                      r.prState = res.state
+                      r.branch = res.branch
+                    }
+                    pending--
+                    if (pending)
+                      return
+                    // We have all PRs now.
+                    rows.forEach(r2 => widths[7] = Math.max(widths[7], r2.branch.length))
+                    rows.forEach((r2, index2) => {
+                      let from, range, line
+
+                      from = Ed.posToBep(p.view, Ed.makePos(index2, 0))
+                      range = Ed.makeRange(p.view,
+                                           from,
+                                           Ed.posToBep(p.view, Ed.makePos(index2 + 1, 0)))
+                      range.remove()
+                      line = makeLine(r2)
+                      p.buf.insert(line, from)
+                    })
+                  })
+        })
+      }
     }
 
     p.buf.clear()

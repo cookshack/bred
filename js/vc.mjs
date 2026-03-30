@@ -1264,6 +1264,8 @@ function initPrs
           + ' ' + r.updated.padEnd(widths[4])
           + ' ' + r.ownerRepo.padStart(widths[5])
           + (r.branch?.length ? (' ' + r.branch) : '')
+          + (r.author?.length ? (' ' + r.author) : '')
+          + (r.approvedBy?.length ? (' ' + r.approvedBy) : '')
           + '\n'
       }
 
@@ -1289,6 +1291,8 @@ function initPrs
           title: pr.title,
           updated: formatDate(pr.updated_at),
           branch: '',
+          author: '',
+          approvedBy: '',
           url
         }
       })
@@ -1314,10 +1318,13 @@ function initPrs
           getPr(r.ownerRepo, r.num,
                 res => {
                   if (res) {
-                    let from, range, line
+                    let from, range, line, approvedBy
 
                     r.prState = res.state
                     r.branch = res.branch
+                    r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
+                    approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
+                    r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
                     from = Ed.posToBep(p.view, Ed.makePos(index, 0))
                     range = Ed.makeRange(p.view,
                                          from,
@@ -1405,7 +1412,7 @@ function initPrs
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed',
-                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+\s+(\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+)( \S+|)$/d,
+                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+\s+(\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+\/\S+)( \S+|)( .+|)$/d,
                                             decor: [ { ref: getRefState },
                                                      { ref: getRefPr },
                                                      { ref: getRefRepo },

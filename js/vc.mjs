@@ -645,6 +645,7 @@ function initHub
           + ' ' + padEnd(r.updated, 5)
           + ' ' + pad(r.ownerRepo, 6)
           + (r.branch?.length ? (' ' + r.branch) : '')
+          + (r.approvedBy?.length ? (' ' + r.approvedBy) : '')
           + '\n'
       }
 
@@ -672,6 +673,7 @@ function initHub
           type,
           prState: '',
           branch: '',
+          approvedBy: '',
           repo: n.repository.name,
           subject: n.subject.title,
           reason: shortReason(n.reason),
@@ -709,8 +711,12 @@ function initHub
             getPr(r.ownerRepo, r.prNum,
                   res => {
                     if (res) {
+                      let approvedBy
+
                       r.prState = res.state
                       r.branch = res.branch
+                      approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
+                      r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
                     }
                     pending--
                     if (pending)
@@ -1092,14 +1098,15 @@ function initHub
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed',
                             //   11 repo1 review Fix: example text 2025-01-01 owner/repo1
-                            // 1234 r2    review Fix: example text 2025-01-01 owner/r2
-                            // 99999 r2    review Fix: example text 2025-01-01 owner/r2
-                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+)(| \S+)/d,
+                            // 1234 r2    review Fix: example text 2025-01-01 owner/r2 brName
+                            // 99999 r2    review Fix: example text 2025-01-01 owner/r2 branch/name Approved by u1
+                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(\S+).+?\s+(?:\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+\/\S+)( \S+|)( .+|)$/d,
                                             decor: [ { ref: getRefState },
                                                      { ref: getRefPr },
                                                      { ref: getRefRepo },
                                                      { attr: { style: 'color: var(--clr-syntax0)' } },
-                                                     { attr: {} },
+                                                     { attr: { style: 'color: var(--rule-clr-comment)' } },
+                                                     { attr: { style: 'color: var(--clr-syntax1)' } },
                                                      { attr: {} } ] } ] })
 
   Cmd.add('branch', () => branch(), mo)

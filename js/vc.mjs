@@ -1405,13 +1405,13 @@ function initPrs
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed',
-                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+\s+(\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+)(| \S+)/d,
+                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+\s+(\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+)( \S+|)$/d,
                                             decor: [ { ref: getRefState },
                                                      { ref: getRefPr },
                                                      { ref: getRefRepo },
                                                      { attr: {} },
-                                                     { attr: {} },
-                                                     { attr: {} } ] } ] })
+                                                     { attr: { style: 'color: var(--rule-clr-comment)' } },
+                                                     { attr: { style: 'color: var(--clr-syntax1)' } } ] } ] })
 
   Cmd.add('branch', () => branch(), mo)
   Cmd.add('equal', () => equal(), mo)

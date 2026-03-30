@@ -645,6 +645,7 @@ function initHub
           + ' ' + padEnd(r.updated, 5)
           + ' ' + pad(r.ownerRepo, 6)
           + (r.branch?.length ? (' ' + r.branch) : '')
+          + (r.author?.length ? (' ' + r.author) : '')
           + (r.approvedBy?.length ? (' ' + r.approvedBy) : '')
           + '\n'
       }
@@ -673,6 +674,7 @@ function initHub
           type,
           prState: '',
           branch: '',
+          author: '',
           approvedBy: '',
           repo: n.repository.name,
           subject: n.subject.title,
@@ -715,6 +717,7 @@ function initHub
 
                       r.prState = res.state
                       r.branch = res.branch
+                      r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
                       approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
                       r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
                     }

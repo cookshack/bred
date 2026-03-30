@@ -21,7 +21,7 @@ import { d } from './mess.mjs'
 import * as Diff from '../lib/diff.js'
 import * as Opt from './opt.mjs'
 
-let clrs, cachedNotifications, cachedPrs, cachedUser
+let clrs, cachedNotifications, cachedPrs, cachedReleases, cachedUser
 
 function vcMl
 (args, mode) {
@@ -401,6 +401,37 @@ function getPr
 
 }
 
+function getRelease
+(ownerRepo, tag, cb) { // (res)
+  let key, cached, url
+
+  key = ownerRepo + '/' + tag
+  cached = cachedReleases[key]
+  url = 'https://api.github.com/repos/' + ownerRepo + '/releases/tags/' + tag
+
+  get(url,
+      { lastModified: cached?.lastModified },
+      (err, status, data, headers) => {
+        if (err) {
+          if ((status == 304) && cached) {
+            cb(cached)
+            return
+          }
+          cb()
+          return
+        }
+
+        if (data) {
+          cachedReleases[key] = { release: data, lastModified: headers?.get('Last-Modified') }
+          cb(cachedReleases[key])
+          return
+        }
+
+        cb()
+      })
+
+}
+
 function branchDir
 (p, dir, name) {
   let path
@@ -656,13 +687,15 @@ function initHub
       }
 
       rows = data.map(n => {
-        let url, ownerRepo, prNum, type
+        let url, ownerRepo, prNum, type, tag
 
         ownerRepo = n.repository.full_name
         type = n.subject.type
         url = n.repository.html_url
-        if (type == 'Release')
-          url = url + '/releases/tag/' + n.subject.title
+        if (type == 'Release') {
+          tag = n.subject.title
+          url = url + '/releases/tag/' + tag
+        }
         else if (type == 'PullRequest') {
           prNum = n.subject.url?.split('/pulls/').pop() || n.subject.latest_comment_url?.split('/pulls/').pop()
           prNum || Mess.log('VC PullRequest missing prNum')
@@ -672,6 +705,7 @@ function initHub
         return {
           prNum,
           type,
+          tag,
           prState: '',
           branch: '',
           author: '',
@@ -753,6 +787,7 @@ function initHub
     cachedNotifications = 0
     lastModified = 0
     cachedPrs = {}
+    cachedReleases = {}
     refresh(Pane.current())
   }
 
@@ -1089,6 +1124,42 @@ function initHub
       Mess.yell('This is for PR notifications')
   }
 
+  function showRelease
+  () {
+    let p, row
+
+    p = Pane.current()
+    row = p.view.buf.vars('hub').rows[p.view.pos.row]
+    if (row.type == 'Release')
+      if (row.ownerRepo && row.tag)
+        getRelease(row.ownerRepo, row.tag,
+                   res => {
+                     if (res == null) {
+                       Mess.yell('Release not found')
+                       return
+                     }
+
+                     let text
+
+                     text = '# ' + row.subject + '\n\n'
+                     text += (res.release.body || '') + '\n\n'
+                     Ed.make(p,
+                             { name: 'Release ' + row.tag,
+                               dir: p.dir },
+                             view => {
+                               view.buf.file = 'Release-' + row.tag + '.md'
+                               view.buf.opts.set('core.lang', 'markdown')
+                               view.buf.addMode('view')
+                               view.insert(text)
+                               view.buf.modified = 0
+                             })
+                   })
+      else
+        Mess.yell('Missing ownerRepo or tag')
+    else
+      Mess.yell('This is for Release notifications')
+  }
+
   function equal
   () {
     let p, row
@@ -1104,11 +1175,25 @@ function initHub
       Mess.yell('This is for PR notifications')
   }
 
+  function show
+  () {
+    let row
+
+    row = Pane.current().view.buf.vars('hub').rows[Pane.current().view.pos.row]
+    if (row.type == 'PullRequest')
+      showPr()
+    else if (row.type == 'Release')
+      showRelease()
+    else
+      Mess.yell('Unknown notification type')
+  }
+
   Opt.declare('core.vc.github.token', 'str', '')
   Opt.declare('core.vc.github.notifications.all', 'bool', 1)
   Opt.declare('core.vc.github.pr.dirs', 'struct', {})
 
   cachedPrs = {}
+  cachedReleases = {}
 
   mo = Mode.add('Vc Hub', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
@@ -1137,7 +1222,9 @@ function initHub
   Cmd.add('mark done', () => markDone(), mo)
   Cmd.add('next notification', () => go(1), mo)
   Cmd.add('previous notification', () => go(-1), mo)
+  Cmd.add('show', () => show(), mo)
   Cmd.add('show pr', () => showPr(), mo)
+  Cmd.add('show release', () => showRelease(), mo)
   Cmd.add('toggle hidden', () => toggleHidden(), mo)
 
   // should use view mode
@@ -1148,7 +1235,7 @@ function initHub
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
-  Em.on('Enter', 'show pr', mo)
+  Em.on('Enter', 'show', mo)
   Em.on('=', 'equal', mo)
   Em.on('b', 'branch', mo)
   Em.on('d', 'mark done', mo)

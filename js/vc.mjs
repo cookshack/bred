@@ -1266,6 +1266,7 @@ function initPrs
           + (r.branch?.length ? (' ' + r.branch) : '')
           + (r.author?.length ? (' ' + r.author) : '')
           + (r.approvedBy?.length ? (' ' + r.approvedBy) : '')
+          + (r.comments ? (' ✉' + r.comments) : '')
           + '\n'
       }
 
@@ -1293,6 +1294,7 @@ function initPrs
           branch: '',
           author: '',
           approvedBy: '',
+          comments: 0,
           url
         }
       })
@@ -1325,6 +1327,7 @@ function initPrs
                     r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
                     approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
                     r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
+                    r.comments = res.comments?.length || 0
                     from = Ed.posToBep(p.view, Ed.makePos(index, 0))
                     range = Ed.makeRange(p.view,
                                          from,

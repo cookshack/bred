@@ -823,20 +823,27 @@ function initHub
 
   function markRead
   () {
-    let p, threadId
+    let p, row, threadId
 
     p = Pane.current()
-    threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
+    row = p.view.pos.row
+    threadId = p.view.buf.vars('hub').threadIds[row]
     d('VC markRead ' + threadId)
     if (threadId)
       patch('https://api.github.com/notifications/threads/' + threadId,
             err => {
+              let from, range
+
               if (err) {
                 Mess.yell('Hub: ' + err.message)
                 return
               }
+              p.view.buf.vars('hub').threadIds.splice(row, 1)
+              p.view.buf.vars('hub').rows.splice(row, 1)
+              from = Ed.posToBep(p.view, Ed.makePos(row, 0))
+              range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Ed.makePos(row + 1, 0)))
+              range.remove()
               Mess.say('Marked as read')
-              refreshFull(p)
             })
     else
       Mess.yell('Missing thread ID')
@@ -846,20 +853,27 @@ function initHub
   () {
     function ok
     () {
-      let p, threadId
+      let p, row, threadId
 
       p = Pane.current()
-      threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
+      row = p.view.pos.row
+      threadId = p.view.buf.vars('hub').threadIds[row]
       d('VC markDone ' + threadId)
       if (threadId)
         del('https://api.github.com/notifications/threads/' + threadId,
             err => {
+              let from, range
+
               if (err) {
                 Mess.yell('Hub: ' + err.message)
                 return
               }
+              p.view.buf.vars('hub').threadIds.splice(row, 1)
+              p.view.buf.vars('hub').rows.splice(row, 1)
+              from = Ed.posToBep(p.view, Ed.makePos(row, 0))
+              range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Ed.makePos(row + 1, 0)))
+              range.remove()
               Mess.say('Marked as done')
-              refreshFull(p)
             })
       else
         Mess.yell('Missing thread ID')

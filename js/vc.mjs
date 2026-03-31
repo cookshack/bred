@@ -1562,22 +1562,22 @@ function initPrs
 
     p = Pane.current()
     if (buf)
-      buf.vars('prs').rows = []
+      p.setBuf(buf)
     else {
       buf = Buf.add('VC PRs', 'VC PRs',
                     Ed.divW(0, 0, { ml: prsMl() }),
                     p.dir)
       buf.vars('prs').rows = []
       buf.icon = 'log'
+      buf.opts.set('core.lint.enabled', 0)
+      buf.opts.set('core.line.wrap.enabled', 0)
+      buf.opts.set('core.line.numbers.show', 0)
+      buf.opts.set('core.folding.enabled', 0)
+      buf.opts.set('highlightIndent.enabled', 0)
+      buf.opts.set('minimap.enabled', 0)
+      buf.opts.set('ruler.enabled', 0)
+      p.setBuf(buf, {}, () => refresh(p))
     }
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('core.line.wrap.enabled', 0)
-    buf.opts.set('core.line.numbers.show', 0)
-    buf.opts.set('core.folding.enabled', 0)
-    buf.opts.set('highlightIndent.enabled', 0)
-    buf.opts.set('minimap.enabled', 0)
-    buf.opts.set('ruler.enabled', 0)
-    p.setBuf(buf, {}, () => refresh(p))
   })
 }
 

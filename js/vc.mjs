@@ -878,6 +878,7 @@ function initHub
               }
               p.view.buf.vars('hub').threadIds.splice(row, 1)
               p.view.buf.vars('hub').rows.splice(row, 1)
+              U.arrRm1(cachedNotifications, n => n.id == threadId)
               from = Ed.posToBep(p.view, Ed.makePos(row, 0))
               range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Ed.makePos(row + 1, 0)))
               range.remove()
@@ -908,6 +909,7 @@ function initHub
               }
               p.view.buf.vars('hub').threadIds.splice(row, 1)
               p.view.buf.vars('hub').rows.splice(row, 1)
+              U.arrRm1(cachedNotifications, n => n.id == threadId)
               from = Ed.posToBep(p.view, Ed.makePos(row, 0))
               range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Ed.makePos(row + 1, 0)))
               range.remove()

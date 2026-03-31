@@ -746,6 +746,8 @@ function initHub
           if (r.type == 'PullRequest')
             getPr(r.ownerRepo, r.prNum,
                   res => {
+                    let view
+
                     if (res) {
                       let approvedBy
 
@@ -759,18 +761,21 @@ function initHub
                     if (pending)
                       return
                     // We have all PRs now.
-                    rows.forEach(r2 => widths[7] = Math.max(widths[7], r2.branch.length))
-                    rows.forEach((r2, index2) => {
-                      let from, range, line
+                    view = buf?.anyView()
+                    if (view) {
+                      rows.forEach(r2 => widths[7] = Math.max(widths[7], r2.branch.length))
+                      rows.forEach((r2, index2) => {
+                        let from, range, line
 
-                      from = Ed.posToBep(p.view, Ed.makePos(index2, 0))
-                      range = Ed.makeRange(p.view,
-                                           from,
-                                           Ed.posToBep(p.view, Ed.makePos(index2 + 1, 0)))
-                      range.remove()
-                      line = makeLine(r2)
-                      p.buf.insert(line, from)
-                    })
+                        from = Ed.posToBep(view, Ed.makePos(index2, 0))
+                        range = Ed.makeRange(view,
+                                             from,
+                                             Ed.posToBep(view, Ed.makePos(index2 + 1, 0)))
+                        range.remove()
+                        line = makeLine(r2)
+                        buf.insert(line, from)
+                      })
+                    }
                   })
         })
       }
@@ -1407,7 +1412,7 @@ function initPrs
           getPr(r.ownerRepo, r.num,
                 res => {
                   if (res) {
-                    let from, range, line, approvedBy
+                    let from, range, line, approvedBy, view
 
                     r.prState = res.state
                     r.branch = res.branch
@@ -1415,13 +1420,16 @@ function initPrs
                     approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
                     r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
                     r.comments = res.comments?.length || 0
-                    from = Ed.posToBep(p.view, Ed.makePos(index, 0))
-                    range = Ed.makeRange(p.view,
-                                         from,
-                                         Ed.posToBep(p.view, Ed.makePos(index + 1, 0)))
-                    range.remove()
-                    line = makeLine(r)
-                    p.buf.insert(line, from)
+                    view = buf?.anyView()
+                    if (view) {
+                      from = Ed.posToBep(view, Ed.makePos(index, 0))
+                      range = Ed.makeRange(view,
+                                           from,
+                                           Ed.posToBep(view, Ed.makePos(index + 1, 0)))
+                      range.remove()
+                      line = makeLine(r)
+                      buf.insert(line, from)
+                    }
                   }
                 })
       })

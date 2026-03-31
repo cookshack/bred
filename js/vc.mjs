@@ -1256,10 +1256,8 @@ function initHub
     let p
 
     p = Pane.current()
-    if (buf) {
-      buf.vars('hub').threadIds = []
-      buf.vars('hub').rows = []
-    }
+    if (buf)
+      p.setBuf(buf)
     else {
       buf = Buf.add('Vc Hub', 'Vc Hub',
                     Ed.divW(0, 0, { ml: hubMl() }),
@@ -1267,15 +1265,15 @@ function initHub
       buf.vars('hub').threadIds = []
       buf.vars('hub').rows = []
       buf.icon = 'log'
+      buf.opts.set('core.lint.enabled', 0)
+      buf.opts.set('core.line.wrap.enabled', 0)
+      buf.opts.set('core.line.numbers.show', 0)
+      buf.opts.set('core.folding.enabled', 0)
+      buf.opts.set('highlightIndent.enabled', 0)
+      buf.opts.set('minimap.enabled', 0)
+      buf.opts.set('ruler.enabled', 0)
+      p.setBuf(buf, {}, () => refresh(p))
     }
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('core.line.wrap.enabled', 0)
-    buf.opts.set('core.line.numbers.show', 0)
-    buf.opts.set('core.folding.enabled', 0)
-    buf.opts.set('highlightIndent.enabled', 0)
-    buf.opts.set('minimap.enabled', 0)
-    buf.opts.set('ruler.enabled', 0)
-    p.setBuf(buf, {}, () => refresh(p))
   })
 
   Cmd.add('vc hub json', () => {

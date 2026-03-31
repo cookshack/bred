@@ -52,7 +52,7 @@ function init
       throw new Error(ret.err.message)
     }
 
-    client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
+    client = OpenCode.createOpencodeClient({ baseUrl: ret.url })
     buf.vars('code').client = client
     buf.vars('code').serverUrl = ret.url
     buf.vars('code').spawnedBufferID = buf.id
@@ -1034,7 +1034,7 @@ function init
       let events, iter
 
       try {
-        events = await client.event.subscribe({})
+        events = await client.event.subscribe()
         iter = events.stream[Symbol.asyncIterator]()
       }
       catch (err) {

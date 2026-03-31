@@ -711,7 +711,7 @@ function initHub
           author: '',
           approvedBy: '',
           repo: n.repository.name,
-          subject: n.subject.title,
+          subject: n.subject.title.length > 70 ? n.subject.title.slice(0, 67) + '...' : n.subject.title,
           reason: shortReason(n.reason),
           updated: formatDate(n.updated_at),
           ownerRepo,

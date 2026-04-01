@@ -320,17 +320,23 @@ function getPr
       (err, status, data, headers) => {
         let state
 
-        if (err)
-          if ((status == 304) && cached) {
-            if (basic || cached.commits) {
-              cb(cached)
+        if (err) {
+          if (status == 304) {
+            if (cached) {
+              if (basic || cached.commits) {
+                cb(cached)
+                return
+              }
+              // Need to get it all
+              cached.lastModified = 0
+              getPr(0, ownerRepo, prNum, cb)
               return
             }
+            Mess.log('VC getPr somehow got 304 with cache miss')
           }
-          else {
-            cb()
-            return
-          }
+          cb()
+          return
+        }
 
         if (data) {
           state = '?'
@@ -499,63 +505,71 @@ function branchOwnerRepo
   Mess.yell('Need a dir in core.vc.github.pr.dirs for ' + ownerRepo)
 }
 
+function makePrBuf
+(p, num, res) {
+  let title, body, text
+
+  if (res == null) {
+    Mess.yell('PR not found')
+    return
+  }
+
+  title = res.pr?.title || ('PR ' + num)
+  body = res.pr?.body || ''
+  text = '*Branch* ' + res.branch + '\n*State*  ' + res.state + ' (' + res.pr.state + ')\n\n'
+  text += '# ' + title + '\n\n'
+  text += body + '\n\n'
+
+  if (res.commits?.length) {
+    text += '## Commits (' + res.commits.length + ')\n\n'
+    res.commits.forEach(c => {
+      text += '- ' + c.sha.slice(0, 7) + ' ' + c.message + '\n'
+    })
+  }
+
+  if (res.comments?.length) {
+    text += '\n## Comments (' + res.comments.length + ')\n\n'
+    res.comments.forEach(c => {
+      let date
+
+      date = formatDate(c.created)
+      text += '**' + c.user + '** ' + date + '\n\n' + c.body + '\n\n'
+    })
+  }
+
+  if (res.reviews?.length) {
+    text += '\n## Reviews\n\n'
+    res.reviews.forEach(r => {
+      let date
+
+      date = formatDate(r.submitted)
+      text += '**' + r.user + '** ' + r.state + ' ' + date + '\n\n'
+      if (r.body)
+        text += r.body + '\n\n'
+      text += '---\n\n'
+    })
+  }
+
+  Ed.make(p,
+          { name: 'PR ' + num,
+            dir: p.dir },
+          view => {
+            view.buf.file = 'PR-' + num + '.md'
+            view.buf.opts.set('core.lang', 'markdown')
+            view.buf.addMode('view')
+            view.insert(text)
+            view.buf.modified = 0
+          })
+}
+
 function getAndShowPr
 (p, ownerRepo, num) {
   getPr(0, ownerRepo, num,
         res => {
-          let title, body, text
-
-          if (res == null) {
-            Mess.yell('PR not found')
-            return
-          }
-
-          title = res.pr?.title || ('PR ' + num)
-          body = res.pr?.body || ''
-          text = '*Branch* ' + res.branch + '\n*State*  ' + res.state + ' (' + res.pr.state + ')\n\n'
-          text += '# ' + title + '\n\n'
-          text += body + '\n\n'
-
-          if (res.commits?.length) {
-            text += '## Commits (' + res.commits.length + ')\n\n'
-            res.commits.forEach(c => {
-              text += '- ' + c.sha.slice(0, 7) + ' ' + c.message + '\n'
-            })
-          }
-
-          if (res.comments?.length) {
-            text += '\n## Comments (' + res.comments.length + ')\n\n'
-            res.comments.forEach(c => {
-              let date
-
-              date = formatDate(c.created)
-              text += '**' + c.user + '** ' + date + '\n\n' + c.body + '\n\n'
-            })
-          }
-
-          if (res.reviews?.length) {
-            text += '\n## Reviews\n\n'
-            res.reviews.forEach(r => {
-              let date
-
-              date = formatDate(r.submitted)
-              text += '**' + r.user + '** ' + r.state + ' ' + date + '\n\n'
-              if (r.body)
-                text += r.body + '\n\n'
-              text += '---\n\n'
-            })
-          }
-
-          Ed.make(p,
-                  { name: 'PR ' + num,
-                    dir: p.dir },
-                  view => {
-                    view.buf.file = 'PR-' + num + '.md'
-                    view.buf.opts.set('core.lang', 'markdown')
-                    view.buf.addMode('view')
-                    view.insert(text)
-                    view.buf.modified = 0
-                  })
+          if (res)
+            makePrBuf(p, num, res)
+          else
+            Mess.yell('PR missing')
         })
 }
 

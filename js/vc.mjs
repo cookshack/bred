@@ -1191,8 +1191,22 @@ function initHub
           }
 
           if (data) {
-            cachedPrs[key] = { issue: data, lastModified: headers?.get('Last-Modified') }
-            cb(cachedPrs[key])
+            get('https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum + '/comments',
+                { lastModified: cached?.commentsLastModified },
+                (err2, status2, data2, headers2) => {
+                  let comments
+
+                  comments = []
+                  if ((status2 == 304) && cached?.comments)
+                    comments = cached.comments
+                  else if (data2)
+                    comments = data2.map(c => ({ body: c.body,
+                                                 user: c.user.login,
+                                                 created: c.created_at }))
+
+                  cachedPrs[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified') }
+                  cb(cachedPrs[key])
+                })
             return
           }
 
@@ -1220,6 +1234,17 @@ function initHub
 
                    text = '# ' + res.issue.title + '\n\n'
                    text += (res.issue.body || '') + '\n\n'
+
+                   if (res.comments?.length) {
+                     text += '## Comments (' + res.comments.length + ')\n\n'
+                     res.comments.forEach(c => {
+                       let date
+
+                       date = formatDate(c.created)
+                       text += '**' + c.user + '** ' + date + '\n\n' + c.body + '\n\n'
+                     })
+                   }
+
                    Ed.make(p,
                            { name: 'Issue-' + row.issueNum + '.md',
                              dir: p.dir },

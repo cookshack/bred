@@ -586,7 +586,7 @@ function prEqual
 export
 function initHub
 () {
-  let mo, buf, lastModified
+  let mo, buf, lastModified, commentsPerPage
 
   function hubMl
   () {
@@ -1191,12 +1191,29 @@ function initHub
           }
 
           if (data) {
-            get('https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum + '/comments',
+            let commentsUrl
+
+            commentsUrl = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum + '/comments'
+            if (data.comments > commentsPerPage) {
+              let page
+
+              // 101 is page 1, 100 is page 1, 99 is page 0
+              page = parseInt(data.comments / commentsPerPage)
+              // 101 adds 1, 100 adds 0, 99 adds 1
+              page += ((data.comments % commentsPerPage) ? 1 : 0)
+              commentsUrl += '?sort=created&per_page=' + commentsPerPage + '&page=' + page
+            }
+
+            get(commentsUrl,
                 { lastModified: cached?.commentsLastModified },
                 (err2, status2, data2, headers2) => {
-                  let comments
+                  let comments, moreBefore
 
                   comments = []
+                  moreBefore = 0
+
+                  if (data.comments > commentsPerPage)
+                    moreBefore = (data.comments > commentsPerPage) ? 1 : 0
                   if ((status2 == 304) && cached?.comments)
                     comments = cached.comments
                   else if (data2)
@@ -1204,9 +1221,10 @@ function initHub
                                                  user: c.user.login,
                                                  created: c.created_at }))
 
-                  cachedPrs[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified') }
+                  cachedPrs[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
                   cb(cachedPrs[key])
                 })
+
             return
           }
 
@@ -1237,6 +1255,8 @@ function initHub
 
                    if (res.comments?.length) {
                      text += '## Comments (' + res.comments.length + ')\n\n'
+                     if (res.moreBefore)
+                       text += '*...showing last ' + commentsPerPage + ' comments...*\n\n'
                      res.comments.forEach(c => {
                        let date
 
@@ -1298,6 +1318,7 @@ function initHub
 
   cachedPrs = {}
   cachedReleases = {}
+  commentsPerPage = 100
 
   mo = Mode.add('Vc Hub', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,

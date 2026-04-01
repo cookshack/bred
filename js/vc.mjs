@@ -21,7 +21,7 @@ import { d } from './mess.mjs'
 import * as Diff from '../lib/diff.js'
 import * as Opt from './opt.mjs'
 
-let clrs, cachedNotifications, cachedPrs, cachedReleases, cachedUser
+let clrs, cachedIssues, cachedNotifications, cachedPrs, cachedReleases, cachedUser
 
 function vcMl
 (args, mode) {
@@ -796,6 +796,7 @@ function initHub
     lastModified = 0
     cachedPrs = {}
     cachedReleases = {}
+    cachedIssues = {}
     refresh(Pane.current())
   }
 
@@ -1175,7 +1176,7 @@ function initHub
     let key, cached, url
 
     key = ownerRepo + '/' + issueNum
-    cached = cachedPrs[key]
+    cached = cachedIssues[key]
     url = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum
 
     get(url,
@@ -1215,8 +1216,8 @@ function initHub
                                                  user: c.user.login,
                                                  created: c.created_at })).reverse()
 
-                  cachedPrs[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
-                  cb(cachedPrs[key])
+                  cachedIssues[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
+                  cb(cachedIssues[key])
                 })
 
             return
@@ -1310,6 +1311,7 @@ function initHub
   Opt.declare('core.vc.github.notifications.all', 'bool', 1)
   Opt.declare('core.vc.github.pr.dirs', 'struct', {})
 
+  cachedIssues = {}
   cachedPrs = {}
   cachedReleases = {}
   commentsPerPage = 100

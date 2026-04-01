@@ -320,14 +320,17 @@ function getPr
       (err, status, data, headers) => {
         let state
 
-        if (err) {
+        if (err)
           if ((status == 304) && cached) {
-            cb(cached)
+            if (basic || cached.commits) {
+              cb(cached)
+              return
+            }
+          }
+          else {
+            cb()
             return
           }
-          cb()
-          return
-        }
 
         if (data) {
           state = '?'
@@ -349,14 +352,12 @@ function getPr
               delete cachedPrs[k]
 
           get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/reviews',
-              { lastModified: cached?.reviewsLastModified },
+              0,
               (err2, status2, data2, headers2) => {
                 let reviews
 
                 reviews = []
-                if ((status2 == 304) && cached?.reviews)
-                  reviews = cached.reviews
-                else if (data2)
+                if (data2)
                   reviews = data2.map(r => ({ body: r.body,
                                               user: r.user.login,
                                               state: r.state,
@@ -369,27 +370,23 @@ function getPr
                 }
 
                 get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/commits',
-                    { lastModified: cached?.commitsLastModified },
+                    0,
                     (err3, status3, data3, headers3) => {
                       let commits
 
                       commits = []
-                      if ((status3 == 304) && cached?.commits)
-                        commits = cached.commits
-                      else if (data3)
+                      if (data3)
                         commits = data3.map(c => ({ sha: c.sha,
                                                     message: c.commit.message.split('\n')[0],
                                                     author: c.commit.author.name }))
 
                       get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/comments',
-                          { lastModified: cached?.commentsLastModified },
+                          0,
                           (err4, status4, data4, headers4) => {
                             let comments
 
                             comments = []
-                            if ((status4 == 304) && cached?.comments)
-                              comments = cached.comments
-                            else if (data4)
+                            if (data4)
                               comments = data4.map(c => ({ body: c.body,
                                                            user: c.user.login,
                                                            created: c.created_at }))

@@ -1198,29 +1198,44 @@ function initHub
           }
 
           if (data) {
-            let commentsUrl, page
+            let commentsUrl, lastPage
 
-            commentsUrl = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum + '/comments?sort=created&direction=desc&per_page=' + commentsPerPage
-            page = parseInt(data.comments / commentsPerPage)
-            page += ((data.comments % commentsPerPage) ? 1 : 0)
-            commentsUrl += '&page=' + page
+            commentsUrl = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum + '/comments?sort=created&per_page=' + commentsPerPage
+            lastPage = parseInt(data.comments / commentsPerPage)
+            lastPage += ((data.comments % commentsPerPage) ? 1 : 0)
 
-            get(commentsUrl,
-                { lastModified: cached?.commentsLastModified },
+            get(commentsUrl + '&page=' + lastPage,
+                0,
                 (err2, status2, data2, headers2) => {
                   let comments, moreBefore, link
 
                   moreBefore = 0
                   link = headers2?.get('Link')
-                  if (link && link.includes('rel="next"'))
+                  if (link && link.includes('rel="prev"'))
                     moreBefore = 1
                   comments = []
-                  if ((status2 == 304) && cached?.comments)
-                    comments = cached.comments
-                  else if (data2)
+                  if (data2)
                     comments = data2.map(c => ({ body: c.body,
                                                  user: c.user.login,
-                                                 created: c.created_at })).reverse()
+                                                 created: c.created_at }))
+
+                  if ((lastPage > 1) && data2 && (data2.length < 10)) {
+                    get(commentsUrl + '&page=' + (lastPage - 1),
+                        0,
+                        (err3, status3, data3, headers3) => {
+                          link = headers3?.get('Link')
+                          if (link && link.includes('rel="prev"'))
+                            moreBefore = 1
+                          if (data3)
+                            comments = comments.concat(data3.map(c => ({ body: c.body,
+                                                                         user: c.user.login,
+                                                                         created: c.created_at })))
+
+                          cachedIssues[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
+                          cb(cachedIssues[key])
+                        })
+                    return
+                  }
 
                   cachedIssues[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
                   cb(cachedIssues[key])
@@ -1255,9 +1270,9 @@ function initHub
                    text += (res.issue.body || '') + '\n\n'
 
                    if (res.comments?.length) {
-                     text += '## Comments (' + res.comments.length + ')\n\n'
+                     text += '## Comments (' + res.issue.comments + ')\n\n'
                      if (res.moreBefore)
-                       text += '*...showing last ' + commentsPerPage + ' comments...*\n\n'
+                       text += '*...showing last ' + (res.comments.length) + ' comments...*\n\n'
                      res.comments.forEach(c => {
                        let date
 

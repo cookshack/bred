@@ -687,7 +687,7 @@ function initHub
       }
 
       rows = data.map(n => {
-        let url, ownerRepo, prNum, type, tag
+        let url, ownerRepo, prNum, issueNum, type, tag
 
         ownerRepo = n.repository.full_name
         type = n.subject.type
@@ -701,9 +701,12 @@ function initHub
           prNum || Mess.log('VC PullRequest missing prNum')
           prNum || d({ n })
         }
+        else if (type == 'Issue')
+          issueNum = n.subject.url?.split('/issues/').pop() || n.subject.latest_comment_url?.split('/issues/').pop()
 
         return {
           prNum,
+          issueNum,
           type,
           tag,
           prState: '',
@@ -1167,6 +1170,73 @@ function initHub
       Mess.yell('This is for Release notifications')
   }
 
+  function getIssue
+  (ownerRepo, issueNum, cb) { // (res)
+    let key, cached, url
+
+    key = ownerRepo + '/' + issueNum
+    cached = cachedPrs[key]
+    url = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum
+
+    get(url,
+        { lastModified: cached?.lastModified },
+        (err, status, data, headers) => {
+          if (err) {
+            if ((status == 304) && cached) {
+              cb(cached)
+              return
+            }
+            cb()
+            return
+          }
+
+          if (data) {
+            cachedPrs[key] = { issue: data, lastModified: headers?.get('Last-Modified') }
+            cb(cachedPrs[key])
+            return
+          }
+
+          cb()
+        })
+
+  }
+
+  function showIssue
+  () {
+    let p, row
+
+    p = Pane.current()
+    row = p.view.buf.vars('hub').rows[p.view.pos.row]
+    if (row.type == 'Issue')
+      if (row.ownerRepo && row.issueNum)
+        getIssue(row.ownerRepo, row.issueNum,
+                 res => {
+                   let text
+
+                   if (res == null) {
+                     Mess.yell('Issue missing')
+                     return
+                   }
+
+                   text = '# ' + res.issue.title + '\n\n'
+                   text += (res.issue.body || '') + '\n\n'
+                   Ed.make(p,
+                           { name: 'Issue-' + row.issueNum + '.md',
+                             dir: p.dir },
+                           view => {
+                             view.buf.file = 'Issue-' + row.issueNum + '.md'
+                             view.buf.opts.set('core.lang', 'markdown')
+                             view.buf.addMode('view')
+                             view.insert(text)
+                             view.buf.modified = 0
+                           })
+                 })
+      else
+        Mess.yell('Missing ownerRepo or issueNum')
+    else
+      Mess.yell('This is for Issue notifications')
+  }
+
   function equal
   () {
     let p, row
@@ -1191,6 +1261,8 @@ function initHub
       showPr()
     else if (row.type == 'Release')
       showRelease()
+    else if (row.type == 'Issue')
+      showIssue()
     else
       Mess.yell('Unknown notification type')
   }

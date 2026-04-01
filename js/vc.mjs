@@ -1191,35 +1191,29 @@ function initHub
           }
 
           if (data) {
-            let commentsUrl
+            let commentsUrl, page
 
-            commentsUrl = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum + '/comments'
-            if (data.comments > commentsPerPage) {
-              let page
-
-              // 101 is page 1, 100 is page 1, 99 is page 0
-              page = parseInt(data.comments / commentsPerPage)
-              // 101 adds 1, 100 adds 0, 99 adds 1
-              page += ((data.comments % commentsPerPage) ? 1 : 0)
-              commentsUrl += '?sort=created&per_page=' + commentsPerPage + '&page=' + page
-            }
+            commentsUrl = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum + '/comments?sort=created&direction=desc&per_page=' + commentsPerPage
+            page = parseInt(data.comments / commentsPerPage)
+            page += ((data.comments % commentsPerPage) ? 1 : 0)
+            commentsUrl += '&page=' + page
 
             get(commentsUrl,
                 { lastModified: cached?.commentsLastModified },
                 (err2, status2, data2, headers2) => {
-                  let comments, moreBefore
+                  let comments, moreBefore, link
 
-                  comments = []
                   moreBefore = 0
-
-                  if (data.comments > commentsPerPage)
-                    moreBefore = (data.comments > commentsPerPage) ? 1 : 0
+                  link = headers2?.get('Link')
+                  if (link && link.includes('rel="next"'))
+                    moreBefore = 1
+                  comments = []
                   if ((status2 == 304) && cached?.comments)
                     comments = cached.comments
                   else if (data2)
                     comments = data2.map(c => ({ body: c.body,
                                                  user: c.user.login,
-                                                 created: c.created_at }))
+                                                 created: c.created_at })).reverse()
 
                   cachedPrs[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
                   cb(cachedPrs[key])

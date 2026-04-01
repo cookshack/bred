@@ -348,53 +348,53 @@ function getPr
             if (k.startsWith(ownerRepo + '/') && cachedPrs[k].branch == data.head.ref)
               delete cachedPrs[k]
 
-          if (basic) {
-            cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified') }
-            cb(cachedPrs[key])
-            return
-          }
-
-          get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/commits',
-              { lastModified: cached?.commitsLastModified },
+          get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/reviews',
+              { lastModified: cached?.reviewsLastModified },
               (err2, status2, data2, headers2) => {
-                let commits
+                let reviews
 
-                commits = []
-                if ((status2 == 304) && cached?.commits)
-                  commits = cached.commits
+                reviews = []
+                if ((status2 == 304) && cached?.reviews)
+                  reviews = cached.reviews
                 else if (data2)
-                  commits = data2.map(c => ({ sha: c.sha,
-                                              message: c.commit.message.split('\n')[0],
-                                              author: c.commit.author.name }))
+                  reviews = data2.map(r => ({ body: r.body,
+                                              user: r.user.login,
+                                              state: r.state,
+                                              submitted: r.submitted_at }))
 
-                get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/comments',
-                    { lastModified: cached?.commentsLastModified },
+                if (basic) {
+                  cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), reviews, reviewsLastModified: headers2?.get('Last-Modified') }
+                  cb(cachedPrs[key])
+                  return
+                }
+
+                get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/commits',
+                    { lastModified: cached?.commitsLastModified },
                     (err3, status3, data3, headers3) => {
-                      let comments
+                      let commits
 
-                      comments = []
-                      if ((status3 == 304) && cached?.comments)
-                        comments = cached.comments
+                      commits = []
+                      if ((status3 == 304) && cached?.commits)
+                        commits = cached.commits
                       else if (data3)
-                        comments = data3.map(c => ({ body: c.body,
-                                                     user: c.user.login,
-                                                     created: c.created_at }))
+                        commits = data3.map(c => ({ sha: c.sha,
+                                                    message: c.commit.message.split('\n')[0],
+                                                    author: c.commit.author.name }))
 
-                      get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/reviews',
-                          { lastModified: cached?.reviewsLastModified },
+                      get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/comments',
+                          { lastModified: cached?.commentsLastModified },
                           (err4, status4, data4, headers4) => {
-                            let reviews
+                            let comments
 
-                            reviews = []
-                            if ((status4 == 304) && cached?.reviews)
-                              reviews = cached.reviews
+                            comments = []
+                            if ((status4 == 304) && cached?.comments)
+                              comments = cached.comments
                             else if (data4)
-                              reviews = data4.map(r => ({ body: r.body,
-                                                          user: r.user.login,
-                                                          state: r.state,
-                                                          submitted: r.submitted_at }))
+                              comments = data4.map(c => ({ body: c.body,
+                                                           user: c.user.login,
+                                                           created: c.created_at }))
 
-                            cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), commits, commitsLastModified: headers2?.get('Last-Modified'), comments, commentsLastModified: headers3?.get('Last-Modified'), reviews, reviewsLastModified: headers4?.get('Last-Modified') }
+                            cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), reviews, reviewsLastModified: headers2?.get('Last-Modified'), commits, commitsLastModified: headers3?.get('Last-Modified'), comments, commentsLastModified: headers4?.get('Last-Modified') }
                             cb(cachedPrs[key])
                           })
                     })

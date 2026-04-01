@@ -1190,7 +1190,7 @@ function init
     buf.vars('code').agentStopped = 1
     ensureClient(buf).then(async client => {
       try {
-        await client.session.abort({ sessionID, directory: buf.dir })
+        await client.session.abort({ sessionID, query: { directory: buf.dir } })
         d('CO stop done')
         Mess.yell('Stopped agent')
       }

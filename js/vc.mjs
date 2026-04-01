@@ -308,7 +308,7 @@ function getRefRepo
 }
 
 function getPr
-(ownerRepo, prNum, cb) { // (res)
+(basic, ownerRepo, prNum, cb) { // (res)
   let key, cached, url
 
   key = ownerRepo + '/' + prNum
@@ -347,6 +347,12 @@ function getPr
           for (let k in cachedPrs)
             if (k.startsWith(ownerRepo + '/') && cachedPrs[k].branch == data.head.ref)
               delete cachedPrs[k]
+
+          if (basic) {
+            cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified') }
+            cb(cachedPrs[key])
+            return
+          }
 
           get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/commits',
               { lastModified: cached?.commitsLastModified },
@@ -498,7 +504,7 @@ function branchOwnerRepo
 
 function getAndShowPr
 (p, ownerRepo, num) {
-  getPr(ownerRepo, num,
+  getPr(0, ownerRepo, num,
         res => {
           let title, body, text
 
@@ -747,7 +753,7 @@ function initHub
         pending = rows.filter(r => r.type == 'PullRequest').length
         rows.forEach(r => {
           if (r.type == 'PullRequest')
-            getPr(r.ownerRepo, r.prNum,
+            getPr(1, r.ownerRepo, r.prNum,
                   res => {
                     let view
 
@@ -1046,7 +1052,7 @@ function initHub
     function run
     (ownerRepo, branch, prNum) {
       Mess.say('Getting PR ' + prNum)
-      getPr(ownerRepo, prNum,
+      getPr(0, ownerRepo, prNum,
             res => {
               if (res)
                 if (res.branch == branch)
@@ -1523,7 +1529,7 @@ function initPrs
 
       rows.forEach((r, index) => {
         if (r.ownerRepo)
-          getPr(r.ownerRepo, r.num,
+          getPr(0, r.ownerRepo, r.num,
                 res => {
                   if (res) {
                     let from, range, line, approvedBy, view

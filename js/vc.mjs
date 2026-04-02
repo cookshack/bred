@@ -2365,10 +2365,12 @@ function initLog
   Cmd.add('previous commit', () => next(-1), mo)
   Cmd.add('show', () => show(), mo)
 
-  Cmd.add('vc log', () => {
+  Cmd.add('vc log', u => {
     let args, p
 
     args = [ 'log' ]
+    if (u == 4)
+      args.push('main..HEAD')
     p = Pane.current()
     if (buf) {
       buf.dir = p.dir
@@ -2517,10 +2519,12 @@ function initLogOneLine
       showHash(hash)
   }
 
-  Cmd.add('vc log one-line', () => {
+  Cmd.add('vc log one-line', u => {
     let args, p
 
     args = [ 'log', '--oneline', '--no-decorate' ]
+    if (u == 4)
+      args.push('main..HEAD')
     p = Pane.current()
     if (buf) {
       buf.dir = p.dir

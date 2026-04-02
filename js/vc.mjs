@@ -716,9 +716,12 @@ function initHub
           prNum = n.subject.url?.split('/pulls/').pop() || n.subject.latest_comment_url?.split('/pulls/').pop()
           prNum || Mess.log('VC PullRequest missing prNum')
           prNum || d({ n })
+          url = url + '/pull/' + prNum
         }
-        else if (type == 'Issue')
+        else if (type == 'Issue') {
           issueNum = n.subject.url?.split('/issues/').pop() || n.subject.latest_comment_url?.split('/issues/').pop()
+          url = url + '/issues/' + issueNum
+        }
 
         rows.push({ prNum,
                     issueNum,

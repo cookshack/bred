@@ -649,9 +649,12 @@ function initHub
           }
           if (useCache) {
             lastModified = headers.get('Last-Modified')
-            cachedNotifications = data
+            for (let n of data)
+              cachedNotifications.set(n.id, n)
+            cb(cachedNotifications)
           }
-          cb(data)
+          else
+            cb(new Map(data.map(n => [ n.id, n ])))
         })
   }
 
@@ -667,7 +670,7 @@ function initHub
   function refresh
   (p) {
     function refreshData
-    (data) {
+    (notifs) {
       let out, rows, widths
 
       function pad
@@ -698,12 +701,13 @@ function initHub
           + '\n'
       }
 
-      if (data.length == 0) {
+      if (notifs.size == 0) {
         p.buf.append('No notifications\n', 1)
         return
       }
 
-      rows = data.map(n => {
+      rows = []
+      notifs.forEach(n => {
         let url, ownerRepo, prNum, issueNum, type, tag
 
         ownerRepo = n.repository.full_name
@@ -721,23 +725,21 @@ function initHub
         else if (type == 'Issue')
           issueNum = n.subject.url?.split('/issues/').pop() || n.subject.latest_comment_url?.split('/issues/').pop()
 
-        return {
-          prNum,
-          issueNum,
-          type,
-          tag,
-          prState: '',
-          branch: '',
-          author: '',
-          approvedBy: '',
-          repo: n.repository.name,
-          subject: n.subject.title.length > 70 ? n.subject.title.slice(0, 67) + '...' : n.subject.title,
-          reason: shortReason(n.reason),
-          updated: formatDate(n.updated_at),
-          ownerRepo,
-          url,
-          id: n.id
-        }
+        rows.push({ prNum,
+                    issueNum,
+                    type,
+                    tag,
+                    prState: '',
+                    branch: '',
+                    author: '',
+                    approvedBy: '',
+                    repo: n.repository.name,
+                    subject: n.subject.title.length > 70 ? n.subject.title.slice(0, 67) + '...' : n.subject.title,
+                    reason: shortReason(n.reason),
+                    updated: formatDate(n.updated_at),
+                    ownerRepo,
+                    url,
+                    id: n.id })
       })
 
       widths = [ 1, 4, 0, 0, 0, 16, 0, 0 ]
@@ -809,7 +811,7 @@ function initHub
 
   function refreshFull
   () {
-    cachedNotifications = 0
+    cachedNotifications = new Map()
     lastModified = 0
     cachedPrs = {}
     cachedReleases = {}
@@ -904,7 +906,7 @@ function initHub
               }
               p.view.buf.vars('hub').threadIds.splice(row, 1)
               p.view.buf.vars('hub').rows.splice(row, 1)
-              U.arrRm1(cachedNotifications, n => n.id == threadId)
+              cachedNotifications.delete(threadId)
               from = Ed.posToBep(p.view, Ed.makePos(row, 0))
               range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Ed.makePos(row + 1, 0)))
               range.remove()
@@ -935,7 +937,7 @@ function initHub
               }
               p.view.buf.vars('hub').threadIds.splice(row, 1)
               p.view.buf.vars('hub').rows.splice(row, 1)
-              U.arrRm1(cachedNotifications, n => n.id == threadId)
+              cachedNotifications.delete(threadId)
               from = Ed.posToBep(p.view, Ed.makePos(row, 0))
               range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Ed.makePos(row + 1, 0)))
               range.remove()
@@ -1344,6 +1346,7 @@ function initHub
   Opt.declare('core.vc.github.pr.dirs', 'struct', {})
 
   cachedIssues = {}
+  cachedNotifications = new Map()
   cachedPrs = {}
   cachedReleases = {}
   commentsPerPage = 100

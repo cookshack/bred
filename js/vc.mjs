@@ -53,10 +53,10 @@ function busySet
 
 function busyClose
 (p, code) {
-  if (code == 0)
-    busySet(p.buf, '✔ ' + code) // 🏁 ✔✔✔ 🎉 ✅
-  else
+  if (code)
     busySet(p.buf, '✘ ' + code) // 🚨 ✘✘✘ 🚫 ❌
+  else
+    busySet(p.buf, '✔ ' + code) // 🏁 ✔✔✔ 🎉 ✅
 }
 
 function busyErr
@@ -669,43 +669,38 @@ function initHub
 
   function refresh
   (p) {
-    function refreshData
+    let out, rows, widths
+
+    function pad
+    (col, n, end) {
+      col = col || ''
+      if (end)
+        return col.padEnd(widths[n])
+      return col.padStart(widths[n])
+    }
+
+    function padEnd
+    (col, n) {
+      return pad(col, n, 1)
+    }
+
+    function makeLine
+    (r) {
+      return pad(r.prState.slice(0, 1), 0)
+        + ' ' + pad(r.prNum, 1)
+        + ' ' + padEnd(r.repo, 2)
+        + ' ' + padEnd(r.reason, 3)
+        + ' ' + padEnd(r.subject, 4)
+        + ' ' + padEnd(r.updated, 5)
+        + ' ' + pad(r.ownerRepo, 6)
+        + (r.branch?.length ? (' ' + r.branch) : '')
+        + (r.author?.length ? (' ' + r.author) : '')
+        + (r.approvedBy?.length ? (' ' + r.approvedBy) : '')
+        + '\n'
+    }
+
+    function append
     (notifs) {
-      let out, rows, widths
-
-      function pad
-      (col, n, end) {
-        col = col || ''
-        if (end)
-          return col.padEnd(widths[n])
-        return col.padStart(widths[n])
-      }
-
-      function padEnd
-      (col, n) {
-        return pad(col, n, 1)
-      }
-
-      function makeLine
-      (r) {
-        return pad(r.prState.slice(0, 1), 0)
-          + ' ' + pad(r.prNum, 1)
-          + ' ' + padEnd(r.repo, 2)
-          + ' ' + padEnd(r.reason, 3)
-          + ' ' + padEnd(r.subject, 4)
-          + ' ' + padEnd(r.updated, 5)
-          + ' ' + pad(r.ownerRepo, 6)
-          + (r.branch?.length ? (' ' + r.branch) : '')
-          + (r.author?.length ? (' ' + r.author) : '')
-          + (r.approvedBy?.length ? (' ' + r.approvedBy) : '')
-          + '\n'
-      }
-
-      if (notifs.size == 0) {
-        p.buf.append('No notifications\n', 1)
-        return
-      }
-
       rows = []
       notifs.forEach(n => {
         let url, ownerRepo, prNum, issueNum, type, tag
@@ -806,7 +801,13 @@ function initHub
     p.buf.clear()
     p.buf.vars('hub').threadIds = []
     p.buf.vars('hub').rows = []
-    getNotifications(1, refreshData)
+    getNotifications(1,
+                     notifs => {
+                       if (notifs.size)
+                         append(notifs)
+                       else
+                         p.buf.append('No notifications\n', 1)
+                     })
   }
 
   function refreshFull

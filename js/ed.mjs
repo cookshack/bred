@@ -291,13 +291,13 @@ function initFlushLines
 
   function flushLines
   (other, regex) {
-    let p, match, prompt
+    let p, prompt
 
     prompt = (other ? 'Keep' : 'Flush') + ' lines containing ' + (regex ? 'regex' : 'string')
 
     function flush
     (needle) {
-      let psn, text
+      let psn, match
 
       if (regex)
         regex = new RegExp(needle)
@@ -314,6 +314,8 @@ function initFlushLines
       hist.add(needle)
       psn = Backend.makePsn(p.view, Backend.vgetBepEnd(p.view))
       while (1) {
+        let text
+
         psn.lineStart()
         text = Backend.lineAtBep(p.view, psn.bep)
         d('bep: ' + psn.bep)
@@ -1311,8 +1313,6 @@ function enableBuf
 export
 function init
 (backend, cb) { // (err)
-  let mo
-
   function vcall
   (cb) {
     cb(Pane.current()?.view)
@@ -1330,6 +1330,8 @@ function init
   nonTokenRe = new RegExp('(?:[^\\p{L}\\p{N}_$]|\\s)+', 'gu')
 
   setBackend(backend, err => {
+    let mo
+
     if (err)
       cb(err)
 

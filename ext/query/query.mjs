@@ -1444,9 +1444,9 @@ function init
 
   function viewInit
   (view, spec, cb) { // (view)
-    let w, co
-
     if (0) {
+      let w, co
+
       w = view.ele.querySelector('.query-w')
       //w.innerHTML = 'xx'
 
@@ -1594,11 +1594,13 @@ function init
 
   function prevHist
   (nth) {
-    let p, prev, hist
+    let p, hist
 
     p = Pane.current()
     hist = p.buf.vars('query').hist
     if (hist) {
+      let prev
+
       prev = nth < 0 ? hist.next() : hist.prev()
       if (prev) {
         let r

@@ -440,10 +440,12 @@ function init
   (buf, co, tokenInfo, versionInfo) {
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
-        let underW, statusEl, versionEl, tokenEl
+        let underW
 
         underW = view.eleOrReserved.querySelector('.code-under-w')
         if (underW) {
+          let statusEl, versionEl, tokenEl
+
           statusEl = underW.querySelector('.code-under-status')
           versionEl = underW.querySelector('.code-under-version')
           tokenEl = underW.querySelector('.code-under-tokens')
@@ -507,7 +509,7 @@ function init
 
   async function updateModelContextLimit
   (buf, providerID, modelID) {
-    let lastProviderID, lastModelID, c, providers, model
+    let lastProviderID, lastModelID
 
     lastProviderID = buf.vars('code').lastProviderID
     lastModelID = buf.vars('code').lastModelID
@@ -520,6 +522,8 @@ function init
     buf.vars('code').lastProviderID = providerID
     buf.vars('code').lastModelID = modelID
     try {
+      let c, providers, model
+
       c = await ensureClient(buf)
       providers = await c.config.providers({})
       providers.data.providers?.some(p => {
@@ -909,13 +913,13 @@ function init
 
   function handlePartDelta
   (buf, event) {
-    let delta, field, msgEl, textEl, thinkingEls
+    let delta, field
 
     delta = event.properties.delta
     field = event.properties.field
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
-        let w
+        let msgEl, textEl, thinkingEls, w
 
         w = view.eleOrReserved.querySelector('.code-w')
         msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
@@ -1031,9 +1035,11 @@ function init
 
     async function runStream
     (client) {
-      let events, iter
+      let iter
 
       try {
+        let events
+
         events = await client.event.subscribe()
         iter = events.stream[Symbol.asyncIterator]()
       }
@@ -1048,7 +1054,7 @@ function init
       updateBufStatus(buf, '🔁 CONNECTED', '', VopenCode.version)
 
       while (state.streamActive) {
-        let timeoutMs, timeoutPromise, result
+        let timeoutMs, timeoutPromise
 
         timeoutMs = 35000
         timeoutPromise = new Promise((_, reject) => {
@@ -1056,6 +1062,8 @@ function init
         })
 
         try {
+          let result
+
           result = await Promise.race([ iter.next(), timeoutPromise ])
 
           state.lastEventTime = Date.now()
@@ -1305,16 +1313,14 @@ function init
 
   function code
   (given) {
-    let pane, buf, dir, name, provider, model
+    let pane, dir, name, provider, model
 
     async function run
     (prompt) {
-      let c
-
       hist.add(prompt)
 
       try {
-        let res
+        let c, buf, res
 
         buf = Buf.add(name, 'code', divW(dir), pane.dir)
         buf.vars('code').prompt = prompt

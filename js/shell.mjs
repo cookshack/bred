@@ -584,7 +584,7 @@ function initShell
 
   function enter
   () {
-    let ch, p, l, last, input
+    let ch, p, l, last
 
     p = Pane.current()
     ch = p.buf.vars('Shell').ch
@@ -594,6 +594,8 @@ function initShell
     //d('l: [' + l + ']')
 
     if (last) {
+      let input
+
       input = l.slice(last.length).trim()
 
       p.view.lineEnd()

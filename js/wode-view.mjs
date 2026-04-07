@@ -526,11 +526,13 @@ function _viewInit
     },
     paste(event, ed) {
       try {
-        let bep, str, view
+        let bep, view
 
         view = ed.bred.view
         bep = Wode.vgetBep(view)
         if (event.clipboardData) {
+          let str
+
           str = event.clipboardData.getData('text/plain') || event.clipboardData.getData('text/uri-list')
           if (str?.length) {
             Wode.vinsert1(view, 1, str || '')

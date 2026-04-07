@@ -21,10 +21,12 @@ function init
 
   function make
   (p) {
-    let b, restart
+    let b
 
     b = Buf.add('Minesweeper', 'minesweeper', divW(), p.dir)
     p.setBuf(b, {}, () => {
+      let restart
+
       sweeper = globalThis.document.getElementById('minesweeper')
 
       restart = globalThis.document.getElementById('minesweeper-restart')

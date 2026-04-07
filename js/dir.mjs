@@ -498,7 +498,7 @@ function watch
     }
 
     off = Tron.on(ch, (err, data) => {
-      let file, getFile
+      let getFile
 
       // NB Beware of doing anything in here that modifies any dir being watched,
       //    eg logging in dir.get when --logfile, because that causes recursive
@@ -510,6 +510,8 @@ function watch
         if (pane.buf
             && (pane.buf.mode?.key == 'dir')
             && (pane.buf.path == path)) {
+          let file
+
           if (pane.buf.vars('dir').refreshing) {
             // it's likely that the refresh that's in progress covers the change.
             // Also currentFile() could be wrong if the refresh in progress has

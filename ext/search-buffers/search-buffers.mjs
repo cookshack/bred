@@ -161,10 +161,12 @@ function init
   gutter = CMView.gutter({ class: 'search_buffers-lineNumbers',
                            domEventHandlers: {
                              mousedown(cmView, resultLine) {
-                               let lines, line, view
+                               let view
 
                                view = cmView.bred?.view
                                if (view) {
+                                 let lines, line
+
                                  lines = view.buf.vars('Search Buffers').lines
                                  if (lines)
                                    line = lines[Ed.bepRow(view, resultLine.from)]
@@ -174,10 +176,12 @@ function init
                              }
                            },
                            lineMarker(cmView, resultLine) {
-                             let lines, line, view
+                             let view
 
                              view = cmView.bred?.view
                              if (view) {
+                               let lines, line
+
                                lines = view.buf.vars('Search Buffers').lines
                                if (lines)
                                  line = lines[Ed.bepRow(view, resultLine.from)]

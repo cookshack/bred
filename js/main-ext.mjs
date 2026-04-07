@@ -14,7 +14,7 @@ export
 function onAdd
 (e, ch, onArgs) {
   let [ name ] = onArgs
-  let res, flag, dir
+  let flag, dir
 
   function add
   () {
@@ -43,6 +43,8 @@ function onAdd
   flag = Path.join(dir, '.READY')
   Fs.access(flag, Fs.constants.F_OK, err => {
     if (err) {
+      let res
+
       res = spawn('npm', [ 'install' ], { cwd: dir, encoding: 'utf-8' })
       if (res.error)
         throw res.error

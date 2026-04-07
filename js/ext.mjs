@@ -124,12 +124,14 @@ function init
 
   function viewInit
   (view, spec, cb) { // (view)
-    let w, all
+    let w
 
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
 
     Tron.cmd('ext.all', [], (err, data) => {
+      let all
+
       d({ data })
       if (err)
         Mess.toss('Error getting extensions')

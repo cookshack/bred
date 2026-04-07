@@ -165,7 +165,7 @@ function add
     save()
     if ((f == tab.frameLeft)
         || tab.framesRight?.includes(f)) {
-      let frame1, width, ind
+      let frame1, ind
 
       // retract sep of previous frame
       ind = tab.framesRight?.indexOf(f)
@@ -175,6 +175,8 @@ function add
       // add to frame1
       frame1 = tab.frame1
       if (frame1) {
+        let width
+
         width = parseFloat(frame1.el.dataset.width) + parseFloat(f.el.dataset.width)
         frame1.el.dataset.width = width
         frame1.el.style.width = width + '%'
@@ -197,7 +199,7 @@ function add
     save()
     if ((f == tab.frameLeft)
         || tab.framesRight?.includes(f)) {
-      let frame1, width, ind
+      let frame1, ind
 
       // retract sep of previous frame
       ind = tab.framesRight?.indexOf(f)
@@ -207,6 +209,8 @@ function add
       // remove from frame1
       frame1 = tab.frame1
       if (frame1) {
+        let width
+
         width = parseFloat(frame1.el.dataset.width) - parseFloat(f.el.dataset.width)
         frame1.el.dataset.width = width
         frame1.el.style.width = width + '%'

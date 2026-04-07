@@ -9,7 +9,7 @@ import { d } from '../../js/mess.mjs'
 import * as CMAuto from '../../lib/@codemirror/autocomplete.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 
-let wexts, part
+let wexts
 
 function makeAutocomplete
 (view) {
@@ -116,6 +116,8 @@ function makeLang
 export
 function init
 () {
+  let part
+
   wexts = []
   part = new CMState.Compartment
   Opt.declare('core.autocomplete.enabled', 'bool', 1)

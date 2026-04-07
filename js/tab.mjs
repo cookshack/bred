@@ -23,7 +23,7 @@ function add
  //   buf,
  //   setBufCb } // (view)
  spec) {
-  let tab, id, frames, elName, elIcon, icon
+  let tab, id, frames, elName, elIcon
 
   function close
   () {
@@ -52,6 +52,8 @@ function add
 
   function setIcon
   (name) {
+    let icon
+
     icon = name || 'blank'
     elIcon.firstElementChild.src = Icon.path(icon)
     elIcon.firstElementChild.alt = U.capitalize(icon)

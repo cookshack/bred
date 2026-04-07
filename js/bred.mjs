@@ -45,7 +45,7 @@ import { v4 as uuidv4 } from '../lib/uuid/index.js'
 
 //import * as Linters from "../lib/ace-linters/ace-linters.js"
 
-let $os, $version, mouse, recents
+let $os, $version, mouse
 
 export
 function version
@@ -853,7 +853,7 @@ function initCmds
   })
 
   Cmd.add('show timing', () => {
-    let p, timing, content, line, total
+    let p, timing, content, total
 
     timing = Timing.get()
     if (timing.length == 0) {
@@ -864,6 +864,8 @@ function initCmds
     content = [ 'Phase                  Time' ]
     total = 0
     timing.forEach(phase => {
+      let line
+
       line = phase[0].padEnd(24) + Math.round(phase[2]) + 'ms'
       content.push(line)
       total += phase[2]
@@ -1589,7 +1591,7 @@ function initRecent
   function viewInit
   (view, spec, cb) { // (view)
     Recent.get(0, (err, all) => {
-      let w, co
+      let w, co, recents
 
       if (err) {
         Mess.toss(err.message)

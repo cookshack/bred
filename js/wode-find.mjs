@@ -19,7 +19,7 @@ function vfind
  //   stayInPlace,
  //   reveal } // 1 nearest, 2 center
  opts) {
-  let ret, find, initialBep, initialSel, search, query
+  let ret, find, initialBep, initialSel, query
 
   function range
   (fromTo) {
@@ -28,6 +28,8 @@ function vfind
 
   function init
   () {
+    let search
+
     d('vfind init ' + (opts.backwards ? 'backward' : 'forward') + ', needle: ' + needle)
     search = new CMSearch.SearchQuery({ search: needle,
                                         caseSensitive: opts.caseSensitive,

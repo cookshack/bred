@@ -736,11 +736,13 @@ function initModeFns
 
     view = b.anyView()
     if (view?.ed) {
-      let start, r, l
+      let start, l
 
       start = vgetPos(view)
       l = lineAt(view, start)
       if (l.length) {
+        let r
+
         r = WodeRange.fromPoints(view,
                                  Ed.makePos(start.row, 0),
                                  Ed.makePos(start.row, l.length))
@@ -2007,7 +2009,7 @@ spRe = /^\s+/g
 
 export
 function trim() {
-  let p, str, start, l
+  let p, start, l
 
   p = Pane.current()
   start = vgetBep(p.view)
@@ -2016,6 +2018,8 @@ function trim() {
   if (spRe.exec(l.text.slice(start - l.from)))
     WodeRange.make(p.view, start, start + spRe.lastIndex).remove()
   if (start > l.from) {
+    let str
+
     str = [ ...l.text.slice(0, start - l.from) ].reverse().join('')
     spRe.lastIndex = 0
     if (spRe.exec(str))
@@ -2278,13 +2282,15 @@ function langFromCodeLang
 export
 function code
 (el, langId, text) {
-  let lang, opts, state
+  let opts, state
 
   opts = [ WodeTheme.themeHighlightingCode,
            WodeTheme.themeExtensionCode,
            CMView.EditorView.editable.of(false) ]
 
   if (langId) {
+    let lang
+
     lang = Ed.findLang(langFromCodeLang(langId))
     if (lang?.language)
       opts = [ ...opts,

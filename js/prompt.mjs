@@ -360,7 +360,7 @@ function initFile
 
   function selectFile
   (we) {
-    let p, file, path
+    let p, file
 
     p = Pane.current()
     if (we?.e && (we.e.button == 0))
@@ -370,6 +370,8 @@ function initFile
       file = file || p.view.ele.querySelector('.bred-open-under-f')
     }
     if (file) {
+      let path
+
       // Open
       path = file?.dataset.path
       if (path && path.length) {
@@ -400,7 +402,7 @@ function initFile
 
   function selectDir
   (we) {
-    let p, file, path
+    let p, file
 
     p = Pane.current()
     if (we?.e && (we.e.button == 0))
@@ -410,6 +412,8 @@ function initFile
       file = file || p.view.ele.querySelector('.bred-open-under-f')
     }
     if (file) {
+      let path
+
       path = file?.dataset.path
       if (path && path.length) {
         p.buf.clear()
@@ -531,10 +535,12 @@ function initFile
       ml.innerText = 'Open file'
 
     if (spec.atPoint && p.view.ed) {
-      let l, pos, url
+      let l
 
       l = p.line()
       if (l) {
+        let pos, url
+
         pos = p.pos()
         pos = pos.col
         url = U.urlAt(l, pos)
@@ -685,11 +691,13 @@ function initPrompt2
 
   function prevHist
   (nth) {
-    let p, prev, hist
+    let p, hist
 
     p = Pane.current()
     hist = p.buf.vars('prompt').hist
     if (hist) {
+      let prev
+
       prev = nth < 0 ? hist.next() : hist.prev()
       if (prev) {
         p.buf.clear()

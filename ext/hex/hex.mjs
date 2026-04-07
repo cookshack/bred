@@ -292,7 +292,7 @@ function init
 
   function lineNext
   (n) {
-    let line, next, u8s
+    let line, next
 
     line = currentLine()
 
@@ -302,7 +302,7 @@ function init
       next = line.nextElementSibling
 
     if (next && Css.has(next, 'hex-line')) {
-      let i
+      let i, u8s
 
       u8s = line?.querySelectorAll('.hex-cur')
       i = 0

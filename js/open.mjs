@@ -18,8 +18,6 @@ import { d } from './mess.mjs'
 export
 function link
 (path, line, newTab) {
-  let ext, mtype
-
   function open
   (path, mtype) {
     let rich
@@ -71,6 +69,8 @@ function link
     real = U.stripCompressedExt(path)
     d({ real })
     if (real.includes('.')) {
+      let ext, mtype
+
       // file with ext
       ext = real.slice(real.lastIndexOf('.') + 1)
       d({ ext })

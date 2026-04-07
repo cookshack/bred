@@ -851,10 +851,12 @@ function init
     if (messs?.length)
       Win.shared().messages.buf?.views.forEach(view => {
         if (view.ele) {
-          let w, scroll, wasAtEnd, paneW
+          let w
 
           w = view.ele.firstElementChild?.firstElementChild?.nextElementSibling
           if (w && Css.has(w, 'mess-w')) {
+            let scroll, wasAtEnd, paneW
+
             paneW = view.ele.parentNode
 
             if (paneW.scrollHeight == paneW.clientHeight)

@@ -57,10 +57,12 @@ function savePoss
 () {
   forEach(b => {
     if ((b.fileType == 'file') && b.file) {
-      let v, pos
+      let v
 
       v = b.views.find(v2 => v2.ele)
       if (v) {
+        let pos
+
         pos = v.pos
         Tron.cmd1('profile.set', [ 'poss', b.path, { row: Ed.posRow(pos), col: Ed.posCol(pos) } ], err => {
           if (err)

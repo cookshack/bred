@@ -16,7 +16,7 @@ import * as CMLang from '../lib/@codemirror/language.js'
 export let themeExtension, themeExtensionPart, Theme
 export let themeHighlightingCode, themeExtensionCode
 
-let theme, themeTags, themeHighlighting
+let themeTags, themeHighlighting
 
 export
 function handleCustomTags
@@ -101,11 +101,9 @@ function themeStyles
 export
 function init
 () {
-  let themeCode
-
   function init
   () {
-    let themeSettings
+    let theme, themeCode, themeSettings
 
     themeTags = LZHighlight.tags
     themeSettings = { backgroundImage: '',

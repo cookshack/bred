@@ -10,10 +10,12 @@ function onLines
   files = onArgs
 
   files.forEach(file => {
-    let state, text, content
+    let state, text
 
     state = CMState.EditorState.create()
     try {
+      let content
+
       content = Fs.readFileSync(U.stripFilePrefix(file.from.uri),
                                 { encoding: 'utf8' })
       text = state.toText(content || '')

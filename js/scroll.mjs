@@ -41,7 +41,7 @@ export function make
   }
 
   function render() {
-    let first, needed, last, frag, padTop, padBottom, i, item, px
+    let first, needed, last, frag, padTop, padBottom, i, px
 
     px = getLineHeightPx(surf)
     first = getFirstVisible()
@@ -56,6 +56,8 @@ export function make
     frag.append(padTop)
 
     for (i = first; i < last; i++) {
+      let item
+
       item = globalThis.document.createElement('div')
       item.style.height = px + 'px'
       item.dataset.index = i

@@ -8,8 +8,6 @@ import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/pane.mjs'
 //import { d } from '../../js/mess.mjs'
 
-let controls
-
 function divW
 () {
   return divCl('ascii-outer', divCl('ascii-w bred-surface'))
@@ -28,7 +26,7 @@ function make
 export
 function init
 () {
-  let mo, verbose
+  let controls, mo, verbose
 
   function viewInit
   (view, spec, cb) { // (view)

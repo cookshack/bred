@@ -21,7 +21,7 @@ import { d } from './mess.mjs'
 import * as Diff from '../lib/diff.js'
 import * as Opt from './opt.mjs'
 
-let clrs, cachedIssues, cachedNotifications, cachedPrs, cachedReleases, cachedUser
+let clrs, cachedNotifications, cachedPrs, cachedReleases, cachedUser
 
 function vcMl
 (args, mode) {
@@ -318,8 +318,6 @@ function getPr
   get(url,
       { lastModified: cached?.lastModified },
       (err, status, data, headers) => {
-        let state
-
         if (err) {
           if (status == 304) {
             if (cached) {
@@ -339,6 +337,8 @@ function getPr
         }
 
         if (data) {
+          let state
+
           state = '?'
           if (data.merged)
             state = 'Merged'
@@ -603,7 +603,7 @@ function prEqual
 export
 function initHub
 () {
-  let mo, buf, lastModified, commentsPerPage
+  let mo, buf, lastModified, commentsPerPage, cachedIssues
 
   function hubMl
   () {
@@ -669,7 +669,7 @@ function initHub
 
   function refresh
   (p) {
-    let out, rows, widths
+    let widths
 
     function pad
     (col, n, end) {
@@ -701,6 +701,8 @@ function initHub
 
     function append
     (notifs) {
+      let rows, out
+
       rows = []
       notifs.forEach(n => {
         let url, ownerRepo, prNum, issueNum, type, tag
@@ -1565,7 +1567,7 @@ function initPrs
           getPr(0, r.ownerRepo, r.num,
                 res => {
                   if (res) {
-                    let from, range, line, approvedBy, view
+                    let approvedBy, view
 
                     r.prState = res.state
                     r.branch = res.branch
@@ -1575,6 +1577,8 @@ function initPrs
                     r.comments = res.comments?.length || 0
                     view = buf?.anyView()
                     if (view) {
+                      let from, range, line
+
                       from = Ed.posToBep(view, Ed.makePos(index, 0))
                       range = Ed.makeRange(view,
                                            from,
@@ -2141,13 +2145,15 @@ function initEqual
       Pane.nextOrSplit()
 
     p.view.excur(() => {
-      let line, pos, lineNum, offset, first
+      let pos, lineNum, offset, first
 
       offset = -1 // hunk line (@@ -N,...) is 1 before line N
       pos = p.view.pos
       pos.col = 0
       first = 1
       while (1) {
+        let line
+
         if (Ed.posRow(pos) <= 0) {
           Mess.say('Reached start of buffer')
           return
@@ -2329,11 +2335,13 @@ function initLog
 
   function show
   () {
-    let p, l, prefix
+    let p, prefix
 
     prefix = 'commit '
     p = Pane.current()
     while (1) {
+      let l
+
       l = p.line()
       if (l.startsWith(prefix)) {
         showHash(l.slice(prefix.length).split(' ', 1)?.at(0))

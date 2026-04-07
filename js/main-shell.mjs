@@ -7,7 +7,7 @@ import * as U from './util.mjs'
 // ASYNC: shell - spawn pty and stream output
 function run
 (e, ch, dir, sc, args, spec, ctx) {
-  let proc, sender
+  let sender
   let runInShell, stdoutBuffer, stderrBuffer, lastFlushTime, flushTimer
 
   d(ch + ' run: starting')
@@ -75,7 +75,7 @@ function run
   runInShell = spec.runInShell
 
   try {
-    let env, cols, rows
+    let proc, env, cols, rows
 
     if (runInShell) {
       if (spec.multi)

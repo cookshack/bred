@@ -35,9 +35,9 @@ function current
 export
 function focusView
 (view, skipEd, skipEle) {
-  let p
-
   Frame.find(frame => {
+    let p
+
     p = frame.panes.find(p => p.view == view)
     if (p) {
       p.focus(skipEd, skipEle)

@@ -35,12 +35,14 @@ function make
 
     function topmostInView
     () {
-      let tops, highests, atPoints, all, rpaneW
+      let tops, highests, all, rpaneW
 
       highests = []
       rpaneW = elePane.parentNode.getBoundingClientRect()
 
       if (0) {
+        let atPoints
+
         // try every element under the top left point, and all their children
         atPoints = globalThis.document.elementsFromPoint(0, rpaneW.y + globalThis.scrollTop)
         all = [ ...atPoints ]

@@ -16,7 +16,7 @@ import { d } from './mess.mjs'
 export
 function init
 () {
-  let mo, buf, old, under, ml, hist
+  let mo, buf, under, ml, hist
 
   function divW
   () {
@@ -51,7 +51,7 @@ function init
 
   function refresh
   (view) {
-    let text, needles, vars, all, needle, rec, candidate, eNeedle, regex
+    let text, needles, vars, all, needle, candidate, regex
 
     function match
     (name) {
@@ -68,11 +68,13 @@ function init
     needles = text
     needle = text.toLowerCase()
     if (needle.length) {
-      let re, split
+      let split
 
       // 'ab j' => about.js
       split = needle.split(' ').filter(s => s.length)
       if (split.length) {
+        let re
+
         // \p{L} is any char classified as letter in unicode
         re = Ed.escapeForRe(split[0]) + '\\p{L}*'
         for (let i = 1; i < split.length; i++)
@@ -103,6 +105,7 @@ function init
 
     d('SW recents')
     Recent.get(0, (err, recents) => {
+      let rec, eNeedle
 
       if (err)
         Mess.toss(err)
@@ -299,7 +302,7 @@ function init
 
   function sw
   () {
-    let p, w, dir, needOn
+    let p, w, dir, needOn, old
 
     p = Pane.current()
 

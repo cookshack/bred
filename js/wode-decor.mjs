@@ -57,10 +57,12 @@ function makeDecorator
             //d('adding ' + from + ' ' + to)
             mark = marks[i - 1]
             if (mark?.ref) {
-              let markR, view
+              let view
 
               view = edview.state.facet(WodeCommon.bredView())
               if (view) {
+                let markR
+
                 markR = mark.ref(view, match, line)
                 if (markR?.mark)
                   builder.add(from, to, markR.mark)

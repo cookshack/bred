@@ -21,10 +21,12 @@ function init
 
   function make
   (p) {
-    let b, restart
+    let b
 
     b = Buf.add('2048', '2048', divW(), p.dir)
     p.setBuf(b, {}, () => {
+      let restart
+
       game = globalThis.document.getElementById('two048')
 
       restart = globalThis.document.getElementById('two048-restart')

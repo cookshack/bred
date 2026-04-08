@@ -23,8 +23,8 @@ import { langs } from '../../js/wode-lang.mjs'
 import { modeFor } from '../../js/wode-mode.mjs'
 import { themeExtension } from '../../js/wode-theme.mjs'
 
-import * as OpenCode from './lib/opencode.js'
-import VopenCode from './lib/version.json' with { type: 'json' }
+import * as OpenCode from './lib/opencode/v2/client.js'
+import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
 export
 function init

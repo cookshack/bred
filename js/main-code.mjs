@@ -1,4 +1,4 @@
-import * as Server from '../lib/opencode/server.js'
+import * as Server from '../lib/opencode/v2/server.js'
 import Net from 'node:net'
 import { d } from './main-log.mjs'
 

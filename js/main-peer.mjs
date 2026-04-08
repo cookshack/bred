@@ -35,7 +35,7 @@ function get
 export
 function onGet
 (e, onArgs) {
-  const [ id ] = onArgs
+  let [ id ] = onArgs
   let buf
 
   buf = get(id)
@@ -54,7 +54,7 @@ function changes
 export
 function onPull
 (e, ch, onArgs) {
-  const [ id, version, pullCh ] = onArgs
+  let [ id, version, pullCh ] = onArgs
 
   d('============== PEER ' + id + ' PULLED (main sending) ' + pullCh)
   setTimeout(() => {
@@ -72,7 +72,7 @@ function onPull
 export
 function onPush
 (e, onArgs) {
-  const [ id, version, updates ] = onArgs
+  let [ id, version, updates ] = onArgs
   let received, buf, applied
 
   buf = get(id)
@@ -151,7 +151,7 @@ function onPush
 export
 function onPsnLine
 (e, onArgs) {
-  const [ id, bep ] = onArgs
+  let [ id, bep ] = onArgs
   let buf, text
 
   buf = get(id)
@@ -166,7 +166,7 @@ function onPsnLine
 export
 function onPsnLineNext
 (e, onArgs) {
-  const [ id, bep ] = onArgs
+  let [ id, bep ] = onArgs
   let buf, line
 
   buf = get(id)

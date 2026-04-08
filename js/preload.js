@@ -1,5 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron')
-
+let { contextBridge, ipcRenderer } = require('electron')
 let ons
 
 ons = {}

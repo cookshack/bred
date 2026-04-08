@@ -104,7 +104,7 @@ function closeAll
 () {
   d('CODE closing ' + servers.size + ' servers')
 
-  for (const [ bufferID, server ] of servers) {
+  for (let [ bufferID, server ] of servers) {
     d('CODE closing server for buffer ' + bufferID)
     server.close()
   }

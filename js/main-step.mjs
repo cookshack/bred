@@ -5,7 +5,7 @@ import { d } from './main-log.mjs'
 export
 function onSend
 (e, ch, onArgs) {
-  const [ method, params ] = onArgs
+  let [ method, params ] = onArgs
   let win
 
   win = BrowserWindow.fromWebContents(e.sender)

@@ -500,7 +500,7 @@ function onSave
 export
 async function onSaveTmp
 (e, onArgs) {
-  const [ text ] = onArgs
+  let [ text ] = onArgs
 
   try {
     let dir, file

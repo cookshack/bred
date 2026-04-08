@@ -21,7 +21,7 @@ function makeEventFromInput
 export
 function onOpen
 (e, ch, onArgs) {
-  const [ x, y, width, height, page ] = onArgs
+  let [ x, y, width, height, page ] = onArgs
   let view, hist, win, id
 
   view = new WebContentsView()
@@ -180,7 +180,7 @@ function onOpen
 export
 function onZoom
 (e, onArgs) {
-  const [ id, inward ] = onArgs
+  let [ id, inward ] = onArgs
   let view
 
   view = views[id]
@@ -195,7 +195,7 @@ function onZoom
 export
 function onBack
 (e, onArgs) {
-  const [ id, n ] = onArgs
+  let [ id, n ] = onArgs
   let view
 
   d('BROWSE back ' + id)
@@ -220,7 +220,7 @@ function onBack
 export
 function onClose
 (e, onArgs) {
-  const [ id ] = onArgs
+  let [ id ] = onArgs
   let view, win
 
   d('BROWSE close ' + id)
@@ -246,7 +246,7 @@ function onClose
 export
 function onReload
 (e, onArgs) {
-  const [ id ] = onArgs
+  let [ id ] = onArgs
   let view
 
   d('BROWSE reload ' + id)
@@ -265,7 +265,7 @@ function onReload
 export
 function onReopen
 (e, onArgs) {
-  const [ id ] = onArgs
+  let [ id ] = onArgs
   let view
 
   d('BROWSE reopen ' + id)
@@ -282,7 +282,7 @@ function onReopen
 export
 function onPass
 (e, onArgs) {
-  const [ id, event ] = onArgs
+  let [ id, event ] = onArgs
   let view
 
   d('BROWSE pass ' + id)

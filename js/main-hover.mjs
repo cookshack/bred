@@ -4,7 +4,7 @@ import { d } from './main-log.mjs'
 export
 function onCss
 (e, onArgs) {
-  const [ fg, bg ] = onArgs
+  let [ fg, bg ] = onArgs
   let win, hover
 
   win = BrowserWindow.fromWebContents(e.sender)
@@ -26,7 +26,7 @@ function onCss
 export
 function onOn
 (e, onArgs) {
-  const [ text ] = onArgs
+  let [ text ] = onArgs
   let win, hover
 
   win = BrowserWindow.fromWebContents(e.sender)

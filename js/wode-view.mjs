@@ -603,12 +603,11 @@ function _viewInit
   if (0)
     ed.session.on('changeScrollTop', scrollTop => ensureCursorVisible(ed, scrollTop))
 
-  if (buf.vars('ed').fillParent === undefined)
-    buf.vars('ed').fillParent = 1
+  U.isDefined(buf.vars('ed').fillParent) || (buf.vars('ed').fillParent = 1)
   if (buf.vars('ed').fillParent)
     Css.add(edWW, 'fillParent')
   else {
-    // wace does height setting here
+    // wace did height setting here
   }
 
   ed.focus()

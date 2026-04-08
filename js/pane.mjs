@@ -11,7 +11,6 @@ import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
-import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
@@ -203,16 +202,23 @@ function add
   (b2,
    sbSpec, // { lineNum, bury }
    whenReady) { // (view)
+    sbSpec = sbSpec || {}
+
+    if (b2)
+      setBufInternal(b2, sbSpec, whenReady)
+
+    if (whenReady)
+      whenReady(view)
+    return
+  }
+
+  function setBufInternal
+  (b2,
+   sbSpec, // { lineNum, bury }
+   whenReady) { // (view)
     let isNewView
 
-    if (b2 == undefined) {
-      if (whenReady)
-        whenReady(view)
-      return
-    }
-
-    sbSpec = sbSpec || {}
-    d('PANE ✨ setBuf ' + (b2?.name || '??'))
+    d('PANE ✨ setBuf ' + (b2.name || '??'))
 
     // Determine if we're creating a new view
     isNewView = 1

@@ -19,6 +19,7 @@ import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scroll from './scroll.mjs'
+import * as U from './util.mjs'
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 import Vqlite from '../lib/sqlite.json' with { type: 'json' }
 import * as Win from './win.mjs'
@@ -117,12 +118,12 @@ function initHelp
 
   function clean
   (bufVal, val, type) {
-    val = bufVal === undefined ? val : bufVal
+    val = U.isDefined(bufVal) ? bufVal : val
     if (type == 'bool')
       val = val ? 'true' : 'false'
     else
       val = String(val)
-    return val + ((bufVal === undefined) ? ' (inherited)' : '')
+    return val + (U.isDefined(bufVal) ? '' : ' (inherited)')
   }
 
   function divW

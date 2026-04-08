@@ -2147,6 +2147,7 @@ function initEqual
     p.view.excur(() => {
       let pos, lineNum, offset, first
 
+      lineNum = -1
       offset = -1 // hunk line (@@ -N,...) is 1 before line N
       pos = p.view.pos
       pos.col = 0
@@ -2160,7 +2161,7 @@ function initEqual
         }
         line = p.view.lineAt(pos)
         //d('EQ line: ' + line)
-        if ((lineNum === undefined) && line.startsWith('@@ ')) {
+        if ((lineNum == -1) && line.startsWith('@@ ')) {
           let num
 
           //d('hunk line: ' + line)
@@ -2172,7 +2173,7 @@ function initEqual
           else
             Mess.log('failed to parse hunk line: ' + line)
         }
-        if (lineNum === undefined)
+        if (lineNum == -1)
           if (line.startsWith('-')) {
             // removed line
             if (first)

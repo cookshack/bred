@@ -1633,9 +1633,8 @@ function initFontSize
   let px
 
   px = Opt.get('core.fontSize')
-  if (px === undefined)
-    return
-  globalThis.document.documentElement.style.fontSize = px + 'px'
+  if (U.isDefined(px))
+    globalThis.document.documentElement.style.fontSize = px + 'px'
 }
 
 function initDivMode

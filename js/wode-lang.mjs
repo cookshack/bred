@@ -4,6 +4,7 @@ import * as Ed from './ed.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodePatch from './wode-patch.mjs'
 import * as WodeTheme from './wode-theme.mjs'
@@ -137,10 +138,10 @@ function init
                                                    return ls
                                                  })
                                                } })
-        if (opt.module === undefined)
-          lang.module = file.match(/^.\/lib\/(.*)\.js$/)?.at(1)
-        else
+        if (U.isDefined(opt.module))
           lang.module = opt.module
+        else
+          lang.module = file.match(/^.\/lib\/(.*)\.js$/)?.at(1)
         languages.push(lang)
         addLang(langs, lang, opt.ed ?? 1, opt)
       }

@@ -12,6 +12,7 @@ import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import * as View from './view.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
@@ -418,12 +419,12 @@ function make
     let val
 
     val = b.opts.get(name)
-    if (val === undefined) {
-      val = b.mode?.opts?.get(name)
-      if (val === undefined)
-        return Opt.get(name)
-    }
-    return val
+    if (U.isDefined(val))
+      return val
+    val = b.mode?.opts?.get(name)
+    if (U.isDefined(val))
+      return val
+    return Opt.get(name)
   }
 
   // Return one of the active views, if there are any.

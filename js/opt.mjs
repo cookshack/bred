@@ -1,5 +1,6 @@
 import * as Tron from './tron.mjs'
 import * as Timing from './timing.mjs'
+import * as U from './util.mjs'
 
 export let inherit, missing
 
@@ -57,9 +58,9 @@ function declare
   check(name)
   shared().types[name] = type
   d('OPT ' + name + ' DECLARED ' + type)
-  if (get(name) === undefined)
-    return setMem(name, clean(name, value))
-  return get(name)
+  if (U.isDefined(get(name)))
+    return get(name)
+  return setMem(name, clean(name, value))
 }
 
 export
@@ -71,23 +72,23 @@ function get
 
 function clean
 (name, val) {
-  if (val === undefined)
-    return val
-  if (shared().types[name] == 'bool')
-    return val ? true : false
-  if (shared().types[name] == 'struct') {
-    if (val === null)
-      throw new Error('opt ' + name + ' must be a struct, got null')
-    if (Array.isArray(val))
-      throw new Error('opt ' + name + ' must be a struct, got an array')
-    if (typeof val == 'object')
-      return val
-    throw new Error('opt ' + name + ' must be a struct, got ' + typeof val)
-  }
-  if (shared().types[name] == 'array') {
-    if (Array.isArray(val))
-      return val
-    throw new Error('opt ' + name + ' must be an array')
+  if (U.isDefined(val)) {
+    if (shared().types[name] == 'bool')
+      return val ? true : false
+    if (shared().types[name] == 'struct') {
+      if (val === null)
+        throw new Error('opt ' + name + ' must be a struct, got null')
+      if (Array.isArray(val))
+        throw new Error('opt ' + name + ' must be a struct, got an array')
+      if (typeof val == 'object')
+        return val
+      throw new Error('opt ' + name + ' must be a struct, got ' + typeof val)
+    }
+    if (shared().types[name] == 'array') {
+      if (Array.isArray(val))
+        return val
+      throw new Error('opt ' + name + ' must be an array')
+    }
   }
   return val
 }

@@ -79,15 +79,16 @@ function runToString
       else
         str += der.decode(data.stderr)
 
-    if (data.close === undefined) {
-      // still running, do nothing
+    if (U.isDefined(data.close)) {
+      if (cb) {
+        // Invoke callback with final output and exit code
+        cb(str, data.code)
+        // Clean up listener after completion
+        off()
+      }
+      return
     }
-    else if (cb) {
-      // Invoke callback with final output and exit code
-      cb(str, data.code)
-      // Clean up listener after completion
-      off()
-    }
+    // else still running, do nothing
   }
 
   off = Tron.on(ch, handler)

@@ -199,7 +199,9 @@ function make
       p.setBuf(exist, { lineNum: spec.lineNum }, whenReady)
       return
     }
-    if (spec.lineNum === undefined) {
+    if (U.isDefined(spec.lineNum))
+      makeBuf()
+    else {
       let path
 
       spec.dir = Buf.prepDir(spec.dir)
@@ -213,9 +215,7 @@ function make
         d('make buf')
         makeBuf()
       })
-      return
     }
-    makeBuf()
   }
   else
     Mess.warn('ed.make: file has a directory component')

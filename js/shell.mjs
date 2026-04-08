@@ -673,7 +673,7 @@ function initShell
     let p
 
     p = Pane.current()
-    if (U.defined(p.buf.vars('shell').code)) {
+    if (U.isPresent(p.buf.vars('shell').code)) {
       let char
 
       char = Ed.charForInsert(we)

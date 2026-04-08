@@ -228,7 +228,7 @@ function add
     if (view?.buf == b2) {
       d('setBuf to same buf')
       b = b2
-      if (U.defined(sbSpec.lineNum))
+      if (Number.isFinite(parseInt(sbSpec.lineNum)))
         Ed.Backend.vgotoLine(p.view, sbSpec.lineNum)
       b.reconf()
       p.flushInput()

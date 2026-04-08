@@ -678,7 +678,7 @@ function _viewInit
     if (buf.modifiedOnDisk)
       // Reset it so the revert dialog will appear (it will just skip existing views)
       buf.modifiedOnDisk = 1
-    if (U.defined(lineNum))
+    if (Number.isFinite(parseInt(lineNum)))
       Wode.vgotoLine(view, lineNum)
   }
   else if (buf.file) {
@@ -733,7 +733,7 @@ function _viewInit
       WodeCommon.setValue(ed, data.data, false)
       if (view == Pane.current().view)
         ed.focus()
-      if (U.defined(lineNum)) {
+      if (Number.isFinite(parseInt(lineNum))) {
         Wode.vgotoLine(view, lineNum)
         //ed.renderer.once('afterRender', () => recenter(ed))
         0 && setTimeout(() => Wode.recenter(ed))
@@ -790,7 +790,7 @@ function reopen
       view.ready = 1
       //view.ed.resize()
       view.ed.focus()
-      if (U.defined(lineNum))
+      if (Number.isFinite(parseInt(lineNum)))
         Wode.vgotoLine(view, lineNum)
       else
         view.ed.dispatch({ effects: CMView.EditorView.scrollIntoView(view.ed.state.selection.main.head,

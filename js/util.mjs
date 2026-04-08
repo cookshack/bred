@@ -96,11 +96,17 @@ function bool
 }
 
 export
-function defined
+function isDefined
 (arg) {
-  if (arg === undefined)
+  if (typeof arg == 'undefined') // matches only undefined
     return 0
-  if (arg === null)
+  return 1
+}
+
+export
+function isPresent
+(arg) {
+  if (arg == null) // matches both undefined and null
     return 0
   return 1
 }

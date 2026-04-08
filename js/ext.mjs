@@ -257,5 +257,3 @@ function init
 
   Em.on('g', 'refresh', mo)
 }
-
-export const _internals = { canon, exts }

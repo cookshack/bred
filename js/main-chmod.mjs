@@ -107,5 +107,3 @@ async function onChmod
   await Fs.chmod(path, mode)
   e.sender.send(ch, {})
 }
-
-export const _internals = { parseModePerm, updateMode }

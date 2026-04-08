@@ -139,8 +139,8 @@ function make
     let sh, buf
 
     sh = shared()
-    sh.buffers.removeIf(e => e === b)
-    sh.ring.removeIf(e => e === b)
+    sh.buffers.removeIf(e => e == b)
+    sh.ring.removeIf(e => e == b)
     buf = top()
     Pane.forEach(p2 => {
       if (p2.buf && (p2.buf.id == b.id))
@@ -228,7 +228,7 @@ function make
     mo = getMo(modeOrKey)
     if (mo)
       if (b.minors.find(m => m == mo)) {
-        b.minors.removeIf(m => m === mo)
+        b.minors.removeIf(m => m == mo)
         mo.stop(b)
       }
   }
@@ -241,7 +241,7 @@ function make
     mo = getMo(modeOrKey)
     if (mo) {
       if (b.minors.find(m => m == mo)) {
-        b.minors.removeIf(m => m === mo)
+        b.minors.removeIf(m => m == mo)
         mo.stop(b)
         return 0
       }

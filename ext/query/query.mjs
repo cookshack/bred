@@ -1085,7 +1085,7 @@ function init
 
             lineEnd = buffer.indexOf('\n')
 
-            if (lineEnd === -1)
+            if (lineEnd == -1)
               break
 
             line = buffer.slice(0, lineEnd).trim()
@@ -1097,7 +1097,7 @@ function init
 
               data = line.slice(6)
 
-              if (data === '[DONE]')
+              if (data == '[DONE]')
                 break
 
               json = JSON.parse(data)

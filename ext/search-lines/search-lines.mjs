@@ -112,7 +112,7 @@ function init
         view.bufStart()
       })
     }
-    else if (typeof needle === 'string')
+    else if (typeof needle == 'string')
       Mess.say('Empty')
     else
       Mess.say('Error')

@@ -69,7 +69,7 @@ function onGet
 
       Fs.readdir(dir, {}, (err, data) => {
         if (err)
-          if (err.code === 'ENOTDIR') {
+          if (err.code == 'ENOTDIR') {
             dir = Path.dirname(dir)
             Fs.readdir(dir, {}, (err, data) => {
               if (err)

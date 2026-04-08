@@ -20,7 +20,7 @@ async function isPortInUse
     server.once('error', err => {
       if (timedOut)
         return
-      if (err.code === 'EADDRINUSE')
+      if (err.code == 'EADDRINUSE')
         resolve(1)
       else
         resolve(0)

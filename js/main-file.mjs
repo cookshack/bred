@@ -443,7 +443,7 @@ function onPatch
           e.sender.send(ch, makeErr(err))
           return
         }
-        if (out === false)
+        if ((typeof out == 'boolean') && (out == false))
           e.sender.send(ch, errMsg('Failed to apply patch'))
         else
           Fs.writeFile(path, out, { encoding: 'utf8' }, err => {

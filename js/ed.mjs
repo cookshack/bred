@@ -1237,7 +1237,7 @@ function save
   path = Loc.make(p.view.buf.path).expand()
   Tron.cmd('file.stat', path, (err, data) => {
     if (err) {
-      if (err.code === 'ENOENT') {
+      if (err.code == 'ENOENT') {
         // new file
         fn(p.view, cb)
         return

@@ -1565,7 +1565,7 @@ function initEvalLine
       fn = new Function ('return ' + l)
       Mess.say('Return: ' + fn())
     }
-    else if (typeof l === 'string')
+    else if (typeof l == 'string')
       Mess.say('Line empty')
     else
       Mess.say('Line missing')

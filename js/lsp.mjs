@@ -237,7 +237,7 @@ function init
     if (data.log)
       Mess.log(data.log)
     if (data.response) {
-      if (data.response.id === '1')
+      if (data.response.id == '1')
         // initialize
         return
       if (data.response.id)

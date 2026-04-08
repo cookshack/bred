@@ -146,7 +146,7 @@ function initCssRules
     let id
 
     for (id = 0; id < el.parentNode.children.length; id++)
-      if (el.parentNode.children[id] === el)
+      if (el.parentNode.children[id] == el)
         break
     return (id || 0) + 1
   }

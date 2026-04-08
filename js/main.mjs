@@ -97,7 +97,7 @@ function onLoadInit
     d('Loading ' + file + '...')
     fs.readFile(file, 'utf8', (err, js) => {
       if (err) {
-        if (err.code === 'ENOENT') {
+        if (err.code == 'ENOENT') {
           log('Loading ' + file + ": missing, that's OK")
           e.sender.send(ch, { exist: 0 })
           return
@@ -861,7 +861,7 @@ function checkDeps
     currentCommit = ''
   }
 
-  if (lastCheckCommit && currentCommit && lastCheckCommit === currentCommit) {
+  if (lastCheckCommit && currentCommit && (lastCheckCommit == currentCommit)) {
     d('Dependencies already checked for commit ' + currentCommit)
     whenHaveDeps()
     return
@@ -1071,8 +1071,9 @@ function whenHaveDeps
   d('setting app handlers')
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0)
-      createMainWindow()
+    if (BrowserWindow.getAllWindows().length)
+      return
+    createMainWindow()
   })
 }
 

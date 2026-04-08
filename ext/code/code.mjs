@@ -527,7 +527,7 @@ function init
       let c, providers, model
 
       c = await ensureClient(buf)
-      providers = await c.config.providers({})
+      providers = await c.config.providers({ directory: buf.dir })
       providers.data.providers?.some(p => {
         if (p.id == providerID) {
           model = p.models?.[modelID]

@@ -400,6 +400,11 @@ function init
     ensureClient(buf).then(async c => {
       try {
         d('CO calling permission.respond, dir=' + buf.dir)
+
+        // Seems they often move args and things break, so if you're stuck:
+        // Check the SDK method parameters against the OpenAPI spec in
+        // `http://127.0.0.1:PORT/doc` to verify all required params
+        // (especially query params like `directory`) are being passed.
         await c.permission.respond({ sessionID,
                                      permissionID: id,
                                      response,
@@ -1164,13 +1169,11 @@ function init
     try {
       d('CO SEND')
 
-      res = await c.session.prompt({
-        sessionID,
-        directory: buf.dir,
-        model: { providerID: provider, modelID: model },
-        agent: 'build',
-        parts: [ { id: uuidv4(), type: 'text', text } ]
-      })
+      res = await c.session.prompt({ sessionID,
+                                     directory: buf.dir,
+                                     model: { providerID: provider, modelID: model },
+                                     agent: 'build',
+                                     parts: [ { id: uuidv4(), type: 'text', text } ] })
 
       d('CO SEND done')
       d({ res })

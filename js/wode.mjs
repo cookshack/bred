@@ -84,7 +84,7 @@ function register
 
     function free
     () {
-      WodeMode.wexts.removeIf(b => b.id === wext.id)
+      WodeMode.wexts.removeIf(b => b.id == wext.id)
       // remove from existing views
       Buf.forEach(buf => buf.views.forEach(v => (v.win == Win.current()) && v.ed?.dispatch({ effects: spec.part.reconfigure([]) })))
       // reconfigure exts opts on all bufs, in case any other extensions use the opt
@@ -1720,14 +1720,14 @@ function capitalizeWord() {
   caseWord(str => {
     // better go beginning of word
     Ed.nonTokenRe.lastIndex = 0
-    if (Ed.nonTokenRe.exec(str) === null)
-      str = U.capitalize(str)
-    else {
+    if (U.isPresent(Ed.nonTokenRe.exec(str))) {
       let i
 
       i = Ed.nonTokenRe.lastIndex
       str = str.slice(0, i) + U.capitalize(str.slice(i))
     }
+    else
+      str = U.capitalize(str)
     return str
   })
 }
@@ -2195,16 +2195,18 @@ function vgoXY
 export
 function vtokenAt
 (view, x, y) {
-  let bep, tree, node
+  let bep
 
   bep = view.ed.posAtCoords({ x, y })
-  if (bep === null)
-    return null
-  tree = CMLang.syntaxTree(view.ed.state)
-  node = tree.resolve(bep)
-  if (node)
-    return { name: node.name,
-             text: WodeRange.make(view, node.from, node.to).text }
+  if (U.isPresent(bep)) {
+    let tree, node
+
+    tree = CMLang.syntaxTree(view.ed.state)
+    node = tree.resolve(bep)
+    if (node)
+      return { name: node.name,
+               text: WodeRange.make(view, node.from, node.to).text }
+  }
   return null
 }
 

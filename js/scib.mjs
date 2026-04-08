@@ -39,7 +39,7 @@ function runText
                    }
                  })
   }
-  else if (typeof sc === 'string')
+  else if (typeof sc == 'string')
     Mess.say('Empty')
   else
     Mess.say('Error')
@@ -85,7 +85,7 @@ function initRTL
                      buf.opts.set('ansi.enabled', 1)
                      buf.opts.set('core.highlight.specials.enabled', 0)
                    })
-    else if (typeof l === 'string')
+    else if (typeof l == 'string')
       Mess.say('Line empty')
     else
       Mess.say('Line missing')

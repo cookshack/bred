@@ -48,7 +48,7 @@ function voffChange
 (view, cb) {
   if (view.ed) {
     view.onChanges = view.onChanges || Mk.array
-    view.onChanges.removeIf(o => o.cb === cb)
+    view.onChanges.removeIf(o => o.cb == cb)
   }
 }
 
@@ -70,7 +70,7 @@ function voffFocus
 (view, cb) {
   if (view.ed) {
     view.onFocuss = view.onFocuss || Mk.array
-    view.onFocuss.removeIf(o => o.cb === cb)
+    view.onFocuss.removeIf(o => o.cb == cb)
   }
 }
 

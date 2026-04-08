@@ -349,7 +349,7 @@ function initFile
           hist?.add(p.buf.text())
         cbOpen && cbOpen(path)
       }
-      else if (typeof path === 'string')
+      else if (typeof path == 'string')
         Mess.say('Empty')
       else
         Mess.yell('Error, path was ' + (typeof path))
@@ -390,7 +390,7 @@ function initFile
           hist?.add(p.buf.text())
         cbOpen && cbOpen(path)
       }
-      else if (typeof path === 'string')
+      else if (typeof path == 'string')
         Mess.say('Empty')
       else
         Mess.yell('Error, path was ' + (typeof path))
@@ -419,7 +419,7 @@ function initFile
         p.buf.clear()
         p.buf.append(Loc.make(file.dataset.path).ensureSlash())
       }
-      else if (typeof path === 'string')
+      else if (typeof path == 'string')
         Mess.say('Empty')
       else
         Mess.say('Error')

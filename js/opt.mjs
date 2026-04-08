@@ -76,7 +76,7 @@ function clean
     if (shared().types[name] == 'bool')
       return val ? true : false
     if (shared().types[name] == 'struct') {
-      if (val === null)
+      if (val == null) // we know it isDefined already, so we can use ==
         throw new Error('opt ' + name + ' must be a struct, got null')
       if (Array.isArray(val))
         throw new Error('opt ' + name + ' must be a struct, got an array')

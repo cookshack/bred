@@ -322,7 +322,7 @@ function make
         w2 = globalThis.document.createTreeWalker(elePane, globalThis.NodeFilter.SHOW_TEXT)
         while ((n = w2.nextNode()))
           //D("try " + n.wholeText)
-          if (n === text) {
+          if (n == text) {
             //D("yes")
             walker = w2
             pos = 0

@@ -52,7 +52,7 @@ function init
       throw new Error(ret.err.message)
     }
 
-    client = OpenCode.createOpencodeClient({ baseUrl: ret.url })
+    client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
     buf.vars('code').client = client
     buf.vars('code').serverUrl = ret.url
     buf.vars('code').spawnedBufferID = buf.id
@@ -1164,6 +1164,7 @@ function init
 
       res = await c.session.prompt({
         sessionID,
+        directory: buf.dir,
         model: { providerID: provider, modelID: model },
         agent: 'build',
         parts: [ { id: uuidv4(), type: 'text', text } ]
@@ -1198,7 +1199,7 @@ function init
     buf.vars('code').agentStopped = 1
     ensureClient(buf).then(async client => {
       try {
-        await client.session.abort({ sessionID, query: { directory: buf.dir } })
+        await client.session.abort({ sessionID, directory: buf.dir })
         d('CO stop done')
         Mess.yell('Stopped agent')
       }
@@ -1329,7 +1330,7 @@ function init
         buf.opt('core.lint.enabled', 1)
 
         c = await ensureClient(buf)
-        res = await c.session.create({ title: prompt })
+        res = await c.session.create({ directory: buf.dir, title: prompt })
 
         buf.vars('code').sessionID = res.data.id
 

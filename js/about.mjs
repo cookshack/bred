@@ -473,50 +473,52 @@ function initDescribeKey
 
     st.oldOnKeyDown = globalThis.onkeydown
 
-    let wes
+    {
+      let wes
 
-    wes = []
-    globalThis.onkeydown = e => {
-      let we
+      wes = []
+      globalThis.onkeydown = e => {
+        let we
 
-      if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
-        // see note at top of em.look1
-        return
-
-      we = { mouse: 0, e }
-      // if in search em then do that
-      // else if in old em then describe key and exit
-      wes.push(we)
-      mapDescribeKey.look(wes, to => {
-        e.preventDefault()
-
-        if (to) {
-          if (to.ons)
-            // map
-            return
-
-          // cmd
-          Cmd.run(to, st.view?.buf, 1, we)
-          wes = []
+        if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
+          // see note at top of em.look1
           return
-        }
 
-        // if in regular em then exit and run the original handler
-        Em.look(wes, 0, st.view?.buf, (map, to) => {
+        we = { mouse: 0, e }
+        // if in search em then do that
+        // else if in old em then describe key and exit
+        wes.push(we)
+        mapDescribeKey.look(wes, to => {
+          e.preventDefault()
+
           if (to) {
             if (to.ons)
               // map
               return
-            cancel()
-            d('KEY')
-            describe(to, wes)
+
+            // cmd
+            Cmd.run(to, st.view?.buf, 1, we)
+            wes = []
+            return
           }
-          else {
-            cancel()
-            Mess.say('key empty')
-          }
+
+          // if in regular em then exit and run the original handler
+          Em.look(wes, 0, st.view?.buf, (map, to) => {
+            if (to) {
+              if (to.ons)
+                // map
+                return
+              cancel()
+              d('KEY')
+              describe(to, wes)
+            }
+            else {
+              cancel()
+              Mess.say('key empty')
+            }
+          })
         })
-      })
+      }
     }
   }
 

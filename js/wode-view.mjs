@@ -273,6 +273,8 @@ async function init
 function _viewInit
 (peer, view, text, modeWhenText, lineNum, whenReady, placeholder, spec) {
   let ed, buf, edWW, edW, opts, domEventHandlers, useText
+  let decorator
+  let updateListener, selectTimeout
 
   function removeAllKeyBindings
   () {
@@ -336,8 +338,6 @@ function _viewInit
   view.wode.comp.extsMinors = new CMState.Compartment
   view.wode.placeholder = new CMState.Compartment
 
-  let decorator
-
   decorator = CMView.ViewPlugin.fromClass(class {
     constructor
     (view) {
@@ -395,8 +395,6 @@ function _viewInit
     }
   },
                                           { decorations: v => v.decorations })
-
-  let updateListener, selectTimeout
 
   function tronSelect
   (str) {

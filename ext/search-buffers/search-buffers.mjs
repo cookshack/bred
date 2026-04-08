@@ -79,8 +79,7 @@ async function searchBufs
 export
 function init
 () {
-  let moSr
-  let hist
+  let moSr, hist, gutter
 
   function go
   (p, line) {
@@ -142,8 +141,6 @@ function init
   (u, regex) {
     prompt(regex)
   }
-
-  let gutter
 
   class Marker extends CMView.GutterMarker {
     constructor

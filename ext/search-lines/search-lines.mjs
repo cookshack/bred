@@ -16,8 +16,7 @@ import * as CMView from '../../lib/@codemirror/view.js'
 export
 function init
 () {
-  let moSr
-  let hist
+  let moSr, hist, gutter
 
   function go
   (p, line) {
@@ -133,8 +132,6 @@ function init
   (u, regex) {
     prompt(regex)
   }
-
-  let gutter
 
   class NumberMarker extends CMView.GutterMarker {
     constructor

@@ -1119,7 +1119,7 @@ function initSearch
 
   function search
   (backward) {
-    let oldOnKeyDown, p
+    let oldOnKeyDown, p, wes
 
     if (s.st) {
       s.st = 0
@@ -1161,8 +1161,6 @@ function initSearch
 
     oldOnKeyDown = globalThis.onkeydown
     s.st.oldOnKeyDown = oldOnKeyDown
-
-    let wes
 
     wes = []
     s.st.occur = s.st.view.buf.opts.get('core.highlight.occurrences.enabled')

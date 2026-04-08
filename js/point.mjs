@@ -97,14 +97,16 @@ function make
     if (inView())
       return
 
-    //Mess.D('move to')
-    let topmost
+    {
+      //Mess.D('move to')
+      let topmost
 
-    topmost = topmostInView()
-    //Mess.D('topmost:')
-    //Mess.D(topmost)
-    if (topmost)
-      put(topmost, 1)
+      topmost = topmostInView()
+      //Mess.D('topmost:')
+      //Mess.D(topmost)
+      if (topmost)
+        put(topmost, 1)
+    }
   }
 
   function getNext

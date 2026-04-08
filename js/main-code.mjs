@@ -9,14 +9,14 @@ servers = new Map()
 async function isPortInUse
 (port) {
   return new Promise(resolve => {
-    let timedOut
+    let timedOut, server
 
     setTimeout(() => {
       timedOut = 1
       resolve(1)
     }, 1000)
 
-    const server = Net.createServer()
+    server = Net.createServer()
     server.once('error', err => {
       if (timedOut)
         return

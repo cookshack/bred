@@ -78,7 +78,7 @@ function make
 (spec = {}) { // { name, modeKey, content, dir, file, placeholder, single, vars }
   let { name, modeKey, content, dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk, ed
-  let placeholder
+  let placeholder, ml
 
   function addToRecents
   () {
@@ -459,8 +459,6 @@ function make
   onRemoves = []
 
   mode = Mode.getOrAdd(modeKey)
-
-  let ml
 
   {
     function set

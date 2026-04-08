@@ -1170,12 +1170,12 @@ function initHub
       if (row.ownerRepo && row.tag)
         getRelease(row.ownerRepo, row.tag,
                    res => {
+                     let text
+
                      if (res == null) {
                        Mess.yell('Release not found')
                        return
                      }
-
-                     let text
 
                      text = '# ' + row.subject + '\n\n'
                      text += (res.release.body || '') + '\n\n'

@@ -858,8 +858,9 @@ function init
   watching = new Map()
 
   function viewInit(view, spec, cb) {
-    d('DIR viewInit')
     let dirVars, sort, bak, hid, surf
+
+    d('DIR viewInit')
 
     dirVars = view.buf.vars('dir')
     sort = dirVars.sort || Opt.get('dir.sort')

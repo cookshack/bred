@@ -116,11 +116,9 @@ function init
 
   Cmd.add('spell check word at click', (u, we) => {
     if (we?.e && (we.e.button == 0)) {
-      let p, x, y
+      let p, x, y, win
 
       p = Pane.current()
-      let win
-
       win = Win.current()
       x = win.lastContext?.x ?? 0
       y = win.lastContext?.y ?? 0

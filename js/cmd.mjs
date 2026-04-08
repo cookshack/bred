@@ -114,10 +114,9 @@ function get
 export
 function getAll
 (buf) {
-  let all
+  let all, mo
 
   all = Object.values(cmds)
-  let mo
 
   mo = buf?.mode
   if (mo) {
@@ -209,7 +208,7 @@ function canon
 export
 function add
 (name, cb, mo) {
-  let commands, fCmds
+  let commands, fCmds, fname
 
   name = canon(name)
 
@@ -235,8 +234,6 @@ function add
                        cb }
 
   commands[name].source = getCurrentLine({ frames: 2 })
-
-  let fname
 
   fname = fName(name)
   //d("cmd.add: " + (mo ? (mo.key + ": ") : "") + fname + (cb ? "" : " (to be defined)"))

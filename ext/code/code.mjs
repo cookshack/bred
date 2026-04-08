@@ -399,9 +399,11 @@ function init
     d('CO permission reply: ' + response)
     ensureClient(buf).then(async c => {
       try {
+        d('CO calling permission.respond, dir=' + buf.dir)
         await c.permission.respond({ sessionID,
                                      permissionID: id,
-                                     response })
+                                     response,
+                                     directory: buf.dir })
         buf.views.forEach(view => {
           if (view.eleOrReserved) {
             let w, el

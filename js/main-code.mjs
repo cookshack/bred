@@ -71,8 +71,7 @@ async function onSpawn
 
     server = await Server.createOpencodeServer({ hostname: '127.0.0.1',
                                                  port,
-                                                 config: { root: workingDir,
-                                                           logLevel: 'DEBUG' },
+                                                 config: { logLevel: 'DEBUG' },
                                                  timeout: 10000 })
     servers.set(bufferID, server)
     return { url: server.url }

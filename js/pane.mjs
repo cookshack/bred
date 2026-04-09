@@ -204,12 +204,13 @@ function add
    whenReady) { // (view)
     sbSpec = sbSpec || {}
 
-    if (b2)
+    if (b2) {
       setBufInternal(b2, sbSpec, whenReady)
+      return
+    }
 
     if (whenReady)
       whenReady(view)
-    return
   }
 
   function setBufInternal

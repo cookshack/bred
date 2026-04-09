@@ -29,7 +29,7 @@ import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 export
 function init
 () {
-  let hist, chatHist, mo, stopTimeout
+  let hist, chatHist, mo, stopTimeout, mostRecentAgent
 
   async function ensureClient
   (buf) {
@@ -1518,5 +1518,17 @@ function init
 
   Cmd.add('code buffer', () => {
     code(Pane.current().buf.text())
+  })
+
+  Cmd.add('most recent agent', () => {
+    if (mostRecentAgent)
+      Pane.current().setBuf(mostRecentAgent)
+    else
+      Cmd.run('code')
+  })
+
+  Pane.onSetBuf(view => {
+    if (view.buf.mode.key == 'code')
+      mostRecentAgent = view.buf
   })
 }

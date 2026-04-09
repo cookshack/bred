@@ -14,12 +14,19 @@ import * as Tron from './tron.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
-let id, bootBuf
+let id, bootBuf, onSetBufs
 
 export
 function init
 () {
   id = 1
+  onSetBufs = new Set()
+}
+
+export
+function onSetBuf
+(cb) {
+  onSetBufs.add(cb)
 }
 
 export
@@ -204,13 +211,19 @@ function add
    whenReady) { // (view)
     sbSpec = sbSpec || {}
 
+    function onReady
+    (view) {
+      onSetBufs.forEach(cb => cb(view))
+      if (whenReady)
+        whenReady(view)
+    }
+
     if (b2) {
-      setBufInternal(b2, sbSpec, whenReady)
+      setBufInternal(b2, sbSpec, onReady)
       return
     }
 
-    if (whenReady)
-      whenReady(view)
+    onReady(view)
   }
 
   function setBufInternal

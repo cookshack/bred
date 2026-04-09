@@ -445,23 +445,12 @@ function branchDir
 (p, dir, name) {
   let path
 
-  function open
-  () {
-    Mess.say('Now in ' + name)
-    Pane.openDir(path)
-  }
-
-  function checkout
-  () {
-    Mess.say('Checking out ' + name)
-    Shell.run(path, 'git', [ 'checkout', name ],
-              { onClose: open })
-  }
-
   path = Loc.make(dir).expand()
 
   Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (out, code) => {
     let currentBranch
+
+    d('VC ' + out)
 
     if (code) {
       Mess.yell('Is this a git dir? ' + path)
@@ -475,16 +464,37 @@ function branchDir
       return
     }
 
+    Mess.say('Currently in ' + name)
     Shell.runToString(path, 'git', [ 'status', '--porcelain' ], 0, (out, code) => {
-      if (code)
+      d('VC ' + out)
+      if (code) {
         Mess.yell('git status failed')
-      else if (out.trim().length)
-        Mess.yell('Changes in ' + currentBranch + '. Commit or stash first')
-      else {
-        Mess.say('Fetching ' + name)
-        Shell.run(path, 'git', [ 'fetch', 'origin', name + ':' + name ],
-                  { onClose: checkout })
+        return
       }
+      if (out.trim().length) {
+        Mess.yell('Changes in ' + currentBranch + '. Commit or stash first')
+        return
+      }
+      Mess.say('Fetching ' + name)
+      Shell.runToString(path, 'git', [ 'fetch', 'origin', name + ':' + name ], 0,
+                        (out, code) => {
+                          d('VC ' + out)
+                          if (code) {
+                            Mess.yell('Fetch failed: ' + code)
+                            return
+                          }
+                          Mess.say('Checking out ' + name)
+                          Shell.runToString(path, 'git', [ 'checkout', name ], 0,
+                                            (out, code) => {
+                                              d('VC ' + out)
+                                              if (code) {
+                                                Mess.yell('Checkout failed: ' + code)
+                                                return
+                                              }
+                                              Mess.say('Now in ' + name)
+                                              Pane.openDir(path)
+                                            })
+                        })
     })
   })
 }

@@ -3136,21 +3136,29 @@ function init
   Em.on('C-x v c', 'vc commit')
   Em.on('C-x v d', 'vc stash drop')
   Em.on('C-x v e', 'vc stash enumerate')
+  // f
   Em.on('C-x v g', 'vc annotate')
   Em.on('C-x v h', 'vc hub')
+  Em.on('C-x v H', 'vc prs')
   Em.on('C-x v i', 'vc show')
+  // j
+  // k
   Em.on('C-x v L', 'vc log')
   Em.on('C-x v l', 'vc log one-line')
   Em.on('C-x v m', 'vc main')
   Em.on('C-x v o', 'vc stash pop')
   Em.on('C-x v p', 'vc push')
-  Em.on('C-x v P', 'vc prs')
+  // q
   Em.on('C-x v r', 'vc reset')
   Em.on('C-x v R', 'vc review')
   Em.on('C-x v s', 'vc log search one-line')
   Em.on('C-x v S', 'vc log search')
+  // t
   Em.on('C-x v u', 'vc pull')
   Em.on('C-x v v', 'vc status')
   Em.on('C-x v w', 'vc stash')
+  // x
+  // y
+  // z
   Em.on('C-x v =', 'vc equal')
 }

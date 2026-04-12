@@ -31,8 +31,7 @@ function divW
                [ divCl('assist-w',
                        [ divCl('assist-main',
                                [ divCl('assist-main-h'),
-                                 divCl('assist-main-code'),
-                                 divCl('assist-main-generic retracted', '...') ]) ]) ])
+                                 divCl('assist-main-code') ]) ]) ])
 }
 
 export
@@ -43,7 +42,7 @@ function init
   function refresh
   (v, // assist
    view) { // target
-    let code, generic
+    let code
 
     function uriPath
     (uri) {
@@ -80,7 +79,6 @@ function init
       }
 
       Css.expand(code)
-      Css.retract(generic)
 
       top = code.querySelector('.assist-top')
 
@@ -154,7 +152,6 @@ function init
       let el
 
       Css.expand(code)
-      Css.retract(generic)
 
       el = code.querySelector('.assist-sig')
       el.innerHTML = ''
@@ -226,7 +223,6 @@ function init
     }
 
     code = v.ele.querySelector('.assist-main-code')
-    generic = v.ele.querySelector('.assist-main-generic')
 
     view.getCallers(setDefCaller, setSig)
 
@@ -253,13 +249,10 @@ function init
 
   function viewInit
   (view, spec, cb) { // (view)
-    let p, code, generic, name
+    let p, code
 
     code = view.ele.querySelector('.assist-main-code')
-    generic = view.ele.querySelector('.assist-main-generic')
     p = view.win.frame1.pane
-    name = p.view.buf?.mode?.name
-    generic.innerText = (name ? (name + ' mode') : '??')
 
     append(code,
            divCl('assist-top retracted',

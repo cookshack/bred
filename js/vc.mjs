@@ -526,36 +526,36 @@ function makePrBuf
 
   title = res.pr?.title || ('PR ' + num)
   body = res.pr?.body || ''
-  text = '*Branch* ' + res.branch + '\n*State*  ' + res.state + ' (' + res.pr.state + ')\n\n'
-  text += '# ' + title + '\n\n'
-  text += body + '\n\n'
+  text = '*Branch* ' + res.branch + '\n*State*  ' + res.state + ' (' + res.pr.state + ')\n'
+  text += '\n# ' + title + '\n'
+  text += '\n' + body.trim() + '\n'
 
   if (res.commits?.length) {
-    text += '## Commits (' + res.commits.length + ')\n\n'
+    text += '\n## Commits (' + res.commits.length + ')\n'
     res.commits.forEach(c => {
-      text += '- ' + c.sha.slice(0, 7) + ' ' + c.message + '\n'
+      text += '\n- ' + c.sha.slice(0, 7) + ' ' + c.message + '\n'
     })
   }
 
   if (res.comments?.length) {
-    text += '\n## Comments (' + res.comments.length + ')\n\n'
+    text += '\n## Comments (' + res.comments.length + ')\n'
     res.comments.forEach(c => {
       let date
 
       date = formatDate(c.created)
-      text += '**' + c.user + '** ' + date + '\n\n' + c.body + '\n\n'
+      text += '\n**' + c.user + '** ' + date + '\n\n' + c.body + '\n'
     })
   }
 
   if (res.reviews?.length) {
-    text += '\n## Reviews\n\n'
+    text += '\n## Reviews\n'
     res.reviews.forEach(r => {
       let date
 
       date = formatDate(r.submitted)
-      text += '**' + r.user + '** ' + r.state + ' ' + date + '\n\n'
-      if (r.body)
-        text += r.body + '\n\n'
+      text += '\n**' + r.user + '** ' + r.state + ' ' + date + '\n'
+      if (r.body && r.body.length)
+        text += '\n' + r.body.trim() + '\n'
     })
   }
 

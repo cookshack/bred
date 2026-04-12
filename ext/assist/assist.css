@@ -41,7 +41,7 @@
   flex-direction: column;
 }
 
-.assist-top {
+.assist-code {
   display: grid;
   grid-template-columns: minmax(min-content, max-content) auto;
   grid-gap: 0.5rem;
@@ -123,13 +123,13 @@ div.assist-uri {
 
 .assist-callers-h.retracted,
 .assist-callers.retracted,
+.assist-code.retracted,
 .assist-def-h.retracted,
 .assist-def.retracted,
 .assist-extra-h.retracted,
 .assist-extra.retracted,
 .assist-pages-h.retracted,
 .assist-pages.retracted,
-.assist-main-body.retracted,
-.assist-top.retracted {
+.assist-main-body.retracted {
   display: none;
 }

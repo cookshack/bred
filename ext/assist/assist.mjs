@@ -57,7 +57,7 @@ function init
 
     function setDefCaller
     (results) {
-      let el, elH, top
+      let el, elH, code
 
       function lnum
       (num) {
@@ -80,26 +80,26 @@ function init
 
       Css.expand(body)
 
-      top = body.querySelector('.assist-top')
+      code = body.querySelector('.assist-code')
 
       if (view.ed) {
         let lang, off, tok
 
-        Css.expand(top)
+        Css.expand(code)
 
-        lang = top.querySelector('.assist-lang')
+        lang = code.querySelector('.assist-lang')
         lang.dataset.id = view.buf.opt('core.lang')
         lang.innerText = lang.dataset.id
         lang.dataset.run = 'Lang'
 
-        off = top.querySelector('.assist-offset')
+        off = code.querySelector('.assist-offset')
         off.innerText = view.offset
 
-        tok = top.querySelector('.assist-tok')
+        tok = code.querySelector('.assist-tok')
         tok.innerText = results?.node?.name
       }
       else
-        Css.retract(top)
+        Css.retract(code)
 
       el = body.querySelector('.assist-def')
       elH = body.querySelector('.assist-def-h')
@@ -255,7 +255,7 @@ function init
     p = view.win.frame1.pane
 
     append(body,
-           divCl('assist-top retracted',
+           divCl('assist-code retracted',
                  [ div('Lang'), divCl('assist-lang'),
                    div('Offset'), divCl('assist-offset'),
                    div('Token'), divCl('assist-tok') ]),

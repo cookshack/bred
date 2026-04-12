@@ -33,7 +33,7 @@
   display: flex;
 }
 
-.assist-main-code {
+.assist-main-body {
   height: 100%;
   min-height: 100%;
   margin-bottom: 2rem;
@@ -121,10 +121,6 @@ div.assist-uri {
   margin-top: auto;
 }
 
-.assist-main-generic {
-  color: var(--clr-comment);
-}
-
 .assist-callers-h.retracted,
 .assist-callers.retracted,
 .assist-def-h.retracted,
@@ -133,8 +129,7 @@ div.assist-uri {
 .assist-extra.retracted,
 .assist-pages-h.retracted,
 .assist-pages.retracted,
-.assist-main-code.retracted,
-.assist-main-generic.retracted,
+.assist-main-body.retracted,
 .assist-top.retracted {
   display: none;
 }

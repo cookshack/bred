@@ -1,3 +1,4 @@
+import { divCl } from './dom.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Em from './em.mjs'
 import * as Mess from './mess.mjs'
@@ -86,7 +87,17 @@ function add
     modes.set(key, m)
   }
 
-  m.assist = spec.assist || {}
+  if (U.isPresent(spec.assist))
+    m.assist = spec.assist || {}
+  else
+    m.assist = { extras: [ { key: 'mode-div',
+                             co(view) {
+                               let name
+
+                               name = view.buf?.mode?.name
+                               return divCl('', (name ? (name + ' mode') : '??'))
+                             } } ] }
+
   m.opts = Opt.mode(m)
   m.key = key
   m.name = key ? (spec.name || U.capitalize(key)) : ''

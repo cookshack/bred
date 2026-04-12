@@ -1368,6 +1368,7 @@ function init
                           viewCopy: Backend.viewCopy,
                           viewReopen: Backend.viewReopen,
                           initFns: initModeFns,
+                          assist: 0,
                           //
                           onRemove: Backend.onBufRemove })
 

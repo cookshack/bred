@@ -43,7 +43,7 @@ function init
   function refresh
   (v, // assist
    view) { // target
-    let code
+    let code, generic
 
     function uriPath
     (uri) {
@@ -80,6 +80,7 @@ function init
       }
 
       Css.expand(code)
+      Css.retract(generic)
 
       top = code.querySelector('.assist-top')
 
@@ -130,6 +131,7 @@ function init
       let el
 
       Css.expand(code)
+      Css.retract(generic)
 
       el = code.querySelector('.assist-sig')
       el.innerHTML = ''
@@ -201,6 +203,7 @@ function init
     }
 
     code = v.ele.querySelector('.assist-main-code')
+    generic = v.ele.querySelector('.assist-main-generic')
 
     view.getCallers(setDefCaller, setSig)
 
@@ -211,10 +214,8 @@ function init
     view.buf.mode.assist.extras?.forEach(setExtra)
 
     {
-      let empty, main, hasContent
+      let hasContent
 
-      main = v.ele.querySelector('.assist-main')
-      empty = main.querySelector('.assist-main-generic')
       hasContent = code.querySelector('.assist-def').childNodes.length
                 || code.querySelector('.assist-callers').childNodes.length
                 || code.querySelector('.assist-sig').innerText.trim().length
@@ -222,11 +223,11 @@ function init
                 || code.querySelectorAll('.assist-extra').length
       if (hasContent) {
         Css.expand(code)
-        Css.retract(empty)
+        Css.retract(generic)
       }
       else {
         Css.retract(code)
-        Css.expand(empty)
+        Css.expand(generic)
       }
     }
   }

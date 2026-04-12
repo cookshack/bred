@@ -122,9 +122,7 @@ div.assist-uri {
 }
 
 .assist-main-generic {
-  margin: auto;
   color: var(--clr-comment);
-  font-size: 1.2rem;
 }
 
 .assist-extra-h.retracted,

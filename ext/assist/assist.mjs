@@ -248,10 +248,13 @@ function init
 
   function viewInit
   (view, spec, cb) { // (view)
-    let p, code
+    let p, code, generic, name
 
     code = view.ele.querySelector('.assist-main-code')
+    generic = view.ele.querySelector('.assist-main-generic')
     p = view.win.frame1.pane
+    name = p.view.buf?.mode?.name
+    generic.innerText = (name ? (name + ' mode') : '??')
 
     append(code,
            divCl('assist-top',

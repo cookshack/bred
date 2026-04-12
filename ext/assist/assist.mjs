@@ -42,7 +42,7 @@ function init
   function refresh
   (v, // assist
    view) { // target
-    let body
+    let body, code
 
     function uriPath
     (uri) {
@@ -57,7 +57,7 @@ function init
 
     function setDefCaller
     (results) {
-      let el, elH, code
+      let el, elH
 
       function lnum
       (num) {
@@ -79,27 +79,6 @@ function init
       }
 
       Css.expand(body)
-
-      code = body.querySelector('.assist-code')
-
-      if (view.ed) {
-        let lang, off, tok
-
-        Css.expand(code)
-
-        lang = code.querySelector('.assist-lang')
-        lang.dataset.id = view.buf.opt('core.lang')
-        lang.innerText = lang.dataset.id
-        lang.dataset.run = 'Lang'
-
-        off = code.querySelector('.assist-offset')
-        off.innerText = view.offset
-
-        tok = code.querySelector('.assist-tok')
-        tok.innerText = results?.node?.name
-      }
-      else
-        Css.retract(code)
 
       el = body.querySelector('.assist-def')
       elH = body.querySelector('.assist-def-h')
@@ -223,6 +202,24 @@ function init
     }
 
     body = v.ele.querySelector('.assist-main-body')
+
+    code = body.querySelector('.assist-code')
+
+    if (view.ed) {
+      let lang, off
+
+      Css.expand(code)
+
+      lang = code.querySelector('.assist-lang')
+      lang.dataset.id = view.buf.opt('core.lang')
+      lang.innerText = lang.dataset.id
+      lang.dataset.run = 'Lang'
+
+      off = code.querySelector('.assist-offset')
+      off.innerText = view.offset
+    }
+    else
+      Css.retract(code)
 
     view.getCallers(setDefCaller, setSig)
 

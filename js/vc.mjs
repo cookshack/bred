@@ -1343,25 +1343,40 @@ function initHub
         get('https://api.github.com/repos/' + row.ownerRepo + '/discussions/' + row.issueNum,
             0,
             (err, status, data) => {
-              let text
-
               if (err) {
                 Mess.yell('Discussion: ' + err.message)
                 return
               }
 
-              text = '# ' + data.title + '\n\n'
-              text += (data.body || '') + '\n\n'
-              Ed.make(p,
-                      { name: 'Discussion-' + row.issueNum + '.md',
-                        dir: p.dir },
-                      view => {
-                        view.buf.file = 'Discussion-' + row.issueNum + '.md'
-                        view.buf.opts.set('core.lang', 'markdown')
-                        view.buf.addMode('view')
-                        view.insert(text)
-                        view.buf.modified = 0
+              get('https://api.github.com/repos/' + row.ownerRepo + '/discussions/' + row.issueNum + '/comments',
+                  0,
+                  (err2, status2, data2) => {
+                    let text
+
+                    text = '# ' + data.title + '\n\n'
+                    text += (data.body || '') + '\n\n'
+
+                    if (data2?.length) {
+                      text += '## Comments (' + data2.length + ')\n\n'
+                      data2.forEach(c => {
+                        let date
+
+                        date = formatDate(c.created_at)
+                        text += '**' + c.user.login + '** ' + date + '\n\n' + c.body + '\n\n'
                       })
+                    }
+
+                    Ed.make(p,
+                            { name: 'Discussion-' + row.issueNum + '.md',
+                              dir: p.dir },
+                            view => {
+                              view.buf.file = 'Discussion-' + row.issueNum + '.md'
+                              view.buf.opts.set('core.lang', 'markdown')
+                              view.buf.addMode('view')
+                              view.insert(text)
+                              view.buf.modified = 0
+                            })
+                  })
             })
       else
         Mess.yell('Missing ownerRepo or issueNum')

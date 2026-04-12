@@ -556,7 +556,6 @@ function makePrBuf
       text += '**' + r.user + '** ' + r.state + ' ' + date + '\n\n'
       if (r.body)
         text += r.body + '\n\n'
-      text += '---\n\n'
     })
   }
 

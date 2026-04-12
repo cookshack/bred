@@ -573,8 +573,10 @@ function makePrBuf
 
 function getAndShowPr
 (p, ownerRepo, num) {
+  Mess.say('Fetching PR...')
   getPr(0, ownerRepo, num,
         res => {
+          Mess.say('')
           if (res)
             makePrBuf(p, num, res)
           else

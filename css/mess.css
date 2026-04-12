@@ -50,6 +50,7 @@
 
 .mess-text.mess-say {
   color: var(--clr-emph);
+  min-height: min-content;
 }
 
 .mess-text.mess-log {

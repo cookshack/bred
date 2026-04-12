@@ -25,8 +25,15 @@ function init
 
 export
 function onSetBuf
-(cb) {
+(cb) { // (view)
+  function free
+  () {
+    onSetBufs.delete(cb)
+  }
+
   onSetBufs.add(cb)
+
+  return { free }
 }
 
 export

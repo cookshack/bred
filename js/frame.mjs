@@ -184,6 +184,7 @@ function add
     }
     else
       d('adj for mid')
+    updateSepVisibility(tab)
   }
 
   function expand
@@ -218,6 +219,7 @@ function add
     }
     else
       d('adj for mid')
+    updateSepVisibility(tab)
   }
 
   spec = spec || {}
@@ -284,4 +286,22 @@ function forEach
   tab = Tab.current()
   if (tab)
     tab.frames.forEach(cb)
+}
+
+export
+function updateSepVisibility
+(tab) {
+  let allFrames
+
+  tab = tab || Tab.current()
+  if (tab == null)
+    return
+  allFrames = tab.frames.filter(f => Css.has(f.el, 'retracted') == 0)
+  if (allFrames.length == 1)
+    allFrames[0].sep.style.display = 'none'
+  else
+    tab.frames.forEach(f => {
+      if (Css.has(f.el, 'retracted') == 0)
+        f.sep.style.display = ''
+    })
 }

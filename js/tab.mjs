@@ -126,6 +126,7 @@ function add
     tab.framesRight = [ tab.frameRight,
                         Frame.add(tab) ]
   }
+  Frame.updateSepVisibility(tab)
   {
     let $current
 

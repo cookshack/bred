@@ -735,6 +735,10 @@ function initHub
           issueNum = n.subject.url?.split('/issues/').pop() || n.subject.latest_comment_url?.split('/issues/').pop()
           url = url + '/issues/' + issueNum
         }
+        else if (type == 'Discussion') {
+          issueNum = n.subject.url?.split('/discussions/').pop() || n.subject.latest_comment_url?.split('/discussions/').pop()
+          url = url + '/discussions/' + issueNum
+        }
 
         rows.push({ prNum,
                     issueNum,
@@ -1328,6 +1332,43 @@ function initHub
       Mess.yell('This is for Issue notifications')
   }
 
+  function showDiscussion
+  () {
+    let p, row
+
+    p = Pane.current()
+    row = p.view.buf.vars('hub').rows[p.view.pos.row]
+    if (row.type == 'Discussion')
+      if (row.ownerRepo && row.issueNum)
+        get('https://api.github.com/repos/' + row.ownerRepo + '/discussions/' + row.issueNum,
+            0,
+            (err, status, data) => {
+              let text
+
+              if (err) {
+                Mess.yell('Discussion: ' + err.message)
+                return
+              }
+
+              text = '# ' + data.title + '\n\n'
+              text += (data.body || '') + '\n\n'
+              Ed.make(p,
+                      { name: 'Discussion-' + row.issueNum + '.md',
+                        dir: p.dir },
+                      view => {
+                        view.buf.file = 'Discussion-' + row.issueNum + '.md'
+                        view.buf.opts.set('core.lang', 'markdown')
+                        view.buf.addMode('view')
+                        view.insert(text)
+                        view.buf.modified = 0
+                      })
+            })
+      else
+        Mess.yell('Missing ownerRepo or issueNum')
+    else
+      Mess.yell('This is for Discussion notifications')
+  }
+
   function equal
   () {
     let p, row
@@ -1354,8 +1395,10 @@ function initHub
       showRelease()
     else if (row.type == 'Issue')
       showIssue()
+    else if (row.type == 'Discussion')
+      showDiscussion()
     else
-      Mess.yell('Unknown notification type')
+      Mess.yell('Missing handling for type ' + row.type)
   }
 
   Opt.declare('core.vc.github.token', 'str', '')

@@ -31,8 +31,8 @@ function divW
                [ divCl('assist-w',
                        [ divCl('assist-main',
                                [ divCl('assist-main-h'),
-                                 divCl('assist-main-code retracted'),
-                                 divCl('assist-main-generic', '...') ]) ]) ])
+                                 divCl('assist-main-code'),
+                                 divCl('assist-main-generic retracted', '...') ]) ]) ])
 }
 
 export
@@ -212,24 +212,6 @@ function init
     code.querySelectorAll('.assist-extra-h').forEach(h => h.remove())
     code.querySelectorAll('.assist-extra').forEach(e => e.remove())
     view.buf.mode.assist.extras?.forEach(setExtra)
-
-    {
-      let hasContent
-
-      hasContent = code.querySelector('.assist-def').childNodes.length
-                || code.querySelector('.assist-callers').childNodes.length
-                || code.querySelector('.assist-sig').innerText.trim().length
-                || code.querySelector('.assist-pages').childNodes.length
-                || code.querySelectorAll('.assist-extra').length
-      if (hasContent) {
-        Css.expand(code)
-        Css.retract(generic)
-      }
-      else {
-        Css.retract(code)
-        Css.expand(generic)
-      }
-    }
   }
 
   function update

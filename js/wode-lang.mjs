@@ -158,7 +158,8 @@ function init
                   alias: [],
                   name: 'Text',
                   extensions: [ '.txt' ] })
-  WodeMode.addMode(langs[0])
+  WodeMode.addMode(langs[0],
+                   { assist: { pages: 1 } })
   d({ langs })
 
   loadLang(Loc.appDir().join('lib/@codemirror/lang-javascript.js'),

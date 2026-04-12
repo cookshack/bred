@@ -125,6 +125,7 @@ div.assist-uri {
 .assist-extra.retracted,
 .assist-pages-h.retracted,
 .assist-pages.retracted,
-.assist-main-body.retracted {
+.assist-main-body.retracted,
+.assist-main-empty.retracted {
   display: none;
 }

@@ -11,10 +11,11 @@ import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/pane.mjs'
 import * as Panel from '../../js/panel.mjs'
 import * as U from '../../js/util.mjs'
+import * as View from '../../js/view.mjs'
 import * as Win from '../../js/win.mjs'
 import { d } from '../../js/mess.mjs'
 
-let onCursor, onSetBuf, icon
+let onCursor, onFocus, onSetBuf, icon
 
 export
 function make
@@ -286,6 +287,7 @@ function init
 
   onCursor = Ed.onCursor((be, view) => update(view))
   onSetBuf = Pane.onSetBuf(view => update(view))
+  onFocus = View.onFocus(view => update(view))
 
   Mode.add('Assist', { viewInit,
                        icon: { name: 'assist' } })
@@ -311,6 +313,7 @@ function free
 () {
   Mode.remove('Assist')
   onCursor.free()
+  onFocus.free()
   onSetBuf.free()
   icon.remove()
 }

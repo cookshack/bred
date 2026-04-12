@@ -12,6 +12,7 @@ import * as Mess from './mess.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
 import * as Win from './win.mjs'
+import * as View from './view.mjs'
 import { d } from './mess.mjs'
 
 let id, bootBuf, onSetBufs
@@ -191,6 +192,9 @@ function add
     }
     else if (p.view?.ed)
       p.view.ed.focus()
+
+    if (View.onFocuss)
+      View.onFocuss.forEach(cb => cb(view))
   }
 
   function next

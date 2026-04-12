@@ -38,6 +38,7 @@ import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as Vc from './vc.mjs'
 import * as ViewMode from './view-mode.mjs'
+import * as View from './view.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
@@ -103,6 +104,7 @@ function initPackages
   Buf.init()
   Frame.init()
   Pane.init()
+  View.init()
   Lsp.init()
   Ed.init(backend, err => {
     if (err)

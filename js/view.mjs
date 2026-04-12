@@ -7,6 +7,19 @@ import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
+export let onFocuss
+
+export
+function onFocus
+(cb) { // (view)
+  function free
+  () {
+    onFocuss.delete(cb)
+  }
+  onFocuss.add(cb)
+  return { free }
+}
+
 export
 function make
 (b,
@@ -537,4 +550,10 @@ function make
   views.push(v)
 
   return v
+}
+
+export
+function init
+() {
+  onFocuss = new Set()
 }

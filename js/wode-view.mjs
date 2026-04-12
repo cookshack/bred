@@ -11,6 +11,7 @@ import * as Pane from './pane.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
+import * as View from './view.mjs'
 import * as Wode from './wode.mjs'
 import * as WodeCommon from './wode-common.mjs'
 import * as WodeDecor from './wode-decor.mjs'
@@ -486,6 +487,8 @@ function _viewInit
           on.cb && on.cb(update)
         })
 
+      if (View.onFocuss)
+        View.onFocuss.forEach(cb => cb(view))
     }
 
     if (curse)

@@ -33,7 +33,7 @@
   display: flex;
 }
 
-.assist-main-body {
+.assist-main-code {
   height: 100%;
   min-height: 100%;
   margin-bottom: 2rem;
@@ -121,11 +121,17 @@ div.assist-uri {
   margin-top: auto;
 }
 
+.assist-main-generic {
+  margin: auto;
+  color: var(--clr-comment);
+  font-size: 1.2rem;
+}
+
 .assist-extra-h.retracted,
 .assist-extra.retracted,
 .assist-pages-h.retracted,
 .assist-pages.retracted,
-.assist-main-body.retracted,
-.assist-main-empty.retracted {
+.assist-main-code.retracted,
+.assist-main-generic.retracted {
   display: none;
 }

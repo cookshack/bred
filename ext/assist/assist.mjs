@@ -31,8 +31,8 @@ function divW
                [ divCl('assist-w',
                        [ divCl('assist-main',
                                [ divCl('assist-main-h'),
-                                 divCl('assist-main-body retracted'),
-                                 divCl('assist-main-empty', '...') ]) ]) ])
+                                 divCl('assist-main-code retracted'),
+                                 divCl('assist-main-generic', '...') ]) ]) ])
 }
 
 export
@@ -43,7 +43,7 @@ function init
   function refresh
   (v, // assist
    view) { // target
-    let body
+    let code
 
     function uriPath
     (uri) {
@@ -79,9 +79,9 @@ function init
 
       }
 
-      Css.expand(body)
+      Css.expand(code)
 
-      top = body.querySelector('.assist-top')
+      top = code.querySelector('.assist-top')
 
       lang = top.querySelector('.assist-lang')
       lang.dataset.id = view.buf.opt('core.lang')
@@ -94,7 +94,7 @@ function init
       tok = top.querySelector('.assist-tok')
       tok.innerText = results?.node?.name
 
-      el = body.querySelector('.assist-def')
+      el = code.querySelector('.assist-def')
       el.innerHTML = ''
       if (results?.def) {
         let def, line
@@ -104,7 +104,7 @@ function init
         append(el, link(def.name, def.uri, line))
       }
 
-      el = body.querySelector('.assist-callers')
+      el = code.querySelector('.assist-callers')
       el.innerText = ''
       if (results?.callers)
         results.callers.forEach(res => {
@@ -129,9 +129,9 @@ function init
     (results) {
       let el
 
-      Css.expand(body)
+      Css.expand(code)
 
-      el = body.querySelector('.assist-sig')
+      el = code.querySelector('.assist-sig')
       el.innerHTML = ''
       if (results?.sig) {
         let sig
@@ -146,8 +146,8 @@ function init
     () {
       let el, head
 
-      head = body.querySelector('.assist-pages-h')
-      el = body.querySelector('.assist-pages')
+      head = code.querySelector('.assist-pages-h')
+      el = code.querySelector('.assist-pages')
 
       if (view.buf.mode.assist.pages) {
         Css.expand(head)
@@ -195,37 +195,37 @@ function init
     function setExtra
     (extra) {
       if (extra.head)
-        append(body, divCl('assist-extra-h assist-' + extra.key + '-h', extra.head()))
+        append(code, divCl('assist-extra-h assist-' + extra.key + '-h', extra.head()))
       if (extra.co)
-        append(body, divCl('assist-extra assist-' + extra.key, extra.co(view)))
+        append(code, divCl('assist-extra assist-' + extra.key, extra.co(view)))
     }
 
-    body = v.ele.querySelector('.assist-main-body')
+    code = v.ele.querySelector('.assist-main-code')
 
     view.getCallers(setDefCaller, setSig)
 
     setPages()
 
-    body.querySelectorAll('.assist-extra-h').forEach(h => h.remove())
-    body.querySelectorAll('.assist-extra').forEach(e => e.remove())
+    code.querySelectorAll('.assist-extra-h').forEach(h => h.remove())
+    code.querySelectorAll('.assist-extra').forEach(e => e.remove())
     view.buf.mode.assist.extras?.forEach(setExtra)
 
     {
       let empty, main, hasContent
 
       main = v.ele.querySelector('.assist-main')
-      empty = main.querySelector('.assist-main-empty')
-      hasContent = body.querySelector('.assist-def').childNodes.length
-                || body.querySelector('.assist-callers').childNodes.length
-                || body.querySelector('.assist-sig').innerText.trim().length
-                || body.querySelector('.assist-pages').childNodes.length
-                || body.querySelectorAll('.assist-extra').length
+      empty = main.querySelector('.assist-main-generic')
+      hasContent = code.querySelector('.assist-def').childNodes.length
+                || code.querySelector('.assist-callers').childNodes.length
+                || code.querySelector('.assist-sig').innerText.trim().length
+                || code.querySelector('.assist-pages').childNodes.length
+                || code.querySelectorAll('.assist-extra').length
       if (hasContent) {
-        Css.expand(body)
+        Css.expand(code)
         Css.retract(empty)
       }
       else {
-        Css.retract(body)
+        Css.retract(code)
         Css.expand(empty)
       }
     }
@@ -247,12 +247,12 @@ function init
 
   function viewInit
   (view, spec, cb) { // (view)
-    let p, body
+    let p, code
 
-    body = view.ele.querySelector('.assist-main-body')
+    code = view.ele.querySelector('.assist-main-code')
     p = view.win.frame1.pane
 
-    append(body,
+    append(code,
            divCl('assist-top',
                  [ div('Lang'), divCl('assist-lang'),
                    div('Offset'), divCl('assist-offset'),

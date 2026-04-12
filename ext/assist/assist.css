@@ -125,11 +125,16 @@ div.assist-uri {
   color: var(--clr-comment);
 }
 
+.assist-callers-h.retracted,
+.assist-callers.retracted,
+.assist-def-h.retracted,
+.assist-def.retracted,
 .assist-extra-h.retracted,
 .assist-extra.retracted,
 .assist-pages-h.retracted,
 .assist-pages.retracted,
 .assist-main-code.retracted,
-.assist-main-generic.retracted {
+.assist-main-generic.retracted,
+.assist-top.retracted {
   display: none;
 }

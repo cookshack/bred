@@ -58,7 +58,7 @@ function init
 
     function setDefCaller
     (results) {
-      let lang, off, tok, el, top
+      let el, elH, top
 
       function lnum
       (num) {
@@ -84,30 +84,48 @@ function init
 
       top = code.querySelector('.assist-top')
 
-      lang = top.querySelector('.assist-lang')
-      lang.dataset.id = view.buf.opt('core.lang')
-      lang.innerText = lang.dataset.id
-      lang.dataset.run = 'Lang'
+      if (view.ed) {
+        let lang, off, tok
 
-      off = top.querySelector('.assist-offset')
-      off.innerText = view.offset
+        Css.expand(top)
 
-      tok = top.querySelector('.assist-tok')
-      tok.innerText = results?.node?.name
+        lang = top.querySelector('.assist-lang')
+        lang.dataset.id = view.buf.opt('core.lang')
+        lang.innerText = lang.dataset.id
+        lang.dataset.run = 'Lang'
+
+        off = top.querySelector('.assist-offset')
+        off.innerText = view.offset
+
+        tok = top.querySelector('.assist-tok')
+        tok.innerText = results?.node?.name
+      }
+      else
+        Css.retract(top)
 
       el = code.querySelector('.assist-def')
+      elH = code.querySelector('.assist-def-h')
       el.innerHTML = ''
       if (results?.def) {
         let def, line
 
+        Css.expand(el)
+        Css.expand(elH)
         def = results.def
         line = lnum(def.range.start.line)
         append(el, link(def.name, def.uri, line))
       }
+      else {
+        Css.retract(el)
+        Css.retract(elH)
+      }
 
       el = code.querySelector('.assist-callers')
+      elH = code.querySelector('.assist-callers-h')
       el.innerText = ''
-      if (results?.callers)
+      if (results?.callers) {
+        Css.expand(el)
+        Css.expand(elH)
         results.callers.forEach(res => {
           append(el,
                  divCl('assist-caller',
@@ -124,6 +142,11 @@ function init
                                                           'data-line': lnum(fr.start.line),
                                                           'data-col': fr.start.character })) ]))
         })
+      }
+      else {
+        Css.retract(el)
+        Css.retract(elH)
+      }
     }
 
     function setSig
@@ -239,15 +262,15 @@ function init
     generic.innerText = (name ? (name + ' mode') : '??')
 
     append(code,
-           divCl('assist-top',
+           divCl('assist-top retracted',
                  [ div('Lang'), divCl('assist-lang'),
                    div('Offset'), divCl('assist-offset'),
                    div('Token'), divCl('assist-tok') ]),
            divCl('assist-sig'),
-           divCl('assist-def-h', 'Def'),
-           divCl('assist-def'),
-           divCl('assist-callers-h', 'Callers'),
-           divCl('assist-callers'),
+           divCl('assist-def-h retracted', 'Def'),
+           divCl('assist-def retracted'),
+           divCl('assist-callers-h retracted', 'Callers'),
+           divCl('assist-callers retracted'),
            divCl('assist-pages-h', 'Pages'),
            divCl('assist-pages'))
 

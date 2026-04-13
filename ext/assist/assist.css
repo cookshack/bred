@@ -41,7 +41,17 @@
   flex-direction: column;
 }
 
+.assist-mode-w {
+  display: flex;
+}
+
+.assist-mode {
+  color: var(--clr-syntax0);
+  display: inline;
+}
+
 .assist-code {
+  margin-top: 0.5rem;
   display: grid;
   grid-template-columns: minmax(min-content, max-content) auto;
   grid-gap: 0.5rem;
@@ -130,6 +140,7 @@ div.assist-uri {
 .assist-extra.retracted,
 .assist-pages-h.retracted,
 .assist-pages.retracted,
-.assist-main-body.retracted {
+.assist-main-body.retracted
+.assist-mode.retracted {
   display: none;
 }

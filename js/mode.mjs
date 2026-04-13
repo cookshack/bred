@@ -1,4 +1,3 @@
-import { divCl } from './dom.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Em from './em.mjs'
 import * as Mess from './mess.mjs'
@@ -87,20 +86,10 @@ function add
     modes.set(key, m)
   }
 
-  if (U.isPresent(spec.assist))
-    m.assist = spec.assist || {}
-  else
-    m.assist = { extras: [ { key: 'mode-div',
-                             co(view) {
-                               let name
-
-                               name = view.buf?.mode?.name
-                               return divCl('', (name ? (name + ' mode') : '??'))
-                             } } ] }
-
+  m.assist = spec.assist || {}
   m.opts = Opt.mode(m)
   m.key = key
-  m.name = key ? (spec.name || U.capitalize(key)) : ''
+  m.name = key ? U.capitalize(spec.name || key) : ''
   m.minor = spec.minor ? 1 : 0
   m.context = spec.context
   m.decorators = spec.decorators
@@ -117,21 +106,21 @@ function add
   m.seize = spec.seize
 
   if (spec.viewCopy?.length < 4) {
-    Mess.log('🚨 ERR: ' + m.name + ': viewCopy must have a whenReady arg')
+    Mess.log('🚨 ERR: ' + m.key + ': viewCopy must have a whenReady arg')
     d({ spec })
   }
   m.viewCopy = spec.viewCopy
   if (spec.viewInit?.length < 3) {
-    Mess.log('🚨 ERR: ' + m.name + ': viewInit must have a whenReady arg')
+    Mess.log('🚨 ERR: ' + m.key + ': viewInit must have a whenReady arg')
     d({ spec })
   }
   m.viewInit = spec.viewInit
   if (spec.viewReopen?.length < 3) {
-    Mess.log('🚨 ERR: ' + m.name + ': viewReopen must have a whenReady arg')
+    Mess.log('🚨 ERR: ' + m.key + ': viewReopen must have a whenReady arg')
     d({ spec })
   }
   if (m.viewCopy || m.viewInit) {
-    (m.viewCopy && m.viewInit) || Mess.log('🚨 ERR: ' + m.name + ': specify both of viewCopy and viewInit')
+    (m.viewCopy && m.viewInit) || Mess.log('🚨 ERR: ' + m.key + ': specify both of viewCopy and viewInit')
     m.viewReopen = spec.viewReopen || ((view, lineNum, whenReady) => genericViewReopen(m, view, lineNum, whenReady))
   }
 

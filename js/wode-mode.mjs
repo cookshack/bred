@@ -80,7 +80,7 @@ function makeExtsMinors
 export
 function seize
 (b, mode) {
-  d('ed seizing ' + b.name + ' for ' + mode.name)
+  d('ed seizing ' + b.name + ' for ' + mode.key)
   b.views.forEach(v => {
     let effects, exts
 

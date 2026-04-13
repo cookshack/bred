@@ -762,7 +762,7 @@ function _viewInit
   {
     let mode
 
-    mode = buf.mode.name
+    mode = buf.mode.key
     if (mode) {
       let lang
 

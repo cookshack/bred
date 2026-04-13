@@ -43,7 +43,7 @@ function init
   function refresh
   (v, // assist
    view) { // target
-    let body, code
+    let body, code, mode
 
     function uriPath
     (uri) {
@@ -206,6 +206,9 @@ function init
 
     code = body.querySelector('.assist-code')
 
+    mode = body.querySelector('.assist-mode')
+    mode.innerText = view.buf?.mode?.name || '??'
+
     if (view.ed) {
       let lang, off
 
@@ -253,6 +256,8 @@ function init
     p = view.win.frame1.pane
 
     append(body,
+           divCl('assist-mode-w',
+                 div([ divCl('assist-mode'), ' Mode' ])),
            divCl('assist-code retracted',
                  [ div('Lang'), divCl('assist-lang'),
                    div('Offset'), divCl('assist-offset'),

@@ -146,7 +146,7 @@ function init
 
     function setPages
     () {
-      let el, head
+      let count, el, head
 
       head = body.querySelector('.assist-pages-h')
       el = body.querySelector('.assist-pages')
@@ -162,6 +162,7 @@ function init
       }
 
       el.innerText = ''
+      count = 0
 
       if (view.ed) {
         let next, point, prev
@@ -183,6 +184,7 @@ function init
                                        'data-path': view.buf.path,
                                        'data-line': line.number }) ]) }
             append(el, prev.el)
+            count++
           }
           if (line.text.startsWith(''))
             next = 1
@@ -192,6 +194,8 @@ function init
         if (prev.el && Ed.bepLtEq(prev.start, point))
           Css.add(prev.el, 'assist-page-current')
       }
+
+      head.innerText = 'Pages (' + count + ')'
     }
 
     function setExtra

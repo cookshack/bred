@@ -483,7 +483,7 @@ function initCompile
     let now
 
     now = new Date()
-    buf.append('\n=== Compile exit with ' + code + ' on ' + now.toLocaleString() + '\n')
+    buf.append('\n### Compile exit with ' + code + ' on ' + now.toLocaleString() + '\n')
   }
 
   function runText

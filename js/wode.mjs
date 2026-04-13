@@ -681,6 +681,16 @@ function vregion
 export
 function initModeFns
 (mo) {
+  function tokenAt
+  (view, bep) {
+    if (view.ed?.state) {
+      let node
+
+      node = CMLang.syntaxTree(view.ed.state).resolveInner(bep)
+      return node?.name
+    }
+  }
+
   function getCallers
   (view,
    cb, // ({ node, def, callers, err })
@@ -813,6 +823,7 @@ function initModeFns
   mo.lang = lang
   mo.langData = langData
   mo.line = line
+  mo.tokenAt = tokenAt
   mo.lineAt = lineAt
   mo.lineEnd = lineEnd
   mo.lineStart = lineStart

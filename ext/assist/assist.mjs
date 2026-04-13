@@ -216,7 +216,7 @@ function init
     mode.innerText = view.buf?.mode?.name || '??'
 
     if (view.ed) {
-      let lang, off
+      let lang, off, tok
 
       Css.expand(code)
 
@@ -227,6 +227,9 @@ function init
 
       off = code.querySelector('.assist-offset')
       off.innerText = view.offset
+
+      tok = code.querySelector('.assist-tok')
+      tok.innerText = view.tokenAt(view.bep) || ''
     }
     else
       Css.retract(code)

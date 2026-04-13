@@ -191,6 +191,14 @@ function make
     return 0
   }
 
+  function tokenAt
+  (bep) {
+    if (b.mode?.key)
+      if (b.mode?.tokenAt)
+        return b.mode.tokenAt(v, bep)
+    return 0
+  }
+
   function line
   () {
     if (b.mode?.key)
@@ -493,6 +501,7 @@ function make
         onRemove: cb => onRemoves.push(cb),
         reconfHead,
         reopen,
+        tokenAt,
         close,
         sync,
         vars }

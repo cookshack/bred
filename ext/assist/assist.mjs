@@ -202,6 +202,12 @@ function init
         append(body, divCl('assist-extra assist-' + extra.key, extra.co(view)))
     }
 
+    if (view.buf.mode?.key == 'assist')
+      return
+
+    if (Pane.holdingView(view)?.isSupport)
+      return
+
     body = v.ele.querySelector('.assist-main-body')
 
     code = body.querySelector('.assist-code')

@@ -439,6 +439,11 @@ function add
         get head() {
           return eleHead
         },
+        get isSupport() {
+          if (Css.has(frame?.tab?.area?.el, 'bred-main'))
+            return 0
+          return 1
+        },
         get frame() {
           return frame
         },

@@ -543,10 +543,10 @@ function createWindow
 
               if (text == hover.text)
                 return
+              hover.text = text
               // have to recreate it every time so it stays on top of the browser views
               // https://github.com/electron/electron/issues/15899
               hover.create()
-              hover.text = text
               if (hover.fg && /#[0-9a-fA-F]+/.test(hover.fg))
                 fg = hover.fg
               else
@@ -558,20 +558,21 @@ function createWindow
               // could you inject js here?
               html = 'data:text/html,' + globalThis.encodeURIComponent('<html style="font-family: \'DejaVu Sans\', sans-serif;"><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + '; background-color: ' + bg + '; border: 1px solid ' + fg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
               hover.view.webContents.loadURL(html)
-              hover.view.setVisible(true)
-              hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {
-                hover.resize(wh[0], wh[1])
+              hover.view.webContents.once('did-finish-load', () => {
+                hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {
+                  hover.resize(wh[0], wh[1])
+                })
               })
+              hover.view.setVisible(true)
             },
             resize(width, height) {
               if (hover.view) {
-                let bounds
+                let contentBounds
 
                 height = height ?? 30
-                bounds = win.getBounds()
-                width = width ?? bounds.width
-                d('resize to ' + width + ',' + height)
-                hover.view.setBounds({ x: 0, y: bounds.height - height, width, height })
+                contentBounds = win.getContentBounds()
+                width = width ?? contentBounds.width
+                hover.view.setBounds({ x: 0, y: contentBounds.height - height, width, height })
               }
             } }
   win.bred.hover = hover

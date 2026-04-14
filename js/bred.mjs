@@ -702,8 +702,8 @@ function initCmds
         })
         return
       }
-      Tab.forEach(win.main, tab => Css.retract(tab.frameLeft.el))
-      Tab.forEach(win.main, tab => tab.framesRight.forEach(fr => Css.retract(fr.el)))
+      Tab.forEach(win.main, tab => tab.frameLeft.retract())
+      Tab.forEach(win.main, tab => tab.framesRight.forEach(fr => fr.retract()))
       Css.remove(win.frameToggleL, 'mini-frame-open')
       Css.remove(win.frameToggleR, 'mini-frame-open')
       return

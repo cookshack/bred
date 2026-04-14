@@ -538,7 +538,7 @@ function createWindow
               hover.view.setVisible(false)
             },
             on(text) {
-              let html, bg, fg
+              let html, bg, fg, fontSize
 
               if (text == hover.text)
                 return
@@ -554,8 +554,9 @@ function createWindow
                 bg = hover.bg
               else
                 bg = ((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
+              fontSize = Profile.stores.opt.get('core.fontSize') || 16
               // could you inject js here?
-              html = 'data:text/html,' + globalThis.encodeURIComponent('<html style="font-family: \'DejaVu Sans\', sans-serif;"><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + '; background-color: ' + bg + '; border: 1px solid ' + fg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
+              html = 'data:text/html,' + globalThis.encodeURIComponent('<html style="font-family: \'DejaVu Sans\', sans-serif; font-size: ' + fontSize + 'px;"><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + '; background-color: ' + bg + '; border: 1px solid ' + fg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
               hover.view.webContents.loadURL(html)
               hover.view.webContents.once('did-finish-load', () => {
                 hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {

@@ -513,7 +513,6 @@ function createWindow
             create() {
               if (hover.view)
                 win.contentView.removeChildView(hover.view)
-              hover.text = 0
               hover.view = new WebContentsView()
               hover.view.setBackgroundColor((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
               hover.view.webContents.on('blur', () => {

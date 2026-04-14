@@ -27,7 +27,7 @@ function load
       ext.init()
     Mess.log('Loading extension ' + name + ' JS... done')
     if (cb)
-      cb()
+      cb(name)
   }
 
   loc = Loc.make(dir)
@@ -50,7 +50,7 @@ function load
 
 export
 function loadAll
-() {
+(loadExtCb) { // (name)
   let dir
 
   function ok
@@ -70,7 +70,7 @@ function loadAll
     return 1
   }
 
-  setTimeout(() => load(dir, 'core'))
+  setTimeout(() => load(dir, 'core', loadExtCb))
 
   dir = Loc.appDir()
   dir.join('ext')
@@ -91,7 +91,7 @@ function loadAll
         if (err)
           return
         if (data.exists)
-          load(dir, f.name)
+          load(dir, f.name, loadExtCb)
       })
     })
   })

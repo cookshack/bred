@@ -1744,7 +1744,6 @@ function start2
   initEvalLine()
 
   initRecent()
-  Ext.loadAll() // async
 
   d('filling panes')
   tab = Tab.current(Win.current().main)
@@ -1763,6 +1762,7 @@ function start2
   p = Pane.current(tab.frame1)
   p.focus()
   Timing.stop('bred.start2')
+  Ext.loadAll(name => (name == 'assist') && (frames.right == 1) && Cmd.run('assist'))
   start3(tab)
 }
 

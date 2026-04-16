@@ -326,7 +326,8 @@ function init
     }
 
     spec = spec || {}
-    return [ '➔ ' + tool + ' file ',
+    return [ divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }),
+             ' ' + tool + ' file ',
              divCl('code-file',
                    makeRelative(buf, path),
                    { 'data-run': 'open link', 'data-path': path }),
@@ -1283,6 +1284,14 @@ function init
     })
   }
 
+  function toggleDetails
+  (u, we) {
+    let el
+
+    el = we.e.target.closest('.code-msg-tool')
+    Css.toggle(el, 'code-closed')
+  }
+
   function next
   () {
     let p, buf, provider, model
@@ -1515,6 +1524,7 @@ function init
   Em.on('s', 'stop with caution', mo)
 
   Cmd.add('toggle thinking', toggleThinking, mo)
+  Cmd.add('toggle details', toggleDetails, mo)
 
   Cmd.add('code buffer', () => {
     code(Pane.current().buf.text())

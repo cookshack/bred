@@ -98,6 +98,7 @@ div.code-thought:hover {
   white-space: pre-wrap;
   padding-left: var(--cm-pad);
   padding-right: var(--cm-pad);
+  display: flex;
 }
 
 .code-msg-role.code-msg-hidden,
@@ -161,6 +162,29 @@ div.code-thought:hover {
   width: 0.25rem;
   background: var(--clr-fill);
 }
+
+.code-msg-tool .code-msg-arrow {
+  cursor: pointer;
+  font-style: normal;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+}
+
+.code-msg-tool .code-msg-arrow::before {
+  content: '▾';
+}
+
+.code-msg-tool.code-closed .code-msg-arrow::before {
+  content: '▸';
+}
+
+.code-msg-tool.code-closed > .code-patch-ed,
+.code-msg-tool.code-closed > .code-code-ed,
+.code-msg-tool.code-closed > .code-msg-under {
+  display: none;
+}
+
 
 .code-msg-permission {
   align-self: flex-start;

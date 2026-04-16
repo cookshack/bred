@@ -1585,7 +1585,7 @@ function fill
 
 export
 function onCursor
-(cb) {
+(cb) { // (backend, view)
   let oc
 
   function free

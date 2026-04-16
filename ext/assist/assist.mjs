@@ -249,16 +249,18 @@ function init
 
   function update
   (view) {
-    if (tout)
-      clearTimeout(tout)
-    tout = setTimeout(() => {
-      Buf.forEach(b => {
-        if (b.mode.key == 'assist')
-          b.views.forEach(v => refresh(v, view))
-      })
-      tout = 0
-    },
-                      360)
+    if (Pane.current().view == view) {
+      if (tout)
+        clearTimeout(tout)
+      tout = setTimeout(() => {
+        Buf.forEach(b => {
+          if (b.mode.key == 'assist')
+            b.views.forEach(v => refresh(v, view))
+        })
+        tout = 0
+      },
+                        360)
+    }
   }
 
   function viewInit
@@ -303,7 +305,7 @@ function init
     p.setBuf(found)
   }
 
-  onCursor = Ed.onCursor((be, view) => update(view))
+  onCursor = Ed.onCursor((backend, view) => update(view))
   onSetBuf = Pane.onSetBuf(view => update(view))
   onFocus = View.onFocus(view => update(view))
 

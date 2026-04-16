@@ -652,6 +652,7 @@ function _viewInit
 
   function modeFromFirstLine
   (text) {
+    // these must be ed modes
     if (text && text.length) {
       let l
 
@@ -770,6 +771,8 @@ function _viewInit
       lang = WodeMode.modeLang(mode)
       if (lang && WodeLang.langs.find(l => l.id == lang))
         vsetLang(view, lang)
+      else
+        vsetLang(view, 'text')
     }
   }
 

@@ -30,6 +30,7 @@ function modeLang
 export
 function modeFor
 (path) {
+  // these must be ed modes
   if (path) {
     let lang, filename
 

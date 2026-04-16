@@ -49,12 +49,6 @@ function modeFor
 }
 
 export
-function patchModeKey
-() {
-  return 'diff'
-}
-
-export
 function makeExtsMode
 (view) {
   if (view.wode.wextsMode)

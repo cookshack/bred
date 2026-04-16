@@ -17,7 +17,7 @@ import * as U from '../../js/util.mjs'
 import { v4 as uuidv4 } from '../../lib/uuid/index.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
-import { diff } from '../../lib/codemirror-lang-diff.js'
+import { patch } from '../../lib/codemirror-lang-diff.js'
 import { markdown } from '../../lib/@codemirror/lang-markdown.js'
 import { langs } from '../../js/wode-lang.mjs'
 import { modeFor } from '../../js/wode-mode.mjs'
@@ -177,7 +177,7 @@ function init
     state = CMState.EditorState.create({ doc: text,
                                          extensions: [ CMView.EditorView.editable.of(false),
                                                        CMView.EditorView.lineWrapping,
-                                                       diff(),
+                                                       patch(),
                                                        themeExtension ] })
     ed = new CMView.EditorView({ state, parent: el })
     return { el, ed }

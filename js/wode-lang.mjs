@@ -35,7 +35,7 @@ function init
       lang.extensions = [ ...(lang.extensions || []), '.aux' ]
     if (lang.id == 'properties files')
       lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf', '.service' ]
-    if (lang.id == WodeMode.patchModeKey()) {
+    if (lang.id == 'patch') {
       lang.extensions = [ ...(lang.extensions || []), '.PATCH', '.rej' ]
       opt.assist.pages = 0
       opt.assist.extras = []
@@ -191,7 +191,7 @@ function init
 
   loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-csharp.js'), 'Csharp', { ext: [ 'cs', 'csx' ] })
   loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-csv.js'), 'Csv', { ext: [ 'csv' ] })
-  loadLang(Loc.appDir().join('lib/codemirror-lang-diff.js'), 'Diff',
+  loadLang(Loc.appDir().join('lib/codemirror-lang-diff.js'), 'Patch',
            { ext: [ 'diff', 'patch' ],
              wexts: [ { backend: 'cm',
                         name: 'extPatch',

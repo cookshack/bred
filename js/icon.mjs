@@ -210,7 +210,6 @@ function mode
     if (key == 'c_cpp') return { name: 'c_cpp' }
     if (key == 'css') return { name: 'css' }
     if (key == 'csv') return { name: 'csv' }
-    if (key == 'diff') return { name: 'patch' }
     if (key == 'dockerfile') return { name: 'docker' }
     if (key == 'dir') return { name: 'dir' }
     if (key == 'elisp') return { name: 'elisp' }

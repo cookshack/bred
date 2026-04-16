@@ -130,7 +130,7 @@ function equal
 
   function finish
   (b) {
-    b.mode = Ed.patchModeKey()
+    b.mode = 'patch'
     b.opts.set('core.lint.enabled', 0)
     b.addMode('equal')
     b.addMode('view')

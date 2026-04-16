@@ -632,12 +632,6 @@ function initSearch
 }
 
 export
-function patchModeKey
-() {
-  return Backend.patchModeKey()
-}
-
-export
 function makeMlDir
 (dir) {
   let mlDir

@@ -1,5 +1,3 @@
-import * as WodeMode from './wode-mode.mjs'
-
 import * as Patch from './patch.mjs'
 
 import * as CMState from '../lib/@codemirror/state.js'
@@ -34,8 +32,8 @@ function init
     return builder.finish()
   }
 
-  decorPlus = CMView.Decoration.mark({ class: WodeMode.patchModeKey() + '-refine-plus' })
-  decorMinus = CMView.Decoration.mark({ class: WodeMode.patchModeKey() + '-refine-minus' })
+  decorPlus = CMView.Decoration.mark({ class: 'patch-refine-plus' })
+  decorMinus = CMView.Decoration.mark({ class: 'patch-refine-minus' })
 
   decorEffect = CMState.StateEffect.define()
 
@@ -67,7 +65,7 @@ function init
               })
               Patch.refine(update.view.state.doc.toString(),
                            refines => {
-                             buf.vars(WodeMode.patchModeKey()).refines = refines
+                             buf.vars('patch').refines = refines
                              update.view.dispatch({
                                effects: decorEffect.of(decorateRefines(update.view, refines))
                              })
@@ -76,7 +74,7 @@ function init
           else
             setTimeout(() => update.view.dispatch({
               effects: decorEffect.of(decorateRefines(update.view,
-                                                      buf.vars(WodeMode.patchModeKey()).refines))
+                                                      buf.vars('patch').refines))
             }))
       }
     }
@@ -87,7 +85,7 @@ function init
 
                    buf = ed.bred?.view?.buf
                    if (buf)
-                     buf.vars(WodeMode.patchModeKey()).refines = refines
+                     buf.vars('patch').refines = refines
                    ed.dispatch({
                      effects: decorEffect.of(decorateRefines(ed, refines))
                    })

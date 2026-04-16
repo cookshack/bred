@@ -1,6 +1,7 @@
 import { divCl, button } from './dom.mjs'
 
 import * as Cmd from './cmd.mjs'
+import * as Css from './css.mjs'
 import * as Dom from './dom.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './em.mjs'
@@ -720,14 +721,26 @@ function init
   }
 
   function open
-  (u, we) {
-    let b
+  () {
+    let p, el
 
-    b = we.e.target.dataset.id && find(b => b.id == we.e.target.dataset.id)
-    if (b)
-      Pane.current().setBuf(b)
-    else
-      Mess.say('Missing target ID')
+    p = Pane.current()
+    el = p.view?.point?.over()
+    while (el) {
+      if (Css.has(el, 'buffers-id')) {
+        let buf, id
+
+        id = el.innerText.trim()
+        buf = find(b => b.id == id)
+        if (buf)
+          p.setBuf(buf)
+        else
+          Mess.say('Mising buffer: ' + id)
+        return
+      }
+      el = el.previousElementSibling
+    }
+    Mess.say('Move to buffer line')
   }
 
   function viewInit
@@ -786,7 +799,7 @@ function init
   Cmd.add('refresh', () => viewInit(Pane.current().view), mo)
 
   Em.on('g', 'refresh', mo)
-  Em.on('Enter', 'select', mo)
+  Em.on('Enter', 'open buffer', mo)
 }
 
 // was inside buf, but then runs in globalThis of buf

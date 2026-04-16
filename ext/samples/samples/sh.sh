@@ -1,0 +1,4 @@
+for LETTER in {A..Z}
+do
+  ./generate-letter $LETTER > ../img/letter/letter-"${LETTER,,}".svg
+done

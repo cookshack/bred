@@ -16,8 +16,6 @@ export let wexts
 export
 function modeFromLang
 (id) {
-  if (id == 'shell')
-    return 'sh'
   if (id == 'plaintext')
     return 'text'
   return id
@@ -26,8 +24,6 @@ function modeFromLang
 export
 function modeLang
 (id) {
-  if (id == 'sh')
-    return 'shell'
   return id
 }
 

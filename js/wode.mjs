@@ -2284,11 +2284,11 @@ div.cm-line.cm-activeLine {
 }
 
 function langFromCodeLang
-(code) {
-  if (code == 'sh')
-    return 'shell'
+(code) { // eg ```sh in markdown
   if (code == 'bash')
-    return 'shell'
+    return 'sh'
+  if (code == 'js')
+    return 'javascript'
   return code
 }
 

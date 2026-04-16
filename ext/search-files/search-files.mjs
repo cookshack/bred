@@ -45,7 +45,7 @@ function init
     p = Pane.current()
     needle = p.buf.vars('sr').needle ?? Mess.toss('Missing needle')
     needle.length || Mess.toss('Empty needle')
-    if (U.defined(p.buf.vars('shell').code)) {
+    if (U.isPresent(p.buf.vars('shell').code)) {
       p.buf.clear()
       Shell.run(p.dir,
                 Loc.appDir().join('bin/sr'),

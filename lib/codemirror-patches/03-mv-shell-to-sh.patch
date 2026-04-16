@@ -1,0 +1,24 @@
+--- @codemirror/language-data.js.orig	2026-04-16 10:04:23.567999556 +0200
++++ @codemirror/language-data.js	2026-04-16 10:13:21.604346867 +0200
+@@ -578,7 +578,8 @@
+         extensions: ["scm", "ss"],
+     }),
+     /*@__PURE__*/ofLegacy({
+-        name: "Shell",
++        name: "Sh",
++        loadName: "shell",
+         alias: ["bash", "sh", "zsh"],
+         extensions: ["sh", "ksh", "bash"],
+         filename: /^PKGBUILD$/,
+--- @codemirror/legacy-modes/mode/shell.js.orig	2026-04-16 10:07:28.493219730 +0200
++++ @codemirror/legacy-modes/mode/shell.js	2026-04-16 10:07:58.426255367 +0200
+@@ -132,8 +132,8 @@
+   return (state.tokens[0] || tokenBase) (stream, state);
+ };
+ 
+ export const shell = {
+-  name: "shell",
++  name: "sh",
+   startState: function() {return {tokens:[]};},
+   token: function(stream, state) {
+     return tokenize(stream, state);

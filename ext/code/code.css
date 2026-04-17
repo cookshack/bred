@@ -167,6 +167,7 @@ div.code-thought:hover {
   cursor: pointer;
   font-style: normal;
   display: inline-block;
+  margin-right: 0.25rem;
 }
 
 .code-msg-tool .code-msg-arrow::before {

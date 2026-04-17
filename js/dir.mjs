@@ -394,7 +394,7 @@ function fill
 
   path = path.expand()
   Tron.cmd('dir.get', path, (err, data) => {
-    let co, lines, vars
+    let co, lines, vars, fileCount, dirCount
 
     if (err) {
       Mess.yell('Dir.fill: ' + err.message)
@@ -417,6 +417,19 @@ function fill
     }
     else
       co = co.filter(f => f.bak ? 0 : 1)
+
+    fileCount = dirCount = 0
+    co.forEach(f => {
+      let file
+
+      file = f.stat?.mode & (1 << 15)
+      if (file)
+        fileCount++
+      else
+        dirCount++
+    })
+    buf.vars('dir').fileCount = fileCount
+    buf.vars('dir').dirCount = dirCount
 
     if (sort == 'size-asc')
       co = co.sort((f1,f2) => f1.stat?.size - f2.stat?.size)
@@ -880,7 +893,19 @@ function init
 
   hist = Hist.ensure('dir')
 
-  m = Mode.add('Dir', { viewInit })
+  {
+    let extras
+
+    extras = []
+    extras.push({ key: 'counts',
+                  co(view) {
+                    let dirVars
+
+                    dirVars = view.buf.vars('dir')
+                    return divCl('dir-counts', dirVars.fileCount + ' files, ' + dirVars.dirCount + ' dirs')
+                  } })
+    m = Mode.add('Dir', { viewInit, assist: { extras } })
+  }
 
   Opt.declare('dir.show.backups', 'bool', 0)
   Opt.declare('dir.show.hidden', 'bool', 0)

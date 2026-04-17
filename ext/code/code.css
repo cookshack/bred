@@ -174,10 +174,14 @@ div.code-thought:hover {
   content: '▾';
 }
 
+.code-thinking-hidden .code-msg-arrow::before,
 .code-msg-tool.code-closed .code-msg-arrow::before {
   content: '▸';
 }
 
+.code-thinking-hidden .code-patch-ed,
+.code-thinking-hidden .code-code-ed,
+.code-thinking-hidden .code-msg-under,
 .code-msg-tool.code-closed > .code-patch-ed,
 .code-msg-tool.code-closed > .code-code-ed,
 .code-msg-tool.code-closed > .code-msg-under {

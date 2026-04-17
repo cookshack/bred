@@ -119,3 +119,7 @@ div.dir-h-dir,
   color: var(--clr-text-light);
   display: flex;
 }
+
+.assist-dir-git {
+  margin-top: auto;
+}

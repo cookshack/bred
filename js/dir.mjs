@@ -18,6 +18,7 @@ import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as DirMarked from './dir-marked.mjs'
 import * as DirOps from './dir-ops.mjs'
+import * as Shell from './shell.mjs'
 import { d } from './mess.mjs'
 
 let watching, hist
@@ -430,6 +431,15 @@ function fill
     })
     buf.vars('dir').fileCount = fileCount
     buf.vars('dir').dirCount = dirCount
+
+    Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (branch, code) => {
+      if (code == 0)
+        buf.vars('dir').branch = branch.trim()
+      Shell.runToString(path, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code) => {
+        if (code == 0)
+          buf.vars('dir').hash = hash.trim()
+      })
+    })
 
     if (sort == 'size-asc')
       co = co.sort((f1,f2) => f1.stat?.size - f2.stat?.size)
@@ -897,12 +907,21 @@ function init
     let extras
 
     extras = []
-    extras.push({ key: 'counts',
+    extras.push({ key: 'dir-counts',
                   co(view) {
                     let dirVars
 
                     dirVars = view.buf.vars('dir')
                     return divCl('dir-counts', dirVars.fileCount + ' files, ' + dirVars.dirCount + ' dirs')
+                  } })
+    extras.push({ key: 'dir-git',
+                  co(view) {
+                    let dirVars
+
+                    dirVars = view.buf.vars('dir')
+                    if (dirVars.branch && dirVars.hash)
+                      return divCl('dir-git', '⎇ ' + dirVars.branch + ' ' + dirVars.hash)
+                    return divCl('dir-git', '')
                   } })
     m = Mode.add('Dir', { viewInit, assist: { extras } })
   }

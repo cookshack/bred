@@ -146,64 +146,57 @@ function init
 
     function setPages
     () {
-      let count, el, head
-
-      head = body.querySelector('.assist-pages-h')
-      el = body.querySelector('.assist-pages')
-
       if (view.buf.mode.assist.pages) {
-        Css.expand(head)
-        Css.expand(el)
+        let count, el, head
+
+        count = 0
+        head = divCl('assist-pages-h', 'Pages')
+        el = divCl('assist-pages')
+
+        if (view.ed) {
+          let next, point, prev
+
+          prev = { start: Ed.offToBep(view, 0) }
+          point = view.bep
+          Ed.vforLines(view, line => {
+            0 && d(line)
+            if (next) {
+              let text
+
+              if (Ed.bepLtEq(prev.start, point) && Ed.bepGt(line.from, point))
+                Css.add(prev.el, 'assist-page-current')
+              text = line.text.trim()
+              prev = { start: line.from,
+                       el: divCl('assist-page',
+                                 [ div(text,
+                                       { 'data-run': 'open link',
+                                         'data-path': view.buf.path,
+                                         'data-line': line.number }) ]) }
+              append(el, prev.el)
+              count++
+            }
+            if (line.text.startsWith(''))
+              next = 1
+            else
+              next = 0
+          })
+          if (prev.el && Ed.bepLtEq(prev.start, point))
+            Css.add(prev.el, 'assist-page-current')
+        }
+
+        head.innerText = 'Pages (' + count + ')'
+        append(body, head, el)
       }
-      else {
-        Css.retract(head)
-        Css.retract(el)
-        return
-      }
-
-      el.innerText = ''
-      count = 0
-
-      if (view.ed) {
-        let next, point, prev
-
-        prev = { start: Ed.offToBep(view, 0) }
-        point = view.bep
-        Ed.vforLines(view, line => {
-          0 && d(line)
-          if (next) {
-            let text
-
-            if (Ed.bepLtEq(prev.start, point) && Ed.bepGt(line.from, point))
-              Css.add(prev.el, 'assist-page-current')
-            text = line.text.trim()
-            prev = { start: line.from,
-                     el: divCl('assist-page',
-                               [ div(text,
-                                     { 'data-run': 'open link',
-                                       'data-path': view.buf.path,
-                                       'data-line': line.number }) ]) }
-            append(el, prev.el)
-            count++
-          }
-          if (line.text.startsWith(''))
-            next = 1
-          else
-            next = 0
-        })
-        if (prev.el && Ed.bepLtEq(prev.start, point))
-          Css.add(prev.el, 'assist-page-current')
-      }
-
-      head.innerText = 'Pages (' + count + ')'
     }
 
     function setExtra
-    (extra) {
-      if (extra.head)
-        append(body, divCl('assist-extra-h assist-mode-' + extra.key + '-h', extra.head()))
-      if (extra.co)
-        append(body, divCl('assist-extra assist-mode-' + extra.key, extra.co(view)))
+    (extra, end) {
+      if (end == extra.end) {
+        if (extra.head)
+          append(body, divCl('assist-extra-h assist-mode-' + extra.key + '-h', extra.head()))
+        if (extra.co)
+          append(body, divCl('assist-extra assist-mode-' + extra.key, extra.co(view)))
+      }
     }
 
     if (view.buf.mode?.key == 'assist')
@@ -240,11 +233,15 @@ function init
 
     view.getCallers(setDefCaller, setSig)
 
-    setPages()
-
     body.querySelectorAll('.assist-extra-h').forEach(h => h.remove())
     body.querySelectorAll('.assist-extra').forEach(e => e.remove())
-    view.buf.mode.assist.extras?.forEach(setExtra)
+    body.querySelectorAll('.assist-end-spacer').forEach(e => e.remove())
+    body.querySelectorAll('.assist-pages-h').forEach(h => h.remove())
+    body.querySelectorAll('.assist-pages').forEach(e => e.remove())
+    view.buf.mode.assist.extras?.forEach(e => setExtra(e))
+    append(body, divCl('assist-end-spacer'))
+    view.buf.mode.assist.extras?.forEach(e => setExtra(e, 1))
+    setPages()
     if (view.buf.dir) {
       let el
 
@@ -287,9 +284,7 @@ function init
            divCl('assist-def-h retracted', 'Def'),
            divCl('assist-def retracted'),
            divCl('assist-callers-h retracted', 'Callers'),
-           divCl('assist-callers retracted'),
-           divCl('assist-pages-h', 'Pages'),
-           divCl('assist-pages'))
+           divCl('assist-callers retracted'))
 
     refresh(view, p.view)
 

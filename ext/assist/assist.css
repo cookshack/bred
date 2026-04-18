@@ -77,10 +77,6 @@
   display: flex;
 }
 
-.assist-pages-h {
-  margin-top: auto;
-}
-
 .assist-callers,
 .assist-def,
 .assist-sig {
@@ -127,11 +123,7 @@ div.assist-uri {
   background-color: var(--clr-fill);
 }
 
-.assist-mode-patch-files-h {
-  margin-top: auto;
-}
-
-.assist-dir {
+.assist-end-spacer {
   margin-top: auto;
 }
 

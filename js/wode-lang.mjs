@@ -40,6 +40,7 @@ function init
       opt.assist.pages = 0
       opt.assist.extras = []
       opt.assist.extras.push({ key: 'patch-files',
+                               end: 1,
                                head() {
                                  return 'Files'
                                },

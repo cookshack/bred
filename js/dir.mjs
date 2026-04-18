@@ -915,6 +915,7 @@ function init
                     return divCl('dir-counts', dirVars.fileCount + ' files, ' + dirVars.dirCount + ' dirs')
                   } })
     extras.push({ key: 'dir-git',
+                  end: 1,
                   co(view) {
                     let dirVars
 

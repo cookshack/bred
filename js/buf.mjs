@@ -721,21 +721,31 @@ function init
   }
 
   function open
-  () {
+  (u, we) {
     let p, el
 
+    function go
+    (id) {
+      let buf
+
+      buf = find(b => b.id == id)
+      if (buf)
+        p.setBuf(buf)
+      else
+        Mess.say('Missing buffer: ' + id)
+    }
+
     p = Pane.current()
+
+    if (we?.e && (we.e.button == 0)) {
+      go(we.e.target.dataset.id || Mess.toss('Missing buffer id'))
+      return
+    }
+
     el = p.view?.point?.over()
     while (el) {
       if (Css.has(el, 'buffers-id')) {
-        let buf, id
-
-        id = el.innerText.trim()
-        buf = find(b => b.id == id)
-        if (buf)
-          p.setBuf(buf)
-        else
-          Mess.say('Mising buffer: ' + id)
+        go(el.innerText.trim())
         return
       }
       el = el.previousElementSibling

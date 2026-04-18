@@ -782,7 +782,8 @@ function init
 
     // ERR mode is from root globalThis  eg Buffers in root then in child, child missing mode
     bBuffers = shared().bBuffers
-    p = Pane.current()
+    p = Pane.current1()
+    p.focus()
     if (bBuffers)
       p.setBuf(bBuffers, {}, view => viewInit(view))
     else {

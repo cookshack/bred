@@ -229,7 +229,8 @@ function init
   () {
     let p, text, f
 
-    p = Pane.current()
+    p = Pane.current1()
+    p.focus()
     text = p.buf.text()
     f = first()
     if (f) {
@@ -304,7 +305,8 @@ function init
   () {
     let p, w, dir, needOn, old
 
-    p = Pane.current()
+    p = Pane.current1()
+    p.focus()
 
     old = p.buf
     w = divW()

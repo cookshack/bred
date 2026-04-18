@@ -131,6 +131,10 @@ div.assist-uri {
   margin-top: auto;
 }
 
+.assist-dir {
+  margin-top: auto;
+}
+
 .assist-callers-h.retracted,
 .assist-callers.retracted,
 .assist-code.retracted,

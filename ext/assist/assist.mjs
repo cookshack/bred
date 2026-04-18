@@ -245,6 +245,12 @@ function init
     body.querySelectorAll('.assist-extra-h').forEach(h => h.remove())
     body.querySelectorAll('.assist-extra').forEach(e => e.remove())
     view.buf.mode.assist.extras?.forEach(setExtra)
+    if (view.buf.dir) {
+      let el
+
+      el = divCl('assist-extra assist-dir', Ed.makeMlDir(view.buf.dir))
+      append(body, el)
+    }
   }
 
   function update

@@ -641,7 +641,7 @@ function makeMlDir
     let d
 
     d = ''
-    dir = Buf.prepDir(dir)
+    dir = U.shortHome(Buf.prepDir(dir))
     mlDir = dir.split('/').map(c => {
       let r
 

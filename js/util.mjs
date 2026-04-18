@@ -65,6 +65,21 @@ function home
 }
 
 export
+function shortHome
+(path) {
+  let h
+
+  h = home()
+  if (h.length > 1) {
+    if (path == h.slice(0, -1))
+      return '~'
+    if (path.startsWith(h))
+      return '~' + path.slice(h.length - 1)
+  }
+  return path
+}
+
+export
 function arrRm1
 (arr, pred) { // (cb)
   let i

@@ -914,16 +914,6 @@ function init
                     dirVars = view.buf.vars('dir')
                     return divCl('dir-counts', dirVars.fileCount + ' files, ' + dirVars.dirCount + ' dirs')
                   } })
-    extras.push({ key: 'dir-git',
-                  end: 1,
-                  co(view) {
-                    let dirVars
-
-                    dirVars = view.buf.vars('dir')
-                    if (dirVars.branch && dirVars.hash)
-                      return divCl('dir-git', '⎇ ' + dirVars.branch + ' ' + dirVars.hash)
-                    return divCl('dir-git', '')
-                  } })
     m = Mode.add('Dir', { viewInit, assist: { extras } })
   }
 

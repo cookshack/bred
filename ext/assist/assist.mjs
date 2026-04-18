@@ -10,6 +10,7 @@ import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/pane.mjs'
 import * as Panel from '../../js/panel.mjs'
+import * as Shell from '../../js/shell.mjs'
 import * as U from '../../js/util.mjs'
 import * as View from '../../js/view.mjs'
 import * as Win from '../../js/win.mjs'
@@ -189,6 +190,36 @@ function init
       }
     }
 
+    function setBranch
+    () {
+      if (view.buf.dir) {
+        let el
+
+        el = divCl('assist-extra assist-branch retracted')
+        append(body, el)
+        Shell.runToString(view.buf.dir, 'git', [ 'branch', '--show-current' ], 0, (branch, code) => {
+          if (code)
+            return
+          Shell.runToString(view.buf.dir, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code) => {
+            if (code)
+              return
+            el.innerText = U.charBranch() + ' ' + branch.trim() + ' ' + hash.trim()
+            Css.expand(el)
+          })
+        })
+      }
+    }
+
+    function setDir
+    () {
+      if (view.buf.dir) {
+        let el
+
+        el = divCl('assist-extra assist-dir', Ed.makeMlDir(view.buf.dir))
+        append(body, el)
+      }
+    }
+
     function setExtra
     (extra, end) {
       if (end == extra.end) {
@@ -238,16 +269,13 @@ function init
     body.querySelectorAll('.assist-end-spacer').forEach(e => e.remove())
     body.querySelectorAll('.assist-pages-h').forEach(h => h.remove())
     body.querySelectorAll('.assist-pages').forEach(e => e.remove())
+
     view.buf.mode.assist.extras?.forEach(e => setExtra(e))
     append(body, divCl('assist-end-spacer'))
     view.buf.mode.assist.extras?.forEach(e => setExtra(e, 1))
     setPages()
-    if (view.buf.dir) {
-      let el
-
-      el = divCl('assist-extra assist-dir', Ed.makeMlDir(view.buf.dir))
-      append(body, el)
-    }
+    setBranch()
+    setDir()
   }
 
   function update

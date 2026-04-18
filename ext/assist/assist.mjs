@@ -201,9 +201,9 @@ function init
     function setExtra
     (extra) {
       if (extra.head)
-        append(body, divCl('assist-extra-h assist-' + extra.key + '-h', extra.head()))
+        append(body, divCl('assist-extra-h assist-mode-' + extra.key + '-h', extra.head()))
       if (extra.co)
-        append(body, divCl('assist-extra assist-' + extra.key, extra.co(view)))
+        append(body, divCl('assist-extra assist-mode-' + extra.key, extra.co(view)))
     }
 
     if (view.buf.mode?.key == 'assist')

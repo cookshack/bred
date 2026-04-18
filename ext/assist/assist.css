@@ -123,6 +123,11 @@ div.assist-uri {
   background-color: var(--clr-fill);
 }
 
+.assist-branch {
+  display: flex;
+  white-space: nowrap;
+}
+
 .assist-end-spacer {
   margin-top: auto;
 }

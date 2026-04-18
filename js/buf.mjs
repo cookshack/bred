@@ -764,7 +764,7 @@ function init
                                     b.name,
                                     { 'data-id': b.id,
                                       'data-run': 'open buffer' }),
-                              divCl('buffers-path', b.path) ]))
+                              divCl('buffers-path', Ed.makeMlDir(b.path)) ]))
 
     if (cb)
       cb(view)

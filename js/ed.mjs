@@ -636,20 +636,29 @@ function makeMlDir
 (dir) {
   let mlDir
 
-  mlDir = ''
+  mlDir = []
   if (dir) {
     let d
 
     d = ''
-    dir = U.shortHome(Buf.prepDir(dir))
-    mlDir = dir.split('/').map(c => {
-      let r
+    U.shortHome(Buf.prepDir(dir)).split('/').forEach((c, i) => {
+      let r, home
 
       if (c.length == 0)
-        return 0
-      d = d + '/' + c
+        return
+
+      home = i == 0 && c == '~'
+
+      if (home)
+        d = U.home().replace(/\/$/, '')
+      else
+        d = d + '/' + c
       r = span(c, { 'data-path': d, 'data-run': 'open link' })
-      return [ '/', r ]
+
+      if (home)
+        mlDir.push(r)
+      else
+        mlDir.push([ '/', r ])
     })
   }
   return mlDir

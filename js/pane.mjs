@@ -47,6 +47,12 @@ function current
 }
 
 export
+function current1
+() {
+  return current(Tab.current()?.frame1)
+}
+
+export
 function focusView
 (view, skipEd, skipEle) {
   Frame.find(frame => {
@@ -616,7 +622,7 @@ function open
  whenReady) { // only if file
   let p
 
-  p = current(Tab.current()?.frame1)
+  p = current1()
   p.focus()
   return p.open(path, lineNum, whenReady)
 }

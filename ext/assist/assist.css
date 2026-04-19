@@ -133,7 +133,8 @@ div.assist-uri {
 .assist-branch {
   white-space: nowrap;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: min-content min-content 1fr;
+  grid-gap: 0.25rem;
 }
 
 .assist-end-spacer {

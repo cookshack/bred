@@ -1,7 +1,7 @@
 .assist-ww {
   width: 100%;
   height: 100%;
-  padding: 0.5rem;
+  padding: 0.5rem 0.5rem 0 0.5rem;
 
   display: flex;
   flex-direction: column;
@@ -55,6 +55,13 @@
   display: grid;
   grid-template-columns: minmax(min-content, max-content) auto;
   grid-gap: 0.5rem;
+}
+
+.assist-callers,
+.assist-def,
+.assist-extra,
+.assist-pages {
+  border-bottom: solid 1px var(--clr-fill);
 }
 
 .assist-callers-h,

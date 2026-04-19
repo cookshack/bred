@@ -370,7 +370,8 @@ function shellOrSpawn1
   spec = spec || {}
   if (spec.hist)
     spec.hist.add(sc)
-  p = Pane.current()
+  p = Pane.current1()
+  p.focus()
   dir = Loc.make(p.buf.dir)
   dir.ensureSlash()
   dir = dir.path || Loc.home()

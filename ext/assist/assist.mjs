@@ -193,9 +193,19 @@ function init
     function setBranch
     () {
       if (view.buf.dir) {
-        let el
+        let el, elName, elHash
 
-        el = divCl('assist-extra assist-branch retracted')
+        elName = divCl('assist-branch-name',
+                       [],
+                       { 'data-run': 'vc status' })
+        elHash = divCl('assist-branch-hash',
+                       [],
+                       { 'data-run': 'vc log one-line' })
+        el = divCl('assist-extra assist-branch retracted',
+                   [ divCl('assist-branch-icon', U.charBranch(),
+                           { 'data-run': 'vc branch' }),
+                     elName,
+                     elHash ])
         append(body, el)
         Shell.runToString(view.buf.dir, 'git', [ 'branch', '--show-current' ], 0, (branch, code) => {
           if (code)
@@ -203,7 +213,8 @@ function init
           Shell.runToString(view.buf.dir, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code) => {
             if (code)
               return
-            el.innerText = U.charBranch() + ' ' + branch.trim() + ' ' + hash.trim()
+            elName.innerText = branch.trim()
+            elHash.innerText = hash.trim()
             Css.expand(el)
           })
         })

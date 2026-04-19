@@ -2603,7 +2603,8 @@ function initLogOneLine
     args = [ 'log', '--oneline', '--no-decorate' ]
     if (u == 4)
       args.push('main..HEAD')
-    p = Pane.current()
+    p = Pane.current1()
+    p.focus()
     if (buf) {
       buf.dir = p.dir
       busySet(buf, busyCo())

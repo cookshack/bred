@@ -131,8 +131,9 @@ div.assist-uri {
 }
 
 .assist-branch {
-  display: flex;
   white-space: nowrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .assist-end-spacer {

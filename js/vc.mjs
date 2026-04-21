@@ -243,8 +243,9 @@ function patch
 function formatDate
 (str) {
   if (str?.length) {
-    let date, now
+    let date, now, days
 
+    days = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ]
     date = new Date(str)
     now = new Date()
 
@@ -252,14 +253,16 @@ function formatDate
          && (date.getMonth() == now.getMonth())
          && (date.getDate() == now.getDate()))
         || ((now - date) < (24 * 60 * 60 * 1000))) {
-      let time
+      let time, days
 
-      time = String(date.getHours()).padStart(2, '0')
+      time = days[date.getDay()] + ' '
+        + String(date.getHours()).padStart(2, '0')
         + 'h' + String(date.getMinutes()).padStart(2, '0')
-      return time.padEnd(16)
+      return time.padEnd(18)
     }
 
-    return date.getFullYear()
+    return days[date.getDay()] + ' '
+      + date.getFullYear()
       + '-' + String(date.getMonth() + 1).padStart(2, '0')
       + '-' + String(date.getDate()).padStart(2, '0')
       + ' ' + String(date.getHours()).padStart(2, '0')
@@ -527,6 +530,7 @@ function makePrBuf
   title = res.pr?.title || ('PR ' + num)
   body = res.pr?.body || ''
   text = '*Branch* ' + res.branch + '\n*State*  ' + res.state + ' (' + res.pr.state + ')\n'
+  text += '*Created* ' + formatDate(res.pr.created_at) + '\n'
   text += '\n# ' + title + '\n'
   text += '\n' + body.trim() + '\n'
 

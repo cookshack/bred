@@ -253,7 +253,7 @@ function formatDate
          && (date.getMonth() == now.getMonth())
          && (date.getDate() == now.getDate()))
         || ((now - date) < (24 * 60 * 60 * 1000))) {
-      let time, days
+      let time
 
       time = days[date.getDay()] + ' '
         + String(date.getHours()).padStart(2, '0')

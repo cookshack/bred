@@ -531,6 +531,7 @@ function makePrBuf
   body = res.pr?.body || ''
   text = '*Branch* ' + res.branch + '\n*State*  ' + res.state + ' (' + res.pr.state + ')\n'
   text += '*Created* ' + formatDate(res.pr.created_at) + '\n'
+  text += '*By* ' + res.pr.user.login + '\n'
   text += '\n# ' + title + '\n'
   text += '\n' + body.trim() + '\n'
 

@@ -1053,8 +1053,6 @@ function init
     (response) {
       let buffer, reader, decoder, cancelled
 
-      d('CHAT stream')
-
       function cancel
       () {
         cancelled = 1
@@ -1120,6 +1118,8 @@ function init
         })
       }
 
+      d('CHAT stream')
+
       reader = response.body?.getReader() || Mess.toss('Error reading response body')
 
       decoder = new TextDecoder()
@@ -1184,8 +1184,6 @@ function init
     function handle
     (response) {
       let buffer, reader, decoder, cancelled, calls, reminds
-
-      d('AGENT handle')
 
       function cancel
       () {
@@ -1275,6 +1273,8 @@ function init
                        no,
                        yes }
         }
+
+        d('AGENT handle')
 
         reader.read().then(({ done, value }) => {
           if (cancelled)
@@ -1560,21 +1560,6 @@ function init
           } })
   }
 
-  Cmd.add('llm', (u, we, model) => {
-    model = model || Opt.get('query.model.local')
-    Prompt.ask({ text: 'Prompt',
-                 hist },
-               prompt => {
-                 hist.add(prompt)
-                 Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
-                   buf.append(premo + ' ' + prompt + '\n\n')
-                   buf.opts.set('core.line.wrap.enabled', 1)
-                   buf.opts.set('core.lint.enabled', 0)
-                   buf.mode = 'richdown'
-                 })
-               })
-  })
-
   function lineStart
   () {
     let p, end
@@ -1844,20 +1829,6 @@ function init
     call?.no()
   }
 
-  Cmd.add('stop response', () => {
-    let p
-
-    p = Pane.current()
-    if (p.buf.vars('query').busy)
-      if (p.buf.vars('query').cancel) {
-        p.buf.vars('query').cancel()
-        appendWithEnd(p.buf, ' ...stopped.\n\n' + p.buf.vars('query').premo + ' ')
-        done(p.buf)
-      }
-      else
-        Mess.toss('cancel function missing')
-  })
-
   function runPrompt
   (prompt, type, model) {
     let name, buf, p, cb
@@ -1943,22 +1914,6 @@ function init
                prompt => runPrompt(prompt, type, model))
   }
 
-  Cmd.add('agent', () => {
-    prompt('Agent', Opt.get('query.model.agent'))
-  })
-
-  Cmd.add('chat', () => {
-    prompt('Chat', Opt.get('query.model.chat'))
-  })
-
-  Cmd.add('agent buffer', () => {
-    runPrompt(Pane.current().buf.text(), 'Agent', Opt.get('query.model.agent'))
-  })
-
-  Cmd.add('chat buffer', () => {
-    runPrompt(Pane.current().buf.text(), 'Chat', Opt.get('query.model.chat'))
-  })
-
   function setModel
   (type) {
     Prompt.choose('Set ' + type + ' model', models.map(m => m.name), {}, choice => {
@@ -1994,63 +1949,6 @@ function init
       }
     })
   }
-
-  Cmd.add('llm insert', () => {
-    Prompt.ask({ text: 'Describe what should be inserted',
-                 hist },
-               prompt => {
-                 let p
-
-                 p = Pane.current()
-
-                 hist.add(prompt)
-                 prompt = prompt.trim()
-                 insert(p.dir, p.view, prompt)
-               })
-  })
-
-  Cmd.add('fim', () => {
-    Prompt.ask({ text: 'Describe what should be inserted',
-                 hist },
-               prompt => {
-                 let p
-
-                 p = Pane.current()
-
-                 hist.add(prompt)
-                 prompt = prompt.trim()
-                 fim(p.dir, p.view, prompt)
-               })
-  })
-
-  Cmd.add('go', (u, we) => {
-    Prompt.ask({ text: 'Go',
-                 placeholder: we?.e.target.dataset.url,
-                 hist,
-                 suggest },
-               query => {
-                 query = query.trim()
-                 if (query.startsWith('http://')
-                     || query.startsWith('https://')) {
-                   Browse.browse(query)
-                   return
-                 }
-                 if (query.startsWith('file://')) {
-                   Pane.open(query)
-                   return
-                 }
-                 search(query, { hist })
-               })
-  })
-
-  Cmd.add('google', () => {
-    Prompt.ask({ text: 'Query',
-                 hist },
-               query => {
-                 query = query.trim()
-                 search(query, { hist })
-               })
-  })
 
   function getSys
   () {
@@ -2202,6 +2100,108 @@ User →
   "output": ""
 }` }
   }
+
+  Cmd.add('agent', () => {
+    prompt('Agent', Opt.get('query.model.agent'))
+  })
+
+  Cmd.add('chat', () => {
+    prompt('Chat', Opt.get('query.model.chat'))
+  })
+
+  Cmd.add('agent buffer', () => {
+    runPrompt(Pane.current().buf.text(), 'Agent', Opt.get('query.model.agent'))
+  })
+
+  Cmd.add('chat buffer', () => {
+    runPrompt(Pane.current().buf.text(), 'Chat', Opt.get('query.model.chat'))
+  })
+
+  Cmd.add('llm', (u, we, model) => {
+    model = model || Opt.get('query.model.local')
+    Prompt.ask({ text: 'Prompt',
+                 hist },
+               prompt => {
+                 hist.add(prompt)
+                 Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
+                   buf.append(premo + ' ' + prompt + '\n\n')
+                   buf.opts.set('core.line.wrap.enabled', 1)
+                   buf.opts.set('core.lint.enabled', 0)
+                   buf.mode = 'richdown'
+                 })
+               })
+  })
+
+  Cmd.add('stop response', () => {
+    let p
+
+    p = Pane.current()
+    if (p.buf.vars('query').busy)
+      if (p.buf.vars('query').cancel) {
+        p.buf.vars('query').cancel()
+        appendWithEnd(p.buf, ' ...stopped.\n\n' + p.buf.vars('query').premo + ' ')
+        done(p.buf)
+      }
+      else
+        Mess.toss('cancel function missing')
+  })
+
+  Cmd.add('llm insert', () => {
+    Prompt.ask({ text: 'Describe what should be inserted',
+                 hist },
+               prompt => {
+                 let p
+
+                 p = Pane.current()
+
+                 hist.add(prompt)
+                 prompt = prompt.trim()
+                 insert(p.dir, p.view, prompt)
+               })
+  })
+
+  Cmd.add('fim', () => {
+    Prompt.ask({ text: 'Describe what should be inserted',
+                 hist },
+               prompt => {
+                 let p
+
+                 p = Pane.current()
+
+                 hist.add(prompt)
+                 prompt = prompt.trim()
+                 fim(p.dir, p.view, prompt)
+               })
+  })
+
+  Cmd.add('go', (u, we) => {
+    Prompt.ask({ text: 'Go',
+                 placeholder: we?.e.target.dataset.url,
+                 hist,
+                 suggest },
+               query => {
+                 query = query.trim()
+                 if (query.startsWith('http://')
+                     || query.startsWith('https://')) {
+                   Browse.browse(query)
+                   return
+                 }
+                 if (query.startsWith('file://')) {
+                   Pane.open(query)
+                   return
+                 }
+                 search(query, { hist })
+               })
+  })
+
+  Cmd.add('google', () => {
+    Prompt.ask({ text: 'Query',
+                 hist },
+               query => {
+                 query = query.trim()
+                 search(query, { hist })
+               })
+  })
 
   allSubs = [ { key: 'createDir',
                 cb: createDir,

@@ -878,8 +878,6 @@ function init
     clearViews(p.buf)
   }
 
-  watching = new Map()
-
   function viewInit(view, spec, cb) {
     let dirVars, sort, bak, hid, surf
 
@@ -901,6 +899,7 @@ function init
       cb(view)
   }
 
+  watching = new Map()
   hist = Hist.ensure('dir')
 
   {

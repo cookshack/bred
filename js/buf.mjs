@@ -713,8 +713,6 @@ function init
 () {
   let mo
 
-  divExts = Mk.array
-
   function divW
   () {
     return divCl('buffers-ww', divCl('buffers-w bred-surface', ''))
@@ -779,6 +777,8 @@ function init
     if (cb)
       cb(view)
   }
+
+  divExts = Mk.array
 
   if (Win.root())
     Win.shared().buf = { buffers: Mk.array,

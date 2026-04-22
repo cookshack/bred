@@ -226,7 +226,6 @@ function add
   (b2,
    sbSpec, // { lineNum, bury }
    whenReady) { // (view)
-    sbSpec = sbSpec || {}
 
     function onReady
     (view) {
@@ -234,6 +233,8 @@ function add
       if (whenReady)
         whenReady(view)
     }
+
+    sbSpec = sbSpec || {}
 
     if (b2) {
       setBufInternal(b2, sbSpec, onReady)

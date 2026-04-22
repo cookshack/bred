@@ -290,9 +290,6 @@ function copy
 () {
   let p, marked, hist
 
-  p = Pane.current()
-  hist = p.buf.vars('dir').hist
-
   function cpMarked
   (dir, marked) {
     let list
@@ -369,6 +366,9 @@ function copy
     })
   }
 
+  p = Pane.current()
+  hist = p.buf.vars('dir').hist
+
   marked = DirCommon.getMarked(p.buf)
   if (marked.length) {
     cpMarked(Loc.make(p.dir).ensureSlash(), marked)
@@ -396,9 +396,6 @@ export
 function rename
 () {
   let p, marked, hist
-
-  p = Pane.current()
-  hist = p.buf.vars('dir').hist
 
   function renameMarked
   (dir, marked) {
@@ -454,6 +451,7 @@ function rename
   }
 
   p = Pane.current()
+  hist = p.buf.vars('dir').hist
   marked = DirCommon.getMarked(p.buf)
   if (marked.length) {
     renameMarked(Loc.make(p.dir).ensureSlash(), marked)

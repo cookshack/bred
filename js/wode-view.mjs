@@ -311,6 +311,36 @@ function _viewInit
     }
   }
 
+  function tronSelect
+  (str) {
+    selectTimeout = 0
+    //d('SELECT ' + str)
+    Tron.cmd1('clip.select', [ str ])
+  }
+
+  function modeFromFirstLine
+  (text) {
+    // these must be ed modes
+    if (text && text.length) {
+      let l
+
+      l = WodeLang.langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(text))
+      if (l)
+        return WodeMode.modeFromLang(l.id)
+      if (text.startsWith('#!/bin/sh'))
+        return 'sh'
+      if (text.startsWith('#!/bin/bash'))
+        return 'sh'
+      if (text.startsWith('#!/usr/bin/env bash'))
+        return 'sh'
+      if (text.startsWith('#!/usr/bin/make'))
+        return 'makefile'
+      if (text.startsWith('#!/usr/bin/env python'))
+        return 'python'
+    }
+    return 0
+  }
+
   d('WODE ================== _viewInit')
 
   spec = spec || {}
@@ -396,13 +426,6 @@ function _viewInit
     }
   },
                                           { decorations: v => v.decorations })
-
-  function tronSelect
-  (str) {
-    selectTimeout = 0
-    //d('SELECT ' + str)
-    Tron.cmd1('clip.select', [ str ])
-  }
 
   updateListener = CMView.EditorView.updateListener.of(update => {
     let curse
@@ -649,29 +672,6 @@ function _viewInit
   }
 
   //// load file
-
-  function modeFromFirstLine
-  (text) {
-    // these must be ed modes
-    if (text && text.length) {
-      let l
-
-      l = WodeLang.langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(text))
-      if (l)
-        return WodeMode.modeFromLang(l.id)
-      if (text.startsWith('#!/bin/sh'))
-        return 'sh'
-      if (text.startsWith('#!/bin/bash'))
-        return 'sh'
-      if (text.startsWith('#!/usr/bin/env bash'))
-        return 'sh'
-      if (text.startsWith('#!/usr/bin/make'))
-        return 'makefile'
-      if (text.startsWith('#!/usr/bin/env python'))
-        return 'python'
-    }
-    return 0
-  }
 
   useText = (typeof text == 'string') || text instanceof String
   if (spec.revert)

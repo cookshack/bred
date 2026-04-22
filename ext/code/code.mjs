@@ -1037,12 +1037,6 @@ function init
   (buf) {
     let state
 
-    state = buf.vars('code')
-    if (state.streamActive) return
-    state.streamActive = 1
-    state.lastEventTime = Date.now()
-    updateBufStatus(buf, '🔁 CONNECTING', '')
-
     async function runStream
     (client) {
       let iter
@@ -1118,6 +1112,12 @@ function init
         setTimeout(tryReconnect, 1000)
       })
     }
+
+    state = buf.vars('code')
+    if (state.streamActive) return
+    state.streamActive = 1
+    state.lastEventTime = Date.now()
+    updateBufStatus(buf, '🔁 CONNECTING', '')
 
     ensureClient(buf).then(runStream).catch(() => {
       d('CO spawn failed, retrying')

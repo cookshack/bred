@@ -293,8 +293,6 @@ function initFlushLines
   (other, regex) {
     let p, prompt
 
-    prompt = (other ? 'Keep' : 'Flush') + ' lines containing ' + (regex ? 'regex' : 'string')
-
     function flush
     (needle) {
       let psn, match
@@ -340,6 +338,7 @@ function initFlushLines
       }
     }
 
+    prompt = (other ? 'Keep' : 'Flush') + ' lines containing ' + (regex ? 'regex' : 'string')
     p = Pane.current()
     Prompt.ask({ text: prompt,
                  hist },

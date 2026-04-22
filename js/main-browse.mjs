@@ -311,9 +311,6 @@ function init
            make() {
              let hist, items, index
 
-             items = []
-             index = -1
-
              function add
              (href) {
                if (index >= 0) {
@@ -348,6 +345,9 @@ function init
                index--
                d(index)
              }
+
+             items = []
+             index = -1
 
              hist = { add,
                       back,

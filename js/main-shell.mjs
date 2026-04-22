@@ -10,10 +10,6 @@ function run
   let sender
   let runInShell, stdoutBuffer, stderrBuffer, lastFlushTime, flushTimer
 
-  d(ch + ' run: starting')
-  d(ch + ' run: cmd=' + sc + ' args=' + JSON.stringify(args))
-  d(ch + ' run: dir=' + dir)
-
   function flushBuffers
   () {
     let stdOutLen, stdErrLen
@@ -66,6 +62,10 @@ function run
     // Flush any remaining buffered data before closing
     flushBuffers()
   }
+
+  d(ch + ' run: starting')
+  d(ch + ' run: cmd=' + sc + ' args=' + JSON.stringify(args))
+  d(ch + ' run: dir=' + dir)
 
   stdoutBuffer = ''
   stderrBuffer = ''

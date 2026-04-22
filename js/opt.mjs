@@ -16,7 +16,7 @@ missing = {}
 export
 function load
 (cb) { // (err)
-  Timing.start('opt.load')
+
   function load1
   (prefix, data) {
     let values
@@ -31,6 +31,8 @@ function load
       values[prefix + kv[0]] = kv[1]
     })
   }
+
+  Timing.start('opt.load')
 
   Tron.cmd('profile.load', 'opt', (err, data) => {
     if (err) {

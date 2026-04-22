@@ -167,16 +167,6 @@ function initMouse
 () {
   let x, y, hover, to, target
 
-  mouse = { get x() {
-    return x
-  },
-            get y() {
-              return y
-            } }
-
-  globalThis.document.addEventListener('mousemove', xy)
-  globalThis.document.addEventListener('mouseenter', xy)
-
   function updateHover
   () {
     function getText
@@ -217,10 +207,146 @@ function initMouse
     updateHover()
     to = setTimeout(updateHover, 360)
   }
+
+  mouse = { get x() {
+    return x
+  },
+            get y() {
+              return y
+            } }
+
+  globalThis.document.addEventListener('mousemove', xy)
+  globalThis.document.addEventListener('mouseenter', xy)
 }
 
 function initCmds
 () {
+  function switchToTab
+  (i) {
+    let t
+
+    t = Tab.getByIndex(Win.current().main, i)
+    if (t)
+      t.show()
+  }
+
+  function defAt
+  (l, col) { // 1 indexed
+    let end
+
+    d(l)
+    d(col)
+    if (l.length == 0)
+      return 0
+    if (col == 0)
+      return 0
+    col--
+    // mv back over word chars to get start
+    while (1)
+      if (/[._a-zA-Z0-9]/.test(l[col])) {
+        if (col == 0)
+          break
+        col--
+      }
+      else {
+        col++
+        break
+      }
+
+    l = l.slice(col)
+    d(col)
+    d(l)
+    col = 0
+    end = l.length
+    // mv forward over word chars to get end
+    while (1)
+      if (/[._a-zA-Z0-9]/.test(l[col])) {
+        col++
+        if (col == end)
+          break
+      }
+      else
+        break
+
+    return l.slice(0, col)
+  }
+
+  function incrFont
+  (incr) { // in px
+    let px
+
+    incr = incr || 1
+
+    px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
+    //d('px: ' + px)
+    globalThis.document.documentElement.style.fontSize = (px + incr) + 'px'
+    //d('new size: ' + parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize))
+    Opt.set('core.fontSize', (px + incr))
+  }
+
+  function saveAndX
+  (quit) {
+    let count, errs, dones
+
+    function done
+    (err) {
+      if (err) {
+        Mess.yell(err.message)
+        errs++
+      }
+      else {
+        Mess.say('Saved')
+        dones++
+      }
+
+      if ((errs + dones) >= count) {
+        if (errs) {
+          Mess.yell(`${errs}/${count} saves failed`)
+          Prompt.close()
+          return
+        }
+        Cmd.run(quit ? 'exit' : 'relaunch')
+      }
+    }
+
+    count = dones = errs = 0
+    Buf.forEach(b => {
+      if (b.modified) {
+        count++
+        b.save(done)
+      }
+    })
+
+    return
+  }
+
+  function quitOrRestart
+  (quit) {
+    let mods
+
+    mods = Buf.filter(b => b.file && b.modified).map(b => [ divCl('float-f-name', b.name),
+                                                            divCl('float-f-path', b.path) ])
+    if (mods.length == 0) {
+      Cmd.run(quit ? 'exit' : 'relaunch')
+      return
+    }
+    Prompt.yn('Save these files before ' + (quit ? 'quitting' : 'restarting') + '?',
+              { icon: 'save',
+                under: divCl('float-files', mods) },
+              yes => {
+                if (yes)
+                  if (quit)
+                    Cmd.run('save and exit')
+                  else
+                    Cmd.run('save and relaunch')
+                else
+                  if (quit)
+                    Cmd.run('exit')
+                  else
+                    Cmd.run('relaunch')
+              })
+  }
+
   Cmd.add('click', click)
   Cmd.add('click aux', clickAux)
 
@@ -278,15 +404,6 @@ function initCmds
     if (tab.close())
       Css.retract(area.tabbar)
   })
-
-  function switchToTab
-  (i) {
-    let t
-
-    t = Tab.getByIndex(Win.current().main, i)
-    if (t)
-      t.show()
-  }
 
   Cmd.add('switch to tab 1', () => switchToTab(0))
   Cmd.add('switch to tab 2', () => switchToTab(1))
@@ -430,47 +547,6 @@ function initCmds
       }
     })
   })
-
-  function defAt
-  (l, col) { // 1 indexed
-    let end
-
-    d(l)
-    d(col)
-    if (l.length == 0)
-      return 0
-    if (col == 0)
-      return 0
-    col--
-    // mv back over word chars to get start
-    while (1)
-      if (/[._a-zA-Z0-9]/.test(l[col])) {
-        if (col == 0)
-          break
-        col--
-      }
-      else {
-        col++
-        break
-      }
-
-    l = l.slice(col)
-    d(col)
-    d(l)
-    col = 0
-    end = l.length
-    // mv forward over word chars to get end
-    while (1)
-      if (/[._a-zA-Z0-9]/.test(l[col])) {
-        col++
-        if (col == end)
-          break
-      }
-      else
-        break
-
-    return l.slice(0, col)
-  }
 
   Cmd.add('goto definition', () => {
     let p, l, pos, def, ctag
@@ -630,19 +706,6 @@ function initCmds
                   behavior: 'auto' })
   })
 
-  function incrFont
-  (incr) { // in px
-    let px
-
-    incr = incr || 1
-
-    px = parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize)
-    //d('px: ' + px)
-    globalThis.document.documentElement.style.fontSize = (px + incr) + 'px'
-    //d('new size: ' + parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize))
-    Opt.set('core.fontSize', (px + incr))
-  }
-
   Cmd.add('zoom in', () => incrFont())
   Cmd.add('zoom out', () => incrFont(-1))
 
@@ -772,71 +835,8 @@ function initCmds
     })
   })
 
-  function saveAndX
-  (quit) {
-    let count, errs, dones
-
-    function done
-    (err) {
-      if (err) {
-        Mess.yell(err.message)
-        errs++
-      }
-      else {
-        Mess.say('Saved')
-        dones++
-      }
-
-      if ((errs + dones) >= count) {
-        if (errs) {
-          Mess.yell(`${errs}/${count} saves failed`)
-          Prompt.close()
-          return
-        }
-        Cmd.run(quit ? 'exit' : 'relaunch')
-      }
-    }
-
-    count = dones = errs = 0
-    Buf.forEach(b => {
-      if (b.modified) {
-        count++
-        b.save(done)
-      }
-    })
-
-    return
-  }
-
   Cmd.add('save and exit', () => saveAndX(1))
   Cmd.add('save and relaunch', () => saveAndX())
-
-  function quitOrRestart
-  (quit) {
-    let mods
-
-    mods = Buf.filter(b => b.file && b.modified).map(b => [ divCl('float-f-name', b.name),
-                                                            divCl('float-f-path', b.path) ])
-    if (mods.length == 0) {
-      Cmd.run(quit ? 'exit' : 'relaunch')
-      return
-    }
-    Prompt.yn('Save these files before ' + (quit ? 'quitting' : 'restarting') + '?',
-              { icon: 'save',
-                under: divCl('float-files', mods) },
-              yes => {
-                if (yes)
-                  if (quit)
-                    Cmd.run('save and exit')
-                  else
-                    Cmd.run('save and relaunch')
-                else
-                  if (quit)
-                    Cmd.run('exit')
-                  else
-                    Cmd.run('relaunch')
-              })
-  }
 
   Cmd.add('quit', () => quitOrRestart(1))
   Cmd.add('restart', () => quitOrRestart())

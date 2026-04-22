@@ -596,16 +596,6 @@ function initDom
     return id
   }
 
-  Cmd.add('Dom', () => {
-    let b, p
-
-    p = Pane.current()
-    b = Buf.add('Dom', 'Dom', divW(), p.dir)
-    b.icon = 'dom'
-    b.addMode('view')
-    p.setBuf(b)
-  })
-
   function domRight
   (id) {
     let b, p, tab
@@ -623,6 +613,16 @@ function initDom
     p = Pane.current(tab.frameRight)
     p.setBuf(b)
   }
+
+  Cmd.add('Dom', () => {
+    let b, p
+
+    p = Pane.current()
+    b = Buf.add('Dom', 'Dom', divW(), p.dir)
+    b.icon = 'dom'
+    b.addMode('view')
+    p.setBuf(b)
+  })
 
   Cmd.add('Dom Right', (u, we) => {
     let el, id

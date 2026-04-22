@@ -37,7 +37,6 @@ function callers
  word, // { view, from, to, text }
  cb, // ({ callers, def })
  cbSig) { // ({ sig })
-  d('LSP callers')
 
   function empty
   () {
@@ -45,6 +44,8 @@ function callers
     if (cbSig)
       cbSig()
   }
+
+  d('LSP callers')
 
   if (avail(lang))
     call(lang,
@@ -213,7 +214,6 @@ function complete
 export
 function init
 () {
-  Timing.start('lsp.init')
   function handleReqResponse
   (response) {
     let id, cb
@@ -226,6 +226,8 @@ function init
       cb(response)
     }
   }
+
+  Timing.start('lsp.init')
 
   cbs = []
   id = 1

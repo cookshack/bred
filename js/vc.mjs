@@ -255,10 +255,9 @@ function formatDate
         || ((now - date) < (24 * 60 * 60 * 1000))) {
       let time
 
-      time = days[date.getDay()] + ' '
-        + String(date.getHours()).padStart(2, '0')
+      time = String(date.getHours()).padStart(2, '0')
         + 'h' + String(date.getMinutes()).padStart(2, '0')
-      return time.padEnd(18)
+      return time.padEnd(20)
     }
 
     return days[date.getDay()] + ' '

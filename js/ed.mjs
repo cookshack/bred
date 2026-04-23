@@ -842,12 +842,27 @@ function addCTags
     loc.join(t.path)
     t.path = loc.path
     if (t.pattern) {
-      if (t.pattern.startsWith('/^')
-          && t.pattern.endsWith('$/'))
-        t.line = t.pattern.slice(2, t.pattern.length - 2)
-      else
+      if (t.pattern.startsWith('/'))
+        t.pattern = t.pattern.slice(1)
+      if (t.pattern.endsWith('/'))
+        t.pattern = t.pattern.slice(0, t.pattern.length - 1)
+      if (t.pattern.startsWith('^')
+          && t.pattern.endsWith('$')) {
+        t.line = t.pattern.slice(1, t.pattern.length - 1)
+        t.regex = new RegExp('^' + escapeForRe(t.line) + '$')
+      }
+      else if (t.pattern.startsWith('^')) {
+        t.line = t.pattern.slice(1)
+        t.regex = new RegExp('^' + escapeForRe(t.line))
+      }
+      else if (t.pattern.endsWith('$')) {
+        t.line = t.pattern.slice(0, t.pattern.length - 1)
+        t.regex = new RegExp(escapeForRe(t.line) + '$')
+      }
+      else {
         t.line = t.pattern
-      t.regex = new RegExp('^' + escapeForRe(t.line) + '$')
+        t.regex = new RegExp(escapeForRe(t.line))
+      }
     }
     return t
   }

@@ -32,7 +32,19 @@ tests = {}
 
 customIndent = {
   'FunctionDeclaration ParamList': ctx => ctx.baseIndent,
-  'Property ParamList': ctx => ctx.baseIndent,
+  'Property ParamList': ctx => {
+    let block
+
+    block = ctx.node.parent?.getChild('Block')
+    if (block) {
+      let blockText
+
+      blockText = ctx.state.doc.slice(block.from, block.to)
+      if (/^\s*}/.test(blockText))
+        return ctx.column(ctx.node.parent.from)
+    }
+    return ctx.column(ctx.node.parent.from) + ctx.unit
+  },
 
   Block: ctx => {
     let parent
@@ -167,7 +179,8 @@ function g
 
 pass('struct fn param list',
      `
-y = { f() {
+y = { f
+() {
 // this
 },
 g
@@ -175,7 +188,8 @@ g
 // that
 } }`,
      `
-y = { f() {
+y = { f
+      () {
         // this
       },
       g

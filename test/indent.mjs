@@ -32,6 +32,7 @@ tests = {}
 
 customIndent = {
   'FunctionDeclaration ParamList': ctx => ctx.baseIndent,
+  'Property ParamList': ctx => ctx.baseIndent,
 
   Block: ctx => {
     let parent
@@ -163,6 +164,24 @@ function g
 () {
   // inside
 }`)
+
+pass('struct fn param list',
+     `
+y = { f() {
+// this
+},
+g
+() {
+// that
+} }`,
+     `
+y = { f() {
+        // this
+      },
+      g
+      () {
+        // that
+      } }`)
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,

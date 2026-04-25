@@ -3,46 +3,46 @@ let ons
 
 ons = {}
 
-contextBridge.exposeInMainWorld('tron', {
-  cmd: (name, args) => ipcRenderer.invoke('cmd', name, args),
-  acmd: (name, args) => ipcRenderer.invoke('acmd', name, args),
-  //
-  send: (ch, ...args) => ipcRenderer.send(ch, ...args),
-  // read a response
-  receive: (ch, cb) => ipcRenderer.once(ch, (e, d) => cb(d)),
-  on(ch, cb) {
-    let w
+contextBridge.exposeInMainWorld('tron', { cmd: (name, args) => ipcRenderer.invoke('cmd', name, args),
+                                          acmd: (name, args) => ipcRenderer.invoke('acmd', name, args),
+                                          //
+                                          send: (ch, ...args) => ipcRenderer.send(ch, ...args),
+                                          // read a response
+                                          receive: (ch, cb) => ipcRenderer.once(ch, (e, d) => cb(d)),
+                                          on
+                                          (ch, cb) {
+                                            let w
 
-    console.log('PRELOAD ' + ch + ' on')
+                                            console.log('PRELOAD ' + ch + ' on')
 
-    w = (e, d) => cb(d)
+                                            w = (e, d) => cb(d)
 
-    ons[ch] = ons[ch] || []
-    ons[ch].push({ cb, w })
+                                            ons[ch] = ons[ch] || []
+                                            ons[ch].push({ cb, w })
 
-    ipcRenderer.on(ch, w)
+                                            ipcRenderer.on(ch, w)
 
-    return () => {
-      console.log('PRELOAD ' + ch + ' off')
+                                            return () => {
+                                              console.log('PRELOAD ' + ch + ' off')
 
-      ons[ch] = ons[ch].filter(on => {
-        if (on.w == w) {
-          ipcRenderer.off(ch, on.w)
-          return 0
-        }
-        return 1
-      })
+                                              ons[ch] = ons[ch].filter(on => {
+                                                if (on.w == w) {
+                                                  ipcRenderer.off(ch, on.w)
+                                                  return 0
+                                                }
+                                                return 1
+                                              })
 
-      if (ons[ch].length)
-        console.log('PRELOAD ' + ch + ' now has ' + ons[ch].length + ' handlers')
-      else {
-        delete ons[ch]
-        console.log('PRELOAD ' + ch + ' rm')
-      }
-    }
-  },
-  // For performance analysis
-  perf() {
-    return { ons }
-  }
-})
+                                              if (ons[ch].length)
+                                                console.log('PRELOAD ' + ch + ' now has ' + ons[ch].length + ' handlers')
+                                              else {
+                                                delete ons[ch]
+                                                console.log('PRELOAD ' + ch + ' rm')
+                                              }
+                                            }
+                                          },
+                                          // For performance analysis
+                                          perf
+                                          () {
+                                            return { ons }
+                                          } })

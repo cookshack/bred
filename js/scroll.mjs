@@ -95,8 +95,8 @@ export function make
   surf.addEventListener('scroll', onScroll)
 
   return { set onScroll(fn) {
-    onScrollCb = fn
-  },
+             onScrollCb = fn
+           },
 
            set renderItem(fn) {
              spec.renderItem = fn
@@ -137,8 +137,7 @@ export function make
 
            destroy() {
              surf.removeEventListener('scroll', onScroll)
-           }
-  }
+           } }
 }
 
 export function init

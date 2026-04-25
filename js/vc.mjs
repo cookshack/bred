@@ -1603,20 +1603,18 @@ function initPrs
         state = pr.state == 'open' ? 'O' : (pr.merged ? 'M' : 'C')
         repo = ownerRepo.split('/')[1] || ''
 
-        return {
-          num: String(pr.number),
-          state,
-          prState: '',
-          repo,
-          ownerRepo,
-          title: pr.title,
-          updated: formatDate(pr.updated_at),
-          branch: '',
-          author: '',
-          approvedBy: '',
-          comments: 0,
-          url
-        }
+        return { num: String(pr.number),
+                 state,
+                 prState: '',
+                 repo,
+                 ownerRepo,
+                 title: pr.title,
+                 updated: formatDate(pr.updated_at),
+                 branch: '',
+                 author: '',
+                 approvedBy: '',
+                 comments: 0,
+                 url }
       })
 
       widths = [ 1, 4, 0, 0, 0, 0 ]

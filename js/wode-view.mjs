@@ -518,60 +518,58 @@ function _viewInit
       WodeCommon.runOnCursors(view)
   })
 
-  domEventHandlers = {
-    contextmenu() {
-      //d('WODE VIEW dom context')
-      // prevent right click from moving point
-      return true
-    },
-    mousedown(event) {
-      //d('WODE VIEW dom mousedown')
-      // prevent right click from moving point
-      if (event.button == 2)
-        return true
-      return false
-    },
-    mouseup(event) {
-      //d('WODE VIEW dom mouseup')
+  domEventHandlers = { contextmenu() {
+                         //d('WODE VIEW dom context')
+                         // prevent right click from moving point
+                         return true
+                       },
+                       mousedown(event) {
+                         //d('WODE VIEW dom mousedown')
+                         // prevent right click from moving point
+                         if (event.button == 2)
+                           return true
+                         return false
+                       },
+                       mouseup(event) {
+                         //d('WODE VIEW dom mouseup')
 
-      if (event.button == 1) {
-        // middle click, let cm paste, then run any handlers
-        setTimeout(() => Bred.handleMouse('click', event))
-        return false
-      }
+                         if (event.button == 1) {
+                           // middle click, let cm paste, then run any handlers
+                           setTimeout(() => Bred.handleMouse('click', event))
+                           return false
+                         }
 
-      if (event.button == 2)
-        // right click, prevent cm from moving point
-        return true
+                         if (event.button == 2)
+                           // right click, prevent cm from moving point
+                           return true
 
-      // else let cm move point, then run any handlers
-      setTimeout(() => Bred.handleMouse('click', event))
-      return false
-    },
-    paste(event, ed) {
-      try {
-        let bep, view
+                         // else let cm move point, then run any handlers
+                         setTimeout(() => Bred.handleMouse('click', event))
+                         return false
+                       },
+                       paste(event, ed) {
+                         try {
+                           let bep, view
 
-        view = ed.bred.view
-        bep = Wode.vgetBep(view)
-        if (event.clipboardData) {
-          let str
+                           view = ed.bred.view
+                           bep = Wode.vgetBep(view)
+                           if (event.clipboardData) {
+                             let str
 
-          str = event.clipboardData.getData('text/plain') || event.clipboardData.getData('text/uri-list')
-          if (str?.length) {
-            Wode.vinsert1(view, 1, str || '')
-            // have to do this after otherwise the insert moves the mark
-            Wode.addMarkAt(view, bep)
-          }
-        }
-      }
-      catch (err) {
-        Mess.yell(err.message)
-      }
+                             str = event.clipboardData.getData('text/plain') || event.clipboardData.getData('text/uri-list')
+                             if (str?.length) {
+                               Wode.vinsert1(view, 1, str || '')
+                               // have to do this after otherwise the insert moves the mark
+                               Wode.addMarkAt(view, bep)
+                             }
+                           }
+                         }
+                         catch (err) {
+                           Mess.yell(err.message)
+                         }
 
-      return true
-    }
-  }
+                         return true
+                       } }
 
   opts = [ CMComm.history(),
            view.wode.placeholder.of(makePlaceholder(placeholder)),

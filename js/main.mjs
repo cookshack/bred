@@ -483,11 +483,9 @@ function createWindow
                    //titleBarStyle: 'hidden',
                    //titleBarOverlay: true,
                    show: false,
-                   webPreferences: {
-                     // FIX The preload script configured for the <webview> will have node integration enabled when it is executed so you should ensure remote/untrusted content is not able to create a <webview> tag...
-                     webviewTag: true,
-                     preload: Path.join(import.meta.dirname, 'preload.js')
-                   } }
+                   // FIX The preload script configured for the <webview> will have node integration enabled when it is executed so you should ensure remote/untrusted content is not able to create a <webview> tag...
+                   webPreferences: { webviewTag: true,
+                                     preload: Path.join(import.meta.dirname, 'preload.js') } }
   win = new BrowserWindow(opts)
   win.bred = win.bred || {}
   win.webContents.setMaxListeners(30)
@@ -779,11 +777,9 @@ function checkDepsWin
            //titleBarStyle: 'hidden',
            //titleBarOverlay: true,
            show: false,
-           webPreferences: {
-             // FIX The preload script configured for the <webview> will have node integration enabled when it is executed so you should ensure remote/untrusted content is not able to create a <webview> tag...
-             webviewTag: true
-             //preload: Path.join(import.meta.dirname, 'preload.js')
-           } }
+           // FIX The preload script configured for the <webview> will have node integration enabled when it is executed so you should ensure remote/untrusted content is not able to create a <webview> tag...
+           //webPreferences > preload: Path.join(import.meta.dirname, 'preload.js')
+           webPreferences: { webviewTag: true } }
   win = new BrowserWindow(opts)
 
   win.once('ready-to-show', () => win.show())

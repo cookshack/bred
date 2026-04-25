@@ -874,12 +874,14 @@ function utimes
 // nav
 
 export
-function vforward(v, u) {
+function vforward
+(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorCharRight, CMComm.selectCharRight))
 }
 
 export
-function forward(u) {
+function forward
+(u) {
   let p
 
   p = Pane.current()
@@ -887,7 +889,8 @@ function forward(u) {
 }
 
 export
-function backward(u) {
+function backward
+(u) {
   let p
 
   p = Pane.current()
@@ -895,7 +898,8 @@ function backward(u) {
 }
 
 export
-function wordForward(u) {
+function wordForward
+(u) {
   let p
 
   p = Pane.current()
@@ -903,13 +907,15 @@ function wordForward(u) {
 }
 
 export
-function wordBackward(u) {
+function wordBackward
+(u) {
   //utimes(u, () => pexec(p, 'cursorWordStartLeft', 'cursorWordStartLeftSelect'))
   wordForward(u ? -u : -1)
 }
 
 export
-function groupForward(u) {
+function groupForward
+(u) {
   let p
 
   p = Pane.current()
@@ -917,7 +923,8 @@ function groupForward(u) {
 }
 
 export
-function groupBackward(u) {
+function groupBackward
+(u) {
   let p
 
   p = Pane.current()
@@ -925,7 +932,8 @@ function groupBackward(u) {
 }
 
 export
-function syntaxForward(u) {
+function syntaxForward
+(u) {
   let p
 
   p = Pane.current()
@@ -933,7 +941,8 @@ function syntaxForward(u) {
 }
 
 export
-function syntaxBackward(u) {
+function syntaxBackward
+(u) {
   let p
 
   p = Pane.current()
@@ -941,16 +950,19 @@ function syntaxBackward(u) {
 }
 
 export
-function prevWrappedLine(v, u) {
+function prevWrappedLine
+(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorLineUp, CMComm.selectLineUp))
 }
 
 export
-function nextWrapedLine(v, u) {
+function nextWrapedLine
+(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorLineDown, CMComm.selectLineDown))
 }
 
-function prevLine1(v) {
+function prevLine1
+(v) {
   let bep, col, goalCol
 
   bep = vgetBep(v)
@@ -977,14 +989,16 @@ function prevLine1(v) {
 }
 
 export
-function prevLine(v, u) {
+function prevLine
+(v, u) {
   if (v.markActive)
     utimes(u, () => CMComm.selectLineUp(v.ed))
   else
     utimes(u, () => prevLine1(v))
 }
 
-function nextLine1(v) {
+function nextLine1
+(v) {
   let bep, col, goalCol
 
   bep = vgetBep(v)
@@ -1010,7 +1024,8 @@ function nextLine1(v) {
 }
 
 export
-function nextLine(v, u) {
+function nextLine
+(v, u) {
   if (v.markActive)
     utimes(u, () => CMComm.selectLineDown(v.ed))
   else
@@ -1018,12 +1033,14 @@ function nextLine(v, u) {
 }
 
 export
-function prevBoundary(v, u) {
+function prevBoundary
+(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorLineBoundaryBackward, CMComm.selectLineBoundaryBackward))
 }
 
 export
-function nextBoundary(v, u) {
+function nextBoundary
+(v, u) {
   utimes(u, () => vexec(v, CMComm.cursorLineBoundaryForward, CMComm.selectLineBoundaryForward))
 }
 
@@ -1082,7 +1099,8 @@ function addMarkAt
 }
 
 export
-function setMark(u) {
+function setMark
+(u) {
   let p
 
   p = Pane.current()
@@ -1124,7 +1142,8 @@ function activateMark
 }
 
 export
-function exchange() {
+function exchange
+() {
   let p, point, mark
 
   p = Pane.current()
@@ -1162,12 +1181,14 @@ function lineEnd
 }
 
 export
-function vbufEnd(v) {
+function vbufEnd
+(v) {
   vexec(v, CMComm.cursorDocEnd)
 }
 
 export
-function vbufStart(v) {
+function vbufStart
+(v) {
   vexec(v, CMComm.cursorDocStart)
 }
 
@@ -1186,32 +1207,38 @@ function bufferStartEnd
 }
 
 export
-function bufferStart() {
+function bufferStart
+() {
   bufferStartEnd(CMComm.cursorDocStart, CMComm.selectDocStart)
 }
 
 export
-function bufferEnd() {
+function bufferEnd
+() {
   bufferStartEnd(CMComm.cursorDocEnd, CMComm.selectDocEnd)
 }
 
 export
-function scrollUp() {
+function scrollUp
+() {
   exec(CMComm.cursorPageUp, CMComm.selectPageUp)
 }
 
 export
-function scrollDown() {
+function scrollDown
+() {
   exec(CMComm.cursorPageDown, CMComm.selectPageDown)
 }
 
 export
-function toggleOverwrite() {
+function toggleOverwrite
+() {
   exec('overwrite')
 }
 
 export
-function selectAll() {
+function selectAll
+() {
   exec(CMComm.selectAll)
 }
 
@@ -1686,7 +1713,8 @@ function quotedInsert
 }
 
 export
-function caseWord(cb) {
+function caseWord
+(cb) {
   let p, range, origHead, origAnch, sel, bep, str
 
   p = Pane.current()
@@ -1779,22 +1807,26 @@ function insertSlash
 }
 
 export
-function openLine() {
+function openLine
+() {
   exec(CMComm.splitLine)
 }
 
 export
-function delPrevChar() {
+function delPrevChar
+() {
   exec(CMComm.deleteCharBackward)
 }
 
 export
-function delNextChar() {
+function delNextChar
+() {
   exec(CMComm.deleteCharForward)
 }
 
 export
-function cutLine() {
+function cutLine
+() {
   let p, str, bep, range
 
   p = Pane.current()
@@ -1838,12 +1870,14 @@ function delNextWordBound
 }
 
 export
-function suggest() {
+function suggest
+() {
   exec(CMAuto.startCompletion)
 }
 
 export
-function nextSuggest() {
+function nextSuggest
+() {
   let p
 
   p = Pane.current()
@@ -1852,7 +1886,8 @@ function nextSuggest() {
 }
 
 export
-function prevSuggest() {
+function prevSuggest
+() {
   let p
 
   p = Pane.current()
@@ -2007,19 +2042,22 @@ function sortRegion
 }
 
 export
-function insertTwoSpaces() {
+function insertTwoSpaces
+() {
   vinsert1(Pane.current().view, 1, '  ')
 }
 
 export
-function transposeChars() {
+function transposeChars
+() {
   exec(CMComm.transposeChars)
 }
 
 spRe = /^\s+/g
 
 export
-function trim() {
+function trim
+() {
   let p, start, l
 
   p = Pane.current()
@@ -2039,7 +2077,8 @@ function trim() {
 }
 
 export
-function yank() {
+function yank
+() {
   let p, str
 
   p = Pane.current()
@@ -2057,7 +2096,8 @@ function yank() {
 }
 
 export
-function yankRoll() {
+function yankRoll
+() {
   if ([ 'Paste', 'Paste Roll', 'Yank', 'Yank Roll' ].includes(Cmd.last())) {
     let p, str
 
@@ -2118,22 +2158,26 @@ function vcutOrCopy
 }
 
 export
-function cut() {
+function cut
+() {
   vcutOrCopy(Pane.current().view, 1)
 }
 
 export
-function copy() {
+function copy
+() {
   vcutOrCopy(Pane.current().view)
 }
 
 export
-function openLint() {
+function openLint
+() {
   exec(CMLint.openLintPanel)
 }
 
 export
-function firstDiagnostic(u, we) {
+function firstDiagnostic
+(u, we) {
   let p, done
 
   if (we?.e && (we.e.button == 0))
@@ -2222,7 +2266,8 @@ function vtokenAt
 }
 
 export
-function vforLines(view, cb) { // (line)
+function vforLines
+(view, cb) { // (line)
   let bep, end
 
   bep = 0

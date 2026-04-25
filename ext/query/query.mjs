@@ -1138,17 +1138,14 @@ function init
       msgs.forEach(msg => d(msg))
       fetch('https://openrouter.ai/api/v1/chat/completions',
             { method: 'POST',
-              headers: {
-                Authorization: 'Bearer ' + key,
-                'Content-Type': 'application/json'
-              },
+              headers: { Authorization: 'Bearer ' + key,
+                         'Content-Type': 'application/json' },
 
-              body: JSON.stringify({
-                model,
-                messages: [ { role: 'system',
-                              content: 'You are a helpful assistant embedded in an Electron-based code editor.' },
-                            ...msgs ],
-                stream: true }) })
+              body: JSON.stringify({ model,
+                                     messages: [ { role: 'system',
+                                                   content: 'You are a helpful assistant embedded in an Electron-based code editor.' },
+                                                 ...msgs ],
+                                     stream: true }) })
         .then(response => {
           updateCredits(buf, key)
           if (response.ok)
@@ -1257,7 +1254,8 @@ function init
           calls[0] = { args,
                        subtool,
                        autoAccept: subtool.autoAccept,
-                       cb(then) { // (response)
+                       cb
+                       (then) { // (response)
                          d('CALL 0 running ' + args.subtool)
                          if (subtool) {
                            subtool.cb(buf, args, then)

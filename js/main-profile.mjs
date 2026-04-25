@@ -29,10 +29,8 @@ function initPrompt
     return { prompts: st.all() }
   }
 
-  prompt = {
-    add,
-    load
-  }
+  prompt = { add,
+             load }
 }
 
 export

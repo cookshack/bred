@@ -14,24 +14,25 @@ function init
   id = 0
   all = Mk.array
 
-  highlighters = {
-    add(highlight, update) {
-      let h
+  highlighters = { add
+                   (highlight, update) {
+                     let h
 
-      h = { id: id++,
-            //
-            highlight,
-            remove() {
-              all.removeIf(h1 => h1.id == h.id)
-            },
-            update }
-      all.push(h)
-      return h
-    },
-    forEach(cb) {
-      all.forEach(cb)
-    }
-  }
+                     h = { id: id++,
+                           //
+                           highlight,
+                           remove
+                           () {
+                             all.removeIf(h1 => h1.id == h.id)
+                           },
+                           update }
+                     all.push(h)
+                     return h
+                   },
+                   forEach
+                   (cb) {
+                     all.forEach(cb)
+                   } }
 
   /// failed attempt to fake view change to refresh highlights
 
@@ -44,17 +45,17 @@ function init
 
     tick = 0
 
-    stateHighlighters = CMState.StateField.define({
-      create() {
-        return { tick: ++tick }
-      },
-      update(value, tr) {
-        for (let effect of tr.effects)
-          if (effect.is(effectHighlighters))
-            value = { tick: ++tick }
-        return value
-      }
-    })
+    stateHighlighters = CMState.StateField.define({ create
+                                                    () {
+                                                      return { tick: ++tick }
+                                                    },
+                                                    update
+                                                    (value, tr) {
+                                                      for (let effect of tr.effects)
+                                                        if (effect.is(effectHighlighters))
+                                                          value = { tick: ++tick }
+                                                      return value
+                                                    } })
     d({ stateHighlighters })
   }
 }

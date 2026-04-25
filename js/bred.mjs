@@ -1896,10 +1896,8 @@ function perf
 
   tPerf = globalThis.tron.perf()
   if (tPerf) {
-    results.tronHandlers = Object.keys(tPerf.ons).map(ch => ({
-      channel: ch,
-      count: tPerf.ons[ch].length
-    }))
+    results.tronHandlers = Object.keys(tPerf.ons).map(ch => ({ channel: ch,
+                                                               count: tPerf.ons[ch].length }))
     results.tronTotal = results.tronHandlers.reduce((sum, h) => sum + h.count, 0)
   }
 
@@ -1917,14 +1915,12 @@ function perf
         closedViews++
       results.views.push(v)
     })
-    return {
-      name: b.name,
-      id: b.id,
-      mode: b.mode?.key,
-      views: openViews,
-      closedViews,
-      domElements: b.views.reduce((sum, v) => sum + (v.ele?.querySelectorAll('*').length || 0), 0)
-    }
+    return { name: b.name,
+             id: b.id,
+             mode: b.mode?.key,
+             views: openViews,
+             closedViews,
+             domElements: b.views.reduce((sum, v) => sum + (v.ele?.querySelectorAll('*').length || 0), 0) }
   })
 
   results.domElements = globalThis.document.querySelectorAll('*').length

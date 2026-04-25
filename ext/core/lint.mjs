@@ -18,11 +18,9 @@ import * as EslintConfig from '../../lib/@cookshack/eslint-config.js'
 
 let wexts, part, Eslint, eslintConfig
 
-eslintConfig = {
-  languageOptions: EslintConfig.languageOptions,
-  plugins: EslintConfig.plugins,
-  rules: EslintConfig.rules
-}
+eslintConfig = { languageOptions: EslintConfig.languageOptions,
+                 plugins: EslintConfig.plugins,
+                 rules: EslintConfig.rules }
 
 function between
 (pos, from, to, side) {
@@ -67,7 +65,8 @@ function maybeLintTooltip
   if (diags.length)
     return { pos: start,
              end,
-             create() {
+             create
+             () {
                return { dom: diagTip(diags) }
              } }
 }

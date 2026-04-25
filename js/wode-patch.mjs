@@ -37,16 +37,15 @@ function init
 
   decorEffect = CMState.StateEffect.define()
 
-  extPatchDecor = CMState.StateField.define({
-    create: () => CMView.Decoration.none,
-    update(value, tr) {
-      for (let effect of tr.effects)
-        if (effect.is(decorEffect))
-          return effect.value
-      return value
-    },
-    provide: field => CMView.EditorView.decorations.from(field)
-  })
+  extPatchDecor = CMState.StateField.define({ create: () => CMView.Decoration.none,
+                                              update
+                                              (value, tr) {
+                                                for (let effect of tr.effects)
+                                                  if (effect.is(decorEffect))
+                                                    return effect.value
+                                                return value
+                                              },
+                                              provide: field => CMView.EditorView.decorations.from(field) })
 
   extPatch = CMView.ViewPlugin.define(ed => {
     function update
@@ -60,22 +59,16 @@ function init
             // Timeout else "Calls to EditorView.update are not allowed while an update is in progress"
             setTimeout(() => {
               // clear decor else decor will be out of sync with doc (Patch.refine is async, so update happens later)
-              update.view.dispatch({
-                effects: decorEffect.of(decorateRefines(update.view))
-              })
+              update.view.dispatch({ effects: decorEffect.of(decorateRefines(update.view)) })
               Patch.refine(update.view.state.doc.toString(),
                            refines => {
                              buf.vars('patch').refines = refines
-                             update.view.dispatch({
-                               effects: decorEffect.of(decorateRefines(update.view, refines))
-                             })
+                             update.view.dispatch({ effects: decorEffect.of(decorateRefines(update.view, refines)) })
                            })
             })
           else
-            setTimeout(() => update.view.dispatch({
-              effects: decorEffect.of(decorateRefines(update.view,
-                                                      buf.vars('patch').refines))
-            }))
+            setTimeout(() => update.view.dispatch({ effects: decorEffect.of(decorateRefines(update.view,
+                                                                                            buf.vars('patch').refines)) }))
       }
     }
 
@@ -86,9 +79,7 @@ function init
                    buf = ed.bred?.view?.buf
                    if (buf)
                      buf.vars('patch').refines = refines
-                   ed.dispatch({
-                     effects: decorEffect.of(decorateRefines(ed, refines))
-                   })
+                   ed.dispatch({ effects: decorEffect.of(decorateRefines(ed, refines)) })
                  })
 
     return { update }

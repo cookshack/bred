@@ -76,8 +76,8 @@ function makePos
 (row, // 0 indexed (Mon is 1 indexed)
  col) { // 0 indexed (Mon is 1 indexed)
   return { get row() {
-    return row
-  },
+             return row
+           },
            get col() {
              return col
            },
@@ -105,8 +105,7 @@ function makePos
            },
            set column(val) {
              return col = val
-           }
-  }
+           } }
 }
 
 export

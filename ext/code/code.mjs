@@ -1494,7 +1494,8 @@ function init
                 { viewInit,
                   viewCopy,
                   viewReopen,
-                  onRemove(buf) {
+                  onRemove
+                  (buf) {
                     buf.vars('code').streamActive = 0
                     buf.views?.forEach(view => {
                       view.vars('code').eds?.forEach(ed => ed.destroy())

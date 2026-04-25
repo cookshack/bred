@@ -31,7 +31,8 @@ function init
                            reconfOpts: [ 'blankLines.enabled' ] }))
 
   wexts.push(Ed.register({ backend: 'cm',
-                           make(view) {
+                           make
+                           (view) {
                              return CMView.EditorView.theme({ '.cm-blank-line': { background: view.buf.opt('blankLines.background') ?? 'inherit',
                                                                                   lineHeight: view.buf.opt('blankLines.lineHeight') ?? 'inherit' } })
                            },

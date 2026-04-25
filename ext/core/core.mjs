@@ -29,7 +29,8 @@ function init
     function create
     (view) {
       return { decorations: decorator.createDeco(view),
-               update(u) {
+               update
+               (u) {
                  this.decorations = decorator.updateDeco(u, this.decorations)
                } }
     }

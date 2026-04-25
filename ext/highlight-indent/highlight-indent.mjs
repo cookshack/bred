@@ -19,11 +19,10 @@ function init
                                   markerType: 'codeOnly',
                                   thickness: 2,
                                   activeThickness: 1,
-                                  colors: {
-                                    light: 'var(--clr-fill)',
-                                    dark: 'var(--clr-fill)',
-                                    activeLight: 'var(--clr-nb1)',
-                                    activeDark: 'var(--clr-nb1)' } })
+                                  colors: { light: 'var(--clr-fill)',
+                                            dark: 'var(--clr-fill)',
+                                            activeLight: 'var(--clr-nb1)',
+                                            activeDark: 'var(--clr-nb1)' } })
     return []
   }
 

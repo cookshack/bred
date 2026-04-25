@@ -155,6 +155,46 @@ y = { f
         // that
       } }`)
 
+pass('struct fn param list when string name',
+     `
+y = { 'Program:xxx'
+() {
+// this
+},
+'Program:exit'
+() {
+// that
+} }`,
+     `
+y = { 'Program:xxx'
+      () {
+        // this
+      },
+      'Program:exit'
+      () {
+        // that
+      } }`)
+
+pass('return with fn param list when string name',
+     `
+return { 'Program:xxx'
+() {
+// this
+},
+'Program:exit'
+() {
+// that
+} }`,
+     `
+return { 'Program:xxx'
+         () {
+           // this
+         },
+         'Program:exit'
+         () {
+           // that
+         } }`)
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

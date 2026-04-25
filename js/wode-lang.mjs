@@ -13,6 +13,7 @@ import { d } from './mess.mjs'
 import * as CMData from '../lib/@codemirror/language-data.js'
 import * as CMLang from '../lib/@codemirror/language.js'
 import * as CMState from '../lib/@codemirror/state.js'
+import { makeJsIndents } from './wode-lang-js.mjs'
 
 export let langs
 
@@ -170,54 +171,7 @@ function init
              preload(m) {
                let lang, props, indents
 
-               indents = {
-                 'FunctionDeclaration ParamList': ctx => ctx.baseIndent,
-
-                 'Property ParamList': ctx => ctx.baseIndent,
-
-                 Block: ctx => {
-                   let parent
-
-                   parent = ctx.node.parent?.name
-
-                   // Property Block: use Property's column + unit (no alignment)
-                   if (parent == 'Property') {
-                     if (/^\s*}/.test(ctx.textAfter))
-                       return ctx.column(ctx.node.parent.from)
-                     return ctx.column(ctx.node.parent.from) + ctx.unit
-                   }
-
-                   // FunctionDeclaration Block: check if brace on same line as params
-                   if (parent == 'FunctionDeclaration') {
-                     let line, text, bracePos
-
-                     line = ctx.state.doc.lineAt(ctx.node.from)
-                     text = line.text
-                     bracePos = text.indexOf('{')
-                     if (bracePos > 0)
-                       return CMLang.delimitedIndent({ closing: '}', align: false })(ctx)
-                   }
-
-                   // Other blocks: use delimitedIndent with align: true
-                   return CMLang.delimitedIndent({ closing: '}', align: true })(ctx)
-                 },
-
-                 // Prevent indent when export/params are on their own line.
-                 'ExportDeclaration FunctionDeclaration': CMLang.flatIndent,
-
-                 // Flush switch case to block
-                 SwitchBody: ctx => {
-                   let closed, isCase
-
-                   closed = /^\s*\}/.test(ctx.textAfter)
-                   isCase = /^\s*(case|default)\b/.test(ctx.textAfter)
-                   return ctx.baseIndent + (((closed || isCase) ? 0 : 1) * ctx.unit)
-                 }
-
-                 // always indent ternary like eslint (eg in array def overhang was flat)
-                 // too weird, turned off eslint ternary indent instead
-                 //ConditionalExpression: CMLang.continuedIndent({ units: 1 })
-               }
+               indents = makeJsIndents(CMLang)
                props = [ CMLang.indentNodeProp.add(indents) ]
                lang = m.javascriptLanguage
                lang.parser = lang.parser.configure({ props })

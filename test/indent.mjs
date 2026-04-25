@@ -2,6 +2,7 @@ import { equal } from 'node:assert/strict'
 import { EditorState } from '../lib/@codemirror/state.js'
 import { indentRange, indentNodeProp, delimitedIndent } from '../lib/@codemirror/language.js'
 import { javascriptLanguage } from '../lib/@codemirror/lang-javascript.js'
+import { makeJsIndents } from '../js/wode-lang-js.mjs'
 
 let tests, customIndent, customProps, lang
 
@@ -30,50 +31,7 @@ function pass
 
 tests = {}
 
-customIndent = {
-  'FunctionDeclaration ParamList': ctx => ctx.baseIndent,
-  'Property ParamList': ctx => {
-    let block
-
-    block = ctx.node.parent?.getChild('Block')
-    if (block) {
-      let blockText
-
-      blockText = ctx.state.doc.slice(block.from, block.to)
-      if (/^\s*}/.test(blockText))
-        return ctx.column(ctx.node.parent.from)
-    }
-    return ctx.column(ctx.node.parent.from) + ctx.unit
-  },
-
-  Block: ctx => {
-    let parent
-
-    parent = ctx.node.parent?.name
-
-    // Property Block: use Property's column + unit (no alignment)
-    if (parent == 'Property') {
-      if (/^\s*}/.test(ctx.textAfter))
-        return ctx.column(ctx.node.parent.from)
-      return ctx.column(ctx.node.parent.from) + ctx.unit
-    }
-
-    // FunctionDeclaration Block: check if brace on same line as params
-    if (parent == 'FunctionDeclaration') {
-      let line, text, bracePos
-
-      line = ctx.state.doc.lineAt(ctx.node.from)
-      text = line.text
-      bracePos = text.indexOf('{')
-      if (bracePos > 0)
-        return delimitedIndent({ closing: '}', align: false })(ctx)
-    }
-
-    // Other blocks: use delimitedIndent with align: true
-    return delimitedIndent({ closing: '}', align: true })(ctx)
-  }
-}
-
+customIndent = makeJsIndents({ delimitedIndent, flatIndent: delimitedIndent })
 customProps = indentNodeProp.add(customIndent)
 lang = javascriptLanguage.configure({ props: [ customProps ] })
 

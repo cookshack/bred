@@ -81,6 +81,14 @@ a2: 2 }`,
 a = { a1: 1,
       a2: 2 }`)
 
+pass('struct return',
+     `
+return { a1: 1,
+a2: 2 }`,
+     `
+return { a1: 1,
+         a2: 2 }`)
+
 pass('if',
      `
 if (x) {

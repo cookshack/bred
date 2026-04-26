@@ -26,6 +26,11 @@ import { themeExtension } from '../../js/wode-theme.mjs'
 import * as OpenCode from './lib/opencode/v2/client.js'
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
+function agentIcon
+() {
+  return '⚡'
+}
+
 export
 function init
 () {
@@ -488,7 +493,7 @@ function init
 
           agentEl = underW.querySelector('.code-under-agent')
           if (agentEl)
-            agentEl.innerText = agent
+            agentEl.innerText = agentIcon() + agent
         }
       }
     })
@@ -1324,7 +1329,7 @@ function init
     let buf
 
     buf = Pane.current().buf
-    Prompt.ask({ text: 'Agent',
+    Prompt.ask({ text: agentIcon() + ' Agent',
                  hist: Hist.ensure('code.agent') },
                agent => {
                  agent = agent.trim()

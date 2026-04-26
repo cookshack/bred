@@ -385,7 +385,8 @@ function initBrowse
   mo = Mode.add('Browse', { viewInit,
                             viewReopen,
                             viewCopy,
-                            onEmEmpty(view, wes, updateMini) {
+                            onEmEmpty
+                            (view, wes, updateMini) {
                               if (wes.length > 1)
                                 updateMini(U.shrug)
                               else if (wes.length)

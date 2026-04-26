@@ -878,7 +878,8 @@ function init
     clearViews(p.buf)
   }
 
-  function viewInit(view, spec, cb) {
+  function viewInit
+  (view, spec, cb) {
     let dirVars, sort, bak, hid, surf
 
     d('DIR viewInit')
@@ -907,7 +908,8 @@ function init
 
     extras = []
     extras.push({ key: 'dir-counts',
-                  co(view) {
+                  co
+                  (view) {
                     let dirVars
 
                     dirVars = view.buf.vars('dir')

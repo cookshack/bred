@@ -74,23 +74,29 @@ function add
                      tabbar,
                      cssId ? { id: cssId } : {}),
            //
-           get name() {
+           get name
+           () {
              return name
            },
-           get tab() {
+           get tab
+           () {
              return Tab.current(area)
            },
-           get tabs() {
+           get tabs
+           () {
              return tabs
            },
-           get tabbar() {
+           get tabbar
+           () {
              return tabbar
            },
-           get win() {
+           get win
+           () {
              return win
            },
            //
-           set name(n) {
+           set name
+           (n) {
              return setName(n)
            },
            //

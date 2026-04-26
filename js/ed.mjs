@@ -75,35 +75,43 @@ export
 function makePos
 (row, // 0 indexed (Mon is 1 indexed)
  col) { // 0 indexed (Mon is 1 indexed)
-  return { get row() {
+  return { get row
+           () {
              return row
            },
-           get col() {
+           get col
+           () {
              return col
            },
            // Mon style
-           get lineNumber() {
+           get lineNumber
+           () {
              return row + 1
            },
-           get column() {
+           get column
+           () {
              return col
            },
            //
-           set row(val) {
+           set row
+           (val) {
              return row = val
            },
-           set col(val) {
+           set col
+           (val) {
              return col = val
            },
            //
-           set lineNumber(val) {
+           set lineNumber
+           (val) {
              if (val < 0)
                row = 0
              else
                row = val - 1
              return row
            },
-           set column(val) {
+           set column
+           (val) {
              return col = val
            } }
 }
@@ -621,7 +629,8 @@ function initSearch
   Bred.initSearch(vfind,
                   { Backend,
                     cancel: Backend.cancel,
-                    cleanup(s) {
+                    cleanup
+                    (s) {
                       Backend.clearDecorMatch(s.st.view, s.st)
                       Backend.clearDecorAll(s.st.view, s.st)
                     },

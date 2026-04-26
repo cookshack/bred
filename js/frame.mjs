@@ -235,10 +235,12 @@ function add
         sep,
         startMarker: sm,
         //
-        get pane() {
+        get pane
+        () {
           return Pane.current(f)
         },
-        get tab() {
+        get tab
+        () {
           return tab
         },
         //

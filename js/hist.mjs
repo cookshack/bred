@@ -131,23 +131,29 @@ function make
 
   setItems([])
 
-  hist = { get name() {
-    return name
-  },
-           get length() {
+  hist = { get name
+           () {
+             return name
+           },
+           get length
+           () {
              return items.length
            },
-           get items() {
+           get items
+           () {
              return items
            },
-           get save() {
+           get save
+           () {
              return save
            },
            //
-           set items(array) {
+           set items
+           (array) {
              return setItems(array)
            },
-           set save(val) {
+           set save
+           (val) {
              return save = val ? 1 : 0
            },
            //

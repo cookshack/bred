@@ -140,10 +140,12 @@ function make
            spec,
            ons,
            //
-           get otherwise() {
+           get otherwise
+           () {
              return otherwise.to
            },
-           set otherwise(to) {
+           set otherwise
+           (to) {
              return setOtherwise(to)
            },
            //

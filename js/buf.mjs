@@ -108,10 +108,12 @@ function make
     bep = 0
     row = 0
 
-    psn = { get bep() {
-      return bep
-    },
-            get line() { // async
+    psn = { get bep
+            () {
+              return bep
+            },
+            get line // async
+            () {
               return (async () => {
                 let data
 
@@ -120,11 +122,13 @@ function make
                 return data.text
               })()
             },
-            get row() {
+            get row
+            () {
               return row
             },
             //
-            async lineNext() {
+            async lineNext
+            () {
               let data
 
               data = await Tron.acmd('peer.psn.lineNext', [ b.id, bep ])
@@ -495,69 +499,90 @@ function make
         name,
         ml,
         //
-        get bepEnd() {
+        get bepEnd
+        () {
           return bepEnd()
         },
-        get dir() { // guarantees trailing /
+        get dir
+        () { // guarantees trailing /
           return getDir()
         },
-        get ed() {
+        get ed
+        () {
           return ed
         },
-        get file() {
+        get file
+        () {
           return file
         },
-        get fileType() {
+        get fileType
+        () {
           return fileType || 'file'
         },
-        get icon() {
+        get icon
+        () {
           return icon
         },
-        get mode() {
+        get mode
+        () {
           return mode
         },
-        get modifiedOnDisk() {
+        get modifiedOnDisk
+        () {
           return modifiedOnDisk
         },
-        get path() {
+        get path
+        () {
           return dir ? (dir + (file || '')) : file
         },
-        get placeholder() {
+        get placeholder
+        () {
           return placeholder
         },
-        get single() {
+        get single
+        () {
           return spec.single
         },
-        get syntaxTreeStr() {
+        get syntaxTreeStr
+        () {
           return syntaxTreeStr(b)
         },
-        get views() {
+        get views
+        () {
           return views
         },
         //
-        set content(content) {
+        set content
+        (content) {
           b.co = content
           b.views.forEach(v => v.content = (content ? content.cloneNode(1) : content))
         },
-        set dir(d) {
+        set dir
+        (d) {
           return setDir(d)
         },
-        set ed(val) {
+        set ed
+        (val) {
           return ed = val ? 1 : 0
         },
-        set file(f) {
+        set file
+        (f) {
           return file = Loc.make(f).removeSlash()
         },
-        set fileType(t) {
+        set fileType
+        (t) {
           return fileType = t
         },
-        set icon(name) {
+        set icon
+        (name) {
           return icon = name
         },
-        set mode(key) {
+        set mode
+        (key) {
           setMode(key)
         },
-        set modifiedOnDisk(val) {
+        set modifiedOnDisk
+        (val) {
           d('modifiedOnDisk: ' + val)
           modifiedOnDisk = val ? 1 : 0
           if (modifiedOnDisk)
@@ -581,7 +606,8 @@ function make
               view.eleOrReserved?.querySelectorAll('.bred-info-w.bred-info-disk').forEach(w => w.remove())
             })
         },
-        set placeholder(val) {
+        set placeholder
+        (val) {
           return setPlaceholder(val)
         },
         //
@@ -599,7 +625,8 @@ function make
         insert,
         off,
         on,
-        onRemove(cb) {
+        onRemove
+        (cb) {
           onRemoves.push(cb)
         },
         opt,

@@ -208,10 +208,12 @@ function initMouse
     to = setTimeout(updateHover, 360)
   }
 
-  mouse = { get x() {
-    return x
-  },
-            get y() {
+  mouse = { get x
+            () {
+              return x
+            },
+            get y
+            () {
               return y
             } }
 
@@ -1394,11 +1396,13 @@ function initTest
   (view, spec, cb) {
     let w, alpha
 
-    function clr(c) {
+    function clr
+    (c) {
       return div('--clr-' + c, '', { style: 'color: var(--clr-' + c + ');' })
     }
 
-    function clrName(c) {
+    function clrName
+    (c) {
       return div('--clr-' + c, '')
     }
 
@@ -1424,11 +1428,13 @@ function initTest
                clr('scroll-fill') ]
     }
 
-    function sol(c) {
+    function sol
+    (c) {
       return div('--theme-clr-' + c, '', { style: 'color: var(--theme-clr-' + c + ');' })
     }
 
-    function solName(c) {
+    function solName
+    (c) {
       return div('--theme-clr-' + c, '')
     }
 

@@ -1159,7 +1159,7 @@ function init
                            divCl('code-under-w',
                                  [ divCl('code-under code-under-status', '...'),
                                    divCl('code-under code-under-credits', ''),
-                                   divCl('code-under code-under-agent', ''),
+                                   divCl('code-under code-under-agent', '', { 'data-run': 'Set Agent' }),
                                    divCl('code-under code-under-version', ''),
                                    divCl('code-under code-under-tokens', '') ]) ]) ])
   }

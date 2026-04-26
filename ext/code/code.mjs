@@ -1325,6 +1325,13 @@ function init
   }
 
   function setAgent
+  (buf, agent) {
+    buf.opts.set('code.agent', agent)
+    Hist.ensure('code.agent').add(agent)
+    updateBufAgent(buf, agent)
+  }
+
+  function promptAgent
   () {
     let buf
 
@@ -1335,9 +1342,7 @@ function init
                   agent => {
                     if (agent) {
                       agent = agent.trim()
-                      buf.opts.set('code.agent', agent)
-                      Hist.ensure('code.agent').add(agent)
-                      updateBufAgent(buf, agent)
+                      setAgent(buf, agent)
                       return
                     }
                     Mess.throw('ERR: agent: ' + agent)
@@ -1576,11 +1581,15 @@ function init
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
   Em.on('s', 'stop with caution', mo)
+  Em.on('p', 'set agent plan', mo)
+  Em.on('b', 'set agent build', mo)
 
   Cmd.add('toggle thinking', toggleThinking, mo)
   Cmd.add('toggle details', toggleDetails, mo)
 
-  Cmd.add('set agent', () => setAgent(), mo)
+  Cmd.add('set agent', () => promptAgent(), mo)
+  Cmd.add('set agent plan', () => setAgent(Pane.current().buf, 'plan'), mo)
+  Cmd.add('set agent build', () => setAgent(Pane.current().buf, 'build'), mo)
 
   Cmd.add('code buffer', () => {
     code(Pane.current().buf.text())

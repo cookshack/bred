@@ -1464,7 +1464,7 @@ function init
 
         fromUnderW = fromW.querySelector('.code-under-w')
         if (fromUnderW) {
-          let statusEl, versionEl, tokensEl
+          let statusEl, versionEl, tokensEl, agentEl
 
           statusEl = toUnderW.querySelector('.code-under-status')
           if (statusEl) {
@@ -1489,6 +1489,14 @@ function init
             fromTokens = fromUnderW.querySelector('.code-under-tokens')
             if (fromTokens)
               tokensEl.innerText = fromTokens.innerText
+          }
+          agentEl = toUnderW.querySelector('.code-under-agent')
+          if (agentEl) {
+            let fromAgent
+
+            fromAgent = fromUnderW.querySelector('.code-under-agent')
+            if (fromAgent)
+              agentEl.innerText = fromAgent.innerText
           }
         }
       }

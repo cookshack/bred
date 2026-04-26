@@ -197,7 +197,7 @@ function initBrowse
       data = await Tron.acmd('browse.close', [ id ])
       d('wasF: ' + data.wasFocused)
       if (data.wasFocused)
-        view.ele?.focus()
+        view.elPane?.focus()
     })
 
     //view.ele.firstElementChild.firstElementChild.innerHTML = ''
@@ -249,8 +249,8 @@ function initBrowse
                  }
                })
 
-               if (view.ele)
-                 obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.ele)
+               if (view.elPane)
+                 obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.elPane)
                else
                  Mess.log('FIX browser viewInit view.ele missing for ResizeObserver')
                d({ obs })

@@ -191,7 +191,7 @@ function add
     if (skipEle) {
     }
     else
-      p.ele.focus()
+      p.view?.elPane?.focus()
 
     p.frame.tab.name = b?.name || 'Empty'
     p.frame.tab.icon = b?.icon

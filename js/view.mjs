@@ -1,4 +1,4 @@
-import { append } from './dom.mjs'
+import { append, divCl } from './dom.mjs'
 
 import * as Css from './css.mjs'
 import * as Mess from './mess.mjs'
@@ -466,23 +466,34 @@ function make
         },
         get ele
         () {
-          return spec.ele // the pane element
+          return spec.ele?.querySelector('.bred-view-w')
+        },
+        get elPane
+        () {
+          return spec.ele
         },
         get eleOrReserved
         () {
-          return spec.ele || reserved
+          return spec.ele?.querySelector('.bred-view-w') || reserved
         },
         set content
         (co) {
           if (spec.ele) {
             spec.ele.innerHTML = ''
-            if (co)
-              append(spec.ele, co)
+            if (co) {
+              let wrapper
+
+              wrapper = divCl('bred-view-w', co)
+              append(spec.ele, wrapper)
+            }
             point.init()
           }
           else {
             reserved = new globalThis.DocumentFragment()
-            append(reserved, co)
+            if (co)
+              append(reserved, divCl('bred-view-w', co))
+            else
+              append(reserved, co)
           }
           ready = 1
         },
@@ -543,12 +554,12 @@ function make
 
         clone = b.co.cloneNode(1)
         d('  clone: ' + clone.innerHTML)
-        append(spec.ele, clone)
+        append(spec.ele, divCl('bred-view-w', clone))
       }
       spec.mode.viewCopy(v, spec.views[0], spec.lineNum, whenReady)
     }
     else {
-      append(spec.ele, [ ...spec.views[0].ele.children ].map(e => e.cloneNode(1)))
+      append(spec.ele, divCl('bred-view-w', [ ...spec.views[0].ele.children ].map(e => e.cloneNode(1))))
       ready1()
     }
   }
@@ -557,7 +568,7 @@ function make
       d('VIEW ' + b.id + '.' + spec.vid + ' fresh content')
     if (b.co) {
       d('VIEW ' + b.id + '.' + spec.vid + ' buffer has co')
-      append(spec.ele, b.co.cloneNode(1))
+      append(spec.ele, divCl('bred-view-w', b.co.cloneNode(1)))
       if (spec.mode && spec.mode.viewInit) {
         d('VIEW ' + b.id + '.' + spec.vid + ' placeholder: ' + b.placeholder)
         spec.mode.viewInit(v,

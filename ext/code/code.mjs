@@ -1550,7 +1550,7 @@ function init
 
   hist = Hist.ensure('code')
   chatHist = Hist.ensure('code.chat')
-  Opt.declare('code.agent', 'str', 'build')
+  Opt.declare('code.agent', 'str', 'plan')
   Opt.declare('code.model.agent', 'str', 'minimax-m2.1-free')
   Opt.declare('code.provider.agent', 'str', 'opencode')
   Opt.declare('code.key', 'str', '')

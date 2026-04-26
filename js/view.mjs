@@ -23,15 +23,14 @@ function onFocus
 export
 function make
 (b,
+ // { vid,
+ //   mode,
+ //   views,
+ //   ele, // pane element
+ //   elePoint,
+ //   lineNum }
  spec, // { ... }
  whenReady) { // called when buf ready to use
-  let { vid,
-        mode,
-        views,
-        ele, // pane element
-        elePoint,
-        lineNum }
-    = spec
   let v, active, ready, point, modeVars, onCloses, onRemoves, scrollTop, win, existing
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
@@ -42,7 +41,7 @@ function make
   function sync
   (cb2) {
     if (v.ready)
-      views.forEach(v2 => {
+      spec.views.forEach(v2 => {
         if (v == v2)
           return
         if (v2.ready)
@@ -52,7 +51,7 @@ function make
 
   function prep
   () {
-    if (mode && mode.hidePoint)
+    if (spec.mode && spec.mode.hidePoint)
       Css.hide(point.ele)
     else
       Css.show(point.ele)
@@ -62,25 +61,25 @@ function make
 
   function close
   () {
-    d('VIEW ' + b.id + '.' + vid + ' closing')
+    d('VIEW ' + b.id + '.' + spec.vid + ' closing')
     onCloses.forEach(cb => cb())
     ready = 0
     active = 0
-    if (ele) {
+    if (spec.ele) {
       let scrollEl, els
 
-      scrollEl = ele.querySelector('.bred-scroller')
+      scrollEl = spec.ele.querySelector('.bred-scroller')
       if (scrollEl)
         scrollTop = scrollEl.scrollTop
-      els = [ ...ele.children ]
+      els = [ ...spec.ele.children ]
       els.forEach(e => e.remove())
       reserved = new globalThis.DocumentFragment()
       append(reserved, els)
-      ele = null
+      spec.ele = null
     }
 
     if (b.views.length > 1) {
-      d('VIEW ' + b.id + '.' + vid + ' remove')
+      d('VIEW ' + b.id + '.' + spec.vid + ' remove')
       U.arrRm1(b.views, v1 => v == v1)
       onRemoves.forEach(cb => cb(v))
     }
@@ -88,25 +87,25 @@ function make
 
   function reopen
   (newPaneEle, newPointEle, lineNum, whenReady) {
-    d('VIEW ' + b.id + '.' + vid + ' reopen ')
+    d('VIEW ' + b.id + '.' + spec.vid + ' reopen ')
     ready = 0
     active = 1
-    ele = newPaneEle
-    point.elePane = ele
+    spec.ele = newPaneEle
+    point.elePane = spec.ele
     point.ele = newPointEle
-    ele.innerHTML = ''
-    append(ele, reserved)
+    spec.ele.innerHTML = ''
+    append(spec.ele, reserved)
     reserved = 0
     prep()
     if (scrollTop) {
       let scrollEl
 
-      scrollEl = ele.querySelector('.bred-scroller')
+      scrollEl = spec.ele.querySelector('.bred-scroller')
       if (scrollEl)
         scrollEl.scrollTop = scrollTop
     }
-    if (mode && mode.viewReopen)
-      mode.viewReopen(v, lineNum, whenReady)
+    if (spec.mode && spec.mode.viewReopen)
+      spec.mode.viewReopen(v, lineNum, whenReady)
     else
       // timeout so behaves like viewReopen
       setTimeout(() => {
@@ -372,7 +371,7 @@ function make
     let head
 
     //d('VIEW reconfHead')
-    head = (ele || null)?.parentNode.querySelector('.bred-head-w')
+    head = (spec.ele || null)?.parentNode.querySelector('.bred-head-w')
     if (head)
       if (b.opt('core.head.enabled'))
         Css.show(head)
@@ -391,10 +390,10 @@ function make
   }
 
   win = Win.current()
-  v = views.find(v1 => (v1.win == win) && (v1.active == 0))
+  v = spec.views.find(v1 => (v1.win == win) && (v1.active == 0))
   if (v) {
     d('VIEW ' + b.id + '.' + v.vid + ' being reused')
-    v.reopen(ele, elePoint, lineNum, whenReady)
+    v.reopen(spec.ele, spec.elePoint, spec.lineNum, whenReady)
     return v
   }
   modeVars = []
@@ -402,9 +401,9 @@ function make
   onRemoves = []
   active = 1
 
-  point = Point.make(ele, elePoint)
+  point = Point.make(spec.ele, spec.elePoint)
 
-  v = { vid,
+  v = { vid: spec.vid,
         get active
         () {
           return active
@@ -467,18 +466,18 @@ function make
         },
         get ele
         () {
-          return ele // the pane element
+          return spec.ele // the pane element
         },
         get eleOrReserved
         () {
-          return ele || reserved
+          return spec.ele || reserved
         },
         set content
         (co) {
-          if (ele) {
-            ele.innerHTML = ''
+          if (spec.ele) {
+            spec.ele.innerHTML = ''
             if (co)
-              append(ele, co)
+              append(spec.ele, co)
             point.init()
           }
           else {
@@ -526,46 +525,47 @@ function make
         sync,
         vars }
 
-  d('VIEW ' + b.id + '.' + vid + ' new view for ' + (b.name || '??'))
-  ele.innerHTML = ''
+  d('VIEW ' + b.id + '.' + spec.vid + ' new view for ' + (b.name || '??'))
+  spec = spec || {}
+  spec.ele.innerHTML = ''
   ready = 0
   prep()
-  existing = views.find(v2 => v2.ele && (v2.win == v.win))
+  existing = spec.views.find(v2 => v2.ele && (v2.win == v.win))
   if (existing) {
     // use content from existing view
-    d('VIEW ' + b.id + '.' + vid + ' reuse content')
-    if (mode && mode.viewCopy) {
-      d('VIEW ' + b.id + '.' + vid + ' mode has viewCopy')
+    d('VIEW ' + b.id + '.' + spec.vid + ' reuse content')
+    if (spec.mode && spec.mode.viewCopy) {
+      d('VIEW ' + b.id + '.' + spec.vid + ' mode has viewCopy')
       if (b.co) {
         let clone
 
-        d('VIEW ' + b.id + '.' + vid + ' buf has co')
+        d('VIEW ' + b.id + '.' + spec.vid + ' buf has co')
 
         clone = b.co.cloneNode(1)
         d('  clone: ' + clone.innerHTML)
-        append(ele, clone)
+        append(spec.ele, clone)
       }
-      mode.viewCopy(v, views[0], lineNum, whenReady)
+      spec.mode.viewCopy(v, spec.views[0], spec.lineNum, whenReady)
     }
     else {
-      append(ele, [ ...views[0].ele.children ].map(e => e.cloneNode(1)))
+      append(spec.ele, [ ...spec.views[0].ele.children ].map(e => e.cloneNode(1)))
       ready1()
     }
   }
   else {
     if (1)
-      d('VIEW ' + b.id + '.' + vid + ' fresh content')
+      d('VIEW ' + b.id + '.' + spec.vid + ' fresh content')
     if (b.co) {
-      d('VIEW ' + b.id + '.' + vid + ' buffer has co')
-      append(ele, b.co.cloneNode(1))
-      if (mode && mode.viewInit) {
-        d('VIEW ' + b.id + '.' + vid + ' placeholder: ' + b.placeholder)
-        mode.viewInit(v,
-                      { lineNum,
-                        placeholder: b.placeholder,
-                        single: b.single,
-                        wextsMode: mode.wexts },
-                      whenReady)
+      d('VIEW ' + b.id + '.' + spec.vid + ' buffer has co')
+      append(spec.ele, b.co.cloneNode(1))
+      if (spec.mode && spec.mode.viewInit) {
+        d('VIEW ' + b.id + '.' + spec.vid + ' placeholder: ' + b.placeholder)
+        spec.mode.viewInit(v,
+                           { lineNum: spec.lineNum,
+                             placeholder: b.placeholder,
+                             single: b.single,
+                             wextsMode: spec.mode.wexts },
+                           whenReady)
       }
       else
         ready1()
@@ -576,7 +576,7 @@ function make
     point.sync()
   }
 
-  views.push(v)
+  spec.views.push(v)
 
   return v
 }

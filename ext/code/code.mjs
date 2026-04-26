@@ -1170,12 +1170,16 @@ function init
     startEventSub(buf)
 
     try {
-      d('CO SEND')
+      let agent
+
+      agent = buf.opts.get('code.agent') || Opt.get('code.agent')
+
+      d('CO SEND (' + agent + ')')
 
       res = await c.session.prompt({ sessionID,
                                      directory: buf.dir,
                                      model: { providerID: provider, modelID: model },
-                                     agent: Opt.get('code.agent'),
+                                     agent,
                                      parts: [ { id: uuidv4(), type: 'text', text } ] })
 
       d('CO SEND done')
@@ -1292,6 +1296,20 @@ function init
 
     el = we.e.target.closest('.code-msg-tool')
     Css.toggle(el, 'code-closed')
+  }
+
+  function setAgent
+  () {
+    let buf
+
+    buf = Pane.current().buf
+    Prompt.ask({ text: 'Agent',
+                 hist: Hist.ensure('code.agent') },
+               agent => {
+                 agent = agent.trim()
+                 buf.opts.set('code.agent', agent)
+                 Hist.ensure('code.agent').add(agent)
+               })
   }
 
   function next
@@ -1529,6 +1547,8 @@ function init
 
   Cmd.add('toggle thinking', toggleThinking, mo)
   Cmd.add('toggle details', toggleDetails, mo)
+
+  Cmd.add('set agent', () => setAgent(), mo)
 
   Cmd.add('code buffer', () => {
     code(Pane.current().buf.text())

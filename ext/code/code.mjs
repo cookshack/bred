@@ -476,6 +476,24 @@ function init
     })
   }
 
+  function updateBufAgent
+  (buf, agent) {
+    buf.views.forEach(view => {
+      if (view.eleOrReserved) {
+        let underW
+
+        underW = view.eleOrReserved.querySelector('.code-under-w')
+        if (underW) {
+          let agentEl
+
+          agentEl = underW.querySelector('.code-under-agent')
+          if (agentEl)
+            agentEl.innerText = agent
+        }
+      }
+    })
+  }
+
   function updateIdle
   (buf, tokenInfo) {
     updateBufStatus(buf, 'OK', tokenInfo, VopenCode.version)
@@ -1141,6 +1159,7 @@ function init
                            divCl('code-under-w',
                                  [ divCl('code-under code-under-status', '...'),
                                    divCl('code-under code-under-credits', ''),
+                                   divCl('code-under code-under-agent', ''),
                                    divCl('code-under code-under-version', ''),
                                    divCl('code-under code-under-tokens', '') ]) ]) ])
   }
@@ -1181,6 +1200,8 @@ function init
                                      model: { providerID: provider, modelID: model },
                                      agent,
                                      parts: [ { id: uuidv4(), type: 'text', text } ] })
+
+      updateBufAgent(buf, agent)
 
       d('CO SEND done')
       d({ res })
@@ -1309,6 +1330,7 @@ function init
                  agent = agent.trim()
                  buf.opts.set('code.agent', agent)
                  Hist.ensure('code.agent').add(agent)
+                 updateBufAgent(buf, agent)
                })
   }
 

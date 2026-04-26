@@ -1175,7 +1175,7 @@ function init
       res = await c.session.prompt({ sessionID,
                                      directory: buf.dir,
                                      model: { providerID: provider, modelID: model },
-                                     agent: 'build',
+                                     agent: Opt.get('code.agent'),
                                      parts: [ { id: uuidv4(), type: 'text', text } ] })
 
       d('CO SEND done')
@@ -1487,6 +1487,7 @@ function init
 
   hist = Hist.ensure('code')
   chatHist = Hist.ensure('code.chat')
+  Opt.declare('code.agent', 'str', 'build')
   Opt.declare('code.model.agent', 'str', 'minimax-m2.1-free')
   Opt.declare('code.provider.agent', 'str', 'opencode')
   Opt.declare('code.key', 'str', '')

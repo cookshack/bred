@@ -1329,14 +1329,19 @@ function init
     let buf
 
     buf = Pane.current().buf
-    Prompt.ask({ text: agentIcon() + ' Agent',
-                 hist: Hist.ensure('code.agent') },
-               agent => {
-                 agent = agent.trim()
-                 buf.opts.set('code.agent', agent)
-                 Hist.ensure('code.agent').add(agent)
-                 updateBufAgent(buf, agent)
-               })
+    Prompt.choose(agentIcon() + ' Agent',
+                  [ 'build', 'plan' ],
+                  {},
+                  agent => {
+                    if (agent) {
+                      agent = agent.trim()
+                      buf.opts.set('code.agent', agent)
+                      Hist.ensure('code.agent').add(agent)
+                      updateBufAgent(buf, agent)
+                      return
+                    }
+                    Mess.throw('ERR: agent: ' + agent)
+                  })
   }
 
   function next

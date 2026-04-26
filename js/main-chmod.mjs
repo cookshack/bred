@@ -2,6 +2,9 @@ import { d } from './main-log.mjs'
 import { errMsg } from './main-err.mjs'
 import Fs from 'node:fs/promises'
 
+export
+let _internals
+
 // Return the base permissions (ie as if setting group permissions) defined in $string at position $pos.
 function parseModePerm
 (string, pos) {
@@ -107,3 +110,5 @@ async function onChmod
   await Fs.chmod(path, mode)
   e.sender.send(ch, {})
 }
+
+_internals = { parseModePerm, updateMode }

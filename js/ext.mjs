@@ -13,6 +13,9 @@ import * as Tron from './tron.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
+export
+let _internals
+
 let exts
 
 export
@@ -257,3 +260,5 @@ function init
 
   Em.on('g', 'refresh', mo)
 }
+
+_internals = { canon, exts }

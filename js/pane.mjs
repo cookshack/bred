@@ -15,6 +15,9 @@ import * as Win from './win.mjs'
 import * as View from './view.mjs'
 import { d } from './mess.mjs'
 
+export
+let _internals
+
 let id, bootBuf, onSetBufs
 
 export
@@ -662,3 +665,5 @@ function forEach
 (cb) {
   Win.forEach(win => win.areas.forEach(area => area.tabs.forEach(tab => tab.frames.forEach(frame => frame.panes.forEach(pane => cb(pane))))))
 }
+
+_internals = { id, bootBuf }

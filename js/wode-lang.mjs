@@ -42,10 +42,12 @@ function init
       opt.assist.extras = []
       opt.assist.extras.push({ key: 'patch-files',
                                end: 1,
-                               head() {
+                               head
+                               () {
                                  return 'Files'
                                },
-                               co(view) {
+                               co
+                               (view) {
                                  let point, prev, el
 
                                  el = new globalThis.DocumentFragment()
@@ -108,7 +110,8 @@ function init
         lang = CMLang.LanguageDescription.of({ name,
                                                extensions: opt.ext,
                                                filename: opt.filename,
-                                               load() {
+                                               load
+                                               () {
                                                  return import(file).then(m => {
                                                    let ls
 
@@ -168,7 +171,8 @@ function init
            'JavaScript',
            { ext: [ 'js', 'mjs', 'cjs' ],
              firstLine: '^#!.*\\b(node|gjs)',
-             preload(m) {
+             preload
+             (m) {
                let lang, props, indents
 
                indents = makeJsIndents(CMLang)
@@ -206,7 +210,8 @@ function init
   loadLang(Loc.appDir().join('lib/@codemirror/lang-markdown.js'),
            'Markdown',
            { ext: [ 'md', 'markdown', 'mkd' ],
-             load(m) {
+             load
+             (m) {
                return m.markdown({ codeLanguages: langs })
              } })
 
@@ -215,7 +220,8 @@ function init
            { front: 0, // priority goes to markdown
              ext: [ 'md' ],
              module: 0,
-             load(m) {
+             load
+             (m) {
                return m.richdown({ lezer: { codeLanguages: langs } })
              } })
 }

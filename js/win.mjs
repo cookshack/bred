@@ -100,10 +100,12 @@ function makeContext
   }
 
   context = { el: divCl('bred-context'),
-              close() {
+              close
+              () {
                 Css.remove(context.el, 'bred-open')
               },
-              open(we, cb) { // runs after visible
+              open
+              (we, cb) { // runs after visible
                 let target, p
 
                 context.el.innerHTML = ''
@@ -216,61 +218,80 @@ function add
 
   win = { id: ident,
           //
-          get areas() {
+          get areas
+          () {
             return areas
           },
-          get body() {
+          get body
+          () {
             return window.document.body
           },
-          get context() {
+          get context
+          () {
             return context
           },
-          get diag() {
+          get diag
+          () {
             return diag
           },
-          get document() {
+          get document
+          () {
             return window.document
           },
-          get echo() {
+          get echo
+          () {
             return echo
           },
-          get el() {
+          get el
+          () {
             return el
           },
-          get frameToggleL() {
+          get frameToggleL
+          () {
             return frameToggleL
           },
-          get frameToggleR() {
+          get frameToggleR
+          () {
             return frameToggleR
           },
-          get hover() {
+          get hover
+          () {
             return hover
           },
-          get main() {
+          get main
+          () {
             return main
           },
-          get menu() {
+          get menu
+          () {
             return menu
           },
-          get mini() {
+          get mini
+          () {
             return mini
           },
-          get outer() {
+          get outer
+          () {
             return outer
           },
-          get parent() {
+          get parent
+          () {
             return spec.parent
           },
-          get frame1() {
+          get frame1
+          () {
             return frame1()
           },
-          get selection() {
+          get selection
+          () {
             return window.getSelection()
           },
-          get tip() {
+          get tip
+          () {
             return tip
           },
-          get window() {
+          get window
+          () {
             return window
           },
           //

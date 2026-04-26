@@ -189,7 +189,8 @@ function push
           line,
           col,
           //
-          get text() {
+          get text
+          () {
             return text
           } }
     $messages.push(m)

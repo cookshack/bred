@@ -508,7 +508,8 @@ function createWindow
             fg: 0,
             view: 0,
             text: 0,
-            create() {
+            create
+            () {
               if (hover.view)
                 win.contentView.removeChildView(hover.view)
               hover.view = new WebContentsView()
@@ -531,11 +532,13 @@ function createWindow
               })
               win.contentView.addChildView(hover.view)
             },
-            off() {
+            off
+            () {
               hover.text = 0
               hover.view.setVisible(false)
             },
-            on(text) {
+            on
+            (text) {
               let html, bg, fg, fontSize
 
               if (text == hover.text)
@@ -563,7 +566,8 @@ function createWindow
               })
               hover.view.setVisible(true)
             },
-            resize(width, height) {
+            resize
+            (width, height) {
               if (hover.view) {
                 let contentBounds
 

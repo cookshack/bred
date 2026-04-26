@@ -518,19 +518,22 @@ function _viewInit
       WodeCommon.runOnCursors(view)
   })
 
-  domEventHandlers = { contextmenu() {
+  domEventHandlers = { contextmenu
+                       () {
                          //d('WODE VIEW dom context')
                          // prevent right click from moving point
                          return true
                        },
-                       mousedown(event) {
+                       mousedown
+                       (event) {
                          //d('WODE VIEW dom mousedown')
                          // prevent right click from moving point
                          if (event.button == 2)
                            return true
                          return false
                        },
-                       mouseup(event) {
+                       mouseup
+                       (event) {
                          //d('WODE VIEW dom mouseup')
 
                          if (event.button == 1) {
@@ -547,7 +550,8 @@ function _viewInit
                          setTimeout(() => Bred.handleMouse('click', event))
                          return false
                        },
-                       paste(event, ed) {
+                       paste
+                       (event, ed) {
                          try {
                            let bep, view
 

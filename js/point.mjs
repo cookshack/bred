@@ -424,14 +424,17 @@ function make
     sync()
   }
 
-  return { get ele() {
-    return elePoint
-  },
+  return { get ele
+           () {
+             return elePoint
+           },
            //
-           set ele(e) {
+           set ele
+           (e) {
              return elePoint = e
            },
-           set elePane(e) {
+           set elePane
+           (e) {
              return elePane = e
            },
            //

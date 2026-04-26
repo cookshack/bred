@@ -405,58 +405,76 @@ function make
   point = Point.make(ele, elePoint)
 
   v = { vid,
-        get active() {
+        get active
+        () {
           return active
         },
-        set active(val) {
+        set active
+        (val) {
           active = val
         },
-        get bep() {
+        get bep
+        () {
           return getBep()
         },
-        set bep(bep) {
+        set bep
+        (bep) {
           return setBep(bep)
         },
-        get offset() {
+        get offset
+        () {
           return getOff()
         },
-        get ready() {
+        get ready
+        () {
           return ready
         },
-        set ready(val) {
+        set ready
+        (val) {
           ready = val
         },
-        get buf() {
+        get buf
+        () {
           return b
         },
-        get lang() {
+        get lang
+        () {
           return lang()
         },
-        get langData() {
+        get langData
+        () {
           return langData()
         },
-        get len() {
+        get len
+        () {
           return len()
         },
-        get line() {
+        get line
+        () {
           return line()
         },
-        get point() {
+        get point
+        () {
           return point
         },
-        get pos() {
+        get pos
+        () {
           return getPos()
         },
-        get psn() {
+        get psn
+        () {
           return makePsn()
         },
-        get ele() {
+        get ele
+        () {
           return ele // the pane element
         },
-        get eleOrReserved() {
+        get eleOrReserved
+        () {
           return ele || reserved
         },
-        set content(co) {
+        set content
+        (co) {
           if (ele) {
             ele.innerHTML = ''
             if (co)
@@ -469,10 +487,12 @@ function make
           }
           ready = 1
         },
-        get region() {
+        get region
+        () {
           return region()
         },
-        get win() {
+        get win
+        () {
           return win
         },
         //

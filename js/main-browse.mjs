@@ -308,7 +308,8 @@ function init
   views = []
 
   Hist = { xxx: 1,
-           make() {
+           make
+           () {
              let hist, items, index
 
              function add
@@ -351,7 +352,8 @@ function init
 
              hist = { add,
                       back,
-                      get href() {
+                      get href
+                      () {
                         d(index)
                         d(JSON.stringify(items))
                         return (index >= 0) && items[index]?.href

@@ -94,11 +94,13 @@ function makeDecorator
   }
 
   class Pv {
-    constructor(ed) {
+    constructor
+    (ed) {
       this.decorations = decorate(ed)
     }
 
-    update(update) {
+    update
+    (update) {
       if (update.docChanged || update.viewportChanged)
         this.decorations = decorate(update.view)
     }

@@ -92,20 +92,25 @@ function add
                          'data-id': id }),
           el: divCl('bred-tab'),
           //
-          get area() {
+          get area
+          () {
             return area
           },
-          get frame() {
+          get frame
+          () {
             return Frame.current(tab)
           },
-          get frames() {
+          get frames
+          () {
             return frames
           },
           //
-          set icon(name) {
+          set icon
+          (name) {
             return setIcon(name)
           },
-          set name(n) {
+          set name
+          (n) {
             elName.innerText = n; return n
           },
           //

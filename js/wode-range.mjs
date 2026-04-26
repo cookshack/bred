@@ -17,47 +17,59 @@ function make
     return r
   }
 
-  r = { get from() {
-    return from
-  },
-        get to() {
+  r = { get from
+        () {
+          return from
+        },
+        get to
+        () {
           return to
         },
-        get text() {
+        get text
+        () {
           order()
           return view.ed.state.sliceDoc(from, to)
         },
-        get empty() {
+        get empty
+        () {
           return from == to
         },
-        get start() {
+        get start
+        () {
           return Wode.bepToPos(view, from)
         },
-        get end() {
+        get end
+        () {
           return Wode.bepToPos(view, to)
         },
-        get startBep() {
+        get startBep
+        () {
           return from
         },
-        get endBep() {
+        get endBep
+        () {
           return to
         },
         //
-        set from(val) {
+        set from
+        (val) {
           return from = val
         },
-        set to(val) {
+        set to
+        (val) {
           return to = val
         },
         //
         order,
-        contains(pos) {
+        contains
+        (pos) {
           let bep
 
           bep = Wode.posToBep(view, pos)
           return (from <= bep) && (to >= bep)
         },
-        remove() {
+        remove
+        () {
           order()
           view?.ed?.dispatch({ changes: { from, to, insert: '' } })
         } }

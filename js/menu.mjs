@@ -143,7 +143,8 @@ function make
 
   places = { el: menu0('Places'),
              //
-             update() {
+             update
+             () {
                let menu1, map
 
                d(places.el)

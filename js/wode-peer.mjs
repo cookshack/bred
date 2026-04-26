@@ -93,7 +93,8 @@ function make
       this.view.dispatch(tr)
     }
 
-    destroy() {
+    destroy
+    () {
       this.done = true
       this.chOff && this.chOff()
     }

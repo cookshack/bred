@@ -29,18 +29,21 @@ export function make
 (surf, spec) {
   let onScrollCb, rafId
 
-  function getFirstVisible() {
+  function getFirstVisible
+  () {
     return Math.floor(surf.scrollTop / getLineHeightPx(surf))
   }
 
-  function visibleCount() {
+  function visibleCount
+  () {
     let avail
 
     avail = Math.ceil(surf.getBoundingClientRect().height / getLineHeightPx(surf))
     return Math.min(avail, spec.itemCount)
   }
 
-  function render() {
+  function render
+  () {
     let first, needed, last, frag, padTop, padBottom, i, px
 
     px = getLineHeightPx(surf)
@@ -76,7 +79,8 @@ export function make
     surf.append(frag)
   }
 
-  function onScroll() {
+  function onScroll
+  () {
     if (rafId || onScrollCb == null)
       return
     rafId = globalThis.requestAnimationFrame(() => {
@@ -94,19 +98,23 @@ export function make
 
   surf.addEventListener('scroll', onScroll)
 
-  return { set onScroll(fn) {
+  return { set onScroll
+           (fn) {
              onScrollCb = fn
            },
 
-           set renderItem(fn) {
+           set renderItem
+           (fn) {
              spec.renderItem = fn
            },
 
-           get visibleCount() {
+           get visibleCount
+           () {
              return visibleCount()
            },
 
-           toIndex(idx) {
+           toIndex
+           (idx) {
              let px, scrollTop
 
              px = getLineHeightPx(surf)
@@ -116,26 +124,31 @@ export function make
              return surf.querySelector('[data-index="' + idx + '"]')
            },
 
-           scrollTo(index) {
+           scrollTo
+           (index) {
              surf.scrollTop = index * getLineHeightPx(surf)
            },
 
-           scrollBy(delta) {
+           scrollBy
+           (delta) {
              surf.scrollTop += delta * getLineHeightPx(surf)
            },
 
-           refresh() {
+           refresh
+           () {
              surf.scrollTop = 0
              render()
            },
 
-           updateItemCount(n) {
+           updateItemCount
+           (n) {
              spec.itemCount = n
            },
 
            render,
 
-           destroy() {
+           destroy
+           () {
              surf.removeEventListener('scroll', onScroll)
            } }
 }

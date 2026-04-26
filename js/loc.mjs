@@ -271,23 +271,29 @@ function make
     else
       path = path.path
 
-  return { get dirname() {
-    return dirname()
-  },
-           get filename() {
+  return { get dirname
+           () {
+             return dirname()
+           },
+           get filename
+           () {
              return filename()
            },
-           get length() {
+           get length
+           () {
              return path.length
            },
-           get path() {
+           get path
+           () {
              return path
            },
-           get relative() {
+           get relative
+           () {
              return relative()
            },
            //
-           set path(p) {
+           set path
+           (p) {
              expanded = 0; return path = p
            },
            //

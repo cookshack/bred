@@ -407,13 +407,15 @@ function add
         //
         // Input buffering state
         initializing: false,
-        enqueueInput(we) {
+        enqueueInput
+        (we) {
           d('PANE enqueue')
           d({ we })
           d('PANE we.name ' + we.name)
           inputQueue.push(we)
         },
-        flushInput() {
+        flushInput
+        () {
           let wes
 
           d('PANE flushInput')
@@ -429,38 +431,48 @@ function add
             Em.handle(we, view)
           })
         },
-        clearInput() {
+        clearInput
+        () {
           d('PANE clearInput')
           inputQueue.length = 0
         },
         //
-        get buf() {
+        get buf
+        () {
           return view?.buf
         },
-        get cols() {
+        get cols
+        () {
           return cols()
         },
-        get dir() {
+        get dir
+        () {
           return view?.buf ? view.buf.dir : Loc.home()
         },
-        get head() {
+        get head
+        () {
           return eleHead
         },
-        get isSupport() {
+        get isSupport
+        () {
           if (Css.has(frame?.tab?.area?.el, 'bred-main'))
             return 0
           return 1
         },
-        get frame() {
+        get frame
+        () {
           return frame
         },
-        get next() {
+        get next
+        () {
           return next()
         },
-        get view() {
+        get view
+        () {
           return view
         },
-        get win() {
+        get win
+        () {
           return frame?.tab?.area?.win
         },
         //

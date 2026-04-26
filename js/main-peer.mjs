@@ -22,10 +22,12 @@ function get
           fresh: 1,
           text: CMState.Text.of([ '' ]),
           //
-          get updates() {
+          get updates
+          () {
             return updates
           },
-          get version() {
+          get version
+          () {
             return updates.length
           } }
   bufs[id] = buf

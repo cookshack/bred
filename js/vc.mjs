@@ -3038,8 +3038,7 @@ function initAnnotate
   Em.on('=', 'show', mo)
 }
 
-function
-initClrs
+function initClrs
 () {
   let step
 

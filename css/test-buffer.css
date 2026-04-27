@@ -168,7 +168,8 @@
   justify-content: center;
 }
 
-.test_buffer-nested-js {
+.test_buffer-nested-js,
+.test_buffer-nested-div {
   max-width: 50%;
   overflow: auto;
 }

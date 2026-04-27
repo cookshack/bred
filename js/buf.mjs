@@ -260,44 +260,60 @@ function make
 
   function nest
   (childBuf) {
-    b.views.forEach(parentView => {
-      let container, paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col, nestedView
+    let nestedView
 
+    Mess.log('nest: b.views.length=' + b.views.length)
+    if (b.views.length == 0)
+      Mess.log('nest: parent buf has no views!')
+    b.views.forEach(parentView => {
+      let container
+
+      Mess.log('nest: processing parentView')
       parentView.ele || Mess.toss('nest: parent view missing ele')
 
       container = parentView.ele.querySelector('[data-bred-nested-buf-id="' + childBuf.id + '"]')
-      container || Mess.toss('nest: container missing')
+      if (container) {
+        let paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col
 
-      container.innerHTML = ''
+        container.innerHTML = ''
 
-      point = divCl('bred-point')
-      pointLine = divCl('bred-point-line')
-      lint = divCl('bred-head-ed bred-head-lint hidden',
-                   divCl('bred-lint-marker', [],
-                         { 'data-run': 'first diagnostic' }))
-      col = divCl('bred-head bred-head-end',
-                  [ divCl('bred-head-ed bred-head-col', 'C1') ])
-      head = divCl('bred-head bred-head-mid', [ lint ])
-      headW = divCl('bred-head-w', [ head, col ])
-      overlay = divCl('bred-overlay', [ point, pointLine, headW ])
-      overlayW = divCl('bred-overlay-w bred-nested', overlay)
-      pane = divCl('pane bred-nested', [])
-      paneW = divCl('paneW bred-nested', [ pane, overlayW ])
+        point = divCl('bred-point')
+        pointLine = divCl('bred-point-line')
+        lint = divCl('bred-head-ed bred-head-lint hidden',
+                     divCl('bred-lint-marker', [],
+                           { 'data-run': 'first diagnostic' }))
+        col = divCl('bred-head bred-head-end',
+                    [ divCl('bred-head-ed bred-head-col', 'C1') ])
+        head = divCl('bred-head bred-head-mid', [ lint ])
+        headW = divCl('bred-head-w', [ head, col ])
+        overlay = divCl('bred-overlay', [ point, pointLine, headW ])
+        overlayW = divCl('bred-overlay-w bred-nested', overlay)
+        pane = divCl('pane bred-nested', [])
+        paneW = divCl('paneW bred-nested', [ pane, overlayW ])
 
-      paneW.onscroll = () => {
-        if (nestedView.ed)
-          return
-        if (nestedView.scroll?.manual)
-          return
-        nestedView.point.ensureInView()
+        paneW.onscroll = () => {
+          if (nestedView.ed)
+            return
+          if (nestedView.scroll?.manual)
+            return
+          nestedView.point.ensureInView()
+        }
+
+        container.appendChild(paneW)
+        Mess.log('nest: added paneW to container, container children: ' + container.children.length)
+
+        if (pane)
+          nestedView = view(childBuf, { ele: pane, elePoint: point })
+        else
+          Mess.log('nest: pane is null!')
+        if (nestedView)
+          Mess.log('nest: view created, pane children: ' + pane.children.length)
+
+        parentView.nestedViews = parentView.nestedViews || []
+        parentView.nestedViews.push(nestedView)
       }
-
-      container.appendChild(paneW)
-
-      nestedView = view(childBuf, { ele: pane })
-
-      parentView.nestedViews = parentView.nestedViews || []
-      parentView.nestedViews.push(nestedView)
+      else
+        Mess.log('nest: container not found for buf id ' + childBuf.id)
     })
 
     childBuf.nested = 1

@@ -597,7 +597,9 @@ function make
     point.sync()
   }
 
+  Mess.log('View.make: buf.views.length before push=' + spec.views.length)
   spec.views.push(v)
+  Mess.log('View.make: buf.views.length after push=' + spec.views.length)
 
   return v
 }

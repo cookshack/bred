@@ -1498,6 +1498,7 @@ function initTest
                                                    ' to confirm that multiple versions exist.' ]) ]) ]),
            divCl('test_buffer-2', [ 'This is also a DIV.',
                                     divCl('test_buffer-circle') ]),
+           divCl('test_buffer-nested-div'),
            divCl('test_buffer-nested-js'),
            divCl('test_buffer-3', div('This can be resized.')),
            divCl('test_buffer-4', divCl('test_buffer-center',
@@ -1527,25 +1528,48 @@ function initTest
                                         Dom.create('hr') ]),
            divCl('test_buffer-end', 'The End.'))
 
-    {
-      let nestedBuf, container
-
-      nestedBuf = view.buf.vars('Test Buffer')?.nestedBuf
-      if (nestedBuf) {
-        // ok
-      }
-      else {
-        nestedBuf = Buf.add('Nested JS', 'ed', Ed.divW(view.buf.dir, 'test.js'), view.buf.dir)
-        nestedBuf.append('function hello() {\n  console.log(\'hi\'")\n}\n')
-        view.buf.vars('Test Buffer').nestedBuf = nestedBuf
-      }
-      container = divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': nestedBuf.id })
-      append(view.ele.querySelector('.test_buffer-nested-js'), container)
-      view.buf.nest(nestedBuf)
-    }
-
     if (cb)
       cb(view)
+  }
+
+  function nestBufs
+  (view) {
+    let nestedDivBuf, divContainer, divParent, nestedBuf, container, jsParent
+
+    nestedDivBuf = view.buf.vars('Test Buffer')?.nestedDivBuf
+    if (nestedDivBuf) {
+      // ok
+    }
+    else {
+      nestedDivBuf = Buf.add('Nested DIV', 'div',
+                             divCl('bred-surface', 'Hello from nest DIV mode'),
+                             view.buf.dir)
+      view.buf.vars('Test Buffer').nestedDivBuf = nestedDivBuf
+    }
+    divContainer = divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': nestedDivBuf.id })
+    divParent = view.ele.querySelector('.test_buffer-nested-div')
+    if (divParent)
+      append(divParent, divContainer)
+    else
+      Mess.log('divParent missing')
+    view.buf.nest(nestedDivBuf)
+
+    nestedBuf = view.buf.vars('Test Buffer')?.nestedBuf
+    if (nestedBuf) {
+      // ok
+    }
+    else {
+      nestedBuf = Buf.add('Nested JS', 'ed', Ed.divW(view.buf.dir, 'test.js'), view.buf.dir)
+      nestedBuf.append('function hello() {\n  console.log(\'hi\'")\n}\n')
+      view.buf.vars('Test Buffer').nestedBuf = nestedBuf
+    }
+    container = divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': nestedBuf.id })
+    jsParent = view.ele.querySelector('.test_buffer-nested-js')
+    if (jsParent)
+      append(jsParent, container)
+    else
+      Mess.log('jsParent missing')
+    view.buf.nest(nestedBuf)
   }
 
   function move
@@ -1571,7 +1595,7 @@ function initTest
     b = Buf.add('Test Buffer', 'Test Buffer', divW(), p.dir)
     b.icon = 'help'
     b.addMode('view')
-    p.setBuf(b)
+    p.setBuf(b, {}, view => nestBufs(view))
   })
 
   Cmd.add('move', move, mo)

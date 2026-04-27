@@ -258,6 +258,64 @@ function make
     return 0
   }
 
+  function nest
+  (childBuf) {
+    b.views.forEach(parentView => {
+      let container, paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col, nestedView
+
+      parentView.ele || Mess.toss('nest: parent view missing ele')
+
+      container = parentView.ele.querySelector('[data-bred-nested-buf-id="' + childBuf.id + '"]')
+      container || Mess.toss('nest: container missing')
+
+      container.innerHTML = ''
+
+      point = divCl('bred-point')
+      pointLine = divCl('bred-point-line')
+      lint = divCl('bred-head-ed bred-head-lint hidden',
+                   divCl('bred-lint-marker', [],
+                         { 'data-run': 'first diagnostic' }))
+      col = divCl('bred-head bred-head-end',
+                  [ divCl('bred-head-ed bred-head-col', 'C1') ])
+      head = divCl('bred-head bred-head-mid', [ lint ])
+      headW = divCl('bred-head-w', [ head, col ])
+      overlay = divCl('bred-overlay', [ point, pointLine, headW ])
+      overlayW = divCl('bred-overlay-w bred-nested', overlay)
+      pane = divCl('pane bred-nested', [])
+      paneW = divCl('paneW bred-nested', [ pane, overlayW ])
+
+      paneW.onscroll = () => {
+        if (nestedView.ed)
+          return
+        if (nestedView.scroll?.manual)
+          return
+        nestedView.point.ensureInView()
+      }
+
+      container.appendChild(paneW)
+
+      nestedView = view(childBuf, { ele: pane })
+
+      parentView.nestedViews = parentView.nestedViews || []
+      parentView.nestedViews.push(nestedView)
+    })
+
+    childBuf.nested = 1
+    childBuf.parent = b
+    childBuf.onRemove(() => {
+      b.views.forEach(pv => {
+        let c
+
+        c = pv.ele?.querySelector('[data-bred-nested-buf-id="' + childBuf.id + '"]')
+        if (c)
+          c.innerHTML = ''
+      })
+    })
+
+    b.children = b.children || []
+    b.children.push(childBuf)
+  }
+
   function bury
   () {
     let i, sh
@@ -620,6 +678,7 @@ function make
         clearLine,
         line,
         makePsn,
+        nest,
         remove,
         rmMode,
         insert,

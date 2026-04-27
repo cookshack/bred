@@ -562,7 +562,17 @@ function holding
   let p
 
   if (el) {
-    let ele
+    let ele, nestedId, nestedView
+
+    nestedId = el.closest('.pane.bred-nested')?.querySelector('.bred-view-w')?.parentElement?.dataset?.id
+    if (nestedId) {
+      let nestedBuf
+
+      nestedBuf = Buf.find(b => b.id == nestedId)
+      if (nestedBuf)
+        nestedView = nestedBuf.views.find(v => v.ele)
+      return nestedView
+    }
 
     ele = el.closest('.paneW')?.querySelector('.pane')
     Frame.find(frame => {

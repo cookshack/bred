@@ -31,7 +31,7 @@ function make
  //   lineNum }
  spec, // { ... }
  whenReady) { // called when buf ready to use
-  let v, active, ready, point, modeVars, onCloses, onRemoves, scrollTop, win, existing
+  let v, active, ready, point, modeVars, onCloses, onRemoves, scrollTop, win, existing, nestedViews
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
   // Like a stash.
@@ -63,6 +63,8 @@ function make
   () {
     d('VIEW ' + b.id + '.' + spec.vid + ' closing')
     onCloses.forEach(cb => cb())
+    if (nestedViews)
+      nestedViews.forEach(nv => nv.close())
     ready = 0
     active = 0
     if (spec.ele) {
@@ -104,6 +106,14 @@ function make
       if (scrollEl)
         scrollEl.scrollTop = scrollTop
     }
+    if (nestedViews)
+      nestedViews.forEach(nv => {
+        let paneEl, pointEl
+
+        paneEl = spec.ele.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"] .pane')
+        pointEl = spec.ele.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"] .bred-point')
+        nv.reopen(paneEl, pointEl, null, null)
+      })
     if (spec.mode && spec.mode.viewReopen)
       spec.mode.viewReopen(v, lineNum, whenReady)
     else

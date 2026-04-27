@@ -815,7 +815,7 @@ function reopen
 
 export
 function copy
-(to, from, lineNum, whenReady) {
+(to, from, lineNum, whenReady) { // (view)
   d('WODE ================== viewCopy')
   Wode.viewInit(to,
                 { text: from.ed.state.doc.toString(),
@@ -829,7 +829,7 @@ export
 function revertV
 (view,
  spec, // { lineNum }
- whenReady) {
+ whenReady) { // (view)
   let lineNum
 
   d('WODE =====>>>>>>>>>> revertV')

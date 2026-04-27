@@ -1536,6 +1536,8 @@ function initTest
   (view) {
     let nestedDivBuf, divContainer, divParent, nestedBuf, container, jsParent
 
+    Mess.log('nest-Bufs: view.buf.id=' + view.buf.id + ', buf.views.length=' + view.buf.views.length)
+
     nestedDivBuf = view.buf.vars('Test Buffer')?.nestedDivBuf
     if (nestedDivBuf) {
       // ok

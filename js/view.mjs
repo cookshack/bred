@@ -30,12 +30,20 @@ function make
  //   elePoint,
  //   lineNum }
  spec, // { ... }
- whenReady) { // called when buf ready to use
+ whenReady) { // (view) // called when buf ready to use
   let v, active, ready, point, modeVars, onCloses, onRemoves, scrollTop, win, existing, nestedViews
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
   // Like a stash.
   let reserved
+
+  function ensurePushed
+  (v) {
+    if (spec.views.find(v2 => v2 == v))
+      return
+    spec.views.push(v)
+    Mess.log('nest-View.make: buf.views.length after push=' + spec.views.length)
+  }
 
   // used by wace,won  remove when they do peer
   function sync
@@ -566,7 +574,13 @@ function make
         d('  clone: ' + clone.innerHTML)
         append(spec.ele, divCl('bred-view-w', clone))
       }
-      spec.mode.viewCopy(v, spec.views[0], spec.lineNum, whenReady)
+      spec.mode.viewCopy(v, spec.views[0], spec.lineNum,
+                         view => {
+                           ensurePushed(v)
+                           Mess.log('nest-View.make: viewCopy push, buf.views.length=' + spec.views.length)
+                           if (whenReady)
+                             whenReady(view)
+                         })
     }
     else {
       append(spec.ele, divCl('bred-view-w', [ ...spec.views[0].ele.children ].map(e => e.cloneNode(1))))
@@ -586,7 +600,12 @@ function make
                              placeholder: b.placeholder,
                              single: b.single,
                              wextsMode: spec.mode.wexts },
-                           whenReady)
+                           view => {
+                             ensurePushed(v)
+                             Mess.log('nest-View.make: buf.views.length after push=' + spec.views.length)
+                             if (whenReady)
+                               whenReady(view)
+                           })
       }
       else
         ready1()
@@ -597,9 +616,8 @@ function make
     point.sync()
   }
 
-  Mess.log('View.make: buf.views.length before push=' + spec.views.length)
-  spec.views.push(v)
-  Mess.log('View.make: buf.views.length after push=' + spec.views.length)
+  ensurePushed(v)
+  Mess.log('nest-View.make: buf.views.length after catch-all push=' + spec.views.length)
 
   return v
 }

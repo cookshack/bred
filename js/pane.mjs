@@ -301,11 +301,15 @@ function add
                         else
                           Css.remove(ele?.parentNode, 'ed')
 
+                        Mess.log('nest-PANE view ready, buf.views.length=' + view.buf.views.length)
                         // View is ready - clear flag and flush any buffered input
                         p.flushInput()
 
-                        if (whenReady)
+                        if (whenReady) {
+                          Mess.log('nest-PANE calling whenReady')
                           whenReady(view)
+                          Mess.log('nest-PANE after whenReady, buf.views.length=' + view.buf.views.length)
+                        }
                       })
     else
       p.flushInput()

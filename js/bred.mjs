@@ -1498,6 +1498,7 @@ function initTest
                                                    ' to confirm that multiple versions exist.' ]) ]) ]),
            divCl('test_buffer-2', [ 'This is also a DIV.',
                                     divCl('test_buffer-circle') ]),
+           divCl('test_buffer-nested-js'),
            divCl('test_buffer-3', div('This can be resized.')),
            divCl('test_buffer-4', divCl('test_buffer-center',
                                         'Click to change.',
@@ -1525,6 +1526,23 @@ function initTest
                                         alpha.map(ch => divCl('test_buffer-alpha-ch', ch)),
                                         Dom.create('hr') ]),
            divCl('test_buffer-end', 'The End.'))
+
+    {
+      let nestedBuf, container
+
+      nestedBuf = view.buf.vars('Test Buffer')?.nestedBuf
+      if (nestedBuf) {
+        // ok
+      }
+      else {
+        nestedBuf = Buf.add('Nested JS', 'ed', Ed.divW(view.buf.dir, 'test.js'), view.buf.dir)
+        nestedBuf.append('function hello() {\n  console.log(\'hi\'")\n}\n')
+        view.buf.vars('Test Buffer').nestedBuf = nestedBuf
+      }
+      container = divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': nestedBuf.id })
+      append(view.ele.querySelector('.test_buffer-nested-js'), container)
+      view.buf.nest(nestedBuf)
+    }
 
     if (cb)
       cb(view)

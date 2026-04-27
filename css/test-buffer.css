@@ -167,3 +167,8 @@
   display: flex;
   justify-content: center;
 }
+
+.test_buffer-nested-js {
+  max-width: 50%;
+  overflow: auto;
+}

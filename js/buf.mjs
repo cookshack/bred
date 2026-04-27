@@ -302,15 +302,6 @@ function make
 
     childBuf.nested = 1
     childBuf.parent = b
-    childBuf.onRemove(() => {
-      b.views.forEach(pv => {
-        let c
-
-        c = pv.ele?.querySelector('[data-bred-nested-buf-id="' + childBuf.id + '"]')
-        if (c)
-          c.innerHTML = ''
-      })
-    })
 
     b.children = b.children || []
     b.children.push(childBuf)

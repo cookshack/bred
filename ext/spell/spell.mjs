@@ -1,8 +1,8 @@
 import * as Cmd from '../../js/cmd.mjs'
 import * as Em from '../../js/em.mjs'
 import * as Mess from '../../js/mess.mjs'
-import * as Pane from '../../js/pane.mjs'
 import * as Prompt from '../../js/prompt.mjs'
+import * as View from '../../js/view.mjs'
 import * as Win from '../../js/win.mjs'
 //import { d } from '../../js/mess.mjs'
 
@@ -87,11 +87,11 @@ function init
   }
 
   function checkAtPoint
-  (p) {
+  (view) {
     let l, pos, word
 
-    l = p.line()
-    pos = p.pos()
+    l = view.line
+    pos = view.pos
     pos = pos.col
     word = wordAt(l, pos)
     if (word)
@@ -108,22 +108,19 @@ function init
   })
 
   Cmd.add('spell check word at point', () => {
-    let p
-
-    p = Pane.current()
-    checkAtPoint(p)
+    checkAtPoint(View.current())
   })
 
   Cmd.add('spell check word at click', (u, we) => {
     if (we?.e && (we.e.button == 0)) {
-      let p, x, y, win
+      let view, x, y, win
 
-      p = Pane.current()
+      view = View.current()
       win = Win.current()
       x = win.lastContext?.x ?? 0
       y = win.lastContext?.y ?? 0
-      p.goXY(x, y)
-      checkAtPoint(p)
+      view.goXY(x, y)
+      checkAtPoint(view)
     }
   })
 

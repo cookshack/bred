@@ -179,6 +179,16 @@ function make
     return 0
   }
 
+  function goXY
+  (x, y) {
+    if (b.mode?.key)
+      if (b.mode?.goXY)
+        return b.mode.goXY(v, x, y)
+
+    Mess.say('buf.add: goXY missing: ' + b.mode.key)
+    return null
+  }
+
   function getCallers
   (cb, cbSig) {
     // quietly else recurses
@@ -538,6 +548,7 @@ function make
               Mess.say('buf.add: gotoLine missing: ' + b.mode.key)
 
         },
+        goXY,
         lineAt,
         lineEnd,
         lineStart,

@@ -15,6 +15,7 @@ import * as Prompt from '../../js/prompt.mjs'
 import { d } from '../../js/mess.mjs'
 import * as Tron from '../../js/tron.mjs'
 import * as U from '../../js/util.mjs'
+import * as View from '../../js/view.mjs'
 import { v4 as uuidv4 } from '../../lib/uuid/index.js'
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
@@ -1667,6 +1668,32 @@ function init
     p.focus()
   }
 
+  function prevHist
+  () {
+    let view, text
+
+    view = View.current()
+    text = chatHist.prev()
+    if (text) {
+      view.buf.clear()
+      view.buf.insert(text)
+    }
+    else
+      Mess.say('End of history')
+  }
+
+  function nextHist
+  () {
+    let view, text
+
+    view = View.current()
+    text = chatHist.next()
+    if (text) {
+      view.buf.clear()
+      view.buf.insert(text)
+    }
+  }
+
   hist = Hist.ensure('code')
   chatHist = Hist.ensure('code.chat')
   Opt.declare('code.agent', 'str', 'plan')
@@ -1738,7 +1765,11 @@ function init
 
   Cmd.add('submit prompt', () => submitPrompt(), moCodePrompt)
   Cmd.add('cancel prompt', () => cancelPrompt(), moCodePrompt)
+  Cmd.add('previous history item', () => prevHist(), moCodePrompt)
+  Cmd.add('next history item', () => nextHist(), moCodePrompt)
 
   Em.on('Enter', 'submit prompt', moCodePrompt)
   Em.on('C-g', 'cancel prompt', moCodePrompt)
+  Em.on('A-p', 'previous history item', moCodePrompt)
+  Em.on('A-n', 'next history item', moCodePrompt)
 }

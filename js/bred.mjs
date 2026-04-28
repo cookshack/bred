@@ -1544,7 +1544,7 @@ function initTest
     }
     else {
       nestedDivBuf = Buf.add('Nested DIV', 'div',
-                             divCl('bred-surface', 'Hello from nest DIV mode'),
+                             divCl('bred-surface', 'Hello from a nested DIV buffer'),
                              view.buf.dir)
       view.buf.vars('Test Buffer').nestedDivBuf = nestedDivBuf
     }

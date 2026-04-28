@@ -112,13 +112,13 @@ function diagnose
   }
   function xy
   () {
-    let view, area, frame, tab
+    let p, view, area, frame, tab
 
     area = Area.current(win)
     tab = Tab.current(area)
     frame = area && Frame.current(tab)
-    view = frame && Pane.current(frame)?.view
-    view = View.current()
+    p = frame && Pane.current(frame)
+    view = View.current(p)
     return view?.ed?.coordsAtPos(Wode.vgetBep(view))
   }
   if (win && diag) {

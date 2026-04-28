@@ -625,10 +625,8 @@ function make
 
 export
 function current
-() {
-  let p
-
-  p = Pane.current()
+(p) {
+  p = p || Pane.current()
   return p.currentNestedView || p.view
 }
 

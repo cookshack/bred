@@ -895,28 +895,19 @@ function vforward
 export
 function forward
 (u) {
-  let p
-
-  p = Pane.current()
-  vforward(p.view, u)
+  vforward(View.current(), u)
 }
 
 export
 function backward
 (u) {
-  let p
-
-  p = Pane.current()
-  utimes(u, () => pexec(p, CMComm.cursorCharLeft, CMComm.selectCharLeft))
+  utimes(u, () => vexec(View.current(), CMComm.cursorCharLeft, CMComm.selectCharLeft))
 }
 
 export
 function wordForward
 (u) {
-  let p
-
-  p = Pane.current()
-  Ed.vwordForward(p.view, u)
+  Ed.vwordForward(View.current(), u)
 }
 
 export
@@ -929,28 +920,19 @@ function wordBackward
 export
 function groupForward
 (u) {
-  let p
-
-  p = Pane.current()
-  utimes(u, () => pexec(p, CMComm.cursorGroupRight, CMComm.selectGroupRight))
+  utimes(u, () => vexec(View.current(), CMComm.cursorGroupRight, CMComm.selectGroupRight))
 }
 
 export
 function groupBackward
 (u) {
-  let p
-
-  p = Pane.current()
-  utimes(u, () => pexec(p, CMComm.cursorGroupLeft, CMComm.selectGroupLeft))
+  utimes(u, () => vexec(View.current(), CMComm.cursorGroupLeft, CMComm.selectGroupLeft))
 }
 
 export
 function syntaxForward
 (u) {
-  let p
-
-  p = Pane.current()
-  utimes(u, () => pexec(p, CMComm.cursorSyntaxRight, CMComm.selectSyntaxRight))
+  utimes(u, () => vexec(View.current(), CMComm.cursorSyntaxRight, CMComm.selectSyntaxRight))
 }
 
 export
@@ -1114,30 +1096,30 @@ function addMarkAt
 export
 function setMark
 (u) {
-  let p
+  let view
 
-  p = Pane.current()
+  view = View.current()
   if ((Cmd.lastFlag('Set Mark') == 2) || (u == 4)) {
     let mark
 
     Cmd.flagLast('Set Mark', 2)
-    if (p.view.marks.length == 0) {
+    if (view.marks.length == 0) {
       Mess.say('Set a mark first')
       return
     }
-    clearSelection(p.view)
-    mark = p.view.marks.pop()
+    clearSelection(view)
+    mark = view.marks.pop()
     Mess.say('Mark popped')
-    vsetBep(p.view, mark, 1)
+    vsetBep(view, mark, 1)
   }
   else {
     let bep
 
-    bep = vgetBep(p.view)
-    addMarkAt(p.view, bep)
-    if (p.view.markActive)
-      clearSelection(p.view)
-    p.view.markActive = 1
+    bep = vgetBep(view)
+    addMarkAt(view, bep)
+    if (view.markActive)
+      clearSelection(view)
+    view.markActive = 1
     Mess.say('Mark pushed')
     //d(p.view.marks)
     //p.view.ed.setSelection(new Mon.Selection(pos.lineNumber, pos.column, pos.lineNumber, pos.column))
@@ -1147,30 +1129,30 @@ function setMark
 export
 function activateMark
 () {
-  let p
+  let view
 
-  p = Pane.current()
-  p.view.markActive = 1
-  setSelection(p.view, regionRange(p.view))
+  view = View.current()
+  view.markActive = 1
+  setSelection(view, regionRange(view))
 }
 
 export
 function exchange
 () {
-  let p, point, mark
+  let view, point, mark
 
-  p = Pane.current()
-  point = vgetBep(p.view)
-  if (p.view.marks.length == 0) {
+  view = View.current()
+  point = vgetBep(view)
+  if (view.marks.length == 0) {
     Mess.say('Set a mark first')
     return
   }
-  mark = p.view.marks.pop()
-  if (p.view.markActive)
-    selReverse(p.view)
+  mark = view.marks.pop()
+  if (view.markActive)
+    selReverse(view)
   else
-    vsetBep(p.view, mark, 1) // want to use 3rd option "reveal in center if off screen else stay the same"
-  p.view.marks.push(point)
+    vsetBep(view, mark, 1) // want to use 3rd option "reveal in center if off screen else stay the same"
+  view.marks.push(point)
 }
 
 export
@@ -1207,16 +1189,16 @@ function vbufStart
 
 function bufferStartEnd
 (cursor, select) {
-  let p
+  let view
 
-  p = Pane.current()
-  if (p.view.markActive) {
+  view = View.current()
+  if (view.markActive) {
   }
   else {
     setMark()
-    clearSelection(p.view)
+    clearSelection(view)
   }
-  vexec(p.view, cursor, select)
+  vexec(view, cursor, select)
 }
 
 export
@@ -1279,53 +1261,54 @@ function lineIsText
 export
 function topLevelStart
 (extras) {
-  let p, bep, l
+  let view, bep, l
 
-  p = Pane.current()
+  view = View.current()
 
-  bep = vgetBep(p.view)
+  bep = vgetBep(view)
   //d('endLine: ' + endLine)
-  l = p.view.ed.state.doc.lineAt(bep)
+  l = view.ed.state.doc.lineAt(bep)
   while ((l.number > 1) && lineIsText(l, extras)) {
     bep = l.from - 1
-    l = p.view.ed.state.doc.lineAt(bep)
+    l = view.ed.state.doc.lineAt(bep)
   }
 
   while ((l.number > 1) && lineIsClear(l, extras)) {
     bep = l.from - 1
-    l = p.view.ed.state.doc.lineAt(bep)
+    l = view.ed.state.doc.lineAt(bep)
   }
 
-  if (p.view.markActive)
-    WodeCommon.vsetSel(p.view, p.view.ed.state.selection.main.to, l.from, 1)
+  if (view.markActive)
+    WodeCommon.vsetSel(view, view.ed.state.selection.main.to, l.from, 1)
   else
-    vsetBep(p.view, l.from, 1)
+    vsetBep(view, l.from, 1)
 }
 
 export
 function topLevelEnd
 (extras) {
-  let p, bep, endLine, l
+  let view, bep, endLine, l
 
-  p = Pane.current()
-  bep = vgetBep(p.view)
-  endLine = vlen(p.view)
+  view = View.current()
+
+  bep = vgetBep(view)
+  endLine = vlen(view)
   //d('endLine: ' + endLine)
-  l = p.view.ed.state.doc.lineAt(bep)
+  l = view.ed.state.doc.lineAt(bep)
   while ((l.number < endLine) && lineIsText(l, extras)) {
     bep = l.to + 1
-    l = p.view.ed.state.doc.lineAt(bep)
+    l = view.ed.state.doc.lineAt(bep)
   }
 
   while ((l.number < endLine) && lineIsClear(l, extras)) {
     bep = l.to + 1
-    l = p.view.ed.state.doc.lineAt(bep)
+    l = view.ed.state.doc.lineAt(bep)
   }
 
-  if (p.view.markActive)
-    WodeCommon.vsetSel(p.view, p.view.ed.state.selection.main.from, l.from, 1)
+  if (view.markActive)
+    WodeCommon.vsetSel(view, view.ed.state.selection.main.from, l.from, 1)
   else
-    vsetBep(p.view, l.from, 1)
+    vsetBep(view, l.from, 1)
 }
 
 function containsVertically

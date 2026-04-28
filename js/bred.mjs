@@ -658,7 +658,7 @@ function initCmds
     let dir, view
 
     view = View.current()
-    dir = view.dir
+    dir = view.buf.dir
     if (dir)
       dir = Loc.make(dir)
     else {

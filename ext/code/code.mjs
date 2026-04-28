@@ -1205,6 +1205,8 @@ function init
 
       agent = buf.opts.get('code.agent') || Opt.get('code.agent')
 
+      updateBufAgent(buf, agent)
+
       d('CO SEND (' + agent + ')')
 
       res = await c.session.prompt({ sessionID,
@@ -1212,8 +1214,6 @@ function init
                                      model: { providerID: provider, modelID: model },
                                      agent,
                                      parts: [ { id: uuidv4(), type: 'text', text } ] })
-
-      updateBufAgent(buf, agent)
 
       d('CO SEND done')
       d({ res })

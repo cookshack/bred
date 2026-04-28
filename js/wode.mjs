@@ -1777,12 +1777,12 @@ function newline
 export
 function newlineAndIndent
 () {
-  let p
+  let view
 
-  p = Pane.current()
-  if (p.buf.opt('core.comments.continue')
-      && CMCont.insertNewlineContinueComment({ state: p.view.ed.state,
-                                               dispatch: p.view.ed.dispatch }))
+  view = View.current()
+  if (view.buf.opt('core.comments.continue')
+      && CMCont.insertNewlineContinueComment({ state: view.ed.state,
+                                               dispatch: view.ed.dispatch }))
     return
   exec(CMComm.insertNewlineAndIndent)
 }
@@ -2076,17 +2076,17 @@ function trim
 export
 function yank
 () {
-  let p, str
+  let view, str
 
-  p = Pane.current()
+  view = View.current()
   str = Cut.nth(0)
   if (str) {
     let bep
 
-    bep = vgetBep(p.view)
-    vinsert1(p.view, 1, str || '')
+    bep = vgetBep(view)
+    vinsert1(view, 1, str || '')
     // have to do this after otherwise the insert moves the mark
-    addMarkAt(p.view, bep)
+    addMarkAt(view, bep)
   }
   else
     Mess.say('Cut list empty')
@@ -2096,16 +2096,16 @@ export
 function yankRoll
 () {
   if ([ 'Paste', 'Paste Roll', 'Yank', 'Yank Roll' ].includes(Cmd.last())) {
-    let p, str
+    let view, str
 
-    p = Pane.current()
+    view = View.current()
     Cut.roll()
     str = Cut.nth(0)
     if (str) {
       let r
 
-      r = regionRange(p.view)
-      vreplaceAt(p.view, r, str || '')
+      r = regionRange(view)
+      vreplaceAt(view, r, str || '')
     }
     else
       Mess.say('Cut list empty')

@@ -2,6 +2,7 @@ import { divCl } from './dom.mjs'
 import * as DirMarked from './dir-marked.mjs'
 import * as Loc from './loc.mjs'
 import * as Pane from './pane.mjs'
+import * as View from './view.mjs'
 
 export
 function under
@@ -34,8 +35,11 @@ function getMarked
 export
 function current
 (p) {
+  let view
+
   p = p || Pane.current()
-  return p?.view?.point?.over()
+  view = View.current(p)
+  return view?.point?.over()
 }
 
 export

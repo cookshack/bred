@@ -136,19 +136,19 @@ function init
     if (we?.e && (we.e.button == 0))
       cut = we.e.target.dataset.cut
     else {
-      let p, el
+      let view, el
 
-      p = Pane.current()
-      el = p.view.point.over()
+      view = View.current()
+      el = view.point.over()
       if (el)
         cut = el.dataset.cut
     }
     if (cut) {
-      let p
+      let view
 
       Cmd.run('bury')
-      p = Pane.current()
-      p.view.insert(cut, p.view.bep)
+      view = View.current()
+      view.insert(cut, view.bep)
     }
     else
       Mess.yell('Missing cut')

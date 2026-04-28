@@ -105,6 +105,7 @@ Tab
 
 ## Common Patterns
 
+- `View.current()` - get the focused view in current pane
 - `Pane.current()` - get the focused pane in current frame
 - `Frame.current()` - get the focused frame in current tab
 - `Tab.current()` - get the active tab

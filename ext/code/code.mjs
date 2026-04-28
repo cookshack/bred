@@ -1416,8 +1416,8 @@ function init
       placeholder = chatHist?.nth(0)?.toString()
 
       b = Buf.make({ name: 'Code Prompt',
-                     modeKey: 'ed',
-                     content: Ed.divW(buf.dir, 'XX', { hideMl: 1 }),
+                     modeKey: 'markdown',
+                     content: Ed.divW(buf.dir, 'Code Prompt', { hideMl: 1 }),
                      dir: buf.dir,
                      placeholder,
                      single: 1 })

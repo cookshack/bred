@@ -299,7 +299,7 @@ function initFlushLines
 
   function flushLines
   (other, regex) {
-    let p, prompt
+    let view, prompt
 
     function flush
     (needle) {
@@ -318,12 +318,12 @@ function initFlushLines
         match = text => regex.test(text)
 
       hist.add(needle)
-      psn = Backend.makePsn(p.view, Backend.vgetBepEnd(p.view))
+      psn = Backend.makePsn(view, Backend.vgetBepEnd(view))
       while (1) {
         let text
 
         psn.lineStart()
-        text = Backend.lineAtBep(p.view, psn.bep)
+        text = Backend.lineAtBep(view, psn.bep)
         d('bep: ' + psn.bep)
         d('text: ' + text)
         if (match(text, needle)) {
@@ -333,7 +333,7 @@ function initFlushLines
           start = psn.bep
           psn.lineEnd()
           atEnd = psn.charRight()
-          range = makeRange(p.view, start, psn.bep)
+          range = makeRange(view, start, psn.bep)
 
           // mv back to start of line to be removed, so that psn is right
           atEnd || psn.linePrev()
@@ -347,7 +347,7 @@ function initFlushLines
     }
 
     prompt = (other ? 'Keep' : 'Flush') + ' lines containing ' + (regex ? 'regex' : 'string')
-    p = Pane.current()
+    view = View.current()
     Prompt.ask({ text: prompt,
                  hist },
                flush)
@@ -367,7 +367,7 @@ function initGotoLine
 
   function gotoLine
   () {
-    let p
+    let view
 
     function go
     (text) {
@@ -375,11 +375,11 @@ function initGotoLine
 
       num = parseInt(text)
       isNaN(num) && Mess.toss('Must be a number')
-      Backend.vgotoLine(p.view, num)
+      Backend.vgotoLine(view, num)
       hist.add(num)
     }
 
-    p = Pane.current()
+    view = View.current()
     Prompt.ask({ text: 'goto line:',
                  hist },
                go)
@@ -405,10 +405,10 @@ function initQR
   () {
     d('qr [' + st.from + '] to [' + st.to + ']')
     if (Backend.find(st)) {
-      let p, bs
+      let view, bs
 
-      p = Pane.current()
-      bs = p.view.ele.querySelector('.bred-qr-buttons')
+      view = View.current()
+      bs = view.ele.querySelector('.bred-qr-buttons')
       Css.expand(bs)
       Em.replace(() => [ em ])
     }
@@ -420,13 +420,13 @@ function initQR
 
   function queryDone
   () {
-    let p, ww
+    let view, ww
 
-    p = Pane.current()
-    ww = p.view.ele.firstElementChild
+    view = View.current()
+    ww = view.ele.firstElementChild
     if (Css.has(ww.children[5], 'retracted')) {
       st.from = ww.children[1].innerText
-      st.to = p.buf.text()
+      st.to = view.buf.text()
       hist.add({ from: st.from, to: st.to })
       search()
       return 1
@@ -436,28 +436,28 @@ function initQR
 
   function prevHist
   (nth) {
-    let p, prev
+    let view, prev
 
-    p = Pane.current()
+    view = View.current()
     prev = nth < 0 ? hist.next() : hist.prev()
     if (prev) {
       let ww
 
-      ww = p.view.ele.firstElementChild
-      p.buf.clear()
+      ww = view.ele.firstElementChild
+      view.buf.clear()
       if (Css.has(ww.children[5], 'retracted'))
-        p.view.insert(prev.to)
+        view.insert(prev.to)
       else
-        p.view.insert(prev.from)
+        view.insert(prev.from)
     }
   }
 
   function other
   () {
-    let p, ww
+    let view, ww
 
-    p = Pane.current()
-    ww = p.view.ele.firstElementChild
+    view = View.current()
+    ww = view.ele.firstElementChild
     if (Css.has(ww.children[5], 'retracted'))
       previous()
     else
@@ -466,24 +466,24 @@ function initQR
 
   function next
   () {
-    let p, from, to
+    let view, from, to
 
     if (queryDone())
       return
-    p = Pane.current()
-    from = p.buf.text()
+    view = View.current()
+    from = view.buf.text()
     if (from.length == 0) {
-      from = p.buf.placeholder
-      p.buf.vars('qr').fromPlaceholder = from
+      from = view.buf.placeholder
+      view.buf.vars('qr').fromPlaceholder = from
     }
-    p.buf.placeholder = 0
+    view.buf.placeholder = 0
     from.length || Mess.toss('Empty')
-    p.buf.clear()
-    p.buf.views.forEach(view => {
-      if (view.ele) {
+    view.buf.clear()
+    view.buf.views.forEach(v => {
+      if (v.ele) {
         let ww
 
-        ww = view.ele.firstElementChild
+        ww = v.ele.firstElementChild
         Css.expand(ww.children[0])
         Css.expand(ww.children[1])
         ww.children[1].innerText = from
@@ -493,20 +493,20 @@ function initQR
         to = ww.children[5].innerText
       }
     })
-    p.view.insert(to)
+    view.insert(to)
   }
 
   function previous
   () {
-    let p, from, to, ph
+    let view, from, to, ph
 
-    p = Pane.current()
-    to = p.buf.text()
-    p.buf.clear()
-    ph = p.buf.vars('qr').fromPlaceholder
+    view = View.current()
+    to = view.buf.text()
+    view.buf.clear()
+    ph = view.buf.vars('qr').fromPlaceholder
     if (ph?.length)
-      p.buf.placeholder = ph
-    p.buf.views.forEach(view => {
+      view.buf.placeholder = ph
+    view.buf.views.forEach(view => {
       if (view.ele) {
         let ww
 
@@ -520,7 +520,7 @@ function initQR
         Css.expand(ww.children[5])
       }
     })
-    p.view.insert(from)
+    view.insert(from)
   }
 
   function divW
@@ -542,11 +542,11 @@ function initQR
 
   function qr
   () {
-    let p, ph
+    let view, ph
 
-    p = Pane.current()
+    view = View.current()
     st = {}
-    st.view = p.view
+    st.view = view
     hist.reset()
     st.occur = st.view.buf.opts.get('core.highlight.occurrences.enabled')
     st.view.buf.opts.set('core.highlight.occurrences.enabled', 0)
@@ -575,7 +575,7 @@ function initQR
       we.buf = view?.buf
     }
     else {
-      view = Pane.current()?.view
+      view = View.current()
       we.buf = view?.buf
     }
     Em.handle(we, view)
@@ -982,10 +982,10 @@ export
 function tokenAt
 (x, y) {
   if (Backend.vtokenAt) {
-    let p
+    let view
 
-    p = Pane.current()
-    return Backend.vtokenAt(p.view, x, y)
+    view = View.current()
+    return Backend.vtokenAt(view, x, y)
   }
   return null
 }
@@ -1031,10 +1031,10 @@ function vpageForward
 
 function pageForward
 (u) {
-  let p
+  let view
 
-  p = Pane.current()
-  vpageForward(p.view, u)
+  view = View.current()
+  vpageForward(view, u)
 }
 
 function pageBackward
@@ -1119,11 +1119,11 @@ function getNextWord
 
 function transposeWords
 () {
-  let p, r1, r2
+  let view, r1, r2
 
-  p = Pane.current()
-  r1 = getNextWord(p.view)
-  r2 = getNextWord(p.view, -1)
+  view = View.current()
+  r1 = getNextWord(view)
+  r2 = getNextWord(view, -1)
   d({ r1 })
   d({ r2 })
   if (r1 && r2) {
@@ -1133,26 +1133,26 @@ function transposeWords
     t2 = r2.text
     d({ t1 })
     d({ t2 })
-    Backend.vreplaceAtAll(p.view, r1, t2, [ { range: r2, text: t1 } ])
+    Backend.vreplaceAtAll(view, r1, t2, [ { range: r2, text: t1 } ])
     Backend.wordForward()
   }
 }
 
 function delNextWord
 (u) {
-  let p, bep1, bep2, range, text
+  let view, bep1, bep2, range, text
 
-  p = Pane.current()
+  view = View.current()
 
-  bep1 = Backend.vgetBep(p.view)
+  bep1 = Backend.vgetBep(view)
 
-  Backend.clearSelection(p.view)
+  Backend.clearSelection(view)
 
-  vwordForward(p.view, u)
+  vwordForward(view, u)
 
-  bep2 = Backend.vgetBep(p.view)
+  bep2 = Backend.vgetBep(view)
 
-  range = makeRange(p.view, bep1, bep2)
+  range = makeRange(view, bep1, bep2)
   text = range.text
   if (text && text.length) {
     range.remove()
@@ -1161,31 +1161,31 @@ function delNextWord
 }
 
 function indentLineRigidly
-(p, row, str, setBep) {
+(view, row, str, setBep) {
   let bep
 
-  bep = Backend.makeBep(p.view, row, 0)
+  bep = Backend.makeBep(view, row, 0)
   d('line start: ' + bep)
-  p.buf.views.forEach(view => {
-    Backend.vinsertAt(view, bep, 1, str)
-    if (setBep && (view == p.view)) {
+  view.buf.views.forEach(v => {
+    Backend.vinsertAt(v, bep, 1, str)
+    if (setBep && (v == view)) {
       let bep2
 
-      bep2 = Backend.bepRightOverSpace(view, bep)
-      Backend.vsetBep(view, bep2)
+      bep2 = Backend.bepRightOverSpace(v, bep)
+      Backend.vsetBep(v, bep2)
     }
   })
 }
 
 function indentRigidly
 (u) {
-  let p, str, psns, rows, singleRow, region
+  let view, str, psns, rows, singleRow, region
 
   //d('ir')
   str = ' '.repeat(u || 1)
   //d('[' + str + ']')
-  p = Pane.current()
-  region = p.view.region
+  view = View.current()
+  region = view.region
   psns = region.psns
   singleRow = psns.length <= 1
   if (psns.length > 1) {
@@ -1196,10 +1196,10 @@ function indentRigidly
     if (region.end.col == 0)
       psns = psns.slice(0, psns.length - 1)
   }
-  rows = psns.map(psn => Backend.bepRow(p.view, psn.bep))
+  rows = psns.map(psn => Backend.bepRow(view, psn.bep))
   // skip 0 len lines
-  rows = rows.filter(r => Backend.rowLen(p.view, r))
-  rows.forEach(line => indentLineRigidly(p, line, str, singleRow))
+  rows = rows.filter(r => Backend.rowLen(view, r))
+  rows.forEach(line => indentLineRigidly(view, line, str, singleRow))
 }
 
 function discardAndRevert
@@ -1216,12 +1216,12 @@ function discardAndRevert
 
 function countRegion
 () {
-  let p, region, lines
+  let view, region, lines
 
-  p = Pane.current()
-  region = p.view.region
+  view = View.current()
+  region = view.region
   if (region.chars)
-    lines = bepRow(p.view, region.to) - bepRow(p.view, region.from) + 1
+    lines = bepRow(view, region.to) - bepRow(view, region.from) + 1
   else
     lines = 0
   Mess.say('Region has ' + lines + ' lines, ' + region.chars + ' characters')
@@ -1247,7 +1247,7 @@ export
 function save
 (fn, // (view, cb)
  cb) { // (err)
-  let p, path
+  let view, path
 
   function error
   (msg) {
@@ -1258,30 +1258,30 @@ function save
   }
 
   fn = fn || Backend.vsave
-  p = Pane.current()
+  view = View.current()
 
-  path = Loc.make(p.view.buf.path).expand()
+  path = Loc.make(view.buf.path).expand()
   Tron.cmd('file.stat', path, (err, data) => {
     if (err) {
       if (err.code == 'ENOENT') {
         // new file
-        fn(p.view, cb)
+        fn(view, cb)
         return
       }
       error(err.message)
       return
     }
     // existing file
-    if (p.view.buf.stat) {
-      if (p.view.buf.stat?.mtimeMs < data.data.mtimeMs)
+    if (view.buf.stat) {
+      if (view.buf.stat?.mtimeMs < data.data.mtimeMs)
         Prompt.yn('File has changed on disk. Overwrite?',
                   { icon: 'save' },
                   yes => {
                     if (yes)
-                      fn(p.view, cb)
+                      fn(view, cb)
                   })
       else
-        fn(p.view, cb)
+        fn(view, cb)
       return
     }
     error('Buffer missing stat')
@@ -1290,11 +1290,11 @@ function save
 
 function revert
 () {
-  let p
+  let view
 
-  p = Pane.current()
-  if (p.view.buf.path) {
-    if (p.view.buf.modified) {
+  view = View.current()
+  if (view.buf.path) {
+    if (view.buf.modified) {
       Prompt.demand(emRevert,
                     divCl('float-h',
                           [ divCl('float-icon', img(Icon.path('trash'), 'Trash', 'filter-clr-nb3')),
@@ -1303,7 +1303,7 @@ function revert
                             button([ span('n', 'key'), 'o' ], '', { 'data-run': 'close demand' }) ]))
       return
     }
-    Backend.revertV(p.view)
+    Backend.revertV(view)
   }
   else
     Mess.toss('Buf needs path')
@@ -1327,13 +1327,13 @@ function enable
 export
 function enableBuf
 (u, name) {
-  let p
+  let view
 
-  p = Pane.current()
+  view = View.current()
   if (u == 4)
-    p?.buf?.opts.set(name, 0)
+    view?.buf?.opts.set(name, 0)
   else
-    p?.buf?.opts.set(name, 1)
+    view?.buf?.opts.set(name, 1)
 }
 
 export
@@ -1341,7 +1341,7 @@ function init
 (backend, cb) { // (err)
   function vcall
   (cb) {
-    cb(Pane.current()?.view)
+    cb(View.current())
   }
 
   d('set backend')
@@ -1465,7 +1465,7 @@ function init
     Cmd.add('indent rigidly', indentRigidly, mo)
     Cmd.add('insert two spaces', () => Backend.insertTwoSpaces(), mo)
     Cmd.add('save', () => save(), mo)
-    Cmd.add('save as', () => Backend.vsaveAs(Pane.current()?.view), mo)
+    Cmd.add('save as', () => Backend.vsaveAs(View.current()), mo)
     Cmd.add('transpose chars', () => Backend.transposeChars(), mo)
     Cmd.add('transpose words', () => transposeWords(), mo)
     Cmd.add('toggle overwrite', () => Backend.toggleOverwrite(), mo)

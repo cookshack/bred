@@ -1,5 +1,5 @@
 import * as Loc from './loc.mjs'
-import * as Pane from './pane.mjs'
+import * as View from './view.mjs'
 import * as Shell from './shell.mjs'
 import { d } from './mess.mjs'
 
@@ -44,7 +44,7 @@ function findEscapeSequences
 export
 async function refine
 (patch, cb) {
-  Shell.runToString(Pane.current().dir,
+  Shell.runToString(View.current().dir,
                     Loc.appDir().join('bin/highlight-patch'),
                     [ patch ],
                     0,

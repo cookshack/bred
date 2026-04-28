@@ -87,7 +87,7 @@ function initStash
   Cmd.add('stash open', () => {
     let line
 
-    line = Pane.current().line()
+    line = View.current().line
     if (line.trim().length == 0)
       Mess.say('Empty line')
     else {
@@ -107,7 +107,7 @@ function initStash
   Cmd.add('stash apply', () => {
     let line
 
-    line = Pane.current().line()
+    line = View.current().line
     if (line.trim().length == 0)
       Mess.say('Empty line')
     else {
@@ -124,7 +124,7 @@ function initStash
   Cmd.add('stash drop', () => {
     let line
 
-    line = Pane.current().line()
+    line = View.current().line
     if (line.trim().length == 0)
       Mess.say('Empty line')
     else {
@@ -2153,7 +2153,7 @@ function initEqual
   (nth) {
     let b, num
 
-    b = Pane.current().buf
+    b = View.current().buf
     if (/^SC: .*\/git-eq$/.test(b.name))
       num = -1
     else if (b.name == 'SC: git show --no-prefix')
@@ -3104,7 +3104,7 @@ function init
   () {
     let line
 
-    line = Pane.current().line()
+    line = View.current().line
     if (line.startsWith('*'))
       Cmd.run('parent')
     else if (line.trim().length == 0)
@@ -3139,7 +3139,7 @@ function init
 
   function mainOrMaster
   () {
-    Shell.runToString(Pane.current().dir,
+    Shell.runToString(View.current().dir,
                       'git',
                       [ 'branch', '--list', 'main' ],
                       0,

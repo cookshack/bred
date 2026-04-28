@@ -793,7 +793,7 @@ function init
         if (Css.has(next, 'dir-name-w')) {
           let marked
 
-          marked = DirCommon.getMarked(Pane.current().buf)
+          marked = DirCommon.getMarked(View.current().buf)
           if (Css.has(next, 'on'))
             marked.add(next.firstElementChild.dataset.name,
                        next.firstElementChild.dataset.type)

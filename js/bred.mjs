@@ -67,7 +67,7 @@ function focus
   target = globalThis.document.elementFromPoint(we.e.clientX, we.e.clientY)
   p = Pane.holding(target)
   if (p)
-    p.focus()
+    p.focusViewAt(target)
 }
 
 function click
@@ -1340,7 +1340,7 @@ function initHandlers
   (e) {
     let view
 
-    view = Pane.current()?.view
+    view = View.current()
     Em.handle({ mouse: 0, e, buf: view?.buf },
               view)
   }

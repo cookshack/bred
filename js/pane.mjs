@@ -101,6 +101,27 @@ function add
  spec) {
   let p, curr, view, ele, elePoint, elePointLine, eleHead, eleLint, paneW, inputQueue
 
+  function focusViewAt
+  (target) {
+    let nestedPane
+
+    focus() // Ensure pane is in correct state
+    nestedPane = target.closest('.pane.bred-nested')
+    if (nestedPane) {
+      let nestedView
+
+      view.ele.querySelectorAll('.pane.bred-nested.current').forEach(el => Css.remove(el, 'current'))
+      Css.add(nestedPane, 'current')
+      nestedView = view.nestedViews?.find(nv => nv.ele.parentElement == nestedPane)
+      if (nestedView?.ed)
+        nestedView.ed.focus()
+      if (View.onFocuss)
+        View.onFocuss.forEach(cb => cb(nestedView))
+    }
+    else
+      view.ele.querySelectorAll('.pane.bred-nested.current').forEach(el => Css.remove(el, 'current'))
+  }
+
   function cols
   () {
     let r
@@ -482,10 +503,20 @@ function add
         () {
           return frame?.tab?.area?.win
         },
+        get currentNestedView
+        () {
+          let el
+
+          el = view?.ele?.querySelector('.pane.bred-nested.current')
+          if (el)
+            return view.nestedViews?.find(nv => nv.ele.parentElement == el)
+          return null
+        },
         //
         //set buf(b2) {... see setBuf below
         //
         close,
+        focusViewAt,
         goXY,
         line,
         open,
@@ -566,19 +597,9 @@ function holding
   let p
 
   if (el) {
-    let ele, nestedId, nestedView
+    let ele
 
-    nestedId = el.closest('.pane.bred-nested')?.querySelector('.bred-view-w')?.parentElement?.dataset?.id
-    if (nestedId) {
-      let nestedBuf
-
-      nestedBuf = Buf.find(b => b.id == nestedId)
-      if (nestedBuf)
-        nestedView = nestedBuf.views.find(v => v.ele)
-      return nestedView
-    }
-
-    ele = el.closest('.paneW')?.querySelector('.pane')
+    ele = el.closest('.paneW:not(.bred-nested)')?.querySelector('.pane')
     Frame.find(frame => {
       p = frame.panes.find(p1 => p1.ele == ele)
       if (p)

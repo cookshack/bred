@@ -2,6 +2,7 @@ import { append, divCl } from './dom.mjs'
 
 import * as Css from './css.mjs'
 import * as Mess from './mess.mjs'
+import * as Pane from './pane.mjs'
 import * as Point from './point.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'
@@ -620,6 +621,15 @@ function make
   Mess.log('nest-View.make: buf.views.length after catch-all push=' + spec.views.length)
 
   return v
+}
+
+export
+function current
+() {
+  let p
+
+  p = Pane.current()
+  return p.currentNestedView || p.view
 }
 
 export

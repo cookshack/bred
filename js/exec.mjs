@@ -80,7 +80,7 @@ function init
   (view, spec, cb) { // (view)
     let w
 
-    w = view.ele.firstElementChild.firstElementChild
+    w = view.ele.querySelector('.execute-w')
     w.innerHTML = ''
     needle = ''
     refresh(w)
@@ -95,7 +95,7 @@ function init
 
     0 && d('delPrev ' + we.e.key)
     p = Pane.current()
-    w = p.ele.firstElementChild.firstElementChild
+    w = p.view.ele.querySelector('.execute-w')
     if (Css.has(w, 'execute-w')) {
       needle = needle.slice(0, needle.length - 1)
       refresh(w)
@@ -108,7 +108,7 @@ function init
 
     //d('adding ' + we.e.key)
     p = Pane.current()
-    w = p.ele.firstElementChild.firstElementChild
+    w = p.view.ele.querySelector('.execute-w')
     if (Css.has(w, 'execute-w')) {
       needle += we.e.key
       refresh(w)
@@ -120,7 +120,7 @@ function init
     let p, w, current
 
     p = Pane.current()
-    w = p.ele.firstElementChild.firstElementChild
+    w = p.view.ele.querySelector('.execute-w')
     current = w.querySelector('.execute-cmd-current')
     if (current?.nextElementSibling) {
       Css.remove(current, 'execute-cmd-current')
@@ -133,7 +133,7 @@ function init
     let p, w, current
 
     p = Pane.current()
-    w = p.ele.firstElementChild.firstElementChild
+    w = p.view.ele.querySelector('.execute-w')
     current = w.querySelector('.execute-cmd-current')
     if (current?.previousElementSibling) {
       Css.remove(current, 'execute-cmd-current')
@@ -158,7 +158,7 @@ function init
       return
     }
 
-    w = p.ele.firstElementChild.firstElementChild
+    w = p.view.ele.querySelector('.execute-w')
     if (Css.has(w, 'execute-w')) {
       let current
 

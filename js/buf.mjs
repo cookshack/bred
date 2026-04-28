@@ -303,7 +303,13 @@ function make
         Mess.log('nest: added paneW to container, container children: ' + container.children.length)
 
         if (pane)
-          nestedView = view(childBuf, { ele: pane, elePoint: point })
+          nestedView = view(childBuf,
+                            { ele: pane, elePoint: point },
+                            v => {
+                              if (v.ed)
+                                Css.add(paneW, 'ed')
+                              Mess.log('nest: view ready, pane children: ' + pane.children.length)
+                            })
         else
           Mess.log('nest: pane is null!')
         if (nestedView)

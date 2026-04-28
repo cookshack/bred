@@ -224,6 +224,7 @@ div.code-thought:hover {
 }
 
 .code-prompt-w {
+  border-top: 1px solid;
   padding: 0.5rem;
   padding-top: 0;
   background: var(--clr-fill);

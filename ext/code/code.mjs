@@ -1642,6 +1642,20 @@ function init
       return
     }
 
+    cancelPrompt(p)
+
+    buf.vars('code').promptBuf.clear()
+    chatHist.add(text)
+    send(buf, text, buf.vars('code').provider, buf.vars('code').model)
+  }
+
+  function cancelPrompt
+  (p) {
+    let buf
+
+    p = p || Pane.current()
+    buf = p.buf
+
     buf.views.forEach(view => {
       let container
 
@@ -1651,10 +1665,6 @@ function init
     })
 
     p.focus()
-
-    buf.vars('code').promptBuf.clear()
-    chatHist.add(text)
-    send(buf, text, buf.vars('code').provider, buf.vars('code').model)
   }
 
   hist = Hist.ensure('code')
@@ -1726,7 +1736,9 @@ function init
 
   moCodePrompt = Mode.add('Code Prompt', { minor: 1 })
 
-  Cmd.add('submit prompt', submitPrompt, moCodePrompt)
+  Cmd.add('submit prompt', () => submitPrompt(), moCodePrompt)
+  Cmd.add('cancel prompt', () => cancelPrompt(), moCodePrompt)
 
   Em.on('Enter', 'submit prompt', moCodePrompt)
+  Em.on('C-g', 'cancel prompt', moCodePrompt)
 }

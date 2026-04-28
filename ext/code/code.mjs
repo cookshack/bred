@@ -25,6 +25,7 @@ import { themeExtension } from '../../js/wode-theme.mjs'
 
 import * as OpenCode from './lib/opencode/v2/client.js'
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
+import { makeMlDir } from '../../js/ed.mjs'
 
 function agentIcon
 () {
@@ -1154,7 +1155,7 @@ function init
                  [ divCl('code-h',
                          [ divCl('code-icon',
                                  img(Icon.path('assist'), 'Code', 'filter-clr-text')),
-                           divCl('code-title', dir),
+                           divCl('code-title', makeMlDir(dir)),
                            divCl('code-h-right',
                                  [ divCl('code-agent', '', { 'data-run': 'Set Agent' }),
                                    divCl('code-thought code-icon',

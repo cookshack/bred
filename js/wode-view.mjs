@@ -118,7 +118,7 @@ function diagnose
     tab = Tab.current(area)
     frame = area && Frame.current(tab)
     view = frame && Pane.current(frame)?.view
-    view = Pane.current().view
+    view = View.current()
     return view?.ed?.coordsAtPos(Wode.vgetBep(view))
   }
   if (win && diag) {
@@ -736,7 +736,7 @@ function _viewInit
       buf.addToRecents()
 
       WodeCommon.setValue(ed, data.data, false)
-      if (view == Pane.current().view)
+      if (view == View.current())
         ed.focus()
       if (Number.isFinite(parseInt(lineNum))) {
         Wode.vgotoLine(view, lineNum)

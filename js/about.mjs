@@ -20,6 +20,7 @@ import * as Pane from './pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scroll from './scroll.mjs'
 import * as U from './util.mjs'
+import * as View from './view.mjs'
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 import Vqlite from '../lib/sqlite.json' with { type: 'json' }
 import * as Win from './win.mjs'
@@ -959,7 +960,7 @@ function init
   Em.on('C-h s', 'messages')
   Em.on('C-h u', 'man')
 
-  Cmd.add('refresh', () => viewInit(Pane.current().view), mo)
+  Cmd.add('refresh', () => viewInit(View.current()), mo)
 
   Em.on('g', 'refresh', mo)
 

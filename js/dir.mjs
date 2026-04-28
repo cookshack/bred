@@ -16,6 +16,7 @@ import * as Recent from './recent.mjs'
 import * as Scroll from './scroll.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
+import * as View from './view.mjs'
 import * as DirMarked from './dir-marked.mjs'
 import * as DirOps from './dir-ops.mjs'
 import * as Shell from './shell.mjs'
@@ -210,7 +211,7 @@ function nextLine
   u = u || 1
   bw = u < 0
   u = Math.abs(u)
-  v = Pane.current().view
+  v = View.current()
   h = v.ele.querySelector('.dir-h')
   lines = v.buf.vars('dir').lines
 
@@ -780,7 +781,7 @@ function init
           start = start.parentNode
         start = start.nextElementSibling
         if (Css.has(start, 'dir-name-w')) {
-          put(Pane.current().view, start.firstElementChild)
+          put(View.current(), start.firstElementChild)
           break
         }
       }
@@ -961,8 +962,8 @@ function init
   Em.on('s s', 'sort by size', 'Dir')
   Em.on('s t', 'sort by time', 'Dir')
 
-  Cmd.add('top of pane', () => topLine(Pane.current().view), m)
-  Cmd.add('bottom of pane', () => lastVisibleLine(Pane.current().view), m)
+  Cmd.add('top of pane', () => topLine(View.current()), m)
+  Cmd.add('bottom of pane', () => lastVisibleLine(View.current()), m)
   Cmd.add('next line', nextLine, m)
   Cmd.add('previous line', prevLine, m)
 

@@ -291,7 +291,7 @@ function init
 
   function update
   (view) {
-    if (Pane.current().view == view) {
+    if (View.current() == view) {
       if (tout)
         clearTimeout(tout)
       tout = setTimeout(() => {

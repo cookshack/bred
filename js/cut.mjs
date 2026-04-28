@@ -8,6 +8,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
+import * as View from './view.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
@@ -109,7 +110,7 @@ function init
 
   mo = Mode.add('Cuts', { viewInit })
 
-  Cmd.add('refresh', () => viewInit(Pane.current().view), mo)
+  Cmd.add('refresh', () => viewInit(View.current()), mo)
 
   Cmd.add('cuts', () => {
     let p, buf

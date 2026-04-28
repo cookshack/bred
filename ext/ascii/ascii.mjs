@@ -6,6 +6,7 @@ import * as Css from '../../js/css.mjs'
 import * as Em from '../../js/em.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/pane.mjs'
+import * as View from '../../js/view.mjs'
 //import { d } from '../../js/mess.mjs'
 
 function divW
@@ -129,7 +130,7 @@ function init
   function toggle
   () {
     verbose = verbose ? 0 : 1
-    viewInit(Pane.current().view)
+    viewInit(View.current())
   }
 
   function ascii
@@ -223,7 +224,7 @@ function init
   mo = Mode.add('ASCII', { viewInit,
                            context: [ { cmd: 'Toggle Verbose' } ] })
 
-  Cmd.add('refresh', () => viewInit(Pane.current().view), mo)
+  Cmd.add('refresh', () => viewInit(View.current()), mo)
   Cmd.add('toggle verbose', () => toggle(), mo)
 
   Em.on('g', 'refresh', mo)

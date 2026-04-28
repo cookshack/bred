@@ -6,6 +6,7 @@ import * as Em from '../../js/em.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/pane.mjs'
 import * as Panel from '../../js/panel.mjs'
+import * as View from '../../js/view.mjs'
 //import { d } from '../../js/mess.mjs'
 
 let icon
@@ -96,12 +97,12 @@ function init
 
   function year
   () {
-    refresh(Pane.current().view, 1)
+    refresh(View.current(), 1)
   }
 
   function three
   () {
-    refresh(Pane.current().view, 0)
+    refresh(View.current(), 0)
   }
 
   function make

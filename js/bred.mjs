@@ -645,14 +645,14 @@ function initCmds
 
   Cmd.add('recenter', () => Pane.recenter())
 
-  Cmd.add('backward', () => Pane.current().view.backward())
-  Cmd.add('forward', () => Pane.current().view.forward())
-  Cmd.add('line end', () => Pane.current().view.lineEnd())
-  Cmd.add('line start', () => Pane.current().view.lineStart())
-  Cmd.add('buffer end', () => Pane.current().view.bufEnd())
-  Cmd.add('buffer start', () => Pane.current().view.bufStart())
-  Cmd.add('next line', () => Pane.current().view.lineNext())
-  Cmd.add('previous line', () => Pane.current().view.linePrev())
+  Cmd.add('backward', () => View.current().backward())
+  Cmd.add('forward', () => View.current().forward())
+  Cmd.add('line end', () => View.current().lineEnd())
+  Cmd.add('line start', () => View.current().lineStart())
+  Cmd.add('buffer end', () => View.current().bufEnd())
+  Cmd.add('buffer start', () => View.current().bufStart())
+  Cmd.add('next line', () => View.current().lineNext())
+  Cmd.add('previous line', () => View.current().linePrev())
 
   Cmd.add('parent', () => {
     let dir, p

@@ -18,6 +18,7 @@ import * as Panel from '../../js/panel.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import * as Shell from '../../js/shell.mjs'
 import * as Tron from '../../js/tron.mjs'
+import * as View from '../../js/view.mjs'
 import { d } from '../../js/mess.mjs'
 
 import Ollama from './lib/ollama.js'
@@ -1464,7 +1465,7 @@ function init
   (nth) {
     let h, el, v
 
-    v = Pane.current().view
+    v = View.current()
     h = v.ele.querySelector('.query-h')
     if (v.point.over(h)) {
       first(v)

@@ -900,7 +900,7 @@ function init
   Em.on('C-x A-b', 'buffers')
 
   Cmd.add('open buffer', open, mo)
-  Cmd.add('refresh', () => viewInit(Pane.current().view), mo)
+  Cmd.add('refresh', () => viewInit(View.current()), mo)
 
   Em.on('g', 'refresh', mo)
   Em.on('Enter', 'open buffer', mo)

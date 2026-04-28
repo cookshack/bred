@@ -17,6 +17,7 @@ import * as Prompt from './prompt.mjs'
 import * as Timing from './timing.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
+import * as View from './view.mjs'
 import { d } from './mess.mjs'
 
 import escapeStringRegexp from '../lib/escape-string-regexp.js'
@@ -1435,10 +1436,10 @@ function init
     Cmd.add('page backward', pageBackward, mo)
     Cmd.add('page forward or self insert', pageForwardOrSelf, mo)
     Cmd.add('page backward or self insert', pageBackwardOrSelf, mo)
-    Cmd.add('previous line', u => Backend.prevLine(Pane.current().view, u), mo)
-    Cmd.add('next line', u => Backend.nextLine(Pane.current().view, u), mo)
-    Cmd.add('previous boundary', u => Backend.prevBoundary(Pane.current().view, u), mo)
-    Cmd.add('next boundary', u => Backend.nextBoundary(Pane.current().view, u), mo)
+    Cmd.add('previous line', u => Backend.prevLine(View.current(), u), mo)
+    Cmd.add('next line', u => Backend.nextLine(View.current(), u), mo)
+    Cmd.add('previous boundary', u => Backend.prevBoundary(View.current(), u), mo)
+    Cmd.add('next boundary', u => Backend.nextBoundary(View.current(), u), mo)
     Cmd.add('line start', () => Backend.lineStart(), mo)
     Cmd.add('line end', () => Backend.lineEnd(), mo)
     Cmd.add('buffer start', () => Backend.bufferStart(), mo)

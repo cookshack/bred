@@ -16,6 +16,7 @@ import * as Scib from './scib.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
+import * as View from './view.mjs'
 import { d } from './mess.mjs'
 
 import * as Diff from '../lib/diff.js'
@@ -1407,7 +1408,7 @@ function initHub
   () {
     let row
 
-    row = Pane.current().view.buf.vars('hub').rows[Pane.current().view.pos.row]
+    row = View.current().buf.vars('hub').rows[View.current().pos.row]
     if (row.type == 'PullRequest')
       showPr()
     else if (row.type == 'Release')
@@ -3067,7 +3068,7 @@ function init
   () {
     let view, range
 
-    view = Pane.current().view
+    view = View.current()
     Ed.Backend.bufferStart()
     range = Ed.vfind(view,
                      '^. +main$',
@@ -3087,7 +3088,7 @@ function init
   () {
     let view, range
 
-    view = Pane.current().view
+    view = View.current()
     Ed.Backend.bufferStart()
     range = Ed.vfind(view,
                      '^\\*',

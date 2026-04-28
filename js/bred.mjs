@@ -418,12 +418,12 @@ function initCmds
   Cmd.add('switch to tab 9', () => switchToTab(8))
 
   Cmd.add('select', () => {
-    let p, el
+    let view, el
 
-    p = Pane.current()
-    el = p.view?.point?.over()
+    view = View.current()
+    el = view?.point?.over()
     if (el && el.dataset.run)
-      Cmd.run(el.dataset.run, p.buf, 0, { e: { target: el } })
+      Cmd.run(el.dataset.run, view.buf, 0, { e: { target: el } })
   })
 
   Cmd.add('toggle frame right', () => {
@@ -551,11 +551,11 @@ function initCmds
   })
 
   Cmd.add('goto definition', () => {
-    let p, l, pos, def, ctag
+    let view, l, pos, def, ctag
 
-    p = Pane.current()
-    l = p.line()
-    pos = p.pos()
+    view = View.current()
+    l = view.line
+    pos = view.pos
     def = defAt(l, pos.col)
     ctag = Ed.getCTag(def)
     if (ctag) {
@@ -655,10 +655,10 @@ function initCmds
   Cmd.add('previous line', () => View.current().linePrev())
 
   Cmd.add('parent', () => {
-    let dir, p
+    let dir, view
 
-    p = Pane.current()
-    dir = p.dir
+    view = View.current()
+    dir = view.dir
     if (dir)
       dir = Loc.make(dir)
     else {
@@ -667,17 +667,17 @@ function initCmds
     }
 
     if (dir.path)
-      Dir.add(Pane.current(), dir.path, p.buf.file)
+      Dir.add(Pane.current(), dir.path, view.buf.file)
     else
       Mess.yell('parent: Missing dir')
   })
 
   Cmd.add('view url at point', () => {
-    let p, l, pos, url
+    let view, l, pos, url
 
-    p = Pane.current()
-    l = p.line()
-    pos = p.pos()
+    view = View.current()
+    l = view.line
+    pos = view.pos
     pos = pos.col
     url = U.urlAt(l, pos)
     if (url?.protocol == 'file:')
@@ -691,7 +691,7 @@ function initCmds
   Cmd.add('scroll up', () => {
     let el
 
-    el = Pane.current().ele
+    el = View.current().ele
     el = el.querySelector('.bred-scroller') || el.parentNode
     el.scrollTo({ top: el.scrollTop - (el.clientHeight * 0.9),
                   left: 0,
@@ -701,7 +701,7 @@ function initCmds
   Cmd.add('scroll down', () => {
     let el
 
-    el = Pane.current().ele
+    el = View.current().ele
     el = el.querySelector('.bred-scroller') || el.parentNode
     el.scrollTo({ top: el.scrollTop + (el.clientHeight * 0.9),
                   left: 0,
@@ -1123,7 +1123,7 @@ function initSearch
 
   function search
   (backward) {
-    let oldOnKeyDown, p, wes
+    let oldOnKeyDown, p, view, wes
 
     if (s.st) {
       s.st = 0
@@ -1134,11 +1134,13 @@ function initSearch
     if (Css.has(p.win.mini, 'active'))
       return
 
+    view = View.current(p)
+
     s.st = { stack: [],
              caseSensitive: 0,
              regExp: 0 }
     s.st.win = p.win
-    s.st.view = p.view
+    s.st.view = view
     s.st.needle = ''
     s.st.start = s.st.view.pos
     s.st.backward = backward
@@ -1576,10 +1578,10 @@ function initTest
 
   function move
   () {
-    let p
+    let v
 
-    p = Pane.current()
-    p.buf.views.forEach(view => {
+    v = View.current()
+    v.buf.views.forEach(view => {
       if (view.ele) {
         let d
 
@@ -1607,10 +1609,10 @@ function initEvalLine
 () {
   function evalLine
   () {
-    let p, l
+    let view, l
 
-    p = Pane.current()
-    l = p.line()
+    view = View.current()
+    l = view.line
     if (l && l.length) {
       let fn
 

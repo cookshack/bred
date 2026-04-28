@@ -296,7 +296,7 @@ function initHelp
     let p, buf
 
     p = Pane.current()
-    Win.shared().helpBuffer.callerBuf = p.buf
+    Win.shared().helpBuffer.callerBuf = View.current().buf
     buf = Win.shared().helpBuffer.buf
     if (buf) {
       buf.clear()

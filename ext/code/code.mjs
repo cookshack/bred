@@ -3,6 +3,7 @@ import { append, button, divCl, img, span } from '../../js/dom.mjs'
 import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Css from '../../js/css.mjs'
+import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/em.mjs'
 import * as Hist from '../../js/hist.mjs'
 import * as Icon from '../../js/icon.mjs'
@@ -1389,6 +1390,31 @@ function init
                })
   }
 
+  function nestPromptBuf
+  (buf) {
+    let promptBuf
+
+    function addPromptBuf
+    () {
+      let b
+
+      b = Buf.add('Code Prompt', 'ed', Ed.divW(buf.dir), buf.dir)
+      buf.vars('code').promptBuf = b
+      return b
+    }
+
+    promptBuf = buf.vars('code').promptBuf || addPromptBuf()
+
+    buf.views.forEach(view => {
+      let container
+
+      container = view.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
+      append(container, divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': promptBuf.id }))
+    })
+
+    buf.nest(promptBuf)
+  }
+
   function code
   (given) {
     let pane, dir, name, provider, model
@@ -1412,6 +1438,7 @@ function init
         buf.vars('code').sessionID = res.data.id
 
         pane.setBuf(buf, {}, () => {
+          nestPromptBuf(buf)
           send(buf, prompt, provider, model)
         })
       }

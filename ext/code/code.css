@@ -43,6 +43,7 @@ div.code-thought:hover {
 
 .code-h-right {
   display: flex;
+  align-items: center;
   margin-left: auto;
   margin-right: calc(0.25rem + var(--scrollbar-size) + var(--width-mini-icon) + 0.25rem);
 }
@@ -210,15 +211,15 @@ div.code-thought:hover {
 }
 
 .code-under-credits {
-  margin-right: 0.5rem;
-}
-
-.code-under-agent {
   margin-left: auto;
   margin-right: 0.5rem;
 }
 
 .code-under-version {
+  margin-right: 0.5rem;
+}
+
+.code-h-right .code-agent {
   margin-right: 0.5rem;
 }
 

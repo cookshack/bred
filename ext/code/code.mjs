@@ -485,13 +485,13 @@ function init
   (buf, agent) {
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
-        let underW
+        let h
 
-        underW = view.eleOrReserved.querySelector('.code-under-w')
-        if (underW) {
+        h = view.eleOrReserved.querySelector('.code-h')
+        if (h) {
           let agentEl
 
-          agentEl = underW.querySelector('.code-under-agent')
+          agentEl = h.querySelector('.code-agent')
           if (agentEl)
             agentEl.innerText = agentIcon() + agent
         }
@@ -1156,15 +1156,15 @@ function init
                                  img(Icon.path('assist'), 'Code', 'filter-clr-text')),
                            divCl('code-title', dir),
                            divCl('code-h-right',
-                                 divCl('code-thought code-icon',
-                                       img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
-                                       { 'data-run': 'toggle thinking' })) ]),
+                                 [ divCl('code-agent', '', { 'data-run': 'Set Agent' }),
+                                   divCl('code-thought code-icon',
+                                         img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
+                                         { 'data-run': 'toggle thinking' }) ]) ]),
                    divCl('code-w bred-scroller',
                          [ divCl('code-session-title'),
                            divCl('code-under-w',
                                  [ divCl('code-under code-under-status', '...'),
                                    divCl('code-under code-under-credits', ''),
-                                   divCl('code-under code-under-agent', '', { 'data-run': 'Set Agent' }),
                                    divCl('code-under code-under-version', ''),
                                    divCl('code-under code-under-tokens', '') ]) ]) ])
   }
@@ -1464,7 +1464,7 @@ function init
 
         fromUnderW = fromW.querySelector('.code-under-w')
         if (fromUnderW) {
-          let statusEl, versionEl, tokensEl, agentEl
+          let statusEl, versionEl, tokensEl
 
           statusEl = toUnderW.querySelector('.code-under-status')
           if (statusEl) {
@@ -1490,14 +1490,6 @@ function init
             if (fromTokens)
               tokensEl.innerText = fromTokens.innerText
           }
-          agentEl = toUnderW.querySelector('.code-under-agent')
-          if (agentEl) {
-            let fromAgent
-
-            fromAgent = fromUnderW.querySelector('.code-under-agent')
-            if (fromAgent)
-              agentEl.innerText = fromAgent.innerText
-          }
         }
       }
       ;[ ...fromW.children ].forEach(child => {
@@ -1507,6 +1499,24 @@ function init
           return
         toW.insertBefore(child.cloneNode(1), toUnderW)
       })
+      {
+        let fromH, toH
+
+        fromH = fromW.querySelector('.code-h')
+        toH = toW.querySelector('.code-h')
+        if (toH) {
+          let agentEl
+
+          agentEl = toH.querySelector('.code-agent')
+          if (agentEl) {
+            let fromAgent
+
+            fromAgent = fromH?.querySelector('.code-agent')
+            if (fromAgent)
+              agentEl.innerText = fromAgent.innerText
+          }
+        }
+      }
     }
     if (cb)
       cb(to)

@@ -18,9 +18,14 @@ This is a paragraph with **bold** and *italic* text.
 Inline `code` example.
 
 ```javascript
-function greet(name) {
+
+function greet
+(name) {
   return 'Hello, ' + name + '!'
 }
+
+greet('Ella')
+
 ```
 
 ## Links

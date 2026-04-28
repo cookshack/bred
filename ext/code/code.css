@@ -223,6 +223,19 @@ div.code-thought:hover {
   margin-right: 0.5rem;
 }
 
+.code-prompt-w {
+  padding: 0.5rem;
+  padding-top: 0;
+}
+
+.code-prompt-ml {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0;
+  color: var(--clr-nb3);
+  font-size: 0.875rem;
+}
+
 .code-patch-ed {
   font-family: var(--font-monospace);
   overflow: hidden;
@@ -270,4 +283,8 @@ div.code-thought:hover {
   display: inline;
   font-family: var(--font-monospace);
   font-style: normal;
+}
+
+.code-prompt-w.retracted {
+  display: none;
 }

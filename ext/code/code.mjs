@@ -1167,7 +1167,12 @@ function init
                                  [ divCl('code-under code-under-status', '...'),
                                    divCl('code-under code-under-credits', ''),
                                    divCl('code-under code-under-version', ''),
-                                   divCl('code-under code-under-tokens', '') ]) ]) ])
+                                   divCl('code-under code-under-tokens', '') ]) ]),
+                   divCl('code-prompt-w retracted',
+                         [ divCl('code-prompt-ml',
+                                 [ '🗩 ',
+                                   divCl('code-prompt-model', '') ]),
+                           divCl('bred-nested-pane-w') ]) ])
   }
 
   async function send

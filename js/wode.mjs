@@ -867,11 +867,6 @@ function vexec
   return edexec(view.ed, view.markActive, cmd, markCmd, args)
 }
 
-function pexec
-(p, cmd, markCmd, args) {
-  return vexec(p.view, cmd, markCmd, args)
-}
-
 function exec
 (cmd, markCmd, args) {
   return vexec(View.current(), cmd, markCmd, args)
@@ -913,7 +908,7 @@ function wordForward
 export
 function wordBackward
 (u) {
-  //utimes(u, () => pexec(p, 'cursorWordStartLeft', 'cursorWordStartLeftSelect'))
+  //utimes(u, () => vexec(View.current(), 'cursorWordStartLeft', 'cursorWordStartLeftSelect'))
   wordForward(u ? -u : -1)
 }
 
@@ -938,10 +933,7 @@ function syntaxForward
 export
 function syntaxBackward
 (u) {
-  let p
-
-  p = Pane.current()
-  utimes(u, () => pexec(p, CMComm.cursorSyntaxLeft, CMComm.selectSyntaxLeft))
+  utimes(u, () => vexec(View.current(), CMComm.cursorSyntaxLeft, CMComm.selectSyntaxLeft))
 }
 
 export
@@ -1433,21 +1425,21 @@ function topBep
 export
 function topOfPane
 () {
-  let p, bep
+  let view, bep
 
-  p = Pane.current()
-  bep = topBep(p.view)
-  vsetBep(p.view, bep, 0, 1)
+  view = View.current()
+  bep = topBep(view)
+  vsetBep(view, bep, 0, 1)
 }
 
 export
 function bottomOfPane
 () {
-  let p, bep
+  let view, bep
 
-  p = Pane.current()
-  bep = bottomBep(p.view)
-  vsetBep(p.view, bep, 0, 1)
+  view = View.current()
+  bep = bottomBep(view)
+  vsetBep(view, bep, 0, 1)
 }
 
 export
@@ -1686,10 +1678,10 @@ function selfInsert
 export
 function quotedInsert
 (u) {
-  let p, oldOnKeyDown
+  let view, oldOnKeyDown
 
   oldOnKeyDown = globalThis.onkeydown
-  p = Pane.current()
+  view = View.current()
   Mess.echoMore('C-q-')
   globalThis.onkeydown = e => {
     e.preventDefault()
@@ -1699,7 +1691,7 @@ function quotedInsert
       let char
 
       char = Ed.charForInsert({ e })
-      vinsert1(p.view, u, char)
+      vinsert1(view, u, char)
     }
     finally {
       globalThis.onkeydown = oldOnKeyDown
@@ -1711,30 +1703,29 @@ function quotedInsert
 export
 function caseWord
 (cb) {
-  let p, range, origHead, origAnch, sel, bep, str
+  let view, range, origHead, origAnch, sel, bep, str
 
-  p = Pane.current()
+  view = View.current()
 
   // get the range to be cased
-  bep = vgetBep(p.view)
-  origHead = p.view.ed.state.selection.head
-  origAnch = p.view.ed.state.selection.anchor
-  clearSelection(p.view)
-  CMComm.selectGroupRight(p.view.ed)
-  sel = p.view.ed.state.selection.main
+  bep = vgetBep(view)
+  origHead = view.ed.state.selection.head
+  origAnch = view.ed.state.selection.anchor
+  clearSelection(view)
+  CMComm.selectGroupRight(view.ed)
+  sel = view.ed.state.selection.main
   if (sel.head > sel.anchor)
-    range = WodeRange.make(p.view, sel.anchor, sel.head)
+    range = WodeRange.make(view, sel.anchor, sel.head)
   else
-    range = WodeRange.make(p.view, sel.head, sel.anchor)
+    range = WodeRange.make(view, sel.head, sel.anchor)
   str = range.text
-  str = cb(str, p.view)
-  vsetBep(p.view, bep)
+  str = cb(str, view)
+  vsetBep(view, bep)
 
   // case range in current view
   {
-    let view, vorigHead, vorigAnch
+    let vorigHead, vorigAnch
 
-    view = p.view
     vorigHead = view.ed.state.selection.head
     vorigAnch = view.ed.state.selection.anchor
     clearSelection(view)
@@ -1745,9 +1736,9 @@ function caseWord
   }
 
   // move point in current pane
-  p.view.ed.state.selection.head = origHead
-  p.view.ed.state.selection.anchor = origAnch
-  vsetBep(p.view, range.to)
+  view.ed.state.selection.head = origHead
+  view.ed.state.selection.anchor = origAnch
+  vsetBep(view, range.to)
 }
 
 export
@@ -1790,17 +1781,17 @@ function newlineAndIndent
 export
 function insertSlash
 (u) {
-  let p
+  let view
 
-  p = Pane.current()
+  view = View.current()
   u = u || 1
 
-  if (p.buf.opt('core.comments.continue')
-      && CMCont.maybeCloseBlockComment({ state: p.view.ed.state,
-                                         dispatch: p.view.ed.dispatch }))
+  if (view.buf.opt('core.comments.continue')
+      && CMCont.maybeCloseBlockComment({ state: view.ed.state,
+                                         dispatch: view.ed.dispatch }))
     return
 
-  vinsert1(p.view, u, '/')
+  vinsert1(view, u, '/')
 }
 
 export
@@ -1824,12 +1815,12 @@ function delNextChar
 export
 function cutLine
 () {
-  let p, str, bep, range
+  let view, str, bep, range
 
-  p = Pane.current()
-  bep = vgetBep(p.view)
-  line = p.view.ed.state.doc.lineAt(bep)
-  range = WodeRange.make(p.view, bep, line.to)
+  view = View.current()
+  bep = vgetBep(view)
+  line = view.ed.state.doc.lineAt(bep)
+  range = WodeRange.make(view, bep, line.to)
   str = range.text
   if (str.length) {
     range.remove()
@@ -1844,26 +1835,25 @@ function cutLine
 export
 function delNextWordBound
 (n) {
-  let p, start, end, text, range
+  let view, start, end, text, range
 
-  p = Pane.current()
-  clearSelection(p.view)
-  start = vgetBep(p.view)
+  view = View.current()
+  clearSelection(view)
+  start = vgetBep(view)
   if (n < 0)
-    edexec(p.view.ed, p.view.markActive, CMComm.cursorGroupLeft)
+    edexec(view.ed, view.markActive, CMComm.cursorGroupLeft)
   else
-    edexec(p.view.ed, p.view.markActive, CMComm.cursorGroupRight)
-  end = vgetBep(p.view)
+    edexec(view.ed, view.markActive, CMComm.cursorGroupRight)
+  end = vgetBep(view)
   if (end >= start)
-    range = WodeRange.make(p.view, start, end)
+    range = WodeRange.make(view, start, end)
   else
-    range = WodeRange.make(p.view, end, start)
+    range = WodeRange.make(view, end, start)
   text = range.text
   if (text && text.length) {
     range.remove()
     Cut.add(text)
   }
-  return p
 }
 
 export
@@ -1875,20 +1865,20 @@ function suggest
 export
 function nextSuggest
 () {
-  let p
+  let view
 
-  p = Pane.current()
-  if (completionNextLine(p.view.ed))
+  view = View.current()
+  if (completionNextLine(view.ed))
     return
 }
 
 export
 function prevSuggest
 () {
-  let p
+  let view
 
-  p = Pane.current()
-  if (completionPreviousLine(p.view.ed))
+  view = View.current()
+  if (completionPreviousLine(view.ed))
     return
 }
 
@@ -1904,7 +1894,7 @@ function commentRegion
 export
 function indentLine
 () {
-  let p, l, changes, newWhiteLen, anchor, bep
+  let view, l, changes, newWhiteLen, anchor, bep
   let oldLeadingWhiteLen
   let oldTextOff // offset into the text that follows the leading whitespace on the current line
 
@@ -1914,13 +1904,13 @@ function indentLine
     newWhiteLen = inserted?.text?.at(0).search(/\S|$/) // There should be only one change
   }
 
-  p = Pane.current()
+  view = View.current()
 
-  if (CMAuto.acceptCompletion(p.view.ed))
+  if (CMAuto.acceptCompletion(view.ed))
     return
 
-  bep = vgetBep(p.view)
-  l = p.view.ed.state.doc.lineAt(bep)
+  bep = vgetBep(view)
+  l = view.ed.state.doc.lineAt(bep)
 
   // get offset into existing line text (excl leading whitespace)
   oldTextOff = bep - l.from
@@ -1937,11 +1927,11 @@ function indentLine
     // something went wrong
     oldTextOff = 0
 
-  changes = CMLang.indentRange(p.view.ed.state, l.from, l.to)
+  changes = CMLang.indentRange(view.ed.state, l.from, l.to)
   if (changes.empty) {
     if (oldTextOff == 0)
       // may have been inside leading whitespace, move to start of text
-      vsetBep(p.view, l.from + oldLeadingWhiteLen)
+      vsetBep(view, l.from + oldLeadingWhiteLen)
     return
   }
 
@@ -1955,24 +1945,24 @@ function indentLine
   if (oldTextOff > 0)
     anchor += oldTextOff
 
-  p.view.ed.dispatch({ changes,
-                       selection: { anchor, head: anchor } })
+  view.ed.dispatch({ changes,
+                     selection: { anchor, head: anchor } })
 }
 
 export
 function indentRegion
 () {
-  let p
+  let view
 
-  p = Pane.current()
-  if (p.view.markActive) {
+  view = View.current()
+  if (view.markActive) {
     let to, from, lto, changes
 
-    from = p.view.ed.state.selection.main.from
-    to = p.view.ed.state.selection.main.to
+    from = view.ed.state.selection.main.from
+    to = view.ed.state.selection.main.to
 
-    from = p.view.ed.state.doc.lineAt(from).from
-    lto = p.view.ed.state.doc.lineAt(to)
+    from = view.ed.state.doc.lineAt(from).from
+    lto = view.ed.state.doc.lineAt(to)
     if (lto.from == to)
       // region ends at start of line, skip that line
       to = lto.from - 1
@@ -1982,9 +1972,9 @@ function indentRegion
       // happens when region empty and at start of line
       to = from
 
-    changes = CMLang.indentRange(p.view.ed.state, from, to)
-    changes.empty || p.view.ed.dispatch({ changes })
-    clearSelection(p.view)
+    changes = CMLang.indentRange(view.ed.state, from, to)
+    changes.empty || view.ed.dispatch({ changes })
+    clearSelection(view)
   }
   else
     indentLine()
@@ -1993,20 +1983,20 @@ function indentRegion
 export
 function indentBuffer
 () {
-  let p
+  let view
 
-  p = Pane.current()
-  p.view.ed.dispatch({ changes: CMLang.indentRange(p.view.ed.state, 0, p.view.ed.state.doc.length) })
+  view = View.current()
+  view.ed.dispatch({ changes: CMLang.indentRange(view.ed.state, 0, view.ed.state.doc.length) })
 }
 
 export
 function sortLines
 () {
-  let p, lines, sorted, iter, lastWasBreak
+  let view, lines, sorted, iter, lastWasBreak
 
-  p = Pane.current()
+  view = View.current()
   lines = []
-  iter = p.view.ed.state.doc.iter()
+  iter = view.ed.state.doc.iter()
   while (1) {
     line = iter.next()
     if (iter.done)
@@ -2015,27 +2005,27 @@ function sortLines
     iter.lineBreak || lines.push(line.value)
   }
   sorted = lines.sort((a, b) => a.localeCompare(b))
-  p.view.ed.dispatch({ changes: { from: 0,
-                                  to: p.view.ed.state.doc.length,
-                                  insert: sorted.map(l => l).join('\n') + (lastWasBreak ? '\n' : '') } })
+  view.ed.dispatch({ changes: { from: 0,
+                                to: view.ed.state.doc.length,
+                                insert: sorted.map(l => l).join('\n') + (lastWasBreak ? '\n' : '') } })
 }
 
 export
 function sortRegion
 () {
-  let p, region, from, to, lines, sorted
+  let view, region, from, to, lines, sorted
 
-  p = Pane.current()
-  region = regionRange(p.view)
+  view = View.current()
+  region = regionRange(view)
   from = region.from
   to = region.to
   if (from == to) {
     sortLines()
     return
   }
-  lines = p.view.ed.state.sliceDoc(from, to).split('\n')
+  lines = view.ed.state.sliceDoc(from, to).split('\n')
   sorted = lines.sort((a, b) => a.localeCompare(b))
-  p.view.ed.dispatch({ changes: { from, to, insert: sorted.join('\n') } })
+  view.ed.dispatch({ changes: { from, to, insert: sorted.join('\n') } })
 }
 
 export
@@ -2055,21 +2045,21 @@ spRe = /^\s+/g
 export
 function trim
 () {
-  let p, start, l
+  let view, start, l
 
-  p = Pane.current()
-  start = vgetBep(p.view)
-  l = p.view.ed.state.doc.lineAt(start)
+  view = View.current()
+  start = vgetBep(view)
+  l = view.ed.state.doc.lineAt(start)
   spRe.lastIndex = 0
   if (spRe.exec(l.text.slice(start - l.from)))
-    WodeRange.make(p.view, start, start + spRe.lastIndex).remove()
+    WodeRange.make(view, start, start + spRe.lastIndex).remove()
   if (start > l.from) {
     let str
 
     str = [ ...l.text.slice(0, start - l.from) ].reverse().join('')
     spRe.lastIndex = 0
     if (spRe.exec(str))
-      WodeRange.make(p.view, start - spRe.lastIndex, start).remove()
+      WodeRange.make(view, start - spRe.lastIndex, start).remove()
   }
 }
 
@@ -2175,19 +2165,20 @@ function openLint
 export
 function firstDiagnostic
 (u, we) {
-  let p, done
+  let p, view, done
 
   if (we?.e && (we.e.button == 0))
     p = Pane.holding(we.e.target.parentNode.querySelector('.pane'))
   p = p || Pane.current()
-  CMLint.forEachDiagnostic(p.view.ed.state,
+  view = View.current()
+  CMLint.forEachDiagnostic(view.ed.state,
                            diag => {
                              if (done)
                                return
                              done = 1
                              d(diag)
-                             vsetBep(p.view, diag.from, 2)
-                             p.focus()
+                             vsetBep(view, diag.from, 2)
+                             p.focusViewAt(view.ele)
                            })
 }
 
@@ -2421,19 +2412,19 @@ function fill
 export
 function flushTrailing
 () {
-  let p, r, text
+  let view, r, text
 
-  p = Pane.current()
-  if (p.view.markActive) {
-    r = regionRange(p.view)
+  view = View.current()
+  if (view.markActive) {
+    r = regionRange(view)
     if (r.from == r.to)
-      r.to = vgetBepEnd(p.view)
+      r.to = vgetBepEnd(view)
   }
   else
-    r = WodeRange.make(p.view, vgetBep(p.view), vgetBepEnd(p.view))
+    r = WodeRange.make(view, vgetBep(view), vgetBepEnd(view))
   text = r.text
   if (text.length)
-    vreplaceAt(p.view, r, text.replace(/[^\S\r\n]+$/gm, ''))
+    vreplaceAt(view, r, text.replace(/[^\S\r\n]+$/gm, ''))
 }
 
 export

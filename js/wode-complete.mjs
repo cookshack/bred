@@ -2,7 +2,7 @@ import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Mess from './mess.mjs'
-import * as Pane from './pane.mjs'
+import * as View from './view.mjs'
 import * as Wode from './wode.mjs'
 import * as WodeRange from './wode-range.mjs'
 import { d } from './mess.mjs'
@@ -84,19 +84,19 @@ function init
   // Get the word before point
   //
   function getWord
-  (p) {
+  (view) {
     let bep, bep1, word, start
 
-    bep = Wode.vgetBep(p.view)
-    start = Wode.vlineStart(p.view, bep)
+    bep = Wode.vgetBep(view)
+    start = Wode.vlineStart(view, bep)
 
     if (bep <= start)
       return 0
 
     bep1 = bep
-    d('[' + charAt(p.view, bep1) + ']')
+    d('[' + charAt(view, bep1) + ']')
     // mv backwards over any space
-    while (isWhite(charAt(p.view, bep1)))
+    while (isWhite(charAt(view, bep1)))
       bep1--
     if (bep1 < start)
       return 0
@@ -105,8 +105,8 @@ function init
     while (1) {
       if (bep1 == start)
         break
-      d('[' + charAt(p.view, bep1) + ']')
-      if (isWhite(charAt(p.view, bep1))) {
+      d('[' + charAt(view, bep1) + ']')
+      if (isWhite(charAt(view, bep1))) {
         bep1++
         break
       }
@@ -115,7 +115,7 @@ function init
     if (bep1 < start)
       // can this happen?
       return 0
-    word = WodeRange.make(p.view, bep1, bep).text
+    word = WodeRange.make(view, bep1, bep).text
     word = word.trim() // safety
     if (word.length == 0)
       return 0
@@ -125,7 +125,7 @@ function init
   // Get a potential completion.
   //
   function getRest
-  (word, p, pos, phase, bufs, buf, ctags) {
+  (word, view, pos, phase, bufs, buf, ctags) {
     let srch
 
     function getBuf
@@ -209,14 +209,14 @@ function init
 
       phase = 0
       d('== 0 search visible before')
-      srch = makeSrch(p.view, pos, 1, topRow(p.view))
+      srch = makeSrch(view, pos, 1, topRow(view))
       while ((r = srch.find())) {
         let pos1
 
         d(r)
-        //pos1 = Ed.makePos(posRow(rangeStart(p.view, r)), posCol(rangeStart(p.view, r)) - 1)
+        //pos1 = Ed.makePos(posRow(rangeStart(view, r)), posCol(rangeStart(view, r)) - 1)
         pos1 = r.start
-        return pack(p.view, r, pos1, 1, phase)
+        return pack(view, r, pos1, 1, phase)
       }
     }
 
@@ -226,16 +226,16 @@ function init
 
       phase = 1
       d('== 1 search visible after')
-      end = bottomPos(p.view).row
+      end = bottomPos(view).row
       d({ end })
-      endLen = Wode.lineAt(p.view, Ed.makePos(end, 0)).length
+      endLen = Wode.lineAt(view, Ed.makePos(end, 0)).length
       d({ endLen })
-      srch = makeSrch(p.view, pos, 0, topRow(p.view), end, endLen)
+      srch = makeSrch(view, pos, 0, topRow(view), end, endLen)
       while ((r = srch.find())) {
         let pos1
 
         pos1 = r.end
-        return pack(p.view, r, pos1, 0, phase)
+        return pack(view, r, pos1, 0, phase)
       }
     }
 
@@ -245,12 +245,12 @@ function init
 
       phase = 2
       d('== 2 search current buffer before')
-      srch = makeSrch(p.view, pos, 1, 0)
+      srch = makeSrch(view, pos, 1, 0)
       while ((r = srch.find())) {
         let pos1
 
         pos1 = r.start
-        return pack(p.view, r, pos1, 1, phase)
+        return pack(view, r, pos1, 1, phase)
       }
     }
 
@@ -260,17 +260,17 @@ function init
 
       phase = 3
       d('== 3 search current buffer after')
-      end = endPos(p.view).row
-      endLen = Wode.lineAt(p.view, Ed.makePos(end, 0)).length
-      srch = makeSrch(p.view, pos, 0, 0, end, endLen)
+      end = endPos(view).row
+      endLen = Wode.lineAt(view, Ed.makePos(end, 0)).length
+      srch = makeSrch(view, pos, 0, 0, end, endLen)
       while ((r = srch.find())) {
         let pos1
 
         pos1 = r.end
-        return pack(p.view, r, pos1, 0, phase)
+        return pack(view, r, pos1, 0, phase)
       }
 
-      bufs.push(p.buf) // prevent research below
+      bufs.push(view.buf) // prevent research below
     }
 
     // search visible parts of other buffers in panes
@@ -328,11 +328,11 @@ function init
   //
   function complete
   () {
-    let p, rest, word, pos, phase, tries, bufs, buf, replace, orig
+    let view, rest, word, pos, phase, tries, bufs, buf, replace, orig
     let ctags // count of ctags to skip in phase 7
 
     d('=== complete')
-    p = Pane.current()
+    view = View.current()
     replace = last && (Cmd.last() == 'Complete')
 
     if (replace) {
@@ -348,13 +348,13 @@ function init
     }
     else {
       d('fresh start')
-      pos = Wode.vgetPos(p.view)
-      word = getWord(p)
+      pos = Wode.vgetPos(view)
+      word = getWord(view)
       phase = 0
       tries = []
       bufs = []
       buf = 0
-      orig = Wode.vgetBep(p.view)
+      orig = Wode.vgetBep(view)
       ctags = 0
     }
 
@@ -363,7 +363,7 @@ function init
       return
     }
 
-    while ((rest = getRest(word, p, pos, phase, bufs, buf, ctags))
+    while ((rest = getRest(word, view, pos, phase, bufs, buf, ctags))
            && tries.includes(rest.text)) {
       d('already used')
       pos = rest.pos
@@ -375,7 +375,7 @@ function init
     if (replace) {
       let r
 
-      r = WodeRange.make(p.view, last.orig, Wode.posToBep(p.view, last.end))
+      r = WodeRange.make(view, last.orig, Wode.posToBep(view, last.end))
       d('remove from ' + r.from + ' to ' + r.to)
       r.remove()
     }
@@ -383,9 +383,9 @@ function init
       let point
 
       d(rest)
-      point = Wode.vgetPos(p.view)
-      Wode.vsetBep(p.view, orig)
-      Wode.vinsert1(p.view, 1, rest.text)
+      point = Wode.vgetPos(view)
+      Wode.vsetBep(view, orig)
+      Wode.vinsert1(view, 1, rest.text)
       tries.push(rest.text)
       if (rest.ctag)
         ctags++
@@ -393,7 +393,7 @@ function init
                bufs,
                orig,
                start: point,
-               end: Wode.vgetPos(p.view),
+               end: Wode.vgetPos(view),
                word,
                pos: rest.pos,
                phase: rest.phase,

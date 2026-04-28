@@ -2,7 +2,7 @@ import * as Em from './em.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Mode from './mode.mjs'
 import * as Mess from './mess.mjs'
-import * as Pane from './pane.mjs'
+import * as View from './view.mjs'
 import * as U from './util.mjs'
 //import { d } from './mess.mjs'
 
@@ -28,10 +28,10 @@ function init
   Em.on('End', 'buffer end', mode)
 
   Cmd.add('view mode', () => {
-    let p
+    let view
 
-    p = Pane.current()
-    p?.buf.addMode(mode)
+    view = View.current()
+    view?.buf.addMode(mode)
   })
 
   Cmd.add('self insert', () => Mess.say(U.shrug), mode)

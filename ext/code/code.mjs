@@ -36,7 +36,7 @@ function agentIcon
 export
 function init
 () {
-  let hist, chatHist, mo, stopTimeout, mostRecentAgent
+  let hist, chatHist, mo, moCodePrompt, stopTimeout, mostRecentAgent
 
   async function ensureClient
   (buf) {
@@ -1437,6 +1437,7 @@ function init
     }
 
     promptBuf = buf.vars('code').promptBuf || addPromptBuf()
+    promptBuf.addMode('Code Prompt')
 
     buf.views.forEach(view => {
       let container
@@ -1624,6 +1625,33 @@ function init
       w.scrollTop = 0
   }
 
+  function submitPrompt
+  () {
+    let buf, p, text
+
+    p = Pane.current()
+    buf = p.buf
+    text = buf.vars('code').promptBuf.text().trim()
+    if (text.length == 0) {
+      Mess.yell('Empty prompt')
+      return
+    }
+
+    buf.views.forEach(view => {
+      let container
+
+      container = view.ele.querySelector('.code-prompt-w')
+      if (container)
+        Css.retract(container)
+    })
+
+    p.focus()
+
+    buf.vars('code').promptBuf.clear()
+    chatHist.add(text)
+    send(buf, text, buf.vars('code').provider, buf.vars('code').model)
+  }
+
   hist = Hist.ensure('code')
   chatHist = Hist.ensure('code.chat')
   Opt.declare('code.agent', 'str', 'plan')
@@ -1690,4 +1718,10 @@ function init
     if (view.buf.mode.key == 'code')
       mostRecentAgent = view.buf
   })
+
+  moCodePrompt = Mode.add('Code Prompt', { minor: 1 })
+
+  Cmd.add('submit prompt', submitPrompt, moCodePrompt)
+
+  Em.on('Enter', 'submit prompt', moCodePrompt)
 }

@@ -201,6 +201,7 @@ function add
     curr = current(frame)
     if (curr) {
       Css.remove(curr.w, 'current')
+      curr.view.nestedViews?.forEach(nv => Css.remove(nv.ele.parentElement, 'current'))
       if (skipEd) {
         // prevents recurse
       }

@@ -1176,7 +1176,7 @@ function exchange
 export
 function lineStart
 (view) {
-  view = view || Pane.current().view
+  view = view || View.current()
   if (view.markActive)
     CMComm.selectLineStart(view.ed)
   else
@@ -1186,7 +1186,7 @@ function lineStart
 export
 function lineEnd
 (view) {
-  view = view || Pane.current().view
+  view = view || View.current()
   if (view.markActive)
     CMComm.selectLineEnd(view.ed)
   else
@@ -1504,7 +1504,7 @@ export
 function cancel
 () {
   //exec('keyboardQuit')
-  clearSelection(Pane.current().view)
+  clearSelection(View.current())
   Pane.cancel()
 }
 
@@ -1556,18 +1556,18 @@ function vsave
 export
 function undo
 () {
-  let pview
+  let view
 
-  pview = Pane.current().view
+  view = View.current()
   if (exec(CMComm.undo)) {
-    if (CMComm.undoDepth(pview.ed.state) > 0)
+    if (CMComm.undoDepth(view.ed.state) > 0)
       // there's more to undo
       return
   }
   else
     Mess.say("That's all")
-  pview.buf.modified = 0
-  Ed.setIcon(pview.buf, '.edMl-mod', 'blank')
+  view.buf.modified = 0
+  Ed.setIcon(view.buf, '.edMl-mod', 'blank')
 }
 
 export
@@ -2058,7 +2058,7 @@ function sortRegion
 export
 function insertTwoSpaces
 () {
-  vinsert1(Pane.current().view, 1, '  ')
+  vinsert1(View.current(), 1, '  ')
 }
 
 export
@@ -2174,13 +2174,13 @@ function vcutOrCopy
 export
 function cut
 () {
-  vcutOrCopy(Pane.current().view, 1)
+  vcutOrCopy(View.current(), 1)
 }
 
 export
 function copy
 () {
-  vcutOrCopy(Pane.current().view)
+  vcutOrCopy(View.current())
 }
 
 export

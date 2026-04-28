@@ -10,6 +10,7 @@ import * as Opt from './opt.mjs'
 import * as Pane from './pane.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
+import * as View from './view.mjs'
 import * as Win from './win.mjs'
 import * as WodeCommon from './wode-common.mjs'
 import * as WodeFind from './wode-find.mjs'
@@ -873,7 +874,7 @@ function pexec
 
 function exec
 (cmd, markCmd, args) {
-  return vexec(Pane.current().view, cmd, markCmd, args)
+  return vexec(View.current(), cmd, markCmd, args)
 }
 
 function utimes
@@ -1667,30 +1668,30 @@ function isOpenBracket
 export
 function selfInsert
 (u, we) {
-  let char, p, bracket
+  let char, view, bracket
 
   if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(we.key))
     return
 
   char = Ed.charForInsert(we)
 
-  p = Pane.current()
+  view = View.current()
   u = u || 1
 
-  if (p.buf.opt('core.brackets.close.enabled'))
+  if (view.buf.opt('core.brackets.close.enabled'))
     bracket = isOpenBracket(char)
 
   if (bracket && (u == 1)) {
     let tr
 
-    tr = CMAuto.insertBracket(p.view.ed.state, char)
+    tr = CMAuto.insertBracket(view.ed.state, char)
     if (tr)
-      p.view.ed.dispatch(tr)
+      view.ed.dispatch(tr)
     else
-      vinsert1(p.view, u, char)
+      vinsert1(view, u, char)
   }
   else
-    vinsert1(p.view, 1, char.repeat(u))
+    vinsert1(view, 1, char.repeat(u))
 
   if (char == ' ')
     return

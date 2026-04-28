@@ -226,14 +226,14 @@ div.code-thought:hover {
 .code-prompt-w {
   padding: 0.5rem;
   padding-top: 0;
+  background: var(--clr-fill);
 }
 
 .code-prompt-ml {
+  padding: 0.25rem 0;
   display: flex;
   align-items: center;
-  padding: 0.25rem 0;
-  color: var(--clr-nb3);
-  font-size: 0.875rem;
+  justify-content: flex-end;
 }
 
 .code-patch-ed {

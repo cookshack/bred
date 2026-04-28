@@ -1171,8 +1171,7 @@ function init
                                    divCl('code-under code-under-tokens', '') ]) ]),
                    divCl('code-prompt-w retracted',
                          [ divCl('code-prompt-ml',
-                                 [ '🗩 ',
-                                   divCl('code-prompt-model', '') ]),
+                                 [ divCl('code-prompt-model', '') ]),
                            divCl('bred-nested-pane-w') ]) ])
   }
 
@@ -1377,17 +1376,32 @@ function init
       return
     }
 
-    provider = Opt.get('code.provider.agent') || 'opencode'
-    model = Opt.get('code.model.agent') || 'minimax-m2.1-free'
-    Prompt.ask({ text: '🗩 ' + provider + '/' + model,
-                 hist: chatHist },
-               prompt => {
-                 chatHist.add(prompt)
-                 send(buf,
-                      prompt,
-                      buf.vars('code').provider,
-                      buf.vars('code').model)
-               })
+    provider = buf.vars('code').provider || Opt.get('code.provider.agent') || 'opencode'
+    model = buf.vars('code').model || Opt.get('code.model.agent') || 'minimax-m2.1-free'
+
+    buf.views.forEach(view => {
+      let container
+
+      container = view.ele.querySelector('.code-prompt-w')
+      if (container) {
+        let mlModel
+
+        Css.expand(container)
+        mlModel = container.querySelector('.code-prompt-model')
+        if (mlModel)
+          mlModel.innerText = '🗩 ' + provider + '/' + model
+      }
+    })
+
+    if (p.view?.nestedViews) {
+      let nestedView
+
+      nestedView = p.view.nestedViews.find(nv => nv.buf == buf.vars('code').promptBuf)
+      if (nestedView?.ele)
+        p.focusViewAt(nestedView.ele)
+      else
+        Mess.log('🚨 ERR missing nestedView?.ele')
+    }
   }
 
   function nestPromptBuf
@@ -1396,9 +1410,28 @@ function init
 
     function addPromptBuf
     () {
-      let b
+      let b, placeholder
 
-      b = Buf.add('Code Prompt', 'ed', Ed.divW(buf.dir), buf.dir)
+      placeholder = chatHist?.nth(0)?.toString()
+
+      b = Buf.make({ name: 'Code Prompt',
+                     modeKey: 'ed',
+                     content: Ed.divW(buf.dir, 'XX', { hideMl: 1 }),
+                     dir: buf.dir,
+                     placeholder,
+                     single: 1 })
+      b.opts.set('blankLines.enabled', 0)
+      b.opts.set('core.autocomplete.enabled', 0)
+      b.opts.set('core.brackets.close.enabled', 0)
+      b.opts.set('core.folding.enabled', 0)
+      b.opts.set('core.highlight.activeLine.enabled', 0)
+      b.opts.set('core.head.enabled', 0)
+      b.opts.set('core.line.numbers.show', 0)
+      b.opts.set('core.lint.enabled', 0)
+      b.opts.set('minimap.enabled', 0)
+      b.opts.set('ruler.enabled', 0)
+      b.icon = 'prompt'
+
       buf.vars('code').promptBuf = b
       return b
     }

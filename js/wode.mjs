@@ -2170,7 +2170,7 @@ function firstDiagnostic
   if (we?.e && (we.e.button == 0))
     p = Pane.holding(we.e.target.parentNode.querySelector('.pane'))
   p = p || Pane.current()
-  view = View.current()
+  view = View.current(p)
   CMLint.forEachDiagnostic(view.ed.state,
                            diag => {
                              if (done)

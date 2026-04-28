@@ -1631,7 +1631,12 @@ function init
 
     p = Pane.current()
     buf = p.buf
-    text = buf.vars('code').promptBuf.text().trim()
+    text = buf.vars('code').promptBuf.text()
+    if (text.length)
+      text = text.trim()
+    else
+      text = buf.vars('code').promptBuf.placeholder || ''
+
     if (text.length == 0) {
       Mess.yell('Empty prompt')
       return

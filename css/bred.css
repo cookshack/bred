@@ -1541,6 +1541,10 @@ div.bred-lint-marker:active {
   margin-right: 0.3rem;
 }
 
+.bred-head-end:hover {
+  opacity: 0;
+}
+
 .bred-close {
   pointer-events: auto;
   position: absolute;

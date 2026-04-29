@@ -2174,8 +2174,8 @@ function initEqual
   (b) {
     b.mode = 'patch'
     b.opts.set('core.lint.enabled', 0)
-    b.addMode('equal')
     b.addMode('view')
+    b.addMode('equal')
   }
 
   function equalN
@@ -2326,8 +2326,8 @@ function showHash
                  afterEndPoint: 1 },
                b => {
                  b.mode = 'patch'
-                 b.addMode('equal')
                  b.addMode('view')
+                 b.addMode('equal')
                })
 }
 

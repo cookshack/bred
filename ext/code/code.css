@@ -304,18 +304,26 @@ div.code-thought:hover {
 .code-sessions-ww {
   width: 100%;
   height: 100%;
-  padding: 0.5rem;
 
   display: flex;
+  flex-direction: column;
 }
 
 .code-sessions-w {
   width: 100%;
+  max-width: 100%;
+  overflow-y: scroll;
   height: min-content;
+  padding: 0.5rem;
 
   display: grid;
   grid-template-columns: min-content minmax(min-content, max-content) minmax(min-content, max-content) auto;
   grid-gap: 0.5rem;
+}
+
+.code-sessions-h {
+  background: var(--clr-fill);
+  display: flex;
 }
 
 .code-sessions-id {

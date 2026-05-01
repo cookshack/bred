@@ -186,14 +186,20 @@ function init
     Cmd.add('refresh', () => viewInit(View.current()), mo)
 
     Cmd.add('code sessions', () => {
-      let p, buf
+      let p, name, buf
 
       p = Pane.current()
+      name = 'Code Sessions: ' + p.dir
+      buf = Buf.find(b => b.name == name)
       if (buf)
         p.setBuf(buf, {}, view => viewInit(view))
       else {
-        buf = Buf.add('Code Sessions', 'Code Sessions',
-                      divCl('code-sessions-ww', divCl('code-sessions-w bred-surface', '')),
+        buf = Buf.add(name, 'Code Sessions',
+                      divCl('code-sessions-ww',
+                            [ divCl('code-sessions-h',
+                                    Ed.divMl(p.dir, 'Code Sessions',
+                                             { icon: 'list' })),
+                              divCl('code-sessions-w bred-surface', '') ]),
                       p.dir)
         buf.icon = 'list'
         buf.addMode('view')

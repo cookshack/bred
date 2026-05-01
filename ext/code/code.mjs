@@ -1356,6 +1356,31 @@ function init
                   })
   }
 
+  function openPrompt
+  (buf, pane, provider, model) {
+    buf.views.forEach(view => {
+      let container
+
+      container = view.ele.querySelector('.code-prompt-w')
+      if (container) {
+        let mlModel
+
+        Css.expand(container)
+        mlModel = container.querySelector('.code-prompt-model')
+        if (mlModel)
+          mlModel.innerText = '🗩 ' + provider + '/' + model
+      }
+    })
+
+    if (pane.view?.nestedViews) {
+      let nestedView
+
+      nestedView = pane.view.nestedViews.find(nv => nv.buf == buf.vars('code').promptBuf)
+      if (nestedView?.ele)
+        pane.focusViewAt(nestedView.ele)
+    }
+  }
+
   function next
   () {
     let p, buf, provider, model
@@ -1380,29 +1405,7 @@ function init
     provider = buf.vars('code').provider || Opt.get('code.provider.agent') || 'opencode'
     model = buf.vars('code').model || Opt.get('code.model.agent') || 'minimax-m2.1-free'
 
-    buf.views.forEach(view => {
-      let container
-
-      container = view.ele.querySelector('.code-prompt-w')
-      if (container) {
-        let mlModel
-
-        Css.expand(container)
-        mlModel = container.querySelector('.code-prompt-model')
-        if (mlModel)
-          mlModel.innerText = '🗩 ' + provider + '/' + model
-      }
-    })
-
-    if (p.view?.nestedViews) {
-      let nestedView
-
-      nestedView = p.view.nestedViews.find(nv => nv.buf == buf.vars('code').promptBuf)
-      if (nestedView?.ele)
-        p.focusViewAt(nestedView.ele)
-      else
-        Mess.log('🚨 ERR missing nestedView?.ele')
-    }
+    openPrompt(buf, p, provider, model)
   }
 
   function nestPromptBuf
@@ -1456,7 +1459,8 @@ function init
 
     async function run
     (prompt) {
-      hist.add(prompt)
+      if (prompt)
+        hist.add(prompt)
 
       try {
         let c, buf, res
@@ -1468,13 +1472,16 @@ function init
         buf.opt('core.lint.enabled', 1)
 
         c = await ensureClient(buf)
-        res = await c.session.create({ directory: buf.dir, title: prompt })
+        res = await c.session.create({ directory: buf.dir, title: prompt || '' })
 
         buf.vars('code').sessionID = res.data.id
 
         pane.setBuf(buf, {}, () => {
           nestPromptBuf(buf)
-          send(buf, prompt, provider, model)
+          if (prompt)
+            send(buf, prompt, provider, model)
+          else
+            openPrompt(buf, pane, provider, model)
         })
       }
       catch (err) {
@@ -1502,9 +1509,7 @@ function init
     if (given)
       run(given)
     else
-      Prompt.ask({ text: '🧩 ' + provider + '/' + model,
-                   hist },
-                 prompt => run(prompt))
+      run()
   }
 
   function viewInit

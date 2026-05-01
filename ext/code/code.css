@@ -235,10 +235,14 @@ div.code-thought:hover {
 }
 
 .code-prompt-w {
-  border-top: 1px solid;
+  border-top: 1px solid var(--clr-nb0);
   padding: 0.5rem;
   padding-top: 0;
   background: var(--clr-fill);
+}
+
+.code-prompt-model {
+  color: var(--clr-nb0);
 }
 
 .code-prompt-ml {

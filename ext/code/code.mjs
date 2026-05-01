@@ -1649,35 +1649,36 @@ function init
       return
     }
 
-    cancelPrompt(p)
-
-    buf.vars('code').promptBuf.clear()
     if (codeBuf.vars('code').firstPromptSent)
       whichHist = chatHist
     else {
       whichHist = hist
       codeBuf.vars('code').firstPromptSent = 1
     }
+    cancelPrompt(p)
     whichHist.add(text)
+    buf.vars('code').promptBuf.clear()
     send(buf, text, buf.vars('code').provider, buf.vars('code').model)
   }
 
   function cancelPrompt
   (p) {
-    let buf
+    let buf, codeBuf
 
     p = p || Pane.current()
     buf = p.buf
+    codeBuf = buf.parent || buf
+    if (codeBuf.vars('code').firstPromptSent) {
+      buf.views.forEach(view => {
+        let container
 
-    buf.views.forEach(view => {
-      let container
+        container = view.ele.querySelector('.code-prompt-w')
+        if (container)
+          Css.retract(container)
+      })
 
-      container = view.ele.querySelector('.code-prompt-w')
-      if (container)
-        Css.retract(container)
-    })
-
-    p.focus()
+      p.focus()
+    }
   }
 
   function whichHistFromView

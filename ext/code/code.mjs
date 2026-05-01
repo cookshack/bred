@@ -519,7 +519,7 @@ function init
     d({ tokenInfo })
 
     if (req.status?.type == 'busy')
-      updateBufStatus(buf, '🌊', tokenInfo, VopenCode.version)
+      updateBufStatus(buf, '🌊 ' + (buf.vars('code').model || ''), tokenInfo, VopenCode.version)
     else if (req.status?.type == 'idle')
       updateIdle(buf, tokenInfo)
     else if (req.status?.type == 'retry')

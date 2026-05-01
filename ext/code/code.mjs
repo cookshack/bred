@@ -59,7 +59,7 @@ function init
                                   { 'data-run': 'delete session',
                                     'data-session-id': s.id,
                                     'data-session-dir': s.directory }),
-                            divCl('code-sessions-id', (s.id || '').replace(/^sess_/, ''),
+                            divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
                                   { 'data-run': 'open code session',
                                     'data-session-id': s.id,
                                     'data-session-dir': s.directory }),

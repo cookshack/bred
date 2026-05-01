@@ -113,6 +113,23 @@ function init
                   appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
                 else if (part.type == 'reasoning' && part.text)
                   appendThinking(buf, part.text)
+                else if (part.type == 'tool') {
+                  let label
+
+                  label = part.tool
+                  if (part.tool == 'bash' && part.state?.input?.command)
+                    label += ': ' + part.state.input.command
+                  else if (part.state?.input?.filePath)
+                    label += ' ' + makeRelative(buf, part.state.input.filePath)
+                  else if (part.state?.input?.pattern)
+                    label += ' "' + part.state.input.pattern + '"'
+                  else if (part.state?.input?.query)
+                    label += ': ' + part.state.input.query
+                  else if (part.state?.input?.url)
+                    label += ' ' + part.state.input.url
+                  appendToolMsg(buf, part.callID, label,
+                                part.state?.output || part.state?.error)
+                }
           })
 
           buf.vars('code').firstPromptSent = 1

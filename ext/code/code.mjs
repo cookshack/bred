@@ -455,20 +455,23 @@ function init
   }
 
   function updateBufStatus
-  (buf, co, tokenInfo, versionInfo) {
+  (buf, status, model, tokenInfo, versionInfo) {
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
         let underW
 
         underW = view.eleOrReserved.querySelector('.code-under-w')
         if (underW) {
-          let statusEl, versionEl, tokenEl
+          let statusEl, modelEl, versionEl, tokenEl
 
           statusEl = underW.querySelector('.code-under-status')
+          modelEl = underW.querySelector('.code-under-model')
           versionEl = underW.querySelector('.code-under-version')
           tokenEl = underW.querySelector('.code-under-tokens')
           if (statusEl)
-            statusEl.innerHTML = co
+            statusEl.innerText = status
+          if (modelEl)
+            modelEl.innerText = model
           if (versionEl)
             if (versionInfo)
               versionEl.innerText = versionInfo
@@ -504,7 +507,7 @@ function init
 
   function updateIdle
   (buf, tokenInfo) {
-    updateBufStatus(buf, 'OK', tokenInfo, VopenCode.version)
+    updateBufStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
     if (buf.vars('code').agentStopped) {
       buf.vars('code').agentStopped = 0
       appendMsg(buf, 0, '...stopped')
@@ -519,11 +522,11 @@ function init
     d({ tokenInfo })
 
     if (req.status?.type == 'busy')
-      updateBufStatus(buf, '🌊 ' + (buf.vars('code').model || ''), tokenInfo, VopenCode.version)
+      updateBufStatus(buf, '🌊', buf.vars('code').model, tokenInfo, VopenCode.version)
     else if (req.status?.type == 'idle')
       updateIdle(buf, tokenInfo)
     else if (req.status?.type == 'retry')
-      updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), tokenInfo, VopenCode.version)
+      updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), buf.vars('code').model, tokenInfo, VopenCode.version)
     else if (req.status?.type)
       d('🌱 TODO status: ' + req.status?.type)
   }
@@ -1049,7 +1052,7 @@ function init
     }
 
     if (event.type == 'server.connected') {
-      updateBufStatus(buf, 'OK', '', VopenCode.version) // clears the CONNECTED after reconnect
+      updateBufStatus(buf, 'OK', '', '', VopenCode.version) // clears the CONNECTED after reconnect
       return
     }
 
@@ -1081,7 +1084,7 @@ function init
         return
       }
 
-      updateBufStatus(buf, '🔁 CONNECTED', '', VopenCode.version)
+      updateBufStatus(buf, '🔁 CONNECTED', '', '', VopenCode.version)
 
       while (state.streamActive) {
         let timeoutMs, timeoutPromise
@@ -1132,7 +1135,7 @@ function init
       }
       state.client = 0
       state.lastEventTime = Date.now()
-      updateBufStatus(buf, '🔁 RECONNECTING', '')
+      updateBufStatus(buf, '🔁 RECONNECTING', '', '')
       ensureClient(buf).then(runStream).catch(() => {
         d('CO reconnect spawn failed')
         setTimeout(tryReconnect, 1000)
@@ -1143,7 +1146,7 @@ function init
     if (state.streamActive) return
     state.streamActive = 1
     state.lastEventTime = Date.now()
-    updateBufStatus(buf, '🔁 CONNECTING', '')
+    updateBufStatus(buf, '🔁 CONNECTING', '', '')
 
     ensureClient(buf).then(runStream).catch(() => {
       d('CO spawn failed, retrying')
@@ -1167,9 +1170,11 @@ function init
                          [ divCl('code-session-title'),
                            divCl('code-under-w',
                                  [ divCl('code-under code-under-status', '...'),
-                                   divCl('code-under code-under-credits', ''),
-                                   divCl('code-under code-under-version', ''),
-                                   divCl('code-under code-under-tokens', '') ]) ]),
+                                   divCl('code-under code-under-model', '...'),
+                                   divCl('code-under-end',
+                                         [ divCl('code-under code-under-credits', ''),
+                                           divCl('code-under code-under-version', ''),
+                                           divCl('code-under code-under-tokens', '') ]) ]) ]),
                    divCl('code-prompt-w retracted',
                          [ divCl('code-prompt-ml',
                                  [ divCl('code-prompt-model', '') ]),
@@ -1542,7 +1547,7 @@ function init
 
         fromUnderW = fromW.querySelector('.code-under-w')
         if (fromUnderW) {
-          let statusEl, versionEl, tokensEl
+          let statusEl, modelEl, versionEl, tokensEl
 
           statusEl = toUnderW.querySelector('.code-under-status')
           if (statusEl) {
@@ -1551,6 +1556,14 @@ function init
             fromStatus = fromUnderW.querySelector('.code-under-status')
             if (fromStatus)
               statusEl.innerHTML = fromStatus.innerHTML
+          }
+          modelEl = toUnderW.querySelector('.code-under-model')
+          if (modelEl) {
+            let fromModel
+
+            fromModel = fromUnderW.querySelector('.code-under-model')
+            if (fromModel)
+              modelEl.innerHTML = fromModel.innerHTML
           }
           versionEl = toUnderW.querySelector('.code-under-version')
           if (versionEl) {

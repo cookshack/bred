@@ -203,14 +203,25 @@ div.code-thought:hover {
 
 .code-under-w {
   width: 100%;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr min-content 1fr
 }
 
 .code-under {
   display: flex;
 }
 
+.code-under-model {
+  white-space: nowrap;
+}
+
+.code-under-end {
+  white-space: nowrap;
+  display: flex;
+}
+
 .code-under-credits {
+  width: 100%;
   margin-left: auto;
   margin-right: 0.5rem;
 }

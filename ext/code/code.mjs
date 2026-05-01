@@ -1633,10 +1633,11 @@ function init
 
   function submitPrompt
   () {
-    let buf, p, text
+    let buf, p, text, codeBuf, whichHist
 
     p = Pane.current()
     buf = p.buf
+    codeBuf = buf.parent || buf
     text = buf.vars('code').promptBuf.text()
     if (text.length)
       text = text.trim()
@@ -1651,7 +1652,13 @@ function init
     cancelPrompt(p)
 
     buf.vars('code').promptBuf.clear()
-    chatHist.add(text)
+    if (codeBuf.vars('code').firstPromptSent)
+      whichHist = chatHist
+    else {
+      whichHist = hist
+      codeBuf.vars('code').firstPromptSent = 1
+    }
+    whichHist.add(text)
     send(buf, text, buf.vars('code').provider, buf.vars('code').model)
   }
 
@@ -1673,12 +1680,23 @@ function init
     p.focus()
   }
 
+  function whichHistFromView
+  (view) {
+    let codeBuf
+
+    codeBuf = view.buf.parent || view.buf
+    if (codeBuf.vars('code').firstPromptSent)
+      return chatHist
+    return hist
+  }
+
   function prevHist
   () {
-    let view, text
+    let view, text, wh
 
     view = View.current()
-    text = chatHist.prev()
+    wh = whichHistFromView(view)
+    text = wh.prev()
     if (text) {
       view.buf.clear()
       view.buf.insert(text)
@@ -1689,10 +1707,11 @@ function init
 
   function nextHist
   () {
-    let view, text
+    let view, text, wh
 
     view = View.current()
-    text = chatHist.next()
+    wh = whichHistFromView(view)
+    text = wh.next()
     if (text) {
       view.buf.clear()
       view.buf.insert(text)

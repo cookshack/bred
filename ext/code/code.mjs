@@ -76,7 +76,7 @@ function init
 
       async function open
       () {
-        let pane, name, buf, provider, model
+        let c, pane, name, buf, provider, model
 
         pane = Pane.current()
         name = 'CO ' + sessionDir
@@ -97,7 +97,7 @@ function init
         buf.opt('core.lint.enabled', 1)
 
         try {
-          await ensureClient(buf)
+          c = await ensureClient(buf)
         }
         catch (err) {
           Mess.yell('Failed: ' + err.message)
@@ -105,6 +105,17 @@ function init
         }
 
         pane.setBuf(buf, {}, () => {
+          c.session.messages({ sessionID, directory: sessionDir }).then(r => {
+            d({ r })
+            for (let msg of r.data)
+              for (let part of msg.parts)
+                if (part.type == 'text')
+                  appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
+                else if (part.type == 'reasoning' && part.text)
+                  appendThinking(buf, part.text)
+          })
+
+          buf.vars('code').firstPromptSent = 1
           nestPromptBuf(buf)
           startEventSub(buf)
         })

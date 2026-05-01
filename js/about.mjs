@@ -200,8 +200,7 @@ function initHelp
     function path
     (p) {
       if (p)
-        return div(p, '', { 'data-run': 'open link',
-                            'data-path': p })
+        return div(Ed.makeMlDir(p))
       return div()
     }
 

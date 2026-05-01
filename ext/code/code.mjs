@@ -43,11 +43,6 @@ function init
   () {
     let mo
 
-    function divW
-    () {
-      return divCl('code-sessions-ww', divCl('code-sessions-w bred-surface', ''))
-    }
-
     function viewInit
     (view, spec, cb) { // (view)
       let w
@@ -61,7 +56,10 @@ function init
           append(w,
                  sessions.data.map(s => {
                    d({ s })
-                   return [ divCl('code-sessions-id', (s.id || '').replace(/^sess_/, '')),
+                   return [ divCl('code-sessions-id', (s.id || '').replace(/^sess_/, ''),
+                                  { 'data-run': 'open code session',
+                                    'data-session-id': s.id,
+                                    'data-session-dir': s.directory }),
                             divCl('code-sessions-dir', s.directory),
                             divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
                  }))
@@ -70,6 +68,52 @@ function init
 
       if (cb)
         cb(view)
+    }
+
+    function openCodeSession
+    (u, we) {
+      let sessionID, sessionDir
+
+      async function open
+      () {
+        let pane, name, buf, provider, model
+
+        pane = Pane.current()
+        name = 'CO ' + sessionDir
+
+        buf = Buf.find(b => b.name == name)
+        if (buf) {
+          pane.setBuf(buf)
+          return
+        }
+
+        provider = Opt.get('code.provider.agent') || 'opencode-go'
+        model = Opt.get('code.model.agent') || 'deepseek-v4-pro'
+
+        buf = Buf.add(name, 'code', divW(sessionDir), sessionDir)
+        buf.vars('code').provider = provider
+        buf.vars('code').model = model
+        buf.vars('code').sessionID = sessionID
+        buf.opt('core.lint.enabled', 1)
+
+        try {
+          await ensureClient(buf)
+        }
+        catch (err) {
+          Mess.yell('Failed: ' + err.message)
+          return
+        }
+
+        pane.setBuf(buf, {}, () => {
+          nestPromptBuf(buf)
+          startEventSub(buf)
+        })
+      }
+
+      sessionID = we.e.target.dataset.sessionId
+      sessionDir = we.e.target.dataset.sessionDir
+
+      open()
     }
 
     mo = Mode.add('Code Sessions', { viewInit })
@@ -83,12 +127,16 @@ function init
       if (buf)
         p.setBuf(buf, {}, view => viewInit(view))
       else {
-        buf = Buf.add('Code Sessions', 'Code Sessions', divW(), p.dir)
+        buf = Buf.add('Code Sessions', 'Code Sessions',
+                      divCl('code-sessions-ww', divCl('code-sessions-w bred-surface', '')),
+                      p.dir)
         buf.icon = 'list'
         buf.addMode('view')
         p.setBuf(buf)
       }
     })
+
+    Cmd.add('open code session', openCodeSession, mo)
 
     Em.on('g', 'refresh', mo)
   }

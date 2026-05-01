@@ -169,7 +169,6 @@ function init
                             let i
 
                             i = [ ...w.children ].indexOf(el)
-                            w.children[i + 3]?.remove()
                             w.children[i + 2]?.remove()
                             w.children[i + 1]?.remove()
                             w.children[i].remove()

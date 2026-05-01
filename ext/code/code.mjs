@@ -39,6 +39,60 @@ function init
 () {
   let hist, chatHist, mo, moCodePrompt, stopTimeout, mostRecentAgent
 
+  function initSessions
+  () {
+    let mo
+
+    function divW
+    () {
+      return divCl('code-sessions-ww', divCl('code-sessions-w bred-surface', ''))
+    }
+
+    function viewInit
+    (view, spec, cb) { // (view)
+      let w
+
+      w = view.eleOrReserved.querySelector('.code-sessions-w')
+      if (w) {
+
+        w.innerHTML = ''
+        ensureClient(view.buf).then(c => c.session.list().then(sessions => {
+          d({ sessions })
+          append(w,
+                 sessions.data.map(s => {
+                   d({ s })
+                   return [ divCl('code-sessions-id', (s.id || '').replace(/^sess_/, '')),
+                            divCl('code-sessions-dir', s.directory),
+                            divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
+                 }))
+        }))
+      }
+
+      if (cb)
+        cb(view)
+    }
+
+    mo = Mode.add('Code Sessions', { viewInit })
+
+    Cmd.add('refresh', () => viewInit(View.current()), mo)
+
+    Cmd.add('code sessions', () => {
+      let p, buf
+
+      p = Pane.current()
+      if (buf)
+        p.setBuf(buf, {}, view => viewInit(view))
+      else {
+        buf = Buf.add('Code Sessions', 'Code Sessions', divW(), p.dir)
+        buf.icon = 'list'
+        buf.addMode('view')
+        p.setBuf(buf)
+      }
+    })
+
+    Em.on('g', 'refresh', mo)
+  }
+
   async function ensureClient
   (buf) {
     let client, ret, spawnPromise
@@ -1482,6 +1536,7 @@ function init
         buf.opt('core.lint.enabled', 1)
 
         c = await ensureClient(buf)
+
         res = await c.session.create({ directory: buf.dir, title: prompt || '' })
 
         buf.vars('code').sessionID = res.data.id
@@ -1815,4 +1870,6 @@ function init
   Em.on('C-g', 'cancel prompt', moCodePrompt)
   Em.on('A-p', 'previous history item', moCodePrompt)
   Em.on('A-n', 'next history item', moCodePrompt)
+
+  initSessions()
 }

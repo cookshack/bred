@@ -1358,6 +1358,11 @@ function init
 
   function openPrompt
   (buf, pane, provider, model) {
+    let wh
+
+    wh = whichHistFromBuf(buf)
+    buf.vars('code').promptBuf.placeholder = wh?.nth(0)?.toString()
+
     buf.views.forEach(view => {
       let container
 
@@ -1416,7 +1421,7 @@ function init
     () {
       let b, placeholder
 
-      placeholder = chatHist?.nth(0)?.toString()
+      placeholder = hist?.nth(0)?.toString()
 
       b = Buf.make({ name: 'Code Prompt',
                      modeKey: 'markdown',
@@ -1681,11 +1686,11 @@ function init
     }
   }
 
-  function whichHistFromView
-  (view) {
+  function whichHistFromBuf
+  (buf) {
     let codeBuf
 
-    codeBuf = view.buf.parent || view.buf
+    codeBuf = buf.parent || buf
     if (codeBuf.vars('code').firstPromptSent)
       return chatHist
     return hist
@@ -1696,7 +1701,7 @@ function init
     let view, text, wh
 
     view = View.current()
-    wh = whichHistFromView(view)
+    wh = whichHistFromBuf(view.buf)
     text = wh.prev()
     if (text) {
       view.buf.clear()
@@ -1711,7 +1716,7 @@ function init
     let view, text, wh
 
     view = View.current()
-    wh = whichHistFromView(view)
+    wh = whichHistFromBuf(view.buf)
     text = wh.next()
     if (text) {
       view.buf.clear()

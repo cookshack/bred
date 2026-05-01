@@ -816,7 +816,7 @@ function initModeFns
 
   function setPlaceholder
   (view, val) {
-    view.ed.dispatch({ effects: view.wode.placeholder.reconfigure(WodeView.makePlaceholder(val)) })
+    view.ed?.dispatch({ effects: view.wode.placeholder.reconfigure(WodeView.makePlaceholder(val)) })
   }
 
   function syntaxTreeStr

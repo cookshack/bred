@@ -56,7 +56,11 @@ function init
           append(w,
                  sessions.data.map(s => {
                    d({ s })
-                   return [ divCl('code-sessions-id', (s.id || '').replace(/^sess_/, ''),
+                   return [ divCl('code-sessions-del', '✗',
+                                  { 'data-run': 'delete session',
+                                    'data-session-id': s.id,
+                                    'data-session-dir': s.directory }),
+                            divCl('code-sessions-id', (s.id || '').replace(/^sess_/, ''),
                                   { 'data-run': 'open code session',
                                     'data-session-id': s.id,
                                     'data-session-dir': s.directory }),
@@ -144,6 +148,39 @@ function init
       open()
     }
 
+    function deleteSession
+    (u, we) {
+      let sessionID, sessionDir
+
+      sessionID = we.e.target.dataset.sessionId
+      sessionDir = we.e.target.dataset.sessionDir
+
+      Prompt.yn('Delete session ' + sessionID.replace(/^sess_/, '') + '?',
+                { icon: 'trash' },
+                yes => {
+                  if (yes)
+                    ensureClient(View.current().buf)
+                      .then(c => c.session.delete({ sessionID, directory: sessionDir }))
+                      .then(() => {
+                        View.current().buf.views.forEach(view => {
+                          let w, el
+
+                          w = view.eleOrReserved?.querySelector('.code-sessions-w')
+                          el = w?.querySelector('[data-session-id="' + sessionID + '"]')
+                          if (el) {
+                            let i
+
+                            i = [ ...w.children ].indexOf(el)
+                            w.children[i + 3]?.remove()
+                            w.children[i + 2]?.remove()
+                            w.children[i + 1]?.remove()
+                            w.children[i].remove()
+                          }
+                        })
+                      })
+                })
+    }
+
     mo = Mode.add('Code Sessions', { viewInit })
 
     Cmd.add('refresh', () => viewInit(View.current()), mo)
@@ -165,6 +202,8 @@ function init
     })
 
     Cmd.add('open code session', openCodeSession, mo)
+
+    Cmd.add('delete session', deleteSession, mo)
 
     Em.on('g', 'refresh', mo)
   }

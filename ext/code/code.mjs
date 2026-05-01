@@ -54,7 +54,7 @@ function init
         ensureClient(view.buf).then(c => c.session.list().then(sessions => {
           d({ sessions })
           append(w,
-                 sessions.data.map(s => {
+                 sessions.data.filter(s => s.directory == view.buf.dir).map(s => {
                    d({ s })
                    return [ divCl('code-sessions-del', '✗',
                                   { 'data-run': 'delete session',

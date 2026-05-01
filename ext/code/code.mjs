@@ -55,7 +55,6 @@ function init
           d({ sessions })
           append(w,
                  sessions.data.filter(s => s.directory == view.buf.dir).map(s => {
-                   d({ s })
                    return [ divCl('code-sessions-del', '✗',
                                   { 'data-run': 'delete session',
                                     'data-session-id': s.id,
@@ -64,7 +63,6 @@ function init
                                   { 'data-run': 'open code session',
                                     'data-session-id': s.id,
                                     'data-session-dir': s.directory }),
-                            divCl('code-sessions-dir', s.directory),
                             divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
                  }))
         }))

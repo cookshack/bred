@@ -317,7 +317,7 @@ div.code-thought:hover {
   padding: 0.5rem;
 
   display: grid;
-  grid-template-columns: min-content minmax(min-content, max-content) minmax(min-content, max-content) auto;
+  grid-template-columns: min-content minmax(min-content, max-content) auto;
   grid-gap: 0.5rem;
 }
 

@@ -1134,20 +1134,20 @@ function init
         agent = part.state.input.subagent_type
         sessionId = part.state.metadata?.sessionId
         if (sessionId) {
-          let ids, callIDs
+          let ids, callIds
 
           ids = buf.vars('code').subagentIds
-          callIDs = buf.vars('code').subagentCallIDs
+          callIds = buf.vars('code').subagentCallIds
           if (ids == null) {
             ids = new Map()
             buf.vars('code').subagentIds = ids
           }
-          if (callIDs == null) {
-            callIDs = new Map()
-            buf.vars('code').subagentCallIDs = callIDs
+          if (callIds == null) {
+            callIds = new Map()
+            buf.vars('code').subagentCallIds = callIds
           }
           ids.set(sessionId, 1)
-          callIDs.set(sessionId, part.callID)
+          callIds.set(sessionId, part.callID)
         }
         desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
         appendToolMsg(buf, part.callID, desc)
@@ -1223,16 +1223,16 @@ function init
 
   function handleSubagentIdle
   (buf, event) {
-    let callID
+    let callId
 
-    callID = buf.vars('code').subagentCallIDs?.get(event.properties.sessionID)
-    if (callID)
+    callId = buf.vars('code').subagentCallIds?.get(event.properties.sessionID)
+    if (callId)
       buf.views.forEach(view => {
         if (view.eleOrReserved) {
           let w, els
 
           w = view.eleOrReserved.querySelector('.code-w')
-          els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
+          els = w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]')
           els?.forEach(el => {
             let textEl
 

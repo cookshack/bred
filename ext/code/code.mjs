@@ -554,6 +554,32 @@ function init
                       { 'data-callid': callID }))
       }
     })
+    if (callID && label)
+      buf.views.forEach(view => {
+        if (view.eleOrReserved) {
+          let w, permEl
+
+          w = view.eleOrReserved.querySelector('.code-w')
+          permEl = w.querySelector('.code-msg-permission[data-permission-callid="' + callID + '"]')
+          if (permEl) {
+            let labelEl
+
+            labelEl = permEl.querySelector('.code-msg-label')
+            if (labelEl)
+              labelEl.innerText = label
+            else {
+              let patternEl
+
+              patternEl = permEl.querySelector('.code-msg-pattern')
+              labelEl = divCl('code-msg-label', label)
+              if (patternEl)
+                patternEl.before(labelEl)
+              else
+                permEl.append(labelEl)
+            }
+          }
+        }
+      })
   }
 
   function appendPermission

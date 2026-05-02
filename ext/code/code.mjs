@@ -1332,7 +1332,15 @@ function init
     if (event.type == 'server.heartbeat')
       return
 
-    d('🌱 TODO handle ' + event.type)
+    {
+      let evSessionID, subagent
+
+      evSessionID = event.properties.sessionID
+        || event.properties.part?.sessionID
+        || event.properties.info?.id
+      subagent = buf?.vars('code')?.subagentIDs?.has(evSessionID)
+      d('🌱 TODO handle ' + event.type + (subagent ? ' (subagent)' : ''))
+    }
   }
 
   function startEventSub

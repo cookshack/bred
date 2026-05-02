@@ -588,7 +588,8 @@ function init
                                 button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
                         label && label.trim().length && divCl('code-msg-label', label),
                         divCl('code-msg-pattern', pattern()) ],
-                      { 'data-permissionid': id }))
+                      { 'data-permissionid': id,
+                        'data-permission-callid': callID || '??' }))
       }
     })
   }
@@ -933,7 +934,7 @@ function init
 
       status = part.state?.status
       d('CO tool: ' + icon(part.tool) + part.tool + ' ' + status)
-      if (part.tool == 'read' && status == 'running') {
+      if (part.tool == 'read' && [ 'pending', 'running' ].includes(status)) {
         let path
 
         path = part.state.input.filePath
@@ -953,7 +954,7 @@ function init
                                                     { input: part.state.input }))
         }
       }
-      else if (part.tool == 'glob' && status == 'running') {
+      else if (part.tool == 'glob' && [ 'pending', 'running' ].includes(status)) {
         let pattern
 
         pattern = part.state.input.pattern
@@ -974,7 +975,7 @@ function init
                         part.state.output)
         }
       }
-      else if (part.tool == 'grep' && status == 'running') {
+      else if (part.tool == 'grep' && [ 'pending', 'running' ].includes(status)) {
         let pattern, path
 
         pattern = part.state.input.pattern
@@ -997,13 +998,13 @@ function init
                         part.state.output)
         }
       }
-      else if (part.tool == 'bash' && status == 'running') {
+      else if (part.tool == 'bash' && [ 'pending', 'running' ].includes(status)) {
         let command
 
         command = part.state.input.command
         if (command) {
           d('CO bash: ' + command)
-          appendToolMsg(buf, part.callID, 'bash: ' + command)
+          appendToolMsg(buf, part.callID, 'bash: ' + command + (status == 'pending' ? ' (pending)' : ''))
         }
       }
       else if (part.tool == 'bash' && status == 'completed') {
@@ -1016,7 +1017,7 @@ function init
           appendToolMsg(buf, part.callID, 'bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
         }
       }
-      else if (part.tool == 'write' && status == 'running') {
+      else if (part.tool == 'write' && [ 'pending', 'running' ].includes(status)) {
         let path
 
         path = part.state.input.filePath
@@ -1040,7 +1041,7 @@ function init
                         { format: 'code', path })
         }
       }
-      else if (part.tool == 'edit' && status == 'running') {
+      else if (part.tool == 'edit' && [ 'pending', 'running' ].includes(status)) {
         let path
 
         path = part.state.input.filePath
@@ -1081,7 +1082,7 @@ function init
           appendMsg(buf, 0, part.state?.error, part.id)
         }
       }
-      else if (part.tool == 'websearch' && status == 'running') {
+      else if (part.tool == 'websearch' && [ 'pending', 'running' ].includes(status)) {
         let query
 
         query = part.state.input.query
@@ -1115,7 +1116,7 @@ function init
                         part.state.error)
         }
       }
-      else if (part.tool == 'webfetch' && status == 'running') {
+      else if (part.tool == 'webfetch' && [ 'pending', 'running' ].includes(status)) {
         let url
 
         url = part.state.input.url
@@ -1148,7 +1149,7 @@ function init
                         part.state.error)
         }
       }
-      else if (part.tool == 'task' && status == 'running') {
+      else if (part.tool == 'task' && [ 'pending', 'running' ].includes(status)) {
         let desc, agent, sessionId
 
         desc = part.state.input.description

@@ -204,6 +204,14 @@ div.code-thought:hover {
   align-items: center;
 }
 
+.code-msg-permission .code-msg-label {
+  font-style: italic;
+  white-space: pre;
+  margin-top: 0.5rem;
+  padding: 0.25rem;
+  background: var(--clr-bg);
+}
+
 .code-under-w {
   width: 100%;
   display: grid;

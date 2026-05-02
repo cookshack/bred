@@ -29,9 +29,14 @@ import * as OpenCode from './lib/opencode/v2/client.js'
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 import { makeMlDir } from '../../js/ed.mjs'
 
-function agentIcon
+function iconAgent
 () {
   return '⚡'
+}
+
+function iconRightArrow
+() {
+  return '➔'
 }
 
 function getSubagentIds
@@ -538,7 +543,7 @@ function init
         appendX(w,
                 divCl('code-msg code-msg-tool',
                       [ divCl('code-msg-text',
-                              [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : '➔'),
+                              [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : iconRightArrow()),
                                 ' ',
                                 label ]),
                         underEl ],
@@ -548,7 +553,15 @@ function init
   }
 
   function appendPermission
-  (buf, id) {
+  (buf, perm) {
+    let id, label, action, patterns
+
+    id = perm.id
+    action = perm.req.permission || perm.req.type || '?'
+    patterns = perm.req.patterns || perm.req.pattern || []
+    if (typeof patterns == 'string')
+      patterns = [ patterns ]
+    label = iconRightArrow() + ' ' + action + (patterns.length ? ': ' + patterns[0] : '')
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
         let w
@@ -559,7 +572,8 @@ function init
                       [ divCl('code-msg-text',
                               [ '▣ Allow?',
                                 button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
-                                button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]) ],
+                                button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
+                        divCl('code-msg-label', label) ],
                       { 'data-permissionid': id }))
       }
     })
@@ -665,7 +679,7 @@ function init
 
           agentEl = h.querySelector('.code-agent')
           if (agentEl)
-            agentEl.innerText = agentIcon() + agent
+            agentEl.innerText = iconAgent() + agent
         }
       }
     })
@@ -769,10 +783,10 @@ function init
   (buf, req) {
     checkForPatch(buf, req)
     buf.vars('code').permissions = buf.vars('code').permissions || []
-    buf.vars('code').permissions.push({ id: req.id, sessionID: req.sessionID })
+    buf.vars('code').permissions.push({ id: req.id, sessionID: req.sessionID, req })
     if (buf.vars('code').permissions.length == 1)
       // Free to ask.
-      appendPermission(buf, req.id)
+      appendPermission(buf, buf.vars('code').permissions[0])
   }
 
   function handlePermissionAsked
@@ -1615,7 +1629,7 @@ function init
     let buf
 
     buf = Pane.current().buf
-    Prompt.choose(agentIcon() + ' Agent',
+    Prompt.choose(iconAgent() + ' Agent',
                   [ 'build', 'plan' ],
                   {},
                   agent => {

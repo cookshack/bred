@@ -517,7 +517,7 @@ function init
     spec = spec || {}
     if (callID) {
       buf.vars('code').callLabels = buf.vars('code').callLabels || {}
-      buf.vars('code').callLabels[callID] || (buf.vars('code').callLabels[callID] = label)
+      buf.vars('code').callLabels[callID] = label
     }
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
@@ -568,7 +568,7 @@ function init
       patterns = perm.req.patterns || perm.req.pattern || []
       if (typeof patterns == 'string')
         patterns = [ patterns ]
-      return 'Pattern: ' + action + (patterns.length ? ': ' + patterns[0] : '')
+      return '🗝 ' + action + (patterns.length ? ': ' + patterns[0] : '')
     }
 
     id = perm.id

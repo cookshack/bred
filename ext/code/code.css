@@ -213,8 +213,6 @@ div.code-thought:hover {
 }
 
 .code-msg-permission .code-msg-pattern {
-  font-family: var(--font-monospace);
-  font-style: normal;
   margin-top: 0.5rem;
   padding: 0.25rem;
 }

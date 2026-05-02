@@ -1133,14 +1133,20 @@ function init
         agent = part.state.input.subagent_type
         sessionId = part.state.metadata?.sessionId
         if (sessionId) {
-          let ids
+          let ids, callIDs
 
           ids = buf.vars('code').subagentIDs
+          callIDs = buf.vars('code').subagentCallIDs
           if (ids == null) {
             ids = new Map()
             buf.vars('code').subagentIDs = ids
           }
+          if (callIDs == null) {
+            callIDs = new Map()
+            buf.vars('code').subagentCallIDs = callIDs
+          }
           ids.set(sessionId, 1)
+          callIDs.set(sessionId, part.callID)
         }
         desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
         appendToolMsg(buf, part.callID, desc)
@@ -1214,6 +1220,29 @@ function init
     })
   }
 
+  function handleSubagentIdle
+  (buf, event) {
+    let callID
+
+    callID = buf.vars('code').subagentCallIDs?.get(event.properties.sessionID)
+    if (callID)
+      buf.views.forEach(view => {
+        if (view.eleOrReserved) {
+          let w, els
+
+          w = view.eleOrReserved.querySelector('.code-w')
+          els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
+          els?.forEach(el => {
+            let textEl
+
+            textEl = el.querySelector('.code-msg-text')
+            if (textEl && textEl.innerText.indexOf('◉') < 0)
+              textEl.innerText = textEl.innerText + ' ◉'
+          })
+        }
+      })
+  }
+
   function handleEvent
   (buf, event) {
     let sessionID
@@ -1225,14 +1254,20 @@ function init
 
     // Already done by session.status. Maybe planned replacement.
     if ((event.type == 'session.idle')
-        && (event.properties.sessionID == sessionID)) {
-      updateIdle(buf, calculateTokenPercentage(buf))
+        && (event.properties.sessionID == sessionID
+            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
+      if (event.properties.sessionID == sessionID)
+        updateIdle(buf, calculateTokenPercentage(buf))
+      else
+        handleSubagentIdle(buf, event)
       return
     }
 
     if ((event.type == 'session.status')
-        && (event.properties.sessionID == sessionID)) {
-      updateStatus(buf, event.properties, calculateTokenPercentage(buf))
+        && (event.properties.sessionID == sessionID
+            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
+      if (event.properties.sessionID == sessionID)
+        updateStatus(buf, event.properties, calculateTokenPercentage(buf))
       return
     }
 
@@ -1262,8 +1297,10 @@ function init
     }
 
     if ((event.type == 'session.updated')
-        && (event.properties.info.id == sessionID)) {
-      handleSessionUpdated(buf, event)
+        && (event.properties.info.id == sessionID
+            || buf?.vars('code')?.subagentIDs?.has(event.properties.info.id))) {
+      if (event.properties.info.id == sessionID)
+        handleSessionUpdated(buf, event)
       return
     }
 

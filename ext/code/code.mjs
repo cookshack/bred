@@ -1248,6 +1248,11 @@ function init
   (buf, event) {
     let sessionID
 
+    function isSubagentId
+    (id) {
+      return buf?.vars('code')?.subagentIDs?.has(id)
+    }
+
     d('CO ' + event.type)
     d({ event })
 
@@ -1256,7 +1261,7 @@ function init
     // Already done by session.status. Maybe planned replacement.
     if ((event.type == 'session.idle')
         && (event.properties.sessionID == sessionID
-            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
+            || isSubagentId(event.properties.sessionID))) {
       if (event.properties.sessionID == sessionID)
         updateIdle(buf, calculateTokenPercentage(buf))
       else
@@ -1266,7 +1271,7 @@ function init
 
     if ((event.type == 'session.status')
         && (event.properties.sessionID == sessionID
-            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
+            || isSubagentId(event.properties.sessionID))) {
       if (event.properties.sessionID == sessionID)
         updateStatus(buf, event.properties, calculateTokenPercentage(buf))
       return
@@ -1274,14 +1279,14 @@ function init
 
     if ((event.type == 'permission.asked')
         && (event.properties.sessionID == sessionID
-            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
+            || isSubagentId(event.properties.sessionID))) {
       handlePermissionAsked(buf, event)
       return
     }
 
     if ((event.type == 'permission.updated')
         && (event.properties.sessionID == sessionID
-            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
+            || isSubagentId(event.properties.sessionID))) {
       handlePermissionUpdated(buf, event)
       return
     }
@@ -1301,7 +1306,7 @@ function init
 
     if ((event.type == 'session.updated')
         && (event.properties.info.id == sessionID
-            || buf?.vars('code')?.subagentIDs?.has(event.properties.info.id))) {
+            || isSubagentId(event.properties.info.id))) {
       if (event.properties.info.id == sessionID)
         handleSessionUpdated(buf, event)
       return
@@ -1315,14 +1320,14 @@ function init
 
     if ((event.type == 'message.part.updated')
         && (event.properties.part.sessionID == sessionID
-            || buf?.vars('code')?.subagentIDs?.has(event.properties.part.sessionID))) {
+            || isSubagentId(event.properties.part.sessionID))) {
       handlePart(buf, event)
       return
     }
 
     if ((event.type == 'message.part.delta')
         && (event.properties.sessionID == sessionID
-            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
+            || isSubagentId(event.properties.sessionID))) {
       handlePartDelta(buf, event)
       return
     }
@@ -1341,7 +1346,7 @@ function init
       evSessionID = event.properties.sessionID
         || event.properties.part?.sessionID
         || event.properties.info?.id
-      subagent = buf?.vars('code')?.subagentIDs?.has(evSessionID)
+      subagent = isSubagentId(evSessionID)
       d('🌱 TODO handle ' + event.type + (subagent ? ' (subagent)' : ''))
     }
   }

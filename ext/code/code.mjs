@@ -1136,11 +1136,11 @@ function init
         if (sessionId) {
           let ids, callIDs
 
-          ids = buf.vars('code').subagentIDs
+          ids = buf.vars('code').subagentIds
           callIDs = buf.vars('code').subagentCallIDs
           if (ids == null) {
             ids = new Map()
-            buf.vars('code').subagentIDs = ids
+            buf.vars('code').subagentIds = ids
           }
           if (callIDs == null) {
             callIDs = new Map()
@@ -1161,7 +1161,7 @@ function init
         if (sessionId) {
           let ids
 
-          ids = buf.vars('code').subagentIDs
+          ids = buf.vars('code').subagentIds
           if (ids)
             ids.delete(sessionId)
         }
@@ -1177,7 +1177,7 @@ function init
         if (sessionId) {
           let ids
 
-          ids = buf.vars('code').subagentIDs
+          ids = buf.vars('code').subagentIds
           if (ids)
             ids.delete(sessionId)
         }
@@ -1250,7 +1250,7 @@ function init
 
     function isSubagentId
     (id) {
-      return buf?.vars('code')?.subagentIDs?.has(id)
+      return buf?.vars('code')?.subagentIds?.has(id)
     }
 
     d('CO ' + event.type)

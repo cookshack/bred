@@ -574,9 +574,10 @@ function init
 
   function ynRespond
   (buf, id, yes) {
-    let sessionID, response
+    let perm, sessionID, response
 
-    sessionID = buf.vars('code')?.sessionID
+    perm = buf.vars('code').permissions.find(p => p.id == id)
+    sessionID = perm?.sessionID || buf.vars('code')?.sessionID
     response = yes ? 'once' : 'reject'
 
     d('CO permission reply: ' + response)
@@ -621,7 +622,7 @@ function init
 
     buf = Pane.current()?.buf
     perms = buf?.vars('code')?.permissions
-    id = perms?.length && perms[0]
+    id = perms?.length && perms[0]?.id
     if (id)
       ynRespond(buf, id, yes)
   }
@@ -775,7 +776,7 @@ function init
   (buf, req) {
     checkForPatch(buf, req)
     buf.vars('code').permissions = buf.vars('code').permissions || []
-    buf.vars('code').permissions.push(req.id)
+    buf.vars('code').permissions.push({ id: req.id, sessionID: req.sessionID })
     if (buf.vars('code').permissions.length == 1)
       // Free to ask.
       appendPermission(buf, req.id)
@@ -1272,13 +1273,15 @@ function init
     }
 
     if ((event.type == 'permission.asked')
-        && (event.properties.sessionID == sessionID)) {
+        && (event.properties.sessionID == sessionID
+            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
       handlePermissionAsked(buf, event)
       return
     }
 
     if ((event.type == 'permission.updated')
-        && (event.properties.sessionID == sessionID)) {
+        && (event.properties.sessionID == sessionID
+            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
       handlePermissionUpdated(buf, event)
       return
     }

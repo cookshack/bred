@@ -683,7 +683,7 @@ function init
     if (buf.vars('code').agentStopped) {
       buf.vars('code').agentStopped = 0
       appendMsg(buf, 0, '...stopped')
-      buf.vars('code').stepActive = 0
+      buf.vars('code').stepActiveSessions = new Set()
     }
   }
 
@@ -866,18 +866,29 @@ function init
     }
 
     if (part.type == 'step-start') {
+      let steps
+
       d('CO step-start')
-      buf.vars('code').stepActive = 1
+      steps = buf.vars('code').stepActiveSessions
+      if (steps == null) {
+        steps = new Set()
+        buf.vars('code').stepActiveSessions = steps
+      }
+      steps.add(part.sessionID)
     }
     else if (part.type == 'step-finish') {
+      let steps
+
       d('CO step-finish')
-      buf.vars('code').stepActive = 0
+      steps = buf.vars('code').stepActiveSessions
+      if (steps)
+        steps.delete(part.sessionID)
     }
     else if (buf.vars('code').agentStopped)
       d('CO agent stopped, skipping: ' + part.type)
     else if (part.type == 'text') {
       d('CO text part' + part.id)
-      if (buf.vars('code').stepActive) {
+      if (buf.vars('code').stepActiveSessions?.size) {
         d('CO update text: ' + part.text)
         appendMsg(buf, 0, part.text, part.id)
       }
@@ -1115,6 +1126,57 @@ function init
                         part.state.error)
         }
       }
+      else if (part.tool == 'task' && status == 'running') {
+        let desc, agent, sessionId
+
+        desc = part.state.input.description
+        agent = part.state.input.subagent_type
+        sessionId = part.state.metadata?.sessionId
+        if (sessionId) {
+          let ids
+
+          ids = buf.vars('code').subagentIDs
+          if (ids == null) {
+            ids = new Map()
+            buf.vars('code').subagentIDs = ids
+          }
+          ids.set(sessionId, 1)
+        }
+        desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
+        appendToolMsg(buf, part.callID, desc)
+      }
+      else if (part.tool == 'task' && status == 'completed') {
+        let desc, agent, sessionId
+
+        desc = part.state.input.description
+        agent = part.state.input.subagent_type
+        sessionId = part.state.metadata?.sessionId
+        if (sessionId) {
+          let ids
+
+          ids = buf.vars('code').subagentIDs
+          if (ids)
+            ids.delete(sessionId)
+        }
+        desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✔️') : ('Task (' + agent + ' agent) ✔️')
+        appendToolMsg(buf, part.callID, desc, part.state.output)
+      }
+      else if (part.tool == 'task' && status == 'error') {
+        let desc, agent, sessionId
+
+        desc = part.state.input.description
+        agent = part.state.input.subagent_type
+        sessionId = part.state.metadata?.sessionId
+        if (sessionId) {
+          let ids
+
+          ids = buf.vars('code').subagentIDs
+          if (ids)
+            ids.delete(sessionId)
+        }
+        desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✘') : ('Task (' + agent + ' agent) ✘')
+        appendToolMsg(buf, part.callID, desc, part.state.error)
+      }
       else
         appendToolMsg(buf,
                       part.callID,
@@ -1212,13 +1274,15 @@ function init
     }
 
     if ((event.type == 'message.part.updated')
-        && (event.properties.part.sessionID == sessionID)) {
+        && (event.properties.part.sessionID == sessionID
+            || buf?.vars('code')?.subagentIDs?.has(event.properties.part.sessionID))) {
       handlePart(buf, event)
       return
     }
 
     if ((event.type == 'message.part.delta')
-        && (event.properties.sessionID == sessionID)) {
+        && (event.properties.sessionID == sessionID
+            || buf?.vars('code')?.subagentIDs?.has(event.properties.sessionID))) {
       handlePartDelta(buf, event)
       return
     }

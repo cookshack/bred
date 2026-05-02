@@ -34,6 +34,16 @@ function agentIcon
   return '⚡'
 }
 
+function getSubagentIds
+(buf) {
+  return buf.vars('code').subagentIds || (buf.vars('code').subagentIds = new Map())
+}
+
+function getSubagentCallIds
+(buf) {
+  return buf.vars('code').subagentCallIds || (buf.vars('code').subagentCallIds = new Map())
+}
+
 export
 function init
 () {
@@ -1134,20 +1144,8 @@ function init
         agent = part.state.input.subagent_type
         sessionId = part.state.metadata?.sessionId
         if (sessionId) {
-          let ids, callIds
-
-          ids = buf.vars('code').subagentIds
-          callIds = buf.vars('code').subagentCallIds
-          if (ids == null) {
-            ids = new Map()
-            buf.vars('code').subagentIds = ids
-          }
-          if (callIds == null) {
-            callIds = new Map()
-            buf.vars('code').subagentCallIds = callIds
-          }
-          ids.set(sessionId, 1)
-          callIds.set(sessionId, part.callID)
+          getSubagentIds(buf).set(sessionId, 1)
+          getSubagentCallIds(buf).set(sessionId, part.callID)
         }
         desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
         appendToolMsg(buf, part.callID, desc)

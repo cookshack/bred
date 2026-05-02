@@ -515,6 +515,10 @@ function init
   function appendToolMsg
   (buf, callID, label, under, spec) {
     spec = spec || {}
+    if (callID) {
+      buf.vars('code').callLabels = buf.vars('code').callLabels || {}
+      buf.vars('code').callLabels[callID] || (buf.vars('code').callLabels[callID] = label)
+    }
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
         let w, els, underEl
@@ -554,14 +558,23 @@ function init
 
   function appendPermission
   (buf, perm) {
-    let id, label, action, patterns
+    let id, label, callID
+
+    function pattern
+    () {
+      let action, patterns
+
+      action = perm.req.permission || perm.req.type || '?'
+      patterns = perm.req.patterns || perm.req.pattern || []
+      if (typeof patterns == 'string')
+        patterns = [ patterns ]
+      return 'Pattern: ' + action + (patterns.length ? ': ' + patterns[0] : '')
+    }
 
     id = perm.id
-    action = perm.req.permission || perm.req.type || '?'
-    patterns = perm.req.patterns || perm.req.pattern || []
-    if (typeof patterns == 'string')
-      patterns = [ patterns ]
-    label = iconRightArrow() + ' ' + action + (patterns.length ? ': ' + patterns[0] : '')
+    callID = perm.req.callID || perm.req.tool?.callID
+    if (callID)
+      label = buf.vars('code').callLabels?.[callID]
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
         let w
@@ -573,7 +586,8 @@ function init
                               [ '▣ Allow?',
                                 button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
                                 button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
-                        divCl('code-msg-label', label) ],
+                        label && label.trim().length && divCl('code-msg-label', label),
+                        divCl('code-msg-pattern', pattern()) ],
                       { 'data-permissionid': id }))
       }
     })

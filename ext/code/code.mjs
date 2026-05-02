@@ -124,7 +124,7 @@ function init
                 if (part.type == 'text')
                   appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
                 else if (part.type == 'reasoning' && part.text)
-                  appendThinking(buf, part.text)
+                  appendThinking(buf, part.text, part.id)
                 else if (part.type == 'tool') {
                   let label
 
@@ -460,31 +460,13 @@ function init
   }
 
   function appendThinking
-  (buf, text) {
+  (buf, text, partID) {
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
-        let w, el, msgs, lastIsUser
+        let w, el
 
         w = view.eleOrReserved.querySelector('.code-w')
-        msgs = w.querySelectorAll('.code-msg')
-        if (msgs.length > 0) {
-          let last
-
-          last = msgs[msgs.length - 1]
-          if (Css.has(last, 'code-msg-tool'))
-            lastIsUser = 1
-          else if (Css.has(last, 'code-msg-user'))
-            lastIsUser = 1
-        }
-        if (lastIsUser)
-          el = 0
-        else {
-          let all
-
-          all = w.querySelectorAll('.code-msg-thinking')
-          if (all.length)
-            el = all[all.length - 1]
-        }
+        el = w.querySelector('.code-msg-thinking[data-partid="' + partID + '"]')
         if (el) {
           let current
 
@@ -494,7 +476,8 @@ function init
         else
           appendX(w,
                   divCl('code-msg code-msg-thinking',
-                        [ divCl('code-msg-text', text) ]))
+                        [ divCl('code-msg-text', text) ],
+                        { 'data-partid': partID || 0 }))
       }
     })
   }
@@ -914,7 +897,7 @@ function init
       buffered = (event.properties.delta || '')
       if (buffered) {
         d('CO reasoning append: ' + buffered)
-        appendThinking(buf, buffered)
+        appendThinking(buf, buffered, part.id)
       }
     }
     else if (part.type == 'tool') {
@@ -1197,7 +1180,7 @@ function init
     field = event.properties.field
     buf.views.forEach(view => {
       if (view.eleOrReserved) {
-        let msgEl, textEl, thinkingEls, w
+        let msgEl, thinkingEl, textEl, w
 
         w = view.eleOrReserved.querySelector('.code-w')
         msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
@@ -1206,12 +1189,9 @@ function init
           if (textEl && field == 'text')
             textEl.innerText = (textEl.innerText || '') + delta
         }
-        thinkingEls = w.querySelectorAll('.code-msg-thinking')
-        if (thinkingEls.length > 0 && field == 'text') {
-          let lastThinking
-
-          lastThinking = thinkingEls[thinkingEls.length - 1]
-          textEl = lastThinking.querySelector('.code-msg-text')
+        thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
+        if (thinkingEl && field == 'text') {
+          textEl = thinkingEl.querySelector('.code-msg-text')
           if (textEl)
             textEl.innerText = (textEl.innerText || '') + delta
         }

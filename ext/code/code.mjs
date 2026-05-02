@@ -558,8 +558,8 @@ function init
                 divCl('code-msg code-msg-permission',
                       [ divCl('code-msg-text',
                               [ '▣ Allow?',
-                                button([ span('y', 'key'), 'es' ], '', { 'data-run': 'yes' }),
-                                button([ span('n', 'key'), 'o' ], '', { 'data-run': 'no' }) ]) ],
+                                button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
+                                button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]) ],
                       { 'data-permissionid': id }))
       }
     })

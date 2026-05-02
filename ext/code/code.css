@@ -192,6 +192,9 @@ div.code-thought:hover {
 
 .code-msg-permission {
   align-self: flex-start;
+  border-left: 0.25rem solid var(--clr-syntax3);
+  padding: 0.5rem;
+  background: var(--clr-fill);
 }
 
 .code-msg-permission .code-msg-text {

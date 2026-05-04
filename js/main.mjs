@@ -396,6 +396,24 @@ function onCmdCh
     return ch
   }
 
+  if (name == 'win.minimize') {
+    win.minimize()
+    return ch
+  }
+
+  if (name == 'win.maximize.toggle') {
+    if (win.isMaximized())
+      win.unmaximize()
+    else
+      win.maximize()
+    return ch
+  }
+
+  if (name == 'win.close') {
+    win.close()
+    return ch
+  }
+
   if (name == 'file.chmod')
     return wrapOn(e, ch, args, Chmod.onChmod)
 
@@ -479,9 +497,7 @@ function createWindow
   mode = Profile.stores.opt.get('core.theme.mode')
 
   opts = opts || { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
-                   //frame: false,
-                   //titleBarStyle: 'hidden',
-                   //titleBarOverlay: true,
+                   frame: false,
                    show: false,
                    // FIX The preload script configured for the <webview> will have node integration enabled when it is executed so you should ensure remote/untrusted content is not able to create a <webview> tag...
                    webPreferences: { webviewTag: true,
@@ -495,6 +511,13 @@ function createWindow
   })
   win.on('focus', () => {
     d('FOCUS WIN')
+  })
+
+  win.on('maximize', () => {
+    win.webContents.send('win.maximized')
+  })
+  win.on('unmaximize', () => {
+    win.webContents.send('win.normal')
   })
 
   win.webContents.on('blur', () => {

@@ -11,6 +11,7 @@ import * as Menu from './menu.mjs'
 import * as Pane from './pane.mjs'
 import * as Tab from './tab.mjs'
 import * as Shell from './shell.mjs'
+import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 
 function context0
@@ -158,7 +159,7 @@ function add
 (window, spec) { // { devtools, initCss }
   let win, ident
   let areas, context, main, menu
-  let diag, echo, el, outer, frameToggleL, frameToggleR, menuI, hover, mini, tip
+  let diag, echo, el, outer, frameToggleL, frameToggleR, menuI, hover, mini, tip, winMinimize, winMaximize, winClose
 
   function addArea
   (area) {
@@ -187,6 +188,28 @@ function add
                        img('img/open.svg', 'Open', 'filter-clr-text'),
                        { 'data-run': 'toggle frame right' })
 
+  winMinimize = divCl('mini-icon win-control onfill',
+                      img('img/minimize.svg', 'Minimize', 'filter-clr-text'),
+                      { 'data-run': 'minimize' })
+
+  winMaximize = divCl('mini-icon win-control onfill win-maximize',
+                      img('img/toggle-maximize.svg', 'Maximize', 'filter-clr-text'),
+                      { 'data-run': 'toggle maximize' })
+
+  Tron.on('win.maximized', () => {
+    winMaximize.innerHTML = ''
+    winMaximize.appendChild(img('img/toggle-maximize.svg', 'Restore', 'filter-clr-text'))
+  })
+
+  Tron.on('win.normal', () => {
+    winMaximize.innerHTML = ''
+    winMaximize.appendChild(img('img/toggle-maximize.svg', 'Maximize', 'filter-clr-text'))
+  })
+
+  winClose = divCl('mini-icon win-control onfill',
+                   img('img/x.svg', 'Close', 'filter-clr-text'),
+                   { 'data-run': 'close window' })
+
   menuI = divCl('mini-frame mini-icon onfill',
                 img(Icon.path('menu'), 'Menu', 'filter-clr-text'),
                 { 'data-run': 'toggle menu' })
@@ -212,7 +235,10 @@ function add
                                    img('img/restart.svg', 'Restart', 'filter-clr-text'),
                                    { 'data-run': 'restart' }),
                              menuI,
-                             frameToggleR ]) ])
+                             frameToggleR,
+                             winMinimize,
+                             winMaximize,
+                             winClose ]) ])
   outer = divId('outer')
   tip = divCl('bred-tip')
 

@@ -480,6 +480,18 @@ function initCmds
     Win.current().menu.toggle()
   })
 
+  Cmd.add('minimize', () => {
+    Tron.cmd1('win.minimize')
+  })
+
+  Cmd.add('toggle maximize', () => {
+    Tron.cmd1('win.maximize.toggle')
+  })
+
+  Cmd.add('close window', () => {
+    Tron.cmd1('win.close')
+  })
+
   Cmd.add('open menu item', (u, we) => {
     if (we.e.target.dataset.menu) {
       let el

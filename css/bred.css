@@ -760,6 +760,8 @@ div.bred-menu1-item {
 
   display: grid;
   grid-template-columns: minmax(min-content, max-content) auto minmax(min-content, max-content);
+
+  -webkit-app-region: drag;
 }
 
 #mini.yell {
@@ -801,16 +803,34 @@ div.bred-menu1-item {
   max-width: 100%;
   display: flex;
   aspect-ratio: 1 / 1;
+
+  -webkit-app-region: no-drag;
 }
 
 .mini-execute {
   margin-left: 0.5rem;
   font-family: var(--font-monospace);
+
+  -webkit-app-region: no-drag;
 }
 
 .mini-echo {
   margin-left: 0.5rem;
   font-family: var(--font-monospace);
+
+  -webkit-app-region: no-drag;
+}
+
+.mini-panel {
+  -webkit-app-region: no-drag;
+}
+
+.win-control {
+  padding: 0.1rem;
+}
+
+.win-control:last-child:hover {
+  background: var(--clr-nb3);
 }
 
 .mini-icon img {
@@ -821,6 +841,10 @@ div.bred-menu1-item {
 
 .mini-frame.mini-frame-left {
   margin-left: 0;
+}
+
+.mini-frame {
+  -webkit-app-region: no-drag;
 }
 
 .mini-frame-left > img {

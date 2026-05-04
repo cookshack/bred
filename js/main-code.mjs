@@ -1,4 +1,4 @@
-import * as Server from '../lib/opencode/v2/server.js'
+import * as Server from './main-code-server.mjs'
 import Net from 'node:net'
 import { d } from './main-log.mjs'
 
@@ -71,6 +71,8 @@ async function onSpawn
 
     server = await Server.createOpencodeServer({ hostname: '127.0.0.1',
                                                  port,
+                                                 bufferID,
+                                                 workingDir,
                                                  config: { logLevel: 'DEBUG' },
                                                  timeout: 10000 })
     servers.set(bufferID, server)

@@ -612,7 +612,7 @@ function init
                               [ '▣ Allow?',
                                 button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
                                 button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
-                        label && label.trim().length && divCl('code-msg-label', label),
+                        label && divCl('code-msg-label', label),
                         divCl('code-msg-pattern', pattern()) ],
                       { 'data-permissionid': id,
                         'data-permission-callid': callID || '??' }))
@@ -1250,6 +1250,11 @@ function init
           if (textEl)
             textEl.innerText = (textEl.innerText || '') + delta
         }
+        else if (field == 'text' && msgEl == null)
+          appendX(w,
+                  divCl('code-msg code-msg-thinking',
+                        [ divCl('code-msg-text', delta) ],
+                        { 'data-partid': event.properties.partID || 0 }))
       }
     })
   }
@@ -1540,7 +1545,7 @@ function init
                                      directory: buf.dir,
                                      model: { providerID: provider, modelID: model },
                                      agent,
-                                     parts: [ { id: uuidv4(), type: 'text', text } ] })
+                                     parts: [ { id: 'prt_' + uuidv4(), type: 'text', text } ] })
 
       d('CO SEND done')
       d({ res })

@@ -7,13 +7,16 @@ check:
 format:
 	npm run format
 
+build-opencode:
+	docker build -t opencode-bred docker/opencode/
+
 fix-node-pty:
 	npx electron-rebuild -w node-pty
 
 fix-sqlite3:
 	npx electron-rebuild -w better-sqlite3
 
-prep: version-sqlite fix-node-pty fix-sqlite3 fix-others fix-codemirror prep-mime
+prep: build-opencode version-sqlite fix-node-pty fix-sqlite3 fix-others fix-codemirror prep-mime
 	rm -f lib/callsites.js
 	cp -r node_modules/callsites/index.js lib/callsites.mjs
 	npx peggy --format es -o lib/ev-parser.mjs lib/ev.pegjs

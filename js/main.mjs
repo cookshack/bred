@@ -514,10 +514,10 @@ function createWindow
   })
 
   win.on('maximize', () => {
-    win.webContents.send('win.maximized')
+    win.webContents.send('win.maximized', {})
   })
   win.on('unmaximize', () => {
-    win.webContents.send('win.normal')
+    win.webContents.send('win.normal', {})
   })
 
   win.webContents.on('blur', () => {

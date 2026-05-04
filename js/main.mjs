@@ -1170,6 +1170,7 @@ async function whenReady
   Menu.setApplicationMenu(null) // Apparently good for performance
 
   app.on('window-all-closed', () => {
+    Code.closeAll()
     app.quit()
   })
 

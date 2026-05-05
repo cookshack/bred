@@ -54,6 +54,70 @@ function init
 () {
   let hist, chatHist, mo, moCodePrompt, stopTimeout, mostRecentAgent
 
+  function codeInit
+  () {
+    let pane, dir, name, provider, model, existingBuf, buf
+
+    provider = Opt.get('code.provider.agent') || 'opencode'
+    model = Opt.get('code.model.agent') || 'minimax-m2.1-free'
+    pane = Pane.current()
+    dir = pane.dir
+    name = 'CO ' + dir
+
+    existingBuf = Buf.find(b => b.name == name && b.mode.key == 'code')
+    if (existingBuf && existingBuf.vars('code').sessionID) {
+      if (existingBuf.vars('code').busy) {
+        Mess.yell('Agent is busy')
+        return
+      }
+      existingBuf.vars('code').busy = 1
+      pane.setBuf(existingBuf)
+      existingBuf.vars('code').agentStopped = 0
+      appendMsg(existingBuf, 'user', '/init')
+      updateBufAgent(existingBuf, existingBuf.opts.get('code.agent') || Opt.get('code.agent'))
+      startEventSub(existingBuf)
+      ensureClient(existingBuf).then(c => {
+        c.session.init({ sessionID: existingBuf.vars('code').sessionID,
+                         directory: existingBuf.dir,
+                         providerID: existingBuf.vars('code').provider,
+                         modelID: existingBuf.vars('code').model,
+                         messageID: 'msg_' + uuidv4() })
+      })
+      return
+    }
+
+    buf = Buf.add(name, 'code', divW(dir), pane.dir)
+    buf.vars('code').prompt = '/init'
+    buf.vars('code').provider = provider
+    buf.vars('code').model = model
+    buf.opt('core.lint.enabled', 1)
+
+    ensureClient(buf).then(c => {
+      c.session.create({ directory: buf.dir, title: '/init' })
+        .then(res => {
+          buf.vars('code').sessionID = res.data.id
+
+          pane.setBuf(buf, {}, () => {
+            nestPromptBuf(buf)
+            buf.vars('code').firstPromptSent = 1
+            buf.vars('code').busy = 1
+            appendMsg(buf, 'user', '/init')
+            updateBufAgent(buf, buf.opts.get('code.agent') || Opt.get('code.agent'))
+            startEventSub(buf)
+
+            c.session.init({ sessionID: res.data.id,
+                             directory: buf.dir,
+                             providerID: provider,
+                             modelID: model,
+                             messageID: 'msg_' + uuidv4() })
+          })
+        })
+        .catch(err => {
+          Mess.yell('Failed: ' + err.message)
+        })
+    })
+  }
+
   function initSessions
   () {
     let mo
@@ -736,6 +800,7 @@ function init
   function updateIdle
   (buf, tokenInfo) {
     updateBufStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
+    buf.vars('code').busy = 0
     if (buf.vars('code').agentStopped) {
       buf.vars('code').agentStopped = 0
       appendMsg(buf, 0, '...stopped')
@@ -1536,6 +1601,7 @@ function init
     }
 
     buf.vars('code').agentStopped = 0
+    buf.vars('code').busy = 1
 
     appendMsg(buf, 'user', text)
 
@@ -2102,6 +2168,7 @@ function init
   mo.bufStart = bufStart
 
   Cmd.add('code', (u, we, prompt) => code(prompt))
+  Cmd.add('code init', codeInit)
 
   Cmd.add('respond', () => next(), mo)
 

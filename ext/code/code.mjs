@@ -77,11 +77,12 @@ function init
       updateBufAgent(existingBuf, existingBuf.opts.get('code.agent') || Opt.get('code.agent'))
       startEventSub(existingBuf)
       ensureClient(existingBuf).then(c => {
-        c.session.init({ sessionID: existingBuf.vars('code').sessionID,
-                         directory: existingBuf.dir,
-                         providerID: existingBuf.vars('code').provider,
-                         modelID: existingBuf.vars('code').model,
-                         messageID: 'msg_' + uuidv4() })
+        c.session.command({ sessionID: existingBuf.vars('code').sessionID,
+                            directory: existingBuf.dir,
+                            command: 'init',
+                            arguments: '',
+                            agent: existingBuf.opts.get('code.agent') || Opt.get('code.agent'),
+                            model: existingBuf.vars('code').provider + '/' + existingBuf.vars('code').model })
       })
       return
     }
@@ -105,11 +106,12 @@ function init
             updateBufAgent(buf, buf.opts.get('code.agent') || Opt.get('code.agent'))
             startEventSub(buf)
 
-            c.session.init({ sessionID: res.data.id,
-                             directory: buf.dir,
-                             providerID: provider,
-                             modelID: model,
-                             messageID: 'msg_' + uuidv4() })
+            c.session.command({ sessionID: res.data.id,
+                                directory: buf.dir,
+                                command: 'init',
+                                arguments: '',
+                                agent: buf.opts.get('code.agent') || Opt.get('code.agent'),
+                                model: provider + '/' + model })
           })
         })
         .catch(err => {
@@ -1450,6 +1452,14 @@ function init
 
     if (event.type == 'server.heartbeat')
       return
+
+    if (event.type == 'command.executed') {
+      if (event.properties.sessionID == sessionID) {
+        appendMsg(buf, 0, '/' + event.properties.name + ' finished')
+        appendModel(buf, modelName(buf.vars('code').model, buf.vars('code').variant))
+      }
+      return
+    }
 
     {
       let evSessionID, subagent

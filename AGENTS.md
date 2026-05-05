@@ -160,7 +160,7 @@ This is especially important when working with `buf.mjs`, `view.mjs`, `pane.mjs`
 - `ext/code/code.mjs` - Main extension code
 - `ext/code/code.css` - Styles
 - `ext/code/lib/opencode.js` - SDK wrapper
-- `ext/code/lib/gen/` - Generated SDK (v1.1.1)
+- `ext/code/lib/gen/` - Generated SDK
 
 ### SDK Usage
 

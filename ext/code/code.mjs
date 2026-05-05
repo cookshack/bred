@@ -291,9 +291,9 @@ function init
 
                   dol = parseFloat(data.data.limit_remaining)
                   if (isNaN(dol))
-                    el.innerText = '$'
+                    el.innerText = 'OR:$'
                   else
-                    el.innerText = '$' + dol.toFixed(2)
+                    el.innerText = 'OR:$' + dol.toFixed(2)
                 }
               }
             })

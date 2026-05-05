@@ -945,7 +945,7 @@ function init
                                                                                    { 'data-qid': req.id,
                                                                                      'data-qi': qi,
                                                                                      placeholder: 'Your answer...' }) ],
-                                                              { 'data-multiple': q.multiple ? '1' : '0' })),
+                                                              { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
                         divCl('code-msg-text',
                               [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
                                 button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],

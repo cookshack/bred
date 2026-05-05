@@ -15,7 +15,6 @@ import * as Pane from './pane.mjs'
 import * as Recent from './recent.mjs'
 import * as Scroll from './scroll.mjs'
 import * as Tron from './tron.mjs'
-import * as U from './util.mjs'
 import * as View from './view.mjs'
 import * as DirMarked from './dir-marked.mjs'
 import * as DirOps from './dir-ops.mjs'
@@ -125,6 +124,19 @@ function printMode
       + frob(1, 'w')
       + frob(0, 'x')
   return '?????????'
+}
+
+function formatDate
+(date) {
+  let p, parts
+
+  p = Intl.DateTimeFormat('UTC', { month: 'short', day: '2-digit', hour: 'numeric', minute: '2-digit' })
+    .formatToParts(date)
+  parts = {}
+  p.forEach(e => parts[e.type] = e.value)
+
+  return parts.month.slice(0, 3) + ' ' + parts.day + ', '
+    + String(parts.hour).padStart(2, ' ') + 'h' + parts.minute
 }
 
 function put
@@ -338,7 +350,7 @@ function fill
              divCl(on, f.user || f.stat?.uid),
              divCl(on, f.group || f.stat?.gid),
              divCl('dir-size' + on, f.stat ? size() : '?'),
-             divCl('dir-date' + on, f.stat ? U.formatDate(new Date(f.stat.mtimeMs)) : '?'),
+             divCl('dir-date' + on, f.stat ? formatDate(new Date(f.stat.mtimeMs)) : '?'),
              divCl('dir-name-w' + on, name) ]
   }
 

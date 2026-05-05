@@ -236,6 +236,7 @@ function add
                                    { 'data-run': 'restart' }),
                              menuI,
                              frameToggleR,
+                             divCl('mini-drag-spacer'),
                              winMinimize,
                              winMaximize,
                              winClose ]) ])

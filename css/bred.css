@@ -825,6 +825,13 @@ div.bred-menu1-item {
   -webkit-app-region: no-drag;
 }
 
+.mini-drag-spacer {
+  -webkit-app-region: drag;
+  cursor: pointer;
+  width: calc(2 * var(--width-mini-icon));
+  height: 100%;
+}
+
 .win-control {
   padding: 0.1rem;
 }

@@ -93,7 +93,7 @@ function init
 
       async function open
       () {
-        let c, pane, name, buf, provider, model
+        let c, pane, name, buf, provider, model, variant
 
         pane = Pane.current()
         name = 'CO ' + sessionDir
@@ -106,10 +106,12 @@ function init
 
         provider = Opt.get('code.provider.agent') || 'opencode-go'
         model = Opt.get('code.model.agent') || 'deepseek-v4-pro'
+        variant = Opt.get('code.variant.agent') || ''
 
         buf = Buf.add(name, 'code', divW(sessionDir), sessionDir)
         buf.vars('code').provider = provider
         buf.vars('code').model = model
+        buf.vars('code').variant = variant
         buf.vars('code').sessionID = sessionID
         buf.opt('core.lint.enabled', 1)
 
@@ -786,6 +788,7 @@ function init
 
       c = await ensureClient(buf)
       providers = await c.config.providers({ directory: buf.dir })
+      d({ providers })
       providers.data.providers?.some(p => {
         if (p.id == providerID) {
           model = p.models?.[modelID]
@@ -1509,11 +1512,12 @@ function init
   }
 
   async function send
-  (buf, text, provider, model) {
+  (buf, text, provider, model, variant) {
     let sessionID, c, res
 
     provider = provider || buf.vars('code').provider || 'opencode'
     model = model || buf.vars('code').model || 'minimax-m2.1-free'
+    variant = variant || buf.vars('code').variant || ''
 
     sessionID = buf.vars('code').sessionID
 
@@ -1539,12 +1543,13 @@ function init
 
       updateBufAgent(buf, agent)
 
-      d('CO SEND (' + agent + ')')
+      d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
 
       res = await c.session.prompt({ sessionID,
                                      directory: buf.dir,
                                      model: { providerID: provider, modelID: model },
                                      agent,
+                                     variant: variant || undefined,
                                      parts: [ { id: 'prt_' + uuidv4(), type: 'text', text } ] })
 
       d('CO SEND done')
@@ -1792,7 +1797,7 @@ function init
 
   function code
   (given) {
-    let pane, dir, name, provider, model
+    let pane, dir, name, provider, model, variant
 
     async function run
     (prompt) {
@@ -1806,6 +1811,7 @@ function init
         buf.vars('code').prompt = prompt
         buf.vars('code').provider = provider
         buf.vars('code').model = model
+        buf.vars('code').variant = variant
         buf.opt('core.lint.enabled', 1)
 
         c = await ensureClient(buf)
@@ -1817,7 +1823,7 @@ function init
         pane.setBuf(buf, {}, () => {
           nestPromptBuf(buf)
           if (prompt)
-            send(buf, prompt, provider, model)
+            send(buf, prompt, provider, model, variant)
           else
             openPrompt(buf, pane, provider, model)
         })
@@ -1844,6 +1850,7 @@ function init
 
     provider = Opt.get('code.provider.agent') || 'opencode'
     model = Opt.get('code.model.agent') || 'minimax-m2.1-free'
+    variant = Opt.get('code.variant.agent') || ''
     if (given)
       run(given)
     else
@@ -2004,7 +2011,7 @@ function init
     cancelPrompt(p)
     whichHist.add(text)
     buf.vars('code').promptBuf.clear()
-    send(buf, text, buf.vars('code').provider, buf.vars('code').model)
+    send(buf, text, buf.vars('code').provider, buf.vars('code').model, buf.vars('code').variant)
   }
 
   function cancelPrompt
@@ -2070,6 +2077,7 @@ function init
   Opt.declare('code.agent', 'str', 'plan')
   Opt.declare('code.model.agent', 'str', 'minimax-m2.1-free')
   Opt.declare('code.provider.agent', 'str', 'opencode')
+  Opt.declare('code.variant.agent', 'str', '')
   Opt.declare('code.key', 'str', '')
   mo = Mode.add('code',
                 { viewInit,

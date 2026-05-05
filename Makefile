@@ -8,7 +8,7 @@ format:
 	npm run format
 
 build-opencode:
-	docker build -t opencode-bred docker/opencode/
+	docker build --progress=plain -t opencode-bred docker/opencode/
 
 fix-node-pty:
 	npx electron-rebuild -w node-pty

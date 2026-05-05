@@ -1,4 +1,4 @@
-import { append, button, divCl, img, span } from '../../js/dom.mjs'
+import { append, button, create, divCl, img, span } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
@@ -905,6 +905,136 @@ function init
       appendPermission(buf, buf.vars('code').permissions[0])
   }
 
+  function handleQuestionAsked
+  (buf, event) {
+    let req
+
+    req = event.properties
+    d('CO question asked: ' + (req.questions?.length || '?') + ' questions')
+    buf.vars('code').questions = buf.vars('code').questions || []
+    buf.vars('code').questions.push({ id: req.id, sessionID: req.sessionID, questions: req.questions, tool: req.tool })
+    if (req.tool?.callID) {
+      buf.vars('code').callLabels = buf.vars('code').callLabels || {}
+      buf.vars('code').callLabels[req.tool.callID] = 'Questions (' + req.questions.length + ')'
+    }
+    if (buf.vars('code').questions.length == 1)
+      appendQuestion(buf, buf.vars('code').questions[0])
+  }
+
+  function appendQuestion
+  (buf, req) {
+    buf.views.forEach(view => {
+      if (view.eleOrReserved) {
+        let w
+
+        w = view.eleOrReserved.querySelector('.code-w')
+        appendX(w,
+                divCl('code-msg code-msg-question',
+                      [ divCl('code-msg-text', [ '▣ Questions' ]),
+                        ...req.questions.map((q, qi) => divCl('code-question-item',
+                                                              [ divCl('code-question-header', q.header),
+                                                                divCl('code-question-text', q.question),
+                                                                ...(q.options || []).map(opt => divCl('code-question-option',
+                                                                                                      [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
+                                                                                                      { 'data-run': 'toggle question option',
+                                                                                                        'data-qid': req.id,
+                                                                                                        'data-qi': qi,
+                                                                                                        'data-opt': opt.label })),
+                                                                q.custom && create('input', [],
+                                                                                   'code-question-custom',
+                                                                                   { 'data-qid': req.id,
+                                                                                     'data-qi': qi,
+                                                                                     placeholder: 'Your answer...' }) ],
+                                                              { 'data-multiple': q.multiple ? '1' : '0' })),
+                        divCl('code-msg-text',
+                              [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
+                                button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
+                      { 'data-requestid': req.id }))
+      }
+    })
+  }
+
+  function questionRespond
+  (buf, requestID, answers) {
+    d('CO question ' + (answers ? 'reply' : 'reject'))
+    ensureClient(buf).then(async c => {
+      try {
+        if (answers)
+          await c.question.reply({ requestID, answers, directory: buf.dir })
+        else
+          await c.question.reject({ requestID, directory: buf.dir })
+        buf.views.forEach(view => {
+          if (view.eleOrReserved) {
+            let w, el
+
+            w = view.eleOrReserved.querySelector('.code-w')
+            el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
+            el?.remove()
+          }
+        })
+      }
+      catch (err) {
+        d('CO question respond error: ' + err.message)
+      }
+    })
+    buf.vars('code').questions = buf.vars('code').questions.slice(1)
+    if (buf.vars('code').questions.length)
+      appendQuestion(buf, buf.vars('code').questions[0])
+  }
+
+  function toggleQuestionOption
+  (u, we) {
+    let opt, item, multiple
+
+    opt = we.e.target.closest('.code-question-option')
+    item = opt.closest('.code-question-item')
+    multiple = item.dataset.multiple == '1'
+    if (Css.has(opt, 'code-option-selected'))
+      Css.remove(opt, 'code-option-selected')
+    else {
+      if (multiple == 0) {
+        let allOpts
+
+        allOpts = item.querySelectorAll('.code-question-option')
+        allOpts.forEach(o => Css.remove(o, 'code-option-selected'))
+      }
+      Css.add(opt, 'code-option-selected')
+    }
+  }
+
+  function answerQuestion
+  (u, we) {
+    let buf, el, requestID, items, answers
+
+    buf = Pane.current().buf
+    el = we.e.target.closest('.code-msg-question')
+    requestID = el.dataset.requestid
+    items = el.querySelectorAll('.code-question-item')
+    answers = []
+    items.forEach(item => {
+      let selected, custom, ans
+
+      selected = item.querySelectorAll('.code-question-option.code-option-selected')
+      ans = []
+      selected.forEach(o => ans.push(o.dataset.opt))
+      custom = item.querySelector('.code-question-custom')
+      if (custom && custom.value.trim())
+        ans.push(custom.value.trim())
+      answers.push(ans)
+    })
+    questionRespond(buf, requestID, answers)
+  }
+
+  function skipQuestion
+  (u, we) {
+    let buf, el, requestID
+
+    buf = Pane.current().buf
+    el = we.e.target.closest('.code-msg-question')
+    requestID = el.dataset.requestid
+    questionRespond(buf, requestID)
+  }
+
   function handlePermissionAsked
   (buf, event) {
     let req
@@ -1404,6 +1534,13 @@ function init
       return
     }
 
+    if ((event.type == 'question.asked')
+        && (event.properties.sessionID == sessionID
+            || isSubagentId(event.properties.sessionID))) {
+      handleQuestionAsked(buf, event)
+      return
+    }
+
     if ((event.type == 'session.error')
         && (event.properties?.sessionID == sessionID)) {
       let error
@@ -1814,6 +1951,9 @@ function init
     if (buf.vars('code').permissions?.length)
       return
 
+    if (buf.vars('code').questions?.length)
+      return
+
     if (buf?.vars('code')?.sessionID) {
       // OK
     }
@@ -2206,6 +2346,10 @@ function init
   Cmd.add('set agent', () => promptAgent(), mo)
   Cmd.add('set agent plan', () => setAgent(Pane.current().buf, 'plan'), mo)
   Cmd.add('set agent build', () => setAgent(Pane.current().buf, 'build'), mo)
+
+  Cmd.add('toggle question option', toggleQuestionOption, mo)
+  Cmd.add('answer question', answerQuestion, mo)
+  Cmd.add('skip question', skipQuestion, mo)
 
   Cmd.add('code buffer', () => {
     code(Pane.current().buf.text())

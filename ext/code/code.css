@@ -346,6 +346,24 @@ div.code-thought:hover {
   font-family: var(--font-monospace);
 }
 
+.code-question-item {
+  background: var(--clr-fill);
+  padding: 0.5rem;
+  border-left: 0.25rem solid var(--clr-nb3);
+}
+
+.code-question-header {
+  color: var(--clr-nb3);
+}
+
+.code-question-text {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.code-question-option {
+  padding: 0.25rem;
+}
 .code-prompt-w.retracted {
   display: none;
 }

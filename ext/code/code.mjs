@@ -1694,7 +1694,7 @@ function init
   }
 
   function openPrompt
-  (buf, pane, provider, model) {
+  (buf, pane, provider, model, variant) {
     let wh
 
     wh = whichHistFromBuf(buf)
@@ -1710,7 +1710,7 @@ function init
         Css.expand(container)
         mlModel = container.querySelector('.code-prompt-model')
         if (mlModel)
-          mlModel.innerText = '🗩 ' + provider + '/' + model
+          mlModel.innerText = '🗩 ' + provider + '/' + model + (variant ? ':' + variant : '')
       }
     })
 
@@ -1725,7 +1725,7 @@ function init
 
   function next
   () {
-    let p, buf, provider, model
+    let p, buf, provider, model, variant
 
     p = Pane.current()
     buf = p.buf
@@ -1746,8 +1746,9 @@ function init
 
     provider = buf.vars('code').provider || Opt.get('code.provider.agent') || 'opencode'
     model = buf.vars('code').model || Opt.get('code.model.agent') || 'minimax-m2.1-free'
+    variant = buf.vars('code').variant || Opt.get('code.variant.agent') || ''
 
-    openPrompt(buf, p, provider, model)
+    openPrompt(buf, p, provider, model, variant)
   }
 
   function nestPromptBuf
@@ -1825,7 +1826,7 @@ function init
           if (prompt)
             send(buf, prompt, provider, model, variant)
           else
-            openPrompt(buf, pane, provider, model)
+            openPrompt(buf, pane, provider, model, variant)
         })
       }
       catch (err) {

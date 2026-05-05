@@ -257,6 +257,11 @@ function init
     return client
   }
 
+  function modelName
+  (model, variant) {
+    return model + (variant ? ':' + variant : '')
+  }
+
   function updateCredits
   (buf) {
     let key
@@ -745,11 +750,11 @@ function init
     d({ tokenInfo })
 
     if (req.status?.type == 'busy')
-      updateBufStatus(buf, '🌊', buf.vars('code').model, tokenInfo, VopenCode.version)
+      updateBufStatus(buf, '🌊', modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
     else if (req.status?.type == 'idle')
       updateIdle(buf, tokenInfo)
     else if (req.status?.type == 'retry')
-      updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), buf.vars('code').model, tokenInfo, VopenCode.version)
+      updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
     else if (req.status?.type)
       d('🌱 TODO status: ' + req.status?.type)
   }
@@ -1555,7 +1560,7 @@ function init
       d('CO SEND done')
       d({ res })
 
-      appendModel(buf, res.data?.info?.modelID || '???')
+      appendModel(buf, modelName(res.data?.info?.modelID || '???', variant))
       if (provider == 'openrouter')
         updateCredits(buf)
     }
@@ -1710,7 +1715,7 @@ function init
         Css.expand(container)
         mlModel = container.querySelector('.code-prompt-model')
         if (mlModel)
-          mlModel.innerText = '🗩 ' + provider + '/' + model + (variant ? ':' + variant : '')
+          mlModel.innerText = '🗩 ' + provider + '/' + modelName(model, variant)
       }
     })
 

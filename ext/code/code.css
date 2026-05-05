@@ -364,6 +364,16 @@ div.code-thought:hover {
 .code-question-option {
   padding: 0.25rem;
 }
+
+.code-question-option::before {
+  content: '○';
+  margin-right: 0.25rem;
+  color: var(--clr-nb3);
+}
+
+.code-question-option.code-option-selected::before {
+  content: '●';
+}
 .code-prompt-w.retracted {
   display: none;
 }

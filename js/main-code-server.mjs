@@ -56,7 +56,7 @@ async function spawnDocker
   timeout = spec.timeout || 10000
   authPath = process.env.HOME + '/.local/share/opencode/auth.json'
   args = []
-  args.push('run', '-d', '--rm', '--name', name, '-p', port + ':4096', '-v', workingDir + ':' + workingDir, '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro', '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
+  args.push('run', '-d', '--rm', '--name', name, '-p', port + ':4096', '-v', workingDir + ':' + workingDir, '-v', '/home/matt/src/opencode:/home/matt/src/opencode:ro', '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro', '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
   if (config.logLevel)
     args.push('--log-level=' + config.logLevel)
 
@@ -137,7 +137,7 @@ async function spawnLocal
 }
 
 export
-async function createOpencodeServer
+async function create
 (spec) {
   if (useDocker)
     return spawnDocker(spec)

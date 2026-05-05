@@ -69,12 +69,14 @@ async function onSpawn
   try {
     let server
 
-    server = await Server.createOpencodeServer({ hostname: '127.0.0.1',
-                                                 port,
-                                                 bufferID,
-                                                 workingDir,
-                                                 config: { logLevel: 'DEBUG' },
-                                                 timeout: 10000 })
+    server = await Server.create({ hostname: '127.0.0.1',
+                                   port,
+                                   bufferID,
+                                   workingDir,
+                                   config: { logLevel: 'DEBUG',
+                                             permission: { external_directory: 'allow',
+                                                           read: { '/home/node/.local/share/opencode/auth.json': 'deny' } } },
+                                   timeout: 10000 })
     servers.set(bufferID, server)
     return { url: server.url }
   }

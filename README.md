@@ -115,3 +115,10 @@ Run:
 ```sh
 make fix-sqlite3
 ```
+
+#### 5. Missing emojis like 🗩 on Ubuntu
+
+Run:
+```sh
+sudo apt-get install fonts-noto-core
+```

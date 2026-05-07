@@ -19,6 +19,7 @@ function mountArgs
 
   home = process.env.HOME
   return [ '-v', workingDir + ':' + workingDir,
+           '-v', home + '/fresh/main:' + home + '/fresh/main',
            '-v', home + '/src/opencode:' + home + '/src/opencode:ro',
            '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro',
            '-v', home + '/.gitignore:/home/node/.gitignore:ro' ]

@@ -87,6 +87,15 @@ function init
     })
   }
 
+  function sumTokens
+  (tokens) {
+    return (tokens.input || 0)
+      + (tokens.output || 0)
+      + (tokens.reasoning || 0)
+      + (tokens.cache?.read || 0)
+      + (tokens.cache?.write || 0)
+  }
+
   function codeInit
   () {
     let pane, dir, name, provider, model, existingBuf, buf
@@ -1081,11 +1090,7 @@ function init
     if (info.tokens) {
       let total
 
-      total = (info.tokens.input || 0)
-        + (info.tokens.output || 0)
-        + (info.tokens.reasoning || 0)
-        + (info.tokens.cache?.read || 0)
-        + (info.tokens.cache?.write || 0)
+      total = sumTokens(info.tokens)
       if (total > 0)
         buf.vars('code').lastTokens = total
     }
@@ -1113,11 +1118,7 @@ function init
     if (part.tokens) {
       let total
 
-      total = (part.tokens.input || 0)
-        + (part.tokens.output || 0)
-        + (part.tokens.reasoning || 0)
-        + (part.tokens.cache?.read || 0)
-        + (part.tokens.cache?.write || 0)
+      total = sumTokens(part.tokens)
       if (total > 0)
         buf.vars('code').lastTokens = total
     }

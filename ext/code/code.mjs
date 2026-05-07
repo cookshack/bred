@@ -74,6 +74,19 @@ function init
     return (buf && buf.opts.get('code.agent')) || Opt.get('code.agent')
   }
 
+  function eachCodeW
+  (buf, fn) {
+    buf.views.forEach(view => {
+      if (view.eleOrReserved) {
+        let w
+
+        w = view.eleOrReserved.querySelector('.code-w')
+        if (w)
+          fn(view, w)
+      }
+    })
+  }
+
   function codeInit
   () {
     let pane, dir, name, provider, model, existingBuf, buf
@@ -503,80 +516,67 @@ function init
 
   function appendModel
   (buf, model) {
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let w
-
-        w = view.eleOrReserved.querySelector('.code-w')
-        appendX(w, divCl('code-msg code-msg-role', model))
-      }
+    eachCodeW(buf, (view, w) => {
+      appendX(w, divCl('code-msg code-msg-role', model))
     })
   }
 
   function appendMsg
   (buf, role, text, partID) {
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let w
+    eachCodeW(buf, (view, w) => {
+      if (role == 'user') {
+      }
+      else {
+        let el
 
-        w = view.eleOrReserved.querySelector('.code-w')
-        if (role == 'user') {
-        }
-        else {
-          let el
+        el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
+        if (el) {
+          let oldMdEl
 
-          el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
-          if (el) {
-            let oldMdEl
+          oldMdEl = el.querySelector('.code-markdown-ed')
+          if (oldMdEl) {
+            let mdEd
 
-            oldMdEl = el.querySelector('.code-markdown-ed')
-            if (oldMdEl) {
-              let mdEd
-
-              mdEd = makeMarkdownEd(text)
-              withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
-              view.vars('code').eds = view.vars('code').eds || []
-              view.vars('code').eds.push(mdEd.ed)
-            }
-            return
+            mdEd = makeMarkdownEd(text)
+            withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
+            view.vars('code').eds = view.vars('code').eds || []
+            view.vars('code').eds.push(mdEd.ed)
           }
+          return
         }
-        appendX(w,
-                divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                      [ (role == 'user')
-                          ? divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
-                          : makeMarkdownEd(text || '').el ],
-                      { 'data-partid': partID || 0 }))
-        if (role == 'user') {
-          let underW
+      }
+      appendX(w,
+              divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
+                    [ (role == 'user')
+                      ? divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
+                      : makeMarkdownEd(text || '').el ],
+                    { 'data-partid': partID || 0 }))
+      if (role == 'user') {
+        let underW
 
-          underW = w.querySelector('.code-under-w')
-          scroll(underW)
-        }
+        underW = w.querySelector('.code-under-w')
+        scroll(underW)
       }
     })
   }
 
   function appendThinking
   (buf, text, partID) {
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let w, el
+    eachCodeW(buf, (view, w) => {
+      let el
 
-        w = view.eleOrReserved.querySelector('.code-w')
-        el = w.querySelector('.code-msg-thinking[data-partid="' + partID + '"]')
-        if (el) {
-          let current
+      el = w.querySelector('.code-msg-thinking[data-partid="' + partID + '"]')
+      if (el) {
+        let current
 
-          current = el.querySelector('.code-msg-text').innerText
-          setText(w, el.querySelector('.code-msg-text'), current + text)
-        }
-        else
-          appendX(w,
-                  divCl('code-msg code-msg-thinking',
-                        [ divCl('code-msg-text', text) ],
-                        { 'data-partid': partID || 0 }))
+        current = el.querySelector('.code-msg-text').innerText
+        setText(w, el.querySelector('.code-msg-text'), current + text)
       }
+      else
+        appendX(w,
+                divCl('code-msg code-msg-thinking',
+                      [ divCl('code-msg-text', text) ],
+                      { 'data-partid': partID || 0 }))
     })
   }
 
@@ -612,64 +612,58 @@ function init
       buf.vars('code').callLabels = buf.vars('code').callLabels || {}
       buf.vars('code').callLabels[callID] = label
     }
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let w, els, underEl
+    eachCodeW(buf, (view, w) => {
+      let els, underEl
 
-        w = view.eleOrReserved.querySelector('.code-w')
-        els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
-        els?.forEach(el => el.remove())
-        if (under && (spec.format == 'code')) {
-          let codeResult
+      els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
+      els?.forEach(el => el.remove())
+      if (under && (spec.format == 'code')) {
+        let codeResult
 
-          codeResult = makeCodeEd(spec.path, under)
-          underEl = codeResult.el
-          view.vars('code').eds = view.vars('code').eds || []
-          view.vars('code').eds.push(codeResult.ed)
-        }
-        else if (under && (spec.format == 'patch')) {
-          let patchResult
-
-          patchResult = makePatchEd(under)
-          underEl = patchResult.el
-          view.vars('code').eds = view.vars('code').eds || []
-          view.vars('code').eds.push(patchResult.ed)
-        }
-        else if (under)
-          underEl = divCl('code-msg-text code-msg-under', under)
-        appendX(w,
-                divCl('code-msg code-msg-tool',
-                      [ divCl('code-msg-text',
-                              [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : iconRightArrow()),
-                                ' ',
-                                label ]),
-                        underEl ],
-                      { 'data-callid': callID }))
+        codeResult = makeCodeEd(spec.path, under)
+        underEl = codeResult.el
+        view.vars('code').eds = view.vars('code').eds || []
+        view.vars('code').eds.push(codeResult.ed)
       }
+      else if (under && (spec.format == 'patch')) {
+        let patchResult
+
+        patchResult = makePatchEd(under)
+        underEl = patchResult.el
+        view.vars('code').eds = view.vars('code').eds || []
+        view.vars('code').eds.push(patchResult.ed)
+      }
+      else if (under)
+        underEl = divCl('code-msg-text code-msg-under', under)
+      appendX(w,
+              divCl('code-msg code-msg-tool',
+                    [ divCl('code-msg-text',
+                            [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : iconRightArrow()),
+                              ' ',
+                              label ]),
+                      underEl ],
+                    { 'data-callid': callID }))
     })
     if (callID && label)
-      buf.views.forEach(view => {
-        if (view.eleOrReserved) {
-          let w, permEl
+      eachCodeW(buf, (view, w) => {
+        let permEl
 
-          w = view.eleOrReserved.querySelector('.code-w')
-          permEl = w.querySelector('.code-msg-permission[data-permission-callid="' + callID + '"]')
-          if (permEl) {
-            let labelEl
+        permEl = w.querySelector('.code-msg-permission[data-permission-callid="' + callID + '"]')
+        if (permEl) {
+          let labelEl
 
-            labelEl = permEl.querySelector('.code-msg-label')
-            if (labelEl)
-              labelEl.innerText = label
-            else {
-              let patternEl
+          labelEl = permEl.querySelector('.code-msg-label')
+          if (labelEl)
+            labelEl.innerText = label
+          else {
+            let patternEl
 
-              patternEl = permEl.querySelector('.code-msg-pattern')
-              labelEl = divCl('code-msg-label', label)
-              if (patternEl)
-                patternEl.before(labelEl)
-              else
-                permEl.append(labelEl)
-            }
+            patternEl = permEl.querySelector('.code-msg-pattern')
+            labelEl = divCl('code-msg-label', label)
+            if (patternEl)
+              patternEl.before(labelEl)
+            else
+              permEl.append(labelEl)
           }
         }
       })
@@ -734,14 +728,11 @@ function init
                                      permissionID: id,
                                      response,
                                      directory: buf.dir })
-        buf.views.forEach(view => {
-          if (view.eleOrReserved) {
-            let w, el
+        eachCodeW(buf, (view, w) => {
+          let el
 
-            w = view.eleOrReserved.querySelector('.code-w')
-            el = w.querySelector('.code-msg-permission[data-permissionid="' + id + '"]')
-            el?.remove()
-          }
+          el = w.querySelector('.code-msg-permission[data-permissionid="' + id + '"]')
+          el?.remove()
         })
       }
       catch (err) {
@@ -943,34 +934,29 @@ function init
 
   function appendQuestion
   (buf, req) {
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let w
-
-        w = view.eleOrReserved.querySelector('.code-w')
-        appendX(w,
-                divCl('code-msg code-msg-question',
-                      [ divCl('code-msg-text', [ '▣ Questions' ]),
-                        ...req.questions.map((q, qi) => divCl('code-question-item',
-                                                              [ divCl('code-question-header', q.header),
-                                                                divCl('code-question-text', q.question),
-                                                                ...(q.options || []).map(opt => divCl('code-question-option',
-                                                                                                      [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
-                                                                                                      { 'data-run': 'toggle question option',
-                                                                                                        'data-qid': req.id,
-                                                                                                        'data-qi': qi,
-                                                                                                        'data-opt': opt.label })),
-                                                                q.custom && create('input', [],
-                                                                                   'code-question-custom',
-                                                                                   { 'data-qid': req.id,
-                                                                                     'data-qi': qi,
-                                                                                     placeholder: 'Your answer...' }) ],
-                                                              { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
-                        divCl('code-msg-text',
-                              [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
-                                button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
-                      { 'data-requestid': req.id }))
-      }
+    eachCodeW(buf, (view, w) => {
+      appendX(w,
+              divCl('code-msg code-msg-question',
+                    [ divCl('code-msg-text', [ '▣ Questions' ]),
+                      ...req.questions.map((q, qi) => divCl('code-question-item',
+                                                            [ divCl('code-question-header', q.header),
+                                                              divCl('code-question-text', q.question),
+                                                              ...(q.options || []).map(opt => divCl('code-question-option',
+                                                                                                    [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
+                                                                                                    { 'data-run': 'toggle question option',
+                                                                                                      'data-qid': req.id,
+                                                                                                      'data-qi': qi,
+                                                                                                      'data-opt': opt.label })),
+                                                              q.custom && create('input', [],
+                                                                                 'code-question-custom',
+                                                                                 { 'data-qid': req.id,
+                                                                                   'data-qi': qi,
+                                                                                   placeholder: 'Your answer...' }) ],
+                                                            { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
+                      divCl('code-msg-text',
+                            [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
+                              button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
+                    { 'data-requestid': req.id }))
     })
   }
 
@@ -983,14 +969,11 @@ function init
           await c.question.reply({ requestID, answers, directory: buf.dir })
         else
           await c.question.reject({ requestID, directory: buf.dir })
-        buf.views.forEach(view => {
-          if (view.eleOrReserved) {
-            let w, el
+        eachCodeW(buf, (view, w) => {
+          let el
 
-            w = view.eleOrReserved.querySelector('.code-w')
-            el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
-            el?.remove()
-          }
+          el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
+          el?.remove()
         })
       }
       catch (err) {
@@ -1458,29 +1441,26 @@ function init
 
     delta = event.properties.delta
     field = event.properties.field
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let msgEl, thinkingEl, textEl, w
+    eachCodeW(buf, (view, w) => {
+      let msgEl, thinkingEl, textEl
 
-        w = view.eleOrReserved.querySelector('.code-w')
-        msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
-        if (msgEl) {
-          textEl = msgEl.querySelector('.code-msg-text')
-          if (textEl && field == 'text')
-            textEl.innerText = (textEl.innerText || '') + delta
-        }
-        thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
-        if (thinkingEl && field == 'text') {
-          textEl = thinkingEl.querySelector('.code-msg-text')
-          if (textEl)
-            textEl.innerText = (textEl.innerText || '') + delta
-        }
-        else if (field == 'text' && msgEl == null)
-          appendX(w,
-                  divCl('code-msg code-msg-thinking',
-                        [ divCl('code-msg-text', delta) ],
-                        { 'data-partid': event.properties.partID || 0 }))
+      msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
+      if (msgEl) {
+        textEl = msgEl.querySelector('.code-msg-text')
+        if (textEl && field == 'text')
+          textEl.innerText = (textEl.innerText || '') + delta
       }
+      thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
+      if (thinkingEl && field == 'text') {
+        textEl = thinkingEl.querySelector('.code-msg-text')
+        if (textEl)
+          textEl.innerText = (textEl.innerText || '') + delta
+      }
+      else if (field == 'text' && msgEl == null)
+        appendX(w,
+                divCl('code-msg code-msg-thinking',
+                      [ divCl('code-msg-text', delta) ],
+                      { 'data-partid': event.properties.partID || 0 }))
     })
   }
 
@@ -1490,20 +1470,17 @@ function init
 
     callId = buf.vars('code').subagentCallIds?.get(event.properties.sessionID)
     if (callId)
-      buf.views.forEach(view => {
-        if (view.eleOrReserved) {
-          let w, els
+      eachCodeW(buf, (view, w) => {
+        let els
 
-          w = view.eleOrReserved.querySelector('.code-w')
-          els = w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]')
-          els?.forEach(el => {
-            let textEl
+        els = w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]')
+        els?.forEach(el => {
+          let textEl
 
-            textEl = el.querySelector('.code-msg-text')
-            if (textEl && textEl.innerText.indexOf('◉') < 0)
-              textEl.innerText = textEl.innerText + ' ◉'
-          })
-        }
+          textEl = el.querySelector('.code-msg-text')
+          if (textEl && textEl.innerText.indexOf('◉') < 0)
+            textEl.innerText = textEl.innerText + ' ◉'
+        })
       })
   }
 

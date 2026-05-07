@@ -54,12 +54,32 @@ function init
 () {
   let hist, chatHist, mo, moCodePrompt, stopTimeout, mostRecentAgent
 
+  function getProvider
+  (buf) {
+    return (buf && buf.vars('code').provider) || Opt.get('code.provider.agent') || 'opencode-go'
+  }
+
+  function getModel
+  (buf) {
+    return (buf && buf.vars('code').model) || Opt.get('code.model.agent') || 'deepseek-v4-pro'
+  }
+
+  function getVariant
+  (buf) {
+    return (buf && buf.vars('code').variant) || Opt.get('code.variant.agent') || ''
+  }
+
+  function getAgent
+  (buf) {
+    return (buf && buf.opts.get('code.agent')) || Opt.get('code.agent')
+  }
+
   function codeInit
   () {
     let pane, dir, name, provider, model, existingBuf, buf
 
-    provider = Opt.get('code.provider.agent') || 'opencode'
-    model = Opt.get('code.model.agent') || 'minimax-m2.1-free'
+    provider = getProvider()
+    model = getModel()
     pane = Pane.current()
     dir = pane.dir
     name = 'CO ' + dir
@@ -170,9 +190,9 @@ function init
           return
         }
 
-        provider = Opt.get('code.provider.agent') || 'opencode-go'
-        model = Opt.get('code.model.agent') || 'deepseek-v4-pro'
-        variant = Opt.get('code.variant.agent') || ''
+        provider = getProvider()
+        model = getModel()
+        variant = getVariant()
 
         buf = Buf.add(name, 'code', divW(sessionDir), sessionDir)
         buf.vars('code').provider = provider
@@ -1732,9 +1752,9 @@ function init
   (buf, text, provider, model, variant) {
     let sessionID, c, res
 
-    provider = provider || buf.vars('code').provider || 'opencode'
-    model = model || buf.vars('code').model || 'minimax-m2.1-free'
-    variant = variant || buf.vars('code').variant || ''
+    provider = provider || getProvider(buf)
+    model = model || getModel(buf)
+    variant = variant || getVariant(buf)
 
     sessionID = buf.vars('code').sessionID
 
@@ -1757,7 +1777,7 @@ function init
     try {
       let agent
 
-      agent = buf.opts.get('code.agent') || Opt.get('code.agent')
+      agent = getAgent(buf)
 
       updateBufAgent(buf, agent)
 
@@ -1965,9 +1985,9 @@ function init
       return
     }
 
-    provider = buf.vars('code').provider || Opt.get('code.provider.agent') || 'opencode'
-    model = buf.vars('code').model || Opt.get('code.model.agent') || 'minimax-m2.1-free'
-    variant = buf.vars('code').variant || Opt.get('code.variant.agent') || ''
+    provider = getProvider(buf)
+    model = getModel(buf)
+    variant = getVariant(buf)
 
     openPrompt(buf, p, provider, model, variant)
   }
@@ -2070,9 +2090,9 @@ function init
       }
     }
 
-    provider = Opt.get('code.provider.agent') || 'opencode'
-    model = Opt.get('code.model.agent') || 'minimax-m2.1-free'
-    variant = Opt.get('code.variant.agent') || ''
+    provider = getProvider()
+    model = getModel()
+    variant = getVariant()
     if (given)
       run(given)
     else
@@ -2287,8 +2307,8 @@ function init
   hist = Hist.ensure('code')
   chatHist = Hist.ensure('code.chat')
   Opt.declare('code.agent', 'str', 'plan')
-  Opt.declare('code.model.agent', 'str', 'minimax-m2.1-free')
-  Opt.declare('code.provider.agent', 'str', 'opencode')
+  Opt.declare('code.model.agent', 'str', 'deepseek-v4-pro')
+  Opt.declare('code.provider.agent', 'str', 'opencode-go')
   Opt.declare('code.variant.agent', 'str', '')
   Opt.declare('code.key', 'str', '')
   mo = Mode.add('code',

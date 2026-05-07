@@ -7,7 +7,7 @@ check:
 format:
 	npm run format
 
-build-opencode:
+oc:
 	docker build --progress=plain -t opencode-bred docker/opencode/
 
 fix-node-pty:

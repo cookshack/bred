@@ -2268,30 +2268,20 @@ function init
 
   function prevHist
   () {
-    let view, text, wh
+    let view, wh
 
     view = View.current()
     wh = whichHistFromBuf(view.buf)
-    text = wh.prev()
-    if (text) {
-      view.buf.clear()
-      view.buf.insert(text)
-    }
-    else
-      Mess.say('End of history')
+    wh.prev(view.buf)
   }
 
   function nextHist
   () {
-    let view, text, wh
+    let view, wh
 
     view = View.current()
     wh = whichHistFromBuf(view.buf)
-    text = wh.next()
-    if (text) {
-      view.buf.clear()
-      view.buf.insert(text)
-    }
+    wh.next(view.buf)
   }
 
   hist = Hist.ensure('code')

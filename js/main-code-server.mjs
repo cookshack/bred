@@ -13,6 +13,17 @@ function containerName
   return 'bred-code-' + process.pid + '-' + bufferID
 }
 
+function mountArgs
+(workingDir, authPath) {
+  let home
+
+  home = process.env.HOME
+  return [ '-v', workingDir + ':' + workingDir,
+           '-v', home + '/src/opencode:' + home + '/src/opencode:ro',
+           '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro',
+           '-v', home + '/.gitignore:/home/node/.gitignore:ro' ]
+}
+
 function healthCheck
 (url, timeout) {
   let start, ms
@@ -56,7 +67,7 @@ async function spawnDocker
   timeout = spec.timeout || 10000
   authPath = process.env.HOME + '/.local/share/opencode/auth.json'
   args = []
-  args.push('run', '-d', '--rm', '--name', name, '-p', port + ':4096', '-v', workingDir + ':' + workingDir, '-v', process.env.HOME + '/src/opencode:' + process.env.HOME + '/src/opencode:ro', '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro', '-v', process.env.HOME + '/.gitignore:/home/node/.gitignore:ro', '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
+  args.push('run', '-d', '--rm', '--name', name, '-p', port + ':4096', ...mountArgs(workingDir, authPath), '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
   if (config.logLevel)
     args.push('--log-level=' + config.logLevel)
 

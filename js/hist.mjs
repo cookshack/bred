@@ -165,6 +165,7 @@ function make
              d('HIST add ' + it)
              //d({ items })
              items.unshift(it)
+             reset()
              if (save)
                Tron.acmd('profile.prompt.add', [ name, it ])
            },
@@ -181,8 +182,6 @@ function make
 export
 function init
 () {
-  hists = []
-
   Tron.acmd('profile.prompt.load').then(data => {
     data.prompts.forEach(p => {
       let h
@@ -194,3 +193,5 @@ function init
     })
   })
 }
+
+hists = []

@@ -11,8 +11,8 @@
     "start": "electron .",
     "inspect": "electron --inspect=5656 .",
     "mime": "./bin/generate-mime-by-ext",
-    "check": "./node_modules/@cookshack/build/bin/check js/*.mjs js/*.js ext/*/*.mjs",
-    "format": "./node_modules/@cookshack/build/bin/format js/*.mjs js/*.js ext/*/*.mjs",
+    "check": "./node_modules/@cookshack/build/bin/check js/*.mjs js/*.js ext/*/*.mjs test/*.mjs",
+    "format": "./node_modules/@cookshack/build/bin/format js/*.mjs js/*.js ext/*/*.mjs test/*.mjs",
     "prepare": "husky",
     "postinstall": "make prep && sha256sum package-lock.json | cut -d' ' -f1 > .bred-module-hash"
   },

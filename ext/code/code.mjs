@@ -74,14 +74,14 @@ function init
       pane.setBuf(existingBuf)
       existingBuf.vars('code').agentStopped = 0
       appendMsg(existingBuf, 'user', '/init')
-      updateBufAgent(existingBuf, existingBuf.opts.get('code.agent') || Opt.get('code.agent'))
+      updateBufAgent(existingBuf, 'build')
       startEventSub(existingBuf)
       ensureClient(existingBuf).then(c => {
         c.session.command({ sessionID: existingBuf.vars('code').sessionID,
                             directory: existingBuf.dir,
                             command: 'init',
                             arguments: '',
-                            agent: existingBuf.opts.get('code.agent') || Opt.get('code.agent'),
+                            agent: 'build',
                             model: existingBuf.vars('code').provider + '/' + existingBuf.vars('code').model })
       })
       return
@@ -103,14 +103,14 @@ function init
             buf.vars('code').firstPromptSent = 1
             buf.vars('code').busy = 1
             appendMsg(buf, 'user', '/init')
-            updateBufAgent(buf, buf.opts.get('code.agent') || Opt.get('code.agent'))
+            updateBufAgent(buf, 'build')
             startEventSub(buf)
 
             c.session.command({ sessionID: res.data.id,
                                 directory: buf.dir,
                                 command: 'init',
                                 arguments: '',
-                                agent: buf.opts.get('code.agent') || Opt.get('code.agent'),
+                                agent: 'build',
                                 model: provider + '/' + model })
           })
         })

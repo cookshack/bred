@@ -88,12 +88,12 @@ function seize
 
 function cTopLevelStart
 () {
-  Wode.topLevelStart([ '#if', '#end' ])
+  Wode.topLevelStart([ '#if', '#else', '#end' ])
 }
 
 function cTopLevelEnd
 () {
-  Wode.topLevelEnd([ '#if', '#end' ])
+  Wode.topLevelEnd([ '#if', '#else', '#end' ])
 }
 
 export

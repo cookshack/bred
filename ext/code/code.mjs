@@ -1109,6 +1109,278 @@ function init
     return '▶️ '
   }
 
+  function handleToolPart
+  (buf, part) {
+    let status
+
+    status = part.state?.status
+    d('CO tool: ' + icon(part.tool) + part.tool + ' ' + status)
+    if (part.tool == 'read' && [ 'pending', 'running' ].includes(status)) {
+      let path
+
+      path = part.state.input.filePath
+      if (path) {
+        d('CO read file: ' + path)
+        appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, 0,
+                                                  { input: part.state.input }))
+      }
+    }
+    else if (part.tool == 'read' && status == 'completed') {
+      let path
+
+      path = part.state.input.filePath
+      if (path) {
+        d('CO read file completed: ' + path)
+        appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' ✔️',
+                                                  { input: part.state.input }))
+      }
+    }
+    else if (part.tool == 'glob' && [ 'pending', 'running' ].includes(status)) {
+      let pattern
+
+      pattern = part.state.input.pattern
+      if (pattern) {
+        d('CO glob: ' + pattern)
+        appendToolMsg(buf, part.callID, 'Glob "' + pattern)
+      }
+    }
+    else if (part.tool == 'glob' && status == 'completed') {
+      let count
+
+      count = part.state.metadata?.count
+      if (1) {
+        d('CO glob completed with ' + count + ' matches')
+        appendToolMsg(buf,
+                      part.callID,
+                      'Glob "' + part.state.input.pattern + ' (' + count + ' matches)',
+                      part.state.output)
+      }
+    }
+    else if (part.tool == 'grep' && [ 'pending', 'running' ].includes(status)) {
+      let pattern, path
+
+      pattern = part.state.input.pattern
+      path = part.state.input.path
+      if (pattern) {
+        d('CO grep: ' + pattern + ' in ' + path)
+        appendToolMsg(buf, part.callID, 'Grep "' + pattern + '" in ' + (path || '.'))
+      }
+    }
+    else if (part.tool == 'grep' && status == 'completed') {
+      let matches, path
+
+      matches = part.state.metadata?.matches
+      path = part.state.input.path
+      if (matches) {
+        d('CO grep completed with ' + matches + ' matches')
+        appendToolMsg(buf,
+                      part.callID,
+                      'Grep "' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
+                      part.state.output)
+      }
+    }
+    else if (part.tool == 'bash' && [ 'pending', 'running' ].includes(status)) {
+      let command
+
+      command = part.state.input.command
+      if (command) {
+        d('CO bash: ' + command)
+        appendToolMsg(buf, part.callID, 'bash: ' + command + (status == 'pending' ? ' (pending)' : ''))
+      }
+    }
+    else if (part.tool == 'bash' && status == 'completed') {
+      let command, exitCode
+
+      command = part.state.input.command
+      exitCode = part.state.metadata?.exit
+      if (command) {
+        d('CO bash completed: ' + command + ' (exit ' + exitCode + ')')
+        appendToolMsg(buf, part.callID, 'bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+      }
+    }
+    else if (part.tool == 'write' && [ 'pending', 'running' ].includes(status)) {
+      let path
+
+      path = part.state.input.filePath
+      if (path) {
+        d('CO write file: ' + path)
+        appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, 0,
+                                                  { input: part.state.input }),
+                      part.state?.input?.content,
+                      { format: 'code', path })
+      }
+    }
+    else if (part.tool == 'write' && status == 'completed') {
+      let path
+
+      path = part.state.input.filePath
+      if (path) {
+        d('CO write file: ' + path)
+        appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️',
+                                                  { input: part.state.input }),
+                      part.state?.input?.content,
+                      { format: 'code', path })
+      }
+    }
+    else if (part.tool == 'edit' && [ 'pending', 'running' ].includes(status)) {
+      let path
+
+      path = part.state.input.filePath
+      if (path) {
+        d('CO edit file: ' + path)
+        appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, 0,
+                                                  { input: part.state.input }))
+      }
+    }
+    else if (part.tool == 'edit' && status == 'completed') {
+      let path
+
+      path = part.state.input.filePath
+      if (path) {
+        let under
+
+        d('CO edit completed: ' + path)
+        under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
+        under = part.state?.metadata?.diff || buf.vars('code').patch || under
+        appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️',
+                                                  { input: part.state.input }),
+                      under , { format: 'patch' })
+      }
+    }
+    else if (part.tool == 'edit' && status == 'error') {
+      let path
+
+      path = part.state.input.filePath
+      if (path) {
+        let under
+
+        d('CO edit error: ' + path)
+        under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
+        under = buf.vars('code').patch || under
+        appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✘',
+                                                  { input: part.state.input }),
+                      under)
+        appendMsg(buf, 0, part.state?.error, part.id)
+      }
+    }
+    else if (part.tool == 'websearch' && [ 'pending', 'running' ].includes(status)) {
+      let query
+
+      query = part.state.input.query
+      if (query) {
+        d('CO websearch: ' + query)
+        appendToolMsg(buf, part.callID, 'Web search: ' + query)
+      }
+    }
+    else if (part.tool == 'websearch' && status == 'completed') {
+      let query, results
+
+      query = part.state.input.query
+      results = part.state.metadata?.results
+      if (query) {
+        d('CO websearch completed with ' + results + ' results')
+        appendToolMsg(buf,
+                      part.callID,
+                      'Web search: ' + query + ' (' + results + ' results)',
+                      part.state.output)
+      }
+    }
+    else if (part.tool == 'websearch' && status == 'error') {
+      let query
+
+      query = part.state.input.query
+      if (query) {
+        d('CO websearch error')
+        appendToolMsg(buf,
+                      part.callID,
+                      'Web search: ' + query,
+                      part.state.error)
+      }
+    }
+    else if (part.tool == 'webfetch' && [ 'pending', 'running' ].includes(status)) {
+      let url
+
+      url = part.state.input.url
+      if (url) {
+        d('CO webfetch: ' + url)
+        appendToolMsg(buf, part.callID, 'Fetch ' + url)
+      }
+    }
+    else if (part.tool == 'webfetch' && status == 'completed') {
+      let url, size
+
+      url = part.state.input.url
+      size = part.state.output?.length
+      if (url) {
+        d('CO webfetch completed, size: ' + size)
+        appendToolMsg(buf,
+                      part.callID,
+                      'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
+      }
+    }
+    else if (part.tool == 'webfetch' && status == 'error') {
+      let url
+
+      url = part.state.input.url
+      if (url) {
+        d('CO webfetch error')
+        appendToolMsg(buf,
+                      part.callID,
+                      'Fetch ' + url,
+                      part.state.error)
+      }
+    }
+    else if (part.tool == 'task' && [ 'pending', 'running' ].includes(status)) {
+      let desc, agent, sessionId
+
+      desc = part.state.input.description
+      agent = part.state.input.subagent_type
+      sessionId = part.state.metadata?.sessionId
+      if (sessionId) {
+        getSubagentIds(buf).set(sessionId, 1)
+        getSubagentCallIds(buf).set(sessionId, part.callID)
+      }
+      desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
+      appendToolMsg(buf, part.callID, desc)
+    }
+    else if (part.tool == 'task' && status == 'completed') {
+      let desc, agent, sessionId
+
+      desc = part.state.input.description
+      agent = part.state.input.subagent_type
+      sessionId = part.state.metadata?.sessionId
+      if (sessionId) {
+        let ids
+
+        ids = buf.vars('code').subagentIds
+        if (ids)
+          ids.delete(sessionId)
+      }
+      desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✔️') : ('Task (' + agent + ' agent) ✔️')
+      appendToolMsg(buf, part.callID, desc, part.state.output)
+    }
+    else if (part.tool == 'task' && status == 'error') {
+      let desc, agent, sessionId
+
+      desc = part.state.input.description
+      agent = part.state.input.subagent_type
+      sessionId = part.state.metadata?.sessionId
+      if (sessionId) {
+        let ids
+
+        ids = buf.vars('code').subagentIds
+        if (ids)
+          ids.delete(sessionId)
+      }
+      desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✘') : ('Task (' + agent + ' agent) ✘')
+      appendToolMsg(buf, part.callID, desc, part.state.error)
+    }
+    else
+      appendToolMsg(buf,
+                    part.callID,
+                    'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
+  }
+
   function handlePart
   (buf, event) {
     let part
@@ -1164,276 +1436,8 @@ function init
         appendThinking(buf, buffered, part.id)
       }
     }
-    else if (part.type == 'tool') {
-      let status
-
-      status = part.state?.status
-      d('CO tool: ' + icon(part.tool) + part.tool + ' ' + status)
-      if (part.tool == 'read' && [ 'pending', 'running' ].includes(status)) {
-        let path
-
-        path = part.state.input.filePath
-        if (path) {
-          d('CO read file: ' + path)
-          appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, 0,
-                                                    { input: part.state.input }))
-        }
-      }
-      else if (part.tool == 'read' && status == 'completed') {
-        let path
-
-        path = part.state.input.filePath
-        if (path) {
-          d('CO read file completed: ' + path)
-          appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' ✔️',
-                                                    { input: part.state.input }))
-        }
-      }
-      else if (part.tool == 'glob' && [ 'pending', 'running' ].includes(status)) {
-        let pattern
-
-        pattern = part.state.input.pattern
-        if (pattern) {
-          d('CO glob: ' + pattern)
-          appendToolMsg(buf, part.callID, 'Glob "' + pattern)
-        }
-      }
-      else if (part.tool == 'glob' && status == 'completed') {
-        let count
-
-        count = part.state.metadata?.count
-        if (1) {
-          d('CO glob completed with ' + count + ' matches')
-          appendToolMsg(buf,
-                        part.callID,
-                        'Glob "' + part.state.input.pattern + ' (' + count + ' matches)',
-                        part.state.output)
-        }
-      }
-      else if (part.tool == 'grep' && [ 'pending', 'running' ].includes(status)) {
-        let pattern, path
-
-        pattern = part.state.input.pattern
-        path = part.state.input.path
-        if (pattern) {
-          d('CO grep: ' + pattern + ' in ' + path)
-          appendToolMsg(buf, part.callID, 'Grep "' + pattern + '" in ' + (path || '.'))
-        }
-      }
-      else if (part.tool == 'grep' && status == 'completed') {
-        let matches, path
-
-        matches = part.state.metadata?.matches
-        path = part.state.input.path
-        if (matches) {
-          d('CO grep completed with ' + matches + ' matches')
-          appendToolMsg(buf,
-                        part.callID,
-                        'Grep "' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
-                        part.state.output)
-        }
-      }
-      else if (part.tool == 'bash' && [ 'pending', 'running' ].includes(status)) {
-        let command
-
-        command = part.state.input.command
-        if (command) {
-          d('CO bash: ' + command)
-          appendToolMsg(buf, part.callID, 'bash: ' + command + (status == 'pending' ? ' (pending)' : ''))
-        }
-      }
-      else if (part.tool == 'bash' && status == 'completed') {
-        let command, exitCode
-
-        command = part.state.input.command
-        exitCode = part.state.metadata?.exit
-        if (command) {
-          d('CO bash completed: ' + command + ' (exit ' + exitCode + ')')
-          appendToolMsg(buf, part.callID, 'bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
-        }
-      }
-      else if (part.tool == 'write' && [ 'pending', 'running' ].includes(status)) {
-        let path
-
-        path = part.state.input.filePath
-        if (path) {
-          d('CO write file: ' + path)
-          appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, 0,
-                                                    { input: part.state.input }),
-                        part.state?.input?.content,
-                        { format: 'code', path })
-        }
-      }
-      else if (part.tool == 'write' && status == 'completed') {
-        let path
-
-        path = part.state.input.filePath
-        if (path) {
-          d('CO write file: ' + path)
-          appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️',
-                                                    { input: part.state.input }),
-                        part.state?.input?.content,
-                        { format: 'code', path })
-        }
-      }
-      else if (part.tool == 'edit' && [ 'pending', 'running' ].includes(status)) {
-        let path
-
-        path = part.state.input.filePath
-        if (path) {
-          d('CO edit file: ' + path)
-          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, 0,
-                                                    { input: part.state.input }))
-        }
-      }
-      else if (part.tool == 'edit' && status == 'completed') {
-        let path
-
-        path = part.state.input.filePath
-        if (path) {
-          let under
-
-          d('CO edit completed: ' + path)
-          under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
-          under = part.state?.metadata?.diff || buf.vars('code').patch || under
-          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️',
-                                                    { input: part.state.input }),
-                        under , { format: 'patch' })
-        }
-      }
-      else if (part.tool == 'edit' && status == 'error') {
-        let path
-
-        path = part.state.input.filePath
-        if (path) {
-          let under
-
-          d('CO edit error: ' + path)
-          under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
-          under = buf.vars('code').patch || under
-          appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✘',
-                                                    { input: part.state.input }),
-                        under)
-          appendMsg(buf, 0, part.state?.error, part.id)
-        }
-      }
-      else if (part.tool == 'websearch' && [ 'pending', 'running' ].includes(status)) {
-        let query
-
-        query = part.state.input.query
-        if (query) {
-          d('CO websearch: ' + query)
-          appendToolMsg(buf, part.callID, 'Web search: ' + query)
-        }
-      }
-      else if (part.tool == 'websearch' && status == 'completed') {
-        let query, results
-
-        query = part.state.input.query
-        results = part.state.metadata?.results
-        if (query) {
-          d('CO websearch completed with ' + results + ' results')
-          appendToolMsg(buf,
-                        part.callID,
-                        'Web search: ' + query + ' (' + results + ' results)',
-                        part.state.output)
-        }
-      }
-      else if (part.tool == 'websearch' && status == 'error') {
-        let query
-
-        query = part.state.input.query
-        if (query) {
-          d('CO websearch error')
-          appendToolMsg(buf,
-                        part.callID,
-                        'Web search: ' + query,
-                        part.state.error)
-        }
-      }
-      else if (part.tool == 'webfetch' && [ 'pending', 'running' ].includes(status)) {
-        let url
-
-        url = part.state.input.url
-        if (url) {
-          d('CO webfetch: ' + url)
-          appendToolMsg(buf, part.callID, 'Fetch ' + url)
-        }
-      }
-      else if (part.tool == 'webfetch' && status == 'completed') {
-        let url, size
-
-        url = part.state.input.url
-        size = part.state.output?.length
-        if (url) {
-          d('CO webfetch completed, size: ' + size)
-          appendToolMsg(buf,
-                        part.callID,
-                        'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
-        }
-      }
-      else if (part.tool == 'webfetch' && status == 'error') {
-        let url
-
-        url = part.state.input.url
-        if (url) {
-          d('CO webfetch error')
-          appendToolMsg(buf,
-                        part.callID,
-                        'Fetch ' + url,
-                        part.state.error)
-        }
-      }
-      else if (part.tool == 'task' && [ 'pending', 'running' ].includes(status)) {
-        let desc, agent, sessionId
-
-        desc = part.state.input.description
-        agent = part.state.input.subagent_type
-        sessionId = part.state.metadata?.sessionId
-        if (sessionId) {
-          getSubagentIds(buf).set(sessionId, 1)
-          getSubagentCallIds(buf).set(sessionId, part.callID)
-        }
-        desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
-        appendToolMsg(buf, part.callID, desc)
-      }
-      else if (part.tool == 'task' && status == 'completed') {
-        let desc, agent, sessionId
-
-        desc = part.state.input.description
-        agent = part.state.input.subagent_type
-        sessionId = part.state.metadata?.sessionId
-        if (sessionId) {
-          let ids
-
-          ids = buf.vars('code').subagentIds
-          if (ids)
-            ids.delete(sessionId)
-        }
-        desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✔️') : ('Task (' + agent + ' agent) ✔️')
-        appendToolMsg(buf, part.callID, desc, part.state.output)
-      }
-      else if (part.tool == 'task' && status == 'error') {
-        let desc, agent, sessionId
-
-        desc = part.state.input.description
-        agent = part.state.input.subagent_type
-        sessionId = part.state.metadata?.sessionId
-        if (sessionId) {
-          let ids
-
-          ids = buf.vars('code').subagentIds
-          if (ids)
-            ids.delete(sessionId)
-        }
-        desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✘') : ('Task (' + agent + ' agent) ✘')
-        appendToolMsg(buf, part.callID, desc, part.state.error)
-      }
-      else
-        appendToolMsg(buf,
-                      part.callID,
-                      'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
-    }
+    else if (part.type == 'tool')
+      handleToolPart(buf, part)
   }
 
   function handlePartDelta

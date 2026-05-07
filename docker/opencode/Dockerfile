@@ -6,6 +6,7 @@ RUN npm install --global opencode-ai@1.14.39
 
 RUN mkdir -p /home/node/.local/share/opencode && chown -R node:node /home/node/.local
 USER node
+RUN git config --global core.excludesFile /home/node/.gitignore
 WORKDIR /home/node
 
 ENTRYPOINT ["opencode"]

@@ -44,14 +44,14 @@ function init
         for (; day > 1; day--)
           days.push(divCl('calendar-day'))
         // add all days of month
-        for (let day = 1; day <= last; day++)
+        for (day = 1; day <= last; day++)
           days.push(divCl('calendar-day'
                           + (((day == today) && (month == mo) && (year == yr)) ? ' calendar-today' : ''),
                           day))
         // done
         return divCl('calendar-month',
                      [ divCl('calendar-month-h', first.toLocaleString('default', { month: 'long' })),
-                       divCl('calendar-dows', [ 'M', 'T', 'W', 'T', 'F', 'S', 'S' ].map(day => divCl('calendar-dow', day))),
+                       divCl('calendar-dows', [ 'M', 'T', 'W', 'T', 'F', 'S', 'S' ].map(d => divCl('calendar-dow', d))),
                        divCl('calendar-days', days) ])
       }
       return null
@@ -95,7 +95,7 @@ function init
     viewInit(view, 0, 0, full)
   }
 
-  function year
+  function showYear
   () {
     refresh(View.current(), 1)
   }
@@ -118,7 +118,7 @@ function init
 
   mode = Mode.add('Calendar', { viewInit })
 
-  Cmd.add('year', () => year(), mode)
+  Cmd.add('year', () => showYear(), mode)
   Em.on('y', 'year', mode)
 
   Cmd.add('three', () => three(), mode)

@@ -44,7 +44,7 @@ function init
   function refresh
   (v, // assist
    view) { // target
-    let body, code, mode
+    let body, elCode, mode
 
     function uriPath
     (uri) {
@@ -210,8 +210,8 @@ function init
         Shell.runToString(view.buf.dir, 'git', [ 'branch', '--show-current' ], 0, (branch, code) => {
           if (code)
             return
-          Shell.runToString(view.buf.dir, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code) => {
-            if (code)
+          Shell.runToString(view.buf.dir, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code2) => {
+            if (code2)
               return
             elName.innerText = branch.trim()
             elHash.innerText = hash.trim()
@@ -249,7 +249,7 @@ function init
 
     body = v.ele.querySelector('.assist-main-body')
 
-    code = body.querySelector('.assist-code')
+    elCode = body.querySelector('.assist-code')
 
     mode = body.querySelector('.assist-mode')
     mode.innerText = view.buf?.mode?.name || '??'
@@ -257,21 +257,21 @@ function init
     if (view.ed) {
       let lang, off, tok
 
-      Css.expand(code)
+      Css.expand(elCode)
 
-      lang = code.querySelector('.assist-lang')
+      lang = elCode.querySelector('.assist-lang')
       lang.dataset.id = view.buf.opt('core.lang')
       lang.innerText = lang.dataset.id
       lang.dataset.run = 'Lang'
 
-      off = code.querySelector('.assist-offset')
+      off = elCode.querySelector('.assist-offset')
       off.innerText = view.offset
 
-      tok = code.querySelector('.assist-tok')
+      tok = elCode.querySelector('.assist-tok')
       tok.innerText = view.tokenAt(view.bep) || ''
     }
     else
-      Css.retract(code)
+      Css.retract(elCode)
 
     view.getCallers(setDefCaller, setSig)
 

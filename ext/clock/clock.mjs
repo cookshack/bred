@@ -6,7 +6,7 @@ import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/pane.mjs'
 import * as Panel from '../../js/panel.mjs'
 
-let time, timer
+let miniTime, timer
 
 export
 function init
@@ -47,12 +47,12 @@ function init
     p.setBuf(b)
   }
 
-  function updateTime
+  function updateMiniTime
   () {
     let d
 
     d = new Date()
-    time.innerText = String(d.getHours()).padStart(2, '0') + 'h' + String(d.getMinutes()).padStart(2, '0')
+    miniTime.innerText = String(d.getHours()).padStart(2, '0') + 'h' + String(d.getMinutes()).padStart(2, '0')
   }
 
   Mode.add('Clock', { viewInit })
@@ -68,10 +68,10 @@ function init
       make(p)
   })
 
-  time = div([], 'mini-time mini-em onfill', { 'data-run': 'clock' })
-  Panel.start('mini-panel', time)
-  updateTime()
-  timer = setInterval(updateTime, 5 * 1000)
+  miniTime = div([], 'mini-time mini-em onfill', { 'data-run': 'clock' })
+  Panel.start('mini-panel', miniTime)
+  updateMiniTime()
+  timer = setInterval(updateMiniTime, 5 * 1000)
 }
 
 export
@@ -79,6 +79,6 @@ function free
 () {
   Mode.remove('Clock')
   Cmd.remove('clock')
-  time.remove()
+  miniTime.remove()
   globalThis.clearInterval(timer)
 }

@@ -10,7 +10,7 @@ import * as View from '../../js/view.mjs'
 import { d } from '../../js/mess.mjs'
 
 import * as Comm from './comm.mjs'
-import * as Event from './event.mjs'
+import * as Ev from './event.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Ui from './ui.mjs'
 import * as Util from './util.mjs'
@@ -127,7 +127,7 @@ function init
 
         buf.vars('code').firstPromptSent = 1
         Prompt.nestBuf(buf)
-        Event.startSub(buf, events)
+        Ev.startSub(buf, events)
       })
     }
 

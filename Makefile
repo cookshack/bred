@@ -16,7 +16,7 @@ fix-node-pty:
 fix-sqlite3:
 	npx electron-rebuild -w better-sqlite3
 
-prep: build-opencode version-sqlite fix-node-pty fix-sqlite3 fix-others fix-codemirror prep-mime
+prep: oc version-sqlite fix-node-pty fix-sqlite3 fix-others fix-codemirror prep-mime
 	rm -f lib/callsites.js
 	cp -r node_modules/callsites/index.js lib/callsites.mjs
 	npx peggy --format es -o lib/ev-parser.mjs lib/ev.pegjs

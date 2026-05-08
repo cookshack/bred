@@ -179,7 +179,7 @@ function init
       line = currentLine()
       Css.remove(line, 'hex-cur')
       u8s = line?.querySelectorAll('.hex-cur')
-      u8s?.forEach(u8 => Css.remove(u8, 'hex-cur'))
+      u8s?.forEach(el => Css.remove(el, 'hex-cur'))
 
       u8 = we.e.target
       Css.add(u8, 'hex-cur')
@@ -261,7 +261,7 @@ function init
     line = currentLine()
     Css.remove(line, 'hex-cur')
     u8s = line?.querySelectorAll('.hex-cur')
-    u8s?.forEach(u8 => Css.remove(u8, 'hex-cur'))
+    u8s?.forEach(el => Css.remove(el, 'hex-cur'))
 
     p = Pane.current()
     u8 = p.view.ele.querySelector('.hex-main-body > .hex-line > .hex-hexs > .hex-u8')
@@ -278,7 +278,7 @@ function init
     line = currentLine()
     Css.remove(line, 'hex-cur')
     u8s = line?.querySelectorAll('.hex-cur')
-    u8s?.forEach(u8 => Css.remove(u8, 'hex-cur'))
+    u8s?.forEach(el => Css.remove(el, 'hex-cur'))
 
     p = Pane.current()
     u8s = p.view.ele.querySelectorAll('.hex-main-body > :nth-last-child(2) > .hex-hexs > :not(.hex-u8-fill)')
@@ -480,7 +480,7 @@ function init
       cb(view)
   }
 
-  function hex
+  function cmdHex
   () {
     let p
 
@@ -495,7 +495,7 @@ function init
   mo = Mode.add('Hex', { viewInit,
                          icon: { name: 'binary' } })
 
-  Cmd.add('hex', () => hex())
+  Cmd.add('hex', () => cmdHex())
 
   Cmd.add('edit', () => edit(), mo)
   Cmd.add('save', () => save(), mo)
@@ -513,8 +513,8 @@ function init
 
   Em.on('C-c C-c', 'edit', mo)
   Em.on('C-x C-s', 'save', mo)
-  for (let d = 32; d <= 127; d++)
-    Em.on(String.fromCharCode(d), 'self insert', mo)
+  for (let int = 32; int <= 127; int++)
+    Em.on(String.fromCharCode(int), 'self insert', mo)
 }
 
 export

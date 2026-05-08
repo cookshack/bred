@@ -31,7 +31,7 @@ function init
 
   function viewInit
   (view, spec, cb) { // (view)
-    let co, cols, last, rows, code, w
+    let co, cols, last, rows, w
 
     function seq
     (n) {
@@ -81,9 +81,9 @@ function init
     }
 
     function head
-    (co, css) {
+    (content, css) {
       return divCl('ascii-h' + (css ? (' ' + css) : ''),
-                   co)
+                   content)
     }
 
     w = view.ele.firstElementChild.firstElementChild
@@ -110,10 +110,14 @@ function init
                                   head([], 'ascii-h-specifier'),
                                   head([], 'ascii-h-long') ]))
 
-    code = 0
-    while (code < rows) {
-      co.push(seq(cols).map(col => formatRow(code + (rows * col))))
-      code++
+    {
+      let code
+
+      code = 0
+      while (code < rows) {
+        co.push(seq(cols).map(col => formatRow(code + (rows * col))))
+        code++
+      }
     }
 
     co.push(divCl('ascii-foot'))

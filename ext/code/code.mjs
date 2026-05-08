@@ -16,7 +16,7 @@ import { v4 as uuidv4 } from '../../lib/uuid/index.js'
 import { d } from '../../js/mess.mjs'
 
 import * as Comm from './comm.mjs'
-import * as Event from './event.mjs'
+import * as Ev from './event.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Ui from './ui.mjs'
 import * as Util from './util.mjs'
@@ -66,7 +66,7 @@ function codeInit
     existingBuf.vars('code').agentStopped = 0
     Ui.appendMsg(existingBuf, 'user', '/init')
     updateBufAgent(existingBuf, 'build')
-    Event.startSub(existingBuf, events)
+    Ev.startSub(existingBuf, events)
     Comm.ensureClient(existingBuf).then(c => {
       c.session.command({ sessionID: existingBuf.vars('code').sessionID,
                           directory: existingBuf.dir,
@@ -95,7 +95,7 @@ function codeInit
           buf.vars('code').busy = 1
           Ui.appendMsg(buf, 'user', '/init')
           updateBufAgent(buf, 'build')
-          Event.startSub(buf, events)
+          Ev.startSub(buf, events)
 
           c.session.command({ sessionID: res.data.id,
                               directory: buf.dir,
@@ -741,7 +741,7 @@ async function send
 
   Ui.appendMsg(buf, 'user', text)
 
-  Event.startSub(buf, events)
+  Ev.startSub(buf, events)
 
   try {
     let agent
@@ -771,7 +771,7 @@ async function send
     Ui.appendMsg(buf, 'assistant', 'Error: ' + err.message)
     buf.vars('code').client = 0
     buf.vars('code').streamActive = 0
-    Event.startSub(buf, events)
+    Ev.startSub(buf, events)
   }
 
   if (res?.error) {
@@ -779,7 +779,7 @@ async function send
     Ui.appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
     buf.vars('code').client = 0
     buf.vars('code').streamActive = 0
-    Event.startSub(buf, events)
+    Ev.startSub(buf, events)
   }
 }
 

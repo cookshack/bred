@@ -13,7 +13,7 @@ let wexts
 
 function makeAutocomplete
 (view) {
-  let autocomplete, lang
+  let autocomplete, coreLang
 
   function autocompleteTags
   (context) {
@@ -84,10 +84,10 @@ function makeAutocomplete
   }
 
   0 && (autocomplete = autocompleteTags)
-  lang = view.buf.opt('core.lang')
-  if ([ 'javascript', 'typescript' ].includes(lang))
+  coreLang = view.buf.opt('core.lang')
+  if ([ 'javascript', 'typescript' ].includes(coreLang))
     autocomplete = ctx => autocompleteLsp('javascript', ctx)
-  if ([ 'c' ].includes(lang))
+  if ([ 'c' ].includes(coreLang))
     autocomplete = ctx => autocompleteLsp('c', ctx)
 
   if (autocomplete)
@@ -95,6 +95,7 @@ function makeAutocomplete
                                    ...(autocomplete ? { override: [ autocomplete ] } : {}),
                                    closeOnBlur: false,
                                    defaultKeymap: false })
+
   return []
 }
 

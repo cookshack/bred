@@ -29,7 +29,7 @@ import * as OpenCode from './lib/opencode/v2/client.js'
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 import { makeMlDir } from '../../js/ed.mjs'
 
-let hist, chatHist, stopTimeout, mostRecentAgent, tools
+let hist, chatHist, stopTimeout, mostRecentAgent, tools, events
 
 function iconAgent
 () {
@@ -69,6 +69,16 @@ function getVariant
 function getAgent
 (buf) {
   return (buf && buf.opts.get('code.agent')) || Opt.get('code.agent')
+}
+
+function isSubagentId
+(buf, id) {
+  return buf?.vars('code')?.subagentIds?.has(id)
+}
+
+function isSessionMatch
+(buf, id) {
+  return (id == buf.vars('code')?.sessionID) || isSubagentId(buf, id)
 }
 
 function eachCodeW
@@ -1242,120 +1252,23 @@ function handleSubagentIdle
 
 function handleEvent
 (buf, event) {
-  let sessionID
-
-  function isSubagentId
-  (id) {
-    return buf?.vars('code')?.subagentIds?.has(id)
-  }
-
-  function isSessionMatch
-  (id) {
-    return id == sessionID || isSubagentId(id)
-  }
+  let h, evSessionID, subagent
 
   d('CO ' + event.type)
   d({ event })
 
-  sessionID = buf && buf.vars('code')?.sessionID
-
-  if ((event.type == 'session.idle')
-      && isSessionMatch(event.properties.sessionID)) {
-    if (event.properties.sessionID == sessionID)
-      updateIdle(buf, calculateTokenPercentage(buf))
-    else
-      handleSubagentIdle(buf, event)
+  h = events[event.type]
+  if (h) {
+    if (h.onArrive)
+      h.onArrive(buf, event)
     return
   }
 
-  if ((event.type == 'session.status')
-      && isSessionMatch(event.properties.sessionID)) {
-    if (event.properties.sessionID == sessionID)
-      updateStatus(buf, event.properties, calculateTokenPercentage(buf))
-    return
-  }
-
-  if ((event.type == 'permission.asked')
-      && isSessionMatch(event.properties.sessionID)) {
-    handlePermissionAsked(buf, event)
-    return
-  }
-
-  if ((event.type == 'permission.updated')
-      && isSessionMatch(event.properties.sessionID)) {
-    handlePermissionUpdated(buf, event)
-    return
-  }
-
-  if ((event.type == 'question.asked')
-      && isSessionMatch(event.properties.sessionID)) {
-    handleQuestionAsked(buf, event)
-    return
-  }
-
-  if ((event.type == 'session.error')
-      && (event.properties?.sessionID == sessionID)) {
-    let error
-
-    error = event.properties.error
-    d({ error })
-    if (error)
-      Mess.yell('🚨 session.error: ' + (error.name || '??') + ' ' + (error.data?.message || '????'))
-    else
-      Mess.yell('🚨 session.error: error missing')
-    return
-  }
-
-  if ((event.type == 'session.updated')
-      && isSessionMatch(event.properties.info.id)) {
-    if (event.properties.info.id == sessionID)
-      handleSessionUpdated(buf, event)
-    return
-  }
-
-  if ((event.type == 'message.updated')
-      && (event.properties.info.sessionID == sessionID)) {
-    handleMessageUpdated(buf, event)
-    return
-  }
-
-  if ((event.type == 'message.part.updated')
-      && isSessionMatch(event.properties.part.sessionID)) {
-    handlePart(buf, event)
-    return
-  }
-
-  if ((event.type == 'message.part.delta')
-      && isSessionMatch(event.properties.sessionID)) {
-    handlePartDelta(buf, event)
-    return
-  }
-
-  if (event.type == 'server.connected') {
-    updateBufStatus(buf, 'OK', '', '', VopenCode.version) // clears the CONNECTED after reconnect
-    return
-  }
-
-  if (event.type == 'server.heartbeat')
-    return
-
-  if (event.type == 'command.executed') {
-    if (event.properties.sessionID == sessionID) {
-      appendMsg(buf, 0, '/' + event.properties.name + ' finished')
-      appendModel(buf, modelName(buf.vars('code').model, buf.vars('code').variant))
-    }
-    return
-  }
-
-  {
-    let evSessionID, subagent
-
-    evSessionID = event.properties.sessionID
-      || event.properties.part?.sessionID
-      || event.properties.info?.id
-    subagent = isSubagentId(evSessionID)
-    d('🌱 TODO handle ' + event.type + (subagent ? ' (subagent)' : ''))
-  }
+  evSessionID = event.properties.sessionID
+    || event.properties.part?.sessionID
+    || event.properties.info?.id
+  subagent = isSubagentId(buf, evSessionID)
+  d('🌱 TODO handle ' + event.type + (subagent ? ' (subagent)' : ''))
 }
 
 function startEventSub
@@ -2320,6 +2233,82 @@ function init
                       desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✘') : ('Task (' + agent + ' agent) ✘')
                       appendToolMsg(buf, part.callID, desc, part.state.error)
                     } } }
+
+  events = { 'session.idle': { onArrive
+                               (buf, event) {
+                                 if (isSessionMatch(buf, event.properties.sessionID))
+                                   if (event.properties.sessionID == buf.vars('code').sessionID)
+                                     updateIdle(buf, calculateTokenPercentage(buf))
+                                   else
+                                     handleSubagentIdle(buf, event)
+                               } },
+             'session.status': { onArrive
+                                 (buf, event) {
+                                   if (isSessionMatch(buf, event.properties.sessionID)
+                                       && event.properties.sessionID == buf.vars('code').sessionID)
+                                     updateStatus(buf, event.properties, calculateTokenPercentage(buf))
+                                 } },
+             'permission.asked': { onArrive
+                                   (buf, event) {
+                                     if (isSessionMatch(buf, event.properties.sessionID))
+                                       handlePermissionAsked(buf, event)
+                                   } },
+             'permission.updated': { onArrive
+                                     (buf, event) {
+                                       if (isSessionMatch(buf, event.properties.sessionID))
+                                         handlePermissionUpdated(buf, event)
+                                     } },
+             'question.asked': { onArrive
+                                 (buf, event) {
+                                   if (isSessionMatch(buf, event.properties.sessionID))
+                                     handleQuestionAsked(buf, event)
+                                 } },
+             'session.error': { onArrive
+                                (buf, event) {
+                                  if (event.properties?.sessionID == buf.vars('code').sessionID) {
+                                    let error
+
+                                    error = event.properties.error
+                                    d({ error })
+                                    if (error)
+                                      Mess.yell('🚨 session.error: ' + (error.name || '??') + ' ' + (error.data?.message || '????'))
+                                    else
+                                      Mess.yell('🚨 session.error: error missing')
+                                  }
+                                } },
+             'session.updated': { onArrive
+                                  (buf, event) {
+                                    if (isSessionMatch(buf, event.properties.info.id)
+                                        && event.properties.info.id == buf.vars('code').sessionID)
+                                      handleSessionUpdated(buf, event)
+                                  } },
+             'message.updated': { onArrive
+                                  (buf, event) {
+                                    if (event.properties.info.sessionID == buf.vars('code').sessionID)
+                                      handleMessageUpdated(buf, event)
+                                  } },
+             'message.part.updated': { onArrive
+                                       (buf, event) {
+                                         if (isSessionMatch(buf, event.properties.part.sessionID))
+                                           handlePart(buf, event)
+                                       } },
+             'message.part.delta': { onArrive
+                                     (buf, event) {
+                                       if (isSessionMatch(buf, event.properties.sessionID))
+                                         handlePartDelta(buf, event)
+                                     } },
+             'server.connected': { onArrive
+                                   (buf) {
+                                     updateBufStatus(buf, 'OK', '', '', VopenCode.version)
+                                   } },
+             'server.heartbeat': {},
+             'command.executed': { onArrive
+                                   (buf, event) {
+                                     if (event.properties.sessionID == buf.vars('code').sessionID) {
+                                       appendMsg(buf, 0, '/' + event.properties.name + ' finished')
+                                       appendModel(buf, modelName(buf.vars('code').model, buf.vars('code').variant))
+                                     }
+                                   } } }
 
   hist = Hist.ensure('code')
   chatHist = Hist.ensure('code.chat')

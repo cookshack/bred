@@ -1259,7 +1259,6 @@ function handleEvent
 
   sessionID = buf && buf.vars('code')?.sessionID
 
-  // Already done by session.status. Maybe planned replacement.
   if ((event.type == 'session.idle')
       && isSessionMatch(event.properties.sessionID)) {
     if (event.properties.sessionID == sessionID)

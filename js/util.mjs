@@ -252,3 +252,9 @@ function formatDate
 (date, tz, timeFormat) {
   return formatDateMonthDay(date, tz) + ', ' + formatTime(date, tz, timeFormat)
 }
+
+export
+function toss
+(msg) {
+  throw new Error(msg)
+}

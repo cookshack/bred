@@ -1,5 +1,7 @@
-import { spawn } from 'node:child_process'
+import Fs from 'node:fs'
 import http from 'node:http'
+import { spawn } from 'node:child_process'
+import * as U from './util.mjs'
 import { d } from './main-log.mjs'
 
 import * as LocalServer from '../lib/opencode/v2/server.js'
@@ -13,6 +15,11 @@ function containerName
   return 'bred-code-' + process.pid + '-' + bufferID
 }
 
+function dataDir
+(workingDir) {
+  return process.env.HOME + '/.local/state/bred/code-data' + workingDir
+}
+
 function mountArgs
 (workingDir, authPath) {
   let home
@@ -22,7 +29,8 @@ function mountArgs
            '-v', home + '/fresh/main:' + home + '/fresh/main',
            '-v', home + '/src/opencode:' + home + '/src/opencode:ro',
            '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro',
-           '-v', home + '/.gitignore:/home/node/.gitignore:ro' ]
+           '-v', home + '/.gitignore:/home/node/.gitignore:ro',
+           '-v', dataDir(workingDir) + ':/home/node/.local/share/opencode' ]
 }
 
 function healthCheck
@@ -64,9 +72,14 @@ async function spawnDocker
   name = containerName(spec.bufferID)
   port = spec.port
   workingDir = spec.workingDir
+  workingDir || U.toss('workingDir required')
+  (workingDir.at(0) == '/') || U.toss('workingDir must be absolute: ' + workingDir)
   config = spec.config || {}
   timeout = spec.timeout || 10000
   authPath = process.env.HOME + '/.local/share/opencode/auth.json'
+
+  Fs.mkdirSync(dataDir(workingDir), { recursive: true })
+
   args = []
   args.push('run', '-d', '--rm', '--name', name, '-p', port + ':4096', ...mountArgs(workingDir, authPath), '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
   if (config.logLevel)

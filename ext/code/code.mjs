@@ -681,13 +681,13 @@ function handlePartDelta
     if (msgEl) {
       textEl = msgEl.querySelector('.code-msg-text')
       if (textEl && field == 'text')
-        textEl.innerText = (textEl.innerText || '') + delta
+        Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
     }
     thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
     if (thinkingEl && field == 'text') {
       textEl = thinkingEl.querySelector('.code-msg-text')
       if (textEl)
-        textEl.innerText = (textEl.innerText || '') + delta
+        Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
     }
     else if (field == 'text' && msgEl == null)
       Ui.appendX(w,

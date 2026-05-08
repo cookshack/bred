@@ -61,6 +61,7 @@ function underVisible
   return 0
 }
 
+export
 function withScroll
 (w, cb) { // (underW)
   let underW, wasVisible

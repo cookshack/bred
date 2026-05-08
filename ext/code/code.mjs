@@ -29,6 +29,8 @@ import * as OpenCode from './lib/opencode/v2/client.js'
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 import { makeMlDir } from '../../js/ed.mjs'
 
+let hist, chatHist, stopTimeout, mostRecentAgent, tools
+
 function iconAgent
 () {
   return '⚡'
@@ -49,1993 +51,1993 @@ function getSubagentCallIds
   return buf.vars('code').subagentCallIds || (buf.vars('code').subagentCallIds = new Map())
 }
 
-export
-function init
-() {
-  let hist, chatHist, mo, moCodePrompt, stopTimeout, mostRecentAgent, tools
+function getProvider
+(buf) {
+  return (buf && buf.vars('code').provider) || Opt.get('code.provider.agent') || 'opencode-go'
+}
 
-  function getProvider
-  (buf) {
-    return (buf && buf.vars('code').provider) || Opt.get('code.provider.agent') || 'opencode-go'
-  }
+function getModel
+(buf) {
+  return (buf && buf.vars('code').model) || Opt.get('code.model.agent') || 'deepseek-v4-pro'
+}
 
-  function getModel
-  (buf) {
-    return (buf && buf.vars('code').model) || Opt.get('code.model.agent') || 'deepseek-v4-pro'
-  }
+function getVariant
+(buf) {
+  return (buf && buf.vars('code').variant) || Opt.get('code.variant.agent') || ''
+}
 
-  function getVariant
-  (buf) {
-    return (buf && buf.vars('code').variant) || Opt.get('code.variant.agent') || ''
-  }
+function getAgent
+(buf) {
+  return (buf && buf.opts.get('code.agent')) || Opt.get('code.agent')
+}
 
-  function getAgent
-  (buf) {
-    return (buf && buf.opts.get('code.agent')) || Opt.get('code.agent')
-  }
-
-  function eachCodeW
-  (buf, fn) {
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let w
-
-        w = view.eleOrReserved.querySelector('.code-w')
-        if (w)
-          fn(view, w)
-      }
-    })
-  }
-
-  function sumTokens
-  (tokens) {
-    return (tokens.input || 0)
-      + (tokens.output || 0)
-      + (tokens.reasoning || 0)
-      + (tokens.cache?.read || 0)
-      + (tokens.cache?.write || 0)
-  }
-
-  function codeInit
-  () {
-    let pane, dir, name, provider, model, existingBuf, buf
-
-    provider = getProvider()
-    model = getModel()
-    pane = Pane.current()
-    dir = pane.dir
-    name = 'CO ' + dir
-
-    existingBuf = Buf.find(b => b.name == name && b.mode.key == 'code')
-    if (existingBuf && existingBuf.vars('code').sessionID) {
-      if (existingBuf.vars('code').busy) {
-        Mess.yell('Agent is busy')
-        return
-      }
-      existingBuf.vars('code').busy = 1
-      pane.setBuf(existingBuf)
-      existingBuf.vars('code').agentStopped = 0
-      appendMsg(existingBuf, 'user', '/init')
-      updateBufAgent(existingBuf, 'build')
-      startEventSub(existingBuf)
-      ensureClient(existingBuf).then(c => {
-        c.session.command({ sessionID: existingBuf.vars('code').sessionID,
-                            directory: existingBuf.dir,
-                            command: 'init',
-                            arguments: '',
-                            agent: 'build',
-                            model: existingBuf.vars('code').provider + '/' + existingBuf.vars('code').model })
-      })
-      return
-    }
-
-    buf = Buf.add(name, 'code', divW(dir), pane.dir)
-    buf.vars('code').prompt = '/init'
-    buf.vars('code').provider = provider
-    buf.vars('code').model = model
-    buf.opt('core.lint.enabled', 1)
-
-    ensureClient(buf).then(c => {
-      c.session.create({ directory: buf.dir, title: '/init' })
-        .then(res => {
-          buf.vars('code').sessionID = res.data.id
-
-          pane.setBuf(buf, {}, () => {
-            nestPromptBuf(buf)
-            buf.vars('code').firstPromptSent = 1
-            buf.vars('code').busy = 1
-            appendMsg(buf, 'user', '/init')
-            updateBufAgent(buf, 'build')
-            startEventSub(buf)
-
-            c.session.command({ sessionID: res.data.id,
-                                directory: buf.dir,
-                                command: 'init',
-                                arguments: '',
-                                agent: 'build',
-                                model: provider + '/' + model })
-          })
-        })
-        .catch(err => {
-          Mess.yell('Failed: ' + err.message)
-        })
-    })
-  }
-
-  function initSessions
-  () {
-    let mo
-
-    function viewInit
-    (view, spec, cb) { // (view)
+function eachCodeW
+(buf, fn) {
+  buf.views.forEach(view => {
+    if (view.eleOrReserved) {
       let w
 
-      w = view.eleOrReserved.querySelector('.code-sessions-w')
-      if (w) {
-
-        w.innerHTML = ''
-        ensureClient(view.buf).then(c => c.session.list().then(sessions => {
-          d({ sessions })
-          append(w,
-                 sessions.data.filter(s => s.directory == view.buf.dir).map(s => {
-                   return [ divCl('code-sessions-del', '✗',
-                                  { 'data-run': 'delete session',
-                                    'data-session-id': s.id,
-                                    'data-session-dir': s.directory }),
-                            divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
-                                  { 'data-run': 'open code session',
-                                    'data-session-id': s.id,
-                                    'data-session-dir': s.directory }),
-                            divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
-                 }))
-        }))
-      }
-
-      if (cb)
-        cb(view)
+      w = view.eleOrReserved.querySelector('.code-w')
+      if (w)
+        fn(view, w)
     }
+  })
+}
 
-    function openCodeSession
-    (u, we) {
-      let sessionID, sessionDir
+function sumTokens
+(tokens) {
+  return (tokens.input || 0)
+    + (tokens.output || 0)
+    + (tokens.reasoning || 0)
+    + (tokens.cache?.read || 0)
+    + (tokens.cache?.write || 0)
+}
 
-      async function open
-      () {
-        let c, pane, name, buf, provider, model, variant
+function codeInit
+() {
+  let pane, dir, name, provider, model, existingBuf, buf
 
-        pane = Pane.current()
-        name = 'CO ' + sessionDir
+  provider = getProvider()
+  model = getModel()
+  pane = Pane.current()
+  dir = pane.dir
+  name = 'CO ' + dir
 
-        buf = Buf.find(b => b.name == name)
-        if (buf) {
-          pane.setBuf(buf)
-          return
-        }
-
-        provider = getProvider()
-        model = getModel()
-        variant = getVariant()
-
-        buf = Buf.add(name, 'code', divW(sessionDir), sessionDir)
-        buf.vars('code').provider = provider
-        buf.vars('code').model = model
-        buf.vars('code').variant = variant
-        buf.vars('code').sessionID = sessionID
-        buf.opt('core.lint.enabled', 1)
-
-        try {
-          c = await ensureClient(buf)
-        }
-        catch (err) {
-          Mess.yell('Failed: ' + err.message)
-          return
-        }
-
-        pane.setBuf(buf, {}, () => {
-          c.session.messages({ sessionID, directory: sessionDir }).then(r => {
-            d({ r })
-            for (let msg of r.data)
-              for (let part of msg.parts)
-                if (part.type == 'text')
-                  appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
-                else if (part.type == 'reasoning' && part.text)
-                  appendThinking(buf, part.text, part.id)
-                else if (part.type == 'tool') {
-                  let label
-
-                  label = part.tool
-                  if (part.tool == 'bash' && part.state?.input?.command)
-                    label += ': ' + part.state.input.command
-                  else if (part.state?.input?.filePath)
-                    label += ' ' + makeRelative(buf, part.state.input.filePath)
-                  else if (part.state?.input?.pattern)
-                    label += ' "' + part.state.input.pattern + '"'
-                  else if (part.state?.input?.query)
-                    label += ': ' + part.state.input.query
-                  else if (part.state?.input?.url)
-                    label += ' ' + part.state.input.url
-                  appendToolMsg(buf, part.callID, label,
-                                part.state?.output || part.state?.error)
-                }
-          })
-
-          buf.vars('code').firstPromptSent = 1
-          nestPromptBuf(buf)
-          startEventSub(buf)
-        })
-      }
-
-      sessionID = we.e.target.dataset.sessionId
-      sessionDir = we.e.target.dataset.sessionDir
-
-      open()
+  existingBuf = Buf.find(b => b.name == name && b.mode.key == 'code')
+  if (existingBuf && existingBuf.vars('code').sessionID) {
+    if (existingBuf.vars('code').busy) {
+      Mess.yell('Agent is busy')
+      return
     }
-
-    function deleteSession
-    (u, we) {
-      let sessionID, sessionDir
-
-      sessionID = we.e.target.dataset.sessionId
-      sessionDir = we.e.target.dataset.sessionDir
-
-      Prompt.yn('Delete session ' + sessionID.replace(/^sess_/, '') + '?',
-                { icon: 'trash' },
-                yes => {
-                  if (yes)
-                    ensureClient(View.current().buf)
-                      .then(c => c.session.delete({ sessionID, directory: sessionDir }))
-                      .then(() => {
-                        View.current().buf.views.forEach(view => {
-                          let w, el
-
-                          w = view.eleOrReserved?.querySelector('.code-sessions-w')
-                          el = w?.querySelector('[data-session-id="' + sessionID + '"]')
-                          if (el) {
-                            let i
-
-                            i = [ ...w.children ].indexOf(el)
-                            w.children[i + 2]?.remove()
-                            w.children[i + 1]?.remove()
-                            w.children[i].remove()
-                          }
-                        })
-                      })
-                })
-    }
-
-    mo = Mode.add('Code Sessions', { viewInit })
-
-    Cmd.add('refresh', () => viewInit(View.current()), mo)
-
-    Cmd.add('code sessions', () => {
-      let p, name, buf
-
-      p = Pane.current()
-      name = 'Code Sessions: ' + p.dir
-      buf = Buf.find(b => b.name == name)
-      if (buf)
-        p.setBuf(buf, {}, view => viewInit(view))
-      else {
-        buf = Buf.add(name, 'Code Sessions',
-                      divCl('code-sessions-ww',
-                            [ divCl('code-sessions-h',
-                                    Ed.divMl(p.dir, 'Code Sessions',
-                                             { icon: 'list' })),
-                              divCl('code-sessions-w bred-surface', '') ]),
-                      p.dir)
-        buf.icon = 'list'
-        buf.addMode('view')
-        p.setBuf(buf)
-      }
+    existingBuf.vars('code').busy = 1
+    pane.setBuf(existingBuf)
+    existingBuf.vars('code').agentStopped = 0
+    appendMsg(existingBuf, 'user', '/init')
+    updateBufAgent(existingBuf, 'build')
+    startEventSub(existingBuf)
+    ensureClient(existingBuf).then(c => {
+      c.session.command({ sessionID: existingBuf.vars('code').sessionID,
+                          directory: existingBuf.dir,
+                          command: 'init',
+                          arguments: '',
+                          agent: 'build',
+                          model: existingBuf.vars('code').provider + '/' + existingBuf.vars('code').model })
     })
-
-    Cmd.add('open code session', openCodeSession, mo)
-
-    Cmd.add('delete session', deleteSession, mo)
-
-    Em.on('g', 'refresh', mo)
+    return
   }
 
-  async function ensureClient
-  (buf) {
-    let client, ret, spawnPromise
-
-    client = buf.vars('code').client
-    if (client)
-      return client
-
-    if (buf.vars('code').spawnPromise)
-      return buf.vars('code').spawnPromise
-
-    spawnPromise = Tron.acmd('code.spawn', [ buf.id, buf.dir ])
-    buf.vars('code').spawnPromise = spawnPromise
-
-    ret = await spawnPromise
-
-    if (ret.err) {
-      buf.vars('code').spawnPromise = 0
-      throw new Error(ret.err.message)
-    }
-
-    client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
-    buf.vars('code').client = client
-    buf.vars('code').serverUrl = ret.url
-    buf.vars('code').spawnedBufferID = buf.id
-    buf.vars('code').spawnPromise = 0
-    return client
-  }
-
-  function modelName
-  (model, variant) {
-    return model + (variant ? ':' + variant : '')
-  }
-
-  function updateCredits
-  (buf) {
-    let key
-
-    key = Opt.get('code.key')
-    if (key.length == 0)
-      key = Opt.get('query.key')
-    if (key.length == 0)
-      return
-
-    fetch('https://openrouter.ai/api/v1/auth/key',
-          { method: 'GET',
-            headers: { Authorization: 'Bearer ' + key,
-                       'Content-Type': 'application/json' } })
-      .then(response => {
-        if (response.ok) {
-          response.json().then(data => {
-            d({ data })
-            d(data.data.limit_remaining)
-            buf.views.forEach(view => {
-              if (view.eleOrReserved) {
-                let el
-
-                el = view.eleOrReserved.querySelector('.code-under-credits')
-                if (el) {
-                  let dol
-
-                  dol = parseFloat(data.data.limit_remaining)
-                  if (isNaN(dol))
-                    el.innerText = 'OR:$'
-                  else
-                    el.innerText = 'OR:$' + dol.toFixed(2)
-                }
-              }
-            })
-          })
-            .catch(err => {
-              d('ERR .json: ' + err.message)
-            })
-          return
-        }
-        d('Error fetching credit info')
-      })
-      .catch(err => {
-        d('ERR fetch:')
-        d(err.message)
-      })
-  }
-
-  function scroll
-  (underW) {
-    d('CO SCROLL')
-    underW.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' })
-  }
-
-  function underVisible
-  (w, underW) {
-    if (underW) {
-      let rU, rW
-
-      rU = underW.getBoundingClientRect()
-      rW = w.getBoundingClientRect()
-      //d('CO ' + rU.bottom + ' < ' + rW.bottom + '?')
-      return rU.top < rW.bottom
-    }
-    return 0
-  }
-
-  function withScroll
-  (w, cb) { // (underW)
-    let underW, wasVisible
-
-    underW = w.querySelector('.code-under-w') || d('CO underW missing')
-
-    wasVisible = underVisible(w, underW)
-    d({ wasVisible })
-
-    if (cb)
-      cb(underW)
-
-    if (wasVisible && underW)
-      scroll(underW)
-  }
-
-  function appendX
-  (w, el) {
-    withScroll(w, underW => {
-      if (underW) {
-        let prev
-
-        prev = underW.previousElementSibling
-        if (prev && Css.has(prev, 'code-msg-permission'))
-          // keep the permission check at the end
-          prev.before(el)
-        else
-          underW.before(el)
-      }
-      else
-        append(w, el)
-    })
-  }
-
-  function setText
-  (w, el, text) {
-    withScroll(w, () => {
-      el.innerText = text
-    })
-  }
-
-  function makePatchEd
-  (text) {
-    let el, state, ed
-
-    el = divCl('code-patch-ed')
-    state = CMState.EditorState.create({ doc: text,
-                                         extensions: [ CMView.EditorView.editable.of(false),
-                                                       CMView.EditorView.lineWrapping,
-                                                       patch(),
-                                                       themeExtension ] })
-    ed = new CMView.EditorView({ state, parent: el })
-    return { el, ed }
-  }
-
-  function makeMarkdownEd
-  (text) {
-    let el, state, ed
-
-    el = divCl('code-markdown-ed')
-    state = CMState.EditorState.create({ doc: text,
-                                         extensions: [ CMView.EditorView.editable.of(false),
-                                                       CMView.EditorView.lineWrapping,
-                                                       markdown({ codeLanguages: langs }),
-                                                       themeExtension ] })
-    ed = new CMView.EditorView({ state, parent: el })
-    return { el, ed }
-  }
-
-  function makeCodeEd
-  (path, text) {
-    let el, state, ed, lang, exts
-
-    el = divCl('code-code-ed')
-    lang = langs.find(l => l.id == modeFor(path))
-    exts = [ CMView.EditorView.editable.of(false),
-             CMView.EditorView.lineWrapping,
-             themeExtension ]
-    if (lang?.language)
-      exts.unshift(lang.language)
-    state = CMState.EditorState.create({ doc: text, extensions: exts })
-    ed = new CMView.EditorView({ state, parent: el })
-    return { el, ed }
-  }
-
-  function appendModel
-  (buf, model) {
-    eachCodeW(buf, (view, w) => {
-      appendX(w, divCl('code-msg code-msg-role', model))
-    })
-  }
-
-  function appendMsg
-  (buf, role, text, partID) {
-    eachCodeW(buf, (view, w) => {
-      if (role == 'user') {
-      }
-      else {
-        let el
-
-        el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
-        if (el) {
-          let oldMdEl
-
-          oldMdEl = el.querySelector('.code-markdown-ed')
-          if (oldMdEl) {
-            let mdEd
-
-            mdEd = makeMarkdownEd(text)
-            withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
-            view.vars('code').eds = view.vars('code').eds || []
-            view.vars('code').eds.push(mdEd.ed)
-          }
-          return
-        }
-      }
-      appendX(w,
-              divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                    [ (role == 'user')
-                      ? divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
-                      : makeMarkdownEd(text || '').el ],
-                    { 'data-partid': partID || 0 }))
-      if (role == 'user') {
-        let underW
-
-        underW = w.querySelector('.code-under-w')
-        scroll(underW)
-      }
-    })
-  }
-
-  function appendThinking
-  (buf, text, partID) {
-    eachCodeW(buf, (view, w) => {
-      let el
-
-      el = w.querySelector('.code-msg-thinking[data-partid="' + partID + '"]')
-      if (el) {
-        let current
-
-        current = el.querySelector('.code-msg-text').innerText
-        setText(w, el.querySelector('.code-msg-text'), current + text)
-      }
-      else
-        appendX(w,
-                divCl('code-msg code-msg-thinking',
-                      [ divCl('code-msg-text', text) ],
-                      { 'data-partid': partID || 0 }))
-    })
-  }
-
-  function makeRelative
-  (buf, path) {
-    if (path?.startsWith(buf.dir))
-      return path.slice(buf.dir.length)
-    return path
-  }
-
-  function fileLabel
-  (buf, tool, path, status, spec) {
-    function bounds
-    () {
-      if (spec.input?.offset)
-        return ' ' + spec.input.offset + '-' + (spec.input.offset + (spec.input?.limit || 0))
-      return ''
-    }
-
-    spec = spec || {}
-    return [ tool + ' file ',
-             divCl('code-file',
-                   makeRelative(buf, path),
-                   { 'data-run': 'open link', 'data-path': path }),
-             bounds(),
-             status || '' ]
-  }
-
-  function appendToolMsg
-  (buf, callID, label, under, spec) {
-    spec = spec || {}
-    if (callID) {
-      buf.vars('code').callLabels = buf.vars('code').callLabels || {}
-      buf.vars('code').callLabels[callID] = label
-    }
-    eachCodeW(buf, (view, w) => {
-      let els, underEl
-
-      els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
-      els?.forEach(el => el.remove())
-      if (under && (spec.format == 'code')) {
-        let codeResult
-
-        codeResult = makeCodeEd(spec.path, under)
-        underEl = codeResult.el
-        view.vars('code').eds = view.vars('code').eds || []
-        view.vars('code').eds.push(codeResult.ed)
-      }
-      else if (under && (spec.format == 'patch')) {
-        let patchResult
-
-        patchResult = makePatchEd(under)
-        underEl = patchResult.el
-        view.vars('code').eds = view.vars('code').eds || []
-        view.vars('code').eds.push(patchResult.ed)
-      }
-      else if (under)
-        underEl = divCl('code-msg-text code-msg-under', under)
-      appendX(w,
-              divCl('code-msg code-msg-tool',
-                    [ divCl('code-msg-text',
-                            [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : iconRightArrow()),
-                              ' ',
-                              label ]),
-                      underEl ],
-                    { 'data-callid': callID }))
-    })
-    if (callID && label)
-      eachCodeW(buf, (view, w) => {
-        let permEl
-
-        permEl = w.querySelector('.code-msg-permission[data-permission-callid="' + callID + '"]')
-        if (permEl) {
-          let labelEl
-
-          labelEl = permEl.querySelector('.code-msg-label')
-          if (labelEl)
-            labelEl.innerText = label
-          else {
-            let patternEl
-
-            patternEl = permEl.querySelector('.code-msg-pattern')
-            labelEl = divCl('code-msg-label', label)
-            if (patternEl)
-              patternEl.before(labelEl)
-            else
-              permEl.append(labelEl)
-          }
-        }
-      })
-  }
-
-  function appendPermission
-  (buf, perm) {
-    let id, label, callID
-
-    function pattern
-    () {
-      let action, patterns
-
-      action = perm.req.permission || perm.req.type || '?'
-      patterns = perm.req.patterns || perm.req.pattern || []
-      if (typeof patterns == 'string')
-        patterns = [ patterns ]
-      return '🗝 ' + action + (patterns.length ? ': ' + patterns[0] : '')
-    }
-
-    id = perm.id
-    callID = perm.req.callID || perm.req.tool?.callID
-    if (callID)
-      label = buf.vars('code').callLabels?.[callID]
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let w
-
-        w = view.eleOrReserved.querySelector('.code-w')
-        appendX(w,
-                divCl('code-msg code-msg-permission',
-                      [ divCl('code-msg-text',
-                              [ '▣ Allow?',
-                                button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
-                                button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
-                        label && divCl('code-msg-label', label),
-                        divCl('code-msg-pattern', pattern()) ],
-                      { 'data-permissionid': id,
-                        'data-permission-callid': callID || '??' }))
-      }
-    })
-  }
-
-  function ynRespond
-  (buf, id, yes) {
-    let perm, sessionID, response
-
-    perm = buf.vars('code').permissions.find(p => p.id == id)
-    sessionID = perm?.sessionID || buf.vars('code')?.sessionID
-    response = yes ? 'once' : 'reject'
-
-    d('CO permission reply: ' + response)
-    ensureClient(buf).then(async c => {
-      try {
-        d('CO calling permission.respond, dir=' + buf.dir)
-
-        // Seems they often move args and things break, so if you're stuck:
-        // Check the SDK method parameters against the OpenAPI spec in
-        // `http://127.0.0.1:PORT/doc` to verify all required params
-        // (especially query params like `directory`) are being passed.
-        await c.permission.respond({ sessionID,
-                                     permissionID: id,
-                                     response,
-                                     directory: buf.dir })
-        eachCodeW(buf, (view, w) => {
-          let el
-
-          el = w.querySelector('.code-msg-permission[data-permissionid="' + id + '"]')
-          el?.remove()
-        })
-      }
-      catch (err) {
-        d('CO permission respond error: ' + err.message)
-      }
-    }).catch(err => {
-      d('CO permission ensureClient error: ' + err.message)
-    })
-
-    buf.vars('code').permissions = buf.vars('code').permissions.slice(1)
-    if (buf.vars('code').permissions.length)
-      // Ask about the next one.
-      appendPermission(buf, buf.vars('code').permissions[0])
-  }
-
-  function yn
-  (yes) {
-    let buf, id, perms
-
-    buf = Pane.current()?.buf
-    perms = buf?.vars('code')?.permissions
-    id = perms?.length && perms[0]?.id
-    if (id)
-      ynRespond(buf, id, yes)
-  }
-
-  function updateBufStatus
-  (buf, status, model, tokenInfo, versionInfo) {
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let underW
-
-        underW = view.eleOrReserved.querySelector('.code-under-w')
-        if (underW) {
-          let statusEl, modelEl, versionEl, tokenEl
-
-          statusEl = underW.querySelector('.code-under-status')
-          modelEl = underW.querySelector('.code-under-model')
-          versionEl = underW.querySelector('.code-under-version')
-          tokenEl = underW.querySelector('.code-under-tokens')
-          if (statusEl)
-            statusEl.innerText = status
-          if (modelEl)
-            modelEl.innerText = model
-          if (versionEl)
-            if (versionInfo)
-              versionEl.innerText = versionInfo
-            else
-              versionEl.innerText = ''
-          if (tokenEl)
-            if (tokenInfo)
-              tokenEl.innerText = tokenInfo
-            else
-              tokenEl.innerText = ''
-        }
-      }
-    })
-  }
-
-  function updateBufAgent
-  (buf, agent) {
-    buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let h
-
-        h = view.eleOrReserved.querySelector('.code-h')
-        if (h) {
-          let agentEl
-
-          agentEl = h.querySelector('.code-agent')
-          if (agentEl)
-            agentEl.innerText = iconAgent() + agent
-        }
-      }
-    })
-  }
-
-  function updateIdle
-  (buf, tokenInfo) {
-    updateBufStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
-    buf.vars('code').busy = 0
-    if (buf.vars('code').agentStopped) {
-      buf.vars('code').agentStopped = 0
-      appendMsg(buf, 0, '...stopped')
-      buf.vars('code').stepActiveSessions = new Set()
-    }
-  }
-
-  function updateStatus
-  (buf, req, tokenInfo) {
-
-    d('CO updateStatus')
-    d({ tokenInfo })
-
-    if (req.status?.type == 'busy')
-      updateBufStatus(buf, '🌊', modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
-    else if (req.status?.type == 'idle')
-      updateIdle(buf, tokenInfo)
-    else if (req.status?.type == 'retry')
-      updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
-    else if (req.status?.type)
-      d('🌱 TODO status: ' + req.status?.type)
-  }
-
-  function calculateTokenPercentage
-  (buf) {
-    let tokens, modelLimit, ret
-
-    ret = ''
-    tokens = buf.vars('code').lastTokens
-    modelLimit = buf.vars('code').modelContextLimit
-    if (tokens) {
-      ret += ('T:' + tokens)
-      if (modelLimit)
-        ret += (' ' + Math.round((tokens / modelLimit) * 100) + '%')
-    }
-    return ret
-  }
-
-  async function updateModelContextLimit
-  (buf, providerID, modelID) {
-    let lastProviderID, lastModelID
-
-    lastProviderID = buf.vars('code').lastProviderID
-    lastModelID = buf.vars('code').lastModelID
-    if (providerID
-        && modelID
-        && (providerID == lastProviderID)
-        && (modelID == lastModelID))
-      return
-
-    buf.vars('code').lastProviderID = providerID
-    buf.vars('code').lastModelID = modelID
-    try {
-      let c, providers, model
-
-      c = await ensureClient(buf)
-      providers = await c.config.providers({ directory: buf.dir })
-      d({ providers })
-      providers.data.providers?.some(p => {
-        if (p.id == providerID) {
-          model = p.models?.[modelID]
-          return true
-        }
-      })
-      if (model?.limit?.context) {
-        d('CO modelContextLimit ' + model.limit.context)
-        buf.vars('code').modelContextLimit = model.limit.context
-      }
-      else {
-        d('CO modelContextLimit missing')
-        d({ providers })
-      }
-    }
-    catch (err) {
-      d('CO failed to get providers: ' + err.message)
-    }
-  }
-
-  function checkForPatch
-  (buf, req) {
-    if ((req.permission == 'edit') || (req.type == 'edit')) {
-      let path
-
-      path = (req.metadata?.filepath || req.metadata?.filePath)
-      if (path) {
-        d('CO permission file: ' + path)
-        buf.vars('code').patch = req.metadata?.diff
-        appendToolMsg(buf, (req.callID || req.tool.callID), fileLabel(buf, 'Edit', path), req.metadata?.diff, { format: 'patch' })
-      }
-    }
-  }
-
-  function handlePermission
-  (buf, req) {
-    checkForPatch(buf, req)
-    buf.vars('code').permissions = buf.vars('code').permissions || []
-    buf.vars('code').permissions.push({ id: req.id, sessionID: req.sessionID, req })
-    if (buf.vars('code').permissions.length == 1)
-      // Free to ask.
-      appendPermission(buf, buf.vars('code').permissions[0])
-  }
-
-  function handleQuestionAsked
-  (buf, event) {
-    let req
-
-    req = event.properties
-    d('CO question asked: ' + (req.questions?.length || '?') + ' questions')
-    buf.vars('code').questions = buf.vars('code').questions || []
-    buf.vars('code').questions.push({ id: req.id, sessionID: req.sessionID, questions: req.questions, tool: req.tool })
-    if (req.tool?.callID) {
-      buf.vars('code').callLabels = buf.vars('code').callLabels || {}
-      buf.vars('code').callLabels[req.tool.callID] = 'Questions (' + req.questions.length + ')'
-    }
-    if (buf.vars('code').questions.length == 1)
-      appendQuestion(buf, buf.vars('code').questions[0])
-  }
-
-  function appendQuestion
-  (buf, req) {
-    eachCodeW(buf, (view, w) => {
-      appendX(w,
-              divCl('code-msg code-msg-question',
-                    [ divCl('code-msg-text', [ '▣ Questions' ]),
-                      ...req.questions.map((q, qi) => divCl('code-question-item',
-                                                            [ divCl('code-question-header', q.header),
-                                                              divCl('code-question-text', q.question),
-                                                              ...(q.options || []).map(opt => divCl('code-question-option',
-                                                                                                    [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
-                                                                                                    { 'data-run': 'toggle question option',
-                                                                                                      'data-qid': req.id,
-                                                                                                      'data-qi': qi,
-                                                                                                      'data-opt': opt.label })),
-                                                              q.custom && create('input', [],
-                                                                                 'code-question-custom',
-                                                                                 { 'data-qid': req.id,
-                                                                                   'data-qi': qi,
-                                                                                   placeholder: 'Your answer...' }) ],
-                                                            { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
-                      divCl('code-msg-text',
-                            [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
-                              button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
-                    { 'data-requestid': req.id }))
-    })
-  }
-
-  function questionRespond
-  (buf, requestID, answers) {
-    d('CO question ' + (answers ? 'reply' : 'reject'))
-    ensureClient(buf).then(async c => {
-      try {
-        if (answers)
-          await c.question.reply({ requestID, answers, directory: buf.dir })
-        else
-          await c.question.reject({ requestID, directory: buf.dir })
-        eachCodeW(buf, (view, w) => {
-          let el
-
-          el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
-          el?.remove()
-        })
-      }
-      catch (err) {
-        d('CO question respond error: ' + err.message)
-      }
-    })
-    buf.vars('code').questions = buf.vars('code').questions.slice(1)
-    if (buf.vars('code').questions.length)
-      appendQuestion(buf, buf.vars('code').questions[0])
-  }
-
-  function toggleQuestionOption
-  (u, we) {
-    let opt, item, multiple
-
-    opt = we.e.target.closest('.code-question-option')
-    item = opt.closest('.code-question-item')
-    multiple = item.dataset.multiple == '1'
-    if (Css.has(opt, 'code-option-selected'))
-      Css.remove(opt, 'code-option-selected')
-    else {
-      if (multiple == 0) {
-        let allOpts
-
-        allOpts = item.querySelectorAll('.code-question-option')
-        allOpts.forEach(o => Css.remove(o, 'code-option-selected'))
-      }
-      Css.add(opt, 'code-option-selected')
-    }
-  }
-
-  function answerQuestion
-  (u, we) {
-    let buf, el, requestID, items, answers
-
-    buf = Pane.current().buf
-    el = we.e.target.closest('.code-msg-question')
-    requestID = el.dataset.requestid
-    items = el.querySelectorAll('.code-question-item')
-    answers = []
-    items.forEach(item => {
-      let selected, custom, ans
-
-      selected = item.querySelectorAll('.code-question-option.code-option-selected')
-      ans = []
-      selected.forEach(o => ans.push(o.dataset.opt))
-      custom = item.querySelector('.code-question-custom')
-      if (custom && custom.value.trim())
-        ans.push(custom.value.trim())
-      answers.push(ans)
-    })
-    questionRespond(buf, requestID, answers)
-  }
-
-  function skipQuestion
-  (u, we) {
-    let buf, el, requestID
-
-    buf = Pane.current().buf
-    el = we.e.target.closest('.code-msg-question')
-    requestID = el.dataset.requestid
-    questionRespond(buf, requestID)
-  }
-
-  function handlePermissionAsked
-  (buf, event) {
-    let req
-
-    req = event.properties
-    d('CO permission asked: ' + req.permission)
-    handlePermission(buf, req)
-  }
-
-  function handlePermissionUpdated
-  (buf, event) {
-    let req
-
-    req = event.properties
-    d('CO permission updated: ' + req.type)
-    handlePermission(buf, req)
-  }
-
-  function handleSessionUpdated
-  (buf, event) {
-    let title
-
-    title = event.properties.info?.title
-    if (title)
-      buf.views.forEach(view => {
-        if (view.eleOrReserved) {
-          let titleEl
-
-          titleEl = view.eleOrReserved.querySelector('.code-session-title')
-          if (titleEl)
-            titleEl.innerText = title
-        }
-      })
-  }
-
-  function handleMessageUpdated
-  (buf, event) {
-    let info
-
-    info = event.properties.info
-    if (info.tokens) {
-      let total
-
-      total = sumTokens(info.tokens)
-      if (total > 0)
-        buf.vars('code').lastTokens = total
-    }
-    if (info.model)
-      updateModelContextLimit(buf, info.model.providerID, info.model.modelID)
-  }
-
-  function icon
-  (tool) {
-    if (tool == 'edit')
-      return '💾 '
-    if (tool == 'read')
-      return '💾 '
-    if (tool == 'write')
-      return '💾 '
-    return '▶️ '
-  }
-
-  function handleToolPart
-  (buf, part) {
-    let status, h
-
-    status = part.state?.status
-    d('CO tool: ' + icon(part.tool) + part.tool + ' ' + status)
-
-    h = tools[part.tool]
-    if (h) {
-      if (status == 'completed' && h.onComplete)
-        h.onComplete(buf, part)
-      else if (status == 'error' && h.onErr)
-        h.onErr(buf, part)
-      else if (status == 'pending' && h.onPend)
-        h.onPend(buf, part)
-      else if (status == 'running' && h.onRun)
-        h.onRun(buf, part)
-      else if ([ 'pending', 'running' ].includes(status) && h.onPendOrRun)
-        h.onPendOrRun(buf, part)
-      else
-        appendToolMsg(buf, part.callID, 'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
-      return
-    }
-    appendToolMsg(buf, part.callID, 'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
-  }
-
-  function handlePart
-  (buf, event) {
-    let part
-
-    part = event.properties.part
-
-    if (part.tokens) {
-      let total
-
-      total = sumTokens(part.tokens)
-      if (total > 0)
-        buf.vars('code').lastTokens = total
-    }
-
-    if (part.type == 'step-start') {
-      let steps
-
-      d('CO step-start')
-      steps = buf.vars('code').stepActiveSessions
-      if (steps == null) {
-        steps = new Set()
-        buf.vars('code').stepActiveSessions = steps
-      }
-      steps.add(part.sessionID)
-    }
-    else if (part.type == 'step-finish') {
-      let steps
-
-      d('CO step-finish')
-      steps = buf.vars('code').stepActiveSessions
-      if (steps)
-        steps.delete(part.sessionID)
-    }
-    else if (buf.vars('code').agentStopped)
-      d('CO agent stopped, skipping: ' + part.type)
-    else if (part.type == 'text') {
-      d('CO text part' + part.id)
-      if (buf.vars('code').stepActiveSessions?.size) {
-        d('CO update text: ' + part.text)
-        appendMsg(buf, 0, part.text, part.id)
-      }
-      else
-        d('CO text outside step: ' + part.text)
-    }
-    else if (part.type == 'reasoning') {
-      let buffered
-
-      //d('CO reasoning part ' + part.id)
-
-      buffered = (event.properties.delta || '')
-      if (buffered) {
-        d('CO reasoning append: ' + buffered)
-        appendThinking(buf, buffered, part.id)
-      }
-    }
-    else if (part.type == 'tool')
-      handleToolPart(buf, part)
-  }
-
-  function handlePartDelta
-  (buf, event) {
-    let delta, field
-
-    delta = event.properties.delta
-    field = event.properties.field
-    eachCodeW(buf, (view, w) => {
-      let msgEl, thinkingEl, textEl
-
-      msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
-      if (msgEl) {
-        textEl = msgEl.querySelector('.code-msg-text')
-        if (textEl && field == 'text')
-          textEl.innerText = (textEl.innerText || '') + delta
-      }
-      thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
-      if (thinkingEl && field == 'text') {
-        textEl = thinkingEl.querySelector('.code-msg-text')
-        if (textEl)
-          textEl.innerText = (textEl.innerText || '') + delta
-      }
-      else if (field == 'text' && msgEl == null)
-        appendX(w,
-                divCl('code-msg code-msg-thinking',
-                      [ divCl('code-msg-text', delta) ],
-                      { 'data-partid': event.properties.partID || 0 }))
-    })
-  }
-
-  function handleSubagentIdle
-  (buf, event) {
-    let callId
-
-    callId = buf.vars('code').subagentCallIds?.get(event.properties.sessionID)
-    if (callId)
-      eachCodeW(buf, (view, w) => {
-        let els
-
-        els = w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]')
-        els?.forEach(el => {
-          let textEl
-
-          textEl = el.querySelector('.code-msg-text')
-          if (textEl && textEl.innerText.indexOf('◉') < 0)
-            textEl.innerText = textEl.innerText + ' ◉'
-        })
-      })
-  }
-
-  function handleEvent
-  (buf, event) {
-    let sessionID
-
-    function isSubagentId
-    (id) {
-      return buf?.vars('code')?.subagentIds?.has(id)
-    }
-
-    function isSessionMatch
-    (id) {
-      return id == sessionID || isSubagentId(id)
-    }
-
-    d('CO ' + event.type)
-    d({ event })
-
-    sessionID = buf && buf.vars('code')?.sessionID
-
-    // Already done by session.status. Maybe planned replacement.
-    if ((event.type == 'session.idle')
-        && isSessionMatch(event.properties.sessionID)) {
-      if (event.properties.sessionID == sessionID)
-        updateIdle(buf, calculateTokenPercentage(buf))
-      else
-        handleSubagentIdle(buf, event)
-      return
-    }
-
-    if ((event.type == 'session.status')
-        && isSessionMatch(event.properties.sessionID)) {
-      if (event.properties.sessionID == sessionID)
-        updateStatus(buf, event.properties, calculateTokenPercentage(buf))
-      return
-    }
-
-    if ((event.type == 'permission.asked')
-        && isSessionMatch(event.properties.sessionID)) {
-      handlePermissionAsked(buf, event)
-      return
-    }
-
-    if ((event.type == 'permission.updated')
-        && isSessionMatch(event.properties.sessionID)) {
-      handlePermissionUpdated(buf, event)
-      return
-    }
-
-    if ((event.type == 'question.asked')
-        && isSessionMatch(event.properties.sessionID)) {
-      handleQuestionAsked(buf, event)
-      return
-    }
-
-    if ((event.type == 'session.error')
-        && (event.properties?.sessionID == sessionID)) {
-      let error
-
-      error = event.properties.error
-      d({ error })
-      if (error)
-        Mess.yell('🚨 session.error: ' + (error.name || '??') + ' ' + (error.data?.message || '????'))
-      else
-        Mess.yell('🚨 session.error: error missing')
-      return
-    }
-
-    if ((event.type == 'session.updated')
-        && isSessionMatch(event.properties.info.id)) {
-      if (event.properties.info.id == sessionID)
-        handleSessionUpdated(buf, event)
-      return
-    }
-
-    if ((event.type == 'message.updated')
-        && (event.properties.info.sessionID == sessionID)) {
-      handleMessageUpdated(buf, event)
-      return
-    }
-
-    if ((event.type == 'message.part.updated')
-        && isSessionMatch(event.properties.part.sessionID)) {
-      handlePart(buf, event)
-      return
-    }
-
-    if ((event.type == 'message.part.delta')
-        && isSessionMatch(event.properties.sessionID)) {
-      handlePartDelta(buf, event)
-      return
-    }
-
-    if (event.type == 'server.connected') {
-      updateBufStatus(buf, 'OK', '', '', VopenCode.version) // clears the CONNECTED after reconnect
-      return
-    }
-
-    if (event.type == 'server.heartbeat')
-      return
-
-    if (event.type == 'command.executed') {
-      if (event.properties.sessionID == sessionID) {
-        appendMsg(buf, 0, '/' + event.properties.name + ' finished')
-        appendModel(buf, modelName(buf.vars('code').model, buf.vars('code').variant))
-      }
-      return
-    }
-
-    {
-      let evSessionID, subagent
-
-      evSessionID = event.properties.sessionID
-        || event.properties.part?.sessionID
-        || event.properties.info?.id
-      subagent = isSubagentId(evSessionID)
-      d('🌱 TODO handle ' + event.type + (subagent ? ' (subagent)' : ''))
-    }
-  }
-
-  function startEventSub
-  (buf) {
-    let state
-
-    async function runStream
-    (client) {
-      let iter
-
-      try {
-        let events
-
-        events = await client.event.subscribe()
-        iter = events.stream[Symbol.asyncIterator]()
-      }
-      catch (err) {
-        if (err.name == 'AbortError') return
-        d('CO subscribe error: ' + err.message)
-        state.client = 0
-        setTimeout(() => tryReconnect(), 1000)
-        return
-      }
-
-      updateBufStatus(buf, '🔁 CONNECTED', '', '', VopenCode.version)
-
-      while (state.streamActive) {
-        let timeoutMs, timeoutPromise
-
-        timeoutMs = 35000
-        timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('heartbeat-timeout')), timeoutMs)
-        })
-
-        try {
-          let result
-
-          result = await Promise.race([ iter.next(), timeoutPromise ])
-
-          state.lastEventTime = Date.now()
-          if (result.done) {
-            state.client = 0
-            tryReconnect()
-            return
-          }
-
-          // give event loop a chance, in case flurry of events is freezing ui
-          await U.cede()
-          handleEvent(buf, result.value)
-        }
-        catch (err) {
-          if (err.message == 'heartbeat-timeout') {
-            d('CO heartbeat timeout, reconnecting')
-            state.client = 0
-            tryReconnect()
-            return
-          }
-          if (err.name == 'AbortError') return
-          d('CO stream error: ' + err.message)
-          state.client = 0
-          tryReconnect()
-          return
-        }
-      }
-    }
-
-    async function tryReconnect
-    () {
-      if (state.streamActive == 0) return
-      if (state.spawnedBufferID) {
-        await Tron.acmd('code.close', [ state.spawnedBufferID ])
-        state.spawnedBufferID = 0
-      }
-      state.client = 0
-      state.lastEventTime = Date.now()
-      updateBufStatus(buf, '🔁 RECONNECTING', '', '')
-      ensureClient(buf).then(runStream).catch(() => {
-        d('CO reconnect spawn failed')
-        setTimeout(tryReconnect, 1000)
-      })
-    }
-
-    state = buf.vars('code')
-    if (state.streamActive) return
-    state.streamActive = 1
-    state.lastEventTime = Date.now()
-    updateBufStatus(buf, '🔁 CONNECTING', '', '')
-
-    ensureClient(buf).then(runStream).catch(() => {
-      d('CO spawn failed, retrying')
-      setTimeout(() => startEventSub(buf), 1000)
-    })
-  }
-
-  function divW
-  (dir) {
-    return divCl('code-ww',
-                 [ divCl('code-h',
-                         [ divCl('code-icon',
-                                 img(Icon.path('assist'), 'Code', 'filter-clr-text')),
-                           divCl('code-title', makeMlDir(dir)),
-                           divCl('code-h-right',
-                                 [ divCl('code-agent', '', { 'data-run': 'Set Agent' }),
-                                   divCl('code-thought code-icon',
-                                         img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
-                                         { 'data-run': 'toggle thinking' }) ]) ]),
-                   divCl('code-w bred-scroller',
-                         [ divCl('code-session-title'),
-                           divCl('code-under-w',
-                                 [ divCl('code-under code-under-status', '...'),
-                                   divCl('code-under code-under-model', '...'),
-                                   divCl('code-under-end',
-                                         [ divCl('code-under code-under-credits', ''),
-                                           divCl('code-under code-under-version', ''),
-                                           divCl('code-under code-under-tokens', '') ]) ]) ]),
-                   divCl('code-prompt-w retracted',
-                         [ divCl('code-prompt-ml',
-                                 [ divCl('code-prompt-model', '') ]),
-                           divCl('bred-nested-pane-w') ]) ])
-  }
-
-  async function send
-  (buf, text, provider, model, variant) {
-    let sessionID, c, res
-
-    provider = provider || getProvider(buf)
-    model = model || getModel(buf)
-    variant = variant || getVariant(buf)
-
-    sessionID = buf.vars('code').sessionID
-
-    try {
-      c = await ensureClient(buf)
-    }
-    catch (err) {
-      d(err)
-      appendMsg(buf, 'assistant', 'Error: ' + err.message)
-      return
-    }
-
-    buf.vars('code').agentStopped = 0
-    buf.vars('code').busy = 1
-
-    appendMsg(buf, 'user', text)
-
-    startEventSub(buf)
-
-    try {
-      let agent
-
-      agent = getAgent(buf)
-
-      updateBufAgent(buf, agent)
-
-      d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
-
-      res = await c.session.prompt({ sessionID,
-                                     directory: buf.dir,
-                                     model: { providerID: provider, modelID: model },
-                                     agent,
-                                     variant: variant || undefined,
-                                     parts: [ { id: 'prt_' + uuidv4(), type: 'text', text } ] })
-
-      d('CO SEND done')
-      d({ res })
-
-      appendModel(buf, modelName(res.data?.info?.modelID || '???', variant))
-      if (provider == 'openrouter')
-        updateCredits(buf)
-    }
-    catch (err) {
-      d(err)
-      appendMsg(buf, 'assistant', 'Error: ' + err.message)
-      buf.vars('code').client = 0
-      buf.vars('code').streamActive = 0
-      startEventSub(buf)
-    }
-
-    if (res?.error) {
-      d({ resError: res.error })
-      appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
-      buf.vars('code').client = 0
-      buf.vars('code').streamActive = 0
-      startEventSub(buf)
-    }
-  }
-
-  function stopAgent
-  (buf, sessionID) {
-    buf.vars('code').agentStopped = 1
-    ensureClient(buf).then(async client => {
-      try {
-        await client.session.abort({ sessionID, directory: buf.dir })
-        d('CO stop done')
-        Mess.yell('Stopped agent')
-      }
-      catch (err) {
-        d('CO stop error: ' + err.message)
-      }
-    }).catch(err => {
-      d('CO stop ensureClient error: ' + err.message)
-    })
-  }
-
-  function stop
-  () {
-    let p, sessionID
-
-    p = Pane.current()
-    sessionID = p.buf.vars('code')?.sessionID
-
-    if (sessionID)
-      stopAgent(p.buf, sessionID)
-    else
-      Mess.yell('missing sessionID')
-  }
-
-  function stopWithCaution
-  () {
-    let p, sessionID
-
-    p = Pane.current()
-    sessionID = p.buf.vars('code')?.sessionID
-
-    if (sessionID)
-      if (stopTimeout) {
-        clearTimeout(stopTimeout)
-        stopTimeout = 0
-        stopAgent(p.buf, sessionID)
-      }
-      else {
-        Mess.yell('Again to stop agent')
-        stopTimeout = setTimeout(() => {
-          stopTimeout = 0
-          Mess.yell('stop timed out')
-        }, 5000)
-      }
-    else
-      Mess.yell('missing sessionID')
-  }
-
-  function toggleThinking
-  () {
-    let p
-
-    p = Pane.current()
-    p.buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let w
-
-        w = view.eleOrReserved.querySelector('.code-w')
-        if (w) {
-          let img, h
-
-          h = view.eleOrReserved.querySelector('.code-h')
-          img = h.querySelector('.code-thought img')
-          if (Css.has(w, 'code-thinking-hidden')) {
-            w.classList.remove('code-thinking-hidden')
-            if (img)
-              img.src = Icon.path('thinking.active')
-          }
-          else {
-            w.classList.add('code-thinking-hidden')
-            if (img)
-              img.src = Icon.path('thinking.zen')
-          }
-        }
-      }
-    })
-  }
-
-  function toggleDetails
-  (u, we) {
-    let el
-
-    el = we.e.target.closest('.code-msg-tool')
-    Css.toggle(el, 'code-closed')
-  }
-
-  function setAgent
-  (buf, agent) {
-    buf.opts.set('code.agent', agent)
-    Hist.ensure('code.agent').add(agent)
-    updateBufAgent(buf, agent)
-  }
-
-  function promptAgent
-  () {
-    let buf
-
-    buf = Pane.current().buf
-    Prompt.choose(iconAgent() + ' Agent',
-                  [ 'build', 'plan' ],
-                  {},
-                  agent => {
-                    if (agent) {
-                      agent = agent.trim()
-                      setAgent(buf, agent)
-                      return
-                    }
-                    Mess.throw('ERR: agent: ' + agent)
-                  })
-  }
-
-  function openPrompt
-  (buf, pane, provider, model, variant) {
-    let wh
-
-    wh = whichHistFromBuf(buf)
-    buf.vars('code').promptBuf.placeholder = wh?.nth(0)?.toString()
-
-    buf.views.forEach(view => {
-      let container
-
-      container = view.ele.querySelector('.code-prompt-w')
-      if (container) {
-        let mlModel
-
-        Css.expand(container)
-        mlModel = container.querySelector('.code-prompt-model')
-        if (mlModel)
-          mlModel.innerText = '🗩 ' + provider + '/' + modelName(model, variant)
-      }
-    })
-
-    if (pane.view?.nestedViews) {
-      let nestedView
-
-      nestedView = pane.view.nestedViews.find(nv => nv.buf == buf.vars('code').promptBuf)
-      if (nestedView?.ele)
-        pane.focusViewAt(nestedView.ele)
-    }
-  }
-
-  function next
-  () {
-    let p, buf, provider, model, variant
-
-    p = Pane.current()
-    buf = p.buf
-
-    if (buf.vars('code').permissions?.length)
-      return
-
-    if (buf.vars('code').questions?.length)
-      return
-
-    if (buf?.vars('code')?.sessionID) {
-      // OK
-    }
-    else
-      return
-
-    if (buf.vars('code').busy) {
-      d('busy')
-      return
-    }
-
-    provider = getProvider(buf)
-    model = getModel(buf)
-    variant = getVariant(buf)
-
-    openPrompt(buf, p, provider, model, variant)
-  }
-
-  function nestPromptBuf
-  (buf) {
-    let promptBuf
-
-    function addPromptBuf
-    () {
-      let b, placeholder
-
-      placeholder = hist?.nth(0)?.toString()
-
-      b = Buf.make({ name: 'Code Prompt',
-                     modeKey: 'markdown',
-                     content: Ed.divW(buf.dir, 'Code Prompt', { hideMl: 1 }),
-                     dir: buf.dir,
-                     placeholder,
-                     single: 1 })
-      b.opts.set('blankLines.enabled', 0)
-      b.opts.set('core.autocomplete.enabled', 0)
-      b.opts.set('core.brackets.close.enabled', 0)
-      b.opts.set('core.folding.enabled', 0)
-      b.opts.set('core.highlight.activeLine.enabled', 0)
-      b.opts.set('core.head.enabled', 0)
-      b.opts.set('core.line.numbers.show', 0)
-      b.opts.set('core.lint.enabled', 0)
-      b.opts.set('minimap.enabled', 0)
-      b.opts.set('ruler.enabled', 0)
-      b.icon = 'prompt'
-
-      buf.vars('code').promptBuf = b
-      return b
-    }
-
-    promptBuf = buf.vars('code').promptBuf || addPromptBuf()
-    promptBuf.addMode('Code Prompt')
-
-    buf.views.forEach(view => {
-      let container
-
-      container = view.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
-      append(container, divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': promptBuf.id }))
-    })
-
-    buf.nest(promptBuf)
-  }
-
-  function code
-  (given) {
-    let pane, dir, name, provider, model, variant
-
-    async function run
-    (prompt) {
-      if (prompt)
-        hist.add(prompt)
-
-      try {
-        let c, buf, res
-
-        buf = Buf.add(name, 'code', divW(dir), pane.dir)
-        buf.vars('code').prompt = prompt
-        buf.vars('code').provider = provider
-        buf.vars('code').model = model
-        buf.vars('code').variant = variant
-        buf.opt('core.lint.enabled', 1)
-
-        c = await ensureClient(buf)
-
-        res = await c.session.create({ directory: buf.dir, title: prompt || '' })
-
+  buf = Buf.add(name, 'code', divW(dir), pane.dir)
+  buf.vars('code').prompt = '/init'
+  buf.vars('code').provider = provider
+  buf.vars('code').model = model
+  buf.opt('core.lint.enabled', 1)
+
+  ensureClient(buf).then(c => {
+    c.session.create({ directory: buf.dir, title: '/init' })
+      .then(res => {
         buf.vars('code').sessionID = res.data.id
 
         pane.setBuf(buf, {}, () => {
           nestPromptBuf(buf)
-          if (prompt)
-            send(buf, prompt, provider, model, variant)
-          else
-            openPrompt(buf, pane, provider, model, variant)
+          buf.vars('code').firstPromptSent = 1
+          buf.vars('code').busy = 1
+          appendMsg(buf, 'user', '/init')
+          updateBufAgent(buf, 'build')
+          startEventSub(buf)
+
+          c.session.command({ sessionID: res.data.id,
+                              directory: buf.dir,
+                              command: 'init',
+                              arguments: '',
+                              agent: 'build',
+                              model: provider + '/' + model })
         })
-      }
-      catch (err) {
+      })
+      .catch(err => {
         Mess.yell('Failed: ' + err.message)
-      }
-    }
+      })
+  })
+}
 
-    pane = Pane.current()
-    dir = pane.dir
-    name = 'CO ' + dir
-    {
-      let buf
-
-      buf = Buf.find(b => b.name == name)
-      if (buf) {
-        pane.setBuf(buf)
-        if (provider == 'openrouter')
-          updateCredits(buf)
-        return
-      }
-    }
-
-    provider = getProvider()
-    model = getModel()
-    variant = getVariant()
-    if (given)
-      run(given)
-    else
-      run()
-  }
+function initSessions
+() {
+  let mo
 
   function viewInit
   (view, spec, cb) { // (view)
+    let w
+
+    w = view.eleOrReserved.querySelector('.code-sessions-w')
+    if (w) {
+
+      w.innerHTML = ''
+      ensureClient(view.buf).then(c => c.session.list().then(sessions => {
+        d({ sessions })
+        append(w,
+               sessions.data.filter(s => s.directory == view.buf.dir).map(s => {
+                 return [ divCl('code-sessions-del', '✗',
+                                { 'data-run': 'delete session',
+                                  'data-session-id': s.id,
+                                  'data-session-dir': s.directory }),
+                          divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
+                                { 'data-run': 'open code session',
+                                  'data-session-id': s.id,
+                                  'data-session-dir': s.directory }),
+                          divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
+               }))
+      }))
+    }
+
     if (cb)
       cb(view)
   }
 
-  function viewCopy
-  (to, from, lineNum, cb) {
-    let fromW, toW
+  function openCodeSession
+  (u, we) {
+    let sessionID, sessionDir
 
-    fromW = from.ele.querySelector('.code-w')
-    toW = to.ele.querySelector('.code-w')
-    if (fromW && toW) {
-      let fromTitle, toTitle, toUnderW
+    async function open
+    () {
+      let c, pane, name, buf, provider, model, variant
 
-      fromTitle = fromW.querySelector('.code-session-title')
-      toTitle = toW.querySelector('.code-session-title')
-      if (fromTitle && toTitle)
-        toTitle.innerText = fromTitle.innerText
-      toUnderW = toW.querySelector('.code-under-w')
-      if (toUnderW) {
-        let fromUnderW
+      pane = Pane.current()
+      name = 'CO ' + sessionDir
 
-        fromUnderW = fromW.querySelector('.code-under-w')
-        if (fromUnderW) {
-          let statusEl, modelEl, versionEl, tokensEl
-
-          statusEl = toUnderW.querySelector('.code-under-status')
-          if (statusEl) {
-            let fromStatus
-
-            fromStatus = fromUnderW.querySelector('.code-under-status')
-            if (fromStatus)
-              statusEl.innerHTML = fromStatus.innerHTML
-          }
-          modelEl = toUnderW.querySelector('.code-under-model')
-          if (modelEl) {
-            let fromModel
-
-            fromModel = fromUnderW.querySelector('.code-under-model')
-            if (fromModel)
-              modelEl.innerHTML = fromModel.innerHTML
-          }
-          versionEl = toUnderW.querySelector('.code-under-version')
-          if (versionEl) {
-            let fromVersion
-
-            fromVersion = fromUnderW.querySelector('.code-under-version')
-            if (fromVersion)
-              versionEl.innerText = fromVersion.innerText
-          }
-          tokensEl = toUnderW.querySelector('.code-under-tokens')
-          if (tokensEl) {
-            let fromTokens
-
-            fromTokens = fromUnderW.querySelector('.code-under-tokens')
-            if (fromTokens)
-              tokensEl.innerText = fromTokens.innerText
-          }
-        }
+      buf = Buf.find(b => b.name == name)
+      if (buf) {
+        pane.setBuf(buf)
+        return
       }
-      ;[ ...fromW.children ].forEach(child => {
-        if (Css.has(child, 'code-session-title'))
-          return
-        if (Css.has(child, 'code-under-w'))
-          return
-        toW.insertBefore(child.cloneNode(1), toUnderW)
+
+      provider = getProvider()
+      model = getModel()
+      variant = getVariant()
+
+      buf = Buf.add(name, 'code', divW(sessionDir), sessionDir)
+      buf.vars('code').provider = provider
+      buf.vars('code').model = model
+      buf.vars('code').variant = variant
+      buf.vars('code').sessionID = sessionID
+      buf.opt('core.lint.enabled', 1)
+
+      try {
+        c = await ensureClient(buf)
+      }
+      catch (err) {
+        Mess.yell('Failed: ' + err.message)
+        return
+      }
+
+      pane.setBuf(buf, {}, () => {
+        c.session.messages({ sessionID, directory: sessionDir }).then(r => {
+          d({ r })
+          for (let msg of r.data)
+            for (let part of msg.parts)
+              if (part.type == 'text')
+                appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
+              else if (part.type == 'reasoning' && part.text)
+                appendThinking(buf, part.text, part.id)
+              else if (part.type == 'tool') {
+                let label
+
+                label = part.tool
+                if (part.tool == 'bash' && part.state?.input?.command)
+                  label += ': ' + part.state.input.command
+                else if (part.state?.input?.filePath)
+                  label += ' ' + makeRelative(buf, part.state.input.filePath)
+                else if (part.state?.input?.pattern)
+                  label += ' "' + part.state.input.pattern + '"'
+                else if (part.state?.input?.query)
+                  label += ': ' + part.state.input.query
+                else if (part.state?.input?.url)
+                  label += ' ' + part.state.input.url
+                appendToolMsg(buf, part.callID, label,
+                              part.state?.output || part.state?.error)
+              }
+        })
+
+        buf.vars('code').firstPromptSent = 1
+        nestPromptBuf(buf)
+        startEventSub(buf)
       })
-      {
-        let fromH, toH
-
-        fromH = fromW.querySelector('.code-h')
-        toH = toW.querySelector('.code-h')
-        if (toH) {
-          let agentEl
-
-          agentEl = toH.querySelector('.code-agent')
-          if (agentEl) {
-            let fromAgent
-
-            fromAgent = fromH?.querySelector('.code-agent')
-            if (fromAgent)
-              agentEl.innerText = fromAgent.innerText
-          }
-        }
-      }
     }
-    if (cb)
-      cb(to)
+
+    sessionID = we.e.target.dataset.sessionId
+    sessionDir = we.e.target.dataset.sessionDir
+
+    open()
   }
 
-  function viewReopen
-  (view, lineNum, whenReady) {
-    d('================== code viewReopen')
+  function deleteSession
+  (u, we) {
+    let sessionID, sessionDir
 
-    if (view.ele)
-      // timeout so behaves like viewInit
-      setTimeout(() => {
-        bufEnd(view)
-        if (whenReady)
-          whenReady(view)
-      })
-    else
-      // probably buf was switched out before init happened.
-      viewInit(view,
-               { lineNum },
-               whenReady)
+    sessionID = we.e.target.dataset.sessionId
+    sessionDir = we.e.target.dataset.sessionDir
+
+    Prompt.yn('Delete session ' + sessionID.replace(/^sess_/, '') + '?',
+              { icon: 'trash' },
+              yes => {
+                if (yes)
+                  ensureClient(View.current().buf)
+                    .then(c => c.session.delete({ sessionID, directory: sessionDir }))
+                    .then(() => {
+                      View.current().buf.views.forEach(view => {
+                        let w, el
+
+                        w = view.eleOrReserved?.querySelector('.code-sessions-w')
+                        el = w?.querySelector('[data-session-id="' + sessionID + '"]')
+                        if (el) {
+                          let i
+
+                          i = [ ...w.children ].indexOf(el)
+                          w.children[i + 2]?.remove()
+                          w.children[i + 1]?.remove()
+                          w.children[i].remove()
+                        }
+                      })
+                    })
+              })
   }
 
-  function bufEnd
-  (v) {
-    let w
+  mo = Mode.add('Code Sessions', { viewInit })
 
-    w = v.ele.querySelector('.code-w')
-    if (w)
-      w.scrollTop = w.scrollHeight
-  }
+  Cmd.add('refresh', () => viewInit(View.current()), mo)
 
-  function bufStart
-  (v) {
-    let w
-
-    w = v.ele.querySelector('.code-w')
-    if (w)
-      w.scrollTop = 0
-  }
-
-  function submitPrompt
-  () {
-    let buf, p, text, codeBuf, whichHist
+  Cmd.add('code sessions', () => {
+    let p, name, buf
 
     p = Pane.current()
-    buf = p.buf
-    codeBuf = buf.parent || buf
-    text = buf.vars('code').promptBuf.text()
-    if (text.length)
-      text = text.trim()
-    else
-      text = buf.vars('code').promptBuf.placeholder || ''
+    name = 'Code Sessions: ' + p.dir
+    buf = Buf.find(b => b.name == name)
+    if (buf)
+      p.setBuf(buf, {}, view => viewInit(view))
+    else {
+      buf = Buf.add(name, 'Code Sessions',
+                    divCl('code-sessions-ww',
+                          [ divCl('code-sessions-h',
+                                  Ed.divMl(p.dir, 'Code Sessions',
+                                           { icon: 'list' })),
+                            divCl('code-sessions-w bred-surface', '') ]),
+                    p.dir)
+      buf.icon = 'list'
+      buf.addMode('view')
+      p.setBuf(buf)
+    }
+  })
 
-    if (text.length == 0) {
-      Mess.yell('Empty prompt')
+  Cmd.add('open code session', openCodeSession, mo)
+
+  Cmd.add('delete session', deleteSession, mo)
+
+  Em.on('g', 'refresh', mo)
+}
+
+async function ensureClient
+(buf) {
+  let client, ret, spawnPromise
+
+  client = buf.vars('code').client
+  if (client)
+    return client
+
+  if (buf.vars('code').spawnPromise)
+    return buf.vars('code').spawnPromise
+
+  spawnPromise = Tron.acmd('code.spawn', [ buf.id, buf.dir ])
+  buf.vars('code').spawnPromise = spawnPromise
+
+  ret = await spawnPromise
+
+  if (ret.err) {
+    buf.vars('code').spawnPromise = 0
+    throw new Error(ret.err.message)
+  }
+
+  client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
+  buf.vars('code').client = client
+  buf.vars('code').serverUrl = ret.url
+  buf.vars('code').spawnedBufferID = buf.id
+  buf.vars('code').spawnPromise = 0
+  return client
+}
+
+function modelName
+(model, variant) {
+  return model + (variant ? ':' + variant : '')
+}
+
+function updateCredits
+(buf) {
+  let key
+
+  key = Opt.get('code.key')
+  if (key.length == 0)
+    key = Opt.get('query.key')
+  if (key.length == 0)
+    return
+
+  fetch('https://openrouter.ai/api/v1/auth/key',
+        { method: 'GET',
+          headers: { Authorization: 'Bearer ' + key,
+                     'Content-Type': 'application/json' } })
+    .then(response => {
+      if (response.ok) {
+        response.json().then(data => {
+          d({ data })
+          d(data.data.limit_remaining)
+          buf.views.forEach(view => {
+            if (view.eleOrReserved) {
+              let el
+
+              el = view.eleOrReserved.querySelector('.code-under-credits')
+              if (el) {
+                let dol
+
+                dol = parseFloat(data.data.limit_remaining)
+                if (isNaN(dol))
+                  el.innerText = 'OR:$'
+                else
+                  el.innerText = 'OR:$' + dol.toFixed(2)
+              }
+            }
+          })
+        })
+          .catch(err => {
+            d('ERR .json: ' + err.message)
+          })
+        return
+      }
+      d('Error fetching credit info')
+    })
+    .catch(err => {
+      d('ERR fetch:')
+      d(err.message)
+    })
+}
+
+function scroll
+(underW) {
+  d('CO SCROLL')
+  underW.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' })
+}
+
+function underVisible
+(w, underW) {
+  if (underW) {
+    let rU, rW
+
+    rU = underW.getBoundingClientRect()
+    rW = w.getBoundingClientRect()
+    //d('CO ' + rU.bottom + ' < ' + rW.bottom + '?')
+    return rU.top < rW.bottom
+  }
+  return 0
+}
+
+function withScroll
+(w, cb) { // (underW)
+  let underW, wasVisible
+
+  underW = w.querySelector('.code-under-w') || d('CO underW missing')
+
+  wasVisible = underVisible(w, underW)
+  d({ wasVisible })
+
+  if (cb)
+    cb(underW)
+
+  if (wasVisible && underW)
+    scroll(underW)
+}
+
+function appendX
+(w, el) {
+  withScroll(w, underW => {
+    if (underW) {
+      let prev
+
+      prev = underW.previousElementSibling
+      if (prev && Css.has(prev, 'code-msg-permission'))
+        // keep the permission check at the end
+        prev.before(el)
+      else
+        underW.before(el)
+    }
+    else
+      append(w, el)
+  })
+}
+
+function setText
+(w, el, text) {
+  withScroll(w, () => {
+    el.innerText = text
+  })
+}
+
+function makePatchEd
+(text) {
+  let el, state, ed
+
+  el = divCl('code-patch-ed')
+  state = CMState.EditorState.create({ doc: text,
+                                       extensions: [ CMView.EditorView.editable.of(false),
+                                                     CMView.EditorView.lineWrapping,
+                                                     patch(),
+                                                     themeExtension ] })
+  ed = new CMView.EditorView({ state, parent: el })
+  return { el, ed }
+}
+
+function makeMarkdownEd
+(text) {
+  let el, state, ed
+
+  el = divCl('code-markdown-ed')
+  state = CMState.EditorState.create({ doc: text,
+                                       extensions: [ CMView.EditorView.editable.of(false),
+                                                     CMView.EditorView.lineWrapping,
+                                                     markdown({ codeLanguages: langs }),
+                                                     themeExtension ] })
+  ed = new CMView.EditorView({ state, parent: el })
+  return { el, ed }
+}
+
+function makeCodeEd
+(path, text) {
+  let el, state, ed, lang, exts
+
+  el = divCl('code-code-ed')
+  lang = langs.find(l => l.id == modeFor(path))
+  exts = [ CMView.EditorView.editable.of(false),
+           CMView.EditorView.lineWrapping,
+           themeExtension ]
+  if (lang?.language)
+    exts.unshift(lang.language)
+  state = CMState.EditorState.create({ doc: text, extensions: exts })
+  ed = new CMView.EditorView({ state, parent: el })
+  return { el, ed }
+}
+
+function appendModel
+(buf, model) {
+  eachCodeW(buf, (view, w) => {
+    appendX(w, divCl('code-msg code-msg-role', model))
+  })
+}
+
+function appendMsg
+(buf, role, text, partID) {
+  eachCodeW(buf, (view, w) => {
+    if (role == 'user') {
+    }
+    else {
+      let el
+
+      el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
+      if (el) {
+        let oldMdEl
+
+        oldMdEl = el.querySelector('.code-markdown-ed')
+        if (oldMdEl) {
+          let mdEd
+
+          mdEd = makeMarkdownEd(text)
+          withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
+          view.vars('code').eds = view.vars('code').eds || []
+          view.vars('code').eds.push(mdEd.ed)
+        }
+        return
+      }
+    }
+    appendX(w,
+            divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
+                  [ (role == 'user')
+                    ? divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
+                    : makeMarkdownEd(text || '').el ],
+                  { 'data-partid': partID || 0 }))
+    if (role == 'user') {
+      let underW
+
+      underW = w.querySelector('.code-under-w')
+      scroll(underW)
+    }
+  })
+}
+
+function appendThinking
+(buf, text, partID) {
+  eachCodeW(buf, (view, w) => {
+    let el
+
+    el = w.querySelector('.code-msg-thinking[data-partid="' + partID + '"]')
+    if (el) {
+      let current
+
+      current = el.querySelector('.code-msg-text').innerText
+      setText(w, el.querySelector('.code-msg-text'), current + text)
+    }
+    else
+      appendX(w,
+              divCl('code-msg code-msg-thinking',
+                    [ divCl('code-msg-text', text) ],
+                    { 'data-partid': partID || 0 }))
+  })
+}
+
+function makeRelative
+(buf, path) {
+  if (path?.startsWith(buf.dir))
+    return path.slice(buf.dir.length)
+  return path
+}
+
+function fileLabel
+(buf, tool, path, status, spec) {
+  function bounds
+  () {
+    if (spec.input?.offset)
+      return ' ' + spec.input.offset + '-' + (spec.input.offset + (spec.input?.limit || 0))
+    return ''
+  }
+
+  spec = spec || {}
+  return [ tool + ' file ',
+           divCl('code-file',
+                 makeRelative(buf, path),
+                 { 'data-run': 'open link', 'data-path': path }),
+           bounds(),
+           status || '' ]
+}
+
+function appendToolMsg
+(buf, callID, label, under, spec) {
+  spec = spec || {}
+  if (callID) {
+    buf.vars('code').callLabels = buf.vars('code').callLabels || {}
+    buf.vars('code').callLabels[callID] = label
+  }
+  eachCodeW(buf, (view, w) => {
+    let els, underEl
+
+    els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
+    els?.forEach(el => el.remove())
+    if (under && (spec.format == 'code')) {
+      let codeResult
+
+      codeResult = makeCodeEd(spec.path, under)
+      underEl = codeResult.el
+      view.vars('code').eds = view.vars('code').eds || []
+      view.vars('code').eds.push(codeResult.ed)
+    }
+    else if (under && (spec.format == 'patch')) {
+      let patchResult
+
+      patchResult = makePatchEd(under)
+      underEl = patchResult.el
+      view.vars('code').eds = view.vars('code').eds || []
+      view.vars('code').eds.push(patchResult.ed)
+    }
+    else if (under)
+      underEl = divCl('code-msg-text code-msg-under', under)
+    appendX(w,
+            divCl('code-msg code-msg-tool',
+                  [ divCl('code-msg-text',
+                          [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : iconRightArrow()),
+                            ' ',
+                            label ]),
+                    underEl ],
+                  { 'data-callid': callID }))
+  })
+  if (callID && label)
+    eachCodeW(buf, (view, w) => {
+      let permEl
+
+      permEl = w.querySelector('.code-msg-permission[data-permission-callid="' + callID + '"]')
+      if (permEl) {
+        let labelEl
+
+        labelEl = permEl.querySelector('.code-msg-label')
+        if (labelEl)
+          labelEl.innerText = label
+        else {
+          let patternEl
+
+          patternEl = permEl.querySelector('.code-msg-pattern')
+          labelEl = divCl('code-msg-label', label)
+          if (patternEl)
+            patternEl.before(labelEl)
+          else
+            permEl.append(labelEl)
+        }
+      }
+    })
+}
+
+function appendPermission
+(buf, perm) {
+  let id, label, callID
+
+  function pattern
+  () {
+    let action, patterns
+
+    action = perm.req.permission || perm.req.type || '?'
+    patterns = perm.req.patterns || perm.req.pattern || []
+    if (typeof patterns == 'string')
+      patterns = [ patterns ]
+    return '🗝 ' + action + (patterns.length ? ': ' + patterns[0] : '')
+  }
+
+  id = perm.id
+  callID = perm.req.callID || perm.req.tool?.callID
+  if (callID)
+    label = buf.vars('code').callLabels?.[callID]
+  buf.views.forEach(view => {
+    if (view.eleOrReserved) {
+      let w
+
+      w = view.eleOrReserved.querySelector('.code-w')
+      appendX(w,
+              divCl('code-msg code-msg-permission',
+                    [ divCl('code-msg-text',
+                            [ '▣ Allow?',
+                              button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
+                              button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
+                      label && divCl('code-msg-label', label),
+                      divCl('code-msg-pattern', pattern()) ],
+                    { 'data-permissionid': id,
+                      'data-permission-callid': callID || '??' }))
+    }
+  })
+}
+
+function ynRespond
+(buf, id, yes) {
+  let perm, sessionID, response
+
+  perm = buf.vars('code').permissions.find(p => p.id == id)
+  sessionID = perm?.sessionID || buf.vars('code')?.sessionID
+  response = yes ? 'once' : 'reject'
+
+  d('CO permission reply: ' + response)
+  ensureClient(buf).then(async c => {
+    try {
+      d('CO calling permission.respond, dir=' + buf.dir)
+
+      // Seems they often move args and things break, so if you're stuck:
+      // Check the SDK method parameters against the OpenAPI spec in
+      // `http://127.0.0.1:PORT/doc` to verify all required params
+      // (especially query params like `directory`) are being passed.
+      await c.permission.respond({ sessionID,
+                                   permissionID: id,
+                                   response,
+                                   directory: buf.dir })
+      eachCodeW(buf, (view, w) => {
+        let el
+
+        el = w.querySelector('.code-msg-permission[data-permissionid="' + id + '"]')
+        el?.remove()
+      })
+    }
+    catch (err) {
+      d('CO permission respond error: ' + err.message)
+    }
+  }).catch(err => {
+    d('CO permission ensureClient error: ' + err.message)
+  })
+
+  buf.vars('code').permissions = buf.vars('code').permissions.slice(1)
+  if (buf.vars('code').permissions.length)
+    // Ask about the next one.
+    appendPermission(buf, buf.vars('code').permissions[0])
+}
+
+function yn
+(yes) {
+  let buf, id, perms
+
+  buf = Pane.current()?.buf
+  perms = buf?.vars('code')?.permissions
+  id = perms?.length && perms[0]?.id
+  if (id)
+    ynRespond(buf, id, yes)
+}
+
+function updateBufStatus
+(buf, status, model, tokenInfo, versionInfo) {
+  buf.views.forEach(view => {
+    if (view.eleOrReserved) {
+      let underW
+
+      underW = view.eleOrReserved.querySelector('.code-under-w')
+      if (underW) {
+        let statusEl, modelEl, versionEl, tokenEl
+
+        statusEl = underW.querySelector('.code-under-status')
+        modelEl = underW.querySelector('.code-under-model')
+        versionEl = underW.querySelector('.code-under-version')
+        tokenEl = underW.querySelector('.code-under-tokens')
+        if (statusEl)
+          statusEl.innerText = status
+        if (modelEl)
+          modelEl.innerText = model
+        if (versionEl)
+          if (versionInfo)
+            versionEl.innerText = versionInfo
+          else
+            versionEl.innerText = ''
+        if (tokenEl)
+          if (tokenInfo)
+            tokenEl.innerText = tokenInfo
+          else
+            tokenEl.innerText = ''
+      }
+    }
+  })
+}
+
+function updateBufAgent
+(buf, agent) {
+  buf.views.forEach(view => {
+    if (view.eleOrReserved) {
+      let h
+
+      h = view.eleOrReserved.querySelector('.code-h')
+      if (h) {
+        let agentEl
+
+        agentEl = h.querySelector('.code-agent')
+        if (agentEl)
+          agentEl.innerText = iconAgent() + agent
+      }
+    }
+  })
+}
+
+function updateIdle
+(buf, tokenInfo) {
+  updateBufStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
+  buf.vars('code').busy = 0
+  if (buf.vars('code').agentStopped) {
+    buf.vars('code').agentStopped = 0
+    appendMsg(buf, 0, '...stopped')
+    buf.vars('code').stepActiveSessions = new Set()
+  }
+}
+
+function updateStatus
+(buf, req, tokenInfo) {
+
+  d('CO updateStatus')
+  d({ tokenInfo })
+
+  if (req.status?.type == 'busy')
+    updateBufStatus(buf, '🌊', modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
+  else if (req.status?.type == 'idle')
+    updateIdle(buf, tokenInfo)
+  else if (req.status?.type == 'retry')
+    updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
+  else if (req.status?.type)
+    d('🌱 TODO status: ' + req.status?.type)
+}
+
+function calculateTokenPercentage
+(buf) {
+  let tokens, modelLimit, ret
+
+  ret = ''
+  tokens = buf.vars('code').lastTokens
+  modelLimit = buf.vars('code').modelContextLimit
+  if (tokens) {
+    ret += ('T:' + tokens)
+    if (modelLimit)
+      ret += (' ' + Math.round((tokens / modelLimit) * 100) + '%')
+  }
+  return ret
+}
+
+async function updateModelContextLimit
+(buf, providerID, modelID) {
+  let lastProviderID, lastModelID
+
+  lastProviderID = buf.vars('code').lastProviderID
+  lastModelID = buf.vars('code').lastModelID
+  if (providerID
+      && modelID
+      && (providerID == lastProviderID)
+      && (modelID == lastModelID))
+    return
+
+  buf.vars('code').lastProviderID = providerID
+  buf.vars('code').lastModelID = modelID
+  try {
+    let c, providers, model
+
+    c = await ensureClient(buf)
+    providers = await c.config.providers({ directory: buf.dir })
+    d({ providers })
+    providers.data.providers?.some(p => {
+      if (p.id == providerID) {
+        model = p.models?.[modelID]
+        return true
+      }
+    })
+    if (model?.limit?.context) {
+      d('CO modelContextLimit ' + model.limit.context)
+      buf.vars('code').modelContextLimit = model.limit.context
+    }
+    else {
+      d('CO modelContextLimit missing')
+      d({ providers })
+    }
+  }
+  catch (err) {
+    d('CO failed to get providers: ' + err.message)
+  }
+}
+
+function checkForPatch
+(buf, req) {
+  if ((req.permission == 'edit') || (req.type == 'edit')) {
+    let path
+
+    path = (req.metadata?.filepath || req.metadata?.filePath)
+    if (path) {
+      d('CO permission file: ' + path)
+      buf.vars('code').patch = req.metadata?.diff
+      appendToolMsg(buf, (req.callID || req.tool.callID), fileLabel(buf, 'Edit', path), req.metadata?.diff, { format: 'patch' })
+    }
+  }
+}
+
+function handlePermission
+(buf, req) {
+  checkForPatch(buf, req)
+  buf.vars('code').permissions = buf.vars('code').permissions || []
+  buf.vars('code').permissions.push({ id: req.id, sessionID: req.sessionID, req })
+  if (buf.vars('code').permissions.length == 1)
+    // Free to ask.
+    appendPermission(buf, buf.vars('code').permissions[0])
+}
+
+function handleQuestionAsked
+(buf, event) {
+  let req
+
+  req = event.properties
+  d('CO question asked: ' + (req.questions?.length || '?') + ' questions')
+  buf.vars('code').questions = buf.vars('code').questions || []
+  buf.vars('code').questions.push({ id: req.id, sessionID: req.sessionID, questions: req.questions, tool: req.tool })
+  if (req.tool?.callID) {
+    buf.vars('code').callLabels = buf.vars('code').callLabels || {}
+    buf.vars('code').callLabels[req.tool.callID] = 'Questions (' + req.questions.length + ')'
+  }
+  if (buf.vars('code').questions.length == 1)
+    appendQuestion(buf, buf.vars('code').questions[0])
+}
+
+function appendQuestion
+(buf, req) {
+  eachCodeW(buf, (view, w) => {
+    appendX(w,
+            divCl('code-msg code-msg-question',
+                  [ divCl('code-msg-text', [ '▣ Questions' ]),
+                    ...req.questions.map((q, qi) => divCl('code-question-item',
+                                                          [ divCl('code-question-header', q.header),
+                                                            divCl('code-question-text', q.question),
+                                                            ...(q.options || []).map(opt => divCl('code-question-option',
+                                                                                                  [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
+                                                                                                  { 'data-run': 'toggle question option',
+                                                                                                    'data-qid': req.id,
+                                                                                                    'data-qi': qi,
+                                                                                                    'data-opt': opt.label })),
+                                                            q.custom && create('input', [],
+                                                                               'code-question-custom',
+                                                                               { 'data-qid': req.id,
+                                                                                 'data-qi': qi,
+                                                                                 placeholder: 'Your answer...' }) ],
+                                                          { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
+                    divCl('code-msg-text',
+                          [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
+                            button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
+                  { 'data-requestid': req.id }))
+  })
+}
+
+function questionRespond
+(buf, requestID, answers) {
+  d('CO question ' + (answers ? 'reply' : 'reject'))
+  ensureClient(buf).then(async c => {
+    try {
+      if (answers)
+        await c.question.reply({ requestID, answers, directory: buf.dir })
+      else
+        await c.question.reject({ requestID, directory: buf.dir })
+      eachCodeW(buf, (view, w) => {
+        let el
+
+        el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
+        el?.remove()
+      })
+    }
+    catch (err) {
+      d('CO question respond error: ' + err.message)
+    }
+  })
+  buf.vars('code').questions = buf.vars('code').questions.slice(1)
+  if (buf.vars('code').questions.length)
+    appendQuestion(buf, buf.vars('code').questions[0])
+}
+
+function toggleQuestionOption
+(u, we) {
+  let opt, item, multiple
+
+  opt = we.e.target.closest('.code-question-option')
+  item = opt.closest('.code-question-item')
+  multiple = item.dataset.multiple == '1'
+  if (Css.has(opt, 'code-option-selected'))
+    Css.remove(opt, 'code-option-selected')
+  else {
+    if (multiple == 0) {
+      let allOpts
+
+      allOpts = item.querySelectorAll('.code-question-option')
+      allOpts.forEach(o => Css.remove(o, 'code-option-selected'))
+    }
+    Css.add(opt, 'code-option-selected')
+  }
+}
+
+function answerQuestion
+(u, we) {
+  let buf, el, requestID, items, answers
+
+  buf = Pane.current().buf
+  el = we.e.target.closest('.code-msg-question')
+  requestID = el.dataset.requestid
+  items = el.querySelectorAll('.code-question-item')
+  answers = []
+  items.forEach(item => {
+    let selected, custom, ans
+
+    selected = item.querySelectorAll('.code-question-option.code-option-selected')
+    ans = []
+    selected.forEach(o => ans.push(o.dataset.opt))
+    custom = item.querySelector('.code-question-custom')
+    if (custom && custom.value.trim())
+      ans.push(custom.value.trim())
+    answers.push(ans)
+  })
+  questionRespond(buf, requestID, answers)
+}
+
+function skipQuestion
+(u, we) {
+  let buf, el, requestID
+
+  buf = Pane.current().buf
+  el = we.e.target.closest('.code-msg-question')
+  requestID = el.dataset.requestid
+  questionRespond(buf, requestID)
+}
+
+function handlePermissionAsked
+(buf, event) {
+  let req
+
+  req = event.properties
+  d('CO permission asked: ' + req.permission)
+  handlePermission(buf, req)
+}
+
+function handlePermissionUpdated
+(buf, event) {
+  let req
+
+  req = event.properties
+  d('CO permission updated: ' + req.type)
+  handlePermission(buf, req)
+}
+
+function handleSessionUpdated
+(buf, event) {
+  let title
+
+  title = event.properties.info?.title
+  if (title)
+    buf.views.forEach(view => {
+      if (view.eleOrReserved) {
+        let titleEl
+
+        titleEl = view.eleOrReserved.querySelector('.code-session-title')
+        if (titleEl)
+          titleEl.innerText = title
+      }
+    })
+}
+
+function handleMessageUpdated
+(buf, event) {
+  let info
+
+  info = event.properties.info
+  if (info.tokens) {
+    let total
+
+    total = sumTokens(info.tokens)
+    if (total > 0)
+      buf.vars('code').lastTokens = total
+  }
+  if (info.model)
+    updateModelContextLimit(buf, info.model.providerID, info.model.modelID)
+}
+
+function icon
+(tool) {
+  if (tool == 'edit')
+    return '💾 '
+  if (tool == 'read')
+    return '💾 '
+  if (tool == 'write')
+    return '💾 '
+  return '▶️ '
+}
+
+function handleToolPart
+(buf, part) {
+  let status, h
+
+  status = part.state?.status
+  d('CO tool: ' + icon(part.tool) + part.tool + ' ' + status)
+
+  h = tools[part.tool]
+  if (h) {
+    if (status == 'completed' && h.onComplete)
+      h.onComplete(buf, part)
+    else if (status == 'error' && h.onErr)
+      h.onErr(buf, part)
+    else if (status == 'pending' && h.onPend)
+      h.onPend(buf, part)
+    else if (status == 'running' && h.onRun)
+      h.onRun(buf, part)
+    else if ([ 'pending', 'running' ].includes(status) && h.onPendOrRun)
+      h.onPendOrRun(buf, part)
+    else
+      appendToolMsg(buf, part.callID, 'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
+    return
+  }
+  appendToolMsg(buf, part.callID, 'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
+}
+
+function handlePart
+(buf, event) {
+  let part
+
+  part = event.properties.part
+
+  if (part.tokens) {
+    let total
+
+    total = sumTokens(part.tokens)
+    if (total > 0)
+      buf.vars('code').lastTokens = total
+  }
+
+  if (part.type == 'step-start') {
+    let steps
+
+    d('CO step-start')
+    steps = buf.vars('code').stepActiveSessions
+    if (steps == null) {
+      steps = new Set()
+      buf.vars('code').stepActiveSessions = steps
+    }
+    steps.add(part.sessionID)
+  }
+  else if (part.type == 'step-finish') {
+    let steps
+
+    d('CO step-finish')
+    steps = buf.vars('code').stepActiveSessions
+    if (steps)
+      steps.delete(part.sessionID)
+  }
+  else if (buf.vars('code').agentStopped)
+    d('CO agent stopped, skipping: ' + part.type)
+  else if (part.type == 'text') {
+    d('CO text part' + part.id)
+    if (buf.vars('code').stepActiveSessions?.size) {
+      d('CO update text: ' + part.text)
+      appendMsg(buf, 0, part.text, part.id)
+    }
+    else
+      d('CO text outside step: ' + part.text)
+  }
+  else if (part.type == 'reasoning') {
+    let buffered
+
+    //d('CO reasoning part ' + part.id)
+
+    buffered = (event.properties.delta || '')
+    if (buffered) {
+      d('CO reasoning append: ' + buffered)
+      appendThinking(buf, buffered, part.id)
+    }
+  }
+  else if (part.type == 'tool')
+    handleToolPart(buf, part)
+}
+
+function handlePartDelta
+(buf, event) {
+  let delta, field
+
+  delta = event.properties.delta
+  field = event.properties.field
+  eachCodeW(buf, (view, w) => {
+    let msgEl, thinkingEl, textEl
+
+    msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
+    if (msgEl) {
+      textEl = msgEl.querySelector('.code-msg-text')
+      if (textEl && field == 'text')
+        textEl.innerText = (textEl.innerText || '') + delta
+    }
+    thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
+    if (thinkingEl && field == 'text') {
+      textEl = thinkingEl.querySelector('.code-msg-text')
+      if (textEl)
+        textEl.innerText = (textEl.innerText || '') + delta
+    }
+    else if (field == 'text' && msgEl == null)
+      appendX(w,
+              divCl('code-msg code-msg-thinking',
+                    [ divCl('code-msg-text', delta) ],
+                    { 'data-partid': event.properties.partID || 0 }))
+  })
+}
+
+function handleSubagentIdle
+(buf, event) {
+  let callId
+
+  callId = buf.vars('code').subagentCallIds?.get(event.properties.sessionID)
+  if (callId)
+    eachCodeW(buf, (view, w) => {
+      let els
+
+      els = w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]')
+      els?.forEach(el => {
+        let textEl
+
+        textEl = el.querySelector('.code-msg-text')
+        if (textEl && textEl.innerText.indexOf('◉') < 0)
+          textEl.innerText = textEl.innerText + ' ◉'
+      })
+    })
+}
+
+function handleEvent
+(buf, event) {
+  let sessionID
+
+  function isSubagentId
+  (id) {
+    return buf?.vars('code')?.subagentIds?.has(id)
+  }
+
+  function isSessionMatch
+  (id) {
+    return id == sessionID || isSubagentId(id)
+  }
+
+  d('CO ' + event.type)
+  d({ event })
+
+  sessionID = buf && buf.vars('code')?.sessionID
+
+  // Already done by session.status. Maybe planned replacement.
+  if ((event.type == 'session.idle')
+      && isSessionMatch(event.properties.sessionID)) {
+    if (event.properties.sessionID == sessionID)
+      updateIdle(buf, calculateTokenPercentage(buf))
+    else
+      handleSubagentIdle(buf, event)
+    return
+  }
+
+  if ((event.type == 'session.status')
+      && isSessionMatch(event.properties.sessionID)) {
+    if (event.properties.sessionID == sessionID)
+      updateStatus(buf, event.properties, calculateTokenPercentage(buf))
+    return
+  }
+
+  if ((event.type == 'permission.asked')
+      && isSessionMatch(event.properties.sessionID)) {
+    handlePermissionAsked(buf, event)
+    return
+  }
+
+  if ((event.type == 'permission.updated')
+      && isSessionMatch(event.properties.sessionID)) {
+    handlePermissionUpdated(buf, event)
+    return
+  }
+
+  if ((event.type == 'question.asked')
+      && isSessionMatch(event.properties.sessionID)) {
+    handleQuestionAsked(buf, event)
+    return
+  }
+
+  if ((event.type == 'session.error')
+      && (event.properties?.sessionID == sessionID)) {
+    let error
+
+    error = event.properties.error
+    d({ error })
+    if (error)
+      Mess.yell('🚨 session.error: ' + (error.name || '??') + ' ' + (error.data?.message || '????'))
+    else
+      Mess.yell('🚨 session.error: error missing')
+    return
+  }
+
+  if ((event.type == 'session.updated')
+      && isSessionMatch(event.properties.info.id)) {
+    if (event.properties.info.id == sessionID)
+      handleSessionUpdated(buf, event)
+    return
+  }
+
+  if ((event.type == 'message.updated')
+      && (event.properties.info.sessionID == sessionID)) {
+    handleMessageUpdated(buf, event)
+    return
+  }
+
+  if ((event.type == 'message.part.updated')
+      && isSessionMatch(event.properties.part.sessionID)) {
+    handlePart(buf, event)
+    return
+  }
+
+  if ((event.type == 'message.part.delta')
+      && isSessionMatch(event.properties.sessionID)) {
+    handlePartDelta(buf, event)
+    return
+  }
+
+  if (event.type == 'server.connected') {
+    updateBufStatus(buf, 'OK', '', '', VopenCode.version) // clears the CONNECTED after reconnect
+    return
+  }
+
+  if (event.type == 'server.heartbeat')
+    return
+
+  if (event.type == 'command.executed') {
+    if (event.properties.sessionID == sessionID) {
+      appendMsg(buf, 0, '/' + event.properties.name + ' finished')
+      appendModel(buf, modelName(buf.vars('code').model, buf.vars('code').variant))
+    }
+    return
+  }
+
+  {
+    let evSessionID, subagent
+
+    evSessionID = event.properties.sessionID
+      || event.properties.part?.sessionID
+      || event.properties.info?.id
+    subagent = isSubagentId(evSessionID)
+    d('🌱 TODO handle ' + event.type + (subagent ? ' (subagent)' : ''))
+  }
+}
+
+function startEventSub
+(buf) {
+  let state
+
+  async function runStream
+  (client) {
+    let iter
+
+    try {
+      let events
+
+      events = await client.event.subscribe()
+      iter = events.stream[Symbol.asyncIterator]()
+    }
+    catch (err) {
+      if (err.name == 'AbortError') return
+      d('CO subscribe error: ' + err.message)
+      state.client = 0
+      setTimeout(() => tryReconnect(), 1000)
       return
     }
 
-    if (codeBuf.vars('code').firstPromptSent)
-      whichHist = chatHist
-    else {
-      whichHist = hist
-      codeBuf.vars('code').firstPromptSent = 1
-    }
-    cancelPrompt(p)
-    whichHist.add(text)
-    buf.vars('code').promptBuf.clear()
-    send(buf, text, buf.vars('code').provider, buf.vars('code').model, buf.vars('code').variant)
-  }
+    updateBufStatus(buf, '🔁 CONNECTED', '', '', VopenCode.version)
 
-  function cancelPrompt
-  (p) {
-    let buf, codeBuf
+    while (state.streamActive) {
+      let timeoutMs, timeoutPromise
 
-    p = p || Pane.current()
-    buf = p.buf
-    codeBuf = buf.parent || buf
-    if (codeBuf.vars('code').firstPromptSent) {
-      buf.views.forEach(view => {
-        let container
-
-        container = view.ele.querySelector('.code-prompt-w')
-        if (container)
-          Css.retract(container)
+      timeoutMs = 35000
+      timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('heartbeat-timeout')), timeoutMs)
       })
 
-      p.focus()
+      try {
+        let result
+
+        result = await Promise.race([ iter.next(), timeoutPromise ])
+
+        state.lastEventTime = Date.now()
+        if (result.done) {
+          state.client = 0
+          tryReconnect()
+          return
+        }
+
+        // give event loop a chance, in case flurry of events is freezing ui
+        await U.cede()
+        handleEvent(buf, result.value)
+      }
+      catch (err) {
+        if (err.message == 'heartbeat-timeout') {
+          d('CO heartbeat timeout, reconnecting')
+          state.client = 0
+          tryReconnect()
+          return
+        }
+        if (err.name == 'AbortError') return
+        d('CO stream error: ' + err.message)
+        state.client = 0
+        tryReconnect()
+        return
+      }
     }
   }
 
-  function whichHistFromBuf
-  (buf) {
-    let codeBuf
-
-    codeBuf = buf.parent || buf
-    if (codeBuf.vars('code').firstPromptSent)
-      return chatHist
-    return hist
-  }
-
-  function prevHist
+  async function tryReconnect
   () {
-    let view, wh
-
-    view = View.current()
-    wh = whichHistFromBuf(view.buf)
-    wh.prev(view.buf)
+    if (state.streamActive == 0) return
+    if (state.spawnedBufferID) {
+      await Tron.acmd('code.close', [ state.spawnedBufferID ])
+      state.spawnedBufferID = 0
+    }
+    state.client = 0
+    state.lastEventTime = Date.now()
+    updateBufStatus(buf, '🔁 RECONNECTING', '', '')
+    ensureClient(buf).then(runStream).catch(() => {
+      d('CO reconnect spawn failed')
+      setTimeout(tryReconnect, 1000)
+    })
   }
 
-  function nextHist
+  state = buf.vars('code')
+  if (state.streamActive) return
+  state.streamActive = 1
+  state.lastEventTime = Date.now()
+  updateBufStatus(buf, '🔁 CONNECTING', '', '')
+
+  ensureClient(buf).then(runStream).catch(() => {
+    d('CO spawn failed, retrying')
+    setTimeout(() => startEventSub(buf), 1000)
+  })
+}
+
+function divW
+(dir) {
+  return divCl('code-ww',
+               [ divCl('code-h',
+                       [ divCl('code-icon',
+                               img(Icon.path('assist'), 'Code', 'filter-clr-text')),
+                         divCl('code-title', makeMlDir(dir)),
+                         divCl('code-h-right',
+                               [ divCl('code-agent', '', { 'data-run': 'Set Agent' }),
+                                 divCl('code-thought code-icon',
+                                       img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
+                                       { 'data-run': 'toggle thinking' }) ]) ]),
+                 divCl('code-w bred-scroller',
+                       [ divCl('code-session-title'),
+                         divCl('code-under-w',
+                               [ divCl('code-under code-under-status', '...'),
+                                 divCl('code-under code-under-model', '...'),
+                                 divCl('code-under-end',
+                                       [ divCl('code-under code-under-credits', ''),
+                                         divCl('code-under code-under-version', ''),
+                                         divCl('code-under code-under-tokens', '') ]) ]) ]),
+                 divCl('code-prompt-w retracted',
+                       [ divCl('code-prompt-ml',
+                               [ divCl('code-prompt-model', '') ]),
+                         divCl('bred-nested-pane-w') ]) ])
+}
+
+async function send
+(buf, text, provider, model, variant) {
+  let sessionID, c, res
+
+  provider = provider || getProvider(buf)
+  model = model || getModel(buf)
+  variant = variant || getVariant(buf)
+
+  sessionID = buf.vars('code').sessionID
+
+  try {
+    c = await ensureClient(buf)
+  }
+  catch (err) {
+    d(err)
+    appendMsg(buf, 'assistant', 'Error: ' + err.message)
+    return
+  }
+
+  buf.vars('code').agentStopped = 0
+  buf.vars('code').busy = 1
+
+  appendMsg(buf, 'user', text)
+
+  startEventSub(buf)
+
+  try {
+    let agent
+
+    agent = getAgent(buf)
+
+    updateBufAgent(buf, agent)
+
+    d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
+
+    res = await c.session.prompt({ sessionID,
+                                   directory: buf.dir,
+                                   model: { providerID: provider, modelID: model },
+                                   agent,
+                                   variant: variant || undefined,
+                                   parts: [ { id: 'prt_' + uuidv4(), type: 'text', text } ] })
+
+    d('CO SEND done')
+    d({ res })
+
+    appendModel(buf, modelName(res.data?.info?.modelID || '???', variant))
+    if (provider == 'openrouter')
+      updateCredits(buf)
+  }
+  catch (err) {
+    d(err)
+    appendMsg(buf, 'assistant', 'Error: ' + err.message)
+    buf.vars('code').client = 0
+    buf.vars('code').streamActive = 0
+    startEventSub(buf)
+  }
+
+  if (res?.error) {
+    d({ resError: res.error })
+    appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
+    buf.vars('code').client = 0
+    buf.vars('code').streamActive = 0
+    startEventSub(buf)
+  }
+}
+
+function stopAgent
+(buf, sessionID) {
+  buf.vars('code').agentStopped = 1
+  ensureClient(buf).then(async client => {
+    try {
+      await client.session.abort({ sessionID, directory: buf.dir })
+      d('CO stop done')
+      Mess.yell('Stopped agent')
+    }
+    catch (err) {
+      d('CO stop error: ' + err.message)
+    }
+  }).catch(err => {
+    d('CO stop ensureClient error: ' + err.message)
+  })
+}
+
+function stop
+() {
+  let p, sessionID
+
+  p = Pane.current()
+  sessionID = p.buf.vars('code')?.sessionID
+
+  if (sessionID)
+    stopAgent(p.buf, sessionID)
+  else
+    Mess.yell('missing sessionID')
+}
+
+function stopWithCaution
+() {
+  let p, sessionID
+
+  p = Pane.current()
+  sessionID = p.buf.vars('code')?.sessionID
+
+  if (sessionID)
+    if (stopTimeout) {
+      clearTimeout(stopTimeout)
+      stopTimeout = 0
+      stopAgent(p.buf, sessionID)
+    }
+    else {
+      Mess.yell('Again to stop agent')
+      stopTimeout = setTimeout(() => {
+        stopTimeout = 0
+        Mess.yell('stop timed out')
+      }, 5000)
+    }
+  else
+    Mess.yell('missing sessionID')
+}
+
+function toggleThinking
+() {
+  let p
+
+  p = Pane.current()
+  p.buf.views.forEach(view => {
+    if (view.eleOrReserved) {
+      let w
+
+      w = view.eleOrReserved.querySelector('.code-w')
+      if (w) {
+        let img, h
+
+        h = view.eleOrReserved.querySelector('.code-h')
+        img = h.querySelector('.code-thought img')
+        if (Css.has(w, 'code-thinking-hidden')) {
+          w.classList.remove('code-thinking-hidden')
+          if (img)
+            img.src = Icon.path('thinking.active')
+        }
+        else {
+          w.classList.add('code-thinking-hidden')
+          if (img)
+            img.src = Icon.path('thinking.zen')
+        }
+      }
+    }
+  })
+}
+
+function toggleDetails
+(u, we) {
+  let el
+
+  el = we.e.target.closest('.code-msg-tool')
+  Css.toggle(el, 'code-closed')
+}
+
+function setAgent
+(buf, agent) {
+  buf.opts.set('code.agent', agent)
+  Hist.ensure('code.agent').add(agent)
+  updateBufAgent(buf, agent)
+}
+
+function promptAgent
+() {
+  let buf
+
+  buf = Pane.current().buf
+  Prompt.choose(iconAgent() + ' Agent',
+                [ 'build', 'plan' ],
+                {},
+                agent => {
+                  if (agent) {
+                    agent = agent.trim()
+                    setAgent(buf, agent)
+                    return
+                  }
+                  Mess.throw('ERR: agent: ' + agent)
+                })
+}
+
+function openPrompt
+(buf, pane, provider, model, variant) {
+  let wh
+
+  wh = whichHistFromBuf(buf)
+  buf.vars('code').promptBuf.placeholder = wh?.nth(0)?.toString()
+
+  buf.views.forEach(view => {
+    let container
+
+    container = view.ele.querySelector('.code-prompt-w')
+    if (container) {
+      let mlModel
+
+      Css.expand(container)
+      mlModel = container.querySelector('.code-prompt-model')
+      if (mlModel)
+        mlModel.innerText = '🗩 ' + provider + '/' + modelName(model, variant)
+    }
+  })
+
+  if (pane.view?.nestedViews) {
+    let nestedView
+
+    nestedView = pane.view.nestedViews.find(nv => nv.buf == buf.vars('code').promptBuf)
+    if (nestedView?.ele)
+      pane.focusViewAt(nestedView.ele)
+  }
+}
+
+function next
+() {
+  let p, buf, provider, model, variant
+
+  p = Pane.current()
+  buf = p.buf
+
+  if (buf.vars('code').permissions?.length)
+    return
+
+  if (buf.vars('code').questions?.length)
+    return
+
+  if (buf?.vars('code')?.sessionID) {
+    // OK
+  }
+  else
+    return
+
+  if (buf.vars('code').busy) {
+    d('busy')
+    return
+  }
+
+  provider = getProvider(buf)
+  model = getModel(buf)
+  variant = getVariant(buf)
+
+  openPrompt(buf, p, provider, model, variant)
+}
+
+function nestPromptBuf
+(buf) {
+  let promptBuf
+
+  function addPromptBuf
   () {
-    let view, wh
+    let b, placeholder
 
-    view = View.current()
-    wh = whichHistFromBuf(view.buf)
-    wh.next(view.buf)
+    placeholder = hist?.nth(0)?.toString()
+
+    b = Buf.make({ name: 'Code Prompt',
+                   modeKey: 'markdown',
+                   content: Ed.divW(buf.dir, 'Code Prompt', { hideMl: 1 }),
+                   dir: buf.dir,
+                   placeholder,
+                   single: 1 })
+    b.opts.set('blankLines.enabled', 0)
+    b.opts.set('core.autocomplete.enabled', 0)
+    b.opts.set('core.brackets.close.enabled', 0)
+    b.opts.set('core.folding.enabled', 0)
+    b.opts.set('core.highlight.activeLine.enabled', 0)
+    b.opts.set('core.head.enabled', 0)
+    b.opts.set('core.line.numbers.show', 0)
+    b.opts.set('core.lint.enabled', 0)
+    b.opts.set('minimap.enabled', 0)
+    b.opts.set('ruler.enabled', 0)
+    b.icon = 'prompt'
+
+    buf.vars('code').promptBuf = b
+    return b
   }
+
+  promptBuf = buf.vars('code').promptBuf || addPromptBuf()
+  promptBuf.addMode('Code Prompt')
+
+  buf.views.forEach(view => {
+    let container
+
+    container = view.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
+    append(container, divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': promptBuf.id }))
+  })
+
+  buf.nest(promptBuf)
+}
+
+function code
+(given) {
+  let pane, dir, name, provider, model, variant
+
+  async function run
+  (prompt) {
+    if (prompt)
+      hist.add(prompt)
+
+    try {
+      let c, buf, res
+
+      buf = Buf.add(name, 'code', divW(dir), pane.dir)
+      buf.vars('code').prompt = prompt
+      buf.vars('code').provider = provider
+      buf.vars('code').model = model
+      buf.vars('code').variant = variant
+      buf.opt('core.lint.enabled', 1)
+
+      c = await ensureClient(buf)
+
+      res = await c.session.create({ directory: buf.dir, title: prompt || '' })
+
+      buf.vars('code').sessionID = res.data.id
+
+      pane.setBuf(buf, {}, () => {
+        nestPromptBuf(buf)
+        if (prompt)
+          send(buf, prompt, provider, model, variant)
+        else
+          openPrompt(buf, pane, provider, model, variant)
+      })
+    }
+    catch (err) {
+      Mess.yell('Failed: ' + err.message)
+    }
+  }
+
+  pane = Pane.current()
+  dir = pane.dir
+  name = 'CO ' + dir
+  {
+    let buf
+
+    buf = Buf.find(b => b.name == name)
+    if (buf) {
+      pane.setBuf(buf)
+      if (provider == 'openrouter')
+        updateCredits(buf)
+      return
+    }
+  }
+
+  provider = getProvider()
+  model = getModel()
+  variant = getVariant()
+  if (given)
+    run(given)
+  else
+    run()
+}
+
+function viewInit
+(view, spec, cb) { // (view)
+  if (cb)
+    cb(view)
+}
+
+function viewCopy
+(to, from, lineNum, cb) {
+  let fromW, toW
+
+  fromW = from.ele.querySelector('.code-w')
+  toW = to.ele.querySelector('.code-w')
+  if (fromW && toW) {
+    let fromTitle, toTitle, toUnderW
+
+    fromTitle = fromW.querySelector('.code-session-title')
+    toTitle = toW.querySelector('.code-session-title')
+    if (fromTitle && toTitle)
+      toTitle.innerText = fromTitle.innerText
+    toUnderW = toW.querySelector('.code-under-w')
+    if (toUnderW) {
+      let fromUnderW
+
+      fromUnderW = fromW.querySelector('.code-under-w')
+      if (fromUnderW) {
+        let statusEl, modelEl, versionEl, tokensEl
+
+        statusEl = toUnderW.querySelector('.code-under-status')
+        if (statusEl) {
+          let fromStatus
+
+          fromStatus = fromUnderW.querySelector('.code-under-status')
+          if (fromStatus)
+            statusEl.innerHTML = fromStatus.innerHTML
+        }
+        modelEl = toUnderW.querySelector('.code-under-model')
+        if (modelEl) {
+          let fromModel
+
+          fromModel = fromUnderW.querySelector('.code-under-model')
+          if (fromModel)
+            modelEl.innerHTML = fromModel.innerHTML
+        }
+        versionEl = toUnderW.querySelector('.code-under-version')
+        if (versionEl) {
+          let fromVersion
+
+          fromVersion = fromUnderW.querySelector('.code-under-version')
+          if (fromVersion)
+            versionEl.innerText = fromVersion.innerText
+        }
+        tokensEl = toUnderW.querySelector('.code-under-tokens')
+        if (tokensEl) {
+          let fromTokens
+
+          fromTokens = fromUnderW.querySelector('.code-under-tokens')
+          if (fromTokens)
+            tokensEl.innerText = fromTokens.innerText
+        }
+      }
+    }
+    ;[ ...fromW.children ].forEach(child => {
+      if (Css.has(child, 'code-session-title'))
+        return
+      if (Css.has(child, 'code-under-w'))
+        return
+      toW.insertBefore(child.cloneNode(1), toUnderW)
+    })
+    {
+      let fromH, toH
+
+      fromH = fromW.querySelector('.code-h')
+      toH = toW.querySelector('.code-h')
+      if (toH) {
+        let agentEl
+
+        agentEl = toH.querySelector('.code-agent')
+        if (agentEl) {
+          let fromAgent
+
+          fromAgent = fromH?.querySelector('.code-agent')
+          if (fromAgent)
+            agentEl.innerText = fromAgent.innerText
+        }
+      }
+    }
+  }
+  if (cb)
+    cb(to)
+}
+
+function viewReopen
+(view, lineNum, whenReady) {
+  d('================== code viewReopen')
+
+  if (view.ele)
+    // timeout so behaves like viewInit
+    setTimeout(() => {
+      bufEnd(view)
+      if (whenReady)
+        whenReady(view)
+    })
+  else
+    // probably buf was switched out before init happened.
+    viewInit(view,
+             { lineNum },
+             whenReady)
+}
+
+function bufEnd
+(v) {
+  let w
+
+  w = v.ele.querySelector('.code-w')
+  if (w)
+    w.scrollTop = w.scrollHeight
+}
+
+function bufStart
+(v) {
+  let w
+
+  w = v.ele.querySelector('.code-w')
+  if (w)
+    w.scrollTop = 0
+}
+
+function submitPrompt
+() {
+  let buf, p, text, codeBuf, whichHist
+
+  p = Pane.current()
+  buf = p.buf
+  codeBuf = buf.parent || buf
+  text = buf.vars('code').promptBuf.text()
+  if (text.length)
+    text = text.trim()
+  else
+    text = buf.vars('code').promptBuf.placeholder || ''
+
+  if (text.length == 0) {
+    Mess.yell('Empty prompt')
+    return
+  }
+
+  if (codeBuf.vars('code').firstPromptSent)
+    whichHist = chatHist
+  else {
+    whichHist = hist
+    codeBuf.vars('code').firstPromptSent = 1
+  }
+  cancelPrompt(p)
+  whichHist.add(text)
+  buf.vars('code').promptBuf.clear()
+  send(buf, text, buf.vars('code').provider, buf.vars('code').model, buf.vars('code').variant)
+}
+
+function cancelPrompt
+(p) {
+  let buf, codeBuf
+
+  p = p || Pane.current()
+  buf = p.buf
+  codeBuf = buf.parent || buf
+  if (codeBuf.vars('code').firstPromptSent) {
+    buf.views.forEach(view => {
+      let container
+
+      container = view.ele.querySelector('.code-prompt-w')
+      if (container)
+        Css.retract(container)
+    })
+
+    p.focus()
+  }
+}
+
+function whichHistFromBuf
+(buf) {
+  let codeBuf
+
+  codeBuf = buf.parent || buf
+  if (codeBuf.vars('code').firstPromptSent)
+    return chatHist
+  return hist
+}
+
+function prevHist
+() {
+  let view, wh
+
+  view = View.current()
+  wh = whichHistFromBuf(view.buf)
+  wh.prev(view.buf)
+}
+
+function nextHist
+() {
+  let view, wh
+
+  view = View.current()
+  wh = whichHistFromBuf(view.buf)
+  wh.next(view.buf)
+}
+
+export
+function init
+() {
+  let mo, moCodePrompt
 
   tools = { read: { onPendOrRun
                     (buf, part) {

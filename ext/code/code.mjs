@@ -1,9 +1,8 @@
-import { append, button, create, divCl, img, span } from '../../js/dom.mjs'
+import { button, create, divCl, span } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Css from '../../js/css.mjs'
-import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/em.mjs'
 import * as Hist from '../../js/hist.mjs'
 import * as Icon from '../../js/icon.mjs'
@@ -11,40 +10,21 @@ import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Opt from '../../js/opt.mjs'
 import * as Pane from '../../js/pane.mjs'
-import * as Prompt from '../../js/prompt.mjs'
-import { d } from '../../js/mess.mjs'
 import * as Tron from '../../js/tron.mjs'
-import * as U from '../../js/util.mjs'
 import * as View from '../../js/view.mjs'
 import { v4 as uuidv4 } from '../../lib/uuid/index.js'
-import * as CMState from '../../lib/@codemirror/state.js'
-import * as CMView from '../../lib/@codemirror/view.js'
-import { patch } from '../../lib/codemirror-lang-diff.js'
-import { markdown } from '../../lib/@codemirror/lang-markdown.js'
-import { langs } from '../../js/wode-lang.mjs'
-import { modeFor } from '../../js/wode-mode.mjs'
-import { themeExtension } from '../../js/wode-theme.mjs'
+import { d } from '../../js/mess.mjs'
 
-import * as OpenCode from './lib/opencode/v2/client.js'
+import * as Comm from './comm.mjs'
+import * as Event from './event.mjs'
+import * as Prompt from './prompt.mjs'
+import * as Ui from './ui.mjs'
+import * as Util from './util.mjs'
+import * as Sessions from './sessions.mjs'
+
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
-import { makeMlDir } from '../../js/ed.mjs'
 
 let hist, chatHist, stopTimeout, mostRecentAgent, tools, events
-
-function iconAgent
-() {
-  return '⚡'
-}
-
-function iconRightArrow
-() {
-  return '➔'
-}
-
-function modelName
-(model, variant) {
-  return model + (variant ? ':' + variant : '')
-}
 
 function getSubagentIds
 (buf) {
@@ -54,49 +34,6 @@ function getSubagentIds
 function getSubagentCallIds
 (buf) {
   return buf.vars('code').subagentCallIds || (buf.vars('code').subagentCallIds = new Map())
-}
-
-function getProvider
-(buf) {
-  return (buf && buf.vars('code').provider) || Opt.get('code.provider.agent') || 'opencode-go'
-}
-
-function getModel
-(buf) {
-  return (buf && buf.vars('code').model) || Opt.get('code.model.agent') || 'deepseek-v4-pro'
-}
-
-function getVariant
-(buf) {
-  return (buf && buf.vars('code').variant) || Opt.get('code.variant.agent') || ''
-}
-
-function getAgent
-(buf) {
-  return (buf && buf.opts.get('code.agent')) || Opt.get('code.agent')
-}
-
-function isSubagentId
-(buf, id) {
-  return buf?.vars('code')?.subagentIds?.has(id)
-}
-
-function isSessionMatch
-(buf, id) {
-  return (id == buf.vars('code')?.sessionID) || isSubagentId(buf, id)
-}
-
-function eachCodeW
-(buf, fn) {
-  buf.views.forEach(view => {
-    if (view.eleOrReserved) {
-      let w
-
-      w = view.eleOrReserved.querySelector('.code-w')
-      if (w)
-        fn(view, w)
-    }
-  })
 }
 
 function sumTokens
@@ -112,8 +49,8 @@ function codeInit
 () {
   let pane, dir, name, provider, model, existingBuf, buf
 
-  provider = getProvider()
-  model = getModel()
+  provider = Util.getProvider()
+  model = Util.getModel()
   pane = Pane.current()
   dir = pane.dir
   name = 'CO ' + dir
@@ -127,10 +64,10 @@ function codeInit
     existingBuf.vars('code').busy = 1
     pane.setBuf(existingBuf)
     existingBuf.vars('code').agentStopped = 0
-    appendMsg(existingBuf, 'user', '/init')
+    Ui.appendMsg(existingBuf, 'user', '/init')
     updateBufAgent(existingBuf, 'build')
-    startEventSub(existingBuf)
-    ensureClient(existingBuf).then(c => {
+    Event.startSub(existingBuf, events)
+    Comm.ensureClient(existingBuf).then(c => {
       c.session.command({ sessionID: existingBuf.vars('code').sessionID,
                           directory: existingBuf.dir,
                           command: 'init',
@@ -141,24 +78,24 @@ function codeInit
     return
   }
 
-  buf = Buf.add(name, 'code', divW(dir), pane.dir)
+  buf = Buf.add(name, 'code', Ui.divW(dir), pane.dir)
   buf.vars('code').prompt = '/init'
   buf.vars('code').provider = provider
   buf.vars('code').model = model
   buf.opt('core.lint.enabled', 1)
 
-  ensureClient(buf).then(c => {
+  Comm.ensureClient(buf).then(c => {
     c.session.create({ directory: buf.dir, title: '/init' })
       .then(res => {
         buf.vars('code').sessionID = res.data.id
 
         pane.setBuf(buf, {}, () => {
-          nestPromptBuf(buf)
+          Prompt.nestBuf(buf, hist)
           buf.vars('code').firstPromptSent = 1
           buf.vars('code').busy = 1
-          appendMsg(buf, 'user', '/init')
+          Ui.appendMsg(buf, 'user', '/init')
           updateBufAgent(buf, 'build')
-          startEventSub(buf)
+          Event.startSub(buf, events)
 
           c.session.command({ sessionID: res.data.id,
                               directory: buf.dir,
@@ -172,209 +109,6 @@ function codeInit
         Mess.yell('Failed: ' + err.message)
       })
   })
-}
-
-function initSessions
-() {
-  let mo
-
-  function viewInit
-  (view, spec, cb) { // (view)
-    let w
-
-    w = view.eleOrReserved.querySelector('.code-sessions-w')
-    if (w) {
-
-      w.innerHTML = ''
-      ensureClient(view.buf).then(c => c.session.list().then(sessions => {
-        d({ sessions })
-        append(w,
-               sessions.data.filter(s => s.directory == view.buf.dir).map(s => {
-                 return [ divCl('code-sessions-del', '✗',
-                                { 'data-run': 'delete session',
-                                  'data-session-id': s.id,
-                                  'data-session-dir': s.directory }),
-                          divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
-                                { 'data-run': 'open code session',
-                                  'data-session-id': s.id,
-                                  'data-session-dir': s.directory }),
-                          divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
-               }))
-      }))
-    }
-
-    if (cb)
-      cb(view)
-  }
-
-  function openCodeSession
-  (u, we) {
-    let sessionID, sessionDir
-
-    async function open
-    () {
-      let c, pane, name, buf, provider, model, variant
-
-      pane = Pane.current()
-      name = 'CO ' + sessionDir
-
-      buf = Buf.find(b => b.name == name)
-      if (buf) {
-        pane.setBuf(buf)
-        return
-      }
-
-      provider = getProvider()
-      model = getModel()
-      variant = getVariant()
-
-      buf = Buf.add(name, 'code', divW(sessionDir), sessionDir)
-      buf.vars('code').provider = provider
-      buf.vars('code').model = model
-      buf.vars('code').variant = variant
-      buf.vars('code').sessionID = sessionID
-      buf.opt('core.lint.enabled', 1)
-
-      try {
-        c = await ensureClient(buf)
-      }
-      catch (err) {
-        Mess.yell('Failed: ' + err.message)
-        return
-      }
-
-      pane.setBuf(buf, {}, () => {
-        c.session.messages({ sessionID, directory: sessionDir }).then(r => {
-          d({ r })
-          for (let msg of r.data)
-            for (let part of msg.parts)
-              if (part.type == 'text')
-                appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
-              else if (part.type == 'reasoning' && part.text)
-                appendThinking(buf, part.text, part.id)
-              else if (part.type == 'tool') {
-                let label
-
-                label = part.tool
-                if (part.tool == 'bash' && part.state?.input?.command)
-                  label += ': ' + part.state.input.command
-                else if (part.state?.input?.filePath)
-                  label += ' ' + makeRelative(buf, part.state.input.filePath)
-                else if (part.state?.input?.pattern)
-                  label += ' "' + part.state.input.pattern + '"'
-                else if (part.state?.input?.query)
-                  label += ': ' + part.state.input.query
-                else if (part.state?.input?.url)
-                  label += ' ' + part.state.input.url
-                appendToolMsg(buf, part.callID, label,
-                              part.state?.output || part.state?.error)
-              }
-        })
-
-        buf.vars('code').firstPromptSent = 1
-        nestPromptBuf(buf)
-        startEventSub(buf)
-      })
-    }
-
-    sessionID = we.e.target.dataset.sessionId
-    sessionDir = we.e.target.dataset.sessionDir
-
-    open()
-  }
-
-  function deleteSession
-  (u, we) {
-    let sessionID, sessionDir
-
-    sessionID = we.e.target.dataset.sessionId
-    sessionDir = we.e.target.dataset.sessionDir
-
-    Prompt.yn('Delete session ' + sessionID.replace(/^sess_/, '') + '?',
-              { icon: 'trash' },
-              yes => {
-                if (yes)
-                  ensureClient(View.current().buf)
-                    .then(c => c.session.delete({ sessionID, directory: sessionDir }))
-                    .then(() => {
-                      View.current().buf.views.forEach(view => {
-                        let w, el
-
-                        w = view.eleOrReserved?.querySelector('.code-sessions-w')
-                        el = w?.querySelector('[data-session-id="' + sessionID + '"]')
-                        if (el) {
-                          let i
-
-                          i = [ ...w.children ].indexOf(el)
-                          w.children[i + 2]?.remove()
-                          w.children[i + 1]?.remove()
-                          w.children[i].remove()
-                        }
-                      })
-                    })
-              })
-  }
-
-  mo = Mode.add('Code Sessions', { viewInit })
-
-  Cmd.add('refresh', () => viewInit(View.current()), mo)
-
-  Cmd.add('code sessions', () => {
-    let p, name, buf
-
-    p = Pane.current()
-    name = 'Code Sessions: ' + p.dir
-    buf = Buf.find(b => b.name == name)
-    if (buf)
-      p.setBuf(buf, {}, view => viewInit(view))
-    else {
-      buf = Buf.add(name, 'Code Sessions',
-                    divCl('code-sessions-ww',
-                          [ divCl('code-sessions-h',
-                                  Ed.divMl(p.dir, 'Code Sessions',
-                                           { icon: 'list' })),
-                            divCl('code-sessions-w bred-surface', '') ]),
-                    p.dir)
-      buf.icon = 'list'
-      buf.addMode('view')
-      p.setBuf(buf)
-    }
-  })
-
-  Cmd.add('open code session', openCodeSession, mo)
-
-  Cmd.add('delete session', deleteSession, mo)
-
-  Em.on('g', 'refresh', mo)
-}
-
-async function ensureClient
-(buf) {
-  let client, ret, spawnPromise
-
-  client = buf.vars('code').client
-  if (client)
-    return client
-
-  if (buf.vars('code').spawnPromise)
-    return buf.vars('code').spawnPromise
-
-  spawnPromise = Tron.acmd('code.spawn', [ buf.id, buf.dir ])
-  buf.vars('code').spawnPromise = spawnPromise
-
-  ret = await spawnPromise
-
-  if (ret.err) {
-    buf.vars('code').spawnPromise = 0
-    throw new Error(ret.err.message)
-  }
-
-  client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
-  buf.vars('code').client = client
-  buf.vars('code').serverUrl = ret.url
-  buf.vars('code').spawnedBufferID = buf.id
-  buf.vars('code').spawnPromise = 0
-  return client
 }
 
 function updateCredits
@@ -426,181 +160,11 @@ function updateCredits
     })
 }
 
-function scroll
-(underW) {
-  d('CO SCROLL')
-  underW.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' })
-}
-
-function underVisible
-(w, underW) {
-  if (underW) {
-    let rU, rW
-
-    rU = underW.getBoundingClientRect()
-    rW = w.getBoundingClientRect()
-    //d('CO ' + rU.bottom + ' < ' + rW.bottom + '?')
-    return rU.top < rW.bottom
-  }
-  return 0
-}
-
-function withScroll
-(w, cb) { // (underW)
-  let underW, wasVisible
-
-  underW = w.querySelector('.code-under-w') || d('CO underW missing')
-
-  wasVisible = underVisible(w, underW)
-  d({ wasVisible })
-
-  if (cb)
-    cb(underW)
-
-  if (wasVisible && underW)
-    scroll(underW)
-}
-
-function appendX
-(w, el) {
-  withScroll(w, underW => {
-    if (underW) {
-      let prev
-
-      prev = underW.previousElementSibling
-      if (prev && Css.has(prev, 'code-msg-permission'))
-        // keep the permission check at the end
-        prev.before(el)
-      else
-        underW.before(el)
-    }
-    else
-      append(w, el)
-  })
-}
-
-function setText
-(w, el, text) {
-  withScroll(w, () => {
-    el.innerText = text
-  })
-}
-
-function makePatchEd
-(text) {
-  let el, state, ed
-
-  el = divCl('code-patch-ed')
-  state = CMState.EditorState.create({ doc: text,
-                                       extensions: [ CMView.EditorView.editable.of(false),
-                                                     CMView.EditorView.lineWrapping,
-                                                     patch(),
-                                                     themeExtension ] })
-  ed = new CMView.EditorView({ state, parent: el })
-  return { el, ed }
-}
-
-function makeMarkdownEd
-(text) {
-  let el, state, ed
-
-  el = divCl('code-markdown-ed')
-  state = CMState.EditorState.create({ doc: text,
-                                       extensions: [ CMView.EditorView.editable.of(false),
-                                                     CMView.EditorView.lineWrapping,
-                                                     markdown({ codeLanguages: langs }),
-                                                     themeExtension ] })
-  ed = new CMView.EditorView({ state, parent: el })
-  return { el, ed }
-}
-
-function makeCodeEd
-(path, text) {
-  let el, state, ed, lang, exts
-
-  el = divCl('code-code-ed')
-  lang = langs.find(l => l.id == modeFor(path))
-  exts = [ CMView.EditorView.editable.of(false),
-           CMView.EditorView.lineWrapping,
-           themeExtension ]
-  if (lang?.language)
-    exts.unshift(lang.language)
-  state = CMState.EditorState.create({ doc: text, extensions: exts })
-  ed = new CMView.EditorView({ state, parent: el })
-  return { el, ed }
-}
-
 function appendModel
 (buf, model) {
-  eachCodeW(buf, (view, w) => {
-    appendX(w, divCl('code-msg code-msg-role', model))
+  Util.eachCodeW(buf, (view, w) => {
+    Ui.appendX(w, divCl('code-msg code-msg-role', model))
   })
-}
-
-function appendMsg
-(buf, role, text, partID) {
-  eachCodeW(buf, (view, w) => {
-    if (role == 'user') {
-    }
-    else {
-      let el
-
-      el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
-      if (el) {
-        let oldMdEl
-
-        oldMdEl = el.querySelector('.code-markdown-ed')
-        if (oldMdEl) {
-          let mdEd
-
-          mdEd = makeMarkdownEd(text)
-          withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
-          view.vars('code').eds = view.vars('code').eds || []
-          view.vars('code').eds.push(mdEd.ed)
-        }
-        return
-      }
-    }
-    appendX(w,
-            divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                  [ (role == 'user')
-                    ? divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
-                    : makeMarkdownEd(text || '').el ],
-                  { 'data-partid': partID || 0 }))
-    if (role == 'user') {
-      let underW
-
-      underW = w.querySelector('.code-under-w')
-      scroll(underW)
-    }
-  })
-}
-
-function appendThinking
-(buf, text, partID) {
-  eachCodeW(buf, (view, w) => {
-    let el
-
-    el = w.querySelector('.code-msg-thinking[data-partid="' + partID + '"]')
-    if (el) {
-      let current
-
-      current = el.querySelector('.code-msg-text').innerText
-      setText(w, el.querySelector('.code-msg-text'), current + text)
-    }
-    else
-      appendX(w,
-              divCl('code-msg code-msg-thinking',
-                    [ divCl('code-msg-text', text) ],
-                    { 'data-partid': partID || 0 }))
-  })
-}
-
-function makeRelative
-(buf, path) {
-  if (path?.startsWith(buf.dir))
-    return path.slice(buf.dir.length)
-  return path
 }
 
 function fileLabel
@@ -615,74 +179,10 @@ function fileLabel
   spec = spec || {}
   return [ tool + ' file ',
            divCl('code-file',
-                 makeRelative(buf, path),
+                 Util.makeRelative(buf, path),
                  { 'data-run': 'open link', 'data-path': path }),
            bounds(),
            status || '' ]
-}
-
-function appendToolMsg
-(buf, callID, label, under, spec) {
-  spec = spec || {}
-  if (callID) {
-    buf.vars('code').callLabels = buf.vars('code').callLabels || {}
-    buf.vars('code').callLabels[callID] = label
-  }
-  eachCodeW(buf, (view, w) => {
-    let els, underEl
-
-    els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
-    els?.forEach(el => el.remove())
-    if (under && (spec.format == 'code')) {
-      let codeResult
-
-      codeResult = makeCodeEd(spec.path, under)
-      underEl = codeResult.el
-      view.vars('code').eds = view.vars('code').eds || []
-      view.vars('code').eds.push(codeResult.ed)
-    }
-    else if (under && (spec.format == 'patch')) {
-      let patchResult
-
-      patchResult = makePatchEd(under)
-      underEl = patchResult.el
-      view.vars('code').eds = view.vars('code').eds || []
-      view.vars('code').eds.push(patchResult.ed)
-    }
-    else if (under)
-      underEl = divCl('code-msg-text code-msg-under', under)
-    appendX(w,
-            divCl('code-msg code-msg-tool',
-                  [ divCl('code-msg-text',
-                          [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : iconRightArrow()),
-                            ' ',
-                            label ]),
-                    underEl ],
-                  { 'data-callid': callID }))
-  })
-  if (callID && label)
-    eachCodeW(buf, (view, w) => {
-      let permEl
-
-      permEl = w.querySelector('.code-msg-permission[data-permission-callid="' + callID + '"]')
-      if (permEl) {
-        let labelEl
-
-        labelEl = permEl.querySelector('.code-msg-label')
-        if (labelEl)
-          labelEl.innerText = label
-        else {
-          let patternEl
-
-          patternEl = permEl.querySelector('.code-msg-pattern')
-          labelEl = divCl('code-msg-label', label)
-          if (patternEl)
-            patternEl.before(labelEl)
-          else
-            permEl.append(labelEl)
-        }
-      }
-    })
 }
 
 function appendPermission
@@ -709,16 +209,16 @@ function appendPermission
       let w
 
       w = view.eleOrReserved.querySelector('.code-w')
-      appendX(w,
-              divCl('code-msg code-msg-permission',
-                    [ divCl('code-msg-text',
-                            [ '▣ Allow?',
-                              button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
-                              button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
-                      label && divCl('code-msg-label', label),
-                      divCl('code-msg-pattern', pattern()) ],
-                    { 'data-permissionid': id,
-                      'data-permission-callid': callID || '??' }))
+      Ui.appendX(w,
+                 divCl('code-msg code-msg-permission',
+                       [ divCl('code-msg-text',
+                               [ '▣ Allow?',
+                                 button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
+                                 button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
+                         label && divCl('code-msg-label', label),
+                         divCl('code-msg-pattern', pattern()) ],
+                       { 'data-permissionid': id,
+                         'data-permission-callid': callID || '??' }))
     }
   })
 }
@@ -732,7 +232,7 @@ function ynRespond
   response = yes ? 'once' : 'reject'
 
   d('CO permission reply: ' + response)
-  ensureClient(buf).then(async c => {
+  Comm.ensureClient(buf).then(async c => {
     try {
       d('CO calling permission.respond, dir=' + buf.dir)
 
@@ -744,7 +244,7 @@ function ynRespond
                                    permissionID: id,
                                    response,
                                    directory: buf.dir })
-      eachCodeW(buf, (view, w) => {
+      Util.eachCodeW(buf, (view, w) => {
         let el
 
         el = w.querySelector('.code-msg-permission[data-permissionid="' + id + '"]')
@@ -755,7 +255,7 @@ function ynRespond
       d('CO permission respond error: ' + err.message)
     }
   }).catch(err => {
-    d('CO permission ensureClient error: ' + err.message)
+    d('CO permission Comm.ensureClient error: ' + err.message)
   })
 
   buf.vars('code').permissions = buf.vars('code').permissions.slice(1)
@@ -775,39 +275,6 @@ function yn
     ynRespond(buf, id, yes)
 }
 
-function updateBufStatus
-(buf, status, model, tokenInfo, versionInfo) {
-  buf.views.forEach(view => {
-    if (view.eleOrReserved) {
-      let underW
-
-      underW = view.eleOrReserved.querySelector('.code-under-w')
-      if (underW) {
-        let statusEl, modelEl, versionEl, tokenEl
-
-        statusEl = underW.querySelector('.code-under-status')
-        modelEl = underW.querySelector('.code-under-model')
-        versionEl = underW.querySelector('.code-under-version')
-        tokenEl = underW.querySelector('.code-under-tokens')
-        if (statusEl)
-          statusEl.innerText = status
-        if (modelEl)
-          modelEl.innerText = model
-        if (versionEl)
-          if (versionInfo)
-            versionEl.innerText = versionInfo
-          else
-            versionEl.innerText = ''
-        if (tokenEl)
-          if (tokenInfo)
-            tokenEl.innerText = tokenInfo
-          else
-            tokenEl.innerText = ''
-      }
-    }
-  })
-}
-
 function updateBufAgent
 (buf, agent) {
   buf.views.forEach(view => {
@@ -820,7 +287,7 @@ function updateBufAgent
 
         agentEl = h.querySelector('.code-agent')
         if (agentEl)
-          agentEl.innerText = iconAgent() + agent
+          agentEl.innerText = Util.iconAgent() + agent
       }
     }
   })
@@ -828,11 +295,11 @@ function updateBufAgent
 
 function updateIdle
 (buf, tokenInfo) {
-  updateBufStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
+  Ui.updateStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
   buf.vars('code').busy = 0
   if (buf.vars('code').agentStopped) {
     buf.vars('code').agentStopped = 0
-    appendMsg(buf, 0, '...stopped')
+    Ui.appendMsg(buf, 0, '...stopped')
     buf.vars('code').stepActiveSessions = new Set()
   }
 }
@@ -844,11 +311,11 @@ function updateStatus
   d({ tokenInfo })
 
   if (req.status?.type == 'busy')
-    updateBufStatus(buf, '🌊', modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
+    Ui.updateStatus(buf, '🌊', Util.modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
   else if (req.status?.type == 'idle')
     updateIdle(buf, tokenInfo)
   else if (req.status?.type == 'retry')
-    updateBufStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
+    Ui.updateStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), Util.modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
   else if (req.status?.type)
     d('🌱 TODO status: ' + req.status?.type)
 }
@@ -885,7 +352,7 @@ async function updateModelContextLimit
   try {
     let c, providers, model
 
-    c = await ensureClient(buf)
+    c = await Comm.ensureClient(buf)
     providers = await c.config.providers({ directory: buf.dir })
     d({ providers })
     providers.data.providers?.some(p => {
@@ -917,7 +384,7 @@ function checkForPatch
     if (path) {
       d('CO permission file: ' + path)
       buf.vars('code').patch = req.metadata?.diff
-      appendToolMsg(buf, (req.callID || req.tool.callID), fileLabel(buf, 'Edit', path), req.metadata?.diff, { format: 'patch' })
+      Ui.appendToolMsg(buf, (req.callID || req.tool.callID), fileLabel(buf, 'Edit', path), req.metadata?.diff, { format: 'patch' })
     }
   }
 }
@@ -950,42 +417,42 @@ function handleQuestionAsked
 
 function appendQuestion
 (buf, req) {
-  eachCodeW(buf, (view, w) => {
-    appendX(w,
-            divCl('code-msg code-msg-question',
-                  [ divCl('code-msg-text', [ '▣ Questions' ]),
-                    ...req.questions.map((q, qi) => divCl('code-question-item',
-                                                          [ divCl('code-question-header', q.header),
-                                                            divCl('code-question-text', q.question),
-                                                            ...(q.options || []).map(opt => divCl('code-question-option',
-                                                                                                  [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
-                                                                                                  { 'data-run': 'toggle question option',
-                                                                                                    'data-qid': req.id,
-                                                                                                    'data-qi': qi,
-                                                                                                    'data-opt': opt.label })),
-                                                            q.custom && create('input', [],
-                                                                               'code-question-custom',
-                                                                               { 'data-qid': req.id,
-                                                                                 'data-qi': qi,
-                                                                                 placeholder: 'Your answer...' }) ],
-                                                          { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
-                    divCl('code-msg-text',
-                          [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
-                            button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
-                  { 'data-requestid': req.id }))
+  Util.eachCodeW(buf, (view, w) => {
+    Ui.appendX(w,
+               divCl('code-msg code-msg-question',
+                     [ divCl('code-msg-text', [ '▣ Questions' ]),
+                       ...req.questions.map((q, qi) => divCl('code-question-item',
+                                                             [ divCl('code-question-header', q.header),
+                                                               divCl('code-question-text', q.question),
+                                                               ...(q.options || []).map(opt => divCl('code-question-option',
+                                                                                                     [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
+                                                                                                     { 'data-run': 'toggle question option',
+                                                                                                       'data-qid': req.id,
+                                                                                                       'data-qi': qi,
+                                                                                                       'data-opt': opt.label })),
+                                                               q.custom && create('input', [],
+                                                                                  'code-question-custom',
+                                                                                  { 'data-qid': req.id,
+                                                                                    'data-qi': qi,
+                                                                                    placeholder: 'Your answer...' }) ],
+                                                             { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
+                       divCl('code-msg-text',
+                             [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
+                               button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
+                     { 'data-requestid': req.id }))
   })
 }
 
 function questionRespond
 (buf, requestID, answers) {
   d('CO question ' + (answers ? 'reply' : 'reject'))
-  ensureClient(buf).then(async c => {
+  Comm.ensureClient(buf).then(async c => {
     try {
       if (answers)
         await c.question.reply({ requestID, answers, directory: buf.dir })
       else
         await c.question.reject({ requestID, directory: buf.dir })
-      eachCodeW(buf, (view, w) => {
+      Util.eachCodeW(buf, (view, w) => {
         let el
 
         el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
@@ -1136,10 +603,10 @@ function handleToolPart
     else if ([ 'pending', 'running' ].includes(status) && h.onPendOrRun)
       h.onPendOrRun(buf, part)
     else
-      appendToolMsg(buf, part.callID, 'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
+      Ui.appendToolMsg(buf, part.callID, 'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
     return
   }
-  appendToolMsg(buf, part.callID, 'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
+  Ui.appendToolMsg(buf, part.callID, 'Tool call: ' + part.tool + (status ? (' (' + status + ')') : ''))
 }
 
 function handlePart
@@ -1181,7 +648,7 @@ function handlePart
     d('CO text part' + part.id)
     if (buf.vars('code').stepActiveSessions?.size) {
       d('CO update text: ' + part.text)
-      appendMsg(buf, 0, part.text, part.id)
+      Ui.appendMsg(buf, 0, part.text, part.id)
     }
     else
       d('CO text outside step: ' + part.text)
@@ -1194,7 +661,7 @@ function handlePart
     buffered = (event.properties.delta || '')
     if (buffered) {
       d('CO reasoning append: ' + buffered)
-      appendThinking(buf, buffered, part.id)
+      Ui.appendThinking(buf, buffered, part.id)
     }
   }
   else if (part.type == 'tool')
@@ -1207,7 +674,7 @@ function handlePartDelta
 
   delta = event.properties.delta
   field = event.properties.field
-  eachCodeW(buf, (view, w) => {
+  Util.eachCodeW(buf, (view, w) => {
     let msgEl, thinkingEl, textEl
 
     msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
@@ -1223,10 +690,10 @@ function handlePartDelta
         textEl.innerText = (textEl.innerText || '') + delta
     }
     else if (field == 'text' && msgEl == null)
-      appendX(w,
-              divCl('code-msg code-msg-thinking',
-                    [ divCl('code-msg-text', delta) ],
-                    { 'data-partid': event.properties.partID || 0 }))
+      Ui.appendX(w,
+                 divCl('code-msg code-msg-thinking',
+                       [ divCl('code-msg-text', delta) ],
+                       { 'data-partid': event.properties.partID || 0 }))
   })
 }
 
@@ -1236,7 +703,7 @@ function handleSubagentIdle
 
   callId = buf.vars('code').subagentCallIds?.get(event.properties.sessionID)
   if (callId)
-    eachCodeW(buf, (view, w) => {
+    Util.eachCodeW(buf, (view, w) => {
       let els
 
       els = w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]')
@@ -1250,176 +717,36 @@ function handleSubagentIdle
     })
 }
 
-function handleEvent
-(buf, event) {
-  let h, evSessionID, subagent
-
-  d('CO ' + event.type)
-  d({ event })
-
-  h = events[event.type]
-  if (h) {
-    if (h.onArrive)
-      h.onArrive(buf, event)
-    return
-  }
-
-  evSessionID = event.properties.sessionID
-    || event.properties.part?.sessionID
-    || event.properties.info?.id
-  subagent = isSubagentId(buf, evSessionID)
-  d('🌱 TODO handle ' + event.type + (subagent ? ' (subagent)' : ''))
-}
-
-function startEventSub
-(buf) {
-  let state
-
-  async function runStream
-  (client) {
-    let iter
-
-    try {
-      let events
-
-      events = await client.event.subscribe()
-      iter = events.stream[Symbol.asyncIterator]()
-    }
-    catch (err) {
-      if (err.name == 'AbortError') return
-      d('CO subscribe error: ' + err.message)
-      state.client = 0
-      setTimeout(() => tryReconnect(), 1000)
-      return
-    }
-
-    updateBufStatus(buf, '🔁 CONNECTED', '', '', VopenCode.version)
-
-    while (state.streamActive) {
-      let timeoutMs, timeoutPromise
-
-      timeoutMs = 35000
-      timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('heartbeat-timeout')), timeoutMs)
-      })
-
-      try {
-        let result
-
-        result = await Promise.race([ iter.next(), timeoutPromise ])
-
-        state.lastEventTime = Date.now()
-        if (result.done) {
-          state.client = 0
-          tryReconnect()
-          return
-        }
-
-        // give event loop a chance, in case flurry of events is freezing ui
-        await U.cede()
-        handleEvent(buf, result.value)
-      }
-      catch (err) {
-        if (err.message == 'heartbeat-timeout') {
-          d('CO heartbeat timeout, reconnecting')
-          state.client = 0
-          tryReconnect()
-          return
-        }
-        if (err.name == 'AbortError') return
-        d('CO stream error: ' + err.message)
-        state.client = 0
-        tryReconnect()
-        return
-      }
-    }
-  }
-
-  async function tryReconnect
-  () {
-    if (state.streamActive == 0) return
-    if (state.spawnedBufferID) {
-      await Tron.acmd('code.close', [ state.spawnedBufferID ])
-      state.spawnedBufferID = 0
-    }
-    state.client = 0
-    state.lastEventTime = Date.now()
-    updateBufStatus(buf, '🔁 RECONNECTING', '', '')
-    ensureClient(buf).then(runStream).catch(() => {
-      d('CO reconnect spawn failed')
-      setTimeout(tryReconnect, 1000)
-    })
-  }
-
-  state = buf.vars('code')
-  if (state.streamActive) return
-  state.streamActive = 1
-  state.lastEventTime = Date.now()
-  updateBufStatus(buf, '🔁 CONNECTING', '', '')
-
-  ensureClient(buf).then(runStream).catch(() => {
-    d('CO spawn failed, retrying')
-    setTimeout(() => startEventSub(buf), 1000)
-  })
-}
-
-function divW
-(dir) {
-  return divCl('code-ww',
-               [ divCl('code-h',
-                       [ divCl('code-icon',
-                               img(Icon.path('assist'), 'Code', 'filter-clr-text')),
-                         divCl('code-title', makeMlDir(dir)),
-                         divCl('code-h-right',
-                               [ divCl('code-agent', '', { 'data-run': 'Set Agent' }),
-                                 divCl('code-thought code-icon',
-                                       img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
-                                       { 'data-run': 'toggle thinking' }) ]) ]),
-                 divCl('code-w bred-scroller',
-                       [ divCl('code-session-title'),
-                         divCl('code-under-w',
-                               [ divCl('code-under code-under-status', '...'),
-                                 divCl('code-under code-under-model', '...'),
-                                 divCl('code-under-end',
-                                       [ divCl('code-under code-under-credits', ''),
-                                         divCl('code-under code-under-version', ''),
-                                         divCl('code-under code-under-tokens', '') ]) ]) ]),
-                 divCl('code-prompt-w retracted',
-                       [ divCl('code-prompt-ml',
-                               [ divCl('code-prompt-model', '') ]),
-                         divCl('bred-nested-pane-w') ]) ])
-}
-
 async function send
 (buf, text, provider, model, variant) {
   let sessionID, c, res
 
-  provider = provider || getProvider(buf)
-  model = model || getModel(buf)
-  variant = variant || getVariant(buf)
+  provider = provider || Util.getProvider(buf)
+  model = model || Util.getModel(buf)
+  variant = variant || Util.getVariant(buf)
 
   sessionID = buf.vars('code').sessionID
 
   try {
-    c = await ensureClient(buf)
+    c = await Comm.ensureClient(buf)
   }
   catch (err) {
     d(err)
-    appendMsg(buf, 'assistant', 'Error: ' + err.message)
+    Ui.appendMsg(buf, 'assistant', 'Error: ' + err.message)
     return
   }
 
   buf.vars('code').agentStopped = 0
   buf.vars('code').busy = 1
 
-  appendMsg(buf, 'user', text)
+  Ui.appendMsg(buf, 'user', text)
 
-  startEventSub(buf)
+  Event.startSub(buf, events)
 
   try {
     let agent
 
-    agent = getAgent(buf)
+    agent = Util.getAgent(buf)
 
     updateBufAgent(buf, agent)
 
@@ -1435,31 +762,31 @@ async function send
     d('CO SEND done')
     d({ res })
 
-    appendModel(buf, modelName(res.data?.info?.modelID || '???', variant))
+    appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant))
     if (provider == 'openrouter')
       updateCredits(buf)
   }
   catch (err) {
     d(err)
-    appendMsg(buf, 'assistant', 'Error: ' + err.message)
+    Ui.appendMsg(buf, 'assistant', 'Error: ' + err.message)
     buf.vars('code').client = 0
     buf.vars('code').streamActive = 0
-    startEventSub(buf)
+    Event.startSub(buf, events)
   }
 
   if (res?.error) {
     d({ resError: res.error })
-    appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
+    Ui.appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
     buf.vars('code').client = 0
     buf.vars('code').streamActive = 0
-    startEventSub(buf)
+    Event.startSub(buf, events)
   }
 }
 
 function stopAgent
 (buf, sessionID) {
   buf.vars('code').agentStopped = 1
-  ensureClient(buf).then(async client => {
+  Comm.ensureClient(buf).then(async client => {
     try {
       await client.session.abort({ sessionID, directory: buf.dir })
       d('CO stop done')
@@ -1469,7 +796,7 @@ function stopAgent
       d('CO stop error: ' + err.message)
     }
   }).catch(err => {
-    d('CO stop ensureClient error: ' + err.message)
+    d('CO stop Comm.ensureClient error: ' + err.message)
   })
 }
 
@@ -1560,7 +887,7 @@ function promptAgent
   let buf
 
   buf = Pane.current().buf
-  Prompt.choose(iconAgent() + ' Agent',
+  Prompt.choose(Util.iconAgent() + ' Agent',
                 [ 'build', 'plan' ],
                 {},
                 agent => {
@@ -1590,7 +917,7 @@ function openPrompt
       Css.expand(container)
       mlModel = container.querySelector('.code-prompt-model')
       if (mlModel)
-        mlModel.innerText = '🗩 ' + provider + '/' + modelName(model, variant)
+        mlModel.innerText = '🗩 ' + provider + '/' + Util.modelName(model, variant)
     }
   })
 
@@ -1627,56 +954,11 @@ function next
     return
   }
 
-  provider = getProvider(buf)
-  model = getModel(buf)
-  variant = getVariant(buf)
+  provider = Util.getProvider(buf)
+  model = Util.getModel(buf)
+  variant = Util.getVariant(buf)
 
   openPrompt(buf, p, provider, model, variant)
-}
-
-function nestPromptBuf
-(buf) {
-  let promptBuf
-
-  function addPromptBuf
-  () {
-    let b, placeholder
-
-    placeholder = hist?.nth(0)?.toString()
-
-    b = Buf.make({ name: 'Code Prompt',
-                   modeKey: 'markdown',
-                   content: Ed.divW(buf.dir, 'Code Prompt', { hideMl: 1 }),
-                   dir: buf.dir,
-                   placeholder,
-                   single: 1 })
-    b.opts.set('blankLines.enabled', 0)
-    b.opts.set('core.autocomplete.enabled', 0)
-    b.opts.set('core.brackets.close.enabled', 0)
-    b.opts.set('core.folding.enabled', 0)
-    b.opts.set('core.highlight.activeLine.enabled', 0)
-    b.opts.set('core.head.enabled', 0)
-    b.opts.set('core.line.numbers.show', 0)
-    b.opts.set('core.lint.enabled', 0)
-    b.opts.set('minimap.enabled', 0)
-    b.opts.set('ruler.enabled', 0)
-    b.icon = 'prompt'
-
-    buf.vars('code').promptBuf = b
-    return b
-  }
-
-  promptBuf = buf.vars('code').promptBuf || addPromptBuf()
-  promptBuf.addMode('Code Prompt')
-
-  buf.views.forEach(view => {
-    let container
-
-    container = view.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
-    append(container, divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': promptBuf.id }))
-  })
-
-  buf.nest(promptBuf)
 }
 
 function code
@@ -1691,21 +973,21 @@ function code
     try {
       let c, buf, res
 
-      buf = Buf.add(name, 'code', divW(dir), pane.dir)
+      buf = Buf.add(name, 'code', Ui.divW(dir), pane.dir)
       buf.vars('code').prompt = prompt
       buf.vars('code').provider = provider
       buf.vars('code').model = model
       buf.vars('code').variant = variant
       buf.opt('core.lint.enabled', 1)
 
-      c = await ensureClient(buf)
+      c = await Comm.ensureClient(buf)
 
       res = await c.session.create({ directory: buf.dir, title: prompt || '' })
 
       buf.vars('code').sessionID = res.data.id
 
       pane.setBuf(buf, {}, () => {
-        nestPromptBuf(buf)
+        Prompt.nestBuf(buf, hist)
         if (prompt)
           send(buf, prompt, provider, model, variant)
         else
@@ -1732,9 +1014,9 @@ function code
     }
   }
 
-  provider = getProvider()
-  model = getModel()
-  variant = getVariant()
+  provider = Util.getProvider()
+  model = Util.getModel()
+  variant = Util.getVariant()
   if (given)
     run(given)
   else
@@ -1958,8 +1240,8 @@ function init
                       path = part.state.input.filePath
                       if (path) {
                         d('CO read file: ' + path)
-                        appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, 0,
-                                                                  { input: part.state.input }))
+                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, 0,
+                                                                     { input: part.state.input }))
                       }
                     },
                     onComplete
@@ -1969,8 +1251,8 @@ function init
                       path = part.state.input.filePath
                       if (path) {
                         d('CO read file completed: ' + path)
-                        appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' ✔️',
-                                                                  { input: part.state.input }))
+                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' ✔️',
+                                                                     { input: part.state.input }))
                       }
                     } },
             glob: { onPendOrRun
@@ -1980,7 +1262,7 @@ function init
                       pattern = part.state.input.pattern
                       if (pattern) {
                         d('CO glob: ' + pattern)
-                        appendToolMsg(buf, part.callID, 'Glob "' + pattern)
+                        Ui.appendToolMsg(buf, part.callID, 'Glob "' + pattern)
                       }
                     },
                     onComplete
@@ -1990,10 +1272,10 @@ function init
                       count = part.state.metadata?.count
                       if (1) {
                         d('CO glob completed with ' + count + ' matches')
-                        appendToolMsg(buf,
-                                      part.callID,
-                                      'Glob "' + part.state.input.pattern + ' (' + count + ' matches)',
-                                      part.state.output)
+                        Ui.appendToolMsg(buf,
+                                         part.callID,
+                                         'Glob "' + part.state.input.pattern + ' (' + count + ' matches)',
+                                         part.state.output)
                       }
                     } },
             grep: { onPendOrRun
@@ -2004,7 +1286,7 @@ function init
                       path = part.state.input.path
                       if (pattern) {
                         d('CO grep: ' + pattern + ' in ' + path)
-                        appendToolMsg(buf, part.callID, 'Grep "' + pattern + '" in ' + (path || '.'))
+                        Ui.appendToolMsg(buf, part.callID, 'Grep "' + pattern + '" in ' + (path || '.'))
                       }
                     },
                     onComplete
@@ -2015,10 +1297,10 @@ function init
                       path = part.state.input.path
                       if (matches) {
                         d('CO grep completed with ' + matches + ' matches')
-                        appendToolMsg(buf,
-                                      part.callID,
-                                      'Grep "' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
-                                      part.state.output)
+                        Ui.appendToolMsg(buf,
+                                         part.callID,
+                                         'Grep "' + part.state.input.pattern + '" in ' + (path || '.') + ' (' + matches + ' matches)',
+                                         part.state.output)
                       }
                     } },
             bash: { onPendOrRun
@@ -2028,7 +1310,7 @@ function init
                       command = part.state.input.command
                       if (command) {
                         d('CO bash: ' + command)
-                        appendToolMsg(buf, part.callID, 'bash: ' + command + (part.state?.status == 'pending' ? ' (pending)' : ''))
+                        Ui.appendToolMsg(buf, part.callID, 'bash: ' + command + (part.state?.status == 'pending' ? ' (pending)' : ''))
                       }
                     },
                     onComplete
@@ -2039,7 +1321,7 @@ function init
                       exitCode = part.state.metadata?.exit
                       if (command) {
                         d('CO bash completed: ' + command + ' (exit ' + exitCode + ')')
-                        appendToolMsg(buf, part.callID, 'bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+                        Ui.appendToolMsg(buf, part.callID, 'bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
                       }
                     } },
             write: { onPendOrRun
@@ -2049,10 +1331,10 @@ function init
                        path = part.state.input.filePath
                        if (path) {
                          d('CO write file: ' + path)
-                         appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, 0,
-                                                                   { input: part.state.input }),
-                                       part.state?.input?.content,
-                                       { format: 'code', path })
+                         Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, 0,
+                                                                      { input: part.state.input }),
+                                          part.state?.input?.content,
+                                          { format: 'code', path })
                        }
                      },
                      onComplete
@@ -2062,10 +1344,10 @@ function init
                        path = part.state.input.filePath
                        if (path) {
                          d('CO write file: ' + path)
-                         appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️',
-                                                                   { input: part.state.input }),
-                                       part.state?.input?.content,
-                                       { format: 'code', path })
+                         Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️',
+                                                                      { input: part.state.input }),
+                                          part.state?.input?.content,
+                                          { format: 'code', path })
                        }
                      } },
             edit: { onPendOrRun
@@ -2075,8 +1357,8 @@ function init
                       path = part.state.input.filePath
                       if (path) {
                         d('CO edit file: ' + path)
-                        appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, 0,
-                                                                  { input: part.state.input }))
+                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, 0,
+                                                                     { input: part.state.input }))
                       }
                     },
                     onComplete
@@ -2090,9 +1372,9 @@ function init
                         d('CO edit completed: ' + path)
                         under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
                         under = part.state?.metadata?.diff || buf.vars('code').patch || under
-                        appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️',
-                                                                  { input: part.state.input }),
-                                      under , { format: 'patch' })
+                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️',
+                                                                     { input: part.state.input }),
+                                         under , { format: 'patch' })
                       }
                     },
                     onErr
@@ -2106,10 +1388,10 @@ function init
                         d('CO edit error: ' + path)
                         under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
                         under = buf.vars('code').patch || under
-                        appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✘',
-                                                                  { input: part.state.input }),
-                                      under)
-                        appendMsg(buf, 0, part.state?.error, part.id)
+                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✘',
+                                                                     { input: part.state.input }),
+                                         under)
+                        Ui.appendMsg(buf, 0, part.state?.error, part.id)
                       }
                     } },
             websearch: { onPendOrRun
@@ -2119,7 +1401,7 @@ function init
                            query = part.state.input.query
                            if (query) {
                              d('CO websearch: ' + query)
-                             appendToolMsg(buf, part.callID, 'Web search: ' + query)
+                             Ui.appendToolMsg(buf, part.callID, 'Web search: ' + query)
                            }
                          },
                          onComplete
@@ -2130,10 +1412,10 @@ function init
                            results = part.state.metadata?.results
                            if (query) {
                              d('CO websearch completed with ' + results + ' results')
-                             appendToolMsg(buf,
-                                           part.callID,
-                                           'Web search: ' + query + ' (' + results + ' results)',
-                                           part.state.output)
+                             Ui.appendToolMsg(buf,
+                                              part.callID,
+                                              'Web search: ' + query + ' (' + results + ' results)',
+                                              part.state.output)
                            }
                          },
                          onErr
@@ -2143,10 +1425,10 @@ function init
                            query = part.state.input.query
                            if (query) {
                              d('CO websearch error')
-                             appendToolMsg(buf,
-                                           part.callID,
-                                           'Web search: ' + query,
-                                           part.state.error)
+                             Ui.appendToolMsg(buf,
+                                              part.callID,
+                                              'Web search: ' + query,
+                                              part.state.error)
                            }
                          } },
             webfetch: { onPendOrRun
@@ -2156,7 +1438,7 @@ function init
                           url = part.state.input.url
                           if (url) {
                             d('CO webfetch: ' + url)
-                            appendToolMsg(buf, part.callID, 'Fetch ' + url)
+                            Ui.appendToolMsg(buf, part.callID, 'Fetch ' + url)
                           }
                         },
                         onComplete
@@ -2167,9 +1449,9 @@ function init
                           size = part.state.output?.length
                           if (url) {
                             d('CO webfetch completed, size: ' + size)
-                            appendToolMsg(buf,
-                                          part.callID,
-                                          'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
+                            Ui.appendToolMsg(buf,
+                                             part.callID,
+                                             'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
                           }
                         },
                         onErr
@@ -2179,10 +1461,10 @@ function init
                           url = part.state.input.url
                           if (url) {
                             d('CO webfetch error')
-                            appendToolMsg(buf,
-                                          part.callID,
-                                          'Fetch ' + url,
-                                          part.state.error)
+                            Ui.appendToolMsg(buf,
+                                             part.callID,
+                                             'Fetch ' + url,
+                                             part.state.error)
                           }
                         } },
             task: { onPendOrRun
@@ -2197,7 +1479,7 @@ function init
                         getSubagentCallIds(buf).set(sessionId, part.callID)
                       }
                       desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
-                      appendToolMsg(buf, part.callID, desc)
+                      Ui.appendToolMsg(buf, part.callID, desc)
                     },
                     onComplete
                     (buf, part) {
@@ -2214,7 +1496,7 @@ function init
                           ids.delete(sessionId)
                       }
                       desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✔️') : ('Task (' + agent + ' agent) ✔️')
-                      appendToolMsg(buf, part.callID, desc, part.state.output)
+                      Ui.appendToolMsg(buf, part.callID, desc, part.state.output)
                     },
                     onErr
                     (buf, part) {
@@ -2231,12 +1513,12 @@ function init
                           ids.delete(sessionId)
                       }
                       desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✘') : ('Task (' + agent + ' agent) ✘')
-                      appendToolMsg(buf, part.callID, desc, part.state.error)
+                      Ui.appendToolMsg(buf, part.callID, desc, part.state.error)
                     } } }
 
   events = { 'session.idle': { onArrive
                                (buf, event) {
-                                 if (isSessionMatch(buf, event.properties.sessionID))
+                                 if (Util.isSessionMatch(buf, event.properties.sessionID))
                                    if (event.properties.sessionID == buf.vars('code').sessionID)
                                      updateIdle(buf, calculateTokenPercentage(buf))
                                    else
@@ -2244,23 +1526,23 @@ function init
                                } },
              'session.status': { onArrive
                                  (buf, event) {
-                                   if (isSessionMatch(buf, event.properties.sessionID)
+                                   if (Util.isSessionMatch(buf, event.properties.sessionID)
                                        && event.properties.sessionID == buf.vars('code').sessionID)
                                      updateStatus(buf, event.properties, calculateTokenPercentage(buf))
                                  } },
              'permission.asked': { onArrive
                                    (buf, event) {
-                                     if (isSessionMatch(buf, event.properties.sessionID))
+                                     if (Util.isSessionMatch(buf, event.properties.sessionID))
                                        handlePermissionAsked(buf, event)
                                    } },
              'permission.updated': { onArrive
                                      (buf, event) {
-                                       if (isSessionMatch(buf, event.properties.sessionID))
+                                       if (Util.isSessionMatch(buf, event.properties.sessionID))
                                          handlePermissionUpdated(buf, event)
                                      } },
              'question.asked': { onArrive
                                  (buf, event) {
-                                   if (isSessionMatch(buf, event.properties.sessionID))
+                                   if (Util.isSessionMatch(buf, event.properties.sessionID))
                                      handleQuestionAsked(buf, event)
                                  } },
              'session.error': { onArrive
@@ -2278,7 +1560,7 @@ function init
                                 } },
              'session.updated': { onArrive
                                   (buf, event) {
-                                    if (isSessionMatch(buf, event.properties.info.id)
+                                    if (Util.isSessionMatch(buf, event.properties.info.id)
                                         && event.properties.info.id == buf.vars('code').sessionID)
                                       handleSessionUpdated(buf, event)
                                   } },
@@ -2289,24 +1571,24 @@ function init
                                   } },
              'message.part.updated': { onArrive
                                        (buf, event) {
-                                         if (isSessionMatch(buf, event.properties.part.sessionID))
+                                         if (Util.isSessionMatch(buf, event.properties.part.sessionID))
                                            handlePart(buf, event)
                                        } },
              'message.part.delta': { onArrive
                                      (buf, event) {
-                                       if (isSessionMatch(buf, event.properties.sessionID))
+                                       if (Util.isSessionMatch(buf, event.properties.sessionID))
                                          handlePartDelta(buf, event)
                                      } },
              'server.connected': { onArrive
                                    (buf) {
-                                     updateBufStatus(buf, 'OK', '', '', VopenCode.version)
+                                     Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
                                    } },
              'server.heartbeat': {},
              'command.executed': { onArrive
                                    (buf, event) {
                                      if (event.properties.sessionID == buf.vars('code').sessionID) {
-                                       appendMsg(buf, 0, '/' + event.properties.name + ' finished')
-                                       appendModel(buf, modelName(buf.vars('code').model, buf.vars('code').variant))
+                                       Ui.appendMsg(buf, 0, '/' + event.properties.name + ' finished')
+                                       appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant))
                                      }
                                    } } }
 
@@ -2395,5 +1677,5 @@ function init
   Em.on('A-p', 'previous history item', moCodePrompt)
   Em.on('A-n', 'next history item', moCodePrompt)
 
-  initSessions()
+  Sessions.init(events)
 }

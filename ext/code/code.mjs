@@ -41,6 +41,11 @@ function iconRightArrow
   return '➔'
 }
 
+function modelName
+(model, variant) {
+  return model + (variant ? ':' + variant : '')
+}
+
 function getSubagentIds
 (buf) {
   return buf.vars('code').subagentIds || (buf.vars('code').subagentIds = new Map())
@@ -370,11 +375,6 @@ async function ensureClient
   buf.vars('code').spawnedBufferID = buf.id
   buf.vars('code').spawnPromise = 0
   return client
-}
-
-function modelName
-(model, variant) {
-  return model + (variant ? ':' + variant : '')
 }
 
 function updateCredits

@@ -1252,6 +1252,11 @@ function init
       return buf?.vars('code')?.subagentIds?.has(id)
     }
 
+    function isSessionMatch
+    (id) {
+      return id == sessionID || isSubagentId(id)
+    }
+
     d('CO ' + event.type)
     d({ event })
 
@@ -1259,8 +1264,7 @@ function init
 
     // Already done by session.status. Maybe planned replacement.
     if ((event.type == 'session.idle')
-        && (event.properties.sessionID == sessionID
-            || isSubagentId(event.properties.sessionID))) {
+        && isSessionMatch(event.properties.sessionID)) {
       if (event.properties.sessionID == sessionID)
         updateIdle(buf, calculateTokenPercentage(buf))
       else
@@ -1269,30 +1273,26 @@ function init
     }
 
     if ((event.type == 'session.status')
-        && (event.properties.sessionID == sessionID
-            || isSubagentId(event.properties.sessionID))) {
+        && isSessionMatch(event.properties.sessionID)) {
       if (event.properties.sessionID == sessionID)
         updateStatus(buf, event.properties, calculateTokenPercentage(buf))
       return
     }
 
     if ((event.type == 'permission.asked')
-        && (event.properties.sessionID == sessionID
-            || isSubagentId(event.properties.sessionID))) {
+        && isSessionMatch(event.properties.sessionID)) {
       handlePermissionAsked(buf, event)
       return
     }
 
     if ((event.type == 'permission.updated')
-        && (event.properties.sessionID == sessionID
-            || isSubagentId(event.properties.sessionID))) {
+        && isSessionMatch(event.properties.sessionID)) {
       handlePermissionUpdated(buf, event)
       return
     }
 
     if ((event.type == 'question.asked')
-        && (event.properties.sessionID == sessionID
-            || isSubagentId(event.properties.sessionID))) {
+        && isSessionMatch(event.properties.sessionID)) {
       handleQuestionAsked(buf, event)
       return
     }
@@ -1311,8 +1311,7 @@ function init
     }
 
     if ((event.type == 'session.updated')
-        && (event.properties.info.id == sessionID
-            || isSubagentId(event.properties.info.id))) {
+        && isSessionMatch(event.properties.info.id)) {
       if (event.properties.info.id == sessionID)
         handleSessionUpdated(buf, event)
       return
@@ -1325,15 +1324,13 @@ function init
     }
 
     if ((event.type == 'message.part.updated')
-        && (event.properties.part.sessionID == sessionID
-            || isSubagentId(event.properties.part.sessionID))) {
+        && isSessionMatch(event.properties.part.sessionID)) {
       handlePart(buf, event)
       return
     }
 
     if ((event.type == 'message.part.delta')
-        && (event.properties.sessionID == sessionID
-            || isSubagentId(event.properties.sessionID))) {
+        && isSessionMatch(event.properties.sessionID)) {
       handlePartDelta(buf, event)
       return
     }

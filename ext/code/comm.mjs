@@ -24,7 +24,10 @@ async function ensureClient
     throw new Error(ret.err.message)
   }
 
-  client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir })
+  // Strip trailing slash: prepDir in buf ensures the / but opencode strips
+  // the slash EXCEPT in session.list (which would compare the stored stripped
+  // dirs to the given one with the /, leading to an empty response).
+  client = OpenCode.createOpencodeClient({ baseUrl: ret.url, directory: buf.dir.replace(/\/$/, '') })
   buf.vars('code').client = client
   buf.vars('code').serverUrl = ret.url
   buf.vars('code').spawnedBufferID = buf.id

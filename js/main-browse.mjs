@@ -30,7 +30,7 @@ function onOpen
   d('BROWSE open ' + id)
   views[id] = { view, hist }
   win = BrowserWindow.fromWebContents(e.sender)
-  view.webContents.on('before-input-event', (e, input) => {
+  view.webContents.on('before-input-event', (ev, input) => {
     if (1) {
       let event
 
@@ -52,7 +52,7 @@ function onOpen
       win.webContents.sendInputEvent(event)
 
       // prevent webpage from getting event
-      e.preventDefault()
+      ev.preventDefault()
     }
   })
   view.webContents.on('context-menu', () => {
@@ -167,10 +167,8 @@ function onOpen
   view.setBackgroundColor('white')
   //view.setAutoResize({ width: true, height: true })
 
-  ipcMain.on(ch, (e, x, y, width, height) => {
-    // using d messed up values
-    //view.setBounds({ x: d.x, y: d.y, width: d.width, height: d.height })
-    view.setBounds({ x, y, width, height })
+  ipcMain.on(ch, (ev, onX, onY, onWidth, onHeight) => {
+    view.setBounds({ x: onX, y: onY, width: onWidth, height: onHeight })
   })
 
   e.sender.send(ch, { id })

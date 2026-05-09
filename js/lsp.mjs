@@ -216,13 +216,13 @@ function init
 () {
   function handleReqResponse
   (response) {
-    let id, cb
+    let parsedId, cb
 
     d('HANDLE')
-    id = parseInt(response.id)
-    cb = cbs[id]
+    parsedId = parseInt(response.id)
+    cb = cbs[parsedId]
     if (cb) {
-      delete cbs[id]
+      delete cbs[parsedId]
       cb(response)
     }
   }

@@ -78,7 +78,7 @@ function savePoss
 export
 function make
 (spec = {}) { // { name, modeKey, content, dir, file, placeholder, single, vars }
-  let { name, modeKey, content, dir, file } = spec
+  let { dir, file } = spec
   let b, mode, modeVars, views, vid, fileType, icon, onRemoves, modifiedOnDisk, ed
   let placeholder, ml
 
@@ -214,11 +214,11 @@ function make
   () {
     if (b.mode?.key)
       if (b.mode?.bepEnd) {
-        let view
+        let v
 
-        view = anyView()
-        if (view)
-          return b.mode.bepEnd(view)
+        v = anyView()
+        if (v)
+          return b.mode.bepEnd(v)
         return 0
       }
 
@@ -363,11 +363,11 @@ function make
   (n) {
     if (b.mode?.key)
       if (b.mode?.line) {
-        let view
+        let v
 
-        view = anyView()
-        if (view)
-          return b.mode.line(view, n)
+        v = anyView()
+        if (v)
+          return b.mode.line(v, n)
         return 0
       }
 
@@ -463,8 +463,8 @@ function make
   }
 
   function setDir
-  (d) {
-    dir = prepDir(d)
+  (val) {
+    dir = prepDir(val)
     //D("set dir of buff " + b.name + " to " + dir)
     return dir
   }
@@ -473,7 +473,7 @@ function make
   (val) {
     placeholder = val
     if (b.mode?.setPlaceholder) {
-      b.views.forEach(view => b.mode.setPlaceholder(view, val))
+      b.views.forEach(v => b.mode.setPlaceholder(v, val))
       return val
     }
     Mess.toss('buf.make: setPlaceholder missing')
@@ -508,7 +508,7 @@ function make
   (lax) { // resort to closed views if needed
     let v
 
-    v = b.views.find(view => view.ready && view.ele)
+    v = b.views.find(v2 => v2.ready && v2.ele)
     if (v)
       return v
 
@@ -518,33 +518,33 @@ function make
     return 0
   }
 
-  if (name) {
+  if (spec.name) {
     let old, suffix, sh
 
     sh = shared()
     suffix = 1
-    old = name
-    while (sh.buffers.find(b => b.name == name))
-      name = old + '<' + suffix++ + '>'
+    old = spec.name
+    while (sh.buffers.find(buf => buf.name == spec.name))
+      spec.name = old + '<' + suffix++ + '>'
   }
 
   placeholder = spec.placeholder
-  modeKey = modeKey || 'div'
+  spec.modeKey = spec.modeKey || 'div'
   modeVars = spec.vars || {}
   views = []
   vid = 1
   onRemoves = []
 
-  mode = Mode.getOrAdd(modeKey)
+  mode = Mode.getOrAdd(spec.modeKey)
 
   {
     function set
     (name, co) {
-      b.views.forEach(view => {
-        if (view.ele) {
+      b.views.forEach(v => {
+        if (v.ele) {
           let line
 
-          line = view.ele.querySelector('.ml')
+          line = v.ele.querySelector('.ml')
           if (line) {
             let field
 
@@ -564,10 +564,9 @@ function make
   b = { id: shared().id,
         vid,
         //
-        co: content,
+        co: spec.content,
         minors: Mk.array,
         modified: 0,
-        name,
         ml,
         //
         get bepEnd
@@ -602,6 +601,10 @@ function make
         () {
           return modifiedOnDisk
         },
+        get name
+        () {
+          return spec.name
+        },
         get path
         () {
           return dir ? (dir + (file || '')) : file
@@ -629,8 +632,8 @@ function make
           b.views.forEach(v => v.content = (content ? content.cloneNode(1) : content))
         },
         set dir
-        (d) {
-          return setDir(d)
+        (val) {
+          return setDir(val)
         },
         set ed
         (val) {
@@ -657,10 +660,10 @@ function make
           d('modifiedOnDisk: ' + val)
           modifiedOnDisk = val ? 1 : 0
           if (modifiedOnDisk)
-            b.views.forEach(view => {
+            b.views.forEach(v => {
               let ele, ww
 
-              ele = view.eleOrReserved
+              ele = v.eleOrReserved
               if (ele?.querySelector('.bred-info-w.bred-info-disk'))
                 return
               ww = ele?.querySelector('.bred-info-ww')
@@ -673,8 +676,8 @@ function make
                                    button('Overwrite', '', { 'data-run': 'Save' }) ]))
             })
           else
-            b.views.forEach(view => {
-              view.eleOrReserved?.querySelectorAll('.bred-info-w.bred-info-disk').forEach(w => w.remove())
+            b.views.forEach(v => {
+              v.eleOrReserved?.querySelectorAll('.bred-info-w.bred-info-disk').forEach(w => w.remove())
             })
         },
         set placeholder
@@ -851,7 +854,7 @@ function init
   }
 
   function viewInit
-  (view, spec, cb) { // (view)
+  (v, spec, cb) { // (view)
     let all
 
     all = shared().ring
@@ -863,8 +866,8 @@ function init
       all.push(bufs)
     }
 
-    view.ele.firstElementChild.firstElementChild.innerHTML = ''
-    Dom.append(view.ele.firstElementChild.firstElementChild,
+    v.ele.firstElementChild.firstElementChild.innerHTML = ''
+    Dom.append(v.ele.firstElementChild.firstElementChild,
                all.map(b => [ divCl('buffers-id', b.id),
                               divCl('buffers-mode', b.mode.name),
                               divCl('buffers-name',
@@ -874,7 +877,7 @@ function init
                               divCl('buffers-path', Ed.makeMlDir(b.path)) ]))
 
     if (cb)
-      cb(view)
+      cb(v)
   }
 
   divExts = Mk.array
@@ -894,7 +897,7 @@ function init
     p = Pane.current1()
     p.focus()
     if (bBuffers)
-      p.setBuf(bBuffers, {}, view => viewInit(view))
+      p.setBuf(bBuffers, {}, v => viewInit(v))
     else {
       bBuffers = add('Buffers', 'Buffers', divW(), p.dir)
       shared().bBuffers = bBuffers
@@ -943,7 +946,7 @@ function print
   d('-- BUFS')
   shared().buffers.forEach(buf => {
     d('-- VIEWS in buf ' + buf.id + ' ' + buf.name)
-    buf.views?.forEach(view => d('-- ' + view.vid + ', ele: ' + view.ele.innerHTML))
+    buf.views?.forEach(v => d('-- ' + v.vid + ', ele: ' + v.ele.innerHTML))
   })
   d('-- end')
 }

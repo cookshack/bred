@@ -32,16 +32,16 @@ function updateMode
 (mode, str, pos) {
 
   function updateOne
-  (multiple, mode, str, pos) {
-    let addp
+  (multiple) {
+    let mode2, pos2, addp
 
-    ([ mode, pos, addp ] = updateMode(mode, str, pos + 1))
+    ([ mode2, pos2, addp ] = updateMode(mode, str, pos + 1))
     return [ addp
-             ? (mode | (multiple * parseModePerm(str, pos)))
-             : (mode & ((multiple * parseModePerm(str, pos))
+             ? (mode2 | (multiple * parseModePerm(str, pos2)))
+             : (mode2 & ((multiple * parseModePerm(str, pos2))
                         // XOR
                         ^ 0xffffffff)),
-             pos,
+             pos2,
              addp ]
   }
 
@@ -54,15 +54,15 @@ function updateMode
   case '-':
     return [ mode, pos + 1 ]
   case 'u':
-    return updateOne(0o100, mode, str, pos)
+    return updateOne(0o100)
   case 'g':
-    return updateOne(0o10, mode, str, pos)
+    return updateOne(0o10)
   case 'o':
-    return updateOne(0o1, mode, str, pos)
+    return updateOne(0o1)
   case 'a':
-    mode = updateOne(0o100, mode, str, pos)[0]
-    mode = updateOne(0o10, mode, str, pos)[0]
-    return updateOne(0o1, mode, str, pos)
+    mode = updateOne(0o100)[0]
+    mode = updateOne(0o10)[0]
+    return updateOne(0o1)
   }
   throw Error('Error in permission char: ' + str[pos])
 }

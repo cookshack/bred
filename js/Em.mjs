@@ -1,0 +1,486 @@
+import * as Css from './css.mjs'
+import * as Cmd from './cmd.mjs'
+import * as Mess from './mess.mjs'
+import * as Mode from './mode.mjs'
+import * as Pane from './pane.mjs'
+import * as U from './util.mjs'
+
+import { make } from './em.mjs'
+export { make } from './em.mjs'
+
+import * as EvParser from '../lib/ev-parser.mjs'
+
+let root, wes, ems, getActive, d
+
+d = () => {}
+//d = Mess.d
+
+export
+function init
+() {
+  getActive = mainGetActive
+  ems = []
+
+  reset()
+
+  root = add('Global')
+}
+
+export
+function get
+(name) {
+  return ems[name]
+}
+
+export
+function add
+(name, spec) {
+  let key
+
+  spec = spec || ''
+  key = name + spec
+  if (ems[key])
+    return ems[key]
+  ems[key] = make(name, spec)
+  return ems[key]
+}
+
+function split
+(sequence, to, firstEm) {
+  let ret, name, spec, evs, eend
+
+  // C-c A-g      Ctrl + c then Alt + g
+  // C-C g a      Ctrl + Capital C then g then a
+  // C            Capital C
+  // C-A-g        C must come first
+
+  firstEm = firstEm || root
+  name = firstEm.name
+  ret = [ firstEm ]
+  spec = ''
+
+  evs = EvParser.parse(sequence)
+  d(evs)
+  eend = evs.length - 1
+  for (let ei = 0; ei <= eend; ei++) {
+    let keys, em
+
+    // a, A, C-a, C-A, C-A-a, C-A-A, Backspace, C-Backspace, C-A-Backspace, -, C--, C-A--, ' ', 'C- ', 'C-A- '
+
+    keys = evs[ei]
+
+    if (keys.startsWith('C-A-')) {
+      spec += 'C-'
+      em = add(name, spec)
+      ret.at(-1).on('Control', em)
+      ret.push(em)
+      spec += 'A-'
+      em = add(name, spec)
+      ret.at(-1).on('Alt', em)
+      ret.push(em)
+      keys = keys.slice('C-A-'.length)
+    }
+    else if (keys.startsWith('C-')) {
+      spec += 'C-'
+      em = add(name, spec)
+      ret.at(-1).on('Control', em)
+      ret.push(em)
+      keys = keys.slice('C-'.length)
+    }
+    else if (keys.startsWith('A-')) {
+      spec += 'A-'
+      em = add(name, spec)
+      ret.at(-1).on('Alt', em)
+      ret.push(em)
+      keys = keys.slice('A-'.length)
+    }
+
+    if (keys.length == 0)
+      Mess.toss('Key ended too early (spec: ' + spec + ')')
+
+    if ((keys.length > 1) && keys.includes('-'))
+      Mess.toss('- out of place (spec: ' + spec + ')')
+
+    if (ei == eend) {
+      d('binding ' + to + ' to ' + keys + ' (' + spec + ')')
+      ret.at(-1).on(keys, to)
+      ret.push(keys)
+      d(ret)
+      return ret
+    }
+    spec += keys
+    em = add(name, spec)
+    ret.at(-1).on(keys, em)
+    ret.push(em)
+
+    spec += ' '
+  }
+  Mess.toss('Sequence ended too early (spec: ' + spec + ')')
+  return 0
+}
+
+export
+function on
+(sequence, to, modeOrNameOrEm) {
+  let em, mo
+
+  if (modeOrNameOrEm)
+    if ((typeof modeOrNameOrEm == 'string') || modeOrNameOrEm instanceof String)
+      mo = Mode.get(modeOrNameOrEm) || Mess.toss('Mode missing: ' + modeOrNameOrEm)
+    else if (modeOrNameOrEm.ons)
+      em = modeOrNameOrEm
+    else
+      mo = modeOrNameOrEm
+
+  split(sequence, to, em ? em : (mo ? mo.em : root))
+}
+
+export
+function mainGetActive
+(buf, targetEm) {
+  let active, mo
+
+  active = []
+  mo = buf?.mode
+
+  if (mo) {
+    let parents, minors
+
+    minors = buf?.minors
+    if (minors)
+      for (let i = minors.length - 1; i >= 0; i--)
+        active.push(minors[i].em)
+
+    if (mo.em)
+      active.push(mo.em)
+
+    parents = mo.getParentEms()
+    for (let i = 0; i < parents.length; i++)
+      active.push(parents[i])
+
+    active.push(root)
+  }
+  else
+    active.push(root)
+
+  if (targetEm)
+    active.unshift(targetEm)
+
+  return active
+}
+
+export
+function replace
+(fn) {
+  if (fn)
+    getActive = fn
+  else
+    getActive = mainGetActive
+}
+
+export
+function look
+(wrappedEvents, active, buf, cb) { // (em, to)
+  let ret
+
+  active ||= getActive(buf)
+  for (let i = 0; (i < active.length); i++)
+    if (active[i].look(wrappedEvents, to => {
+      d('look to: ' + to)
+      if (to) {
+        ret = { map: active[i], to }
+        return 1
+      }
+      return 0
+    }))
+      break
+  if (ret)
+    cb(ret.map, ret.to)
+  else
+    cb()
+}
+
+function weRun
+(we) {
+  if (we.e) {
+    let targets
+
+    targets = globalThis.document.elementsFromPoint(we.e.clientX, we.e.clientY)
+    for (let i = 0; i < targets.length; i++)
+      if (targets[i].dataset.run)
+        return { after: targets[i].dataset.after,
+                 cmd: targets[i].dataset.run }
+  }
+}
+
+// Original handle function, wrapped by handle.
+function originalHandle
+(we, view) {
+  let active, buf, targetEm
+
+  function updateMini
+  (name) {
+    Mess.echoMore(name)
+  }
+
+  d('EM originalHandle')
+  buf = view?.buf
+  d({ buf })
+
+  if (we.mouse) {
+    // Primary (often left)
+    if (we.e?.button == 0) {
+      let name, run, target
+
+      target = we.e?.target
+      run = weRun(we)
+      if (run) {
+        let p
+
+        p = Pane.holding(target)
+        if (p)
+          p.focus()
+        reset()
+        Mess.say('')
+
+        buf = buf || Pane.current()?.buf
+
+        if (Css.has(target.parentNode, 'bred-context'))
+          Css.remove(target.parentNode, 'bred-open')
+
+        Css.remove(target.parentNode?.parentNode, 'bred-open')
+
+        d('cmd on data-run: ' + run.cmd)
+        Cmd.run(run.cmd, buf, Cmd.universal(run.cmd), we)
+        if (run.after)
+          Cmd.run(run.after, buf, 1, we)
+        return
+      }
+
+      name = we.e?.target?.dataset?.em
+      if (name) {
+        targetEm = get(name)
+        if (targetEm) {
+        }
+        else
+          Mess.warn('target has data-em and em is missing: ' + name)
+      }
+    }
+    // Aux (often middle/wheel)
+    if (we.e?.button == 1) {
+      let run, target
+
+      target = we.e?.target
+      run = target?.dataset?.runaux
+      if (run) {
+        let p
+
+        p = Pane.holding(target)
+        if (p)
+          p.focus()
+        reset()
+        Mess.say('')
+
+        buf = buf || Pane.current()?.buf
+
+        if (Css.has(target.parentNode, 'bred-context'))
+          Css.remove(target.parentNode, 'bred-open')
+
+        Css.remove(target.parentNode?.parentNode, 'bred-open')
+
+        d('cmd on data-runaux: ' + run)
+        Cmd.run(run, buf, Cmd.universal(run), we)
+        if (target.dataset.afteraux)
+          Cmd.run(target.dataset.afteraux, buf, 1, we)
+        return
+      }
+    }
+  }
+  else {
+    if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(we.e.key))
+      // see note at top of look1
+      return
+    we.e.preventDefault()
+  }
+
+  active = getActive(buf, targetEm)
+
+  //active.forEach(em => d(em))
+
+  if (wes.length == 0)
+    Mess.say('')
+
+  wes.push(we)
+  look(wes,
+       active,
+       buf,
+       (map, to) => {
+         d('handle to: ' + to)
+         if (to) {
+           we.e.preventDefault()
+
+           if (to.ons) {
+             // map
+             updateMini(to.spec)
+             return
+           }
+
+           // cmd
+           reset()
+           Mess.say('')
+           Cmd.run(to, buf, Cmd.universal(to), we)
+         }
+         else if (0) {
+           let n
+
+           // empty/error
+           n = ''
+           if (we.e.ctrlKey)
+             n += 'C-'
+           if (we.e.altKey)
+             n += 'A-'
+           n += (we.mouse ? we.name : we.e.key)
+           updateMini(' ' + n + ' is empty')
+           reset()
+         }
+         else {
+           let onEmpty
+
+           if (we.mouse) {
+           }
+           else if (we.e.ctrlKey && (we.e.key == 'g')) {
+             Pane.cancel()
+             return
+           }
+
+           onEmpty = buf?.mode?.onEmEmpty
+           if (onEmpty)
+             onEmpty(view, wes, updateMini)
+           else
+             updateMini(U.shrug)
+
+           reset()
+         }
+       })
+}
+
+// Handle input with buffering support
+export
+function handle
+(we, view) {
+  let pane
+
+  d('EM handle')
+  d({ we })
+  d({ view })
+
+  pane = Pane.current()
+
+  // Check if current pane is initializing and needs input buffering
+
+  if (pane && pane.initializing) {
+    pane.enqueueInput(we)
+    // Prevent the event from bubbling to the (not-ready) view
+    if (we.e?.preventDefault)
+      we.e.preventDefault()
+    return
+  }
+
+  // Normal handling when pane is ready
+  return originalHandle(we, view)
+}
+
+export
+function reset
+() {
+  wes = []
+}
+
+export
+function cancel
+() {
+  reset()
+}
+
+export
+function seqA
+(cmdName, em, acc) {
+  let ons
+
+  em = em || root
+  acc = acc || []
+  ons = Object.values(em.ons)
+  for (let i = 0; i < ons.length; i++) {
+    let binding
+
+    binding = ons[i]
+
+    //d("consider " + binding.key)
+    //d(binding)
+
+    if (binding.to == cmdName)
+      // found
+      //d("found")
+      return [ ...acc, binding.key ]
+
+    if (binding.to.ons) {
+      let newAcc
+
+      // recurse into map
+      //d("recurse")
+      newAcc = seqA(cmdName, binding.to, [ ...acc, binding.key ])
+      if (newAcc)
+        return newAcc
+    }
+
+    // try next
+    //d("try next")
+  }
+  return 0
+}
+
+function seqMode
+(cmdName, buf, mode) {
+  let a
+
+  //if (buf.minors)
+  if (mode.em)
+    a = seqA(cmdName, mode.em)
+  if (a)
+    return a
+  if (mode.parentsForEm)
+    for (let i = 0; i < mode.parentsForEm.length; i++) {
+      let pmo
+
+      pmo = Mode.get(mode.parentsForEm[i])
+      if (pmo?.em)
+        a = seqA(cmdName, pmo.em)
+      if (a)
+        return a
+    }
+  return seqA(cmdName)
+}
+
+export
+function seq
+(cmdName, buf) {
+  let a
+
+  if (buf?.mode)
+    a = seqMode(cmdName, buf, buf.mode)
+  else
+    a = seqA(cmdName)
+  if (a)
+    return a.reduce((acc,cur) => {
+      if (cur == 'Control')
+        return acc + 'C-'
+      if (cur == 'Alt')
+        return acc + 'A-'
+      if (cur == 'Meta')
+        return acc + 'M-'
+      if (cur == 'Shift')
+        return acc + 'S-'
+      return acc + cur + ' '
+    }, '').trim()
+  return 0
+}

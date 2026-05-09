@@ -1,6 +1,6 @@
 import * as Cmd from './cmd.mjs'
 import * as Buf from './buf.mjs'
-import * as Em from './em.mjs'
+import * as Em from './Em.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'

@@ -1,6 +1,6 @@
 import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
-import * as Em from './em.mjs'
+import * as Em from './Em.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import Mk from './mk.mjs'

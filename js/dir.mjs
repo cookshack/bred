@@ -4,7 +4,7 @@ import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as DirCommon from './dir-common.mjs'
-import * as Em from './em.mjs'
+import * as Em from './Em.mjs'
 import * as Hist from './hist.mjs'
 import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
@@ -491,10 +491,10 @@ function fill
 
         appendLines(v)
 
-        if (currentFile) {
+        if (current) {
           let el
 
-          el = v.eleOrReserved.querySelector('.dir-name[data-name="' + currentFile + '"]')
+          el = v.eleOrReserved.querySelector('.dir-name[data-name="' + current + '"]')
           if (el)
             put(v, el)
         }

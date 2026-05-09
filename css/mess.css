@@ -46,6 +46,7 @@
 
 .mess-text.mess-yell {
   color: var(--clr-nb3);
+  min-height: min-content;
 }
 
 .mess-text.mess-say {
@@ -55,10 +56,12 @@
 
 .mess-text.mess-log {
   color: var(--rule-clr-warn-token);
+  min-height: min-content;
 }
 
 .mess-text.mess-debug {
   color: var(--clr-text-light);
+  min-height: min-content;
 }
 
 .mess-loc {

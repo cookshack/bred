@@ -25,7 +25,7 @@ function onGet
   (uid) {
     let ent
 
-    ent = ents.find(e => e[2] == uid)
+    ent = ents.find(entry => entry[2] == uid)
     return ent?.at(0)
   }
 
@@ -61,21 +61,21 @@ function onGet
     if (readyU && readyG) {
       ents = ents.split(/\r?\n/)
       ents = ents.map(ent => ent.split(':'))
-      0 && ents.forEach(e => d(e.join()))
+      0 && ents.forEach(entry => d(entry.join()))
 
       groups = groups.split(/\r?\n/)
       groups = groups.map(ent => ent.split(':'))
-      0 && groups.forEach(e => d(e.join()))
+      0 && groups.forEach(entry => d(entry.join()))
 
       Fs.readdir(dir, {}, (err, data) => {
         if (err)
           if (err.code == 'ENOTDIR') {
             dir = Path.dirname(dir)
-            Fs.readdir(dir, {}, (err, data) => {
-              if (err)
-                e.sender.send(ch, { err })
+            Fs.readdir(dir, {}, (err2, data2) => {
+              if (err2)
+                e.sender.send(ch, { err: err2 })
               else
-                ok(data)
+                ok(data2)
             })
           }
           else

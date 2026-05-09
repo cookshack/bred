@@ -344,9 +344,9 @@ function onModify
 
         // write file back
 
-        Fs.writeFile(path, out, { encoding: 'utf8' }, err => {
-          if (err)
-            e.sender.send(ch, { err })
+        Fs.writeFile(path, out, { encoding: 'utf8' }, err2 => {
+          if (err2)
+            e.sender.send(ch, { err: err2 })
           else
             e.sender.send(ch, {})
         })
@@ -439,16 +439,16 @@ function onPatch
         try {
           out = Diff.applyPatch(data.data, patch)
         }
-        catch (err) {
-          e.sender.send(ch, makeErr(err))
+        catch (err2) {
+          e.sender.send(ch, makeErr(err2))
           return
         }
         if ((typeof out == 'boolean') && (out == false))
           e.sender.send(ch, errMsg('Failed to apply patch'))
         else
-          Fs.writeFile(path, out, { encoding: 'utf8' }, err => {
-            if (err)
-              e.sender.send(ch, { err })
+          Fs.writeFile(path, out, { encoding: 'utf8' }, err3 => {
+            if (err3)
+              e.sender.send(ch, { err: err3 })
             else
               e.sender.send(ch, {})
           })
@@ -524,18 +524,18 @@ function onStat
       e.sender.send(ch, { err: { message: err.message,
                                  code: err.code } })
     else if (data.isSymbolicLink())
-      Fs.readlink(onArgs, (err, string) => {
-        if (err)
-          e.sender.send(ch, { err })
+      Fs.readlink(onArgs, (err2, string) => {
+        if (err2)
+          e.sender.send(ch, { err: err2 })
         else {
           let dest
 
           dest = Path.join(Path.dirname(onArgs), string)
-          Fs.stat(dest, (err, data) => {
-            if (err)
-              e.sender.send(ch, { err })
+          Fs.stat(dest, (err3, data3) => {
+            if (err3)
+              e.sender.send(ch, { err3 })
             else
-              e.sender.send(ch, { data,
+              e.sender.send(ch, { data3,
                                   link: 1,
                                   dest })
           })

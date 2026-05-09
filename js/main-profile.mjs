@@ -10,12 +10,11 @@ import { d, log } from './main-log.mjs'
 
 function initPrompt
 (db) {
-
   function add
-  (name, text) {
+  (profileName, text) {
     d('PROFILE.PROMPT add ' + text)
     db.prepare('INSERT INTO prompts (name, text, time) VALUES (?, ?, ?)')
-      .run(name,
+      .run(profileName,
            text,
            Date.now())
     d('PROFILE.HIST added')
@@ -256,9 +255,9 @@ function onHistSuggest
 export
 function onPromptAdd
 (e, onArgs) {
-  let [ name, text ] = onArgs
+  let [ pName, text ] = onArgs
 
-  prompt.add(name, text)
+  prompt.add(pName, text)
 }
 
 export
@@ -274,35 +273,35 @@ function name
 }
 
 function getStore
-(name) {
-  if (name == 'frame')
+(storeName) {
+  if (storeName == 'frame')
     return stores.frame
-  if (name == 'opt')
+  if (storeName == 'opt')
     return stores.opt
-  if (name == 'poss')
+  if (storeName == 'poss')
     return stores.poss
-  if (name == 'state')
+  if (storeName == 'state')
     return stores.state
   if (profile.dir)
-    return new Store({ name, cwd: profile.dir })
+    return new Store({ name: storeName, cwd: profile.dir })
   throw new Error('getStore missing profile.dir')
 }
 
 export
 function onGet
-(e, file, name) {
+(e, file, key) {
   let s
 
   s = getStore(file)
-  return { data: s.get(name) }
+  return { data: s.get(key) }
 }
 
 export
 function onLoad
-(e, ch, name) {
+(e, ch, storeName) {
   let s
 
-  s = getStore(name)
+  s = getStore(storeName)
   e.sender.send(ch, { data: s.store })
 }
 
@@ -325,18 +324,18 @@ function onSave
 
 export
 function onSet
-(e, file, name, value) {
+(e, file, key, value) {
   let s
 
   s = getStore(file)
-  s.set(name, value)
+  s.set(key, value)
   return {}
 }
 
 export
 function init
-(name, dirUserData) {
-  profile = { name: name || 'Main' }
+(profileName, dirUserData) {
+  profile = { name: profileName || 'Main' }
   if (profile.name.match(/[A-Z][a-z]+/))
     profile.dir = Path.join(dirUserData, 'profile/' + profile.name)
   else {

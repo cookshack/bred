@@ -24,9 +24,9 @@ function onAdd
         e.sender.send(ch, makeErr(err))
         return
       }
-      Fs.close(fd, err => {
-        if (err)
-          e.sender.send(ch, makeErr(err))
+      Fs.close(fd, err2 => {
+        if (err2)
+          e.sender.send(ch, makeErr(err2))
         else
           e.sender.send(ch, {})
       })
@@ -91,7 +91,7 @@ function onAll
   }
 
   function added
-  (dir, name) {
+  (name) {
     if (mandatoryExt(name))
       return 1
     if (Fs.statSync(Path.join(dir, name, '.ADDED'),
@@ -118,7 +118,7 @@ function onAll
       if (stat && isDir(stat))
         exts.push({ name,
                     mandatory: mandatoryExt(name),
-                    added: added(dir, name) })
+                    added: added(name) })
     })
     e.sender.send(ch, { exts })
   })

@@ -198,8 +198,8 @@ function init
 
   Em.on('Enter', 'select', mo)
   Em.on('Backspace', 'delete previous char', mo)
-  for (let d = 32; d <= 126; d++)
-    Em.on(String.fromCharCode(d), 'self insert', mo)
+  for (let code = 32; code <= 126; code++)
+    Em.on(String.fromCharCode(code), 'self insert', mo)
 
   Em.on('C-n', 'next line', mo)
   Em.on('C-p', 'previous line', mo)

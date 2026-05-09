@@ -24,13 +24,13 @@ function load
   let loc
 
   function onLoad
-  (name, ext) {
-    exts[name] = ext
+  (extName, ext) {
+    exts[extName] = ext
     if (ext.init)
       ext.init()
-    Mess.log('Loading extension ' + name + ' JS... done')
+    Mess.log('Loading extension ' + extName + ' JS... done')
     if (cb)
-      cb(name)
+      cb(extName)
   }
 
   loc = Loc.make(dir)
@@ -90,10 +90,10 @@ function loadAll
       loc = Loc.make(dir)
       loc.join(f.name)
       loc.join('.ADDED')
-      Tron.cmd('file.exists', loc.path, (err, data) => {
-        if (err)
+      Tron.cmd('file.exists', loc.path, (existsErr, existsData) => {
+        if (existsErr)
           return
-        if (data.exists)
+        if (existsData.exists)
           load(dir, f.name, loadExtCb)
       })
     })

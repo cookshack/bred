@@ -44,7 +44,7 @@ function add
 
     function activeFramesRight
     () {
-      return tab.framesRight.filter(f => Css.has(f.el, 'retracted') == 0).length
+      return tab.framesRight.filter(frame => Css.has(frame.el, 'retracted') == 0).length
     }
 
     e.preventDefault()
@@ -210,8 +210,6 @@ function add
       // remove from frame1
       frame1 = tab.frame1
       if (frame1) {
-        let width
-
         width = parseFloat(frame1.el.dataset.width) - parseFloat(f.el.dataset.width)
         frame1.el.dataset.width = width
         frame1.el.style.width = width + '%'

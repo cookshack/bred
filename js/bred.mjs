@@ -427,16 +427,16 @@ function initCmds
   })
 
   Cmd.add('toggle frame right', () => {
-    let win, tab
+    let win, currentTab
 
     win = Win.current()
-    tab = Tab.current(win.main)
-    if (Css.toggle(tab.frameRight.el, 'retracted')) {
+    currentTab = Tab.current(win.main)
+    if (Css.toggle(currentTab.frameRight.el, 'retracted')) {
       Tab.forEach(win.main, tab => {
         tab.frame1.focus()
         tab.framesRight.forEach(fr => fr.retract())
       })
-      tab.frame1.focus()
+      currentTab.frame1.focus()
       Css.remove(win.frameToggleR, 'mini-frame-open')
     }
     else {
@@ -448,16 +448,16 @@ function initCmds
   })
 
   Cmd.add('toggle frame left', () => {
-    let win, tab
+    let win, currentTab
 
     win = Win.current()
-    tab = Tab.current(win.main)
-    if (Css.toggle(tab.frameLeft.el, 'retracted')) {
+    currentTab = Tab.current(win.main)
+    if (Css.toggle(currentTab.frameLeft.el, 'retracted')) {
       Tab.forEach(win.main, tab => {
         tab.frame1.focus()
         tab.frameLeft.retract()
       })
-      tab.frame1.focus()
+      currentTab.frame1.focus()
       Css.remove(win.frameToggleL, 'mini-frame-open')
     }
     else {
@@ -574,12 +574,12 @@ function initCmds
       d(ctag)
       d('def: ' + def)
       d('opening: ' + ctag.path)
-      Pane.open(ctag.path, 1, view => {
+      Pane.open(ctag.path, 1, v => {
         let ret
 
         d('going to line: ' + ctag.regex)
         ctag.regex || Mess.toss('Ctag missing regex')
-        ret = Ed.vfind(view,
+        ret = Ed.vfind(v,
                        ctag.regex,
                        0,
                        { skipCurrent: 0,
@@ -765,14 +765,14 @@ function initCmds
   })
 
   Cmd.add('pane max', () => {
-    let win, f, tab
+    let win, f, currentTab
 
     win = Win.current()
-    tab = Tab.current(win.main)
-    f = Frame.current(tab)
+    currentTab = Tab.current(win.main)
+    f = Frame.current(currentTab)
     if (f.panes.length <= 1) {
-      if (Css.has(tab.frameLeft.el, 'retracted')
-          && Css.has(tab.frameRight.el, 'retracted')) {
+      if (Css.has(currentTab.frameLeft.el, 'retracted')
+          && Css.has(currentTab.frameRight.el, 'retracted')) {
         Tron.cmd1('devtools.close', [], err => {
           if (err)
             Mess.yell(err.message)
@@ -1211,9 +1211,9 @@ function initSearch
         // empty/error
         // if in regular em then exit and run the original handler
         d('empty/error')
-        Em.look(wes, 0, s.st.view?.buf, (map, to) => {
+        Em.look(wes, 0, s.st.view?.buf, (map, to2) => {
           // Simple because only want to know if there's a binding.
-          if (to) { // cmd/map
+          if (to2) { // cmd/map
             searchCancel(1)
             oldOnKeyDown(e)
           }
@@ -1250,8 +1250,8 @@ function initSearch
   Em.on('C-r', 'search backward', mo)
   Em.on('C-s', 'search forward', mo)
 
-  for (let d = 32; d <= 127; d++)
-    Em.on(String.fromCharCode(d), 'add char to search', mapSearch)
+  for (let i = 32; i <= 127; i++)
+    Em.on(String.fromCharCode(i), 'add char to search', mapSearch)
   Em.on('Enter', 'search done', mapSearch)
   Em.on('Backspace', 'remove char from search', mapSearch)
 
@@ -1421,25 +1421,25 @@ function initTest
     }
 
     function clrs
-    (clr) {
-      return [ clr('text'),
-               clr('text-light'),
-               clr('fill'),
-               clr('light'),
-               clr('nb3'),
-               clr('nb0'),
-               clr('emph'),
-               clr('syntax5'),
-               clr('syntax4'),
-               clr('syntax3'),
-               clr('syntax2'),
-               clr('syntax1'),
-               clr('syntax0'),
-               clr('point'),
-               clr('point-border'),
-               clr('point-current'),
-               clr('scroll'),
-               clr('scroll-fill') ]
+    (cbClr) {
+      return [ cbClr('text'),
+               cbClr('text-light'),
+               cbClr('fill'),
+               cbClr('light'),
+               cbClr('nb3'),
+               cbClr('nb0'),
+               cbClr('emph'),
+               cbClr('syntax5'),
+               cbClr('syntax4'),
+               cbClr('syntax3'),
+               cbClr('syntax2'),
+               cbClr('syntax1'),
+               cbClr('syntax0'),
+               cbClr('point'),
+               cbClr('point-border'),
+               cbClr('point-current'),
+               cbClr('scroll'),
+               cbClr('scroll-fill') ]
     }
 
     function sol
@@ -1453,23 +1453,23 @@ function initTest
     }
 
     function colors
-    (sol, clr) {
-      return [ sol('base03'),
-               sol('base02'),
-               sol('base01'),
-               sol('base00'),
-               sol('base1'),
-               sol('base2'),
-               sol('base3'),
-               sol('yellow'),
-               sol('orange'),
-               sol('red'),
-               sol('magenta'),
-               sol('violet'),
-               sol('blue'),
-               sol('cyan'),
-               sol('green'),
-               clrs(clr) ]
+    (cbSol, cbClr) {
+      return [ cbSol('base03'),
+               cbSol('base02'),
+               cbSol('base01'),
+               cbSol('base00'),
+               cbSol('base1'),
+               cbSol('base2'),
+               cbSol('base3'),
+               cbSol('yellow'),
+               cbSol('orange'),
+               cbSol('red'),
+               cbSol('magenta'),
+               cbSol('violet'),
+               cbSol('blue'),
+               cbSol('cyan'),
+               cbSol('green'),
+               clrs(cbClr) ]
     }
 
     function design
@@ -1496,8 +1496,8 @@ function initTest
     w.innerHTML = ''
 
     alpha = []
-    for (let d = 'A'.charCodeAt(0); d <= 'Z'.charCodeAt(0); d++)
-      alpha.push(String.fromCharCode(d))
+    for (let code = 'A'.charCodeAt(0); code <= 'Z'.charCodeAt(0); code++)
+      alpha.push(String.fromCharCode(code))
 
     append(w,
            divCl('test_buffer-1',
@@ -1595,10 +1595,10 @@ function initTest
     v = View.current()
     v.buf.views.forEach(view => {
       if (view.ele) {
-        let d
+        let el
 
-        d = view.ele.querySelector('.test_buffer-center')
-        Css.toggle(d, 'test_buffer-right')
+        el = view.ele.querySelector('.test_buffer-center')
+        Css.toggle(el, 'test_buffer-right')
       }
     })
   }
@@ -1722,7 +1722,7 @@ function initDivMode
 }
 
 function start1
-(data, start2) {
+(data) {
   let path
 
   Timing.start('bred.start1')
@@ -1734,10 +1734,8 @@ function start1
       Mess.log(err.stack)
   })
 
-  Tron.on('socket-open-file', (err, data) => {
-    let path
-
-    path = data.path
+  Tron.on('socket-open-file', (err, fileData) => {
+    path = fileData.path
     d('📥 socket-open-file: ' + path)
     Pane.open(path, 1, view => {
       view.buf.onRemove(() => {
@@ -1856,11 +1854,11 @@ function start3
 }
 
 function start0
-(start2) {
+() {
   Timing.start('bred.start0')
   d('get paths')
 
-  Tron.cmd1('paths', [], (err, d) => {
+  Tron.cmd1('paths', [], (err, paths) => {
     if (err) {
       Mess.yell('Err getting dirs: ', err.message)
       return
@@ -1869,7 +1867,7 @@ function start0
     // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
     setTimeout(() => {
       Timing.stop('bred.start0')
-      start1(d, start2)
+      start1(paths)
     })
   })
 }
@@ -1930,7 +1928,7 @@ function init
       Buf.savePoss()
     }
 
-    start0(start2)
+    start0()
   })
   Timing.stop('bred.init')
 }
@@ -1945,7 +1943,7 @@ function initNewWindow
     initFontSize()
 
     initMouse()
-    start0(start2)
+    start0()
   })
 }
 

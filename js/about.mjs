@@ -28,13 +28,6 @@ import * as Win from './win.mjs'
 import * as Welcome from './welcome.mjs'
 import { d } from './mess.mjs'
 
-function divW
-() {
-  return divCl('mess-ww',
-               [ divCl('mess-h', ''),
-                 divCl('mess-w bred-surface', '') ])
-}
-
 function initAbout
 () {
   function divW
@@ -47,12 +40,12 @@ function initAbout
     }
 
     function dir
-    (name, d) {
-      if (d)
+    (name, path) {
+      if (path)
         return [ div(name),
-                 div(d, '',
+                 div(path, '',
                      { 'data-run': 'open link',
-                       'data-path': d }) ]
+                       'data-path': path }) ]
       return []
     }
 
@@ -198,9 +191,9 @@ function initHelp
     }
 
     function path
-    (p) {
-      if (p)
-        return div(Ed.makeMlDir(p))
+    (fileOrDir) {
+      if (fileOrDir)
+        return div(Ed.makeMlDir(fileOrDir))
       return div()
     }
 
@@ -212,7 +205,7 @@ function initHelp
     }
 
     function icon
-    (mode) {
+    () {
       return mode.icon?.name && span(img(Icon.path(mode.icon.name),
                                          Icon.alt(mode.icon.name),
                                          'filter-clr-text'),
@@ -231,7 +224,7 @@ function initHelp
                        [ divCl('bred-help-h'),
                          divCl('bred-help-buf',
                                [ divCl('twoCol bred-help-heading',
-                                       [ icon(mode),
+                                       [ icon(),
                                          'Buffer Details' ]),
                                  divCl('bred-help-space'),
                                  div('Buffer Name'), div(p.buf?.name),
@@ -504,14 +497,14 @@ function initDescribeKey
           }
 
           // if in regular em then exit and run the original handler
-          Em.look(wes, 0, st.view?.buf, (map, to) => {
-            if (to) {
-              if (to.ons)
+          Em.look(wes, 0, st.view?.buf, (map, to2) => {
+            if (to2) {
+              if (to2.ons)
                 // map
                 return
               cancel()
               d('KEY')
-              describe(to, wes)
+              describe(to2, wes)
             }
             else {
               cancel()
@@ -597,16 +590,16 @@ function initDescribeCmd
 
   function describeCmd
   () {
-    let p, buf
+    let p, b
 
     p = Pane.current()
     callerBuf = p.buf
-    buf = Buf.make({ name: 'Command to Describe',
-                     modeKey: 'execute',
-                     content: Exec.divW(),
-                     dir: p.dir })
-    buf.vars('execute').cb = name => describe(name)
-    p.setBuf(buf)
+    b = Buf.make({ name: 'Command to Describe',
+                   modeKey: 'execute',
+                   content: Exec.divW(),
+                   dir: p.dir })
+    b.vars('execute').cb = name => describe(name)
+    p.setBuf(b)
   }
 
   mo = Mode.add('Describe Cmd')
@@ -704,7 +697,7 @@ function initLang
     return divCl('lang-ww', divCl('lang-w bred-surface', ''))
   }
 
-  function lang
+  function cmdLang
   (u, we) {
     if (we?.e && (we.e.button == 0)) {
       let p, w, buf, id
@@ -738,7 +731,7 @@ function initLang
   Cmd.add('source', () => source(), mo)
   Em.on('s', 'source', mo)
 
-  Cmd.add('lang', lang)
+  Cmd.add('lang', cmdLang)
 }
 
 function initLangs
@@ -784,7 +777,7 @@ function initLangs
     return divCl('langs-ww', divCl('langs-w bred-surface', ''))
   }
 
-  function langs
+  function cmdLangs
   () {
     let p, w, buf
 
@@ -816,7 +809,7 @@ function initLangs
   Cmd.add('source', () => source(), mo)
   Em.on('s', 'source', mo)
 
-  Cmd.add('langs', () => langs())
+  Cmd.add('langs', () => cmdLangs())
 
   initLang()
 }
@@ -825,6 +818,13 @@ export
 function init
 () {
   let mo
+
+  function divW
+  () {
+    return divCl('mess-ww',
+                 [ divCl('mess-h', ''),
+                   divCl('mess-w bred-surface', '') ])
+  }
 
   function appendM
   (frag, m) {

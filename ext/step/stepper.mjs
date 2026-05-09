@@ -33,9 +33,9 @@ pause.onclick = () => {
       Css.enable(pause)
       return
     }
-    Tron.cmd('step.send', [ 'Debugger.pause' ], err => {
-      if (err) {
-        console.log('pause: ' + err.message)
+    Tron.cmd('step.send', [ 'Debugger.pause' ], err2 => {
+      if (err2) {
+        console.log('pause: ' + err2.message)
         Css.enable(pause)
         return
       }

@@ -105,11 +105,11 @@ function init
         buf.vars('Search Lines').lines = lines
       }
       p = Pane.current()
-      p.setBuf(buf, {}, view => {
-        view.insert(lines.map(line => line.text).join('\n'))
+      p.setBuf(buf, {}, v => {
+        v.insert(lines.map(line => line.text).join('\n'))
         if (lines.length)
-          view.insert('\n')
-        view.bufStart()
+          v.insert('\n')
+        v.bufStart()
       })
     }
     else if (typeof needle == 'string')

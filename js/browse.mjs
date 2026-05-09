@@ -68,44 +68,44 @@ function initWeb
   })
 }
 
-function divW
-(url) {
-  return divCl('browse-ww',
-               [ divCl('browse-h',
-                       [ divCl('browse-control',
-                               img(Icon.path('arrow-left'),
-                                   'Back',
-                                   'filter-clr-text'),
-                               { 'data-run': 'page backward' }),
-                         divCl('browse-control',
-                               img(Icon.path('arrow-right'),
-                                   'Forward',
-                                   'filter-clr-text'),
-                               { 'data-run': 'page forward' }),
-                         divCl('browse-reload browse-control',
-                               img(Icon.path('refresh'),
-                                   'Reload',
-                                   'filter-clr-text'),
-                               { 'data-run': 'reload' }),
-                         divCl('browse-url',
-                               url,
-                               { 'data-run': 'go',
-                                 'data-url' : url }),
-                         divCl('browse-title'),
-                         divCl('browse-external browse-control',
-                               img(Icon.path('external'),
-                                   'Ext',
-                                   'filter-clr-text'),
-                               { 'data-run': 'open externally',
-                                 'data-url' : url }),
-                         divCl('ml-close') ]),
-                 divCl('browse-w bred-surface') ])
-}
-
 export
 function browse
 (url) {
   let p, buf
+
+  function divW
+  () {
+    return divCl('browse-ww',
+                 [ divCl('browse-h',
+                         [ divCl('browse-control',
+                                 img(Icon.path('arrow-left'),
+                                     'Back',
+                                     'filter-clr-text'),
+                                 { 'data-run': 'page backward' }),
+                           divCl('browse-control',
+                                 img(Icon.path('arrow-right'),
+                                     'Forward',
+                                     'filter-clr-text'),
+                                 { 'data-run': 'page forward' }),
+                           divCl('browse-reload browse-control',
+                                 img(Icon.path('refresh'),
+                                     'Reload',
+                                     'filter-clr-text'),
+                                 { 'data-run': 'reload' }),
+                           divCl('browse-url',
+                                 url,
+                                 { 'data-run': 'go',
+                                   'data-url' : url }),
+                           divCl('browse-title'),
+                           divCl('browse-external browse-control',
+                                 img(Icon.path('external'),
+                                     'Ext',
+                                     'filter-clr-text'),
+                                 { 'data-run': 'open externally',
+                                   'data-url' : url }),
+                           divCl('ml-close') ]),
+                   divCl('browse-w bred-surface') ])
+  }
 
   p = Pane.current()
   buf = Buf.add(url, 'Browse', divW(url), p.dir,
@@ -212,15 +212,15 @@ function initBrowse
                Math.floor(r.width),
                Math.floor(r.height),
                url ],
-             (err, data) => {
+             (openErr, openData) => {
                let obs
 
-               if (err) {
-                 Mess.warn('browse.open: ' + err.message)
+               if (openErr) {
+                 Mess.warn('browse.open: ' + openErr.message)
                  return
                }
 
-               view.vars('Browse').off = Tron.on(data.ch, (err, data) => {
+               view.vars('Browse').off = Tron.on(openData.ch, (err, data) => {
                  d('--- browse ev ---')
                  d({ data })
                  if (data.ev == 'focus') {
@@ -250,11 +250,11 @@ function initBrowse
                })
 
                if (view.elPane)
-                 obs = new globalThis.ResizeObserver(roe => resize(data.ch, roe), { box: 'border-box' }).observe(view.elPane)
+                 obs = new globalThis.ResizeObserver(roe => resize(openData.ch, roe), { box: 'border-box' }).observe(view.elPane)
                else
                  Mess.log('FIX browser viewInit view.ele missing for ResizeObserver')
                d({ obs })
-               id = data.id
+               id = openData.id
                view.vars('Browse').id = id
              })
 

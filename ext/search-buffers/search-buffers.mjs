@@ -42,21 +42,21 @@ async function searchBufs
       let bufs
 
       bufs = []
-      Buf.forEach(buf => buf.ed && bufs.push(buf))
-      for (let buf of bufs) {
+      Buf.forEach(buffer => buffer.ed && bufs.push(buffer))
+      for (let buffer of bufs) {
         let psn
 
-        psn = buf.makePsn()
+        psn = buffer.makePsn()
         do {
           let text
 
           text = await psn.line
           if (typeof text == 'string') {
             if (regex ? regex.test(text) : U.includes(text, needle, 1))
-              lines.push({ text, from: psn.bep, row: psn.row, buf })
+              lines.push({ text, from: psn.bep, row: psn.row, buffer })
           }
           else
-            Mess.say('Error: line ' + (psn.row + 1) + ' missing from ' + buf.name)
+            Mess.say('Error: line ' + (psn.row + 1) + ' missing from ' + buffer.name)
         }
         while (await psn.lineNext())
       }

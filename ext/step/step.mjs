@@ -443,12 +443,12 @@ function initDom
 
   function toggleEl
   (id, pm, origEl, // el being inspected
-   select) {
+   fromSelect) {
     let ch, el
 
     el = pm.parentNode.parentNode // el in Dom buffer with class 'dom-el'
 
-    el.closest('.dom-w').querySelectorAll('.dom-active').forEach(el => Css.remove(el, 'dom-active'))
+    el.closest('.dom-w').querySelectorAll('.dom-active').forEach(e => Css.remove(e, 'dom-active'))
     Css.add(el, 'dom-active')
 
     ch = el.querySelector('.dom-el-ch')
@@ -459,7 +459,7 @@ function initDom
         Css.expand(ch)
       }
       else {
-        if (select)
+        if (fromSelect)
           return
         pm.innerText = '+'
         Css.retract(ch)
@@ -724,9 +724,9 @@ function init
         Mess.yell('enable: ' + err.message)
         return
       }
-      Tron.cmd('step.send', [ 'Debugger.pause' ], err => {
-        if (err) {
-          Mess.yell('pause: ' + err.message)
+      Tron.cmd('step.send', [ 'Debugger.pause' ], err2 => {
+        if (err2) {
+          Mess.yell('pause: ' + err2.message)
           return
         }
         Mess.say('paused')

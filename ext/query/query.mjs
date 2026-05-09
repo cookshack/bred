@@ -63,8 +63,8 @@ function title
 function srch
 (dir, buf, query) {
   function add
-  (buf, str) {
-    buf?.views.forEach(view => {
+  (b, str) {
+    b?.views.forEach(view => {
       let l
 
       l = view.ele.querySelector('.query-llm')
@@ -130,7 +130,7 @@ function srch
     })
 }
 
-function url
+function makeUrl
 (query) {
   return Opt.get('query.search.url.prefix') + globalThis.encodeURIComponent(query)
 }
@@ -145,13 +145,13 @@ function divW
                                    'Browse',
                                    'filter-clr-text'),
                                { 'data-run': 'open link',
-                                 'data-path': url(query) }),
+                                 'data-path': makeUrl(query) }),
                          divCl('query-link',
                                img(Icon.path('external'),
                                    'External',
                                    'filter-clr-text'),
                                { 'data-run': 'open externally',
-                                 'data-url': url(query) }) ]),
+                                 'data-url': makeUrl(query) }) ]),
                  divCl('query-llm'),
                  divCl('query-w', 'Fetching...') ])
 }
@@ -216,11 +216,11 @@ function readFileOrDir
     }
 
     if (stat.data.mode & (1 << 15)) {
-      Tron.cmd('file.get', [ abs ], (err, data) => {
-        if (err) {
+      Tron.cmd('file.get', [ abs ], (err2, data) => {
+        if (err2) {
           d('ERR file.get')
-          d(err.message)
-          cb({ error: err.message,
+          d(err2.message)
+          cb({ error: err2.message,
                success: false,
                subtool: 'readFileOrDir',
                message: 'Failed to read file.' })
@@ -238,11 +238,11 @@ function readFileOrDir
       return
     }
 
-    Tron.cmd('dir.get', abs, (err, data) => {
-      if (err) {
+    Tron.cmd('dir.get', abs, (err2, data) => {
+      if (err2) {
         d('ERR dir.get')
-        d(err.message)
-        cb({ error: err.message,
+        d(err2.message)
+        cb({ error: err2.message,
              success: false,
              subtool: 'readFileOrDir',
              message: 'Failed to read directory.' })
@@ -302,11 +302,11 @@ function readDir
       return
     }
 
-    Tron.cmd('dir.get', abs, (err, data) => {
-      if (err) {
+    Tron.cmd('dir.get', abs, (err2, data) => {
+      if (err2) {
         d('ERR dir.get')
         d(err.message)
-        cb({ error: err.message,
+        cb({ error: err2.message,
              success: false,
              subtool: 'readDir',
              message: 'Failed to read directory.' })
@@ -963,7 +963,7 @@ function init
     })
   }
 
-  function done
+  function complete
   (buf) {
     buf.vars('query').cancel = 0
     buf.vars('query').busy = 0
@@ -1047,7 +1047,7 @@ function init
   }
 
   function chat
-  (buf, key, msgs, prompt, cb, cbEnd) { // (msg), ()
+  (buf, key, msgs, message, cb, cbEnd) { // (msg), ()
     let model
 
     function stream
@@ -1164,19 +1164,19 @@ function init
 
     d('==== ' + emo + ' chat ====')
 
-    prompt.length || Mess.toss('empty prompt')
+    message.length || Mess.toss('empty prompt message')
 
     model = buf.opt('query.model.chat') || Mess.toss('Missing query.model.chat')
 
     msgs.push({ role: 'user',
-                content: JSON.stringify({ message: prompt,
+                content: JSON.stringify({ message,
                                           date: stamp() }) })
 
     go()
   }
 
   function chatAgent
-  (buf, key, msgs, prompt, cb, cbEnd, cbCall) { // (msg), (), (tool)
+  (buf, key, msgs, msg, cb, cbEnd, cbCall) { // (msg), (), (tool)
     let sys, model
 
     function handle
@@ -1210,9 +1210,9 @@ function init
       }
 
       function push
-      (msg) {
+      (msgToPush) {
         reminds = 0
-        buf.vars('query').msgs.push(msg)
+        buf.vars('query').msgs.push(msgToPush)
       }
 
       function no
@@ -1430,12 +1430,12 @@ function init
 
     sys = getSys()
 
-    prompt.length || Mess.toss('empty prompt')
+    msg.length || Mess.toss('empty prompt message')
 
     model = buf.opt('query.model.agent') || Mess.toss('Missing query.model.agent')
 
     msgs.push({ role: 'user',
-                content: JSON.stringify({ message: prompt,
+                content: JSON.stringify({ message: msg,
                                           date: stamp() }) })
 
     go()
@@ -1494,7 +1494,7 @@ function init
   }
 
   function insert
-  (dir, view, prompt) {
+  (dir, view, message) {
     let que, text, off, bep, buf
 
     function add
@@ -1508,7 +1508,7 @@ function init
     off = view.offset
     que = 'Provide text that matches the DESCRIPTION below, that I can insert at the specified position in the FILE below.'
     que += ' Respond only with the text that should be inserted.\n\n'
-    que += '1. DESCRIPTION:\n' + prompt + '\n\n'
+    que += '1. DESCRIPTION:\n' + message + '\n\n'
     que += '2. FILE:\n' + text.slice(0, off) + '[SPECIFIED POSITION]' + text.slice(off) + '\n'
 
     d(que)
@@ -1520,7 +1520,7 @@ function init
   }
 
   function fim
-  (dir, view, prompt) {
+  (dir, view, message) {
     let text, off, bep, buf, gen, suffix
 
     function add
@@ -1544,9 +1544,9 @@ function init
     buf = view.buf // in case view changes, still issues if eg buf removed
     bep = view.bep
 
-    prompt = text.slice(0, off) + '\n// please insert the following: ' + prompt + '\n'
+    message = text.slice(0, off) + '\n// please insert the following: ' + message + '\n'
     suffix = text.slice(off)
-    d({ prompt })
+    d({ message })
     d({ suffix })
     gen({ model: view.buf?.opt('query.model.agent') || view.buf?.opt('query.model.chat'),
           prompt,
@@ -1578,14 +1578,14 @@ function init
 
   function prevHist
   (nth) {
-    let p, hist
+    let p, bufHist
 
     p = Pane.current()
-    hist = p.buf.vars('query').hist
-    if (hist) {
+    bufHist = p.buf.vars('query').hist
+    if (bufHist) {
       let prev
 
-      prev = nth < 0 ? hist.next() : hist.prev()
+      prev = nth < 0 ? bufHist.next() : bufHist.prev()
       if (prev) {
         let r
 
@@ -1630,7 +1630,7 @@ function init
   }
 
   function expandFiles
-  (buf, prompt, cb) {
+  (buf, message, cb) {
     let regex, files, match, index
 
     function processNext
@@ -1653,7 +1653,7 @@ function init
           processNext()
         else
           // All files processed. Return the cleaned prompt via callback.
-          cb(prompt.replace(regex, '').trim())
+          cb(message.replace(regex, '').trim())
       })
     }
 
@@ -1661,11 +1661,11 @@ function init
     files = []
 
     // Find all @file:PATH occurrences in the prompt
-    while ((match = regex.exec(prompt)))
+    while ((match = regex.exec(message)))
       files.push(match[1])
 
     if (files.length == 0) {
-      cb(prompt)
+      cb(message)
       return
     }
 
@@ -1677,7 +1677,7 @@ function init
 
   function enter
   () {
-    let r, p, buf, prompt, cb
+    let r, p, buf, message, cb
 
     p = Pane.current()
 
@@ -1685,13 +1685,13 @@ function init
 
     r = promptRange(p)
 
-    prompt = r.text
-    prompt = prompt.trim()
-    if (prompt.length == 0) {
+    message = r.text
+    message = message.trim()
+    if (message.length == 0) {
       Mess.yell('Empty prompt')
       return
     }
-    d({ prompt })
+    d({ message })
 
     buf = p.buf
     if (buf.vars('query').busy) {
@@ -1701,14 +1701,14 @@ function init
 
     // run chat
 
-    buf.vars('query').hist.add(prompt)
+    buf.vars('query').hist.add(message)
 
     busy(buf)
     appendWithEnd(buf, '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
     cb = chat
     if (p.buf.vars('query').type == 'Agent')
       cb = chatAgent
-    cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+    cb(buf, Opt.get('query.key'), buf.vars('query').msgs, message,
        msg => {
          d('CHAT enter append: ' + msg.content)
          appendWithEnd(buf, msg.content)
@@ -1716,12 +1716,12 @@ function init
        () => {
          d('cbEnd')
          appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
-         done(buf)
+         complete(buf)
        },
        call => {
          d('cbCall')
          appendCall(buf, call)
-         //done(buf)
+         //complete(buf)
        })
   }
 
@@ -1782,11 +1782,11 @@ function init
                    divCl('query-ml-brow query-link',
                          img(Icon.path('browse'), 'Browse', 'filter-clr-text'),
                          { 'data-run': 'open link',
-                           'data-path': url(question) }),
+                           'data-path': makeUrl(question) }),
                    divCl('query-ml-ext query-link',
                          img(Icon.path('external'), 'External', 'filter-clr-text'),
                          { 'data-run': 'open externally',
-                           'data-url': url(question) }),
+                           'data-url': makeUrl(question) }),
                    divCl('ml-close') ])
   }
 
@@ -1829,14 +1829,14 @@ function init
   }
 
   function runPrompt
-  (prompt, type, model) {
+  (message, type, model) {
     let name, buf, p, cb
 
     cb = chat
     if (type == 'Agent')
       cb = chatAgent
 
-    name = type + ': ' + prompt
+    name = type + ': ' + message
     p = Pane.current()
     buf = Buf.find(b2 => b2.name == name)
 
@@ -1860,7 +1860,7 @@ function init
                                            { 'data-run': 'reject tool' })) ]),
                       divCl('query-tool-args') ])
       w = Ed.divW(0, 0,
-                  { ml: divMl(model, type, prompt),
+                  { ml: divMl(model, type, message),
                     extraCo: toolW })
       buf = Buf.add(name, 'richdown', w, p.dir)
       buf.vars('query').type = type
@@ -1874,19 +1874,19 @@ function init
     busy(buf)
     buf.vars('query').msgs = []
 
-    hist.add(prompt)
+    hist.add(message)
     buf.vars('query').hist = Hist.ensure(name)
     if (buf.vars('query').hist.length == 0)
-      buf.vars('query').hist.add(prompt)
+      buf.vars('query').hist.add(message)
 
     buf.clear()
     p.setBuf(buf, {}, () => {
-      appendWithEnd(buf, buf.vars('query').premo + ' ' + prompt + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
+      appendWithEnd(buf, buf.vars('query').premo + ' ' + message + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
       buf.opts.set('core.line.wrap.enabled', 1)
       buf.opts.set('core.lint.enabled', 0)
-      prompt = expandFiles(buf, prompt, prompt => {
-        d({ prompt })
-        cb(buf, Opt.get('query.key'), buf.vars('query').msgs, prompt,
+      expandFiles(buf, message, expandedPrompt => {
+        d({ expandedPrompt })
+        cb(buf, Opt.get('query.key'), buf.vars('query').msgs, expandedPrompt,
            msg => {
              //d('CHAT append: ' + msg.content)
              appendWithEnd(buf, msg.content)
@@ -1894,13 +1894,13 @@ function init
            () => {
              d('cbEnd')
              appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
-             done(buf)
+             complete(buf)
            },
            // only used by chatAgent
            call => {
              d('cbCall ' + call.name)
              appendCall(buf, call)
-             //done(buf)
+             //complete(buf)
            })
       })
     })
@@ -1910,7 +1910,7 @@ function init
   (type, model) {
     Prompt.ask({ text: (type == 'Agent' ? emoAgent : emo) + ' ' + model,
                  hist },
-               prompt => runPrompt(prompt, type, model))
+               message => runPrompt(message, type, model))
   }
 
   function setModel
@@ -2120,8 +2120,8 @@ User →
     model = model || Opt.get('query.model.local')
     Prompt.ask({ text: 'Prompt',
                  hist },
-               prompt => {
-                 hist.add(prompt)
+               message => {
+                 hist.add(message)
                  Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
                    buf.append(premo + ' ' + prompt + '\n\n')
                    buf.opts.set('core.line.wrap.enabled', 1)
@@ -2139,7 +2139,7 @@ User →
       if (p.buf.vars('query').cancel) {
         p.buf.vars('query').cancel()
         appendWithEnd(p.buf, ' ...stopped.\n\n' + p.buf.vars('query').premo + ' ')
-        done(p.buf)
+        complete(p.buf)
       }
       else
         Mess.toss('cancel function missing')
@@ -2148,28 +2148,28 @@ User →
   Cmd.add('llm insert', () => {
     Prompt.ask({ text: 'Describe what should be inserted',
                  hist },
-               prompt => {
+               message => {
                  let p
 
                  p = Pane.current()
 
-                 hist.add(prompt)
-                 prompt = prompt.trim()
-                 insert(p.dir, p.view, prompt)
+                 hist.add(message)
+                 message = message.trim()
+                 insert(p.dir, p.view, message)
                })
   })
 
   Cmd.add('fim', () => {
     Prompt.ask({ text: 'Describe what should be inserted',
                  hist },
-               prompt => {
+               message => {
                  let p
 
                  p = Pane.current()
 
-                 hist.add(prompt)
-                 prompt = prompt.trim()
-                 fim(p.dir, p.view, prompt)
+                 hist.add(message)
+                 message = message.trim()
+                 fim(p.dir, p.view, message)
                })
   })
 

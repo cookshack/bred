@@ -2,7 +2,7 @@ import { append, button, create, divCl } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
-import * as Em from '../../js/em.mjs'
+import * as Em from '../../js/Em.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/pane.mjs'
 import { d } from '../../js/mess.mjs'

@@ -1,6 +1,6 @@
 import * as Cmd from '../../js/cmd.mjs'
 import * as Ed from '../../js/ed.mjs'
-import * as Em from '../../js/em.mjs'
+import * as Em from '../../js/Em.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Opt from '../../js/opt.mjs'
 import * as Pane from '../../js/pane.mjs'

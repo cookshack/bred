@@ -1,6 +1,6 @@
 import * as Cmd from '../../js/cmd.mjs'
 import * as Ed from '../../js/ed.mjs'
-import * as Em from '../../js/em.mjs'
+import * as Em from '../../js/Em.mjs'
 import * as Hist from '../../js/hist.mjs'
 import * as Loc from '../../js/loc.mjs'
 import * as Mess from '../../js/mess.mjs'

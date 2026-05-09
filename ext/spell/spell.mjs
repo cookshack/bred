@@ -1,5 +1,5 @@
 import * as Cmd from '../../js/cmd.mjs'
-import * as Em from '../../js/em.mjs'
+import * as Em from '../../js/Em.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import * as View from '../../js/view.mjs'

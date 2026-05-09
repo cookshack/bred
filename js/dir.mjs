@@ -285,7 +285,7 @@ function nearestLine
 }
 
 function fill
-(buf, bak, hid, sort, currentFile, marked) {
+(buf, bak, hid, sort, current, marked) {
   let path
 
   function makeF
@@ -293,10 +293,10 @@ function fill
     let name, file, on, type
 
     function join
-    (dir, file) {
+    (dir, rest) {
       if (dir.endsWith('/'))
-        return dir + file
-      return dir + '/' + file
+        return dir + rest
+      return dir + '/' + rest
     }
 
     function size
@@ -369,7 +369,7 @@ function fill
       nearestLine(view)
   }
 
-  function init
+  function appendLines
   (view) {
     let surf, scroll
 
@@ -448,8 +448,8 @@ function fill
     Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (branch, code) => {
       if (code == 0)
         buf.vars('dir').branch = branch.trim()
-      Shell.runToString(path, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code) => {
-        if (code == 0)
+      Shell.runToString(path, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code2) => {
+        if (code2 == 0)
           buf.vars('dir').hash = hash.trim()
       })
     })
@@ -489,7 +489,7 @@ function fill
         surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
         surf.append(divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }))
 
-        init(v)
+        appendLines(v)
 
         if (currentFile) {
           let el
@@ -533,7 +533,7 @@ function watch
       return
     }
 
-    off = Tron.on(ch, (err, data) => {
+    off = Tron.on(ch, (err2, data) => {
       let getFile
 
       // NB Beware of doing anything in here that modifies any dir being watched,
@@ -601,7 +601,7 @@ function add
 
   Recent.add(dir.path, 'inode/directory')
 
-  exist = Buf.find(b => (b.mode?.key == 'dir') && (b.dir == dir.path))
+  exist = Buf.find(buf => (buf.mode?.key == 'dir') && (buf.dir == dir.path))
   if (exist) {
     exist.vars('dir').sort = sort
     exist.vars('dir').initialFile = initialFile
@@ -689,7 +689,7 @@ function refreshKeep
 }
 
 function sortBy
-(d) {
+(field) {
   let p, sort
 
   p = Pane.current()
@@ -698,13 +698,13 @@ function sortBy
     let ss
 
     ss = sort.split('-')
-    if (d == ss[0])
-      d = d + (ss[1] == 'asc' ? '-desc' : '-asc')
+    if (field == ss[0])
+      field = field + (ss[1] == 'asc' ? '-desc' : '-asc')
   }
   refreshKeep(p,
               { bak: p.buf.opt('dir.show.backups'),
                 hid: p.buf.opt('dir.show.hidden'),
-                sort: d })
+                sort: field })
 }
 
 function showBak
@@ -755,13 +755,13 @@ function init
   }
 
   function scrollDown
-  (up) {
+  (upward) {
     let p, el
 
     p = Pane.current()
     el = p.view.ele.querySelector('.bred-surface')
     if (el)
-      el.scrollBy(0, (el.clientHeight / 2) * (up ? -1 : 1))
+      el.scrollBy(0, (el.clientHeight / 2) * (upward ? -1 : 1))
   }
 
   function mark

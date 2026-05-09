@@ -91,7 +91,7 @@ function link
   let p, el, target
 
   function run
-  (from, target, dir) {
+  (from, dir) {
     let absTarget
 
     absTarget = DirCommon.abs(target, dir)
@@ -121,7 +121,7 @@ function link
   }
 
   Prompt.ask({ text: 'Link from:' },
-             name => run(name, target, p.dir))
+             name => run(name, p.dir))
 }
 
 function equal
@@ -291,7 +291,7 @@ function copy
   let p, marked, hist
 
   function cpMarked
-  (dir, marked) {
+  (dir) {
     let list
 
     list = DirCommon.under(dir, marked)
@@ -304,7 +304,7 @@ function copy
                  hist.add(dest)
 
                  absDest = DirCommon.abs(dest, dir)
-                 Tron.cmd('file.cp', [ list.paths.map(p => p.path), absDest ], err => {
+                 Tron.cmd('file.cp', [ list.paths.map(lp => lp.path), absDest ], err => {
                    if (err) {
                      Mess.yell('file.cp: ' + err.message)
                      return
@@ -352,13 +352,13 @@ function copy
         else {
           // dest is dir, cp file into that dir
           to = Loc.make(to).join(Loc.make(from).filename)
-          Tron.cmd('file.stat', to, err => {
-            if (err)
-              if (err.code == 'ENOENT')
+          Tron.cmd('file.stat', to, err2 => {
+            if (err2)
+              if (err2.code == 'ENOENT')
                 // new file
                 ok()
               else
-                Mess.toss('file.stat: ' + err.message)
+                Mess.toss('file.stat: ' + err2.message)
             else
               confirm()
           })
@@ -371,7 +371,7 @@ function copy
 
   marked = DirCommon.getMarked(p.buf)
   if (marked.length) {
-    cpMarked(Loc.make(p.dir).ensureSlash(), marked)
+    cpMarked(Loc.make(p.dir).ensureSlash())
     return
   }
   else {
@@ -398,7 +398,7 @@ function rename
   let p, marked, hist
 
   function renameMarked
-  (dir, marked) {
+  (dir) {
     let list
 
     list = DirCommon.under(dir, marked)
@@ -411,7 +411,7 @@ function rename
                  hist.add(dest)
 
                  absDest = DirCommon.abs(dest, dir)
-                 Tron.cmd('file.mv', [ list.paths.map(p => p.path), absDest ], err => {
+                 Tron.cmd('file.mv', [ list.paths.map(lp => lp.path), absDest ], err => {
                    if (err) {
                      Mess.yell('file.mv: ' + err.message)
                      return
@@ -432,9 +432,9 @@ function rename
                   { icon: 'warning' },
                   yes => {
                     if (yes)
-                      Tron.cmd('file.mv', [ from, to, { overwrite: 1 } ], err => {
-                        if (err) {
-                          Mess.yell('file.mv: ' + err.message)
+                      Tron.cmd('file.mv', [ from, to, { overwrite: 1 } ], err2 => {
+                        if (err2) {
+                          Mess.yell('file.mv: ' + err2.message)
                           return
                         }
                         Mess.say(from + ' ⮞ ' + to)
@@ -500,10 +500,10 @@ function del
         if (err) {
           if (err.code == 'ENOTEMPTY') {
             msg = div([ 'RECURSIVELY delete ', span(el.dataset.path, 'bold'), '?' ])
-            Prompt.yn(msg, { icon: 'trash' }, yes => {
-              yes && Tron.cmd('dir.rm', [ el.dataset.path, { recurse: 1 } ], err => {
-                if (err) {
-                  Mess.yell('Error deleting: ' + err.message)
+            Prompt.yn(msg, { icon: 'trash' }, yes2 => {
+              yes2 && Tron.cmd('dir.rm', [ el.dataset.path, { recurse: 1 } ], err2 => {
+                if (err2) {
+                  Mess.yell('Error deleting: ' + err2.message)
                   return
                 }
                 Mess.say('Deleted dir ' + el.dataset.path)

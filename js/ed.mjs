@@ -1,10 +1,11 @@
-import { append, button, divCl, img, span } from './dom.mjs'
+import { button, divCl, img, span } from './dom.mjs'
 
 import * as Bred from './bred.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Cut from './cut.mjs'
+import * as Dom from './dom.mjs'
 import * as Em from './em.mjs'
 import * as Hist from './hist.mjs'
 import * as Icon from './icon.mjs'
@@ -236,15 +237,15 @@ function charForInsert
 
   char = we.e.key
   if (we.e.ctrlKey) {
-    let code
+    let charCode
 
-    code = char.charCodeAt(0)
-    if (code == '@'.charCodeAt(0))
+    charCode = char.charCodeAt(0)
+    if (charCode == '@'.charCodeAt(0))
       char = String.fromCharCode(0)
-    else if ((code >= 'a'.charCodeAt(0)) && (code <= 'z'.charCodeAt(0)))
-      char = String.fromCharCode(code - 'a'.charCodeAt(0) + 1)
-    else if ((code >= 'A'.charCodeAt(0)) && (code <= '_'.charCodeAt(0))) // A .. Z [ / ] ^ _
-      char = String.fromCharCode(code - '_'.charCodeAt(0) + 1)
+    else if ((charCode >= 'a'.charCodeAt(0)) && (charCode <= 'z'.charCodeAt(0)))
+      char = String.fromCharCode(charCode - 'a'.charCodeAt(0) + 1)
+    else if ((charCode >= 'A'.charCodeAt(0)) && (charCode <= '_'.charCodeAt(0))) // A .. Z [ / ] ^ _
+      char = String.fromCharCode(charCode - '_'.charCodeAt(0) + 1)
   }
   else if (char == 'Tab')
     char = String.fromCharCode(9) // ^I \t
@@ -506,11 +507,11 @@ function initQR
     ph = view.buf.vars('qr').fromPlaceholder
     if (ph?.length)
       view.buf.placeholder = ph
-    view.buf.views.forEach(view => {
-      if (view.ele) {
+    view.buf.views.forEach(v => {
+      if (v.ele) {
         let ww
 
-        ww = view.ele.firstElementChild
+        ww = v.ele.firstElementChild
         from = ww.children[1].innerText
         Css.retract(ww.children[0])
         Css.retract(ww.children[1])
@@ -523,7 +524,7 @@ function initQR
     view.insert(from)
   }
 
-  function divW
+  function qrDivW
   () {
     return divCl('edWW float-ww bred-qr-ww',
                  [ divCl('bred-qr-text retracted', 'Replace'),
@@ -551,7 +552,7 @@ function initQR
     st.occur = st.view.buf.opts.get('core.highlight.occurrences.enabled')
     st.view.buf.opts.set('core.highlight.occurrences.enabled', 0)
     ph = hist.nth()?.from
-    st.p = Prompt.demandBuf(divW(),
+    st.p = Prompt.demandBuf(qrDivW(),
                             { placeholder: ph })
   }
 
@@ -646,9 +647,9 @@ function makeMlDir
 
   mlDir = []
   if (dir) {
-    let d
+    let path
 
-    d = ''
+    path = ''
     U.shortHome(Buf.prepDir(dir)).split('/').forEach((c, i) => {
       let r, home
 
@@ -658,10 +659,10 @@ function makeMlDir
       home = i == 0 && c == '~'
 
       if (home)
-        d = U.home().replace(/\/$/, '')
+        path = U.home().replace(/\/$/, '')
       else
-        d = d + '/' + c
-      r = span(c, { 'data-path': d, 'data-run': 'open link' })
+        path = path + '/' + c
+      r = span(c, { 'data-path': path, 'data-run': 'open link' })
 
       if (home)
         mlDir.push(r)
@@ -684,7 +685,7 @@ function setMlDir
       mlDir = ele.querySelector('.edMl-dir')
       if (mlDir) {
         mlDir.innerHTML = ''
-        append(mlDir, makeMlDir(dir))
+        Dom.append(mlDir, makeMlDir(dir))
       }
     }
   }
@@ -1243,8 +1244,7 @@ function insertSlash
     Backend.selfInsert(u, we)
 }
 
-export
-function save
+function cmdSave
 (fn, // (view, cb)
  cb) { // (err)
   let view, path
@@ -1338,12 +1338,7 @@ function enableBuf
 
 export
 function init
-(backend, cb) { // (err)
-  function vcall
-  (cb) {
-    cb(View.current())
-  }
-
+(be, cb) { // (err)
   d('set backend')
 
   ctags = []
@@ -1355,7 +1350,7 @@ function init
   tokenRe = new RegExp('[\\p{L}\\p{N}_$]+', 'gu')
   nonTokenRe = new RegExp('(?:[^\\p{L}\\p{N}_$]|\\s)+', 'gu')
 
-  setBackend(backend, err => {
+  setBackend(be, err => {
     let mo
 
     if (err)
@@ -1450,7 +1445,7 @@ function init
     Cmd.add('mark exchange', () => Backend.exchange(), mo)
     Cmd.add('open line', () => Backend.openLine(), mo)
     Cmd.add('cancel', () => Backend.cancel(), mo)
-    Cmd.add('recenter', () => vcall(Backend.recenter), mo)
+    Cmd.add('recenter', () => Backend.recenter(View.current()), mo)
     Cmd.add('redo', () => Backend.redo(), mo)
     Cmd.add('undo', () => Backend.undo(), mo)
     Cmd.add('self insert', Backend.selfInsert, mo)
@@ -1464,7 +1459,7 @@ function init
     Cmd.add('indent line', () => Backend.indentLine(), mo)
     Cmd.add('indent rigidly', indentRigidly, mo)
     Cmd.add('insert two spaces', () => Backend.insertTwoSpaces(), mo)
-    Cmd.add('save', () => save(), mo)
+    Cmd.add('save', () => cmdSave(), mo)
     Cmd.add('save as', () => Backend.vsaveAs(View.current()), mo)
     Cmd.add('transpose chars', () => Backend.transposeChars(), mo)
     Cmd.add('transpose words', () => transposeWords(), mo)
@@ -1502,8 +1497,8 @@ function init
     Em.on('ArrowLeft', 'backward', mo)
     Em.on('Home', 'buffer start', mo)
     Em.on('End', 'buffer end', mo)
-    for (let d = 32; d <= 127; d++)
-      Em.on(String.fromCharCode(d), 'self insert', mo)
+    for (let i = 32; i <= 127; i++)
+      Em.on(String.fromCharCode(i), 'self insert', mo)
     Em.on('/', 'insert /', mo)
     Em.on('[', 'page backward or self insert', mo)
     Em.on(']', 'page forward or self insert', mo)

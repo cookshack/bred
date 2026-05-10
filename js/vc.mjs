@@ -1,4 +1,4 @@
-import { append, divCl, img } from './dom.mjs'
+import { divCl, img } from './dom.mjs'
 
 import * as Buf from './buf.mjs'
 import * as Browse from './browse.mjs'
@@ -468,30 +468,30 @@ function branchDir
     }
 
     Mess.say('Currently in ' + name)
-    Shell.runToString(path, 'git', [ 'status', '--porcelain' ], 0, (out, code) => {
-      d('VC ' + out)
-      if (code) {
+    Shell.runToString(path, 'git', [ 'status', '--porcelain' ], 0, (out2, code2) => {
+      d('VC ' + out2)
+      if (code2) {
         Mess.yell('git status failed')
         return
       }
-      if (out.trim().length) {
+      if (out2.trim().length) {
         Mess.yell('Changes in ' + currentBranch + '. Commit or stash first')
         return
       }
       Mess.say('Fetching ' + name)
       Shell.runToString(path, 'git', [ 'fetch', 'origin', name + ':' + name ], 0,
-                        (out, code) => {
-                          d('VC ' + out)
-                          if (code) {
-                            Mess.yell('Fetch failed: ' + code)
+                        (out3, code3) => {
+                          d('VC ' + out3)
+                          if (code3) {
+                            Mess.yell('Fetch failed: ' + code3)
                             return
                           }
                           Mess.say('Checking out ' + name)
                           Shell.runToString(path, 'git', [ 'checkout', name ], 0,
-                                            (out, code) => {
-                                              d('VC ' + out)
-                                              if (code) {
-                                                Mess.yell('Checkout failed: ' + code)
+                                            (out4, code4) => {
+                                              d('VC ' + out4)
+                                              if (code4) {
+                                                Mess.yell('Checkout failed: ' + code4)
                                                 return
                                               }
                                               Mess.say('Now in ' + name)
@@ -631,13 +631,13 @@ function initHub
   }
 
   function findPrNumByBranch
-  (ownerRepo, branch) {
+  (ownerRepo, branchName) {
     for (let key in cachedPrs) {
       let cached
 
       cached = cachedPrs[key]
 
-      if ((cached.branch == branch) && key.startsWith(ownerRepo + '/'))
+      if ((cached.branch == branchName) && key.startsWith(ownerRepo + '/'))
         return cached.prNum
     }
     return 0
@@ -715,7 +715,7 @@ function initHub
         + '\n'
     }
 
-    function append
+    function appendNotifs
     (notifs) {
       let rows, out
 
@@ -829,7 +829,7 @@ function initHub
     getNotifications(1,
                      notifs => {
                        if (notifs.size)
-                         append(notifs)
+                         appendNotifs(notifs)
                        else
                          p.buf.append('No notifications\n', 1)
                      })
@@ -1032,10 +1032,10 @@ function initHub
                                           'git',
                                           [ 'symbolic-ref', 'refs/remotes/origin/HEAD' ],
                                           0,
-                                          (out, code) => {
+                                          (out2, code2) => {
                                             let defaultBranch
 
-                                            if (code) {
+                                            if (code2) {
                                               Mess.yell('Failed to get default branch')
                                               return
                                             }
@@ -1044,10 +1044,10 @@ function initHub
                                                               'git',
                                                               [ 'rev-parse', defaultBranch ],
                                                               0,
-                                                              (out, code) => {
+                                                              (out3, code3) => {
                                                                 let localMain
 
-                                                                if (code) {
+                                                                if (code3) {
                                                                   Mess.yell('Local ' + defaultBranch + ' missing')
                                                                   return
                                                                 }
@@ -1056,10 +1056,10 @@ function initHub
                                                                                   'git',
                                                                                   [ 'rev-parse', 'origin/' + defaultBranch ],
                                                                                   0,
-                                                                                  (out, code) => {
+                                                                                  (out4, code4) => {
                                                                                     let remoteMain
 
-                                                                                    if (code) {
+                                                                                    if (code4) {
                                                                                       Mess.yell('Missing origin/' + defaultBranch)
                                                                                       return
                                                                                     }
@@ -1071,7 +1071,7 @@ function initHub
                                                                                       Shell.run(dir,
                                                                                                 'git',
                                                                                                 [ 'fetch', 'origin', defaultBranch + ':' + defaultBranch ],
-                                                                                                { onClose: (b, code) => code ? Mess.yell('fetch failed') : onDone() })
+                                                                                                { onClose: (b, code5) => code5 ? Mess.yell('fetch failed') : onDone() })
                                                                                     }
                                                                                   })
                                                               })
@@ -1084,24 +1084,24 @@ function initHub
     let p, dir
 
     function prompt
-    (ownerRepo, prNum, branch) {
-      return 'Please review https://github.com/' + ownerRepo + '/pull/' + prNum + '. The PR is on branch ' + branch + ', which I\'ve already checked out in the current directory. Focus on reviewing the changes, I will do the CI checks.'
+    (ownerRepo, prNum, branchName) {
+      return 'Please review https://github.com/' + ownerRepo + '/pull/' + prNum + '. The PR is on branch ' + branchName + ', which I\'ve already checked out in the current directory. Focus on reviewing the changes, I will do the CI checks.'
     }
 
     function run
-    (ownerRepo, branch, prNum) {
+    (ownerRepo, branchName, prNum) {
       Mess.say('Getting PR ' + prNum)
       getPr(0, ownerRepo, prNum,
             res => {
               if (res)
-                if (res.branch == branch)
+                if (res.branch == branchName)
                   ensureMainUpToDate(dir,
                                      () => {
                                        Mess.say('Starting agent')
-                                       Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branch))
+                                       Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branchName))
                                      })
                 else
-                  Mess.yell('Branch ' + branch + ' (vs PR ' + res.branch + ')')
+                  Mess.yell('Branch ' + branchName + ' (vs PR ' + res.branch + ')')
               else
                 Mess.yell('getPrState failed')
             })
@@ -1112,39 +1112,39 @@ function initHub
     Mess.say('Setting up branch')
     Shell.runToString(dir, 'git', [ 'branch', '--show-current' ], 0,
                       (out, code) => {
-                        let branch
+                        let branchName
 
                         if (code) {
                           Mess.yell('Error getting current branch')
                           return
                         }
-                        branch = out.trim()
+                        branchName = out.trim()
                         Shell.runToString(dir, 'git', [ 'remote', 'get-url', 'origin' ], 0,
-                                          (out, code) => {
+                                          (out2, code2) => {
                                             let remote, ownerRepo
 
-                                            if (code) {
+                                            if (code2) {
                                               Mess.yell('Error getting git remote')
-                                              d(out)
+                                              d(out2)
                                               return
                                             }
 
-                                            remote = out.trim()
+                                            remote = out2.trim()
                                             ownerRepo = remote.match(/[:/]([^/]+\/[^/]+)(\.git)?$/)?.[1]
                                             if (ownerRepo) {
                                               let cachedPrNum
 
                                               ownerRepo = ownerRepo.replace(/\.git$/, '')
-                                              cachedPrNum = findPrNumByBranch(ownerRepo, branch)
+                                              cachedPrNum = findPrNumByBranch(ownerRepo, branchName)
 
                                               if (cachedPrNum)
-                                                run(ownerRepo, branch, cachedPrNum)
+                                                run(ownerRepo, branchName, cachedPrNum)
                                               else
                                                 Prompt.ask({ text: 'PR Number:' },
                                                            prNum => {
                                                              prNum = parseInt(prNum)
                                                              if (prNum)
-                                                               run(ownerRepo, branch, prNum)
+                                                               run(ownerRepo, branchName, prNum)
                                                              else
                                                                Mess.yell('Need a PR num')
                                                            })
@@ -2042,7 +2042,7 @@ function initEqual
 
   function applyH
   () {
-    let p, patch, hunk, iHunk, file, lineNum, text
+    let p, entries, hunk, iHunk, file, lineNum, text
 
     function abs
     (f, dir, cb) { // (file)
@@ -2084,8 +2084,8 @@ function initEqual
 
     // Parse the patch.
 
-    patch = Diff.parsePatch(p.buf.text())
-    d(patch)
+    entries = Diff.parsePatch(p.buf.text())
+    d(entries)
 
     // Strip it down to just the hunk.
 
@@ -2093,35 +2093,35 @@ function initEqual
     file = currentOldFile(p)
     d({ iHunk })
     d({ file })
-    patch = patch.filter(f => f.oldFileName == file)
-    if (patch.length == 0) {
+    entries = entries.filter(f => f.oldFileName == file)
+    if (entries.length == 0) {
       Mess.yell('Empty')
       return
     }
-    if (patch.length > 1) {
+    if (entries.length > 1) {
       Mess.yell('Multiple entries in patch for file')
       return
     }
-    hunk = patch[0].hunks[iHunk]
-    patch[0].hunks = [ hunk ]
-    d(patch)
+    hunk = entries[0].hunks[iHunk]
+    entries[0].hunks = [ hunk ]
+    d(entries)
     // May be wrong if file modified since patch made.
     lineNum = hunk.newStart
 
     // Build patch text.
 
-    text = Diff.formatPatch(patch)
+    text = Diff.formatPatch(entries)
     d(text)
 
     // Get the actual file name.
 
-    abs(file, p.buf.dir, file => {
+    abs(file, p.buf.dir, absFile => {
 
       // Apply it.
 
-      d({ file })
+      d({ absFile })
       // Make sure file is open
-      p.open(file, null, view => {
+      p.open(absFile, null, view => {
         // Must be saved
         if (p.buf.modified)
           Mess.toss('Please save first')
@@ -2133,16 +2133,16 @@ function initEqual
           }
           Shell.runToString(p.dir,
                             'patch',
-                            [ '--dry-run', '--reverse', '--force', '-i', data.file, file ],
+                            [ '--dry-run', '--reverse', '--force', '-i', data.file, absFile ],
                             0,
                             (str, code) => {
                               if (code == 0) {
                                 Prompt.yn('Looks like hunk is already applied. Reverse it?',
                                           {},
-                                          yes => yes && run(view, data, file, 1))
+                                          yes => yes && run(view, data, absFile, 1))
                                 return
                               }
-                              run(view, data, file)
+                              run(view, data, absFile)
                             })
         })
       })
@@ -2402,8 +2402,8 @@ function initLog
               { buf: p.buf,
                 end: 1,
                 afterEndPoint: 1,
-                onClose: (buf, code) => busyClose(p, code),
-                onErr: (buf, err) => busyErr(p, err) })
+                onClose: (b, code) => busyClose(p, code),
+                onErr: (b, err) => busyErr(p, err) })
   }
 
   function show
@@ -2478,23 +2478,23 @@ function initLog
     function go
     (text) {
       if (text && text.trim().length) {
-        let args, p, buf
+        let args, p, b
 
         args = [ 'log', '-S', text ]
         p = Pane.current()
-        buf = Buf.add('VC Log: ' + text,
-                      'VC Log',
-                      divW('VC Log', args),
-                      p.dir)
-        buf.vars('vc log').args = args
-        buf.vars('vc log').search = text
-        buf.vars('ed').fillParent = 0
-        buf.icon = 'log'
-        buf.opts.set('core.lint.enabled', 0)
-        buf.opts.set('minimap.enabled', 0)
-        buf.opts.set('core.lang', 'git log')
+        b = Buf.add('VC Log: ' + text,
+                    'VC Log',
+                    divW('VC Log', args),
+                    p.dir)
+        b.vars('vc log').args = args
+        b.vars('vc log').search = text
+        b.vars('ed').fillParent = 0
+        b.icon = 'log'
+        b.opts.set('core.lint.enabled', 0)
+        b.opts.set('minimap.enabled', 0)
+        b.opts.set('core.lang', 'git log')
         hist.add(text)
-        p.setBuf(buf, {}, () => {
+        p.setBuf(b, {}, () => {
           refresh(p)
         })
       }
@@ -2555,8 +2555,8 @@ function initLogOneLine
               { buf: p.buf,
                 end: 1,
                 afterEndPoint: 1,
-                onClose: (buf, code) => busyClose(p, code),
-                onErr: (buf, err) => busyErr(p, err) })
+                onClose: (b, code) => busyClose(p, code),
+                onErr: (b, err) => busyErr(p, err) })
   }
 
   function next
@@ -2633,23 +2633,23 @@ function initLogOneLine
     function go
     (text) {
       if (text && text.trim().length) {
-        let args, p, buf
+        let args, p, b
 
         args = [ 'log', '--oneline', '--no-decorate', '-S', text ]
         p = Pane.current()
-        buf = Buf.add('VC Log1: ' + text,
-                      'VC Log One-Line',
-                      divW('VC Log One-Line', args),
-                      p.dir)
-        buf.vars('vc log one-line').search = text
-        buf.vars('vc log one-line').args = args
-        buf.vars('ed').fillParent = 0
-        buf.icon = 'log'
-        buf.opts.set('core.lint.enabled', 0)
-        buf.opts.set('minimap.enabled', 0)
-        //buf.opts.set('core.lang', 'git log')
+        b = Buf.add('VC Log1: ' + text,
+                    'VC Log One-Line',
+                    divW('VC Log One-Line', args),
+                    p.dir)
+        b.vars('vc log one-line').search = text
+        b.vars('vc log one-line').args = args
+        b.vars('ed').fillParent = 0
+        b.icon = 'log'
+        b.opts.set('core.lint.enabled', 0)
+        b.opts.set('minimap.enabled', 0)
+        //b.opts.set('core.lang', 'git log')
         hist.add(text)
-        p.setBuf(buf, {}, () => {
+        p.setBuf(b, {}, () => {
           refresh(p)
         })
       }
@@ -2691,61 +2691,6 @@ function initLogOneLine
   Em.on('e', 'show commit', mo)
   Em.on('Enter', 'show commit', mo)
   Em.on('=', 'show commit', mo)
-}
-
-function initLogBadIdea
-() {
-  let buf, w
-
-  // Using div 'backend' for the log. Slow when the log is large. The
-  // Ed backends limit the divs to what is displayed.
-
-  function divW
-  () {
-    return divCl('vc_log-ww', divCl('vc_log-w bred-surface', ''))
-  }
-
-  function viewInit
-  (view, spec, cb) {
-    let p
-
-    p = Pane.current()
-    w = view.ele.firstElementChild.firstElementChild
-    w.innerHTML = ''
-    Shell.run(p.dir, 'git', [ 'log' ], { onStdin,
-                                         onStdout })
-    if (cb)
-      cb(view)
-  }
-
-  function onStdin
-  (str) {
-    //d(str)
-    str.split(/\r?\n/).forEach(line => {
-      append(w, divCl('vc_log-line', line))
-    })
-  }
-
-  function onStdout
-  (str) {
-    d(str)
-  }
-
-  Mode.add('Bad Idea', { viewInit })
-
-  Cmd.add('bad idea vc log', () => {
-    let p
-
-    p = Pane.current()
-    if (buf)
-      p.setBuf(buf, {}, view => viewInit(view))
-    else {
-      buf = Buf.add('Bad Idea', 'Bad Idea', divW(), p.dir)
-      buf.icon = 'log'
-      buf.addMode('view')
-      p.setBuf(buf)
-    }
-  })
 }
 
 function initAnnotate
@@ -3174,7 +3119,6 @@ function init
   initAnnotate()
   initCommit()
   initLogOneLine(initLog())
-  initLogBadIdea()
   initEqual()
   initStash()
   initHub()

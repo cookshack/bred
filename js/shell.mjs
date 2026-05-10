@@ -280,7 +280,7 @@ function shellOrSpawn1
   let p, dir
 
   function addBuf
-  (p, dir, sc, cb) {
+  (whenReady) {
     let b, re, name
 
     function setMl
@@ -325,8 +325,8 @@ function shellOrSpawn1
 
     p.setBuf(b, {}, () => {
       b.clear()
-      if (cb)
-        cb(b)
+      if (whenReady)
+        whenReady(b)
     })
   }
 
@@ -375,20 +375,19 @@ function shellOrSpawn1
   dir = Loc.make(p.buf.dir)
   dir.ensureSlash()
   dir = dir.path || Loc.home()
-  addBuf(p, dir, sc,
-         buf => {
-           run(dir, sc, spec.args,
-               { buf,
-                 cols: p.cols,
-                 end: spec.end,
-                 afterEndPoint: spec.afterEndPoint,
-                 runInShell: spec.shell,
-                 multi: spec.multi,
-                 onClose,
-                 onErr })
-           if (cb)
-             cb(buf)
-         })
+  addBuf(buf => {
+    run(dir, sc, spec.args,
+        { buf,
+          cols: p.cols,
+          end: spec.end,
+          afterEndPoint: spec.afterEndPoint,
+          runInShell: spec.shell,
+          multi: spec.multi,
+          onClose,
+          onErr })
+    if (cb)
+      cb(buf)
+  })
 }
 
 export

@@ -4,7 +4,7 @@ import * as Blend from '../lib/color-blend.js'
 
 let theme, clrs, meanings, filterMeanings, rgb, bg, bgRgb, fill, text, textRgb
 
-clrs = { ...Theme.clrs }
+clrs = { ...Theme.sharedClrs }
 
 rgb = clrs.blueRgb
 rgb.a = 0.2

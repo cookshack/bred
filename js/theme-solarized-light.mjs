@@ -3,7 +3,7 @@ import * as Blend from '../lib/color-blend.js'
 
 let theme, clrs, meanings, filterMeanings, rgb, bgRgb
 
-clrs = { ...Theme.clrs }
+clrs = { ...Theme.sharedClrs }
 
 bgRgb = clrs.base3Rgb
 rgb = clrs.redRgb

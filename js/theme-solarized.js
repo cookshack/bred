@@ -1,4 +1,5 @@
-let clrs, filters
+export
+let sharedClrs, filters
 
 export
 function toX
@@ -82,21 +83,21 @@ function init
   }
 
   function fixup1
-  (rule) {
-    if (rule.alias) {
+  (r) {
+    if (r.alias) {
       let from
 
-      from = rules.find(r => r.token == rule.alias)
+      from = rules.find(r2 => r2.token == r.alias)
       if (from) {
         let to
 
         to = {}
         Object.assign(to, from)
-        to.token = rule.token
+        to.token = r.token
         return to
       }
     }
-    return rule
+    return r
   }
 
   function fixup
@@ -241,35 +242,35 @@ function init
 }
 
 // http://ethanschoonover.com/solarized
-clrs = { base03: '#002b36',
-         base03Rgb: { r: 0, g: 43, b: 54, a: 1 },
-         base02: '#073642',
-         base02Rgb: { r: 7, g: 54, b: 66, a: 1 },
-         base01: '#586e75',
-         base00: '#657b83',
-         base0: '#839496',
-         base1: '#93a1a1',
-         base1Rgb: { r: 147, g: 161, b: 161, a: 1 },
-         base2: '#eee8d5',
-         base3: '#fdf6e3',
-         base3Rgb: { r: 253, g: 246, b: 227, a: 1 },
-         yellow: '#b58900',
-         orange: '#cb4b16',
-         red: '#dc322f',
-         redRgb: { r: 220, g: 50, b: 47, a: 1 },
-         magenta: '#d33682',
-         violet: '#6c71c4',
-         blue: '#268bd2',
-         blueRgb: { r: 38, g: 139, b: 210 },
-         cyan: '#2aa198',
-         cyanRgb: { r: 42, g: 161, b: 152 },
-         green: '#859900',
-         //
-         blueLight: '#cbe1df', // blue 20% on base3
-         blueVeryLight: '#e4ebe2',
-         cyanLight:  '#cedbcb', // cyan 38% on base3
-         cyanVeryLight:  '#e8ead8', // cyan 18% on base3
-         cyanVeryVeryLight:  '#f3f0de' } // cyan 9% on base3
+sharedClrs = { base03: '#002b36',
+               base03Rgb: { r: 0, g: 43, b: 54, a: 1 },
+               base02: '#073642',
+               base02Rgb: { r: 7, g: 54, b: 66, a: 1 },
+               base01: '#586e75',
+               base00: '#657b83',
+               base0: '#839496',
+               base1: '#93a1a1',
+               base1Rgb: { r: 147, g: 161, b: 161, a: 1 },
+               base2: '#eee8d5',
+               base3: '#fdf6e3',
+               base3Rgb: { r: 253, g: 246, b: 227, a: 1 },
+               yellow: '#b58900',
+               orange: '#cb4b16',
+               red: '#dc322f',
+               redRgb: { r: 220, g: 50, b: 47, a: 1 },
+               magenta: '#d33682',
+               violet: '#6c71c4',
+               blue: '#268bd2',
+               blueRgb: { r: 38, g: 139, b: 210 },
+               cyan: '#2aa198',
+               cyanRgb: { r: 42, g: 161, b: 152 },
+               green: '#859900',
+               //
+               blueLight: '#cbe1df', // blue 20% on base3
+               blueVeryLight: '#e4ebe2',
+               cyanLight:  '#cedbcb', // cyan 38% on base3
+               cyanVeryLight:  '#e8ead8', // cyan 18% on base3
+               cyanVeryVeryLight:  '#f3f0de' } // cyan 9% on base3
 
 filters = { base02: 'invert(15%) sepia(24%) saturate(2855%) hue-rotate(156deg) brightness(93%) contrast(94%)',
             base01: 'invert(44%) sepia(9%) saturate(914%) hue-rotate(148deg) brightness(89%) contrast(85%)',
@@ -279,5 +280,3 @@ filters = { base02: 'invert(15%) sepia(24%) saturate(2855%) hue-rotate(156deg) b
             base3: 'invert(88%) sepia(15%) saturate(539%) hue-rotate(327deg) brightness(112%) contrast(98%)',
             red: 'invert(20%) sepia(50%) saturate(6419%) hue-rotate(351deg) brightness(96%) contrast(79%)',
             blue: 'invert(52%) sepia(82%) saturate(2190%) hue-rotate(179deg) brightness(86%) contrast(91%)' }
-
-export { clrs, filters }

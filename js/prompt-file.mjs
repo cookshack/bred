@@ -14,7 +14,7 @@ import * as U from './util.mjs'
 import { d } from './mess.mjs'
 
 export
-function initFile
+function init
 () {
   let mo, buffer, under, ml
   let cbCreate, cbOpen, dirsOnly, hist

@@ -70,9 +70,9 @@ function init
         Mess.yell('enable: ' + err.message)
         return
       }
-      Tron.cmd('step.send', [ 'Debugger.pause' ], err => {
-        if (err) {
-          Mess.yell('pause: ' + err.message)
+      Tron.cmd('step.send', [ 'Debugger.pause' ], err2 => {
+        if (err2) {
+          Mess.yell('pause: ' + err2.message)
           return
         }
         Mess.say('paused')

@@ -109,7 +109,7 @@ function addMode
   }
 
   function minfo
-  (exts) {
+  () {
     if (exts)
       return exts.map(e => Ed.mimeByExt[e]).filter(mi => mi)
 
@@ -118,7 +118,7 @@ function addMode
 
   spec = spec || {}
   exts = lang.extensions?.map(e => e.slice(1))
-  mime = minfo(exts)
+  mime = minfo()
   key = modeFromLang(lang.id)
   d('adding mode for ' + lang.id + ' with exts: ' + exts)
   mode = Mode.add(key,

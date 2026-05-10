@@ -35,14 +35,14 @@ function makeDecorator
 (spec) {
   let marks
 
-  function decorate
+  function makeDecorations
   (edview) {
     let builder
 
     builder = new CMState.RangeSetBuilder()
 
-    for (let { from, to } of edview.visibleRanges)
-      for (let pos = from; pos <= to;) {
+    for (let { visibleFrom, visibleTo } of edview.visibleRanges)
+      for (let pos = visibleFrom; pos <= visibleTo;) {
         let line, match
 
         line = edview.state.doc.lineAt(pos)
@@ -96,13 +96,13 @@ function makeDecorator
   class Pv {
     constructor
     (ed) {
-      this.decorations = decorate(ed)
+      this.decorations = makeDecorations(ed)
     }
 
     update
     (update) {
       if (update.docChanged || update.viewportChanged)
-        this.decorations = decorate(update.view)
+        this.decorations = makeDecorations(update.view)
     }
   }
 

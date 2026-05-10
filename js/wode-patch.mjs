@@ -49,26 +49,26 @@ function init
 
   extPatch = CMView.ViewPlugin.define(ed => {
     function update
-    (update) {
-      if (update.docChanged || update.viewportChanged) {
+    (edUpdate) {
+      if (edUpdate.docChanged || edUpdate.viewportChanged) {
         let buf
 
-        buf = update.view.bred?.view?.buf
+        buf = edUpdate.view.bred?.view?.buf
         if (buf)
-          if (update.docChanged)
+          if (edUpdate.docChanged)
             // Timeout else "Calls to EditorView.update are not allowed while an update is in progress"
             setTimeout(() => {
               // clear decor else decor will be out of sync with doc (Patch.refine is async, so update happens later)
-              update.view.dispatch({ effects: decorEffect.of(decorateRefines(update.view)) })
-              Patch.refine(update.view.state.doc.toString(),
+              edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view)) })
+              Patch.refine(edUpdate.view.state.doc.toString(),
                            refines => {
                              buf.vars('patch').refines = refines
-                             update.view.dispatch({ effects: decorEffect.of(decorateRefines(update.view, refines)) })
+                             edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view, refines)) })
                            })
             })
           else
-            setTimeout(() => update.view.dispatch({ effects: decorEffect.of(decorateRefines(update.view,
-                                                                                            buf.vars('patch').refines)) }))
+            setTimeout(() => edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
+                                                                                              buf.vars('patch').refines)) }))
       }
     }
 

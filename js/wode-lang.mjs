@@ -23,7 +23,7 @@ function init
   let languages
 
   function addLang
-  (langs, lang, ed, opt) {
+  (lang, ed, opt) {
     //d('lang: ' + lang.name + ' (' + lang.id + ')')
     opt = opt || {}
     opt.assist = opt.assist ?? {}
@@ -135,8 +135,8 @@ function init
 
                                                      d('Initialised lang: ' + file)
                                                    }
-                                                   catch (err) {
-                                                     d('loadLang load: ' + file + ': ' + err.message)
+                                                   catch (err2) {
+                                                     d('loadLang load: ' + file + ': ' + err2.message)
                                                      //debugger
                                                    }
 
@@ -148,7 +148,7 @@ function init
         else
           lang.module = file.match(/^.\/lib\/(.*)\.js$/)?.at(1)
         languages.push(lang)
-        addLang(langs, lang, opt.ed ?? 1, opt)
+        addLang(lang, opt.ed ?? 1, opt)
       }
       else
         Mess.warn('Missing: ' + file)
@@ -158,7 +158,7 @@ function init
   languages = CMData.languages.filter(l => [ 'diff', 'javascript', 'markdown' ].includes(l.name.toLowerCase()) ? 0 : 1)
   langs = []
 
-  languages.forEach(l => addLang(langs, l, 1))
+  languages.forEach(l => addLang(l, 1))
   langs.unshift({ id: 'text',
                   alias: [],
                   name: 'Text',

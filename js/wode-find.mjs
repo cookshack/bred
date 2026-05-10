@@ -78,8 +78,8 @@ function vfind
     if (decorParent) {
       if (decorParent.decorAll)
         decorParent.decorAll.remove()
-      decorParent.decorAll = WodeHi.highlighters.add((state, from, to, add) => { // highlight
-        query.highlight(state, from, to, (from, to) => {
+      decorParent.decorAll = WodeHi.highlighters.add((state, hiFrom, hiTo, add) => { // highlight
+        query.highlight(state, hiFrom, hiTo, (from, to) => {
           let selected
 
           // is range selected?

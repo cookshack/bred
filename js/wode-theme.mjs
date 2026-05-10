@@ -101,37 +101,7 @@ function themeStyles
 export
 function init
 () {
-  function init
-  () {
-    let theme, themeCode, themeSettings
-
-    themeTags = LZHighlight.tags
-    themeSettings = { backgroundImage: '',
-                      foreground: Theme.meanings.text,
-                      caret: Theme.meanings.pointCurrent,
-                      //selection: 'rgb(38 139 210 / 20%)', //'rgb(238 232 213 / 45%)', //Theme.clrs.yellow,
-                      selection: Theme.meanings.nb0Light,
-                      selectionMatch: 'var(--clr-fill-aux)',
-                      lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
-                      gutterBorder: '1px solid #ffffff10',
-                      gutterBackground: Theme.meanings.fill,
-                      gutterForeground: Theme.meanings.text }
-    theme = CMTheme.createTheme({ theme: 'light',
-                                  settings: { background: Theme.meanings.bg,
-                                              ...themeSettings },
-                                  styles: themeStyles(themeTags) })
-    themeHighlighting = theme[0]
-    themeExtension = theme[1]
-
-    // theme for Ed.code, used eg by ext/rich
-    themeCode = CMTheme.createTheme({ theme: 'code-light',
-                                      settings: { background: Theme.meanings.fill,
-                                                  ...themeSettings },
-                                      styles: themeStyles(themeTags) })
-    themeHighlightingCode = themeCode[0]
-    themeExtensionCode = themeCode[1]
-    Tron.acmd('hover.css', [ Theme.meanings.text, Theme.meanings.fill ])
-  }
+  let theme, themeCode, themeSettings
 
   function makeTheme
   () {
@@ -143,7 +113,33 @@ function init
   else
     Theme = ThemeDark
   Ed.initTheme(Theme)
-  init()
+
+  themeTags = LZHighlight.tags
+  themeSettings = { backgroundImage: '',
+                    foreground: Theme.meanings.text,
+                    caret: Theme.meanings.pointCurrent,
+                    //selection: 'rgb(38 139 210 / 20%)', //'rgb(238 232 213 / 45%)', //Theme.clrs.yellow,
+                    selection: Theme.meanings.nb0Light,
+                    selectionMatch: 'var(--clr-fill-aux)',
+                    lineHighlight: Theme.meanings.nb0VeryLight, //'rgb(238 232 213 / 60%)', //Theme.meanings.fill,
+                    gutterBorder: '1px solid #ffffff10',
+                    gutterBackground: Theme.meanings.fill,
+                    gutterForeground: Theme.meanings.text }
+  theme = CMTheme.createTheme({ theme: 'light',
+                                settings: { background: Theme.meanings.bg,
+                                            ...themeSettings },
+                                styles: themeStyles(themeTags) })
+  themeHighlighting = theme[0]
+  themeExtension = theme[1]
+
+  // theme for Ed.code, used eg by ext/rich
+  themeCode = CMTheme.createTheme({ theme: 'code-light',
+                                    settings: { background: Theme.meanings.fill,
+                                                ...themeSettings },
+                                    styles: themeStyles(themeTags) })
+  themeHighlightingCode = themeCode[0]
+  themeExtensionCode = themeCode[1]
+  Tron.acmd('hover.css', [ Theme.meanings.text, Theme.meanings.fill ])
 
   themeExtensionPart = new CMState.Compartment
 

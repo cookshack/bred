@@ -3,7 +3,7 @@ import * as Ed from '../../js/ed.mjs'
 import * as Lsp from '../../js/lsp.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Opt from '../../js/opt.mjs'
-import * as Pane from '../../js/pane.mjs'
+import * as Pane from '../../js/Pane.mjs'
 import { d } from '../../js/mess.mjs'
 
 import * as CMAuto from '../../lib/@codemirror/autocomplete.js'

@@ -7,7 +7,7 @@ import * as Em from '../../js/Em.mjs'
 import * as Loc from '../../js/loc.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
-import * as Pane from '../../js/pane.mjs'
+import * as Pane from '../../js/Pane.mjs'
 import * as Tron from '../../js/tron.mjs'
 import { d } from '../../js/mess.mjs'
 

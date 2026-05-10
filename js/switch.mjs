@@ -9,7 +9,7 @@ import * as Hist from './hist.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
-import * as Pane from './pane.mjs'
+import * as Pane from './Pane.mjs'
 import * as Recent from './recent.mjs'
 import { d } from './mess.mjs'
 

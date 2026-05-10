@@ -3,7 +3,7 @@ import * as Ed from '../../js/ed.mjs'
 import * as Loc from '../../js/loc.mjs'
 import * as Opt from '../../js/opt.mjs'
 import * as Menu from '../../js/menu.mjs'
-import * as Pane from '../../js/pane.mjs'
+import * as Pane from '../../js/Pane.mjs'
 //import { d } from '../../js/mess.mjs'
 
 export

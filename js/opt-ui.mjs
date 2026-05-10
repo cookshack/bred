@@ -4,7 +4,7 @@ import * as Em from './Em.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Opt from './opt.mjs'
-import * as Pane from './pane.mjs'
+import * as Pane from './Pane.mjs'
 import * as Win from './win.mjs'
 //import { d } from './mess.mjs'
 

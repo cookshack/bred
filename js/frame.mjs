@@ -3,7 +3,7 @@ import { append, divCl } from './dom.mjs'
 import * as Css from './css.mjs'
 import * as Mess from './mess.mjs'
 import * as Tab from './tab.mjs'
-import * as Pane from './pane.mjs'
+import * as Pane from './Pane.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'
 

@@ -1,7 +1,7 @@
 import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Ed from '../../js/ed.mjs'
-import * as Pane from '../../js/pane.mjs'
+import * as Pane from '../../js/Pane.mjs'
 import { d } from '../../js/mess.mjs'
 
 export

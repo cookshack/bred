@@ -5,7 +5,7 @@ import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/Em.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
-import * as Pane from '../../js/pane.mjs'
+import * as Pane from '../../js/Pane.mjs'
 import * as View from '../../js/view.mjs'
 import { d } from '../../js/mess.mjs'
 

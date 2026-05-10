@@ -1,7 +1,7 @@
 import { divCl } from './dom.mjs'
 import * as DirMarked from './dir-marked.mjs'
 import * as Loc from './loc.mjs'
-import * as Pane from './pane.mjs'
+import * as Pane from './Pane.mjs'
 import * as View from './view.mjs'
 
 export

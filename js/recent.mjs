@@ -1,7 +1,7 @@
 import * as Ed from './ed.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
-import * as Pane from './pane.mjs'
+import * as Pane from './Pane.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import { d } from './mess.mjs'

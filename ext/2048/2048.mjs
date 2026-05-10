@@ -4,7 +4,7 @@ import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Em from '../../js/Em.mjs'
 import * as Mode from '../../js/mode.mjs'
-import * as Pane from '../../js/pane.mjs'
+import * as Pane from '../../js/Pane.mjs'
 import { d } from '../../js/mess.mjs'
 
 import './lib/2048-webcomponent.js'

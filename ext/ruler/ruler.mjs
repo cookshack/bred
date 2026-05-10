@@ -3,7 +3,7 @@ import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/Em.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Opt from '../../js/opt.mjs'
-import * as Pane from '../../js/pane.mjs'
+import * as Pane from '../../js/Pane.mjs'
 //import { d } from '../../js/mess.mjs'
 
 import * as Ruler from './lib/@cookshack/codemirror-ruler.js'

@@ -2,7 +2,7 @@ import { append, divCl } from './dom.mjs'
 
 import * as Css from './css.mjs'
 import * as Mess from './mess.mjs'
-import * as Pane from './pane.mjs'
+import * as Pane from './Pane.mjs'
 import * as Point from './point.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'

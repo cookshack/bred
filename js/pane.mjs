@@ -1,5 +1,4 @@
 import { divCl, img } from './dom.mjs'
-
 import * as Buf from './buf.mjs'
 import * as Css from './css.mjs'
 import * as Dir from './dir.mjs'
@@ -9,76 +8,15 @@ import * as Ed from './ed.mjs'
 import * as Frame from './frame.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
-import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
-import * as Win from './win.mjs'
 import * as View from './view.mjs'
 import { d } from './mess.mjs'
 
-export
-let _internals
+import * as PaneUtil from './pane-util.mjs'
 
-let id, bootBuf, onSetBufs
+import * as PaneOn from './pane-on.mjs'
 
-export
-function init
-() {
-  id = 1
-  onSetBufs = new Set()
-}
-
-export
-function onSetBuf
-(cb) { // (view)
-  function free
-  () {
-    onSetBufs.delete(cb)
-  }
-
-  onSetBufs.add(cb)
-
-  return { free }
-}
-
-export
-function current
-(frame) {
-  frame = frame || Frame.current()
-  if (frame)
-    return frame.panes.find(p => Css.has(p.w, 'current'))
-  return 0
-}
-
-export
-function current1
-() {
-  return current(Tab.current()?.frame1)
-}
-
-export
-function focusView
-(view, skipEd, skipEle) {
-  Frame.find(frame => {
-    let p
-
-    p = frame.panes.find(p => p.view == view)
-    if (p) {
-      p.focus(skipEd, skipEle)
-      return 1
-    }
-    return 0
-  })
-}
-
-function getBootBuf
-() {
-  // delayed til needed, so that iwd is set
-  d('using boot buf')
-  if (bootBuf)
-    return bootBuf
-  d('Making boot buf')
-  return bootBuf = Buf.make({ dir: Loc.iwd().path })
-}
+let bootBuf, id
 
 function chPx
 (el, char) {
@@ -92,6 +30,16 @@ function chPx
   context.font = style.fontSize + ' ' + style.fontFamily
 
   return context.measureText(char).width
+}
+
+function getBootBuf
+() {
+  // delayed til needed, so that iwd is set
+  d('using boot buf')
+  if (bootBuf)
+    return bootBuf
+  d('Making boot buf')
+  return bootBuf = Buf.make({ dir: Loc.iwd().path })
 }
 
 export
@@ -195,18 +143,18 @@ function add
 
   function focus
   (skipEd, skipEle) {
-    let curr
+    let pane
 
     frame.focus()
-    curr = current(frame)
-    if (curr) {
-      Css.remove(curr.w, 'current')
-      curr.view.nestedViews?.forEach(nv => Css.remove(nv.ele.parentElement, 'current'))
+    pane = PaneUtil.current(frame)
+    if (pane) {
+      Css.remove(pane.w, 'current')
+      pane.view.nestedViews?.forEach(nv => Css.remove(nv.ele.parentElement, 'current'))
       if (skipEd) {
         // prevents recurse
       }
-      else if (curr.ed)
-        curr.ed.blur()
+      else if (pane.ed)
+        pane.ed.blur()
     }
     Css.add(p.w, 'current')
 
@@ -253,10 +201,10 @@ function add
    whenReady) { // (view)
 
     function onReady
-    (view) {
-      onSetBufs.forEach(cb => cb(view))
+    (v) {
+      PaneOn.onSetBufs.forEach(cb => cb(v))
       if (whenReady)
-        whenReady(view)
+        whenReady(v)
     }
 
     sbSpec = sbSpec || {}
@@ -340,14 +288,14 @@ function add
   }
 
   function openFile
-  (path, lineNum, whenReady) { // (view)
+  (path, num, whenReady) { // (view)
     path = Loc.make(path)
     path.expand()
     Ed.make(p,
             { name: path.filename,
               dir: path.dirname,
               file: path.filename,
-              lineNum },
+              lineNum: num },
             whenReady)
   }
 
@@ -359,7 +307,7 @@ function add
   // open file/dir in the pane
   function open
   (path,
-   lineNum, // only used if path is a file
+   lineNumber, // only used if path is a file
    whenReady) { // (view) only runs if path is a file
     Tron.cmd('file.stat', Loc.make(path).expand(), (err, data) => {
       let name
@@ -370,7 +318,7 @@ function add
       }
       name = data.link ? data.dest : path
       if (data.data.mode & (1 << 15))
-        openFile(name, lineNum, whenReady)
+        openFile(name, lineNumber, whenReady)
       else
         openDir(name)
     })
@@ -534,7 +482,7 @@ function add
   b || Mess.toss('buffer required')
   p.setBuf(b, { lineNum }, spec.setBufCb)
 
-  curr = current(frame)
+  curr = PaneUtil.current(frame)
   if (curr && curr.w) {
     let i
 
@@ -553,153 +501,4 @@ function add
   return p
 }
 
-export
-function nextOrSplit
-() {
-  let next
-
-  next = current().next
-  if (next) {
-    next.focus()
-    return next
-  }
-  return split()
-}
-
-export
-function split
-() {
-  let frame, p
-
-  frame = Frame.current()
-  p = current(frame)
-  return add(frame, p.buf,
-             p.view.ed
-             && Ed.bepRow(p.view, p.view.bep) + 1)
-}
-
-export
-function max
-() {
-  let pane, frame
-
-  frame = Frame.current()
-  pane = current(frame) || Mess.toss('Missing current pane')
-  for (let i = frame.panes.length - 1; i >= 0; i--) {
-    if (frame.panes[i].id == pane.id)
-      continue
-    frame.panes[i].close()
-  }
-}
-
-export
-function holding
-(el) {
-  let p
-
-  if (el) {
-    let ele
-
-    ele = el.closest('.paneW:not(.bred-nested)')?.querySelector('.pane')
-    Frame.find(frame => {
-      p = frame.panes.find(p1 => p1.ele == ele)
-      if (p)
-        return 1
-      return 0
-    })
-  }
-  return p
-}
-
-export
-function holdingView
-(view) {
-  return Frame.find(frame => frame.panes.find(p => p.view == view))?.pane
-}
-
-export
-function bury
-(pane) {
-  let t
-
-  pane = pane || current()
-  t = Buf.top(pane.buf)
-  if (t == pane.buf)
-    return
-  pane.setBuf(t, { bury: 1 })
-}
-
-export
-function clearBuf
-(buf) {
-  Frame.forEach(frame => {
-    frame.panes.forEach(p => {
-      if (p.buf.id == buf.id)
-        p.ele.innerHTML = ''
-
-    })
-  })
-}
-
-export
-function cancel
-() {
-  Em.cancel()
-  Mess.say()
-  Css.remove(Win.current().mini, 'active')
-}
-
-export
-function recenter
-() {
-  d('r')
-}
-
-export
-function openFile
-(path, lineNum, whenReady) {
-  return current().openFile(path, lineNum, whenReady)
-}
-
-export
-function openDir
-(path) {
-  return current().openDir(path)
-}
-
-export
-function open
-(path,
- lineNum, // only if file
- whenReady) { // only if file
-  let p
-
-  p = current1()
-  p.focus()
-  return p.open(path, lineNum, whenReady)
-}
-
-export
-function length
-() {
-  let frame
-
-  frame = Frame.current()
-  return frame.panes.length
-}
-
-export
-function top
-(frame) {
-  frame = frame || Frame.current()
-  return frame.panes.find(p => p.w == frame.startMarker.nextElementSibling)
-}
-
-// all panes on all frames on all tabs on all areas on all wins
-export
-function forEach
-(cb) {
-  Win.forEach(win => win.areas.forEach(area => area.tabs.forEach(tab => tab.frames.forEach(frame => frame.panes.forEach(pane => cb(pane))))))
-}
-
-_internals = { id, bootBuf }
+id = 1

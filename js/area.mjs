@@ -3,7 +3,7 @@ import { divCl } from './dom.mjs'
 import * as Css from './css.mjs'
 import * as Frame from './frame.mjs'
 import * as Mess from './mess.mjs'
-import * as Pane from './pane.mjs'
+import * as Pane from './Pane.mjs'
 import * as Tab from './tab.mjs'
 import * as Win from './win.mjs'
 

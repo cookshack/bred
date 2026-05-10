@@ -1,7 +1,7 @@
 import * as Cmd from './cmd.mjs'
 import * as Hist from './hist.mjs'
 import * as Mess from './mess.mjs'
-import * as Pane from './pane.mjs'
+import * as Pane from './Pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
 import * as Win from './win.mjs'

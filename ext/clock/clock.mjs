@@ -3,7 +3,7 @@ import { append, div, divCl } from '../../js/dom.mjs'
 import * as Buf from '../../js/buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Mode from '../../js/mode.mjs'
-import * as Pane from '../../js/pane.mjs'
+import * as Pane from '../../js/Pane.mjs'
 import * as Panel from '../../js/panel.mjs'
 
 let miniTime, timer

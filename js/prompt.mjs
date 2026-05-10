@@ -4,19 +4,17 @@ import * as Area from './area.mjs'
 import * as Buf from './buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
-import * as Dir from './dir.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './Em.mjs'
 import * as Icon from './icon.mjs'
-import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './Pane.mjs'
 import * as Tab from './tab.mjs'
-import * as Tron from './tron.mjs'
-import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
+
+import * as PromptFile from './prompt-file.mjs'
 
 let buf, $callerView, ynEm, ynCb, chooseEm, chooseCb, open
 
@@ -95,7 +93,7 @@ function demand
 export
 function demandBuf
 (w, spec) {
-  let win, p, buf, area, ml
+  let win, p, b, area, ml
 
   spec = spec || {}
   win = Win.current()
@@ -107,20 +105,20 @@ function demandBuf
   ml = w.querySelector('.edMl')
   if (ml)
     ml.innerText = 'Query replace'
-  buf = Buf.make({ name: 'QR',
-                   modeKey: 'qr',
-                   content: w,
-                   dir: p.dir,
-                   placeholder: spec.placeholder })
-  buf.vars('ed').fillParent = 0
-  buf.opts.set('core.autocomplete.enabled', 0)
-  buf.opts.set('core.brackets.close.enabled', 0)
-  buf.opts.set('core.folding.enabled', 0)
-  buf.opts.set('core.line.numbers.show', 0)
-  buf.opts.set('core.lint.enabled', 0)
-  buf.opts.set('minimap.enabled', 0)
-  buf.icon = 'prompt'
-  area.tab.frame.pane.setBuf(buf,
+  b = Buf.make({ name: 'QR',
+                 modeKey: 'qr',
+                 content: w,
+                 dir: p.dir,
+                 placeholder: spec.placeholder })
+  b.vars('ed').fillParent = 0
+  b.opts.set('core.autocomplete.enabled', 0)
+  b.opts.set('core.brackets.close.enabled', 0)
+  b.opts.set('core.folding.enabled', 0)
+  b.opts.set('core.line.numbers.show', 0)
+  b.opts.set('core.lint.enabled', 0)
+  b.opts.set('minimap.enabled', 0)
+  b.icon = 'prompt'
+  area.tab.frame.pane.setBuf(b,
                              {},
                              () => {
                                area.show()
@@ -144,13 +142,13 @@ export
 function ask
 (spec, // { hist, text, onReady, placeholder, suggest, under, w }
  cb) { // (text)
-  let win, p, buf, area, tab, ml, under, placeholder
+  let win, p, buffer, area, tab, ml, under, placeholder
 
   function refresh
   () {
     if (spec.suggest) {
       Css.disable(under)
-      spec.suggest(under, buf.text(), placeholder)
+      spec.suggest(under, buffer.text(), placeholder)
     }
   }
 
@@ -196,39 +194,39 @@ function ask
   if (ml)
     ml.innerText = spec.text || 'Enter text'
   placeholder = spec.placeholder ?? spec.hist?.nth(0)?.toString()
-  buf = Buf.make({ name: 'Prompt2',
-                   modeKey: 'prompt2',
-                   content: spec.w,
-                   dir: p.dir,
-                   placeholder,
-                   single: 1 })
-  buf.vars('ed').fillParent = 0
-  buf.opts.set('blankLines.enabled', 0)
-  buf.opts.set('core.autocomplete.enabled', 0)
-  buf.opts.set('core.brackets.close.enabled', 0)
-  buf.opts.set('core.folding.enabled', 0)
-  buf.opts.set('core.highlight.activeLine.enabled', 0)
-  buf.opts.set('core.head.enabled', 0)
-  buf.opts.set('core.line.numbers.show', 0)
-  buf.opts.set('core.lint.enabled', 0)
-  buf.opts.set('minimap.enabled', 0)
-  buf.opts.set('ruler.enabled', 0)
-  buf.icon = 'prompt'
-  buf.vars('prompt').run = cb
-  buf.vars('prompt').orig = p.buf
+  buffer = Buf.make({ name: 'Prompt2',
+                      modeKey: 'prompt2',
+                      content: spec.w,
+                      dir: p.dir,
+                      placeholder,
+                      single: 1 })
+  buffer.vars('ed').fillParent = 0
+  buffer.opts.set('blankLines.enabled', 0)
+  buffer.opts.set('core.autocomplete.enabled', 0)
+  buffer.opts.set('core.brackets.close.enabled', 0)
+  buffer.opts.set('core.folding.enabled', 0)
+  buffer.opts.set('core.highlight.activeLine.enabled', 0)
+  buffer.opts.set('core.head.enabled', 0)
+  buffer.opts.set('core.line.numbers.show', 0)
+  buffer.opts.set('core.lint.enabled', 0)
+  buffer.opts.set('minimap.enabled', 0)
+  buffer.opts.set('ruler.enabled', 0)
+  buffer.icon = 'prompt'
+  buffer.vars('prompt').run = cb
+  buffer.vars('prompt').orig = p.buf
   spec.hist?.reset()
-  buf.vars('prompt').hist = spec.hist
-  buf.off('change', onChange)
+  buffer.vars('prompt').hist = spec.hist
+  buffer.off('change', onChange)
   tab = Tab.add(area,
                 { singleFrame: 1,
-                  buf,
+                  buf: buffer,
                   setBufCb: view => {
                     d('PROMPT buf set')
                     area.show()
                     tab.frame.pane.focus()
                     spec.onReady && spec.onReady(tab.frame.pane)
                     setTimeout(() => {
-                      buf.views.forEach(v => {
+                      buffer.views.forEach(v => {
                         let w
 
                         w = v.ele.querySelector('.bred-prompt-buf-ww')
@@ -239,381 +237,10 @@ function ask
                     if (spec.suggest) {
                       under = view.ele.querySelector('.bred-prompt-under') || Mess.toss('under missing')
                       refresh()
-                      buf.on('change', onChange)
+                      buffer.on('change', onChange)
                     }
                   } })
   return p
-}
-
-function initFile
-() {
-  let mo, buf, under, ml
-  let cbCreate, cbOpen, dirsOnly, hist
-
-  function divW
-  () {
-    return Ed.divW(0, 0, { extraWWCss: 'bred-open-ww bred-opener-ww',
-                           extraWCss: 'bred-open-w bred-opener-w',
-                           extraCo: [ divCl('bred-open-under'),
-                                      divCl('bred-open-under-icon', img('img/prompt.svg', '>', 'filter-clr-nb0')) ] })
-  }
-
-  function prefix
-  (files) {
-    let i, end
-
-    if (files.length == 0)
-      return ''
-
-    if (files.length == 1)
-      return files[0]
-
-    i = 0
-    end = files.length - 1
-    while (files[0][i]) {
-      if (files[0][i] == '/')
-        break
-      if (files[0][i] == files[end][i])
-        i++
-      else
-        break
-    }
-    return files[0].slice(0, i)
-  }
-
-  function complete
-  () {
-    let p, files, pre, text
-
-    p = Pane.current()
-    files = []
-    files = [ ...p.view.ele.querySelectorAll('.bred-open-under-f') ].map(el => el.dataset.name)
-    pre = prefix(files)
-    text = buf.text()
-    if (pre.length > text.length) {
-      p.buf.clear()
-      p.buf.insert(pre)
-      p.view.bufEnd()
-    }
-  }
-
-  function nextSel
-  () {
-    let p, file
-
-    p = Pane.current()
-    file = p.view.ele.querySelector('.bred-open-under-f.selected')
-    if (file)
-      if (file.nextElementSibling) {
-        Css.remove(file, 'selected')
-        Css.add(file.nextElementSibling, 'selected')
-      }
-
-  }
-
-  function prevSel
-  () {
-    let p, file
-
-    p = Pane.current()
-    file = p.view.ele.querySelector('.bred-open-under-f.selected')
-    if (file)
-      if (file.previousElementSibling) {
-        Css.remove(file, 'selected')
-        Css.add(file.previousElementSibling, 'selected')
-      }
-
-  }
-
-  function createFile
-  (p) {
-    let text
-
-    text = buf.text().trim()
-    if (text.length)
-      cbCreate && cbCreate(p, text)
-  }
-
-  function select
-  (we) {
-    if (dirsOnly) {
-      let path, p, file
-
-      // Open
-      p = Pane.current()
-      file = p.view.ele.querySelector('.bred-open-under-f.selected')
-      file = file || p.view.ele.querySelector('.bred-open-under-f')
-      path = file?.dataset.path
-      if (path && path.length) {
-        if (p.buf.text().length)
-          hist?.add(p.buf.text())
-        cbOpen && cbOpen(path)
-      }
-      else if (typeof path == 'string')
-        Mess.say('Empty')
-      else
-        Mess.yell('Error, path was ' + (typeof path))
-    }
-    else
-      selectFile(we)
-  }
-
-  function selectFile
-  (we) {
-    let p, file
-
-    p = Pane.current()
-    if (we?.e && (we.e.button == 0))
-      file = we.e.target
-    else {
-      file = p.view.ele.querySelector('.bred-open-under-f.selected')
-      file = file || p.view.ele.querySelector('.bred-open-under-f')
-    }
-    if (file) {
-      let path
-
-      // Open
-      path = file?.dataset.path
-      if (path && path.length) {
-        if (file.dataset.name.endsWith('/')) {
-          let text
-
-          text = p.buf.text()
-          p.buf.clear()
-          if (text.length)
-            // strip off any partial file.dataset.name
-            text = Loc.make(text).dirname
-          p.view.insert(text + file.dataset.name)
-          return
-        }
-        if (p.buf.text().length)
-          hist?.add(p.buf.text())
-        cbOpen && cbOpen(path)
-      }
-      else if (typeof path == 'string')
-        Mess.say('Empty')
-      else
-        Mess.yell('Error, path was ' + (typeof path))
-      return
-    }
-
-    createFile(p)
-  }
-
-  function selectDir
-  (we) {
-    let p, file
-
-    p = Pane.current()
-    if (we?.e && (we.e.button == 0))
-      file = we.e.target
-    else {
-      file = p.view.ele.querySelector('.bred-open-under-f.selected')
-      file = file || p.view.ele.querySelector('.bred-open-under-f')
-    }
-    if (file) {
-      let path
-
-      path = file?.dataset.path
-      if (path && path.length) {
-        p.buf.clear()
-        p.buf.append(Loc.make(file.dataset.path).ensureSlash())
-      }
-      else if (typeof path == 'string')
-        Mess.say('Empty')
-      else
-        Mess.say('Error')
-      return
-    }
-    Mess.say('Missing dir')
-  }
-
-  function makeF
-  (dir, f, index) {
-    if (0)
-      d(f.name + ' ' + index)
-    return divCl('bred-open-under-f onfill',
-                 (f.name || '') + (isDir(f) ? '/' : ''),
-                 { 'data-name': (f.name || '') + (isDir(f) ? '/' : ''),
-                   'data-run': 'select',
-                   'data-path': dir + (f.name || '') })
-  }
-
-  function isDir
-  (f) {
-    if (f?.stat) {
-      if (f.stat.mode & (1 << 15))
-        return 0
-      return 1
-    }
-    return 0
-  }
-
-  function refresh
-  () {
-    let dir, text, path
-
-    text = buf.text() || ''
-    under.innerHTML = ''
-    if (text.startsWith('/'))
-      path = Loc.make(text)
-    else {
-      path = Loc.make(buf.dir)
-      path.ensureSlash()
-      path.join(text)
-    }
-    dir = path.dirname
-    d('refresh: ' + path.path)
-    Tron.cmd('dir.get', dir, (err, data) => {
-      let co, textFile
-
-      if (err) {
-        Mess.yell('open: ' + err.message)
-        return
-      }
-
-      under.innerHTML = ''
-      if (ml) {
-        ml.innerHTML = ''
-        append(ml, [ 'Open ' + (dirsOnly ? 'dir' : 'file') + ' in ',
-                     divCl('nav-dir', Dir.nav(dir, 'select dir')) ])
-      }
-
-      textFile = Loc.make(text).filename
-      if (textFile)
-        textFile = textFile.toLowerCase()
-
-      co = data.data
-      co = co.filter(f => (f && f.name && f.name.endsWith('~')) == 0) // use Dir for backups
-      if (dirsOnly)
-        co = co.filter(isDir)
-
-      co = co.map(f => makeF(dir, f))
-      co = co.filter(f => {
-        if (f && f.dataset.name && f.dataset.name.length) {
-          if (text.length == 0) {
-            if (f.dataset.name[0] == '.')
-              return 0
-            return 1
-          }
-          if (textFile) {
-            if (f.dataset.name.toLowerCase().startsWith(textFile))
-              return 1
-          }
-          else
-            return 1
-        }
-        return 0
-      })
-      if (co.length)
-        Css.add(co[0], 'selected')
-      else if (ml)
-        ml.innerText = 'Create file in ' + dir
-
-      append(under, co)
-    })
-  }
-
-  function onChange
-  () {
-    refresh()
-  }
-
-  function open
-  (spec) {
-    let p, w, dir, ph
-
-    cbCreate = spec.create
-    cbOpen = spec.open
-    hist = spec.hist
-    dirsOnly = spec.dirsOnly
-    p = Pane.current()
-
-    w = divW()
-    ml = w.querySelector('.edMl')
-    if (ml)
-      ml.innerText = 'Open file'
-
-    if (spec.atPoint && p.view.ed) {
-      let l
-
-      l = p.line()
-      if (l) {
-        let pos, url
-
-        pos = p.pos()
-        pos = pos.col
-        url = U.urlAt(l, pos)
-        if (url?.protocol == 'file:')
-          ph = url.pathname
-      }
-    }
-
-    if (buf)
-      buf.placeholder = ph
-    else {
-      buf = Buf.make({ name: 'Open',
-                       modeKey: 'open',
-                       content: w,
-                       dir: p.dir,
-                       placeholder: ph })
-      buf.icon = 'prompt'
-    }
-
-    buf.vars('ed').fillParent = 0
-    buf.opts.set('core.autocomplete.enabled', 0)
-    buf.opts.set('core.folding.enabled', 0)
-    buf.opts.set('core.line.numbers.show', 0)
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('minimap.enabled', 0)
-    spec.hist?.reset()
-    buf.off('change', onChange)
-    buf.file = 0
-    //buf.dir = 0
-    dir = p.dir
-    p.setBuf(buf, {}, () => {
-      buf.clear()
-      buf.dir = dir
-
-      ml = p.view.ele.querySelector('.edMl')
-      under = p.view.ele.querySelector('.bred-open-under') || Mess.toss('under missing')
-      if (under) {
-        refresh()
-        buf.on('change', onChange)
-      }
-    })
-  }
-
-  mo = Mode.add('Open', { hidePoint: 1,
-                          viewInit: Ed.viewInit,
-                          initFns: Ed.initModeFns,
-                          parentsForEm: 'ed' })
-
-  Cmd.add('complete', () => complete(), mo)
-  Cmd.add('next', () => hist?.next(buf), mo)
-  Cmd.add('previous', () => hist?.prev(buf), mo)
-  Cmd.add('next selection', () => nextSel(), mo)
-  Cmd.add('previous selection', () => prevSel(), mo)
-  Cmd.add('select', (u, we) => select(we), mo)
-  Cmd.add('select dir', (u, we) => selectDir(we), mo)
-
-  Em.on('Enter', 'select', mo)
-  Em.on('Tab', 'complete', mo)
-
-  Em.on('A-n', 'Next', mo)
-  Em.on('A-p', 'Previous', mo)
-
-  Em.on('C-g', 'Close Buffer', mo)
-  Em.on('Escape', 'close buffer', mo)
-  Em.on('C-n', 'Next Selection', mo)
-  Em.on('C-p', 'Previous Selection', mo)
-  Em.on('C-s', 'Idle', mo)
-  Em.on('C-r', 'Idle', mo)
-
-  Cmd.add('idle', () => {})
-  Cmd.add('shrug', () => Mess.say(U.shrug))
-
-  return open
 }
 
 export
@@ -649,7 +276,7 @@ function initPrompt2
 
         sugs = under.querySelectorAll('.bred-prompt-sug')
         if (sugs && sugs.length) {
-          let el, index, sug, img, href
+          let el, index, sug, elImg, href
 
           index = sug0.dataset.index
           if (index == null)
@@ -671,16 +298,16 @@ function initPrompt2
           sugs.forEach(s => Css.remove(s, 'bred-prompt-candidate'))
           Css.add(sug, 'bred-prompt-candidate')
 
-          img = sug0.firstElementChild.firstElementChild
+          elImg = sug0.firstElementChild.firstElementChild
           if (href.startsWith('search://')) {
             el.innerText = href.slice('search://'.length)
-            img.alt = '🔍'
-            img.src = Icon.path('search')
+            elImg.alt = '🔍'
+            elImg.src = Icon.path('search')
           }
           else {
             el.innerText = href
-            img.alt = '→'
-            img.src = Icon.path('arrow-right')
+            elImg.alt = '→'
+            elImg.src = Icon.path('arrow-right')
           }
         }
       }
@@ -838,5 +465,5 @@ function init
   Em.on('C-c', 'run', mo)
 
   initPrompt2()
-  open = initFile()
+  open = PromptFile.init()
 }

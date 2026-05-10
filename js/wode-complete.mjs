@@ -135,10 +135,10 @@ function init
       if (buf)
         return buf
       pos = Ed.makePos(0, 0)
-      b = Buf.find(b => {
-        if (bufs.includes(b))
+      b = Buf.find(b2 => {
+        if (bufs.includes(b2))
           return 0
-        return b.anyView()?.ed
+        return b2.anyView()?.ed
       })
       if (b) {
         d('fresh buf')
@@ -152,13 +152,13 @@ function init
     // Make a search function
     //
     function makeSrch
-    (view, pos1, bw, startRow, end, endLen) {
+    (v, pos1, bw, startRow, end, endLen) {
       let s, range
 
       if (bw)
-        range = WodeRange.fromPoints(view, Ed.makePos(startRow, 0), pos1)
+        range = WodeRange.fromPoints(v, Ed.makePos(startRow, 0), pos1)
       else
-        range = WodeRange.fromPoints(view, pos1, Ed.makePos(end, endLen))
+        range = WodeRange.fromPoints(v, pos1, Ed.makePos(end, endLen))
       d({ range })
       d(range.end)
       d(Wode.posRow(range.end))
@@ -167,7 +167,7 @@ function init
         + ' from (' + Wode.posRow(pos1) + ', ' + Wode.posCol(pos1) + ')'
         + ' in range (' + Wode.posRow(range.start) + ',' + Wode.posCol(range.start) + ')-'
         + '(' + Wode.posRow(range.end) + ',' + Wode.posCol(range.end) + ')')
-      s = makeSearcher(view)
+      s = makeSearcher(v)
       // looking for the word followed by some chars, will either be at beginning of line or after space.
       // '\t\f\cK ' for horizontal whitespace, see https://stackoverflow.com/questions/3469080/match-whitespace-but-not-newlines
       s.set({ needle: '(^' + Ed.escapeForRe(word) + '[^\\s]+|[\t\f\cK ]' + Ed.escapeForRe(word) + '[^\\s]+)',
@@ -187,7 +187,7 @@ function init
     // Prep match info for return
     //
     function pack
-    (view, r, pos1, bw, phase) {
+    (r, pos1) {
       let text
 
       text = r.text
@@ -216,7 +216,7 @@ function init
         d(r)
         //pos1 = Ed.makePos(posRow(rangeStart(view, r)), posCol(rangeStart(view, r)) - 1)
         pos1 = r.start
-        return pack(view, r, pos1, 1, phase)
+        return pack(r, pos1)
       }
     }
 
@@ -235,7 +235,7 @@ function init
         let pos1
 
         pos1 = r.end
-        return pack(view, r, pos1, 0, phase)
+        return pack(r, pos1)
       }
     }
 
@@ -250,7 +250,7 @@ function init
         let pos1
 
         pos1 = r.start
-        return pack(view, r, pos1, 1, phase)
+        return pack(r, pos1)
       }
     }
 
@@ -267,7 +267,7 @@ function init
         let pos1
 
         pos1 = r.end
-        return pack(view, r, pos1, 0, phase)
+        return pack(r, pos1)
       }
 
       bufs.push(view.buf) // prevent research below
@@ -281,18 +281,18 @@ function init
       phase = 6
       d('== 6 search remaining buffers')
       while ((buf = getBuf())) { // will skip buf if first in buf is in tries?
-        let r, view, end, endLen
+        let r, v, end, endLen
 
         d('= search buffer ' + buf.name)
-        view = buf.anyView()
-        end = endPos(view).row
-        endLen = Wode.lineAt(view, Ed.makePos(end, 0)).length
-        srch = makeSrch(view, pos, 0, 0, end, endLen)
+        v = buf.anyView()
+        end = endPos(v).row
+        endLen = Wode.lineAt(v, Ed.makePos(end, 0)).length
+        srch = makeSrch(v, pos, 0, 0, end, endLen)
         while ((r = srch.find())) {
           let pos1
 
           pos1 = r.end
-          return pack(view, r, pos1, 0, phase)
+          return pack(r, pos1)
         }
         buf = 0
       }

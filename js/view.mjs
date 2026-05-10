@@ -39,10 +39,10 @@ function make
   let reserved
 
   function ensurePushed
-  (v) {
-    if (spec.views.find(v2 => v2 == v))
+  (view) {
+    if (spec.views.find(v2 => v2 == view))
       return
-    spec.views.push(v)
+    spec.views.push(view)
     Mess.log('nest-View.make: buf.views.length after push=' + spec.views.length)
   }
 
@@ -97,7 +97,7 @@ function make
   }
 
   function reopen
-  (newPaneEle, newPointEle, lineNum, whenReady) {
+  (newPaneEle, newPointEle, lineNum, whenReopenReady) {
     d('VIEW ' + b.id + '.' + spec.vid + ' reopen ')
     ready = 0
     active = 1
@@ -124,13 +124,13 @@ function make
         nv.reopen(paneEl, pointEl, null, null)
       })
     if (spec.mode && spec.mode.viewReopen)
-      spec.mode.viewReopen(v, lineNum, whenReady)
+      spec.mode.viewReopen(v, lineNum, whenReopenReady)
     else
       // timeout so behaves like viewReopen
       setTimeout(() => {
         ready = 1
-        if (whenReady)
-          whenReady(v)
+        if (whenReopenReady)
+          whenReopenReady(v)
       })
   }
 
@@ -338,11 +338,11 @@ function make
 
   function insert
   (str) {
-    let b
+    let buf
 
-    b = v.buf
-    if (b.mode?.vinsert)
-      b.mode.vinsert(v, 1, str)
+    buf = v.buf
+    if (buf.mode?.vinsert)
+      buf.mode.vinsert(v, 1, str)
     else
       Mess.toss('view.make: vinsertAll missing')
   }

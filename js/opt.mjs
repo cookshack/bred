@@ -1,13 +1,14 @@
 import * as Tron from './tron.mjs'
 import * as Timing from './timing.mjs'
 import * as U from './util.mjs'
+import { d } from './opt-util.mjs'
+
+import * as OptUtil from './opt-util.mjs'
+
+export { buf } from './opt-buf.mjs'
+export { mode } from './opt-mode.mjs'
 
 export let inherit, missing
-
-let shared, d
-
-//d = console.log // too early for Mess
-d = () => {}
 
 // using undefined instead of these
 inherit = {}
@@ -21,7 +22,7 @@ function load
   (prefix, data) {
     let values
 
-    values = shared().values
+    values = OptUtil.shared().values
     Object.entries(data).forEach(kv => {
       if (Array.isArray(kv[1]) ? 0 : (typeof kv[1] == 'object')) {
         load1(prefix + kv[0] + '.', kv[1])
@@ -55,61 +56,38 @@ function check
 export
 function declare
 (name,
- type, // array, bool, decimal, float, int, str, struct
+ typeName, // array, bool, decimal, float, int, str, struct
  value) {
   check(name)
-  shared().types[name] = type
-  d('OPT ' + name + ' DECLARED ' + type)
+  OptUtil.shared().types[name] = typeName
+  d('OPT ' + name + ' DECLARED ' + typeName)
   if (U.isDefined(get(name)))
     return get(name)
-  return setMem(name, clean(name, value))
+  return setMem(name, OptUtil.clean(name, value))
 }
 
 export
 function get
 (name) {
-  d('OPT ' + name + ': ' + shared().values[name])
-  return shared().values[name]
-}
-
-function clean
-(name, val) {
-  if (U.isDefined(val)) {
-    if (shared().types[name] == 'bool')
-      return val ? true : false
-    if (shared().types[name] == 'struct') {
-      if (val == null) // we know it isDefined already, so we can use ==
-        throw new Error('opt ' + name + ' must be a struct, got null')
-      if (Array.isArray(val))
-        throw new Error('opt ' + name + ' must be a struct, got an array')
-      if (typeof val == 'object')
-        return val
-      throw new Error('opt ' + name + ' must be a struct, got ' + typeof val)
-    }
-    if (shared().types[name] == 'array') {
-      if (Array.isArray(val))
-        return val
-      throw new Error('opt ' + name + ' must be an array')
-    }
-  }
-  return val
+  d('OPT ' + name + ': ' + OptUtil.shared().values[name])
+  return OptUtil.shared().values[name]
 }
 
 function setMem
 (name,
  value) { // must be clean
   check(name)
-  shared().values[name] = value
+  OptUtil.shared().values[name] = value
   d('OPT ' + name + ' SET TO ' + value)
-  shared().onSets[name]?.forEach(cb => cb(value, name))
-  shared().onSetAlls.forEach(cb => cb(value, name))
+  OptUtil.shared().onSets[name]?.forEach(cb => cb(value, name))
+  OptUtil.shared().onSetAlls.forEach(cb => cb(value, name))
   return value
 }
 
 export
 function set
 (name, value) {
-  value = clean(name, value)
+  value = OptUtil.clean(name, value)
   Tron.cmd1('profile.set', [ 'opt', name, value ], () => {
   })
   return setMem(name, value)
@@ -128,18 +106,18 @@ function toggle
 export
 function type
 (name) {
-  return shared().types[name]
+  return OptUtil.shared().types[name]
 }
 
 export
 function onSet1
 (name, cb) { // (val, name)
   if (name) {
-    shared().onSets[name] = shared().onSets[name] ?? []
-    shared().onSets[name].push(cb)
+    OptUtil.shared().onSets[name] = OptUtil.shared().onSets[name] ?? []
+    OptUtil.shared().onSets[name].push(cb)
     return
   }
-  shared().onSetAlls.push(cb)
+  OptUtil.shared().onSetAlls.push(cb)
 }
 
 // for example, the Options page auto updates when the global opt value changes
@@ -155,11 +133,11 @@ function onSet
 function onSetBuf1
 (name, cb) { // (buf, val, name)
   if (name) {
-    shared().onSetBufs[name] = shared().onSetBufs[name] ?? []
-    shared().onSetBufs[name].push(cb)
+    OptUtil.shared().onSetBufs[name] = OptUtil.shared().onSetBufs[name] ?? []
+    OptUtil.shared().onSetBufs[name].push(cb)
     return
   }
-  shared().onSetBufAlls.push(cb)
+  OptUtil.shared().onSetBufAlls.push(cb)
 }
 
 // for example, you have a mode that wants to update the buf's ext when the opt is changed on any buf.
@@ -176,79 +154,24 @@ function onSetBuf
 export
 function forEach
 (cb) { // (name, value)
-  Object.entries(shared().values).forEach(kv => cb(kv[0], kv[1]))
+  Object.entries(OptUtil.shared().values).forEach(kv => cb(kv[0], kv[1]))
 }
 
 export
 function map
 (cb) { // (name, value)
-  return Object.entries(shared().values).map(kv => cb(kv[0], kv[1]))
+  return Object.entries(OptUtil.shared().values).map(kv => cb(kv[0], kv[1]))
 }
 
 export
 function sort
 () {
-  return Object.entries(shared().values).sort((kv1, kv2) => kv1[0].localeCompare(kv2[0]))
-}
-
-export
-function buf
-(buffer) {
-  let opts, vals
-
-  function set
-  (name, val) {
-    val = clean(name, val)
-    vals[name] = val
-    d('BUF OPT ' + name + ' SET TO ' + val)
-    shared().onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
-    shared().onSetBufAlls.forEach(cb => cb(buffer, val, name))
-  }
-
-  function get
-  (name) {
-    if (0)
-      d('BUF OPT ' + name + ': ' + vals[name])
-    return vals[name]
-  }
-
-  vals = []
-  opts = { set, get }
-  return opts
-}
-
-export
-function mode
-(/*m*/) {
-  let opts, vals
-
-  function set
-  (name, val) {
-    val = clean(name, val)
-    vals[name] = val
-    d('MODE OPT ' + name + ' SET TO ' + val)
-    //shared().onSetBufs[name]?.forEach(cb => cb(buffer, val, name))
-    //shared().onSetBufAlls.forEach(cb => cb(buffer, val, name))
-  }
-
-  function get
-  (name) {
-    if (0)
-      d('MODE OPT ' + name + ': ' + vals[name])
-    return vals[name]
-  }
-
-  vals = []
-  opts = { set, get }
-  return opts
+  return Object.entries(OptUtil.shared().values).sort((kv1, kv2) => kv1[0].localeCompare(kv2[0]))
 }
 
 export
 function init
 () {
-  // runs too early for Win.shared()
-  shared = () => globalThis.bred._shared().opt
-
   // runs too early for Win.root()
   if (globalThis.opener)
     return
@@ -256,12 +179,12 @@ function init
   // Root window
 
   globalThis.bred._shared().opt = {}
-  shared().values = {}
-  shared().types = {}
-  shared().onSets = {}
-  shared().onSetAlls = []
-  shared().onSetBufs = {}
-  shared().onSetBufAlls = []
+  OptUtil.shared().values = {}
+  OptUtil.shared().types = {}
+  OptUtil.shared().onSets = {}
+  OptUtil.shared().onSetAlls = []
+  OptUtil.shared().onSetBufs = {}
+  OptUtil.shared().onSetBufAlls = []
 
   declare('core.brackets.close.enabled', 'bool', 1)
   declare('core.fontSize', 'float', undefined)

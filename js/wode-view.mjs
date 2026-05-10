@@ -135,22 +135,6 @@ function diagnose
   Css.hide(win?.diag)
 }
 
-0 && function tip
-(win, diags) {
-  if (diags) {
-    let diag
-
-    diag = diags.filter(d => d).at(0)
-    if (diag) {
-      win.tip.lastElementChild.firstElementChild.innerText = diag.message
-      win.tip.lastElementChild.lastElementChild.innerText = diag.source
-      Css.add(win.tip, 'bred-' + diag.severity)
-      Css.show(win.tip)
-    }
-    return
-  }
-}
-
 function updateMarks
 (view, update) {
 
@@ -319,23 +303,23 @@ function _viewInit
   }
 
   function modeFromFirstLine
-  (text) {
+  (content) {
     // these must be ed modes
-    if (text && text.length) {
+    if (content && content.length) {
       let l
 
-      l = WodeLang.langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(text))
+      l = WodeLang.langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(content))
       if (l)
         return WodeMode.modeFromLang(l.id)
-      if (text.startsWith('#!/bin/sh'))
+      if (content.startsWith('#!/bin/sh'))
         return 'sh'
-      if (text.startsWith('#!/bin/bash'))
+      if (content.startsWith('#!/bin/bash'))
         return 'sh'
-      if (text.startsWith('#!/usr/bin/env bash'))
+      if (content.startsWith('#!/usr/bin/env bash'))
         return 'sh'
-      if (text.startsWith('#!/usr/bin/make'))
+      if (content.startsWith('#!/usr/bin/make'))
         return 'makefile'
-      if (text.startsWith('#!/usr/bin/env python'))
+      if (content.startsWith('#!/usr/bin/env python'))
         return 'python'
     }
     return 0
@@ -371,8 +355,8 @@ function _viewInit
 
   decorator = CMView.ViewPlugin.fromClass(class {
     constructor
-    (view) {
-      this.view = view
+    (v) {
+      this.view = v
       this.decorations = this.decorate()
     }
 
@@ -551,20 +535,20 @@ function _viewInit
                          return false
                        },
                        paste
-                       (event, ed) {
+                       (event, editor) {
                          try {
-                           let bep, view
+                           let bep, v
 
-                           view = ed.bred.view
-                           bep = Wode.vgetBep(view)
+                           v = editor.bred.view
+                           bep = Wode.vgetBep(v)
                            if (event.clipboardData) {
                              let str
 
                              str = event.clipboardData.getData('text/plain') || event.clipboardData.getData('text/uri-list')
                              if (str?.length) {
-                               Wode.vinsert1(view, 1, str || '')
+                               Wode.vinsert1(v, 1, str || '')
                                // have to do this after otherwise the insert moves the mark
-                               Wode.addMarkAt(view, bep)
+                               Wode.addMarkAt(v, bep)
                              }
                            }
                          }
@@ -841,10 +825,10 @@ function revertV
 
   view.ready = 0 // limit onChange handler
   view.buf.reverting = 1
-  init(view, { revert: 1, lineNum }, view => {
-    view.buf.reverting = 0 // TODO might run before other views get the onChanges?
+  init(view, { revert: 1, lineNum }, v => {
+    v.buf.reverting = 0 // TODO might run before other views get the onChanges?
     if (whenReady)
-      whenReady(view)
+      whenReady(v)
   })
 
   d('WODE =====>>>>>>>>>> revertV done')

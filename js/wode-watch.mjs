@@ -21,7 +21,7 @@ function watch
       return
     }
 
-    off = Tron.on(ch, (err, data) => {
+    off = Tron.on(ch, (err2, data) => {
       // NB Beware of doing anything in here that modifies the file being watched,
       //    because that may cause recursive behaviour. Eg d when --logfile and
       //    log file is open in a buffer.
@@ -37,12 +37,10 @@ function watch
     watching.set(path, off)
 
     buf.onRemove(() => {
-      let off
-
-      off = watching.get(path)
-      if (off)
+      if (watching.get(path)) {
         off()
-      watching.delete(path)
+        watching.delete(path)
+      }
     })
   })
 }

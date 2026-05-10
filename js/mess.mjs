@@ -132,7 +132,7 @@ function push
       s = '{'
       i = 0
       for (let key of Object.keys(ex)) {
-        let t, val
+        let val
 
         if (i > 0)
           s += ','

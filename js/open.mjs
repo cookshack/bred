@@ -19,7 +19,7 @@ export
 function link
 (path, line, newTab) {
   function open
-  (path, mtype) {
+  (mtype) {
     let rich
 
     rich = Ext.get('rich')
@@ -32,7 +32,7 @@ function link
   }
 
   function shell
-  (path) {
+  () {
     d('open externally: ' + path)
     Tron.cmd('shell.open', [ path ], err => {
       if (err) {
@@ -78,30 +78,30 @@ function link
       // check ext first because mime-db missing eg.py
       if (ext && Ed.supportsExt(ext))
         // file with supported ext: eg.js (or eg.js.gz)
-        open(path, mtype)
+        open(mtype)
       else if (mtype && Ed.supports(mtype))
         // file with supported mime type (via ext)
-        open(path, mtype)
+        open(mtype)
       else
         Shell.runToString(Pane.current().dir,
                           'file',
                           [ '-b', '--mime-type', U.stripFilePrefix(path) ],
                           0,
-                          mtype => {
-                            mtype = mtype && mtype.trim()
-                            d('MIME type: ' + mtype)
-                            if (mtype == 'inode/x-empty')
+                          mimeType => {
+                            mimeType = mimeType && mimeType.trim()
+                            d('MIME type: ' + mimeType)
+                            if (mimeType == 'inode/x-empty')
                               // empty file
                               Pane.open(path)
-                            else if (mtype == 'application/octet-stream')
+                            else if (mimeType == 'application/octet-stream')
                               // arbitrary binary data (try anyway because often text, like eg.bak)
                               Pane.open(path)
-                            else if (mtype == 'inode/directory')
+                            else if (mimeType == 'inode/directory')
                               // directory (path was missing trailing /)
                               Pane.open(path)
-                            else if (mtype && Ed.supports(mtype))
+                            else if (mimeType && Ed.supports(mimeType))
                               // file with supported mime type: eg.xxx
-                              open(path, mtype)
+                              open(mimeType)
                             else
                               shell(path)
                           })

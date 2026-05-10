@@ -535,7 +535,7 @@ function onStat
             if (err3)
               e.sender.send(ch, { err3 })
             else
-              e.sender.send(ch, { data3,
+              e.sender.send(ch, { data: data3,
                                   link: 1,
                                   dest })
           })

@@ -61,14 +61,14 @@ function make
     let buf
 
     buf = Pane.current(Frame.current(Tab.current(Area.current(win)))).buf
-    el.querySelectorAll('.bred-menu1-item').forEach(el => {
-      if (Cmd.get(el.dataset.run, buf)) {
-        Css.enable(el)
-        //el.children[1].innerText = Cmd.get(el.dataset.run, buf).seq() || ""
-        el.children[1].innerText = Em.seq(el.dataset.run, buf) || ''
+    el.querySelectorAll('.bred-menu1-item').forEach(elItem => {
+      if (Cmd.get(elItem.dataset.run, buf)) {
+        Css.enable(elItem)
+        //elItem.children[1].innerText = Cmd.get(elItem.dataset.run, buf).seq() || ""
+        elItem.children[1].innerText = Em.seq(elItem.dataset.run, buf) || ''
       }
       else
-        Css.disable(el)
+        Css.disable(elItem)
     })
   }
 

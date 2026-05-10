@@ -1,6 +1,6 @@
 import { append, divCl, img } from './dom.mjs'
 
-import * as Area from './area.mjs'
+import * as Area from './Area.mjs'
 import * as Css from './css.mjs'
 import * as Icon from './icon.mjs'
 import * as Frame from './frame.mjs'

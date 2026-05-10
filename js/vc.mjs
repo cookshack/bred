@@ -1,6 +1,6 @@
 import { divCl, img } from './dom.mjs'
 
-import * as Buf from './buf.mjs'
+import * as Buf from './Buf.mjs'
 import * as Browse from './browse.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
@@ -11,6 +11,7 @@ import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './Pane.mjs'
+import * as Pos from './pos.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scib from './scib.mjs'
 import * as Shell from './shell.mjs'
@@ -809,10 +810,10 @@ function initHub
                       rows.forEach((r2, index2) => {
                         let from, range, line
 
-                        from = Ed.posToBep(view, Ed.makePos(index2, 0))
+                        from = Ed.posToBep(view, Pos.make(index2, 0))
                         range = Ed.makeRange(view,
                                              from,
-                                             Ed.posToBep(view, Ed.makePos(index2 + 1, 0)))
+                                             Ed.posToBep(view, Pos.make(index2 + 1, 0)))
                         range.remove()
                         line = makeLine(r2)
                         buf.insert(line, from)
@@ -933,8 +934,8 @@ function initHub
               p.view.buf.vars('hub').threadIds.splice(row, 1)
               p.view.buf.vars('hub').rows.splice(row, 1)
               cachedNotifications.delete(threadId)
-              from = Ed.posToBep(p.view, Ed.makePos(row, 0))
-              range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Ed.makePos(row + 1, 0)))
+              from = Ed.posToBep(p.view, Pos.make(row, 0))
+              range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Pos.make(row + 1, 0)))
               range.remove()
               Mess.say('Marked as read')
             })
@@ -964,8 +965,8 @@ function initHub
               p.view.buf.vars('hub').threadIds.splice(row, 1)
               p.view.buf.vars('hub').rows.splice(row, 1)
               cachedNotifications.delete(threadId)
-              from = Ed.posToBep(p.view, Ed.makePos(row, 0))
-              range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Ed.makePos(row + 1, 0)))
+              from = Ed.posToBep(p.view, Pos.make(row, 0))
+              range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Pos.make(row + 1, 0)))
               range.remove()
               Mess.say('Marked as done')
             })
@@ -1651,10 +1652,10 @@ function initPrs
                     if (view) {
                       let from, range, line
 
-                      from = Ed.posToBep(view, Ed.makePos(index, 0))
+                      from = Ed.posToBep(view, Pos.make(index, 0))
                       range = Ed.makeRange(view,
                                            from,
-                                           Ed.posToBep(view, Ed.makePos(index + 1, 0)))
+                                           Ed.posToBep(view, Pos.make(index + 1, 0)))
                       range.remove()
                       line = makeLine(r)
                       buf.insert(line, from)

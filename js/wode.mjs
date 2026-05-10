@@ -1,4 +1,4 @@
-import * as Buf from './buf.mjs'
+import * as Buf from './Buf.mjs'
 import * as Cut from './cut.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
@@ -8,21 +8,25 @@ import * as Lsp from './lsp.mjs'
 import * as Mess from './mess.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './Pane.mjs'
+import * as Pos from './pos.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as View from './view.mjs'
 import * as Win from './win.mjs'
+import { d } from './mess.mjs'
+
+import * as WodeBep from './wode-bep.mjs'
 import * as WodeCommon from './wode-common.mjs'
 import * as WodeFind from './wode-find.mjs'
 import * as WodeHi from './wode-hi.mjs'
 import * as WodeLang from './wode-lang.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodePatch from './wode-patch.mjs'
+import * as WodePsn from './wode-psn.mjs'
 import * as WodeRange from './wode-range.mjs'
 import * as WodeTheme from './wode-theme.mjs'
 import * as WodeView from './wode-view.mjs'
 import * as WodeWatch from './wode-watch.mjs'
-import { d } from './mess.mjs'
 
 import * as CMAuto from '../lib/@codemirror/autocomplete.js'
 import * as CMComm from '../lib/@codemirror/commands.js'
@@ -35,11 +39,13 @@ import * as CMView from '../lib/@codemirror/view.js'
 import * as Wrap from '../lib/fast-word-wrap.js'
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 
+export { bepCol, bepRow, bepToPos, vgetBep, vgetBepEnd } from './wode-bep.mjs'
 export { init as initComplete } from './wode-complete.mjs'
 export { makeDecor } from './wode-decor.mjs'
 export { vfind } from './wode-find.mjs'
 export { langs } from './wode-lang.mjs'
 export { modeFor } from './wode-mode.mjs'
+export { make as makePsn } from './wode-psn.mjs'
 export { make as makeRange } from './wode-range.mjs'
 export { themeExtension, themeExtensionPart, Theme } from './wode-theme.mjs'
 export { init as viewInit, copy as viewCopy, reopen as viewReopen, revertV } from './wode-view.mjs'
@@ -171,7 +177,7 @@ function vsetPos
 export
 function vgetPos
 (view) {
-  return bepToPos(view, vgetBep(view))
+  return WodeBep.bepToPos(view, WodeBep.vgetBep(view))
 }
 
 export
@@ -202,10 +208,10 @@ function vsetBepSpec
 }
 
 function lineFullyVisible
-(view, rect, lineStart) {
+(view, rect, bep) {
   let ele, lineRect
 
-  ele = lineEle(view, lineStart)
+  ele = lineEle(view, bep)
   if (ele)
     lineRect = makeRect(ele.getBoundingClientRect(), ele)
   return rect && lineRect && containsVertically(rect, lineRect)
@@ -231,7 +237,7 @@ function ensurePointVisible
     let tr
 
     tr = {}
-    tr.effects = CMView.EditorView.scrollIntoView(vgetBep(view))
+    tr.effects = CMView.EditorView.scrollIntoView(WodeBep.vgetBep(view))
     view.ed.dispatch(tr)
   }
 }
@@ -267,12 +273,6 @@ function posCol
 // Back End Positions
 
 export
-function vgetBep
-(view) {
-  return view.ed.state.selection.main.head
-}
-
-export
 function bepGt
 (bep1, bep2) {
   return bep1 > bep2
@@ -296,16 +296,6 @@ function bepLtEq
   return bep1 <= bep2
 }
 
-// 0 indexed
-export
-function bepRow
-(view, bep) {
-  let line
-
-  line = view.ed.state.doc.lineAt(bep)
-  return line.number - 1
-}
-
 export
 function rowLen
 (view, row) { // 0 indexed
@@ -314,22 +304,6 @@ function rowLen
   bep = makeBep(view, row, 0)
   line = view.ed.state.doc.lineAt(bep)
   return line.length
-}
-
-// 0 indexed
-export
-function bepCol
-(view, bep) {
-  let line
-
-  line = view.ed.state.doc.lineAt(bep)
-  return bep - line.from
-}
-
-export
-function vgetBepEnd
-(view) {
-  return view.ed.state.doc.length
 }
 
 export
@@ -367,16 +341,6 @@ function bepRightOverSpace
 
 // pos here is bred pos (vs monaco/ace pos)
 export
-function bepToPos
-(view, bep) {
-  let line
-
-  line = view.ed.state.doc.lineAt(bep)
-  return Ed.makePos(line.number - 1, bep - line.from)
-}
-
-// pos here is bred pos (vs monaco/ace pos)
-export
 function posToBep
 (view, pos) {
   return view.ed.state.doc.line(pos.row + 1).from + pos.column
@@ -394,23 +358,11 @@ function offToBep
   return off
 }
 
-function line
-(view, n) {
-  let l, bep
-
-  if (n == -1)
-    bep = view.ed.state.doc.length
-  else
-    bep = vgetBep(view)
-  l = view.ed.state.doc.lineAt(bep)
-  return l.text
-}
-
 function excur
 (view, cb) {
   let bep, ret
 
-  bep = vgetBep(view)
+  bep = WodeBep.vgetBep(view)
   try {
     ret = cb()
   }
@@ -472,163 +424,6 @@ function addMinor
 }
 
 export
-function makePsn
-(view, bep) {
-  let psn
-
-  function getText
-  () {
-    let line
-
-    line = view.ed.state.doc.lineAt(bep)
-    if (line)
-      return line.text.slice(bep - line.from)
-    return ''
-  }
-
-  function charLeft
-  (u) {
-    bep -= (u || 1)
-    if (bep < 0) {
-      bep = 0
-      return true
-    }
-  }
-
-  function charRight
-  (u) {
-    let end
-
-    end = vgetBepEnd(view)
-    bep += (u || 1)
-    if (bep > end) {
-      bep = end
-      return true
-    }
-  }
-
-  function lineRightOverSpace
-  () {
-    let line
-
-    line = view.ed.state.doc.lineAt(bep)
-    spRe.lastIndex = 0
-    if (spRe.exec(line.text.slice(bep - line.from)))
-      bep += spRe.lastIndex
-  }
-
-  function lineStart
-  () {
-    let line
-
-    line = view.ed.state.doc.lineAt(bep)
-    if (line)
-      bep = line.from
-  }
-
-  function lineEnd
-  () {
-    let line
-
-    line = view.ed.state.doc.lineAt(bep)
-    if (line)
-      bep = line.to
-  }
-
-  function lineNext
-  () {
-    let line, end
-
-    end = vgetBepEnd(view)
-
-    if (bep == end)
-      return 0
-
-    line = view.ed.state.doc.lineAt(bep)
-    if (line) {
-      bep = line.to
-      bep++
-      if (bep > end) {
-        bep--
-        return 0
-      }
-      return 1
-    }
-
-    return 0
-  }
-
-  function linePrev
-  () {
-    let line
-
-    if (bep == 0)
-      return 0
-
-    line = view.ed.state.doc.lineAt(bep)
-    if (line) {
-      let off
-
-      off = bep - line.from
-      bep = line.from
-      if (bep == 0)
-        return 0
-
-      bep--
-      line = view.ed.state.doc.lineAt(bep)
-      if (line) {
-        bep = line.from
-        if (off > line.length)
-          bep += line.length
-        else
-          bep += off
-        return 1
-      }
-      return 0
-    }
-
-    return 0
-  }
-
-  bep = bep ?? vgetBep(view)
-
-  psn = { get bep
-          () {
-            return bep
-          },
-          get col
-          () { // 0 indexed
-            return bepCol(view, bep)
-          },
-          get eol
-          () {
-            return bep == view.ed.state.doc.lineAt(bep).to
-          },
-          get pos
-          () {
-            return bepToPos(view, bep)
-          },
-          get row
-          () { // 0 indexed
-            return bepRow(view, bep)
-          },
-          get text
-          () {
-            return getText()
-          },
-          //
-          charLeft,
-          charRight,
-          lineEnd,
-          lineNext,
-          lineRightOverSpace,
-          linePrev,
-          lineStart }
-
-  return psn
-}
-
-export
 function vregion
 (view) {
   let reg, from, to, end
@@ -640,14 +435,14 @@ function vregion
     psns = []
 
     if (from > to)
-      psn = makePsn(view, to)
+      psn = WodePsn.make(view, to)
     else
-      psn = makePsn(view, from)
+      psn = WodePsn.make(view, from)
 
     while (psn.bep <= end) {
       d('push ' + psn.bep)
       psns.push(psn)
-      psn = makePsn(view, psn.bep)
+      psn = WodePsn.make(view, psn.bep)
       psn.lineStart()
       psn.lineNext()
       d(psn.bep)
@@ -673,7 +468,7 @@ function vregion
           },
           get end
           () {
-            return makePsn(view, end)
+            return WodePsn.make(view, end)
           },
           get from
           () {
@@ -694,6 +489,18 @@ function vregion
 export
 function initModeFns
 (mo) {
+  function line
+  (view, n) {
+    let l, bep
+
+    if (n == -1)
+      bep = view.ed.state.doc.length
+    else
+      bep = WodeBep.vgetBep(view)
+    l = view.ed.state.doc.lineAt(bep)
+    return l.text
+  }
+
   function tokenAt
   (view, bep) {
     if (view.ed?.state) {
@@ -714,7 +521,7 @@ function initModeFns
     if (state) {
       let node, word
 
-      node = CMLang.syntaxTree(state).resolveInner(vgetBep(view))
+      node = CMLang.syntaxTree(state).resolveInner(WodeBep.vgetBep(view))
 
       word = view.pos
       word.view = view
@@ -767,8 +574,8 @@ function initModeFns
         let r
 
         r = WodeRange.fromPoints(view,
-                                 Ed.makePos(start.row, 0),
-                                 Ed.makePos(start.row, l.length))
+                                 Pos.make(start.row, 0),
+                                 Pos.make(start.row, l.length))
         r.remove()
       }
     }
@@ -788,7 +595,7 @@ function initModeFns
   (view) {
     let data
 
-    data = view.ed.state.languageDataAt('commentTokens', vgetBep(view))
+    data = view.ed.state.languageDataAt('commentTokens', WodeBep.vgetBep(view))
     if (data.length)
       return { legacy: 0,
                comment: { line: data[0].line,
@@ -843,7 +650,7 @@ function initModeFns
   mo.excur = excur
   mo.getCallers = getCallers
   mo.goXY = vgoXY
-  mo.makePsn = makePsn
+  mo.makePsn = WodePsn.makePsn
   mo.off = off
   mo.on = on
   mo.prevLine = prevLine
@@ -950,9 +757,9 @@ function nextWrapedLine
 
 function prevLine1
 (v) {
-  let bep, col, goalCol
+  let bep, col, goalCol, line
 
-  bep = vgetBep(v)
+  bep = WodeBep.vgetBep(v)
   line = v.ed.state.doc.lineAt(bep)
   goalCol = v.ed.state.selection.main.goalColumn
   //d('goalCol was ' + goalCol)
@@ -986,9 +793,9 @@ function prevLine
 
 function nextLine1
 (v) {
-  let bep, col, goalCol
+  let bep, col, goalCol, line
 
-  bep = vgetBep(v)
+  bep = WodeBep.vgetBep(v)
   line = v.ed.state.doc.lineAt(bep)
   goalCol = v.ed.state.selection.main.goalColumn
   //d('goalCol was ' + goalCol)
@@ -997,7 +804,7 @@ function nextLine1
   else
     col = bep - line.from
   bep = line.to
-  if (bep < vgetBepEnd(v)) {
+  if (bep < WodeBep.vgetBepEnd(v)) {
     bep++
     line = v.ed.state.doc.lineAt(bep)
     if (line.length < col)
@@ -1107,7 +914,7 @@ function setMark
   else {
     let bep
 
-    bep = vgetBep(view)
+    bep = WodeBep.vgetBep(view)
     addMarkAt(view, bep)
     if (view.markActive)
       clearSelection(view)
@@ -1134,7 +941,7 @@ function exchange
   let view, point, mark
 
   view = View.current()
-  point = vgetBep(view)
+  point = WodeBep.vgetBep(view)
   if (view.marks.length == 0) {
     Mess.say('Set a mark first')
     return
@@ -1257,7 +1064,7 @@ function topLevelStart
 
   view = View.current()
 
-  bep = vgetBep(view)
+  bep = WodeBep.vgetBep(view)
   //d('endLine: ' + endLine)
   l = view.ed.state.doc.lineAt(bep)
   while ((l.number > 1) && lineIsText(l, extras)) {
@@ -1283,7 +1090,7 @@ function topLevelEnd
 
   view = View.current()
 
-  bep = vgetBep(view)
+  bep = WodeBep.vgetBep(view)
   endLine = vlen(view)
   //d('endLine: ' + endLine)
   l = view.ed.state.doc.lineAt(bep)
@@ -1448,7 +1255,7 @@ function recenter
   if (view?.ed) {
     let bep, scroller, middle, ele, rect
 
-    bep = vgetBep(view)
+    bep = WodeBep.vgetBep(view)
     d('bep: ' + bep + ' line: ' + view.ed.state.doc.lineAt(bep).number)
     scroller = view.ed.scrollDOM
     middle = scroller.clientHeight / 2
@@ -1575,7 +1382,7 @@ function vinsert1
 (view, u, text) {
   let bep
 
-  bep = vgetBep(view)
+  bep = WodeBep.vgetBep(view)
   vinsertAt(view, bep, u, text, 1)
 }
 
@@ -1708,7 +1515,7 @@ function caseWord
   view = View.current()
 
   // get the range to be cased
-  bep = vgetBep(view)
+  bep = WodeBep.vgetBep(view)
   origHead = view.ed.state.selection.head
   origAnch = view.ed.state.selection.anchor
   clearSelection(view)
@@ -1815,10 +1622,10 @@ function delNextChar
 export
 function cutLine
 () {
-  let view, str, bep, range
+  let view, str, bep, range, line
 
   view = View.current()
-  bep = vgetBep(view)
+  bep = WodeBep.vgetBep(view)
   line = view.ed.state.doc.lineAt(bep)
   range = WodeRange.make(view, bep, line.to)
   str = range.text
@@ -1839,12 +1646,12 @@ function delNextWordBound
 
   view = View.current()
   clearSelection(view)
-  start = vgetBep(view)
+  start = WodeBep.vgetBep(view)
   if (n < 0)
     edexec(view.ed, view.markActive, CMComm.cursorGroupLeft)
   else
     edexec(view.ed, view.markActive, CMComm.cursorGroupRight)
-  end = vgetBep(view)
+  end = WodeBep.vgetBep(view)
   if (end >= start)
     range = WodeRange.make(view, start, end)
   else
@@ -1909,7 +1716,7 @@ function indentLine
   if (CMAuto.acceptCompletion(view.ed))
     return
 
-  bep = vgetBep(view)
+  bep = WodeBep.vgetBep(view)
   l = view.ed.state.doc.lineAt(bep)
 
   // get offset into existing line text (excl leading whitespace)
@@ -1998,6 +1805,8 @@ function sortLines
   lines = []
   iter = view.ed.state.doc.iter()
   while (1) {
+    let line
+
     line = iter.next()
     if (iter.done)
       break
@@ -2040,15 +1849,13 @@ function transposeChars
   exec(CMComm.transposeChars)
 }
 
-spRe = /^\s+/g
-
 export
 function trim
 () {
   let view, start, l
 
   view = View.current()
-  start = vgetBep(view)
+  start = WodeBep.vgetBep(view)
   l = view.ed.state.doc.lineAt(start)
   spRe.lastIndex = 0
   if (spRe.exec(l.text.slice(start - l.from)))
@@ -2073,7 +1880,7 @@ function yank
   if (str) {
     let bep
 
-    bep = vgetBep(view)
+    bep = WodeBep.vgetBep(view)
     vinsert1(view, 1, str || '')
     // have to do this after otherwise the insert moves the mark
     addMarkAt(view, bep)
@@ -2105,7 +1912,7 @@ function yankRoll
 }
 
 function vcutOrCopy
-(view, cut) {
+(view, wantCut) {
   let range, str
 
   if (view.markActive) {
@@ -2122,7 +1929,7 @@ function vcutOrCopy
 
     // still want to cut/copy to mark if there is one
 
-    point = vgetBep(view)
+    point = WodeBep.vgetBep(view)
     if (view.marks.length == 0) {
       Mess.say('Set a mark first')
       return
@@ -2135,11 +1942,11 @@ function vcutOrCopy
   }
   str = range.text
   if (str && str.length) {
-    if (cut)
+    if (wantCut)
       range.remove()
     Cut.add(str)
   }
-  if (cut)
+  if (wantCut)
     view.markActive = 0
   clearSelection(view)
 }
@@ -2259,7 +2066,7 @@ function vforLines
   let bep, end
 
   bep = 0
-  end = vgetBepEnd(view)
+  end = WodeBep.vgetBepEnd(view)
   while (bep <= end) {
     let line
 
@@ -2317,12 +2124,12 @@ div.cm-line.cm-activeLine {
 }
 
 function langFromCodeLang
-(code) { // eg ```sh in markdown
-  if (code == 'bash')
+(codeLang) { // eg ```sh in markdown
+  if (codeLang == 'bash')
     return 'sh'
-  if (code == 'js')
+  if (codeLang == 'js')
     return 'javascript'
-  return code
+  return codeLang
 }
 
 export
@@ -2357,8 +2164,8 @@ function para
 (view) {
   let bep, bepEnd, start, end
 
-  bep = vgetBep(view)
-  bepEnd = vgetBepEnd(view)
+  bep = WodeBep.vgetBep(view)
+  bepEnd = WodeBep.vgetBepEnd(view)
   start = view.ed.state.doc.lineAt(bep)
   if (start.length == 0)
     return 0
@@ -2395,7 +2202,7 @@ function fill
 
     //d({ text })
 
-    bep = vgetBep(view)
+    bep = WodeBep.vgetBep(view)
 
     prep = text.replaceAll('\n', ' ').trim()
     //d({ prep })
@@ -2418,10 +2225,10 @@ function flushTrailing
   if (view.markActive) {
     r = regionRange(view)
     if (r.from == r.to)
-      r.to = vgetBepEnd(view)
+      r.to = WodeBep.vgetBepEnd(view)
   }
   else
-    r = WodeRange.make(view, vgetBep(view), vgetBepEnd(view))
+    r = WodeRange.make(view, WodeBep.vgetBep(view), WodeBep.vgetBepEnd(view))
   text = r.text
   if (text.length)
     vreplaceAt(view, r, text.replace(/[^\S\r\n]+$/gm, ''))
@@ -2432,6 +2239,7 @@ function init
 () {
   wextIds = 0
   registeredOpts = new Set()
+  spRe = WodeCommon.spRe
 
   completionNextLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowDown').run
   completionPreviousLine = CMAuto.completionKeymap.find(e => e.key == 'ArrowUp').run

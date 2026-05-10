@@ -1,7 +1,7 @@
 import { append, button, divCl, img, span } from './dom.mjs'
 
-import * as Area from './area.mjs'
-import * as Buf from './buf.mjs'
+import * as Area from './Area.mjs'
+import * as Buf from './Buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'

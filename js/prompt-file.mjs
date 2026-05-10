@@ -1,5 +1,6 @@
 import { append, divCl, img } from './dom.mjs'
-import * as Buf from './buf.mjs'
+
+import * as Buf from './Buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Dir from './dir.mjs'

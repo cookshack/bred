@@ -5,15 +5,8 @@ import * as Frame from './frame.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './Pane.mjs'
 import * as Tab from './tab.mjs'
-import * as Win from './win.mjs'
 
 let lastId
-
-export
-function init
-() {
-  lastId = 0
-}
 
 export
 function add
@@ -110,33 +103,4 @@ function add
   return area
 }
 
-export
-function getByName
-(win, name) {
-  return win.areas.find(a => a.name == name)
-}
-
-export
-function current
-(win) {
-  win = win || Win.current()
-  return win?.currentArea
-}
-
-export
-function hide
-(win, name) {
-  getByName(win, name)?.hide()
-}
-
-export
-function show
-(win, name) {
-  let a
-
-  a = getByName(win, name)
-  if (a) {
-    a.show()
-    a.tab.frame?.pane?.focus()
-  }
-}
+lastId = 0

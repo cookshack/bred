@@ -1,5 +1,5 @@
 import * as Cmd from './cmd.mjs'
-import * as Buf from './buf.mjs'
+import * as Buf from './Buf.mjs'
 import * as Em from './Em.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'

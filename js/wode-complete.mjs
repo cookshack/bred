@@ -1,7 +1,8 @@
-import * as Buf from './buf.mjs'
+import * as Buf from './Buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Ed from './ed.mjs'
 import * as Mess from './mess.mjs'
+import * as Pos from './pos.mjs'
 import * as View from './view.mjs'
 import * as Wode from './wode.mjs'
 import * as WodeRange from './wode-range.mjs'
@@ -134,7 +135,7 @@ function init
 
       if (buf)
         return buf
-      pos = Ed.makePos(0, 0)
+      pos = Pos.make(0, 0)
       b = Buf.find(b2 => {
         if (bufs.includes(b2))
           return 0
@@ -156,9 +157,9 @@ function init
       let s, range
 
       if (bw)
-        range = WodeRange.fromPoints(v, Ed.makePos(startRow, 0), pos1)
+        range = WodeRange.fromPoints(v, Pos.make(startRow, 0), pos1)
       else
-        range = WodeRange.fromPoints(v, pos1, Ed.makePos(end, endLen))
+        range = WodeRange.fromPoints(v, pos1, Pos.make(end, endLen))
       d({ range })
       d(range.end)
       d(Wode.posRow(range.end))
@@ -214,7 +215,7 @@ function init
         let pos1
 
         d(r)
-        //pos1 = Ed.makePos(posRow(rangeStart(view, r)), posCol(rangeStart(view, r)) - 1)
+        //pos1 = Pos.make(posRow(rangeStart(view, r)), posCol(rangeStart(view, r)) - 1)
         pos1 = r.start
         return pack(r, pos1)
       }
@@ -228,7 +229,7 @@ function init
       d('== 1 search visible after')
       end = bottomPos(view).row
       d({ end })
-      endLen = Wode.lineAt(view, Ed.makePos(end, 0)).length
+      endLen = Wode.lineAt(view, Pos.make(end, 0)).length
       d({ endLen })
       srch = makeSrch(view, pos, 0, topRow(view), end, endLen)
       while ((r = srch.find())) {
@@ -261,7 +262,7 @@ function init
       phase = 3
       d('== 3 search current buffer after')
       end = endPos(view).row
-      endLen = Wode.lineAt(view, Ed.makePos(end, 0)).length
+      endLen = Wode.lineAt(view, Pos.make(end, 0)).length
       srch = makeSrch(view, pos, 0, 0, end, endLen)
       while ((r = srch.find())) {
         let pos1
@@ -286,7 +287,7 @@ function init
         d('= search buffer ' + buf.name)
         v = buf.anyView()
         end = endPos(v).row
-        endLen = Wode.lineAt(v, Ed.makePos(end, 0)).length
+        endLen = Wode.lineAt(v, Pos.make(end, 0)).length
         srch = makeSrch(v, pos, 0, 0, end, endLen)
         while ((r = srch.find())) {
           let pos1

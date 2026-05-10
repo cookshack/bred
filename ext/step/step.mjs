@@ -1,7 +1,7 @@
 import { append, button, divCl } from '../../js/dom.mjs'
 
 import * as Bred from '../../js/bred.mjs'
-import * as Buf from '../../js/buf.mjs'
+import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Css from '../../js/css.mjs'
 import * as Dom from '../../js/dom.mjs'

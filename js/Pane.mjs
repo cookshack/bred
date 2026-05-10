@@ -1,4 +1,4 @@
-import * as Buf from './buf.mjs'
+import * as Buf from './Buf.mjs'
 import * as Css from './css.mjs'
 import * as Em from './Em.mjs'
 import * as Ed from './ed.mjs'

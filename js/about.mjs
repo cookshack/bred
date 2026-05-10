@@ -1,6 +1,6 @@
 import { append, div, divCl, span, img } from './dom.mjs'
 
-import * as Buf from './buf.mjs'
+import * as Buf from './Buf.mjs'
 import * as Bred from './bred.mjs'
 import * as Browse from './browse.mjs'
 import * as Cmd from './cmd.mjs'

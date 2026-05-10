@@ -3,6 +3,9 @@ import { d } from './mess.mjs'
 
 import * as CMState from '../lib/@codemirror/state.js'
 
+export
+let spRe
+
 let facet
 
 export
@@ -40,3 +43,5 @@ function init
 () {
   facet = CMState.Facet.define({ combine: values => values.length ? values[0] : null })
 }
+
+spRe = /^\s+/g

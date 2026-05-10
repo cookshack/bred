@@ -1,4 +1,4 @@
-import * as Area from './area.mjs'
+import * as Area from './Area.mjs'
 import * as Bred from './bred.mjs'
 import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
@@ -13,6 +13,7 @@ import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as View from './view.mjs'
 import * as Wode from './wode.mjs'
+import * as WodeBep from './wode-bep.mjs'
 import * as WodeCommon from './wode-common.mjs'
 import * as WodeDecor from './wode-decor.mjs'
 import * as WodeHi from './wode-hi.mjs'
@@ -119,7 +120,7 @@ function diagnose
     frame = area && Frame.current(tab)
     p = frame && Pane.current(frame)
     view = View.current(p)
-    return view?.ed?.coordsAtPos(Wode.vgetBep(view))
+    return view?.ed?.coordsAtPos(WodeBep.vgetBep(view))
   }
   if (win && diag) {
     win.diag.lastElementChild.firstElementChild.innerText = diag.message
@@ -455,7 +456,7 @@ function _viewInit
       p = Pane.holdingView(view)
       col = p?.head?.querySelector('.bred-head-col')
       if (col)
-        col.innerText = 'C' + (Wode.bepCol(view, update.state.selection.main.head))
+        col.innerText = 'C' + (WodeBep.bepCol(view, update.state.selection.main.head))
 
       diagnose(p?.win)
       CMLint.forEachDiagnostic(view.ed.state, (diag, from, to) => {
@@ -540,7 +541,7 @@ function _viewInit
                            let bep, v
 
                            v = editor.bred.view
-                           bep = Wode.vgetBep(v)
+                           bep = WodeBep.vgetBep(v)
                            if (event.clipboardData) {
                              let str
 
@@ -821,7 +822,7 @@ function revertV
   spec = spec || {}
 
   Css.disable(view.ele)
-  lineNum = spec.lineNum ?? (Wode.bepRow(view, Wode.vgetBep(view)) + 1)
+  lineNum = spec.lineNum ?? (WodeBep.bepRow(view, WodeBep.vgetBep(view)) + 1)
 
   view.ready = 0 // limit onChange handler
   view.buf.reverting = 1

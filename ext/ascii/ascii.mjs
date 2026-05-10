@@ -1,6 +1,6 @@
 import { append, button, div, divCl } from '../../js/dom.mjs'
 
-import * as Buf from '../../js/buf.mjs'
+import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Css from '../../js/css.mjs'
 import * as Em from '../../js/Em.mjs'

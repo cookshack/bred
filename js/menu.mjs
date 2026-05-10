@@ -1,6 +1,6 @@
-import { append, div, divCl, divIdCl } from './dom.mjs'
+import { append, divCl } from './dom.mjs'
 
-import * as Area from './area.mjs'
+import * as Area from './Area.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as Em from './Em.mjs'
@@ -8,46 +8,18 @@ import * as Frame from './frame.mjs'
 import * as Pane from './Pane.mjs'
 import * as Place from './place.mjs'
 import * as Tab from './tab.mjs'
-import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
-export
-function menu0
-(name, co) {
-  let lower
-
-  lower = name.toLowerCase()
-  return divCl('bred-menu-item onfill',
-               [ name,
-                 divIdCl('bred-menu1-' + lower, 'bred-menu1', co) ],
-               { 'data-run': 'open menu item', 'data-menu': 'bred-menu1-' + lower })
-}
-
-export
-function item
-(name, cmd, attr) {
-  cmd = cmd || name.toLowerCase()
-  return divCl('bred-menu1-item onfill',
-               [ div(name), divCl('bred-menu-kb') ],
-               { 'data-run': cmd,
-                 'data-after': 'close menu',
-                 ...(attr || {}) })
-}
-
-export
-function line
-() {
-  return divCl('bred-menu1-line')
-}
+import * as MenuCommon from './menu-common.mjs'
 
 function itemsEl
 (items) {
   return items.map(it => {
     if (it.line)
-      return line()
+      return MenuCommon.line()
     if ((typeof it == 'string') || it instanceof String)
-      return item(it)
-    return item(it.name, it.cmd)
+      return MenuCommon.item(it)
+    return MenuCommon.item(it.name, it.cmd)
   })
 }
 
@@ -89,8 +61,8 @@ function make
   () {
     menu.el.innerHTML = ''
     append(menu.el,
-           menu.spec.map(item0 => menu0(item0.name,
-                                        itemsEl(item0.items))),
+           menu.spec.map(item0 => MenuCommon.menu0(item0.name,
+                                                   itemsEl(item0.items))),
            places.el)
   }
 
@@ -141,7 +113,7 @@ function make
     listen()
   }
 
-  places = { el: menu0('Places'),
+  places = { el: MenuCommon.menu0('Places'),
              //
              update
              () {
@@ -150,14 +122,14 @@ function make
                d(places.el)
                menu1 = places.el.firstElementChild
                menu1.innerHTML = ''
-               map = Place.map(p => item(p.name, 'open link', { 'data-path': p.path }))
+               map = Place.map(p => MenuCommon.item(p.name, 'open link', { 'data-path': p.path }))
                append(menu1,
-                      [ item('Home', 'goto home'),
-                        item('Bred', 'goto bred'),
-                        line(),
-                        item('/', 'root'),
-                        item('/tmp', 'open link', { 'data-path': '/tmp/' }),
-                        map.length && line(),
+                      [ MenuCommon.item('Home', 'goto home'),
+                        MenuCommon.item('Bred', 'goto bred'),
+                        MenuCommon.line(),
+                        MenuCommon.item('/', 'root'),
+                        MenuCommon.item('/tmp', 'open link', { 'data-path': '/tmp/' }),
+                        map.length && MenuCommon.line(),
                         map ])
              } }
 
@@ -223,11 +195,4 @@ function make
   menu.places.update()
 
   return menu
-}
-
-export
-function add
-(parent, spec) {
-  d('Ma')
-  Win.current().menu.add(parent, spec)
 }

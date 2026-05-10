@@ -1,6 +1,6 @@
 import { button, div, divCl, span, img } from './dom.mjs'
 
-import * as Buf from './buf.mjs'
+import * as Buf from './Buf.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
 import * as DirCommon from './dir-common.mjs'

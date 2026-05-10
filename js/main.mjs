@@ -4,7 +4,7 @@ import CheckDeps from '../lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
 import * as Dir from './main-dir.mjs'
 import * as Ext from './main-ext.mjs'
-import * as File from './main-file.mjs'
+import * as MainFile from './main-file.mjs'
 import * as Files from './main-files.mjs'
 import * as Hover from './main-hover.mjs'
 import { d, log } from './main-log.mjs'
@@ -15,7 +15,7 @@ import Net from 'node:net'
 import Os from 'node:os'
 import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
-import process from 'node:process'
+import Process from 'node:process'
 import * as Profile from './main-profile.mjs'
 import * as Project from './main-project.mjs'
 import * as Code from './main-code.mjs'
@@ -131,19 +131,19 @@ function onPaths
   try {
     home = app.getPath('home')
   }
-  catch (e) {
-    console.warn('failed to get home: ' + e.message)
+  catch (err) {
+    console.warn('failed to get home: ' + err.message)
   }
   try {
     user = app.getPath('userData')
   }
-  catch (e) {
-    console.warn('failed to get userData: ' + e.message)
+  catch (err) {
+    console.warn('failed to get userData: ' + err.message)
   }
   return { home,
            app: app.getAppPath(),
            user,
-           cwd: process.cwd(),
+           cwd: Process.cwd(),
            shell,
            profile: Profile.name(),
            //
@@ -155,10 +155,10 @@ function onPaths
            //
            os: Os.type(),
            version: { bred: version,
-                      node: process.versions.node,
-                      electron: process.versions.electron,
-                      chrome: process.versions.chrome,
-                      v8: process.versions.v8 } }
+                      node: Process.versions.node,
+                      electron: Process.versions.electron,
+                      chrome: Process.versions.chrome,
+                      v8: Process.versions.v8 } }
 }
 
 async function wrapOn
@@ -198,10 +198,10 @@ function relaunch
   //quit()
 
   try {
-    d('process.env.PPID ' + process.env.PPID)
-    d('process.env.BRED_SCRIPT_PID ' + process.env.BRED_SCRIPT_PID)
-    d('writing 1 to /tmp/bred-' + process.env.BRED_SCRIPT_PID + '-relaunch')
-    fs.writeFileSync('/tmp/bred-' + process.env.BRED_SCRIPT_PID + '-relaunch', '1', {})
+    d('Process.env.PPID ' + Process.env.PPID)
+    d('Process.env.BRED_SCRIPT_PID ' + Process.env.BRED_SCRIPT_PID)
+    d('writing 1 to /tmp/bred-' + Process.env.BRED_SCRIPT_PID + '-relaunch')
+    fs.writeFileSync('/tmp/bred-' + Process.env.BRED_SCRIPT_PID + '-relaunch', '1', {})
   }
   catch (err) {
     console.log(err.message)
@@ -249,7 +249,7 @@ async function onAcmd
     return Code.onSpawn(e, args)
 
   if (name == 'file.save.tmp')
-    return File.onSaveTmp(e, args)
+    return MainFile.onSaveTmp(e, args)
 
   if (name == 'hover.css')
     return Hover.onCss(e, args)
@@ -418,40 +418,40 @@ function onCmdCh
     return wrapOn(e, ch, args, Chmod.onChmod)
 
   if (name == 'file.cp')
-    return wrapOn(e, ch, args, File.onCp)
+    return wrapOn(e, ch, args, MainFile.onCp)
 
   if (name == 'file.exists')
-    return wrapOn(e, ch, args, File.onExists)
+    return wrapOn(e, ch, args, MainFile.onExists)
 
   if (name == 'file.get')
-    return wrapOn(e, ch, args, File.onGet)
+    return wrapOn(e, ch, args, MainFile.onGet)
 
   if (name == 'file.ln')
-    return wrapOn(e, ch, args, File.onLn)
+    return wrapOn(e, ch, args, MainFile.onLn)
 
   if (name == 'file.modify')
-    return wrapOn(e, ch, args, File.onModify)
+    return wrapOn(e, ch, args, MainFile.onModify)
 
   if (name == 'file.mv')
-    return wrapOn(e, ch, args, File.onMv)
+    return wrapOn(e, ch, args, MainFile.onMv)
 
   if (name == 'file.patch')
-    return wrapOn(e, ch, args, File.onPatch)
+    return wrapOn(e, ch, args, MainFile.onPatch)
 
   if (name == 'file.rm')
-    return wrapOn(e, ch, args, File.onRm)
+    return wrapOn(e, ch, args, MainFile.onRm)
 
   if (name == 'file.save')
-    return wrapOn(e, ch, args, File.onSave)
+    return wrapOn(e, ch, args, MainFile.onSave)
 
   if (name == 'file.stat')
-    return wrapOn(e, ch, args, File.onStat)
+    return wrapOn(e, ch, args, MainFile.onStat)
 
   if (name == 'file.touch')
-    return wrapOn(e, ch, args, File.onTouch)
+    return wrapOn(e, ch, args, MainFile.onTouch)
 
   if (name == 'file.watch')
-    return wrapOn(e, ch, args, File.onWatch)
+    return wrapOn(e, ch, args, MainFile.onWatch)
 
   if (name == 'files.lines')
     return wrapOn(e, ch, args, Files.onLines)
@@ -488,6 +488,31 @@ async function onCmd
     d(ch + ': ' + name + ': done')
 
   return ret
+}
+
+function handleWindowOpen
+(details) {
+  if ((details.url == 'about:blank')
+      && (details.frameName.match(/bred:win\/[-0-9a-f]+/))) {
+    let mode
+
+    mode = Profile.stores.opt.get('core.theme.mode')
+    return { action: 'allow',
+             outlivesOpener: true,
+             overrideBrowserWindowOptions: { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
+                                             show: false,
+                                             webPreferences: { webviewTag: true,
+                                                               preload: Path.join(import.meta.dirname,
+                                                                                  'preload.js') } },
+             createWindow: opts => {
+               let html, win
+
+               html = 'bred-new-window.html'
+               win = createWindow(html, opts)
+               return win?.webContents
+             } }
+  }
+  return { action: 'deny' }
 }
 
 function createWindow
@@ -562,7 +587,7 @@ function createWindow
             },
             on
             (text) {
-              let html, bg, fg, fontSize
+              let data, bg, fg, fontSize
 
               if (text == hover.text)
                 return
@@ -580,8 +605,8 @@ function createWindow
                 bg = ((mode == 'dark') ? '#15414b' : '#eee8d5') // --clr-fill
               fontSize = Profile.stores.opt.get('core.fontSize') || 16
               // could you inject js here?
-              html = 'data:text/html,' + globalThis.encodeURIComponent('<html style="font-family: \'DejaVu Sans\', sans-serif; font-size: ' + fontSize + 'px;"><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + '; background-color: ' + bg + '; border: 1px solid ' + fg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
-              hover.view.webContents.loadURL(html)
+              data = 'data:text/html,' + globalThis.encodeURIComponent('<html style="font-family: \'DejaVu Sans\', sans-serif; font-size: ' + fontSize + 'px;"><body style="padding: 0; margin: 0; overflow: hidden; color: ' + fg + '; background-color: ' + bg + '; border: 1px solid ' + fg + ';"><div style="text-wrap: nowrap; padding: 0.5rem; overflow: hidden; display: inline-block;">' + text + '</div></body></html>')
+              hover.view.webContents.loadURL(data)
               hover.view.webContents.once('did-finish-load', () => {
                 hover.view.webContents.executeJavaScript('[ globalThis.document.body.firstElementChild.offsetWidth, globalThis.document.body.offsetHeight ]').then(wh => {
                   hover.resize(wh[0], wh[1])
@@ -628,29 +653,7 @@ function createWindow
     log('debugger: message: ' + method)
   })
 
-  win.webContents.setWindowOpenHandler(details => {
-    if ((details.url == 'about:blank')
-        && (details.frameName.match(/bred:win\/[-0-9a-f]+/))) {
-      let mode
-
-      mode = Profile.stores.opt.get('core.theme.mode')
-      return { action: 'allow',
-               outlivesOpener: true,
-               overrideBrowserWindowOptions: { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
-                                               show: false,
-                                               webPreferences: { webviewTag: true,
-                                                                 preload: Path.join(import.meta.dirname,
-                                                                                    'preload.js') } },
-               createWindow: opts => {
-                 let html, win
-
-                 html = 'bred-new-window.html'
-                 win = createWindow(html, opts)
-                 return win?.webContents
-               } }
-    }
-    return { action: 'deny' }
-  })
+  win.webContents.setWindowOpenHandler(handleWindowOpen)
 
   win.webContents.on('did-create-window', ch => {
     let bounds
@@ -722,7 +725,7 @@ function createMainWindow
   Lsp.setWin(_win)
   d('timing: main startup: ' + Math.round(performance.now() - mainStart) + 'ms')
 
-  process.on('uncaughtException', err => {
+  Process.on('uncaughtException', err => {
     console.log(err.message)
     _win.webContents.send('thrown', makeErr(err))
   })
@@ -794,7 +797,7 @@ function checkDepsWin
   uri = 'data:text/html,' + globalThis.encodeURIComponent(html)
   mode = Profile.stores.opt.get('core.theme.mode')
 
-  process.on('uncaughtException', err => {
+  Process.on('uncaughtException', err => {
     console.log(err.message)
     _win.webContents.send('thrown', makeErr(err))
   })
@@ -859,7 +862,7 @@ function checkDepsWin
 }
 
 function checkDeps
-(whenHaveDeps) {
+(cb) { // ()
   let win, lastCheckFile, lastCheckCommit, currentCommit
 
   lastCheckFile = Path.join(dirUserData, '.last-deps-check')
@@ -887,7 +890,7 @@ function checkDeps
 
   if (lastCheckCommit && currentCommit && (lastCheckCommit == currentCommit)) {
     d('Dependencies already checked for commit ' + currentCommit)
-    whenHaveDeps()
+    cb()
     return
   }
 
@@ -919,7 +922,7 @@ function checkDeps
         }
 
       setTimeout(() => win.close())
-      whenHaveDeps()
+      cb()
     })
   })
   return 1
@@ -934,7 +937,7 @@ function socket
   let profile, sockPath, pendingPaths, server
 
   profile = options.profile || 'Main'
-  sockPath = Path.join(process.env.XDG_RUNTIME_DIR || '/tmp', 'bred-' + profile + '.sock')
+  sockPath = Path.join(Process.env.XDG_RUNTIME_DIR || '/tmp', 'bred-' + profile + '.sock')
   pendingPaths = {}
 
   if (program.args.length > 1) {
@@ -949,7 +952,7 @@ function socket
     if (program.args[0].startsWith('/'))
       path = program.args[0]
     else
-      path = Path.join(process.env.BRED_ORIGINAL_DIR || '.', program.args[0])
+      path = Path.join(Process.env.BRED_ORIGINAL_DIR || '.', program.args[0])
     client = Net.connect(sockPath)
     client.on('connect', () => {
       let json
@@ -1049,12 +1052,12 @@ function whenHaveDeps
     }
   }
 
-  d(JSON.stringify(process.env, null, 2))
+  d(JSON.stringify(Process.env, null, 2))
 
   log('Bred ' + version)
-  log('    Node: ' + process.versions.node)
-  log('    Electron: ' + process.versions.electron)
-  log('    Chrome: ' + process.versions.chrome)
+  log('    Node: ' + Process.versions.node)
+  log('    Electron: ' + Process.versions.electron)
+  log('    Chrome: ' + Process.versions.chrome)
   log('    Backend: ' + options.backend)
   d('printed version')
 
@@ -1130,7 +1133,7 @@ async function whenReady
   if (options.wait)
     options.waitForDevtools = true
 
-  shell = process.env.SHELL || 'sh'
+  shell = Process.env.SHELL || 'sh'
 
   try {
     dirUserData = app.getPath('userData')
@@ -1156,8 +1159,8 @@ async function whenReady
     file = fs.createWriteStream(options.logfile,
                                 { flags: 'w',
                                   flush: true })
-    Log.logWith(d => {
-      file.write(Util.format(d) + '\n')
+    Log.logWith(msg => {
+      file.write(Util.format(msg) + '\n')
     })
   }
   else

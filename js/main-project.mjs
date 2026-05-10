@@ -11,7 +11,7 @@ function add
 (dir) {
   let p
 
-  function add
+  function _add
   (lang) {
     if (lang) {
       if (p.lsps && p.lsps[lang])
@@ -38,7 +38,9 @@ function add
 
   dir = dir || ''
 
-  p = { add, dir, open }
+  p = { add: _add,
+        dir,
+        open }
 
   projects.push(p)
   return p

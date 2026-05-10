@@ -184,7 +184,7 @@ function run
         scheduleFlush()
       })
 
-    ipcMain.on(ch, (e, data) => {
+    ipcMain.on(ch, (ev, data) => {
       d(ch + ': on: ' + JSON.stringify(data))
       if (data.input && data.input.length)
         proc.write(data.input)

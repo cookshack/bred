@@ -2,7 +2,7 @@ let logFn
 
 export
 function logWith
-(fn) {
+(fn) { // (msg)
   logFn = fn
 }
 

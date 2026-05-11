@@ -1599,6 +1599,7 @@ function init
                                      Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
                                    } },
              'server.heartbeat': {},
+             'sync': {}, // workspace sync messages
              'command.executed': { onArrive
                                    (buf, event) {
                                      if (event.properties.sessionID == buf.vars('code').sessionID) {

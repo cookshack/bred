@@ -650,7 +650,7 @@ function initModeFns
   mo.excur = excur
   mo.getCallers = getCallers
   mo.goXY = vgoXY
-  mo.makePsn = WodePsn.makePsn
+  mo.makePsn = WodePsn.make
   mo.off = off
   mo.on = on
   mo.prevLine = prevLine

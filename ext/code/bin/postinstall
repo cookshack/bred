@@ -1,8 +1,9 @@
 #!/bin/bash
 
+rm -rf lib/opencode/
 mkdir -p lib/opencode/v2/
+cp node_modules/@opencode-ai/sdk/dist/error-interceptor.js lib/opencode/error-interceptor.js
 cp node_modules/@opencode-ai/sdk/dist/v2/client.js lib/opencode/v2/client.js
-rm -rf lib/v2/
 cp -r node_modules/@opencode-ai/sdk/dist/v2/gen lib/opencode/v2/
 VERSION=$(cat node_modules/@opencode-ai/sdk/package.json | grep '"version"' | head -1 | sed 's/.*: *"\([^"]*\)".*/\1/')
 echo "{ \"version\": \"$VERSION\" }" > lib/opencode/version.json

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+AUTH="$HOME/.local/share/opencode/auth.json"
+LOCAL_SHARE="$HOME/.local/state/bred/code-data$PWD"
+
+mkdir -p "$LOCAL_SHARE"
+
+exec docker run -it --rm --name "bred-code-tui-$$" \
+  -v "$PWD:$PWD" \
+  -v "$HOME/fresh/main:$HOME/fresh/main" \
+  -v "$HOME/src/opencode:$HOME/src/opencode:ro" \
+  -v "$AUTH:/home/node/.local/share/opencode/auth.json:ro" \
+  -v "$HOME/.gitignore:/home/node/.gitignore:ro" \
+  -v "$LOCAL_SHARE:/home/node/.local/share/opencode" \
+  -w "$PWD" \
+  opencode-bred \
+  --model opencode-go/deepseek-v4-pro \
+  --agent plan

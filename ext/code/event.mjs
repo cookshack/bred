@@ -9,11 +9,20 @@ import * as Util from './util.mjs'
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
 function handle
-(buf, events, event) {
-  let h, evSessionID, subagent
+(buf, events, globalEvent) {
+  let h, evSessionID, subagent, event
+
+  event = globalEvent.payload
 
   d('CO ' + event.type)
   d({ event })
+
+  if (globalEvent.directory)
+    if (Util.sameDir(globalEvent.directory, buf.dir)) {
+      // ours
+    }
+    else
+      d('CO skip, for dir ' + globalEvent.directory)
 
   h = events[event.type]
   if (h) {
@@ -22,9 +31,9 @@ function handle
     return
   }
 
-  evSessionID = event.properties.sessionID
-    || event.properties.part?.sessionID
-    || event.properties.info?.id
+  evSessionID = event.properties?.sessionID
+    || event.properties?.part?.sessionID
+    || event.properties?.info?.id
   subagent = Util.isSubagentId(buf, evSessionID)
   d('🌱 TODO handle ' + event.type + (subagent ? ' (subagent)' : ''))
 }
@@ -41,7 +50,7 @@ function startSub
     try {
       let evs
 
-      evs = await client.event.subscribe()
+      evs = await client.global.event()
       iter = evs.stream[Symbol.asyncIterator]()
     }
     catch (err) {

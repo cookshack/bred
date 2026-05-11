@@ -75,3 +75,16 @@ function eachCodeW
     }
   })
 }
+
+export
+function sameDir
+(sessionDir, bufDir) {
+  let a, b
+
+  if (sessionDir == '/')
+    return bufDir == '/'
+
+  a = sessionDir.replace(/\/$/, '')
+  b = bufDir.replace(/\/$/, '')
+  return a == b
+}

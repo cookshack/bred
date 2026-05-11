@@ -20,18 +20,6 @@ function init
 (events) {
   let mo
 
-  function sameDir
-  (sessionDir, bufDir) {
-    let a, b
-
-    if (sessionDir == '/')
-      return bufDir == '/'
-
-    a = sessionDir.replace(/\/$/, '')
-    b = bufDir.replace(/\/$/, '')
-    return a == b
-  }
-
   function viewInit
   (view, spec, cb) { // (view)
     let w
@@ -43,7 +31,7 @@ function init
       Comm.ensureClient(view.buf).then(c => c.session.list().then(sessions => {
         d({ sessions })
         append(w,
-               sessions.data.filter(s => sameDir(s.directory, view.buf.dir)).map(s => {
+               sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir)).map(s => {
                  return [ divCl('code-sessions-del', '✗',
                                 { 'data-run': 'delete session',
                                   'data-session-id': s.id,

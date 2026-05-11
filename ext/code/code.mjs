@@ -1581,6 +1581,21 @@ function init
                                      } },
              'server.connected': { onArrive
                                    (buf) {
+                                     let client
+
+                                     client = buf.vars('code').client
+                                     if (client)
+                                       Comm.ensureClient(buf).then(async c => {
+                                         try {
+                                           let h
+
+                                           h = await c.global.health()
+                                           d('CO server version: ' + (h.data?.version || '??'))
+                                         }
+                                         catch (err) {
+                                           d('CO health failed: ' + err.message)
+                                         }
+                                       })
                                      Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
                                    } },
              'server.heartbeat': {},

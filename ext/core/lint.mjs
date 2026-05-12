@@ -236,3 +236,7 @@ function free
   Cmd.remove('buffer enable lint gutter')
   wexts.forEach(b => b?.free())
 }
+
+export let _internals
+
+_internals = { makeCmDiag }

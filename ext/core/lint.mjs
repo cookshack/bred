@@ -131,13 +131,17 @@ function makeLinter
 
 function makeEffects
 (view) {
-  let lang
+  let lang, effects
 
   lang = view.buf.opt('core.lang')
-  if (Eslint && [ 'javascript', 'jsx' ].includes(lang) && view.buf.opt('core.lint.enabled'))
-    return [ makeLinter(view),
-             ...(view.buf.opt('core.lint.gutter.enabled') ? [ makeLintGutter() ] : []) ]
-  return []
+  effects = []
+  if (view.buf.opt('core.lint.enabled')) {
+    if (Eslint && [ 'javascript', 'jsx' ].includes(lang))
+      effects.push(makeLinter(view))
+    if (view.buf.opt('core.lint.gutter.enabled'))
+      effects.push(makeLintGutter())
+  }
+  return effects
 }
 
 function initEslint

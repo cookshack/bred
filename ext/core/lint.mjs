@@ -7,6 +7,7 @@ import * as Icon from '../../js/icon.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Opt from '../../js/opt.mjs'
 import * as Pane from '../../js/Pane.mjs'
+import * as Tron from '../../js/tron.mjs'
 import * as Win from '../../js/win.mjs'
 import { d } from '../../js/mess.mjs'
 
@@ -153,6 +154,48 @@ function initEslint
     .catch(err => Mess.log('Failed to load eslint: ' + err.message))
 }
 
+function makeCmDiag
+(view, diag) {
+  let doc, fromLine, toLine
+
+  d('LINT diag')
+  d({ diag })
+  doc = view.ed.state.doc
+  fromLine = diag.range.start.line
+  toLine = diag.range.end.line
+  if (fromLine >= doc.lines)
+    return null
+  if (toLine >= doc.lines)
+    toLine = doc.lines - 1
+  return { from: doc.line(fromLine + 1).from + diag.range.start.character,
+           to: doc.line(toLine + 1).from + diag.range.end.character,
+           severity: ({ 1: 'error', 2: 'warning', 3: 'info', 4: 'hint' })[diag.severity] || 'error',
+           message: diag.message,
+           source: diag.source }
+}
+
+function handleLspDiagnostics
+(data) {
+  let uri, path, buf
+
+  uri = data.response.params.uri
+  path = uri.startsWith('file://') ? uri.slice(7) : uri
+  buf = Buf.find(b => b.path == path)
+  if (buf)
+    buf.views.forEach(view => {
+      if (view.ed && view.ele) {
+        let cmDiags
+
+        d('LINT handleLspDiagnostics diags')
+        d({ diags: data.response.params.diagnostics })
+        cmDiags = data.response.params.diagnostics.map(diag => makeCmDiag(view, diag))
+        cmDiags = cmDiags.filter(diag => diag)
+        if (cmDiags.length)
+          view.ed.dispatch(CMLint.setDiagnostics(view.ed.state, cmDiags))
+      }
+    })
+}
+
 export
 function init
 () {
@@ -170,6 +213,16 @@ function init
   Cmd.add('enable lint gutter', u => Ed.enable(u, 'core.lint.gutter.enabled'))
   Cmd.add('buffer enable lint', u => Ed.enableBuf(u, 'core.lint.enabled'))
   Cmd.add('buffer enable lint gutter', u => Ed.enableBuf(u, 'core.lint.gutter.enabled'))
+
+  Tron.on('lsp', (err, data) => {
+    d('LINT lsp')
+    d({ data })
+    if (data.response?.method == 'textDocument/publishDiagnostics') {
+      d('LINT diags')
+      d({ diags: data.response.params.diagnostics })
+      handleLspDiagnostics(data)
+    }
+  })
 
   initEslint()
 }

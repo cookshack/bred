@@ -1,6 +1,6 @@
 FROM node:24-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends cppcheck git file ripgrep shellcheck && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends clangd cppcheck git file ripgrep shellcheck && rm -rf /var/lib/apt/lists/*
 
 RUN npm install --global opencode-ai@1.14.48
 

@@ -68,7 +68,7 @@ function make
 
   function dbg
   (msg) {
-    if (0)
+    if (1)
       log(msg)
   }
 

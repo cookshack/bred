@@ -41,7 +41,7 @@ function makeDecorator
 
     builder = new CMState.RangeSetBuilder()
 
-    for (let { visibleFrom, visibleTo } of edview.visibleRanges)
+    for (let { from: visibleFrom, to: visibleTo } of edview.visibleRanges)
       for (let pos = visibleFrom; pos <= visibleTo;) {
         let line, match
 

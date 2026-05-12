@@ -4,7 +4,9 @@ import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
 import * as Project from './main-project.mjs'
 
-let win
+let win, bufIdToFile
+
+bufIdToFile = new Map()
 
 export
 function setWin
@@ -143,6 +145,21 @@ function make
                                        text } } })
   }
 
+  function doChange
+  (language, file, text) {
+    if (initialized)
+      _req({ method: 'textDocument/didChange',
+             params: { textDocument: { uri: 'file://' + file,
+                                       version: 0 },
+                       contentChanges: [ { text } ] } })
+  }
+
+  function change
+  (language, file, text) {
+    if (initialized && files.includes(file))
+      doChange(language, file, text)
+  }
+
   function open
   (language, file, // absolute
    bufId) {
@@ -153,6 +170,7 @@ function make
       if (files.includes(file))
         return
       files.push(file)
+      bufIdToFile.set(bufId, { language, file, lsp })
       if (win)
         win.webContents.send('lsp',
                              { log: 'MAIN LSP ' + language + ': open file ' + file /*+ ': [' + text + ']'*/ })
@@ -277,7 +295,8 @@ function make
   d('LSP started ' + lang)
 
   lsp = { open,
-          req }
+          req,
+          change }
 
   tsproc.on('exit', code => log('LSP EXIT ' + code))
   tsproc.on('error', code => log('LSP ERROR ' + code))
@@ -319,3 +338,11 @@ function make
 
   return lsp
 }
+
+Peer.setBufUpdateHook((bufId, text) => {
+  let info
+
+  info = bufIdToFile.get(bufId)
+  if (info)
+    info.lsp.change(info.language, info.file, text)
+})

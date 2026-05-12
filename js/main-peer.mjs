@@ -3,7 +3,13 @@ import { d } from './main-log.mjs'
 import * as CMState from '@codemirror/state'
 import * as CMCollab from '@codemirror/collab'
 
-let bufs
+let bufs, onBufUpdate
+
+export
+function setBufUpdateHook
+(fn) {
+  onBufUpdate = fn
+}
 
 export
 function get
@@ -147,6 +153,9 @@ function onPush
       e.sender.send(pullCh, { updates: push })
     })
   }
+  if (applied.length && onBufUpdate)
+    onBufUpdate(id, buf.text.toString())
+
   return {}
 }
 

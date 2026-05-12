@@ -194,8 +194,7 @@ function handleLspDiagnostics
         d({ diags: data.response.params.diagnostics })
         cmDiags = data.response.params.diagnostics.map(diag => makeCmDiag(view, diag))
         cmDiags = cmDiags.filter(diag => diag)
-        if (cmDiags.length)
-          view.ed.dispatch(CMLint.setDiagnostics(view.ed.state, cmDiags))
+        view.ed.dispatch(CMLint.setDiagnostics(view.ed.state, cmDiags))
       }
     })
 }

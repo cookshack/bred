@@ -130,7 +130,10 @@ function makeLinter
 
 function makeEffects
 (view) {
-  if (Eslint && view.buf.opt('core.lint.enabled'))
+  let lang
+
+  lang = view.buf.opt('core.lang')
+  if (Eslint && [ 'javascript', 'jsx' ].includes(lang) && view.buf.opt('core.lint.enabled'))
     return [ makeLinter(view),
              ...(view.buf.opt('core.lint.gutter.enabled') ? [ makeLintGutter() ] : []) ]
   return []
@@ -161,7 +164,7 @@ function init
   wexts.push(Ed.register({ backend: 'cm',
                            part,
                            make: makeEffects,
-                           reconfOpts: [ 'core.lint.enabled', 'core.lint.gutter.enabled' ] }))
+                           reconfOpts: [ 'core.lang', 'core.lint.enabled', 'core.lint.gutter.enabled' ] }))
 
   Cmd.add('enable lint', u => Ed.enable(u, 'core.lint.enabled'))
   Cmd.add('enable lint gutter', u => Ed.enable(u, 'core.lint.gutter.enabled'))

@@ -25,7 +25,7 @@ function add
   function open
   (lang, path, bufId) {
     d('PROJ open ' + path)
-    add(lang)
+    _add(lang)
     if (bufId) {
       let lsp
 

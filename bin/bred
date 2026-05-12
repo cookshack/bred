@@ -15,8 +15,18 @@ check_modules_changed() {
   fi
 }
 
+cleanup_socket() {
+  local manifest
+  manifest="/tmp/bred-$$-sockpath"
+  if [ -f "$manifest" ]; then
+    rm -f "$(cat "$manifest")"
+    rm -f "$manifest"
+  fi
+}
+
 cleanup() {
   echo Cleaning up...
+  cleanup_socket
   rm -f /tmp/bred-$$-relaunch
   echo Cleaning up... done.
 }
@@ -42,6 +52,7 @@ while true; do
   echo /tmp/bred-$$-relaunch:
   cat /tmp/bred-$$-relaunch
   if [ "$(cat /tmp/bred-$$-relaunch)" = "1" ]; then
+    cleanup_socket
     echo Relaunching...
     continue
   fi

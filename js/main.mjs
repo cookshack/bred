@@ -1015,6 +1015,9 @@ function socket
     delete pendingPaths[path]
   })
 
+  if (Process.env.BRED_SCRIPT_PID)
+    fs.writeFileSync('/tmp/bred-' + Process.env.BRED_SCRIPT_PID + '-sockpath', sockPath)
+
   return 0
 }
 

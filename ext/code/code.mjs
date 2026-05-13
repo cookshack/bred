@@ -95,6 +95,7 @@ function codeInit
           buf.vars('code').busy = 1
           Ui.appendMsg(buf, 'user', '/init')
           updateBufAgent(buf, 'build')
+          Ui.updateDocker(buf)
           Ev.startSub(buf, events)
 
           c.session.command({ sessionID: res.data.id,
@@ -990,6 +991,7 @@ function code
 
       pane.setBuf(buf, {}, () => {
         Prompt.nestBuf(buf, hist)
+        Ui.updateDocker(buf)
         if (prompt)
           send(buf, prompt, provider, model, variant)
         else
@@ -1099,7 +1101,7 @@ function viewCopy
       fromH = fromW.querySelector('.code-h')
       toH = toW.querySelector('.code-h')
       if (toH) {
-        let agentEl
+        let agentEl, elDocker
 
         agentEl = toH.querySelector('.code-agent')
         if (agentEl) {
@@ -1108,6 +1110,15 @@ function viewCopy
           fromAgent = fromH?.querySelector('.code-agent')
           if (fromAgent)
             agentEl.innerText = fromAgent.innerText
+        }
+
+        elDocker = toH.querySelector('.code-docker')
+        if (elDocker) {
+          let fromDocker
+
+          fromDocker = fromH?.querySelector('.code-docker')
+          if (fromDocker)
+            elDocker.innerText = fromDocker.innerText
         }
       }
     }

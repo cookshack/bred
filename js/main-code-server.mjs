@@ -130,6 +130,7 @@ async function spawnDocker
           clearTimeout(timer)
           d('CODE SERVER docker container healthy')
           resolve({ url,
+                    containerName: name,
                     close
                     () {
                       d('CODE SERVER docker stop ' + name)
@@ -155,10 +156,14 @@ async function spawnDocker
 
 async function spawnLocal
 (spec) {
-  return LocalServer.createOpencodeServer({ hostname: spec.hostname || '127.0.0.1',
-                                            port: spec.port,
-                                            config: spec.config,
-                                            timeout: spec.timeout })
+  let server
+
+  server = await LocalServer.createOpencodeServer({ hostname: spec.hostname || '127.0.0.1',
+                                                    port: spec.port,
+                                                    config: spec.config,
+                                                    timeout: spec.timeout })
+  server.containerName = ''
+  return server
 }
 
 export

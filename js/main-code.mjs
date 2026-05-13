@@ -78,7 +78,7 @@ async function onSpawn
                                                            read: { '/home/node/.local/share/opencode/auth.json': 'deny' } } },
                                    timeout: 10000 })
     servers.set(bufferID, server)
-    return { url: server.url }
+    return { url: server.url, containerName: server.containerName }
   }
   catch (err) {
     d('CODE spawn failed: ' + err.message)

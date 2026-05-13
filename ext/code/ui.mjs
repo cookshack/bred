@@ -23,7 +23,8 @@ function divW
                                img(Icon.path('assist'), 'Code', 'filter-clr-text')),
                          divCl('code-title', Ed.makeMlDir(dir)),
                          divCl('code-h-right',
-                               [ divCl('code-agent', agent || '', { 'data-run': 'Set Agent' }),
+                               [ divCl('code-docker', ''),
+                                 divCl('code-agent', agent || '', { 'data-run': 'Set Agent' }),
                                  divCl('code-thought code-icon',
                                        img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
                                        { 'data-run': 'toggle thinking' }) ]) ]),
@@ -306,4 +307,26 @@ function appendToolMsg
         }
       }
     })
+}
+
+export
+function updateDocker
+(buf) {
+  let name
+
+  name = buf.vars('code').containerName || ''
+  buf.views.forEach(view => {
+    if (view.eleOrReserved) {
+      let h
+
+      h = view.eleOrReserved.querySelector('.code-h')
+      if (h) {
+        let el
+
+        el = h.querySelector('.code-docker')
+        if (el)
+          el.innerText = name
+      }
+    }
+  })
 }

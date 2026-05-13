@@ -247,7 +247,8 @@ div.code-thought:hover {
   margin-right: 0.5rem;
 }
 
-.code-h-right .code-agent {
+.code-h-right .code-agent,
+.code-h-right .code-docker {
   margin-right: 0.5rem;
 }
 

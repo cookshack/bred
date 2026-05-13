@@ -31,6 +31,7 @@ async function ensureClient
   buf.vars('code').client = client
   buf.vars('code').serverUrl = ret.url
   buf.vars('code').spawnedBufferID = buf.id
+  buf.vars('code').containerName = ret.containerName
   buf.vars('code').spawnPromise = 0
   return client
 }

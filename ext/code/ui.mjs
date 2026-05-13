@@ -16,14 +16,14 @@ import { themeExtension } from '../../js/wode-theme.mjs'
 
 export
 function divW
-(dir) {
+(dir, agent) {
   return divCl('code-ww',
                [ divCl('code-h',
                        [ divCl('code-icon',
                                img(Icon.path('assist'), 'Code', 'filter-clr-text')),
                          divCl('code-title', Ed.makeMlDir(dir)),
                          divCl('code-h-right',
-                               [ divCl('code-agent', '', { 'data-run': 'Set Agent' }),
+                               [ divCl('code-agent', agent || '', { 'data-run': 'Set Agent' }),
                                  divCl('code-thought code-icon',
                                        img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
                                        { 'data-run': 'toggle thinking' }) ]) ]),

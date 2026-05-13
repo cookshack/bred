@@ -78,7 +78,7 @@ function codeInit
     return
   }
 
-  buf = Buf.add(name, 'code', Ui.divW(dir), pane.dir)
+  buf = Buf.add(name, 'code', Ui.divW(dir, 'build'), pane.dir)
   buf.vars('code').prompt = '/init'
   buf.vars('code').provider = provider
   buf.vars('code').model = model
@@ -973,7 +973,7 @@ function code
     try {
       let c, buf, res
 
-      buf = Buf.add(name, 'code', Ui.divW(dir), pane.dir)
+      buf = Buf.add(name, 'code', Ui.divW(dir, Opt.get('code.agent')), pane.dir)
       buf.vars('code').prompt = prompt
       buf.vars('code').provider = provider
       buf.vars('code').model = model

@@ -980,7 +980,9 @@ function code
       buf.vars('code').variant = variant
       buf.opt('core.lint.enabled', 1)
 
+      Mess.say('Spawning docker...')
       c = await Comm.ensureClient(buf)
+      Mess.say('')
 
       res = await c.session.create({ directory: buf.dir, title: prompt || '' })
 

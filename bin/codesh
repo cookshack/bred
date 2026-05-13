@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+if [ $# -gt 0 ]; then
+  exec docker exec -it "$1" bash
+fi
+
 AUTH="$HOME/.local/share/opencode/auth.json"
 LOCAL_SHARE="$HOME/.local/state/bred/code-data$PWD"
 

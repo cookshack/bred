@@ -67,7 +67,7 @@ function healthCheck
 
 async function spawnDocker
 (spec) {
-  let name, port, workingDir, config, timeout, authPath, args
+  let name, port, workingDir, config, dockerTimeout, healthTimeout, authPath, args
 
   name = containerName(spec.bufferID)
   port = spec.port
@@ -75,7 +75,8 @@ async function spawnDocker
   workingDir || U.toss('workingDir required')
   (workingDir.at(0) == '/') || U.toss('workingDir must be absolute: ' + workingDir)
   config = spec.config || {}
-  timeout = spec.timeout || 10000
+  dockerTimeout = 10000
+  healthTimeout = spec.timeout || 30000
   authPath = process.env.HOME + '/.local/share/opencode/auth.json'
 
   Fs.mkdirSync(dataDir(workingDir), { recursive: true })
@@ -88,17 +89,17 @@ async function spawnDocker
   d('CODE SERVER docker: ' + args.join(' '))
 
   return new Promise((resolve, reject) => {
-    let proc, output, timedOut, timer
+    let proc, output, timedOut, dockerTimer
 
     timedOut = 0
     proc = spawn('docker', args)
     output = ''
 
-    timer = setTimeout(() => {
+    dockerTimer = setTimeout(() => {
       timedOut = 1
       spawn('docker', [ 'stop', name ])
-      reject(new Error('Timeout waiting for docker container to start after ' + timeout + 'ms'))
-    }, timeout)
+      reject(new Error('Timeout waiting for docker run after ' + dockerTimeout + 'ms'))
+    }, dockerTimeout)
 
     proc.stdout.on('data', chunk => {
       output += chunk.toString()
@@ -111,11 +112,12 @@ async function spawnDocker
     proc.on('close', code => {
       let url, containerID
 
+      clearTimeout(dockerTimer)
+
       if (timedOut)
         return
 
       if (code) {
-        clearTimeout(timer)
         reject(new Error('docker run failed with code ' + code + ': ' + output))
         return
       }
@@ -125,9 +127,8 @@ async function spawnDocker
 
       d('CODE SERVER docker container ' + containerID + ' on ' + url)
 
-      healthCheck(url, timeout)
+      healthCheck(url, healthTimeout)
         .then(() => {
-          clearTimeout(timer)
           d('CODE SERVER docker container healthy')
           resolve({ url,
                     containerName: name,
@@ -138,7 +139,6 @@ async function spawnDocker
                     } })
         })
         .catch(err => {
-          clearTimeout(timer)
           d('CODE SERVER docker health check failed: ' + err.message)
           spawn('docker', [ 'stop', name ])
           reject(err)
@@ -148,7 +148,7 @@ async function spawnDocker
     proc.on('error', err => {
       if (timedOut)
         return
-      clearTimeout(timer)
+      clearTimeout(dockerTimer)
       reject(err)
     })
   })

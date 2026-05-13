@@ -1101,15 +1101,15 @@ function viewCopy
       fromH = fromW.querySelector('.code-h')
       toH = toW.querySelector('.code-h')
       if (toH) {
-        let agentEl, elDocker
+        let elAgent, elDocker
 
-        agentEl = toH.querySelector('.code-agent')
-        if (agentEl) {
+        elAgent = toH.querySelector('.code-agent')
+        if (elAgent) {
           let fromAgent
 
           fromAgent = fromH?.querySelector('.code-agent')
           if (fromAgent)
-            agentEl.innerText = fromAgent.innerText
+            elAgent.innerText = fromAgent.innerText
         }
 
         elDocker = toH.querySelector('.code-docker')

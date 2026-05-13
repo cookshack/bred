@@ -75,8 +75,7 @@ async function onSpawn
                                    workingDir,
                                    config: { logLevel: 'DEBUG',
                                              permission: { external_directory: 'allow',
-                                                           read: { '/home/node/.local/share/opencode/auth.json': 'deny' } } },
-                                   timeout: 10000 })
+                                                           read: { '/home/node/.local/share/opencode/auth.json': 'deny' } } } })
     servers.set(bufferID, server)
     return { url: server.url, containerName: server.containerName }
   }

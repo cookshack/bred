@@ -675,6 +675,17 @@ function handlePartDelta
 
   delta = event.properties.delta
   field = event.properties.field
+
+  if (field == 'text' && delta) {
+    let w
+
+    w = buf.anyView(1)?.eleOrReserved?.querySelector('.code-w')
+    if (w?.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')) {
+      Ui.chunkThink(buf, event.properties.partID, delta)
+      return
+    }
+  }
+
   Util.eachCodeW(buf, (view, w) => {
     let msgEl, thinkingEl, textEl
 

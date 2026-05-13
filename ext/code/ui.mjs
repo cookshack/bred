@@ -98,13 +98,6 @@ function appendX
   })
 }
 
-function setText
-(w, el, text) {
-  withScroll(w, () => {
-    el.innerText = text
-  })
-}
-
 function makePatchEd
 (text) {
   let el, state, ed
@@ -225,22 +218,20 @@ function appendMsg
 
 export
 function appendThinking
-(buf, text, partID) {
+(buf, text, partId) {
+  let codeW
+
+  codeW = buf.anyView(1)?.eleOrReserved?.querySelector('.code-w')
+  if (codeW?.querySelector('.code-msg-thinking[data-partid="' + partId + '"]')) {
+    chunkThink(buf, partId, text)
+    return
+  }
+
   Util.eachCodeW(buf, (view, w) => {
-    let el
-
-    el = w.querySelector('.code-msg-thinking[data-partid="' + partID + '"]')
-    if (el) {
-      let current
-
-      current = el.querySelector('.code-msg-text').innerText
-      setText(w, el.querySelector('.code-msg-text'), current + text)
-    }
-    else
-      appendX(w,
-              divCl('code-msg code-msg-thinking',
-                    [ divCl('code-msg-text', text) ],
-                    { 'data-partid': partID || 0 }))
+    appendX(w,
+            divCl('code-msg code-msg-thinking',
+                  [ divCl('code-msg-text', text) ],
+                  { 'data-partid': partId || 0 }))
   })
 }
 
@@ -329,4 +320,44 @@ function updateDocker
       }
     }
   })
+}
+
+export
+function chunkThink
+(buf, partId, delta) {
+  let chunks
+
+  chunks = Util.ensureThinkChunks(buf)
+  chunks[partId] = (chunks[partId] || '') + delta
+  if (buf.vars('code').thinkPending)
+    return
+  buf.vars('code').thinkPending = 1
+  globalThis.requestAnimationFrame(() => flushThink(buf))
+}
+
+export
+function flushThink
+(buf) {
+  let chunks
+
+  chunks = buf.vars('code').thinkChunks
+  if (chunks) {
+    buf.vars('code').thinkChunks = {}
+    buf.vars('code').thinkPending = 0
+
+    Util.eachCodeW(buf, (view, w) => {
+      for (let [ partID, text ] of Object.entries(chunks)) {
+        let el
+
+        el = w.querySelector('.code-msg-thinking[data-partid="' + partID + '"]')
+        if (el) {
+          let textEl
+
+          textEl = el.querySelector('.code-msg-text')
+          if (textEl)
+            withScroll(w, () => textEl.innerText = (textEl.innerText || '') + text)
+        }
+      }
+    })
+  }
 }

@@ -88,3 +88,14 @@ function sameDir
   b = bufDir.replace(/\/$/, '')
   return a == b
 }
+
+export
+function ensureThinkChunks
+(buf) {
+  let chunks
+
+  chunks = buf.vars('code').thinkChunks
+  if (chunks)
+    return chunks
+  return buf.vars('code').thinkChunks = {}
+}

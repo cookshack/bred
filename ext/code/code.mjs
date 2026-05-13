@@ -995,16 +995,17 @@ function code
       try {
         let c, res
 
-        Mess.say('Spawning docker...')
+        Ui.appendMsg(buf, 0, 'Spawning docker...')
         c = await Comm.ensureClient(buf)
-        Mess.say('')
 
+        Ui.appendMsg(buf, 0, 'Creating session...')
         res = await c.session.create({ directory: buf.dir, title: prompt || '' })
 
         buf.vars('code').sessionID = res.data.id
 
         Prompt.nestBuf(buf, hist)
         Ui.updateDocker(buf)
+        Ui.appendMsg(buf, 0, 'Ready for prompt.')
         if (prompt)
           send(buf, prompt, provider, model, variant)
         else

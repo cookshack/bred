@@ -979,39 +979,41 @@ function code
 
   async function run
   (prompt) {
+    let buf
+
     if (prompt)
       hist.add(prompt)
 
-    try {
-      let c, buf, res
+    buf = Buf.add(name, 'code', Ui.divW(dir, Opt.get('code.agent')), pane.dir)
+    buf.vars('code').prompt = prompt
+    buf.vars('code').provider = provider
+    buf.vars('code').model = model
+    buf.vars('code').variant = variant
+    buf.opt('core.lint.enabled', 1)
 
-      buf = Buf.add(name, 'code', Ui.divW(dir, Opt.get('code.agent')), pane.dir)
-      buf.vars('code').prompt = prompt
-      buf.vars('code').provider = provider
-      buf.vars('code').model = model
-      buf.vars('code').variant = variant
-      buf.opt('core.lint.enabled', 1)
+    pane.setBuf(buf, {}, async () => {
+      try {
+        let c, res
 
-      Mess.say('Spawning docker...')
-      c = await Comm.ensureClient(buf)
-      Mess.say('')
+        Mess.say('Spawning docker...')
+        c = await Comm.ensureClient(buf)
+        Mess.say('')
 
-      res = await c.session.create({ directory: buf.dir, title: prompt || '' })
+        res = await c.session.create({ directory: buf.dir, title: prompt || '' })
 
-      buf.vars('code').sessionID = res.data.id
+        buf.vars('code').sessionID = res.data.id
 
-      pane.setBuf(buf, {}, () => {
         Prompt.nestBuf(buf, hist)
         Ui.updateDocker(buf)
         if (prompt)
           send(buf, prompt, provider, model, variant)
         else
           openPrompt(buf, pane, provider, model, variant)
-      })
-    }
-    catch (err) {
-      Mess.yell('Failed: ' + err.message)
-    }
+      }
+      catch (err) {
+        Mess.yell('Failed: ' + err.message)
+      }
+    })
   }
 
   pane = Pane.current()

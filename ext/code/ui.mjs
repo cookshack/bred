@@ -180,6 +180,8 @@ export
 function appendMsg
 (buf, role, text, partID) {
   Util.eachCodeW(buf, (view, w) => {
+    let contentEl, mdResult
+
     if (role == 'user') {
     }
     else {
@@ -197,16 +199,33 @@ function appendMsg
           withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
           view.vars('code').eds = view.vars('code').eds || []
           view.vars('code').eds.push(mdEd.ed)
+          buf.vars('code').partTexts = buf.vars('code').partTexts || {}
+          buf.vars('code').partTexts[partID] = text
+          view.vars('code').partEds = view.vars('code').partEds || {}
+          view.vars('code').partEds[partID] = mdEd.ed
         }
         return
       }
     }
+
+    if (role == 'user')
+      contentEl = divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
+    else {
+      mdResult = makeMarkdownEd(text || '')
+      contentEl = mdResult.el
+    }
     appendX(w,
             divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                  [ (role == 'user')
-                    ? divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
-                    : makeMarkdownEd(text || '').el ],
+                  [ contentEl ],
                   { 'data-partid': partID || 0 }))
+    if (mdResult) {
+      view.vars('code').eds = view.vars('code').eds || []
+      view.vars('code').eds.push(mdResult.ed)
+      buf.vars('code').partTexts = buf.vars('code').partTexts || {}
+      buf.vars('code').partTexts[partID] = text || ''
+      view.vars('code').partEds = view.vars('code').partEds || {}
+      view.vars('code').partEds[partID] = mdResult.ed
+    }
     if (role == 'user') {
       let underW
 
@@ -358,6 +377,48 @@ function flushThink
             withScroll(w, () => textEl.innerText = (textEl.innerText || '') + text)
         }
       }
+    })
+  }
+}
+
+export
+function chunkText
+(buf, partId, delta) {
+  let chunks
+
+  chunks = Util.ensureTextChunks(buf)
+  chunks[partId] = (chunks[partId] || '') + delta
+  buf.vars('code').partTexts = buf.vars('code').partTexts || {}
+  buf.vars('code').partTexts[partId] = (buf.vars('code').partTexts[partId] || '') + delta
+  if (buf.vars('code').textPending)
+    return
+  buf.vars('code').textPending = 1
+  globalThis.requestAnimationFrame(() => flushText(buf))
+}
+
+export
+function flushText
+(buf) {
+  let chunks
+
+  chunks = buf.vars('code').textChunks
+  if (chunks) {
+    buf.vars('code').textChunks = {}
+    buf.vars('code').textPending = 0
+
+    Util.eachCodeW(buf, (view, w) => {
+      let eds
+
+      eds = view.vars('code').partEds
+      for (let partID of Object.keys(chunks))
+        if (eds?.[partID]) {
+          let ed, fullText, tr
+
+          ed = eds[partID]
+          fullText = buf.vars('code').partTexts?.[partID] || ''
+          tr = { changes: { from: 0, to: ed.state.doc.length, insert: fullText } }
+          withScroll(w, () => ed.dispatch(tr))
+        }
     })
   }
 }

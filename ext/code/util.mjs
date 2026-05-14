@@ -99,3 +99,14 @@ function ensureThinkChunks
     return chunks
   return buf.vars('code').thinkChunks = {}
 }
+
+export
+function ensureTextChunks
+(buf) {
+  let chunks
+
+  chunks = buf.vars('code').textChunks
+  if (chunks)
+    return chunks
+  return buf.vars('code').textChunks = {}
+}

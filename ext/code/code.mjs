@@ -694,6 +694,8 @@ function handlePartDelta
       textEl = msgEl.querySelector('.code-msg-text')
       if (textEl && field == 'text')
         Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
+      else if (field == 'text' && msgEl.querySelector('.code-markdown-ed'))
+        Ui.chunkText(buf, event.properties.partID, delta)
     }
     thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
     if (thinkingEl && field == 'text') {

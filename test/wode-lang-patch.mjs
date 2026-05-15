@@ -52,70 +52,70 @@ parser = buildParser(grammarSrc)
 lang = { parser }
 
 passNames('old file', '--- a/file.txt\n',
-          [ 'Program', 'Line', 'OldFile' ])
+          [ 'Patch', 'Line', 'OldFile' ])
 
 passNames('new file', '+++ b/file.txt\n',
-          [ 'Program', 'Line', 'NewFile' ])
+          [ 'Patch', 'Line', 'NewFile' ])
 
 passNames('hunk header', '@@ -1,5 +1,5 @@\n',
-          [ 'Program', 'Line', 'HunkHeader' ])
+          [ 'Patch', 'Line', 'HunkHeader' ])
 
 passNames('git diff', 'diff --git a/file b/file\n',
-          [ 'Program', 'Line', 'GitDiff' ])
+          [ 'Patch', 'Line', 'GitDiff' ])
 
 passNames('index line', 'index abc..def 100644\n',
-          [ 'Program', 'Line', 'IndexLine' ])
+          [ 'Patch', 'Line', 'IndexLine' ])
 
 passNames('meta new', 'new file mode 100644\n',
-          [ 'Program', 'Line', 'MetaLine' ])
+          [ 'Patch', 'Line', 'MetaLine' ])
 
 passNames('meta old', 'old mode 100755\n',
-          [ 'Program', 'Line', 'MetaLine' ])
+          [ 'Patch', 'Line', 'MetaLine' ])
 
 passNames('meta rename', 'rename from old\n',
-          [ 'Program', 'Line', 'MetaLine' ])
+          [ 'Patch', 'Line', 'MetaLine' ])
 
 passNames('meta copy', 'copy from src\n',
-          [ 'Program', 'Line', 'MetaLine' ])
+          [ 'Patch', 'Line', 'MetaLine' ])
 
 passNames('meta similarity', 'similarity index 100%\n',
-          [ 'Program', 'Line', 'MetaLine' ])
+          [ 'Patch', 'Line', 'MetaLine' ])
 
 passNames('meta dissimilarity', 'dissimilarity index 0%\n',
-          [ 'Program', 'Line', 'MetaLine' ])
+          [ 'Patch', 'Line', 'MetaLine' ])
 
 passNames('meta deleted', 'deleted file mode\n',
-          [ 'Program', 'Line', 'MetaLine' ])
+          [ 'Patch', 'Line', 'MetaLine' ])
 
 passNames('meta binary', 'Binary files differ\n',
-          [ 'Program', 'Line', 'MetaLine' ])
+          [ 'Patch', 'Line', 'MetaLine' ])
 
 passNames('inserted', '+added line\n',
-          [ 'Program', 'Line', 'Inserted' ])
+          [ 'Patch', 'Line', 'Inserted' ])
 
 passNames('deleted', '-removed line\n',
-          [ 'Program', 'Line', 'Deleted' ])
+          [ 'Patch', 'Line', 'Deleted' ])
 
 passNames('no newline', '\\ No newline at end\n',
-          [ 'Program', 'Line', 'NoNewline' ])
+          [ 'Patch', 'Line', 'NoNewline' ])
 
 passNames('no newline bare', '\\\n',
-          [ 'Program', 'Line', 'NoNewline' ])
+          [ 'Patch', 'Line', 'NoNewline' ])
 
 passNames('context', ' unchanged line\n',
-          [ 'Program', 'Line', 'Context' ])
+          [ 'Patch', 'Line', 'Context' ])
 
 passNames('context plain', 'plain text here\n',
-          [ 'Program', 'Line', 'Context' ])
+          [ 'Patch', 'Line', 'Context' ])
 
 passNames('eol only', '\n',
-          [ 'Program', 'Line' ])
+          [ 'Patch', 'Line' ])
 
 passNames('empty', '',
-          [ 'Program' ])
+          [ 'Patch' ])
 
 passNames('no trailing eol', '--- a/file.txt',
-          [ 'Program', 'Line', 'OldFile' ])
+          [ 'Patch', 'Line', 'OldFile' ])
 
 passNames('multi line',
           '--- a/file.txt\n' +
@@ -125,7 +125,7 @@ passNames('multi line',
           '-removed\n' +
           '+added\n' +
           ' more context\n',
-          [ 'Program',
+          [ 'Patch',
             'Line', 'OldFile',
             'Line', 'NewFile',
             'Line', 'HunkHeader',
@@ -140,7 +140,7 @@ test('parse', 'no error on empty',
 
        tree = lang.parser.parse('')
        cursor = tree.cursor()
-       equal(cursor.name, 'Program')
+       equal(cursor.name, 'Patch')
        equal(cursor.from, 0)
        equal(cursor.to, 0)
      })
@@ -158,7 +158,7 @@ test('parse', 'no error on full diff',
                ' more context\n'
        tree = lang.parser.parse(input)
 
-       equal(tree.topNode.name, 'Program')
+       equal(tree.topNode.name, 'Patch')
        equal(tree.length, input.length)
      })
 

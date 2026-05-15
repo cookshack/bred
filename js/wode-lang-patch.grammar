@@ -1,4 +1,4 @@
-@top Program { Line* }
+@top Patch { Line* }
 
 Line { body eol | body eof | eol }
 

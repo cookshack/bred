@@ -9,23 +9,23 @@ body {
   NoNewline | Context
 }
 
-OldFile     { "---" ![\n]+ }
-NewFile     { "+++" ![\n]+ }
-HunkHeader  { "@@" ![\n]+ }
-
-GitDiff     { "diff" ![\n]+ }
-IndexLine   { "index" ![\n]+ }
-MetaLine    { ("new " | "old " | "rename " | "copy " | "similarity " | "dissimilarity " | "deleted " | "Binary ") ![\n]+ }
-
-Inserted    { "+" ![\n]+ }
-Deleted     { "-" ![\n]+ }
-
-NoNewline   { "\\" ![\n]* }
-Context     { ![\n]+ }
-
 @tokens {
   eol { "\n" }
   eof { @eof }
+
+  OldFile     { "---" ![\n]+ }
+  NewFile     { "+++" ![\n]+ }
+  HunkHeader  { "@@" ![\n]+ }
+
+  GitDiff     { "diff" ![\n]+ }
+  IndexLine   { "index" ![\n]+ }
+  MetaLine    { ("new " | "old " | "rename " | "copy " | "similarity " | "dissimilarity " | "deleted " | "Binary ") ![\n]+ }
+
+  Inserted    { "+" ![\n]+ }
+  Deleted     { "-" ![\n]+ }
+
+  NoNewline   { "\\" ![\n]+ | "\\" }
+  Context     { ![\n]+ }
 
   @precedence {
     OldFile, NewFile, GitDiff, IndexLine, MetaLine,

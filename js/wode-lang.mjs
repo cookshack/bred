@@ -27,7 +27,7 @@ function init
 
   function addLang
   (lang, ed, opt) {
-    //d('lang: ' + lang.name + ' (' + lang.id + ')')
+    d('WODE LANG addLang ' + lang.name + ' (' + lang.id + ')')
     opt = opt || {}
     opt.assist = opt.assist ?? {}
     opt.assist.pages = opt.assist.pages ?? 1
@@ -40,6 +40,12 @@ function init
     if (lang.id == 'properties files')
       lang.extensions = [ ...(lang.extensions || []), '.desktop', '.conf', '.service' ]
     if (lang.id == 'patch') {
+      d('addLang patch')
+      d({ lang })
+      d({ ed })
+      d({ opt })
+    }
+    if (lang.id == 'patchXX') {
       lang.extensions = [ ...(lang.extensions || []), '.PATCH', '.rej' ]
       opt.assist.pages = 0
       opt.assist.extras = []
@@ -190,24 +196,34 @@ function init
 
   loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-csharp.js'), 'Csharp', { ext: [ 'cs', 'csx' ] })
   loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-csv.js'), 'Csv', { ext: [ 'csv' ] })
+  d('WODE LANG getting patch grammar')
   Tron.cmd('file.get', [ Loc.appDir().join('js/wode-lang-patch.grammar') ], (err, data) => {
     let parser, langDesc, patchLang
 
+    d('WODE LANG getting patch grammar: callback')
+
     if (err) {
-      Mess.log('Failed to load patch grammar: ' + err.message)
+      Mess.yell('🚨 Failed to load patch grammar: ' + err.message)
       return
     }
 
+    d('WODE LANG patch buildParser')
+
     parser = buildParser(data.data)
+    d('WODE LANG patch makeFromParser')
     patchLang = WodeLangPatch.makeFromParser(parser)
+    d('WODE LANG patch descr')
     langDesc = CMLang.LanguageDescription.of({ name: 'Patch',
                                                extensions: [ 'diff', 'patch' ],
                                                load
                                                () {
+                                                 d('Initialised lang: patch (internal)')
                                                  WodeTheme.Theme.handleCustomTags(WodeLangPatch)
                                                  return Promise.resolve(patchLang)
                                                } })
-    addLang(langDesc, 1,
+    d('WODE LANG patch addLang')
+    addLang(langDesc,
+            1,
             { wexts: [ { backend: 'cm',
                          name: 'extPatch',
                          make: () => ([ WodePatch.extPatch, WodePatch.extPatchDecor ]),

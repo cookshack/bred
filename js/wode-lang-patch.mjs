@@ -5,7 +5,7 @@ let lang
 
 export let customTags
 
-customTags = { diffNewfile: Tag.define(), diffOldfile: Tag.define(), diffFilename: Tag.define() }
+customTags = { patchNewfile: Tag.define(), patchOldfile: Tag.define(), patchFilename: Tag.define() }
 
 export
 function patch
@@ -18,8 +18,8 @@ function makeFromParser
 (parser) {
   let props, configuredParser, lrLang
 
-  props = [ styleTags({ OldFile: [ tags.meta, customTags.diffOldfile ],
-                        NewFile: [ tags.meta, customTags.diffNewfile ],
+  props = [ styleTags({ OldFile: [ tags.meta, customTags.patchOldfile ],
+                        NewFile: [ tags.meta, customTags.patchNewfile ],
                         HunkHeader: tags.meta,
                         GitDiff: tags.meta,
                         IndexLine: tags.meta,

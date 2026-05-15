@@ -75,18 +75,18 @@ function themeStyles
              { tag: tags.typeName, color: Theme.fg('type.identifier') },
              { tag: tags.variableName, color: Theme.fg('text') } ]
 
-  if (tags.diffNewfile)
-    styles.unshift({ tag: tags.diffNewfile, // patch +++ line
+  if (tags.patchNewfile)
+    styles.unshift({ tag: tags.patchNewfile, // +++ line
                      fontWeight: 'bold',
                      backgroundColor: Theme.meanings.fill,
                      color: Theme.fg('plus') })
-  if (tags.diffOldfile)
-    styles.unshift({ tag: tags.diffOldfile, // patch --- line
+  if (tags.patchOldfile)
+    styles.unshift({ tag: tags.patchOldfile, // --- line
                      fontWeight: 'bold',
                      backgroundColor: Theme.meanings.fill,
                      color: Theme.fg('minus') })
-  if (tags.diffFilename)
-    styles.unshift({ tag: tags.diffFilename,
+  if (tags.patchFilename)
+    styles.unshift({ tag: tags.patchFilename,
                      backgroundColor: Theme.meanings.fill,
                      color: Theme.fg('bold') })
 

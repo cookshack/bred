@@ -140,7 +140,7 @@ function init
                                                      if (opt.postload)
                                                        opt.postload(m, ls)
 
-                                                     WodeTheme.Theme.handleCustomTags(m)
+                                                     WodeTheme.handleCustomTags(m)
 
                                                      d('Initialised lang: ' + file)
                                                    }
@@ -218,7 +218,7 @@ function init
                                                load
                                                () {
                                                  d('Initialised lang: patch (internal)')
-                                                 WodeTheme.Theme.handleCustomTags(WodeLangPatch)
+                                                 WodeTheme.handleCustomTags(WodeLangPatch)
                                                  return Promise.resolve(patchLang)
                                                } })
     d('WODE LANG patch addLang')

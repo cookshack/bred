@@ -8,7 +8,7 @@ import * as Util from './util.mjs'
 
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
-import { patch } from '../../lib/codemirror-lang-diff.js'
+import { patch } from '../../js/wode-lang-patch.mjs'
 import { markdown } from '../../lib/@codemirror/lang-markdown.js'
 import { langs } from '../../js/wode-lang.mjs'
 import { modeFor } from '../../js/wode-mode.mjs'

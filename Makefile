@@ -63,8 +63,6 @@ fix-codemirror: sync-codemirror patch-codemirror version-codemirror
 	echo "export * from './codemirror-themes/index.js'" > lib/@uiw/codemirror-themes.js
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/lezer-elixir.js
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/lezer-utils.js
-	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-diff.js
-	sed -i "s/diff/patch/g" lib/codemirror-lang-diff.js
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-elixir.js
 	if [ -e node_modules/codemirror-lang-git-log ]; then sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-git-log.js; fi
 	sed -i "s/^\(import .* from\) '\([^']\+\)'.*/\\1 '.\/\\2.js';/g" lib/codemirror-lang-makefile.js
@@ -132,7 +130,6 @@ sync-codemirror:
 	cp node_modules/@babel/runtime/helpers/esm/extends.js lib/@babel/runtime/helpers/extends.js
 	cp node_modules/lezer-elixir/dist/index.js lib/lezer-elixir.js
 	cp node_modules/lezer-utils/dist/pretty.js lib/lezer-utils.js
-	cp node_modules/codemirror-lang-diff/dist/index.js lib/codemirror-lang-diff.js
 	cp node_modules/codemirror-lang-elixir/dist/index.js lib/codemirror-lang-elixir.js
 	if [ -e node_modules/codemirror-lang-git-log ]; then cp node_modules/codemirror-lang-git-log/dist/index.js lib/codemirror-lang-git-log.js; fi
 	cp node_modules/codemirror-lang-makefile/dist/index.js lib/codemirror-lang-makefile.js
@@ -151,6 +148,7 @@ sync-codemirror:
 	mkdir -p lib/@codemirror/legacy-modes/mode
 	cp node_modules/@codemirror/legacy-modes/mode/*.js lib/@codemirror/legacy-modes/mode/
 	for DIR in node_modules/@lezer/*; do cp $$DIR/dist/index.js lib/@lezer/$$(basename $$DIR).js; done
+	bin/fix-scope lezer
 	cp node_modules/style-mod/dist/style-mod.cjs lib/style-mod.js
 	cp node_modules/crelt/index.js lib/crelt.js
 	cp node_modules/w3c-keyname/index.js lib/w3c-keyname.js

@@ -3,16 +3,19 @@ import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
+import * as Mode from './mode.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodePatch from './wode-patch.mjs'
+import * as WodeLangPatch from './wode-lang-patch.mjs'
 import * as WodeTheme from './wode-theme.mjs'
 import { d } from './mess.mjs'
 
 import * as CMData from '../lib/@codemirror/language-data.js'
 import * as CMLang from '../lib/@codemirror/language.js'
 import * as CMState from '../lib/@codemirror/state.js'
+import { buildParser } from '../lib/@lezer/generator.js'
 import { makeJsIndents } from './wode-lang-js.mjs'
 
 export let langs
@@ -155,6 +158,10 @@ function init
     })
   }
 
+  // Patch mode must exist synchronously so Vc Equal's b.mode = 'patch' always
+  // finds a mode with append.  The grammar loads async below.
+  Mode.add('patch', { initFns: Ed.initModeFns, parentsForEm: 'ed' })
+
   languages = CMData.languages.filter(l => [ 'diff', 'javascript', 'markdown' ].includes(l.name.toLowerCase()) ? 0 : 1)
   langs = []
 
@@ -183,12 +190,29 @@ function init
 
   loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-csharp.js'), 'Csharp', { ext: [ 'cs', 'csx' ] })
   loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-csv.js'), 'Csv', { ext: [ 'csv' ] })
-  loadLang(Loc.appDir().join('lib/codemirror-lang-diff.js'), 'Patch',
-           { ext: [ 'diff', 'patch' ],
-             wexts: [ { backend: 'cm',
-                        name: 'extPatch',
-                        make: () => ([ WodePatch.extPatch, WodePatch.extPatchDecor ]),
-                        part: new CMState.Compartment } ] })
+  Tron.cmd('file.get', [ Loc.appDir().join('js/wode-lang-patch.grammar') ], (err, data) => {
+    let parser, langDesc, patchLang
+
+    if (err) {
+      Mess.log('Failed to load patch grammar: ' + err.message)
+      return
+    }
+
+    parser = buildParser(data.data)
+    patchLang = WodeLangPatch.makeFromParser(parser)
+    langDesc = CMLang.LanguageDescription.of({ name: 'Patch',
+                                               extensions: [ 'diff', 'patch' ],
+                                               load
+                                               () {
+                                                 WodeTheme.Theme.handleCustomTags(WodeLangPatch)
+                                                 return Promise.resolve(patchLang)
+                                               } })
+    addLang(langDesc, 1,
+            { wexts: [ { backend: 'cm',
+                         name: 'extPatch',
+                         make: () => ([ WodePatch.extPatch, WodePatch.extPatchDecor ]),
+                         part: new CMState.Compartment } ] })
+  })
   loadLang(Loc.appDir().join('lib/codemirror-lang-elixir.js'), 'Elixir', { ext: [ 'ex', 'exs' ] })
   loadLang(Loc.appDir().join('lib/@codemirror/lang-lezer.js'), 'Lezer', { ext: [ 'grammar' ] })
   loadLang(Loc.appDir().join('lib/codemirror-lang-git-log.js'), 'Git Log',

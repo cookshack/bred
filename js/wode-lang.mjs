@@ -197,7 +197,14 @@ function init
       return
     }
 
-    parser = buildParser(data.data)
+    try {
+      parser = buildParser(data.data)
+    }
+    catch (e) {
+      Mess.yell('🚨 Failed to build patch grammar: ' + e.message)
+      return
+    }
+
     patchLang = WodeLangPatch.makeFromParser(parser)
     langDesc = CMLang.LanguageDescription.of({ name: 'Patch',
                                                extensions: [ 'diff', 'patch', 'PATCH', 'rej' ],

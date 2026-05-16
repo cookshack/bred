@@ -33,23 +33,61 @@ function mountArgs
            '-v', dataDir(workingDir) + ':/home/node/.local/share/opencode' ]
 }
 
+function containerRunning
+(name) {
+  return new Promise(resolve => {
+    let proc, output
+
+    proc = spawn('docker', [ 'inspect', '--format={{.State.Status}}', name ])
+    output = ''
+    proc.stdout.on('data', chunk => {
+      output += chunk.toString()
+    })
+    proc.stderr.on('data', chunk => {
+      output += chunk.toString()
+    })
+    proc.on('close', code => {
+      if (code) {
+        resolve(0)
+        return
+      }
+      resolve(output.trim() == 'running')
+    })
+    proc.on('error', () => resolve(0))
+  })
+}
+
 function healthCheck
-(url, timeout) {
-  let start, ms
+(url, timeout, cName) {
+  let start, ms, attempts
 
   start = Date.now()
   ms = 200
+  attempts = 0
 
   return new Promise((resolve, reject) => {
-    function check
+    async function check
     () {
       let req
+
+      attempts++
 
       if (Date.now() - start > timeout) {
         reject(new Error('docker health check timed out'))
         return
       }
 
+      if (attempts % 10 == 0) {
+        let running
+
+        running = await containerRunning(cName)
+        if (running == 0) {
+          reject(new Error('docker container exited during health check'))
+          return
+        }
+      }
+
+      d('CODE SERVER health check ' + url)
       req = http.get(url + '/global/health', res => {
         if (res.statusCode == 200) {
           resolve()
@@ -57,11 +95,12 @@ function healthCheck
         }
         setTimeout(check, ms)
       })
-      req.on('error', () => {
+      req.on('error', err => {
+        d('CODE SERVER health check ERR: ' + err.message)
         setTimeout(check, ms)
       })
     }
-    check()
+    setTimeout(check, 1000)
   })
 }
 
@@ -127,9 +166,10 @@ async function spawnDocker
 
       d('CODE SERVER docker container ' + containerID + ' on ' + url)
 
-      healthCheck(url, healthTimeout)
+      d('CODE SERVER running health check for ' + containerID + ' on ' + url)
+      healthCheck(url, healthTimeout, name)
         .then(() => {
-          d('CODE SERVER docker container healthy')
+          d('CODE SERVER docker container healthy: ' + containerID)
           resolve({ url,
                     containerName: name,
                     close

@@ -1,0 +1,28 @@
+@top IniDoc { IniLine* }
+
+IniLine { body eol | body eof | eol }
+
+body {
+  Comment |
+  SectionHeader |
+  Property |
+  Context
+}
+
+@tokens {
+  eol { "\n" }
+  eof { @eof }
+
+  Comment       { (";" | "#") ![\n]* }
+  SectionHeader { "[" ![\n]+ }
+  Property      { ![\n] ![\n=:]* ("=" | ":") ![\n]* }
+  Context       { ![\n]+ }
+
+  @precedence {
+    Comment,
+    SectionHeader,
+    Property,
+    Context,
+    eol
+  }
+}

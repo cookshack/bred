@@ -8,6 +8,7 @@ import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodePatch from './wode-patch.mjs'
+import * as WodeLangIni from './wode-lang-ini.mjs'
 import * as WodeLangPatch from './wode-lang-patch.mjs'
 import * as WodeTheme from './wode-theme.mjs'
 import { d } from './mess.mjs'
@@ -225,9 +226,35 @@ function init
   loadLang(Loc.appDir().join('lib/@codemirror/lang-lezer.js'), 'Lezer', { ext: [ 'grammar' ] })
   loadLang(Loc.appDir().join('lib/codemirror-lang-git-log.js'), 'Git Log',
            { ed: 0 }) // prevent mode creation, already have VC Log mode
-  loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-ini.js'), 'Ini',
-           { exts: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
-             path: /\.git\/config$/ })
+  Tron.cmd('file.get', [ Loc.appDir().join('js/wode-lang-ini.grammar') ], (err, data) => {
+    let parser, langDesc, iniLang
+
+    if (err) {
+      Mess.yell('🚨 Failed to load ini grammar: ' + err.message)
+      return
+    }
+
+    try {
+      parser = buildParser(data.data)
+    }
+    catch (e) {
+      Mess.yell('🚨 Failed to build ini grammar: ' + e.message)
+      return
+    }
+
+    iniLang = WodeLangIni.makeFromParser(parser)
+    langDesc = CMLang.LanguageDescription.of({ name: 'Ini',
+                                               extensions: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
+                                               path: /\.git\/config$/,
+                                               load
+                                               () {
+                                                 d('WODE LANG initialised: ini (internal)')
+                                                 return Promise.resolve(iniLang)
+                                               } })
+    addLang(langDesc,
+            1,
+            {})
+  })
   loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-lezer-tree.js'), 'Lezer Tree', { ext: [ 'leztree' ] })
   loadLang(Loc.appDir().join('lib/codemirror-lang-makefile.js'), 'Makefile',
            { filename: /^(GNUmakefile|makefile|Makefile)$/,

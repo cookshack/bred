@@ -55,7 +55,6 @@
     "@cookshack/build": "^0.3.0",
     "@cookshack/codemirror-bracket-matching": "^0.3.1",
     "@cookshack/codemirror-lang-csv": "^0.1.0",
-    "@cookshack/codemirror-lang-ini": "file:../codemirror-lang-ini",
     "@cookshack/codemirror-lang-lezer-tree": "^0.1.0",
     "@cookshack/codemirror-lang-nasl": "^0.1.3",
     "@cookshack/codemirror-lang-peg": "^0.1.1",

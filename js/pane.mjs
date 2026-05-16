@@ -149,7 +149,6 @@ function add
     pane = PaneUtil.current(frame)
     if (pane) {
       Css.remove(pane.w, 'current')
-      pane.view.nestedViews?.forEach(nv => Css.remove(nv.ele.parentElement, 'current'))
       if (skipEd) {
         // prevents recurse
       }
@@ -171,6 +170,8 @@ function add
     }
     else if (p.view?.ed)
       p.view.ed.focus()
+    else if (p.currentNestedView?.ed)
+      p.currentNestedView.ed.focus()
 
     if (View.onFocuss)
       View.onFocuss.forEach(cb => cb(view))

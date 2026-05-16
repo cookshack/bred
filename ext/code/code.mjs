@@ -298,6 +298,7 @@ function updateIdle
 (buf, tokenInfo) {
   Ui.updateStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
   buf.vars('code').busy = 0
+  Mess.yell('')
   if (buf.vars('code').agentStopped) {
     buf.vars('code').agentStopped = 0
     Ui.appendMsg(buf, 0, '...stopped')
@@ -918,6 +919,7 @@ function openPrompt
 (buf, pane, provider, model, variant) {
   let wh
 
+  Mess.yell('')
   wh = whichHistFromBuf(buf)
   buf.vars('code').promptBuf.placeholder = wh?.nth(0)?.toString()
 

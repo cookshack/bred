@@ -951,20 +951,27 @@ function next
   p = Pane.current()
   buf = p.buf
 
-  if (buf.vars('code').permissions?.length)
+  if (buf.vars('code').permissions?.length) {
+    Mess.yell('Permission check pending')
     return
+  }
 
-  if (buf.vars('code').questions?.length)
+  if (buf.vars('code').questions?.length) {
+    Mess.yell('Question pending')
     return
+  }
 
   if (buf?.vars('code')?.sessionID) {
     // OK
   }
-  else
+  else {
+    Mess.yell('ERR session missing')
     return
+  }
 
   if (buf.vars('code').busy) {
     d('busy')
+    Mess.yell('Agent is busy')
     return
   }
 

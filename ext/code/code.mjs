@@ -1221,8 +1221,14 @@ function cancelPrompt
       let container
 
       container = view.ele.querySelector('.code-prompt-w')
-      if (container)
+      if (container) {
+        let nestedPane
+
         Css.retract(container)
+        nestedPane = view.ele.querySelector('.pane.bred-nested.current')
+        if (nestedPane)
+          Css.remove(nestedPane, 'current')
+      }
     })
 
     p.focus()

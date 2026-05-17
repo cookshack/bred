@@ -1691,12 +1691,13 @@ function init
   Em.on('+', 'respond', mo)
   Em.on('Enter', 'respond', mo)
 
-  Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
-  Em.on('s', 'stop with caution', mo)
-  Em.on('p', 'set agent plan', mo)
   Em.on('b', 'set agent build', mo)
+  Em.on('p', 'set agent plan', mo)
+  Em.on('q', 'bury', mo)
+  Em.on('s', 'stop with caution', mo)
+  Em.on('t', 'toggle thinking', mo)
 
   Cmd.add('toggle thinking', toggleThinking, mo)
   Cmd.add('toggle details', toggleDetails, mo)

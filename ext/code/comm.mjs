@@ -5,7 +5,7 @@ import * as OpenCode from './lib/opencode/v2/client.js'
 import * as Ui from './ui.mjs'
 
 export
-function ensureClient
+async function ensureClient
 (buf) {
   let client, spawnPromise
 
@@ -17,13 +17,25 @@ function ensureClient
     return buf.vars('code').spawnPromise
 
   spawnPromise = new Promise((resolve, reject) => {
-    let sent
+    let sent, statusCh, off
 
     sent = 0
 
-    Tron.cmd('code.spawn', [ buf.id, buf.dir ], (err, data) => {
+    statusCh = 'code.spawn.status.' + buf.id
+    off = Tron.on(statusCh, (err, statusData) => {
+      if (err)
+        return
+      if (statusData.containerName) {
+        buf.vars('code').containerName = statusData.containerName
+        Ui.updateDocker(buf)
+      }
+    })
+
+    Tron.cmd('code.spawn', [ buf.id, buf.dir, statusCh ], (err, data) => {
       d('CODE COMM code.spawn message')
       d({ data })
+      off()
+
       if (sent)
         return
 
@@ -32,11 +44,6 @@ function ensureClient
         buf.vars('code').spawnPromise = 0
         reject(new Error(err.message || String(err)))
         return
-      }
-
-      if (data.containerName) {
-        buf.vars('code').containerName = data.containerName
-        Ui.updateDocker(buf)
       }
 
       if (data.url) {

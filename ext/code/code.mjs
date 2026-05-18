@@ -337,7 +337,7 @@ function calculateTokenPercentage
   return ret
 }
 
-async function updateModelContextLimit
+function updateModelContextLimit
 (buf, providerID, modelID) {
   let lastProviderID, lastModelID
 
@@ -351,30 +351,31 @@ async function updateModelContextLimit
 
   buf.vars('code').lastProviderID = providerID
   buf.vars('code').lastModelID = modelID
-  try {
-    let c, providers, model
+  Comm.ensureClient(buf).then(async c => {
+    try {
+      let providers, model
 
-    c = await Comm.ensureClient(buf)
-    providers = await c.config.providers({ directory: buf.dir })
-    d({ providers })
-    providers.data.providers?.some(p => {
-      if (p.id == providerID) {
-        model = p.models?.[modelID]
-        return true
-      }
-    })
-    if (model?.limit?.context) {
-      d('CO modelContextLimit ' + model.limit.context)
-      buf.vars('code').modelContextLimit = model.limit.context
-    }
-    else {
-      d('CO modelContextLimit missing')
+      providers = await c.config.providers({ directory: buf.dir })
       d({ providers })
+      providers.data.providers?.some(p => {
+        if (p.id == providerID) {
+          model = p.models?.[modelID]
+          return true
+        }
+      })
+      if (model?.limit?.context) {
+        d('CO modelContextLimit ' + model.limit.context)
+        buf.vars('code').modelContextLimit = model.limit.context
+      }
+      else {
+        d('CO modelContextLimit missing')
+        d({ providers })
+      }
     }
-  }
-  catch (err) {
-    d('CO failed to get providers: ' + err.message)
-  }
+    catch (err) {
+      d('CO failed to get providers: ' + err.message)
+    }
+  })
 }
 
 function checkForPatch

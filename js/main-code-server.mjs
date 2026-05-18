@@ -10,6 +10,7 @@ let useDocker
 
 useDocker = 1
 
+export
 function containerName
 (bufferID) {
   return 'bred-code-' + process.pid + '-' + bufferID

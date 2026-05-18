@@ -58,13 +58,16 @@ function init
 
 export
 async function onSpawn
-(e, args) {
+(e, ch, args) {
   let [ bufferID, workingDir ] = args
-  let port
+  let port, name
 
   port = await getFreePort()
+  name = Server.containerName(bufferID)
 
   d('CODE spawn ' + bufferID + ' on port ' + port + ' in ' + workingDir)
+
+  e.sender.send(ch, { containerName: name })
 
   try {
     let server
@@ -77,11 +80,11 @@ async function onSpawn
                                              permission: { external_directory: 'allow',
                                                            read: { '/home/node/.local/share/opencode/auth.json': 'deny' } } } })
     servers.set(bufferID, server)
-    return { url: server.url, containerName: server.containerName }
+    e.sender.send(ch, { url: server.url, containerName: name })
   }
   catch (err) {
     d('CODE spawn failed: ' + err.message)
-    return { err: { message: 'Failed to start server: ' + err.message } }
+    e.sender.send(ch, { err: { message: 'Failed to start server: ' + err.message } })
   }
 }
 

@@ -218,9 +218,6 @@ function relaunch
 
 async function onAcmd
 (e, name, args) {
-  if (name == 'code.spawn')
-    return Code.onSpawn(e, args)
-
   if (name == 'code.close')
     return Code.onClose(e, args)
 
@@ -244,9 +241,6 @@ async function onAcmd
 
   if (name == 'code.close')
     return Code.onClose(e, args)
-
-  if (name == 'code.spawn')
-    return Code.onSpawn(e, args)
 
   if (name == 'file.save.tmp')
     return MainFile.onSaveTmp(e, args)
@@ -370,6 +364,9 @@ function onCmdCh
 
   if (name == 'clip.write')
     return cmdClipWrite(e, ch, args)
+
+  if (name == 'code.spawn')
+    return wrapOn(e, ch, args, Code.onSpawn)
 
   if (name == 'shell')
     return wrapOn(e, args[0] /* clientCh */, args, Shell.on)

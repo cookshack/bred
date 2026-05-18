@@ -1,4 +1,5 @@
 import * as Tron from '../../js/tron.mjs'
+import { d } from '../../js/mess.mjs'
 
 import * as OpenCode from './lib/opencode/v2/client.js'
 import * as Ui from './ui.mjs'
@@ -21,6 +22,8 @@ function ensureClient
     sent = 0
 
     Tron.cmd('code.spawn', [ buf.id, buf.dir ], (err, data) => {
+      d('CODE COMM code.spawn message')
+      d({ data })
       if (sent)
         return
 

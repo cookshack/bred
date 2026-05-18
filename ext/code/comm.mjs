@@ -22,13 +22,15 @@ async function ensureClient
     sent = 0
 
     statusCh = 'code.spawn.status.' + buf.id
-    off = Tron.on(statusCh, (err, statusData) => {
+    off = Tron.on(statusCh, (err, data) => {
       if (err)
         return
-      if (statusData.containerName) {
-        buf.vars('code').containerName = statusData.containerName
+      if (data.containerName) {
+        buf.vars('code').containerName = data.containerName
         Ui.updateDocker(buf)
       }
+      if (data.log)
+        d(data.log)
     })
 
     Tron.cmd('code.spawn', [ buf.id, buf.dir, statusCh ], (err, data) => {

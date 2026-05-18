@@ -59,7 +59,7 @@ function containerRunning
 }
 
 function healthCheck
-(url, timeout, cName) {
+(url, timeout, cName, send) {
   let start, ms, attempts
 
   start = Date.now()
@@ -89,6 +89,7 @@ function healthCheck
       }
 
       d('CODE SERVER health check ' + url)
+      send({ log: 'CODE SERVER health check ' + url })
       req = http.get(url + '/global/health', res => {
         if (res.statusCode == 200) {
           resolve()
@@ -97,6 +98,7 @@ function healthCheck
         setTimeout(check, ms)
       })
       req.on('error', err => {
+        send({ log: 'CODE SERVER health check ' + url + ' ' + err.message })
         d('CODE SERVER health check ERR: ' + err.message)
         setTimeout(check, ms)
       })
@@ -109,6 +111,7 @@ async function spawnDocker
 (spec) {
   let name, port, workingDir, config, dockerTimeout, healthTimeout, authPath, args
 
+  spec = spec || {}
   name = containerName(spec.bufferID)
   port = spec.port
   workingDir = spec.workingDir
@@ -168,7 +171,7 @@ async function spawnDocker
       d('CODE SERVER docker container ' + containerID + ' on ' + url)
 
       d('CODE SERVER running health check for ' + containerID + ' on ' + url)
-      healthCheck(url, healthTimeout, name)
+      healthCheck(url, healthTimeout, name, spec.send)
         .then(() => {
           d('CODE SERVER docker container healthy: ' + containerID)
           resolve({ url,

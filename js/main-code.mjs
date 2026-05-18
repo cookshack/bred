@@ -76,6 +76,7 @@ async function onSpawn
                                    port,
                                    bufferID,
                                    workingDir,
+                                   send: msg => e.sender.send(statusCh, msg),
                                    config: { logLevel: 'DEBUG',
                                              permission: { external_directory: 'allow',
                                                            read: { '/home/node/.local/share/opencode/auth.json': 'deny' } } } })

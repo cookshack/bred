@@ -53,9 +53,9 @@ function init
   (u, we) {
     let sessionID, sessionDir
 
-    async function open
+    function open
     () {
-      let c, pane, name, buf, provider, model, variant
+      let pane, name, buf, provider, model, variant
 
       pane = Pane.current()
       name = 'CO ' + sessionDir
@@ -77,45 +77,41 @@ function init
       buf.vars('code').sessionID = sessionID
       buf.opt('core.lint.enabled', 1)
 
-      try {
-        c = await Comm.ensureClient(buf)
-      }
-      catch (err) {
-        Mess.yell('Failed: ' + err.message)
-        return
-      }
+      Comm.ensureClient(buf).then(c => {
+        pane.setBuf(buf, {}, () => {
+          c.session.messages({ sessionID, directory: sessionDir }).then(r => {
+            d({ r })
+            for (let msg of (r.data || []))
+              for (let part of (msg.parts || []))
+                if (part.type == 'text')
+                  Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
+                else if (part.type == 'reasoning' && part.text)
+                  Ui.appendThinking(buf, part.text, part.id)
+                else if (part.type == 'tool') {
+                  let label
 
-      pane.setBuf(buf, {}, () => {
-        c.session.messages({ sessionID, directory: sessionDir }).then(r => {
-          d({ r })
-          for (let msg of (r.data || []))
-            for (let part of (msg.parts || []))
-              if (part.type == 'text')
-                Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
-              else if (part.type == 'reasoning' && part.text)
-                Ui.appendThinking(buf, part.text, part.id)
-              else if (part.type == 'tool') {
-                let label
+                  label = part.tool
+                  if (part.tool == 'bash' && part.state?.input?.command)
+                    label += ': ' + part.state.input.command
+                  else if (part.state?.input?.filePath)
+                    label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
+                  else if (part.state?.input?.pattern)
+                    label += ' "' + part.state.input.pattern + '"'
+                  else if (part.state?.input?.query)
+                    label += ': ' + part.state.input.query
+                  else if (part.state?.input?.url)
+                    label += ' ' + part.state.input.url
+                  Ui.appendToolMsg(buf, part.callID, label,
+                                   part.state?.output || part.state?.error)
+                }
+          })
 
-                label = part.tool
-                if (part.tool == 'bash' && part.state?.input?.command)
-                  label += ': ' + part.state.input.command
-                else if (part.state?.input?.filePath)
-                  label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
-                else if (part.state?.input?.pattern)
-                  label += ' "' + part.state.input.pattern + '"'
-                else if (part.state?.input?.query)
-                  label += ': ' + part.state.input.query
-                else if (part.state?.input?.url)
-                  label += ' ' + part.state.input.url
-                Ui.appendToolMsg(buf, part.callID, label,
-                                 part.state?.output || part.state?.error)
-              }
+          buf.vars('code').firstPromptSent = 1
+          Prompt.nestBuf(buf)
+          Ev.startSub(buf, events)
         })
-
-        buf.vars('code').firstPromptSent = 1
-        Prompt.nestBuf(buf)
-        Ev.startSub(buf, events)
+      }).catch(err => {
+        Mess.yell('Failed: ' + err.message)
       })
     }
 

@@ -733,9 +733,9 @@ function handleSubagentIdle
     })
 }
 
-async function send
+function send
 (buf, text, provider, model, variant) {
-  let sessionID, c, res
+  let sessionID
 
   provider = provider || Util.getProvider(buf)
   model = model || Util.getModel(buf)
@@ -743,24 +743,15 @@ async function send
 
   sessionID = buf.vars('code').sessionID
 
-  try {
-    c = await Comm.ensureClient(buf)
-  }
-  catch (err) {
-    d(err)
-    Ui.appendMsg(buf, 'assistant', 'Error: ' + err.message)
-    return
-  }
+  Comm.ensureClient(buf).then(async c => {
+    let agent, res
 
-  buf.vars('code').agentStopped = 0
-  buf.vars('code').busy = 1
+    buf.vars('code').agentStopped = 0
+    buf.vars('code').busy = 1
 
-  Ui.appendMsg(buf, 'user', text)
+    Ui.appendMsg(buf, 'user', text)
 
-  Ev.startSub(buf, events)
-
-  try {
-    let agent
+    Ev.startSub(buf, events)
 
     agent = Util.getAgent(buf)
 
@@ -781,22 +772,21 @@ async function send
     appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant))
     if (provider == 'openrouter')
       updateCredits(buf)
-  }
-  catch (err) {
+
+    if (res?.error) {
+      d({ resError: res.error })
+      Ui.appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
+      buf.vars('code').client = 0
+      buf.vars('code').streamActive = 0
+      Ev.startSub(buf, events)
+    }
+  }).catch(err => {
     d(err)
     Ui.appendMsg(buf, 'assistant', 'Error: ' + err.message)
     buf.vars('code').client = 0
     buf.vars('code').streamActive = 0
     Ev.startSub(buf, events)
-  }
-
-  if (res?.error) {
-    d({ resError: res.error })
-    Ui.appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
-    buf.vars('code').client = 0
-    buf.vars('code').streamActive = 0
-    Ev.startSub(buf, events)
-  }
+  })
 }
 
 function stopAgent

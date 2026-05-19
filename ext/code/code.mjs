@@ -993,12 +993,10 @@ function code
     buf.vars('code').variant = variant
     buf.opt('core.lint.enabled', 1)
 
-    pane.setBuf(buf, {}, async () => {
-      try {
-        let c, res
-
-        Ui.appendMsg(buf, 0, 'Spawning docker...')
-        c = await Comm.ensureClient(buf)
+    pane.setBuf(buf, {}, () => {
+      Ui.appendMsg(buf, 0, 'Spawning docker...')
+      Comm.ensureClient(buf).then(async c => {
+        let res
 
         Ui.appendMsg(buf, 0, 'Creating session...')
         res = await c.session.create({ directory: buf.dir, title: prompt || '' })
@@ -1012,10 +1010,9 @@ function code
           send(buf, prompt, provider, model, variant)
         else
           openPrompt(buf, pane, provider, model, variant)
-      }
-      catch (err) {
+      }).catch(err => {
         Mess.yell('Failed: ' + err.message)
-      }
+      })
     })
   }
 

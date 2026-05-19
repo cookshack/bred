@@ -29,8 +29,10 @@ async function ensureClient
         buf.vars('code').containerName = data.containerName
         Ui.updateDocker(buf)
       }
-      if (data.log)
+      if (data.log) {
         d(data.log)
+        Ui.appendMsg(buf, 0, data.log)
+      }
     })
 
     Tron.cmd('code.spawn', [ buf.id, buf.dir, statusCh ], (err, data) => {

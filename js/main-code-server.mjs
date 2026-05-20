@@ -37,10 +37,18 @@ function mountArgs
 function containerRunning
 (name) {
   return new Promise(resolve => {
-    let proc, output
+    let proc, output, timedOut, timer
 
+    timedOut = 0
     proc = spawn('docker', [ 'inspect', '--format={{.State.Status}}', name ])
     output = ''
+
+    timer = setTimeout(() => {
+      timedOut = 1
+      spawn('docker', [ 'stop', name ])
+      resolve(0)
+    }, 5000)
+
     proc.stdout.on('data', chunk => {
       output += chunk.toString()
     })
@@ -48,13 +56,64 @@ function containerRunning
       output += chunk.toString()
     })
     proc.on('close', code => {
+      clearTimeout(timer)
+      if (timedOut)
+        return
       if (code) {
         resolve(0)
         return
       }
       resolve(output.trim() == 'running')
     })
-    proc.on('error', () => resolve(0))
+    proc.on('error', () => {
+      clearTimeout(timer)
+      resolve(0)
+    })
+  })
+}
+
+function containerPort
+(name) {
+  return new Promise((resolve, reject) => {
+    let proc, output, timedOut, timer
+
+    timedOut = 0
+    proc = spawn('docker', [ 'port', name, '4096' ])
+    output = ''
+
+    timer = setTimeout(() => {
+      timedOut = 1
+      reject(new Error('docker port timed out'))
+    }, 5000)
+
+    proc.stdout.on('data', chunk => {
+      output += chunk.toString()
+    })
+    proc.stderr.on('data', chunk => {
+      output += chunk.toString()
+    })
+    proc.on('close', code => {
+      let match
+
+      clearTimeout(timer)
+      if (timedOut)
+        return
+      if (code) {
+        reject(new Error('docker port failed with code ' + code + ': ' + output))
+        return
+      }
+      match = output.trim().match(/:(\d+)$/)
+      if (match)
+        resolve(parseInt(match[1]))
+      else
+        reject(new Error('failed to parse docker port from: ' + output))
+    })
+    proc.on('error', err => {
+      if (timedOut)
+        return
+      clearTimeout(timer)
+      reject(err)
+    })
   })
 }
 
@@ -92,9 +151,15 @@ function healthCheck
       send({ log: 'CODE SERVER health check ' + url })
       req = http.get(url + '/global/health', res => {
         if (res.statusCode == 200) {
+          res.resume()
           resolve()
           return
         }
+        res.resume()
+        setTimeout(check, ms)
+      })
+      req.setTimeout(2000, () => {
+        req.destroy()
         setTimeout(check, ms)
       })
       req.on('error', err => {
@@ -109,11 +174,10 @@ function healthCheck
 
 async function spawnDocker
 (spec) {
-  let name, port, workingDir, config, dockerTimeout, healthTimeout, authPath, args
+  let name, workingDir, config, dockerTimeout, healthTimeout, authPath, args
 
   spec = spec || {}
   name = containerName(spec.bufferID)
-  port = spec.port
   workingDir = spec.workingDir
   workingDir || U.toss('workingDir required')
   (workingDir.at(0) == '/') || U.toss('workingDir must be absolute: ' + workingDir)
@@ -125,7 +189,7 @@ async function spawnDocker
   Fs.mkdirSync(dataDir(workingDir), { recursive: true })
 
   args = []
-  args.push('run', '-d', '--rm', '--name', name, '-p', port + ':4096', ...mountArgs(workingDir, authPath), '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
+  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...mountArgs(workingDir, authPath), '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
   if (config.logLevel)
     args.push('--log-level=' + config.logLevel)
 
@@ -153,7 +217,7 @@ async function spawnDocker
     })
 
     proc.on('close', code => {
-      let url, containerID
+      let containerID
 
       clearTimeout(dockerTimer)
 
@@ -166,13 +230,20 @@ async function spawnDocker
       }
 
       containerID = output.trim()
-      url = 'http://127.0.0.1:' + port
 
-      d('CODE SERVER docker container ' + containerID + ' on ' + url)
+      d('CODE SERVER docker container ' + containerID + ' fetching assigned port')
 
-      d('CODE SERVER running health check for ' + containerID + ' on ' + url)
-      healthCheck(url, healthTimeout, name, spec.send)
-        .then(() => {
+      containerPort(name)
+        .then(hostPort => {
+          let url
+
+          url = 'http://127.0.0.1:' + hostPort
+
+          d('CODE SERVER docker container ' + containerID + ' on ' + url)
+          d('CODE SERVER running health check for ' + containerID + ' on ' + url)
+          return healthCheck(url, healthTimeout, name, spec.send).then(() => url)
+        })
+        .then(url => {
           d('CODE SERVER docker container healthy: ' + containerID)
           resolve({ url,
                     containerName: name,
@@ -183,7 +254,7 @@ async function spawnDocker
                     } })
         })
         .catch(err => {
-          d('CODE SERVER docker health check failed: ' + err.message)
+          d('CODE SERVER docker failed: ' + err.message)
           spawn('docker', [ 'stop', name ])
           reject(err)
         })

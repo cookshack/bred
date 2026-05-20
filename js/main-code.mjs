@@ -1,53 +1,9 @@
 import * as Server from './main-code-server.mjs'
-import Net from 'node:net'
 import { d } from './main-log.mjs'
 
 let servers
 
 servers = new Map()
-
-async function isPortInUse
-(port) {
-  return new Promise(resolve => {
-    let timedOut, server
-
-    setTimeout(() => {
-      timedOut = 1
-      resolve(1)
-    }, 1000)
-
-    server = Net.createServer()
-    server.once('error', err => {
-      if (timedOut)
-        return
-      if (err.code == 'EADDRINUSE')
-        resolve(1)
-      else
-        resolve(0)
-    })
-    server.once('listening', () => {
-      if (timedOut) {
-        server.close()
-        return
-      }
-      server.close()
-      resolve(0)
-    })
-    server.listen(port, '127.0.0.1')
-  })
-}
-
-async function getFreePort
-() {
-  let port
-
-  port = 4096
-  while (1)
-    if (servers.has(port) || await isPortInUse(port))
-      port++
-    else
-      return port
-}
 
 export
 function init
@@ -60,12 +16,11 @@ export
 async function onSpawn
 (e, ch, args) {
   let [ bufferID, workingDir, statusCh ] = args
-  let port, name
+  let name
 
-  port = await getFreePort()
   name = Server.containerName(bufferID)
 
-  d('CODE spawn ' + bufferID + ' on port ' + port + ' in ' + workingDir)
+  d('CODE spawn ' + bufferID + ' in ' + workingDir)
 
   e.sender.send(statusCh, { containerName: name })
 
@@ -73,7 +28,6 @@ async function onSpawn
     let server
 
     server = await Server.create({ hostname: '127.0.0.1',
-                                   port,
                                    bufferID,
                                    workingDir,
                                    send: msg => e.sender.send(statusCh, msg),

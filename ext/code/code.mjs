@@ -1198,8 +1198,10 @@ function viewCopy
         nestedView = Buf.view(nv.buf,
                               { ele: pane, elePoint: point },
                               v => {
-                                if (v.ed)
+                                if (v.ed) {
                                   Css.add(paneW, 'ed')
+                                  v.ed.focus()
+                                }
                               })
 
         Css.add(pane, 'current')

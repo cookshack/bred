@@ -3005,8 +3005,8 @@ function init
 
   function add
   () {
-    Scib.scib(pane => {
-      pane.view.buf.append('git checkout -b ')
+    Scib.scib(buf => {
+      buf.append('git checkout -b ')
     })
   }
 

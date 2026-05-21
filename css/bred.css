@@ -1362,6 +1362,13 @@ div.bred-welcome-rf-h-link:hover {
   border-bottom: 1rem solid var(--clr-nb0);
 }
 
+.bred-nested-prompt-w {
+  border-bottom: 1px solid var(--clr-nb0);
+  padding: 0.5rem;
+  padding-bottom: 0;
+  background: var(--clr-fill);
+}
+
 .bred-prompt-icons {
   position: absolute;
   top: calc(var(--height-ml) + var(--padding-top-opener) + 4px); /* div holding cm-line has 4px top pad */

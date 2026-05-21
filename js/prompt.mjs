@@ -138,6 +138,82 @@ function close
   Area.show(win, 'bred-main')
 }
 
+function ensureState
+(parentBuf) {
+  let state, promptBuf
+
+  state = parentBuf.vars('nest')
+  if (state.promptBuf)
+    return state
+
+  promptBuf = Buf.make({ name: 'Nested Prompt',
+                         modeKey: 'nested prompt',
+                         content: Ed.divW(parentBuf.dir, 'Nested Prompt'),
+                         dir: parentBuf.dir,
+                         single: 1 })
+  promptBuf.opts.set('blankLines.enabled', 0)
+  promptBuf.opts.set('core.autocomplete.enabled', 0)
+  promptBuf.opts.set('core.brackets.close.enabled', 0)
+  promptBuf.opts.set('core.folding.enabled', 0)
+  promptBuf.opts.set('core.highlight.activeLine.enabled', 0)
+  promptBuf.opts.set('core.head.enabled', 0)
+  promptBuf.opts.set('core.line.numbers.show', 0)
+  promptBuf.opts.set('core.lint.enabled', 0)
+  promptBuf.opts.set('minimap.enabled', 0)
+  promptBuf.opts.set('ruler.enabled', 0)
+  promptBuf.icon = 'prompt'
+  promptBuf.vars('prompt').parent = parentBuf
+
+  parentBuf.views.forEach(view => {
+    if (view.ele.querySelector('.bred-nested-prompt-w'))
+      return
+    view.ele.prepend(divCl('bred-nested-prompt-w retracted', [ divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': promptBuf.id }) ]))
+  })
+
+  parentBuf.nest(promptBuf)
+
+  state.promptBuf = promptBuf
+  return state
+}
+
+function nestAsk
+(spec, cb) {
+  let p, parentBuf, state
+
+  p = Pane.current()
+  parentBuf = p.buf
+  state = ensureState(parentBuf)
+
+  state.cb = cb
+  state.hist = spec.hist
+  state.hist?.reset()
+
+  state.promptBuf.placeholder = spec.placeholder ?? state.hist?.nth(0)?.toString()
+
+  if (p.view) {
+    let container
+
+    container = p.view.ele.querySelector('.bred-nested-prompt-w')
+    if (container) {
+      let nestedView
+
+      Css.expand(container)
+      nestedView = p.view.nestedViews?.find(nv => nv.buf == state.promptBuf)
+      if (nestedView?.ele) {
+        let mlFile
+
+        mlFile = nestedView.ele.querySelector('.edMl-file')
+        if (mlFile)
+          mlFile.innerText = spec.text || ''
+        p.focusViewAt(nestedView.ele)
+      }
+    }
+  }
+
+  if (spec.onReady)
+    spec.onReady(state.promptBuf)
+}
+
 export
 function ask
 (spec, // { hist, text, onReady, placeholder, suggest, under, w }
@@ -160,6 +236,9 @@ function ask
   d('PROMPT ask')
 
   spec = spec || {}
+
+  if (spec.nest)
+    return nestAsk(spec, cb)
 
   if (spec.under && spec.suggest)
     Mess.toss('under and suggest both given')
@@ -384,6 +463,105 @@ function initPrompt2
   Em.on('Enter', 'ok', mo)
 }
 
+function initNest
+() {
+  let mo
+
+  function submit
+  () {
+    let p, parent, state, promptBuf, text, cb
+
+    p = Pane.current()
+    parent = p.buf
+    state = parent.vars('nest')
+    if (state == null)
+      return
+    promptBuf = state.promptBuf
+    text = promptBuf.text()
+    if (text.length)
+      text = text.trim()
+    else
+      text = promptBuf.placeholder || ''
+    if (text.length == 0) {
+      Mess.yell('Empty')
+      return
+    }
+    cb = state.cb
+    state.hist?.add(text)
+    promptBuf.clear()
+    close(parent)
+    if (cb)
+      cb(text)
+  }
+
+  function cancel
+  () {
+    let p, parent
+    let state
+
+    p = Pane.current()
+    parent = p.buf
+
+    state = parent.vars('nest')
+    if (state == null)
+      return
+
+    parent.views.forEach(view => {
+      let container
+
+      container = view.ele.querySelector('.bred-nested-prompt-w')
+      if (container) {
+        let nestedPane
+
+        Css.retract(container)
+        nestedPane = view.ele.querySelector('.pane.bred-nested.current')
+        if (nestedPane)
+          Css.remove(nestedPane, 'current')
+      }
+    })
+
+    p.focus()
+  }
+
+  function prevHist
+  () {
+    let p, parent, state
+
+    p = Pane.current()
+    parent = p.buf
+    state = parent.vars('nest')
+    if (state?.hist)
+      state.hist.prev(state.promptBuf)
+  }
+
+  function nextHist
+  () {
+    let p, parent, state
+
+    p = Pane.current()
+    parent = p.buf
+    state = parent.vars('nest')
+    if (state?.hist)
+      state.hist.next(state.promptBuf)
+  }
+
+  mo = Mode.add('Nested Prompt', { viewInit: Ed.viewInit,
+                                   viewCopy: Ed.viewCopy,
+                                   initFns: Ed.initModeFns,
+                                   parentsForEm: 'ed' })
+
+  Cmd.add('submit', () => submit(), mo)
+  Cmd.add('cancel', () => cancel(), mo)
+  Cmd.add('next history item', () => nextHist(), mo)
+  Cmd.add('previous history item', () => prevHist(), mo)
+
+  Em.on('Enter', 'submit', mo)
+  Em.on('C-g', 'cancel', mo)
+  Em.on('Escape', 'cancel', mo)
+  Em.on('A-p', 'previous history item', mo)
+  Em.on('A-n', 'next history item', mo)
+}
+
 export
 function init
 () {
@@ -466,4 +644,6 @@ function init
 
   initPrompt2()
   open = PromptFile.init()
+
+  initNest()
 }

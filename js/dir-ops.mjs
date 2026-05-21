@@ -244,8 +244,8 @@ function scof
 
   el = DirCommon.current()
   if (el && el.dataset.path)
-    Scib.scib(pane => {
-      pane.view.buf.append(' ' + el.dataset.path)
+    Scib.scib(buf => {
+      buf.append(' ' + el.dataset.path)
       Cmd.runMo('buffer start', 'Ed', 1)
     })
   else

@@ -51,7 +51,8 @@ function scib
   let p
 
   p = Pane.current()
-  Prompt.ask({ text: 'Shell Command in ' + p.dir,
+  Prompt.ask({ nest: 1,
+               text: 'Shell Command in ' + p.dir,
                hist,
                onReady: cb },
              sc => {

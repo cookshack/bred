@@ -19,8 +19,7 @@ function nestBuf
                    modeKey: 'markdown',
                    content: Ed.divW(buf.dir, 'Code Prompt', { hideMl: 1 }),
                    dir: buf.dir,
-                   placeholder,
-                   single: 1 })
+                   placeholder })
     b.opts.set('blankLines.enabled', 0)
     b.opts.set('core.autocomplete.enabled', 0)
     b.opts.set('core.brackets.close.enabled', 0)

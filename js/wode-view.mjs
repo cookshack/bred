@@ -806,6 +806,7 @@ function copy
                 { text: from.ed.state.doc.toString(),
                   modeWhenText: from.buf.opt('core.lang'),
                   lineNum,
+                  placeholder: from.buf.placeholder,
                   whenReady },
                 whenReady)
 }

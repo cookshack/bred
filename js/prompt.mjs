@@ -143,8 +143,8 @@ function ensureState
   let state, promptBuf, icon
 
   spec = spec || {}
-  state = parentBuf.vars('nest')
-  if (state.promptBuf)
+  state = parentBuf.vars('prompt')
+  if (state.nest?.promptBuf)
     return state
 
   if (spec.icon)
@@ -184,7 +184,7 @@ function ensureState
 
   parentBuf.nest(promptBuf)
 
-  state.promptBuf = promptBuf
+  state.nest = { promptBuf }
   return state
 }
 
@@ -196,11 +196,11 @@ function nestAsk
   parentBuf = p.buf
   state = ensureState(parentBuf, spec)
 
-  state.cb = cb
-  state.hist = spec.hist
-  state.hist?.reset()
+  state.nest.cb = cb
+  state.nest.hist = spec.hist
+  state.nest.hist?.reset()
 
-  state.promptBuf.placeholder = spec.placeholder ?? state.hist?.nth(0)?.toString()
+  state.nest.promptBuf.placeholder = spec.placeholder ?? state.nest.hist?.nth(0)?.toString()
 
   if (p.view) {
     let container
@@ -210,7 +210,7 @@ function nestAsk
       let nestedView
 
       Css.expand(container)
-      nestedView = p.view.nestedViews?.find(nv => nv.buf == state.promptBuf)
+      nestedView = p.view.nestedViews?.find(nv => nv.buf == state.nest.promptBuf)
       if (nestedView?.ele) {
         let mlText
 
@@ -223,7 +223,7 @@ function nestAsk
   }
 
   if (spec.onReady)
-    spec.onReady(state.promptBuf)
+    spec.onReady(state.nest.promptBuf)
 }
 
 export
@@ -485,10 +485,10 @@ function initNest
 
     p = Pane.current()
     parent = p.buf
-    state = parent.vars('nest')
-    if (state == null)
+    state = parent.vars('prompt')
+    if (state.nest == null)
       return
-    promptBuf = state.promptBuf
+    promptBuf = state.nest.promptBuf
     text = promptBuf.text()
     if (text.length)
       text = text.trim()
@@ -498,8 +498,8 @@ function initNest
       Mess.yell('Empty')
       return
     }
-    cb = state.cb
-    state.hist?.add(text)
+    cb = state.nest.cb
+    state.nest.hist?.add(text)
     promptBuf.clear()
 
     parent.views.forEach(view => {
@@ -529,8 +529,8 @@ function initNest
     p = Pane.current()
     parent = p.buf
 
-    state = parent.vars('nest')
-    if (state == null)
+    state = parent.vars('prompt')
+    if (state.nest == null)
       return
 
     parent.views.forEach(view => {
@@ -556,9 +556,9 @@ function initNest
 
     p = Pane.current()
     parent = p.buf
-    state = parent.vars('nest')
-    if (state?.hist)
-      state.hist.prev(state.promptBuf)
+    state = parent.vars('prompt')
+    if (state.nest?.hist)
+      state.nest.hist.prev(state.nest.promptBuf)
   }
 
   function nextHist
@@ -567,9 +567,9 @@ function initNest
 
     p = Pane.current()
     parent = p.buf
-    state = parent.vars('nest')
-    if (state?.hist)
-      state.hist.next(state.promptBuf)
+    state = parent.vars('prompt')
+    if (state.nest?.hist)
+      state.nest.hist.next(state.nest.promptBuf)
   }
 
   mo = Mode.add('Nested Prompt', { viewInit: Ed.viewInit,

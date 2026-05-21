@@ -16,7 +16,7 @@ import { d } from './mess.mjs'
 
 import * as PromptFile from './prompt-file.mjs'
 
-let buf, $callerView, ynEm, ynCb, chooseEm, chooseCb, open
+let $callerView, ynEm, ynCb, chooseEm, chooseCb, open
 
 export
 function callerView
@@ -138,92 +138,54 @@ function close
   Area.show(win, 'bred-main')
 }
 
-function ensureState
-(parentBuf, spec) {
-  let vars, promptBuf, icon
+function ensurePromptBuf
+(parent, spec) {
+  let vars, buf, icon
 
   spec = spec || {}
-  vars = parentBuf.vars('prompt')
+  vars = parent.vars('prompt')
   if (vars.nest?.promptBuf)
     return vars
 
   if (spec.icon)
     icon = img(Icon.path(spec.icon), Icon.alt(spec.icon), 'filter-clr-text')
 
-  promptBuf = Buf.make({ name: 'Nested Prompt',
-                         modeKey: 'nested prompt',
-                         content: Ed.divW(parentBuf.dir,
-                                          0,
-                                          { ml: divCl('ml edMl',
-                                                      [ icon,
-                                                        divCl('bred-prompt-ask-nest-ml-text', '') ]) }),
-                         dir: parentBuf.dir,
-                         single: 1 })
-  promptBuf.vars('ed').fillParent = 0
-  promptBuf.opts.set('blankLines.enabled', 0)
-  promptBuf.opts.set('core.autocomplete.enabled', 0)
-  promptBuf.opts.set('core.brackets.close.enabled', 0)
-  promptBuf.opts.set('core.folding.enabled', 0)
-  promptBuf.opts.set('core.highlight.activeLine.enabled', 0)
-  promptBuf.opts.set('core.head.enabled', 0)
-  promptBuf.opts.set('core.line.numbers.show', 0)
-  promptBuf.opts.set('core.lint.enabled', 0)
-  promptBuf.opts.set('minimap.enabled', 0)
-  promptBuf.opts.set('ruler.enabled', 0)
-  promptBuf.icon = 'prompt'
-  promptBuf.vars('prompt').parent = parentBuf
+  buf = Buf.make({ name: 'Nested Prompt',
+                   modeKey: 'nested prompt',
+                   content: Ed.divW(parent.dir,
+                                    0,
+                                    { ml: divCl('ml edMl',
+                                                [ icon,
+                                                  divCl('bred-prompt-ask-nest-ml-text', '') ]) }),
+                   dir: parent.dir,
+                   single: 1 })
+  buf.vars('ed').fillParent = 0
+  buf.opts.set('blankLines.enabled', 0)
+  buf.opts.set('core.autocomplete.enabled', 0)
+  buf.opts.set('core.brackets.close.enabled', 0)
+  buf.opts.set('core.folding.enabled', 0)
+  buf.opts.set('core.highlight.activeLine.enabled', 0)
+  buf.opts.set('core.head.enabled', 0)
+  buf.opts.set('core.line.numbers.show', 0)
+  buf.opts.set('core.lint.enabled', 0)
+  buf.opts.set('minimap.enabled', 0)
+  buf.opts.set('ruler.enabled', 0)
+  buf.icon = 'prompt'
+  buf.vars('prompt').parent = parent
 
-  parentBuf.views.forEach(view => {
+  parent.views.forEach(view => {
     if (view.ele.querySelector('.bred-prompt-ask-nest-w'))
       return
     view.ele.prepend(divCl('bred-prompt-ask-nest-w retracted',
                            [ divCl('bred-nested-pane-w',
                                    [],
-                                   { 'data-bred-nested-buf-id': promptBuf.id }) ]))
+                                   { 'data-bred-nested-buf-id': buf.id }) ]))
   })
 
-  parentBuf.nest(promptBuf)
+  parent.nest(buf)
 
-  vars.nest = { promptBuf }
+  vars.nest = { promptBuf: buf }
   return vars
-}
-
-function nestAsk
-(spec, cb) {
-  let p, parentBuf, vars
-
-  p = Pane.current()
-  parentBuf = p.buf
-  vars = ensureState(parentBuf, spec)
-
-  vars.nest.cb = cb
-  vars.nest.hist = spec.hist
-  vars.nest.hist?.reset()
-
-  vars.nest.promptBuf.placeholder = spec.placeholder ?? vars.nest.hist?.nth(0)?.toString()
-
-  if (p.view) {
-    let container
-
-    container = p.view.ele.querySelector('.bred-prompt-ask-nest-w')
-    if (container) {
-      let nestedView
-
-      Css.expand(container)
-      nestedView = p.view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
-      if (nestedView?.ele) {
-        let mlText
-
-        mlText = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
-        if (mlText)
-          mlText.innerText = spec.text || ''
-        p.focusViewAt(nestedView.ele)
-      }
-    }
-  }
-
-  if (spec.onReady)
-    spec.onReady(vars.nest.promptBuf)
 }
 
 export
@@ -245,12 +207,50 @@ function ask
     refresh()
   }
 
+  function nest
+  () {
+    let parent, vars
+
+    p = Pane.current()
+    parent = p.buf
+    vars = ensurePromptBuf(parent, spec)
+
+    vars.nest.cb = cb
+    vars.nest.hist = spec.hist
+    vars.nest.hist?.reset()
+
+    vars.nest.promptBuf.placeholder = spec.placeholder ?? vars.nest.hist?.nth(0)?.toString()
+
+    if (p.view) {
+      let container
+
+      container = p.view.ele.querySelector('.bred-prompt-ask-nest-w')
+      if (container) {
+        let nestedView
+
+        Css.expand(container)
+        nestedView = p.view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
+        if (nestedView?.ele) {
+          let mlText
+
+          mlText = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
+          if (mlText)
+            mlText.innerText = spec.text || ''
+          p.focusViewAt(nestedView.ele)
+        }
+      }
+    }
+
+    if (spec.onReady)
+      spec.onReady(vars.nest.promptBuf)
+  }
+
   d('PROMPT ask')
 
   spec = spec || {}
 
   if (spec.nest)
-    return nestAsk(spec, cb)
+    return nest()
 
   if (spec.under && spec.suggest)
     Mess.toss('under and suggest both given')
@@ -592,7 +592,7 @@ function initNest
 export
 function init
 () {
-  let mo
+  let mo, buf
 
   function run
   () {

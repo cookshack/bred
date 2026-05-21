@@ -803,7 +803,7 @@ function copy
 (to, from, lineNum, whenReady) { // (view)
   d('WODE ================== viewCopy')
   Wode.viewInit(to,
-                { text: from.ed.state.doc.toString(),
+                { text: from.ed?.state.doc.toString() || '',
                   modeWhenText: from.buf.opt('core.lang'),
                   lineNum,
                   placeholder: from.buf.placeholder,

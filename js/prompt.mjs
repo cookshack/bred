@@ -140,12 +140,12 @@ function close
 
 function ensureState
 (parentBuf, spec) {
-  let state, promptBuf, icon
+  let vars, promptBuf, icon
 
   spec = spec || {}
-  state = parentBuf.vars('prompt')
-  if (state.nest?.promptBuf)
-    return state
+  vars = parentBuf.vars('prompt')
+  if (vars.nest?.promptBuf)
+    return vars
 
   if (spec.icon)
     icon = img(Icon.path(spec.icon), Icon.alt(spec.icon), 'filter-clr-text')
@@ -184,23 +184,23 @@ function ensureState
 
   parentBuf.nest(promptBuf)
 
-  state.nest = { promptBuf }
-  return state
+  vars.nest = { promptBuf }
+  return vars
 }
 
 function nestAsk
 (spec, cb) {
-  let p, parentBuf, state
+  let p, parentBuf, vars
 
   p = Pane.current()
   parentBuf = p.buf
-  state = ensureState(parentBuf, spec)
+  vars = ensureState(parentBuf, spec)
 
-  state.nest.cb = cb
-  state.nest.hist = spec.hist
-  state.nest.hist?.reset()
+  vars.nest.cb = cb
+  vars.nest.hist = spec.hist
+  vars.nest.hist?.reset()
 
-  state.nest.promptBuf.placeholder = spec.placeholder ?? state.nest.hist?.nth(0)?.toString()
+  vars.nest.promptBuf.placeholder = spec.placeholder ?? vars.nest.hist?.nth(0)?.toString()
 
   if (p.view) {
     let container
@@ -210,7 +210,7 @@ function nestAsk
       let nestedView
 
       Css.expand(container)
-      nestedView = p.view.nestedViews?.find(nv => nv.buf == state.nest.promptBuf)
+      nestedView = p.view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
       if (nestedView?.ele) {
         let mlText
 
@@ -223,7 +223,7 @@ function nestAsk
   }
 
   if (spec.onReady)
-    spec.onReady(state.nest.promptBuf)
+    spec.onReady(vars.nest.promptBuf)
 }
 
 export
@@ -481,14 +481,14 @@ function initNest
 
   function submit
   () {
-    let p, parent, state, promptBuf, text, cb
+    let p, parent, vars, promptBuf, text, cb
 
     p = Pane.current()
     parent = p.buf
-    state = parent.vars('prompt')
-    if (state.nest == null)
+    vars = parent.vars('prompt')
+    if (vars.nest == null)
       return
-    promptBuf = state.nest.promptBuf
+    promptBuf = vars.nest.promptBuf
     text = promptBuf.text()
     if (text.length)
       text = text.trim()
@@ -498,8 +498,8 @@ function initNest
       Mess.yell('Empty')
       return
     }
-    cb = state.nest.cb
-    state.nest.hist?.add(text)
+    cb = vars.nest.cb
+    vars.nest.hist?.add(text)
     promptBuf.clear()
 
     parent.views.forEach(view => {
@@ -524,13 +524,13 @@ function initNest
   function cancel
   () {
     let p, parent
-    let state
+    let vars
 
     p = Pane.current()
     parent = p.buf
 
-    state = parent.vars('prompt')
-    if (state.nest == null)
+    vars = parent.vars('prompt')
+    if (vars.nest == null)
       return
 
     parent.views.forEach(view => {
@@ -552,24 +552,24 @@ function initNest
 
   function prevHist
   () {
-    let p, parent, state
+    let p, parent, vars
 
     p = Pane.current()
     parent = p.buf
-    state = parent.vars('prompt')
-    if (state.nest?.hist)
-      state.nest.hist.prev(state.nest.promptBuf)
+    vars = parent.vars('prompt')
+    if (vars.nest?.hist)
+      vars.nest.hist.prev(vars.nest.promptBuf)
   }
 
   function nextHist
   () {
-    let p, parent, state
+    let p, parent, vars
 
     p = Pane.current()
     parent = p.buf
-    state = parent.vars('prompt')
-    if (state.nest?.hist)
-      state.nest.hist.next(state.nest.promptBuf)
+    vars = parent.vars('prompt')
+    if (vars.nest?.hist)
+      vars.nest.hist.next(vars.nest.promptBuf)
   }
 
   mo = Mode.add('Nested Prompt', { viewInit: Ed.viewInit,

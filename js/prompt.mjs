@@ -139,21 +139,23 @@ function close
 }
 
 function ensureState
-(parentBuf) {
-  let state, promptBuf
+(parentBuf, spec) {
+  let state, promptBuf, icon
 
+  spec = spec || {}
   state = parentBuf.vars('nest')
   if (state.promptBuf)
     return state
+
+  if (spec.icon)
+    icon = img(Icon.path(spec.icon), Icon.alt(spec.icon), 'filter-clr-text')
 
   promptBuf = Buf.make({ name: 'Nested Prompt',
                          modeKey: 'nested prompt',
                          content: Ed.divW(parentBuf.dir,
                                           0,
                                           { ml: divCl('ml edMl',
-                                                      [ img(Icon.path('shell'),
-                                                            'Shell',
-                                                            'filter-clr-text'),
+                                                      [ icon,
                                                         divCl('bred-prompt-ask-nest-ml-text', '') ]) }),
                          dir: parentBuf.dir,
                          single: 1 })
@@ -192,7 +194,7 @@ function nestAsk
 
   p = Pane.current()
   parentBuf = p.buf
-  state = ensureState(parentBuf)
+  state = ensureState(parentBuf, spec)
 
   state.cb = cb
   state.hist = spec.hist

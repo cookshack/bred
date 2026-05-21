@@ -1202,6 +1202,8 @@ function viewCopy
                                   Css.add(paneW, 'ed')
                               })
 
+        Css.add(pane, 'current')
+
         to.nestedViews = to.nestedViews || []
         to.nestedViews.push(nestedView)
       }

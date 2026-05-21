@@ -1135,7 +1135,78 @@ function viewCopy
         }
       }
     }
+    {
+      let fromPrompt, toPrompt
+
+      fromPrompt = from.ele.querySelector('.code-prompt-w')
+      toPrompt = to.ele.querySelector('.code-prompt-w')
+      if (fromPrompt && toPrompt) {
+        if (Css.has(fromPrompt, 'retracted') == 0)
+          Css.remove(toPrompt, 'retracted')
+        {
+          let fromModel, toModel
+
+          fromModel = fromPrompt.querySelector('.code-prompt-model')
+          toModel = toPrompt.querySelector('.code-prompt-model')
+          if (fromModel && toModel)
+            toModel.innerText = fromModel.innerText
+        }
+      }
+    }
   }
+
+  if (from.nestedViews)
+    from.nestedViews.forEach(nv => {
+      let outer, nestedView
+
+      outer = to.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
+      if (outer) {
+        let inner, paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col
+
+        inner = outer.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"]')
+        if (inner)
+          inner.innerHTML = ''
+        else {
+          inner = divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': nv.buf.id })
+          outer.appendChild(inner)
+        }
+
+        point = divCl('bred-point')
+        pointLine = divCl('bred-point-line')
+        lint = divCl('bred-head-ed bred-head-lint hidden',
+                     divCl('bred-lint-marker', [],
+                           { 'data-run': 'first diagnostic' }))
+        col = divCl('bred-head bred-head-end',
+                    [ divCl('bred-head-ed bred-head-col', 'C1') ])
+        head = divCl('bred-head bred-head-mid', [ lint ])
+        headW = divCl('bred-head-w', [ head, col ])
+        overlay = divCl('bred-overlay', [ point, pointLine, headW ])
+        overlayW = divCl('bred-overlay-w bred-nested', overlay)
+        pane = divCl('pane bred-nested', [])
+        paneW = divCl('paneW bred-nested', [ pane, overlayW ])
+
+        paneW.onscroll = () => {
+          if (nestedView.ed)
+            return
+          if (nestedView.scroll?.manual)
+            return
+          nestedView.point.ensureInView()
+        }
+
+        inner.appendChild(paneW)
+
+        nestedView = Buf.view(nv.buf,
+                              { ele: pane, elePoint: point },
+                              v => {
+                                if (v.ed)
+                                  Css.add(paneW, 'ed')
+                              })
+
+        to.nestedViews = to.nestedViews || []
+        to.nestedViews.push(nestedView)
+      }
+    })
+
   if (cb)
     cb(to)
 }

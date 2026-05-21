@@ -139,7 +139,7 @@ function close
 }
 
 function ensurePromptBuf
-(parent, co) {
+(parent, co, placeholder) {
   let vars, buf
 
   vars = parent.vars('prompt')
@@ -152,7 +152,7 @@ function ensurePromptBuf
                                     0,
                                     { ml: divCl('ml edMl', co) }),
                    dir: parent.dir,
-                   single: 1 })
+                   placeholder })
   buf.vars('ed').fillParent = 0
   buf.opts.set('blankLines.enabled', 0)
   buf.opts.set('core.autocomplete.enabled', 0)
@@ -203,20 +203,20 @@ function ask
 
   function nest
   () {
-    let parent, vars
+    let parent, vars, ph
 
     p = Pane.current()
     parent = p.buf
+    spec.hist?.reset()
+    ph = spec.placeholder ?? spec.hist?.nth(0)?.toString()
 
     vars = ensurePromptBuf(parent,
                            [ img('', '', 'filter-clr-text bred-prompt-ask-nest-ml-icon retracted'),
-                             divCl('bred-prompt-ask-nest-ml-text', spec.text || '') ])
+                             divCl('bred-prompt-ask-nest-ml-text', spec.text || '') ],
+                           ph)
 
     vars.nest.cb = cb
     vars.nest.hist = spec.hist
-    vars.nest.hist?.reset()
-
-    vars.nest.promptBuf.placeholder = spec.placeholder ?? vars.nest.hist?.nth(0)?.toString()
 
     parent.views.forEach(view => {
       let container

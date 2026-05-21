@@ -24,6 +24,9 @@ function path
   if (name == 'prompt')
     return 'img/prompt-square.svg'
 
+  if (name == 'shell')
+    return 'img/shell.svg'
+
   if (name == 'thinking.active')
     return 'img/thinking-active.svg'
 

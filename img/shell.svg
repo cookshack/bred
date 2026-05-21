@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="24"
+   height="24"
+   viewBox="0 0 24 24"
+   fill="none"
+   version="1.1"
+   id="svg1827"
+   sodipodi:docname="shell.svg"
+   inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1831" />
+  <sodipodi:namedview
+     id="namedview1829"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="25.30853"
+     inkscape:cx="9.9176049"
+     inkscape:cy="11.616637"
+     inkscape:window-width="1920"
+     inkscape:window-height="1018"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg1827" />
+  <!-- Base: Soft rectangular pane (neutral container) -->
+  <!-- Top: Thin section divider (for sections) -->
+  <!-- Middle: Upward arrow (caller relationships) -->
+  <!-- Bottom: Dotted line (patch fragments) -->
+  <path
+     id="rect421-5"
+     style="stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+     d="m 12.083032,17.656853 h 6.274431"
+     sodipodi:nodetypes="cc" />
+  <rect
+     style="fill:none;stroke:#000000;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+     id="rect478"
+     width="21"
+     height="21"
+     x="1.5"
+     y="1.5" />
+  <path
+     id="rect543"
+     style="stroke:#000000;stroke-width:1.99999;stroke-linecap:round;stroke-linejoin:round"
+     d="M 5.6425402,17.656858 11.299395,12.000004 5.6425324,6.3431418"
+     sodipodi:nodetypes="ccc" />
+</svg>

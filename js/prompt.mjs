@@ -148,7 +148,13 @@ function ensureState
 
   promptBuf = Buf.make({ name: 'Nested Prompt',
                          modeKey: 'nested prompt',
-                         content: Ed.divW(parentBuf.dir, 0, { ml: divCl('ml edMl', '') }),
+                         content: Ed.divW(parentBuf.dir,
+                                          0,
+                                          { ml: divCl('ml edMl',
+                                                      [ img(Icon.path('shell'),
+                                                            'Shell',
+                                                            'filter-clr-text'),
+                                                        divCl('bred-prompt-ask-nest-ml-text', '') ]) }),
                          dir: parentBuf.dir,
                          single: 1 })
   promptBuf.vars('ed').fillParent = 0
@@ -166,9 +172,12 @@ function ensureState
   promptBuf.vars('prompt').parent = parentBuf
 
   parentBuf.views.forEach(view => {
-    if (view.ele.querySelector('.bred-nested-prompt-w'))
+    if (view.ele.querySelector('.bred-prompt-ask-nest-w'))
       return
-    view.ele.prepend(divCl('bred-nested-prompt-w retracted', [ divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': promptBuf.id }) ]))
+    view.ele.prepend(divCl('bred-prompt-ask-nest-w retracted',
+                           [ divCl('bred-nested-pane-w',
+                                   [],
+                                   { 'data-bred-nested-buf-id': promptBuf.id }) ]))
   })
 
   parentBuf.nest(promptBuf)
@@ -194,18 +203,18 @@ function nestAsk
   if (p.view) {
     let container
 
-    container = p.view.ele.querySelector('.bred-nested-prompt-w')
+    container = p.view.ele.querySelector('.bred-prompt-ask-nest-w')
     if (container) {
       let nestedView
 
       Css.expand(container)
       nestedView = p.view.nestedViews?.find(nv => nv.buf == state.promptBuf)
       if (nestedView?.ele) {
-        let ml
+        let mlText
 
-        ml = nestedView.ele.querySelector('.edMl')
-        if (ml)
-          ml.innerText = spec.text || ''
+        mlText = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
+        if (mlText)
+          mlText.innerText = spec.text || ''
         p.focusViewAt(nestedView.ele)
       }
     }
@@ -494,7 +503,7 @@ function initNest
     parent.views.forEach(view => {
       let container
 
-      container = view.ele.querySelector('.bred-nested-prompt-w')
+      container = view.ele.querySelector('.bred-prompt-ask-nest-w')
       if (container) {
         let nestedPane
 
@@ -525,7 +534,7 @@ function initNest
     parent.views.forEach(view => {
       let container
 
-      container = view.ele.querySelector('.bred-nested-prompt-w')
+      container = view.ele.querySelector('.bred-prompt-ask-nest-w')
       if (container) {
         let nestedPane
 

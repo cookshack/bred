@@ -151,6 +151,7 @@ function ensureState
                          content: Ed.divW(parentBuf.dir, 'Nested Prompt'),
                          dir: parentBuf.dir,
                          single: 1 })
+  promptBuf.vars('ed').fillParent = 0
   promptBuf.opts.set('blankLines.enabled', 0)
   promptBuf.opts.set('core.autocomplete.enabled', 0)
   promptBuf.opts.set('core.brackets.close.enabled', 0)

@@ -143,8 +143,23 @@ function ensurePromptBuf
   let vars, buf
 
   vars = parent.vars('prompt')
-  if (vars.nest?.promptBuf)
+  if (vars.nest?.promptBuf) {
+    let seen
+
+    seen = 0
+    parent.views.forEach(view => {
+      if (view.ele.querySelector('.bred-prompt-ask-nest-w'))
+        return
+      view.ele.prepend(divCl('bred-prompt-ask-nest-w retracted',
+                             [ divCl('bred-nested-pane-w',
+                                     [],
+                                     { 'data-bred-nested-buf-id': vars.nest.promptBuf.id }) ]))
+      seen = 1
+    })
+    if (seen)
+      parent.nest(vars.nest.promptBuf)
     return vars
+  }
 
   buf = Buf.make({ name: 'Nested Prompt',
                    modeKey: 'nested prompt',

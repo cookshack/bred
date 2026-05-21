@@ -222,6 +222,9 @@ function make
       if (container) {
         let paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col
 
+        if (container.querySelector('.pane.bred-nested'))
+          return
+
         container.innerHTML = ''
 
         point = divCl('bred-point')
@@ -273,7 +276,8 @@ function make
     childBuf.parent = b
 
     b.children = b.children || []
-    b.children.push(childBuf)
+    if (b.children.indexOf(childBuf) == -1)
+      b.children.push(childBuf)
   }
 
   function bury

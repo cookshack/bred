@@ -489,7 +489,22 @@ function initNest
     cb = state.cb
     state.hist?.add(text)
     promptBuf.clear()
-    close(parent)
+
+    parent.views.forEach(view => {
+      let container
+
+      container = view.ele.querySelector('.bred-nested-prompt-w')
+      if (container) {
+        let nestedPane
+
+        Css.retract(container)
+        nestedPane = container.querySelector('.pane.bred-nested.current')
+        if (nestedPane)
+          Css.remove(nestedPane, 'current')
+      }
+    })
+
+    p.focus()
     if (cb)
       cb(text)
   }
@@ -514,7 +529,7 @@ function initNest
         let nestedPane
 
         Css.retract(container)
-        nestedPane = view.ele.querySelector('.pane.bred-nested.current')
+        nestedPane = container.querySelector('.pane.bred-nested.current')
         if (nestedPane)
           Css.remove(nestedPane, 'current')
       }

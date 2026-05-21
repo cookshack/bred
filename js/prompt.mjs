@@ -218,15 +218,15 @@ function ask
 
     vars.nest.promptBuf.placeholder = spec.placeholder ?? vars.nest.hist?.nth(0)?.toString()
 
-    if (p.view) {
+    parent.views.forEach(view => {
       let container
 
-      container = p.view.ele.querySelector('.bred-prompt-ask-nest-w')
+      container = view.ele.querySelector('.bred-prompt-ask-nest-w')
       if (container) {
         let nestedView
 
         Css.expand(container)
-        nestedView = p.view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
+        nestedView = view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
         if (nestedView?.ele) {
           let mlText, mlIcon
 
@@ -242,10 +242,11 @@ function ask
             }
             else
               Css.retract(mlIcon)
-          p.focusViewAt(nestedView.ele)
         }
+        if (view == p.view && nestedView?.ele)
+          p.focusViewAt(nestedView.ele)
       }
-    }
+    })
 
     if (spec.onReady)
       spec.onReady(vars.nest.promptBuf)

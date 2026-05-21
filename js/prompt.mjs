@@ -148,7 +148,7 @@ function ensureState
 
   promptBuf = Buf.make({ name: 'Nested Prompt',
                          modeKey: 'nested prompt',
-                         content: Ed.divW(parentBuf.dir, 'Nested Prompt'),
+                         content: Ed.divW(parentBuf.dir, 0, { ml: divCl('ml edMl', '') }),
                          dir: parentBuf.dir,
                          single: 1 })
   promptBuf.vars('ed').fillParent = 0
@@ -201,11 +201,11 @@ function nestAsk
       Css.expand(container)
       nestedView = p.view.nestedViews?.find(nv => nv.buf == state.promptBuf)
       if (nestedView?.ele) {
-        let mlFile
+        let ml
 
-        mlFile = nestedView.ele.querySelector('.edMl-file')
-        if (mlFile)
-          mlFile.innerText = spec.text || ''
+        ml = nestedView.ele.querySelector('.edMl')
+        if (ml)
+          ml.innerText = spec.text || ''
         p.focusViewAt(nestedView.ele)
       }
     }

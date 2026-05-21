@@ -497,7 +497,11 @@ function initCompile
 
   function compile
   () {
-    Prompt.ask({ text: 'Compile Command:',
+    let p
+
+    p = Pane.current()
+    Prompt.ask({ nest: 1,
+                 text: '🔨 Compile Command in ' + p.dir,
                  hist: compileHist },
                runText)
   }

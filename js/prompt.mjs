@@ -139,24 +139,18 @@ function close
 }
 
 function ensurePromptBuf
-(parent, spec) {
-  let vars, buf, icon
+(parent, co) {
+  let vars, buf
 
-  spec = spec || {}
   vars = parent.vars('prompt')
   if (vars.nest?.promptBuf)
     return vars
-
-  if (spec.icon)
-    icon = img(Icon.path(spec.icon), Icon.alt(spec.icon), 'filter-clr-text')
 
   buf = Buf.make({ name: 'Nested Prompt',
                    modeKey: 'nested prompt',
                    content: Ed.divW(parent.dir,
                                     0,
-                                    { ml: divCl('ml edMl',
-                                                [ icon,
-                                                  divCl('bred-prompt-ask-nest-ml-text', '') ]) }),
+                                    { ml: divCl('ml edMl', co) }),
                    dir: parent.dir,
                    single: 1 })
   buf.vars('ed').fillParent = 0
@@ -213,7 +207,10 @@ function ask
 
     p = Pane.current()
     parent = p.buf
-    vars = ensurePromptBuf(parent, spec)
+
+    vars = ensurePromptBuf(parent,
+                           [ img('', '', 'filter-clr-text bred-prompt-ask-nest-ml-icon retracted'),
+                             divCl('bred-prompt-ask-nest-ml-text', spec.text || '') ])
 
     vars.nest.cb = cb
     vars.nest.hist = spec.hist
@@ -231,11 +228,20 @@ function ask
         Css.expand(container)
         nestedView = p.view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
         if (nestedView?.ele) {
-          let mlText
+          let mlText, mlIcon
 
           mlText = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
           if (mlText)
             mlText.innerText = spec.text || ''
+          mlIcon = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-icon')
+          if (mlIcon)
+            if (spec.icon) {
+              mlIcon.src = Icon.path(spec.icon)
+              mlIcon.alt = Icon.alt(spec.icon)
+              Css.expand(mlIcon)
+            }
+            else
+              Css.retract(mlIcon)
           p.focusViewAt(nestedView.ele)
         }
       }

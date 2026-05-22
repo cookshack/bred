@@ -2591,10 +2591,12 @@ function initLogOneLine
   }
 
   function showCommit
-  () {
+  (other) {
     let p, l, hash
 
     p = Pane.current()
+    if (other)
+      Pane.nextOrSplit()
     l = p.line()
     hash = /^([0-9a-f]+)/.exec(l)?.[1]
     if (hash)
@@ -2677,21 +2679,23 @@ function initLogOneLine
   Cmd.add('previous commit', () => next(-1), mo)
   Cmd.add('show', () => show(), mo)
   Cmd.add('show commit', () => showCommit(), mo)
+  Cmd.add('show commit in other pane', () => showCommit(1), mo)
 
   Em.on('q', 'bury', mo)
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
 
+  Em.on('Enter', 'show commit', mo)
+  Em.on('Tab', 'next commit', mo)
+  Em.on('C-Tab', 'previous commit', mo)
+  Em.on('=', 'show commit', mo)
+  Em.on('e', 'show commit', mo)
   Em.on('g', 'refresh', mo)
   Em.on('l', 'refresh', mo)
   Em.on('L', 'full', mo)
   Em.on('n', 'next commit', mo)
-  Em.on('Tab', 'next commit', mo)
+  Em.on('o', 'show commit in other pane', mo)
   Em.on('p', 'previous commit', mo)
-  Em.on('C-Tab', 'previous commit', mo)
-  Em.on('e', 'show commit', mo)
-  Em.on('Enter', 'show commit', mo)
-  Em.on('=', 'show commit', mo)
 }
 
 function initAnnotate

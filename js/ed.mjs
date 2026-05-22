@@ -998,17 +998,18 @@ function pageBackward
   pageForward(u ? -u : -1)
 }
 
-pageCmds = [ 'Page Forward', 'Page Backward',
-             'Page Forward Or Self Insert',
-             'Page Backward Or Self Insert' ]
+pageCmds = [ 'Page Forward', 'Page Backward' ]
 
 function pageForwardOrSelf
 (u, we) {
   let last
 
   last = Cmd.last()
-  if (pageCmds.includes(last))
+  if (pageCmds.includes(last)
+      || Cmd.lastFlag('page xward or self insert')) {
+    Cmd.flagLast('page xward or self insert', 1)
     pageForward(u)
+  }
   else
     Backend.selfInsert(u, we)
 }
@@ -1018,8 +1019,11 @@ function pageBackwardOrSelf
   let last
 
   last = Cmd.last()
-  if (pageCmds.includes(last))
+  if (pageCmds.includes(last)
+      || Cmd.lastFlag('page xward or self insert')) {
+    Cmd.flagLast('page xward or self insert', 1)
     pageBackward(u)
+  }
   else
     Backend.selfInsert(u, we)
 }

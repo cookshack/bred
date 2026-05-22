@@ -733,6 +733,19 @@ function handleSubagentIdle
     })
 }
 
+function ensureTitle
+(c, buf, sessionID, text) {
+  if (buf.vars('code').prompt)
+    return
+  if (buf.vars('code').titleUpdated)
+    return
+  buf.vars('code').titleUpdated = 1
+  c.session.update({ sessionID,
+                     directory: buf.dir,
+                     title: text })
+    .catch(() => {})
+}
+
 function send
 (buf, text, provider, model, variant) {
   let sessionID
@@ -768,6 +781,8 @@ function send
 
     d('CO SEND done')
     d({ res })
+
+    ensureTitle(c, buf, sessionID, text)
 
     appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant))
     if (provider == 'openrouter')
@@ -999,7 +1014,8 @@ function code
         let res
 
         Ui.appendMsg(buf, 0, 'Creating session...')
-        res = await c.session.create({ directory: buf.dir, title: prompt || '' })
+        res = await c.session.create({ directory: buf.dir,
+                                       ...(prompt ? { title: prompt } : {}) })
 
         buf.vars('code').sessionID = res.data.id
 

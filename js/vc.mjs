@@ -1846,7 +1846,8 @@ function initCommit
 
   function commit
   () {
-    Prompt.ask({ text: 'Commit Message:',
+    Prompt.ask({ nest: 1,
+                 text: 'Commit Message:',
                  placeholder: '',
                  hist },
                runGit)

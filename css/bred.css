@@ -1486,6 +1486,10 @@ div.bred-open-under-f {
   margin-right: 0.5rem;
 }
 
+.bred-prompt-ask-nest-ml-text {
+  color: var(--clr-nb0);
+}
+
 .bred-overlay-w {
   pointer-events: none;
   position: absolute; /* for .bred-point */

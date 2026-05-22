@@ -52,9 +52,7 @@ function scib
 
   p = Pane.current()
   Prompt.ask({ nest: 1,
-               icon: 'shell',
-               text: 'Shell Command in ' + p.dir,
-               icon: 'shell',
+               text: '❯▁ Shell Command in ' + p.dir,
                hist,
                onReady: cb },
              sc => {

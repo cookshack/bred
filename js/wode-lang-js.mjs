@@ -28,14 +28,10 @@ function makeJsIndents
                return ctx.column(ctx.node.parent.from) + ctx.unit
              }
 
-             if (parent == 'FunctionDeclaration') {
-               let line, text, bracePos
-
-               line = ctx.state.doc.lineAt(ctx.node.from)
-               text = line.text
-               bracePos = text.indexOf('{')
-               if (bracePos > 0)
-                 return CMLang.delimitedIndent({ closing: '}', align: false })(ctx)
+              if (parent == 'FunctionDeclaration' || parent == 'FunctionExpression' || parent == 'ArrowFunction') {
+               if (/^\s*}/.test(ctx.textAfter))
+                 return ctx.column(ctx.node.parent.from)
+               return ctx.column(ctx.node.parent.from) + ctx.unit
              }
 
              return CMLang.delimitedIndent({ closing: '}', align: true })(ctx)

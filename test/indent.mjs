@@ -203,6 +203,46 @@ return { 'Program:xxx'
            // that
          } }`)
 
+pass('function expression body',
+     `
+let x = function() {
+// inside
+}`,
+     `
+let x = function() {
+          // inside
+        }`)
+
+pass('function expression closing brace',
+     `
+let x = function() {
+          // inside
+}`,
+     `
+let x = function() {
+          // inside
+        }`)
+
+pass('arrow expression body',
+     `
+let x = () => {
+// inside
+}`,
+     `
+let x = () => {
+          // inside
+        }`)
+
+pass('arrow expression closing brace',
+     `
+let x = () => {
+          // inside
+}`,
+     `
+let x = () => {
+          // inside
+        }`)
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

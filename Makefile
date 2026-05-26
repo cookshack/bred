@@ -17,7 +17,7 @@ fix-sqlite3:
 	npx electron-rebuild -w better-sqlite3
 
 prep: oc version-sqlite fix-node-pty fix-sqlite3 fix-others fix-codemirror prep-mime
-	patch-package --patch-dir node_modules/@cookshack/eslint-config/patches
+	npx patch-package --patch-dir node_modules/@cookshack/eslint-config/patches
 	rm -f lib/callsites.js
 	cp -r node_modules/callsites/index.js lib/callsites.mjs
 	npx peggy --format es -o lib/ev-parser.mjs lib/ev.pegjs

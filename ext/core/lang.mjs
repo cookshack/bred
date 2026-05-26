@@ -38,7 +38,7 @@ function makeAutocomplete
                                break
                            }
                          resolve({ from: word.from,
-                options: options || [] })
+                                   options: options || [] })
                        })
   }
 
@@ -78,7 +78,7 @@ function makeAutocomplete
                                                                                           { label: 'magic', type: 'text', apply: '⠁⭒*.✩.*⭒⠁', detail: 'macro' } ]
                                                                           }
                                                                           resolve({ from: word.from,
-                  options: options || [] })
+                                                                                    options: options || [] })
                                                                         })
                        })
   }

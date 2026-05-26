@@ -117,8 +117,8 @@ function onAll
                                                           { throwIfNoEntry: false })
                                        if (stat && isDir(stat))
                                          exts.push({ name,
-                    mandatory: mandatoryExt(name),
-                    added: added(name) })
+                                                     mandatory: mandatoryExt(name),
+                                                     added: added(name) })
                                      })
                         e.sender.send(ch, { exts })
                       })

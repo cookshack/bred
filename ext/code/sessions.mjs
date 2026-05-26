@@ -34,12 +34,12 @@ function init
                                                                            sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir)).map(s => {
                                                                                                                                                     return [ divCl('code-sessions-del', '✗',
                                                                                                                                                                    { 'data-run': 'delete session',
-                                  'data-session-id': s.id,
-                                  'data-session-dir': s.directory }),
+                                                                                                                                                                     'data-session-id': s.id,
+                                                                                                                                                                     'data-session-dir': s.directory }),
                                                                                                                                                              divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
                                                                                                                                                                    { 'data-run': 'open code session',
-                                  'data-session-id': s.id,
-                                  'data-session-dir': s.directory }),
+                                                                                                                                                                     'data-session-id': s.id,
+                                                                                                                                                                     'data-session-dir': s.directory }),
                                                                                                                                                              divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
                                                                                                                                                   }))
                                                                   }))

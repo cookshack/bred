@@ -1340,13 +1340,13 @@ function init
 
                    d('add ed mode')
                    mo = Mode.add('Ed', { hidePoint: 1,
-                          viewInit: Backend.viewInit,
-                          viewCopy: Backend.viewCopy,
-                          viewReopen: Backend.viewReopen,
-                          initFns: initModeFns,
-                          assist: 0,
-                          //
-                          onRemove: Backend.onBufRemove })
+                                         viewInit: Backend.viewInit,
+                                         viewCopy: Backend.viewCopy,
+                                         viewReopen: Backend.viewReopen,
+                                         initFns: initModeFns,
+                                         assist: 0,
+                                         //
+                                         onRemove: Backend.onBufRemove })
 
                    d('init backend')
                    Backend.init(mo)

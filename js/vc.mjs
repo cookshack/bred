@@ -747,20 +747,20 @@ function initHub
                        }
 
                        rows.push({ prNum,
-                    issueNum,
-                    type,
-                    tag,
-                    prState: '',
-                    branch: '',
-                    author: '',
-                    approvedBy: '',
-                    repo: n.repository.name,
-                    subject: n.subject.title.length > 70 ? n.subject.title.slice(0, 67) + '...' : n.subject.title,
-                    reason: shortReason(n.reason),
-                    updated: formatDate(n.updated_at),
-                    ownerRepo,
-                    url,
-                    id: n.id })
+                                   issueNum,
+                                   type,
+                                   tag,
+                                   prState: '',
+                                   branch: '',
+                                   author: '',
+                                   approvedBy: '',
+                                   repo: n.repository.name,
+                                   subject: n.subject.title.length > 70 ? n.subject.title.slice(0, 67) + '...' : n.subject.title,
+                                   reason: shortReason(n.reason),
+                                   updated: formatDate(n.updated_at),
+                                   ownerRepo,
+                                   url,
+                                   id: n.id })
                      })
 
       widths = [ 1, 4, 0, 0, 0, 16, 0, 0 ]
@@ -1518,7 +1518,7 @@ function initHub
                                                  p = Pane.current()
                                                  Ed.make(p,
                                                          { name: 'vc-hub.json',
-                dir: p.dir },
+                                                           dir: p.dir },
                                                          view => {
                                                            view.buf.file = 'vc-hub.json'
                                                            view.buf.opts.set('core.lang', 'json')
@@ -1606,17 +1606,17 @@ function initPrs
                               repo = ownerRepo.split('/')[1] || ''
 
                               return { num: String(pr.number),
-                 state,
-                 prState: '',
-                 repo,
-                 ownerRepo,
-                 title: pr.title,
-                 updated: formatDate(pr.updated_at),
-                 branch: '',
-                 author: '',
-                 approvedBy: '',
-                 comments: 0,
-                 url }
+                                       state,
+                                       prState: '',
+                                       repo,
+                                       ownerRepo,
+                                       title: pr.title,
+                                       updated: formatDate(pr.updated_at),
+                                       branch: '',
+                                       author: '',
+                                       approvedBy: '',
+                                       comments: 0,
+                                       url }
                             })
 
       widths = [ 1, 4, 0, 0, 0, 0 ]
@@ -1785,7 +1785,7 @@ function initPrs
                                                     }
                                                     Ed.make(p,
                                                             { name: 'vc-prs.json',
-                                       dir: p.dir },
+                                                              dir: p.dir },
                                                             view => {
                                                               view.buf.file = 'vc-prs.json'
                                                               view.buf.opts.set('core.lang', 'json')
@@ -2506,7 +2506,7 @@ function initLog
                                go(term)
                              else
                                Prompt.ask({ text: 'VC Log Search:',
-                   hist },
+                                            hist },
                                           go)
                            })
 
@@ -2663,7 +2663,7 @@ function initLogOneLine
                                         go(term)
                                       else
                                         Prompt.ask({ text: 'VC Log Search:',
-                   hist },
+                                                     hist },
                                                    go)
                                     })
 
@@ -2772,15 +2772,15 @@ function initAnnotate
                                                                                                                                        return
                                                                                                                                      clr = clrs[commits.length % clrs.length]
                                                                                                                                      commit = { hash,
-                       clr,
-                       decorHash: Ed.makeDecor({ attr: { 'data-run': 'show',
-                                                         'data-hash': hash } }),
-                       decorHashJoin: Ed.makeDecor({ attr: { style: 'visibility: hidden;',
-                                                             'data-run': 'show',
-                                                             'data-hash': hash } }),
-                       decorText: Ed.makeDecor({ line: 1,
-                                                 attr: { style: '--background-color: ' + clr + '; --z-index: var(--z-below-activeLine);',
-                                                         class: 'bred-bg vc-bg' } }) }
+                                                                                                                                                clr,
+                                                                                                                                                decorHash: Ed.makeDecor({ attr: { 'data-run': 'show',
+                                                                                                                                                                                  'data-hash': hash } }),
+                                                                                                                                                decorHashJoin: Ed.makeDecor({ attr: { style: 'visibility: hidden;',
+                                                                                                                                                                                      'data-run': 'show',
+                                                                                                                                                                                      'data-hash': hash } }),
+                                                                                                                                                decorText: Ed.makeDecor({ line: 1,
+                                                                                                                                                                          attr: { style: '--background-color: ' + clr + '; --z-index: var(--z-below-activeLine);',
+                                                                                                                                                                                  class: 'bred-bg vc-bg' } }) }
                                                                                                                                      commits.push(commit)
                                                                                                                                      return
                                                                                                                                    }
@@ -2816,7 +2816,7 @@ function initAnnotate
                                                                                                                                      let out1
 
                                                                                                                                      rows.push({ commit,
-                        join: commit.hash == previous?.hash })
+                                                                                                                                                 join: commit.hash == previous?.hash })
 
                                                                                                                                      previous = commit
 

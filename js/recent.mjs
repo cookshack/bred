@@ -80,8 +80,8 @@ function get
                                      //d(type)
                                      if (Ed.supports(type))
                                        recents.unshift({ type,
-                          visited: Date.parse(bookmark.getAttribute('visited') ?? 0),
-                          href: bookmark.getAttribute('href') })
+                                                         visited: Date.parse(bookmark.getAttribute('visited') ?? 0),
+                                                         href: bookmark.getAttribute('href') })
                                      //d("YES")
                                    }
 

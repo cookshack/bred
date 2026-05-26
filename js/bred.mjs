@@ -127,27 +127,27 @@ function initPackages
                      OptUi.init()
 
                      globalThis.bred = { ...globalThis.bred,
-                        Area,
-                        Buf,
-                        Cmd,
-                        Dom,
-                        Ed,
-                        Em,
-                        Ext,
-                        Frame,
-                        Hist,
-                        Loc,
-                        Opt,
-                        Pane,
-                        Place,
-                        Mess,
-                        Mode,
-                        Cut,
-                        Dir,
-                        Exec,
-                        Shell,
-                        Tab,
-                        Win }
+                                         Area,
+                                         Buf,
+                                         Cmd,
+                                         Dom,
+                                         Ed,
+                                         Em,
+                                         Ext,
+                                         Frame,
+                                         Hist,
+                                         Loc,
+                                         Opt,
+                                         Pane,
+                                         Place,
+                                         Mess,
+                                         Mode,
+                                         Cut,
+                                         Dir,
+                                         Exec,
+                                         Shell,
+                                         Tab,
+                                         Win }
 
                      cb()
                    })
@@ -583,12 +583,12 @@ function initCmds
                                                                           ctag.regex,
                                                                           0,
                                                                           { skipCurrent: 0,
-                         backwards: 0,
-                         wrap: 0,
-                         caseSensitive: 0,
-                         wholeWord: 0,
-                         regExp: 1,
-                         reveal: 2 })
+                                                                            backwards: 0,
+                                                                            wrap: 0,
+                                                                            caseSensitive: 0,
+                                                                            wholeWord: 0,
+                                                                            regExp: 1,
+                                                                            reveal: 2 })
                                                            ret || Mess.yell('Failed search for ' + ctag.regex)
                                                          })
                                }
@@ -706,8 +706,8 @@ function initCmds
                          el = View.current().ele
                          el = el.querySelector('.bred-scroller') || el.parentNode
                          el.scrollTo({ top: el.scrollTop - (el.clientHeight * 0.9),
-                  left: 0,
-                  behavior: 'auto' })
+                                       left: 0,
+                                       behavior: 'auto' })
                        })
 
   Cmd.add('scroll down', () => {
@@ -716,8 +716,8 @@ function initCmds
                            el = View.current().ele
                            el = el.querySelector('.bred-scroller') || el.parentNode
                            el.scrollTo({ top: el.scrollTop + (el.clientHeight * 0.9),
-                  left: 0,
-                  behavior: 'auto' })
+                                         left: 0,
+                                         behavior: 'auto' })
                          })
 
   Cmd.add('zoom in', () => incrFont())
@@ -892,7 +892,7 @@ function initCmds
                            //buf = Buf.add('Timing', 'Text', divCl('bred-timing-w', content.join('\n')), p.dir)
                            Ed.make(p,
                                    { name: 'Timing',
-              dir: p.dir },
+                                     dir: p.dir },
                                    view => {
                                      view.buf.file = 'Timing'
                                      view.insert(content.join('\n'))
@@ -912,7 +912,7 @@ function initCmds
                                   p = Pane.current()
                                   Ed.make(p,
                                           { name: 'Performance',
-                dir: p.dir },
+                                            dir: p.dir },
                                           view => {
                                             view.buf.file = 'Performance'
                                             view.insert(results.content.join('\n') + '\n')
@@ -1669,8 +1669,8 @@ function initRecent
                     co = recents.map(r => divCl('recent-item',
                                                 Loc.cleanHref(r.href),
                                                 { 'data-run': 'open link',
-                                    'data-runaux': 'open link in new tab',
-                                    'data-path': r.href }))
+                                                  'data-runaux': 'open link in new tab',
+                                                  'data-path': r.href }))
 
                     append(w, co)
                     if (cb)
@@ -1978,11 +1978,11 @@ function perf
                                                                  results.views.push(v)
                                                                })
                                                return { name: b.name,
-             id: b.id,
-             mode: b.mode?.key,
-             views: openViews,
-             closedViews,
-             domElements: b.views.reduce((sum, v) => sum + (v.ele?.querySelectorAll('*').length || 0), 0) }
+                                                        id: b.id,
+                                                        mode: b.mode?.key,
+                                                        views: openViews,
+                                                        closedViews,
+                                                        domElements: b.views.reduce((sum, v) => sum + (v.ele?.querySelectorAll('*').length || 0), 0) }
                                              })
 
   results.domElements = globalThis.document.querySelectorAll('*').length

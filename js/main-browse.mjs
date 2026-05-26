@@ -105,7 +105,7 @@ function onOpen
                                           if (details.url.startsWith('http:')
         || details.url.startsWith('https:'))
                                             e.sender.send(ch, { ev: 'open',
-                          href: details.url })
+                                                                href: details.url })
                                           return { action: 'deny' }
                                         })
   view.webContents.on('will-navigate', (event, url) => {
@@ -121,8 +121,8 @@ function onOpen
                                                                                                     Profile.hist.add(url, { title })
                                                                                                     hist.add(url)
                                                                                                     e.sender.send(ch, { ev: 'did-navigate',
-                          url,
-                          title })
+                                                                                                                        url,
+                                                                                                                        title })
                                                                                                   })
                                         view.webContents.executeJavaScript(`
   let x, y

@@ -18,12 +18,12 @@ function init
     if (view.buf.opt('minimap.enabled'))
       return showMinimap.compute([ 'doc' ], () => {
                                               return { create
-                 () {
+                                                       () {
                    return { dom: div() }
                  },
-                 displayText: view.buf.opt('minimap.text.type') == 'characters' ? 'characters' : 'blocks',
-                 showOverlay: 'always',
-                 gutters: [ { 1: '#00FF00', 2: '#00FF00' } ] }
+                                                       displayText: view.buf.opt('minimap.text.type') == 'characters' ? 'characters' : 'blocks',
+                                                       showOverlay: 'always',
+                                                       gutters: [ { 1: '#00FF00', 2: '#00FF00' } ] }
                                             })
 
     return []

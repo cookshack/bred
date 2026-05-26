@@ -69,11 +69,11 @@ function codeInit
     Ev.startSub(existingBuf, events)
     Comm.ensureClient(existingBuf).then(c => {
                                           c.session.command({ sessionID: existingBuf.vars('code').sessionID,
-                          directory: existingBuf.dir,
-                          command: 'init',
-                          arguments: '',
-                          agent: 'build',
-                          model: existingBuf.vars('code').provider + '/' + existingBuf.vars('code').model })
+                                                              directory: existingBuf.dir,
+                                                              command: 'init',
+                                                              arguments: '',
+                                                              agent: 'build',
+                                                              model: existingBuf.vars('code').provider + '/' + existingBuf.vars('code').model })
                                         })
     return
   }
@@ -99,11 +99,11 @@ function codeInit
                                                                  Ev.startSub(buf, events)
 
                                                                  c.session.command({ sessionID: res.data.id,
-                              directory: buf.dir,
-                              command: 'init',
-                              arguments: '',
-                              agent: 'build',
-                              model: provider + '/' + model })
+                                                                                     directory: buf.dir,
+                                                                                     command: 'init',
+                                                                                     arguments: '',
+                                                                                     agent: 'build',
+                                                                                     model: provider + '/' + model })
                                                                })
                                         })
                                   .catch(err => {
@@ -219,7 +219,7 @@ function appendPermission
                                            label && divCl('code-msg-label', label),
                                            divCl('code-msg-pattern', pattern()) ],
                                          { 'data-permissionid': id,
-                         'data-permission-callid': callID || '??' }))
+                                           'data-permission-callid': callID || '??' }))
                       }
                     })
 }
@@ -242,9 +242,9 @@ function ynRespond
                                   // `http://127.0.0.1:PORT/doc` to verify all required params
                                   // (especially query params like `directory`) are being passed.
                                   await c.permission.respond({ sessionID,
-                                   permissionID: id,
-                                   response,
-                                   directory: buf.dir })
+                                                               permissionID: id,
+                                                               response,
+                                                               directory: buf.dir })
                                   Util.eachCodeW(buf, (view, w) => {
                                                         let el
 
@@ -430,14 +430,14 @@ function appendQuestion
                                                                                    ...(q.options || []).map(opt => divCl('code-question-option',
                                                                                                                          [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
                                                                                                                          { 'data-run': 'toggle question option',
-                                                                                                       'data-qid': req.id,
-                                                                                                       'data-qi': qi,
-                                                                                                       'data-opt': opt.label })),
+                                                                                                                           'data-qid': req.id,
+                                                                                                                           'data-qi': qi,
+                                                                                                                           'data-opt': opt.label })),
                                                                                    q.custom && create('input', [],
                                                                                                       'code-question-custom',
                                                                                                       { 'data-qid': req.id,
-                                                                                    'data-qi': qi,
-                                                                                    placeholder: 'Your answer...' }) ],
+                                                                                                        'data-qi': qi,
+                                                                                                        placeholder: 'Your answer...' }) ],
                                                                                  { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
                                            divCl('code-msg-text',
                                                  [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
@@ -773,11 +773,11 @@ function send
                                 d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
 
                                 res = await c.session.prompt({ sessionID,
-                                   directory: buf.dir,
-                                   model: { providerID: provider, modelID: model },
-                                   agent,
-                                   variant: variant || undefined,
-                                   parts: [ { id: 'prt_' + uuidv4(), type: 'text', text } ] })
+                                                               directory: buf.dir,
+                                                               model: { providerID: provider, modelID: model },
+                                                               agent,
+                                                               variant: variant || undefined,
+                                                               parts: [ { id: 'prt_' + uuidv4(), type: 'text', text } ] })
 
                                 d('CO SEND done')
                                 d({ res })
@@ -1015,7 +1015,7 @@ function code
 
                                                          Ui.appendMsg(buf, 0, 'Creating session...')
                                                          res = await c.session.create({ directory: buf.dir,
-                                       ...(prompt ? { title: prompt } : {}) })
+                                                                                        ...(prompt ? { title: prompt } : {}) })
 
                                                          buf.vars('code').sessionID = res.data.id
 

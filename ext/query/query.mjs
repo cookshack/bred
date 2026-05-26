@@ -103,7 +103,7 @@ function srch
 
               Shell.run(dir, 'llm', [ model, que ],
                         { onStdout: str => add(buf, str),
-                    onStderr: str => add(buf, str) })
+                          onStderr: str => add(buf, str) })
             }
 
             buf?.views.forEach(view => {
@@ -117,7 +117,7 @@ function srch
                                                                        [ divCl('query-item-t',
                                                                                title(item),
                                                                                { 'data-run': 'open link',
-                                                        'data-path': item.link }),
+                                                                                 'data-path': item.link }),
                                                                          divCl('query-item-url',
                                                                                item.formattedUrl),
                                                                          divCl('query-item-snippet',
@@ -209,9 +209,9 @@ function readFileOrDir
                                  d('ERR file.stat')
                                  d(err.message)
                                  cb({ error: err.message,
-           success: false,
-           subtool: 'readFileOrDir',
-           message: 'Failed to read.' })
+                                      success: false,
+                                      subtool: 'readFileOrDir',
+                                      message: 'Failed to read.' })
                                  return
                                }
 
@@ -221,19 +221,19 @@ function readFileOrDir
                                                                    d('ERR file.get')
                                                                    d(err2.message)
                                                                    cb({ error: err2.message,
-               success: false,
-               subtool: 'readFileOrDir',
-               message: 'Failed to read file.' })
+                                                                        success: false,
+                                                                        subtool: 'readFileOrDir',
+                                                                        message: 'Failed to read file.' })
                                                                    return
                                                                  }
 
                                                                  d('READ data')
                                                                  d(data.data)
                                                                  cb({ success: true,
-             subtool: 'readFileOrDir',
-             message: 'Successfully read file.',
-             type: 'file',
-             contents: data.data })
+                                                                      subtool: 'readFileOrDir',
+                                                                      message: 'Successfully read file.',
+                                                                      type: 'file',
+                                                                      contents: data.data })
                                                                })
                                  return
                                }
@@ -243,19 +243,19 @@ function readFileOrDir
                                                             d('ERR dir.get')
                                                             d(err2.message)
                                                             cb({ error: err2.message,
-             success: false,
-             subtool: 'readFileOrDir',
-             message: 'Failed to read directory.' })
+                                                                 success: false,
+                                                                 subtool: 'readFileOrDir',
+                                                                 message: 'Failed to read directory.' })
                                                             return
                                                           }
 
                                                           d('READ data')
                                                           d(data.data)
                                                           cb({ success: true,
-           subtool: 'readFileOrDir',
-           message: 'Successfully read directory.',
-           type: 'dir',
-           contents: data.data })
+                                                               subtool: 'readFileOrDir',
+                                                               message: 'Successfully read directory.',
+                                                               type: 'dir',
+                                                               contents: data.data })
                                                         })
                              })
 }
@@ -288,17 +288,17 @@ function readDir
                                  d('ERR file.stat')
                                  d(err.message)
                                  cb({ error: err.message,
-           success: false,
-           subtool: 'readDir',
-           message: 'Failed to read directory.' })
+                                      success: false,
+                                      subtool: 'readDir',
+                                      message: 'Failed to read directory.' })
                                  return
                                }
 
                                if (stat.data.mode & (1 << 15)) {
                                  cb({ error: 'Error: path is a file',
-           success: false,
-           subtool: 'readDir',
-           message: 'Failed to read directory.' })
+                                      success: false,
+                                      subtool: 'readDir',
+                                      message: 'Failed to read directory.' })
                                  return
                                }
 
@@ -307,18 +307,18 @@ function readDir
                                                             d('ERR dir.get')
                                                             d(err.message)
                                                             cb({ error: err2.message,
-             success: false,
-             subtool: 'readDir',
-             message: 'Failed to read directory.' })
+                                                                 success: false,
+                                                                 subtool: 'readDir',
+                                                                 message: 'Failed to read directory.' })
                                                             return
                                                           }
 
                                                           d('READDIR data')
                                                           d(data.data)
                                                           cb({ success: true,
-           subtool: 'readDir',
-           message: 'Successfully read directory.',
-           contents: data.data })
+                                                               subtool: 'readDir',
+                                                               message: 'Successfully read directory.',
+                                                               contents: data.data })
                                                         })
                              })
 }
@@ -353,15 +353,15 @@ function createDir
                                 d('ERR createDir')
                                 d(err.message)
                                 cb({ error: err.message,
-           success: false,
-           subtool: 'createDir',
-           message: 'Failed to create directory.' })
+                                     success: false,
+                                     subtool: 'createDir',
+                                     message: 'Failed to create directory.' })
                                 return
                               }
                               Mess.say('Added dir ' + abs)
                               cb({ success: true,
-         subtool: 'createDir',
-         message: 'Successfully created directory.' })
+                                   subtool: 'createDir',
+                                   message: 'Successfully created directory.' })
                             })
 }
 
@@ -395,15 +395,15 @@ function createFile
                                          d('ERR createFile')
                                          d(err.message)
                                          cb({ error: err.message,
-           success: false,
-           subtool: 'createFile',
-           message: 'Failed to create file.' })
+                                              success: false,
+                                              subtool: 'createFile',
+                                              message: 'Failed to create file.' })
                                          return
                                        }
                                        Mess.say('Added dir ' + abs)
                                        cb({ success: true,
-         subtool: 'createFile',
-         message: 'Successfully created file.' })
+                                            subtool: 'createFile',
+                                            message: 'Successfully created file.' })
                                      })
 }
 
@@ -437,15 +437,15 @@ function createFileWithContent
                                                       d('ERR createFile')
                                                       d(err.message)
                                                       cb({ error: err.message,
-           success: false,
-           subtool: 'createFile',
-           message: 'Failed to create file.' })
+                                                           success: false,
+                                                           subtool: 'createFile',
+                                                           message: 'Failed to create file.' })
                                                       return
                                                     }
                                                     Mess.say('Added dir ' + abs)
                                                     cb({ success: true,
-         subtool: 'createFile',
-         message: 'Successfully created file.' })
+                                                         subtool: 'createFile',
+                                                         message: 'Successfully created file.' })
                                                   })
 }
 
@@ -490,17 +490,17 @@ function insertText
                                                                                                      d('ERR file.modify')
                                                                                                      d(err.message)
                                                                                                      cb({ error: err.message,
-           success: false,
-           subtool: 'insertText',
-           message: 'Failed to insert text.' })
+                                                                                                          success: false,
+                                                                                                          subtool: 'insertText',
+                                                                                                          message: 'Failed to insert text.' })
                                                                                                      return
                                                                                                    }
 
                                                                                                    d('INSERTTEXT data')
                                                                                                    d(data.data)
                                                                                                    cb({ success: true,
-         subtool: 'insertText',
-         message: 'Successfully inserted text.' })
+                                                                                                        subtool: 'insertText',
+                                                                                                        message: 'Successfully inserted text.' })
                                                                                                  })
 }
 
@@ -546,17 +546,17 @@ function modifyFile
                                                  d('ERR file.modify')
                                                  d(err.message)
                                                  cb({ error: err.message,
-           success: false,
-           subtool: 'modifiedFile',
-           message: 'Failed to modified file.' })
+                                                      success: false,
+                                                      subtool: 'modifiedFile',
+                                                      message: 'Failed to modified file.' })
                                                  return
                                                }
 
                                                d('MODIFYFILE data')
                                                d(data.data)
                                                cb({ success: true,
-         subtool: 'modifyFile',
-         message: 'Successfully modified file.' })
+                                                    subtool: 'modifyFile',
+                                                    message: 'Successfully modified file.' })
                                              })
 }
 
@@ -611,15 +611,15 @@ function moveFile
                                                 d('ERR file.mv')
                                                 d(err.message)
                                                 cb({ error: err.message,
-           success: false,
-           subtool: 'moveFile',
-           message: 'Failed to move file.' })
+                                                     success: false,
+                                                     subtool: 'moveFile',
+                                                     message: 'Failed to move file.' })
                                                 return
                                               }
 
                                               cb({ success: true,
-         subtool: 'moveFile',
-         message: 'Successfully moved file.' })
+                                                   subtool: 'moveFile',
+                                                   message: 'Successfully moved file.' })
                                             })
 }
 
@@ -656,17 +656,17 @@ function patchFile
                                              d('ERR file.save')
                                              d(err.message)
                                              cb({ error: err.message,
-           success: false,
-           subtool: 'patchFile',
-           message: 'Failed to patch file.' })
+                                                  success: false,
+                                                  subtool: 'patchFile',
+                                                  message: 'Failed to patch file.' })
                                              return
                                            }
 
                                            d('PATCHFILE data')
                                            d(data.data)
                                            cb({ success: true,
-         subtool: 'patchFile',
-         message: 'Successfully patched file.' })
+                                                subtool: 'patchFile',
+                                                message: 'Successfully patched file.' })
                                          })
 }
 
@@ -701,18 +701,18 @@ function readFile
                                     d('ERR file.get')
                                     d(err.message)
                                     cb({ error: err.message,
-           success: false,
-           subtool: 'readFile',
-           message: 'Failed to read file.' })
+                                         success: false,
+                                         subtool: 'readFile',
+                                         message: 'Failed to read file.' })
                                     return
                                   }
 
                                   d('READFILE data')
                                   d(data.data)
                                   cb({ success: true,
-         subtool: 'readFile',
-         message: 'Successfully read file.',
-         contents: data.data })
+                                       subtool: 'readFile',
+                                       message: 'Successfully read file.',
+                                       contents: data.data })
                                 })
 }
 
@@ -747,17 +747,17 @@ function removeFile
                                    d('ERR file.rm')
                                    d(err.message)
                                    cb({ error: err.message,
-           success: false,
-           subtool: 'removeFile',
-           message: 'Failed to remove file.' })
+                                        success: false,
+                                        subtool: 'removeFile',
+                                        message: 'Failed to remove file.' })
                                    return
                                  }
 
                                  d('REMOVEFILE data')
                                  d(data.data)
                                  cb({ success: true,
-         subtool: 'removeFile',
-         message: 'Successfully removed file.' })
+                                      subtool: 'removeFile',
+                                      message: 'Successfully removed file.' })
                                })
 }
 
@@ -781,10 +781,10 @@ function execute
                                                    d('EXECUTE code')
                                                    d(code)
                                                    cb({ success: true,
-         subtool: 'execute',
-         message: 'Successfully ran executable.',
-         output: str,
-         exitCode: code })
+                                                        subtool: 'execute',
+                                                        message: 'Successfully ran executable.',
+                                                        output: str,
+                                                        exitCode: code })
                                                  })
 }
 
@@ -839,17 +839,17 @@ function removeText
                                                                                  d('ERR file.modify')
                                                                                  d(err.message)
                                                                                  cb({ error: err.message,
-           success: false,
-           subtool: 'removeText',
-           message: 'Failed to remove text.' })
+                                                                                      success: false,
+                                                                                      subtool: 'removeText',
+                                                                                      message: 'Failed to remove text.' })
                                                                                  return
                                                                                }
 
                                                                                d('REMOVETEXT data')
                                                                                d(data.data)
                                                                                cb({ success: true,
-         subtool: 'removeText',
-         message: 'Successfully inserted text.' })
+                                                                                    subtool: 'removeText',
+                                                                                    message: 'Successfully inserted text.' })
                                                                              })
 }
 
@@ -884,17 +884,17 @@ function writeFile
                                                       d('ERR file.save')
                                                       d(err.message)
                                                       cb({ error: err.message,
-           success: false,
-           subtool: 'writeFile',
-           message: 'Failed to write file.' })
+                                                           success: false,
+                                                           subtool: 'writeFile',
+                                                           message: 'Failed to write file.' })
                                                       return
                                                     }
 
                                                     d('WRITEFILE data')
                                                     d(data.data)
                                                     cb({ success: true,
-         subtool: 'writeFile',
-         message: 'Successfully wrote file.' })
+                                                         subtool: 'writeFile',
+                                                         message: 'Successfully wrote file.' })
                                                   })
 }
 
@@ -1241,7 +1241,7 @@ function init
                     d(res)
                     end()
                     push({ role: 'user',
-                   content: JSON.stringify(res) })
+                           content: JSON.stringify(res) })
                     go()
                   })
         else
@@ -1640,13 +1640,13 @@ function init
       path = files[index]
       readFileOrDir(buf, { path }, result => {
                                      buf.vars('query').msgs.push({ role: 'assistant',
-                                      content: JSON.stringify({ answer: 'I will read the contents of ' + path,
-                                                                subtool: 'readFileOrDir',
-                                                                path }) })
+                                                                   content: JSON.stringify({ answer: 'I will read the contents of ' + path,
+                                                                                             subtool: 'readFileOrDir',
+                                                                                             path }) })
                                      result = result || {}
                                      result.success || Mess.yell('@file:' + path + ': ' + (result.error || 'Failed to read file'))
                                      buf.vars('query').msgs.push({ role: 'user',
-                                      content: JSON.stringify(result) })
+                                                                   content: JSON.stringify(result) })
                                      // Move to the next file
                                      index++
                                      if (index < files.length)
@@ -1743,8 +1743,8 @@ function init
                                           divCl('bred-prompt-sug',
                                                 url.item.href,
                                                 { 'data-run': 'close demand',
-                         'data-after': 'open link',
-                         'data-path': url.item.href }))
+                                                  'data-after': 'open link',
+                                                  'data-path': url.item.href }))
                                  })
               under.innerHTML = ''
               append(under, frag)
@@ -2119,7 +2119,7 @@ User →
   Cmd.add('llm', (u, we, model) => {
                    model = model || Opt.get('query.model.local')
                    Prompt.ask({ text: 'Prompt',
-                 hist },
+                                hist },
                               message => {
                                 hist.add(message)
                                 Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
@@ -2147,7 +2147,7 @@ User →
 
   Cmd.add('llm insert', () => {
                           Prompt.ask({ text: 'Describe what should be inserted',
-                 hist },
+                                       hist },
                                      message => {
                                        let p
 
@@ -2161,7 +2161,7 @@ User →
 
   Cmd.add('fim', () => {
                    Prompt.ask({ text: 'Describe what should be inserted',
-                 hist },
+                                hist },
                               message => {
                                 let p
 
@@ -2175,9 +2175,9 @@ User →
 
   Cmd.add('go', (u, we) => {
                   Prompt.ask({ text: 'Go',
-                 placeholder: we?.e.target.dataset.url,
-                 hist,
-                 suggest },
+                               placeholder: we?.e.target.dataset.url,
+                               hist,
+                               suggest },
                              query => {
                                query = query.trim()
                                if (query.startsWith('http://')
@@ -2195,7 +2195,7 @@ User →
 
   Cmd.add('google', () => {
                       Prompt.ask({ text: 'Query',
-                 hist },
+                                   hist },
                                  query => {
                                    query = query.trim()
                                    search(query, { hist })

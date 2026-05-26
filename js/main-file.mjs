@@ -107,8 +107,8 @@ function onGet
 
                           decompressed = decompress(data, path)
                           e.sender.send(ch, { data: decompressed.toString('utf8'),
-                            stat: Fs.statSync(path, { throwIfNoEntry: false }),
-                            realpath: Fs.realpathSync(path) })
+                                              stat: Fs.statSync(path, { throwIfNoEntry: false }),
+                                              realpath: Fs.realpathSync(path) })
                         }
                       })
     return
@@ -120,8 +120,8 @@ function onGet
                                 e.sender.send(ch, { err })
                               else
                                 e.sender.send(ch, { data,
-                          stat: Fs.statSync(path, { throwIfNoEntry: false }),
-                          realpath: Fs.realpathSync(path) })
+                                                    stat: Fs.statSync(path, { throwIfNoEntry: false }),
+                                                    realpath: Fs.realpathSync(path) })
                             })
 }
 
@@ -522,7 +522,7 @@ function onStat
   Fs.lstat(onArgs, (err, data) => {
                      if (err)
                        e.sender.send(ch, { err: { message: err.message,
-                                 code: err.code } })
+                                                  code: err.code } })
                      else if (data.isSymbolicLink())
                        Fs.readlink(onArgs, (err2, string) => {
                                              if (err2)
@@ -536,8 +536,8 @@ function onStat
                                                                  e.sender.send(ch, { err3 })
                                                                else
                                                                  e.sender.send(ch, { data: data3,
-                                  link: 1,
-                                  dest })
+                                                                                     link: 1,
+                                                                                     dest })
                                                              })
                                              }
                                            })

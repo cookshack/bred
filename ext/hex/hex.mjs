@@ -131,8 +131,8 @@ function open
                                                     divW(loc.dirname, loc.filename, lineCount),
                                                     loc.dirname,
                                                     { file: loc.filename,
-                    vars: { hex: { u8s,
-                                   lineCount } } })
+                                                      vars: { hex: { u8s,
+                                                                     lineCount } } })
                                       buf.stat = data.stat
                                       buf.vars('Hex').path = path
                                       p.setBuf(buf)

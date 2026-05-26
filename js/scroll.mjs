@@ -103,18 +103,18 @@ export function make
              onScrollCb = fn
            },
 
-           set renderItem
+                  set renderItem
            (fn) {
              spec.renderItem = fn
            },
 
-           get visibleCount
+                  get visibleCount
            () {
              return visibleCount()
            },
 
-           toIndex
-           (idx) {
+                  toIndex
+                  (idx) {
              let px, scrollTop
 
              px = getLineHeightPx(surf)
@@ -124,31 +124,31 @@ export function make
              return surf.querySelector('[data-index="' + idx + '"]')
            },
 
-           scrollTo
-           (index) {
+                  scrollTo
+                  (index) {
              surf.scrollTop = index * getLineHeightPx(surf)
            },
 
-           scrollBy
-           (delta) {
+                  scrollBy
+                  (delta) {
              surf.scrollTop += delta * getLineHeightPx(surf)
            },
 
-           refresh
-           () {
+                  refresh
+                  () {
              surf.scrollTop = 0
              render()
            },
 
-           updateItemCount
-           (n) {
+                  updateItemCount
+                  (n) {
              spec.itemCount = n
            },
 
-           render,
+                  render,
 
-           destroy
-           () {
+                  destroy
+                  () {
              surf.removeEventListener('scroll', onScroll)
            } }
        }

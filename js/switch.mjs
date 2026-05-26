@@ -121,7 +121,7 @@ function init
 
                                         loc = Loc.make(r.href)
                                         rec.push({ name: loc.filename,
-                     path: loc.path })
+                                                   path: loc.path })
                                       }
                                     })
 
@@ -170,7 +170,7 @@ function init
                                  [ all.map((b,i) => [ divCl('switch-name onfill' + (i == 0 ? ' selected' : ''),
                                                             b.name,
                                                             { 'data-id': b.id,
-                                                'data-run': 'select' }),
+                                                              'data-run': 'select' }),
                                                       divCl('switch-mode', b.mode.key),
                                                       divCl('switch-path', compactPath(b.path)) ]),
                      all.length ? eNeedle : [],
@@ -183,7 +183,7 @@ function init
                                                               // need it here for absolute positioning
                                                               (i == 0) && (all.length == 0) && eNeedle ],
                                                             { 'data-run': 'open link',
-                                                'data-path': r.path }),
+                                                              'data-path': r.path }),
                                                       divCl('switch-mode', ''),
                                                       divCl('switch-path', compactPath(r.path)) ]) ]))
                   })

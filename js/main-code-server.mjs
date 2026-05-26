@@ -246,9 +246,9 @@ async function spawnDocker
                                             .then(url => {
                                                     d('CODE SERVER docker container healthy: ' + containerID)
                                                     resolve({ url,
-                    containerName: name,
-                    close
-                    () {
+                                                              containerName: name,
+                                                              close
+                                                              () {
                       d('CODE SERVER docker stop ' + name)
                       spawn('docker', [ 'stop', name ])
                     } })

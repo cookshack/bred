@@ -660,7 +660,7 @@ function createWindow
                                             bounds.y = 0
                                             ch.removeMenu()
                                             ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
-                                  title: 'Developer Tools - Bred' })
+                                                                          title: 'Developer Tools - Bred' })
                                             ch.setBounds(bounds)
                                             win.bred.hover.resize()
                                           })
@@ -823,9 +823,9 @@ function checkDepsWin
   win.webContents.on('did-create-window', ch => {
                                             ch.removeMenu()
                                             ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
-                                  title: 'Developer Tools - Bred' })
+                                                                          title: 'Developer Tools - Bred' })
                                             ch.setBounds({ width: 300,
-                   height: 100 })
+                                                           height: 100 })
                                           })
 
   if (options.devtools == 'on') {
@@ -896,31 +896,31 @@ function checkDeps
   win.webContents.on('dom-ready', () => {
                                     d('Checking dependencies...')
                                     CheckDeps({ install: true,
-                verbose: true }).then(output => {
-                                        if (output.status) {
-                                          d('Checking dependencies... ERR')
-                                          app.quit()
-                                          return
-                                        }
-                                        if (output.installWasNeeded) {
-                                          d('Checking dependencies... installed, restarting')
-                                          relaunch()
-                                          return
-                                        }
-                                        d('Checking dependencies... OK')
+                                                verbose: true }).then(output => {
+                                                                        if (output.status) {
+                                                                          d('Checking dependencies... ERR')
+                                                                          app.quit()
+                                                                          return
+                                                                        }
+                                                                        if (output.installWasNeeded) {
+                                                                          d('Checking dependencies... installed, restarting')
+                                                                          relaunch()
+                                                                          return
+                                                                        }
+                                                                        d('Checking dependencies... OK')
 
-                                        // Record the commit we checked
-                                        if (currentCommit)
-                                          try {
-                                            fs.writeFileSync(lastCheckFile, currentCommit)
-                                          }
-                                          catch (e) {
-                                            d('Failed to write last deps check: ' + e.message)
-                                          }
+                                                                        // Record the commit we checked
+                                                                        if (currentCommit)
+                                                                          try {
+                                                                            fs.writeFileSync(lastCheckFile, currentCommit)
+                                                                          }
+                                                                          catch (e) {
+                                                                            d('Failed to write last deps check: ' + e.message)
+                                                                          }
 
-                                        setTimeout(() => win.close())
-                                        cb()
-                                      })
+                                                                        setTimeout(() => win.close())
+                                                                        cb()
+                                                                      })
                                   })
   return 1
 }

@@ -146,10 +146,10 @@ function init
                                                        b = []
                                                      else if (ext.added)
                                                        b = button('Remove', '', { 'data-run': 'Remove Extension',
-                                     'data-name': ext.name })
+                                                                                  'data-name': ext.name })
                                                      else
                                                        b = button('Add', '', { 'data-run': 'Add Extension',
-                                  'data-name': ext.name })
+                                                                               'data-name': ext.name })
 
                                                      return [ divCl('bred-exts-name', ext.name),
                                                               divCl('bred-exts-buttons', b) ]

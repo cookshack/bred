@@ -42,7 +42,7 @@ function nav
                                          divCl('dir-h-dir',
                                                file,
                                                { 'data-path': dir,
-                         'data-run': run }) ])
+                                                 'data-run': run }) ])
                               first = 0
                             }
                           })

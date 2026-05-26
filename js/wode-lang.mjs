@@ -111,10 +111,10 @@ function init
                                       let lang
 
                                       lang = CMLang.LanguageDescription.of({ name,
-                                               extensions: opt.ext,
-                                               filename: opt.filename,
-                                               load
-                                               () {
+                                                                             extensions: opt.ext,
+                                                                             filename: opt.filename,
+                                                                             load
+                                                                             () {
                                                  return import(file).then(m => {
                                                    let ls
 
@@ -208,9 +208,9 @@ function init
 
                                                                               patchLang = WodeLangPatch.makeFromParser(parser)
                                                                               langDesc = CMLang.LanguageDescription.of({ name: 'Patch',
-                                               extensions: [ 'diff', 'patch', 'PATCH', 'rej' ],
-                                               load
-                                               () {
+                                                                                                                         extensions: [ 'diff', 'patch', 'PATCH', 'rej' ],
+                                                                                                                         load
+                                                                                                                         () {
                                                  d('WODE LANG initialised: patch (internal)')
                                                  WodeTheme.handleCustomTags(WodeLangPatch)
                                                  return Promise.resolve(patchLang)
@@ -218,9 +218,9 @@ function init
                                                                               addLang(langDesc,
                                                                                       1,
                                                                                       { wexts: [ { backend: 'cm',
-                         name: 'extPatch',
-                         make: () => ([ WodePatch.extPatch, WodePatch.extPatchDecor ]),
-                         part: new CMState.Compartment } ] })
+                                                                                                   name: 'extPatch',
+                                                                                                   make: () => ([ WodePatch.extPatch, WodePatch.extPatchDecor ]),
+                                                                                                   part: new CMState.Compartment } ] })
                                                                             })
   loadLang(Loc.appDir().join('lib/codemirror-lang-elixir.js'), 'Elixir', { ext: [ 'ex', 'exs' ] })
   loadLang(Loc.appDir().join('lib/@codemirror/lang-lezer.js'), 'Lezer', { ext: [ 'grammar' ] })
@@ -244,10 +244,10 @@ function init
 
                                                                             iniLang = WodeLangIni.makeFromParser(parser)
                                                                             langDesc = CMLang.LanguageDescription.of({ name: 'Ini',
-                                               extensions: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
-                                               path: /\.git\/config$/,
-                                               load
-                                               () {
+                                                                                                                       extensions: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
+                                                                                                                       path: /\.git\/config$/,
+                                                                                                                       load
+                                                                                                                       () {
                                                  d('WODE LANG initialised: ini (internal)')
                                                  return Promise.resolve(iniLang)
                                                } })

@@ -117,9 +117,9 @@ function init
                                                                                   divCl('assist-caller-text',
                                                                                         fr.line.text) ],
                                                                                 { 'data-run': 'open link',
-                                                          'data-path': res.from.uri,
-                                                          'data-line': lnum(fr.start.line),
-                                                          'data-col': fr.start.character })) ]))
+                                                                                  'data-path': res.from.uri,
+                                                                                  'data-line': lnum(fr.start.line),
+                                                                                  'data-col': fr.start.character })) ]))
                                 })
       }
       else {
@@ -168,7 +168,7 @@ function init
                                    Css.add(prev.el, 'assist-page-current')
                                  text = line.text.trim()
                                  prev = { start: line.from,
-                       el: divCl('assist-page',
+                                          el: divCl('assist-page',
                                  [ div(text,
                                        { 'data-run': 'open link',
                                          'data-path': view.buf.path,

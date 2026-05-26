@@ -378,13 +378,13 @@ function shellOrSpawn1
   addBuf(buf => {
            run(dir, sc, spec.args,
                { buf,
-          cols: p.cols,
-          end: spec.end,
-          afterEndPoint: spec.afterEndPoint,
-          runInShell: spec.shell,
-          multi: spec.multi,
-          onClose,
-          onErr })
+                 cols: p.cols,
+                 end: spec.end,
+                 afterEndPoint: spec.afterEndPoint,
+                 runInShell: spec.shell,
+                 multi: spec.multi,
+                 onClose,
+                 onErr })
            if (cb)
              cb(buf)
          })
@@ -553,7 +553,7 @@ function initJs
 
                   p = Pane.current()
                   Prompt.ask({ text: 'JS Expr',
-                 hist },
+                               hist },
                              expr => {
                                hist.add(expr)
                                runToString(p.dir, 'node', [ '-e', 'console.log(' + expr + ')' ], 0, (str, code) => {

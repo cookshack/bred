@@ -139,7 +139,7 @@ sync-codemirror:
 	cp node_modules/@replit/codemirror-css-color-picker/dist/index.js lib/@replit/codemirror-css-color-picker.js
 	cp node_modules/@orgajs/cm-lang/index.js lib/@orgajs/codemirror-lang-org.js
 	cp node_modules/@orgajs/lezer/lib/*.js lib/@orgajs/
-	cp node_modules/eslint-linter-browserify/linter.mjs lib/eslint-linter-browserify.mjs
+	cp node_modules/@cookshack/eslint-config/dist/eslint-linter-browserify.mjs lib/eslint-linter-browserify.mjs
 #	cp -r node_modules/@codemirror/commands/dist/index.js lib/@codemirror/commands.js
 	# so next cmd passes
 	mkdir -p node_modules/@codemirror/legacy-modes/dist && echo > node_modules/@codemirror/legacy-modes/dist/index.js

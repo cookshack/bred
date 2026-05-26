@@ -29,11 +29,11 @@ function handleCustomTags
     highlightStyle = CMLang.HighlightStyle.define(themeStyles(themeTags))
     themeExtension = CMLang.syntaxHighlighting(highlightStyle)
     Buf.forEach(buf => buf.views.forEach(view => {
-      if (view.ed && (view.win == Win.current()))
-        if (buf.opt('core.highlight.syntax.enabled'))
-          view.ed.dispatch({ effects: themeExtensionPart.reconfigure([ themeExtension,
+                                           if (view.ed && (view.win == Win.current()))
+                                             if (buf.opt('core.highlight.syntax.enabled'))
+                                               view.ed.dispatch({ effects: themeExtensionPart.reconfigure([ themeExtension,
                                                                        themeHighlighting ]) })
-    }))
+                                         }))
   }
 }
 

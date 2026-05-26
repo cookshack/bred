@@ -79,17 +79,17 @@ function vfind
       if (decorParent.decorAll)
         decorParent.decorAll.remove()
       decorParent.decorAll = WodeHi.highlighters.add((state, hiFrom, hiTo, add) => { // highlight
-        query.highlight(state, hiFrom, hiTo, (from, to) => {
-          let selected
+                                                       query.highlight(state, hiFrom, hiTo, (from, to) => {
+                                                                                              let selected
 
-          // is range selected?
-          selected = state.selection.ranges.some(r => r.from == from && r.to == to)
-          //d('ADD all ' + from + ' ' + to)
-          add(from, to,
-              CMView.Decoration.mark({ class: 'bred-search-all' + (selected ? ' bred-search-selected' : '') }),
-              10)
-        })
-      },
+                                                                                              // is range selected?
+                                                                                              selected = state.selection.ranges.some(r => r.from == from && r.to == to)
+                                                                                              //d('ADD all ' + from + ' ' + to)
+                                                                                              add(from, to,
+                                                                                                  CMView.Decoration.mark({ class: 'bred-search-all' + (selected ? ' bred-search-selected' : '') }),
+                                                                                                  10)
+                                                                                            })
+                                                     },
                                                      data => { // update
                                                        needle = data.needle
                                                        init()
@@ -98,15 +98,15 @@ function vfind
       if (decorParent.decorMatch)
         decorParent.decorMatch.remove()
       decorParent.decorMatch = WodeHi.highlighters.add((state, from, to, add) => { // highlight
-        let selected
+                                                         let selected
 
-        // is range selected?
-        selected = state.selection.ranges.some(r => r.from == ret.from && r.to == ret.to) // <=?
-        //d('ADD match ' + ret.from + ' ' + ret.to)
-        add(ret.from, ret.to,
-            CMView.Decoration.mark({ class: 'bred-search-match' + (selected ? ' bred-search-selected' : '') }),
-            11)
-      },
+                                                         // is range selected?
+                                                         selected = state.selection.ranges.some(r => r.from == ret.from && r.to == ret.to) // <=?
+                                                         //d('ADD match ' + ret.from + ' ' + ret.to)
+                                                         add(ret.from, ret.to,
+                                                             CMView.Decoration.mark({ class: 'bred-search-match' + (selected ? ' bred-search-selected' : '') }),
+                                                             11)
+                                                       },
                                                        data => { // update
                                                          d('decor match update')
                                                          if (0) {

@@ -47,14 +47,14 @@ function roll
 function grow
 (cut) {
   shared().buf?.views.forEach(view => {
-    if (view.ele) {
-      let w, el
+                                if (view.ele) {
+                                  let w, el
 
-      w = view.ele.firstElementChild.firstElementChild
-      el = w.firstElementChild
-      el.innerText = el.innerText + cut
-    }
-  })
+                                  w = view.ele.firstElementChild.firstElementChild
+                                  el = w.firstElementChild
+                                  el.innerText = el.innerText + cut
+                                }
+                              })
 }
 
 export
@@ -85,10 +85,10 @@ function divW
 function prepend
 (cut) {
   shared().buf?.views.forEach(view => {
-    if (view.ele)
-      Dom.prepend(view.ele.firstElementChild.firstElementChild,
-                  divCl('cuts-cut', cut, { 'data-cut': cut, 'data-run': 'insert cut' }))
-  })
+                                if (view.ele)
+                                  Dom.prepend(view.ele.firstElementChild.firstElementChild,
+                                              divCl('cuts-cut', cut, { 'data-cut': cut, 'data-run': 'insert cut' }))
+                              })
 }
 
 export
@@ -113,46 +113,46 @@ function init
   Cmd.add('refresh', () => viewInit(View.current()), mo)
 
   Cmd.add('cuts', () => {
-    let p, buf
+                    let p, buf
 
-    buf = shared().buf
-    p = Pane.current()
-    if (buf)
-      p.setBuf(buf, {}, view => {
-        viewInit(view)
-      })
-    else {
-      buf = Buf.add('Cuts', 'Cuts', divW(), p.dir)
-      shared().buf = buf
-      buf.icon = 'clipboard'
-      buf.addMode('view')
-      p.setBuf(buf)
-    }
-  })
+                    buf = shared().buf
+                    p = Pane.current()
+                    if (buf)
+                      p.setBuf(buf, {}, view => {
+                                          viewInit(view)
+                                        })
+                    else {
+                      buf = Buf.add('Cuts', 'Cuts', divW(), p.dir)
+                      shared().buf = buf
+                      buf.icon = 'clipboard'
+                      buf.addMode('view')
+                      p.setBuf(buf)
+                    }
+                  })
 
   Cmd.add('insert cut', (u, we) => {
-    let cut
+                          let cut
 
-    if (we?.e && (we.e.button == 0))
-      cut = we.e.target.dataset.cut
-    else {
-      let view, el
+                          if (we?.e && (we.e.button == 0))
+                            cut = we.e.target.dataset.cut
+                          else {
+                            let view, el
 
-      view = View.current()
-      el = view.point.over()
-      if (el)
-        cut = el.dataset.cut
-    }
-    if (cut) {
-      let view
+                            view = View.current()
+                            el = view.point.over()
+                            if (el)
+                              cut = el.dataset.cut
+                          }
+                          if (cut) {
+                            let view
 
-      Cmd.run('bury')
-      view = View.current()
-      view.insert(cut, view.bep)
-    }
-    else
-      Mess.yell('Missing cut')
-  })
+                            Cmd.run('bury')
+                            view = View.current()
+                            view.insert(cut, view.bep)
+                          }
+                          else
+                            Mess.yell('Missing cut')
+                        })
 
   Em.on('g', 'refresh', mo)
 
@@ -161,11 +161,11 @@ function init
   Em.on('C-c C-r', 'cuts')
 
   Tron.on('clip.new', (err, data) => {
-    if (err) {
-      Mess.log('clip.new: ' + err.message)
-      return
-    }
-    0 && d('CUT clip ' + data.text)
-    add(data.text)
-  })
+                        if (err) {
+                          Mess.log('clip.new: ' + err.message)
+                          return
+                        }
+                        0 && d('CUT clip ' + data.text)
+                        add(data.text)
+                      })
 }

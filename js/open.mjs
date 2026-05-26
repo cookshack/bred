@@ -35,12 +35,12 @@ function link
   () {
     d('open externally: ' + path)
     Tron.cmd('shell.open', [ path ], err => {
-      if (err) {
-        Mess.yell('shell.open: ' + err.message)
-        return
-      }
-      d('opened OK')
-    })
+                                       if (err) {
+                                         Mess.yell('shell.open: ' + err.message)
+                                         return
+                                       }
+                                       d('opened OK')
+                                     })
   }
 
   if (newTab) {
@@ -149,12 +149,12 @@ function initMakeDir
       else
         abs = Loc.make(dir).join(name)
       Tron.cmd('dir.make', abs, err => {
-        if (err) {
-          Mess.yell('dir.make: ' + err.message)
-          return
-        }
-        Mess.say('Added dir ' + abs)
-      })
+                                  if (err) {
+                                    Mess.yell('dir.make: ' + err.message)
+                                    return
+                                  }
+                                  Mess.say('Added dir ' + abs)
+                                })
     }
 
     pane = Pane.current()

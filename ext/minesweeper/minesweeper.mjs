@@ -25,22 +25,22 @@ function init
 
     b = Buf.add('Minesweeper', 'minesweeper', divW(), p.dir)
     p.setBuf(b, {}, () => {
-      let restart
+                      let restart
 
-      sweeper = globalThis.document.getElementById('minesweeper')
+                      sweeper = globalThis.document.getElementById('minesweeper')
 
-      restart = globalThis.document.getElementById('minesweeper-restart')
+                      restart = globalThis.document.getElementById('minesweeper-restart')
 
-      sweeper.addEventListener('minesweeper:game-won', () => {
-        d('won')
-        restart.innerHTML = '😎'
-      })
+                      sweeper.addEventListener('minesweeper:game-won', () => {
+                                                                         d('won')
+                                                                         restart.innerHTML = '😎'
+                                                                       })
 
-      sweeper.addEventListener('minesweeper:game-lost', () => {
-        d('bomb')
-        restart.innerHTML = '😑'
-      })
-    })
+                      sweeper.addEventListener('minesweeper:game-lost', () => {
+                                                                          d('bomb')
+                                                                          restart.innerHTML = '😑'
+                                                                        })
+                    })
   }
 
   function smile

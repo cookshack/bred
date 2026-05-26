@@ -65,11 +65,11 @@ function srch
   function add
   (b, str) {
     b?.views.forEach(view => {
-      let l
+                       let l
 
-      l = view.ele.querySelector('.query-llm')
-      l.innerText = l.innerText + str
-    })
+                       l = view.ele.querySelector('.query-llm')
+                       l.innerText = l.innerText + str
+                     })
   }
 
   Tron.acmd('profile.hist.add', [ query, { type: 'search' } ])
@@ -80,54 +80,54 @@ function srch
         { credentials: 'omit',
           redirect: 'error' })
     .then(response => {
-      response.ok || Mess.toss(response.statusText)
-      return response.json()
-    })
+            response.ok || Mess.toss(response.statusText)
+            return response.json()
+          })
     .then(data => {
-      d(data)
+            d(data)
 
-      if (query.endsWith('?')) {
-        let que, model
+            if (query.endsWith('?')) {
+              let que, model
 
-        model = buf?.opt('query.model.search') || buf?.opt('query.model.chat') || buf?.opt('query.model.agent')
-        add(buf, model + ' says:\n\n')
+              model = buf?.opt('query.model.search') || buf?.opt('query.model.chat') || buf?.opt('query.model.agent')
+              add(buf, model + ' says:\n\n')
 
-        que = 'You are an expert. Based on the following search results, please provide a summary or answer to my question:\n\n'
-        que += 'Search Results:\n'
+              que = 'You are an expert. Based on the following search results, please provide a summary or answer to my question:\n\n'
+              que += 'Search Results:\n'
 
-        for (let i = 0; (i < 3) && (i < data.items.length); i++)
-          que += String(i + 1) + '. ' + data.items[i].title + ' (' + data.items[i].snippet + ')\n'
-        que += '\nQuestion:\n' + query + '\n'
+              for (let i = 0; (i < 3) && (i < data.items.length); i++)
+                que += String(i + 1) + '. ' + data.items[i].title + ' (' + data.items[i].snippet + ')\n'
+              que += '\nQuestion:\n' + query + '\n'
 
-        d(que)
+              d(que)
 
-        Shell.run(dir, 'llm', [ model, que ],
-                  { onStdout: str => add(buf, str),
+              Shell.run(dir, 'llm', [ model, que ],
+                        { onStdout: str => add(buf, str),
                     onStderr: str => add(buf, str) })
-      }
+            }
 
-      buf?.views.forEach(view => {
-        if (view.ele) {
-          let w
+            buf?.views.forEach(view => {
+                                 if (view.ele) {
+                                   let w
 
-          w = view.ele.querySelector('.query-w')
-          w.innerHTML = ''
-          append(w,
-                 data.items.map(item => divCl('query-item',
-                                              [ divCl('query-item-t',
-                                                      title(item),
-                                                      { 'data-run': 'open link',
+                                   w = view.ele.querySelector('.query-w')
+                                   w.innerHTML = ''
+                                   append(w,
+                                          data.items.map(item => divCl('query-item',
+                                                                       [ divCl('query-item-t',
+                                                                               title(item),
+                                                                               { 'data-run': 'open link',
                                                         'data-path': item.link }),
-                                                divCl('query-item-url',
-                                                      item.formattedUrl),
-                                                divCl('query-item-snippet',
-                                                      snippet(item)) ])))
-        }
-      })
-    })
+                                                                         divCl('query-item-url',
+                                                                               item.formattedUrl),
+                                                                         divCl('query-item-snippet',
+                                                                               snippet(item)) ])))
+                                 }
+                               })
+          })
     .catch(error => {
-      Mess.yell(error.message)
-    })
+             Mess.yell(error.message)
+           })
 }
 
 function makeUrl
@@ -205,59 +205,59 @@ function readFileOrDir
   abs = Loc.make(buf.dir).join(path)
 
   Tron.cmd('file.stat', abs, (err, stat) => {
-    if (err) {
-      d('ERR file.stat')
-      d(err.message)
-      cb({ error: err.message,
+                               if (err) {
+                                 d('ERR file.stat')
+                                 d(err.message)
+                                 cb({ error: err.message,
            success: false,
            subtool: 'readFileOrDir',
            message: 'Failed to read.' })
-      return
-    }
+                                 return
+                               }
 
-    if (stat.data.mode & (1 << 15)) {
-      Tron.cmd('file.get', [ abs ], (err2, data) => {
-        if (err2) {
-          d('ERR file.get')
-          d(err2.message)
-          cb({ error: err2.message,
+                               if (stat.data.mode & (1 << 15)) {
+                                 Tron.cmd('file.get', [ abs ], (err2, data) => {
+                                                                 if (err2) {
+                                                                   d('ERR file.get')
+                                                                   d(err2.message)
+                                                                   cb({ error: err2.message,
                success: false,
                subtool: 'readFileOrDir',
                message: 'Failed to read file.' })
-          return
-        }
+                                                                   return
+                                                                 }
 
-        d('READ data')
-        d(data.data)
-        cb({ success: true,
+                                                                 d('READ data')
+                                                                 d(data.data)
+                                                                 cb({ success: true,
              subtool: 'readFileOrDir',
              message: 'Successfully read file.',
              type: 'file',
              contents: data.data })
-      })
-      return
-    }
+                                                               })
+                                 return
+                               }
 
-    Tron.cmd('dir.get', abs, (err2, data) => {
-      if (err2) {
-        d('ERR dir.get')
-        d(err2.message)
-        cb({ error: err2.message,
+                               Tron.cmd('dir.get', abs, (err2, data) => {
+                                                          if (err2) {
+                                                            d('ERR dir.get')
+                                                            d(err2.message)
+                                                            cb({ error: err2.message,
              success: false,
              subtool: 'readFileOrDir',
              message: 'Failed to read directory.' })
-        return
-      }
+                                                            return
+                                                          }
 
-      d('READ data')
-      d(data.data)
-      cb({ success: true,
+                                                          d('READ data')
+                                                          d(data.data)
+                                                          cb({ success: true,
            subtool: 'readFileOrDir',
            message: 'Successfully read directory.',
            type: 'dir',
            contents: data.data })
-    })
-  })
+                                                        })
+                             })
 }
 
 function readDir
@@ -284,43 +284,43 @@ function readDir
   abs = Loc.make(buf.dir).join(path)
 
   Tron.cmd('file.stat', abs, (err, stat) => {
-    if (err) {
-      d('ERR file.stat')
-      d(err.message)
-      cb({ error: err.message,
+                               if (err) {
+                                 d('ERR file.stat')
+                                 d(err.message)
+                                 cb({ error: err.message,
            success: false,
            subtool: 'readDir',
            message: 'Failed to read directory.' })
-      return
-    }
+                                 return
+                               }
 
-    if (stat.data.mode & (1 << 15)) {
-      cb({ error: 'Error: path is a file',
+                               if (stat.data.mode & (1 << 15)) {
+                                 cb({ error: 'Error: path is a file',
            success: false,
            subtool: 'readDir',
            message: 'Failed to read directory.' })
-      return
-    }
+                                 return
+                               }
 
-    Tron.cmd('dir.get', abs, (err2, data) => {
-      if (err2) {
-        d('ERR dir.get')
-        d(err.message)
-        cb({ error: err2.message,
+                               Tron.cmd('dir.get', abs, (err2, data) => {
+                                                          if (err2) {
+                                                            d('ERR dir.get')
+                                                            d(err.message)
+                                                            cb({ error: err2.message,
              success: false,
              subtool: 'readDir',
              message: 'Failed to read directory.' })
-        return
-      }
+                                                            return
+                                                          }
 
-      d('READDIR data')
-      d(data.data)
-      cb({ success: true,
+                                                          d('READDIR data')
+                                                          d(data.data)
+                                                          cb({ success: true,
            subtool: 'readDir',
            message: 'Successfully read directory.',
            contents: data.data })
-    })
-  })
+                                                        })
+                             })
 }
 
 function createDir
@@ -349,20 +349,20 @@ function createDir
   abs = Loc.make(buf.dir).join(path)
   d('CREATEDIR abs ' + abs)
   Tron.cmd('dir.make', abs, err => {
-    if (err) {
-      d('ERR createDir')
-      d(err.message)
-      cb({ error: err.message,
+                              if (err) {
+                                d('ERR createDir')
+                                d(err.message)
+                                cb({ error: err.message,
            success: false,
            subtool: 'createDir',
            message: 'Failed to create directory.' })
-      return
-    }
-    Mess.say('Added dir ' + abs)
-    cb({ success: true,
+                                return
+                              }
+                              Mess.say('Added dir ' + abs)
+                              cb({ success: true,
          subtool: 'createDir',
          message: 'Successfully created directory.' })
-  })
+                            })
 }
 
 function createFile
@@ -391,20 +391,20 @@ function createFile
   abs = Loc.make(buf.dir).join(path)
   d('CREATEFILE abs ' + abs)
   Tron.cmd('file.save', [ abs, '' ], err => {
-    if (err) {
-      d('ERR createFile')
-      d(err.message)
-      cb({ error: err.message,
+                                       if (err) {
+                                         d('ERR createFile')
+                                         d(err.message)
+                                         cb({ error: err.message,
            success: false,
            subtool: 'createFile',
            message: 'Failed to create file.' })
-      return
-    }
-    Mess.say('Added dir ' + abs)
-    cb({ success: true,
+                                         return
+                                       }
+                                       Mess.say('Added dir ' + abs)
+                                       cb({ success: true,
          subtool: 'createFile',
          message: 'Successfully created file.' })
-  })
+                                     })
 }
 
 function createFileWithContent
@@ -433,20 +433,20 @@ function createFileWithContent
   abs = Loc.make(buf.dir).join(path)
   d('CREATEFILE abs ' + abs)
   Tron.cmd('file.save', [ abs, args.text || '' ], err => {
-    if (err) {
-      d('ERR createFile')
-      d(err.message)
-      cb({ error: err.message,
+                                                    if (err) {
+                                                      d('ERR createFile')
+                                                      d(err.message)
+                                                      cb({ error: err.message,
            success: false,
            subtool: 'createFile',
            message: 'Failed to create file.' })
-      return
-    }
-    Mess.say('Added dir ' + abs)
-    cb({ success: true,
+                                                      return
+                                                    }
+                                                    Mess.say('Added dir ' + abs)
+                                                    cb({ success: true,
          subtool: 'createFile',
          message: 'Successfully created file.' })
-  })
+                                                  })
 }
 
 function insertText
@@ -486,22 +486,22 @@ function insertText
 
   d({ pos })
   Tron.cmd('file.modify', [ abs, [ { type: 'insert', position: pos, text: args.text || '' } ] ], (err, data) => {
-    if (err) {
-      d('ERR file.modify')
-      d(err.message)
-      cb({ error: err.message,
+                                                                                                   if (err) {
+                                                                                                     d('ERR file.modify')
+                                                                                                     d(err.message)
+                                                                                                     cb({ error: err.message,
            success: false,
            subtool: 'insertText',
            message: 'Failed to insert text.' })
-      return
-    }
+                                                                                                     return
+                                                                                                   }
 
-    d('INSERTTEXT data')
-    d(data.data)
-    cb({ success: true,
+                                                                                                   d('INSERTTEXT data')
+                                                                                                   d(data.data)
+                                                                                                   cb({ success: true,
          subtool: 'insertText',
          message: 'Successfully inserted text.' })
-  })
+                                                                                                 })
 }
 
 function modifyFile
@@ -542,22 +542,22 @@ function modifyFile
 
   d({ edit })
   Tron.cmd('file.modify', [ abs, [ edit ] ], (err, data) => {
-    if (err) {
-      d('ERR file.modify')
-      d(err.message)
-      cb({ error: err.message,
+                                               if (err) {
+                                                 d('ERR file.modify')
+                                                 d(err.message)
+                                                 cb({ error: err.message,
            success: false,
            subtool: 'modifiedFile',
            message: 'Failed to modified file.' })
-      return
-    }
+                                                 return
+                                               }
 
-    d('MODIFYFILE data')
-    d(data.data)
-    cb({ success: true,
+                                               d('MODIFYFILE data')
+                                               d(data.data)
+                                               cb({ success: true,
          subtool: 'modifyFile',
          message: 'Successfully modified file.' })
-  })
+                                             })
 }
 
 function moveFile
@@ -607,20 +607,20 @@ function moveFile
   d('MOVEFILE abs ' + abs_from + ' to ' + abs_to)
 
   Tron.cmd('file.mv', [ abs_from, abs_to ], err => {
-    if (err) {
-      d('ERR file.mv')
-      d(err.message)
-      cb({ error: err.message,
+                                              if (err) {
+                                                d('ERR file.mv')
+                                                d(err.message)
+                                                cb({ error: err.message,
            success: false,
            subtool: 'moveFile',
            message: 'Failed to move file.' })
-      return
-    }
+                                                return
+                                              }
 
-    cb({ success: true,
+                                              cb({ success: true,
          subtool: 'moveFile',
          message: 'Successfully moved file.' })
-  })
+                                            })
 }
 
 function patchFile
@@ -652,22 +652,22 @@ function patchFile
   d({ patch })
 
   Tron.cmd('file.patch', [ abs, patch ], (err, data) => {
-    if (err) {
-      d('ERR file.save')
-      d(err.message)
-      cb({ error: err.message,
+                                           if (err) {
+                                             d('ERR file.save')
+                                             d(err.message)
+                                             cb({ error: err.message,
            success: false,
            subtool: 'patchFile',
            message: 'Failed to patch file.' })
-      return
-    }
+                                             return
+                                           }
 
-    d('PATCHFILE data')
-    d(data.data)
-    cb({ success: true,
+                                           d('PATCHFILE data')
+                                           d(data.data)
+                                           cb({ success: true,
          subtool: 'patchFile',
          message: 'Successfully patched file.' })
-  })
+                                         })
 }
 
 function readFile
@@ -697,23 +697,23 @@ function readFile
   d('READFILE abs ' + abs)
 
   Tron.cmd('file.get', [ abs ], (err, data) => {
-    if (err) {
-      d('ERR file.get')
-      d(err.message)
-      cb({ error: err.message,
+                                  if (err) {
+                                    d('ERR file.get')
+                                    d(err.message)
+                                    cb({ error: err.message,
            success: false,
            subtool: 'readFile',
            message: 'Failed to read file.' })
-      return
-    }
+                                    return
+                                  }
 
-    d('READFILE data')
-    d(data.data)
-    cb({ success: true,
+                                  d('READFILE data')
+                                  d(data.data)
+                                  cb({ success: true,
          subtool: 'readFile',
          message: 'Successfully read file.',
          contents: data.data })
-  })
+                                })
 }
 
 function removeFile
@@ -743,22 +743,22 @@ function removeFile
   d('REMOVEFILE abs ' + abs)
 
   Tron.cmd('file.rm', [ abs ], (err, data) => {
-    if (err) {
-      d('ERR file.rm')
-      d(err.message)
-      cb({ error: err.message,
+                                 if (err) {
+                                   d('ERR file.rm')
+                                   d(err.message)
+                                   cb({ error: err.message,
            success: false,
            subtool: 'removeFile',
            message: 'Failed to remove file.' })
-      return
-    }
+                                   return
+                                 }
 
-    d('REMOVEFILE data')
-    d(data.data)
-    cb({ success: true,
+                                 d('REMOVEFILE data')
+                                 d(data.data)
+                                 cb({ success: true,
          subtool: 'removeFile',
          message: 'Successfully removed file.' })
-  })
+                               })
 }
 
 function execute
@@ -778,14 +778,14 @@ function execute
   d('EXECUTE ' + name)
   buf.dir || Mess.toss('Missing dir')
   Shell.runToString(buf.dir, name, args.args, 0, (str, code) => {
-    d('EXECUTE code')
-    d(code)
-    cb({ success: true,
+                                                   d('EXECUTE code')
+                                                   d(code)
+                                                   cb({ success: true,
          subtool: 'execute',
          message: 'Successfully ran executable.',
          output: str,
          exitCode: code })
-  })
+                                                 })
 }
 
 function removeText
@@ -835,22 +835,22 @@ function removeText
   d({ position })
   d({ length })
   Tron.cmd('file.modify', [ abs, [ { type: 'remove', position, length } ] ], (err, data) => {
-    if (err) {
-      d('ERR file.modify')
-      d(err.message)
-      cb({ error: err.message,
+                                                                               if (err) {
+                                                                                 d('ERR file.modify')
+                                                                                 d(err.message)
+                                                                                 cb({ error: err.message,
            success: false,
            subtool: 'removeText',
            message: 'Failed to remove text.' })
-      return
-    }
+                                                                                 return
+                                                                               }
 
-    d('REMOVETEXT data')
-    d(data.data)
-    cb({ success: true,
+                                                                               d('REMOVETEXT data')
+                                                                               d(data.data)
+                                                                               cb({ success: true,
          subtool: 'removeText',
          message: 'Successfully inserted text.' })
-  })
+                                                                             })
 }
 
 function writeFile
@@ -880,22 +880,22 @@ function writeFile
   d('WRITEFILE abs ' + abs)
 
   Tron.cmd('file.save', [ abs, args.text || '' ], (err, data) => {
-    if (err) {
-      d('ERR file.save')
-      d(err.message)
-      cb({ error: err.message,
+                                                    if (err) {
+                                                      d('ERR file.save')
+                                                      d(err.message)
+                                                      cb({ error: err.message,
            success: false,
            subtool: 'writeFile',
            message: 'Failed to write file.' })
-      return
-    }
+                                                      return
+                                                    }
 
-    d('WRITEFILE data')
-    d(data.data)
-    cb({ success: true,
+                                                    d('WRITEFILE data')
+                                                    d(data.data)
+                                                    cb({ success: true,
          subtool: 'writeFile',
          message: 'Successfully wrote file.' })
-  })
+                                                  })
 }
 
 function stamp
@@ -915,52 +915,52 @@ function init
             headers: { Authorization: 'Bearer ' + key,
                        'Content-Type': 'application/json' } })
       .then(response => {
-        if (response.ok) {
-          response.json().then(data => {
-            d({ data })
-            d(data.data.limit_remaining)
-            buf.views.forEach(view => {
-              if (view.ele) {
-                let el
+              if (response.ok) {
+                response.json().then(data => {
+                                       d({ data })
+                                       d(data.data.limit_remaining)
+                                       buf.views.forEach(view => {
+                                                           if (view.ele) {
+                                                             let el
 
-                el = view.ele.querySelector('.query-ml-credits')
-                if (el) {
-                  let dol
+                                                             el = view.ele.querySelector('.query-ml-credits')
+                                                             if (el) {
+                                                               let dol
 
-                  dol = parseFloat(data.data.limit_remaining)
-                  if (isNaN(dol))
-                    el.innerText = '$'
-                  else
-                    el.innerText = '$' + dol.toFixed(2)
-                }
+                                                               dol = parseFloat(data.data.limit_remaining)
+                                                               if (isNaN(dol))
+                                                                 el.innerText = '$'
+                                                               else
+                                                                 el.innerText = '$' + dol.toFixed(2)
+                                                             }
+                                                           }
+                                                         })
+                                     })
+                  .catch(err => {
+                           d('ERR .json: ' + err.message)
+                         })
+                return
               }
+              d('Error fetching credit info')
             })
-          })
-            .catch(err => {
-              d('ERR .json: ' + err.message)
-            })
-          return
-        }
-        d('Error fetching credit info')
-      })
       .catch(err => {
-        d('ERR fetch:')
-        d(err.message)
-      })
+               d('ERR fetch:')
+               d(err.message)
+             })
   }
 
   function busy
   (buf) {
     buf.vars('query').busy = 1
     buf.views.forEach(view => {
-      if (view.ele) {
-        let el
+                        if (view.ele) {
+                          let el
 
-        el = view.ele.querySelector('.query-ml-stop')
-        if (el)
-          Css.show(el)
-      }
-    })
+                          el = view.ele.querySelector('.query-ml-stop')
+                          if (el)
+                            Css.show(el)
+                        }
+                      })
   }
 
   function complete
@@ -968,14 +968,14 @@ function init
     buf.vars('query').cancel = 0
     buf.vars('query').busy = 0
     buf.views.forEach(view => {
-      if (view.ele) {
-        let el
+                        if (view.ele) {
+                          let el
 
-        el = view.ele.querySelector('.query-ml-stop')
-        if (el)
-          Css.hide(el)
-      }
-    })
+                          el = view.ele.querySelector('.query-ml-stop')
+                          if (el)
+                            Css.hide(el)
+                        }
+                      })
   }
 
   function appendRunning
@@ -995,55 +995,55 @@ function init
       return
     }
     buf.views.forEach(view => {
-      if (view.ele) {
-        let toolW, toolName, toolArgs, copy
+                        if (view.ele) {
+                          let toolW, toolName, toolArgs, copy
 
-        toolW = view.ele.querySelector('.query-tool-w')
-        toolName = toolW.querySelector('.query-tool-name')
-        toolName.innerText = call.args.subtool
-        toolArgs = toolW.querySelector('.query-tool-args')
-        copy = { ...call.args }
-        delete copy.answer
-        delete copy.subtool
-        toolArgs.innerText = JSON.stringify(copy, 0, 2)
-        Css.expand(toolW)
-        d(call)
-      }
-    })
+                          toolW = view.ele.querySelector('.query-tool-w')
+                          toolName = toolW.querySelector('.query-tool-name')
+                          toolName.innerText = call.args.subtool
+                          toolArgs = toolW.querySelector('.query-tool-args')
+                          copy = { ...call.args }
+                          delete copy.answer
+                          delete copy.subtool
+                          toolArgs.innerText = JSON.stringify(copy, 0, 2)
+                          Css.expand(toolW)
+                          d(call)
+                        }
+                      })
     buf.addMode('chat tool')
   }
 
   function makeExtRo
   () {
     extRo = CMState.EditorState.transactionFilter.of(tr => {
-      if (tr.docChanged) {
-        let view
+                                                       if (tr.docChanged) {
+                                                         let view
 
-        if (tr.annotation(CMState.Transaction.remote))
-          return tr
+                                                         if (tr.annotation(CMState.Transaction.remote))
+                                                           return tr
 
-        view = Ed.Backend.viewFromState(tr.state)
-        if (view) {
-          let end, skip
+                                                         view = Ed.Backend.viewFromState(tr.state)
+                                                         if (view) {
+                                                           let end, skip
 
-          if (view.buf?.vars('query').appending)
-            return tr
-          if (view.buf?.vars('query').busy)
-            return []
+                                                           if (view.buf?.vars('query').appending)
+                                                             return tr
+                                                           if (view.buf?.vars('query').busy)
+                                                             return []
 
-          end = view.buf?.vars('query').promptEnd
-          if (end == null)
-            return tr
-          tr.changes.iterChangedRanges((from, to) => {
-            if (Ed.bepLt(Math.min(from, to), end))
-              skip = 1
-          })
-          if (skip)
-            return []
-        }
-      }
-      return tr
-    })
+                                                           end = view.buf?.vars('query').promptEnd
+                                                           if (end == null)
+                                                             return tr
+                                                           tr.changes.iterChangedRanges((from, to) => {
+                                                                                          if (Ed.bepLt(Math.min(from, to), end))
+                                                                                            skip = 1
+                                                                                        })
+                                                           if (skip)
+                                                             return []
+                                                         }
+                                                       }
+                                                       return tr
+                                                     })
   }
 
   function chat
@@ -1064,59 +1064,59 @@ function init
       () {
         reader.read().then(({ done, value }) => {
 
-          if (cancelled)
-            return
+                             if (cancelled)
+                               return
 
-          if (done) {
-            d('CHAT done')
-            reader.cancel()
-            cbEnd && cbEnd()
-            return
-          }
+                             if (done) {
+                               d('CHAT done')
+                               reader.cancel()
+                               cbEnd && cbEnd()
+                               return
+                             }
 
-          buffer += decoder.decode(value, { stream: true })
-          //d('CHAT buffer: ' + buffer)
+                             buffer += decoder.decode(value, { stream: true })
+                             //d('CHAT buffer: ' + buffer)
 
-          // Process complete lines from buffer
+                             // Process complete lines from buffer
 
-          while (true) {
-            let lineEnd, line
+                             while (true) {
+                               let lineEnd, line
 
-            lineEnd = buffer.indexOf('\n')
+                               lineEnd = buffer.indexOf('\n')
 
-            if (lineEnd == -1)
-              break
+                               if (lineEnd == -1)
+                                 break
 
-            line = buffer.slice(0, lineEnd).trim()
+                               line = buffer.slice(0, lineEnd).trim()
 
-            buffer = buffer.slice(lineEnd + 1)
+                               buffer = buffer.slice(lineEnd + 1)
 
-            if (line.startsWith('data: ')) {
-              let data, delta, json
+                               if (line.startsWith('data: ')) {
+                                 let data, delta, json
 
-              data = line.slice(6)
+                                 data = line.slice(6)
 
-              if (data == '[DONE]')
-                break
+                                 if (data == '[DONE]')
+                                   break
 
-              json = JSON.parse(data)
-              delta = json.choices[0].delta
-              d(delta)
-              if (delta.content?.length) {
-                // sometimes the response is formatted entirely into a very narrow column, hoping this helps
-                // if msg starts w/ nl then strip nl
-                if (delta.content.startsWith('\n'))
-                  delta.content = delta.content.slice(1)
-                cb && cb(delta)
-                buf.vars('query').msgs.push(delta)
-              }
-              if (delta.tool_calls?.length)
-                d('ERR tool call')
-            }
-          }
+                                 json = JSON.parse(data)
+                                 delta = json.choices[0].delta
+                                 d(delta)
+                                 if (delta.content?.length) {
+                                   // sometimes the response is formatted entirely into a very narrow column, hoping this helps
+                                   // if msg starts w/ nl then strip nl
+                                   if (delta.content.startsWith('\n'))
+                                     delta.content = delta.content.slice(1)
+                                   cb && cb(delta)
+                                   buf.vars('query').msgs.push(delta)
+                                 }
+                                 if (delta.tool_calls?.length)
+                                   d('ERR tool call')
+                               }
+                             }
 
-          read()
-        })
+                             read()
+                           })
       }
 
       d('CHAT stream')
@@ -1148,18 +1148,18 @@ function init
                                                  ...msgs ],
                                      stream: true }) })
         .then(response => {
-          updateCredits(buf, key)
-          if (response.ok)
-            return stream(response)
-          cb && cb({ content: 'fetch failed' })
-          cbEnd && cbEnd()
-        })
+                updateCredits(buf, key)
+                if (response.ok)
+                  return stream(response)
+                cb && cb({ content: 'fetch failed' })
+                cbEnd && cbEnd()
+              })
         .catch(err => {
-          d('ERR fetch:')
-          d(err.message)
-          cb && cb({ content: 'fetch failed: ' + err.message })
-          cbEnd && cbEnd()
-        })
+                 d('ERR fetch:')
+                 d(err.message)
+                 cb && cb({ content: 'fetch failed: ' + err.message })
+                 cbEnd && cbEnd()
+               })
     }
 
     d('==== ' + emo + ' chat ====')
@@ -1237,13 +1237,13 @@ function init
         calls = 0
         if (call)
           call.cb(res => {
-            d('CALL result for ' + call.name)
-            d(res)
-            end()
-            push({ role: 'user',
+                    d('CALL result for ' + call.name)
+                    d(res)
+                    end()
+                    push({ role: 'user',
                    content: JSON.stringify(res) })
-            go()
-          })
+                    go()
+                  })
         else
           end()
       }
@@ -1276,96 +1276,96 @@ function init
         d('AGENT handle')
 
         reader.read().then(({ done, value }) => {
-          if (cancelled)
-            return
+                             if (cancelled)
+                               return
 
-          if (done) {
-            let json, message
+                             if (done) {
+                               let json, message
 
-            d('AGENT done')
+                               d('AGENT done')
 
-            calls = []
-            reader.cancel()
+                               calls = []
+                               reader.cancel()
 
-            // parse the buffer
+                               // parse the buffer
 
-            json = JSON.parse(buffer)
-            d({ json })
-            if (json.error) {
-              d('ERR from llm: ' + json.error.message)
-              if (json.error.metadata)
-                try {
-                  let raw
+                               json = JSON.parse(buffer)
+                               d({ json })
+                               if (json.error) {
+                                 d('ERR from llm: ' + json.error.message)
+                                 if (json.error.metadata)
+                                   try {
+                                     let raw
 
-                  raw = JSON.parse(json.error.metadata.raw)
-                  d({ raw })
-                }
-                catch {
-                }
-              return
-            }
-            message = json.choices[0].message
-            d(message)
-            if (message.content?.length) {
-              let args
+                                     raw = JSON.parse(json.error.metadata.raw)
+                                     d({ raw })
+                                   }
+                                   catch {
+                                   }
+                                 return
+                               }
+                               message = json.choices[0].message
+                               d(message)
+                               if (message.content?.length) {
+                                 let args
 
-              delete message.refusal
-              delete message.reasoning
-              push(message)
+                                 delete message.refusal
+                                 delete message.reasoning
+                                 push(message)
 
-              try {
-                args = JSON.parse(message.content.trim())
-              }
-              catch (err) {
-                d('ERR failed to parse it as json: ' + err.message)
-              }
+                                 try {
+                                   args = JSON.parse(message.content.trim())
+                                 }
+                                 catch (err) {
+                                   d('ERR failed to parse it as json: ' + err.message)
+                                 }
 
-              if (args?.answer?.length) {
-                cb && cb({ content: args.answer })
-                if (args?.subtool) {
-                  // below
-                }
-                else {
-                  cbEnd && cbEnd()
-                  return
-                }
-              }
+                                 if (args?.answer?.length) {
+                                   cb && cb({ content: args.answer })
+                                   if (args?.subtool) {
+                                     // below
+                                   }
+                                   else {
+                                     cbEnd && cbEnd()
+                                     return
+                                   }
+                                 }
 
-              if (args?.subtool) {
-                let subtool
+                                 if (args?.subtool) {
+                                   let subtool
 
-                d('  SUBTOOL ' + args.subtool)
+                                   d('  SUBTOOL ' + args.subtool)
 
-                subtool = sys.subs.find(s => s.schema.properties.subtool.const == args.subtool)
-                if (subtool) {
-                  addCall(args, subtool)
-                  // run the tool
-                  calls[0] && cbCall(calls[0]) // will call go with response, to fetch again
-                  return
-                }
-                d('ERR map missing subtool: ' + args.subtool)
-              }
-              else if (args?.answer.length == 0)
-                d('ERR empty answer')
-              else
-                d('ERR answer and subtool missing')
-              d(message.content)
-              remind()
-              go()
-              return
-            }
+                                   subtool = sys.subs.find(s => s.schema.properties.subtool.const == args.subtool)
+                                   if (subtool) {
+                                     addCall(args, subtool)
+                                     // run the tool
+                                     calls[0] && cbCall(calls[0]) // will call go with response, to fetch again
+                                     return
+                                   }
+                                   d('ERR map missing subtool: ' + args.subtool)
+                                 }
+                                 else if (args?.answer.length == 0)
+                                   d('ERR empty answer')
+                                 else
+                                   d('ERR answer and subtool missing')
+                                 d(message.content)
+                                 remind()
+                                 go()
+                                 return
+                               }
 
-            d('ERR model sent empty content (happens eg when spinning up)')
-            wait()
-            go()
-            return
-          }
+                               d('ERR model sent empty content (happens eg when spinning up)')
+                               wait()
+                               go()
+                               return
+                             }
 
-          buffer += decoder.decode(value, { stream: true })
-          //d('AGENT buffer: ' + buffer)
+                             buffer += decoder.decode(value, { stream: true })
+                             //d('AGENT buffer: ' + buffer)
 
-          read()
-        })
+                             read()
+                           })
       }
 
       reminds = 0
@@ -1412,18 +1412,18 @@ function init
                                                                                  oneOf: sys.schema,
                                                                                  additionalProperties: false } } } }) })
         .then(response => {
-          updateCredits(buf, key)
-          if (response.ok)
-            return handle(response)
-          cb && cb({ content: 'fetch failed' })
-          cbEnd && cbEnd()
-        })
+                updateCredits(buf, key)
+                if (response.ok)
+                  return handle(response)
+                cb && cb({ content: 'fetch failed' })
+                cbEnd && cbEnd()
+              })
         .catch(err => {
-          d('ERR fetch:')
-          d(err.message)
-          cb && cb({ content: 'fetch failed: ' + err.message })
-          cbEnd && cbEnd()
-        })
+                 d('ERR fetch:')
+                 d(err.message)
+                 cb && cb({ content: 'fetch failed: ' + err.message })
+                 cbEnd && cbEnd()
+               })
     }
 
     d('==== ' + emoAgent + ' chatAgent ====')
@@ -1531,13 +1531,13 @@ function init
     }
 
     gen = async spec => {
-      let response
+            let response
 
-      response = await Ollama.generate(spec)
-      for await (let part of response)
-        add(part.response)
-      add('\n')
-    }
+            response = await Ollama.generate(spec)
+            for await (let part of response)
+              add(part.response)
+            add('\n')
+          }
 
     text = view.buf.text()
     off = view.offset
@@ -1639,22 +1639,22 @@ function init
 
       path = files[index]
       readFileOrDir(buf, { path }, result => {
-        buf.vars('query').msgs.push({ role: 'assistant',
+                                     buf.vars('query').msgs.push({ role: 'assistant',
                                       content: JSON.stringify({ answer: 'I will read the contents of ' + path,
                                                                 subtool: 'readFileOrDir',
                                                                 path }) })
-        result = result || {}
-        result.success || Mess.yell('@file:' + path + ': ' + (result.error || 'Failed to read file'))
-        buf.vars('query').msgs.push({ role: 'user',
+                                     result = result || {}
+                                     result.success || Mess.yell('@file:' + path + ': ' + (result.error || 'Failed to read file'))
+                                     buf.vars('query').msgs.push({ role: 'user',
                                       content: JSON.stringify(result) })
-        // Move to the next file
-        index++
-        if (index < files.length)
-          processNext()
-        else
-          // All files processed. Return the cleaned prompt via callback.
-          cb(message.replace(regex, '').trim())
-      })
+                                     // Move to the next file
+                                     index++
+                                     if (index < files.length)
+                                       processNext()
+                                     else
+                                     // All files processed. Return the cleaned prompt via callback.
+                                       cb(message.replace(regex, '').trim())
+                                   })
     }
 
     regex = /@file:([^\s]+)/g
@@ -1729,27 +1729,27 @@ function init
   (under, query, placeholder) {
     Tron.acmd('profile.hist.suggest', [ query ])
       .then(data => {
-        let frag
+              let frag
 
-        d(data)
-        frag = new globalThis.DocumentFragment()
-        append(frag,
-               divCl('bred-prompt-sug0',
-                     [ divCl('bred-prompt-sug0-type',
-                             img(Icon.path('search'), '🔍', 'filter-clr-text')),
-                       divCl('bred-prompt-sug0-text', query || placeholder) ]))
-        data.urls?.forEach(url => {
-          append(frag,
-                 divCl('bred-prompt-sug',
-                       url.item.href,
-                       { 'data-run': 'close demand',
+              d(data)
+              frag = new globalThis.DocumentFragment()
+              append(frag,
+                     divCl('bred-prompt-sug0',
+                           [ divCl('bred-prompt-sug0-type',
+                                   img(Icon.path('search'), '🔍', 'filter-clr-text')),
+                             divCl('bred-prompt-sug0-text', query || placeholder) ]))
+              data.urls?.forEach(url => {
+                                   append(frag,
+                                          divCl('bred-prompt-sug',
+                                                url.item.href,
+                                                { 'data-run': 'close demand',
                          'data-after': 'open link',
                          'data-path': url.item.href }))
-        })
-        under.innerHTML = ''
-        append(under, frag)
-        Css.enable(under)
-      })
+                                 })
+              under.innerHTML = ''
+              append(under, frag)
+              Css.enable(under)
+            })
   }
 
   function divMl
@@ -1798,13 +1798,13 @@ function init
     call = p.buf.vars('query').call
     p.buf.rmMode('chat tool')
     p.buf.views.forEach(view => {
-      if (view.ele) {
-        let toolW
+                          if (view.ele) {
+                            let toolW
 
-        toolW = view.ele.querySelector('.query-tool-w')
-        Css.retract(toolW)
-      }
-    })
+                            toolW = view.ele.querySelector('.query-tool-w')
+                            Css.retract(toolW)
+                          }
+                        })
     appendRunning(p.buf, call)
     call?.yes(p.buf)
   }
@@ -1817,13 +1817,13 @@ function init
     call = p.buf.vars('query').call
     p.buf.rmMode('chat tool')
     p.buf.views.forEach(view => {
-      if (view.ele) {
-        let toolW
+                          if (view.ele) {
+                            let toolW
 
-        toolW = view.ele.querySelector('.query-tool-w')
-        Css.retract(toolW)
-      }
-    })
+                            toolW = view.ele.querySelector('.query-tool-w')
+                            Css.retract(toolW)
+                          }
+                        })
     appendWithEnd(p.buf, '\n\n' + 'Declined to run ' + call.args.subtool)
     call?.no()
   }
@@ -1881,29 +1881,29 @@ function init
 
     buf.clear()
     p.setBuf(buf, {}, () => {
-      appendWithEnd(buf, buf.vars('query').premo + ' ' + message + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
-      buf.opts.set('core.line.wrap.enabled', 1)
-      buf.opts.set('core.lint.enabled', 0)
-      expandFiles(buf, message, expandedPrompt => {
-        d({ expandedPrompt })
-        cb(buf, Opt.get('query.key'), buf.vars('query').msgs, expandedPrompt,
-           msg => {
-             //d('CHAT append: ' + msg.content)
-             appendWithEnd(buf, msg.content)
-           },
-           () => {
-             d('cbEnd')
-             appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
-             complete(buf)
-           },
-           // only used by chatAgent
-           call => {
-             d('cbCall ' + call.name)
-             appendCall(buf, call)
-             //complete(buf)
-           })
-      })
-    })
+                        appendWithEnd(buf, buf.vars('query').premo + ' ' + message + '\n┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n\n')
+                        buf.opts.set('core.line.wrap.enabled', 1)
+                        buf.opts.set('core.lint.enabled', 0)
+                        expandFiles(buf, message, expandedPrompt => {
+                                                    d({ expandedPrompt })
+                                                    cb(buf, Opt.get('query.key'), buf.vars('query').msgs, expandedPrompt,
+                                                       msg => {
+                                                         //d('CHAT append: ' + msg.content)
+                                                         appendWithEnd(buf, msg.content)
+                                                       },
+                                                       () => {
+                                                         d('cbEnd')
+                                                         appendWithEnd(buf, '\n─────────────────────────────\n\n' + buf.vars('query').premo + ' ')
+                                                         complete(buf)
+                                                       },
+                                                      // only used by chatAgent
+                                                       call => {
+                                                         d('cbCall ' + call.name)
+                                                         appendCall(buf, call)
+                                                         //complete(buf)
+                                                       })
+                                                  })
+                      })
   }
 
   function prompt
@@ -1916,12 +1916,12 @@ function init
   function setModel
   (type) {
     Prompt.choose('Set ' + type + ' model', models.map(m => m.name), {}, choice => {
-      if (choice) {
-        Opt.set('query.model.' + type, choice)
-        return
-      }
-      Mess.throw('ERR: choice: ' + choice)
-    })
+                                                                           if (choice) {
+                                                                             Opt.set('query.model.' + type, choice)
+                                                                             return
+                                                                           }
+                                                                           Mess.throw('ERR: choice: ' + choice)
+                                                                         })
   }
 
   function setBufModel
@@ -1930,23 +1930,23 @@ function init
 
     buf = Pane.current().buf
     Prompt.choose('Buffer model', models.map(m => m.name), {}, choice => {
-      if (choice) {
-        if (buf.vars('query').type == 'Agent')
-          buf.opts.set('query.model.agent', choice)
-        else
-          buf.opts.set('query.model.chat', choice)
-        buf.views.forEach(view => {
-          if (view.ready && view.ele) {
-            let el
+                                                                 if (choice) {
+                                                                   if (buf.vars('query').type == 'Agent')
+                                                                     buf.opts.set('query.model.agent', choice)
+                                                                   else
+                                                                     buf.opts.set('query.model.chat', choice)
+                                                                   buf.views.forEach(view => {
+                                                                                       if (view.ready && view.ele) {
+                                                                                         let el
 
-            el = view.ele.querySelector('.query-ml-model')
-            el.innerText = choice
-            el.dataset.name = choice
-          }
-        })
-        return
-      }
-    })
+                                                                                         el = view.ele.querySelector('.query-ml-model')
+                                                                                         el.innerText = choice
+                                                                                         el.dataset.name = choice
+                                                                                       }
+                                                                                     })
+                                                                   return
+                                                                 }
+                                                               })
   }
 
   function getSys
@@ -1959,14 +1959,14 @@ function init
 
       out = ''
       Object.keys(props).forEach((key, i) => {
-        if (i)
-          out += ', '
-        out += (key + ': ')
-        if (key == 'subtool')
-          out += ('"' + props[key].const + '"')
-        else
-          out += props[key].type
-      })
+                                   if (i)
+                                     out += ', '
+                                   out += (key + ': ')
+                                   if (key == 'subtool')
+                                     out += ('"' + props[key].const + '"')
+                                   else
+                                     out += props[key].type
+                                 })
       return out
     }
 
@@ -2101,106 +2101,106 @@ User →
   }
 
   Cmd.add('agent', () => {
-    prompt('Agent', Opt.get('query.model.agent'))
-  })
+                     prompt('Agent', Opt.get('query.model.agent'))
+                   })
 
   Cmd.add('chat', () => {
-    prompt('Chat', Opt.get('query.model.chat'))
-  })
+                    prompt('Chat', Opt.get('query.model.chat'))
+                  })
 
   Cmd.add('agent buffer', () => {
-    runPrompt(Pane.current().buf.text(), 'Agent', Opt.get('query.model.agent'))
-  })
+                            runPrompt(Pane.current().buf.text(), 'Agent', Opt.get('query.model.agent'))
+                          })
 
   Cmd.add('chat buffer', () => {
-    runPrompt(Pane.current().buf.text(), 'Chat', Opt.get('query.model.chat'))
-  })
+                           runPrompt(Pane.current().buf.text(), 'Chat', Opt.get('query.model.chat'))
+                         })
 
   Cmd.add('llm', (u, we, model) => {
-    model = model || Opt.get('query.model.local')
-    Prompt.ask({ text: 'Prompt',
+                   model = model || Opt.get('query.model.local')
+                   Prompt.ask({ text: 'Prompt',
                  hist },
-               message => {
-                 hist.add(message)
-                 Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
-                   buf.append(premo + ' ' + prompt + '\n\n')
-                   buf.opts.set('core.line.wrap.enabled', 1)
-                   buf.opts.set('core.lint.enabled', 0)
-                   buf.mode = 'richdown'
+                              message => {
+                                hist.add(message)
+                                Shell.spawn1('llm', [ model, prompt ], { end: 1 }, buf => {
+                                                                                     buf.append(premo + ' ' + prompt + '\n\n')
+                                                                                     buf.opts.set('core.line.wrap.enabled', 1)
+                                                                                     buf.opts.set('core.lint.enabled', 0)
+                                                                                     buf.mode = 'richdown'
+                                                                                   })
+                              })
                  })
-               })
-  })
 
   Cmd.add('stop response', () => {
-    let p
+                             let p
 
-    p = Pane.current()
-    if (p.buf.vars('query').busy)
-      if (p.buf.vars('query').cancel) {
-        p.buf.vars('query').cancel()
-        appendWithEnd(p.buf, ' ...stopped.\n\n' + p.buf.vars('query').premo + ' ')
-        complete(p.buf)
-      }
-      else
-        Mess.toss('cancel function missing')
-  })
+                             p = Pane.current()
+                             if (p.buf.vars('query').busy)
+                               if (p.buf.vars('query').cancel) {
+                                 p.buf.vars('query').cancel()
+                                 appendWithEnd(p.buf, ' ...stopped.\n\n' + p.buf.vars('query').premo + ' ')
+                                 complete(p.buf)
+                               }
+                               else
+                                 Mess.toss('cancel function missing')
+                           })
 
   Cmd.add('llm insert', () => {
-    Prompt.ask({ text: 'Describe what should be inserted',
+                          Prompt.ask({ text: 'Describe what should be inserted',
                  hist },
-               message => {
-                 let p
+                                     message => {
+                                       let p
 
-                 p = Pane.current()
+                                       p = Pane.current()
 
-                 hist.add(message)
-                 message = message.trim()
-                 insert(p.dir, p.view, message)
-               })
-  })
+                                       hist.add(message)
+                                       message = message.trim()
+                                       insert(p.dir, p.view, message)
+                                     })
+                        })
 
   Cmd.add('fim', () => {
-    Prompt.ask({ text: 'Describe what should be inserted',
+                   Prompt.ask({ text: 'Describe what should be inserted',
                  hist },
-               message => {
-                 let p
+                              message => {
+                                let p
 
-                 p = Pane.current()
+                                p = Pane.current()
 
-                 hist.add(message)
-                 message = message.trim()
-                 fim(p.dir, p.view, message)
-               })
-  })
+                                hist.add(message)
+                                message = message.trim()
+                                fim(p.dir, p.view, message)
+                              })
+                 })
 
   Cmd.add('go', (u, we) => {
-    Prompt.ask({ text: 'Go',
+                  Prompt.ask({ text: 'Go',
                  placeholder: we?.e.target.dataset.url,
                  hist,
                  suggest },
-               query => {
-                 query = query.trim()
-                 if (query.startsWith('http://')
+                             query => {
+                               query = query.trim()
+                               if (query.startsWith('http://')
                      || query.startsWith('https://')) {
-                   Browse.browse(query)
-                   return
-                 }
-                 if (query.startsWith('file://')) {
-                   Pane.open(query)
-                   return
-                 }
-                 search(query, { hist })
-               })
-  })
+                                 Browse.browse(query)
+                                 return
+                               }
+                               if (query.startsWith('file://')) {
+                                 Pane.open(query)
+                                 return
+                               }
+                               search(query, { hist })
+                             })
+                })
 
   Cmd.add('google', () => {
-    Prompt.ask({ text: 'Query',
+                      Prompt.ask({ text: 'Query',
                  hist },
-               query => {
-                 query = query.trim()
-                 search(query, { hist })
-               })
-  })
+                                 query => {
+                                   query = query.trim()
+                                   search(query, { hist })
+                                 })
+                    })
 
   allSubs = [ { key: 'createDir',
                 cb: createDir,

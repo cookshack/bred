@@ -25,22 +25,22 @@ function init
 
     b = Buf.add('2048', '2048', divW(), p.dir)
     p.setBuf(b, {}, () => {
-      let restart
+                      let restart
 
-      game = globalThis.document.getElementById('two048')
+                      game = globalThis.document.getElementById('two048')
 
-      restart = globalThis.document.getElementById('two048-restart')
+                      restart = globalThis.document.getElementById('two048-restart')
 
-      game.addEventListener('2048:game-won', () => {
-        d('won')
-        restart.innerHTML = '😎'
-      })
+                      game.addEventListener('2048:game-won', () => {
+                                                               d('won')
+                                                               restart.innerHTML = '😎'
+                                                             })
 
-      game.addEventListener('2048:game-lost', () => {
-        d('bomb')
-        restart.innerHTML = '😑'
-      })
-    })
+                      game.addEventListener('2048:game-lost', () => {
+                                                                d('bomb')
+                                                                restart.innerHTML = '😑'
+                                                              })
+                    })
   }
 
   function smile

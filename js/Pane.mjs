@@ -30,15 +30,15 @@ export
 function focusView
 (view, skipEd, skipEle) {
   Frame.find(frame => {
-    let p
+               let p
 
-    p = frame.panes.find(p1 => p1.view == view)
-    if (p) {
-      p.focus(skipEd, skipEle)
-      return 1
-    }
-    return 0
-  })
+               p = frame.panes.find(p1 => p1.view == view)
+               if (p) {
+                 p.focus(skipEd, skipEle)
+                 return 1
+               }
+               return 0
+             })
 }
 
 export
@@ -90,11 +90,11 @@ function holding
 
     ele = el.closest('.paneW:not(.bred-nested)')?.querySelector('.pane')
     Frame.find(frame => {
-      p = frame.panes.find(p1 => p1.ele == ele)
-      if (p)
-        return 1
-      return 0
-    })
+                 p = frame.panes.find(p1 => p1.ele == ele)
+                 if (p)
+                   return 1
+                 return 0
+               })
   }
   return p
 }
@@ -121,12 +121,12 @@ export
 function clearBuf
 (buf) {
   Frame.forEach(frame => {
-    frame.panes.forEach(p => {
-      if (p.buf.id == buf.id)
-        p.ele.innerHTML = ''
+                  frame.panes.forEach(p => {
+                                        if (p.buf.id == buf.id)
+                                          p.ele.innerHTML = ''
 
-    })
-  })
+                                      })
+                })
 }
 
 export

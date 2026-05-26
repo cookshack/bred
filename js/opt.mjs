@@ -24,25 +24,25 @@ function load
 
     values = OptUtil.shared().values
     Object.entries(data).forEach(kv => {
-      if (Array.isArray(kv[1]) ? 0 : (typeof kv[1] == 'object')) {
-        load1(prefix + kv[0] + '.', kv[1])
-        return
-      }
-      d('opt ' + prefix + kv[0] + ': ' + kv[1])
-      values[prefix + kv[0]] = kv[1]
-    })
+                                   if (Array.isArray(kv[1]) ? 0 : (typeof kv[1] == 'object')) {
+                                     load1(prefix + kv[0] + '.', kv[1])
+                                     return
+                                   }
+                                   d('opt ' + prefix + kv[0] + ': ' + kv[1])
+                                   values[prefix + kv[0]] = kv[1]
+                                 })
   }
 
   Timing.start('opt.load')
 
   Tron.cmd('profile.load', 'opt', (err, data) => {
-    if (err) {
-      console.warn('Error loading options: ' + err.message)
-      console.warn('Error loading options: (continuing anyway)')
-    }
-    load1('', data.data)
-    cb()
-  })
+                                    if (err) {
+                                      console.warn('Error loading options: ' + err.message)
+                                      console.warn('Error loading options: (continuing anyway)')
+                                    }
+                                    load1('', data.data)
+                                    cb()
+                                  })
   Timing.stop('opt.load')
 }
 
@@ -89,7 +89,7 @@ function set
 (name, value) {
   value = OptUtil.clean(name, value)
   Tron.cmd1('profile.set', [ 'opt', name, value ], () => {
-  })
+                                                   })
   return setMem(name, value)
 }
 

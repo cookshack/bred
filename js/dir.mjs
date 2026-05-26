@@ -36,16 +36,16 @@ function nav
                 { 'data-path': '/',
                   'data-run': 'open link' }) ]
   path.split('/').forEach(file => {
-    if (file.length) {
-      dir = dir + '/' + file
-      hco.push([ first ? [] : divCl('dir-h-sep', '/'),
-                 divCl('dir-h-dir',
-                       file,
-                       { 'data-path': dir,
+                            if (file.length) {
+                              dir = dir + '/' + file
+                              hco.push([ first ? [] : divCl('dir-h-sep', '/'),
+                                         divCl('dir-h-dir',
+                                               file,
+                                               { 'data-path': dir,
                          'data-run': run }) ])
-      first = 0
-    }
-  })
+                              first = 0
+                            }
+                          })
   return hco
 }
 
@@ -234,11 +234,11 @@ function nextLine
 
   over = v.point.over()
   idx = lines.findIndex(line => {
-    let nameEl
+                          let nameEl
 
-    nameEl = line.at(-1).firstElementChild
-    return nameEl.dataset.path == over.dataset.path
-  })
+                          nameEl = line.at(-1).firstElementChild
+                          return nameEl.dataset.path == over.dataset.path
+                        })
 
   if (idx == -1) {
     if (bw)
@@ -380,10 +380,10 @@ function fill
 
     scroll = Scroll.make(surf, { itemCount: view.buf.vars('dir').lines.length })
     scroll.renderItem = (el, i) => {
-      el.style.display = 'grid'
-      el.style.gridTemplateColumns = 'repeat(7, auto)'
-      view.buf.vars('dir').lines[i].forEach(cell => el.append(cell.cloneNode(true)))
-    }
+                          el.style.display = 'grid'
+                          el.style.gridTemplateColumns = 'repeat(7, auto)'
+                          view.buf.vars('dir').lines[i].forEach(cell => el.append(cell.cloneNode(true)))
+                        }
     view.vars('dir').scroll = scroll
     scroll.onScroll = () => redraw(view)
     scroll.render()
@@ -408,116 +408,116 @@ function fill
 
   path = path.expand()
   Tron.cmd('dir.get', path, (err, data) => {
-    let co, lines, vars, fileCount, dirCount
+                              let co, lines, vars, fileCount, dirCount
 
-    if (err) {
-      Mess.yell('Dir.fill: ' + err.message)
-      return
-    }
+                              if (err) {
+                                Mess.yell('Dir.fill: ' + err.message)
+                                return
+                              }
 
-    // TODO could have modified buffer eg refresh before arrives?
-    //d(data)
-    //d(data.data)
+                              // TODO could have modified buffer eg refresh before arrives?
+                              //d(data)
+                              //d(data.data)
 
-    co = data.data
-    if (hid) {
-      // show hidden
-    }
-    else
-      co = co.filter(f => f.hidden ? 0 : 1)
+                              co = data.data
+                              if (hid) {
+                                // show hidden
+                              }
+                              else
+                                co = co.filter(f => f.hidden ? 0 : 1)
 
-    if (bak) {
-      // show backups
-    }
-    else
-      co = co.filter(f => f.bak ? 0 : 1)
+                              if (bak) {
+                                // show backups
+                              }
+                              else
+                                co = co.filter(f => f.bak ? 0 : 1)
 
-    fileCount = dirCount = 0
-    co.forEach(f => {
-      let file
+                              fileCount = dirCount = 0
+                              co.forEach(f => {
+                                           let file
 
-      file = f.stat?.mode & (1 << 15)
-      if (file)
-        fileCount++
-      else
-        dirCount++
-    })
-    buf.vars('dir').fileCount = fileCount
-    buf.vars('dir').dirCount = dirCount
+                                           file = f.stat?.mode & (1 << 15)
+                                           if (file)
+                                             fileCount++
+                                           else
+                                             dirCount++
+                                         })
+                              buf.vars('dir').fileCount = fileCount
+                              buf.vars('dir').dirCount = dirCount
 
-    Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (branch, code) => {
-      if (code == 0)
-        buf.vars('dir').branch = branch.trim()
-      Shell.runToString(path, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code2) => {
-        if (code2 == 0)
-          buf.vars('dir').hash = hash.trim()
-      })
-    })
+                              Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (branch, code) => {
+                                                                                                  if (code == 0)
+                                                                                                    buf.vars('dir').branch = branch.trim()
+                                                                                                  Shell.runToString(path, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code2) => {
+                                                                                                                                                                          if (code2 == 0)
+                                                                                                                                                                            buf.vars('dir').hash = hash.trim()
+                                                                                                                                                                        })
+                                                                                                })
 
-    if (sort == 'size-asc')
-      co = co.sort((f1,f2) => f1.stat?.size - f2.stat?.size)
-    else if (sort == 'size-desc')
-      co = co.sort((f1,f2) => f2.stat?.size - f1.stat?.size)
-    else if (sort == 'time-asc')
-      co = co.sort((f1,f2) => f1.stat?.mtimeMs - f2.stat?.mtimeMs)
-    else if (sort == 'time-desc')
-      co = co.sort((f1,f2) => f2.stat?.mtimeMs - f1.stat?.mtimeMs)
-    else if (sort == 'name-asc')
-      co = co.sort()
-    else if (sort == 'name-desc')
-      co = co.sort().reverse()
+                              if (sort == 'size-asc')
+                                co = co.sort((f1,f2) => f1.stat?.size - f2.stat?.size)
+                              else if (sort == 'size-desc')
+                                co = co.sort((f1,f2) => f2.stat?.size - f1.stat?.size)
+                              else if (sort == 'time-asc')
+                                co = co.sort((f1,f2) => f1.stat?.mtimeMs - f2.stat?.mtimeMs)
+                              else if (sort == 'time-desc')
+                                co = co.sort((f1,f2) => f2.stat?.mtimeMs - f1.stat?.mtimeMs)
+                              else if (sort == 'name-asc')
+                                co = co.sort()
+                              else if (sort == 'name-desc')
+                                co = co.sort().reverse()
 
-    lines = co.map(makeF)
-    buf.vars('dir').lines = lines
-    buf.vars('dir').marked = marked
-    bak = bak ? 1 : 0
-    buf.opts.set('dir.show.backups', bak)
-    hid = hid ? 1 : 0
-    buf.opts.set('dir.show.hidden', hid)
-    buf.opts.set('dir.sort', sort)
+                              lines = co.map(makeF)
+                              buf.vars('dir').lines = lines
+                              buf.vars('dir').marked = marked
+                              bak = bak ? 1 : 0
+                              buf.opts.set('dir.show.backups', bak)
+                              hid = hid ? 1 : 0
+                              buf.opts.set('dir.show.hidden', hid)
+                              buf.opts.set('dir.sort', sort)
 
-    vars = buf.vars('dir')
+                              vars = buf.vars('dir')
 
-    buf.views.forEach(v => {
-      if (v.eleOrReserved) {
-        let surf
+                              buf.views.forEach(v => {
+                                                  if (v.eleOrReserved) {
+                                                    let surf
 
-        surf = v.eleOrReserved.querySelector('.dir-w')
-        surf.innerHTML = ''
-        if (lines.length == 0)
-          surf.append(divCl('dir-empty', 'Empty directory'))
-        surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
-        surf.append(divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }))
+                                                    surf = v.eleOrReserved.querySelector('.dir-w')
+                                                    surf.innerHTML = ''
+                                                    if (lines.length == 0)
+                                                      surf.append(divCl('dir-empty', 'Empty directory'))
+                                                    surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
+                                                    surf.append(divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }))
 
-        appendLines(v)
+                                                    appendLines(v)
 
-        if (current) {
-          let el
+                                                    if (current) {
+                                                      let el
 
-          el = v.eleOrReserved.querySelector('.dir-name[data-name="' + current + '"]')
-          if (el)
-            put(v, el)
-        }
-        else {
-          let first
+                                                      el = v.eleOrReserved.querySelector('.dir-name[data-name="' + current + '"]')
+                                                      if (el)
+                                                        put(v, el)
+                                                    }
+                                                    else {
+                                                      let first
 
-          first = v.eleOrReserved.querySelector('.dir-name')
-          if (first)
-            put(v, first)
-        }
-      }
-    })
+                                                      first = v.eleOrReserved.querySelector('.dir-name')
+                                                      if (first)
+                                                        put(v, first)
+                                                    }
+                                                  }
+                                                })
 
-    vars.refreshing = 0
-    if (vars.pendingRefresh?.length) {
-      let pending
+                              vars.refreshing = 0
+                              if (vars.pendingRefresh?.length) {
+                                let pending
 
-      pending = vars.pendingRefresh[0]
-      vars.pendingRefresh = vars.pendingRefresh.slice(1)
-      d('DIR fill pending refresh')
-      refresh(pending.p, pending.bak, pending.hid, pending.sort, pending.marked, pending.file)
-    }
-  })
+                                pending = vars.pendingRefresh[0]
+                                vars.pendingRefresh = vars.pendingRefresh.slice(1)
+                                d('DIR fill pending refresh')
+                                refresh(pending.p, pending.bak, pending.hid, pending.sort, pending.marked, pending.file)
+                              }
+                            })
 }
 
 function watch
@@ -525,56 +525,56 @@ function watch
   if (watching.has(path))
     return
   Tron.cmd1('dir.watch', [ path ], (err, ch) => {
-    let off
+                                     let off
 
-    if (err) {
-      Mess.log('watch failed on ' + path)
-      watching.delete(path)
-      return
-    }
+                                     if (err) {
+                                       Mess.log('watch failed on ' + path)
+                                       watching.delete(path)
+                                       return
+                                     }
 
-    off = Tron.on(ch, (err2, data) => {
-      let getFile
+                                     off = Tron.on(ch, (err2, data) => {
+                                                         let getFile
 
-      // NB Beware of doing anything in here that modifies any dir being watched,
-      //    eg logging in dir.get when --logfile, because that causes recursive
-      //    behaviour.
-      d('DIR 👀 watch ev')
-      d({ data })
-      getFile = 1
-      Pane.forEach(pane => {
-        if (pane.buf
+                                                         // NB Beware of doing anything in here that modifies any dir being watched,
+                                                         //    eg logging in dir.get when --logfile, because that causes recursive
+                                                         //    behaviour.
+                                                         d('DIR 👀 watch ev')
+                                                         d({ data })
+                                                         getFile = 1
+                                                         Pane.forEach(pane => {
+                                                                        if (pane.buf
             && (pane.buf.mode?.key == 'dir')
             && (pane.buf.path == path)) {
-          let file
+                                                                          let file
 
-          if (pane.buf.vars('dir').refreshing) {
-            // it's likely that the refresh that's in progress covers the change.
-            // Also currentFile() could be wrong if the refresh in progress has
-            // cleared the buf content.
-            d('DIR watch skip')
-            return
-          }
-          file = getFile && currentFile(pane)
-          console.log('DIR FILE: ' + file)
-          getFile = 0
-          if (data.bak) {
-            if (pane.buf.opt('dir.show.backups'))
-              refreshKeep(pane, { file })
-            return
-          }
-          if (data.hidden) {
-            if (pane.buf.opt('dir.show.hidden'))
-              refreshKeep(pane, { file })
-            return
-          }
-          refreshKeep(pane, { file })
-        }
-      })
-    })
+                                                                          if (pane.buf.vars('dir').refreshing) {
+                                                                            // it's likely that the refresh that's in progress covers the change.
+                                                                            // Also currentFile() could be wrong if the refresh in progress has
+                                                                            // cleared the buf content.
+                                                                            d('DIR watch skip')
+                                                                            return
+                                                                          }
+                                                                          file = getFile && currentFile(pane)
+                                                                          console.log('DIR FILE: ' + file)
+                                                                          getFile = 0
+                                                                          if (data.bak) {
+                                                                            if (pane.buf.opt('dir.show.backups'))
+                                                                              refreshKeep(pane, { file })
+                                                                            return
+                                                                          }
+                                                                          if (data.hidden) {
+                                                                            if (pane.buf.opt('dir.show.hidden'))
+                                                                              refreshKeep(pane, { file })
+                                                                            return
+                                                                          }
+                                                                          refreshKeep(pane, { file })
+                                                                        }
+                                                                      })
+                                                       })
 
-    watching.set(path, off)
-  })
+                                     watching.set(path, off)
+                                   })
 }
 
 function stopWatching
@@ -835,18 +835,18 @@ function init
     marked = DirMarked.make(p.buf)
     lines = p.buf.vars('dir').lines
     lines.forEach(line => {
-      let ch, name, type
+                    let ch, name, type
 
-      ch = line.at(-1).firstElementChild
-      name = ch?.dataset.name
-      type = ch?.dataset.type
-      if (old.has(name)) {
-        line.forEach(cell => Css.remove(cell, 'on'))
-        return
-      }
-      line.forEach(cell => Css.add(cell, 'on'))
-      marked.add(name, type)
-    })
+                    ch = line.at(-1).firstElementChild
+                    name = ch?.dataset.name
+                    type = ch?.dataset.type
+                    if (old.has(name)) {
+                      line.forEach(cell => Css.remove(cell, 'on'))
+                      return
+                    }
+                    line.forEach(cell => Css.add(cell, 'on'))
+                    marked.add(name, type)
+                  })
     p.buf.vars('dir').marked = marked
 
     // refresh views
@@ -856,13 +856,13 @@ function init
   function clearViews
   (buf) {
     buf.views.forEach(v => {
-      let w
+                        let w
 
-      w = v.ele?.querySelector('.dir-w')
-      if (w)
-        for (let i = 0; i < w.children.length; i++)
-          Css.remove(w.children[i], 'on')
-    })
+                        w = v.ele?.querySelector('.dir-w')
+                        if (w)
+                          for (let i = 0; i < w.children.length; i++)
+                            Css.remove(w.children[i], 'on')
+                      })
   }
 
   function remark
@@ -870,16 +870,16 @@ function init
     clearViews(buf)
 
     buf.views.forEach(view => {
-      let w, on
+                        let w, on
 
-      w = view.ele.querySelector('.dir-w')
-      on = 0
-      for (let i = 0; i < w.children.length; i++) {
-        if (Css.has(w.children[i], 'dir-mark'))
-          on = marked.has(w.children[i].dataset.nameonmark)
-        on && Css.add(w.children[i], 'on')
-      }
-    })
+                        w = view.ele.querySelector('.dir-w')
+                        on = 0
+                        for (let i = 0; i < w.children.length; i++) {
+                          if (Css.has(w.children[i], 'dir-mark'))
+                            on = marked.has(w.children[i].dataset.nameonmark)
+                          on && Css.add(w.children[i], 'on')
+                        }
+                      })
   }
 
   function clear
@@ -940,11 +940,11 @@ function init
   Cmd.add('clear marks', () => clear(), m)
   Cmd.add('mark', mark, m)
   Cmd.add('refresh', () => {
-    let p
+                       let p
 
-    p = Pane.current()
-    refreshKeep(p, { file: currentFile(p) })
-  }, m)
+                       p = Pane.current()
+                       refreshKeep(p, { file: currentFile(p) })
+                     }, m)
   Cmd.add('scroll down', () => scrollDown(), m)
   Cmd.add('scroll up', () => scrollDown(1), m)
   Cmd.add('sort by name', () => sortBy('name'), m)

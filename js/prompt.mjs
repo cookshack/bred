@@ -148,14 +148,14 @@ function ensurePromptBuf
 
     seen = 0
     parent.views.forEach(view => {
-      if (view.ele.querySelector('.bred-prompt-ask-nest-w'))
-        return
-      view.ele.prepend(divCl('bred-prompt-ask-nest-w retracted',
-                             [ divCl('bred-nested-pane-w',
-                                     [],
-                                     { 'data-bred-nested-buf-id': vars.nest.promptBuf.id }) ]))
-      seen = 1
-    })
+                           if (view.ele.querySelector('.bred-prompt-ask-nest-w'))
+                             return
+                           view.ele.prepend(divCl('bred-prompt-ask-nest-w retracted',
+                                                  [ divCl('bred-nested-pane-w',
+                                                          [],
+                                                          { 'data-bred-nested-buf-id': vars.nest.promptBuf.id }) ]))
+                           seen = 1
+                         })
     if (seen)
       parent.nest(vars.nest.promptBuf)
     return vars
@@ -183,13 +183,13 @@ function ensurePromptBuf
   buf.vars('prompt').parent = parent
 
   parent.views.forEach(view => {
-    if (view.ele.querySelector('.bred-prompt-ask-nest-w'))
-      return
-    view.ele.prepend(divCl('bred-prompt-ask-nest-w retracted',
-                           [ divCl('bred-nested-pane-w',
-                                   [],
-                                   { 'data-bred-nested-buf-id': buf.id }) ]))
-  })
+                         if (view.ele.querySelector('.bred-prompt-ask-nest-w'))
+                           return
+                         view.ele.prepend(divCl('bred-prompt-ask-nest-w retracted',
+                                                [ divCl('bred-nested-pane-w',
+                                                        [],
+                                                        { 'data-bred-nested-buf-id': buf.id }) ]))
+                       })
 
   parent.nest(buf)
 
@@ -234,34 +234,34 @@ function ask
     vars.nest.hist = spec.hist
 
     parent.views.forEach(view => {
-      let container
+                           let container
 
-      container = view.ele.querySelector('.bred-prompt-ask-nest-w')
-      if (container) {
-        let nestedView
+                           container = view.ele.querySelector('.bred-prompt-ask-nest-w')
+                           if (container) {
+                             let nestedView
 
-        Css.expand(container)
-        nestedView = view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
-        if (nestedView?.ele) {
-          let mlText, mlIcon
+                             Css.expand(container)
+                             nestedView = view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
+                             if (nestedView?.ele) {
+                               let mlText, mlIcon
 
-          mlText = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
-          if (mlText)
-            mlText.innerText = spec.text || ''
-          mlIcon = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-icon')
-          if (mlIcon)
-            if (spec.icon) {
-              mlIcon.src = Icon.path(spec.icon)
-              mlIcon.alt = Icon.alt(spec.icon)
-              Css.expand(mlIcon)
-            }
-            else
-              Css.retract(mlIcon)
-        }
-        if (view == p.view && nestedView?.ele)
-          p.focusViewAt(nestedView.ele)
-      }
-    })
+                               mlText = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
+                               if (mlText)
+                                 mlText.innerText = spec.text || ''
+                               mlIcon = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-icon')
+                               if (mlIcon)
+                                 if (spec.icon) {
+                                   mlIcon.src = Icon.path(spec.icon)
+                                   mlIcon.alt = Icon.alt(spec.icon)
+                                   Css.expand(mlIcon)
+                                 }
+                                 else
+                                   Css.retract(mlIcon)
+                             }
+                             if (view == p.view && nestedView?.ele)
+                               p.focusViewAt(nestedView.ele)
+                           }
+                         })
 
     if (spec.onReady)
       spec.onReady(vars.nest.promptBuf)
@@ -525,18 +525,18 @@ function initNest
     promptBuf.clear()
 
     parent.views.forEach(view => {
-      let container
+                           let container
 
-      container = view.ele.querySelector('.bred-prompt-ask-nest-w')
-      if (container) {
-        let nestedPane
+                           container = view.ele.querySelector('.bred-prompt-ask-nest-w')
+                           if (container) {
+                             let nestedPane
 
-        Css.retract(container)
-        nestedPane = container.querySelector('.pane.bred-nested.current')
-        if (nestedPane)
-          Css.remove(nestedPane, 'current')
-      }
-    })
+                             Css.retract(container)
+                             nestedPane = container.querySelector('.pane.bred-nested.current')
+                             if (nestedPane)
+                               Css.remove(nestedPane, 'current')
+                           }
+                         })
 
     p.focus()
     if (cb)
@@ -556,18 +556,18 @@ function initNest
       return
 
     parent.views.forEach(view => {
-      let container
+                           let container
 
-      container = view.ele.querySelector('.bred-prompt-ask-nest-w')
-      if (container) {
-        let nestedPane
+                           container = view.ele.querySelector('.bred-prompt-ask-nest-w')
+                           if (container) {
+                             let nestedPane
 
-        Css.retract(container)
-        nestedPane = container.querySelector('.pane.bred-nested.current')
-        if (nestedPane)
-          Css.remove(nestedPane, 'current')
-      }
-    })
+                             Css.retract(container)
+                             nestedPane = container.querySelector('.pane.bred-nested.current')
+                             if (nestedPane)
+                               Css.remove(nestedPane, 'current')
+                           }
+                         })
 
     p.focus()
   }
@@ -639,30 +639,30 @@ function init
   }
 
   Cmd.add('yes', () => {
-    Cmd.run('close demand')
-    ynCb && ynCb(1)
-  })
+                   Cmd.run('close demand')
+                   ynCb && ynCb(1)
+                 })
   Cmd.add('no', () => {
-    Cmd.run('close demand')
-    ynCb && ynCb(0)
-  })
+                  Cmd.run('close demand')
+                  ynCb && ynCb(0)
+                })
   Cmd.add('close yes/no', () => {
-    ynCb = null
-    Cmd.run('close demand')
-  })
+                            ynCb = null
+                            Cmd.run('close demand')
+                          })
   Cmd.add('close choice', () => {
-    chooseCb = null
-    Cmd.run('close demand')
-  })
+                            chooseCb = null
+                            Cmd.run('close demand')
+                          })
   Cmd.add('choose', (u, we) => {
-    Cmd.run('close demand')
-    if (chooseCb) {
-      let choice
+                      Cmd.run('close demand')
+                      if (chooseCb) {
+                        let choice
 
-      choice = we.e.target.innerText
-      chooseCb(choice)
-    }
-  })
+                        choice = we.e.target.innerText
+                        chooseCb(choice)
+                      }
+                    })
 
   ynEm = Em.make('YN')
   ynEm.on('y', 'yes')

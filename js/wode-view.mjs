@@ -216,13 +216,13 @@ function vsetLang
   // this should happen in the opt
   if (view.buf.path)
     Tron.cmd('lsp.edit', [ id, view.buf.path, view.buf.id ], (err, data) => {
-      if (err) {
-        Mess.yell('lsp.edit: ' + err.message)
-        return
-      }
-      if (data.lang)
-        Mess.yell('Opened in lang server ' + data.lang + ': ' + view.buf.path)
-    })
+                                                               if (err) {
+                                                                 Mess.yell('lsp.edit: ' + err.message)
+                                                                 return
+                                                               }
+                                                               if (data.lang)
+                                                                 Mess.yell('Opened in lang server ' + data.lang + ': ' + view.buf.path)
+                                                             })
 }
 
 export
@@ -413,7 +413,7 @@ function _viewInit
                                           { decorations: v => v.decorations })
 
   updateListener = CMView.EditorView.updateListener.of(update => {
-    let curse
+                                                         let curse
 
     function posChanged
     () {
@@ -422,86 +422,86 @@ function _viewInit
       return 1
     }
 
-    // HACK: Past a certain line in big buffers CM has the right window.getSelection()
-    //       but the text is missing from the X primary selection buffer. Maybe due
-    //       to timing or something because CM is tracking its own selection in
-    //       DOMObserver in lib/@codemirror/view.js.
-    //       Same thing works OK in CM homepage demo in Chromium, so it's related to
-    //       running under Electron.
-    if (update.selectionSet) {
-      let sel, range, str
+                                                         // HACK: Past a certain line in big buffers CM has the right window.getSelection()
+                                                         //       but the text is missing from the X primary selection buffer. Maybe due
+                                                         //       to timing or something because CM is tracking its own selection in
+                                                         //       DOMObserver in lib/@codemirror/view.js.
+                                                         //       Same thing works OK in CM homepage demo in Chromium, so it's related to
+                                                         //       running under Electron.
+                                                         if (update.selectionSet) {
+                                                           let sel, range, str
 
-      //d('WODE selectionSet hack')
+                                                           //d('WODE selectionSet hack')
 
-      sel = view.ed.state.selection.main
-      if (sel.head > sel.anchor)
-        range = WodeRange.make(view, sel.anchor, sel.head)
-      else
-        range = WodeRange.make(view, sel.head, sel.anchor)
-      str = range.text
-      if (str && str.length) {
-        if (selectTimeout)
-          clearTimeout(selectTimeout)
-        selectTimeout = setTimeout(() => tronSelect(str),
-                                   100)
-      }
-    }
+                                                           sel = view.ed.state.selection.main
+                                                           if (sel.head > sel.anchor)
+                                                             range = WodeRange.make(view, sel.anchor, sel.head)
+                                                           else
+                                                             range = WodeRange.make(view, sel.head, sel.anchor)
+                                                           str = range.text
+                                                           if (str && str.length) {
+                                                             if (selectTimeout)
+                                                               clearTimeout(selectTimeout)
+                                                             selectTimeout = setTimeout(() => tronSelect(str),
+                                                                                        100)
+                                                           }
+                                                         }
 
-    //d('WODE update')
-    if (posChanged(update)) {
-      let col, p
+                                                         //d('WODE update')
+                                                         if (posChanged(update)) {
+                                                           let col, p
 
-      //d('WODE pos changed')
+                                                           //d('WODE pos changed')
 
-      p = Pane.holdingView(view)
-      col = p?.head?.querySelector('.bred-head-col')
-      if (col)
-        col.innerText = 'C' + (WodeBep.bepCol(view, update.state.selection.main.head))
+                                                           p = Pane.holdingView(view)
+                                                           col = p?.head?.querySelector('.bred-head-col')
+                                                           if (col)
+                                                             col.innerText = 'C' + (WodeBep.bepCol(view, update.state.selection.main.head))
 
-      diagnose(p?.win)
-      CMLint.forEachDiagnostic(view.ed.state, (diag, from, to) => {
-        let bep, line
+                                                           diagnose(p?.win)
+                                                           CMLint.forEachDiagnostic(view.ed.state, (diag, from, to) => {
+                                                                                                     let bep, line
 
-        bep = update.state.selection.main.head
-        line = view.ed.state.doc.lineAt(bep)
-        if ((from >= line.from) && (to <= line.to))
-          diagnose(p?.win, diag)
-      })
+                                                                                                     bep = update.state.selection.main.head
+                                                                                                     line = view.ed.state.doc.lineAt(bep)
+                                                                                                     if ((from >= line.from) && (to <= line.to))
+                                                                                                       diagnose(p?.win, diag)
+                                                                                                   })
 
-      curse = 1
-    }
+                                                           curse = 1
+                                                         }
 
-    if (update.docChanged) {
-      //d('WODE docChanged')
-      if (view.onChanges)
-        view.onChanges.forEach(on => {
-          //d('onChange: ' + on)
-          on.cb && on.cb(update)
-        })
+                                                         if (update.docChanged) {
+                                                           //d('WODE docChanged')
+                                                           if (view.onChanges)
+                                                             view.onChanges.forEach(on => {
+                                                                                      //d('onChange: ' + on)
+                                                                                      on.cb && on.cb(update)
+                                                                                    })
 
-      if (0)
-        d('tell lsp')
+                                                           if (0)
+                                                             d('tell lsp')
 
-      curse = 1
-    }
+                                                           curse = 1
+                                                         }
 
-    if (update.focusChanged) {
-      0 && d('WODE focusChanged')
-      //d(view)
-      //d(globalThis.document.activeElement)
-      if (view.onFocuss)
-        view.onFocuss.forEach(on => {
-          d('onFocus: ' + on)
-          on.cb && on.cb(update)
-        })
+                                                         if (update.focusChanged) {
+                                                           0 && d('WODE focusChanged')
+                                                           //d(view)
+                                                           //d(globalThis.document.activeElement)
+                                                           if (view.onFocuss)
+                                                             view.onFocuss.forEach(on => {
+                                                                                     d('onFocus: ' + on)
+                                                                                     on.cb && on.cb(update)
+                                                                                   })
 
-      if (View.onFocuss)
-        View.onFocuss.forEach(cb => cb(view))
-    }
+                                                           if (View.onFocuss)
+                                                             View.onFocuss.forEach(cb => cb(view))
+                                                         }
 
-    if (curse)
-      WodeCommon.runOnCursors(view)
-  })
+                                                         if (curse)
+                                                           WodeCommon.runOnCursors(view)
+                                                       })
 
   domEventHandlers = { contextmenu
                        () {
@@ -644,11 +644,11 @@ function _viewInit
   }
   else {
     view.ev_onRemove = () => {
-      if (view.ed) {
-        view.ed.destroy()
-        view.ed = null
-      }
-    }
+                         if (view.ed) {
+                           view.ed.destroy()
+                           view.ed = null
+                         }
+                       }
     view.onRemove(view.ev_onRemove)
   }
 
@@ -677,65 +677,65 @@ function _viewInit
     path = buf.path
     d('WODE get file')
     Tron.cmd('file.get', [ path ], (err, data) => {
-      let mode
+                                     let mode
 
-      if (err) {
-        Mess.log('file: ' + buf.file)
-        Mess.log(' dir: ' + buf.dir)
-        Mess.log('path: ' + path)
-        Mess.toss('Wodemirror viewInit: ' + err.message)
-        return
-      }
+                                     if (err) {
+                                       Mess.log('file: ' + buf.file)
+                                       Mess.log(' dir: ' + buf.dir)
+                                       Mess.log('path: ' + path)
+                                       Mess.toss('Wodemirror viewInit: ' + err.message)
+                                       return
+                                     }
 
-      d('WODE got file')
+                                     d('WODE got file')
 
-      buf.modifiedOnDisk = 0
-      buf.stat = data.stat
-      d('WODE new mtime ' + buf.stat.mtimeMs)
+                                     buf.modifiedOnDisk = 0
+                                     buf.stat = data.stat
+                                     d('WODE new mtime ' + buf.stat.mtimeMs)
 
-      WodeWatch.watch(buf, path)
+                                     WodeWatch.watch(buf, path)
 
-      if (data.realpath) {
-        let real
+                                     if (data.realpath) {
+                                       let real
 
-        real = Loc.make(data.realpath)
-        buf.dir = real.dirname
-        buf.file = real.filename
-        Ed.setMlDir(buf, buf.dir)
-      }
+                                       real = Loc.make(data.realpath)
+                                       buf.dir = real.dirname
+                                       buf.file = real.filename
+                                       Ed.setMlDir(buf, buf.dir)
+                                     }
 
-      mode = WodeMode.modeFor(path)
-      if (mode == 'Ed')
-        mode = 'text'
-      d('mode offered: ' + mode)
-      if (mode ? (mode == 'text') : 1)
-        mode = modeFromFirstLine(data.data) || mode
+                                     mode = WodeMode.modeFor(path)
+                                     if (mode == 'Ed')
+                                       mode = 'text'
+                                     d('mode offered: ' + mode)
+                                     if (mode ? (mode == 'text') : 1)
+                                       mode = modeFromFirstLine(data.data) || mode
 
-      mode = mode || 'text'
-      vsetLang(view, WodeMode.modeLang(mode))
-      d('chose mode 2: ' + mode)
-      buf.mode = mode
-      Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
-      WodeDecor.decorate(view, buf.mode)
+                                     mode = mode || 'text'
+                                     vsetLang(view, WodeMode.modeLang(mode))
+                                     d('chose mode 2: ' + mode)
+                                     buf.mode = mode
+                                     Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
+                                     WodeDecor.decorate(view, buf.mode)
 
-      buf.addToRecents()
+                                     buf.addToRecents()
 
-      WodeCommon.setValue(ed, data.data, false)
-      if (view == View.current())
-        ed.focus()
-      if (Number.isFinite(parseInt(lineNum))) {
-        Wode.vgotoLine(view, lineNum)
-        //ed.renderer.once('afterRender', () => recenter(ed))
-        0 && setTimeout(() => Wode.recenter(ed))
-      }
+                                     WodeCommon.setValue(ed, data.data, false)
+                                     if (view == View.current())
+                                       ed.focus()
+                                     if (Number.isFinite(parseInt(lineNum))) {
+                                       Wode.vgotoLine(view, lineNum)
+                                       //ed.renderer.once('afterRender', () => recenter(ed))
+                                       0 && setTimeout(() => Wode.recenter(ed))
+                                     }
 
-      if (whenReady)
-        whenReady(view)
-      WodeCommon.runOnCursors(view)
+                                     if (whenReady)
+                                       whenReady(view)
+                                     WodeCommon.runOnCursors(view)
 
-      //ed.session.getUndoManager().reset()
+                                     //ed.session.getUndoManager().reset()
 
-      /*
+                                     /*
       ed.on('input', () => {
         if (ed.session.getUndoManager().isClean()) {
           view.buf.modified = 0
@@ -743,7 +743,7 @@ function _viewInit
         }
       })
       */
-    })
+                                   })
     return
   }
 
@@ -779,18 +779,18 @@ function reopen
   if (view.ele && view.ed)
     // timeout so behaves like viewInit
     setTimeout(() => {
-      view.ready = 1
-      //view.ed.resize()
-      view.ed.focus()
-      if (Number.isFinite(parseInt(lineNum)))
-        Wode.vgotoLine(view, lineNum)
-      else
-        view.ed.dispatch({ effects: CMView.EditorView.scrollIntoView(view.ed.state.selection.main.head,
+                 view.ready = 1
+                 //view.ed.resize()
+                 view.ed.focus()
+                 if (Number.isFinite(parseInt(lineNum)))
+                   Wode.vgotoLine(view, lineNum)
+                 else
+                   view.ed.dispatch({ effects: CMView.EditorView.scrollIntoView(view.ed.state.selection.main.head,
                                                                      { y: 'center' }) })
-      if (whenReady)
-        whenReady(view)
-      WodeCommon.runOnCursors(view)
-    })
+                 if (whenReady)
+                   whenReady(view)
+                 WodeCommon.runOnCursors(view)
+               })
   else
     // probably buf was switched out before init happened.
     Wode.viewInit(view,
@@ -828,10 +828,10 @@ function revertV
   view.ready = 0 // limit onChange handler
   view.buf.reverting = 1
   init(view, { revert: 1, lineNum }, v => {
-    v.buf.reverting = 0 // TODO might run before other views get the onChanges?
-    if (whenReady)
-      whenReady(v)
-  })
+                                       v.buf.reverting = 0 // TODO might run before other views get the onChanges?
+                                       if (whenReady)
+                                         whenReady(v)
+                                     })
 
   d('WODE =====>>>>>>>>>> revertV done')
 }

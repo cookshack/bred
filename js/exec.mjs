@@ -30,21 +30,21 @@ function init
     all = Cmd.getAll(callerBuf)
     if (needle.length)
       all = all.filter(cmd => {
-        let s, sn
+                         let s, sn
 
-        s = cmd.name.toLowerCase().split(' ')
-        sn = needle.trim().toLowerCase().split(' ')
-        return sn.every((snw, i) => s[i] && s[i].startsWith(snw))
-      })
+                         s = cmd.name.toLowerCase().split(' ')
+                         sn = needle.trim().toLowerCase().split(' ')
+                         return sn.every((snw, i) => s[i] && s[i].startsWith(snw))
+                       })
     all = all.map(co => co.name)
     all.sort()
     Cmd.hist.items.slice().reverse().forEach(hi => {
-      let i
+                                               let i
 
-      i = all.indexOf(hi)
-      if (i >= 0)
-        all.unshift(all.splice(i, 1)[0])
-    })
+                                               i = all.indexOf(hi)
+                                               if (i >= 0)
+                                                 all.unshift(all.splice(i, 1)[0])
+                                             })
     //all.forEach(co => d(co.name))
 
     w.innerHTML = ''
@@ -58,11 +58,11 @@ function init
       ns = needle.trim().split(' ')
       //d(all[0])
       needles = all[0].split(' ').map((word, i) => {
-        //d({word})
-        if (ns[i])
-          return U.capitalize(ns[i]) + ' '.repeat(word.length - ns[i].length + 1 /* for space between */)
-        return ''
-      })
+                                        //d({word})
+                                        if (ns[i])
+                                          return U.capitalize(ns[i]) + ' '.repeat(word.length - ns[i].length + 1 /* for space between */)
+                                        return ''
+                                      })
       //d(needles)
       needles = needles.join('')
     }
@@ -152,9 +152,9 @@ function init
 
       name = we.e.target.dataset.name
       p.setBuf(callerBuf, {}, () => {
-        if (cb)
-          cb(name, callerBuf)
-      })
+                                if (cb)
+                                  cb(name, callerBuf)
+                              })
       return
     }
 
@@ -165,9 +165,9 @@ function init
       current = w.querySelector('.execute-cmd-current')
       if (current)
         p.setBuf(callerBuf, {}, () => {
-          if (cb)
-            cb(current.dataset.name, callerBuf)
-        })
+                                  if (cb)
+                                    cb(current.dataset.name, callerBuf)
+                                })
     }
   }
 
@@ -176,18 +176,18 @@ function init
   mo = Mode.add('Execute', { viewInit })
 
   Cmd.add('execute', u => {
-    let p, buf
+                       let p, buf
 
-    p = Pane.current1()
-    callerBuf = p?.buf
-    buf = Buf.make({ name: 'Execute',
+                       p = Pane.current1()
+                       callerBuf = p?.buf
+                       buf = Buf.make({ name: 'Execute',
                      modeKey: 'execute',
                      content: divW(),
                      dir: p.dir })
-    buf.vars('execute').cb = (name, b) => Cmd.exec(name, b, u)
-    p.focus()
-    p.setBuf(buf)
-  })
+                       buf.vars('execute').cb = (name, b) => Cmd.exec(name, b, u)
+                       p.focus()
+                       p.setBuf(buf)
+                     })
 
   Cmd.add('next line', () => next(), mo)
   Cmd.add('previous line', () => previous(), mo)

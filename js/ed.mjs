@@ -172,13 +172,13 @@ function make
       path = spec.dir + spec.file
       d('get pos')
       Tron.cmd1('profile.get', [ 'poss', path ], (err, resp) => {
-        if (err)
-          Mess.log('Error getting line num of ' + path + ', will use 1: ' + err.message)
-        else if (resp.data)
-          spec.lineNum = resp.data.row + 1
-        d('make buf')
-        makeBuf()
-      })
+                                                   if (err)
+                                                     Mess.log('Error getting line num of ' + path + ', will use 1: ' + err.message)
+                                                   else if (resp.data)
+                                                     spec.lineNum = resp.data.row + 1
+                                                   d('make buf')
+                                                   makeBuf()
+                                                 })
     }
   }
   else
@@ -436,19 +436,19 @@ function initQR
     from.length || Mess.toss('Empty')
     view.buf.clear()
     view.buf.views.forEach(v => {
-      if (v.ele) {
-        let ww
+                             if (v.ele) {
+                               let ww
 
-        ww = v.ele.firstElementChild
-        Css.expand(ww.children[0])
-        Css.expand(ww.children[1])
-        ww.children[1].innerText = from
-        ww.children[2].innerText = 'With'
-        Css.retract(ww.children[4])
-        Css.retract(ww.children[5])
-        to = ww.children[5].innerText
-      }
-    })
+                               ww = v.ele.firstElementChild
+                               Css.expand(ww.children[0])
+                               Css.expand(ww.children[1])
+                               ww.children[1].innerText = from
+                               ww.children[2].innerText = 'With'
+                               Css.retract(ww.children[4])
+                               Css.retract(ww.children[5])
+                               to = ww.children[5].innerText
+                             }
+                           })
     view.insert(to)
   }
 
@@ -463,19 +463,19 @@ function initQR
     if (ph?.length)
       view.buf.placeholder = ph
     view.buf.views.forEach(v => {
-      if (v.ele) {
-        let ww
+                             if (v.ele) {
+                               let ww
 
-        ww = v.ele.firstElementChild
-        from = ww.children[1].innerText
-        Css.retract(ww.children[0])
-        Css.retract(ww.children[1])
-        ww.children[2].innerText = 'Replace'
-        ww.children[5].innerText = to
-        Css.expand(ww.children[4])
-        Css.expand(ww.children[5])
-      }
-    })
+                               ww = v.ele.firstElementChild
+                               from = ww.children[1].innerText
+                               Css.retract(ww.children[0])
+                               Css.retract(ww.children[1])
+                               ww.children[2].innerText = 'Replace'
+                               ww.children[5].innerText = to
+                               Css.expand(ww.children[4])
+                               Css.expand(ww.children[5])
+                             }
+                           })
     view.insert(from)
   }
 
@@ -606,24 +606,24 @@ function makeMlDir
 
     path = ''
     U.shortHome(Buf.prepDir(dir)).split('/').forEach((c, i) => {
-      let r, home
+                                                       let r, home
 
-      if (c.length == 0)
-        return
+                                                       if (c.length == 0)
+                                                         return
 
-      home = i == 0 && c == '~'
+                                                       home = i == 0 && c == '~'
 
-      if (home)
-        path = U.home().replace(/\/$/, '')
-      else
-        path = path + '/' + c
-      r = span(c, { 'data-path': path, 'data-run': 'open link' })
+                                                       if (home)
+                                                         path = U.home().replace(/\/$/, '')
+                                                       else
+                                                         path = path + '/' + c
+                                                       r = span(c, { 'data-path': path, 'data-run': 'open link' })
 
-      if (home)
-        mlDir.push(r)
-      else
-        mlDir.push([ '/', r ])
-    })
+                                                       if (home)
+                                                         mlDir.push(r)
+                                                       else
+                                                         mlDir.push([ '/', r ])
+                                                     })
   }
   return mlDir
 }
@@ -725,29 +725,29 @@ function initTheme
   css = ':root {\n'
 
   Object.entries(theme.clrs).forEach(kv => {
-    css += '  --theme-clr-' + nameToCss(kv[0]) + ': ' + kv[1] + ';\n'
-  })
+                                       css += '  --theme-clr-' + nameToCss(kv[0]) + ': ' + kv[1] + ';\n'
+                                     })
 
   css += '\n'
   Object.entries(theme.meanings).forEach(kv => {
-    css += '  --clr-' + nameToCss(kv[0]) + ': ' + kv[1] + ';\n'
-  })
+                                           css += '  --clr-' + nameToCss(kv[0]) + ': ' + kv[1] + ';\n'
+                                         })
 
   css += '\n'
   theme.rules.forEach(rule => {
-    if (rule?.token?.length && rule.foreground)
-      css += '  --rule-clr-' + rule.token + ': ' + rule.foreground + ';\n'
-  })
+                        if (rule?.token?.length && rule.foreground)
+                          css += '  --rule-clr-' + rule.token + ': ' + rule.foreground + ';\n'
+                      })
 
   css += '\n'
   Object.entries(theme.filters).forEach(kv => {
-    css += '  --theme-filter-clr-' + nameToCss(kv[0]) + ': ' + kv[1] + ';\n'
-  })
+                                          css += '  --theme-filter-clr-' + nameToCss(kv[0]) + ': ' + kv[1] + ';\n'
+                                        })
 
   css += '\n'
   Object.entries(theme.filterMeanings).forEach(kv => {
-    css += '  --filter-clr-' + nameToCss(kv[0]) + ': ' + kv[1] + ';\n'
-  })
+                                                 css += '  --filter-clr-' + nameToCss(kv[0]) + ': ' + kv[1] + ';\n'
+                                               })
 
   css += '}\n'
   globalThis.document.head.appendChild(globalThis.document.createElement('style')).innerHTML = css
@@ -758,10 +758,10 @@ function setBackend
   function load
   (file) {
     import(file).then(m => {
-      Backend = m
-      d('backend loaded')
-      cb()
-    },
+                        Backend = m
+                        d('backend loaded')
+                        cb()
+                      },
                       err => {
                         Mess.yell('Failed to load ' + backend + ': ' + err.message)
                         cb(err)
@@ -837,8 +837,8 @@ function addCTags
   //import(file, { assert: { type: 'json' } }).then(m => { ctags = m.default; d({ctags}) },
   //                                                err => Mess.yell("Failed to load TAGS: " + err.message))
   import(file).then(m => {
-    ctags = [ ...(ctags || []), ...m.tags.map(prep) ]
-  },
+                      ctags = [ ...(ctags || []), ...m.tags.map(prep) ]
+                    },
                     err => Mess.yell('Failed to load TAGS ' + file + ': ' + err.message))
 }
 
@@ -1123,14 +1123,14 @@ function indentLineRigidly
   bep = Backend.makeBep(view, row, 0)
   d('line start: ' + bep)
   view.buf.views.forEach(v => {
-    Backend.vinsertAt(v, bep, 1, str)
-    if (setBep && (v == view)) {
-      let bep2
+                           Backend.vinsertAt(v, bep, 1, str)
+                           if (setBep && (v == view)) {
+                             let bep2
 
-      bep2 = Backend.bepRightOverSpace(v, bep)
-      Backend.vsetBep(v, bep2)
-    }
-  })
+                             bep2 = Backend.bepRightOverSpace(v, bep)
+                             Backend.vsetBep(v, bep2)
+                           }
+                         })
 }
 
 function indentRigidly
@@ -1217,30 +1217,30 @@ function cmdSave
 
   path = Loc.make(view.buf.path).expand()
   Tron.cmd('file.stat', path, (err, data) => {
-    if (err) {
-      if (err.code == 'ENOENT') {
-        // new file
-        fn(view, cb)
-        return
-      }
-      error(err.message)
-      return
-    }
-    // existing file
-    if (view.buf.stat) {
-      if (view.buf.stat?.mtimeMs < data.data.mtimeMs)
-        Prompt.yn('File has changed on disk. Overwrite?',
-                  { icon: 'save' },
-                  yes => {
-                    if (yes)
-                      fn(view, cb)
-                  })
-      else
-        fn(view, cb)
-      return
-    }
-    error('Buffer missing stat')
-  })
+                                if (err) {
+                                  if (err.code == 'ENOENT') {
+                                    // new file
+                                    fn(view, cb)
+                                    return
+                                  }
+                                  error(err.message)
+                                  return
+                                }
+                                // existing file
+                                if (view.buf.stat) {
+                                  if (view.buf.stat?.mtimeMs < data.data.mtimeMs)
+                                    Prompt.yn('File has changed on disk. Overwrite?',
+                                              { icon: 'save' },
+                                              yes => {
+                                                if (yes)
+                                                  fn(view, cb)
+                                              })
+                                  else
+                                    fn(view, cb)
+                                  return
+                                }
+                                error('Buffer missing stat')
+                              })
 }
 
 function revert
@@ -1306,40 +1306,40 @@ function init
   nonTokenRe = new RegExp('(?:[^\\p{L}\\p{N}_$]|\\s)+', 'gu')
 
   setBackend(be, err => {
-    let mo
+                   let mo
 
-    if (err)
-      cb(err)
+                   if (err)
+                     cb(err)
 
-    bepRow = Backend.bepRow
-    bepCol = Backend.bepCol
-    bepGt = Backend.bepGt
-    bepGtEq = Backend.bepGtEq
-    bepLt = Backend.bepLt
-    bepLtEq = Backend.bepLtEq
-    bepToPos = Backend.bepToPos
-    offToBep = Backend.offToBep
-    posToBep = Backend.posToBep
-    posRow = Backend.posRow
-    posCol = Backend.posCol
-    viewCopy = Backend.viewCopy
-    viewInit = Backend.viewInit
-    viewReopen = Backend.viewReopen
-    vfind = Backend.vfind
-    makeRange = Backend.makeRange
+                   bepRow = Backend.bepRow
+                   bepCol = Backend.bepCol
+                   bepGt = Backend.bepGt
+                   bepGtEq = Backend.bepGtEq
+                   bepLt = Backend.bepLt
+                   bepLtEq = Backend.bepLtEq
+                   bepToPos = Backend.bepToPos
+                   offToBep = Backend.offToBep
+                   posToBep = Backend.posToBep
+                   posRow = Backend.posRow
+                   posCol = Backend.posCol
+                   viewCopy = Backend.viewCopy
+                   viewInit = Backend.viewInit
+                   viewReopen = Backend.viewReopen
+                   vfind = Backend.vfind
+                   makeRange = Backend.makeRange
 
-    d('init theme')
-    if (Backend.Theme)
-      initTheme(Backend.Theme)
+                   d('init theme')
+                   if (Backend.Theme)
+                     initTheme(Backend.Theme)
 
-    emRevert = Em.make('Revert')
-    emRevert.on('y', 'discard and revert')
-    emRevert.on('n', 'close demand')
-    Em.on('C-g', 'close demand', emRevert)
-    Em.on('Escape', 'close demand', emRevert)
+                   emRevert = Em.make('Revert')
+                   emRevert.on('y', 'discard and revert')
+                   emRevert.on('n', 'close demand')
+                   Em.on('C-g', 'close demand', emRevert)
+                   Em.on('Escape', 'close demand', emRevert)
 
-    d('add ed mode')
-    mo = Mode.add('Ed', { hidePoint: 1,
+                   d('add ed mode')
+                   mo = Mode.add('Ed', { hidePoint: 1,
                           viewInit: Backend.viewInit,
                           viewCopy: Backend.viewCopy,
                           viewReopen: Backend.viewReopen,
@@ -1348,191 +1348,191 @@ function init
                           //
                           onRemove: Backend.onBufRemove })
 
-    d('init backend')
-    Backend.init(mo)
+                   d('init backend')
+                   Backend.init(mo)
 
-    d('add modes')
-    Backend.addModes()
+                   d('add modes')
+                   Backend.addModes()
 
-    d('add cmds')
-    Cmd.add('activate mark', () => Backend.activateMark(), mo)
-    Cmd.add('delete previous char', () => Backend.delPrevChar(), mo)
-    Cmd.add('delete next char', () => Backend.delNextChar(), mo)
-    Cmd.add('delete next word', delNextWord, mo)
-    Cmd.add('delete previous word', u => delNextWord(-u), mo)
-    Cmd.add('delete to next word boundary', Backend.delNextWordBound, mo)
-    Cmd.add('delete to previous word boundary', u => Backend.delNextWordBound(-u), mo)
-    Cmd.add('trim', () => Backend.trim(), mo)
-    Cmd.add('comment region', Backend.commentRegion, mo)
-    Cmd.add('count region', () => countRegion(), mo)
-    Cmd.add('sort buffer lines', () => Backend.sortLines(), mo)
-    Cmd.add('sort lines', () => Backend.sortRegion(), mo)
-    Cmd.add('capitalize word', () => Backend.capitalizeWord(), mo)
-    Cmd.add('lowercase word', () => Backend.caseWord(w => w.toLowerCase()), mo)
-    Cmd.add('uppercase word', () => Backend.caseWord(w => w.toUpperCase()), mo)
-    Cmd.add('new line and indent', newlineAndIndent, mo)
-    Cmd.add('new line', Backend.newline, mo)
-    Cmd.add('insert /', insertSlash, mo)
-    Cmd.add('forward', Backend.forward, mo)
-    Cmd.add('backward', Backend.backward, mo)
-    Cmd.add('cut line', () => Backend.cutLine(), mo)
-    Cmd.add('group forward', Backend.groupForward, mo)
-    Cmd.add('group backward', Backend.groupBackward, mo)
-    Cmd.add('syntax forward', Backend.syntaxForward, mo)
-    Cmd.add('syntax backward', Backend.syntaxBackward, mo)
-    Cmd.add('word forward', Backend.wordForward, mo)
-    Cmd.add('word backward', Backend.wordBackward, mo)
-    Cmd.add('page forward', pageForward, mo)
-    Cmd.add('page backward', pageBackward, mo)
-    Cmd.add('page forward or self insert', pageForwardOrSelf, mo)
-    Cmd.add('page backward or self insert', pageBackwardOrSelf, mo)
-    Cmd.add('previous line', u => Backend.prevLine(View.current(), u), mo)
-    Cmd.add('next line', u => Backend.nextLine(View.current(), u), mo)
-    Cmd.add('previous boundary', u => Backend.prevBoundary(View.current(), u), mo)
-    Cmd.add('next boundary', u => Backend.nextBoundary(View.current(), u), mo)
-    Cmd.add('line start', () => Backend.lineStart(), mo)
-    Cmd.add('line end', () => Backend.lineEnd(), mo)
-    Cmd.add('buffer start', () => Backend.bufferStart(), mo)
-    Cmd.add('buffer end', () => Backend.bufferEnd(), mo)
-    Cmd.add('scroll up', () => Backend.scrollUp(), mo)
-    Cmd.add('scroll down', () => Backend.scrollDown(), mo)
-    Cmd.add('mark set', u => Backend.setMark(u), mo)
-    Cmd.add('mark exchange', () => Backend.exchange(), mo)
-    Cmd.add('open line', () => Backend.openLine(), mo)
-    Cmd.add('cancel', () => Backend.cancel(), mo)
-    Cmd.add('recenter', () => Backend.recenter(View.current()), mo)
-    Cmd.add('redo', () => Backend.redo(), mo)
-    Cmd.add('undo', () => Backend.undo(), mo)
-    Cmd.add('self insert', Backend.selfInsert, mo)
-    Cmd.add('quoted insert', Backend.quotedInsert, mo)
-    Cmd.add('self insert and indent', selfInsertIndent, mo)
-    Cmd.add('indent buffer', () => Backend.indentBuffer(), mo)
-    Cmd.add('suggest', () => Backend.suggest(), mo)
-    Cmd.add('next suggestion', () => Backend.nextSuggest(), mo)
-    Cmd.add('previous suggestion', () => Backend.prevSuggest(), mo)
-    Cmd.add('indent region', () => Backend.indentRegion(), mo)
-    Cmd.add('indent line', () => Backend.indentLine(), mo)
-    Cmd.add('indent rigidly', indentRigidly, mo)
-    Cmd.add('insert two spaces', () => Backend.insertTwoSpaces(), mo)
-    Cmd.add('save', () => cmdSave(), mo)
-    Cmd.add('save as', () => Backend.vsaveAs(View.current()), mo)
-    Cmd.add('transpose chars', () => Backend.transposeChars(), mo)
-    Cmd.add('transpose words', () => transposeWords(), mo)
-    Cmd.add('toggle overwrite', () => Backend.toggleOverwrite(), mo)
-    Cmd.add('top level start', () => Backend.topLevelStart(), mo)
-    Cmd.add('top level end', () => Backend.topLevelEnd(), mo)
-    Cmd.add('top of pane', () => Backend.topOfPane(), mo)
-    Cmd.add('bottom of pane', () => Backend.bottomOfPane(), mo)
-    Cmd.add('select all', () => Backend.selectAll(), mo)
-    Cmd.add('open lint panel', () => Backend.openLint(), mo)
-    Cmd.add('first diagnostic', (u, we) => Backend.firstDiagnostic && Backend.firstDiagnostic(u, we), mo)
-    Cmd.add('flush trailing whitespace', (u, we) => Backend.flushTrailing && Backend.flushTrailing(u, we), mo)
+                   d('add cmds')
+                   Cmd.add('activate mark', () => Backend.activateMark(), mo)
+                   Cmd.add('delete previous char', () => Backend.delPrevChar(), mo)
+                   Cmd.add('delete next char', () => Backend.delNextChar(), mo)
+                   Cmd.add('delete next word', delNextWord, mo)
+                   Cmd.add('delete previous word', u => delNextWord(-u), mo)
+                   Cmd.add('delete to next word boundary', Backend.delNextWordBound, mo)
+                   Cmd.add('delete to previous word boundary', u => Backend.delNextWordBound(-u), mo)
+                   Cmd.add('trim', () => Backend.trim(), mo)
+                   Cmd.add('comment region', Backend.commentRegion, mo)
+                   Cmd.add('count region', () => countRegion(), mo)
+                   Cmd.add('sort buffer lines', () => Backend.sortLines(), mo)
+                   Cmd.add('sort lines', () => Backend.sortRegion(), mo)
+                   Cmd.add('capitalize word', () => Backend.capitalizeWord(), mo)
+                   Cmd.add('lowercase word', () => Backend.caseWord(w => w.toLowerCase()), mo)
+                   Cmd.add('uppercase word', () => Backend.caseWord(w => w.toUpperCase()), mo)
+                   Cmd.add('new line and indent', newlineAndIndent, mo)
+                   Cmd.add('new line', Backend.newline, mo)
+                   Cmd.add('insert /', insertSlash, mo)
+                   Cmd.add('forward', Backend.forward, mo)
+                   Cmd.add('backward', Backend.backward, mo)
+                   Cmd.add('cut line', () => Backend.cutLine(), mo)
+                   Cmd.add('group forward', Backend.groupForward, mo)
+                   Cmd.add('group backward', Backend.groupBackward, mo)
+                   Cmd.add('syntax forward', Backend.syntaxForward, mo)
+                   Cmd.add('syntax backward', Backend.syntaxBackward, mo)
+                   Cmd.add('word forward', Backend.wordForward, mo)
+                   Cmd.add('word backward', Backend.wordBackward, mo)
+                   Cmd.add('page forward', pageForward, mo)
+                   Cmd.add('page backward', pageBackward, mo)
+                   Cmd.add('page forward or self insert', pageForwardOrSelf, mo)
+                   Cmd.add('page backward or self insert', pageBackwardOrSelf, mo)
+                   Cmd.add('previous line', u => Backend.prevLine(View.current(), u), mo)
+                   Cmd.add('next line', u => Backend.nextLine(View.current(), u), mo)
+                   Cmd.add('previous boundary', u => Backend.prevBoundary(View.current(), u), mo)
+                   Cmd.add('next boundary', u => Backend.nextBoundary(View.current(), u), mo)
+                   Cmd.add('line start', () => Backend.lineStart(), mo)
+                   Cmd.add('line end', () => Backend.lineEnd(), mo)
+                   Cmd.add('buffer start', () => Backend.bufferStart(), mo)
+                   Cmd.add('buffer end', () => Backend.bufferEnd(), mo)
+                   Cmd.add('scroll up', () => Backend.scrollUp(), mo)
+                   Cmd.add('scroll down', () => Backend.scrollDown(), mo)
+                   Cmd.add('mark set', u => Backend.setMark(u), mo)
+                   Cmd.add('mark exchange', () => Backend.exchange(), mo)
+                   Cmd.add('open line', () => Backend.openLine(), mo)
+                   Cmd.add('cancel', () => Backend.cancel(), mo)
+                   Cmd.add('recenter', () => Backend.recenter(View.current()), mo)
+                   Cmd.add('redo', () => Backend.redo(), mo)
+                   Cmd.add('undo', () => Backend.undo(), mo)
+                   Cmd.add('self insert', Backend.selfInsert, mo)
+                   Cmd.add('quoted insert', Backend.quotedInsert, mo)
+                   Cmd.add('self insert and indent', selfInsertIndent, mo)
+                   Cmd.add('indent buffer', () => Backend.indentBuffer(), mo)
+                   Cmd.add('suggest', () => Backend.suggest(), mo)
+                   Cmd.add('next suggestion', () => Backend.nextSuggest(), mo)
+                   Cmd.add('previous suggestion', () => Backend.prevSuggest(), mo)
+                   Cmd.add('indent region', () => Backend.indentRegion(), mo)
+                   Cmd.add('indent line', () => Backend.indentLine(), mo)
+                   Cmd.add('indent rigidly', indentRigidly, mo)
+                   Cmd.add('insert two spaces', () => Backend.insertTwoSpaces(), mo)
+                   Cmd.add('save', () => cmdSave(), mo)
+                   Cmd.add('save as', () => Backend.vsaveAs(View.current()), mo)
+                   Cmd.add('transpose chars', () => Backend.transposeChars(), mo)
+                   Cmd.add('transpose words', () => transposeWords(), mo)
+                   Cmd.add('toggle overwrite', () => Backend.toggleOverwrite(), mo)
+                   Cmd.add('top level start', () => Backend.topLevelStart(), mo)
+                   Cmd.add('top level end', () => Backend.topLevelEnd(), mo)
+                   Cmd.add('top of pane', () => Backend.topOfPane(), mo)
+                   Cmd.add('bottom of pane', () => Backend.bottomOfPane(), mo)
+                   Cmd.add('select all', () => Backend.selectAll(), mo)
+                   Cmd.add('open lint panel', () => Backend.openLint(), mo)
+                   Cmd.add('first diagnostic', (u, we) => Backend.firstDiagnostic && Backend.firstDiagnostic(u, we), mo)
+                   Cmd.add('flush trailing whitespace', (u, we) => Backend.flushTrailing && Backend.flushTrailing(u, we), mo)
 
-    Cmd.add('yank', () => Backend.yank(), mo)
-    Cmd.add('yank roll', () => Backend.yankRoll(), mo)
-    Cmd.add('paste', () => Backend.yank(), mo)
-    Cmd.add('paste roll', () => Backend.yankRoll(), mo)
-    Cmd.add('cut', () => Backend.cut(), mo)
-    Cmd.add('copy', () => Backend.copy(), mo)
+                   Cmd.add('yank', () => Backend.yank(), mo)
+                   Cmd.add('yank roll', () => Backend.yankRoll(), mo)
+                   Cmd.add('paste', () => Backend.yank(), mo)
+                   Cmd.add('paste roll', () => Backend.yankRoll(), mo)
+                   Cmd.add('cut', () => Backend.cut(), mo)
+                   Cmd.add('copy', () => Backend.copy(), mo)
 
-    Cmd.add('revert buffer', () => revert(), mo)
-    Cmd.add('discard and revert', () => discardAndRevert()) // global because call from prompt area
+                   Cmd.add('revert buffer', () => revert(), mo)
+                   Cmd.add('discard and revert', () => discardAndRevert()) // global because call from prompt area
 
-    Em.on('Escape', 'cancel', mo)
-    Em.on('Enter', 'new line and indent', mo)
-    Em.on('Backspace', 'delete previous char', mo)
-    Em.on('Delete', 'delete next char', mo)
-    Em.on('Tab', 'indent region', mo)
-    Em.on('C-x Tab', 'indent rigidly', mo)
-    Em.on('C-Tab', 'suggest', mo)
-    Em.on('Insert', 'toggle overwrite', mo)
-    Em.on('ArrowUp', 'previous line', mo)
-    Em.on('ArrowDown', 'next line', mo)
-    Em.on('ArrowRight', 'forward', mo)
-    Em.on('ArrowLeft', 'backward', mo)
-    Em.on('Home', 'buffer start', mo)
-    Em.on('End', 'buffer end', mo)
-    for (let i = 32; i <= 127; i++)
-      Em.on(String.fromCharCode(i), 'self insert', mo)
-    Em.on('/', 'insert /', mo)
-    Em.on('[', 'page backward or self insert', mo)
-    Em.on(']', 'page forward or self insert', mo)
+                   Em.on('Escape', 'cancel', mo)
+                   Em.on('Enter', 'new line and indent', mo)
+                   Em.on('Backspace', 'delete previous char', mo)
+                   Em.on('Delete', 'delete next char', mo)
+                   Em.on('Tab', 'indent region', mo)
+                   Em.on('C-x Tab', 'indent rigidly', mo)
+                   Em.on('C-Tab', 'suggest', mo)
+                   Em.on('Insert', 'toggle overwrite', mo)
+                   Em.on('ArrowUp', 'previous line', mo)
+                   Em.on('ArrowDown', 'next line', mo)
+                   Em.on('ArrowRight', 'forward', mo)
+                   Em.on('ArrowLeft', 'backward', mo)
+                   Em.on('Home', 'buffer start', mo)
+                   Em.on('End', 'buffer end', mo)
+                   for (let i = 32; i <= 127; i++)
+                     Em.on(String.fromCharCode(i), 'self insert', mo)
+                   Em.on('/', 'insert /', mo)
+                   Em.on('[', 'page backward or self insert', mo)
+                   Em.on(']', 'page forward or self insert', mo)
 
-    Em.on('C-ArrowLeft', 'word backward', mo)
-    Em.on('C-ArrowRight', 'word forward', mo)
-    //Em.on("C-PageUp", "paragraph forward", mo)
-    //Em.on("C-PageDown", "paragraph backward", mo)
-    Em.on('C-a', 'line start', mo)
-    Em.on('C-b', 'backward', mo)
-    Em.on('C-d', 'delete next char', mo)
-    Em.on('C-e', 'line end', mo)
-    Em.on('C-f', 'forward', mo)
-    Em.on('C-g', 'cancel', mo)
-    Em.on('Escape', 'cancel', mo)
-    Em.on('C-j', 'new line', mo)
-    Em.on('C-k', 'cut line', mo)
-    Em.on('C-p', 'previous line', mo)
-    Em.on('C-n', 'next line', mo)
-    Em.on('C-q', 'quoted insert', mo)
-    // C-r Bred.initSearch
-    // C-s Bred.initSearch
-    Em.on('C-w', 'cut', mo)
-    Em.on('C- ', 'mark set', mo)
-    Em.on('C-y', 'paste', mo) // aka Yank
-    Em.on('C-z', 'undo', mo)
-    Em.on('C-/', 'undo', mo)
+                   Em.on('C-ArrowLeft', 'word backward', mo)
+                   Em.on('C-ArrowRight', 'word forward', mo)
+                   //Em.on("C-PageUp", "paragraph forward", mo)
+                   //Em.on("C-PageDown", "paragraph backward", mo)
+                   Em.on('C-a', 'line start', mo)
+                   Em.on('C-b', 'backward', mo)
+                   Em.on('C-d', 'delete next char', mo)
+                   Em.on('C-e', 'line end', mo)
+                   Em.on('C-f', 'forward', mo)
+                   Em.on('C-g', 'cancel', mo)
+                   Em.on('Escape', 'cancel', mo)
+                   Em.on('C-j', 'new line', mo)
+                   Em.on('C-k', 'cut line', mo)
+                   Em.on('C-p', 'previous line', mo)
+                   Em.on('C-n', 'next line', mo)
+                   Em.on('C-q', 'quoted insert', mo)
+                   // C-r Bred.initSearch
+                   // C-s Bred.initSearch
+                   Em.on('C-w', 'cut', mo)
+                   Em.on('C- ', 'mark set', mo)
+                   Em.on('C-y', 'paste', mo) // aka Yank
+                   Em.on('C-z', 'undo', mo)
+                   Em.on('C-/', 'undo', mo)
 
-    Em.on('A-Delete', 'delete next word', mo)
-    Em.on('A-Backspace', 'delete previous word', mo)
-    Em.on('A-f', 'word forward', mo)
-    Em.on('A-b', 'word backward', mo)
-    Em.on('A-c', 'capitalize word', mo)
-    Em.on('A-j', 'new line', mo)
-    Em.on('A-l', 'lowercase word', mo)
-    Em.on('A-n', 'next suggestion', mo)
-    Em.on('A-p', 'previous suggestion', mo)
-    Em.on('A-u', 'uppercase word', mo)
-    Em.on('A-d', 'delete next word', mo)
-    // A-q fill to ruler ext/ruler
-    Em.on('A-t', 'transpose words', mo)
-    Em.on('A-w', 'copy', mo)
-    Em.on('A-y', 'yank roll', mo)
-    Em.on('A-z', 'trim', mo)
-    Em.on('A-=', 'count region', mo)
-    Em.on('A-<', 'buffer start', mo)
-    Em.on('A->', 'buffer end', mo)
-    Em.on('A-,', 'top of pane', mo)
-    Em.on('A-.', 'bottom of pane', mo)
+                   Em.on('A-Delete', 'delete next word', mo)
+                   Em.on('A-Backspace', 'delete previous word', mo)
+                   Em.on('A-f', 'word forward', mo)
+                   Em.on('A-b', 'word backward', mo)
+                   Em.on('A-c', 'capitalize word', mo)
+                   Em.on('A-j', 'new line', mo)
+                   Em.on('A-l', 'lowercase word', mo)
+                   Em.on('A-n', 'next suggestion', mo)
+                   Em.on('A-p', 'previous suggestion', mo)
+                   Em.on('A-u', 'uppercase word', mo)
+                   Em.on('A-d', 'delete next word', mo)
+                   // A-q fill to ruler ext/ruler
+                   Em.on('A-t', 'transpose words', mo)
+                   Em.on('A-w', 'copy', mo)
+                   Em.on('A-y', 'yank roll', mo)
+                   Em.on('A-z', 'trim', mo)
+                   Em.on('A-=', 'count region', mo)
+                   Em.on('A-<', 'buffer start', mo)
+                   Em.on('A->', 'buffer end', mo)
+                   Em.on('A-,', 'top of pane', mo)
+                   Em.on('A-.', 'bottom of pane', mo)
 
-    Em.on('C-A-b', 'syntax backward', mo)
-    Em.on('C-A-f', 'syntax forward', mo)
+                   Em.on('C-A-b', 'syntax backward', mo)
+                   Em.on('C-A-f', 'syntax forward', mo)
 
-    Em.on('C-c ;', 'comment region', mo)
+                   Em.on('C-c ;', 'comment region', mo)
 
-    Em.on('C-x [', 'page backward', mo)
-    Em.on('C-x ]', 'page forward', mo)
-    Em.on('C-x o', 'open line', mo)
-    Em.on('C-x  ', 'activate mark', mo)
-    Em.on('C-x t', 'transpose chars', mo)
-    Em.on('C-x C-s', 'save', mo)
-    Em.on('C-x C-w', 'save as', mo)
-    Em.on('C-x C-x', 'mark exchange', mo)
+                   Em.on('C-x [', 'page backward', mo)
+                   Em.on('C-x ]', 'page forward', mo)
+                   Em.on('C-x o', 'open line', mo)
+                   Em.on('C-x  ', 'activate mark', mo)
+                   Em.on('C-x t', 'transpose chars', mo)
+                   Em.on('C-x C-s', 'save', mo)
+                   Em.on('C-x C-w', 'save as', mo)
+                   Em.on('C-x C-x', 'mark exchange', mo)
 
-    Em.on('C-A-a', 'top level start', mo)
-    Em.on('C-A-e', 'top level end', mo)
+                   Em.on('C-A-a', 'top level start', mo)
+                   Em.on('C-A-e', 'top level end', mo)
 
-    Em.on('A-g l', 'goto line', mo)
+                   Em.on('A-g l', 'goto line', mo)
 
-    Em.on('C-c A-r', 'revert buffer', mo)
+                   Em.on('C-c A-r', 'revert buffer', mo)
 
-    initComplete()
-    initFlushLines(mo)
-    initGotoLine(mo)
-    initQR(mo)
-    initSearch(mo)
+                   initComplete()
+                   initFlushLines(mo)
+                   initGotoLine(mo)
+                   initQR(mo)
+                   initSearch(mo)
 
-    cb()
-  })
+                   cb()
+                 })
 }
 
 export

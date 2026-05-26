@@ -12,9 +12,9 @@ function initCss1
   d('initCss1: ' + file)
   importCss(file)
     .then(m => {
-      d('initCss1: ' + file + ': done')
-      globalThis.document.adoptedStyleSheets = [ ...globalThis.document.adoptedStyleSheets, m.default ]
-    },
+            d('initCss1: ' + file + ': done')
+            globalThis.document.adoptedStyleSheets = [ ...globalThis.document.adoptedStyleSheets, m.default ]
+          },
           err => yell('Failed to load ' + file + ': ' + err.message))
 }
 

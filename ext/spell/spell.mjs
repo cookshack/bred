@@ -103,26 +103,26 @@ function init
   initSpell().then(c => checker = c)
 
   Cmd.add('spell check word', () => {
-    Prompt.ask({ text: 'Check spelling of' },
-               text => check(text))
-  })
+                                Prompt.ask({ text: 'Check spelling of' },
+                                           text => check(text))
+                              })
 
   Cmd.add('spell check word at point', () => {
-    checkAtPoint(View.current())
-  })
+                                         checkAtPoint(View.current())
+                                       })
 
   Cmd.add('spell check word at click', (u, we) => {
-    if (we?.e && (we.e.button == 0)) {
-      let view, x, y, win
+                                         if (we?.e && (we.e.button == 0)) {
+                                           let view, x, y, win
 
-      view = View.current()
-      win = Win.current()
-      x = win.lastContext?.x ?? 0
-      y = win.lastContext?.y ?? 0
-      view.goXY(x, y)
-      checkAtPoint(view)
-    }
-  })
+                                           view = View.current()
+                                           win = Win.current()
+                                           x = win.lastContext?.x ?? 0
+                                           y = win.lastContext?.y ?? 0
+                                           view.goXY(x, y)
+                                           checkAtPoint(view)
+                                         }
+                                       })
 
   Em.on('A-$', 'spell check word at point')
 }

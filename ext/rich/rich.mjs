@@ -126,25 +126,25 @@ export
 function open
 (path) {
   Tron.cmd('file.get', [ path ], (err, data) => {
-    let p, buf, loc
+                                   let p, buf, loc
 
-    if (err) {
-      Mess.log('path: ' + path)
-      Mess.toss('Rich.open: ' + err.message)
-      return
-    }
+                                   if (err) {
+                                     Mess.log('path: ' + path)
+                                     Mess.toss('Rich.open: ' + err.message)
+                                     return
+                                   }
 
-    path = data.realpath || path
-    loc = Loc.make(path)
-    p = Pane.current()
-    buf = Buf.add('Rich: ' + loc.filename,
-                  'Rich',
-                  divW(data.data, loc.dirname, loc.filename),
-                  loc.dirname)
-    buf.vars('Rich').path = path
-    buf.addMode('view')
-    p.setBuf(buf)
-  })
+                                   path = data.realpath || path
+                                   loc = Loc.make(path)
+                                   p = Pane.current()
+                                   buf = Buf.add('Rich: ' + loc.filename,
+                                                 'Rich',
+                                                 divW(data.data, loc.dirname, loc.filename),
+                                                 loc.dirname)
+                                   buf.vars('Rich').path = path
+                                   buf.addMode('view')
+                                   p.setBuf(buf)
+                                 })
 }
 
 export

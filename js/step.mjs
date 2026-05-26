@@ -34,17 +34,17 @@ function init
 
     append(w, wv)
     wv.addEventListener('context-menu', e => {
-      d('context menu')
-      e.clientX = e.params.x
-      e.clientY = e.params.y
-      e.x = e.params.x
-      e.y = e.params.y
-      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e })
-    })
+                                          d('context menu')
+                                          e.clientX = e.params.x
+                                          e.clientY = e.params.y
+                                          e.x = e.params.x
+                                          e.y = e.params.y
+                                          Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e })
+                                        })
     wv.addEventListener('dom-ready', () => {
-      d('dom-ready')
-      //wv.executeJavascript('console.log("OK")')
-    })
+                                       d('dom-ready')
+                                       //wv.executeJavascript('console.log("OK")')
+                                     })
     //wv.executeJavascript('console.log("OK")')
 
     if (cb)
@@ -55,28 +55,28 @@ function init
   d(mo)
 
   Cmd.add('stepper', () => {
-    let b, p
+                       let b, p
 
-    p = Pane.current()
-    b = Buf.add('Step', 'Step', divW(), p.dir)
-    b.icon = 'help'
-    b.addMode('view')
-    p.setBuf(b)
-  })
+                       p = Pane.current()
+                       b = Buf.add('Step', 'Step', divW(), p.dir)
+                       b.icon = 'help'
+                       b.addMode('view')
+                       p.setBuf(b)
+                     })
 
   Cmd.add('pause', () => {
-    Tron.cmd('step.send', [ 'Debugger.enable' ], err => {
-      if (err) {
-        Mess.yell('enable: ' + err.message)
-        return
-      }
-      Tron.cmd('step.send', [ 'Debugger.pause' ], err2 => {
-        if (err2) {
-          Mess.yell('pause: ' + err2.message)
-          return
-        }
-        Mess.say('paused')
-      })
-    })
-  })
+                     Tron.cmd('step.send', [ 'Debugger.enable' ], err => {
+                                                                    if (err) {
+                                                                      Mess.yell('enable: ' + err.message)
+                                                                      return
+                                                                    }
+                                                                    Tron.cmd('step.send', [ 'Debugger.pause' ], err2 => {
+                                                                                                                  if (err2) {
+                                                                                                                    Mess.yell('pause: ' + err2.message)
+                                                                                                                    return
+                                                                                                                  }
+                                                                                                                  Mess.say('paused')
+                                                                                                                })
+                                                                  })
+                   })
 }

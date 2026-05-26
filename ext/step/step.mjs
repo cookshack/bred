@@ -20,13 +20,13 @@ let Comp
 function send
 (method, args, cb) {
   Tron.cmd('step.send', [ method, args ], (err, data) => {
-    if (err) {
-      Mess.yell(method + ': ' + err.message)
-      return
-    }
-    if (cb)
-      cb(data)
-  })
+                                            if (err) {
+                                              Mess.yell(method + ': ' + err.message)
+                                              return
+                                            }
+                                            if (cb)
+                                              cb(data)
+                                          })
 }
 
 function xyEl
@@ -123,8 +123,8 @@ function initCssComp
   }
 
   Cmd.add('Css Computed', (u, we) => {
-    comp(xyEl(we))
-  })
+                            comp(xyEl(we))
+                          })
 
   mo = Mode.add('Css Comp', { viewInit })
   d(mo)
@@ -228,28 +228,28 @@ function initCssRules
     }
 
     sels1.forEach(sel => {
-      let sp
+                    let sp
 
-      sp = sel.specificity
-      if (hi1) {
-        if (cmpSpeci(sp, hi1) < 0)
-          hi1 = sp
-      }
-      else
-        hi1 = sp
-    })
+                    sp = sel.specificity
+                    if (hi1) {
+                      if (cmpSpeci(sp, hi1) < 0)
+                        hi1 = sp
+                    }
+                    else
+                      hi1 = sp
+                  })
 
     sels2.forEach(sel => {
-      let sp
+                    let sp
 
-      sp = sel.specificity
-      if (hi2) {
-        if (cmpSpeci(sp, hi2) < 0)
-          hi2 = sp
-      }
-      else
-        hi2 = sp
-    })
+                    sp = sel.specificity
+                    if (hi2) {
+                      if (cmpSpeci(sp, hi2) < 0)
+                        hi2 = sp
+                    }
+                    else
+                      hi2 = sp
+                  })
 
     return cmpSpeci(hi1, hi2)
   }
@@ -267,16 +267,16 @@ function initCssRules
     ret = []
     got = new Set()
     rule.style.cssProperties.forEach(p => {
-      let s
+                                       let s
 
-      if (got.has(p.name))
-        return
-      got.add(p.name)
-      s = seen.has(p.name) ? ' css-rules-seen' : ''
-      ret.push([ divCl('css-rules-name' + s, p.name),
-                 divCl('css-rules-val' + s, p.value) ])
-      seen.add(p.name)
-    })
+                                       if (got.has(p.name))
+                                         return
+                                       got.add(p.name)
+                                       s = seen.has(p.name) ? ' css-rules-seen' : ''
+                                       ret.push([ divCl('css-rules-name' + s, p.name),
+                                                  divCl('css-rules-val' + s, p.value) ])
+                                       seen.add(p.name)
+                                     })
     return ret
   }
 
@@ -288,56 +288,56 @@ function initCssRules
     d(el.tagName)
 
     send('DOM.enable', {}, () => {
-      send('CSS.enable', {}, () => {
-        let sel
+                             send('CSS.enable', {}, () => {
+                                                      let sel
 
-        sel = selector(el)
-        d({ sel })
-        send('DOM.getDocument', {}, data => {
-          d({ data })
-          data || Mess.toss('DOM.getDocument empty')
-          send('DOM.querySelector', { nodeId: data.root.nodeId, selector: sel }, data2 => {
-            d({ data2 })
-            data2.nodeId || Mess.toss('DOM.querySelector empty')
-            send('CSS.getMatchedStylesForNode', { nodeId: data2.nodeId }, data3 => {
-              let ret, rs, seen
+                                                      sel = selector(el)
+                                                      d({ sel })
+                                                      send('DOM.getDocument', {}, data => {
+                                                                                    d({ data })
+                                                                                    data || Mess.toss('DOM.getDocument empty')
+                                                                                    send('DOM.querySelector', { nodeId: data.root.nodeId, selector: sel }, data2 => {
+                                                                                                                                                             d({ data2 })
+                                                                                                                                                             data2.nodeId || Mess.toss('DOM.querySelector empty')
+                                                                                                                                                             send('CSS.getMatchedStylesForNode', { nodeId: data2.nodeId }, data3 => {
+                                                                                                                                                                                                                             let ret, rs, seen
 
-              d({ data3 })
-              seen = new Set()
-              ret = new globalThis.DocumentFragment()
-              sort(data3.matchedCSSRules).forEach(r =>
-                append(ret,
-                       divCl('css-rules-rule',
-                             [ divCl('css-rules-sels',
-                                     sels(r.rule, r.matchingSelectors)),
-                               divCl('css-rules-props',
-                                     props(r.rule, seen)) ])))
-              append(ret, divCl('css-rules-head', 'Inherited'))
-              rs = []
-              data3.inherited.forEach(rules => {
-                if (rules.matchedCSSRules.length) {
-                  let r
+                                                                                                                                                                                                                             d({ data3 })
+                                                                                                                                                                                                                             seen = new Set()
+                                                                                                                                                                                                                             ret = new globalThis.DocumentFragment()
+                                                                                                                                                                                                                             sort(data3.matchedCSSRules).forEach(r =>
+                                                                                                                                                                                                                               append(ret,
+                                                                                                                                                                                                                                      divCl('css-rules-rule',
+                                                                                                                                                                                                                                            [ divCl('css-rules-sels',
+                                                                                                                                                                                                                                                    sels(r.rule, r.matchingSelectors)),
+                                                                                                                                                                                                                                              divCl('css-rules-props',
+                                                                                                                                                                                                                                                    props(r.rule, seen)) ])))
+                                                                                                                                                                                                                             append(ret, divCl('css-rules-head', 'Inherited'))
+                                                                                                                                                                                                                             rs = []
+                                                                                                                                                                                                                             data3.inherited.forEach(rules => {
+                                                                                                                                                                                                                                                       if (rules.matchedCSSRules.length) {
+                                                                                                                                                                                                                                                         let r
 
-                  r = rules.matchedCSSRules[rules.matchedCSSRules.length - 1]
-                  rs.push(r)
-                }
-              })
-              d({ rs })
-              sort(rs).forEach(r => {
-                append(ret,
-                       divCl('css-rules-rule css-rules-inherited',
-                             [ divCl('css-rules-sels',
-                                     sels(r.rule, r.matchingSelectors)),
-                               divCl('css-rules-props',
-                                     props(r.rule, seen)) ]))
-              })
-              append(ret, divCl('css-rules-end'))
-              append(w, ret)
-            })
-          })
-        })
-      })
-    })
+                                                                                                                                                                                                                                                         r = rules.matchedCSSRules[rules.matchedCSSRules.length - 1]
+                                                                                                                                                                                                                                                         rs.push(r)
+                                                                                                                                                                                                                                                       }
+                                                                                                                                                                                                                                                     })
+                                                                                                                                                                                                                             d({ rs })
+                                                                                                                                                                                                                             sort(rs).forEach(r => {
+                                                                                                                                                                                                                                                append(ret,
+                                                                                                                                                                                                                                                       divCl('css-rules-rule css-rules-inherited',
+                                                                                                                                                                                                                                                             [ divCl('css-rules-sels',
+                                                                                                                                                                                                                                                                     sels(r.rule, r.matchingSelectors)),
+                                                                                                                                                                                                                                                               divCl('css-rules-props',
+                                                                                                                                                                                                                                                                     props(r.rule, seen)) ]))
+                                                                                                                                                                                                                                              })
+                                                                                                                                                                                                                             append(ret, divCl('css-rules-end'))
+                                                                                                                                                                                                                             append(w, ret)
+                                                                                                                                                                                                                           })
+                                                                                                                                                           })
+                                                                                  })
+                                                    })
+                           })
   }
 
   function computed
@@ -393,22 +393,22 @@ function initCssRules
   }
 
   Cmd.add('Css Rules', (u, we) => {
-    let el
+                         let el
 
-    el = xyEl(we)
-    el || Mess.toss('missing el')
+                         el = xyEl(we)
+                         el || Mess.toss('missing el')
 
-    rulesRight(el)
-  })
+                         rulesRight(el)
+                       })
 
   Cmd.add('Css Rules Right2', (u, we) => {
-    let el
+                                let el
 
-    el = xyEl(we)
-    el || Mess.toss('missing el')
+                                el = xyEl(we)
+                                el || Mess.toss('missing el')
 
-    rulesRight(el, 1)
-  })
+                                rulesRight(el, 1)
+                              })
 
   mo = Mode.add('Css Rules', { viewInit })
 
@@ -434,9 +434,9 @@ function initDom
     // first num is nth child of html (vs domId first num is 1 == html)
     el = dom
     id.split('.').forEach(i => {
-      if (i.length)
-        el = el.childNodes[parseInt(i)] || Mess.toss('failed to parse: ' + id)
-    })
+                            if (i.length)
+                              el = el.childNodes[parseInt(i)] || Mess.toss('failed to parse: ' + id)
+                          })
 
     return el
   }
@@ -615,35 +615,35 @@ function initDom
   }
 
   Cmd.add('Dom', () => {
-    let b, p
+                   let b, p
 
-    p = Pane.current()
-    b = Buf.add('Dom', 'Dom', divW(), p.dir)
-    b.icon = 'dom'
-    b.addMode('view')
-    p.setBuf(b)
-  })
+                   p = Pane.current()
+                   b = Buf.add('Dom', 'Dom', divW(), p.dir)
+                   b.icon = 'dom'
+                   b.addMode('view')
+                   p.setBuf(b)
+                 })
 
   Cmd.add('Dom Right', (u, we) => {
-    let el, id
+                         let el, id
 
-    el = xyEl(we)
-    if (el)
-      id = domId(el)
+                         el = xyEl(we)
+                         if (el)
+                           id = domId(el)
 
-    domRight(id)
-  })
+                         domRight(id)
+                       })
 
   Cmd.add('Dom And Css Right', (u, we) => {
-    let el, id
+                                 let el, id
 
-    el = xyEl(we)
-    if (el)
-      id = domId(el)
+                                 el = xyEl(we)
+                                 if (el)
+                                   id = domId(el)
 
-    domRight(id)
-    Rules.right(el, 1)
-  })
+                                 domRight(id)
+                                 Rules.right(el, 1)
+                               })
 
   mo = Mode.add('Dom', { viewInit })
   d(mo)
@@ -683,19 +683,19 @@ function init
            wv)
     webview = wv
     wv.addEventListener('context-menu', e => {
-      d('context menu')
-      e.clientX = e.params.x
-      e.clientY = e.params.y
-      e.x = e.params.x
-      e.y = e.params.y
-      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e })
-    })
+                                          d('context menu')
+                                          e.clientX = e.params.x
+                                          e.clientY = e.params.y
+                                          e.x = e.params.x
+                                          e.y = e.params.y
+                                          Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e })
+                                        })
     wv.addEventListener('dom-ready', () => {
-      d('dom-ready')
-      //wv.openDevTools() // or inspect webview in console, store as global, temp1.openDevTools()
-      //wv.executeJavascript('console.log("OK")')
+                                       d('dom-ready')
+                                       //wv.openDevTools() // or inspect webview in console, store as global, temp1.openDevTools()
+                                       //wv.executeJavascript('console.log("OK")')
 
-    })
+                                     })
     //wv.executeJavascript('console.log("OK")')
 
     if (cb)
@@ -705,34 +705,34 @@ function init
   Mode.add('Step', { viewInit })
 
   Cmd.add('Webview Devtools', () => {
-    webview?.openDevTools()
-  })
+                                webview?.openDevTools()
+                              })
 
   Cmd.add('stepper', () => {
-    let b, p
+                       let b, p
 
-    p = Pane.current()
-    b = Buf.add('Step', 'Step', divW(), p.dir)
-    b.icon = 'help'
-    b.addMode('view')
-    p.setBuf(b)
-  })
+                       p = Pane.current()
+                       b = Buf.add('Step', 'Step', divW(), p.dir)
+                       b.icon = 'help'
+                       b.addMode('view')
+                       p.setBuf(b)
+                     })
 
   Cmd.add('pause', () => {
-    Tron.cmd('step.send', [ 'Debugger.enable' ], err => {
-      if (err) {
-        Mess.yell('enable: ' + err.message)
-        return
-      }
-      Tron.cmd('step.send', [ 'Debugger.pause' ], err2 => {
-        if (err2) {
-          Mess.yell('pause: ' + err2.message)
-          return
-        }
-        Mess.say('paused')
-      })
-    })
-  })
+                     Tron.cmd('step.send', [ 'Debugger.enable' ], err => {
+                                                                    if (err) {
+                                                                      Mess.yell('enable: ' + err.message)
+                                                                      return
+                                                                    }
+                                                                    Tron.cmd('step.send', [ 'Debugger.pause' ], err2 => {
+                                                                                                                  if (err2) {
+                                                                                                                    Mess.yell('pause: ' + err2.message)
+                                                                                                                    return
+                                                                                                                  }
+                                                                                                                  Mess.say('paused')
+                                                                                                                })
+                                                                  })
+                   })
 
   Rules = initCssRules()
   initDom(Rules)

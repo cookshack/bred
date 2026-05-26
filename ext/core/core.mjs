@@ -131,9 +131,9 @@ function init
     if (buf.opt('core.highlight.activeLine.enabled'))
       display = 'flex'
     buf.views.forEach(v => {
-      v.ele?.parentNode?.style.setProperty('--display-active-line',
-                                           display)
-    })
+                        v.ele?.parentNode?.style.setProperty('--display-active-line',
+                                                             display)
+                      })
   }
 
   leadingSpaceHighlighter = makeLSH()

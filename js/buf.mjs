@@ -96,19 +96,19 @@ function make
     sh.ring.removeIf(e => e == b)
     buf = BufCommon.top()
     Pane.forEach(p2 => {
-      if (p2.buf && (p2.buf.id == b.id))
-        p2.setBuf(buf)
-    })
+                   if (p2.buf && (p2.buf.id == b.id))
+                     p2.setBuf(buf)
+                 })
     if (mode?.onRemove)
       mode.onRemove(b)
     onRemoves.forEach(cb => {
-      try {
-        cb(b)
-      }
-      catch (err) {
-        Mess.warn('Error in buffer onRemove handler: ' + err.message)
-      }
-    })
+                        try {
+                          cb(b)
+                        }
+                        catch (err) {
+                          Mess.warn('Error in buffer onRemove handler: ' + err.message)
+                        }
+                      })
     onRemoves.length = 0 // Clear the array to prevent memory leaks
   }
 
@@ -213,64 +213,64 @@ function make
     if (b.views.length == 0)
       Mess.log('nest: parent buf has no views!')
     b.views.forEach(parentView => {
-      let container
+                      let container
 
-      Mess.log('nest: processing parentView')
-      parentView.ele || Mess.toss('nest: parent view missing ele')
+                      Mess.log('nest: processing parentView')
+                      parentView.ele || Mess.toss('nest: parent view missing ele')
 
-      container = parentView.ele.querySelector('[data-bred-nested-buf-id="' + childBuf.id + '"]')
-      if (container) {
-        let paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col
+                      container = parentView.ele.querySelector('[data-bred-nested-buf-id="' + childBuf.id + '"]')
+                      if (container) {
+                        let paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col
 
-        if (container.querySelector('.pane.bred-nested'))
-          return
+                        if (container.querySelector('.pane.bred-nested'))
+                          return
 
-        container.innerHTML = ''
+                        container.innerHTML = ''
 
-        point = divCl('bred-point')
-        pointLine = divCl('bred-point-line')
-        lint = divCl('bred-head-ed bred-head-lint hidden',
-                     divCl('bred-lint-marker', [],
-                           { 'data-run': 'first diagnostic' }))
-        col = divCl('bred-head bred-head-end',
-                    [ divCl('bred-head-ed bred-head-col', 'C1') ])
-        head = divCl('bred-head bred-head-mid', [ lint ])
-        headW = divCl('bred-head-w', [ head, col ])
-        overlay = divCl('bred-overlay', [ point, pointLine, headW ])
-        overlayW = divCl('bred-overlay-w bred-nested', overlay)
-        pane = divCl('pane bred-nested', [])
-        paneW = divCl('paneW bred-nested', [ pane, overlayW ])
+                        point = divCl('bred-point')
+                        pointLine = divCl('bred-point-line')
+                        lint = divCl('bred-head-ed bred-head-lint hidden',
+                                     divCl('bred-lint-marker', [],
+                                           { 'data-run': 'first diagnostic' }))
+                        col = divCl('bred-head bred-head-end',
+                                    [ divCl('bred-head-ed bred-head-col', 'C1') ])
+                        head = divCl('bred-head bred-head-mid', [ lint ])
+                        headW = divCl('bred-head-w', [ head, col ])
+                        overlay = divCl('bred-overlay', [ point, pointLine, headW ])
+                        overlayW = divCl('bred-overlay-w bred-nested', overlay)
+                        pane = divCl('pane bred-nested', [])
+                        paneW = divCl('paneW bred-nested', [ pane, overlayW ])
 
-        paneW.onscroll = () => {
-          if (nestedView.ed)
-            return
-          if (nestedView.scroll?.manual)
-            return
-          nestedView.point.ensureInView()
-        }
+                        paneW.onscroll = () => {
+                                           if (nestedView.ed)
+                                             return
+                                           if (nestedView.scroll?.manual)
+                                             return
+                                           nestedView.point.ensureInView()
+                                         }
 
-        container.appendChild(paneW)
-        Mess.log('nest: added paneW to container, container children: ' + container.children.length)
+                        container.appendChild(paneW)
+                        Mess.log('nest: added paneW to container, container children: ' + container.children.length)
 
-        if (pane)
-          nestedView = BufCommon.view(childBuf,
-                                      { ele: pane, elePoint: point },
-                                      v => {
-                                        if (v.ed)
-                                          Css.add(paneW, 'ed')
-                                        Mess.log('nest: view ready, pane children: ' + pane.children.length)
-                                      })
-        else
-          Mess.log('nest: pane is null!')
-        if (nestedView)
-          Mess.log('nest: view created, pane children: ' + pane.children.length)
+                        if (pane)
+                          nestedView = BufCommon.view(childBuf,
+                                                      { ele: pane, elePoint: point },
+                                                      v => {
+                                                        if (v.ed)
+                                                          Css.add(paneW, 'ed')
+                                                        Mess.log('nest: view ready, pane children: ' + pane.children.length)
+                                                      })
+                        else
+                          Mess.log('nest: pane is null!')
+                        if (nestedView)
+                          Mess.log('nest: view created, pane children: ' + pane.children.length)
 
-        parentView.nestedViews = parentView.nestedViews || []
-        parentView.nestedViews.push(nestedView)
-      }
-      else
-        Mess.log('nest: container not found for buf id ' + childBuf.id)
-    })
+                        parentView.nestedViews = parentView.nestedViews || []
+                        parentView.nestedViews.push(nestedView)
+                      }
+                      else
+                        Mess.log('nest: container not found for buf id ' + childBuf.id)
+                    })
 
     childBuf.nested = 1
     childBuf.parent = b
@@ -364,9 +364,9 @@ function make
   () {
     // reconf all the 'div' extensions for this buf so they're initialised for the view
     BufCommon.divExts.forEach(dext => {
-      0 && d('dext ' + dext.name)
-      dext?.reconf(b)
-    })
+                                0 && d('dext ' + dext.name)
+                                dext?.reconf(b)
+                              })
   }
 
   function save
@@ -492,21 +492,21 @@ function make
     function set
     (name, co) {
       b.views.forEach(v => {
-        if (v.ele) {
-          let el
+                        if (v.ele) {
+                          let el
 
-          el = v.ele.querySelector('.ml')
-          if (el) {
-            let field
+                          el = v.ele.querySelector('.ml')
+                          if (el) {
+                            let field
 
-            field = el.querySelector('.ml-' + name)
-            if (field) {
-              field.innerHTML = ''
-              Dom.append(field, co)
-            }
-          }
-        }
-      })
+                            field = el.querySelector('.ml-' + name)
+                            if (field) {
+                              field.innerHTML = ''
+                              Dom.append(field, co)
+                            }
+                          }
+                        }
+                      })
     }
 
     ml = { set }

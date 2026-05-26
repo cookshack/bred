@@ -57,51 +57,51 @@ function runToString
 
   // Define the IPC handler so we can remove it later
   handler = (err, data) => {
-    let der
+              let der
 
-    der = new TextDecoder()
+              der = new TextDecoder()
 
-    if (err) {
-      Mess.yell('Shell.runToString: ' + err.message)
-      // Clean up listener on error
-      off()
-      return
-    }
+              if (err) {
+                Mess.yell('Shell.runToString: ' + err.message)
+                // Clean up listener on error
+                off()
+                return
+              }
 
-    if (data.stdout)
-      if (typeof data.stdout == 'string')
-        str += data.stdout
-      else
-        str += der.decode(data.stdout)
-    if (data.stderr)
-      if (typeof data.stderr == 'string')
-        str += data.stderr
-      else
-        str += der.decode(data.stderr)
+              if (data.stdout)
+                if (typeof data.stdout == 'string')
+                  str += data.stdout
+                else
+                  str += der.decode(data.stdout)
+              if (data.stderr)
+                if (typeof data.stderr == 'string')
+                  str += data.stderr
+                else
+                  str += der.decode(data.stderr)
 
-    if (U.isDefined(data.close)) {
-      if (cb) {
-        // Invoke callback with final output and exit code
-        cb(str, data.code)
-        // Clean up listener after completion
-        off()
-      }
-      return
-    }
-    // else still running, do nothing
-  }
+              if (U.isDefined(data.close)) {
+                if (cb) {
+                  // Invoke callback with final output and exit code
+                  cb(str, data.code)
+                  // Clean up listener after completion
+                  off()
+                }
+                return
+              }
+              // else still running, do nothing
+            }
 
   off = Tron.on(ch, handler)
 
   Tron.cmd1('shell', [ ch, dir, sc, args || [], runInShell ? true : false ], (err, tch) => {
-    if (err)
-      Mess.toss(err)
-    if (ch == tch) {
-      // good
-    }
-    else
-      Mess.warn('tron ch should be ' + ch + ': ' + tch)
-  })
+                                                                               if (err)
+                                                                                 Mess.toss(err)
+                                                                               if (ch == tch) {
+                                                                                 // good
+                                                                               }
+                                                                               else
+                                                                                 Mess.warn('tron ch should be ' + ch + ': ' + tch)
+                                                                             })
 }
 
 export
@@ -158,16 +158,16 @@ function run
     b.vars('shell').spec = spec
     b.vars('shell').code = null
     b.onRemove(() => {
-      d('SHELL exit ' + ch)
-      Tron.send(ch, { exit: 1 })
-    })
+                 d('SHELL exit ' + ch)
+                 Tron.send(ch, { exit: 1 })
+               })
   }
 
   // Define the IPC handler so we can remove it after the command finishes
   handler = (err, data) => {
-    let decoder
+              let decoder
 
-    //d('SHELL ' + ch + ' received: ' + JSON.stringify(Object.keys(data)))
+              //d('SHELL ' + ch + ' received: ' + JSON.stringify(Object.keys(data)))
 
     function decode
     (str) {
@@ -176,67 +176,67 @@ function run
       return decoder.decode(str)
     }
 
-    decoder = new TextDecoder()
-    if (err) {
-      Mess.yell('Shell.run: ' + err.message)
-      // Clean up on error
-      off()
-      return
-    }
+              decoder = new TextDecoder()
+              if (err) {
+                Mess.yell('Shell.run: ' + err.message)
+                // Clean up on error
+                off()
+                return
+              }
 
-    //d({ data })
+              //d({ data })
 
-    if (0 && data.stdout)
-      d('SHELL OUT: ' + decode(data.stdout))
-    if (0 && data.stderr)
-      d('SHELL ERR: ' + decode(data.stderr))
+              if (0 && data.stdout)
+                d('SHELL OUT: ' + decode(data.stdout))
+              if (0 && data.stderr)
+                d('SHELL ERR: ' + decode(data.stderr))
 
-    if (b && data.stdout) {
-      if (spec.end)
-        b.append(decode(data.stdout), spec.afterEndPoint)
-      else
-        b.insert(decode(data.stdout), bep, spec.afterEndPoint)
-      b.vars('Shell').lastLineText = b.line(-1)
-      //d('SHELL lastLineText: ' + b.vars('Shell').lastLineText)
-      spec.afterEndPoint = 0
-    }
+              if (b && data.stdout) {
+                if (spec.end)
+                  b.append(decode(data.stdout), spec.afterEndPoint)
+                else
+                  b.insert(decode(data.stdout), bep, spec.afterEndPoint)
+                b.vars('Shell').lastLineText = b.line(-1)
+                //d('SHELL lastLineText: ' + b.vars('Shell').lastLineText)
+                spec.afterEndPoint = 0
+              }
 
-    if (spec.onStdout && data.stdout)
-      spec.onStdout(decode(data.stdout))
+              if (spec.onStdout && data.stdout)
+                spec.onStdout(decode(data.stdout))
 
-    if (b && data.stderr) {
-      if (spec.end)
-        b.append(decode(data.stderr), spec.afterEndPoint)
-      else
-        b.insert(decode(data.stderr), bep, spec.afterEndPoint)
-      spec.afterEndPoint = 0
-    }
+              if (b && data.stderr) {
+                if (spec.end)
+                  b.append(decode(data.stderr), spec.afterEndPoint)
+                else
+                  b.insert(decode(data.stderr), bep, spec.afterEndPoint)
+                spec.afterEndPoint = 0
+              }
 
-    if (data.close) {
-      if (b) {
-        b.ml.set('busy', 'exit ' + data.code)
-        b.vars('shell').code = data.code
-      }
-      if (spec.onClose)
-        spec.onClose(b, data.code)
-      Mess.log('SC exit: ' + sc + ': ' + data.code)
-      // Clean up listener after command finishes
-      off()
-    }
+              if (data.close) {
+                if (b) {
+                  b.ml.set('busy', 'exit ' + data.code)
+                  b.vars('shell').code = data.code
+                }
+                if (spec.onClose)
+                  spec.onClose(b, data.code)
+                Mess.log('SC exit: ' + sc + ': ' + data.code)
+                // Clean up listener after command finishes
+                off()
+              }
 
-    if (spec.onStderr && data.stderr)
-      spec.onStderr(decode(data.stderr))
+              if (spec.onStderr && data.stderr)
+                spec.onStderr(decode(data.stderr))
 
-    if (data.err) {
-      if (b)
-        b.ml.set('busy', 'exit err')
-      if (spec.onErr)
-        spec.onErr(b, err)
-      Mess.say('SC err: ' + sc + ': ' + err.message)
-      // Clean up on error condition as well
-      off()
-    }
-  }
+              if (data.err) {
+                if (b)
+                  b.ml.set('busy', 'exit err')
+                if (spec.onErr)
+                  spec.onErr(b, err)
+                Mess.say('SC err: ' + sc + ': ' + err.message)
+                // Clean up on error condition as well
+                off()
+              }
+            }
 
   on()
 
@@ -324,28 +324,28 @@ function shellOrSpawn1
     }
 
     p.setBuf(b, {}, () => {
-      b.clear()
-      if (whenReady)
-        whenReady(b)
-    })
+                      b.clear()
+                      if (whenReady)
+                        whenReady(b)
+                    })
   }
 
   function onClose
   (b, code) {
     b.views.forEach(view => {
-      if (view.ele) {
-        let el
+                      if (view.ele) {
+                        let el
 
-        el = view.ele.querySelector('.shell-exit-w')
-        if (el) {
-          Css.remove(el, 'shell-busy')
-          if (code == 0)
-            el.innerHTML = '✔ ' + code // 🏁 ✔✔✔ 🎉 ✅
-          else
-            el.innerHTML = '✘ ' + code // 🚨 ✘✘✘ 🚫 ❌
-        }
-      }
-    })
+                        el = view.ele.querySelector('.shell-exit-w')
+                        if (el) {
+                          Css.remove(el, 'shell-busy')
+                          if (code == 0)
+                            el.innerHTML = '✔ ' + code // 🏁 ✔✔✔ 🎉 ✅
+                          else
+                            el.innerHTML = '✘ ' + code // 🚨 ✘✘✘ 🚫 ❌
+                        }
+                      }
+                    })
     if (spec.onClose)
       spec.onClose(b, code)
   }
@@ -353,16 +353,16 @@ function shellOrSpawn1
   function onErr
   (b, err) {
     b.views.forEach(view => {
-      if (view.ele) {
-        let el
+                      if (view.ele) {
+                        let el
 
-        el = view.ele.querySelector('.shell-exit-w')
-        if (el) {
-          Css.remove(el, 'shell-busy')
-          el.innerHTML = '☠️ ERR ' + err.message
-        }
-      }
-    })
+                        el = view.ele.querySelector('.shell-exit-w')
+                        if (el) {
+                          Css.remove(el, 'shell-busy')
+                          el.innerHTML = '☠️ ERR ' + err.message
+                        }
+                      }
+                    })
     if (spec.onErr)
       spec.onErr(b, err)
   }
@@ -376,8 +376,8 @@ function shellOrSpawn1
   dir.ensureSlash()
   dir = dir.path || Loc.home()
   addBuf(buf => {
-    run(dir, sc, spec.args,
-        { buf,
+           run(dir, sc, spec.args,
+               { buf,
           cols: p.cols,
           end: spec.end,
           afterEndPoint: spec.afterEndPoint,
@@ -385,9 +385,9 @@ function shellOrSpawn1
           multi: spec.multi,
           onClose,
           onErr })
-    if (cb)
-      cb(buf)
-  })
+           if (cb)
+             cb(buf)
+         })
 }
 
 export
@@ -549,22 +549,22 @@ function initJs
   hist = Hist.ensure('Js')
 
   Cmd.add('js', () => {
-    let p
+                  let p
 
-    p = Pane.current()
-    Prompt.ask({ text: 'JS Expr',
+                  p = Pane.current()
+                  Prompt.ask({ text: 'JS Expr',
                  hist },
-               expr => {
-                 hist.add(expr)
-                 runToString(p.dir, 'node', [ '-e', 'console.log(' + expr + ')' ], 0, (str, code) => {
-                   if (str) {
-                     Mess.say(str.trim())
-                     return
-                   }
-                   Mess.yell('Error: ' + code)
-                 })
-               })
-  })
+                             expr => {
+                               hist.add(expr)
+                               runToString(p.dir, 'node', [ '-e', 'console.log(' + expr + ')' ], 0, (str, code) => {
+                                                                                                      if (str) {
+                                                                                                        Mess.say(str.trim())
+                                                                                                        return
+                                                                                                      }
+                                                                                                      Mess.yell('Error: ' + code)
+                                                                                                    })
+                             })
+                })
 }
 
 export
@@ -699,17 +699,17 @@ function initShell
     oldOnKeyDown = globalThis.window.onkeydown
     Mess.echoMore('C-q-')
     globalThis.window.onkeydown = e => {
-      e.preventDefault()
-      if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
-        return
-      try {
-        Cmd.runMo('self insert', 'Ed', 1, { e })
-      }
-      finally {
-        globalThis.window.onkeydown = oldOnKeyDown
-        Mess.say()
-      }
-    }
+                                    e.preventDefault()
+                                    if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
+                                      return
+                                    try {
+                                      Cmd.runMo('self insert', 'Ed', 1, { e })
+                                    }
+                                    finally {
+                                      globalThis.window.onkeydown = oldOnKeyDown
+                                      Mess.say()
+                                    }
+                                  }
   }
 
   function shell

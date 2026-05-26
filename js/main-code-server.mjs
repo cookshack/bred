@@ -37,84 +37,84 @@ function mountArgs
 function containerRunning
 (name) {
   return new Promise(resolve => {
-    let proc, output, timedOut, timer
+                       let proc, output, timedOut, timer
 
-    timedOut = 0
-    proc = spawn('docker', [ 'inspect', '--format={{.State.Status}}', name ])
-    output = ''
+                       timedOut = 0
+                       proc = spawn('docker', [ 'inspect', '--format={{.State.Status}}', name ])
+                       output = ''
 
-    timer = setTimeout(() => {
-      timedOut = 1
-      spawn('docker', [ 'stop', name ])
-      resolve(0)
-    }, 5000)
+                       timer = setTimeout(() => {
+                                            timedOut = 1
+                                            spawn('docker', [ 'stop', name ])
+                                            resolve(0)
+                                          }, 5000)
 
-    proc.stdout.on('data', chunk => {
-      output += chunk.toString()
-    })
-    proc.stderr.on('data', chunk => {
-      output += chunk.toString()
-    })
-    proc.on('close', code => {
-      clearTimeout(timer)
-      if (timedOut)
-        return
-      if (code) {
-        resolve(0)
-        return
-      }
-      resolve(output.trim() == 'running')
-    })
-    proc.on('error', () => {
-      clearTimeout(timer)
-      resolve(0)
-    })
-  })
+                       proc.stdout.on('data', chunk => {
+                                                output += chunk.toString()
+                                              })
+                       proc.stderr.on('data', chunk => {
+                                                output += chunk.toString()
+                                              })
+                       proc.on('close', code => {
+                                          clearTimeout(timer)
+                                          if (timedOut)
+                                            return
+                                          if (code) {
+                                            resolve(0)
+                                            return
+                                          }
+                                          resolve(output.trim() == 'running')
+                                        })
+                       proc.on('error', () => {
+                                          clearTimeout(timer)
+                                          resolve(0)
+                                        })
+                     })
 }
 
 function containerPort
 (name) {
   return new Promise((resolve, reject) => {
-    let proc, output, timedOut, timer
+                       let proc, output, timedOut, timer
 
-    timedOut = 0
-    proc = spawn('docker', [ 'port', name, '4096' ])
-    output = ''
+                       timedOut = 0
+                       proc = spawn('docker', [ 'port', name, '4096' ])
+                       output = ''
 
-    timer = setTimeout(() => {
-      timedOut = 1
-      reject(new Error('docker port timed out'))
-    }, 5000)
+                       timer = setTimeout(() => {
+                                            timedOut = 1
+                                            reject(new Error('docker port timed out'))
+                                          }, 5000)
 
-    proc.stdout.on('data', chunk => {
-      output += chunk.toString()
-    })
-    proc.stderr.on('data', chunk => {
-      output += chunk.toString()
-    })
-    proc.on('close', code => {
-      let match
+                       proc.stdout.on('data', chunk => {
+                                                output += chunk.toString()
+                                              })
+                       proc.stderr.on('data', chunk => {
+                                                output += chunk.toString()
+                                              })
+                       proc.on('close', code => {
+                                          let match
 
-      clearTimeout(timer)
-      if (timedOut)
-        return
-      if (code) {
-        reject(new Error('docker port failed with code ' + code + ': ' + output))
-        return
-      }
-      match = output.trim().match(/:(\d+)$/)
-      if (match)
-        resolve(parseInt(match[1]))
-      else
-        reject(new Error('failed to parse docker port from: ' + output))
-    })
-    proc.on('error', err => {
-      if (timedOut)
-        return
-      clearTimeout(timer)
-      reject(err)
-    })
-  })
+                                          clearTimeout(timer)
+                                          if (timedOut)
+                                            return
+                                          if (code) {
+                                            reject(new Error('docker port failed with code ' + code + ': ' + output))
+                                            return
+                                          }
+                                          match = output.trim().match(/:(\d+)$/)
+                                          if (match)
+                                            resolve(parseInt(match[1]))
+                                          else
+                                            reject(new Error('failed to parse docker port from: ' + output))
+                                        })
+                       proc.on('error', err => {
+                                          if (timedOut)
+                                            return
+                                          clearTimeout(timer)
+                                          reject(err)
+                                        })
+                     })
 }
 
 function healthCheck
@@ -150,26 +150,26 @@ function healthCheck
       d('CODE SERVER health check ' + url)
       send({ log: 'CODE SERVER health check ' + url })
       req = http.get(url + '/global/health', res => {
-        if (res.statusCode == 200) {
-          res.resume()
-          resolve()
-          return
-        }
-        res.resume()
-        setTimeout(check, ms)
-      })
+                                               if (res.statusCode == 200) {
+                                                 res.resume()
+                                                 resolve()
+                                                 return
+                                               }
+                                               res.resume()
+                                               setTimeout(check, ms)
+                                             })
       req.setTimeout(2000, () => {
-        req.destroy()
-        setTimeout(check, ms)
-      })
+                             req.destroy()
+                             setTimeout(check, ms)
+                           })
       req.on('error', err => {
-        send({ log: 'CODE SERVER health check ' + url + ' ' + err.message })
-        d('CODE SERVER health check ERR: ' + err.message)
-        setTimeout(check, ms)
-      })
+                        send({ log: 'CODE SERVER health check ' + url + ' ' + err.message })
+                        d('CODE SERVER health check ERR: ' + err.message)
+                        setTimeout(check, ms)
+                      })
     }
-    setTimeout(check, 1000)
-  })
+                       setTimeout(check, 1000)
+                     })
 }
 
 async function spawnDocker
@@ -196,77 +196,77 @@ async function spawnDocker
   d('CODE SERVER docker: ' + args.join(' '))
 
   return new Promise((resolve, reject) => {
-    let proc, output, timedOut, dockerTimer
+                       let proc, output, timedOut, dockerTimer
 
-    timedOut = 0
-    proc = spawn('docker', args)
-    output = ''
+                       timedOut = 0
+                       proc = spawn('docker', args)
+                       output = ''
 
-    dockerTimer = setTimeout(() => {
-      timedOut = 1
-      spawn('docker', [ 'stop', name ])
-      reject(new Error('Timeout waiting for docker run after ' + dockerTimeout + 'ms'))
-    }, dockerTimeout)
+                       dockerTimer = setTimeout(() => {
+                                                  timedOut = 1
+                                                  spawn('docker', [ 'stop', name ])
+                                                  reject(new Error('Timeout waiting for docker run after ' + dockerTimeout + 'ms'))
+                                                }, dockerTimeout)
 
-    proc.stdout.on('data', chunk => {
-      output += chunk.toString()
-    })
+                       proc.stdout.on('data', chunk => {
+                                                output += chunk.toString()
+                                              })
 
-    proc.stderr.on('data', chunk => {
-      output += chunk.toString()
-    })
+                       proc.stderr.on('data', chunk => {
+                                                output += chunk.toString()
+                                              })
 
-    proc.on('close', code => {
-      let containerID
+                       proc.on('close', code => {
+                                          let containerID
 
-      clearTimeout(dockerTimer)
+                                          clearTimeout(dockerTimer)
 
-      if (timedOut)
-        return
+                                          if (timedOut)
+                                            return
 
-      if (code) {
-        reject(new Error('docker run failed with code ' + code + ': ' + output))
-        return
-      }
+                                          if (code) {
+                                            reject(new Error('docker run failed with code ' + code + ': ' + output))
+                                            return
+                                          }
 
-      containerID = output.trim()
+                                          containerID = output.trim()
 
-      d('CODE SERVER docker container ' + containerID + ' fetching assigned port')
+                                          d('CODE SERVER docker container ' + containerID + ' fetching assigned port')
 
-      containerPort(name)
-        .then(hostPort => {
-          let url
+                                          containerPort(name)
+                                            .then(hostPort => {
+                                                    let url
 
-          url = 'http://127.0.0.1:' + hostPort
+                                                    url = 'http://127.0.0.1:' + hostPort
 
-          d('CODE SERVER docker container ' + containerID + ' on ' + url)
-          d('CODE SERVER running health check for ' + containerID + ' on ' + url)
-          return healthCheck(url, healthTimeout, name, spec.send).then(() => url)
-        })
-        .then(url => {
-          d('CODE SERVER docker container healthy: ' + containerID)
-          resolve({ url,
+                                                    d('CODE SERVER docker container ' + containerID + ' on ' + url)
+                                                    d('CODE SERVER running health check for ' + containerID + ' on ' + url)
+                                                    return healthCheck(url, healthTimeout, name, spec.send).then(() => url)
+                                                  })
+                                            .then(url => {
+                                                    d('CODE SERVER docker container healthy: ' + containerID)
+                                                    resolve({ url,
                     containerName: name,
                     close
                     () {
                       d('CODE SERVER docker stop ' + name)
                       spawn('docker', [ 'stop', name ])
                     } })
-        })
-        .catch(err => {
-          d('CODE SERVER docker failed: ' + err.message)
-          spawn('docker', [ 'stop', name ])
-          reject(err)
-        })
-    })
+                                                  })
+                                            .catch(err => {
+                                                     d('CODE SERVER docker failed: ' + err.message)
+                                                     spawn('docker', [ 'stop', name ])
+                                                     reject(err)
+                                                   })
+                                        })
 
-    proc.on('error', err => {
-      if (timedOut)
-        return
-      clearTimeout(dockerTimer)
-      reject(err)
-    })
-  })
+                       proc.on('error', err => {
+                                          if (timedOut)
+                                            return
+                                          clearTimeout(dockerTimer)
+                                          reject(err)
+                                        })
+                     })
 }
 
 async function spawnLocal

@@ -40,11 +40,11 @@ function nestBuf
   promptBuf.addMode('Code Prompt')
 
   buf.views.forEach(view => {
-    let container
+                      let container
 
-    container = view.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
-    append(container, divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': promptBuf.id }))
-  })
+                      container = view.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
+                      append(container, divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': promptBuf.id }))
+                    })
 
   buf.nest(promptBuf)
 }

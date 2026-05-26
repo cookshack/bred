@@ -46,10 +46,10 @@ function run
     else
       // Schedule a flush for later
       flushTimer = setTimeout(() => {
-        d(ch + ' timer flush')
-        flushBuffers()
-        flushTimer = null
-      }, 100 - timeSinceLastFlush)
+                                d(ch + ' timer flush')
+                                flushBuffers()
+                                flushTimer = null
+                              }, 100 - timeSinceLastFlush)
   }
 
   function close
@@ -90,10 +90,10 @@ function run
     env = {}
     // prevent: nvm is not compatible with the "npm_config_prefix" environment variable...
     Object.entries(process.env).forEach(kv => {
-      if (kv[0].startsWith('npm_'))
-        return
-      env[kv[0]] = kv[1].slice(0)
-    })
+                                          if (kv[0].startsWith('npm_'))
+                                            return
+                                          env[kv[0]] = kv[1].slice(0)
+                                        })
     env.EMACS = 't' // turns off line editing in bash
     env.TERM = 'dumb'
     //env.TERM = 'xterm'
@@ -158,39 +158,39 @@ function run
     }
 
     proc.onData(data => {
-      d(ch + ' data: ' + data.length + ' bytes')
-      d(ch + ' data: ' + data)
-      d(ch + ' typeof data: ' + typeof data)
-      stdoutBuffer += data
-      scheduleFlush()
-    })
+                  d(ch + ' data: ' + data.length + ' bytes')
+                  d(ch + ' data: ' + data)
+                  d(ch + ' typeof data: ' + typeof data)
+                  stdoutBuffer += data
+                  scheduleFlush()
+                })
 
     proc.onExit(ret => {
-      d(ch + ': child process exited with code ' + ret.exitCode + ' stdOut=' + stdoutBuffer.length + ' stdErr=' + stderrBuffer.length)
-      // Ensure all buffered data is sent before closing
-      flushBuffers()
-      d(ch + ': sent close')
-      sender.send(ch, { close: 1, code: ret.exitCode })
-      d(ch + ': close sent, calling close()')
-      close()
-      d(ch + ': close() done')
-    })
+                  d(ch + ': child process exited with code ' + ret.exitCode + ' stdOut=' + stdoutBuffer.length + ' stdErr=' + stderrBuffer.length)
+                  // Ensure all buffered data is sent before closing
+                  flushBuffers()
+                  d(ch + ': sent close')
+                  sender.send(ch, { close: 1, code: ret.exitCode })
+                  d(ch + ': close sent, calling close()')
+                  close()
+                  d(ch + ': close() done')
+                })
 
     // seems node-pty doesn't have this
     if (0)
       proc.onError(err => {
-        d(ch + ': child process error: ' + err)
-        stderrBuffer += ('Process error: ' + err.message + '\n')
-        scheduleFlush()
-      })
+                     d(ch + ': child process error: ' + err)
+                     stderrBuffer += ('Process error: ' + err.message + '\n')
+                     scheduleFlush()
+                   })
 
     ipcMain.on(ch, (ev, data) => {
-      d(ch + ': on: ' + JSON.stringify(data))
-      if (data.input && data.input.length)
-        proc.write(data.input)
-      if (data.exit)
-        process.kill(proc.pid, 'SIGHUP')
-    })
+                     d(ch + ': on: ' + JSON.stringify(data))
+                     if (data.input && data.input.length)
+                       proc.write(data.input)
+                     if (data.exit)
+                       process.kill(proc.pid, 'SIGHUP')
+                   })
   }
   catch (err) {
     d(ch + ' child process caught err ' + err)

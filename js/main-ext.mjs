@@ -20,17 +20,17 @@ function onAdd
   () {
     flag = Path.join(dir, '.ADDED')
     Fs.open(flag, 'a', (err, fd) => {
-      if (err) {
-        e.sender.send(ch, makeErr(err))
-        return
-      }
-      Fs.close(fd, err2 => {
-        if (err2)
-          e.sender.send(ch, makeErr(err2))
-        else
-          e.sender.send(ch, {})
-      })
-    })
+                         if (err) {
+                           e.sender.send(ch, makeErr(err))
+                           return
+                         }
+                         Fs.close(fd, err2 => {
+                                        if (err2)
+                                          e.sender.send(ch, makeErr(err2))
+                                        else
+                                          e.sender.send(ch, {})
+                                      })
+                       })
   }
 
   if (mandatoryExt(name)) {
@@ -42,23 +42,23 @@ function onAdd
 
   flag = Path.join(dir, '.READY')
   Fs.access(flag, Fs.constants.F_OK, err => {
-    if (err) {
-      let res
+                                       if (err) {
+                                         let res
 
-      res = spawn('npm', [ 'install' ], { cwd: dir, encoding: 'utf-8' })
-      if (res.error)
-        throw res.error
-      res.on('close', code => {
-        if (code)
-          e.sender.send(ch, errMsg('npm install failed: ' + code))
-        else
-          add()
-      })
-      return
-    }
-    // already installed
-    add()
-  })
+                                         res = spawn('npm', [ 'install' ], { cwd: dir, encoding: 'utf-8' })
+                                         if (res.error)
+                                           throw res.error
+                                         res.on('close', code => {
+                                                           if (code)
+                                                             e.sender.send(ch, errMsg('npm install failed: ' + code))
+                                                           else
+                                                             add()
+                                                         })
+                                         return
+                                       }
+                                       // already installed
+                                       add()
+                                     })
 
   return ch
 }
@@ -102,24 +102,24 @@ function onAll
 
   dir = Path.join(app.getAppPath(), 'ext')
   Fs.readdir(dir, {}, (err, data) => {
-    let exts
+                        let exts
 
-    if (err) {
-      e.sender.send(ch, { err })
-      return
-    }
+                        if (err) {
+                          e.sender.send(ch, { err })
+                          return
+                        }
 
-    exts = []
-    data.forEach(name => {
-      let stat
+                        exts = []
+                        data.forEach(name => {
+                                       let stat
 
-      stat = Fs.statSync(Path.join(dir, name),
-                         { throwIfNoEntry: false })
-      if (stat && isDir(stat))
-        exts.push({ name,
+                                       stat = Fs.statSync(Path.join(dir, name),
+                                                          { throwIfNoEntry: false })
+                                       if (stat && isDir(stat))
+                                         exts.push({ name,
                     mandatory: mandatoryExt(name),
                     added: added(name) })
-    })
-    e.sender.send(ch, { exts })
-  })
+                                     })
+                        e.sender.send(ch, { exts })
+                      })
 }

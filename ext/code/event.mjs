@@ -68,8 +68,8 @@ function startSub
 
       timeoutMs = 35000
       timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('heartbeat-timeout')), timeoutMs)
-      })
+                                     setTimeout(() => reject(new Error('heartbeat-timeout')), timeoutMs)
+                                   })
 
       try {
         let result
@@ -114,9 +114,9 @@ function startSub
     state.lastEventTime = Date.now()
     Ui.updateStatus(buf, '🔁 RECONNECTING', '', '')
     Comm.ensureClient(buf).then(runStream).catch(() => {
-      d('CO reconnect spawn failed')
-      setTimeout(tryReconnect, 1000)
-    })
+                                                   d('CO reconnect spawn failed')
+                                                   setTimeout(tryReconnect, 1000)
+                                                 })
   }
 
   state = buf.vars('code')
@@ -126,7 +126,7 @@ function startSub
   Ui.updateStatus(buf, '🔁 CONNECTING', '', '')
 
   Comm.ensureClient(buf).then(runStream).catch(() => {
-    d('CO spawn failed, retrying')
-    setTimeout(() => startSub(buf), 1000)
-  })
+                                                 d('CO spawn failed, retrying')
+                                                 setTimeout(() => startSub(buf), 1000)
+                                               })
 }

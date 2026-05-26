@@ -15,13 +15,13 @@ function call
   d('lsp.req ' + method + ' ' + lang + ' ' + path + ' ' + id)
   d({ params })
   Tron.cmd1('lsp.req', [ lang, path, bufId, method, id, params || {} ], err => {
-    if (err) {
-      Mess.yell('ERR lsp.req: ' + err.message)
-      delete cbs[id]
-      cb({ err })
-      return
-    }
-  })
+                                                                          if (err) {
+                                                                            Mess.yell('ERR lsp.req: ' + err.message)
+                                                                            delete cbs[id]
+                                                                            cb({ err })
+                                                                            return
+                                                                          }
+                                                                        })
 }
 
 function avail
@@ -78,14 +78,14 @@ function callers
                     }
                     else
                       Tron.cmd('files.lines', r2.result, (err, r4) => {
-                        console.log({ r4 })
-                        if (err) {
-                          console.warn('LSP files.lines: ' + err.message)
-                          cb({ callers: r2.result, def: result })
-                          return
-                        }
-                        cb({ callers: r4, def: result })
-                      })
+                                                           console.log({ r4 })
+                                                           if (err) {
+                                                             console.warn('LSP files.lines: ' + err.message)
+                                                             cb({ callers: r2.result, def: result })
+                                                             return
+                                                           }
+                                                           cb({ callers: r4, def: result })
+                                                         })
                   })
 
              call(lang,
@@ -233,23 +233,23 @@ function init
   id = 1
 
   Tron.on('lsp', (err, data) => {
-    d('LSP')
-    d(data?.response?.id)
-    d(data)
-    if (data.log)
-      Mess.log(data.log)
-    if (data.response) {
-      if (data.response.id == '1')
-        // initialize
-        return
-      if (data.response.id)
-        handleReqResponse(data.response)
-      else {
-        data.response.BRED = 'Random message from LSP'
-        Mess.log(data.response)
-      }
-    }
-  })
+                   d('LSP')
+                   d(data?.response?.id)
+                   d(data)
+                   if (data.log)
+                     Mess.log(data.log)
+                   if (data.response) {
+                     if (data.response.id == '1')
+                     // initialize
+                       return
+                     if (data.response.id)
+                       handleReqResponse(data.response)
+                     else {
+                       data.response.BRED = 'Random message from LSP'
+                       Mess.log(data.response)
+                     }
+                   }
+                 })
 
   Timing.stop('lsp.init')
 }

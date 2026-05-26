@@ -73,17 +73,17 @@ function seize
 (b, mode) {
   d('ed seizing ' + b.name + ' for ' + mode.key)
   b.views.forEach(v => {
-    let effects, exts
+                    let effects, exts
 
-    // remove old mode specific extensions, add new ones
-    v.wode.wextsMode = v.buf.mode.wexts
-    exts = makeExtsMode(v)
-    effects = v.wode.comp.extsMode.reconfigure(exts)
-    v.ed.dispatch({ effects })
+                    // remove old mode specific extensions, add new ones
+                    v.wode.wextsMode = v.buf.mode.wexts
+                    exts = makeExtsMode(v)
+                    effects = v.wode.comp.extsMode.reconfigure(exts)
+                    v.ed.dispatch({ effects })
 
-    if (v.ed && (v.win == Win.current()))
-      WodeDecor.decorate(v, b.mode)
-  })
+                    if (v.ed && (v.win == Win.current()))
+                      WodeDecor.decorate(v, b.mode)
+                  })
 }
 
 function cTopLevelStart
@@ -139,16 +139,6 @@ function addMode
   if (lang.id == 'css') {
     //Cmd.add('insert }', (u,we) => insertClose(u, we, mode), mode)
     //Em.on('}', 'insert }', mode)
-  }
-  else if (lang.id == 'richdown') {
-    Em.on('e', 'markdown mode', 'richdown')
-    Em.on('C-c C-c', 'markdown mode', 'richdown')
-    // should use view mode
-    Em.on('n', 'next line', 'richdown')
-    Em.on('p', 'previous line', 'richdown')
-    Em.on('q', 'bury', 'richdown')
-    Em.on('Backspace', 'scroll up', 'richdown')
-    Em.on(' ', 'scroll down', 'richdown')
   }
   else if (lang.id == 'markdown')
     Em.on('C-c C-c', 'rich', 'markdown')

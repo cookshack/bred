@@ -93,100 +93,100 @@ function init
       let old
 
       all = all.filter(b => {
-        if (b.name == vars.oldBuf?.name) {
-          old = b
-          return 0
-        }
-        return 1
-      })
+                         if (b.name == vars.oldBuf?.name) {
+                           old = b
+                           return 0
+                         }
+                         return 1
+                       })
       if (old)
         all.push(old)
     }
 
     d('SW recents')
     Recent.get(0, (err, recents) => {
-      let rec, eNeedle
+                    let rec, eNeedle
 
-      if (err)
-        Mess.toss(err)
+                    if (err)
+                      Mess.toss(err)
 
-      d('SW got recents')
+                    d('SW got recents')
 
-      rec = []
-      recents.forEach(r => {
-        //d(r)
-        if (r.href.startsWith('file://')
+                    rec = []
+                    recents.forEach(r => {
+                                      //d(r)
+                                      if (r.href.startsWith('file://')
             || r.href.startsWith('/')) {
-          let loc
+                                        let loc
 
-          loc = Loc.make(r.href)
-          rec.push({ name: loc.filename,
+                                        loc = Loc.make(r.href)
+                                        rec.push({ name: loc.filename,
                      path: loc.path })
-        }
-      })
+                                      }
+                                    })
 
-      if (regex) {
-        all = all.filter(b => b.name.length && match(b.name, needle))
-        rec = rec.filter(r => r.name.length && match(r.name, needle))
-      }
-      else {
-        all = all.filter(b => b.name.length)
-        rec = rec.filter(r => r.name.length)
-      }
+                    if (regex) {
+                      all = all.filter(b => b.name.length && match(b.name, needle))
+                      rec = rec.filter(r => r.name.length && match(r.name, needle))
+                    }
+                    else {
+                      all = all.filter(b => b.name.length)
+                      rec = rec.filter(r => r.name.length)
+                    }
 
-      if (all.length && all[0].name.length && needle.length)
-        candidate = all[0]
-      else if (rec.length && rec[0].name.length && needle.length)
-        candidate = rec[0]
+                    if (all.length && all[0].name.length && needle.length)
+                      candidate = all[0]
+                    else if (rec.length && rec[0].name.length && needle.length)
+                      candidate = rec[0]
 
-      if (candidate) {
-        let common, name
+                    if (candidate) {
+                      let common, name
 
-        name = candidate.name
-        common = Math.min(needle.length, name.length)
-        if (common >= needle.length) {
-          let lname, lneedle
+                      name = candidate.name
+                      common = Math.min(needle.length, name.length)
+                      if (common >= needle.length) {
+                        let lname, lneedle
 
-          lname = name.toLowerCase()
-          lneedle = needle.toLowerCase()
-          if (lname.startsWith(lneedle))
-            needle = name.slice(0, needle.length)
-          else
-            needle = name.slice(0, lname.indexOf(lneedle) + lneedle.length)
-        }
-        else
-          needle = name + needle.slice(name.length)
-        needles = needle
-      }
+                        lname = name.toLowerCase()
+                        lneedle = needle.toLowerCase()
+                        if (lname.startsWith(lneedle))
+                          needle = name.slice(0, needle.length)
+                        else
+                          needle = name.slice(0, lname.indexOf(lneedle) + lneedle.length)
+                      }
+                      else
+                        needle = name + needle.slice(name.length)
+                      needles = needle
+                    }
 
-      if ((all.length == 0) && (rec.length == 0))
-        ml.innerText = 'Create buffer'
+                    if ((all.length == 0) && (rec.length == 0))
+                      ml.innerText = 'Create buffer'
 
-      eNeedle = divCl('switch-needle' + ((all.length || rec.length) ? '' : ' switch-zero'),
-                      needles)
+                    eNeedle = divCl('switch-needle' + ((all.length || rec.length) ? '' : ' switch-zero'),
+                                    needles)
 
-      append(under,
-             divCl('switch-list',
-                   [ all.map((b,i) => [ divCl('switch-name onfill' + (i == 0 ? ' selected' : ''),
-                                              b.name,
-                                              { 'data-id': b.id,
+                    append(under,
+                           divCl('switch-list',
+                                 [ all.map((b,i) => [ divCl('switch-name onfill' + (i == 0 ? ' selected' : ''),
+                                                            b.name,
+                                                            { 'data-id': b.id,
                                                 'data-run': 'select' }),
-                                        divCl('switch-mode', b.mode.key),
-                                        divCl('switch-path', compactPath(b.path)) ]),
+                                                      divCl('switch-mode', b.mode.key),
+                                                      divCl('switch-path', compactPath(b.path)) ]),
                      all.length ? eNeedle : [],
-                     rec.length && [ divCl('switch-sep' + (all.length ? '' : 'top'),
-                                           'Recent'),
-                                     divCl('switch-mode'),
-                                     divCl('switch-path') ],
-                     rec.map((r,i) => [ divCl('switch-name onfill' + (((i == 0) && (all.length == 0)) ? ' selected' : ''),
-                                              [ r.name,
-                                                // need it here for absolute positioning
-                                                (i == 0) && (all.length == 0) && eNeedle ],
-                                              { 'data-run': 'open link',
+                                   rec.length && [ divCl('switch-sep' + (all.length ? '' : 'top'),
+                                                         'Recent'),
+                                                   divCl('switch-mode'),
+                                                   divCl('switch-path') ],
+                                   rec.map((r,i) => [ divCl('switch-name onfill' + (((i == 0) && (all.length == 0)) ? ' selected' : ''),
+                                                            [ r.name,
+                                                              // need it here for absolute positioning
+                                                              (i == 0) && (all.length == 0) && eNeedle ],
+                                                            { 'data-run': 'open link',
                                                 'data-path': r.path }),
-                                        divCl('switch-mode', ''),
-                                        divCl('switch-path', compactPath(r.path)) ]) ]))
-    })
+                                                      divCl('switch-mode', ''),
+                                                      divCl('switch-path', compactPath(r.path)) ]) ]))
+                  })
   }
 
   function first
@@ -338,21 +338,21 @@ function init
 
     dir = p.dir
     p.setBuf(buf, {}, () => {
-      // view has been created
-      buf.dir = dir
+                        // view has been created
+                        buf.dir = dir
 
-      ml = p.view.ele.querySelector('.edMl')
-      under = p.view.ele.querySelector('.switch-under')
-      if (under) {
-        refresh(p.view)
-        if (needOn)
-          buf.on('change', () => {
-            refresh(p.view)
-          })
-      }
-      else
-        Mess.toss('under missing')
-    })
+                        ml = p.view.ele.querySelector('.edMl')
+                        under = p.view.ele.querySelector('.switch-under')
+                        if (under) {
+                          refresh(p.view)
+                          if (needOn)
+                            buf.on('change', () => {
+                                               refresh(p.view)
+                                             })
+                        }
+                        else
+                          Mess.toss('under missing')
+                      })
   }
 
   hist = Hist.ensure('switch')

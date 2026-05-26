@@ -311,18 +311,18 @@ function add
    lineNumber, // only used if path is a file
    whenReady) { // (view) only runs if path is a file
     Tron.cmd('file.stat', Loc.make(path).expand(), (err, data) => {
-      let name
+                                                     let name
 
-      if (err) {
-        Mess.yell('Pane.open: ' + err.message)
-        return
-      }
-      name = data.link ? data.dest : path
-      if (data.data.mode & (1 << 15))
-        openFile(name, lineNumber, whenReady)
-      else
-        openDir(name)
-    })
+                                                     if (err) {
+                                                       Mess.yell('Pane.open: ' + err.message)
+                                                       return
+                                                     }
+                                                     name = data.link ? data.dest : path
+                                                     if (data.data.mode & (1 << 15))
+                                                       openFile(name, lineNumber, whenReady)
+                                                     else
+                                                       openDir(name)
+                                                   })
   }
 
   function showLintMarker
@@ -367,12 +367,12 @@ function add
                                 eleHead ])) ])
 
   paneW.onscroll = () => {
-    if (p.view.ed)
-      return
-    if (p.view.scroll?.manual)
-      return
-    p.view.point.ensureInView()
-  }
+                     if (p.view.ed)
+                       return
+                     if (p.view.scroll?.manual)
+                       return
+                     p.view.point.ensureInView()
+                   }
 
   p = { w: divCl('paneWW',
                  [ divCl('bred-close',

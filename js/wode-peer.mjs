@@ -29,11 +29,11 @@ function make
       this.ch = 'peer.pull/' + uuidv4()
       this.chOff = Tron.on(this.ch, this.pull.bind(this))
       Tron.cmd('peer.pull', [ id, version, this.ch ], err => {
-        if (err) {
-          d('peer.pull: ' + err.message)
-          return
-        }
-      })
+                                                        if (err) {
+                                                          d('peer.pull: ' + err.message)
+                                                          return
+                                                        }
+                                                      })
     }
 
     update
@@ -52,19 +52,19 @@ function make
       if (0) {
         d('UPDATES')
         updates.forEach((u,i) => {
-          d(i + ': ' + u.changes?.toJSON())
-        })
+                          d(i + ': ' + u.changes?.toJSON())
+                        })
       }
       this.pushing = true
       version = CMCollab.getSyncedVersion(this.view.state)
       //d('SYNCED VERSION ' + version)
       pushUpdates(id, (version ?? 0) + 1, updates, () => {
-        this.pushing = false
-        // Regardless of whether the push failed or new updates came in
-        // while it was running, try again if there are updates remaining
-        if (CMCollab.sendableUpdates(this.view.state).length)
-          setTimeout(() => this.push(), 100)
-      })
+                                                     this.pushing = false
+                                                     // Regardless of whether the push failed or new updates came in
+                                                     // while it was running, try again if there are updates remaining
+                                                     if (CMCollab.sendableUpdates(this.view.state).length)
+                                                       setTimeout(() => this.push(), 100)
+                                                   })
     }
 
     pull
@@ -86,8 +86,8 @@ function make
       if (0) {
         d('RECEIVE')
         updates.forEach((u,i) => {
-          d(i + ': ' + u.changes?.toJSON())
-        })
+                          d(i + ': ' + u.changes?.toJSON())
+                        })
       }
       tr = CMCollab.receiveUpdates(this.view.state, updates)
       this.view.dispatch(tr)

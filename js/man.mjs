@@ -45,17 +45,17 @@ function init
       b.addMode('view')
       p.setBuf(b, {}, () =>
         Shell.runToString(p.dir, 'man', [ '-Thtml', topic ], 0, str => {
-          hist.add(topic)
-          b.views.forEach(view => {
-            let w, el
+                                                                  hist.add(topic)
+                                                                  b.views.forEach(view => {
+                                                                                    let w, el
 
-            w = view.ele.firstElementChild.firstElementChild
-            w.innerHTML = ''
-            el = div('manpage-p')
-            el.innerHTML = str
-            append(w, el)
-          })
-        }))
+                                                                                    w = view.ele.firstElementChild.firstElementChild
+                                                                                    w.innerHTML = ''
+                                                                                    el = div('manpage-p')
+                                                                                    el.innerHTML = str
+                                                                                    append(w, el)
+                                                                                  })
+                                                                }))
     }
     else
       Mess.toss('Topic missing')

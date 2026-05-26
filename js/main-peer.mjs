@@ -66,14 +66,14 @@ function onPull
 
   d('============== PEER ' + id + ' PULLED (main sending) ' + pullCh)
   setTimeout(() => {
-    let buf
+               let buf
 
-    buf = get(id)
-    if (version < buf.version)
-      e.sender.send(pullCh,
-                    { updates: changes(buf.updates.slice(version)) })
-    buf.chs.add(pullCh)
-  })
+               buf = get(id)
+               if (version < buf.version)
+                 e.sender.send(pullCh,
+                               { updates: changes(buf.updates.slice(version)) })
+               buf.chs.add(pullCh)
+             })
   e.sender.send(ch, {}) // just ret here
 }
 
@@ -93,10 +93,10 @@ function onPush
     d('    received: ' + received.length)
     d('    updates: ')
     updates.forEach(u => {
-      d('clientID: ' + u.clientID)
-      d('changes:')
-      d(JSON.stringify(u.changes))
-    })
+                      d('clientID: ' + u.clientID)
+                      d('changes:')
+                      d(JSON.stringify(u.changes))
+                    })
     d('==')
   }
   if (received.length == 0)
@@ -115,17 +115,17 @@ function onPush
       d('ERR in rebaseUpdates: ' + err.message)
       d('== ERR updates: ')
       updates.forEach(u => {
-        d('clientID: ' + u.clientID)
-        d('changes:')
-        d(JSON.stringify(u.changes))
-      })
+                        d('clientID: ' + u.clientID)
+                        d('changes:')
+                        d(JSON.stringify(u.changes))
+                      })
       d('== ERR received: ')
       received.forEach(r => {
-        d('clientID: ' + r.clientID)
-        d('changes:')
-        d(JSON.stringify(r.changes))
-        d('--')
-      })
+                         d('clientID: ' + r.clientID)
+                         d('changes:')
+                         d(JSON.stringify(r.changes))
+                         d('--')
+                       })
       d('==')
       throw err
     }
@@ -133,11 +133,11 @@ function onPush
     if (1)
       d('    received 2: ' + received.length)
     received.forEach(update => {
-      d(JSON.stringify(update, null, 2))
-      buf.updates.push(update)
-      buf.text = update.changes.apply(buf.text)
-      applied.push(update)
-    })
+                       d(JSON.stringify(update, null, 2))
+                       buf.updates.push(update)
+                       buf.text = update.changes.apply(buf.text)
+                       applied.push(update)
+                     })
   }
   catch (err) {
     d('ERR ' + err.message)
@@ -149,9 +149,9 @@ function onPush
     push = changes(applied)
     // must send to everyone, including peer that pushed.
     buf.chs.forEach(pullCh => {
-      d('    SEND TO ' + pullCh)
-      e.sender.send(pullCh, { updates: push })
-    })
+                      d('    SEND TO ' + pullCh)
+                      e.sender.send(pullCh, { updates: push })
+                    })
   }
   if (applied.length && onBufUpdate)
     onBufUpdate(id, buf.text.toString())

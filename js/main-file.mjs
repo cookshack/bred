@@ -66,11 +66,11 @@ function onCp
 
   if (from.startsWith('/') && to.startsWith('/')) {
     Fs.copyFile(from, to, 0, err => {
-      if (err)
-        e.sender.send(ch, makeErr(err))
-      else
-        e.sender.send(ch, {})
-    })
+                               if (err)
+                                 e.sender.send(ch, makeErr(err))
+                               else
+                                 e.sender.send(ch, {})
+                             })
     return
   }
   e.sender.send(ch, errMsg('Paths must be absolute'))
@@ -100,29 +100,29 @@ function onGet
   else if (U.compressedExt(path)) {
     d('FILE read compressed')
     Fs.readFile(path, (err, data) => {
-      if (err)
-        e.sender.send(ch, { err })
-      else {
-        let decompressed
+                        if (err)
+                          e.sender.send(ch, { err })
+                        else {
+                          let decompressed
 
-        decompressed = decompress(data, path)
-        e.sender.send(ch, { data: decompressed.toString('utf8'),
+                          decompressed = decompress(data, path)
+                          e.sender.send(ch, { data: decompressed.toString('utf8'),
                             stat: Fs.statSync(path, { throwIfNoEntry: false }),
                             realpath: Fs.realpathSync(path) })
-      }
-    })
+                        }
+                      })
     return
   }
 
   d('FILE read plain')
   Fs.readFile(path, 'utf8', (err, data) => {
-    if (err)
-      e.sender.send(ch, { err })
-    else
-      e.sender.send(ch, { data,
+                              if (err)
+                                e.sender.send(ch, { err })
+                              else
+                                e.sender.send(ch, { data,
                           stat: Fs.statSync(path, { throwIfNoEntry: false }),
                           realpath: Fs.realpathSync(path) })
-  })
+                            })
 }
 
 // ASYNC: file system - create symbolic link
@@ -277,81 +277,81 @@ function onModify
 
   if (path.startsWith('/'))
     Fs.readFile(path, 'utf8', (err, data) => {
-      if (err)
-        e.sender.send(ch, { err })
-      else {
-        let out
+                                if (err)
+                                  e.sender.send(ch, { err })
+                                else {
+                                  let out
 
-        // apply edits
+                                  // apply edits
 
-        out = data
-        for (let i = 0; i < edits.length; i++)
-          if (edits[i].type == 'insert') {
-            let off
+                                  out = data
+                                  for (let i = 0; i < edits.length; i++)
+                                    if (edits[i].type == 'insert') {
+                                      let off
 
-            off = parseInt(edits[i].position)
-            if (isNaN(off)) {
-              e.sender.send(ch, errMsg('Error in position field of edit ' + i))
-              return
-            }
-            out = out.slice(0, off) + (edits[i].text || '') + out.slice(off)
-          }
-          else if (edits[i].type == 'remove') {
-            let off, len, to
+                                      off = parseInt(edits[i].position)
+                                      if (isNaN(off)) {
+                                        e.sender.send(ch, errMsg('Error in position field of edit ' + i))
+                                        return
+                                      }
+                                      out = out.slice(0, off) + (edits[i].text || '') + out.slice(off)
+                                    }
+                                    else if (edits[i].type == 'remove') {
+                                      let off, len, to
 
-            off = parseInt(edits[i].position)
-            if (isNaN(off)) {
-              e.sender.send(ch, errMsg('Error in position field of edit ' + i))
-              return
-            }
-            len = parseInt(edits[i].length)
-            if (isNaN(len)) {
-              e.sender.send(ch, errMsg('Error in length field of edit ' + i))
-              return
-            }
-            if (off >= out.length)
-              off = out.length - 1
-            to = off + len
-            if (to >= out.length)
-              to = out.length - 1
-            out = out.slice(0, off) + out.slice(to)
-          }
-          else if (edits[i].type == 'replace') {
-            let from, to
+                                      off = parseInt(edits[i].position)
+                                      if (isNaN(off)) {
+                                        e.sender.send(ch, errMsg('Error in position field of edit ' + i))
+                                        return
+                                      }
+                                      len = parseInt(edits[i].length)
+                                      if (isNaN(len)) {
+                                        e.sender.send(ch, errMsg('Error in length field of edit ' + i))
+                                        return
+                                      }
+                                      if (off >= out.length)
+                                        off = out.length - 1
+                                      to = off + len
+                                      if (to >= out.length)
+                                        to = out.length - 1
+                                      out = out.slice(0, off) + out.slice(to)
+                                    }
+                                    else if (edits[i].type == 'replace') {
+                                      let from, to
 
-            from = parseInt(edits[i].from)
-            if (isNaN(from)) {
-              e.sender.send(ch, errMsg('Error in from field of edit ' + i))
-              return
-            }
-            to = parseInt(edits[i].to)
-            if (isNaN(to)) {
-              e.sender.send(ch, errMsg('Error in to field of edit ' + i))
-              return
-            }
-            if (from >= out.length)
-              from = out.length - 1
-            if (to > out.length)
-              to = out.length
-            if (to < from)
-              [ from, to ] = [ to, from ]
-            out = out.slice(0, from) + (edits[i].text || '') + out.slice(to)
-          }
-          else {
-            e.sender.send(ch, errMsg('Error in type field of edit ' + i))
-            return
-          }
+                                      from = parseInt(edits[i].from)
+                                      if (isNaN(from)) {
+                                        e.sender.send(ch, errMsg('Error in from field of edit ' + i))
+                                        return
+                                      }
+                                      to = parseInt(edits[i].to)
+                                      if (isNaN(to)) {
+                                        e.sender.send(ch, errMsg('Error in to field of edit ' + i))
+                                        return
+                                      }
+                                      if (from >= out.length)
+                                        from = out.length - 1
+                                      if (to > out.length)
+                                        to = out.length
+                                      if (to < from)
+                                        [ from, to ] = [ to, from ]
+                                      out = out.slice(0, from) + (edits[i].text || '') + out.slice(to)
+                                    }
+                                    else {
+                                      e.sender.send(ch, errMsg('Error in type field of edit ' + i))
+                                      return
+                                    }
 
-        // write file back
+                                  // write file back
 
-        Fs.writeFile(path, out, { encoding: 'utf8' }, err2 => {
-          if (err2)
-            e.sender.send(ch, { err: err2 })
-          else
-            e.sender.send(ch, {})
-        })
-      }
-    })
+                                  Fs.writeFile(path, out, { encoding: 'utf8' }, err2 => {
+                                                                                  if (err2)
+                                                                                    e.sender.send(ch, { err: err2 })
+                                                                                  else
+                                                                                    e.sender.send(ch, {})
+                                                                                })
+                                }
+                              })
   else
     e.sender.send(ch, errMsg('Path must be absolute'))
 }
@@ -431,29 +431,29 @@ function onPatch
 
   if (path.startsWith('/'))
     Fs.readFile(path, 'utf8', (err, data) => {
-      if (err)
-        e.sender.send(ch, { err })
-      else {
-        let out
+                                if (err)
+                                  e.sender.send(ch, { err })
+                                else {
+                                  let out
 
-        try {
-          out = Diff.applyPatch(data.data, patch)
-        }
-        catch (err2) {
-          e.sender.send(ch, makeErr(err2))
-          return
-        }
-        if ((typeof out == 'boolean') && (out == false))
-          e.sender.send(ch, errMsg('Failed to apply patch'))
-        else
-          Fs.writeFile(path, out, { encoding: 'utf8' }, err3 => {
-            if (err3)
-              e.sender.send(ch, { err: err3 })
-            else
-              e.sender.send(ch, {})
-          })
-      }
-    })
+                                  try {
+                                    out = Diff.applyPatch(data.data, patch)
+                                  }
+                                  catch (err2) {
+                                    e.sender.send(ch, makeErr(err2))
+                                    return
+                                  }
+                                  if ((typeof out == 'boolean') && (out == false))
+                                    e.sender.send(ch, errMsg('Failed to apply patch'))
+                                  else
+                                    Fs.writeFile(path, out, { encoding: 'utf8' }, err3 => {
+                                                                                    if (err3)
+                                                                                      e.sender.send(ch, { err: err3 })
+                                                                                    else
+                                                                                      e.sender.send(ch, {})
+                                                                                  })
+                                }
+                              })
   else
     e.sender.send(ch, errMsg('Path must be absolute'))
 }
@@ -466,12 +466,12 @@ function onRm
 
   if (path.startsWith('/'))
     Fs.unlink(path, err => {
-      if (err) {
-        e.sender.send(ch, makeErr(err))
-        return
-      }
-      e.sender.send(ch, {})
-    })
+                      if (err) {
+                        e.sender.send(ch, makeErr(err))
+                        return
+                      }
+                      e.sender.send(ch, {})
+                    })
   else
     e.sender.send(ch, errMsg('Path must be absolute'))
 }
@@ -489,11 +489,11 @@ function onSave
     data = text
 
   Fs.writeFile(path, data, err => {
-    if (err)
-      e.sender.send(ch, { err })
-    else
-      e.sender.send(ch, { stat: Fs.statSync(path, { throwIfNoEntry: false }) })
-  })
+                             if (err)
+                               e.sender.send(ch, { err })
+                             else
+                               e.sender.send(ch, { stat: Fs.statSync(path, { throwIfNoEntry: false }) })
+                           })
 }
 
 // ASYNC: file system - save to temp file and return path
@@ -520,30 +520,30 @@ export
 function onStat
 (e, ch, onArgs) {
   Fs.lstat(onArgs, (err, data) => {
-    if (err)
-      e.sender.send(ch, { err: { message: err.message,
+                     if (err)
+                       e.sender.send(ch, { err: { message: err.message,
                                  code: err.code } })
-    else if (data.isSymbolicLink())
-      Fs.readlink(onArgs, (err2, string) => {
-        if (err2)
-          e.sender.send(ch, { err: err2 })
-        else {
-          let dest
+                     else if (data.isSymbolicLink())
+                       Fs.readlink(onArgs, (err2, string) => {
+                                             if (err2)
+                                               e.sender.send(ch, { err: err2 })
+                                             else {
+                                               let dest
 
-          dest = Path.join(Path.dirname(onArgs), string)
-          Fs.stat(dest, (err3, data3) => {
-            if (err3)
-              e.sender.send(ch, { err3 })
-            else
-              e.sender.send(ch, { data: data3,
+                                               dest = Path.join(Path.dirname(onArgs), string)
+                                               Fs.stat(dest, (err3, data3) => {
+                                                               if (err3)
+                                                                 e.sender.send(ch, { err3 })
+                                                               else
+                                                                 e.sender.send(ch, { data: data3,
                                   link: 1,
                                   dest })
-          })
-        }
-      })
-    else
-      e.sender.send(ch, { data })
-  })
+                                                             })
+                                             }
+                                           })
+                     else
+                       e.sender.send(ch, { data })
+                   })
 }
 
 // ASYNC: file system - update file access/modify times

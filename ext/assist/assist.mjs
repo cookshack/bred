@@ -106,21 +106,21 @@ function init
         Css.expand(el)
         Css.expand(elH)
         results.callers.forEach(res => {
-          append(el,
-                 divCl('assist-caller',
-                       [ link(res.from.name,
-                              res.from.uri,
-                              lnum(res.from.selectionRange.start.line)),
-                         res.fromRanges.map(fr => divCl('assist-caller-loc',
-                                                        [ divCl('assist-caller-num',
-                                                                lnum(fr.start.line)),
-                                                          divCl('assist-caller-text',
-                                                                fr.line.text) ],
-                                                        { 'data-run': 'open link',
+                                  append(el,
+                                         divCl('assist-caller',
+                                               [ link(res.from.name,
+                                                      res.from.uri,
+                                                      lnum(res.from.selectionRange.start.line)),
+                                                 res.fromRanges.map(fr => divCl('assist-caller-loc',
+                                                                                [ divCl('assist-caller-num',
+                                                                                        lnum(fr.start.line)),
+                                                                                  divCl('assist-caller-text',
+                                                                                        fr.line.text) ],
+                                                                                { 'data-run': 'open link',
                                                           'data-path': res.from.uri,
                                                           'data-line': lnum(fr.start.line),
                                                           'data-col': fr.start.character })) ]))
-        })
+                                })
       }
       else {
         Css.retract(el)
@@ -160,27 +160,27 @@ function init
           prev = { start: Ed.offToBep(view, 0) }
           point = view.bep
           Ed.vforLines(view, line => {
-            0 && d(line)
-            if (next) {
-              let text
+                               0 && d(line)
+                               if (next) {
+                                 let text
 
-              if (Ed.bepLtEq(prev.start, point) && Ed.bepGt(line.from, point))
-                Css.add(prev.el, 'assist-page-current')
-              text = line.text.trim()
-              prev = { start: line.from,
+                                 if (Ed.bepLtEq(prev.start, point) && Ed.bepGt(line.from, point))
+                                   Css.add(prev.el, 'assist-page-current')
+                                 text = line.text.trim()
+                                 prev = { start: line.from,
                        el: divCl('assist-page',
                                  [ div(text,
                                        { 'data-run': 'open link',
                                          'data-path': view.buf.path,
                                          'data-line': line.number }) ]) }
-              append(el, prev.el)
-              count++
-            }
-            if (line.text.startsWith(''))
-              next = 1
-            else
-              next = 0
-          })
+                                 append(el, prev.el)
+                                 count++
+                               }
+                               if (line.text.startsWith(''))
+                                 next = 1
+                               else
+                                 next = 0
+                             })
           if (prev.el && Ed.bepLtEq(prev.start, point))
             Css.add(prev.el, 'assist-page-current')
         }
@@ -208,16 +208,16 @@ function init
                      elHash ])
         append(body, el)
         Shell.runToString(view.buf.dir, 'git', [ 'branch', '--show-current' ], 0, (branch, code) => {
-          if (code)
-            return
-          Shell.runToString(view.buf.dir, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code2) => {
-            if (code2)
-              return
-            elName.innerText = branch.trim()
-            elHash.innerText = hash.trim()
-            Css.expand(el)
-          })
-        })
+                                                                                    if (code)
+                                                                                      return
+                                                                                    Shell.runToString(view.buf.dir, 'git', [ 'rev-parse', '--short', 'HEAD' ], 0, (hash, code2) => {
+                                                                                                                                                                    if (code2)
+                                                                                                                                                                      return
+                                                                                                                                                                    elName.innerText = branch.trim()
+                                                                                                                                                                    elHash.innerText = hash.trim()
+                                                                                                                                                                    Css.expand(el)
+                                                                                                                                                                  })
+                                                                                  })
       }
     }
 
@@ -295,12 +295,12 @@ function init
       if (tout)
         clearTimeout(tout)
       tout = setTimeout(() => {
-        Buf.forEach(b => {
-          if (b.mode.key == 'assist')
-            b.views.forEach(v => refresh(v, view))
-        })
-        tout = 0
-      },
+                          Buf.forEach(b => {
+                                        if (b.mode.key == 'assist')
+                                          b.views.forEach(v => refresh(v, view))
+                                      })
+                          tout = 0
+                        },
                         360)
     }
   }
@@ -355,12 +355,12 @@ function init
   Cmd.add('assist', () => assist())
 
   Cmd.add('update', () => {
-    let p
+                      let p
 
-    p = Pane.current().view.win.frame1.pane
+                      p = Pane.current().view.win.frame1.pane
 
-    update(p.view)
-  })
+                      update(p.view)
+                    })
 
   icon = div(img(Icon.path('assist'), 'Assistant', 'filter-clr-text'),
              'mini-icon onfill mini-em',

@@ -97,11 +97,11 @@ function initAbout
     Win.shared().about = {}
 
   Cmd.add('about', () => {
-    let p
+                     let p
 
-    p = Pane.current()
-    p.setBuf(Win.shared().about.buf || addBuf(p))
-  })
+                     p = Pane.current()
+                     p.setBuf(Win.shared().about.buf || addBuf(p))
+                   })
   Em.on('C-h C-a', 'about')
   Em.on('C-h a', 'about')
 }
@@ -153,20 +153,20 @@ function initHelp
       callerBuf = Win.shared().helpBuffer.callerBuf
       return [ divCl('bold twoCol', 'Options'),
                Opt.sort().map(([ name, value ]) => {
-                 let type, run
+                                let type, run
 
-                 type = Opt.type(name)
-                 run = {}
-                 if (type == 'bool')
-                   run = { 'data-run': 'toggle option' }
-                 value = clean(callerBuf?.opts.get(name), value, type)
-                 return [ divCl('options-name', name),
-                          divCl('bred-help-option',
-                                [ divCl('options-val',
-                                        value,
-                                        { 'data-name': name, ...run }),
-                                  divCl('options-type', type) ]) ]
-               }) ]
+                                type = Opt.type(name)
+                                run = {}
+                                if (type == 'bool')
+                                  run = { 'data-run': 'toggle option' }
+                                value = clean(callerBuf?.opts.get(name), value, type)
+                                return [ divCl('options-name', name),
+                                         divCl('bred-help-option',
+                                               [ divCl('options-val',
+                                                       value,
+                                                       { 'data-name': name, ...run }),
+                                                 divCl('options-type', type) ]) ]
+                              }) ]
     }
 
     function vars
@@ -285,61 +285,61 @@ function initHelp
   Cmd.add('toggle option', toggle, mo)
 
   Cmd.add('describe buffer', () => {
-    let p, buf
+                               let p, buf
 
-    p = Pane.current()
-    Win.shared().helpBuffer.callerBuf = View.current().buf
-    buf = Win.shared().helpBuffer.buf
-    if (buf) {
-      buf.clear()
-      buf.content = divW(p)
-    }
-    else {
-      buf = addBuf(p)
-      buf.icon = 'help'
-    }
-    p.setBuf(buf)
-  })
+                               p = Pane.current()
+                               Win.shared().helpBuffer.callerBuf = View.current().buf
+                               buf = Win.shared().helpBuffer.buf
+                               if (buf) {
+                                 buf.clear()
+                                 buf.content = divW(p)
+                               }
+                               else {
+                                 buf = addBuf(p)
+                                 buf.icon = 'help'
+                               }
+                               p.setBuf(buf)
+                             })
 
   Opt.onSet(0, (val, name) => {
-    let buf, callerBuf
+                 let buf, callerBuf
 
-    d('ABOUT opt ' + name + ' changed to "' + val + '"')
+                 d('ABOUT opt ' + name + ' changed to "' + val + '"')
 
-    callerBuf = Win.shared().helpBuffer.callerBuf
+                 callerBuf = Win.shared().helpBuffer.callerBuf
 
-    buf = Win.shared().helpBuffer.buf
-    buf?.views.forEach(view => {
-      if (view.ele) {
-        let w, el
+                 buf = Win.shared().helpBuffer.buf
+                 buf?.views.forEach(view => {
+                                      if (view.ele) {
+                                        let w, el
 
-        w = view.ele.firstElementChild.firstElementChild
-        el = w.querySelector('.options-val[data-name="' + name + '"]')
-        if (el)
-          el.innerText = clean(callerBuf?.opts.get(name), val, Opt.type(name))
-      }
-    })
-  })
+                                        w = view.ele.firstElementChild.firstElementChild
+                                        el = w.querySelector('.options-val[data-name="' + name + '"]')
+                                        if (el)
+                                          el.innerText = clean(callerBuf?.opts.get(name), val, Opt.type(name))
+                                      }
+                                    })
+               })
 
   Opt.onSetBuf(0, (buf, val, name) => {
-    let callerBuf
+                    let callerBuf
 
-    d('ABOUT opt ' + name + ' changed to "' + val + '" on buf "' + buf.name + '"')
+                    d('ABOUT opt ' + name + ' changed to "' + val + '" on buf "' + buf.name + '"')
 
-    callerBuf = Win.shared().helpBuffer.callerBuf
+                    callerBuf = Win.shared().helpBuffer.callerBuf
 
-    if (buf == callerBuf)
-      Win.shared().helpBuffer.buf?.views.forEach(view => {
-        if (view.ele) {
-          let w, el
+                    if (buf == callerBuf)
+                      Win.shared().helpBuffer.buf?.views.forEach(view => {
+                                                                   if (view.ele) {
+                                                                     let w, el
 
-          w = view.ele.firstElementChild.firstElementChild
-          el = w.querySelector('.options-val[data-name="' + name + '"]')
-          if (el)
-            el.innerText = clean(val, Opt.get(name), Opt.type(name))
-        }
-      })
-  })
+                                                                     w = view.ele.firstElementChild.firstElementChild
+                                                                     el = w.querySelector('.options-val[data-name="' + name + '"]')
+                                                                     if (el)
+                                                                       el.innerText = clean(val, Opt.get(name), Opt.type(name))
+                                                                   }
+                                                                 })
+                  })
 
   Em.on('C-h b', 'describe buffer')
 }
@@ -472,47 +472,47 @@ function initDescribeKey
 
       wes = []
       globalThis.onkeydown = e => {
-        let we
+                               let we
 
-        if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
-          // see note at top of em.look1
-          return
+                               if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
+                               // see note at top of em.look1
+                                 return
 
-        we = { mouse: 0, e }
-        // if in search em then do that
-        // else if in old em then describe key and exit
-        wes.push(we)
-        mapDescribeKey.look(wes, to => {
-          e.preventDefault()
+                               we = { mouse: 0, e }
+                               // if in search em then do that
+                               // else if in old em then describe key and exit
+                               wes.push(we)
+                               mapDescribeKey.look(wes, to => {
+                                                          e.preventDefault()
 
-          if (to) {
-            if (to.ons)
-              // map
-              return
+                                                          if (to) {
+                                                            if (to.ons)
+                                                            // map
+                                                              return
 
-            // cmd
-            Cmd.run(to, st.view?.buf, 1, we)
-            wes = []
-            return
-          }
+                                                            // cmd
+                                                            Cmd.run(to, st.view?.buf, 1, we)
+                                                            wes = []
+                                                            return
+                                                          }
 
-          // if in regular em then exit and run the original handler
-          Em.look(wes, 0, st.view?.buf, (map, to2) => {
-            if (to2) {
-              if (to2.ons)
-                // map
-                return
-              cancel()
-              d('KEY')
-              describe(to2, wes)
-            }
-            else {
-              cancel()
-              Mess.say('key empty')
-            }
-          })
-        })
-      }
+                                                          // if in regular em then exit and run the original handler
+                                                          Em.look(wes, 0, st.view?.buf, (map, to2) => {
+                                                                                          if (to2) {
+                                                                                            if (to2.ons)
+                                                                                            // map
+                                                                                              return
+                                                                                            cancel()
+                                                                                            d('KEY')
+                                                                                            describe(to2, wes)
+                                                                                          }
+                                                                                          else {
+                                                                                            cancel()
+                                                                                            Mess.say('key empty')
+                                                                                          }
+                                                                                        })
+                                                        })
+                             }
     }
   }
 
@@ -853,32 +853,32 @@ function init
   (messs) {
     if (messs?.length)
       Win.shared().messages.buf?.views.forEach(view => {
-        if (view.ele) {
-          let w
+                                                 if (view.ele) {
+                                                   let w
 
-          w = view.ele.firstElementChild?.firstElementChild?.nextElementSibling
-          if (w && Css.has(w, 'mess-w')) {
-            let scroll, wasAtEnd, paneW
+                                                   w = view.ele.firstElementChild?.firstElementChild?.nextElementSibling
+                                                   if (w && Css.has(w, 'mess-w')) {
+                                                     let scroll, wasAtEnd, paneW
 
-            paneW = view.ele.parentNode
+                                                     paneW = view.ele.parentNode
 
-            if (paneW.scrollHeight == paneW.clientHeight)
-              wasAtEnd = 0
-            else
-              wasAtEnd = Math.abs((paneW.scrollHeight - Math.ceil(paneW.scrollTop)) - paneW.clientHeight)
-            wasAtEnd = (wasAtEnd < 10)
+                                                     if (paneW.scrollHeight == paneW.clientHeight)
+                                                       wasAtEnd = 0
+                                                     else
+                                                       wasAtEnd = Math.abs((paneW.scrollHeight - Math.ceil(paneW.scrollTop)) - paneW.clientHeight)
+                                                     wasAtEnd = (wasAtEnd < 10)
 
-            scroll = view.buf.vars('messages')?.scroll
-            if (scroll) {
-              scroll.updateItemCount(Mess.messages().length)
-              scroll.render()
+                                                     scroll = view.buf.vars('messages')?.scroll
+                                                     if (scroll) {
+                                                       scroll.updateItemCount(Mess.messages().length)
+                                                       scroll.render()
 
-              if (wasAtEnd)
-                scroll.scrollTo(Mess.messages().length - 1)
-            }
-          }
-        }
-      })
+                                                       if (wasAtEnd)
+                                                         scroll.scrollTo(Mess.messages().length - 1)
+                                                     }
+                                                   }
+                                                 }
+                                               })
   }
 
   function redraw
@@ -938,23 +938,23 @@ function init
         queue = []
       }
 
-      queue.length || setTimeout(addFromQueue, 100)
-      queue.push(e.detail)
-    })
+                         queue.length || setTimeout(addFromQueue, 100)
+                         queue.push(e.detail)
+                       })
   }
 
   mo = Mode.add('Messages', { viewInit })
 
   Cmd.add('messages', () => {
-    let p, buf
+                        let p, buf
 
-    p = Pane.current()
-    buf = Win.shared().messages.buf
-    if (buf)
-      p.setBuf(buf, {}, () => viewInit(p.view))
-    else
-      p.setBuf(addBuf(p))
-  })
+                        p = Pane.current()
+                        buf = Win.shared().messages.buf
+                        if (buf)
+                          p.setBuf(buf, {}, () => viewInit(p.view))
+                        else
+                          p.setBuf(addBuf(p))
+                      })
 
   Em.on('C-h s', 'messages')
   Em.on('C-h u', 'man')

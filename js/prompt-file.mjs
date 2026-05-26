@@ -235,53 +235,53 @@ function init
     dir = path.dirname
     d('refresh: ' + path.path)
     Tron.cmd('dir.get', dir, (err, data) => {
-      let co, textFile
+                               let co, textFile
 
-      if (err) {
-        Mess.yell('open: ' + err.message)
-        return
-      }
+                               if (err) {
+                                 Mess.yell('open: ' + err.message)
+                                 return
+                               }
 
-      under.innerHTML = ''
-      if (ml) {
-        ml.innerHTML = ''
-        append(ml, [ 'Open ' + (dirsOnly ? 'dir' : 'file') + ' in ',
-                     divCl('nav-dir', Dir.nav(dir, 'select dir')) ])
-      }
+                               under.innerHTML = ''
+                               if (ml) {
+                                 ml.innerHTML = ''
+                                 append(ml, [ 'Open ' + (dirsOnly ? 'dir' : 'file') + ' in ',
+                                              divCl('nav-dir', Dir.nav(dir, 'select dir')) ])
+                               }
 
-      textFile = Loc.make(text).filename
-      if (textFile)
-        textFile = textFile.toLowerCase()
+                               textFile = Loc.make(text).filename
+                               if (textFile)
+                                 textFile = textFile.toLowerCase()
 
-      co = data.data
-      co = co.filter(f => (f && f.name && f.name.endsWith('~')) == 0) // use Dir for backups
-      if (dirsOnly)
-        co = co.filter(isDir)
+                               co = data.data
+                               co = co.filter(f => (f && f.name && f.name.endsWith('~')) == 0) // use Dir for backups
+                               if (dirsOnly)
+                                 co = co.filter(isDir)
 
-      co = co.map(f => makeF(dir, f))
-      co = co.filter(f => {
-        if (f && f.dataset.name && f.dataset.name.length) {
-          if (text.length == 0) {
-            if (f.dataset.name[0] == '.')
-              return 0
-            return 1
-          }
-          if (textFile) {
-            if (f.dataset.name.toLowerCase().startsWith(textFile))
-              return 1
-          }
-          else
-            return 1
-        }
-        return 0
-      })
-      if (co.length)
-        Css.add(co[0], 'selected')
-      else if (ml)
-        ml.innerText = 'Create file in ' + dir
+                               co = co.map(f => makeF(dir, f))
+                               co = co.filter(f => {
+                                                if (f && f.dataset.name && f.dataset.name.length) {
+                                                  if (text.length == 0) {
+                                                    if (f.dataset.name[0] == '.')
+                                                      return 0
+                                                    return 1
+                                                  }
+                                                  if (textFile) {
+                                                    if (f.dataset.name.toLowerCase().startsWith(textFile))
+                                                      return 1
+                                                  }
+                                                  else
+                                                    return 1
+                                                }
+                                                return 0
+                                              })
+                               if (co.length)
+                                 Css.add(co[0], 'selected')
+                               else if (ml)
+                                 ml.innerText = 'Create file in ' + dir
 
-      append(under, co)
-    })
+                               append(under, co)
+                             })
   }
 
   function onChange
@@ -342,16 +342,16 @@ function init
     //buffer.dir = 0
     dir = p.dir
     p.setBuf(buffer, {}, () => {
-      buffer.clear()
-      buffer.dir = dir
+                           buffer.clear()
+                           buffer.dir = dir
 
-      ml = p.view.ele.querySelector('.edMl')
-      under = p.view.ele.querySelector('.bred-open-under') || Mess.toss('under missing')
-      if (under) {
-        refresh()
-        buffer.on('change', onChange)
-      }
-    })
+                           ml = p.view.ele.querySelector('.edMl')
+                           under = p.view.ele.querySelector('.bred-open-under') || Mess.toss('under missing')
+                           if (under) {
+                             refresh()
+                             buffer.on('change', onChange)
+                           }
+                         })
   }
 
   mo = Mode.add('Open', { hidePoint: 1,

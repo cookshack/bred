@@ -58,15 +58,15 @@ function init
   Mode.add('Clock', { viewInit })
 
   Cmd.add('clock', () => {
-    let found, p
+                     let found, p
 
-    p = Pane.current()
-    found = Buf.find(b => b.mode.key == 'clock')
-    if (found)
-      p.setBuf(found)
-    else
-      make(p)
-  })
+                     p = Pane.current()
+                     found = Buf.find(b => b.mode.key == 'clock')
+                     if (found)
+                       p.setBuf(found)
+                     else
+                       make(p)
+                   })
 
   miniTime = div([], 'mini-time mini-em onfill', { 'data-run': 'clock' })
   Panel.start('mini-panel', miniTime)

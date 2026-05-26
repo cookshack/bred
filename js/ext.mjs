@@ -44,11 +44,11 @@ function load
   loc.join(name)
   loc.join(name + '.css')
   Tron.cmd('file.exists', loc.path, (err, data) => {
-    if (err)
-      return
-    if (data.exists)
-      Style.initCss1(loc.path, Mess.yell)
-  })
+                                      if (err)
+                                        return
+                                      if (data.exists)
+                                        Style.initCss1(loc.path, Mess.yell)
+                                    })
 }
 
 export
@@ -79,25 +79,25 @@ function loadAll
   dir.join('ext')
   dir.ensureSlash()
   Tron.cmd('dir.get', dir.path, (err, data) => {
-    if (err) {
-      Mess.yell('dir.get: ' + err.message)
-      return
-    }
+                                  if (err) {
+                                    Mess.yell('dir.get: ' + err.message)
+                                    return
+                                  }
 
-    data.data.filter(f => (f && f.name && isDir(f) && ok(f.name))).forEach(f => {
-      let loc
+                                  data.data.filter(f => (f && f.name && isDir(f) && ok(f.name))).forEach(f => {
+                                                                                                           let loc
 
-      loc = Loc.make(dir)
-      loc.join(f.name)
-      loc.join('.ADDED')
-      Tron.cmd('file.exists', loc.path, (existsErr, existsData) => {
-        if (existsErr)
-          return
-        if (existsData.exists)
-          load(dir, f.name, loadExtCb)
-      })
-    })
-  })
+                                                                                                           loc = Loc.make(dir)
+                                                                                                           loc.join(f.name)
+                                                                                                           loc.join('.ADDED')
+                                                                                                           Tron.cmd('file.exists', loc.path, (existsErr, existsData) => {
+                                                                                                                                               if (existsErr)
+                                                                                                                                                 return
+                                                                                                                                               if (existsData.exists)
+                                                                                                                                                 load(dir, f.name, loadExtCb)
+                                                                                                                                             })
+                                                                                                         })
+                                })
 }
 
 function canon
@@ -133,33 +133,33 @@ function init
     w.innerHTML = ''
 
     Tron.cmd('ext.all', [], (err, data) => {
-      let all
+                              let all
 
-      d({ data })
-      if (err)
-        Mess.toss('Error getting extensions')
+                              d({ data })
+                              if (err)
+                                Mess.toss('Error getting extensions')
 
-      all = data.exts?.map(ext => {
-        let b
+                              all = data.exts?.map(ext => {
+                                                     let b
 
-        if (ext.mandatory)
-          b = []
-        else if (ext.added)
-          b = button('Remove', '', { 'data-run': 'Remove Extension',
+                                                     if (ext.mandatory)
+                                                       b = []
+                                                     else if (ext.added)
+                                                       b = button('Remove', '', { 'data-run': 'Remove Extension',
                                      'data-name': ext.name })
-        else
-          b = button('Add', '', { 'data-run': 'Add Extension',
+                                                     else
+                                                       b = button('Add', '', { 'data-run': 'Add Extension',
                                   'data-name': ext.name })
 
-        return [ divCl('bred-exts-name', ext.name),
-                 divCl('bred-exts-buttons', b) ]
-      })
-      append(w,
-             divCl('bred-exts-h', 'Extensions'),
-             divCl('bred-exts-all', all))
-      if (cb)
-        cb(view)
-    })
+                                                     return [ divCl('bred-exts-name', ext.name),
+                                                              divCl('bred-exts-buttons', b) ]
+                                                   })
+                              append(w,
+                                     divCl('bred-exts-h', 'Extensions'),
+                                     divCl('bred-exts-all', all))
+                              if (cb)
+                                cb(view)
+                            })
   }
 
   function add
@@ -176,21 +176,21 @@ function init
     if (name) {
       Css.disable(target)
       Tron.cmd('ext.add', [ name ], (err, data) => {
-        let dir
+                                      let dir
 
-        Css.enable(target)
-        d({ data })
-        if (err)
-          Mess.toss('Error: ' + err.message)
+                                      Css.enable(target)
+                                      d({ data })
+                                      if (err)
+                                        Mess.toss('Error: ' + err.message)
 
-        dir = Loc.appDir()
-        dir.join('ext')
-        dir.ensureSlash()
-        load(dir, name, () => {
-          target.innerText = 'Remove'
-          target.dataset.run = 'Remove Extension'
-        })
-      })
+                                      dir = Loc.appDir()
+                                      dir.join('ext')
+                                      dir.ensureSlash()
+                                      load(dir, name, () => {
+                                                        target.innerText = 'Remove'
+                                                        target.dataset.run = 'Remove Extension'
+                                                      })
+                                    })
     }
   }
 
@@ -208,19 +208,19 @@ function init
     if (name) {
       Css.disable(target)
       Tron.cmd('ext.remove', [ name ], err => {
-        let free
+                                         let free
 
-        Css.enable(target)
-        if (err)
-          Mess.toss('Error removing extension: ' + err.message)
+                                         Css.enable(target)
+                                         if (err)
+                                           Mess.toss('Error removing extension: ' + err.message)
 
-        free = exts[name].free
-        delete exts[name]
-        free && free()
+                                         free = exts[name].free
+                                         delete exts[name]
+                                         free && free()
 
-        target.innerText = 'Add'
-        target.dataset.run = 'Add Extension'
-      })
+                                         target.innerText = 'Add'
+                                         target.dataset.run = 'Add Extension'
+                                       })
     }
   }
 
@@ -235,27 +235,27 @@ function init
   Cmd.add('remove extension', remove, mo)
 
   Cmd.add('extensions', () => {
-    let p, buf
+                          let p, buf
 
-    buf = Win.shared().exts.buf
-    p = Pane.current()
-    if (buf)
-      p.setBuf(buf, {}, view => viewInit(view))
-    else {
-      buf = Buf.add('Extensions', 'Exts', divW(), p.dir)
-      Win.shared().exts.buf = buf
-      buf.icon = 'clipboard'
-      buf.addMode('view')
-      p.setBuf(buf)
-    }
-  })
+                          buf = Win.shared().exts.buf
+                          p = Pane.current()
+                          if (buf)
+                            p.setBuf(buf, {}, view => viewInit(view))
+                          else {
+                            buf = Buf.add('Extensions', 'Exts', divW(), p.dir)
+                            Win.shared().exts.buf = buf
+                            buf.icon = 'clipboard'
+                            buf.addMode('view')
+                            p.setBuf(buf)
+                          }
+                        })
 
   Cmd.add('refresh', () => {
-    let p
+                       let p
 
-    p = Pane.current()
-    viewInit(p.view)
-  },
+                       p = Pane.current()
+                       viewInit(p.view)
+                     },
           mo)
 
   Em.on('g', 'refresh', mo)

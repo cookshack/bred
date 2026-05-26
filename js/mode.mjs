@@ -18,9 +18,9 @@ function genericViewReopen
   if (view.ele)
     // timeout so behaves like viewInit
     setTimeout(() => {
-      if (whenReady)
-        whenReady(view)
-    })
+                 if (whenReady)
+                   whenReady(view)
+               })
   else
     // probably buf was switched out before init happened.
     mode.viewInit(view,
@@ -40,19 +40,19 @@ function add
     pems = []
     if (m.parentsForEm)
       m.parentsForEm.forEach(p => {
-        let pm
+                               let pm
 
-        pm = get(p)
-        if (pm) {
-          if (pm.em) {
-            pems.unshift(pm.em)
-            return
-          }
-          Mess.warn('getParentEms: missing em: ' + p)
-        }
-        else
-          Mess.warn('getParentEms: missing: ' + p)
-      })
+                               pm = get(p)
+                               if (pm) {
+                                 if (pm.em) {
+                                   pems.unshift(pm.em)
+                                   return
+                                 }
+                                 Mess.warn('getParentEms: missing em: ' + p)
+                               }
+                               else
+                                 Mess.warn('getParentEms: missing: ' + p)
+                             })
 
     return pems
   }
@@ -132,25 +132,25 @@ function add
 
   if (spec.minor)
     Cmd.add(key + ' mode', () => {
-      let p
+                             let p
 
-      p = Pane.current()
-      if (p.buf)
-        if (p.buf.toggleMode(m))
-          Mess.say(m.name + ' on')
-        else
-          Mess.say(m.name + ' off')
-    })
+                             p = Pane.current()
+                             if (p.buf)
+                               if (p.buf.toggleMode(m))
+                                 Mess.say(m.name + ' on')
+                               else
+                                 Mess.say(m.name + ' off')
+                           })
   else
     Cmd.add(key + ' mode', () => {
-      let p
+                             let p
 
-      p = Pane.current()
-      if (p.buf) {
-        p.buf.mode = key
-        Mess.say(m.name + ' on')
-      }
-    })
+                             p = Pane.current()
+                             if (p.buf) {
+                               p.buf.mode = key
+                               Mess.say(m.name + ' on')
+                             }
+                           })
 
   return m
 }

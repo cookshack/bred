@@ -102,15 +102,15 @@ function init
     d('Loading lang: ' + file)
     opt = opt || {}
     Tron.cmd('file.exists', file, (err, data) => {
-      if (err) {
-        Mess.log('file: ' + file)
-        Mess.toss('Wode init: ' + err.message)
-        return
-      }
-      if (data.exists) {
-        let lang
+                                    if (err) {
+                                      Mess.log('file: ' + file)
+                                      Mess.toss('Wode init: ' + err.message)
+                                      return
+                                    }
+                                    if (data.exists) {
+                                      let lang
 
-        lang = CMLang.LanguageDescription.of({ name,
+                                      lang = CMLang.LanguageDescription.of({ name,
                                                extensions: opt.ext,
                                                filename: opt.filename,
                                                load
@@ -146,16 +146,16 @@ function init
                                                    return ls
                                                  })
                                                } })
-        if (U.isDefined(opt.module))
-          lang.module = opt.module
-        else
-          lang.module = file.match(/^.\/lib\/(.*)\.js$/)?.at(1)
-        languages.push(lang)
-        addLang(lang, opt.ed ?? 1, opt)
-      }
-      else
-        Mess.warn('Missing: ' + file)
-    })
+                                      if (U.isDefined(opt.module))
+                                        lang.module = opt.module
+                                      else
+                                        lang.module = file.match(/^.\/lib\/(.*)\.js$/)?.at(1)
+                                      languages.push(lang)
+                                      addLang(lang, opt.ed ?? 1, opt)
+                                    }
+                                    else
+                                      Mess.warn('Missing: ' + file)
+                                  })
   }
 
   // Patch mode must exist synchronously so Vc Equal's b.mode = 'patch' always
@@ -191,23 +191,23 @@ function init
   loadLang(Loc.appDir().join('lib/@replit/codemirror-lang-csharp.js'), 'Csharp', { ext: [ 'cs', 'csx' ] })
   loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-csv.js'), 'Csv', { ext: [ 'csv' ] })
   Tron.cmd('file.get', [ Loc.appDir().join('js/wode-lang-patch.grammar') ], (err, data) => {
-    let parser, langDesc, patchLang
+                                                                              let parser, langDesc, patchLang
 
-    if (err) {
-      Mess.yell('🚨 Failed to load patch grammar: ' + err.message)
-      return
-    }
+                                                                              if (err) {
+                                                                                Mess.yell('🚨 Failed to load patch grammar: ' + err.message)
+                                                                                return
+                                                                              }
 
-    try {
-      parser = buildParser(data.data)
-    }
-    catch (e) {
-      Mess.yell('🚨 Failed to build patch grammar: ' + e.message)
-      return
-    }
+                                                                              try {
+                                                                                parser = buildParser(data.data)
+                                                                              }
+                                                                              catch (e) {
+                                                                                Mess.yell('🚨 Failed to build patch grammar: ' + e.message)
+                                                                                return
+                                                                              }
 
-    patchLang = WodeLangPatch.makeFromParser(parser)
-    langDesc = CMLang.LanguageDescription.of({ name: 'Patch',
+                                                                              patchLang = WodeLangPatch.makeFromParser(parser)
+                                                                              langDesc = CMLang.LanguageDescription.of({ name: 'Patch',
                                                extensions: [ 'diff', 'patch', 'PATCH', 'rej' ],
                                                load
                                                () {
@@ -215,35 +215,35 @@ function init
                                                  WodeTheme.handleCustomTags(WodeLangPatch)
                                                  return Promise.resolve(patchLang)
                                                } })
-    addLang(langDesc,
-            1,
-            { wexts: [ { backend: 'cm',
+                                                                              addLang(langDesc,
+                                                                                      1,
+                                                                                      { wexts: [ { backend: 'cm',
                          name: 'extPatch',
                          make: () => ([ WodePatch.extPatch, WodePatch.extPatchDecor ]),
                          part: new CMState.Compartment } ] })
-  })
+                                                                            })
   loadLang(Loc.appDir().join('lib/codemirror-lang-elixir.js'), 'Elixir', { ext: [ 'ex', 'exs' ] })
   loadLang(Loc.appDir().join('lib/@codemirror/lang-lezer.js'), 'Lezer', { ext: [ 'grammar' ] })
   loadLang(Loc.appDir().join('lib/codemirror-lang-git-log.js'), 'Git Log',
            { ed: 0 }) // prevent mode creation, already have VC Log mode
   Tron.cmd('file.get', [ Loc.appDir().join('js/wode-lang-ini.grammar') ], (err, data) => {
-    let parser, langDesc, iniLang
+                                                                            let parser, langDesc, iniLang
 
-    if (err) {
-      Mess.yell('🚨 Failed to load ini grammar: ' + err.message)
-      return
-    }
+                                                                            if (err) {
+                                                                              Mess.yell('🚨 Failed to load ini grammar: ' + err.message)
+                                                                              return
+                                                                            }
 
-    try {
-      parser = buildParser(data.data)
-    }
-    catch (e) {
-      Mess.yell('🚨 Failed to build ini grammar: ' + e.message)
-      return
-    }
+                                                                            try {
+                                                                              parser = buildParser(data.data)
+                                                                            }
+                                                                            catch (e) {
+                                                                              Mess.yell('🚨 Failed to build ini grammar: ' + e.message)
+                                                                              return
+                                                                            }
 
-    iniLang = WodeLangIni.makeFromParser(parser)
-    langDesc = CMLang.LanguageDescription.of({ name: 'Ini',
+                                                                            iniLang = WodeLangIni.makeFromParser(parser)
+                                                                            langDesc = CMLang.LanguageDescription.of({ name: 'Ini',
                                                extensions: [ 'ini', 'cfg', 'conf', 'desktop', 'service', 'gitconfig' ],
                                                path: /\.git\/config$/,
                                                load
@@ -251,10 +251,10 @@ function init
                                                  d('WODE LANG initialised: ini (internal)')
                                                  return Promise.resolve(iniLang)
                                                } })
-    addLang(langDesc,
-            1,
-            {})
-  })
+                                                                            addLang(langDesc,
+                                                                                    1,
+                                                                                    {})
+                                                                          })
   loadLang(Loc.appDir().join('lib/@cookshack/codemirror-lang-lezer-tree.js'), 'Lezer Tree', { ext: [ 'leztree' ] })
   loadLang(Loc.appDir().join('lib/codemirror-lang-makefile.js'), 'Makefile',
            { filename: /^(GNUmakefile|makefile|Makefile)$/,

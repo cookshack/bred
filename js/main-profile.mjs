@@ -128,18 +128,18 @@ function initHist
     tmin = fmin = -1
     tmax = fmax = 0
     urls.forEach(url => {
-      if ((tmin == -1)
+                   if ((tmin == -1)
           || (url.item.last < tmin))
-        tmin = url.item.last
-      if (url.item.last > tmax)
-        tmax = url.item.last
+                     tmin = url.item.last
+                   if (url.item.last > tmax)
+                     tmax = url.item.last
 
-      if ((fmin == -1)
+                   if ((fmin == -1)
           || (url.item.count < fmin))
-        fmin = url.item.count
-      if (url.item.count > fmax)
-        fmax = url.item.count
-    })
+                     fmin = url.item.count
+                   if (url.item.count > fmax)
+                     fmax = url.item.count
+                 })
 
     d(tmin)
     d(tmax)
@@ -150,17 +150,17 @@ function initHist
         && (fmin >= 0) && (fmax >= 0) && (fmax >= fmin)) {
       // Normalize times and frequencies, give each url a composite score
       urls.forEach(url => {
-        if (tmin == tmax)
-          url.scoreTime = 0
-        else
-          url.scoreTime = (url.item.last - tmin) / (tmax - tmin)
-        if (fmin == fmax)
-          url.scoreFreq = 0
-        else
-          url.scoreFreq = (url.item.count - fmin) / (fmax - fmin)
-        url.scoreFuse = (1 - url.score)
-        url.scoreAll = (url.scoreFuse * weightFuse) + (url.scoreTime * weightTime) + (url.scoreFreq * weightFreq)
-      })
+                     if (tmin == tmax)
+                       url.scoreTime = 0
+                     else
+                       url.scoreTime = (url.item.last - tmin) / (tmax - tmin)
+                     if (fmin == fmax)
+                       url.scoreFreq = 0
+                     else
+                       url.scoreFreq = (url.item.count - fmin) / (fmax - fmin)
+                     url.scoreFuse = (1 - url.score)
+                     url.scoreAll = (url.scoreFuse * weightFuse) + (url.scoreTime * weightTime) + (url.scoreFreq * weightFreq)
+                   })
       // Sort by the composite score
       urls.sort((u1, u2) => u2.scoreAll - u1.scoreAll)
     }
@@ -193,9 +193,9 @@ function initHist
     if (ver == 0) {
       d('Migrating: 0 to 1')
       db.transaction(() => {
-        db.prepare('ALTER TABLE urls RENAME TO visits').run()
-        setDbVersion(1)
-      })()
+                       db.prepare('ALTER TABLE urls RENAME TO visits').run()
+                       setDbVersion(1)
+                     })()
     }
     db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, last, count, UNIQUE(href))').run()
     db.prepare('CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, time)').run()
@@ -203,8 +203,8 @@ function initHist
     if (ver == 1) {
       d('Migrating: 1 to 2')
       db.transaction(() => {
-        // distinct hrefs with most recent access time
-        db.prepare(`WITH ranked_table AS (SELECT *,
+                       // distinct hrefs with most recent access time
+                       db.prepare(`WITH ranked_table AS (SELECT *,
                                           MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
                                           FROM visits)
                     INSERT INTO urls (type, href, title, hostname, port, pathname, search, hash, last, count)
@@ -212,9 +212,9 @@ function initHist
                     FROM ranked_table
                     WHERE id = first_occurrence_id
                     ORDER BY time DESC`)
-          .run()
-        setDbVersion(2)
-      })()
+                         .run()
+                       setDbVersion(2)
+                     })()
     }
 
     db.prepare('CREATE TABLE IF NOT EXISTS prompts (id INTEGER PRIMARY KEY, name, text, time)').run()
@@ -313,10 +313,10 @@ function onSave
   //d('PROFILE save ' + args[0])
   s = getStore(args[0])
   args[1].forEach(a => {
-    //d('PROFILE save ' + args[0] + ': ' + a[0] + ':')
-    //d(JSON.stringify(a[1]))
-    s.set(a[0], a[1])
-  })
+                    //d('PROFILE save ' + args[0] + ': ' + a[0] + ':')
+                    //d(JSON.stringify(a[1]))
+                    s.set(a[0], a[1])
+                  })
 
   //d('PROFILE save ' + args[0] + ': done')
   return {}

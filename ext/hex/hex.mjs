@@ -113,30 +113,30 @@ export
 function open
 (path) {
   Tron.cmd('file.get', [ path, 1 ], (err, data) => {
-    let p, buf, loc, u8s, lineCount
+                                      let p, buf, loc, u8s, lineCount
 
-    if (err) {
-      Mess.log('path: ' + path)
-      Mess.toss('Hex.open: ' + err.message)
-      return
-    }
+                                      if (err) {
+                                        Mess.log('path: ' + path)
+                                        Mess.toss('Hex.open: ' + err.message)
+                                        return
+                                      }
 
-    path = data.realpath || path
-    loc = Loc.make(path)
-    p = Pane.current()
-    u8s = encoder.encode(data.data)
-    lineCount = Math.floor(u8s.byteLength / 16) + ((u8s.byteLength % 16) ? 1 : 0)
-    buf = Buf.add('Hex: ' + loc.filename,
-                  'Hex',
-                  divW(loc.dirname, loc.filename, lineCount),
-                  loc.dirname,
-                  { file: loc.filename,
+                                      path = data.realpath || path
+                                      loc = Loc.make(path)
+                                      p = Pane.current()
+                                      u8s = encoder.encode(data.data)
+                                      lineCount = Math.floor(u8s.byteLength / 16) + ((u8s.byteLength % 16) ? 1 : 0)
+                                      buf = Buf.add('Hex: ' + loc.filename,
+                                                    'Hex',
+                                                    divW(loc.dirname, loc.filename, lineCount),
+                                                    loc.dirname,
+                                                    { file: loc.filename,
                     vars: { hex: { u8s,
                                    lineCount } } })
-    buf.stat = data.stat
-    buf.vars('Hex').path = path
-    p.setBuf(buf)
-  })
+                                      buf.stat = data.stat
+                                      buf.vars('Hex').path = path
+                                      p.setBuf(buf)
+                                    })
 }
 
 export
@@ -239,19 +239,19 @@ function init
         return
       }
     u8s?.forEach(u8 => {
-      let next
+                   let next
 
-      next = u8.nextElementSibling
-      if (n < 0) {
-        next = u8.previousElementSibling
-        if (Css.has(next, 'hex-addr'))
-          next = 0
-      }
-      if (next) {
-        Css.remove(u8, 'hex-cur')
-        Css.add(next, 'hex-cur')
-      }
-    })
+                   next = u8.nextElementSibling
+                   if (n < 0) {
+                     next = u8.previousElementSibling
+                     if (Css.has(next, 'hex-addr'))
+                       next = 0
+                   }
+                   if (next) {
+                     Css.remove(u8, 'hex-cur')
+                     Css.add(next, 'hex-cur')
+                   }
+                 })
   }
 
   function bufStart
@@ -345,17 +345,17 @@ function init
     line = currentLine()
     u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
     u8s?.forEach(u8 => {
-      let first
+                   let first
 
-      if (Css.has(u8, 'hex-a'))
-        first = u8.parentNode.firstElementChild
-      else
-        first = u8.parentNode.firstElementChild.nextElementSibling
-      if (first) {
-        Css.remove(u8, 'hex-cur')
-        Css.add(first, 'hex-cur')
-      }
-    })
+                   if (Css.has(u8, 'hex-a'))
+                     first = u8.parentNode.firstElementChild
+                   else
+                     first = u8.parentNode.firstElementChild.nextElementSibling
+                   if (first) {
+                     Css.remove(u8, 'hex-cur')
+                     Css.add(first, 'hex-cur')
+                   }
+                 })
   }
 
   function lineEnd
@@ -365,14 +365,14 @@ function init
     line = currentLine()
     u8s = line?.querySelectorAll('.hex-cur') || Mess.toss('Missing u8')
     u8s?.forEach(u8 => {
-      let last
+                   let last
 
-      last = u8.parentNode.lastElementChild
-      if (last) {
-        Css.remove(u8, 'hex-cur')
-        Css.add(last, 'hex-cur')
-      }
-    })
+                   last = u8.parentNode.lastElementChild
+                   if (last) {
+                     Css.remove(u8, 'hex-cur')
+                     Css.add(last, 'hex-cur')
+                   }
+                 })
   }
 
   function edit
@@ -396,23 +396,23 @@ function init
       u8s = view.buf.vars('hex').u8s || Mess.toss('missing u8s')
       str = decoder.decode(u8s)
       Tron.cmd('file.save', [ Loc.make(view.buf.path).expand(), str ], (err, data) => {
-        Css.enable(view.ele)
-        if (err) {
-          if (cb)
-            cb(err)
-          else
-            Mess.yell(err.message)
-          return
-        }
-        view.buf.modified = 0
-        view.buf.modifiedOnDisk = 0
-        view.buf.stat = data.stat
-        Ed.setIcon(view.buf, '.edMl-mod', 'blank')
-        if (cb)
-          cb()
-        else
-          Mess.say('Saved')
-      })
+                                                                         Css.enable(view.ele)
+                                                                         if (err) {
+                                                                           if (cb)
+                                                                             cb(err)
+                                                                           else
+                                                                             Mess.yell(err.message)
+                                                                           return
+                                                                         }
+                                                                         view.buf.modified = 0
+                                                                         view.buf.modifiedOnDisk = 0
+                                                                         view.buf.stat = data.stat
+                                                                         Ed.setIcon(view.buf, '.edMl-mod', 'blank')
+                                                                         if (cb)
+                                                                           cb()
+                                                                         else
+                                                                           Mess.say('Saved')
+                                                                       })
     }
     else if (cb)
       cb(new Error('Buf needs path'))
@@ -423,9 +423,9 @@ function init
   function save
   () {
     Ed.save(vsave, err => {
-      if (err)
-        Mess.yell(err.message)
-    })
+                     if (err)
+                       Mess.yell(err.message)
+                   })
   }
 
   function redraw

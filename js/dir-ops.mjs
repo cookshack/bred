@@ -38,14 +38,14 @@ function chmodMarked
              mode => {
                hist.add(mode)
                list.paths.forEach(item => {
-                 let absPath
+                                    let absPath
 
-                 absPath = Loc.make(dir).join(item.name)
-                 Tron.cmd('file.chmod', [ mode, absPath ], err => {
-                   if (err)
-                     Mess.yell('file.chmod: ' + err.message)
-                 })
-               })
+                                    absPath = Loc.make(dir).join(item.name)
+                                    Tron.cmd('file.chmod', [ mode, absPath ], err => {
+                                                                                if (err)
+                                                                                  Mess.yell('file.chmod: ' + err.message)
+                                                                              })
+                                  })
              })
 }
 
@@ -78,11 +78,11 @@ function chmod
                absPath = Loc.make(p.dir).join(path)
                hist.add(mode)
                Tron.cmd('file.chmod', [ mode, absPath ], err => {
-                 if (err)
-                   Mess.yell('file.chmod: ' + err.message)
-                 else
-                   Mess.say('Mode changed')
-               })
+                                                           if (err)
+                                                             Mess.yell('file.chmod: ' + err.message)
+                                                           else
+                                                             Mess.say('Mode changed')
+                                                         })
              })
 }
 
@@ -96,14 +96,14 @@ function link
 
     absTarget = DirCommon.abs(target, dir)
     Tron.cmd('file.ln', [ absTarget, from ], (err, data) => {
-      Mess.log('file.ln:  ' + data.from + ' ⎘ ' + data.target + ' in ' + data.cwd)
-      Mess.log('file.ln: (' + data.absFrom + ' ⎘ ' + data.absTarget + ')')
-      if (err) {
-        Mess.yell('file.ln: ' + err.message)
-        return
-      }
-      Mess.say(from + ' ⮜⮞ ' + target)
-    })
+                                               Mess.log('file.ln:  ' + data.from + ' ⎘ ' + data.target + ' in ' + data.cwd)
+                                               Mess.log('file.ln: (' + data.absFrom + ' ⎘ ' + data.absTarget + ')')
+                                               if (err) {
+                                                 Mess.yell('file.ln: ' + err.message)
+                                                 return
+                                               }
+                                               Mess.say(from + ' ⮜⮞ ' + target)
+                                             })
   }
 
   p = Pane.current()
@@ -196,11 +196,11 @@ function showInFolder
   el = DirCommon.current()
   if (el && el.dataset.path)
     Tron.cmd('shell.show', [ 'file://' + el.dataset.path ], err => {
-      if (err) {
-        Mess.yell('shell.show: ' + err.message)
-        return
-      }
-    })
+                                                              if (err) {
+                                                                Mess.yell('shell.show: ' + err.message)
+                                                                return
+                                                              }
+                                                            })
   else
     Mess.say('Move to a file first')
 }
@@ -245,9 +245,9 @@ function scof
   el = DirCommon.current()
   if (el && el.dataset.path)
     Scib.scib(buf => {
-      buf.append(' ' + el.dataset.path)
-      Cmd.runMo('buffer start', 'Ed', 1)
-    })
+                buf.append(' ' + el.dataset.path)
+                Cmd.runMo('buffer start', 'Ed', 1)
+              })
   else
     Mess.say('Move to a file first')
 }
@@ -274,15 +274,15 @@ function touch
     }
   }
   Tron.cmd('file.touch', files, err => {
-    if (err) {
-      Mess.yell('Error touching: ' + err.message)
-      return
-    }
-    if (files.length > 1)
-      Mess.say('Touched files')
-    else
-      Mess.say('Touched file ' + files[0])
-  })
+                                  if (err) {
+                                    Mess.yell('Error touching: ' + err.message)
+                                    return
+                                  }
+                                  if (files.length > 1)
+                                    Mess.say('Touched files')
+                                  else
+                                    Mess.say('Touched file ' + files[0])
+                                })
 }
 
 export
@@ -305,11 +305,11 @@ function copy
 
                  absDest = DirCommon.abs(dest, dir)
                  Tron.cmd('file.cp', [ list.paths.map(lp => lp.path), absDest ], err => {
-                   if (err) {
-                     Mess.yell('file.cp: ' + err.message)
-                     return
-                   }
-                 })
+                                                                                   if (err) {
+                                                                                     Mess.yell('file.cp: ' + err.message)
+                                                                                     return
+                                                                                   }
+                                                                                 })
                })
   }
 
@@ -320,12 +320,12 @@ function copy
     () {
       hist.add(to)
       Tron.cmd('file.cp', [ from, to ], err => {
-        if (err) {
-          Mess.yell('file.cp: ' + err.message)
-          return
-        }
-        Mess.say(from + ' ⧉⮞ ' + to)
-      })
+                                          if (err) {
+                                            Mess.yell('file.cp: ' + err.message)
+                                            return
+                                          }
+                                          Mess.say(from + ' ⧉⮞ ' + to)
+                                        })
     }
 
     function confirm
@@ -338,32 +338,32 @@ function copy
     to = DirCommon.abs(to, dir)
     from = DirCommon.abs(from, dir)
     Tron.cmd('file.stat', to, (err, data) => {
-      if (err)
-        if (err.code == 'ENOENT')
-          // new file
-          ok()
-        else
-          Mess.toss('file.stat: ' + err.message)
-      else
-        // dest exists
-        if (data.data.mode & (1 << 15))
-          // dest is file
-          confirm()
-        else {
-          // dest is dir, cp file into that dir
-          to = Loc.make(to).join(Loc.make(from).filename)
-          Tron.cmd('file.stat', to, err2 => {
-            if (err2)
-              if (err2.code == 'ENOENT')
-                // new file
-                ok()
-              else
-                Mess.toss('file.stat: ' + err2.message)
-            else
-              confirm()
-          })
-        }
-    })
+                                if (err)
+                                  if (err.code == 'ENOENT')
+                                  // new file
+                                    ok()
+                                  else
+                                    Mess.toss('file.stat: ' + err.message)
+                                else
+                                // dest exists
+                                  if (data.data.mode & (1 << 15))
+                                  // dest is file
+                                    confirm()
+                                  else {
+                                    // dest is dir, cp file into that dir
+                                    to = Loc.make(to).join(Loc.make(from).filename)
+                                    Tron.cmd('file.stat', to, err2 => {
+                                                                if (err2)
+                                                                  if (err2.code == 'ENOENT')
+                                                                  // new file
+                                                                    ok()
+                                                                  else
+                                                                    Mess.toss('file.stat: ' + err2.message)
+                                                                else
+                                                                  confirm()
+                                                              })
+                                  }
+                              })
   }
 
   p = Pane.current()
@@ -412,11 +412,11 @@ function rename
 
                  absDest = DirCommon.abs(dest, dir)
                  Tron.cmd('file.mv', [ list.paths.map(lp => lp.path), absDest ], err => {
-                   if (err) {
-                     Mess.yell('file.mv: ' + err.message)
-                     return
-                   }
-                 })
+                                                                                   if (err) {
+                                                                                     Mess.yell('file.mv: ' + err.message)
+                                                                                     return
+                                                                                   }
+                                                                                 })
                })
   }
 
@@ -427,27 +427,27 @@ function rename
     from = DirCommon.abs(from, dir)
     hist.add(to)
     Tron.cmd('file.mv', [ from, to ], err => {
-      if (err?.exists) {
-        Prompt.yn('File exists. Overwrite?',
-                  { icon: 'warning' },
-                  yes => {
-                    if (yes)
-                      Tron.cmd('file.mv', [ from, to, { overwrite: 1 } ], err2 => {
-                        if (err2) {
-                          Mess.yell('file.mv: ' + err2.message)
-                          return
-                        }
-                        Mess.say(from + ' ⮞ ' + to)
-                      })
-                  })
-        return
-      }
-      if (err) {
-        Mess.yell('file.mv: ' + err.message)
-        return
-      }
-      Mess.say(from + ' ⮞ ' + to)
-    })
+                                        if (err?.exists) {
+                                          Prompt.yn('File exists. Overwrite?',
+                                                    { icon: 'warning' },
+                                                    yes => {
+                                                      if (yes)
+                                                        Tron.cmd('file.mv', [ from, to, { overwrite: 1 } ], err2 => {
+                                                                                                              if (err2) {
+                                                                                                                Mess.yell('file.mv: ' + err2.message)
+                                                                                                                return
+                                                                                                              }
+                                                                                                              Mess.say(from + ' ⮞ ' + to)
+                                                                                                            })
+                                                    })
+                                          return
+                                        }
+                                        if (err) {
+                                          Mess.yell('file.mv: ' + err.message)
+                                          return
+                                        }
+                                        Mess.say(from + ' ⮞ ' + to)
+                                      })
   }
 
   p = Pane.current()
@@ -497,26 +497,26 @@ function del
                 span(el.dataset.path, 'bold'), '?' ])
     Prompt.yn(msg, { icon: 'trash' }, yes =>
       yes && Tron.cmd(dir ? 'dir.rm' : 'file.rm', [ el.dataset.path ], err => {
-        if (err) {
-          if (err.code == 'ENOTEMPTY') {
-            msg = div([ 'RECURSIVELY delete ', span(el.dataset.path, 'bold'), '?' ])
-            Prompt.yn(msg, { icon: 'trash' }, yes2 => {
-              yes2 && Tron.cmd('dir.rm', [ el.dataset.path, { recurse: 1 } ], err2 => {
-                if (err2) {
-                  Mess.yell('Error deleting: ' + err2.message)
-                  return
-                }
-                Mess.say('Deleted dir ' + el.dataset.path)
-              })
-            })
-            return
-          }
-          else
-            Mess.yell('Error deleting: ' + err.message)
-          return
-        }
-        Mess.say('Deleted ' + (dir ? 'dir' : 'file') + ' ' + el.dataset.path)
-      }))
+                                                                         if (err) {
+                                                                           if (err.code == 'ENOTEMPTY') {
+                                                                             msg = div([ 'RECURSIVELY delete ', span(el.dataset.path, 'bold'), '?' ])
+                                                                             Prompt.yn(msg, { icon: 'trash' }, yes2 => {
+                                                                                                                 yes2 && Tron.cmd('dir.rm', [ el.dataset.path, { recurse: 1 } ], err2 => {
+                                                                                                                                                                                   if (err2) {
+                                                                                                                                                                                     Mess.yell('Error deleting: ' + err2.message)
+                                                                                                                                                                                     return
+                                                                                                                                                                                   }
+                                                                                                                                                                                   Mess.say('Deleted dir ' + el.dataset.path)
+                                                                                                                                                                                 })
+                                                                                                               })
+                                                                             return
+                                                                           }
+                                                                           else
+                                                                             Mess.yell('Error deleting: ' + err.message)
+                                                                           return
+                                                                         }
+                                                                         Mess.say('Deleted ' + (dir ? 'dir' : 'file') + ' ' + el.dataset.path)
+                                                                       }))
   }
   else
     Mess.say('Move to a file first')
@@ -579,11 +579,11 @@ function editIfSupported
       }
     }
     Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => {
-      if (err) {
-        Mess.yell('shell.open: ' + err.message)
-        return
-      }
-    })
+                                                              if (err) {
+                                                                Mess.yell('shell.open: ' + err.message)
+                                                                return
+                                                              }
+                                                            })
   }
   else
     Mess.say('Move to a file first')
@@ -619,11 +619,11 @@ function view
       }
     }
     Tron.cmd('shell.open', [ 'file://' + el.dataset.path ], err => {
-      if (err) {
-        Mess.yell('shell.open: ' + err.message)
-        return
-      }
-    })
+                                                              if (err) {
+                                                                Mess.yell('shell.open: ' + err.message)
+                                                                return
+                                                              }
+                                                            })
   }
   else
     Mess.say('Move to a file first')

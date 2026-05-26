@@ -137,10 +137,10 @@ function init
         return buf
       pos = Pos.make(0, 0)
       b = Buf.find(b2 => {
-        if (bufs.includes(b2))
-          return 0
-        return b2.anyView()?.ed
-      })
+                     if (bufs.includes(b2))
+                       return 0
+                     return b2.anyView()?.ed
+                   })
       if (b) {
         d('fresh buf')
         bufs.push(b)

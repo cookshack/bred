@@ -31,55 +31,55 @@ function onOpen
   views[id] = { view, hist }
   win = BrowserWindow.fromWebContents(e.sender)
   view.webContents.on('before-input-event', (ev, input) => {
-    if (1) {
-      let event
+                                              if (1) {
+                                                let event
 
-      d('= before-input-event')
+                                                d('= before-input-event')
 
-      d(JSON.stringify(input))
+                                                d(JSON.stringify(input))
 
-      // HACK flag from onPass
-      if (input.modifiers.includes('leftbuttondown')) {
-        d('PASS')
-        0 && U.arrRm1(input.modifiers, m => m == 'leftbuttondown')
-        return
-      }
+                                                // HACK flag from onPass
+                                                if (input.modifiers.includes('leftbuttondown')) {
+                                                  d('PASS')
+                                                  0 && U.arrRm1(input.modifiers, m => m == 'leftbuttondown')
+                                                  return
+                                                }
 
-      event = makeEventFromInput(input)
-      d(JSON.stringify(event))
+                                                event = makeEventFromInput(input)
+                                                d(JSON.stringify(event))
 
-      // send event to the window's webContents
-      win.webContents.sendInputEvent(event)
+                                                // send event to the window's webContents
+                                                win.webContents.sendInputEvent(event)
 
-      // prevent webpage from getting event
-      ev.preventDefault()
-    }
-  })
+                                                // prevent webpage from getting event
+                                                ev.preventDefault()
+                                              }
+                                            })
   view.webContents.on('context-menu', () => {
-    d('= context-menu')
-    //win.webContents.sendInputEvent({ type: 'contextMenu', x: 0, y: 0 })
-    win.webContents.sendInputEvent({ type: 'mouseDown', x: 0, y: 0, button: 'left', clickCount: 1 })
-  })
+                                        d('= context-menu')
+                                        //win.webContents.sendInputEvent({ type: 'contextMenu', x: 0, y: 0 })
+                                        win.webContents.sendInputEvent({ type: 'mouseDown', x: 0, y: 0, button: 'left', clickCount: 1 })
+                                      })
   view.webContents.on('input-event', (event, input) => {
-    //d('= input-event')
-    //d(input.type)
-    if ((input.type == 'keyDown') || (input.type == 'rawKeyDown')) {
-      d('= input-event')
-      d(JSON.stringify(input))
-    }
+                                       //d('= input-event')
+                                       //d(input.type)
+                                       if ((input.type == 'keyDown') || (input.type == 'rawKeyDown')) {
+                                         d('= input-event')
+                                         d(JSON.stringify(input))
+                                       }
 
-    if (input.type == 'mouseDown') {
-      d('= input-event')
-      d(JSON.stringify(input))
-      e.sender.send(ch, { ev: 'focus' })
-    }
+                                       if (input.type == 'mouseDown') {
+                                         d('= input-event')
+                                         d(JSON.stringify(input))
+                                         e.sender.send(ch, { ev: 'focus' })
+                                       }
 
-    if ([ 'mouseEnter', 'mouseMove' ].includes(input.type)) {
-      if (0) {
-        d('= input-event')
-        d(JSON.stringify(input))
-      }
-      view.webContents.executeJavaScript(`
+                                       if ([ 'mouseEnter', 'mouseMove' ].includes(input.type)) {
+                                         if (0) {
+                                           d('= input-event')
+                                           d(JSON.stringify(input))
+                                         }
+                                         view.webContents.executeJavaScript(`
   if (typeof(bredGetLinkText) == 'undefined') {
   }
   else
@@ -87,44 +87,44 @@ function onOpen
 `).then(text => {
         //d('JS3 OK')
         //d(text)
-        if (text)
-          win.bred.hover.on('Open Link: ' + text)
-        else
-          win.bred.hover.off()
-      })
-    }
+          if (text)
+            win.bred.hover.on('Open Link: ' + text)
+          else
+            win.bred.hover.off()
+        })
+                                       }
 
-    if ((input.type == 'contextMenu')
+                                       if ((input.type == 'contextMenu')
         || ((input.type == 'mouseDown') && (event.button == 2))) {
-      d('= input-event')
-      d('context')
-    }
-  })
+                                         d('= input-event')
+                                         d('context')
+                                       }
+                                     })
   view.webContents.setWindowOpenHandler(details => {
-    d(JSON.stringify(details))
-    if (details.url.startsWith('http:')
+                                          d(JSON.stringify(details))
+                                          if (details.url.startsWith('http:')
         || details.url.startsWith('https:'))
-      e.sender.send(ch, { ev: 'open',
+                                            e.sender.send(ch, { ev: 'open',
                           href: details.url })
-    return { action: 'deny' }
-  })
+                                          return { action: 'deny' }
+                                        })
   view.webContents.on('will-navigate', (event, url) => {
-    d('= will-navigate')
-    d(url)
-  })
+                                         d('= will-navigate')
+                                         d(url)
+                                       })
   view.webContents.on('will-frame-navigate', (event, url) => {
-    d('= will-frame-navigate')
-    d(url)
-  })
+                                               d('= will-frame-navigate')
+                                               d(url)
+                                             })
   view.webContents.on('did-navigate', (event, url) => {
-    view.webContents.executeJavaScript('document.title').then(title => {
-      Profile.hist.add(url, { title })
-      hist.add(url)
-      e.sender.send(ch, { ev: 'did-navigate',
+                                        view.webContents.executeJavaScript('document.title').then(title => {
+                                                                                                    Profile.hist.add(url, { title })
+                                                                                                    hist.add(url)
+                                                                                                    e.sender.send(ch, { ev: 'did-navigate',
                           url,
                           title })
-    })
-    view.webContents.executeJavaScript(`
+                                                                                                  })
+                                        view.webContents.executeJavaScript(`
   let x, y
 
   function xy(e) {
@@ -150,16 +150,16 @@ function onOpen
   globalThis.document.addEventListener('mousemove', xy)
   globalThis.document.addEventListener('mouseenter', xy)
 `).then(() => {
-      d('JS OK')
-    })
+          d('JS OK')
+        })
 
-  })
+                                      })
   view.webContents.on('zoom-changed', (event, dir) => {
-    if (dir == 'in')
-      view.webContents.zoomFactor += 0.1
-    else
-      view.webContents.zoomFactor -= 0.1
-  })
+                                        if (dir == 'in')
+                                          view.webContents.zoomFactor += 0.1
+                                        else
+                                          view.webContents.zoomFactor -= 0.1
+                                      })
   view.webContents.loadURL(page)
   //view.webContents.openDevTools()
   win.contentView.addChildView(view)
@@ -168,8 +168,8 @@ function onOpen
   //view.setAutoResize({ width: true, height: true })
 
   ipcMain.on(ch, (ev, onX, onY, onWidth, onHeight) => {
-    view.setBounds({ x: onX, y: onY, width: onWidth, height: onHeight })
-  })
+                   view.setBounds({ x: onX, y: onY, width: onWidth, height: onHeight })
+                 })
 
   e.sender.send(ch, { id })
 }

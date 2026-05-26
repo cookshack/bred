@@ -47,50 +47,50 @@ function get
 
   if (dirs) {
     Tron.acmd('profile.hist.get').then(data => {
-      if (cb)
-        cb(null, data)
-    })
+                                         if (cb)
+                                           cb(null, data)
+                                       })
     return
   }
 
   recents = []
   path = xbelPath()
   Tron.cmd('file.get', [ path ], (err, data) => {
-    let parser, xml, byType
+                                   let parser, xml, byType
 
-    if (err) {
-      Mess.log('path: ' + path)
-      //Mess.toss(err.message)
-      if (cb)
-        cb(err)
-      return
-    }
+                                   if (err) {
+                                     Mess.log('path: ' + path)
+                                     //Mess.toss(err.message)
+                                     if (cb)
+                                       cb(err)
+                                     return
+                                   }
 
-    parser = new globalThis.DOMParser()
-    xml = parser.parseFromString(data.data, 'application/xml')
+                                   parser = new globalThis.DOMParser()
+                                   xml = parser.parseFromString(data.data, 'application/xml')
 
-    byType = xml.querySelectorAll('bookmark > info > metadata > mime-type')
-    for (let i = 0; i < byType.length; i++) {
-      let type, meta, info, bookmark
+                                   byType = xml.querySelectorAll('bookmark > info > metadata > mime-type')
+                                   for (let i = 0; i < byType.length; i++) {
+                                     let type, meta, info, bookmark
 
-      type = byType[i].getAttribute('type')
-      meta = byType[i].parentNode
-      info = meta.parentNode
-      bookmark = info.parentNode
-      //d(type)
-      if (Ed.supports(type))
-        recents.unshift({ type,
+                                     type = byType[i].getAttribute('type')
+                                     meta = byType[i].parentNode
+                                     info = meta.parentNode
+                                     bookmark = info.parentNode
+                                     //d(type)
+                                     if (Ed.supports(type))
+                                       recents.unshift({ type,
                           visited: Date.parse(bookmark.getAttribute('visited') ?? 0),
                           href: bookmark.getAttribute('href') })
-        //d("YES")
-    }
+                                     //d("YES")
+                                   }
 
-    //d({ recents })
-    //recents.forEach(r => d("recent: " + r.href))
+                                   //d({ recents })
+                                   //recents.forEach(r => d("recent: " + r.href))
 
-    recents = recents.sort((r1,r2) => r2.visited - r1.visited)
+                                   recents = recents.sort((r1,r2) => r2.visited - r1.visited)
 
-    if (cb)
-      cb(0, recents)
-  })
+                                   if (cb)
+                                     cb(0, recents)
+                                 })
 }

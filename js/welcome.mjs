@@ -105,109 +105,109 @@ function init
                             div([ 'v', span(version, { 'data-run': 'about' } ) ])) ]))
 
     Recent.get(0, (err, recents) => {
-      let count
+                    let count
 
-      if (err) {
-        Mess.log('Recent: ' + err.message)
-        return
-      }
+                    if (err) {
+                      Mess.log('Recent: ' + err.message)
+                      return
+                    }
 
-      // add files to the recent list in the buf content
-      count = 0
-      rfs.innerHTML = ''
-      append(rfs,
-             divCl('bred-welcome-rf-h',
-                   div('Recent files',
-                       'bred-welcome-rf-h-link',
-                       { 'data-run': 'open recent' })))
-      recents.every(r => {
-        //d(r)
-        if (r.href.startsWith('file://')
+                    // add files to the recent list in the buf content
+                    count = 0
+                    rfs.innerHTML = ''
+                    append(rfs,
+                           divCl('bred-welcome-rf-h',
+                                 div('Recent files',
+                                     'bred-welcome-rf-h-link',
+                                     { 'data-run': 'open recent' })))
+                    recents.every(r => {
+                                    //d(r)
+                                    if (r.href.startsWith('file://')
             || r.href.startsWith('/')) {
-          let loc
+                                      let loc
 
-          count++
-          loc = Loc.make(r.href)
-          rfs.append(div(loc.filename,
-                         { 'data-run': 'open link',
+                                      count++
+                                      loc = Loc.make(r.href)
+                                      rfs.append(div(loc.filename,
+                                                     { 'data-run': 'open link',
                            'data-runaux': 'open link in new tab',
                            'data-path': r.href }))
-          return count < 10
-        }
-        return 1
-      })
+                                      return count < 10
+                                    }
+                                    return 1
+                                  })
 
-      // creating a view copies the buf content, so also add the files to contents of any open views
-      Win.shared().welcome.buf.views.forEach(view => {
-        if (view.ele) {
-          let ele
+                    // creating a view copies the buf content, so also add the files to contents of any open views
+                    Win.shared().welcome.buf.views.forEach(view => {
+                                                             if (view.ele) {
+                                                               let ele
 
-          ele = view.ele.querySelector('.bred-welcome-recent-files')
-          ele.innerHTML = ''
-          append(ele,
-                 [ ...rfs.children ].map(ch => ch.cloneNode(true)))
-        }
-      })
-    })
+                                                               ele = view.ele.querySelector('.bred-welcome-recent-files')
+                                                               ele.innerHTML = ''
+                                                               append(ele,
+                                                                      [ ...rfs.children ].map(ch => ch.cloneNode(true)))
+                                                             }
+                                                           })
+                  })
 
     Recent.get(1, (err, recents) => {
-      let count, lcount
+                    let count, lcount
 
-      if (err) {
-        Mess.log('Recent: ' + err.message)
-        return
-      }
+                    if (err) {
+                      Mess.log('Recent: ' + err.message)
+                      return
+                    }
 
-      // add files to the recent list in the buf content
-      count = 0
-      lcount = 0
-      rds.innerHTML = ''
-      rls.innerHTML = ''
-      append(rds, divCl('bred-welcome-rf-h', 'Recent dirs'))
-      append(rls, divCl('bred-welcome-rf-h', 'Recent links'))
-      recents.every(r => {
-        0 && d(r)
-        if (r.href.startsWith('file://')
+                    // add files to the recent list in the buf content
+                    count = 0
+                    lcount = 0
+                    rds.innerHTML = ''
+                    rls.innerHTML = ''
+                    append(rds, divCl('bred-welcome-rf-h', 'Recent dirs'))
+                    append(rls, divCl('bred-welcome-rf-h', 'Recent links'))
+                    recents.every(r => {
+                                    0 && d(r)
+                                    if (r.href.startsWith('file://')
             || r.href.startsWith('/')) {
-          let loc
+                                      let loc
 
-          count++
-          loc = Loc.make(r.href)
-          rds.append(div(Loc.cleanHref(loc.dirname),
-                         { 'data-run': 'open link',
+                                      count++
+                                      loc = Loc.make(r.href)
+                                      rds.append(div(Loc.cleanHref(loc.dirname),
+                                                     { 'data-run': 'open link',
                            'data-runaux': 'open link in new tab',
                            'data-path': r.href }))
-          return count < 10
-        }
-        if (r.href.startsWith('http')
+                                      return count < 10
+                                    }
+                                    if (r.href.startsWith('http')
                  || r.href.startsWith('https')) {
-          lcount++
-          rls.append(div(short(r.href),
-                         { 'data-run': 'open link',
+                                      lcount++
+                                      rls.append(div(short(r.href),
+                                                     { 'data-run': 'open link',
                            'data-runaux': 'open link in new tab',
                            'data-path': r.href }))
-          return lcount < 10
-        }
-        return 1
-      })
+                                      return lcount < 10
+                                    }
+                                    return 1
+                                  })
 
-      // creating a view copies the buf content, so also add the dirs to contents of any open views
-      Win.shared().welcome.buf.views.forEach(view => {
-        if (view.ele) {
-          let ele
+                    // creating a view copies the buf content, so also add the dirs to contents of any open views
+                    Win.shared().welcome.buf.views.forEach(view => {
+                                                             if (view.ele) {
+                                                               let ele
 
-          ele = view.ele.querySelector('.bred-welcome-recent-dirs')
-          ele.innerHTML = ''
-          append(ele,
-                 [ ...rds.children ].map(ch => ch.cloneNode(true)))
+                                                               ele = view.ele.querySelector('.bred-welcome-recent-dirs')
+                                                               ele.innerHTML = ''
+                                                               append(ele,
+                                                                      [ ...rds.children ].map(ch => ch.cloneNode(true)))
 
-          ele = view.ele.querySelector('.bred-welcome-recent-links')
-          ele.innerHTML = ''
-          append(ele,
-                 [ ...rls.children ].map(ch => ch.cloneNode(true)))
-        }
-      })
-    })
+                                                               ele = view.ele.querySelector('.bred-welcome-recent-links')
+                                                               ele.innerHTML = ''
+                                                               append(ele,
+                                                                      [ ...rls.children ].map(ch => ch.cloneNode(true)))
+                                                             }
+                                                           })
+                  })
 
     return w
   }
@@ -227,81 +227,81 @@ function init
     Win.shared().welcome = {}
 
   Cmd.add('dark mode', () => {
-    let buf
+                         let buf
 
-    buf = Win.shared().welcome.buf
-    Opt.set('core.theme.mode', 'dark')
-    if (buf)
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let buttonL, buttonD
+                         buf = Win.shared().welcome.buf
+                         Opt.set('core.theme.mode', 'dark')
+                         if (buf)
+                           buf.views.forEach(view => {
+                                               if (view.ele) {
+                                                 let buttonL, buttonD
 
-          buttonL = view.ele.querySelector('.buttonLight')
-          buttonD = buttonL.nextElementSibling
-          Css.expand(buttonL)
-          Css.retract(buttonD)
-        }
-      })
-  })
+                                                 buttonL = view.ele.querySelector('.buttonLight')
+                                                 buttonD = buttonL.nextElementSibling
+                                                 Css.expand(buttonL)
+                                                 Css.retract(buttonD)
+                                               }
+                                             })
+                       })
 
   Cmd.add('light mode', () => {
-    let buf
+                          let buf
 
-    buf = Win.shared().welcome.buf
-    Opt.set('core.theme.mode', 'light')
-    if (buf)
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let buttonL, buttonD
+                          buf = Win.shared().welcome.buf
+                          Opt.set('core.theme.mode', 'light')
+                          if (buf)
+                            buf.views.forEach(view => {
+                                                if (view.ele) {
+                                                  let buttonL, buttonD
 
-          buttonL = view.ele.querySelector('.buttonLight')
-          buttonD = buttonL.nextElementSibling
-          Css.retract(buttonL)
-          Css.expand(buttonD)
-        }
-      })
-  })
+                                                  buttonL = view.ele.querySelector('.buttonLight')
+                                                  buttonD = buttonL.nextElementSibling
+                                                  Css.retract(buttonL)
+                                                  Css.expand(buttonD)
+                                                }
+                                              })
+                        })
 
   Cmd.add('show welcome on start', () => {
-    let buf
+                                     let buf
 
-    buf = Win.shared().welcome.buf
-    Opt.set('core.welcome.enabled', 1)
-    if (buf)
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let buttonY, buttonN
+                                     buf = Win.shared().welcome.buf
+                                     Opt.set('core.welcome.enabled', 1)
+                                     if (buf)
+                                       buf.views.forEach(view => {
+                                                           if (view.ele) {
+                                                             let buttonY, buttonN
 
-          buttonY = view.ele.querySelector('.buttonY')
-          buttonN = buttonY.nextElementSibling
-          Css.remove(buttonN, 'on')
-          Css.add(buttonY, 'on')
-        }
-      })
-  })
+                                                             buttonY = view.ele.querySelector('.buttonY')
+                                                             buttonN = buttonY.nextElementSibling
+                                                             Css.remove(buttonN, 'on')
+                                                             Css.add(buttonY, 'on')
+                                                           }
+                                                         })
+                                   })
 
   Cmd.add('hide welcome on start', () => {
-    let buf
+                                     let buf
 
-    buf = Win.shared().welcome.buf
-    Opt.set('core.welcome.enabled', 0)
-    if (buf)
-      buf.views.forEach(view => {
-        if (view.ele) {
-          let buttonY, buttonN
+                                     buf = Win.shared().welcome.buf
+                                     Opt.set('core.welcome.enabled', 0)
+                                     if (buf)
+                                       buf.views.forEach(view => {
+                                                           if (view.ele) {
+                                                             let buttonY, buttonN
 
-          buttonY = view.ele.querySelector('.buttonY')
-          buttonN = buttonY.nextElementSibling
-          Css.remove(buttonY, 'on')
-          Css.add(buttonN, 'on')
-        }
-      })
-  })
+                                                             buttonY = view.ele.querySelector('.buttonY')
+                                                             buttonN = buttonY.nextElementSibling
+                                                             Css.remove(buttonY, 'on')
+                                                             Css.add(buttonN, 'on')
+                                                           }
+                                                         })
+                                   })
 
   Cmd.add('welcome', () => {
-    let p
+                       let p
 
-    p = Pane.current()
-    p.setBuf(Win.shared().welcome.buf || addBuf(p))
-  })
+                       p = Pane.current()
+                       p.setBuf(Win.shared().welcome.buf || addBuf(p))
+                     })
 }

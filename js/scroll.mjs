@@ -19,15 +19,15 @@ function getLineHeightPx
   lineHeights.set(surf, px)
 
   surf.addEventListener('scroll-mjs.destroy', () => {
-    lineHeights.delete(surf)
-  })
+                                                lineHeights.delete(surf)
+                                              })
 
   return px
 }
 
 export function make
-(surf, spec) {
-  let onScrollCb, rafId
+       (surf, spec) {
+         let onScrollCb, rafId
 
   function getFirstVisible
   () {
@@ -84,21 +84,21 @@ export function make
     if (rafId || onScrollCb == null)
       return
     rafId = globalThis.requestAnimationFrame(() => {
-      rafId = 0
-      onScrollCb()
-    })
+                                               rafId = 0
+                                               onScrollCb()
+                                             })
   }
 
-  spec = spec || {}
-  spec.itemCount = spec.itemCount || 0
-  spec.renderItem = spec.renderItem || (() => {})
-  spec.idForItem = spec.idForItem || (i => i)
+         spec = spec || {}
+         spec.itemCount = spec.itemCount || 0
+         spec.renderItem = spec.renderItem || (() => {})
+         spec.idForItem = spec.idForItem || (i => i)
 
-  rafId = 0
+         rafId = 0
 
-  surf.addEventListener('scroll', onScroll)
+         surf.addEventListener('scroll', onScroll)
 
-  return { set onScroll
+         return { set onScroll
            (fn) {
              onScrollCb = fn
            },
@@ -151,13 +151,13 @@ export function make
            () {
              surf.removeEventListener('scroll', onScroll)
            } }
-}
+       }
 
 export function init
-() {
-  lineHeights = new Map()
+       () {
+         lineHeights = new Map()
 
-  Opt.onSet('core.fontSize', () => {
-    lineHeights.clear()
-  })
-}
+         Opt.onSet('core.fontSize', () => {
+                                      lineHeights.clear()
+                                    })
+       }

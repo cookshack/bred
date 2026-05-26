@@ -74,8 +74,8 @@ function cmdClipWrite
 function cmdTestThrow
 () {
   setTimeout(() => {
-    throw new Error ('test err')
-  })
+               throw new Error ('test err')
+             })
   return {}
 }
 
@@ -96,23 +96,23 @@ function onLoadInit
     log('Loading ' + file + '...')
     d('Loading ' + file + '...')
     fs.readFile(file, 'utf8', (err, js) => {
-      if (err) {
-        if (err.code == 'ENOENT') {
-          log('Loading ' + file + ": missing, that's OK")
-          e.sender.send(ch, { exist: 0 })
-          return
-        }
-        log('Loading ' + file + ': ' + err.message)
-        e.sender.send(ch, { err })
-        return
-      }
-      js = '(function (C,Cmd,Dom,Ed,Em,Hist,Loc,Opt,Pane,Mess,Mode,Dir,Place,Win) { "use strict"; Mess.log("Loading your init.js...");\n' + js + ';\nMess.log("Loading your init.js... done"); })(window.bred.C,window.bred.Cmd,window.bred.Dom,window.bred.Ed,window.bred.Em,window.bred.Hist,window.bred.Loc,window.bred.Opt,window.bred.Pane,window.bred.Mess,window.bred.Mode,window.bred.Dir,window.bred.Place,window.bred.Win)'
-      win.webContents.executeJavaScript(js).then(() => {
-        log('Loading ' + file + ': done.')
-        d('Loading ' + file + ': done.')
-        setTimeout(() => e.sender.send(ch, { exist: 1 })) // timeout because wtf slow
-      })
-    })
+                                if (err) {
+                                  if (err.code == 'ENOENT') {
+                                    log('Loading ' + file + ": missing, that's OK")
+                                    e.sender.send(ch, { exist: 0 })
+                                    return
+                                  }
+                                  log('Loading ' + file + ': ' + err.message)
+                                  e.sender.send(ch, { err })
+                                  return
+                                }
+                                js = '(function (C,Cmd,Dom,Ed,Em,Hist,Loc,Opt,Pane,Mess,Mode,Dir,Place,Win) { "use strict"; Mess.log("Loading your init.js...");\n' + js + ';\nMess.log("Loading your init.js... done"); })(window.bred.C,window.bred.Cmd,window.bred.Dom,window.bred.Ed,window.bred.Em,window.bred.Hist,window.bred.Loc,window.bred.Opt,window.bred.Pane,window.bred.Mess,window.bred.Mode,window.bred.Dir,window.bred.Place,window.bred.Win)'
+                                win.webContents.executeJavaScript(js).then(() => {
+                                                                             log('Loading ' + file + ': done.')
+                                                                             d('Loading ' + file + ': done.')
+                                                                             setTimeout(() => e.sender.send(ch, { exist: 1 })) // timeout because wtf slow
+                                                                           })
+                              })
   }
   else {
     log('Path userData missing, skipping load of your init.js')
@@ -164,18 +164,18 @@ function onPaths
 async function wrapOn
 (e, ch, onArgs, cb) {
   setTimeout(async () => {
-    try {
-      await cb(e, ch, onArgs, { shell })
-    }
-    catch (err) {
-      try {
-        e.sender.send(ch, makeErr(err))
-      }
-      catch (err2) {
-        log('wrapOn: ' + err2.message)
-      }
-    }
-  })
+               try {
+                 await cb(e, ch, onArgs, { shell })
+               }
+               catch (err) {
+                 try {
+                   e.sender.send(ch, makeErr(err))
+                 }
+                 catch (err2) {
+                   log('wrapOn: ' + err2.message)
+                 }
+               }
+             })
   return ch
 }
 
@@ -328,9 +328,9 @@ function onCmdCh
 
   if (name == 'devtools.inspect')
     return wrapOn(e, ch, args, () => {
-      win.inspectElement(Math.round(args[0]), Math.round(args[1])) // x, y
-      e.sender.send(ch, {})
-    })
+                                 win.inspectElement(Math.round(args[0]), Math.round(args[1])) // x, y
+                                 e.sender.send(ch, {})
+                               })
 
   if (name == 'devtools.close')
     return cmdDevtoolsClose(e, ch, args)
@@ -529,25 +529,25 @@ function createWindow
   win.webContents.setMaxListeners(30)
 
   win.on('blur', () => {
-    d('BLUR WIN')
-  })
+                   d('BLUR WIN')
+                 })
   win.on('focus', () => {
-    d('FOCUS WIN')
-  })
+                    d('FOCUS WIN')
+                  })
 
   win.on('maximize', () => {
-    win.webContents.send('win.maximized', {})
-  })
+                       win.webContents.send('win.maximized', {})
+                     })
   win.on('unmaximize', () => {
-    win.webContents.send('win.normal', {})
-  })
+                         win.webContents.send('win.normal', {})
+                       })
 
   win.webContents.on('blur', () => {
-    d('BLUR MAIN')
-  })
+                               d('BLUR MAIN')
+                             })
   win.webContents.on('focus', () => {
-    d('FOCUS MAIN')
-  })
+                                d('FOCUS MAIN')
+                              })
 
   hover = { bg: 0,
             fg: 0,
@@ -627,9 +627,9 @@ function createWindow
   hover.resize()
 
   win.once('ready-to-show', () => {
-    win.show()
-    win.bred.hover.resize()
-  })
+                              win.show()
+                              win.bred.hover.resize()
+                            })
 
   win.removeMenu()
 
@@ -643,41 +643,41 @@ function createWindow
   }
 
   win.webContents.debugger.on('detach', (event, reason) => {
-    log('debugger: detached: ' + reason)
-  })
+                                          log('debugger: detached: ' + reason)
+                                        })
 
   win.webContents.debugger.on('detach', (event, method) => {
-    log('debugger: message: ' + method)
-  })
+                                          log('debugger: message: ' + method)
+                                        })
 
   win.webContents.setWindowOpenHandler(handleWindowOpen)
 
   win.webContents.on('did-create-window', ch => {
-    let bounds
+                                            let bounds
 
-    bounds = Profile.stores.state.get('bounds')
-    bounds.x = 0
-    bounds.y = 0
-    ch.removeMenu()
-    ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
+                                            bounds = Profile.stores.state.get('bounds')
+                                            bounds.x = 0
+                                            bounds.y = 0
+                                            ch.removeMenu()
+                                            ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
                                   title: 'Developer Tools - Bred' })
-    ch.setBounds(bounds)
-    win.bred.hover.resize()
-  })
+                                            ch.setBounds(bounds)
+                                            win.bred.hover.resize()
+                                          })
 
   win.on('close', () => {
-    Profile.stores.state.set('isDevToolsOpened', win.webContents.isDevToolsOpened())
-    Profile.stores.state.set('bounds', win.getBounds())
-  })
+                    Profile.stores.state.set('isDevToolsOpened', win.webContents.isDevToolsOpened())
+                    Profile.stores.state.set('bounds', win.getBounds())
+                  })
 
   win.on('resize', () => {
-    win.bred.hover.resize()
-    Profile.stores.state.set('bounds', win.getBounds())
-  })
+                     win.bred.hover.resize()
+                     Profile.stores.state.set('bounds', win.getBounds())
+                   })
 
   win.on('move', () => {
-    Profile.stores.state.set('bounds', win.getBounds())
-  })
+                   Profile.stores.state.set('bounds', win.getBounds())
+                 })
 
   if ((options.devtools == 'on')
       || ((options.devtools == 'auto') && Profile.stores.state.get('isDevToolsOpened'))) {
@@ -686,12 +686,12 @@ function createWindow
                                    title: 'Developer Tools - Bred' })
     // wait for devtools, so that breakpoints in init are hit
     win.webContents.once('devtools-opened', () => {
-      d('loading ' + html)
-      if (options.waitForDevtools)
-        win.loadFile(html)
-      // would be nice to focus current pane here, for when devtools docked
-      //win.focus()
-    })
+                                              d('loading ' + html)
+                                              if (options.waitForDevtools)
+                                                win.loadFile(html)
+                                              // would be nice to focus current pane here, for when devtools docked
+                                              //win.focus()
+                                            })
     options.waitForDevtools || win.loadFile(html)
   }
   else {
@@ -701,13 +701,13 @@ function createWindow
   }
 
   win.webContents.on('devtools-opened', () => {
-    Profile.stores.state.set('isDevToolsOpened', 1)
-    win.webContents.send('devtools', { open: 1 })
-  })
+                                          Profile.stores.state.set('isDevToolsOpened', 1)
+                                          win.webContents.send('devtools', { open: 1 })
+                                        })
   win.webContents.on('devtools-closed', () => {
-    Profile.stores.state.set('isDevToolsOpened', 0)
-    win.webContents.send('devtools', { open: 0 })
-  })
+                                          Profile.stores.state.set('isDevToolsOpened', 0)
+                                          win.webContents.send('devtools', { open: 0 })
+                                        })
 
   return win
 }
@@ -723,9 +723,9 @@ function createMainWindow
   d('timing: main startup: ' + Math.round(performance.now() - mainStart) + 'ms')
 
   Process.on('uncaughtException', err => {
-    console.log(err.message)
-    _win.webContents.send('thrown', makeErr(err))
-  })
+                                    console.log(err.message)
+                                    _win.webContents.send('thrown', makeErr(err))
+                                  })
 }
 
 function setVersion
@@ -795,9 +795,9 @@ function checkDepsWin
   mode = Profile.stores.opt.get('core.theme.mode')
 
   Process.on('uncaughtException', err => {
-    console.log(err.message)
-    _win.webContents.send('thrown', makeErr(err))
-  })
+                                    console.log(err.message)
+                                    _win.webContents.send('thrown', makeErr(err))
+                                  })
 
   opts = { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
            //frame: false,
@@ -817,16 +817,16 @@ function checkDepsWin
                   height: 100 })
 
   win.webContents.setWindowOpenHandler(() => {
-    return { action: 'deny' }
-  })
+                                         return { action: 'deny' }
+                                       })
 
   win.webContents.on('did-create-window', ch => {
-    ch.removeMenu()
-    ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
+                                            ch.removeMenu()
+                                            ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
                                   title: 'Developer Tools - Bred' })
-    ch.setBounds({ width: 300,
+                                            ch.setBounds({ width: 300,
                    height: 100 })
-  })
+                                          })
 
   if (options.devtools == 'on') {
     d('opening devtools')
@@ -834,12 +834,12 @@ function checkDepsWin
                                    title: 'Developer Tools - Bred' })
     // wait for devtools, so that breakpoints in init are hit
     win.webContents.once('devtools-opened', () => {
-      d('loading html')
-      if (options.waitForDevtools)
-        win.loadURL(uri)
-      // would be nice to focus current pane here, for when devtools docked
-      //win.focus()
-    })
+                                              d('loading html')
+                                              if (options.waitForDevtools)
+                                                win.loadURL(uri)
+                                              // would be nice to focus current pane here, for when devtools docked
+                                              //win.focus()
+                                            })
     options.waitForDevtools || win.loadURL(uri)
   }
   else {
@@ -849,11 +849,11 @@ function checkDepsWin
   }
 
   win.webContents.on('devtools-opened', () => {
-    win.webContents.send('devtools', { open: 1 })
-  })
+                                          win.webContents.send('devtools', { open: 1 })
+                                        })
   win.webContents.on('devtools-closed', () => {
-    win.webContents.send('devtools', { open: 0 })
-  })
+                                          win.webContents.send('devtools', { open: 0 })
+                                        })
 
   return win
 }
@@ -894,34 +894,34 @@ function checkDeps
   d('Creating check window...')
   win = checkDepsWin()
   win.webContents.on('dom-ready', () => {
-    d('Checking dependencies...')
-    CheckDeps({ install: true,
+                                    d('Checking dependencies...')
+                                    CheckDeps({ install: true,
                 verbose: true }).then(output => {
-      if (output.status) {
-        d('Checking dependencies... ERR')
-        app.quit()
-        return
-      }
-      if (output.installWasNeeded) {
-        d('Checking dependencies... installed, restarting')
-        relaunch()
-        return
-      }
-      d('Checking dependencies... OK')
+                                        if (output.status) {
+                                          d('Checking dependencies... ERR')
+                                          app.quit()
+                                          return
+                                        }
+                                        if (output.installWasNeeded) {
+                                          d('Checking dependencies... installed, restarting')
+                                          relaunch()
+                                          return
+                                        }
+                                        d('Checking dependencies... OK')
 
-      // Record the commit we checked
-      if (currentCommit)
-        try {
-          fs.writeFileSync(lastCheckFile, currentCommit)
-        }
-        catch (e) {
-          d('Failed to write last deps check: ' + e.message)
-        }
+                                        // Record the commit we checked
+                                        if (currentCommit)
+                                          try {
+                                            fs.writeFileSync(lastCheckFile, currentCommit)
+                                          }
+                                          catch (e) {
+                                            d('Failed to write last deps check: ' + e.message)
+                                          }
 
-      setTimeout(() => win.close())
-      cb()
-    })
-  })
+                                        setTimeout(() => win.close())
+                                        cb()
+                                      })
+                                  })
   return 1
 }
 
@@ -952,20 +952,20 @@ function socket
       path = Path.join(Process.env.BRED_ORIGINAL_DIR || '.', program.args[0])
     client = Net.connect(sockPath)
     client.on('connect', () => {
-      let json
+                           let json
 
-      json = JSON.stringify({ path }) + '\n'
-      d('to client: ' + json)
-      client.write(json)
-    })
+                           json = JSON.stringify({ path }) + '\n'
+                           d('to client: ' + json)
+                           client.write(json)
+                         })
     client.on('data', data => {
-      let str
+                        let str
 
-      str = data.toString().trim()
-      d('from client: ' + str)
-      if (str == 'done')
-        app.quit()
-    })
+                        str = data.toString().trim()
+                        d('from client: ' + str)
+                        if (str == 'done')
+                          app.quit()
+                      })
 
     console.log('File ' + program.args[0] + ' sent to running editor. Waiting for it to be closed there...')
     return 1
@@ -978,39 +978,39 @@ function socket
   }
 
   server = Net.createServer(conn => {
-    conn.on('data', data => {
-      let msg
+                              conn.on('data', data => {
+                                                let msg
 
-      msg = JSON.parse(data)
-      d('SOCKET in ' + data)
-      if (pendingPaths[msg.path]) {
-        d('SOCKET ERR already editing')
-        conn.end('Error: already editing this path')
-      }
-      else if (_win) {
-        pendingPaths[msg.path] = conn
-        d('SOCKET to renderer: socket-open-file: ' + msg.path)
-        _win.webContents.send('socket-open-file', { path: msg.path })
-        conn.write('ok\n')
-      }
-      else {
-        d('SOCKET ERR missing window')
-        conn.end('Error: missing window')
-      }
-    })
-  })
+                                                msg = JSON.parse(data)
+                                                d('SOCKET in ' + data)
+                                                if (pendingPaths[msg.path]) {
+                                                  d('SOCKET ERR already editing')
+                                                  conn.end('Error: already editing this path')
+                                                }
+                                                else if (_win) {
+                                                  pendingPaths[msg.path] = conn
+                                                  d('SOCKET to renderer: socket-open-file: ' + msg.path)
+                                                  _win.webContents.send('socket-open-file', { path: msg.path })
+                                                  conn.write('ok\n')
+                                                }
+                                                else {
+                                                  d('SOCKET ERR missing window')
+                                                  conn.end('Error: missing window')
+                                                }
+                                              })
+                            })
 
   server.listen(sockPath)
   d('SOCKET listening on ' + sockPath)
 
   ipcMain.on('socket-file-done', (e, path) => {
-    let conn
+                                   let conn
 
-    conn = pendingPaths[path]
-    if (conn)
-      conn.write('done\n')
-    delete pendingPaths[path]
-  })
+                                   conn = pendingPaths[path]
+                                   if (conn)
+                                     conn.write('done\n')
+                                   delete pendingPaths[path]
+                                 })
 
   if (Process.env.BRED_SCRIPT_PID)
     fs.writeFileSync('/tmp/bred-' + Process.env.BRED_SCRIPT_PID + '-sockpath', sockPath)
@@ -1098,10 +1098,10 @@ function whenHaveDeps
   d('setting app handlers')
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length)
-      return
-    createMainWindow()
-  })
+                       if (BrowserWindow.getAllWindows().length)
+                         return
+                       createMainWindow()
+                     })
 }
 
 async function whenReady
@@ -1160,8 +1160,8 @@ async function whenReady
                                 { flags: 'w',
                                   flush: true })
     Log.logWith(msg => {
-      file.write(Util.format(msg) + '\n')
-    })
+                  file.write(Util.format(msg) + '\n')
+                })
   }
   else
     d('logging to stdout')
@@ -1173,9 +1173,9 @@ async function whenReady
   Menu.setApplicationMenu(null) // Apparently good for performance
 
   app.on('window-all-closed', () => {
-    Code.closeAll()
-    app.quit()
-  })
+                                Code.closeAll()
+                                app.quit()
+                              })
 
   checkDeps(() => whenHaveDeps(program))
 }

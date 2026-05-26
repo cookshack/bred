@@ -47,8 +47,8 @@ function make
         atPoints = globalThis.document.elementsFromPoint(0, rpaneW.y + globalThis.scrollTop)
         all = [ ...atPoints ]
         atPoints.forEach(e => {
-          all = [ ...all, ...[ ...e.children ] ]
-        })
+                           all = [ ...all, ...[ ...e.children ] ]
+                         })
       }
 
       all = elePane.querySelector('.bred-surface')
@@ -64,28 +64,28 @@ function make
         all = []
 
       tops = all.filter(ch => {
-        let r, offset
+                          let r, offset
 
-        if (ch.innerText.length == 0)
-          return 0
-        r = ch.getBoundingClientRect()
-        offset = r.top - rpaneW.top
-        //Mess.D("try:")
-        //Mess.D(ch)
-        //Mess.D("offset " + offset)
-        if (offset < 0)
-          return 0
-        if ((highests.length == 0)
+                          if (ch.innerText.length == 0)
+                            return 0
+                          r = ch.getBoundingClientRect()
+                          offset = r.top - rpaneW.top
+                          //Mess.D("try:")
+                          //Mess.D(ch)
+                          //Mess.D("offset " + offset)
+                          if (offset < 0)
+                            return 0
+                          if ((highests.length == 0)
             || (highests[0].offset == offset)) {
-          highests.push({ offset, r, ch })
-          return 1
-        }
-        if (highests[0].offset > offset) {
-          highests = [ { offset, r, ch } ]
-          return 1
-        }
-        return 0
-      })
+                            highests.push({ offset, r, ch })
+                            return 1
+                          }
+                          if (highests[0].offset > offset) {
+                            highests = [ { offset, r, ch } ]
+                            return 1
+                          }
+                          return 0
+                        })
       if (0)
         d(tops)
       if (highests.length)

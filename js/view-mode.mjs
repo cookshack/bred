@@ -28,11 +28,11 @@ function init
   Em.on('End', 'buffer end', mode)
 
   Cmd.add('view mode', () => {
-    let view
+                         let view
 
-    view = View.current()
-    view?.buf.addMode(mode)
-  })
+                         view = View.current()
+                         view?.buf.addMode(mode)
+                       })
 
   Cmd.add('self insert', () => Mess.say(U.shrug), mode)
 }

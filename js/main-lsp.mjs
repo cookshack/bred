@@ -340,9 +340,9 @@ function make
 }
 
 Peer.setBufUpdateHook((bufId, text) => {
-  let info
+                        let info
 
-  info = bufIdToFile.get(bufId)
-  if (info)
-    info.lsp.change(info.language, info.file, text)
-})
+                        info = bufIdToFile.get(bufId)
+                        if (info)
+                          info.lsp.change(info.language, info.file, text)
+                      })

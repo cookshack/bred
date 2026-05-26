@@ -119,9 +119,9 @@ function decorate
 
     decorators = []
     mode.decorators.forEach(dec => {
-      d(dec)
-      decorators.push(makeDecorator(dec))
-    })
+                              d(dec)
+                              decorators.push(makeDecorator(dec))
+                            })
 
     view.ed.dispatch({ effects: view.wode.decorMode.reconfigure(decorators) })
   }

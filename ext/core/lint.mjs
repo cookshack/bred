@@ -57,12 +57,12 @@ function maybeLintTooltip
   end = 0
   diags = []
   CMLint.forEachDiagnostic(ed.state, (diag, from, to) => {
-    if (between(pos, from, to, side)) {
-      diags.push(diag)
-      start = Math.min(start, from)
-      end = Math.max(to, end)
-    }
-  })
+                                       if (between(pos, from, to, side)) {
+                                         diags.push(diag)
+                                         start = Math.min(start, from)
+                                         end = Math.max(to, end)
+                                       }
+                                     })
   if (diags.length)
     return { pos: start,
              end,
@@ -109,12 +109,12 @@ function reconfLintMarker
 function updateListener
 (view) {
   return CMView.EditorView.updateListener.of(update => {
-    //d('lint update')
-    if (update.docChanged || update.changes) {
-      0 && d('docChanged')
-      reconfLintMarker(view, update.state)
-    }
-  })
+                                               //d('lint update')
+                                               if (update.docChanged || update.changes) {
+                                                 0 && d('docChanged')
+                                                 reconfLintMarker(view, update.state)
+                                               }
+                                             })
 }
 
 function makeLinter
@@ -148,13 +148,13 @@ function initEslint
 () {
   import('../../lib/eslint-linter-browserify.mjs')
     .then(m => {
-      Mess.log('Loaded eslint')
-      Eslint = m
-      Buf.forEach(buf => buf.views.forEach(view => {
-        if (view.ed && (view.win == Win.current()))
-          view.ed.dispatch({ effects: part.reconfigure(makeEffects(view)) })
-      }))
-    })
+            Mess.log('Loaded eslint')
+            Eslint = m
+            Buf.forEach(buf => buf.views.forEach(view => {
+                                                   if (view.ed && (view.win == Win.current()))
+                                                     view.ed.dispatch({ effects: part.reconfigure(makeEffects(view)) })
+                                                 }))
+          })
     .catch(err => Mess.log('Failed to load eslint: ' + err.message))
 }
 
@@ -187,16 +187,16 @@ function handleLspDiagnostics
   buf = Buf.find(b => b.path == path)
   if (buf)
     buf.views.forEach(view => {
-      if (view.ed && view.ele) {
-        let cmDiags
+                        if (view.ed && view.ele) {
+                          let cmDiags
 
-        d('LINT handleLspDiagnostics diags')
-        d({ diags: data.response.params.diagnostics })
-        cmDiags = data.response.params.diagnostics.map(diag => makeCmDiag(view, diag))
-        cmDiags = cmDiags.filter(diag => diag)
-        view.ed.dispatch(CMLint.setDiagnostics(view.ed.state, cmDiags))
-      }
-    })
+                          d('LINT handleLspDiagnostics diags')
+                          d({ diags: data.response.params.diagnostics })
+                          cmDiags = data.response.params.diagnostics.map(diag => makeCmDiag(view, diag))
+                          cmDiags = cmDiags.filter(diag => diag)
+                          view.ed.dispatch(CMLint.setDiagnostics(view.ed.state, cmDiags))
+                        }
+                      })
 }
 
 export
@@ -218,14 +218,14 @@ function init
   Cmd.add('buffer enable lint gutter', u => Ed.enableBuf(u, 'core.lint.gutter.enabled'))
 
   Tron.on('lsp', (err, data) => {
-    d('LINT lsp')
-    d({ data })
-    if (data.response?.method == 'textDocument/publishDiagnostics') {
-      d('LINT diags')
-      d({ diags: data.response.params.diagnostics })
-      handleLspDiagnostics(data)
-    }
-  })
+                   d('LINT lsp')
+                   d({ data })
+                   if (data.response?.method == 'textDocument/publishDiagnostics') {
+                     d('LINT diags')
+                     d({ diags: data.response.params.diagnostics })
+                     handleLspDiagnostics(data)
+                   }
+                 })
 
   initEslint()
 }

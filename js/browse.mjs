@@ -37,17 +37,17 @@ function initWeb
 
     append(w, wv)
     wv.addEventListener('context-menu', e => {
-      d('context menu')
-      e.clientX = e.params.x
-      e.clientY = e.params.y
-      e.x = e.params.x
-      e.y = e.params.y
-      Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e })
-    })
+                                          d('context menu')
+                                          e.clientX = e.params.x
+                                          e.clientY = e.params.y
+                                          e.x = e.params.x
+                                          e.y = e.params.y
+                                          Cmd.run('context menu', 0, 1, { mouse: 1, name: 'context', e })
+                                        })
     wv.addEventListener('dom-ready', () => {
-      d('dom-ready')
-      //wv.executeJavascript('console.log("OK")')
-    })
+                                       d('dom-ready')
+                                       //wv.executeJavascript('console.log("OK")')
+                                     })
     //wv.executeJavascript('console.log("OK")')
 
     if (cb)
@@ -58,14 +58,14 @@ function initWeb
   d(mo)
 
   Cmd.add('web', () => {
-    let b, p
+                   let b, p
 
-    p = Pane.current()
-    b = Buf.add('Web', 'Web', divW(), p.dir)
-    b.icon = 'help'
-    b.addMode('view')
-    p.setBuf(b)
-  })
+                   p = Pane.current()
+                   b = Buf.add('Web', 'Web', divW(), p.dir)
+                   b.icon = 'help'
+                   b.addMode('view')
+                   p.setBuf(b)
+                 })
 }
 
 export
@@ -186,19 +186,19 @@ function initBrowse
     }
 
     view.onClose(async () => {
-      let data
+                   let data
 
-      d('view.onClose')
-      d(id)
+                   d('view.onClose')
+                   d(id)
 
-      if (view.vars('Browse').off)
-        view.vars('Browse').off()
+                   if (view.vars('Browse').off)
+                     view.vars('Browse').off()
 
-      data = await Tron.acmd('browse.close', [ id ])
-      d('wasF: ' + data.wasFocused)
-      if (data.wasFocused)
-        view.elPane?.focus()
-    })
+                   data = await Tron.acmd('browse.close', [ id ])
+                   d('wasF: ' + data.wasFocused)
+                   if (data.wasFocused)
+                     view.elPane?.focus()
+                 })
 
     //view.ele.firstElementChild.firstElementChild.innerHTML = ''
 
@@ -221,33 +221,33 @@ function initBrowse
                }
 
                view.vars('Browse').off = Tron.on(openData.ch, (err, data) => {
-                 d('--- browse ev ---')
-                 d({ data })
-                 if (data.ev == 'focus') {
-                   Pane.focusView(view, 1, 1)
-                   return
-                 }
-                 if (data.ev == 'did-navigate') {
-                   let ml
+                                                                d('--- browse ev ---')
+                                                                d({ data })
+                                                                if (data.ev == 'focus') {
+                                                                  Pane.focusView(view, 1, 1)
+                                                                  return
+                                                                }
+                                                                if (data.ev == 'did-navigate') {
+                                                                  let ml
 
-                   ml = getMl(view)
-                   if (ml) {
-                     let e
+                                                                  ml = getMl(view)
+                                                                  if (ml) {
+                                                                    let e
 
-                     e = ml.querySelector('.browse-url')
-                     if (e)
-                       e.innerText = data.url
-                     e = ml.querySelector('.browse-title')
-                     if (e)
-                       e.innerText = data.title
-                   }
-                   return
-                 }
-                 if (data.ev == 'open') {
-                   Open.link(data.href, null, 1)
-                   return
-                 }
-               })
+                                                                    e = ml.querySelector('.browse-url')
+                                                                    if (e)
+                                                                      e.innerText = data.url
+                                                                    e = ml.querySelector('.browse-title')
+                                                                    if (e)
+                                                                      e.innerText = data.title
+                                                                  }
+                                                                  return
+                                                                }
+                                                                if (data.ev == 'open') {
+                                                                  Open.link(data.href, null, 1)
+                                                                  return
+                                                                }
+                                                              })
 
                if (view.elPane)
                  obs = new globalThis.ResizeObserver(roe => resize(openData.ch, roe), { box: 'border-box' }).observe(view.elPane)
@@ -415,27 +415,27 @@ function initBrowse
   Em.on('C--', 'zoom out', mo)
 
   Cmd.add('test browse', () => {
-    browse('https://w3c.github.io/uievents/tools/key-event-viewer.html')
-  })
+                           browse('https://w3c.github.io/uievents/tools/key-event-viewer.html')
+                         })
 
   Cmd.add('browse url at point', () => {
-    let p, l, pos, url
+                                   let p, l, pos, url
 
-    p = Pane.current()
-    l = p.line()
-    pos = p.pos()
-    pos = pos.col
-    url = U.urlAt(l, pos)
-    if (url?.protocol == 'file:')
-      Pane.open(url.pathname)
-    else if ((url?.protocol == 'http:')
+                                   p = Pane.current()
+                                   l = p.line()
+                                   pos = p.pos()
+                                   pos = pos.col
+                                   url = U.urlAt(l, pos)
+                                   if (url?.protocol == 'file:')
+                                     Pane.open(url.pathname)
+                                   else if ((url?.protocol == 'http:')
              || (url?.protocol == 'https:'))
-      browse(url.href)
-    else if (url)
-      Tron.cmd('shell.open', [ url.href ], err => err && Mess.yell('shell.open: ' + err.message))
-    else
-      Mess.say('Must be on an URL')
-  })
+                                     browse(url.href)
+                                   else if (url)
+                                     Tron.cmd('shell.open', [ url.href ], err => err && Mess.yell('shell.open: ' + err.message))
+                                   else
+                                     Mess.say('Must be on an URL')
+                                 })
 
 }
 

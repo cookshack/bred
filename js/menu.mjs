@@ -15,12 +15,12 @@ import * as MenuCommon from './menu-common.mjs'
 function itemsEl
 (items) {
   return items.map(it => {
-    if (it.line)
-      return MenuCommon.line()
-    if ((typeof it == 'string') || it instanceof String)
-      return MenuCommon.item(it)
-    return MenuCommon.item(it.name, it.cmd)
-  })
+                     if (it.line)
+                       return MenuCommon.line()
+                     if ((typeof it == 'string') || it instanceof String)
+                       return MenuCommon.item(it)
+                     return MenuCommon.item(it.name, it.cmd)
+                   })
 }
 
 export
@@ -34,14 +34,14 @@ function make
 
     buf = Pane.current(Frame.current(Tab.current(Area.current(win)))).buf
     el.querySelectorAll('.bred-menu1-item').forEach(elItem => {
-      if (Cmd.get(elItem.dataset.run, buf)) {
-        Css.enable(elItem)
-        //elItem.children[1].innerText = Cmd.get(elItem.dataset.run, buf).seq() || ""
-        elItem.children[1].innerText = Em.seq(elItem.dataset.run, buf) || ''
-      }
-      else
-        Css.disable(elItem)
-    })
+                                                      if (Cmd.get(elItem.dataset.run, buf)) {
+                                                        Css.enable(elItem)
+                                                        //elItem.children[1].innerText = Cmd.get(elItem.dataset.run, buf).seq() || ""
+                                                        elItem.children[1].innerText = Em.seq(elItem.dataset.run, buf) || ''
+                                                      }
+                                                      else
+                                                        Css.disable(elItem)
+                                                    })
   }
 
   function add
@@ -76,11 +76,11 @@ function make
   () {
     for (let i = 0; i < menu.el.children.length; i++)
       menu.el.children[i].onmouseover = () => {
-        if (Css.has(menu.el.children[i], 'bred-open'))
-          return
-        clear()
-        Css.add(menu.el.children[i], 'bred-open')
-      }
+                                          if (Css.has(menu.el.children[i], 'bred-open'))
+                                            return
+                                          clear()
+                                          Css.add(menu.el.children[i], 'bred-open')
+                                        }
   }
 
   function close

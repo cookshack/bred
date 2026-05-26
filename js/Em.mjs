@@ -472,15 +472,15 @@ function seq
     a = seqA(cmdName)
   if (a)
     return a.reduce((acc,cur) => {
-      if (cur == 'Control')
-        return acc + 'C-'
-      if (cur == 'Alt')
-        return acc + 'A-'
-      if (cur == 'Meta')
-        return acc + 'M-'
-      if (cur == 'Shift')
-        return acc + 'S-'
-      return acc + cur + ' '
-    }, '').trim()
+                      if (cur == 'Control')
+                        return acc + 'C-'
+                      if (cur == 'Alt')
+                        return acc + 'A-'
+                      if (cur == 'Meta')
+                        return acc + 'M-'
+                      if (cur == 'Shift')
+                        return acc + 'S-'
+                      return acc + cur + ' '
+                    }, '').trim()
   return 0
 }

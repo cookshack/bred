@@ -43,14 +43,14 @@ function busyCo
 function busySet
 (buf, text) {
   buf.views.forEach(view => {
-    if (view.eleOrReserved) {
-      let busyW
+                      if (view.eleOrReserved) {
+                        let busyW
 
-      busyW = view.eleOrReserved.querySelector('.shell-exit-w')
-      if (busyW)
-        busyW.innerHTML = text
-    }
-  })
+                        busyW = view.eleOrReserved.querySelector('.shell-exit-w')
+                        if (busyW)
+                          busyW.innerHTML = text
+                      }
+                    })
 }
 
 function busyClose
@@ -86,58 +86,58 @@ function initStash
   let moS
 
   Cmd.add('stash open', () => {
-    let line
+                          let line
 
-    line = View.current().line
-    if (line.trim().length == 0)
-      Mess.say('Empty line')
-    else {
-      let st
+                          line = View.current().line
+                          if (line.trim().length == 0)
+                            Mess.say('Empty line')
+                          else {
+                            let st
 
-      st = /[^@]+@{([^}]+)/.exec(line)[1]
-      if (st && st.length)
-        git('git stash show --no-prefix -p ' + st,
-            'patch',
-            [ 'equal' ],
-            1) // keep point at start
-      else
-        Mess.warn('Failed to extract stash num: ' + line)
-    }
-  })
+                            st = /[^@]+@{([^}]+)/.exec(line)[1]
+                            if (st && st.length)
+                              git('git stash show --no-prefix -p ' + st,
+                                  'patch',
+                                  [ 'equal' ],
+                                  1) // keep point at start
+                            else
+                              Mess.warn('Failed to extract stash num: ' + line)
+                          }
+                        })
 
   Cmd.add('stash apply', () => {
-    let line
+                           let line
 
-    line = View.current().line
-    if (line.trim().length == 0)
-      Mess.say('Empty line')
-    else {
-      let st
+                           line = View.current().line
+                           if (line.trim().length == 0)
+                             Mess.say('Empty line')
+                           else {
+                             let st
 
-      st = /[^@]+@{([^}]+)/.exec(line)[1]
-      if (st && st.length)
-        git(Loc.appDir().join('bin/git-stash-apply') + ' ' + st)
-      else
-        Mess.warn('Failed to extract stash num: ' + line)
-    }
-  })
+                             st = /[^@]+@{([^}]+)/.exec(line)[1]
+                             if (st && st.length)
+                               git(Loc.appDir().join('bin/git-stash-apply') + ' ' + st)
+                             else
+                               Mess.warn('Failed to extract stash num: ' + line)
+                           }
+                         })
 
   Cmd.add('stash drop', () => {
-    let line
+                          let line
 
-    line = View.current().line
-    if (line.trim().length == 0)
-      Mess.say('Empty line')
-    else {
-      let st
+                          line = View.current().line
+                          if (line.trim().length == 0)
+                            Mess.say('Empty line')
+                          else {
+                            let st
 
-      st = /[^@]+@{([^}]+)/.exec(line)[1]
-      if (st && st.length)
-        git(Loc.appDir().join('bin/git-stash-drop') + ' ' + st)
-      else
-        Mess.warn('Failed to extract stash num: ' + line)
-    }
-  })
+                            st = /[^@]+@{([^}]+)/.exec(line)[1]
+                            if (st && st.length)
+                              git(Loc.appDir().join('bin/git-stash-drop') + ' ' + st)
+                            else
+                              Mess.warn('Failed to extract stash num: ' + line)
+                          }
+                        })
 
   moS = Mode.add('stash', { viewInit: Ed.viewInit,
                             viewCopy: Ed.viewCopy,
@@ -201,12 +201,12 @@ function del
 (url, cb) { // (err)
   return fetch(url, fetchArg('DELETE'))
     .then(res => {
-      if (res.ok) {
-        cb()
-        return
-      }
-      throw new Error('HTTP ' + res.status)
-    })
+            if (res.ok) {
+              cb()
+              return
+            }
+            throw new Error('HTTP ' + res.status)
+          })
     .catch(err => cb(err))
 }
 
@@ -217,15 +217,15 @@ function get
   spec = spec || {}
   return fetch(url, fetchArg('GET', spec))
     .then(res => {
-      if (res.ok) {
-        if (spec.accept?.endsWith('diff'))
-          res.text().then(data => cb(0, res.status, data, res.headers))
-        else
-          res.json().then(data => cb(0, res.status, data, res.headers))
-        return
-      }
-      cb(new Error('HTTP ' + res.status), res.status, 0, res.headers)
-    })
+            if (res.ok) {
+              if (spec.accept?.endsWith('diff'))
+                res.text().then(data => cb(0, res.status, data, res.headers))
+              else
+                res.json().then(data => cb(0, res.status, data, res.headers))
+              return
+            }
+            cb(new Error('HTTP ' + res.status), res.status, 0, res.headers)
+          })
     .catch(err => cb(err))
 }
 
@@ -233,12 +233,12 @@ function patch
 (url, cb) { // (err)
   return fetch(url, fetchArg('PATCH'))
     .then(res => {
-      if (res.ok) {
-        cb()
-        return
-      }
-      throw new Error('HTTP ' + res.status)
-    })
+            if (res.ok) {
+              cb()
+              return
+            }
+            throw new Error('HTTP ' + res.status)
+          })
     .catch(err => cb(err))
 }
 
@@ -452,55 +452,55 @@ function branchDir
   path = Loc.make(dir).expand()
 
   Shell.runToString(path, 'git', [ 'branch', '--show-current' ], 0, (out, code) => {
-    let currentBranch
+                                                                      let currentBranch
 
-    d('VC ' + out)
+                                                                      d('VC ' + out)
 
-    if (code) {
-      Mess.yell('Is this a git dir? ' + path)
-      return
-    }
+                                                                      if (code) {
+                                                                        Mess.yell('Is this a git dir? ' + path)
+                                                                        return
+                                                                      }
 
-    currentBranch = out.trim()
-    if (currentBranch == name) {
-      Mess.say('Already in ' + name)
-      Pane.openDir(path)
-      return
-    }
+                                                                      currentBranch = out.trim()
+                                                                      if (currentBranch == name) {
+                                                                        Mess.say('Already in ' + name)
+                                                                        Pane.openDir(path)
+                                                                        return
+                                                                      }
 
-    Mess.say('Currently in ' + name)
-    Shell.runToString(path, 'git', [ 'status', '--porcelain' ], 0, (out2, code2) => {
-      d('VC ' + out2)
-      if (code2) {
-        Mess.yell('git status failed')
-        return
-      }
-      if (out2.trim().length) {
-        Mess.yell('Changes in ' + currentBranch + '. Commit or stash first')
-        return
-      }
-      Mess.say('Fetching ' + name)
-      Shell.runToString(path, 'git', [ 'fetch', 'origin', name + ':' + name ], 0,
-                        (out3, code3) => {
-                          d('VC ' + out3)
-                          if (code3) {
-                            Mess.yell('Fetch failed: ' + code3)
-                            return
-                          }
-                          Mess.say('Checking out ' + name)
-                          Shell.runToString(path, 'git', [ 'checkout', name ], 0,
-                                            (out4, code4) => {
-                                              d('VC ' + out4)
-                                              if (code4) {
-                                                Mess.yell('Checkout failed: ' + code4)
-                                                return
-                                              }
-                                              Mess.say('Now in ' + name)
-                                              Pane.openDir(path)
-                                            })
-                        })
-    })
-  })
+                                                                      Mess.say('Currently in ' + name)
+                                                                      Shell.runToString(path, 'git', [ 'status', '--porcelain' ], 0, (out2, code2) => {
+                                                                                                                                       d('VC ' + out2)
+                                                                                                                                       if (code2) {
+                                                                                                                                         Mess.yell('git status failed')
+                                                                                                                                         return
+                                                                                                                                       }
+                                                                                                                                       if (out2.trim().length) {
+                                                                                                                                         Mess.yell('Changes in ' + currentBranch + '. Commit or stash first')
+                                                                                                                                         return
+                                                                                                                                       }
+                                                                                                                                       Mess.say('Fetching ' + name)
+                                                                                                                                       Shell.runToString(path, 'git', [ 'fetch', 'origin', name + ':' + name ], 0,
+                                                                                                                                                         (out3, code3) => {
+                                                                                                                                                           d('VC ' + out3)
+                                                                                                                                                           if (code3) {
+                                                                                                                                                             Mess.yell('Fetch failed: ' + code3)
+                                                                                                                                                             return
+                                                                                                                                                           }
+                                                                                                                                                           Mess.say('Checking out ' + name)
+                                                                                                                                                           Shell.runToString(path, 'git', [ 'checkout', name ], 0,
+                                                                                                                                                                             (out4, code4) => {
+                                                                                                                                                                               d('VC ' + out4)
+                                                                                                                                                                               if (code4) {
+                                                                                                                                                                                 Mess.yell('Checkout failed: ' + code4)
+                                                                                                                                                                                 return
+                                                                                                                                                                               }
+                                                                                                                                                                               Mess.say('Now in ' + name)
+                                                                                                                                                                               Pane.openDir(path)
+                                                                                                                                                                             })
+                                                                                                                                                         })
+                                                                                                                                     })
+                                                                    })
 }
 
 function branchOwnerRepo
@@ -539,30 +539,30 @@ function makePrBuf
   if (res.commits?.length) {
     text += '\n## Commits (' + res.commits.length + ')\n'
     res.commits.forEach(c => {
-      text += '\n- ' + c.sha.slice(0, 7) + ' ' + c.message + '\n'
-    })
+                          text += '\n- ' + c.sha.slice(0, 7) + ' ' + c.message + '\n'
+                        })
   }
 
   if (res.comments?.length) {
     text += '\n## Comments (' + res.comments.length + ')\n'
     res.comments.forEach(c => {
-      let date
+                           let date
 
-      date = formatDate(c.created)
-      text += '\n**' + c.user + '** ' + date + '\n\n' + c.body + '\n'
-    })
+                           date = formatDate(c.created)
+                           text += '\n**' + c.user + '** ' + date + '\n\n' + c.body + '\n'
+                         })
   }
 
   if (res.reviews?.length) {
     text += '\n## Reviews\n'
     res.reviews.forEach(r => {
-      let date
+                          let date
 
-      date = formatDate(r.submitted)
-      text += '\n**' + r.user + '** ' + r.state + ' ' + date + '\n'
-      if (r.body && r.body.length)
-        text += '\n' + r.body.trim() + '\n'
-    })
+                          date = formatDate(r.submitted)
+                          text += '\n**' + r.user + '** ' + r.state + ' ' + date + '\n'
+                          if (r.body && r.body.length)
+                            text += '\n' + r.body.trim() + '\n'
+                        })
   }
 
   Ed.make(p,
@@ -722,31 +722,31 @@ function initHub
 
       rows = []
       notifs.forEach(n => {
-        let url, ownerRepo, prNum, issueNum, type, tag
+                       let url, ownerRepo, prNum, issueNum, type, tag
 
-        ownerRepo = n.repository.full_name
-        type = n.subject.type
-        url = n.repository.html_url
-        if (type == 'Release') {
-          tag = n.subject.title
-          url = url + '/releases/tag/' + tag
-        }
-        else if (type == 'PullRequest') {
-          prNum = n.subject.url?.split('/pulls/').pop() || n.subject.latest_comment_url?.split('/pulls/').pop()
-          prNum || Mess.log('VC PullRequest missing prNum')
-          prNum || d({ n })
-          url = url + '/pull/' + prNum
-        }
-        else if (type == 'Issue') {
-          issueNum = n.subject.url?.split('/issues/').pop() || n.subject.latest_comment_url?.split('/issues/').pop()
-          url = url + '/issues/' + issueNum
-        }
-        else if (type == 'Discussion') {
-          issueNum = n.subject.url?.split('/discussions/').pop() || n.subject.latest_comment_url?.split('/discussions/').pop()
-          url = url + '/discussions/' + issueNum
-        }
+                       ownerRepo = n.repository.full_name
+                       type = n.subject.type
+                       url = n.repository.html_url
+                       if (type == 'Release') {
+                         tag = n.subject.title
+                         url = url + '/releases/tag/' + tag
+                       }
+                       else if (type == 'PullRequest') {
+                         prNum = n.subject.url?.split('/pulls/').pop() || n.subject.latest_comment_url?.split('/pulls/').pop()
+                         prNum || Mess.log('VC PullRequest missing prNum')
+                         prNum || d({ n })
+                         url = url + '/pull/' + prNum
+                       }
+                       else if (type == 'Issue') {
+                         issueNum = n.subject.url?.split('/issues/').pop() || n.subject.latest_comment_url?.split('/issues/').pop()
+                         url = url + '/issues/' + issueNum
+                       }
+                       else if (type == 'Discussion') {
+                         issueNum = n.subject.url?.split('/discussions/').pop() || n.subject.latest_comment_url?.split('/discussions/').pop()
+                         url = url + '/discussions/' + issueNum
+                       }
 
-        rows.push({ prNum,
+                       rows.push({ prNum,
                     issueNum,
                     type,
                     tag,
@@ -761,23 +761,23 @@ function initHub
                     ownerRepo,
                     url,
                     id: n.id })
-      })
+                     })
 
       widths = [ 1, 4, 0, 0, 0, 16, 0, 0 ]
       rows.forEach(r => {
-        widths[2] = Math.max(widths[2], r.repo.length)
-        widths[3] = Math.max(widths[3], r.reason.length)
-        widths[4] = Math.max(widths[4], r.subject.length)
-        widths[6] = Math.max(widths[6], r.ownerRepo.length)
-        widths[7] = Math.max(widths[7], r.branch.length)
-      })
+                     widths[2] = Math.max(widths[2], r.repo.length)
+                     widths[3] = Math.max(widths[3], r.reason.length)
+                     widths[4] = Math.max(widths[4], r.subject.length)
+                     widths[6] = Math.max(widths[6], r.ownerRepo.length)
+                     widths[7] = Math.max(widths[7], r.branch.length)
+                   })
 
       out = ''
       rows.forEach(r => {
-        p.buf.vars('hub').threadIds.push(r.id)
-        p.buf.vars('hub').rows.push(r)
-        out += makeLine(r)
-      })
+                     p.buf.vars('hub').threadIds.push(r.id)
+                     p.buf.vars('hub').rows.push(r)
+                     out += makeLine(r)
+                   })
       p.buf.append(out, 1)
       p.view.lineStart()
 
@@ -786,41 +786,41 @@ function initHub
 
         pending = rows.filter(r => r.type == 'PullRequest').length
         rows.forEach(r => {
-          if (r.type == 'PullRequest')
-            getPr(1, r.ownerRepo, r.prNum,
-                  res => {
-                    let view
+                       if (r.type == 'PullRequest')
+                         getPr(1, r.ownerRepo, r.prNum,
+                               res => {
+                                 let view
 
-                    if (res) {
-                      let approvedBy
+                                 if (res) {
+                                   let approvedBy
 
-                      r.prState = res.state
-                      r.branch = res.branch
-                      r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
-                      approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
-                      r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
-                    }
-                    pending--
-                    if (pending)
-                      return
-                    // We have all PRs now.
-                    view = buf?.anyView()
-                    if (view) {
-                      rows.forEach(r2 => widths[7] = Math.max(widths[7], r2.branch.length))
-                      rows.forEach((r2, index2) => {
-                        let from, range, line
+                                   r.prState = res.state
+                                   r.branch = res.branch
+                                   r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
+                                   approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
+                                   r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
+                                 }
+                                 pending--
+                                 if (pending)
+                                   return
+                                 // We have all PRs now.
+                                 view = buf?.anyView()
+                                 if (view) {
+                                   rows.forEach(r2 => widths[7] = Math.max(widths[7], r2.branch.length))
+                                   rows.forEach((r2, index2) => {
+                                                  let from, range, line
 
-                        from = Ed.posToBep(view, Pos.make(index2, 0))
-                        range = Ed.makeRange(view,
-                                             from,
-                                             Ed.posToBep(view, Pos.make(index2 + 1, 0)))
-                        range.remove()
-                        line = makeLine(r2)
-                        buf.insert(line, from)
-                      })
-                    }
-                  })
-        })
+                                                  from = Ed.posToBep(view, Pos.make(index2, 0))
+                                                  range = Ed.makeRange(view,
+                                                                       from,
+                                                                       Ed.posToBep(view, Pos.make(index2 + 1, 0)))
+                                                  range.remove()
+                                                  line = makeLine(r2)
+                                                  buf.insert(line, from)
+                                                })
+                                 }
+                               })
+                     })
       }
     }
 
@@ -987,11 +987,11 @@ function initHub
     url = p.view.buf.vars('hub').rows[p.view.pos.row].url
     if (url)
       Tron.cmd('shell.open', [ url ], err => {
-        if (err) {
-          Mess.yell('shell.open: ' + err.message)
-          return
-        }
-      })
+                                        if (err) {
+                                          Mess.yell('shell.open: ' + err.message)
+                                          return
+                                        }
+                                      })
     else if (0)
       Browse.browse(url)
     else
@@ -1314,11 +1314,11 @@ function initHub
                      if (res.moreBefore)
                        text += '*...showing last ' + (res.comments.length) + ' comments...*\n\n'
                      res.comments.forEach(c => {
-                       let date
+                                            let date
 
-                       date = formatDate(c.created)
-                       text += '**' + c.user + '** ' + date + '\n\n' + c.body + '\n\n'
-                     })
+                                            date = formatDate(c.created)
+                                            text += '**' + c.user + '** ' + date + '\n\n' + c.body + '\n\n'
+                                          })
                    }
 
                    Ed.make(p,
@@ -1365,11 +1365,11 @@ function initHub
                     if (data2?.length) {
                       text += '## Comments (' + data2.length + ')\n\n'
                       data2.forEach(c => {
-                        let date
+                                      let date
 
-                        date = formatDate(c.created_at)
-                        text += '**' + c.user.login + '** ' + date + '\n\n' + c.body + '\n\n'
-                      })
+                                      date = formatDate(c.created_at)
+                                      text += '**' + c.user.login + '** ' + date + '\n\n' + c.body + '\n\n'
+                                    })
                     }
 
                     Ed.make(p,
@@ -1488,45 +1488,45 @@ function initHub
   Em.on('w', 'open notification', mo)
 
   Cmd.add('vc hub', () => {
-    let p
+                      let p
 
-    p = Pane.current()
-    if (buf)
-      p.setBuf(buf)
-    else {
-      buf = Buf.add('Vc Hub', 'Vc Hub',
-                    Ed.divW(0, 0, { ml: hubMl() }),
-                    p.dir)
-      buf.vars('hub').threadIds = []
-      buf.vars('hub').rows = []
-      buf.icon = 'log'
-      buf.opts.set('core.lint.enabled', 0)
-      buf.opts.set('core.line.wrap.enabled', 0)
-      buf.opts.set('core.line.numbers.show', 0)
-      buf.opts.set('core.folding.enabled', 0)
-      buf.opts.set('highlightIndent.enabled', 0)
-      buf.opts.set('minimap.enabled', 0)
-      buf.opts.set('ruler.enabled', 0)
-      p.setBuf(buf, {}, () => refresh(p))
-    }
-  })
+                      p = Pane.current()
+                      if (buf)
+                        p.setBuf(buf)
+                      else {
+                        buf = Buf.add('Vc Hub', 'Vc Hub',
+                                      Ed.divW(0, 0, { ml: hubMl() }),
+                                      p.dir)
+                        buf.vars('hub').threadIds = []
+                        buf.vars('hub').rows = []
+                        buf.icon = 'log'
+                        buf.opts.set('core.lint.enabled', 0)
+                        buf.opts.set('core.line.wrap.enabled', 0)
+                        buf.opts.set('core.line.numbers.show', 0)
+                        buf.opts.set('core.folding.enabled', 0)
+                        buf.opts.set('highlightIndent.enabled', 0)
+                        buf.opts.set('minimap.enabled', 0)
+                        buf.opts.set('ruler.enabled', 0)
+                        p.setBuf(buf, {}, () => refresh(p))
+                      }
+                    })
 
   Cmd.add('vc hub json', () => {
-    getNotifications(0, data => {
-      let p
+                           getNotifications(0, data => {
+                                                 let p
 
-      p = Pane.current()
-      Ed.make(p,
-              { name: 'vc-hub.json',
+                                                 p = Pane.current()
+                                                 Ed.make(p,
+                                                         { name: 'vc-hub.json',
                 dir: p.dir },
-              view => {
-                view.buf.file = 'vc-hub.json'
-                view.buf.opts.set('core.lang', 'json')
-                view.insert(JSON.stringify(data, null, 2))
-                view.buf.modified = 0
-              })
-    })
-  })
+                                                         view => {
+                                                           view.buf.file = 'vc-hub.json'
+                                                           view.buf.opts.set('core.lang', 'json')
+                                                           view.insert(JSON.stringify(data, null, 2))
+                                                           view.buf.modified = 0
+                                                         })
+                                               })
+                         })
 
   Cmd.add('vc review', review)
 }
@@ -1598,14 +1598,14 @@ function initPrs
       }
 
       rows = data.items.map(pr => {
-        let state, repo, ownerRepo, url
+                              let state, repo, ownerRepo, url
 
-        url = pr.html_url
-        ownerRepo = pr.repository_url?.replace('https://api.github.com/repos/', '') || ''
-        state = pr.state == 'open' ? 'O' : (pr.merged ? 'M' : 'C')
-        repo = ownerRepo.split('/')[1] || ''
+                              url = pr.html_url
+                              ownerRepo = pr.repository_url?.replace('https://api.github.com/repos/', '') || ''
+                              state = pr.state == 'open' ? 'O' : (pr.merged ? 'M' : 'C')
+                              repo = ownerRepo.split('/')[1] || ''
 
-        return { num: String(pr.number),
+                              return { num: String(pr.number),
                  state,
                  prState: '',
                  repo,
@@ -1617,52 +1617,52 @@ function initPrs
                  approvedBy: '',
                  comments: 0,
                  url }
-      })
+                            })
 
       widths = [ 1, 4, 0, 0, 0, 0 ]
       rows.forEach(r => {
-        widths[2] = Math.max(widths[2], r.repo.length)
-        widths[3] = Math.max(widths[3], r.title.length)
-        widths[4] = Math.max(widths[4], r.updated.length)
-        widths[5] = Math.max(widths[5], r.ownerRepo.length)
-      })
+                     widths[2] = Math.max(widths[2], r.repo.length)
+                     widths[3] = Math.max(widths[3], r.title.length)
+                     widths[4] = Math.max(widths[4], r.updated.length)
+                     widths[5] = Math.max(widths[5], r.ownerRepo.length)
+                   })
 
       out = ''
       rows.forEach(r => {
-        p.buf.vars('prs').rows.push(r)
-        out += makeLine(r)
-      })
+                     p.buf.vars('prs').rows.push(r)
+                     out += makeLine(r)
+                   })
       p.buf.append(out, 1)
       p.view.lineStart()
 
       rows.forEach((r, index) => {
-        if (r.ownerRepo)
-          getPr(0, r.ownerRepo, r.num,
-                res => {
-                  if (res) {
-                    let approvedBy, view
+                     if (r.ownerRepo)
+                       getPr(0, r.ownerRepo, r.num,
+                             res => {
+                               if (res) {
+                                 let approvedBy, view
 
-                    r.prState = res.state
-                    r.branch = res.branch
-                    r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
-                    approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
-                    r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
-                    r.comments = res.comments?.length || 0
-                    view = buf?.anyView()
-                    if (view) {
-                      let from, range, line
+                                 r.prState = res.state
+                                 r.branch = res.branch
+                                 r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
+                                 approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
+                                 r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
+                                 r.comments = res.comments?.length || 0
+                                 view = buf?.anyView()
+                                 if (view) {
+                                   let from, range, line
 
-                      from = Ed.posToBep(view, Pos.make(index, 0))
-                      range = Ed.makeRange(view,
-                                           from,
-                                           Ed.posToBep(view, Pos.make(index + 1, 0)))
-                      range.remove()
-                      line = makeLine(r)
-                      buf.insert(line, from)
-                    }
-                  }
-                })
-      })
+                                   from = Ed.posToBep(view, Pos.make(index, 0))
+                                   range = Ed.makeRange(view,
+                                                        from,
+                                                        Ed.posToBep(view, Pos.make(index + 1, 0)))
+                                   range.remove()
+                                   line = makeLine(r)
+                                   buf.insert(line, from)
+                                 }
+                               }
+                             })
+                   })
     }
 
     p.buf.clear()
@@ -1681,11 +1681,11 @@ function initPrs
     url = p.view.buf.vars('prs').rows[p.view.pos.row].url
     if (url)
       Tron.cmd('shell.open', [ url ], err => {
-        if (err) {
-          Mess.yell('shell.open: ' + err.message)
-          return
-        }
-      })
+                                        if (err) {
+                                          Mess.yell('shell.open: ' + err.message)
+                                          return
+                                        }
+                                      })
     else
       Mess.yell('Missing URL')
   }
@@ -1773,50 +1773,50 @@ function initPrs
   Em.on('w', 'open pr', mo)
 
   Cmd.add('vc prs json', () => {
-    let p
+                           let p
 
-    p = Pane.current()
-    ensureUser(user => get(prsUrl(user),
-                           0,
-                           (err, status, data) => {
-                             if (err) {
-                               Mess.yell('PRs: ' + err.message)
-                               return
-                             }
-                             Ed.make(p,
-                                     { name: 'vc-prs.json',
+                           p = Pane.current()
+                           ensureUser(user => get(prsUrl(user),
+                                                  0,
+                                                  (err, status, data) => {
+                                                    if (err) {
+                                                      Mess.yell('PRs: ' + err.message)
+                                                      return
+                                                    }
+                                                    Ed.make(p,
+                                                            { name: 'vc-prs.json',
                                        dir: p.dir },
-                                     view => {
-                                       view.buf.file = 'vc-prs.json'
-                                       view.buf.opts.set('core.lang', 'json')
-                                       view.insert(JSON.stringify(data, null, 2))
-                                       view.buf.modified = 0
-                                     })
-                           }))
-  })
+                                                            view => {
+                                                              view.buf.file = 'vc-prs.json'
+                                                              view.buf.opts.set('core.lang', 'json')
+                                                              view.insert(JSON.stringify(data, null, 2))
+                                                              view.buf.modified = 0
+                                                            })
+                                                  }))
+                         })
 
   Cmd.add('vc prs', () => {
-    let p
+                      let p
 
-    p = Pane.current()
-    if (buf)
-      p.setBuf(buf)
-    else {
-      buf = Buf.add('VC PRs', 'VC PRs',
-                    Ed.divW(0, 0, { ml: prsMl() }),
-                    p.dir)
-      buf.vars('prs').rows = []
-      buf.icon = 'log'
-      buf.opts.set('core.lint.enabled', 0)
-      buf.opts.set('core.line.wrap.enabled', 0)
-      buf.opts.set('core.line.numbers.show', 0)
-      buf.opts.set('core.folding.enabled', 0)
-      buf.opts.set('highlightIndent.enabled', 0)
-      buf.opts.set('minimap.enabled', 0)
-      buf.opts.set('ruler.enabled', 0)
-      p.setBuf(buf, {}, () => refresh(p))
-    }
-  })
+                      p = Pane.current()
+                      if (buf)
+                        p.setBuf(buf)
+                      else {
+                        buf = Buf.add('VC PRs', 'VC PRs',
+                                      Ed.divW(0, 0, { ml: prsMl() }),
+                                      p.dir)
+                        buf.vars('prs').rows = []
+                        buf.icon = 'log'
+                        buf.opts.set('core.lint.enabled', 0)
+                        buf.opts.set('core.line.wrap.enabled', 0)
+                        buf.opts.set('core.line.numbers.show', 0)
+                        buf.opts.set('core.folding.enabled', 0)
+                        buf.opts.set('highlightIndent.enabled', 0)
+                        buf.opts.set('minimap.enabled', 0)
+                        buf.opts.set('ruler.enabled', 0)
+                        p.setBuf(buf, {}, () => refresh(p))
+                      }
+                    })
 }
 
 export
@@ -1894,15 +1894,15 @@ function initCommit
 function gitFile
 (dir, file, cb) { // (file, code)  file is absolute
   Shell.runToString(dir, 'git', [ 'rev-parse', '--show-toplevel' ], false, (root, code) => {
-    if (code) {
-      cb(null, code)
-      return
-    }
-    root = Loc.make(root.trim())
-    root.ensureSlash()
-    root.join(file)
-    cb(root.path, 0)
-  })
+                                                                             if (code) {
+                                                                               cb(null, code)
+                                                                               return
+                                                                             }
+                                                                             root = Loc.make(root.trim())
+                                                                             root.ensureSlash()
+                                                                             root.join(file)
+                                                                             cb(root.path, 0)
+                                                                           })
 }
 
 export
@@ -1912,32 +1912,32 @@ function applyHunkTooPrecise
 
   off = hunk.oldStart
   hunk.lines.forEach(line => {
-    d('off ' + off)
-    d(line)
-    if (line.startsWith(' '))
-      off += line.length - 1 /* space */ + 1 /* nl */
-    else if (line.startsWith('-')) {
-      let from, to
+                       d('off ' + off)
+                       d(line)
+                       if (line.startsWith(' '))
+                         off += line.length - 1 /* space */ + 1 /* nl */
+                       else if (line.startsWith('-')) {
+                         let from, to
 
-      from = off
-      to = from + line.length - 1 /* - */ + 1 /* nl */
-      d('remove ' + from + '-' + to)
-      Ed.makeRange(view, from, to).remove()
-    }
-    else if (line.startsWith('+')) {
-      let text
+                         from = off
+                         to = from + line.length - 1 /* - */ + 1 /* nl */
+                         d('remove ' + from + '-' + to)
+                         Ed.makeRange(view, from, to).remove()
+                       }
+                       else if (line.startsWith('+')) {
+                         let text
 
-      text = line.slice(1) + '\n'
-      d('insert at ' + off + ': ' + text)
-      Ed.Backend.vinsertAt(view,
-                           Ed.Backend.offToBep(off),
-                           1,
-                           text)
-      off += text.length
-    }
-    else
-      Mess.log('applyHunk: weird line: ' + line)
-  })
+                         text = line.slice(1) + '\n'
+                         d('insert at ' + off + ': ' + text)
+                         Ed.Backend.vinsertAt(view,
+                                              Ed.Backend.offToBep(off),
+                                              1,
+                                              text)
+                         off += text.length
+                       }
+                       else
+                         Mess.log('applyHunk: weird line: ' + line)
+                     })
   d('off ' + off)
 }
 
@@ -2049,14 +2049,14 @@ function initEqual
     function abs
     (f, dir, cb) { // (file)
       Tron.acmd('project.root', [ dir ]).then(data => {
-        d({ data })
-        if (data.dir)
-          cb(Loc.make(data.dir).join(f))
-        else {
-          Mess.say('Outside git, using current dir')
-          cb(Loc.make(dir).join(f))
-        }
-      })
+                                                d({ data })
+                                                if (data.dir)
+                                                  cb(Loc.make(data.dir).join(f))
+                                                else {
+                                                  Mess.say('Outside git, using current dir')
+                                                  cb(Loc.make(dir).join(f))
+                                                }
+                                              })
     }
 
     function run
@@ -2070,9 +2070,9 @@ function initEqual
                         0,
                         (str, code) => {
                           Tron.cmd('dir.rm', [ data.dir, { recurse: 1 } ], err => {
-                            if (err)
-                              Mess.yell('Error deleting: ' + err.message)
-                          })
+                                                                             if (err)
+                                                                               Mess.yell('Error deleting: ' + err.message)
+                                                                           })
                           if (code) {
                             Mess.yell('Error: ' + code + ': ' + str)
                             return
@@ -2119,36 +2119,36 @@ function initEqual
 
     abs(file, p.buf.dir, absFile => {
 
-      // Apply it.
+                           // Apply it.
 
-      d({ absFile })
-      // Make sure file is open
-      p.open(absFile, null, view => {
-        // Must be saved
-        if (p.buf.modified)
-          Mess.toss('Please save first')
-        // put patch in tmp file
-        Tron.acmd('file.save.tmp', [ text ]).then(data => {
-          if (data.err) {
-            Mess.yell('file.save.tmp: ' + data.err.message)
-            return
-          }
-          Shell.runToString(p.dir,
-                            'patch',
-                            [ '--dry-run', '--reverse', '--force', '-i', data.file, absFile ],
-                            0,
-                            (str, code) => {
-                              if (code == 0) {
-                                Prompt.yn('Looks like hunk is already applied. Reverse it?',
-                                          {},
-                                          yes => yes && run(view, data, absFile, 1))
-                                return
-                              }
-                              run(view, data, absFile)
-                            })
-        })
-      })
-    })
+                           d({ absFile })
+                           // Make sure file is open
+                           p.open(absFile, null, view => {
+                                                   // Must be saved
+                                                   if (p.buf.modified)
+                                                     Mess.toss('Please save first')
+                                                   // put patch in tmp file
+                                                   Tron.acmd('file.save.tmp', [ text ]).then(data => {
+                                                                                               if (data.err) {
+                                                                                                 Mess.yell('file.save.tmp: ' + data.err.message)
+                                                                                                 return
+                                                                                               }
+                                                                                               Shell.runToString(p.dir,
+                                                                                                                 'patch',
+                                                                                                                 [ '--dry-run', '--reverse', '--force', '-i', data.file, absFile ],
+                                                                                                                 0,
+                                                                                                                 (str, code) => {
+                                                                                                                   if (code == 0) {
+                                                                                                                     Prompt.yn('Looks like hunk is already applied. Reverse it?',
+                                                                                                                               {},
+                                                                                                                               yes => yes && run(view, data, absFile, 1))
+                                                                                                                     return
+                                                                                                                   }
+                                                                                                                   run(view, data, absFile)
+                                                                                                                 })
+                                                                                             })
+                                                 })
+                         })
   }
 
   function prev
@@ -2219,76 +2219,76 @@ function initEqual
       Pane.nextOrSplit()
 
     p.view.excur(() => {
-      let pos, lineNum, offset, first
+                   let pos, lineNum, offset, first
 
-      lineNum = -1
-      offset = -1 // hunk line (@@ -N,...) is 1 before line N
-      pos = p.view.pos
-      pos.col = 0
-      first = 1
-      while (1) {
-        let line
+                   lineNum = -1
+                   offset = -1 // hunk line (@@ -N,...) is 1 before line N
+                   pos = p.view.pos
+                   pos.col = 0
+                   first = 1
+                   while (1) {
+                     let line
 
-        if (Ed.posRow(pos) <= 0) {
-          Mess.say('Reached start of buffer')
-          return
-        }
-        line = p.view.lineAt(pos)
-        //d('EQ line: ' + line)
-        if ((lineNum == -1) && line.startsWith('@@ ')) {
-          let num
+                     if (Ed.posRow(pos) <= 0) {
+                       Mess.say('Reached start of buffer')
+                       return
+                     }
+                     line = p.view.lineAt(pos)
+                     //d('EQ line: ' + line)
+                     if ((lineNum == -1) && line.startsWith('@@ ')) {
+                       let num
 
-          //d('hunk line: ' + line)
-          num = /^@@ -[^ ]+ +\+([0-9]+)/.exec(line)
-          if (num)
-            num = num[1]
-          if (num && num.length)
-            lineNum = parseInt(num) + offset
-          else
-            Mess.log('failed to parse hunk line: ' + line)
-        }
-        if (lineNum == -1)
-          if (line.startsWith('-')) {
-            // removed line
-            if (first)
-              // must include in count if start line is a removed line
-              offset++
-          }
-          else
-            offset++
-        first = 0
-        if (line.startsWith('+++ ')) {
-          let loc, file
+                       //d('hunk line: ' + line)
+                       num = /^@@ -[^ ]+ +\+([0-9]+)/.exec(line)
+                       if (num)
+                         num = num[1]
+                       if (num && num.length)
+                         lineNum = parseInt(num) + offset
+                       else
+                         Mess.log('failed to parse hunk line: ' + line)
+                     }
+                     if (lineNum == -1)
+                       if (line.startsWith('-')) {
+                         // removed line
+                         if (first)
+                         // must include in count if start line is a removed line
+                           offset++
+                       }
+                       else
+                         offset++
+                     first = 0
+                     if (line.startsWith('+++ ')) {
+                       let loc, file
 
-          //d('EQ file line: ' + line)
-          file = line.slice(4)
-          loc = Loc.make(p.buf.dir)
-          loc.ensureSlash()
-          loc.join(file)
-          Tron.cmd('file.stat', loc.path, err => {
-            if (err)
-              if (err.code == 'ENOENT')
-                // try relative to the current git root
-                gitFile(p.buf.dir, file, repoFile => {
-                  if (repoFile) {
-                    d('open repoFile ' + repoFile + ' at ' + lineNum)
-                    Pane.openFile(repoFile, lineNum)
-                  }
-                  else
-                    Mess.toss('File missing')
-                })
-              else
-                Mess.toss(err)
-            else {
-              d('open loc.path ' + loc.path + ' at ' + lineNum)
-              Pane.openFile(loc.path, lineNum)
-            }
-          })
-          return
-        }
-        Ed.posRowDecr(pos)
-      }
-    })
+                       //d('EQ file line: ' + line)
+                       file = line.slice(4)
+                       loc = Loc.make(p.buf.dir)
+                       loc.ensureSlash()
+                       loc.join(file)
+                       Tron.cmd('file.stat', loc.path, err => {
+                                                         if (err)
+                                                           if (err.code == 'ENOENT')
+                                                           // try relative to the current git root
+                                                             gitFile(p.buf.dir, file, repoFile => {
+                                                                                        if (repoFile) {
+                                                                                          d('open repoFile ' + repoFile + ' at ' + lineNum)
+                                                                                          Pane.openFile(repoFile, lineNum)
+                                                                                        }
+                                                                                        else
+                                                                                          Mess.toss('File missing')
+                                                                                      })
+                                                           else
+                                                             Mess.toss(err)
+                                                         else {
+                                                           d('open loc.path ' + loc.path + ' at ' + lineNum)
+                                                           Pane.openFile(loc.path, lineNum)
+                                                         }
+                                                       })
+                       return
+                     }
+                     Ed.posRowDecr(pos)
+                   }
+                 })
   }
 
   mo = Mode.add('Equal')
@@ -2449,32 +2449,32 @@ function initLog
   Cmd.add('show', () => show(), mo)
 
   Cmd.add('vc log', u => {
-    let args, p
+                      let args, p
 
-    args = [ 'log' ]
-    if (u == 4)
-      args.push('main..HEAD')
-    p = Pane.current()
-    if (buf) {
-      buf.dir = p.dir
-      busySet(buf, busyCo())
-    }
-    else {
-      buf = Buf.add('VC Log',
-                    'VC Log',
-                    divW('VC Log', args),
-                    p.dir)
-      buf.vars('ed').fillParent = 0
-      buf.icon = 'log'
-    }
-    buf.vars('vc log').args = args
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('minimap.enabled', 0)
-    buf.opts.set('core.lang', 'git log')
-    p.setBuf(buf, {}, () => {
-      refresh(p)
-    })
-  })
+                      args = [ 'log' ]
+                      if (u == 4)
+                        args.push('main..HEAD')
+                      p = Pane.current()
+                      if (buf) {
+                        buf.dir = p.dir
+                        busySet(buf, busyCo())
+                      }
+                      else {
+                        buf = Buf.add('VC Log',
+                                      'VC Log',
+                                      divW('VC Log', args),
+                                      p.dir)
+                        buf.vars('ed').fillParent = 0
+                        buf.icon = 'log'
+                      }
+                      buf.vars('vc log').args = args
+                      buf.opts.set('core.lint.enabled', 0)
+                      buf.opts.set('minimap.enabled', 0)
+                      buf.opts.set('core.lang', 'git log')
+                      p.setBuf(buf, {}, () => {
+                                          refresh(p)
+                                        })
+                    })
 
   Cmd.add('vc log search', (u, we, term) => {
     function go
@@ -2497,18 +2497,18 @@ function initLog
         b.opts.set('core.lang', 'git log')
         hist.add(text)
         p.setBuf(b, {}, () => {
-          refresh(p)
-        })
+                          refresh(p)
+                        })
       }
     }
 
-    if (term)
-      go(term)
-    else
-      Prompt.ask({ text: 'VC Log Search:',
+                             if (term)
+                               go(term)
+                             else
+                               Prompt.ask({ text: 'VC Log Search:',
                    hist },
-                 go)
-  })
+                                          go)
+                           })
 
   hist = Hist.ensure('vc-log-search')
 
@@ -2605,33 +2605,33 @@ function initLogOneLine
   }
 
   Cmd.add('vc log one-line', u => {
-    let args, p
+                               let args, p
 
-    args = [ 'log', '--oneline', '--no-decorate' ]
-    if (u == 4)
-      args.push('main..HEAD')
-    p = Pane.current1()
-    p.focus()
-    if (buf) {
-      buf.dir = p.dir
-      busySet(buf, busyCo())
-    }
-    else {
-      buf = Buf.add('VC Log One-Line', 'VC Log One-Line',
-                    divW('VC Log One-Line', args),
-                    p.dir)
-      buf.vars('ed').fillParent = 0
-      buf.icon = 'log'
-    }
-    buf.vars('vc log one-line').args = args
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('minimap.enabled', 0)
-    //buf.opts.set('core.lang', 'git log')
-    buf.mode = 'VC Log One-Line'
-    p.setBuf(buf, {}, () => {
-      refresh(p)
-    })
-  })
+                               args = [ 'log', '--oneline', '--no-decorate' ]
+                               if (u == 4)
+                                 args.push('main..HEAD')
+                               p = Pane.current1()
+                               p.focus()
+                               if (buf) {
+                                 buf.dir = p.dir
+                                 busySet(buf, busyCo())
+                               }
+                               else {
+                                 buf = Buf.add('VC Log One-Line', 'VC Log One-Line',
+                                               divW('VC Log One-Line', args),
+                                               p.dir)
+                                 buf.vars('ed').fillParent = 0
+                                 buf.icon = 'log'
+                               }
+                               buf.vars('vc log one-line').args = args
+                               buf.opts.set('core.lint.enabled', 0)
+                               buf.opts.set('minimap.enabled', 0)
+                               //buf.opts.set('core.lang', 'git log')
+                               buf.mode = 'VC Log One-Line'
+                               p.setBuf(buf, {}, () => {
+                                                   refresh(p)
+                                                 })
+                             })
 
   Cmd.add('vc log search one-line', (u, we, term) => {
     function go
@@ -2654,18 +2654,18 @@ function initLogOneLine
         //b.opts.set('core.lang', 'git log')
         hist.add(text)
         p.setBuf(b, {}, () => {
-          refresh(p)
-        })
+                          refresh(p)
+                        })
       }
     }
 
-    if (term)
-      go(term)
-    else
-      Prompt.ask({ text: 'VC Log Search:',
+                                      if (term)
+                                        go(term)
+                                      else
+                                        Prompt.ask({ text: 'VC Log Search:',
                    hist },
-                 go)
-  })
+                                                   go)
+                                    })
 
   mo = Mode.add('VC Log One-Line', { viewInit: Ed.viewInit,
                                      viewCopy,
@@ -2751,27 +2751,27 @@ function initAnnotate
     }
     else
       Shell.runToString(Loc.make(file).dirname, 'git', [ 'annotate', '--line-porcelain', file ], 0, str => {
-        let out, commits, rows, commit, previous
+                                                                                                      let out, commits, rows, commit, previous
 
-        d('VC porcelain ready')
-        out = ''
-        commits = []
-        rows = []
-        commit = {} // in case other line accidentally comes before hash
-        str.split(/\r?\n/).forEach(line => {
-          let m
+                                                                                                      d('VC porcelain ready')
+                                                                                                      out = ''
+                                                                                                      commits = []
+                                                                                                      rows = []
+                                                                                                      commit = {} // in case other line accidentally comes before hash
+                                                                                                      str.split(/\r?\n/).forEach(line => {
+                                                                                                                                   let m
 
-          //d({line})
-          m = line.match(/^([0-9a-f]{39,40})\s.*/)
-          if (m) {
-            let hash, clr
+                                                                                                                                   //d({line})
+                                                                                                                                   m = line.match(/^([0-9a-f]{39,40})\s.*/)
+                                                                                                                                   if (m) {
+                                                                                                                                     let hash, clr
 
-            hash = m[1]
-            commit = commits.find(c => c.hash == hash)
-            if (commit)
-              return
-            clr = clrs[commits.length % clrs.length]
-            commit = { hash,
+                                                                                                                                     hash = m[1]
+                                                                                                                                     commit = commits.find(c => c.hash == hash)
+                                                                                                                                     if (commit)
+                                                                                                                                       return
+                                                                                                                                     clr = clrs[commits.length % clrs.length]
+                                                                                                                                     commit = { hash,
                        clr,
                        decorHash: Ed.makeDecor({ attr: { 'data-run': 'show',
                                                          'data-hash': hash } }),
@@ -2781,63 +2781,63 @@ function initAnnotate
                        decorText: Ed.makeDecor({ line: 1,
                                                  attr: { style: '--background-color: ' + clr + '; --z-index: var(--z-below-activeLine);',
                                                          class: 'bred-bg vc-bg' } }) }
-            commits.push(commit)
-            return
-          }
-          if (parse(commit, line, 'author'))
-            return
-          if (parse(commit, line, 'author-mail'))
-            return
-          if (parse(commit, line, 'author-time', 1))
-            return
-          if (parse(commit, line, 'author-tz'))
-            return
-          if (parse(commit, line, 'committer'))
-            return
-          if (parse(commit, line, 'committer-mail'))
-            return
-          if (parse(commit, line, 'committer-time', 1))
-            return
-          if (parse(commit, line, 'committer-tz'))
-            return
-          if (parse(commit, line, 'summary'))
-            return
-          if (line.startsWith('boundary')) {
-            commit.boundary = 1
-            return
-          }
-          if (parse(commit, line, 'previous'))
-            return
-          if (parse(commit, line, 'filename'))
-            return
-          if (line.length == 0)
-            return
-          if (line.startsWith('\t')) {
-            let out1
+                                                                                                                                     commits.push(commit)
+                                                                                                                                     return
+                                                                                                                                   }
+                                                                                                                                   if (parse(commit, line, 'author'))
+                                                                                                                                     return
+                                                                                                                                   if (parse(commit, line, 'author-mail'))
+                                                                                                                                     return
+                                                                                                                                   if (parse(commit, line, 'author-time', 1))
+                                                                                                                                     return
+                                                                                                                                   if (parse(commit, line, 'author-tz'))
+                                                                                                                                     return
+                                                                                                                                   if (parse(commit, line, 'committer'))
+                                                                                                                                     return
+                                                                                                                                   if (parse(commit, line, 'committer-mail'))
+                                                                                                                                     return
+                                                                                                                                   if (parse(commit, line, 'committer-time', 1))
+                                                                                                                                     return
+                                                                                                                                   if (parse(commit, line, 'committer-tz'))
+                                                                                                                                     return
+                                                                                                                                   if (parse(commit, line, 'summary'))
+                                                                                                                                     return
+                                                                                                                                   if (line.startsWith('boundary')) {
+                                                                                                                                     commit.boundary = 1
+                                                                                                                                     return
+                                                                                                                                   }
+                                                                                                                                   if (parse(commit, line, 'previous'))
+                                                                                                                                     return
+                                                                                                                                   if (parse(commit, line, 'filename'))
+                                                                                                                                     return
+                                                                                                                                   if (line.length == 0)
+                                                                                                                                     return
+                                                                                                                                   if (line.startsWith('\t')) {
+                                                                                                                                     let out1
 
-            rows.push({ commit,
+                                                                                                                                     rows.push({ commit,
                         join: commit.hash == previous?.hash })
 
-            previous = commit
+                                                                                                                                     previous = commit
 
-            out1 = ((commit.hash?.slice(0, 8) || '').padStart(8, ' ')
+                                                                                                                                     out1 = ((commit.hash?.slice(0, 8) || '').padStart(8, ' ')
                     + ' ' + (commit.author?.slice(0, 8) || '').padStart(8, ' ')
                     + ' ' + (commit['author-time-formatted'] || '').padStart(10, ' ')
                     + line // starts with tab
                     + '\n')
-            //d(out1)
-            //d(out1.split('\n').length - 1)
-            out += out1
-          }
-        })
-        //d({ commits })
-        //d({ rows })
-        buf.vars('VC Annotate').commits = commits
-        buf.vars('VC Annotate').rows = rows
-        buf.append(out, 1)
-        if (pos)
-          view.gotoLine(pos.lineNumber)
-      })
+                                                                                                                                     //d(out1)
+                                                                                                                                     //d(out1.split('\n').length - 1)
+                                                                                                                                     out += out1
+                                                                                                                                   }
+                                                                                                                                 })
+                                                                                                      //d({ commits })
+                                                                                                      //d({ rows })
+                                                                                                      buf.vars('VC Annotate').commits = commits
+                                                                                                      buf.vars('VC Annotate').rows = rows
+                                                                                                      buf.append(out, 1)
+                                                                                                      if (pos)
+                                                                                                        view.gotoLine(pos.lineNumber)
+                                                                                                    })
   }
 
   function edit
@@ -2951,32 +2951,32 @@ function initAnnotate
   Cmd.add('show', (u, we) => show(u, we), mo)
 
   Cmd.add('vc annotate', () => {
-    let p, pos, buf, name
+                           let p, pos, buf, name
 
-    p = Pane.current()
-    p.buf.path || Mess.toss('buffer path missing')
-    name = 'Annotate: ' + p.buf.path
-    if (buf)
-      buf.dir = p.dir
-    else {
-      buf = Buf.add(name,
-                    'VC Annotate',
-                    Ed.divW(0, 0, { hideMl: 1 }),
-                    p.dir)
-      buf.icon = 'log'
-      //buf.addMode("view") // overrides n,p
-    }
-    buf.opts.set('core.lint.enabled', 0)
-    buf.opts.set('minimap.enabled', 0)
-    buf.opts.set('core.highlight.trailingWhitespace.enabled', 0)
-    //buf.opts.set('core.lang', 'git log')
-    buf.vars('vc').file = p.buf.path
-    pos = p.view.pos
-    p.setBuf(buf, {}, view => {
-      buf.clear()
-      refresh(view, pos)
-    })
-  })
+                           p = Pane.current()
+                           p.buf.path || Mess.toss('buffer path missing')
+                           name = 'Annotate: ' + p.buf.path
+                           if (buf)
+                             buf.dir = p.dir
+                           else {
+                             buf = Buf.add(name,
+                                           'VC Annotate',
+                                           Ed.divW(0, 0, { hideMl: 1 }),
+                                           p.dir)
+                             buf.icon = 'log'
+                             //buf.addMode("view") // overrides n,p
+                           }
+                           buf.opts.set('core.lint.enabled', 0)
+                           buf.opts.set('minimap.enabled', 0)
+                           buf.opts.set('core.highlight.trailingWhitespace.enabled', 0)
+                           //buf.opts.set('core.lang', 'git log')
+                           buf.vars('vc').file = p.buf.path
+                           pos = p.view.pos
+                           p.setBuf(buf, {}, view => {
+                                               buf.clear()
+                                               refresh(view, pos)
+                                             })
+                         })
 
   // should use view mode but want n,p
   Em.on('q', 'bury', mo)
@@ -3011,8 +3011,8 @@ function init
   function add
   () {
     Scib.scib(buf => {
-      buf.append('git checkout -b ')
-    })
+                buf.append('git checkout -b ')
+              })
   }
 
   function main

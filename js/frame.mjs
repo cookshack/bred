@@ -67,12 +67,12 @@ function add
         changeP = changeP / activeFramesRight()
         //d(changeP + '%')
         tab.framesRight.forEach(fr => {
-          if (Css.has(fr.el, 'retracted'))
-            return
-          width = parseFloat(fr.el.dataset.width) - changeP
-          fr.el.dataset.width = width
-          fr.el.style.width = width + '%'
-        })
+                                  if (Css.has(fr.el, 'retracted'))
+                                    return
+                                  width = parseFloat(fr.el.dataset.width) - changeP
+                                  fr.el.dataset.width = width
+                                  fr.el.style.width = width + '%'
+                                })
       }
       return
     }
@@ -140,19 +140,19 @@ function add
   () {
     if (f == tab.frameLeft)
       Tron.cmd1('profile.set', [ 'frame', 'frameLeft', Css.has(f.el, 'retracted') ? 0 : 1 ], err => {
-        if (err)
-          Mess.warn('Failed to save state of frameLeft')
-      })
+                                                                                               if (err)
+                                                                                                 Mess.warn('Failed to save state of frameLeft')
+                                                                                             })
     else if (f == tab.frameRight)
       Tron.cmd1('profile.set', [ 'frame', 'frameRight', Css.has(f.el, 'retracted') ? 0 : 1 ], err => {
-        if (err)
-          Mess.warn('Failed to save state of frameRight')
-      })
+                                                                                                if (err)
+                                                                                                  Mess.warn('Failed to save state of frameRight')
+                                                                                              })
     else if (tab.framesRight && f == tab.framesRight[1])
       Tron.cmd1('profile.set', [ 'frame', 'frameRight2', Css.has(f.el, 'retracted') ? 0 : 1 ], err => {
-        if (err)
-          Mess.warn('Failed to save state of frameRight2')
-      })
+                                                                                                 if (err)
+                                                                                                   Mess.warn('Failed to save state of frameRight2')
+                                                                                               })
   }
 
   function retract
@@ -301,7 +301,7 @@ function updateSepVisibility
     allFrames[0].sep.style.display = 'none'
   else
     tab.frames.forEach(f => {
-      if (Css.has(f.el, 'retracted') == 0)
-        f.sep.style.display = ''
-    })
+                         if (Css.has(f.el, 'retracted') == 0)
+                           f.sep.style.display = ''
+                       })
 }

@@ -64,11 +64,11 @@ async function searchBufs
     buf.vars('Search Buffers').lines = lines
     p = Pane.current()
     p.setBuf(buf, {}, view => {
-      view.insert(lines.map(line => line.text).join('\n'))
-      if (lines.length)
-        view.insert('\n')
-      view.bufStart()
-    })
+                        view.insert(lines.map(line => line.text).join('\n'))
+                        if (lines.length)
+                          view.insert('\n')
+                        view.bufStart()
+                      })
   }
   else if (typeof needle == 'string')
     Mess.say('Empty')
@@ -85,8 +85,8 @@ function init
   (p, line) {
     if (line)
       p.setBuf(line.buf, {}, view => {
-        view.bep = line.from
-      })
+                               view.bep = line.from
+                             })
   }
 
   function goto

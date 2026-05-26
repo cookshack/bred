@@ -66,14 +66,14 @@ export
 function eachCodeW
 (buf, fn) {
   buf.views.forEach(view => {
-    if (view.eleOrReserved) {
-      let w
+                      if (view.eleOrReserved) {
+                        let w
 
-      w = view.eleOrReserved.querySelector('.code-w')
-      if (w)
-        fn(view, w)
-    }
-  })
+                        w = view.eleOrReserved.querySelector('.code-w')
+                        if (w)
+                          fn(view, w)
+                      }
+                    })
 }
 
 export

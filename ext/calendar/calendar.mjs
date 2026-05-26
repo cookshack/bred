@@ -125,15 +125,15 @@ function init
   Em.on('3', 'three', mode)
 
   Cmd.add('calendar', () => {
-    let found, p
+                        let found, p
 
-    p = Pane.current()
-    found = Buf.find(b => b.mode.key == 'calendar')
-    if (found)
-      p.setBuf(found)
-    else
-      make(p)
-  })
+                        p = Pane.current()
+                        found = Buf.find(b => b.mode.key == 'calendar')
+                        if (found)
+                          p.setBuf(found)
+                        else
+                          make(p)
+                      })
 
   icon = div(divCl('mini-icon',
                    img('img/calendar.svg', 'Calendar', 'filter-clr-text')),

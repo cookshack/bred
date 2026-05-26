@@ -107,26 +107,26 @@ function initPackages
   View.init()
   Lsp.init()
   Ed.init(backend, err => {
-    if (err)
-      cb(err)
+                     if (err)
+                       cb(err)
 
-    ViewMode.init()
-    Dir.init()
-    Cut.init()
-    Exec.init()
-    Shell.init()
-    Apt.init()
-    Vc.init()
-    About.init()
-    Prompt.init()
-    Open.init()
-    Switch.init()
-    Tab.init()
-    Ext.init()
-    Place.init()
-    OptUi.init()
+                     ViewMode.init()
+                     Dir.init()
+                     Cut.init()
+                     Exec.init()
+                     Shell.init()
+                     Apt.init()
+                     Vc.init()
+                     About.init()
+                     Prompt.init()
+                     Open.init()
+                     Switch.init()
+                     Tab.init()
+                     Ext.init()
+                     Place.init()
+                     OptUi.init()
 
-    globalThis.bred = { ...globalThis.bred,
+                     globalThis.bred = { ...globalThis.bred,
                         Area,
                         Buf,
                         Cmd,
@@ -149,8 +149,8 @@ function initPackages
                         Tab,
                         Win }
 
-    cb()
-  })
+                     cb()
+                   })
 }
 
 function initDoc
@@ -313,11 +313,11 @@ function initCmds
 
     count = dones = errs = 0
     Buf.forEach(b => {
-      if (b.modified) {
-        count++
-        b.save(done)
-      }
-    })
+                  if (b.modified) {
+                    count++
+                    b.save(done)
+                  }
+                })
 
     return
   }
@@ -355,57 +355,57 @@ function initCmds
   Cmd.add('universal argument', () => Cmd.setUniversal())
 
   Cmd.add('copy', () => {
-    let text
+                    let text
 
-    text = Win.current().selection.toString()
-    if (text.length)
-      Cut.add(text)
-  })
+                    text = Win.current().selection.toString()
+                    if (text.length)
+                      Cut.add(text)
+                  })
 
   Cmd.add('toggle devtools', () => {
-    Tron.cmd1('devtools.toggle', [], err => {
-      if (err)
-        Mess.toss(err)
-    })
-  })
+                               Tron.cmd1('devtools.toggle', [], err => {
+                                                                  if (err)
+                                                                    Mess.toss(err)
+                                                                })
+                             })
 
   Cmd.add('switch to tab', (u, we) => {
-    d('s')
-    if (we.e.target.dataset.id) {
-      let tab
+                             d('s')
+                             if (we.e.target.dataset.id) {
+                               let tab
 
-      d(we.e.target.dataset.id)
-      tab = Tab.get(Win.current().main, we.e.target.dataset.id)
-      if (tab)
-        tab.show()
-      else
-        Mess.toss('tab missing')
-    }
-  })
+                               d(we.e.target.dataset.id)
+                               tab = Tab.get(Win.current().main, we.e.target.dataset.id)
+                               if (tab)
+                                 tab.show()
+                               else
+                                 Mess.toss('tab missing')
+                             }
+                           })
 
   Cmd.add('add tab', () => {
-    let tab, buf, p
+                       let tab, buf, p
 
-    p = Pane.current()
-    buf = p.buf
-    tab = Tab.add(p.win.main)
-    Css.expand(p.win.main.tabbar)
-    p = tab.pane()
-    p.setBuf(buf)
-  })
+                       p = Pane.current()
+                       buf = p.buf
+                       tab = Tab.add(p.win.main)
+                       Css.expand(p.win.main.tabbar)
+                       p = tab.pane()
+                       p.setBuf(buf)
+                     })
 
   Cmd.add('close tab', (u, we) => {
-    let id, tab, area
+                         let id, tab, area
 
-    id = we.e?.dataset?.tabid
-    area = Win.current().main
-    if (id)
-      tab = Tab.get(area, id) || Mess('Tab missing')
-    else
-      tab = Tab.current(area)
-    if (tab.close())
-      Css.retract(area.tabbar)
-  })
+                         id = we.e?.dataset?.tabid
+                         area = Win.current().main
+                         if (id)
+                           tab = Tab.get(area, id) || Mess('Tab missing')
+                         else
+                           tab = Tab.current(area)
+                         if (tab.close())
+                           Css.retract(area.tabbar)
+                       })
 
   Cmd.add('switch to tab 1', () => switchToTab(0))
   Cmd.add('switch to tab 2', () => switchToTab(1))
@@ -418,242 +418,242 @@ function initCmds
   Cmd.add('switch to tab 9', () => switchToTab(8))
 
   Cmd.add('select', () => {
-    let view, el
+                      let view, el
 
-    view = View.current()
-    el = view?.point?.over()
-    if (el && el.dataset.run)
-      Cmd.run(el.dataset.run, view.buf, 0, { e: { target: el } })
-  })
+                      view = View.current()
+                      el = view?.point?.over()
+                      if (el && el.dataset.run)
+                        Cmd.run(el.dataset.run, view.buf, 0, { e: { target: el } })
+                    })
 
   Cmd.add('toggle frame right', () => {
-    let win, currentTab
+                                  let win, currentTab
 
-    win = Win.current()
-    currentTab = Tab.current(win.main)
-    if (Css.toggle(currentTab.frameRight.el, 'retracted')) {
-      Tab.forEach(win.main, tab => {
-        tab.frame1.focus()
-        tab.framesRight.forEach(fr => fr.retract())
-      })
-      currentTab.frame1.focus()
-      Css.remove(win.frameToggleR, 'mini-frame-open')
-    }
-    else {
-      Tab.forEach(win.main, tab => {
-        tab.framesRight.forEach(fr => fr.expand())
-      })
-      Css.add(win.frameToggleR, 'mini-frame-open')
-    }
-  })
+                                  win = Win.current()
+                                  currentTab = Tab.current(win.main)
+                                  if (Css.toggle(currentTab.frameRight.el, 'retracted')) {
+                                    Tab.forEach(win.main, tab => {
+                                                            tab.frame1.focus()
+                                                            tab.framesRight.forEach(fr => fr.retract())
+                                                          })
+                                    currentTab.frame1.focus()
+                                    Css.remove(win.frameToggleR, 'mini-frame-open')
+                                  }
+                                  else {
+                                    Tab.forEach(win.main, tab => {
+                                                            tab.framesRight.forEach(fr => fr.expand())
+                                                          })
+                                    Css.add(win.frameToggleR, 'mini-frame-open')
+                                  }
+                                })
 
   Cmd.add('toggle frame left', () => {
-    let win, currentTab
+                                 let win, currentTab
 
-    win = Win.current()
-    currentTab = Tab.current(win.main)
-    if (Css.toggle(currentTab.frameLeft.el, 'retracted')) {
-      Tab.forEach(win.main, tab => {
-        tab.frame1.focus()
-        tab.frameLeft.retract()
-      })
-      currentTab.frame1.focus()
-      Css.remove(win.frameToggleL, 'mini-frame-open')
-    }
-    else {
-      Tab.forEach(win.main, tab => {
-        tab.frameLeft.expand()
-      })
-      Css.add(win.frameToggleL, 'mini-frame-open')
-    }
-  })
+                                 win = Win.current()
+                                 currentTab = Tab.current(win.main)
+                                 if (Css.toggle(currentTab.frameLeft.el, 'retracted')) {
+                                   Tab.forEach(win.main, tab => {
+                                                           tab.frame1.focus()
+                                                           tab.frameLeft.retract()
+                                                         })
+                                   currentTab.frame1.focus()
+                                   Css.remove(win.frameToggleL, 'mini-frame-open')
+                                 }
+                                 else {
+                                   Tab.forEach(win.main, tab => {
+                                                           tab.frameLeft.expand()
+                                                         })
+                                   Css.add(win.frameToggleL, 'mini-frame-open')
+                                 }
+                               })
 
   Cmd.add('close menu', () => {
-    Win.current().menu.close()
-  })
+                          Win.current().menu.close()
+                        })
 
   Cmd.add('open menu', () => {
-    Win.current().menu.open()
-  })
+                         Win.current().menu.open()
+                       })
 
   Cmd.add('toggle menu', () => {
-    Win.current().menu.toggle()
-  })
+                           Win.current().menu.toggle()
+                         })
 
   Cmd.add('minimize', () => {
-    Tron.cmd1('win.minimize')
-  })
+                        Tron.cmd1('win.minimize')
+                      })
 
   Cmd.add('toggle maximize', () => {
-    Tron.cmd1('win.maximize.toggle')
-  })
+                               Tron.cmd1('win.maximize.toggle')
+                             })
 
   Cmd.add('close window', () => {
-    Tron.cmd1('win.close')
-  })
+                            Tron.cmd1('win.close')
+                          })
 
   Cmd.add('open menu item', (u, we) => {
-    if (we.e.target.dataset.menu) {
-      let el
+                              if (we.e.target.dataset.menu) {
+                                let el
 
-      el = globalThis.document.querySelector('#' + we.e.target.dataset.menu)
-      if (el) {
-        let parent
+                                el = globalThis.document.querySelector('#' + we.e.target.dataset.menu)
+                                if (el) {
+                                  let parent
 
-        Win.current().menu.fill(el)
-        parent = el.parentNode
-        if (Css.has(parent, 'bred-open')) {
-          Win.current().menu.close()
-          Css.remove(parent, 'bred-open')
-        }
-        else {
-          Win.current().menu.open0()
-          Css.add(parent, 'bred-open')
-        }
-      }
-      else
-        Mess.warn('menu missing el')
-    }
-    else
-      Mess.warn('missing data-menu')
-  })
+                                  Win.current().menu.fill(el)
+                                  parent = el.parentNode
+                                  if (Css.has(parent, 'bred-open')) {
+                                    Win.current().menu.close()
+                                    Css.remove(parent, 'bred-open')
+                                  }
+                                  else {
+                                    Win.current().menu.open0()
+                                    Css.add(parent, 'bred-open')
+                                  }
+                                }
+                                else
+                                  Mess.warn('menu missing el')
+                              }
+                              else
+                                Mess.warn('missing data-menu')
+                            })
 
   Cmd.add('context menu', (u, we) => {
-    let win
+                            let win
 
-    we.e.preventDefault()
-    win = Win.current()
-    win.context.open(we, () => {
-      let x, y, rect
+                            we.e.preventDefault()
+                            win = Win.current()
+                            win.context.open(we, () => {
+                                                   let x, y, rect
 
-      x = we.e.x
-      y = we.e.y
-      win.lastContextClick = { x, y }
-      rect = win.context.el.getBoundingClientRect()
-      if ((rect.height + y) > win.window.innerHeight)
-        y = win.window.innerHeight - rect.height - 10
-      if ((rect.width + x) > win.window.innerWidth)
-        x = win.window.innerWidth - rect.width - 10
-      win.lastContext = { x, y }
-      win.context.el.style.left = x + 'px'
-      win.context.el.style.top = y + 'px'
-    })
-  })
+                                                   x = we.e.x
+                                                   y = we.e.y
+                                                   win.lastContextClick = { x, y }
+                                                   rect = win.context.el.getBoundingClientRect()
+                                                   if ((rect.height + y) > win.window.innerHeight)
+                                                     y = win.window.innerHeight - rect.height - 10
+                                                   if ((rect.width + x) > win.window.innerWidth)
+                                                     x = win.window.innerWidth - rect.width - 10
+                                                   win.lastContext = { x, y }
+                                                   win.context.el.style.left = x + 'px'
+                                                   win.context.el.style.top = y + 'px'
+                                                 })
+                          })
 
   Cmd.add('inspect element', (u, we) => {
-    let x, y
+                               let x, y
 
-    if (we?.e) {
-      let win
+                               if (we?.e) {
+                                 let win
 
-      win = Win.current()
-      x = win.lastContextClick?.x ?? 0
-      y = win.lastContextClick?.y ?? 0
-    }
-    else {
-      x = mouse.x
-      y = mouse.y
-    }
-    Tron.cmd('devtools.inspect', [ x, y ], err => {
-      if (err) {
-        Mess.yell('inspect element: ' + err.message)
-        return
-      }
-    })
-  })
+                                 win = Win.current()
+                                 x = win.lastContextClick?.x ?? 0
+                                 y = win.lastContextClick?.y ?? 0
+                               }
+                               else {
+                                 x = mouse.x
+                                 y = mouse.y
+                               }
+                               Tron.cmd('devtools.inspect', [ x, y ], err => {
+                                                                        if (err) {
+                                                                          Mess.yell('inspect element: ' + err.message)
+                                                                          return
+                                                                        }
+                                                                      })
+                             })
 
   Cmd.add('goto definition', () => {
-    let view, l, pos, def, ctag
+                               let view, l, pos, def, ctag
 
-    view = View.current()
-    l = view.line
-    pos = view.pos
-    def = defAt(l, pos.col)
-    ctag = Ed.getCTag(def)
-    if (ctag) {
-      d(ctag)
-      d('def: ' + def)
-      d('opening: ' + ctag.path)
-      Pane.open(ctag.path, 1, v => {
-        let ret
+                               view = View.current()
+                               l = view.line
+                               pos = view.pos
+                               def = defAt(l, pos.col)
+                               ctag = Ed.getCTag(def)
+                               if (ctag) {
+                                 d(ctag)
+                                 d('def: ' + def)
+                                 d('opening: ' + ctag.path)
+                                 Pane.open(ctag.path, 1, v => {
+                                                           let ret
 
-        d('going to line: ' + ctag.regex)
-        ctag.regex || Mess.toss('Ctag missing regex')
-        ret = Ed.vfind(v,
-                       ctag.regex,
-                       0,
-                       { skipCurrent: 0,
+                                                           d('going to line: ' + ctag.regex)
+                                                           ctag.regex || Mess.toss('Ctag missing regex')
+                                                           ret = Ed.vfind(v,
+                                                                          ctag.regex,
+                                                                          0,
+                                                                          { skipCurrent: 0,
                          backwards: 0,
                          wrap: 0,
                          caseSensitive: 0,
                          wholeWord: 0,
                          regExp: 1,
                          reveal: 2 })
-        ret || Mess.yell('Failed search for ' + ctag.regex)
-      })
-    }
-    else
-      Mess.yell('Missing: ' + def)
-  })
+                                                           ret || Mess.yell('Failed search for ' + ctag.regex)
+                                                         })
+                               }
+                               else
+                                 Mess.yell('Missing: ' + def)
+                             })
 
   Cmd.add('goto bred', () => Pane.open(Loc.appDir().path))
   Cmd.add('goto home', () => Pane.open(Loc.home()))
 
   Cmd.add('evaluate expression', () => {
-    d('ee')
-  })
+                                   d('ee')
+                                 })
 
   Cmd.add('open externally', (u, we) => {
-    let url
+                               let url
 
-    url = we.e.target.dataset.url?.trim()
-    if (url)
-      if (url.startsWith('#')) {
-        let p, el
+                               url = we.e.target.dataset.url?.trim()
+                               if (url)
+                                 if (url.startsWith('#')) {
+                                   let p, el
 
-        p = Pane.current()
-        el = p.view.ele?.querySelector('[data-target="' + url.slice(1) + '"]')
-        if (el)
-          el.scrollIntoView()
-        else
-          Mess.yell('Missing target')
-      }
-      else
-        Tron.cmd('shell.open', [ url ], err => {
-          if (err) {
-            Mess.yell('shell.open: ' + err.message)
-            return
-          }
-        })
-    else
-      Mess.say('Target missing URL')
-  })
+                                   p = Pane.current()
+                                   el = p.view.ele?.querySelector('[data-target="' + url.slice(1) + '"]')
+                                   if (el)
+                                     el.scrollIntoView()
+                                   else
+                                     Mess.yell('Missing target')
+                                 }
+                                 else
+                                   Tron.cmd('shell.open', [ url ], err => {
+                                                                     if (err) {
+                                                                       Mess.yell('shell.open: ' + err.message)
+                                                                       return
+                                                                     }
+                                                                   })
+                               else
+                                 Mess.say('Target missing URL')
+                             })
 
   Cmd.add('open link', (u, we) => {
-    if (we.e.target.dataset.path)
-      Open.link(we.e.target.dataset.path,
-                we.e.target.dataset.line)
-    else
-      Mess.say('Target missing path')
-  })
+                         if (we.e.target.dataset.path)
+                           Open.link(we.e.target.dataset.path,
+                                     we.e.target.dataset.line)
+                         else
+                           Mess.say('Target missing path')
+                       })
 
   Cmd.add('open link in new tab', (u, we) => {
-    if (we.e.target.dataset.path)
-      Open.link(we.e.target.dataset.path,
-                we.e.target.dataset.line,
-                1)
-    else
-      Mess.say('Target missing path')
-  })
+                                    if (we.e.target.dataset.path)
+                                      Open.link(we.e.target.dataset.path,
+                                                we.e.target.dataset.line,
+                                                1)
+                                    else
+                                      Mess.say('Target missing path')
+                                  })
 
   Cmd.add('say', () => Mess.say('Test of Mess.say'))
   Cmd.add('warn', () => Mess.warn('Test of Mess.warn'))
   Cmd.add('yell', () => Mess.yell('Test of Mess.yell'))
 
   Cmd.add('cancel', () => {
-    Win.current().menu.close()
-    Pane.cancel()
-  })
+                      Win.current().menu.close()
+                      Pane.cancel()
+                    })
 
   Cmd.add('recenter', () => Pane.recenter())
 
@@ -667,187 +667,187 @@ function initCmds
   Cmd.add('previous line', () => View.current().linePrev())
 
   Cmd.add('parent', () => {
-    let dir, view
+                      let dir, view
 
-    view = View.current()
-    dir = view.buf.dir
-    if (dir)
-      dir = Loc.make(dir)
-    else {
-      Mess.say('Missing dir, going home')
-      dir = Loc.make(Loc.home())
-    }
+                      view = View.current()
+                      dir = view.buf.dir
+                      if (dir)
+                        dir = Loc.make(dir)
+                      else {
+                        Mess.say('Missing dir, going home')
+                        dir = Loc.make(Loc.home())
+                      }
 
-    if (dir.path)
-      Dir.add(Pane.current(), dir.path, view.buf.file)
-    else
-      Mess.yell('parent: Missing dir')
-  })
+                      if (dir.path)
+                        Dir.add(Pane.current(), dir.path, view.buf.file)
+                      else
+                        Mess.yell('parent: Missing dir')
+                    })
 
   Cmd.add('view url at point', () => {
-    let view, l, pos, url
+                                 let view, l, pos, url
 
-    view = View.current()
-    l = view.line
-    pos = view.pos
-    pos = pos.col
-    url = U.urlAt(l, pos)
-    if (url?.protocol == 'file:')
-      Pane.open(url.pathname)
-    else if (url)
-      Tron.cmd('shell.open', [ url.href ], err => err && Mess.yell('shell.open: ' + err.message))
-    else
-      Mess.say('Point must be over an URL')
-  })
+                                 view = View.current()
+                                 l = view.line
+                                 pos = view.pos
+                                 pos = pos.col
+                                 url = U.urlAt(l, pos)
+                                 if (url?.protocol == 'file:')
+                                   Pane.open(url.pathname)
+                                 else if (url)
+                                   Tron.cmd('shell.open', [ url.href ], err => err && Mess.yell('shell.open: ' + err.message))
+                                 else
+                                   Mess.say('Point must be over an URL')
+                               })
 
   Cmd.add('scroll up', () => {
-    let el
+                         let el
 
-    el = View.current().ele
-    el = el.querySelector('.bred-scroller') || el.parentNode
-    el.scrollTo({ top: el.scrollTop - (el.clientHeight * 0.9),
+                         el = View.current().ele
+                         el = el.querySelector('.bred-scroller') || el.parentNode
+                         el.scrollTo({ top: el.scrollTop - (el.clientHeight * 0.9),
                   left: 0,
                   behavior: 'auto' })
-  })
+                       })
 
   Cmd.add('scroll down', () => {
-    let el
+                           let el
 
-    el = View.current().ele
-    el = el.querySelector('.bred-scroller') || el.parentNode
-    el.scrollTo({ top: el.scrollTop + (el.clientHeight * 0.9),
+                           el = View.current().ele
+                           el = el.querySelector('.bred-scroller') || el.parentNode
+                           el.scrollTo({ top: el.scrollTop + (el.clientHeight * 0.9),
                   left: 0,
                   behavior: 'auto' })
-  })
+                         })
 
   Cmd.add('zoom in', () => incrFont())
   Cmd.add('zoom out', () => incrFont(-1))
 
   Cmd.add('easy split', () => {
-    if (Pane.length() < 2) {
-      Pane.split()
-      return
-    }
-    Pane.max()
-    return
-  })
+                          if (Pane.length() < 2) {
+                            Pane.split()
+                            return
+                          }
+                          Pane.max()
+                          return
+                        })
 
   Cmd.add('pane next or split', () => {
-    Pane.nextOrSplit()
-  })
+                                  Pane.nextOrSplit()
+                                })
 
   Cmd.add('split', () => {
-    Pane.split()
-  })
+                     Pane.split()
+                   })
 
   Cmd.add('pane close', () => {
-    let win, f
+                          let win, f
 
-    win = Win.current()
-    f = Frame.current(Tab.current(win.main))
-    if (f.panes.length <= 1) {
-      if (f == f.tab.frameLeft) {
-        Tab.forEach(win.main, tab => Css.retract(tab.frameLeft.el))
-        Css.remove(win.frameToggleL, 'mini-frame-open')
-        f.tab.frame1.focus()
-        return
-      }
-      if (f == f.tab.frameRight) {
-        Tab.forEach(win.main, tab => tab.framesRight.forEach(fr => Css.retract(fr.el)))
-        Css.remove(win.frameToggleR, 'mini-frame-open')
-        f.tab.frame1.focus()
-        return
-      }
-      Mess.yell('Only pane')
-      return
-    }
-    Pane.current().close()
-  })
+                          win = Win.current()
+                          f = Frame.current(Tab.current(win.main))
+                          if (f.panes.length <= 1) {
+                            if (f == f.tab.frameLeft) {
+                              Tab.forEach(win.main, tab => Css.retract(tab.frameLeft.el))
+                              Css.remove(win.frameToggleL, 'mini-frame-open')
+                              f.tab.frame1.focus()
+                              return
+                            }
+                            if (f == f.tab.frameRight) {
+                              Tab.forEach(win.main, tab => tab.framesRight.forEach(fr => Css.retract(fr.el)))
+                              Css.remove(win.frameToggleR, 'mini-frame-open')
+                              f.tab.frame1.focus()
+                              return
+                            }
+                            Mess.yell('Only pane')
+                            return
+                          }
+                          Pane.current().close()
+                        })
 
   Cmd.add('pane max', () => {
-    let win, f, currentTab
+                        let win, f, currentTab
 
-    win = Win.current()
-    currentTab = Tab.current(win.main)
-    f = Frame.current(currentTab)
-    if (f.panes.length <= 1) {
-      if (Css.has(currentTab.frameLeft.el, 'retracted')
+                        win = Win.current()
+                        currentTab = Tab.current(win.main)
+                        f = Frame.current(currentTab)
+                        if (f.panes.length <= 1) {
+                          if (Css.has(currentTab.frameLeft.el, 'retracted')
           && Css.has(currentTab.frameRight.el, 'retracted')) {
-        Tron.cmd1('devtools.close', [], err => {
-          if (err)
-            Mess.yell(err.message)
-        })
-        return
-      }
-      Tab.forEach(win.main, tab => tab.frameLeft.retract())
-      Tab.forEach(win.main, tab => tab.framesRight.forEach(fr => fr.retract()))
-      Css.remove(win.frameToggleL, 'mini-frame-open')
-      Css.remove(win.frameToggleR, 'mini-frame-open')
-      return
-    }
-    Pane.max()
-  })
+                            Tron.cmd1('devtools.close', [], err => {
+                                                              if (err)
+                                                                Mess.yell(err.message)
+                                                            })
+                            return
+                          }
+                          Tab.forEach(win.main, tab => tab.frameLeft.retract())
+                          Tab.forEach(win.main, tab => tab.framesRight.forEach(fr => fr.retract()))
+                          Css.remove(win.frameToggleL, 'mini-frame-open')
+                          Css.remove(win.frameToggleR, 'mini-frame-open')
+                          return
+                        }
+                        Pane.max()
+                      })
 
   Cmd.add('new window', () => {
-    let windowProxy
+                          let windowProxy
 
-    windowProxy = globalThis.window.open('', 'bred:win/' + uuidv4())
-    windowProxy || Mess.yell('Error')
-  })
+                          windowProxy = globalThis.window.open('', 'bred:win/' + uuidv4())
+                          windowProxy || Mess.yell('Error')
+                        })
 
   Cmd.add('bury', () => {
-    Pane.bury()
-  })
+                    Pane.bury()
+                  })
 
   Cmd.add('close buffer', (u, we) => {
-    let p
+                            let p
 
-    if (we?.e && (we?.e instanceof globalThis.MouseEvent))
-      if (we.e.button == 0)
-        p = Pane.holding(we.e.target.parentNode.querySelector('.pane'))
-      else
-        return
-    else
-      p = Pane.current()
+                            if (we?.e && (we?.e instanceof globalThis.MouseEvent))
+                              if (we.e.button == 0)
+                                p = Pane.holding(we.e.target.parentNode.querySelector('.pane'))
+                              else
+                                return
+                            else
+                              p = Pane.current()
 
-    if (p.buf)
-      if (p.buf.file && p.buf.modified)
-        Prompt.yn('Save buffer before closing?',
-                  { icon: 'save' },
-                  yes => {
-                    if (yes)
-                      Cmd.runMo('save', 'ed', 1, {}, err => {
-                        if (err)
-                          Mess.toss(err)
-                        p.buf.remove()
-                      })
-                    else
-                      p.buf.remove()
-                  })
-      else
-        p.buf.remove()
-  })
+                            if (p.buf)
+                              if (p.buf.file && p.buf.modified)
+                                Prompt.yn('Save buffer before closing?',
+                                          { icon: 'save' },
+                                          yes => {
+                                            if (yes)
+                                              Cmd.runMo('save', 'ed', 1, {}, err => {
+                                                                               if (err)
+                                                                                 Mess.toss(err)
+                                                                               p.buf.remove()
+                                                                             })
+                                            else
+                                              p.buf.remove()
+                                          })
+                              else
+                                p.buf.remove()
+                          })
 
   Cmd.add('close demand', () => {
-    Prompt.close()
-  })
+                            Prompt.close()
+                          })
 
   Cmd.add('relaunch', () => {
-    Tron.cmd1('restart', [], err => {
-      if (err)
-        Mess.toss(err)
-      Mess.yell('Waiting for restart...')
-    })
-  })
+                        Tron.cmd1('restart', [], err => {
+                                                   if (err)
+                                                     Mess.toss(err)
+                                                   Mess.yell('Waiting for restart...')
+                                                 })
+                      })
 
   Cmd.add('exit', () => {
-    Tron.cmd('quit', [], err => {
-      if (err) {
-        Mess.yell('quit: ' + err.message)
-        return
-      }
-    })
-  })
+                    Tron.cmd('quit', [], err => {
+                                           if (err) {
+                                             Mess.yell('quit: ' + err.message)
+                                             return
+                                           }
+                                         })
+                  })
 
   Cmd.add('save and exit', () => saveAndX(1))
   Cmd.add('save and relaunch', () => saveAndX())
@@ -856,73 +856,73 @@ function initCmds
   Cmd.add('restart', () => quitOrRestart())
 
   Cmd.add('throw', () => {
-    Tron.cmd1('test.throw', [], err => {
-      if (err) {
-        Mess.yell('test.throw: ' + err.message)
-        return
-      }
-    })
-  })
+                     Tron.cmd1('test.throw', [], err => {
+                                                   if (err) {
+                                                     Mess.yell('test.throw: ' + err.message)
+                                                     return
+                                                   }
+                                                 })
+                   })
 
   Cmd.add('toss', () => {
-    Mess.toss('test toss')
-  })
+                    Mess.toss('test toss')
+                  })
 
   Cmd.add('show timing', () => {
-    let p, timing, content, total
+                           let p, timing, content, total
 
-    timing = Timing.get()
-    if (timing.length == 0) {
-      Mess.say('No timing data available')
-      return
-    }
+                           timing = Timing.get()
+                           if (timing.length == 0) {
+                             Mess.say('No timing data available')
+                             return
+                           }
 
-    content = [ 'Phase                  Time' ]
-    total = 0
-    timing.forEach(phase => {
-      let line
+                           content = [ 'Phase                  Time' ]
+                           total = 0
+                           timing.forEach(phase => {
+                                            let line
 
-      line = phase[0].padEnd(24) + Math.round(phase[2]) + 'ms'
-      content.push(line)
-      total += phase[2]
-    })
-    content.push(''.padEnd(24) + Math.round(total) + 'ms')
+                                            line = phase[0].padEnd(24) + Math.round(phase[2]) + 'ms'
+                                            content.push(line)
+                                            total += phase[2]
+                                          })
+                           content.push(''.padEnd(24) + Math.round(total) + 'ms')
 
-    p = Pane.current()
-    //buf = Buf.add('Timing', 'Text', divCl('bred-timing-w', content.join('\n')), p.dir)
-    Ed.make(p,
-            { name: 'Timing',
+                           p = Pane.current()
+                           //buf = Buf.add('Timing', 'Text', divCl('bred-timing-w', content.join('\n')), p.dir)
+                           Ed.make(p,
+                                   { name: 'Timing',
               dir: p.dir },
-            view => {
-              view.buf.file = 'Timing'
-              view.insert(content.join('\n'))
-              view.buf.modified = 0
-              view.buf.addMode('view')
-            })
-  })
+                                   view => {
+                                     view.buf.file = 'Timing'
+                                     view.insert(content.join('\n'))
+                                     view.buf.modified = 0
+                                     view.buf.addMode('view')
+                                   })
+                         })
 
   Cmd.add('show performance', () => {
-    let results
+                                let results
 
-    results = perf()
+                                results = perf()
 
-    if (results) {
-      let p
+                                if (results) {
+                                  let p
 
-      p = Pane.current()
-      Ed.make(p,
-              { name: 'Performance',
+                                  p = Pane.current()
+                                  Ed.make(p,
+                                          { name: 'Performance',
                 dir: p.dir },
-              view => {
-                view.buf.file = 'Performance'
-                view.insert(results.content.join('\n') + '\n')
-                view.buf.modified = 0
-                view.buf.addMode('view')
-              })
-    }
-    else
-      Mess.yell('Missing performance data')
-  })
+                                          view => {
+                                            view.buf.file = 'Performance'
+                                            view.insert(results.content.join('\n') + '\n')
+                                            view.buf.modified = 0
+                                            view.buf.addMode('view')
+                                          })
+                                }
+                                else
+                                  Mess.yell('Missing performance data')
+                              })
 }
 
 export
@@ -1184,42 +1184,42 @@ function initSearch
     s.st.occur = s.st.view.buf.opts.get('core.highlight.occurrences.enabled')
     s.st.view.buf.opts.set('core.highlight.occurrences.enabled', 0)
     globalThis.onkeydown = e => {
-      let we
+                             let we
 
-      if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
-        // see note at top of em.look1
-        return
+                             if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
+                             // see note at top of em.look1
+                               return
 
-      we = { mouse: 0, e }
-      // if in search em then do that
-      // else if in old em then cancel search and do that
-      wes.push(we)
-      mapSearch.look(wes, to => {
-        if (to) {
-          e.preventDefault()
+                             we = { mouse: 0, e }
+                             // if in search em then do that
+                             // else if in old em then cancel search and do that
+                             wes.push(we)
+                             mapSearch.look(wes, to => {
+                                                   if (to) {
+                                                     e.preventDefault()
 
-          if (to.ons)
-            // map
-            return
+                                                     if (to.ons)
+                                                     // map
+                                                       return
 
-          // cmd
-          Cmd.run(to, s.st.view?.buf, 1, we)
-          wes = []
-          return
-        }
+                                                     // cmd
+                                                     Cmd.run(to, s.st.view?.buf, 1, we)
+                                                     wes = []
+                                                     return
+                                                   }
 
-        // empty/error
-        // if in regular em then exit and run the original handler
-        d('empty/error')
-        Em.look(wes, 0, s.st.view?.buf, (map, to2) => {
-          // Simple because only want to know if there's a binding.
-          if (to2) { // cmd/map
-            searchCancel(1)
-            oldOnKeyDown(e)
-          }
-        })
-      })
-    }
+                                                   // empty/error
+                                                   // if in regular em then exit and run the original handler
+                                                   d('empty/error')
+                                                   Em.look(wes, 0, s.st.view?.buf, (map, to2) => {
+                                                                                     // Simple because only want to know if there's a binding.
+                                                                                     if (to2) { // cmd/map
+                                                                                       searchCancel(1)
+                                                                                       oldOnKeyDown(e)
+                                                                                     }
+                                                                                   })
+                                                 })
+                           }
   }
 
   spec = spec || {}
@@ -1594,25 +1594,25 @@ function initTest
 
     v = View.current()
     v.buf.views.forEach(view => {
-      if (view.ele) {
-        let el
+                          if (view.ele) {
+                            let el
 
-        el = view.ele.querySelector('.test_buffer-center')
-        Css.toggle(el, 'test_buffer-right')
-      }
-    })
+                            el = view.ele.querySelector('.test_buffer-center')
+                            Css.toggle(el, 'test_buffer-right')
+                          }
+                        })
   }
 
   mo = Mode.add('Test Buffer', { viewInit: vinit })
   Cmd.add('test buffer', () => {
-    let b, p
+                           let b, p
 
-    p = Pane.current()
-    b = Buf.add('Test Buffer', 'Test Buffer', divW(), p.dir)
-    b.icon = 'help'
-    b.addMode('view')
-    p.setBuf(b, {}, view => nestBufs(view))
-  })
+                           p = Pane.current()
+                           b = Buf.add('Test Buffer', 'Test Buffer', divW(), p.dir)
+                           b.icon = 'help'
+                           b.addMode('view')
+                           p.setBuf(b, {}, view => nestBufs(view))
+                         })
 
   Cmd.add('move', move, mo)
 }
@@ -1655,43 +1655,43 @@ function initRecent
   function viewInit
   (view, spec, cb) { // (view)
     Recent.get(0, (err, all) => {
-      let w, co, recents
+                    let w, co, recents
 
-      if (err) {
-        Mess.toss(err.message)
-        return
-      }
-      recents = all
+                    if (err) {
+                      Mess.toss(err.message)
+                      return
+                    }
+                    recents = all
 
-      w = view.ele.querySelector('.recent-w')
-      w.innerHTML = ''
+                    w = view.ele.querySelector('.recent-w')
+                    w.innerHTML = ''
 
-      co = recents.map(r => divCl('recent-item',
-                                  Loc.cleanHref(r.href),
-                                  { 'data-run': 'open link',
+                    co = recents.map(r => divCl('recent-item',
+                                                Loc.cleanHref(r.href),
+                                                { 'data-run': 'open link',
                                     'data-runaux': 'open link in new tab',
                                     'data-path': r.href }))
 
-      append(w, co)
-      if (cb)
-        cb(view)
-    })
+                    append(w, co)
+                    if (cb)
+                      cb(view)
+                  })
   }
 
   Mode.add('Recent', { viewInit })
 
   Cmd.add('Open Recent', () => {
-    let p
+                           let p
 
-    p = Pane.current()
-    if (buf)
-      p.setBuf(buf, {}, view => viewInit(view))
-    else {
-      buf = Buf.add('Recent', 'Recent', divW(), p.dir)
-      buf.addMode('view')
-      p.setBuf(buf)
-    }
-  })
+                           p = Pane.current()
+                           if (buf)
+                             p.setBuf(buf, {}, view => viewInit(view))
+                           else {
+                             buf = Buf.add('Recent', 'Recent', divW(), p.dir)
+                             buf.addMode('view')
+                             p.setBuf(buf)
+                           }
+                         })
 }
 
 function initFontSize
@@ -1729,29 +1729,29 @@ function start1
   d('start1')
 
   Tron.on('thrown', err => {
-    Mess.yell(err.message)
-    if (err.stack)
-      Mess.log(err.stack)
-  })
+                      Mess.yell(err.message)
+                      if (err.stack)
+                        Mess.log(err.stack)
+                    })
 
   Tron.on('socket-open-file', (err, fileData) => {
-    path = fileData.path
-    d('📥 socket-open-file: ' + path)
-    Pane.open(path, 1, view => {
-      view.buf.onRemove(() => {
-        d('socket file closed: ' + path)
-        Tron.send('socket-file-done', path)
-      })
-    })
-  })
+                                path = fileData.path
+                                d('📥 socket-open-file: ' + path)
+                                Pane.open(path, 1, view => {
+                                                     view.buf.onRemove(() => {
+                                                                         d('socket file closed: ' + path)
+                                                                         Tron.send('socket-file-done', path)
+                                                                       })
+                                                   })
+                              })
 
   Mess.log('backend: ' + data.backend)
   initPackages(data.backend, err => {
-    err && Mess.toss('Init error: ' + err.message)
-    if (start2)
-      // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
-      setTimeout(() => start2(data.devtools, data.frames))
-  })
+                               err && Mess.toss('Init error: ' + err.message)
+                               if (start2)
+                               // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
+                                 setTimeout(() => start2(data.devtools, data.frames))
+                             })
 
   d(data)
   Mess.log('   home: ' + data.home)
@@ -1774,14 +1774,14 @@ function start1
   path = Icon.path('javascript')
   Mess.say('Checking for icons...')
   Tron.cmd('file.stat', path, err => {
-    if (err) {
-      Mess.log(err.message)
-      Mess.say('Checking for icons... failed, will use letters')
-      Icon.setHave(0)
-    }
-    else
-      Mess.say('Checking for icons... found')
-  })
+                                if (err) {
+                                  Mess.log(err.message)
+                                  Mess.say('Checking for icons... failed, will use letters')
+                                  Icon.setHave(0)
+                                }
+                                else
+                                  Mess.say('Checking for icons... found')
+                              })
 
   d('initCss')
   Style.initCss(Mess.yell)
@@ -1840,13 +1840,13 @@ function start3
     Mess.say('Loading init...')
     d('loading init')
     Tron.cmd('init.load', [], (err, data) => {
-      if (data.exist == 0)
-        Mess.say("Loading init: missing, that's OK")
-      else if (err)
-        Mess.yell('Error loading init: ', err.message)
+                                if (data.exist == 0)
+                                  Mess.say("Loading init: missing, that's OK")
+                                else if (err)
+                                  Mess.yell('Error loading init: ', err.message)
 
-      Mess.yell('Ready!')
-    })
+                                Mess.yell('Ready!')
+                              })
   }
   else
     Mess.yell('Ready!')
@@ -1859,17 +1859,17 @@ function start0
   d('get paths')
 
   Tron.cmd1('paths', [], (err, paths) => {
-    if (err) {
-      Mess.yell('Err getting dirs: ', err.message)
-      return
-    }
+                           if (err) {
+                             Mess.yell('Err getting dirs: ', err.message)
+                             return
+                           }
 
-    // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
-    setTimeout(() => {
-      Timing.stop('bred.start0')
-      start1(paths)
-    })
-  })
+                           // Timeout so that errors are thrown outside the Tron cb, else backtraces are for ipc.
+                           setTimeout(() => {
+                                        Timing.stop('bred.start0')
+                                        start1(paths)
+                                      })
+                         })
 }
 
 export
@@ -1905,31 +1905,31 @@ function init
   Opt.init()
 
   Opt.load(() => {
-    initFontSize()
+             initFontSize()
 
-    if (1)
-      globalThis.onerror = (e, source, lineno, colno, err) => {
-        Mess.trace(source + ':' + lineno + ' ' + err?.message)
-        Mess.yell(source + ':' + lineno + ' ' + err?.message)
-        // cancel err
-        return true
-      }
+             if (1)
+               globalThis.onerror = (e, source, lineno, colno, err) => {
+                                      Mess.trace(source + ':' + lineno + ' ' + err?.message)
+                                      Mess.yell(source + ':' + lineno + ' ' + err?.message)
+                                      // cancel err
+                                      return true
+                                    }
 
-    initMouse()
+             initMouse()
 
-    // closest to onclose/onexit
-    globalThis.document.onvisibilitychange = () => {
-      let tab
+             // closest to onclose/onexit
+             globalThis.document.onvisibilitychange = () => {
+                                                        let tab
 
-      tab = Tab.current(Win.current().main)
-      tab.frameLeft.save()
-      tab.frameRight.save()
-      tab.framesRight[1]?.save()
-      Buf.savePoss()
-    }
+                                                        tab = Tab.current(Win.current().main)
+                                                        tab.frameLeft.save()
+                                                        tab.frameRight.save()
+                                                        tab.framesRight[1]?.save()
+                                                        Buf.savePoss()
+                                                      }
 
-    start0()
-  })
+             start0()
+           })
   Timing.stop('bred.init')
 }
 
@@ -1940,11 +1940,11 @@ function initNewWindow
   Opt.init()
 
   Opt.load(() => {
-    initFontSize()
+             initFontSize()
 
-    initMouse()
-    start0()
-  })
+             initMouse()
+             start0()
+           })
 }
 
 export { mouse }
@@ -1965,25 +1965,25 @@ function perf
 
   results.views = []
   results.buffers = Buf.shared().buffers.map(b => {
-    let openViews
-    let closedViews
+                                               let openViews
+                                               let closedViews
 
-    openViews = 0
-    closedViews = 0
-    b.views.forEach(v => {
-      if (v.ele)
-        openViews++
-      else
-        closedViews++
-      results.views.push(v)
-    })
-    return { name: b.name,
+                                               openViews = 0
+                                               closedViews = 0
+                                               b.views.forEach(v => {
+                                                                 if (v.ele)
+                                                                   openViews++
+                                                                 else
+                                                                   closedViews++
+                                                                 results.views.push(v)
+                                                               })
+                                               return { name: b.name,
              id: b.id,
              mode: b.mode?.key,
              views: openViews,
              closedViews,
              domElements: b.views.reduce((sum, v) => sum + (v.ele?.querySelectorAll('*').length || 0), 0) }
-  })
+                                             })
 
   results.domElements = globalThis.document.querySelectorAll('*').length
 
@@ -2024,22 +2024,22 @@ function perf
               'Tron Handlers: ' + results.tronTotal ]
 
   results.tronHandlers?.forEach(h => {
-    content.push('  ' + h.channel + ': ' + h.count)
-  })
+                                  content.push('  ' + h.channel + ': ' + h.count)
+                                })
 
   content.push('')
   content.push('Buffers:')
 
   results.buffers.forEach(b => {
-    content.push('  ' + b.id + ' ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + (b.views == 1 ? ' view' : ' views') + (b.closedViews ? ' (+ ' + b.closedViews + ' closed)' : ''))
-  })
+                            content.push('  ' + b.id + ' ' + b.name + ': ' + b.domElements + ' elements in ' + b.views + (b.views == 1 ? ' view' : ' views') + (b.closedViews ? ' (+ ' + b.closedViews + ' closed)' : ''))
+                          })
 
   content.push('')
   content.push('Views:')
 
   results.views.forEach(v => {
-    content.push('  ' + (v.buf?.id || '?') + '.' + v.vid + (v.ele ? '' : ' closed'))
-  })
+                          content.push('  ' + (v.buf?.id || '?') + '.' + v.vid + (v.ele ? '' : ' closed'))
+                        })
 
   Mess.log(content.join('\n'))
   results.content = content

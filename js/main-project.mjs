@@ -55,11 +55,11 @@ function get
 
   // search existing projects
   p = projects.find(p1 => {
-    if (p1.dir.length) {
-      d('  ' + p1.dir)
-      return path.startsWith(p1.dir)
-    }
-  })
+                      if (p1.dir.length) {
+                        d('  ' + p1.dir)
+                        return path.startsWith(p1.dir)
+                      }
+                    })
   if (p)
     d('PROJ found in existing')
   else {

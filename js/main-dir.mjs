@@ -68,22 +68,22 @@ function onGet
       0 && groups.forEach(entry => d(entry.join()))
 
       Fs.readdir(dir, {}, (err, data) => {
-        if (err)
-          if (err.code == 'ENOTDIR') {
-            dir = Path.dirname(dir)
-            Fs.readdir(dir, {}, (err2, data2) => {
-              if (err2)
-                e.sender.send(ch, { err: err2 })
-              else
-                ok(data2)
-            })
-          }
-          else
-            e.sender.send(ch, { err })
+                            if (err)
+                              if (err.code == 'ENOTDIR') {
+                                dir = Path.dirname(dir)
+                                Fs.readdir(dir, {}, (err2, data2) => {
+                                                      if (err2)
+                                                        e.sender.send(ch, { err: err2 })
+                                                      else
+                                                        ok(data2)
+                                                    })
+                              }
+                              else
+                                e.sender.send(ch, { err })
 
-        else
-          ok(data)
-      })
+                            else
+                              ok(data)
+                          })
     }
   }
 
@@ -96,31 +96,31 @@ function onGet
   if (proc.error)
     throw proc.error
   proc.stdout.on('data', data => {
-    ents += data
-  })
+                           ents += data
+                         })
   proc.on('close', code => {
-    if (code)
-      e.sender.send(ch, errMsg('getent failed: ' + code))
-    else {
-      readyU = 1
-      ready()
-    }
-  })
+                     if (code)
+                       e.sender.send(ch, errMsg('getent failed: ' + code))
+                     else {
+                       readyU = 1
+                       ready()
+                     }
+                   })
 
   proc = spawn('getent', [ 'group' ], { encoding: 'utf-8' })
   if (proc.error)
     throw proc.error
   proc.stdout.on('data', data => {
-    groups += data
-  })
+                           groups += data
+                         })
   proc.on('close', code => {
-    if (code)
-      e.sender.send(ch, errMsg('getent group failed: ' + code))
-    else {
-      readyG = 1
-      ready()
-    }
-  })
+                     if (code)
+                       e.sender.send(ch, errMsg('getent group failed: ' + code))
+                     else {
+                       readyG = 1
+                       ready()
+                     }
+                   })
 }
 
 // ASYNC: file system - create directory
@@ -129,11 +129,11 @@ function onMake
 (e, ch, dir) {
   // mode will be 0777 (drwxrwxrwx)
   Fs.mkdir(dir, { recursive: true }, err => {
-    if (err)
-      e.sender.send(ch, { err })
-    else
-      e.sender.send(ch, {})
-  })
+                                       if (err)
+                                         e.sender.send(ch, { err })
+                                       else
+                                         e.sender.send(ch, {})
+                                     })
 }
 
 // ASYNC: file system - remove directory
@@ -147,20 +147,20 @@ function onRm
   else if (path.startsWith('/'))
     if (spec?.recurse)
       Fs.rm(path, { recursive: true }, err => {
-        if (err) {
-          e.sender.send(ch, makeErr(err))
-          return
-        }
-        e.sender.send(ch, {})
-      })
+                                         if (err) {
+                                           e.sender.send(ch, makeErr(err))
+                                           return
+                                         }
+                                         e.sender.send(ch, {})
+                                       })
     else
       Fs.rmdir(path, err => {
-        if (err) {
-          e.sender.send(ch, makeErr(err))
-          return
-        }
-        e.sender.send(ch, {})
-      })
+                       if (err) {
+                         e.sender.send(ch, makeErr(err))
+                         return
+                       }
+                       e.sender.send(ch, {})
+                     })
   else
     e.sender.send(ch, errMsg('Path must be absolute'))
 }

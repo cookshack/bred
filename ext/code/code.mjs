@@ -68,13 +68,13 @@ function codeInit
     updateBufAgent(existingBuf, 'build')
     Ev.startSub(existingBuf, events)
     Comm.ensureClient(existingBuf).then(c => {
-      c.session.command({ sessionID: existingBuf.vars('code').sessionID,
+                                          c.session.command({ sessionID: existingBuf.vars('code').sessionID,
                           directory: existingBuf.dir,
                           command: 'init',
                           arguments: '',
                           agent: 'build',
                           model: existingBuf.vars('code').provider + '/' + existingBuf.vars('code').model })
-    })
+                                        })
     return
   }
 
@@ -85,31 +85,31 @@ function codeInit
   buf.opt('core.lint.enabled', 1)
 
   Comm.ensureClient(buf).then(c => {
-    c.session.create({ directory: buf.dir, title: '/init' })
-      .then(res => {
-        buf.vars('code').sessionID = res.data.id
+                                c.session.create({ directory: buf.dir, title: '/init' })
+                                  .then(res => {
+                                          buf.vars('code').sessionID = res.data.id
 
-        pane.setBuf(buf, {}, () => {
-          Prompt.nestBuf(buf, hist)
-          buf.vars('code').firstPromptSent = 1
-          buf.vars('code').busy = 1
-          Ui.appendMsg(buf, 'user', '/init')
-          updateBufAgent(buf, 'build')
-          Ui.updateDocker(buf)
-          Ev.startSub(buf, events)
+                                          pane.setBuf(buf, {}, () => {
+                                                                 Prompt.nestBuf(buf, hist)
+                                                                 buf.vars('code').firstPromptSent = 1
+                                                                 buf.vars('code').busy = 1
+                                                                 Ui.appendMsg(buf, 'user', '/init')
+                                                                 updateBufAgent(buf, 'build')
+                                                                 Ui.updateDocker(buf)
+                                                                 Ev.startSub(buf, events)
 
-          c.session.command({ sessionID: res.data.id,
+                                                                 c.session.command({ sessionID: res.data.id,
                               directory: buf.dir,
                               command: 'init',
                               arguments: '',
                               agent: 'build',
                               model: provider + '/' + model })
-        })
-      })
-      .catch(err => {
-        Mess.yell('Failed: ' + err.message)
-      })
-  })
+                                                               })
+                                        })
+                                  .catch(err => {
+                                           Mess.yell('Failed: ' + err.message)
+                                         })
+                              })
 }
 
 function updateCredits
@@ -127,45 +127,45 @@ function updateCredits
           headers: { Authorization: 'Bearer ' + key,
                      'Content-Type': 'application/json' } })
     .then(response => {
-      if (response.ok) {
-        response.json().then(data => {
-          d({ data })
-          d(data.data.limit_remaining)
-          buf.views.forEach(view => {
-            if (view.eleOrReserved) {
-              let el
+            if (response.ok) {
+              response.json().then(data => {
+                                     d({ data })
+                                     d(data.data.limit_remaining)
+                                     buf.views.forEach(view => {
+                                                         if (view.eleOrReserved) {
+                                                           let el
 
-              el = view.eleOrReserved.querySelector('.code-under-credits')
-              if (el) {
-                let dol
+                                                           el = view.eleOrReserved.querySelector('.code-under-credits')
+                                                           if (el) {
+                                                             let dol
 
-                dol = parseFloat(data.data.limit_remaining)
-                if (isNaN(dol))
-                  el.innerText = 'OR:$'
-                else
-                  el.innerText = 'OR:$' + dol.toFixed(2)
-              }
+                                                             dol = parseFloat(data.data.limit_remaining)
+                                                             if (isNaN(dol))
+                                                               el.innerText = 'OR:$'
+                                                             else
+                                                               el.innerText = 'OR:$' + dol.toFixed(2)
+                                                           }
+                                                         }
+                                                       })
+                                   })
+                .catch(err => {
+                         d('ERR .json: ' + err.message)
+                       })
+              return
             }
+            d('Error fetching credit info')
           })
-        })
-          .catch(err => {
-            d('ERR .json: ' + err.message)
-          })
-        return
-      }
-      d('Error fetching credit info')
-    })
     .catch(err => {
-      d('ERR fetch:')
-      d(err.message)
-    })
+             d('ERR fetch:')
+             d(err.message)
+           })
 }
 
 function appendModel
 (buf, model) {
   Util.eachCodeW(buf, (view, w) => {
-    Ui.appendX(w, divCl('code-msg code-msg-role', model))
-  })
+                        Ui.appendX(w, divCl('code-msg code-msg-role', model))
+                      })
 }
 
 function fileLabel
@@ -206,22 +206,22 @@ function appendPermission
   if (callID)
     label = buf.vars('code').callLabels?.[callID]
   buf.views.forEach(view => {
-    if (view.eleOrReserved) {
-      let w
+                      if (view.eleOrReserved) {
+                        let w
 
-      w = view.eleOrReserved.querySelector('.code-w')
-      Ui.appendX(w,
-                 divCl('code-msg code-msg-permission',
-                       [ divCl('code-msg-text',
-                               [ '▣ Allow?',
-                                 button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
-                                 button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
-                         label && divCl('code-msg-label', label),
-                         divCl('code-msg-pattern', pattern()) ],
-                       { 'data-permissionid': id,
+                        w = view.eleOrReserved.querySelector('.code-w')
+                        Ui.appendX(w,
+                                   divCl('code-msg code-msg-permission',
+                                         [ divCl('code-msg-text',
+                                                 [ '▣ Allow?',
+                                                   button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
+                                                   button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
+                                           label && divCl('code-msg-label', label),
+                                           divCl('code-msg-pattern', pattern()) ],
+                                         { 'data-permissionid': id,
                          'data-permission-callid': callID || '??' }))
-    }
-  })
+                      }
+                    })
 }
 
 function ynRespond
@@ -234,30 +234,30 @@ function ynRespond
 
   d('CO permission reply: ' + response)
   Comm.ensureClient(buf).then(async c => {
-    try {
-      d('CO calling permission.respond, dir=' + buf.dir)
+                                try {
+                                  d('CO calling permission.respond, dir=' + buf.dir)
 
-      // Seems they often move args and things break, so if you're stuck:
-      // Check the SDK method parameters against the OpenAPI spec in
-      // `http://127.0.0.1:PORT/doc` to verify all required params
-      // (especially query params like `directory`) are being passed.
-      await c.permission.respond({ sessionID,
+                                  // Seems they often move args and things break, so if you're stuck:
+                                  // Check the SDK method parameters against the OpenAPI spec in
+                                  // `http://127.0.0.1:PORT/doc` to verify all required params
+                                  // (especially query params like `directory`) are being passed.
+                                  await c.permission.respond({ sessionID,
                                    permissionID: id,
                                    response,
                                    directory: buf.dir })
-      Util.eachCodeW(buf, (view, w) => {
-        let el
+                                  Util.eachCodeW(buf, (view, w) => {
+                                                        let el
 
-        el = w.querySelector('.code-msg-permission[data-permissionid="' + id + '"]')
-        el?.remove()
-      })
-    }
-    catch (err) {
-      d('CO permission respond error: ' + err.message)
-    }
-  }).catch(err => {
-    d('CO permission Comm.ensureClient error: ' + err.message)
-  })
+                                                        el = w.querySelector('.code-msg-permission[data-permissionid="' + id + '"]')
+                                                        el?.remove()
+                                                      })
+                                }
+                                catch (err) {
+                                  d('CO permission respond error: ' + err.message)
+                                }
+                              }).catch(err => {
+                                         d('CO permission Comm.ensureClient error: ' + err.message)
+                                       })
 
   buf.vars('code').permissions = buf.vars('code').permissions.slice(1)
   if (buf.vars('code').permissions.length)
@@ -279,19 +279,19 @@ function yn
 function updateBufAgent
 (buf, agent) {
   buf.views.forEach(view => {
-    if (view.eleOrReserved) {
-      let h
+                      if (view.eleOrReserved) {
+                        let h
 
-      h = view.eleOrReserved.querySelector('.code-h')
-      if (h) {
-        let agentEl
+                        h = view.eleOrReserved.querySelector('.code-h')
+                        if (h) {
+                          let agentEl
 
-        agentEl = h.querySelector('.code-agent')
-        if (agentEl)
-          agentEl.innerText = Util.iconAgent() + agent
-      }
-    }
-  })
+                          agentEl = h.querySelector('.code-agent')
+                          if (agentEl)
+                            agentEl.innerText = Util.iconAgent() + agent
+                        }
+                      }
+                    })
 }
 
 function updateIdle
@@ -352,30 +352,30 @@ function updateModelContextLimit
   buf.vars('code').lastProviderID = providerID
   buf.vars('code').lastModelID = modelID
   Comm.ensureClient(buf).then(async c => {
-    try {
-      let providers, model
+                                try {
+                                  let providers, model
 
-      providers = await c.config.providers({ directory: buf.dir })
-      d({ providers })
-      providers.data.providers?.some(p => {
-        if (p.id == providerID) {
-          model = p.models?.[modelID]
-          return true
-        }
-      })
-      if (model?.limit?.context) {
-        d('CO modelContextLimit ' + model.limit.context)
-        buf.vars('code').modelContextLimit = model.limit.context
-      }
-      else {
-        d('CO modelContextLimit missing')
-        d({ providers })
-      }
-    }
-    catch (err) {
-      d('CO failed to get providers: ' + err.message)
-    }
-  })
+                                  providers = await c.config.providers({ directory: buf.dir })
+                                  d({ providers })
+                                  providers.data.providers?.some(p => {
+                                                                   if (p.id == providerID) {
+                                                                     model = p.models?.[modelID]
+                                                                     return true
+                                                                   }
+                                                                 })
+                                  if (model?.limit?.context) {
+                                    d('CO modelContextLimit ' + model.limit.context)
+                                    buf.vars('code').modelContextLimit = model.limit.context
+                                  }
+                                  else {
+                                    d('CO modelContextLimit missing')
+                                    d({ providers })
+                                  }
+                                }
+                                catch (err) {
+                                  d('CO failed to get providers: ' + err.message)
+                                }
+                              })
 }
 
 function checkForPatch
@@ -421,51 +421,51 @@ function handleQuestionAsked
 function appendQuestion
 (buf, req) {
   Util.eachCodeW(buf, (view, w) => {
-    Ui.appendX(w,
-               divCl('code-msg code-msg-question',
-                     [ divCl('code-msg-text', [ '▣ Questions' ]),
-                       ...req.questions.map((q, qi) => divCl('code-question-item',
-                                                             [ divCl('code-question-header', q.header),
-                                                               divCl('code-question-text', q.question),
-                                                               ...(q.options || []).map(opt => divCl('code-question-option',
-                                                                                                     [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
-                                                                                                     { 'data-run': 'toggle question option',
+                        Ui.appendX(w,
+                                   divCl('code-msg code-msg-question',
+                                         [ divCl('code-msg-text', [ '▣ Questions' ]),
+                                           ...req.questions.map((q, qi) => divCl('code-question-item',
+                                                                                 [ divCl('code-question-header', q.header),
+                                                                                   divCl('code-question-text', q.question),
+                                                                                   ...(q.options || []).map(opt => divCl('code-question-option',
+                                                                                                                         [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
+                                                                                                                         { 'data-run': 'toggle question option',
                                                                                                        'data-qid': req.id,
                                                                                                        'data-qi': qi,
                                                                                                        'data-opt': opt.label })),
-                                                               q.custom && create('input', [],
-                                                                                  'code-question-custom',
-                                                                                  { 'data-qid': req.id,
+                                                                                   q.custom && create('input', [],
+                                                                                                      'code-question-custom',
+                                                                                                      { 'data-qid': req.id,
                                                                                     'data-qi': qi,
                                                                                     placeholder: 'Your answer...' }) ],
-                                                             { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
-                       divCl('code-msg-text',
-                             [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
-                               button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
-                     { 'data-requestid': req.id }))
-  })
+                                                                                 { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
+                                           divCl('code-msg-text',
+                                                 [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
+                                                   button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
+                                         { 'data-requestid': req.id }))
+                      })
 }
 
 function questionRespond
 (buf, requestID, answers) {
   d('CO question ' + (answers ? 'reply' : 'reject'))
   Comm.ensureClient(buf).then(async c => {
-    try {
-      if (answers)
-        await c.question.reply({ requestID, answers, directory: buf.dir })
-      else
-        await c.question.reject({ requestID, directory: buf.dir })
-      Util.eachCodeW(buf, (view, w) => {
-        let el
+                                try {
+                                  if (answers)
+                                    await c.question.reply({ requestID, answers, directory: buf.dir })
+                                  else
+                                    await c.question.reject({ requestID, directory: buf.dir })
+                                  Util.eachCodeW(buf, (view, w) => {
+                                                        let el
 
-        el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
-        el?.remove()
-      })
-    }
-    catch (err) {
-      d('CO question respond error: ' + err.message)
-    }
-  })
+                                                        el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
+                                                        el?.remove()
+                                                      })
+                                }
+                                catch (err) {
+                                  d('CO question respond error: ' + err.message)
+                                }
+                              })
   buf.vars('code').questions = buf.vars('code').questions.slice(1)
   if (buf.vars('code').questions.length)
     appendQuestion(buf, buf.vars('code').questions[0])
@@ -501,16 +501,16 @@ function answerQuestion
   items = el.querySelectorAll('.code-question-item')
   answers = []
   items.forEach(item => {
-    let selected, custom, ans
+                  let selected, custom, ans
 
-    selected = item.querySelectorAll('.code-question-option.code-option-selected')
-    ans = []
-    selected.forEach(o => ans.push(o.dataset.opt))
-    custom = item.querySelector('.code-question-custom')
-    if (custom && custom.value.trim())
-      ans.push(custom.value.trim())
-    answers.push(ans)
-  })
+                  selected = item.querySelectorAll('.code-question-option.code-option-selected')
+                  ans = []
+                  selected.forEach(o => ans.push(o.dataset.opt))
+                  custom = item.querySelector('.code-question-custom')
+                  if (custom && custom.value.trim())
+                    ans.push(custom.value.trim())
+                  answers.push(ans)
+                })
   questionRespond(buf, requestID, answers)
 }
 
@@ -549,14 +549,14 @@ function handleSessionUpdated
   title = event.properties.info?.title
   if (title)
     buf.views.forEach(view => {
-      if (view.eleOrReserved) {
-        let titleEl
+                        if (view.eleOrReserved) {
+                          let titleEl
 
-        titleEl = view.eleOrReserved.querySelector('.code-session-title')
-        if (titleEl)
-          titleEl.innerText = title
-      }
-    })
+                          titleEl = view.eleOrReserved.querySelector('.code-session-title')
+                          if (titleEl)
+                            titleEl.innerText = title
+                        }
+                      })
 }
 
 function handleMessageUpdated
@@ -689,28 +689,28 @@ function handlePartDelta
   }
 
   Util.eachCodeW(buf, (view, w) => {
-    let msgEl, thinkingEl, textEl
+                        let msgEl, thinkingEl, textEl
 
-    msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
-    if (msgEl) {
-      textEl = msgEl.querySelector('.code-msg-text')
-      if (textEl && field == 'text')
-        Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
-      else if (field == 'text' && msgEl.querySelector('.code-markdown-ed'))
-        Ui.chunkText(buf, event.properties.partID, delta)
-    }
-    thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
-    if (thinkingEl && field == 'text') {
-      textEl = thinkingEl.querySelector('.code-msg-text')
-      if (textEl)
-        Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
-    }
-    else if (field == 'text' && msgEl == null)
-      Ui.appendX(w,
-                 divCl('code-msg code-msg-thinking',
-                       [ divCl('code-msg-text', delta) ],
-                       { 'data-partid': event.properties.partID || 0 }))
-  })
+                        msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
+                        if (msgEl) {
+                          textEl = msgEl.querySelector('.code-msg-text')
+                          if (textEl && field == 'text')
+                            Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
+                          else if (field == 'text' && msgEl.querySelector('.code-markdown-ed'))
+                            Ui.chunkText(buf, event.properties.partID, delta)
+                        }
+                        thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
+                        if (thinkingEl && field == 'text') {
+                          textEl = thinkingEl.querySelector('.code-msg-text')
+                          if (textEl)
+                            Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
+                        }
+                        else if (field == 'text' && msgEl == null)
+                          Ui.appendX(w,
+                                     divCl('code-msg code-msg-thinking',
+                                           [ divCl('code-msg-text', delta) ],
+                                           { 'data-partid': event.properties.partID || 0 }))
+                      })
 }
 
 function handleSubagentIdle
@@ -720,17 +720,17 @@ function handleSubagentIdle
   callId = buf.vars('code').subagentCallIds?.get(event.properties.sessionID)
   if (callId)
     Util.eachCodeW(buf, (view, w) => {
-      let els
+                          let els
 
-      els = w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]')
-      els?.forEach(el => {
-        let textEl
+                          els = w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]')
+                          els?.forEach(el => {
+                                         let textEl
 
-        textEl = el.querySelector('.code-msg-text')
-        if (textEl && textEl.innerText.indexOf('◉') < 0)
-          textEl.innerText = textEl.innerText + ' ◉'
-      })
-    })
+                                         textEl = el.querySelector('.code-msg-text')
+                                         if (textEl && textEl.innerText.indexOf('◉') < 0)
+                                           textEl.innerText = textEl.innerText + ' ◉'
+                                       })
+                        })
 }
 
 function ensureTitle
@@ -757,68 +757,68 @@ function send
   sessionID = buf.vars('code').sessionID
 
   Comm.ensureClient(buf).then(async c => {
-    let agent, res
+                                let agent, res
 
-    buf.vars('code').agentStopped = 0
-    buf.vars('code').busy = 1
+                                buf.vars('code').agentStopped = 0
+                                buf.vars('code').busy = 1
 
-    Ui.appendMsg(buf, 'user', text)
+                                Ui.appendMsg(buf, 'user', text)
 
-    Ev.startSub(buf, events)
+                                Ev.startSub(buf, events)
 
-    agent = Util.getAgent(buf)
+                                agent = Util.getAgent(buf)
 
-    updateBufAgent(buf, agent)
+                                updateBufAgent(buf, agent)
 
-    d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
+                                d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
 
-    res = await c.session.prompt({ sessionID,
+                                res = await c.session.prompt({ sessionID,
                                    directory: buf.dir,
                                    model: { providerID: provider, modelID: model },
                                    agent,
                                    variant: variant || undefined,
                                    parts: [ { id: 'prt_' + uuidv4(), type: 'text', text } ] })
 
-    d('CO SEND done')
-    d({ res })
+                                d('CO SEND done')
+                                d({ res })
 
-    ensureTitle(c, buf, sessionID, text)
+                                ensureTitle(c, buf, sessionID, text)
 
-    appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant))
-    if (provider == 'openrouter')
-      updateCredits(buf)
+                                appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant))
+                                if (provider == 'openrouter')
+                                  updateCredits(buf)
 
-    if (res?.error) {
-      d({ resError: res.error })
-      Ui.appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
-      buf.vars('code').client = 0
-      buf.vars('code').streamActive = 0
-      Ev.startSub(buf, events)
-    }
-  }).catch(err => {
-    d(err)
-    Ui.appendMsg(buf, 'assistant', 'Error: ' + err.message)
-    buf.vars('code').client = 0
-    buf.vars('code').streamActive = 0
-    Ev.startSub(buf, events)
-  })
+                                if (res?.error) {
+                                  d({ resError: res.error })
+                                  Ui.appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
+                                  buf.vars('code').client = 0
+                                  buf.vars('code').streamActive = 0
+                                  Ev.startSub(buf, events)
+                                }
+                              }).catch(err => {
+                                         d(err)
+                                         Ui.appendMsg(buf, 'assistant', 'Error: ' + err.message)
+                                         buf.vars('code').client = 0
+                                         buf.vars('code').streamActive = 0
+                                         Ev.startSub(buf, events)
+                                       })
 }
 
 function stopAgent
 (buf, sessionID) {
   buf.vars('code').agentStopped = 1
   Comm.ensureClient(buf).then(async client => {
-    try {
-      await client.session.abort({ sessionID, directory: buf.dir })
-      d('CO stop done')
-      Mess.yell('Stopped agent')
-    }
-    catch (err) {
-      d('CO stop error: ' + err.message)
-    }
-  }).catch(err => {
-    d('CO stop Comm.ensureClient error: ' + err.message)
-  })
+                                try {
+                                  await client.session.abort({ sessionID, directory: buf.dir })
+                                  d('CO stop done')
+                                  Mess.yell('Stopped agent')
+                                }
+                                catch (err) {
+                                  d('CO stop error: ' + err.message)
+                                }
+                              }).catch(err => {
+                                         d('CO stop Comm.ensureClient error: ' + err.message)
+                                       })
 }
 
 function stop
@@ -850,9 +850,9 @@ function stopWithCaution
     else {
       Mess.yell('Again to stop agent')
       stopTimeout = setTimeout(() => {
-        stopTimeout = 0
-        Mess.yell('stop timed out')
-      }, 5000)
+                                 stopTimeout = 0
+                                 Mess.yell('stop timed out')
+                               }, 5000)
     }
   else
     Mess.yell('missing sessionID')
@@ -864,28 +864,28 @@ function toggleThinking
 
   p = Pane.current()
   p.buf.views.forEach(view => {
-    if (view.eleOrReserved) {
-      let w
+                        if (view.eleOrReserved) {
+                          let w
 
-      w = view.eleOrReserved.querySelector('.code-w')
-      if (w) {
-        let img, h
+                          w = view.eleOrReserved.querySelector('.code-w')
+                          if (w) {
+                            let img, h
 
-        h = view.eleOrReserved.querySelector('.code-h')
-        img = h.querySelector('.code-thought img')
-        if (Css.has(w, 'code-thinking-hidden')) {
-          w.classList.remove('code-thinking-hidden')
-          if (img)
-            img.src = Icon.path('thinking.active')
-        }
-        else {
-          w.classList.add('code-thinking-hidden')
-          if (img)
-            img.src = Icon.path('thinking.zen')
-        }
-      }
-    }
-  })
+                            h = view.eleOrReserved.querySelector('.code-h')
+                            img = h.querySelector('.code-thought img')
+                            if (Css.has(w, 'code-thinking-hidden')) {
+                              w.classList.remove('code-thinking-hidden')
+                              if (img)
+                                img.src = Icon.path('thinking.active')
+                            }
+                            else {
+                              w.classList.add('code-thinking-hidden')
+                              if (img)
+                                img.src = Icon.path('thinking.zen')
+                            }
+                          }
+                        }
+                      })
 }
 
 function toggleDetails
@@ -930,18 +930,18 @@ function openPrompt
   buf.vars('code').promptBuf.placeholder = wh?.nth(0)?.toString()
 
   buf.views.forEach(view => {
-    let container
+                      let container
 
-    container = view.ele.querySelector('.code-prompt-w')
-    if (container) {
-      let mlModel
+                      container = view.ele.querySelector('.code-prompt-w')
+                      if (container) {
+                        let mlModel
 
-      Css.expand(container)
-      mlModel = container.querySelector('.code-prompt-model')
-      if (mlModel)
-        mlModel.innerText = '🗩 ' + provider + '/' + Util.modelName(model, variant)
-    }
-  })
+                        Css.expand(container)
+                        mlModel = container.querySelector('.code-prompt-model')
+                        if (mlModel)
+                          mlModel.innerText = '🗩 ' + provider + '/' + Util.modelName(model, variant)
+                      }
+                    })
 
   if (pane.view?.nestedViews) {
     let nestedView
@@ -1009,27 +1009,27 @@ function code
     buf.opt('core.lint.enabled', 1)
 
     pane.setBuf(buf, {}, () => {
-      Ui.appendMsg(buf, 0, 'Spawning docker...')
-      Comm.ensureClient(buf).then(async c => {
-        let res
+                           Ui.appendMsg(buf, 0, 'Spawning docker...')
+                           Comm.ensureClient(buf).then(async c => {
+                                                         let res
 
-        Ui.appendMsg(buf, 0, 'Creating session...')
-        res = await c.session.create({ directory: buf.dir,
+                                                         Ui.appendMsg(buf, 0, 'Creating session...')
+                                                         res = await c.session.create({ directory: buf.dir,
                                        ...(prompt ? { title: prompt } : {}) })
 
-        buf.vars('code').sessionID = res.data.id
+                                                         buf.vars('code').sessionID = res.data.id
 
-        Prompt.nestBuf(buf, hist)
-        Ui.updateDocker(buf)
-        Ui.appendMsg(buf, 0, 'Ready for prompt.')
-        if (prompt)
-          send(buf, prompt, provider, model, variant)
-        else
-          openPrompt(buf, pane, provider, model, variant)
-      }).catch(err => {
-        Mess.yell('Failed: ' + err.message)
-      })
-    })
+                                                         Prompt.nestBuf(buf, hist)
+                                                         Ui.updateDocker(buf)
+                                                         Ui.appendMsg(buf, 0, 'Ready for prompt.')
+                                                         if (prompt)
+                                                           send(buf, prompt, provider, model, variant)
+                                                         else
+                                                           openPrompt(buf, pane, provider, model, variant)
+                                                       }).catch(err => {
+                                                                  Mess.yell('Failed: ' + err.message)
+                                                                })
+                         })
   }
 
   pane = Pane.current()
@@ -1118,12 +1118,12 @@ function viewCopy
       }
     }
     ;[ ...fromW.children ].forEach(child => {
-      if (Css.has(child, 'code-session-title'))
-        return
-      if (Css.has(child, 'code-under-w'))
-        return
-      toW.insertBefore(child.cloneNode(1), toUnderW)
-    })
+                                     if (Css.has(child, 'code-session-title'))
+                                       return
+                                     if (Css.has(child, 'code-under-w'))
+                                       return
+                                     toW.insertBefore(child.cloneNode(1), toUnderW)
+                                   })
     {
       let fromH, toH
 
@@ -1173,59 +1173,59 @@ function viewCopy
 
   if (from.nestedViews)
     from.nestedViews.forEach(nv => {
-      let outer, nestedView
+                               let outer, nestedView
 
-      outer = to.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
-      if (outer) {
-        let inner, paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col
+                               outer = to.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
+                               if (outer) {
+                                 let inner, paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col
 
-        inner = outer.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"]')
-        if (inner)
-          inner.innerHTML = ''
-        else {
-          inner = divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': nv.buf.id })
-          outer.appendChild(inner)
-        }
+                                 inner = outer.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"]')
+                                 if (inner)
+                                   inner.innerHTML = ''
+                                 else {
+                                   inner = divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': nv.buf.id })
+                                   outer.appendChild(inner)
+                                 }
 
-        point = divCl('bred-point')
-        pointLine = divCl('bred-point-line')
-        lint = divCl('bred-head-ed bred-head-lint hidden',
-                     divCl('bred-lint-marker', [],
-                           { 'data-run': 'first diagnostic' }))
-        col = divCl('bred-head bred-head-end',
-                    [ divCl('bred-head-ed bred-head-col', 'C1') ])
-        head = divCl('bred-head bred-head-mid', [ lint ])
-        headW = divCl('bred-head-w', [ head, col ])
-        overlay = divCl('bred-overlay', [ point, pointLine, headW ])
-        overlayW = divCl('bred-overlay-w bred-nested', overlay)
-        pane = divCl('pane bred-nested', [])
-        paneW = divCl('paneW bred-nested', [ pane, overlayW ])
+                                 point = divCl('bred-point')
+                                 pointLine = divCl('bred-point-line')
+                                 lint = divCl('bred-head-ed bred-head-lint hidden',
+                                              divCl('bred-lint-marker', [],
+                                                    { 'data-run': 'first diagnostic' }))
+                                 col = divCl('bred-head bred-head-end',
+                                             [ divCl('bred-head-ed bred-head-col', 'C1') ])
+                                 head = divCl('bred-head bred-head-mid', [ lint ])
+                                 headW = divCl('bred-head-w', [ head, col ])
+                                 overlay = divCl('bred-overlay', [ point, pointLine, headW ])
+                                 overlayW = divCl('bred-overlay-w bred-nested', overlay)
+                                 pane = divCl('pane bred-nested', [])
+                                 paneW = divCl('paneW bred-nested', [ pane, overlayW ])
 
-        paneW.onscroll = () => {
-          if (nestedView.ed)
-            return
-          if (nestedView.scroll?.manual)
-            return
-          nestedView.point.ensureInView()
-        }
+                                 paneW.onscroll = () => {
+                                                    if (nestedView.ed)
+                                                      return
+                                                    if (nestedView.scroll?.manual)
+                                                      return
+                                                    nestedView.point.ensureInView()
+                                                  }
 
-        inner.appendChild(paneW)
+                                 inner.appendChild(paneW)
 
-        nestedView = Buf.view(nv.buf,
-                              { ele: pane, elePoint: point },
-                              v => {
-                                if (v.ed) {
-                                  Css.add(paneW, 'ed')
-                                  v.ed.focus()
-                                }
-                              })
+                                 nestedView = Buf.view(nv.buf,
+                                                       { ele: pane, elePoint: point },
+                                                       v => {
+                                                         if (v.ed) {
+                                                           Css.add(paneW, 'ed')
+                                                           v.ed.focus()
+                                                         }
+                                                       })
 
-        Css.add(pane, 'current')
+                                 Css.add(pane, 'current')
 
-        to.nestedViews = to.nestedViews || []
-        to.nestedViews.push(nestedView)
-      }
-    })
+                                 to.nestedViews = to.nestedViews || []
+                                 to.nestedViews.push(nestedView)
+                               }
+                             })
 
   if (cb)
     cb(to)
@@ -1238,10 +1238,10 @@ function viewReopen
   if (view.ele)
     // timeout so behaves like viewInit
     setTimeout(() => {
-      bufEnd(view)
-      if (whenReady)
-        whenReady(view)
-    })
+                 bufEnd(view)
+                 if (whenReady)
+                   whenReady(view)
+               })
   else
     // probably buf was switched out before init happened.
     viewInit(view,
@@ -1306,18 +1306,18 @@ function cancelPrompt
   codeBuf = buf.parent || buf
   if (codeBuf.vars('code').firstPromptSent) {
     buf.views.forEach(view => {
-      let container
+                        let container
 
-      container = view.ele.querySelector('.code-prompt-w')
-      if (container) {
-        let nestedPane
+                        container = view.ele.querySelector('.code-prompt-w')
+                        if (container) {
+                          let nestedPane
 
-        Css.retract(container)
-        nestedPane = view.ele.querySelector('.pane.bred-nested.current')
-        if (nestedPane)
-          Css.remove(nestedPane, 'current')
-      }
-    })
+                          Css.retract(container)
+                          nestedPane = view.ele.querySelector('.pane.bred-nested.current')
+                          if (nestedPane)
+                            Css.remove(nestedPane, 'current')
+                        }
+                      })
 
     p.focus()
   }
@@ -1790,20 +1790,20 @@ function init
   Cmd.add('skip question', skipQuestion, mo)
 
   Cmd.add('code buffer', () => {
-    code(Pane.current().buf.text())
-  })
+                           code(Pane.current().buf.text())
+                         })
 
   Cmd.add('most recent agent', () => {
-    if (mostRecentAgent)
-      Pane.current().setBuf(mostRecentAgent)
-    else
-      Cmd.run('code')
-  })
+                                 if (mostRecentAgent)
+                                   Pane.current().setBuf(mostRecentAgent)
+                                 else
+                                   Cmd.run('code')
+                               })
 
   Pane.onSetBuf(view => {
-    if (view.buf.mode.key == 'code')
-      mostRecentAgent = view.buf
-  })
+                  if (view.buf.mode.key == 'code')
+                    mostRecentAgent = view.buf
+                })
 
   moCodePrompt = Mode.add('Code Prompt', { minor: 1 })
 

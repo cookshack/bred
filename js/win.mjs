@@ -197,14 +197,14 @@ function add
                       { 'data-run': 'toggle maximize' })
 
   Tron.on('win.maximized', () => {
-    winMaximize.innerHTML = ''
-    winMaximize.appendChild(img('img/toggle-maximize.svg', 'Restore', 'filter-clr-text'))
-  })
+                             winMaximize.innerHTML = ''
+                             winMaximize.appendChild(img('img/toggle-maximize.svg', 'Restore', 'filter-clr-text'))
+                           })
 
   Tron.on('win.normal', () => {
-    winMaximize.innerHTML = ''
-    winMaximize.appendChild(img('img/toggle-maximize.svg', 'Maximize', 'filter-clr-text'))
-  })
+                          winMaximize.innerHTML = ''
+                          winMaximize.appendChild(img('img/toggle-maximize.svg', 'Maximize', 'filter-clr-text'))
+                        })
 
   winClose = divCl('mini-icon win-control onfill',
                    img('img/x.svg', 'Close', 'filter-clr-text'),

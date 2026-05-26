@@ -11,38 +11,38 @@ function watch
     return
 
   Tron.cmd1('file.watch', [ path ], (err, ch) => {
-    let off
+                                      let off
 
-    d('WODE 👀 watch ' + path)
+                                      d('WODE 👀 watch ' + path)
 
-    if (err) {
-      Mess.log('watch failed on ' + path)
-      watching.delete(path)
-      return
-    }
+                                      if (err) {
+                                        Mess.log('watch failed on ' + path)
+                                        watching.delete(path)
+                                        return
+                                      }
 
-    off = Tron.on(ch, (err2, data) => {
-      // NB Beware of doing anything in here that modifies the file being watched,
-      //    because that may cause recursive behaviour. Eg d when --logfile and
-      //    log file is open in a buffer.
-      console.log('WODE 👀 watch ev')
-      console.log({ data })
-      if (data.type == 'change') {
-        if (buf.stat?.mtimeMs == data.stat?.mtimeMs)
-          return
-        buf.modifiedOnDisk = 1
-      }
-    })
+                                      off = Tron.on(ch, (err2, data) => {
+                                                          // NB Beware of doing anything in here that modifies the file being watched,
+                                                          //    because that may cause recursive behaviour. Eg d when --logfile and
+                                                          //    log file is open in a buffer.
+                                                          console.log('WODE 👀 watch ev')
+                                                          console.log({ data })
+                                                          if (data.type == 'change') {
+                                                            if (buf.stat?.mtimeMs == data.stat?.mtimeMs)
+                                                              return
+                                                            buf.modifiedOnDisk = 1
+                                                          }
+                                                        })
 
-    watching.set(path, off)
+                                      watching.set(path, off)
 
-    buf.onRemove(() => {
-      if (watching.get(path)) {
-        off()
-        watching.delete(path)
-      }
-    })
-  })
+                                      buf.onRemove(() => {
+                                                     if (watching.get(path)) {
+                                                       off()
+                                                       watching.delete(path)
+                                                     }
+                                                   })
+                                    })
 }
 
 export

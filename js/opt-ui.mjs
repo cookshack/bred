@@ -34,19 +34,19 @@ function init
     w = view.ele.firstElementChild.firstElementChild
     w.innerHTML = ''
     all = Opt.sort().map(([ name, value ]) => {
-      let type, run
+                           let type, run
 
-      type = Opt.type(name)
-      run = {}
-      if (type == 'bool')
-        run = { 'data-run': 'toggle option' }
-      value = clean(value, type)
-      return [ divCl('options-name', name),
-               divCl('options-val',
-                     value,
-                     { 'data-name': name, ...run }),
-               divCl('options-type', type) ]
-    })
+                           type = Opt.type(name)
+                           run = {}
+                           if (type == 'bool')
+                             run = { 'data-run': 'toggle option' }
+                           value = clean(value, type)
+                           return [ divCl('options-name', name),
+                                    divCl('options-val',
+                                          value,
+                                          { 'data-name': name, ...run }),
+                                    divCl('options-type', type) ]
+                         })
     append(w,
            divCl('options-h', 'Options'),
            divCl('options-all', all),
@@ -56,17 +56,17 @@ function init
   }
 
   Opt.onSet(0, (val, name) => {
-    Win.shared().options.buf?.views.forEach(view => {
-      if (view.ele && (view.win == Win.current())) {
-        let w, el
+                 Win.shared().options.buf?.views.forEach(view => {
+                                                           if (view.ele && (view.win == Win.current())) {
+                                                             let w, el
 
-        w = view.ele.firstElementChild.firstElementChild
-        el = w.querySelector('.options-val[data-name="' + name + '"]')
-        if (el)
-          el.innerText = clean(val, Opt.type(name))
-      }
-    })
-  })
+                                                             w = view.ele.firstElementChild.firstElementChild
+                                                             el = w.querySelector('.options-val[data-name="' + name + '"]')
+                                                             if (el)
+                                                               el.innerText = clean(val, Opt.type(name))
+                                                           }
+                                                         })
+               })
 
   if (Win.root())
     Win.shared().options = {}
@@ -74,35 +74,35 @@ function init
   mo = Mode.add('Options', { viewInit })
 
   Cmd.add('options', () => {
-    let p, buf
+                       let p, buf
 
-    buf = Win.shared().options.buf
-    p = Pane.current()
-    if (buf)
-      p.setBuf(buf, {}, view => viewInit(view))
-    else {
-      buf = Buf.add('Options', 'Options', divW(), p.dir)
-      Win.shared().options.buf = buf
-      buf.icon = 'clipboard'
-      buf.addMode('view')
-      p.setBuf(buf)
-    }
-  })
+                       buf = Win.shared().options.buf
+                       p = Pane.current()
+                       if (buf)
+                         p.setBuf(buf, {}, view => viewInit(view))
+                       else {
+                         buf = Buf.add('Options', 'Options', divW(), p.dir)
+                         Win.shared().options.buf = buf
+                         buf.icon = 'clipboard'
+                         buf.addMode('view')
+                         p.setBuf(buf)
+                       }
+                     })
 
   Cmd.add('refresh', () => {
-    let p
+                       let p
 
-    p = Pane.current()
-    viewInit(p.view)
-  },
+                       p = Pane.current()
+                       viewInit(p.view)
+                     },
           mo)
 
   Cmd.add('toggle option', (u, we) => {
-    if (we.e.target.dataset.name)
-      Opt.toggle(we.e.target.dataset.name)
-    else
-      Mess.toss('missing name')
-  },
+                             if (we.e.target.dataset.name)
+                               Opt.toggle(we.e.target.dataset.name)
+                             else
+                               Mess.toss('missing name')
+                           },
           mo)
 
   Em.on('g', 'refresh', mo)

@@ -36,10 +36,10 @@ function make
   function rm
   (name) {
     items = items.filter(item => {
-      if (item.name == name)
-        return 0
-      return 1
-    })
+                           if (item.name == name)
+                             return 0
+                           return 1
+                         })
     if (items.length == 0)
       hideB()
   }

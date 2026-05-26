@@ -69,12 +69,12 @@ function reconfigureOpt
 (buf, name) {
   //d('reconfigureOpt ' + name)
   buf.views.forEach(view => {
-    if (view.ed && (view.win == Win.current()))
-      WodeMode.wexts.forEach(b => {
-        if (b.spec.make && b.spec.reconfOpts && b.spec.reconfOpts.includes(name))
-          view.ed.dispatch({ effects: b.spec.part.reconfigure(b.spec.make(view)) })
-      })
-  })
+                      if (view.ed && (view.win == Win.current()))
+                        WodeMode.wexts.forEach(b => {
+                                                 if (b.spec.make && b.spec.reconfOpts && b.spec.reconfOpts.includes(name))
+                                                   view.ed.dispatch({ effects: b.spec.part.reconfigure(b.spec.make(view)) })
+                                               })
+                    })
 }
 
 export
@@ -105,23 +105,23 @@ function register
     if (spec.make)
       // every existing ed must get a compartment
       Buf.forEach(buf => buf.views.forEach(view => {
-        if (view.ele && view.ed && (view.win == Win.current()))
-          view.ed.dispatch({ effects: CMState.StateEffect.appendConfig.of(spec.part.of(spec.make(view))) })
-      }))
+                                             if (view.ele && view.ed && (view.win == Win.current()))
+                                               view.ed.dispatch({ effects: CMState.StateEffect.appendConfig.of(spec.part.of(spec.make(view))) })
+                                           }))
 
     spec.reconfOpts?.forEach(name => {
-      if (registeredOpts.has(name)) {
-      }
-      else {
-        registeredOpts.add(name)
-        // these will just listen forever, which is ok
-        //   could get handles and free them when the wext is freed
-        Opt.onSet(name, () => Buf.forEach(buf => reconfigureOpt(buf, name)))
-        Opt.onSetBuf(name, buf => reconfigureOpt(buf, name))
-      }
-      // reconfigure the opt on all bufs, in case any other extensions use the opt
-      Buf.forEach(buf => reconfigureOpt(buf, name))
-    })
+                               if (registeredOpts.has(name)) {
+                               }
+                               else {
+                                 registeredOpts.add(name)
+                                 // these will just listen forever, which is ok
+                                 //   could get handles and free them when the wext is freed
+                                 Opt.onSet(name, () => Buf.forEach(buf => reconfigureOpt(buf, name)))
+                                 Opt.onSetBuf(name, buf => reconfigureOpt(buf, name))
+                               }
+                               // reconfigure the opt on all bufs, in case any other extensions use the opt
+                               Buf.forEach(buf => reconfigureOpt(buf, name))
+                             })
 
     wext = { spec,
              free,
@@ -412,13 +412,13 @@ function addMinor
   //d(' ed adding minor ' + mode.key + ' to ' + b.name)
   if (mode.minor)
     b.views.forEach(v => {
-      let effects, exts
+                      let effects, exts
 
-      // remove old minor specific extensions, add new ones
-      exts = WodeMode.makeExtsMinors(v)
-      effects = v.wode.comp.extsMinors.reconfigure(exts)
-      v.ed.dispatch({ effects })
-    })
+                      // remove old minor specific extensions, add new ones
+                      exts = WodeMode.makeExtsMinors(v)
+                      effects = v.wode.comp.extsMinors.reconfigure(exts)
+                      v.ed.dispatch({ effects })
+                    })
   else
     Mess.warn('addMinor: attempt to add major: ' + mode?.name)
 }
@@ -549,15 +549,15 @@ function initModeFns
     // When the buffer was in some pane, but is no longer in any pane, then
     // the view will be reused if the buffer is shown in a pane again.
     b.views.forEach(v => {
-      if (v.ed)
-        try {
-          WodeCommon.setValue(v.ed, '', true)
-        }
-        catch (e) {
-          // I dunno, maybe ed was already destroyed.
-          d('clear: ' + e)
-        }
-    })
+                      if (v.ed)
+                        try {
+                          WodeCommon.setValue(v.ed, '', true)
+                        }
+                        catch (e) {
+                          // I dunno, maybe ed was already destroyed.
+                          d('clear: ' + e)
+                        }
+                    })
   }
 
   function clearLine
@@ -607,18 +607,18 @@ function initModeFns
   (b, name, cb) {
     if (name == 'change')
       b.views.forEach(view => {
-        if (view.win == Win.current())
-          WodeView.voffChange(view, cb)
-      })
+                        if (view.win == Win.current())
+                          WodeView.voffChange(view, cb)
+                      })
   }
 
   function on
   (b, name, cb) {
     if (name == 'change')
       b.views.forEach(view => {
-        if (view.win == Win.current())
-          WodeView.vonChange(view, cb)
-      })
+                        if (view.win == Win.current())
+                          WodeView.vonChange(view, cb)
+                      })
   }
 
   function setPlaceholder
@@ -1305,24 +1305,24 @@ function vsave
     if (view.buf.path) {
       Css.disable(view.ele)
       Tron.cmd('file.save', [ Loc.make(view.buf.path).expand(), view.ed.state.doc.toString() ], (err, data) => {
-        Css.enable(view.ele)
-        view.ed.focus()
-        if (err) {
-          if (cb)
-            cb(err)
-          else
-            Mess.yell(err.message)
-          return
-        }
-        view.buf.modified = 0
-        view.buf.modifiedOnDisk = 0
-        view.buf.stat = data.stat
-        Ed.setIcon(view.buf, '.edMl-mod', 'blank')
-        if (cb)
-          cb()
-        else
-          Mess.say('Saved')
-      })
+                                                                                                  Css.enable(view.ele)
+                                                                                                  view.ed.focus()
+                                                                                                  if (err) {
+                                                                                                    if (cb)
+                                                                                                      cb(err)
+                                                                                                    else
+                                                                                                      Mess.yell(err.message)
+                                                                                                    return
+                                                                                                  }
+                                                                                                  view.buf.modified = 0
+                                                                                                  view.buf.modifiedOnDisk = 0
+                                                                                                  view.buf.stat = data.stat
+                                                                                                  Ed.setIcon(view.buf, '.edMl-mod', 'blank')
+                                                                                                  if (cb)
+                                                                                                    cb()
+                                                                                                  else
+                                                                                                    Mess.say('Saved')
+                                                                                                })
     }
     else if (cb)
       cb(new Error('Buf needs path'))
@@ -1491,20 +1491,20 @@ function quotedInsert
   view = View.current()
   Mess.echoMore('C-q-')
   globalThis.onkeydown = e => {
-    e.preventDefault()
-    if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
-      return
-    try {
-      let char
+                           e.preventDefault()
+                           if ([ 'Alt', 'Control', 'CapsLock', 'Shift' ].includes(e.key))
+                             return
+                           try {
+                             let char
 
-      char = Ed.charForInsert({ e })
-      vinsert1(view, u, char)
-    }
-    finally {
-      globalThis.onkeydown = oldOnKeyDown
-      Mess.say()
-    }
-  }
+                             char = Ed.charForInsert({ e })
+                             vinsert1(view, u, char)
+                           }
+                           finally {
+                             globalThis.onkeydown = oldOnKeyDown
+                             Mess.say()
+                           }
+                         }
 }
 
 export
@@ -1552,18 +1552,18 @@ export
 function capitalizeWord
 () {
   caseWord(str => {
-    // better go beginning of word
-    Ed.nonTokenRe.lastIndex = 0
-    if (U.isPresent(Ed.nonTokenRe.exec(str))) {
-      let i
+             // better go beginning of word
+             Ed.nonTokenRe.lastIndex = 0
+             if (U.isPresent(Ed.nonTokenRe.exec(str))) {
+               let i
 
-      i = Ed.nonTokenRe.lastIndex
-      str = str.slice(0, i) + U.capitalize(str.slice(i))
-    }
-    else
-      str = U.capitalize(str)
-    return str
-  })
+               i = Ed.nonTokenRe.lastIndex
+               str = str.slice(0, i) + U.capitalize(str.slice(i))
+             }
+             else
+               str = U.capitalize(str)
+             return str
+           })
 }
 
 export
@@ -2099,9 +2099,9 @@ function onBufRemove
 (buf) {
   d('WODE handling remove of buf ' + buf.name)
   buf.views.forEach(view => {
-    if (view.ed)
-      view.ed.destroy()
-  })
+                      if (view.ed)
+                        view.ed.destroy()
+                    })
 }
 
 export

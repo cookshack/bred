@@ -11,40 +11,40 @@ Style.initCss(console.log)
 pause = button('Pause', '', { 'data-run': 'Pause' })
 
 pause.onclick = () => {
-  Css.disable(pause)
+                  Css.disable(pause)
 
-  if (pause.innerText == 'Resume') {
-    Tron.cmd('step.send', [ 'Debugger.resume' ], err => {
-      if (err) {
-        console.log('resume: ' + err.message)
-        Css.enable(pause)
-        return
-      }
-      console.log('resumed')
-      pause.innerText = 'Pause'
-      Css.enable(pause)
-    })
-    return
-  }
+                  if (pause.innerText == 'Resume') {
+                    Tron.cmd('step.send', [ 'Debugger.resume' ], err => {
+                                                                   if (err) {
+                                                                     console.log('resume: ' + err.message)
+                                                                     Css.enable(pause)
+                                                                     return
+                                                                   }
+                                                                   console.log('resumed')
+                                                                   pause.innerText = 'Pause'
+                                                                   Css.enable(pause)
+                                                                 })
+                    return
+                  }
 
-  Tron.cmd('step.send', [ 'Debugger.enable' ], err => {
-    if (err) {
-      console.log('enable: ' + err.message)
-      Css.enable(pause)
-      return
-    }
-    Tron.cmd('step.send', [ 'Debugger.pause' ], err2 => {
-      if (err2) {
-        console.log('pause: ' + err2.message)
-        Css.enable(pause)
-        return
-      }
-      console.log('paused')
-      pause.innerText = 'Resume'
-      Css.enable(pause)
-    })
-  })
-}
+                  Tron.cmd('step.send', [ 'Debugger.enable' ], err => {
+                                                                 if (err) {
+                                                                   console.log('enable: ' + err.message)
+                                                                   Css.enable(pause)
+                                                                   return
+                                                                 }
+                                                                 Tron.cmd('step.send', [ 'Debugger.pause' ], err2 => {
+                                                                                                               if (err2) {
+                                                                                                                 console.log('pause: ' + err2.message)
+                                                                                                                 Css.enable(pause)
+                                                                                                                 return
+                                                                                                               }
+                                                                                                               console.log('paused')
+                                                                                                               pause.innerText = 'Resume'
+                                                                                                               Css.enable(pause)
+                                                                                                             })
+                                                               })
+                }
 
 globalThis.document.body.after(div([ divCl('step-h', 'Stepper'),
                                      pause ]))

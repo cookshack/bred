@@ -31,15 +31,15 @@ function makeAutocomplete
     word.view = p.view
 
     return new Promise(resolve => {
-      for (let count = 0, i = 0; i < Ed.ctags.length; i++)
-        if (Ed.ctags[i].name.startsWith(word.text)) {
-          options.push({ label: Ed.ctags[i].name, type: Ed.ctags[i].kind })
-          if (count++ > 10)
-            break
-        }
-      resolve({ from: word.from,
+                         for (let count = 0, i = 0; i < Ed.ctags.length; i++)
+                           if (Ed.ctags[i].name.startsWith(word.text)) {
+                             options.push({ label: Ed.ctags[i].name, type: Ed.ctags[i].kind })
+                             if (count++ > 10)
+                               break
+                           }
+                         resolve({ from: word.from,
                 options: options || [] })
-    })
+                       })
   }
 
   function autocompleteLsp
@@ -58,29 +58,29 @@ function makeAutocomplete
     word.view = p.view
 
     return new Promise(resolve => {
-      Lsp.complete(lang, p.buf.path, p.buf.id, word, words => {
-        d({ words })
-        if (words.length)
-          options = words.map(w => {
-            return { label: w.name, type: w.kind }
-          })
-        else {
-          if (0)
-            for (let count = 0, i = 0; i < Ed.ctags.length; i++)
-              if (Ed.ctags[i].name.startsWith(word.text)) {
-                options.push({ label: Ed.ctags[i].name, type: Ed.ctags[i].kind })
-                if (count++ > 10)
-                  break
-              }
-          if (0)
-            options = [ { label: 'match', type: 'keyword' },
-                        { label: 'hello', type: 'variable', info: '(World)' },
-                        { label: 'magic', type: 'text', apply: '⠁⭒*.✩.*⭒⠁', detail: 'macro' } ]
-        }
-        resolve({ from: word.from,
+                         Lsp.complete(lang, p.buf.path, p.buf.id, word, words => {
+                                                                          d({ words })
+                                                                          if (words.length)
+                                                                            options = words.map(w => {
+                                                                                                  return { label: w.name, type: w.kind }
+                                                                                                })
+                                                                          else {
+                                                                            if (0)
+                                                                              for (let count = 0, i = 0; i < Ed.ctags.length; i++)
+                                                                                if (Ed.ctags[i].name.startsWith(word.text)) {
+                                                                                  options.push({ label: Ed.ctags[i].name, type: Ed.ctags[i].kind })
+                                                                                  if (count++ > 10)
+                                                                                    break
+                                                                                }
+                                                                            if (0)
+                                                                              options = [ { label: 'match', type: 'keyword' },
+                                                                                          { label: 'hello', type: 'variable', info: '(World)' },
+                                                                                          { label: 'magic', type: 'text', apply: '⠁⭒*.✩.*⭒⠁', detail: 'macro' } ]
+                                                                          }
+                                                                          resolve({ from: word.from,
                   options: options || [] })
-      })
-    })
+                                                                        })
+                       })
   }
 
   0 && (autocomplete = autocompleteTags)

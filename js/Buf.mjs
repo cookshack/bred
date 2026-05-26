@@ -30,21 +30,21 @@ export
 function savePoss
 () {
   forEach(b => {
-    if ((b.fileType == 'file') && b.file) {
-      let v
+            if ((b.fileType == 'file') && b.file) {
+              let v
 
-      v = b.views.find(v2 => v2.ele)
-      if (v) {
-        let pos
+              v = b.views.find(v2 => v2.ele)
+              if (v) {
+                let pos
 
-        pos = v.pos
-        Tron.cmd1('profile.set', [ 'poss', b.path, { row: Ed.posRow(pos), col: Ed.posCol(pos) } ], err => {
-          if (err)
-            Mess.warn('Failed to save pos of ' + b.path + ': ' + err.message)
-        })
-      }
-    }
-  })
+                pos = v.pos
+                Tron.cmd1('profile.set', [ 'poss', b.path, { row: Ed.posRow(pos), col: Ed.posCol(pos) } ], err => {
+                                                                                                             if (err)
+                                                                                                               Mess.warn('Failed to save pos of ' + b.path + ': ' + err.message)
+                                                                                                           })
+              }
+            }
+          })
 }
 
 export
@@ -204,22 +204,22 @@ function init
   mo = Mode.add('Buffers', { viewInit })
 
   Cmd.add('buffers', () => {
-    let p, bBuffers
+                       let p, bBuffers
 
-    // ERR mode is from root globalThis  eg Buffers in root then in child, child missing mode
-    bBuffers = shared().bBuffers
-    p = Pane.current1()
-    p.focus()
-    if (bBuffers)
-      p.setBuf(bBuffers, {}, v => viewInit(v))
-    else {
-      bBuffers = add('Buffers', 'Buffers', divW(), p.dir)
-      shared().bBuffers = bBuffers
-      bBuffers.icon = 'list'
-      bBuffers.addMode('view')
-      p.setBuf(bBuffers)
-    }
-  })
+                       // ERR mode is from root globalThis  eg Buffers in root then in child, child missing mode
+                       bBuffers = shared().bBuffers
+                       p = Pane.current1()
+                       p.focus()
+                       if (bBuffers)
+                         p.setBuf(bBuffers, {}, v => viewInit(v))
+                       else {
+                         bBuffers = add('Buffers', 'Buffers', divW(), p.dir)
+                         shared().bBuffers = bBuffers
+                         bBuffers.icon = 'list'
+                         bBuffers.addMode('view')
+                         p.setBuf(bBuffers)
+                       }
+                     })
   Em.on('C-x A-b', 'buffers')
 
   Cmd.add('open buffer', open, mo)
@@ -234,9 +234,9 @@ function print
 () {
   d('-- BUFS')
   shared().buffers.forEach(buf => {
-    d('-- VIEWS in buf ' + buf.id + ' ' + buf.name)
-    buf.views?.forEach(v => d('-- ' + v.vid + ', ele: ' + v.ele.innerHTML))
-  })
+                             d('-- VIEWS in buf ' + buf.id + ' ' + buf.name)
+                             buf.views?.forEach(v => d('-- ' + v.vid + ', ele: ' + v.ele.innerHTML))
+                           })
   d('-- end')
 }
 
@@ -246,11 +246,11 @@ function register
 (spec) {
   if (spec.reconf)
     spec.reconfOpts?.forEach(name => {
-      // these will just listen forever, which is ok
-      Opt.onSet(name, () => forEach(buf => spec.reconf(buf, name)))
-      Opt.onSetBuf(name, buf => spec.reconf(buf, name))
-      // reconfigure the opt on all bufs, in case any other extensions use the opt
-      forEach(buf => spec.reconf(buf, name))
-    })
+                               // these will just listen forever, which is ok
+                               Opt.onSet(name, () => forEach(buf => spec.reconf(buf, name)))
+                               Opt.onSetBuf(name, buf => spec.reconf(buf, name))
+                               // reconfigure the opt on all bufs, in case any other extensions use the opt
+                               forEach(buf => spec.reconf(buf, name))
+                             })
   BufCommon.divExts.push(spec)
 }

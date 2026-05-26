@@ -183,15 +183,15 @@ export
 function init
 () {
   Tron.acmd('profile.prompt.load').then(data => {
-    data.prompts.forEach(p => {
-      let h
+                                          data.prompts.forEach(p => {
+                                                                 let h
 
-      h = ensure(p.name)
-      h.save = 1
-      h.items = h.items || []
-      h.items.push(p.text)
-    })
-  })
+                                                                 h = ensure(p.name)
+                                                                 h.save = 1
+                                                                 h.items = h.items || []
+                                                                 h.items.push(p.text)
+                                                               })
+                                        })
 }
 
 hists = []

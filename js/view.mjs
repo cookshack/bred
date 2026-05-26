@@ -51,11 +51,11 @@ function make
   (cb2) {
     if (v.ready)
       spec.views.forEach(v2 => {
-        if (v == v2)
-          return
-        if (v2.ready)
-          cb2(v2)
-      })
+                           if (v == v2)
+                             return
+                           if (v2.ready)
+                             cb2(v2)
+                         })
   }
 
   function prep
@@ -117,21 +117,21 @@ function make
     }
     if (nestedViews)
       nestedViews.forEach(nv => {
-        let paneEl, pointEl
+                            let paneEl, pointEl
 
-        paneEl = spec.ele.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"] .pane')
-        pointEl = spec.ele.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"] .bred-point')
-        nv.reopen(paneEl, pointEl, null, null)
-      })
+                            paneEl = spec.ele.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"] .pane')
+                            pointEl = spec.ele.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"] .bred-point')
+                            nv.reopen(paneEl, pointEl, null, null)
+                          })
     if (spec.mode && spec.mode.viewReopen)
       spec.mode.viewReopen(v, lineNum, whenReopenReady)
     else
       // timeout so behaves like viewReopen
       setTimeout(() => {
-        ready = 1
-        if (whenReopenReady)
-          whenReopenReady(v)
-      })
+                   ready = 1
+                   if (whenReopenReady)
+                     whenReopenReady(v)
+                 })
   }
 
   function region
@@ -388,11 +388,11 @@ function make
     // timeout so behaves like viewInit,viewCopy
     d('VIEW ready1 timeout')
     setTimeout(() => {
-      ready = 1
-      d('VIEW ready1 whenReady')
-      if (whenReady)
-        whenReady(v)
-    })
+                 ready = 1
+                 d('VIEW ready1 whenReady')
+                 if (whenReady)
+                   whenReady(v)
+               })
   }
 
   function reconfHead

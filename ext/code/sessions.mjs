@@ -29,20 +29,20 @@ function init
 
       w.innerHTML = ''
       Comm.ensureClient(view.buf).then(c => c.session.list().then(sessions => {
-        d({ sessions })
-        append(w,
-               sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir)).map(s => {
-                 return [ divCl('code-sessions-del', '✗',
-                                { 'data-run': 'delete session',
+                                                                    d({ sessions })
+                                                                    append(w,
+                                                                           sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir)).map(s => {
+                                                                                                                                                    return [ divCl('code-sessions-del', '✗',
+                                                                                                                                                                   { 'data-run': 'delete session',
                                   'data-session-id': s.id,
                                   'data-session-dir': s.directory }),
-                          divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
-                                { 'data-run': 'open code session',
+                                                                                                                                                             divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
+                                                                                                                                                                   { 'data-run': 'open code session',
                                   'data-session-id': s.id,
                                   'data-session-dir': s.directory }),
-                          divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
-               }))
-      }))
+                                                                                                                                                             divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
+                                                                                                                                                  }))
+                                                                  }))
     }
 
     if (cb)
@@ -78,41 +78,41 @@ function init
       buf.opt('core.lint.enabled', 1)
 
       Comm.ensureClient(buf).then(c => {
-        pane.setBuf(buf, {}, () => {
-          c.session.messages({ sessionID, directory: sessionDir }).then(r => {
-            d({ r })
-            for (let msg of (r.data || []))
-              for (let part of (msg.parts || []))
-                if (part.type == 'text')
-                  Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
-                else if (part.type == 'reasoning' && part.text)
-                  Ui.appendThinking(buf, part.text, part.id)
-                else if (part.type == 'tool') {
-                  let label
+                                    pane.setBuf(buf, {}, () => {
+                                                           c.session.messages({ sessionID, directory: sessionDir }).then(r => {
+                                                                                                                           d({ r })
+                                                                                                                           for (let msg of (r.data || []))
+                                                                                                                             for (let part of (msg.parts || []))
+                                                                                                                               if (part.type == 'text')
+                                                                                                                                 Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
+                                                                                                                               else if (part.type == 'reasoning' && part.text)
+                                                                                                                                 Ui.appendThinking(buf, part.text, part.id)
+                                                                                                                               else if (part.type == 'tool') {
+                                                                                                                                 let label
 
-                  label = part.tool
-                  if (part.tool == 'bash' && part.state?.input?.command)
-                    label += ': ' + part.state.input.command
-                  else if (part.state?.input?.filePath)
-                    label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
-                  else if (part.state?.input?.pattern)
-                    label += ' "' + part.state.input.pattern + '"'
-                  else if (part.state?.input?.query)
-                    label += ': ' + part.state.input.query
-                  else if (part.state?.input?.url)
-                    label += ' ' + part.state.input.url
-                  Ui.appendToolMsg(buf, part.callID, label,
-                                   part.state?.output || part.state?.error)
-                }
-          })
+                                                                                                                                 label = part.tool
+                                                                                                                                 if (part.tool == 'bash' && part.state?.input?.command)
+                                                                                                                                   label += ': ' + part.state.input.command
+                                                                                                                                 else if (part.state?.input?.filePath)
+                                                                                                                                   label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
+                                                                                                                                 else if (part.state?.input?.pattern)
+                                                                                                                                   label += ' "' + part.state.input.pattern + '"'
+                                                                                                                                 else if (part.state?.input?.query)
+                                                                                                                                   label += ': ' + part.state.input.query
+                                                                                                                                 else if (part.state?.input?.url)
+                                                                                                                                   label += ' ' + part.state.input.url
+                                                                                                                                 Ui.appendToolMsg(buf, part.callID, label,
+                                                                                                                                                  part.state?.output || part.state?.error)
+                                                                                                                               }
+                                                                                                                         })
 
-          buf.vars('code').firstPromptSent = 1
-          Prompt.nestBuf(buf)
-          Ev.startSub(buf, events)
-        })
-      }).catch(err => {
-        Mess.yell('Failed: ' + err.message)
-      })
+                                                           buf.vars('code').firstPromptSent = 1
+                                                           Prompt.nestBuf(buf)
+                                                           Ev.startSub(buf, events)
+                                                         })
+                                  }).catch(err => {
+                                             Mess.yell('Failed: ' + err.message)
+                                           })
     }
 
     sessionID = we.e.target.dataset.sessionId
@@ -135,21 +135,21 @@ function init
                   Comm.ensureClient(View.current().buf)
                     .then(c => c.session.delete({ sessionID, directory: sessionDir }))
                     .then(() => {
-                      View.current().buf.views.forEach(view => {
-                        let w, el
+                            View.current().buf.views.forEach(view => {
+                                                               let w, el
 
-                        w = view.eleOrReserved?.querySelector('.code-sessions-w')
-                        el = w?.querySelector('[data-session-id="' + sessionID + '"]')
-                        if (el) {
-                          let i
+                                                               w = view.eleOrReserved?.querySelector('.code-sessions-w')
+                                                               el = w?.querySelector('[data-session-id="' + sessionID + '"]')
+                                                               if (el) {
+                                                                 let i
 
-                          i = [ ...w.children ].indexOf(el)
-                          w.children[i + 2]?.remove()
-                          w.children[i + 1]?.remove()
-                          w.children[i].remove()
-                        }
-                      })
-                    })
+                                                                 i = [ ...w.children ].indexOf(el)
+                                                                 w.children[i + 2]?.remove()
+                                                                 w.children[i + 1]?.remove()
+                                                                 w.children[i].remove()
+                                                               }
+                                                             })
+                          })
               })
   }
 
@@ -158,26 +158,26 @@ function init
   Cmd.add('refresh', () => viewInit(View.current()), mo)
 
   Cmd.add('code sessions', () => {
-    let p, name, buf
+                             let p, name, buf
 
-    p = Pane.current()
-    name = 'Code Sessions: ' + p.dir
-    buf = Buf.find(b => b.name == name)
-    if (buf)
-      p.setBuf(buf, {}, view => viewInit(view))
-    else {
-      buf = Buf.add(name, 'Code Sessions',
-                    divCl('code-sessions-ww',
-                          [ divCl('code-sessions-h',
-                                  Ed.divMl(p.dir, 'Code Sessions',
-                                           { icon: 'list' })),
-                            divCl('code-sessions-w bred-surface', '') ]),
-                    p.dir)
-      buf.icon = 'list'
-      buf.addMode('view')
-      p.setBuf(buf)
-    }
-  })
+                             p = Pane.current()
+                             name = 'Code Sessions: ' + p.dir
+                             buf = Buf.find(b => b.name == name)
+                             if (buf)
+                               p.setBuf(buf, {}, view => viewInit(view))
+                             else {
+                               buf = Buf.add(name, 'Code Sessions',
+                                             divCl('code-sessions-ww',
+                                                   [ divCl('code-sessions-h',
+                                                           Ed.divMl(p.dir, 'Code Sessions',
+                                                                    { icon: 'list' })),
+                                                     divCl('code-sessions-w bred-surface', '') ]),
+                                             p.dir)
+                               buf.icon = 'list'
+                               buf.addMode('view')
+                               p.setBuf(buf)
+                             }
+                           })
 
   Cmd.add('open code session', openCodeSession, mo)
 

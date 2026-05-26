@@ -22,8 +22,8 @@ function init
   (p, line) {
     if (line)
       p.setBuf(line.buf, {}, view => {
-        view.bep = line.from
-      })
+                               view.bep = line.from
+                             })
   }
 
   function goto
@@ -106,11 +106,11 @@ function init
       }
       p = Pane.current()
       p.setBuf(buf, {}, v => {
-        v.insert(lines.map(line => line.text).join('\n'))
-        if (lines.length)
-          v.insert('\n')
-        v.bufStart()
-      })
+                          v.insert(lines.map(line => line.text).join('\n'))
+                          if (lines.length)
+                            v.insert('\n')
+                          v.bufStart()
+                        })
     }
     else if (typeof needle == 'string')
       Mess.say('Empty')

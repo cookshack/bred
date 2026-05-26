@@ -11,13 +11,13 @@ function under
 
   paths = []
   divs = marked.map(m => {
-    let path
+                      let path
 
-    path = Loc.make(dir).join(m.name)
-    paths.push({ name: m.name, isDir: m.type == 'd', path })
-    return [ divCl('float-f-name', m.name),
-             divCl('float-f-path', path) ]
-  })
+                      path = Loc.make(dir).join(m.name)
+                      paths.push({ name: m.name, isDir: m.type == 'd', path })
+                      return [ divCl('float-f-name', m.name),
+                               divCl('float-f-path', path) ]
+                    })
 
   return { divs, paths }
 }

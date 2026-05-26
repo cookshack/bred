@@ -166,13 +166,13 @@ function push
     let frame
 
     frame = callsites().find(fr => {
-      let loc
+                               let loc
 
-      loc = Loc.make(fr.getFileName())
-      if (loc.filename == 'mess.mjs')
-        return 0
-      return 1
-    })
+                               loc = Loc.make(fr.getFileName())
+                               if (loc.filename == 'mess.mjs')
+                                 return 0
+                               return 1
+                             })
     if (frame) {
       file = frame.getFileName()
       line = frame.getLineNumber()

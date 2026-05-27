@@ -26,7 +26,7 @@ import Util from 'node:util'
 import { spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
-let version, options, dirUserData, shell, lastClipWrite, _win, mainStart
+let version, options, dirUserData, shell, lastClipWrite, _win, mainStart, logWindow, logBuffer
 
 function cmdDevtoolsClose
 (e) {
@@ -787,19 +787,20 @@ function watchClip
 
 function checkDepsWin
 () {
-  let html, uri, win, opts, mode, color
+  let html, uri, win, opts, mode, color, bg
 
-  color = (mode == 'dark') ? '#93a1a1' : '#586e75' // --color-text
-  html = '<html><body style="color: ' + color + '">Checking dependencies...</body></html>'
-  uri = 'data:text/html,' + globalThis.encodeURIComponent(html)
   mode = Profile.stores.opt.get('core.theme.mode')
+  color = (mode == 'dark') ? '#93a1a1' : '#586e75' // --color-text
+  bg = (mode == 'dark') ? '#002b36' : '#fdf6e3' // --color-primary-bg
+  html = '<html><head><title>bred log</title></head><body style="background: ' + bg + '; color: ' + color + '; font-family: monospace; white-space: pre-wrap; overflow-y: scroll; margin: 0; padding: 0.5rem; font-size: 13px;">Starting bred...</body></html>'
+  uri = 'data:text/html,' + globalThis.encodeURIComponent(html)
 
   Process.on('uncaughtException', err => {
                                     console.log(err.message)
                                     _win.webContents.send('thrown', makeErr(err))
                                   })
 
-  opts = { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
+  opts = { backgroundColor: bg,
            //frame: false,
            //titleBarStyle: 'hidden',
            //titleBarOverlay: true,
@@ -813,8 +814,8 @@ function checkDepsWin
 
   win.removeMenu()
 
-  win.setBounds({ width: 300,
-                  height: 100 })
+  win.setBounds({ width: 600,
+                  height: 400 })
 
   win.webContents.setWindowOpenHandler(() => {
                                          return { action: 'deny' }
@@ -824,8 +825,8 @@ function checkDepsWin
                                             ch.removeMenu()
                                             ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached
                                                                           title: 'Developer Tools - Bred' })
-                                            ch.setBounds({ width: 300,
-                                                           height: 100 })
+                                            ch.setBounds({ width: 600,
+                                                           height: 400 })
                                           })
 
   if (options.devtools == 'on') {
@@ -893,8 +894,20 @@ function checkDeps
 
   d('Creating check window...')
   win = checkDepsWin()
-  win.webContents.on('dom-ready', () => {
-                                    d('Checking dependencies...')
+
+  win.webContents.on('dom-ready',
+                     () => {
+                       logWindow = win
+
+                       if (logBuffer.length) {
+                         logBuffer.forEach(msg => {
+                                             win.webContents.executeJavaScript('document.body.insertAdjacentText("beforeend", ' + JSON.stringify(msg + '\n') + ')').catch(() => {})
+                                           })
+                         logBuffer.length = 0
+                       }
+
+                       d('Checking dependencies...')
+                       setTimeout(() => {
                                     CheckDeps({ install: true,
                                                 verbose: true }).then(output => {
                                                                         if (output.status) {
@@ -918,10 +931,15 @@ function checkDeps
                                                                             d('Failed to write last deps check: ' + e.message)
                                                                           }
 
-                                                                        setTimeout(() => win.close())
+                                                                        setTimeout(() => {
+                                                                                     logWindow = null
+                                                                                     win.close()
+                                                                                   })
                                                                         cb()
                                                                       })
-                                  })
+                                  },
+                                  0) // 10000 for testing
+                     })
   return 1
 }
 
@@ -1107,6 +1125,43 @@ function whenHaveDeps
 async function whenReady
 () {
   let program, profileStart
+
+  function appendToLogWindow
+  (type, args) {
+    if (logWindow) {
+      if (logWindow.isDestroyed())
+        return
+      logWindow.webContents.executeJavaScript('document.body.insertAdjacentText("beforeend", ' + JSON.stringify(type + ': ' + args.join(' ') + '\n') + ')').catch(() => {})
+    }
+    else
+      logBuffer.push(type + ': ' + args.join(' '))
+  }
+
+  if (logBuffer == null)
+    logBuffer = []
+
+  {
+    let origLog, origWarn, origError
+
+    origLog = console.log
+    origWarn = console.warn
+    origError = console.error
+
+    console.log = (...args) => {
+                    appendToLogWindow('', args)
+                    origLog.apply(console, args)
+                  }
+
+    console.warn = (...args) => {
+                     appendToLogWindow('WARN', args)
+                     origWarn.apply(console, args)
+                   }
+
+    console.error = (...args) => {
+                      appendToLogWindow('ERR', args)
+                      origError.apply(console, args)
+                    }
+  }
 
   setVersion()
 

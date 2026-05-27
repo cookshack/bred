@@ -7,8 +7,11 @@ check:
 format:
 	npm run format
 
-oc:
+oc: .oc-stamp
+
+.oc-stamp: docker/opencode/Dockerfile
 	docker build --progress=plain -t opencode-bred docker/opencode/
+	touch .oc-stamp
 
 fix-node-pty:
 	npx electron-rebuild -w node-pty

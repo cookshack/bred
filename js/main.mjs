@@ -895,7 +895,7 @@ function checkDeps
 
                        if (logBuffer.length) {
                          logBuffer.forEach(msg => {
-                                             win.webContents.executeJavaScript('document.body.insertAdjacentText("beforeend", ' + JSON.stringify(msg + '\n') + ')').catch(() => {})
+                                             win.webContents.executeJavaScript('document.body.insertAdjacentText("beforeend", ' + JSON.stringify(msg + '\n') + ');document.body.scrollTop=document.body.scrollHeight').catch(() => {})
                                            })
                          logBuffer.length = 0
                        }
@@ -1165,7 +1165,7 @@ async function whenReady
     if (logWindow) {
       if (logWindow.isDestroyed())
         return
-      logWindow.webContents.executeJavaScript('document.body.insertAdjacentText("beforeend", ' + JSON.stringify(type + ': ' + args.join(' ') + '\n') + ')').catch(() => {})
+      logWindow.webContents.executeJavaScript('document.body.insertAdjacentText("beforeend", ' + JSON.stringify(type + ': ' + args.join(' ') + '\n') + ');document.body.scrollTop=document.body.scrollHeight').catch(() => {})
     }
     else
       logBuffer.push(type + ': ' + args.join(' '))

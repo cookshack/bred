@@ -274,6 +274,16 @@ function yn
   id = perms?.length && perms[0]?.id
   if (id)
     ynRespond(buf, id, yes)
+  else {
+    let codeBuf, promptBuf
+
+    codeBuf = buf.parent || buf
+    setAgent(codeBuf, 'build')
+    promptBuf = buf.vars('code').promptBuf
+    promptBuf.clear()
+    promptBuf.append(yes ? 'yes' : 'no')
+    submitPrompt()
+  }
 }
 
 function updateBufAgent

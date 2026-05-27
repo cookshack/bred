@@ -23,7 +23,7 @@ import fs from 'node:fs'
 import * as Shell from './main-shell.mjs'
 import * as Step from './main-step.mjs'
 import Util from 'node:util'
-import { spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
 let version, options, dirUserData, shell, lastClipWrite, _win, mainStart, logWindow, logBuffer
@@ -906,41 +906,71 @@ function checkDeps
                          logBuffer.length = 0
                        }
 
-                       d('Checking dependencies...')
-                       setTimeout(() => {
-                                    CheckDeps({ install: true,
-                                                verbose: true }).then(output => {
-                                                                        if (output.status) {
-                                                                          d('Checking dependencies... ERR')
-                                                                          app.quit()
-                                                                          return
-                                                                        }
-                                                                        if (output.installWasNeeded) {
-                                                                          d('Checking dependencies... installed, restarting')
-                                                                          relaunch()
-                                                                          return
-                                                                        }
-                                                                        d('Checking dependencies... OK')
+                       runMakeOc(() => {
+                                   d('Checking dependencies...')
+                                   CheckDeps({ install: true,
+                                               verbose: true }).then(output => {
+                                                                       if (output.status) {
+                                                                         d('Checking dependencies... ERR')
+                                                                         app.quit()
+                                                                         return
+                                                                       }
+                                                                       if (output.installWasNeeded) {
+                                                                         d('Checking dependencies... installed, restarting')
+                                                                         relaunch()
+                                                                         return
+                                                                       }
+                                                                       d('Checking dependencies... OK')
 
-                                                                        // Record the commit we checked
-                                                                        if (currentCommit)
-                                                                          try {
-                                                                            fs.writeFileSync(lastCheckFile, currentCommit)
-                                                                          }
-                                                                          catch (e) {
-                                                                            d('Failed to write last deps check: ' + e.message)
-                                                                          }
+                                                                       // Record the commit we checked
+                                                                       if (currentCommit)
+                                                                         try {
+                                                                           fs.writeFileSync(lastCheckFile, currentCommit)
+                                                                         }
+                                                                         catch (e) {
+                                                                           d('Failed to write last deps check: ' + e.message)
+                                                                         }
 
-                                                                        setTimeout(() => {
-                                                                                     logWindow = null
-                                                                                     win.close()
-                                                                                   })
-                                                                        cb()
-                                                                      })
-                                  },
-                                  0) // 10000 for testing
+                                                                       setTimeout(() => {
+                                                                                    logWindow = null
+                                                                                    win.close()
+                                                                                  })
+                                                                       cb()
+                                                                     })
+                                 })
                      })
   return 1
+}
+
+function runMakeOc
+(cb) { // ()
+  d('Running make oc...')
+
+  {
+    let child, appPath
+
+    appPath = app.getAppPath()
+    child = spawn('make', [ 'oc' ],
+                  { cwd: appPath,
+                    stdio: [ 'ignore', 'pipe', 'pipe' ] })
+    child.stdout.on('data', data => {
+                              console.log(data.toString().trimEnd())
+                            })
+    child.stderr.on('data', data => {
+                              console.log(data.toString().trimEnd())
+                            })
+    child.on('error', err => {
+                        d('make oc error: ' + err.message)
+                        cb()
+                      })
+    child.on('exit', code => {
+                       if (code == 0)
+                         d('make oc OK')
+                       else
+                         d('make oc failed with code ' + code)
+                       cb()
+                     })
+  }
 }
 
 // attempt to speed up load using Cache-Control. seems the same.

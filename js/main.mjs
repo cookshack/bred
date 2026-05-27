@@ -814,8 +814,7 @@ function checkDepsWin
 
   win.removeMenu()
 
-  win.setBounds({ width: 600,
-                  height: 400 })
+  win.setBounds(options.bounds || Profile.stores.state.get('bounds'))
 
   win.webContents.setWindowOpenHandler(() => {
                                          return { action: 'deny' }

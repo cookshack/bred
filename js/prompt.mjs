@@ -516,10 +516,6 @@ function initNest
       text = text.trim()
     else
       text = promptBuf.placeholder || ''
-    if (text.length == 0) {
-      Mess.yell('Empty')
-      return
-    }
     cb = vars.nest.cb
     vars.nest.hist?.add(text)
     promptBuf.clear()

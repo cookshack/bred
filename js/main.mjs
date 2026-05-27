@@ -820,6 +820,13 @@ function checkDepsWin
                                          return { action: 'deny' }
                                        })
 
+  win.webContents.on('before-input-event', (e, input) => {
+                                             if (input.control && input.key.toLowerCase() == 'c') {
+                                               d('Ctrl-C in deps window')
+                                               app.quit()
+                                             }
+                                           })
+
   win.webContents.on('did-create-window', ch => {
                                             ch.removeMenu()
                                             ch.webContents.openDevTools({ activate: 0, // keeps main focus when detached

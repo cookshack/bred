@@ -792,7 +792,7 @@ function checkDepsWin
   mode = Profile.stores.opt.get('core.theme.mode')
   color = (mode == 'dark') ? '#93a1a1' : '#586e75' // --color-text
   bg = (mode == 'dark') ? '#002b36' : '#fdf6e3' // --color-primary-bg
-  html = '<html><head><title>bred log</title></head><body style="background: ' + bg + '; color: ' + color + '; font-family: monospace; white-space: pre-wrap; overflow-y: scroll; margin: 0; padding: 0.5rem; font-size: 13px;">Starting bred...</body></html>'
+  html = '<html><head><title>Bred preparing...</title></head><body style="background: ' + bg + '; color: ' + color + '; font-family: monospace; white-space: pre-wrap; overflow-y: scroll; margin: 0; padding: 0.5rem; font-size: 13px;">Starting bred...</body></html>'
   uri = 'data:text/html,' + globalThis.encodeURIComponent(html)
 
   Process.on('uncaughtException', err => {

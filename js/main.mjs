@@ -886,12 +886,6 @@ function checkDeps
     currentCommit = ''
   }
 
-  if (lastCheckCommit && currentCommit && (lastCheckCommit == currentCommit)) {
-    d('Dependencies already checked for commit ' + currentCommit)
-    cb()
-    return
-  }
-
   d('Creating check window...')
   win = checkDepsWin()
 
@@ -907,6 +901,16 @@ function checkDeps
                        }
 
                        runMakeOc(() => {
+                                   if (lastCheckCommit && currentCommit && (lastCheckCommit == currentCommit)) {
+                                     d('Dependencies already checked for commit ' + currentCommit)
+                                     setTimeout(() => {
+                                                  logWindow = null
+                                                  win.close()
+                                                })
+                                     cb()
+                                     return
+                                   }
+
                                    d('Checking dependencies...')
                                    CheckDeps({ install: true,
                                                verbose: true }).then(output => {

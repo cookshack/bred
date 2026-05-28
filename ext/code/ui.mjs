@@ -40,7 +40,8 @@ function divW
                  divCl('code-prompt-w retracted',
                        [ divCl('code-prompt-ml',
                                [ divCl('code-prompt-model', '') ]),
-                         divCl('bred-nested-pane-w') ]) ])
+                         divCl('code-prompt-scroll',
+                               divCl('bred-nested-pane-w')) ]) ])
 }
 
 function scroll

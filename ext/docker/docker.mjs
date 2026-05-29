@@ -271,7 +271,9 @@ function init
                 { viewInit,
                   viewCopy: Ed.viewCopy,
                   initFns: Ed.initModeFns,
-                  parentsForEm: 'ed' })
+                  parentsForEm: 'ed',
+                  decorators: [ { regex: /^[0-9a-f]{12}  (\S+)  /d,
+                                  decor: [ { attr: { 'data-run': 'show details' } } ] } ] })
 
   Mode.add('Docker Details',
            { viewInit: detailsViewInit,

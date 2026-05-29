@@ -72,7 +72,11 @@ function refresh
 
 function psToView
 (view) {
-  Shell.runToString(view.buf.dir, 'docker', [ 'ps', '--no-trunc', '--format', fmt() ], 0, (str, code) => onPsResult(view, str, code))
+  Shell.runToString(view.buf.dir,
+                    'docker',
+                    [ 'ps', '--no-trunc', '--format', fmt() ],
+                    0,
+                    (str, code) => onPsResult(view, str, code))
 }
 
 function onStopResult
@@ -101,10 +105,10 @@ function showDetails
     if (id)
       showDetailsInner(id, p.dir, split)
     else
-      Mess.say('No container on this line')
+      Mess.say('Container missing')
   }
   else
-    Mess.say('Not a docker buffer')
+    Mess.say('Must be in a docker buffer')
 }
 
 function showDetailsInner
@@ -124,7 +128,7 @@ function showDetailsInner
 
 function onDetailsPs
 (v, cb, str, code) {
-  let parts
+  let parts, labels, maxW, i
 
   if (code) {
     v.buf.append('Failed to get container details\n')
@@ -134,18 +138,23 @@ function onDetailsPs
   }
   parts = str.trim().split('\t')
   if (parts.length < 2) {
-    v.buf.append('No data\n')
+    v.buf.append('Empty\n')
     if (cb)
       cb(v)
     return
   }
-  v.buf.append('ID:\t\t' + parts[0] + '\n')
-  v.buf.append('Name:\t\t' + parts[1] + '\n')
-  v.buf.append('Image:\t\t' + parts[2] + '\n')
-  v.buf.append('Status:\t\t' + parts[3] + '\n')
-  v.buf.append('Ports:\t\t' + (parts[4] || '-') + '\n')
-  v.buf.append('Created:\t' + parts[5] + '\n')
-  v.buf.append('Command:\t' + (parts[6] || '-') + '\n')
+  labels = [ 'ID', 'Name', 'Image', 'Status', 'Ports', 'Created', 'Command' ]
+  maxW = 0
+  for (i = 0; i < labels.length; i++)
+    if (labels[i].length > maxW)
+      maxW = labels[i].length
+  v.buf.append(labels[0].padEnd(maxW) + '  ' + parts[0] + '\n')
+  v.buf.append(labels[1].padEnd(maxW) + '  ' + parts[1] + '\n')
+  v.buf.append(labels[2].padEnd(maxW) + '  ' + parts[2] + '\n')
+  v.buf.append(labels[3].padEnd(maxW) + '  ' + parts[3] + '\n')
+  v.buf.append(labels[4].padEnd(maxW) + '  ' + (parts[4] || '-') + '\n')
+  v.buf.append(labels[5].padEnd(maxW) + '  ' + parts[5] + '\n')
+  v.buf.append(labels[6].padEnd(maxW) + '  ' + (parts[6] || '-') + '\n')
   v.bufStart()
   if (cb)
     cb(v)
@@ -164,7 +173,7 @@ function onDetailsViewInit
   if (id)
     Shell.runToString(v.buf.dir, 'docker', [ 'ps', '--no-trunc', '--filter', 'id=' + id, '--format', '{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.CreatedAt}}\t{{.Command}}' ], 0, (str, code) => onDetailsPs(v, cb, str, code))
   else
-    v.buf.append('No container id\n')
+    v.buf.append('Container id missing\n')
   if (cb)
     cb(v)
 }
@@ -183,10 +192,10 @@ function stop
     if (id)
       Shell.runToString(p.buf.dir, 'docker', [ 'stop', id ], 0, (str, code) => onStopResult(id, str, code))
     else
-      Mess.say('No container on this line')
+      Mess.say('Missing container')
   }
   else
-    Mess.say('Not a docker buffer')
+    Mess.say('Must be in a Docker buffer')
 }
 
 function onViewInit
@@ -244,11 +253,11 @@ function init
   Cmd.add('stop container', () => stop(), mo)
   Em.on('s', 'stop container', mo)
 
-  Cmd.add('show container details', () => showDetails(0), mo)
-  Em.on('Enter', 'show container details', mo)
+  Cmd.add('show details', () => showDetails(0), mo)
+  Em.on('Enter', 'show details', mo)
 
-  Cmd.add('show container details other pane', () => showDetails(1), mo)
-  Em.on('o', 'show container details other pane', mo)
+  Cmd.add('show details other pane', () => showDetails(1), mo)
+  Em.on('o', 'show details other pane', mo)
 
   Cmd.add('refresh docker', () => refresh(), mo)
   Em.on('g', 'refresh docker', mo)
@@ -261,8 +270,8 @@ function free
 () {
   Cmd.remove('docker')
   Cmd.remove('stop container')
-  Cmd.remove('show container details')
-  Cmd.remove('show container details other pane')
+  Cmd.remove('show details')
+  Cmd.remove('show details other pane')
   Cmd.remove('refresh docker')
   Mode.remove('Docker')
   Mode.remove('Docker Details')

@@ -557,7 +557,8 @@ function handleSessionUpdated
   let title
 
   title = event.properties.info?.title
-  if (title)
+  if (title) {
+    buf.vars('code').sessionTitle = title
     buf.views.forEach(view => {
                         if (view.eleOrReserved) {
                           let titleEl
@@ -567,6 +568,18 @@ function handleSessionUpdated
                             titleEl.innerText = title
                         }
                       })
+    // Update assist sidebar extras
+    Buf.forEach(b => {
+                  if (b.mode.key == 'assist')
+                    b.views.forEach(v => {
+                                      let el
+
+                                      el = v.ele?.querySelector('.assist-extra.assist-mode-session-title')
+                                      if (el)
+                                        el.innerText = title
+                                    })
+                })
+  }
 }
 
 function handleMessageUpdated
@@ -1752,6 +1765,11 @@ function init
                 { viewInit,
                   viewCopy,
                   viewReopen,
+                  assist: { extras: [ { key: 'session-title',
+                                        co
+                                        (view) {
+                                          return view.buf.vars('code')?.sessionTitle || view.buf.vars('code')?.prompt || ''
+                                        } } ] },
                   onRemove
                   (buf) {
                     buf.vars('code').streamActive = 0

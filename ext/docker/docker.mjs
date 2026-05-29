@@ -85,7 +85,7 @@ function onStopResult
 }
 
 function showDetails
-() {
+(split) {
   let p
 
   p = Pane.current()
@@ -99,7 +99,7 @@ function showDetails
     ids = p.buf.vars('docker').ids
     id = ids?.[row - 1]
     if (id)
-      showDetailsInner(id, p.dir)
+      showDetailsInner(id, p.dir, split)
     else
       Mess.say('No container on this line')
   }
@@ -108,7 +108,7 @@ function showDetails
 }
 
 function showDetailsInner
-(id, dir) {
+(id, dir, split) {
   let name, b
 
   name = 'Docker: ' + id.slice(0, 12)
@@ -117,7 +117,8 @@ function showDetailsInner
   b.addMode('view')
   b.opts.set('core.lint.enabled', 0)
   b.opts.set('minimap.enabled', 0)
-  Pane.nextOrSplit()
+  if (split)
+    Pane.nextOrSplit()
   Pane.current().setBuf(b)
 }
 
@@ -241,8 +242,11 @@ function init
   Cmd.add('stop container', () => stop(), Mode.get('Docker'))
   Em.on('s', 'stop container', Mode.get('Docker'))
 
-  Cmd.add('show container details', () => showDetails(), Mode.get('Docker'))
+  Cmd.add('show container details', () => showDetails(0), Mode.get('Docker'))
   Em.on('Enter', 'show container details', Mode.get('Docker'))
+
+  Cmd.add('show container details other pane', () => showDetails(1), Mode.get('Docker'))
+  Em.on('o', 'show container details other pane', Mode.get('Docker'))
 
   Cmd.add('refresh docker', () => refresh(), Mode.get('Docker'))
   Em.on('g', 'refresh docker', Mode.get('Docker'))
@@ -256,6 +260,7 @@ function free
   Cmd.remove('docker')
   Cmd.remove('stop container')
   Cmd.remove('show container details')
+  Cmd.remove('show container details other pane')
   Cmd.remove('refresh docker')
   Mode.remove('Docker')
   Mode.remove('Docker Details')

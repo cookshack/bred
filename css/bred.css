@@ -1874,18 +1874,18 @@ div.cm-line.cm-activeLine::after {
   font-size: 0.9rem;
 }
 
-.diff-refine-minus,
-.diff-refine-plus,
-.diff-refine-minus > span,
-.diff-refine-plus > span {
+.patch-refine-minus,
+.patch-refine-plus,
+.patch-refine-minus > span,
+.patch-refine-plus > span {
   color: var(--clr-text);
 }
 
-.diff-refine-plus {
+.patch-refine-plus {
   background: var(--rule-clr-plusLight);
 }
 
-.diff-refine-minus {
+.patch-refine-minus {
   background: var(--rule-clr-minusLight);
 }
 

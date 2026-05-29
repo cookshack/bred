@@ -1,12 +1,34 @@
+import { divCl, img } from '../../js/dom.mjs'
 import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/Em.mjs'
+import * as Icon from '../../js/icon.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/Pane.mjs'
 import * as Shell from '../../js/shell.mjs'
 import { d } from '../../js/mess.mjs'
+
+function dockerMl
+() {
+  return divCl('ml edMl',
+               [ divCl('edMl-type',
+                       img(Icon.path('docker'), 'Docker', 'filter-clr-text'),
+                       { 'data-run': 'describe buffer' }),
+                 divCl('ml-name', 'Docker Containers'),
+                 divCl('ml-close') ])
+}
+
+function dockerDetailsMl
+(name) {
+  return divCl('ml edMl',
+               [ divCl('edMl-type',
+                       img(Icon.path('docker'), 'Docker', 'filter-clr-text'),
+                       { 'data-run': 'describe buffer' }),
+                 divCl('ml-name', name),
+                 divCl('ml-close') ])
+}
 
 function fmt
 () {
@@ -117,7 +139,7 @@ function showDetailsInner
 
   name = 'Docker: ' + id.slice(0, 12)
   b = Buf.add(name, 'Docker Details',
-              Ed.divW(0, name, { icon: 'docker' }),
+              Ed.divW(0, name, { ml: dockerDetailsMl(name) }),
               dir)
   b.vars('docker details').id = id
   b.addMode('view')
@@ -220,7 +242,7 @@ function make
   let b
 
   b = Buf.add('Docker', 'Docker',
-              Ed.divW(0, 'Docker', { icon: 'docker' }),
+              Ed.divW(0, 'Docker Containers', { ml: dockerMl() }),
               p.dir)
   b.addMode('view')
   b.opts.set('core.lint.enabled', 0)

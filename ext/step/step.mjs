@@ -384,8 +384,8 @@ function initCssRules
     b.addMode('view')
 
     if (far) {
-      tab.framesRight[1]?.expand()
-      p = Pane.current(tab.framesRight[1] || tab.frameRight)
+      tab.framesRight[2]?.expand()
+      p = Pane.current(tab.framesRight[2] || tab.frameRight)
     }
     else
       p = Pane.current(tab.frameRight)
@@ -602,15 +602,14 @@ function initDom
 
     p = Pane.current(Win.current().frame1)
     tab = p.frame?.tab || Mess.toss('Tab missing')
-    if (Css.has(tab.frameRight?.el, 'retracted'))
-      Cmd.run('toggle frame right')
+    tab.framesRight[1]?.expand()
 
     b = Buf.add('Dom', 'Dom', divW(), p.dir,
                 { vars: { dom: { id } } })
     b.icon = 'dom'
     b.addMode('view')
 
-    p = Pane.current(tab.frameRight)
+    p = Pane.current(tab.framesRight[1])
     p.setBuf(b)
   }
 

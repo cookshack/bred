@@ -338,6 +338,7 @@ function init
     tab = Win.current().frame1.tab || Mess.toss('Tab missing')
     tab.framesRight[0]?.expand()
     tab.framesRight[1]?.retract()
+    tab.framesRight[2]?.retract()
     p = Pane.current(tab.frameRight)
 
     found = Buf.find(b => (b.mode.key == 'assist'))

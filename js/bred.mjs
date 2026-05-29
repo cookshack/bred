@@ -1807,6 +1807,8 @@ function start2
     tab.frameRight.retract()
   if (frames.right2 == 0)
     tab.framesRight[1]?.retract()
+  if (frames.right3 == 0)
+    tab.framesRight[2]?.retract()
   p = Pane.current(tab.frameLeft)
   p.focus()
   Cmd.run('home')

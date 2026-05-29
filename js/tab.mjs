@@ -129,6 +129,7 @@ function add
     tab.frame1 = Frame.add(tab, { buf: spec.buf, setBufCb: spec.setBufCb })
     tab.frameRight = Frame.add(tab)
     tab.framesRight = [ tab.frameRight,
+                        Frame.add(tab),
                         Frame.add(tab) ]
   }
   Frame.updateSepVisibility(tab)

@@ -151,7 +151,8 @@ function onPaths
            devtools: { open: win.webContents.isDevToolsOpened() ? 1 : 0 },
            frames: { left: frame.get('frameLeft'),
                      right: frame.get('frameRight'),
-                     right2: frame.get('frameRight2') },
+                     right2: frame.get('frameRight2'),
+                     right3: frame.get('frameRight3') },
            //
            os: Os.type(),
            version: { bred: version,

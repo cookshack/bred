@@ -189,8 +189,11 @@ function stop
     row = Ed.bepRow(p.view, p.view.bep)
     ids = p.buf.vars('docker').ids
     id = ids?.[row]
-    if (id)
-      Shell.runToString(p.buf.dir, 'docker', [ 'stop', id ], 0, (str, code) => onStopResult(id, str, code))
+    if (id) {
+      Mess.say('Stopping ' + id.slice(0, 12) + '...')
+      Shell.runToString(p.buf.dir, 'docker', [ 'stop', id ], 0,
+                        (str, code) => onStopResult(id, str, code))
+    }
     else
       Mess.say('Missing container')
   }

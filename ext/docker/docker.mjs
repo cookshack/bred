@@ -84,6 +84,90 @@ function onStopResult
   refresh()
 }
 
+function showDetails
+() {
+  let p
+
+  p = Pane.current()
+  if (p.buf.mode.name == 'Docker') {
+    let row, ids, id
+
+    row = Ed.bepRow(p.view, p.view.bep)
+    if (row == 0)
+      return Mess.say('That is the header')
+
+    ids = p.buf.vars('docker').ids
+    id = ids?.[row - 1]
+    if (id)
+      showDetailsInner(id, p.dir)
+    else
+      Mess.say('No container on this line')
+  }
+  else
+    Mess.say('Not a docker buffer')
+}
+
+function showDetailsInner
+(id, dir) {
+  let name, b
+
+  name = 'Docker: ' + id.slice(0, 12)
+  b = Buf.add(name, 'Docker Details', Ed.divW(0, name), dir)
+  b.vars('docker details').id = id
+  b.addMode('view')
+  b.opts.set('core.lint.enabled', 0)
+  b.opts.set('minimap.enabled', 0)
+  Pane.nextOrSplit()
+  Pane.current().setBuf(b)
+}
+
+function onDetailsPs
+(v, cb, str, code) {
+  let parts
+
+  if (code) {
+    v.buf.append('Failed to get container details\n')
+    if (cb)
+      cb(v)
+    return
+  }
+  parts = str.trim().split('\t')
+  if (parts.length < 2) {
+    v.buf.append('No data\n')
+    if (cb)
+      cb(v)
+    return
+  }
+  v.buf.append('ID:\t\t' + parts[0] + '\n')
+  v.buf.append('Name:\t\t' + parts[1] + '\n')
+  v.buf.append('Image:\t\t' + parts[2] + '\n')
+  v.buf.append('Status:\t\t' + parts[3] + '\n')
+  v.buf.append('Ports:\t\t' + (parts[4] || '-') + '\n')
+  v.buf.append('Created:\t' + parts[5] + '\n')
+  v.buf.append('Command:\t' + (parts[6] || '-') + '\n')
+  v.bufStart()
+  if (cb)
+    cb(v)
+}
+
+function detailsViewInit
+(view, spec, cb) {
+  Ed.viewInit(view, spec, v => onDetailsViewInit(v, cb))
+}
+
+function onDetailsViewInit
+(v, cb) {
+  let id
+
+  id = v.buf.vars('docker details').id
+  if (id)
+    Shell.runToString(v.buf.dir, 'docker', [ 'ps', '--no-trunc', '--filter', 'id=' + id, '--format', '{{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.CreatedAt}}\t{{.Command}}' ], 0, (str, code) => onDetailsPs(v, cb, str, code))
+  else
+    v.buf.append('No container id\n')
+  if (cb)
+    cb(v)
+}
+
 function stop
 () {
   let p
@@ -142,19 +226,26 @@ function openDocker
 export
 function init
 () {
-  let mo
+  Mode.add('Docker',
+           { viewInit,
+             viewCopy: Ed.viewCopy,
+             initFns: Ed.initModeFns,
+             parentsForEm: 'ed' })
 
-  mo = Mode.add('Docker',
-                { viewInit,
-                  viewCopy: Ed.viewCopy,
-                  initFns: Ed.initModeFns,
-                  parentsForEm: 'ed' })
+  Mode.add('Docker Details',
+           { viewInit: detailsViewInit,
+             viewCopy: Ed.viewCopy,
+             initFns: Ed.initModeFns,
+             parentsForEm: 'ed' })
 
-  Cmd.add('stop container', () => stop(), mo)
-  Em.on('s', 'stop container', mo)
+  Cmd.add('stop container', () => stop(), Mode.get('Docker'))
+  Em.on('s', 'stop container', Mode.get('Docker'))
 
-  Cmd.add('refresh docker', () => refresh(), mo)
-  Em.on('g', 'refresh docker', mo)
+  Cmd.add('show container details', () => showDetails(), Mode.get('Docker'))
+  Em.on('Enter', 'show container details', Mode.get('Docker'))
+
+  Cmd.add('refresh docker', () => refresh(), Mode.get('Docker'))
+  Em.on('g', 'refresh docker', Mode.get('Docker'))
 
   Cmd.add('docker', () => openDocker())
 }
@@ -164,6 +255,8 @@ function free
 () {
   Cmd.remove('docker')
   Cmd.remove('stop container')
+  Cmd.remove('show container details')
   Cmd.remove('refresh docker')
   Mode.remove('Docker')
+  Mode.remove('Docker Details')
 }

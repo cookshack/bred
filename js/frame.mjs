@@ -165,6 +165,9 @@ function add
     if (f == tab.frame1)
       return
 
+    if (Css.has(f.el, 'retracted'))
+      return
+
     Css.retract(f.el)
     f.el.style.width = '0%'
     save()
@@ -197,6 +200,9 @@ function add
     let width
 
     if (f == tab.frame1)
+      return
+
+    if (Css.has(f.el, 'retracted') == 0)
       return
 
     Css.expand(f.el)

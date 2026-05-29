@@ -336,7 +336,8 @@ function init
     let found, p, tab
 
     tab = Win.current().frame1.tab || Mess.toss('Tab missing')
-    tab.framesRight[0]?.expand()
+    if (Css.has(tab.framesRight[0]?.el, 'retracted'))
+      tab.framesRight[0]?.expand()
     tab.framesRight[1]?.retract()
     tab.framesRight[2]?.retract()
     p = Pane.current(tab.frameRight)

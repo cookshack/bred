@@ -490,6 +490,9 @@ function questionRespond
                                                             el.querySelectorAll('button').forEach(b => b.removeAttribute('data-run'))
                                                           }
                                                         })
+                                    buf.vars('code').questions = buf.vars('code').questions.slice(1)
+                                    if (buf.vars('code').questions.length)
+                                      appendQuestion(buf, buf.vars('code').questions[0])
                                   }
                                 }
                                 catch (err) {

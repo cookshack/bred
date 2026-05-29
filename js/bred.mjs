@@ -427,11 +427,17 @@ function initCmds
                     })
 
   Cmd.add('toggle frame right', () => {
-                                  let win, currentTab
+                                  let closing, win, currentTab
 
                                   win = Win.current()
                                   currentTab = Tab.current(win.main)
-                                  if (Css.toggle(currentTab.frameRight.el, 'retracted')) {
+                                  closing = Css.has(currentTab.frameRight.el, 'retracted') == 0
+                                  if (closing) {
+                                    currentTab._savedRightState = []
+                                    currentTab.framesRight.forEach((fr, i) => {
+                                                                     if (Css.has(fr.el, 'retracted') == 0)
+                                                                       currentTab._savedRightState.push(i)
+                                                                   })
                                     Tab.forEach(win.main, tab => {
                                                             tab.frame1.focus()
                                                             tab.framesRight.forEach(fr => fr.retract())
@@ -440,8 +446,11 @@ function initCmds
                                     Css.remove(win.frameToggleR, 'mini-frame-open')
                                   }
                                   else {
+                                    let saved
+
+                                    saved = currentTab._savedRightState || [ 0 ]
                                     Tab.forEach(win.main, tab => {
-                                                            tab.framesRight.forEach(fr => fr.expand())
+                                                            saved.forEach(i => tab.framesRight[i]?.expand())
                                                           })
                                     Css.add(win.frameToggleR, 'mini-frame-open')
                                   }

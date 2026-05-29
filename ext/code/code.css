@@ -392,6 +392,29 @@ div.code-thought:hover {
 .code-question-option.code-option-selected::before {
   content: '●';
 }
+
+.code-question-skipped .code-question-option.code-option-selected::before {
+  content: '○';
+}
+.code-question-skipped .code-question-option {
+  color: var(--clr-text);
+  cursor: default;
+  pointer-events: none;
+}
+.code-question-skipped .code-question-option::before {
+  color: var(--clr-text);
+}
+.code-question-skipped .code-question-item {
+  border-left-color: var(--clr-text);
+}
+.code-question-skipped .code-question-header {
+  color: var(--clr-text);
+}
+.code-question-skipped .code-msg-text button {
+  opacity: 0.4;
+  cursor: default;
+  pointer-events: none;
+}
 .code-prompt-w.retracted {
   display: none;
 }

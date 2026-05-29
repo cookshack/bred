@@ -461,24 +461,41 @@ function questionRespond
   d('CO question ' + (answers ? 'reply' : 'reject'))
   Comm.ensureClient(buf).then(async c => {
                                 try {
-                                  if (answers)
+                                  if (answers) {
                                     await c.question.reply({ requestID, answers, directory: buf.dir })
-                                  else
-                                    await c.question.reject({ requestID, directory: buf.dir })
-                                  Util.eachCodeW(buf, (view, w) => {
-                                                        let el
+                                    Util.eachCodeW(buf, (view, w) => {
+                                                          let el
 
-                                                        el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
-                                                        el?.remove()
-                                                      })
+                                                          el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
+                                                          el?.remove()
+                                                        })
+                                    buf.vars('code').questions = buf.vars('code').questions.slice(1)
+                                    if (buf.vars('code').questions.length)
+                                      appendQuestion(buf, buf.vars('code').questions[0])
+                                  }
+                                  else {
+                                    await c.question.reject({ requestID, directory: buf.dir })
+                                    Util.eachCodeW(buf, (view, w) => {
+                                                          let el
+
+                                                          el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
+                                                          if (el) {
+                                                            let textEl
+
+                                                            Css.add(el, 'code-question-skipped')
+                                                            textEl = el.querySelector('.code-msg-text')
+                                                            if (textEl)
+                                                              textEl.innerText = '▣ Questions (skipped)'
+                                                            el.querySelectorAll('.code-question-option').forEach(o => o.removeAttribute('data-run'))
+                                                            el.querySelectorAll('button').forEach(b => b.removeAttribute('data-run'))
+                                                          }
+                                                        })
+                                  }
                                 }
                                 catch (err) {
                                   d('CO question respond error: ' + err.message)
                                 }
                               })
-  buf.vars('code').questions = buf.vars('code').questions.slice(1)
-  if (buf.vars('code').questions.length)
-    appendQuestion(buf, buf.vars('code').questions[0])
 }
 
 function toggleQuestionOption

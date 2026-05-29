@@ -190,20 +190,30 @@ function appendMsg
 
                           el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
                           if (el) {
-                            let oldMdEl
+                            let ed
 
-                            oldMdEl = el.querySelector('.code-markdown-ed')
-                            if (oldMdEl) {
-                              let mdEd
-
-                              mdEd = makeMarkdownEd(text)
-                              withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
-                              view.vars('code').eds = view.vars('code').eds || []
-                              view.vars('code').eds.push(mdEd.ed)
+                            ed = view.vars('code').partEds?.[partID]
+                            if (ed) {
+                              // Editor exists from delta path — update stored text only
                               buf.vars('code').partTexts = buf.vars('code').partTexts || {}
                               buf.vars('code').partTexts[partID] = text
-                              view.vars('code').partEds = view.vars('code').partEds || {}
-                              view.vars('code').partEds[partID] = mdEd.ed
+                            }
+                            else {
+                              let oldMdEl
+
+                              oldMdEl = el.querySelector('.code-markdown-ed')
+                              if (oldMdEl) {
+                                let mdEd
+
+                                mdEd = makeMarkdownEd(text)
+                                withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
+                                view.vars('code').eds = view.vars('code').eds || []
+                                view.vars('code').eds.push(mdEd.ed)
+                                buf.vars('code').partTexts = buf.vars('code').partTexts || {}
+                                buf.vars('code').partTexts[partID] = text
+                                view.vars('code').partEds = view.vars('code').partEds || {}
+                                view.vars('code').partEds[partID] = mdEd.ed
+                              }
                             }
                             return
                           }
@@ -382,6 +392,15 @@ function flushThink
   }
 }
 
+function laterTick
+(underW, beforeTop, w) {
+  let afterTop
+
+  afterTop = underW.getBoundingClientRect().top
+  if (afterTop - beforeTop)
+    w.scrollTop += afterTop - beforeTop
+}
+
 export
 function chunkText
 (buf, partId, delta) {
@@ -413,12 +432,18 @@ function flushText
                           eds = view.vars('code').partEds
                           for (let partID of Object.keys(chunks))
                             if (eds?.[partID]) {
-                              let ed, fullText, tr
+                              let ed, delta, tr, underW, wasVisible, beforeTop
 
                               ed = eds[partID]
-                              fullText = buf.vars('code').partTexts?.[partID] || ''
-                              tr = { changes: { from: 0, to: ed.state.doc.length, insert: fullText } }
-                              withScroll(w, () => ed.dispatch(tr))
+                              delta = chunks[partID]
+                              tr = { changes: { from: ed.state.doc.length, to: ed.state.doc.length, insert: delta } }
+                              underW = w.querySelector('.code-under-w')
+                              wasVisible = underW && underVisible(w, underW)
+                              beforeTop = underW?.getBoundingClientRect().top
+                              ed.dispatch(tr)
+                              // CM defers DOM writes; re-check scroll next frame
+                              if (wasVisible && underW)
+                                globalThis.requestAnimationFrame(() => laterTick(underW, beforeTop, w))
                             }
                         })
   }

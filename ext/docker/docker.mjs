@@ -273,13 +273,17 @@ function init
                   initFns: Ed.initModeFns,
                   parentsForEm: 'ed',
                   decorators: [ { regex: /^[0-9a-f]{12}  (\S+)  /d,
-                                  decor: [ { attr: { 'data-run': 'show details' } } ] } ] })
+                                  decor: [ { attr: { 'data-run': 'show details' } } ] },
+                                { regex: /^(ID\s{2,}NAME\s{2,}IMAGE)/d,
+                                  decor: [ { attr: { style: 'color: var(--rule-clr-comment);' } } ] } ] })
 
   Mode.add('Docker Details',
            { viewInit: detailsViewInit,
              viewCopy: Ed.viewCopy,
              initFns: Ed.initModeFns,
-             parentsForEm: 'ed' })
+             parentsForEm: 'ed',
+             decorators: [ { regex: /^([A-Z][A-Za-z]+)  /d,
+                             decor: [ { attr: { style: 'color: var(--rule-clr-comment);' } } ] } ] })
 
   Cmd.add('stop container', () => stop(), mo)
   Em.on('s', 'stop container', mo)

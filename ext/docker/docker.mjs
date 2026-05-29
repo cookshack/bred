@@ -227,11 +227,13 @@ function openDocker
 export
 function init
 () {
-  Mode.add('Docker',
-           { viewInit,
-             viewCopy: Ed.viewCopy,
-             initFns: Ed.initModeFns,
-             parentsForEm: 'ed' })
+  let mo
+
+  mo = Mode.add('Docker',
+                { viewInit,
+                  viewCopy: Ed.viewCopy,
+                  initFns: Ed.initModeFns,
+                  parentsForEm: 'ed' })
 
   Mode.add('Docker Details',
            { viewInit: detailsViewInit,
@@ -239,17 +241,17 @@ function init
              initFns: Ed.initModeFns,
              parentsForEm: 'ed' })
 
-  Cmd.add('stop container', () => stop(), Mode.get('Docker'))
-  Em.on('s', 'stop container', Mode.get('Docker'))
+  Cmd.add('stop container', () => stop(), mo)
+  Em.on('s', 'stop container', mo)
 
-  Cmd.add('show container details', () => showDetails(0), Mode.get('Docker'))
-  Em.on('Enter', 'show container details', Mode.get('Docker'))
+  Cmd.add('show container details', () => showDetails(0), mo)
+  Em.on('Enter', 'show container details', mo)
 
-  Cmd.add('show container details other pane', () => showDetails(1), Mode.get('Docker'))
-  Em.on('o', 'show container details other pane', Mode.get('Docker'))
+  Cmd.add('show container details other pane', () => showDetails(1), mo)
+  Em.on('o', 'show container details other pane', mo)
 
-  Cmd.add('refresh docker', () => refresh(), Mode.get('Docker'))
-  Em.on('g', 'refresh docker', Mode.get('Docker'))
+  Cmd.add('refresh docker', () => refresh(), mo)
+  Em.on('g', 'refresh docker', mo)
 
   Cmd.add('docker', () => openDocker())
 }

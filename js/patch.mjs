@@ -135,7 +135,7 @@ function computeRefine
               break
           }
 
-          if (oldLines.length && newLines.length && oldLines.length == newLines.length)
+          if (oldLines.length && newLines.length)
             diffBlock(results, oldLines, newLines)
           // Unpaired lines (extra - or +) get no refine
           continue

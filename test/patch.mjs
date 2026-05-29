@@ -72,12 +72,14 @@ test('multi line', 'partial change across lines', () => {
 
 test('multi line', 'unbalanced fewer old', () => {
                                              deepStrictEqual(computeRefine(p([ 'abc' ],
-                                                                             [ 'abc', 'extra' ])), [])
+                                                                             [ 'abc', 'extra' ])),
+                                                             [ { line: 6, from: 1, to: 6, type: '+' } ])
                                            })
 
 test('multi line', 'unbalanced fewer new', () => {
                                              deepStrictEqual(computeRefine(p([ 'abc', 'extra' ],
-                                                                             [ 'abc' ])), [])
+                                                                             [ 'abc' ])),
+                                                             [ { line: 5, from: 1, to: 6, type: '-' } ])
                                            })
 
 test('empty', 'empty patch', () => {
@@ -101,11 +103,13 @@ test('multiple hunks', 'two hunks', () => {
                                     })
 
 test('pure addition', 'extra + line', () => {
-                                        deepStrictEqual(computeRefine(p([ 'old' ], [ 'old', 'new' ])), [])
+                                        deepStrictEqual(computeRefine(p([ 'old' ], [ 'old', 'new' ])),
+                                                        [ { line: 6, from: 1, to: 4, type: '+' } ])
                                       })
 
 test('pure removal', 'extra - line', () => {
-                                       deepStrictEqual(computeRefine(p([ 'old', 'gone' ], [ 'old' ])), [])
+                                       deepStrictEqual(computeRefine(p([ 'old', 'gone' ], [ 'old' ])),
+                                                       [ { line: 5, from: 1, to: 5, type: '-' } ])
                                      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

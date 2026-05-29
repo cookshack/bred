@@ -15,6 +15,9 @@ function init
   (ed, refines) {
     let builder
 
+    if (ed.state.doc.length == 0)
+      return CMView.Decoration.none
+
     builder = new CMState.RangeSetBuilder()
     if (refines && refines.length)
       for (let { from, to } of ed.visibleRanges)
@@ -25,7 +28,7 @@ function init
           refines.filter(r => r.line == line.number).forEach(refine => {
                                                                if ((refine.from < refine.to) && (refine.to <= line.length))
                                                                  builder.add(line.from + refine.from, line.from + refine.to,
-                          refine.type == '+' ? decorPlus : decorMinus)
+                                                                             refine.type == '+' ? decorPlus : decorMinus)
                                                              })
           pos = line.to + 1
         }
@@ -58,7 +61,8 @@ function init
           if (edUpdate.docChanged)
             // Timeout else "Calls to EditorView.update are not allowed while an update is in progress"
             setTimeout(() => {
-                         // clear decor else decor will be out of sync with doc (Patch.refine is async, so update happens later)
+                         // Clear stale refines before recomputing
+                         buf.vars('patch').refines = []
                          edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view)) })
                          Patch.refine(edUpdate.view.state.doc.toString(),
                                       refines => {
@@ -67,20 +71,25 @@ function init
                                       })
                        })
           else
-            setTimeout(() => edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
-                                                                                              buf.vars('patch').refines)) }))
+            setTimeout(() => {
+                         if (buf.vars('patch').refines?.length)
+                           edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
+                                                                                             buf.vars('patch').refines)) })
+                       })
       }
     }
 
-                                        Patch.refine(ed.state.doc.toString(),
-                                                     refines => {
-                                                       let buf
+                                        setTimeout(() => {
+                                                     Patch.refine(ed.state.doc.toString(),
+                                                                  refines => {
+                                                                    let buf
 
-                                                       buf = ed.bred?.view?.buf
-                                                       if (buf)
-                                                         buf.vars('patch').refines = refines
-                                                       ed.dispatch({ effects: decorEffect.of(decorateRefines(ed, refines)) })
-                                                     })
+                                                                    buf = ed.bred?.view?.buf
+                                                                    if (buf)
+                                                                      buf.vars('patch').refines = refines
+                                                                    ed.dispatch({ effects: decorEffect.of(decorateRefines(ed, refines)) })
+                                                                  })
+                                                   })
 
                                         return { update }
                                       })

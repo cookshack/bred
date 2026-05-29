@@ -116,7 +116,9 @@ function showDetailsInner
   let name, b
 
   name = 'Docker: ' + id.slice(0, 12)
-  b = Buf.add(name, 'Docker Details', Ed.divW(0, name), dir)
+  b = Buf.add(name, 'Docker Details',
+              Ed.divW(0, name, { icon: 'docker' }),
+              dir)
   b.vars('docker details').id = id
   b.addMode('view')
   b.opts.set('core.lint.enabled', 0)
@@ -217,7 +219,9 @@ function make
 (p) {
   let b
 
-  b = Buf.add('Docker', 'Docker', Ed.divW(0, 'Docker'), p.dir)
+  b = Buf.add('Docker', 'Docker',
+              Ed.divW(0, 'Docker', { icon: 'docker' }),
+              p.dir)
   b.addMode('view')
   b.opts.set('core.lint.enabled', 0)
   b.opts.set('minimap.enabled', 0)

@@ -1590,6 +1590,34 @@ div.bred-lint-marker:active {
   opacity: 0;
 }
 
+.bred-search-w {
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: var(--scrollbar-size);
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.1rem 0.3rem;
+  height: var(--height-ml);
+  background: var(--clr-fill);
+  z-index: 1;
+}
+
+.bred-search-w > .mini-icon {
+  height: var(--width-mini-icon);
+  width: var(--width-mini-icon);
+}
+
+.bred-search-w > .mini-echo {
+  color: var(--clr-nb0);
+}
+
+.bred-search-w > .mini-echo.mini-search-fail {
+  color: var(--clr-nb3);
+}
+
 .bred-close {
   pointer-events: auto;
   position: absolute;

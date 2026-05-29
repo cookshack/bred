@@ -935,10 +935,7 @@ function initSearch
     s.st.view.buf.opts.set('core.highlight.occurrences.enabled', s.st.occur)
     spec.cleanup && spec.cleanup(s)
 
-    Css.show(s.st.win.echo)
-    s.st.mini.remove()
-    Css.remove(s.st.win.mini, 'active')
-    Css.remove(s.st.win.mini, 'search')
+    s.st.searchBar?.remove()
     globalThis.onkeydown = s.st.oldOnKeyDown
     spec.cancel && spec.cancel()
   }
@@ -1143,8 +1140,6 @@ function initSearch
     }
 
     p = Pane.current()
-    if (Css.has(p.win.mini, 'active'))
-      return
 
     view = View.current(p)
 
@@ -1157,25 +1152,22 @@ function initSearch
     s.st.start = s.st.view.pos
     s.st.backward = backward
 
-    Css.add(s.st.win.mini, 'active')
-    Css.add(s.st.win.mini, 'search')
     s.st.echo = divCl('mini-echo')
-    Css.hide(s.st.win.echo)
-    s.st.mini = divCl('mini-search-w',
-                      [ divCl('mini-icon icon-ed-search',
-                              img('img/up.svg', 'Previous', 'filter-clr-nb0'),
-                              { 'data-run': 'search backward again' }),
-                        divCl('mini-icon icon-ed-search',
-                              img('img/down.svg', 'Next', 'filter-clr-nb0'),
-                              { 'data-run': 'search forward again' }),
-                        divCl('mini-icon',
-                              img('img/x.svg', 'X', 'filter-clr-nb0'),
-                              { 'data-run': 'search cancel' }),
-                        divCl('mini-icon',
-                              img('img/search.svg', 'Search', 'filter-clr-nb0'),
-                              { 'data-run': 'search done' }),
-                        s.st.echo ])
-    s.st.win.mini.firstElementChild.after(s.st.mini)
+    s.st.searchBar = divCl('bred-search-w',
+                           [ divCl('mini-icon icon-ed-search',
+                                   img('img/up.svg', 'Previous', 'filter-clr-nb0'),
+                                   { 'data-run': 'search backward again' }),
+                             divCl('mini-icon icon-ed-search',
+                                   img('img/down.svg', 'Next', 'filter-clr-nb0'),
+                                   { 'data-run': 'search forward again' }),
+                             divCl('mini-icon',
+                                   img('img/x.svg', 'X', 'filter-clr-nb0'),
+                                   { 'data-run': 'search cancel' }),
+                             divCl('mini-icon',
+                                   img('img/search.svg', 'Search', 'filter-clr-nb0'),
+                                   { 'data-run': 'search done' }),
+                             s.st.echo ])
+    view.ele?.closest('.paneW')?.querySelector('.bred-overlay')?.prepend(s.st.searchBar)
 
     oldOnKeyDown = globalThis.onkeydown
     s.st.oldOnKeyDown = oldOnKeyDown

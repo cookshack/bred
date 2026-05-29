@@ -1,0 +1,11 @@
+{
+  "name": "bred-ext-docker",
+  "version": "0.1.0",
+  "description": "Docker container list.",
+  "main": "docker.mjs",
+  "scripts": {
+    "postinstall": "touch .READY"
+  },
+  "author": "Matt Mundell",
+  "license": "CC0-1.0"
+}

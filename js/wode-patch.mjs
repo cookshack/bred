@@ -51,33 +51,33 @@ function init
                                               provide: field => CMView.EditorView.decorations.from(field) })
 
   extPatch = CMView.ViewPlugin.define(ed => {
-    function update
-    (edUpdate) {
-      if (edUpdate.docChanged || edUpdate.viewportChanged) {
-        let buf
+                                        function update
+                                        (edUpdate) {
+                                          if (edUpdate.docChanged || edUpdate.viewportChanged) {
+                                            let buf
 
-        buf = edUpdate.view.bred?.view?.buf
-        if (buf)
-          if (edUpdate.docChanged)
-            // Timeout else "Calls to EditorView.update are not allowed while an update is in progress"
-            setTimeout(() => {
-                         // Clear stale refines before recomputing
-                         buf.vars('patch').refines = []
-                         edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view)) })
-                         Patch.refine(edUpdate.view.state.doc.toString(),
-                                      refines => {
-                                        buf.vars('patch').refines = refines
-                                        edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view, refines)) })
-                                      })
-                       })
-          else
-            setTimeout(() => {
-                         if (buf.vars('patch').refines?.length)
-                           edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
-                                                                                             buf.vars('patch').refines)) })
-                       })
-      }
-    }
+                                            buf = edUpdate.view.bred?.view?.buf
+                                            if (buf)
+                                              if (edUpdate.docChanged)
+                                                // Timeout else "Calls to EditorView.update are not allowed while an update is in progress"
+                                                setTimeout(() => {
+                                                             // Clear stale refines before recomputing
+                                                             buf.vars('patch').refines = []
+                                                             edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view)) })
+                                                             Patch.refine(edUpdate.view.state.doc.toString(),
+                                                                          refines => {
+                                                                            buf.vars('patch').refines = refines
+                                                                            edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view, refines)) })
+                                                                          })
+                                                           })
+                                              else
+                                                setTimeout(() => {
+                                                             if (buf.vars('patch').refines?.length)
+                                                               edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
+                                                                                                                                buf.vars('patch').refines)) })
+                                                           })
+                                          }
+                                        }
 
                                         setTimeout(() => {
                                                      Patch.refine(ed.state.doc.toString(),

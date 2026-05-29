@@ -396,21 +396,29 @@ div.code-thought:hover {
 .code-question-skipped .code-question-option.code-option-selected::before {
   content: '○';
 }
-.code-question-skipped .code-question-option {
+.code-question-skipped .code-question-option.code-option-selected::before {
+  content: '○';
+}
+.code-question-skipped .code-question-option,
+.code-question-answered .code-question-option {
   color: var(--clr-text);
   cursor: default;
   pointer-events: none;
 }
-.code-question-skipped .code-question-option::before {
+.code-question-skipped .code-question-option::before,
+.code-question-answered .code-question-option::before {
   color: var(--clr-text);
 }
-.code-question-skipped .code-question-item {
+.code-question-skipped .code-question-item,
+.code-question-answered .code-question-item {
   border-left-color: var(--clr-text);
 }
-.code-question-skipped .code-question-header {
+.code-question-skipped .code-question-header,
+.code-question-answered .code-question-header {
   color: var(--clr-text);
 }
-.code-question-skipped .code-msg-text button {
+.code-question-skipped .code-msg-text button,
+.code-question-answered .code-msg-text button {
   opacity: 0.4;
   cursor: default;
   pointer-events: none;

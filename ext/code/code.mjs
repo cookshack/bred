@@ -467,11 +467,17 @@ function questionRespond
                                                           let el
 
                                                           el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
-                                                          el?.remove()
+                                                          if (el) {
+                                                            let textEl
+
+                                                            Css.add(el, 'code-question-answered')
+                                                            textEl = el.querySelector('.code-msg-text')
+                                                            if (textEl)
+                                                              textEl.innerText = '▣ Questions (answered)'
+                                                            el.querySelectorAll('.code-question-option').forEach(o => o.removeAttribute('data-run'))
+                                                            el.querySelectorAll('button').forEach(b => b.removeAttribute('data-run'))
+                                                          }
                                                         })
-                                    buf.vars('code').questions = buf.vars('code').questions.slice(1)
-                                    if (buf.vars('code').questions.length)
-                                      appendQuestion(buf, buf.vars('code').questions[0])
                                   }
                                   else {
                                     await c.question.reject({ requestID, directory: buf.dir })
@@ -490,10 +496,10 @@ function questionRespond
                                                             el.querySelectorAll('button').forEach(b => b.removeAttribute('data-run'))
                                                           }
                                                         })
-                                    buf.vars('code').questions = buf.vars('code').questions.slice(1)
-                                    if (buf.vars('code').questions.length)
-                                      appendQuestion(buf, buf.vars('code').questions[0])
                                   }
+                                  buf.vars('code').questions = buf.vars('code').questions.slice(1)
+                                  if (buf.vars('code').questions.length)
+                                    appendQuestion(buf, buf.vars('code').questions[0])
                                 }
                                 catch (err) {
                                   d('CO question respond error: ' + err.message)

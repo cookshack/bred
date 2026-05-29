@@ -1,60 +1,125 @@
-import * as Loc from './loc.mjs'
-import * as View from './view.mjs'
-import * as Shell from './shell.mjs'
-import { d } from './mess.mjs'
+import { diffChars } from '../lib/diff.js'
 
-function findEscapeSequences
-(text, type) {
-  let matches, regex, match, num
+function computeRefine
+(patch) {
+  let lines, results, i
 
-  num = 41
-  if (type == '+')
-    num = 42
-  else
-    type = '-'
+  lines = patch.split('\n')
+  results = []
 
-  regex = new RegExp('\\x1B\\[' + num + 'm([^\\x1b]+)\\x1B\\[0m', 'gs')
-  matches = []
+  i = 0
+  while (i < lines.length) {
+    let c
 
-  while (match = regex.exec(text)) {
-    let start, lineStart, lineText, from, count
+    c = lines[i]
+    if (c.length == 0) {
+      i++
+      continue
+    }
 
-    start = match.index // before the ESC[41m
-    lineStart = text.lastIndexOf('\n', start) + 1
-    from = start - lineStart
+    // Only process inside hunks (after @@ headers)
+    if (c[0] == '@' && c[1] == '@') {
+      i++
 
-    // Subtract the space taken by the 'ESC[0m's in the string
-    lineText = text.substring(lineStart, start)
-    count = (lineText.match(/\x1b\[0m/g) || []).length
-    from -= (count * 4)
+      while (i < lines.length) {
+        let cur
 
-    // Subtract the space taken by the 'ESC[4Xm's in the string
-    count = (lineText.match(/\x1b\[4[12]m/g) || []).length
-    from -= (count * 5)
+        cur = lines[i]
+        if (cur.length == 0 || (cur[0] == '@' && cur[1] == '@'))
+          break
 
-    matches.push({ line: text.substring(0, start).split('\n').length,
-                   from,
-                   to: from + match[1].length,
-                   type })
+        if (cur[0] == '+') {
+          i++
+          continue
+        }
+
+        if (cur[0] == '-') {
+          let oldLines, newLines
+
+          // Collect consecutive - lines
+          oldLines = [ { text: cur.slice(1), lineNum: i + 1 } ]
+          i++
+          while (i < lines.length) {
+            let n
+
+            n = lines[i]
+            if (n.length && n[0] == '-') {
+              oldLines.push({ text: n.slice(1), lineNum: i + 1 })
+              i++
+            }
+            else
+              break
+          }
+
+          // Collect matching + lines
+          newLines = []
+          while (i < lines.length) {
+            let n
+
+            n = lines[i]
+            if (n.length && n[0] == '+') {
+              newLines.push({ text: n.slice(1), lineNum: i + 1 })
+              i++
+            }
+            else
+              break
+          }
+
+          {
+            let maxPairs, p
+
+            // Pair old/new lines and diff them
+            maxPairs = Math.min(oldLines.length, newLines.length)
+            for (p = 0; p < maxPairs; p++) {
+              let changes, oldPos, newPos, j
+
+              changes = diffChars(oldLines[p].text, newLines[p].text)
+              oldPos = 1 // skip '-'
+              newPos = 1 // skip '+'
+
+              for (j = 0; j < changes.length; j++) {
+                let ch
+
+                ch = changes[j]
+                if (ch.removed) {
+                  let from, to
+
+                  from = oldPos
+                  to = oldPos + ch.value.length
+                  results.push({ line: oldLines[p].lineNum, from, to, type: '-' })
+                  oldPos = to
+                }
+                else if (ch.added) {
+                  let from, to
+
+                  from = newPos
+                  to = newPos + ch.value.length
+                  results.push({ line: newLines[p].lineNum, from, to, type: '+' })
+                  newPos = to
+                }
+                else {
+                  oldPos += ch.value.length
+                  newPos += ch.value.length
+                }
+              }
+            }
+            // Unpaired lines (extra - or +) get no refine
+          }
+          continue
+        }
+
+        i++
+      }
+    }
+    else
+      i++
   }
 
-  return matches
+  return results
 }
 
 export
-async function refine
+function refine
 (patch, cb) {
-  Shell.runToString(View.current().dir,
-                    Loc.appDir().join('bin/highlight-patch'),
-                    [ patch ],
-                    0,
-                    text => {
-                      let all
-
-                      d({ text })
-                      all = [ ...findEscapeSequences(text, '-'),
-                              ...findEscapeSequences(text, '+') ]
-                      d({ all })
-                      cb(all)
-                    })
+  cb(computeRefine(patch))
 }

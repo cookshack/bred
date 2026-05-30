@@ -912,6 +912,7 @@ function toggleThinking
   let p
 
   p = Pane.current()
+  p.buf.vars('code').thinkingHidden = p.buf.vars('code').thinkingHidden ? 0 : 1
   p.buf.views.forEach(view => {
                         if (view.eleOrReserved) {
                           let w
@@ -922,15 +923,15 @@ function toggleThinking
 
                             h = view.eleOrReserved.querySelector('.code-h')
                             img = h.querySelector('.code-thought img')
-                            if (Css.has(w, 'code-thinking-hidden')) {
-                              w.classList.remove('code-thinking-hidden')
-                              if (img)
-                                img.src = Icon.path('thinking.active')
-                            }
-                            else {
-                              w.classList.add('code-thinking-hidden')
+                            if (p.buf.vars('code').thinkingHidden) {
+                              Css.add(w, 'code-thinking-hidden')
                               if (img)
                                 img.src = Icon.path('thinking.zen')
+                            }
+                            else {
+                              Css.remove(w, 'code-thinking-hidden')
+                              if (img)
+                                img.src = Icon.path('thinking.active')
                             }
                           }
                         }
@@ -1119,6 +1120,21 @@ function viewCopy
   toW = to.ele.querySelector('.code-w')
   if (fromW && toW) {
     let fromTitle, toTitle, toUnderW
+
+    if (to.buf.vars('code').thinkingHidden) {
+      let h
+
+      Css.add(toW, 'code-thinking-hidden')
+
+      h = to.ele.querySelector('.code-h')
+      if (h) {
+        let img
+
+        img = h.querySelector('.code-thought img')
+        if (img)
+          img.src = Icon.path('thinking.zen')
+      }
+    }
 
     fromTitle = fromW.querySelector('.code-session-title')
     toTitle = toW.querySelector('.code-session-title')

@@ -102,12 +102,20 @@ function psToView
 }
 
 function onStopResult
-(id, str, code) {
-  if (code)
+(id, str, code, view, lineFrom) {
+  if (code) {
     Mess.say('Failed to stop ' + id.slice(0, 12))
-  else
-    Mess.say('Stopped ' + id.slice(0, 12))
-  refresh()
+    refresh()
+    return
+  }
+  Mess.say('Stopped ' + id.slice(0, 12))
+  if (view?.ed) {
+    let psn
+
+    psn = Ed.Backend.makePsn(view, lineFrom)
+    psn.lineEnd()
+    Ed.makeRange(view, lineFrom, psn.bep + 1).remove()
+  }
 }
 
 function showDetails
@@ -212,11 +220,19 @@ function stop
 
     row = Ed.bepRow(p.view, p.view.bep)
     ids = p.buf.vars('docker').ids
-    id = ids?.[row]
+    id = ids?.[row - 1]
     if (id) {
-      Mess.say('Stopping ' + id.slice(0, 12) + '...')
+      let bep, psn, lineFrom, lineTo
+
+      bep = Ed.Backend.vgetBep(p.view)
+      psn = Ed.Backend.makePsn(p.view, bep)
+      psn.lineEnd()
+      lineTo = psn.bep
+      psn.lineStart()
+      lineFrom = psn.bep
+      p.buf.insert('  Stopping...', lineTo)
       Shell.runToString(p.buf.dir, 'docker', [ 'stop', id ], 0,
-                        (str, code) => onStopResult(id, str, code))
+                        (str, code) => onStopResult(id, str, code, p.view, lineFrom))
     }
     else
       Mess.say('Missing container')

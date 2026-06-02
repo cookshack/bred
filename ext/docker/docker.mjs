@@ -236,8 +236,8 @@ function stop
       lineTo = psn.bep
       psn.lineStart()
       lineFrom = psn.bep
-      Ed.makeRange(p.view, lineTo, lineTo + 1).remove()
-      p.buf.insert('Stopping...', lineTo)
+      Ed.makeRange(p.view, lineTo - 1, lineTo).remove()
+      p.buf.insert('Stopping...', lineTo - 1)
       Shell.runToString(p.buf.dir, 'docker', [ 'stop', id ], 0,
                         (str, code) => onStopResult(id, str, code, p.view, lineFrom))
     }

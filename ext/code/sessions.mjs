@@ -22,28 +22,40 @@ function init
 (events) {
   let mo
 
+  function updateCount
+  (view, n) {
+    let el
+
+    el = view.eleOrReserved?.querySelector('.edMl-file')
+    if (el)
+      el.innerText = 'Code Sessions: ' + n
+  }
+
   function viewInit
   (view, spec, cb) { // (view)
     let w
 
     w = view.eleOrReserved.querySelector('.code-sessions-w')
     if (w) {
-
       w.innerHTML = ''
       Comm.ensureClient(view.buf).then(c => c.session.list().then(sessions => {
+                                                                    let filtered
+
                                                                     d({ sessions })
+                                                                    filtered = sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir))
+                                                                    updateCount(view, filtered.length)
                                                                     append(w,
-                                                                           sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir)).map(s => {
-                                                                                                                                                    return [ divCl('code-sessions-del', '✗',
-                                                                                                                                                                   { 'data-run': 'delete session',
-                                                                                                                                                                     'data-session-id': s.id,
-                                                                                                                                                                     'data-session-dir': s.directory }),
-                                                                                                                                                             divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
-                                                                                                                                                                   { 'data-run': 'open code session',
-                                                                                                                                                                     'data-session-id': s.id,
-                                                                                                                                                                     'data-session-dir': s.directory }),
-                                                                                                                                                             divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
-                                                                                                                                                  }))
+                                                                           filtered.map(s => {
+                                                                                          return [ divCl('code-sessions-del', '✗',
+                                                                                                         { 'data-run': 'delete session',
+                                                                                                           'data-session-id': s.id,
+                                                                                                           'data-session-dir': s.directory }),
+                                                                                                   divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
+                                                                                                         { 'data-run': 'open code session',
+                                                                                                           'data-session-id': s.id,
+                                                                                                           'data-session-dir': s.directory }),
+                                                                                                   divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
+                                                                                        }))
                                                                   }))
     }
 
@@ -170,12 +182,14 @@ function init
                                                                w = view.eleOrReserved?.querySelector('.code-sessions-w')
                                                                el = w?.querySelector('[data-session-id="' + sessionID + '"]')
                                                                if (el) {
-                                                                 let i
+                                                                 let i, n
 
                                                                  i = [ ...w.children ].indexOf(el)
                                                                  w.children[i + 2]?.remove()
                                                                  w.children[i + 1]?.remove()
                                                                  w.children[i].remove()
+                                                                 n = w.querySelectorAll('.code-sessions-id').length
+                                                                 updateCount(view, n)
                                                                }
                                                              })
                           })

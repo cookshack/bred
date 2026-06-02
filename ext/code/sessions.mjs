@@ -37,10 +37,11 @@ function init
 
     w = view.eleOrReserved.querySelector('.code-sessions-w')
     if (w) {
-      w.innerHTML = ''
+      w.innerHTML = 'Fetching...'
       Comm.ensureClient(view.buf).then(c => c.session.list().then(sessions => {
                                                                     let filtered
 
+                                                                    w.innerHTML = ''
                                                                     d({ sessions })
                                                                     filtered = sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir))
                                                                     updateCount(view, filtered.length)

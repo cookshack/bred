@@ -37,14 +37,15 @@ function fmt
 
 function onPsResult
 (view, str, code) {
-  let ids, lines, i, maxId, maxName
+  let ids, lines, i, maxId, maxName, text
 
   if (code) {
     d('docker ps failed: ' + code)
     return
   }
   ids = []
-  lines = str.split('\n').filter(l => l.length)
+  str = str.trim()
+  lines = str.split('\n').map(l => l.trim()).filter(l => l.length)
   for (i = 0; i < lines.length; i++)
     ids.push(lines[i].split('\t')[0])
   view.buf.vars('docker').ids = ids
@@ -59,17 +60,18 @@ function onPsResult
     if (fields[1].length > maxName)
       maxName = fields[1].length
   }
-  view.buf.clear()
-  view.buf.append('ID' + ' '.repeat(maxId - 2) + '  NAME' + ' '.repeat(maxName - 4) + '  IMAGE\n')
+  text = 'ID' + ' '.repeat(maxId - 2) + '  NAME' + ' '.repeat(maxName - 4) + '  IMAGE\n'
   for (i = 0; i < lines.length; i++) {
     let fields, image
 
     fields = lines[i].split('\t')
-    image = fields[2]
+    image = (fields[2] || '').trim()
     if (image.startsWith('sha256:'))
       image = image.slice(7, 19)
-    view.buf.append(fields[0].slice(0, 12).padEnd(maxId) + '  ' + fields[1].padEnd(maxName) + '  ' + image + '\n')
+    text += fields[0].trim().slice(0, 12).padEnd(maxId) + '  ' + fields[1].trim().padEnd(maxName) + '  ' + image + '  ⏹\n'
   }
+  view.buf.clear()
+  view.buf.append(text)
   view.bufStart()
 }
 
@@ -230,7 +232,8 @@ function stop
       lineTo = psn.bep
       psn.lineStart()
       lineFrom = psn.bep
-      p.buf.insert('  Stopping...', lineTo)
+      Ed.makeRange(p.view, lineTo, lineTo + 1).remove()
+      p.buf.insert('Stopping...', lineTo)
       Shell.runToString(p.buf.dir, 'docker', [ 'stop', id ], 0,
                         (str, code) => onStopResult(id, str, code, p.view, lineFrom))
     }
@@ -290,6 +293,8 @@ function init
                   parentsForEm: 'ed',
                   decorators: [ { regex: /^[0-9a-f]{12}  (\S+)  /d,
                                   decor: [ { attr: { 'data-run': 'show details' } } ] },
+                                { regex: /(⏹)$/d,
+                                  decor: [ { attr: { 'data-run': 'stop container' } } ] },
                                 { regex: /^(ID\s{2,}NAME\s{2,}IMAGE)/d,
                                   decor: [ { attr: { style: 'color: var(--rule-clr-comment);' } } ] } ] })
 

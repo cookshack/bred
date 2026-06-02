@@ -1,8 +1,10 @@
 import { append, divCl } from '../../js/dom.mjs'
 import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
+import * as Css from '../../js/css.mjs'
 import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/Em.mjs'
+import * as Icon from '../../js/icon.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/Pane.mjs'
@@ -75,6 +77,7 @@ function init
       buf.vars('code').model = model
       buf.vars('code').variant = variant
       buf.vars('code').sessionID = sessionID
+      buf.vars('code').thinkingHidden = 1
       buf.opt('core.lint.enabled', 1)
 
       Comm.ensureClient(buf).then(c => {
@@ -109,6 +112,26 @@ function init
                                                            buf.vars('code').firstPromptSent = 1
                                                            Prompt.nestBuf(buf)
                                                            Ev.startSub(buf, events)
+                                                           buf.views.forEach(view => {
+                                                                               if (view.eleOrReserved) {
+                                                                                 let w
+
+                                                                                 w = view.eleOrReserved.querySelector('.code-w')
+                                                                                 if (w) {
+                                                                                   let h
+
+                                                                                   Css.add(w, 'code-thinking-hidden')
+                                                                                   h = view.eleOrReserved.querySelector('.code-h')
+                                                                                   if (h) {
+                                                                                     let img
+
+                                                                                     img = h.querySelector('.code-thought img')
+                                                                                     if (img)
+                                                                                       img.src = Icon.path('thinking.zen')
+                                                                                   }
+                                                                                 }
+                                                                               }
+                                                                             })
                                                          })
                                   }).catch(err => {
                                              Mess.yell('Failed: ' + err.message)

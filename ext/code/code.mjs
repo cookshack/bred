@@ -1190,29 +1190,22 @@ function viewCopy
                                      toW.insertBefore(child.cloneNode(1), toUnderW)
                                    })
     {
-      let fromH, toH
+      let toH
 
-      fromH = fromW.querySelector('.code-h')
-      toH = toW.querySelector('.code-h')
+      toH = to.ele.querySelector('.code-h')
       if (toH) {
-        let elAgent, elDocker
+        let elAgent
 
         elAgent = toH.querySelector('.code-agent')
-        if (elAgent) {
-          let fromAgent
+        if (elAgent)
+          elAgent.innerText = Util.iconAgent() + to.buf.opt('code.agent')
 
-          fromAgent = fromH?.querySelector('.code-agent')
-          if (fromAgent)
-            elAgent.innerText = fromAgent.innerText
-        }
+        {
+          let elDocker
 
-        elDocker = toH.querySelector('.code-docker')
-        if (elDocker) {
-          let fromDocker
-
-          fromDocker = fromH?.querySelector('.code-docker')
-          if (fromDocker)
-            elDocker.innerText = fromDocker.innerText
+          elDocker = toH.querySelector('.code-docker')
+          if (elDocker)
+            elDocker.innerText = to.buf.vars('code').containerName || ''
         }
       }
     }

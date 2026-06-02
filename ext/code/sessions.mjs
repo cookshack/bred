@@ -59,6 +59,34 @@ function init
     () {
       let pane, name, buf, provider, model, variant
 
+      function appendMsgs
+      (r) {
+        d({ r })
+        for (let msg of (r.data || []))
+          for (let part of (msg.parts || []))
+            if (part.type == 'text')
+              Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
+            else if (part.type == 'reasoning' && part.text)
+              Ui.appendThinking(buf, part.text, part.id)
+            else if (part.type == 'tool') {
+              let label
+
+              label = part.tool
+              if (part.tool == 'bash' && part.state?.input?.command)
+                label += ': ' + part.state.input.command
+              else if (part.state?.input?.filePath)
+                label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
+              else if (part.state?.input?.pattern)
+                label += ' "' + part.state.input.pattern + '"'
+              else if (part.state?.input?.query)
+                label += ': ' + part.state.input.query
+              else if (part.state?.input?.url)
+                label += ' ' + part.state.input.url
+              Ui.appendToolMsg(buf, part.callID, label,
+                               part.state?.output || part.state?.error)
+            }
+      }
+
       pane = Pane.current()
       name = 'CO ' + sessionDir
 
@@ -81,58 +109,36 @@ function init
       buf.opt('core.lint.enabled', 1)
 
       Comm.ensureClient(buf).then(c => {
-                                    pane.setBuf(buf, {}, () => {
-                                                           c.session.messages({ sessionID, directory: sessionDir }).then(r => {
-                                                                                                                           d({ r })
-                                                                                                                           for (let msg of (r.data || []))
-                                                                                                                             for (let part of (msg.parts || []))
-                                                                                                                               if (part.type == 'text')
-                                                                                                                                 Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
-                                                                                                                               else if (part.type == 'reasoning' && part.text)
-                                                                                                                                 Ui.appendThinking(buf, part.text, part.id)
-                                                                                                                               else if (part.type == 'tool') {
-                                                                                                                                 let label
+                                    pane.setBuf(buf,
+                                                {},
+                                                () => {
+                                                  c.session.messages({ sessionID,
+                                                                       directory: sessionDir }).then(appendMsgs)
 
-                                                                                                                                 label = part.tool
-                                                                                                                                 if (part.tool == 'bash' && part.state?.input?.command)
-                                                                                                                                   label += ': ' + part.state.input.command
-                                                                                                                                 else if (part.state?.input?.filePath)
-                                                                                                                                   label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
-                                                                                                                                 else if (part.state?.input?.pattern)
-                                                                                                                                   label += ' "' + part.state.input.pattern + '"'
-                                                                                                                                 else if (part.state?.input?.query)
-                                                                                                                                   label += ': ' + part.state.input.query
-                                                                                                                                 else if (part.state?.input?.url)
-                                                                                                                                   label += ' ' + part.state.input.url
-                                                                                                                                 Ui.appendToolMsg(buf, part.callID, label,
-                                                                                                                                                  part.state?.output || part.state?.error)
-                                                                                                                               }
-                                                                                                                         })
+                                                  buf.vars('code').firstPromptSent = 1
+                                                  Prompt.nestBuf(buf)
+                                                  Ev.startSub(buf, events)
+                                                  buf.views.forEach(view => {
+                                                                      if (view.eleOrReserved) {
+                                                                        let w
 
-                                                           buf.vars('code').firstPromptSent = 1
-                                                           Prompt.nestBuf(buf)
-                                                           Ev.startSub(buf, events)
-                                                           buf.views.forEach(view => {
-                                                                               if (view.eleOrReserved) {
-                                                                                 let w
+                                                                        w = view.eleOrReserved.querySelector('.code-w')
+                                                                        if (w) {
+                                                                          let h
 
-                                                                                 w = view.eleOrReserved.querySelector('.code-w')
-                                                                                 if (w) {
-                                                                                   let h
+                                                                          Css.add(w, 'code-thinking-hidden')
+                                                                          h = view.eleOrReserved.querySelector('.code-h')
+                                                                          if (h) {
+                                                                            let img
 
-                                                                                   Css.add(w, 'code-thinking-hidden')
-                                                                                   h = view.eleOrReserved.querySelector('.code-h')
-                                                                                   if (h) {
-                                                                                     let img
-
-                                                                                     img = h.querySelector('.code-thought img')
-                                                                                     if (img)
-                                                                                       img.src = Icon.path('thinking.zen')
-                                                                                   }
-                                                                                 }
-                                                                               }
-                                                                             })
-                                                         })
+                                                                            img = h.querySelector('.code-thought img')
+                                                                            if (img)
+                                                                              img.src = Icon.path('thinking.zen')
+                                                                          }
+                                                                        }
+                                                                      }
+                                                                    })
+                                                })
                                   }).catch(err => {
                                              Mess.yell('Failed: ' + err.message)
                                            })

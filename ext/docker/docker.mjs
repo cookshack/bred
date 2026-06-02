@@ -213,16 +213,20 @@ function onDetailsViewInit
 }
 
 function stop
-() {
-  let p
+(we) {
+  let p, id
 
   p = Pane.current()
   if (p.buf.mode.name == 'Docker') {
-    let row, ids, id
+    if (we?.e && (we.e.button == 0))
+      id = we.e.target.dataset.id
+    else {
+      let row, ids
 
-    row = Ed.bepRow(p.view, p.view.bep)
-    ids = p.buf.vars('docker').ids
-    id = ids?.[row - 1]
+      row = Ed.bepRow(p.view, p.view.bep)
+      ids = p.buf.vars('docker').ids
+      id = ids?.[row - 1]
+    }
     if (id) {
       let bep, psn, lineFrom, lineTo
 
@@ -293,8 +297,15 @@ function init
                   parentsForEm: 'ed',
                   decorators: [ { regex: /^[0-9a-f]{12}  (\S+)  /d,
                                   decor: [ { attr: { 'data-run': 'show details' } } ] },
-                                { regex: /(⏹)$/d,
-                                  decor: [ { attr: { 'data-run': 'stop container' } } ] },
+                                 { regex: /(⏹)$/d,
+                                   decor: [ { ref
+                                              (view, match, line) {
+                                                let id
+
+                                                id = line.text.trim().split(' ')[0]
+                                                return Ed.makeDecor({ attr: { 'data-run': 'stop container',
+                                                                              'data-id': id } })
+                                              } } ] },
                                 { regex: /^(ID\s{2,}NAME\s{2,}IMAGE)/d,
                                   decor: [ { attr: { style: 'color: var(--rule-clr-comment);' } } ] } ] })
 
@@ -306,7 +317,7 @@ function init
              decorators: [ { regex: /^([A-Z][A-Za-z]+)  /d,
                              decor: [ { attr: { style: 'color: var(--rule-clr-comment);' } } ] } ] })
 
-  Cmd.add('stop container', () => stop(), mo)
+  Cmd.add('stop container', (u, we) => stop(we), mo)
   Em.on('s', 'stop container', mo)
 
   Cmd.add('show details', () => showDetails(0), mo)

@@ -28,6 +28,10 @@ function mountArgs
   home = process.env.HOME
   return [ '-v', workingDir + ':' + workingDir,
            '-v', home + '/fresh/main:' + home + '/fresh/main',
+           '-v', home + '/alts/main/openvas/plugins:' + home + '/alts/main/openvas/plugins:ro',
+           '-v', home + '/alts/main/gvm/cert-data:' + home + '/alts/main/gvm/cert-data:ro',
+           '-v', home + '/alts/main/gvm/scap-data:' + home + '/alts/main/gvm/scap-data:ro',
+           '-v', home + '/alts/main/gvm/data-objects/gvmd/22.04:' + home + '/alts/main/gvm/data-objects/gvmd/22.04:ro',
            '-v', home + '/src/opencode:' + home + '/src/opencode:ro',
            '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro',
            '-v', home + '/.gitignore:/home/node/.gitignore:ro',

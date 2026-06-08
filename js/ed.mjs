@@ -336,7 +336,8 @@ function initGotoLine
     }
 
     view = View.current()
-    Prompt.ask({ text: 'goto line:',
+    Prompt.ask({ nest: 1,
+                 text: 'goto line:',
                  hist },
                go)
   }

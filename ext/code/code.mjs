@@ -82,6 +82,7 @@ function codeInit
   buf.vars('code').prompt = '/init'
   buf.vars('code').provider = provider
   buf.vars('code').model = model
+  buf.vars('code').thinkingHidden = 1
   buf.opt('core.lint.enabled', 1)
 
   Comm.ensureClient(buf).then(c => {
@@ -1056,6 +1057,7 @@ function code
     buf.vars('code').provider = provider
     buf.vars('code').model = model
     buf.vars('code').variant = variant
+    buf.vars('code').thinkingHidden = 1
     buf.opt('core.lint.enabled', 1)
 
     pane.setBuf(buf, {}, () => {
@@ -1108,6 +1110,24 @@ function code
 
 function viewInit
 (view, spec, cb) { // (view)
+  if (view.buf?.vars('code')?.thinkingHidden) {
+    let w
+
+    w = view.ele?.querySelector?.('.code-w')
+    if (w) {
+      let h
+
+      Css.add(w, 'code-thinking-hidden')
+      h = view.ele.querySelector('.code-h')
+      if (h) {
+        let img
+
+        img = h.querySelector('.code-thought img')
+        if (img)
+          img.src = Icon.path('thinking.zen')
+      }
+    }
+  }
   if (cb)
     cb(view)
 }

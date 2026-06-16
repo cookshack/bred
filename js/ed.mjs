@@ -349,7 +349,7 @@ function initGotoLine
 
 function initQR
 (mo) {
-  let moQr, moQrFrom, moQrTo, moQrPrompt, st, hist
+  let moQr, moQrFrom, moQrTo, moQrPrompt, st, hist, emQr, emCtl, emAlt
 
   function qrLayoutW
   (fromBufId, toBufId) {
@@ -472,6 +472,49 @@ function initQR
     }
   }
 
+  function qrEnter
+  () {
+    let currentView
+
+    currentView = View.current()
+    if (currentView?.buf == st.fromBuf)
+      submitFrom()
+    else
+      submitTo()
+  }
+
+  function qrKeyY
+  (u, we) {
+    if (st.toBuf.minors?.find(m => m == moQrPrompt))
+      replaceOne()
+    else
+      Backend.selfInsert(u, we)
+  }
+
+  function qrKeyN
+  (u, we) {
+    if (st.toBuf.minors?.find(m => m == moQrPrompt))
+      skipOne()
+    else
+      Backend.selfInsert(u, we)
+  }
+
+  function qrKeyA
+  (u, we) {
+    if (st.toBuf.minors?.find(m => m == moQrPrompt))
+      replaceAll()
+    else
+      Backend.selfInsert(u, we)
+  }
+
+  function qrKeyC
+  (u, we) {
+    if (st.toBuf.minors?.find(m => m == moQrPrompt))
+      closeQr()
+    else
+      Backend.selfInsert(u, we)
+  }
+
   function qrViewInit
   (view, spec, whenReady) {
     setTimeout(() => {
@@ -527,6 +570,7 @@ function initQR
                                                                         }
                                                                         ready++
                                                                         if (ready == 2) {
+                                                                          Em.replace(() => [ emQr ])
                                                                           st.parentView = view
                                                                           if (whenReady)
                                                                             whenReady(view)
@@ -621,6 +665,26 @@ function initQR
     Prompt.close()
   }
 
+  function closeAndPassThrough
+  (u, we) {
+    let view
+
+    closeQr()
+
+    if (we.mouse) {
+      let target
+
+      target = globalThis.document.elementFromPoint(we.e.clientX, we.e.clientY)
+      view = Pane.holding(target)?.view
+      we.buf = view?.buf
+    }
+    else {
+      view = View.current()
+      we.buf = view?.buf
+    }
+    Em.handle(we, view)
+  }
+
   moQr = Mode.add('qr', { hidePoint: 1,
                           viewInit: qrViewInit,
                           viewCopy: qrViewCopy })
@@ -644,43 +708,28 @@ function initQR
   hist = Hist.ensure('QR')
 
   Cmd.add('close qr', () => closeQr(), moQr)
+  Cmd.add('close qr and pass through', closeAndPassThrough, moQr)
   Cmd.add('qr ignore click', () => {}, moQr)
   Cmd.add('qr yes', () => replaceOne(), moQr)
   Cmd.add('qr next', () => skipOne(), moQr)
   Cmd.add('qr all', () => replaceAll(), moQr)
   Cmd.add('qr previous history item', () => loadHist(), moQr)
   Cmd.add('qr next history item', () => loadHist(-1), moQr)
-
-  Em.on('C-g', 'close qr', moQr)
-  Em.on('Escape', 'close qr', moQr)
+  Cmd.add('qr enter', () => qrEnter(), moQr)
+  Cmd.add('qr key y', qrKeyY, moQr)
+  Cmd.add('qr key n', qrKeyN, moQr)
+  Cmd.add('qr key a', qrKeyA, moQr)
+  Cmd.add('qr key c', qrKeyC, moQr)
 
   Cmd.add('qr submit from', () => submitFrom(), moQrFrom)
   Cmd.add('qr toggle field', () => toggleField(), moQrFrom)
   Cmd.add('qr previous history item', () => loadHist(), moQrFrom)
   Cmd.add('qr next history item', () => loadHist(-1), moQrFrom)
 
-  Em.on('Enter', 'qr submit from', moQrFrom)
-  Em.on('C-o', 'qr toggle field', moQrFrom)
-  Em.on('C-g', 'close qr', moQrFrom)
-  Em.on('Escape', 'close qr', moQrFrom)
-  Em.on('ArrowUp', 'qr previous history item', moQrFrom)
-  Em.on('ArrowDown', 'qr next history item', moQrFrom)
-  Em.on('A-p', 'qr previous history item', moQrFrom)
-  Em.on('A-n', 'qr next history item', moQrFrom)
-
   Cmd.add('qr submit to', () => submitTo(), moQrTo)
   Cmd.add('qr toggle field to', () => toggleField(), moQrTo)
   Cmd.add('qr previous history item', () => loadHist(), moQrTo)
   Cmd.add('qr next history item', () => loadHist(-1), moQrTo)
-
-  Em.on('Enter', 'qr submit to', moQrTo)
-  Em.on('C-o', 'qr toggle field to', moQrTo)
-  Em.on('C-g', 'close qr', moQrTo)
-  Em.on('Escape', 'close qr', moQrTo)
-  Em.on('ArrowUp', 'qr previous history item', moQrTo)
-  Em.on('ArrowDown', 'qr next history item', moQrTo)
-  Em.on('A-p', 'qr previous history item', moQrTo)
-  Em.on('A-n', 'qr next history item', moQrTo)
 
   moQrPrompt.em.on('y', 'qr yes')
   moQrPrompt.em.on('n', 'qr next')
@@ -690,6 +739,36 @@ function initQR
   Em.on('Enter', 'qr next', moQrPrompt.em)
   Em.on('C-g', 'close qr', moQrPrompt.em)
   Em.on('Escape', 'close qr', moQrPrompt.em)
+
+  emQr = Em.make('QR')
+
+  for (let i = 32; i <= 127; i++)
+    emQr.on(String.fromCharCode(i), 'self insert')
+
+  emQr.on('y', 'qr key y')
+  emQr.on('n', 'qr key n')
+  emQr.on('a', 'qr key a')
+  emQr.on('!', 'qr key a')
+  emQr.on('c', 'qr key c')
+
+  emQr.on('Enter', 'qr enter')
+  emQr.on('C-o', 'qr toggle field')
+  Em.on('C-g', 'close qr', emQr)
+  Em.on('Escape', 'close qr', emQr)
+  Em.on('ArrowUp', 'qr previous history item', emQr)
+  Em.on('ArrowDown', 'qr next history item', emQr)
+  Em.on('A-p', 'qr previous history item', emQr)
+  Em.on('A-n', 'qr next history item', emQr)
+
+  emCtl = Em.make('')
+  emCtl.otherwise = 'close qr and pass through'
+  emQr.on('Control', emCtl)
+
+  emAlt = Em.make('')
+  emAlt.otherwise = 'close qr and pass through'
+  emQr.on('Alt', emAlt)
+
+  emQr.otherwise = 'close qr and pass through'
 
   Cmd.add('query replace', () => qr(), mo)
   Cmd.add('find and replace', () => qr(), mo)

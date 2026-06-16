@@ -33,7 +33,12 @@ async function onSpawn
                                    send: msg => e.sender.send(statusCh, msg),
                                    config: { logLevel: 'DEBUG',
                                              permission: { external_directory: 'allow',
-                                                           read: { '/home/node/.local/share/opencode/auth.json': 'deny' } } } })
+                                                           read: { '/home/node/.local/share/opencode/auth.json': 'deny' },
+                                                           bash: { 'docker *': 'deny',
+                                                                   'podman *': 'deny',
+                                                                   'docker-compose *': 'deny',
+                                                                   'nerdctl *': 'deny' } } } })
+
     servers.set(bufferID, server)
     e.sender.send(ch, { url: server.url, containerName: name })
   }

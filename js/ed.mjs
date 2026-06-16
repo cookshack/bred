@@ -349,152 +349,218 @@ function initGotoLine
 
 function initQR
 (mo) {
-  let moQr, st, em, hist
+  let moQr, moQrFrom, moQrTo, moQrPrompt, st, hist
 
-  function replaceAll
-  () {
-    while (Backend.replace(st, 1, search) && Backend.find(st)) {
-      // keep going
-    }
+  function qrLayoutW
+  (fromBufId, toBufId) {
+    return divCl('edWW float-ww bred-qr-ww',
+                 [ divCl('bred-qr-text', 'Replace'),
+                   divCl('bred-nested-pane-w bred-qr-from', [],
+                         { 'data-bred-nested-buf-id': fromBufId }),
+                   divCl('bred-qr-text', 'with'),
+                   divCl('bred-qr-ed',
+                         [ divCl('bred-nested-pane-w bred-qr-to', [],
+                                 { 'data-bred-nested-buf-id': toBufId }),
+                           divCl('bred-qr-buttons retracted',
+                                 [ button([ span('y', 'key'), 'es' ], { 'data-run': 'qr yes' }),
+                                   button([ span('n', 'key'), 'o' ], { 'data-run': 'qr next' }),
+                                   button([ span('a', 'key'), 'll' ], { 'data-run': 'qr all' }),
+                                   button([ span('c', 'key'), 'ancel' ], { 'data-run': 'close qr' }) ]) ]) ],
+                 { 'data-run': 'qr ignore click' })
   }
 
-  function search
+  function searchNext
   () {
-    d('qr [' + st.from + '] to [' + st.to + ']')
     if (Backend.find(st)) {
-      let view, bs
+      let bs
 
-      view = View.current()
-      bs = view.ele.querySelector('.bred-qr-buttons')
+      bs = st.parentView.ele.querySelector('.bred-qr-buttons')
       Css.expand(bs)
-      Em.replace(() => [ em ])
+      st.toBuf.addMode(moQrPrompt)
     }
     else {
       d("that's all")
-      Prompt.close()
+      closeQr()
     }
   }
 
-  function queryDone
+  function replaceOne
   () {
-    let view, ww
-
-    view = View.current()
-    ww = view.ele.firstElementChild
-    if (Css.has(ww.children[5], 'retracted')) {
-      st.from = ww.children[1].innerText
-      st.to = view.buf.text()
-      hist.add({ from: st.from, to: st.to })
-      search()
-      return 1
-    }
-    return 0
+    Backend.replace(st, 0, searchNext)
   }
 
-  function prevHist
-  (nth) {
-    let view, prev
+  function skipOne
+  () {
+    if (Backend.find(st))
+      st.toBuf.addMode(moQrPrompt)
+    else
+      closeQr()
+  }
 
-    view = View.current()
+  function replaceAll
+  () {
+    let noop
+
+    noop = () => {}
+    st.toBuf.rmMode(moQrPrompt)
+    while (Backend.replace(st, 1, noop) && Backend.find(st)) {
+      // keep going
+    }
+    closeQr()
+  }
+
+  function submitFrom
+  () {
+    let toView
+
+    toView = st.parentView.nestedViews?.find(nv => nv.buf == st.toBuf)
+    if (toView?.ele) {
+      Css.add(toView.ele, 'current')
+      Pane.holding(toView.ele)?.focusViewAt(toView.ele)
+    }
+  }
+
+  function submitTo
+  () {
+    st.from = st.fromBuf.text()
+    st.to = st.toBuf.text()
+    if (st.from.length == 0) {
+      st.from = st.fromBuf.placeholder
+      if (st.from.length == 0) {
+        Mess.toss('Empty')
+        return
+      }
+    }
+    hist.add({ from: st.from, to: st.to })
+    searchNext()
+  }
+
+  function toggleField
+  () {
+    let currentView
+
+    currentView = View.current()
+    if (currentView?.buf == st.fromBuf)
+      submitFrom()
+    else {
+      let fromView
+
+      st.toBuf.rmMode(moQrPrompt)
+
+      fromView = st.parentView.nestedViews?.find(nv => nv.buf == st.fromBuf)
+      if (fromView?.ele) {
+        Css.add(fromView.ele, 'current')
+        Pane.holding(fromView.ele)?.focusViewAt(fromView.ele)
+      }
+    }
+  }
+
+  function loadHist
+  (nth) {
+    let prev
+
     prev = nth < 0 ? hist.next() : hist.prev()
     if (prev) {
-      let ww
-
-      ww = view.ele.firstElementChild
-      view.buf.clear()
-      if (Css.has(ww.children[5], 'retracted'))
-        view.insert(prev.to)
-      else
-        view.insert(prev.from)
+      if (st.fromBuf) {
+        st.fromBuf.clear()
+        st.fromBuf.insert(prev.from)
+      }
+      if (st.toBuf) {
+        st.toBuf.clear()
+        st.toBuf.insert(prev.to)
+      }
     }
   }
 
-  function other
-  () {
-    let view, ww
+  function qrViewInit
+  (view, spec, whenReady) {
+    setTimeout(() => {
+                 let ready
 
-    view = View.current()
-    ww = view.ele.firstElementChild
-    if (Css.has(ww.children[5], 'retracted'))
-      previous()
-    else
-      next()
+                 function nestBuf
+                 (childBuf) {
+                   view.buf.views.forEach(parentView => {
+                                            let container
+
+                                            parentView.ele || Mess.toss('nest: parent view missing ele')
+                                            container = parentView.ele.querySelector('[data-bred-nested-buf-id="' + childBuf.id + '"]')
+                                            if (container) {
+                                              let paneW, pane, overlayW, overlay, point, pointLine, headW, head, lint, col, nestedView
+
+                                              if (container.querySelector('.pane.bred-nested'))
+                                                return
+                                              container.innerHTML = ''
+
+                                              point = divCl('bred-point')
+                                              pointLine = divCl('bred-point-line')
+                                              lint = divCl('bred-head-ed bred-head-lint hidden',
+                                                           divCl('bred-lint-marker', [],
+                                                                 { 'data-run': 'first diagnostic' }))
+                                              col = divCl('bred-head bred-head-end',
+                                                          [ divCl('bred-head-ed bred-head-col', 'C1') ])
+                                              head = divCl('bred-head bred-head-mid', [ lint ])
+                                              headW = divCl('bred-head-w', [ head, col ])
+                                              overlay = divCl('bred-overlay', [ point, pointLine, headW ])
+                                              overlayW = divCl('bred-overlay-w bred-nested', overlay)
+                                              pane = divCl('pane bred-nested', [])
+                                              paneW = divCl('paneW bred-nested', [ pane, overlayW ])
+
+                                              paneW.onscroll = () => {
+                                                                 if (nestedView && nestedView.ed)
+                                                                   return
+                                                                 if (nestedView && nestedView.scroll?.manual)
+                                                                   return
+                                                                 if (nestedView)
+                                                                   nestedView.point.ensureInView()
+                                                               }
+
+                                              container.appendChild(paneW)
+
+                                              nestedView = Buf.view(childBuf,
+                                                                    { ele: pane, elePoint: point },
+                                                                    v => {
+                                                                      if (v.ed) {
+                                                                        Css.add(paneW, 'ed')
+                                                                        if (childBuf == st.fromBuf) {
+                                                                          Css.add(pane, 'current')
+                                                                          v.ed.focus()
+                                                                        }
+                                                                        ready++
+                                                                        if (ready == 2) {
+                                                                          st.parentView = view
+                                                                          if (whenReady)
+                                                                            whenReady(view)
+                                                                        }
+                                                                      }
+                                                                    })
+                                              parentView.nestedViews = parentView.nestedViews || []
+                                              parentView.nestedViews.push(nestedView)
+                                            }
+                                          })
+
+                   childBuf.nested = 1
+                   childBuf.parent = view.buf
+
+                   view.buf.children = view.buf.children || []
+                   if (view.buf.children.indexOf(childBuf) == -1)
+                     view.buf.children.push(childBuf)
+                 }
+
+                 ready = 0
+                 nestBuf(st.fromBuf)
+                 nestBuf(st.toBuf)
+               })
   }
 
-  function next
-  () {
-    let view, from, to
-
-    if (queryDone())
-      return
-    view = View.current()
-    from = view.buf.text()
-    if (from.length == 0) {
-      from = view.buf.placeholder
-      view.buf.vars('qr').fromPlaceholder = from
-    }
-    view.buf.placeholder = 0
-    from.length || Mess.toss('Empty')
-    view.buf.clear()
-    view.buf.views.forEach(v => {
-                             if (v.ele) {
-                               let ww
-
-                               ww = v.ele.firstElementChild
-                               Css.expand(ww.children[0])
-                               Css.expand(ww.children[1])
-                               ww.children[1].innerText = from
-                               ww.children[2].innerText = 'With'
-                               Css.retract(ww.children[4])
-                               Css.retract(ww.children[5])
-                               to = ww.children[5].innerText
-                             }
-                           })
-    view.insert(to)
-  }
-
-  function previous
-  () {
-    let view, from, to, ph
-
-    view = View.current()
-    to = view.buf.text()
-    view.buf.clear()
-    ph = view.buf.vars('qr').fromPlaceholder
-    if (ph?.length)
-      view.buf.placeholder = ph
-    view.buf.views.forEach(v => {
-                             if (v.ele) {
-                               let ww
-
-                               ww = v.ele.firstElementChild
-                               from = ww.children[1].innerText
-                               Css.retract(ww.children[0])
-                               Css.retract(ww.children[1])
-                               ww.children[2].innerText = 'Replace'
-                               ww.children[5].innerText = to
-                               Css.expand(ww.children[4])
-                               Css.expand(ww.children[5])
-                             }
-                           })
-    view.insert(from)
-  }
-
-  function qrDivW
-  () {
-    return divCl('edWW float-ww bred-qr-ww',
-                 [ divCl('bred-qr-text retracted', 'Replace'),
-                   divCl('bred-qr-replace retracted', '', { 'data-run': 'previous' }),
-                   divCl('bred-qr-text', 'Replace'),
-                   divCl('bred-qr-ed',
-                         [ divCl('edW float-w bred-qr-w'),
-                           divCl('bred-qr-buttons retracted',
-                                 [ button([ span('y', 'key'), 'es' ], { 'data-run': 'yes' }),
-                                   button([ span('n', 'key'), 'o' ], { 'data-run': 'next' }),
-                                   button([ span('a', 'key'), 'll' ], { 'data-run': 'all' }),
-                                   button([ span('c', 'key'), 'ancel' ], { 'data-run': 'close qr' }) ]) ]),
-                   divCl('bred-qr-text', 'With'),
-                   divCl('bred-qr-with', '', { 'data-run': 'next' }) ])
+  function qrViewCopy
+  (view, existingView, lineNum, whenReady) {
+    setTimeout(() => {
+                 view.buf.nest(st.fromBuf)
+                 view.buf.nest(st.toBuf)
+                 st.parentView = view
+                 if (whenReady)
+                   whenReady(view)
+               })
   }
 
   function qr
@@ -508,75 +574,122 @@ function initQR
     st.occur = st.view.buf.opts.get('core.highlight.occurrences.enabled')
     st.view.buf.opts.set('core.highlight.occurrences.enabled', 0)
     ph = hist.nth()?.from
-    st.p = Prompt.demandBuf(qrDivW(),
-                            { placeholder: ph })
+
+    st.fromBuf = Buf.add('QR From',
+                         'qr from',
+                         divW(view.buf.dir, 0, { hideMl: 1 }),
+                         view.buf.dir,
+                         { vars: { qr: { role: 'from' } } })
+    st.fromBuf.vars('ed').fillParent = 0
+    st.fromBuf.opts.set('core.autocomplete.enabled', 0)
+    st.fromBuf.opts.set('core.brackets.close.enabled', 0)
+    st.fromBuf.opts.set('core.folding.enabled', 0)
+    st.fromBuf.opts.set('core.highlight.activeLine.enabled', 0)
+    st.fromBuf.opts.set('core.head.enabled', 0)
+    st.fromBuf.opts.set('core.line.numbers.show', 0)
+    st.fromBuf.opts.set('core.lint.enabled', 0)
+    st.fromBuf.opts.set('minimap.enabled', 0)
+    st.fromBuf.opts.set('ruler.enabled', 0)
+    st.fromBuf.icon = 'prompt'
+    if (ph?.length)
+      st.fromBuf.placeholder = ph
+
+    st.toBuf = Buf.add('QR To',
+                       'qr to',
+                       divW(view.buf.dir, 0, { hideMl: 1 }),
+                       view.buf.dir,
+                       { vars: { qr: { role: 'to' } } })
+    st.toBuf.vars('ed').fillParent = 0
+    st.toBuf.opts.set('core.autocomplete.enabled', 0)
+    st.toBuf.opts.set('core.brackets.close.enabled', 0)
+    st.toBuf.opts.set('core.folding.enabled', 0)
+    st.toBuf.opts.set('core.highlight.activeLine.enabled', 0)
+    st.toBuf.opts.set('core.head.enabled', 0)
+    st.toBuf.opts.set('core.line.numbers.show', 0)
+    st.toBuf.opts.set('core.lint.enabled', 0)
+    st.toBuf.opts.set('minimap.enabled', 0)
+    st.toBuf.opts.set('ruler.enabled', 0)
+    st.toBuf.icon = 'prompt'
+
+    st.p = Prompt.demandBuf(qrLayoutW(st.fromBuf.id, st.toBuf.id), {})
   }
 
   function closeQr
   () {
+    st.toBuf.rmMode(moQrPrompt)
     st.view.buf.opts.set('core.highlight.occurrences.enabled', st.occur)
     Prompt.close()
   }
 
-  function closeAndPassThrough
-  (u, we) {
-    let view
+  moQr = Mode.add('qr', { hidePoint: 1,
+                          viewInit: qrViewInit,
+                          viewCopy: qrViewCopy })
 
-    closeQr()
+  moQrFrom = Mode.add('qr from', { hidePoint: 1,
+                                   viewCopy,
+                                   viewInit,
+                                   viewReopen,
+                                   initFns: initModeFns,
+                                   parentsForEm: [ 'qr', 'ed' ] })
 
-    if (we.mouse) {
-      let target
+  moQrTo = Mode.add('qr to', { hidePoint: 1,
+                               viewCopy,
+                               viewInit,
+                               viewReopen,
+                               initFns: initModeFns,
+                               parentsForEm: [ 'qr', 'ed' ] })
 
-      target = globalThis.document.elementFromPoint(we.e.clientX, we.e.clientY)
-      view = Pane.holding(target)?.view
-      we.buf = view?.buf
-    }
-    else {
-      view = View.current()
-      we.buf = view?.buf
-    }
-    Em.handle(we, view)
-  }
-
-  moQr = Mode.add('QR', { hidePoint: 1,
-                          viewCopy,
-                          viewInit,
-                          viewReopen,
-                          initFns: initModeFns,
-                          parentsForEm: 'ed' })
+  moQrPrompt = Mode.add('QR Prompt', { minor: 1 })
 
   hist = Hist.ensure('QR')
 
   Cmd.add('close qr', () => closeQr(), moQr)
-  Cmd.add('close qr and pass through', closeAndPassThrough, moQr)
+  Cmd.add('qr ignore click', () => {}, moQr)
+  Cmd.add('qr yes', () => replaceOne(), moQr)
+  Cmd.add('qr next', () => skipOne(), moQr)
+  Cmd.add('qr all', () => replaceAll(), moQr)
+  Cmd.add('qr previous history item', () => loadHist(), moQr)
+  Cmd.add('qr next history item', () => loadHist(-1), moQr)
 
-  Cmd.add('other', () => other(), moQr)
-  Cmd.add('next', () => next(), moQr)
-  Cmd.add('previous', () => previous(), moQr)
-  Cmd.add('next history item', () => prevHist(-1), moQr)
-  Cmd.add('previous history item', () => prevHist(), moQr)
-
-  Em.on('ArrowUp', 'previous history item', moQr)
-  Em.on('ArrowDown', 'next history item', moQr)
-  Em.on('A-p', 'previous history item', moQr)
-  Em.on('A-n', 'next history item', moQr)
   Em.on('C-g', 'close qr', moQr)
   Em.on('Escape', 'close qr', moQr)
-  Em.on('C-o', 'other', moQr)
-  Em.on('Enter', 'next', moQr)
 
-  Cmd.add('yes', () => Backend.replace(st, 0, search), moQr)
-  Cmd.add('all', () => replaceAll(), moQr)
+  Cmd.add('qr submit from', () => submitFrom(), moQrFrom)
+  Cmd.add('qr toggle field', () => toggleField(), moQrFrom)
+  Cmd.add('qr previous history item', () => loadHist(), moQrFrom)
+  Cmd.add('qr next history item', () => loadHist(-1), moQrFrom)
 
-  em = Em.make('QR Prompt')
-  em.on('y', 'yes')
-  em.on('n', 'next')
-  em.on('a', 'all')
-  em.on('!', 'all')
-  em.on('c', 'close qr')
-  Em.on('C-g', 'close qr', em)
-  Em.on('Escape', 'close qr', em)
-  em.otherwise = 'close qr and pass through'
+  Em.on('Enter', 'qr submit from', moQrFrom)
+  Em.on('C-o', 'qr toggle field', moQrFrom)
+  Em.on('C-g', 'close qr', moQrFrom)
+  Em.on('Escape', 'close qr', moQrFrom)
+  Em.on('ArrowUp', 'qr previous history item', moQrFrom)
+  Em.on('ArrowDown', 'qr next history item', moQrFrom)
+  Em.on('A-p', 'qr previous history item', moQrFrom)
+  Em.on('A-n', 'qr next history item', moQrFrom)
+
+  Cmd.add('qr submit to', () => submitTo(), moQrTo)
+  Cmd.add('qr toggle field to', () => toggleField(), moQrTo)
+  Cmd.add('qr previous history item', () => loadHist(), moQrTo)
+  Cmd.add('qr next history item', () => loadHist(-1), moQrTo)
+
+  Em.on('Enter', 'qr submit to', moQrTo)
+  Em.on('C-o', 'qr toggle field to', moQrTo)
+  Em.on('C-g', 'close qr', moQrTo)
+  Em.on('Escape', 'close qr', moQrTo)
+  Em.on('ArrowUp', 'qr previous history item', moQrTo)
+  Em.on('ArrowDown', 'qr next history item', moQrTo)
+  Em.on('A-p', 'qr previous history item', moQrTo)
+  Em.on('A-n', 'qr next history item', moQrTo)
+
+  moQrPrompt.em.on('y', 'qr yes')
+  moQrPrompt.em.on('n', 'qr next')
+  moQrPrompt.em.on('a', 'qr all')
+  moQrPrompt.em.on('!', 'qr all')
+  moQrPrompt.em.on('c', 'close qr')
+  Em.on('Enter', 'qr next', moQrPrompt.em)
+  Em.on('C-g', 'close qr', moQrPrompt.em)
+  Em.on('Escape', 'close qr', moQrPrompt.em)
 
   Cmd.add('query replace', () => qr(), mo)
   Cmd.add('find and replace', () => qr(), mo)

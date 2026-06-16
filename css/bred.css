@@ -66,6 +66,7 @@
   --scrollbar-size: 14px;
   --height-ml: 1.6rem;
   --height-menu: 1.6rem;
+  --height-qr-field: 1.6rem;
   --padding-top-opener: 0.2rem;
   --width-point: 2px;
   --framesep-width: 0.25rem;
@@ -1354,7 +1355,8 @@ div.bred-welcome-rf-h-link:hover {
 .bred-opener-ww,
 .bred-qr-ww {
   padding: 0.5rem;
-  padding-top: var(--padding-top-opener);
+  padding-bottom: 0;
+  padding-top: 0;
   padding-right: 0;
 }
 
@@ -1757,26 +1759,30 @@ div.bred-lint-marker:active {
   align-items: center;
 }
 
-.bred-qr-replace,
-.bred-qr-with {
-  cursor: text;
-  white-space: pre;
-  font-family: monospace;
+.bred-qr-from,
+.bred-qr-to {
   width: 100%;
-  background: var(--clr-bg);
-  padding-left: 6px; /* match .cm-line left pad */
-  display: flex;
 }
 
-div.bred-qr-replace:hover,
-div.bred-qr-with:hover {
-  cursor: text;
+.bred-qr-from .paneW.bred-nested,
+.bred-qr-to .paneW.bred-nested {
+  height: var(--height-qr-field);
+  overflow: hidden;
+}
+
+.bred-qr-from .pane.bred-nested,
+.bred-qr-to .pane.bred-nested {
   background: var(--clr-bg);
+}
+
+.bred-float:has(.bred-qr-ww) .paneW:not(.bred-nested) .bred-point-line {
+  display: none;
 }
 
 .bred-qr-ed {
   width: 100%;
   display: flex;
+  align-items: center;
 }
 
 .bred-qr-buttons {
@@ -1915,8 +1921,6 @@ div.cm-line.cm-activeLine::after {
 .edMl.retracted,
 .bred-float.retracted,
 .bred-qr-buttons.retracted,
-.bred-qr-with.retracted,
-.bred-qr-replace.retracted,
 .float-icon.retracted,
 *.retracted {
   display: none;

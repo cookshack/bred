@@ -9,12 +9,9 @@
 
 .edWW.bred-qr-ww {
   display: grid;
-  grid-gap: 0.2rem;
+  grid-gap: 0;
   grid-template-columns: minmax(min-content, max-content) 1fr;
-}
-
-.edWW.bred-qr-ww > div {
-  height: 19px; /* match ace */
+  overflow-y: visible;
 }
 
 .edMl {

@@ -158,7 +158,7 @@ function make
     spec.dir = Loc.make(spec.dir)
     spec.dir.ensureSlash()
     if (spec.file)
-      exist = Buf.find(b => (b.file == spec.file) && (b.dir == spec.dir.path))
+      exist = Buf.find(b => (b.fileType == 'file') && (b.file == spec.file) && (b.dir == spec.dir.path))
     if (exist) {
       p.setBuf(exist, { lineNum: spec.lineNum }, whenReady)
       return
@@ -708,6 +708,7 @@ function initQR
   hist = Hist.ensure('QR')
 
   Cmd.add('close qr', () => closeQr(), moQr)
+  Cmd.add('close buffer', () => closeQr(), moQr)
   Cmd.add('close qr and pass through', closeAndPassThrough, moQr)
   Cmd.add('qr ignore click', () => {}, moQr)
   Cmd.add('qr yes', () => replaceOne(), moQr)

@@ -415,12 +415,12 @@ function _viewInit
   updateListener = CMView.EditorView.updateListener.of(update => {
                                                          let curse
 
-    function posChanged
-    () {
-      if (update.state.selection.main.head == update.startState.selection.main.head)
-        return 0
-      return 1
-    }
+                                                         function posChanged
+                                                         () {
+                                                           if (update.state.selection.main.head == update.startState.selection.main.head)
+                                                             return 0
+                                                           return 1
+                                                         }
 
                                                          // HACK: Past a certain line in big buffers CM has the right window.getSelection()
                                                          //       but the text is missing from the X primary selection buffer. Maybe due

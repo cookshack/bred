@@ -932,11 +932,11 @@ function init
 
     Ev.on('Mess.push', e => {
 
-      function addFromQueue
-      () {
-        add(queue)
-        queue = []
-      }
+                         function addFromQueue
+                         () {
+                           add(queue)
+                           queue = []
+                         }
 
                          queue.length || setTimeout(addFromQueue, 100)
                          queue.push(e.detail)

@@ -2477,30 +2477,30 @@ function initLog
                     })
 
   Cmd.add('vc log search', (u, we, term) => {
-    function go
-    (text) {
-      if (text && text.trim().length) {
-        let args, p, b
+                             function go
+                             (text) {
+                               if (text && text.trim().length) {
+                                 let args, p, b
 
-        args = [ 'log', '-S', text ]
-        p = Pane.current()
-        b = Buf.add('VC Log: ' + text,
-                    'VC Log',
-                    divW('VC Log', args),
-                    p.dir)
-        b.vars('vc log').args = args
-        b.vars('vc log').search = text
-        b.vars('ed').fillParent = 0
-        b.icon = 'log'
-        b.opts.set('core.lint.enabled', 0)
-        b.opts.set('minimap.enabled', 0)
-        b.opts.set('core.lang', 'git log')
-        hist.add(text)
-        p.setBuf(b, {}, () => {
-                          refresh(p)
-                        })
-      }
-    }
+                                 args = [ 'log', '-S', text ]
+                                 p = Pane.current()
+                                 b = Buf.add('VC Log: ' + text,
+                                             'VC Log',
+                                             divW('VC Log', args),
+                                             p.dir)
+                                 b.vars('vc log').args = args
+                                 b.vars('vc log').search = text
+                                 b.vars('ed').fillParent = 0
+                                 b.icon = 'log'
+                                 b.opts.set('core.lint.enabled', 0)
+                                 b.opts.set('minimap.enabled', 0)
+                                 b.opts.set('core.lang', 'git log')
+                                 hist.add(text)
+                                 p.setBuf(b, {}, () => {
+                                                   refresh(p)
+                                                 })
+                               }
+                             }
 
                              if (term)
                                go(term)
@@ -2634,30 +2634,30 @@ function initLogOneLine
                              })
 
   Cmd.add('vc log search one-line', (u, we, term) => {
-    function go
-    (text) {
-      if (text && text.trim().length) {
-        let args, p, b
+                                      function go
+                                      (text) {
+                                        if (text && text.trim().length) {
+                                          let args, p, b
 
-        args = [ 'log', '--oneline', '--no-decorate', '-S', text ]
-        p = Pane.current()
-        b = Buf.add('VC Log1: ' + text,
-                    'VC Log One-Line',
-                    divW('VC Log One-Line', args),
-                    p.dir)
-        b.vars('vc log one-line').search = text
-        b.vars('vc log one-line').args = args
-        b.vars('ed').fillParent = 0
-        b.icon = 'log'
-        b.opts.set('core.lint.enabled', 0)
-        b.opts.set('minimap.enabled', 0)
-        //b.opts.set('core.lang', 'git log')
-        hist.add(text)
-        p.setBuf(b, {}, () => {
-                          refresh(p)
-                        })
-      }
-    }
+                                          args = [ 'log', '--oneline', '--no-decorate', '-S', text ]
+                                          p = Pane.current()
+                                          b = Buf.add('VC Log1: ' + text,
+                                                      'VC Log One-Line',
+                                                      divW('VC Log One-Line', args),
+                                                      p.dir)
+                                          b.vars('vc log one-line').search = text
+                                          b.vars('vc log one-line').args = args
+                                          b.vars('ed').fillParent = 0
+                                          b.icon = 'log'
+                                          b.opts.set('core.lint.enabled', 0)
+                                          b.opts.set('minimap.enabled', 0)
+                                          //b.opts.set('core.lang', 'git log')
+                                          hist.add(text)
+                                          p.setBuf(b, {}, () => {
+                                                            refresh(p)
+                                                          })
+                                        }
+                                      }
 
                                       if (term)
                                         go(term)

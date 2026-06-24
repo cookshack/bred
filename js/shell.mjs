@@ -169,12 +169,12 @@ function run
 
               //d('SHELL ' + ch + ' received: ' + JSON.stringify(Object.keys(data)))
 
-    function decode
-    (str) {
-      if (typeof str == 'string')
-        return str
-      return decoder.decode(str)
-    }
+              function decode
+              (str) {
+                if (typeof str == 'string')
+                  return str
+                return decoder.decode(str)
+              }
 
               decoder = new TextDecoder()
               if (b)

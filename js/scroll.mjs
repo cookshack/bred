@@ -26,8 +26,8 @@ function getLineHeightPx
 }
 
 export function make
-       (surf, spec) {
-         let onScrollCb, rafId
+(surf, spec) {
+  let onScrollCb, rafId
 
   function getFirstVisible
   () {
@@ -89,32 +89,32 @@ export function make
                                              })
   }
 
-         spec = spec || {}
-         spec.itemCount = spec.itemCount || 0
-         spec.renderItem = spec.renderItem || (() => {})
-         spec.idForItem = spec.idForItem || (i => i)
+  spec = spec || {}
+  spec.itemCount = spec.itemCount || 0
+  spec.renderItem = spec.renderItem || (() => {})
+  spec.idForItem = spec.idForItem || (i => i)
 
-         rafId = 0
+  rafId = 0
 
-         surf.addEventListener('scroll', onScroll)
+  surf.addEventListener('scroll', onScroll)
 
-         return { set onScroll
+  return { set onScroll
            (fn) {
              onScrollCb = fn
            },
 
-                  set renderItem
+           set renderItem
            (fn) {
              spec.renderItem = fn
            },
 
-                  get visibleCount
+           get visibleCount
            () {
              return visibleCount()
            },
 
-                  toIndex
-                  (idx) {
+           toIndex
+           (idx) {
              let px, scrollTop
 
              px = getLineHeightPx(surf)
@@ -124,40 +124,40 @@ export function make
              return surf.querySelector('[data-index="' + idx + '"]')
            },
 
-                  scrollTo
-                  (index) {
+           scrollTo
+           (index) {
              surf.scrollTop = index * getLineHeightPx(surf)
            },
 
-                  scrollBy
-                  (delta) {
+           scrollBy
+           (delta) {
              surf.scrollTop += delta * getLineHeightPx(surf)
            },
 
-                  refresh
-                  () {
+           refresh
+           () {
              surf.scrollTop = 0
              render()
            },
 
-                  updateItemCount
-                  (n) {
+           updateItemCount
+           (n) {
              spec.itemCount = n
            },
 
-                  render,
+           render,
 
-                  destroy
-                  () {
+           destroy
+           () {
              surf.removeEventListener('scroll', onScroll)
            } }
-       }
+}
 
 export function init
-       () {
-         lineHeights = new Map()
+() {
+  lineHeights = new Map()
 
-         Opt.onSet('core.fontSize', () => {
-                                      lineHeights.clear()
-                                    })
-       }
+  Opt.onSet('core.fontSize', () => {
+                               lineHeights.clear()
+                             })
+}

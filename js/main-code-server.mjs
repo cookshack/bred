@@ -130,48 +130,48 @@ function healthCheck
   attempts = 0
 
   return new Promise((resolve, reject) => {
-    async function check
-    () {
-      let req
+                       async function check
+                       () {
+                         let req
 
-      attempts++
+                         attempts++
 
-      if (Date.now() - start > timeout) {
-        reject(new Error('docker health check timed out'))
-        return
-      }
+                         if (Date.now() - start > timeout) {
+                           reject(new Error('docker health check timed out'))
+                           return
+                         }
 
-      if (attempts % 10 == 0) {
-        let running
+                         if (attempts % 10 == 0) {
+                           let running
 
-        running = await containerRunning(cName)
-        if (running == 0) {
-          reject(new Error('docker container exited during health check'))
-          return
-        }
-      }
+                           running = await containerRunning(cName)
+                           if (running == 0) {
+                             reject(new Error('docker container exited during health check'))
+                             return
+                           }
+                         }
 
-      d('CODE SERVER health check ' + url)
-      send({ log: 'CODE SERVER health check ' + url })
-      req = http.get(url + '/global/health', res => {
-                                               if (res.statusCode == 200) {
-                                                 res.resume()
-                                                 resolve()
-                                                 return
-                                               }
-                                               res.resume()
-                                               setTimeout(check, ms)
-                                             })
-      req.setTimeout(2000, () => {
-                             req.destroy()
-                             setTimeout(check, ms)
-                           })
-      req.on('error', err => {
-                        send({ log: 'CODE SERVER health check ' + url + ' ' + err.message })
-                        d('CODE SERVER health check ERR: ' + err.message)
-                        setTimeout(check, ms)
-                      })
-    }
+                         d('CODE SERVER health check ' + url)
+                         send({ log: 'CODE SERVER health check ' + url })
+                         req = http.get(url + '/global/health', res => {
+                                                                  if (res.statusCode == 200) {
+                                                                    res.resume()
+                                                                    resolve()
+                                                                    return
+                                                                  }
+                                                                  res.resume()
+                                                                  setTimeout(check, ms)
+                                                                })
+                         req.setTimeout(2000, () => {
+                                                req.destroy()
+                                                setTimeout(check, ms)
+                                              })
+                         req.on('error', err => {
+                                           send({ log: 'CODE SERVER health check ' + url + ' ' + err.message })
+                                           d('CODE SERVER health check ERR: ' + err.message)
+                                           setTimeout(check, ms)
+                                         })
+                       }
                        setTimeout(check, 1000)
                      })
 }

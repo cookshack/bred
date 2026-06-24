@@ -1885,10 +1885,16 @@ function init
                          })
 
   Cmd.add('most recent agent', () => {
-                                 if (mostRecentAgents.length)
-                                   Pane.current().setBuf(mostRecentAgents[0])
-                                 else
+                                 let buf
+
+                                 if (mostRecentAgents.length == 0) {
                                    Mess.yell('Run an agent first')
+                                   return
+                                 }
+                                 buf = mostRecentAgents[0]
+                                 if (buf == Pane.current().buf && mostRecentAgents.length > 1)
+                                   buf = mostRecentAgents[1]
+                                 Pane.current().setBuf(buf)
                                })
 
   Pane.onSetBuf(view => {

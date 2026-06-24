@@ -177,6 +177,12 @@ function run
     }
 
               decoder = new TextDecoder()
+              if (b)
+                if (b.vars('Shell').ch == ch)
+                  0
+                else
+                  return
+
               if (err) {
                 Mess.yell('Shell.run: ' + err.message)
                 // Clean up on error
@@ -216,6 +222,8 @@ function run
                 if (b) {
                   b.ml.set('busy', 'exit ' + data.code)
                   b.vars('shell').code = data.code
+                  b.vars('Shell').chOff = 0
+                  b.vars('Shell').ch = 0
                 }
                 if (spec.onClose)
                   spec.onClose(b, data.code)
@@ -244,6 +252,7 @@ function run
   if (b) {
     b.ml.set('busy', 'busy')
     b.vars('Shell').ch = ch
+    b.vars('Shell').chOff = chOff
   }
 
   Tron.cmd1('shell.run',
@@ -310,8 +319,25 @@ function shellOrSpawn1
     re = new RegExp(`^${Ed.escapeForRe(name)}(<[0-9]+>)?$`)
     b = Buf.find(b2 => re.test(b2.name))
     if (b) {
+      let sv
+
+      sv = b.vars('Shell')
+      if (sv.chOff) {
+        sv.chOff()
+        sv.chOff = 0
+      }
+      if (sv.ch) {
+        Tron.send(sv.ch, { exit: 1 })
+        sv.ch = 0
+      }
       b.dir = dir
-      b.views.forEach(view => setMl(view.ele))
+      b.views.forEach(view => {
+                        let edWW
+
+                        edWW = view.ele.querySelector(':scope > .edWW')
+                        if (edWW)
+                          setMl(edWW)
+                      })
     }
     else {
       let w

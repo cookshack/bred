@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('tron', { cmd: (name, args) => ipcRenderer.invok
                                           receive: (ch, cb) => ipcRenderer.once(ch, (e, d) => cb(d)),
                                           on
                                           (ch, cb) {
-                                            let w
+                                            let w, done
 
                                             console.log('PRELOAD ' + ch + ' on')
 
@@ -24,6 +24,10 @@ contextBridge.exposeInMainWorld('tron', { cmd: (name, args) => ipcRenderer.invok
 
                                             return () => {
                                               console.log('PRELOAD ' + ch + ' off')
+
+                                              if (done)
+                                                return
+                                              done = 1
 
                                               ons[ch] = ons[ch].filter(on => {
                                                 if (on.w == w) {

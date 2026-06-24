@@ -495,7 +495,7 @@ function make
                         if (v.ele) {
                           let el
 
-                          el = v.ele.querySelector('.ml')
+                          el = v.ele.querySelector(':scope > .edWW .ml')
                           if (el) {
                             let field
 

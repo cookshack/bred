@@ -24,7 +24,7 @@ import * as Sessions from './sessions.mjs'
 
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
-let hist, chatHist, stopTimeout, mostRecentAgent, tools, events
+let hist, chatHist, stopTimeout, tools, events
 
 function getSubagentIds
 (buf) {
@@ -1432,7 +1432,7 @@ function nextHist
 export
 function init
 () {
-  let mo, moCodePrompt
+  let mo, moCodePrompt, mostRecentAgents
 
   tools = { read: { onPendOrRun
                     (buf, part) {
@@ -1811,6 +1811,9 @@ function init
 
   hist = Hist.ensure('code')
   chatHist = Hist.ensure('code.chat')
+
+  mostRecentAgents = []
+
   Opt.declare('code.agent', 'str', 'plan')
   Opt.declare('code.model.agent', 'str', 'deepseek-v4-pro')
   Opt.declare('code.provider.agent', 'str', 'opencode-go')
@@ -1827,6 +1830,11 @@ function init
                                         } } ] },
                   onRemove
                   (buf) {
+                    let i
+
+                    i = mostRecentAgents.indexOf(buf)
+                    if (i >= 0)
+                      mostRecentAgents.splice(i, 1)
                     buf.vars('code').streamActive = 0
                     buf.views?.forEach(view => {
                       view.vars('code').eds?.forEach(ed => ed.destroy())
@@ -1877,15 +1885,21 @@ function init
                          })
 
   Cmd.add('most recent agent', () => {
-                                 if (mostRecentAgent)
-                                   Pane.current().setBuf(mostRecentAgent)
+                                 if (mostRecentAgents.length)
+                                   Pane.current().setBuf(mostRecentAgents[0])
                                  else
-                                   Cmd.run('code')
+                                   Mess.yell('Run an agent first')
                                })
 
   Pane.onSetBuf(view => {
-                  if (view.buf.mode.key == 'code')
-                    mostRecentAgent = view.buf
+                  if (view.buf.mode.key == 'code') {
+                    let i
+
+                    i = mostRecentAgents.indexOf(view.buf)
+                    if (i >= 0)
+                      mostRecentAgents.splice(i, 1)
+                    mostRecentAgents.unshift(view.buf)
+                  }
                 })
 
   moCodePrompt = Mode.add('Code Prompt', { minor: 1 })

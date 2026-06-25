@@ -1,4 +1,4 @@
-import { divCl, img } from '../../js/dom.mjs'
+import { divCl, img, span } from '../../js/dom.mjs'
 import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Ed from '../../js/ed.mjs'
@@ -21,12 +21,14 @@ function dockerMl
 }
 
 function dockerDetailsMl
-(name) {
+(shortName) {
   return divCl('ml edMl',
                [ divCl('edMl-type',
                        img(Icon.path('docker'), 'Docker', 'filter-clr-text'),
                        { 'data-run': 'describe buffer' }),
-                 divCl('ml-name', name),
+                 divCl('ml-name',
+                       [ span('Docker', 'onfill', { 'data-run': 'docker' }),
+                         ' > ' + shortName ]),
                  divCl('ml-close') ])
 }
 
@@ -161,11 +163,12 @@ function showDetailsFromClick
 
 function showDetailsInner
 (id, dir, split) {
-  let name, b
+  let shortName, name, b
 
-  name = 'Docker: ' + id.slice(0, 12)
+  shortName = id.slice(0, 12)
+  name = 'Docker > ' + shortName
   b = Buf.add(name, 'Docker Details',
-              Ed.divW(0, name, { ml: dockerDetailsMl(name) }),
+              Ed.divW(0, name, { ml: dockerDetailsMl(shortName) }),
               dir)
   b.vars('docker details').id = id
   b.addMode('view')

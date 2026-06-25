@@ -65,7 +65,7 @@
     "@fluentui/svg-icons": "^1.1.240",
     "@lezer/generator": "^1.8.0",
     "@markdoc/markdoc": "^0.4.0",
-    "@opencode-ai/sdk": "^1.17.11",
+    "@opencode-ai/sdk": "^1.17.8",
     "@orgajs/cm-lang": "^1.1.4",
     "@replit/codemirror-css-color-picker": "^6.1.1",
     "@replit/codemirror-lang-csharp": "^6.2.0",

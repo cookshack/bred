@@ -1057,8 +1057,8 @@ function listModels
                                                                        })
                                                     })
                                   entries.sort((a, b) => (a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0))
-                                  choices = entries.map(e => (e.active ? '▶ ' : '  ') + e.fullId)
-                                  byChoice = new Map(entries.map(e => [ (e.active ? '▶ ' : '  ') + e.fullId, e ]))
+                                  choices = entries.map(e => e.fullId + (e.active ? ' ◀ current' : ''))
+                                  byChoice = new Map(entries.map(e => [ e.fullId + (e.active ? ' ◀ current' : ''), e ]))
                                 }
 
                                 res = await c.config.providers({ directory: buf.dir })

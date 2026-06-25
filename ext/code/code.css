@@ -256,6 +256,17 @@ div.code-thought:hover {
   margin-right: 0.5rem;
 }
 
+.code-docker {
+  display: flex;
+  align-items: center;
+}
+
+.code-docker > img {
+  height: 1rem;
+  width: 1rem;
+  margin-right: 0.25rem;
+}
+
 .code-prompt-w {
   border-top: 1px solid var(--clr-nb0);
   padding: 0.5rem;

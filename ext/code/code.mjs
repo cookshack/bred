@@ -1357,7 +1357,7 @@ function viewCopy
         {
           let elDocker
 
-          elDocker = toH.querySelector('.code-docker')
+          elDocker = toH.querySelector('.code-docker-name')
           if (elDocker)
             elDocker.innerText = to.buf.vars('code').containerName || ''
         }

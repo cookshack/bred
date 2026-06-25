@@ -1,4 +1,4 @@
-import { append, divCl, img } from '../../js/dom.mjs'
+import { append, divCl, img, span } from '../../js/dom.mjs'
 import * as Css from '../../js/css.mjs'
 import * as Ed from '../../js/ed.mjs'
 import * as Icon from '../../js/icon.mjs'
@@ -23,7 +23,9 @@ function divW
                                img(Icon.path('assist'), 'Code', 'filter-clr-text')),
                          divCl('code-title', Ed.makeMlDir(dir)),
                          divCl('code-h-right',
-                               [ divCl('code-docker', ''),
+                               [ divCl('code-docker',
+                                       [ img(Icon.path('docker'), 'Docker', 'filter-clr-text'),
+                                         span('', 'code-docker-name') ]),
                                  divCl('code-agent', agent || '', { 'data-run': 'Set Agent' }),
                                  divCl('code-thought code-icon',
                                        img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
@@ -344,7 +346,7 @@ function updateDocker
                         if (h) {
                           let el
 
-                          el = h.querySelector('.code-docker')
+                          el = h.querySelector('.code-docker-name')
                           if (el)
                             el.innerText = name
                         }

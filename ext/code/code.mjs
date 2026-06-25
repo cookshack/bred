@@ -954,6 +954,40 @@ function setAgent
   updateBufAgent(buf, agent)
 }
 
+function setModel
+(buf, providerID, modelID, variant) {
+  buf.vars('code').provider = providerID
+  buf.vars('code').model = modelID
+  buf.vars('code').variant = variant || ''
+  buf.opts.set('code.provider.agent', providerID)
+  buf.opts.set('code.model.agent', modelID)
+  buf.opts.set('code.variant.agent', variant || '')
+  Hist.ensure('code.model').add(modelID)
+  updateModelContextLimit(buf, providerID, modelID)
+  updateModelPromptLabel(buf)
+}
+
+function updateModelPromptLabel
+(buf) {
+  let provider, model, variant
+
+  provider = buf.vars('code').provider
+  model = buf.vars('code').model
+  variant = buf.vars('code').variant
+  buf.views.forEach(view => {
+                      let container
+
+                      container = view.ele?.querySelector?.('.code-prompt-w')
+                      if (container) {
+                        let mlModel
+
+                        mlModel = container.querySelector('.code-prompt-model')
+                        if (mlModel)
+                          mlModel.innerText = '🗩 ' + provider + '/' + Util.modelName(model, variant)
+                      }
+                    })
+}
+
 function promptAgent
 () {
   let buf
@@ -970,6 +1004,80 @@ function promptAgent
                   }
                   Mess.throw('ERR: agent: ' + agent)
                 })
+}
+
+function listModels
+() {
+  let buf
+
+  buf = Pane.current().buf
+  if (buf.vars('code') == null) {
+    Mess.yell('Not a code buffer')
+    return
+  }
+
+  Comm.ensureClient(buf).then(async c => {
+                                let res, providers, choices, byChoice
+
+                                function rank
+                                (id) {
+                                  if (id == 'opencode-go')
+                                    return 0
+                                  if (id == 'opencode')
+                                    return 1
+                                  return 2
+                                }
+
+                                async function build
+                                () {
+                                  let entries
+
+                                  entries = []
+                                  providers.forEach(p => {
+                                                      let modelIDs
+
+                                                      modelIDs = Object.keys(p.models || {})
+                                                      if (modelIDs.length == 0)
+                                                        return
+                                                      modelIDs.forEach(modelID => {
+                                                                         let fullId, active
+
+                                                                         fullId = p.id + '/' + modelID
+                                                                         active = p.id == buf.vars('code').provider
+            && modelID == buf.vars('code').model
+                                                                         entries.push({ fullId,
+                                                                                        active,
+                                                                                        providerID: p.id,
+                                                                                        modelID,
+                                                                                        sortKey: rank(p.id) + '/' + p.id + '/' + modelID })
+                                                                       })
+                                                    })
+                                  entries.sort((a, b) => (a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0))
+                                  choices = entries.map(e => (e.active ? '▶ ' : '  ') + e.fullId)
+                                  byChoice = new Map(entries.map(e => [ (e.active ? '▶ ' : '  ') + e.fullId, e ]))
+                                }
+
+                                res = await c.config.providers({ directory: buf.dir })
+                                providers = res.data.providers || []
+
+                                choices = []
+                                byChoice = new Map()
+                                await build()
+
+                                Prompt.choose(Util.iconAgent() + ' Models', choices, {}, sel => {
+                                                                                           let info
+
+                                                                                           if (sel == null)
+                                                                                             return
+
+                                                                                           info = byChoice.get(sel)
+                                                                                           if (info)
+                                                                                             setModel(buf, info.providerID, info.modelID, info.variant)
+                                                                                         })
+                              }).catch(err => {
+                                         Mess.yell('Failed: ' + err.message)
+                                         d('CO listModels error: ' + err.message)
+                                       })
 }
 
 function openPrompt
@@ -1875,6 +1983,8 @@ function init
   Cmd.add('set agent', () => promptAgent(), mo)
   Cmd.add('set agent plan', () => setAgent(Pane.current().buf, 'plan'), mo)
   Cmd.add('set agent build', () => setAgent(Pane.current().buf, 'build'), mo)
+
+  Cmd.add('set code model', () => listModels(), mo)
 
   Cmd.add('toggle question option', toggleQuestionOption, mo)
   Cmd.add('answer question', answerQuestion, mo)

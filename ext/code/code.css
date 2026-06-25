@@ -294,6 +294,12 @@ div.code-thought:hover {
   color: var(--clr-nb0);
 }
 
+.code-submit,
+.code-submit[data-run] {
+  color: var(--clr-nb0);
+  margin-left: 0.5rem;
+}
+
 .code-prompt-ml {
   padding: 0.25rem 0;
   display: flex;

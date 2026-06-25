@@ -2047,6 +2047,7 @@ function init
   moCodePrompt = Mode.add('Code Prompt', { minor: 1 })
 
   Cmd.add('submit prompt', () => submitPrompt(), moCodePrompt)
+  Cmd.add('code submit', () => submitPrompt(), mo)
   Cmd.add('cancel prompt', () => cancelPrompt(), moCodePrompt)
   Cmd.add('previous history item', () => prevHist(), moCodePrompt)
   Cmd.add('next history item', () => nextHist(), moCodePrompt)

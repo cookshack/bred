@@ -42,7 +42,8 @@ function divW
                                          divCl('code-under code-under-tokens', '') ]) ]) ]),
                  divCl('code-prompt-w retracted',
                        [ divCl('code-prompt-ml',
-                               [ divCl('code-prompt-model onfill', '', { 'data-run': 'set code model' }) ]),
+                               [ divCl('code-prompt-model onfill', '', { 'data-run': 'set code model' }),
+                                 span('↵', 'code-submit onfill', { 'data-run': 'code submit' }) ]),
                          divCl('code-prompt-scroll',
                                divCl('bred-nested-pane-w')) ]) ])
 }

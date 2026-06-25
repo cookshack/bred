@@ -263,7 +263,8 @@ div.code-thought:hover {
   flex-shrink: 0;
 }
 
-.code-prompt-model {
+.code-prompt-model,
+.code-prompt-model[data-run] {
   color: var(--clr-nb0);
 }
 

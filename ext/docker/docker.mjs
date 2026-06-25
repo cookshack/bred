@@ -163,20 +163,25 @@ function showDetailsFromClick
 
 function showDetailsInner
 (id, dir, split) {
-  let shortName, name, b
+  let shortName, name, buffer
 
   shortName = id.slice(0, 12)
   name = 'Docker > ' + shortName
-  b = Buf.add(name, 'Docker Details',
-              Ed.divW(0, name, { ml: dockerDetailsMl(shortName) }),
-              dir)
-  b.vars('docker details').id = id
-  b.addMode('view')
-  b.opts.set('core.lint.enabled', 0)
-  b.opts.set('minimap.enabled', 0)
+  buffer = Buf.find(b => b.name == name)
   if (split)
     Pane.nextOrSplit()
-  Pane.current().setBuf(b)
+  if (buffer) {
+    Pane.current().setBuf(buffer)
+    return
+  }
+  buffer = Buf.add(name, 'Docker Details',
+                   Ed.divW(0, name, { ml: dockerDetailsMl(shortName) }),
+                   dir)
+  buffer.vars('docker details').id = id
+  buffer.addMode('view')
+  buffer.opts.set('core.lint.enabled', 0)
+  buffer.opts.set('minimap.enabled', 0)
+  Pane.current().setBuf(buffer)
 }
 
 function onDetailsPs

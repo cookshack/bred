@@ -334,7 +334,7 @@ function shellOrSpawn1
       b.views.forEach(view => {
                         let edWW
 
-                        edWW = view.ele.querySelector(':scope > .edWW')
+                        edWW = view.ele?.querySelector(':scope > .edWW')
                         if (edWW)
                           setMl(edWW)
                       })

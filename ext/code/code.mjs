@@ -1068,14 +1068,33 @@ function listModels
                                               choices,
                                               {},
                                               sel => {
-                                                let info
+                                                if (sel) {
+                                                  let info
 
-                                                if (sel == null)
-                                                  return
+                                                  info = byChoice.get(sel)
+                                                  if (info) {
+                                                    let model, variantKeys
 
-                                                info = byChoice.get(sel)
-                                                if (info)
-                                                  setModel(buf, info.providerID, info.modelID, info.variant)
+                                                    model = providers.find(p => p.id == info.providerID)?.models?.[info.modelID]
+                                                    variantKeys = model?.variants ? Object.keys(model.variants) : []
+                                                    if (variantKeys.length == 0) {
+                                                      setModel(buf, info.providerID, info.modelID, '')
+                                                      return
+                                                    }
+
+                                                    Prompt.choose('Set variant',
+                                                                  [ '(default)', ...variantKeys ],
+                                                                  {},
+                                                                  vsel => {
+                                                                    let variant
+
+                                                                    if (vsel == null)
+                                                                      return
+                                                                    variant = vsel == '(default)' ? '' : vsel
+                                                                    setModel(buf, info.providerID, info.modelID, variant)
+                                                                  })
+                                                  }
+                                                }
                                               })
                               }).catch(err => {
                                          Mess.yell('Failed: ' + err.message)

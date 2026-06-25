@@ -165,7 +165,11 @@ function updateCredits
 function appendModel
 (buf, model) {
   Util.eachCodeW(buf, (view, w) => {
-                        Ui.appendX(w, divCl('code-msg code-msg-role', model))
+                        Ui.appendX(w,
+                                   divCl('code-msg code-msg-role',
+                                         span(model,
+                                              'code-msg-model',
+                                              { 'data-run': 'set code model' })))
                       })
 }
 
@@ -1082,7 +1086,7 @@ function listModels
                                                       return
                                                     }
 
-                                                    Prompt.choose('Set variant',
+                                                    Prompt.choose(Util.iconAgent() + ' Set variant',
                                                                   [ '(default)', ...variantKeys ],
                                                                   {},
                                                                   vsel => {

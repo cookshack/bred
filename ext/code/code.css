@@ -84,9 +84,14 @@ div.code-thought:hover {
 }
 
 .code-msg-role {
-  color: var(--clr-nb3);
   padding: var(--cm-pad);
   display: flex;
+}
+
+.code-msg-model,
+.code-msg-model[data-run] {
+  color: var(--clr-nb3);
+  align-self: flex-start;
 }
 
 .code-msg-user .code-msg-role {

@@ -1535,6 +1535,28 @@ function cancelPrompt
   }
 }
 
+function codeCancel
+() {
+  let p, buf, codeBuf, open
+
+  p = Pane.current()
+  buf = p.buf
+  codeBuf = buf.parent || buf
+  if (codeBuf.vars('code')?.firstPromptSent)
+    buf.views.forEach(view => {
+                        let container
+
+                        container = view.ele?.querySelector?.('.code-prompt-w')
+                        if (container && Css.has(container, 'retracted') == 0)
+                          open = 1
+                      })
+
+  if (open)
+    cancelPrompt(p)
+  else
+    Cmd.run('cancel', buf)
+}
+
 function whichHistFromBuf
 (buf) {
   let codeBuf
@@ -2002,9 +2024,11 @@ function init
   Em.on('q', 'bury', mo)
   Em.on('s', 'stop with caution', mo)
   Em.on('t', 'toggle thinking', mo)
+  Em.on('C-g', 'cancel prompt or cancel', mo)
 
   Cmd.add('toggle thinking', toggleThinking, mo)
   Cmd.add('toggle details', toggleDetails, mo)
+  Cmd.add('cancel prompt or cancel', () => codeCancel(), mo)
 
   Cmd.add('set agent', () => promptAgent(), mo)
   Cmd.add('set agent plan', () => setAgent(Pane.current().buf, 'plan'), mo)

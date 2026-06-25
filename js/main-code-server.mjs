@@ -221,7 +221,22 @@ async function spawnDocker
                                               })
 
                        proc.on('close', code => {
-                                          let containerID
+                                          let containerID, logsProc
+
+                                          function stopLogFollower
+                                          () {
+                                            if (logsProc) {
+                                              logsProc.kill()
+                                              logsProc = undefined
+                                            }
+                                          }
+
+                                          function stop
+                                          () {
+                                            stopLogFollower()
+                                            d('CODE SERVER docker stop ' + name)
+                                            spawn('docker', [ 'stop', name ])
+                                          }
 
                                           clearTimeout(dockerTimer)
 
@@ -234,6 +249,31 @@ async function spawnDocker
                                           }
 
                                           containerID = output.trim()
+
+                                          if (containerID)
+                                            try {
+                                              logsProc = spawn('docker', [ 'logs', '-f', name ])
+                                              logsProc.stdout.on('data', chunk => {
+                                                                           let text
+
+                                                                           text = chunk.toString()
+                                                                           spec.send({ log: text })
+                                                                           d('CO log: ' + text)
+                                                                         })
+                                              logsProc.stderr.on('data', chunk => {
+                                                                           let text
+
+                                                                           text = chunk.toString()
+                                                                           spec.send({ log: text })
+                                                                           d('CO log: ' + text)
+                                                                         })
+                                              logsProc.on('error', err => {
+                                                                     d('CO logs proc error: ' + err.message)
+                                                                   })
+                                            }
+                                            catch (ex) {
+                                              d('CO logs spawn failed: ' + ex.message)
+                                            }
 
                                           d('CODE SERVER docker container ' + containerID + ' fetching assigned port')
 
@@ -248,20 +288,46 @@ async function spawnDocker
                                                     return healthCheck(url, healthTimeout, name, spec.send).then(() => url)
                                                   })
                                             .then(url => {
+                                                    stopLogFollower()
                                                     d('CODE SERVER docker container healthy: ' + containerID)
                                                     resolve({ url,
                                                               containerName: name,
                                                               containerID,
-                                                              close
-                                                              () {
-                      d('CODE SERVER docker stop ' + name)
-                      spawn('docker', [ 'stop', name ])
-                    } })
+                                                              close: stop })
                                                   })
                                             .catch(err => {
                                                      d('CODE SERVER docker failed: ' + err.message)
-                                                     spawn('docker', [ 'stop', name ])
-                                                     reject(err)
+                                                     spec.send({ log: 'CO spawn failed: ' + err.message })
+                                                     try {
+                                                       let finalLogs
+
+                                                       finalLogs = spawn('docker', [ 'logs', name ])
+                                                       finalLogs.stdout.on('data',
+                                                                           chunk => {
+                                                                             spec.send({ log: chunk.toString() })
+                                                                             d('CO final log: ' + chunk.toString())
+                                                                           })
+                                                       finalLogs.stderr.on('data',
+                                                                           chunk => {
+                                                                             spec.send({ log: chunk.toString() })
+                                                                             d('CO final log: ' + chunk.toString())
+                                                                           })
+                                                       finalLogs.on('close',
+                                                                    () => {
+                                                                      stop()
+                                                                      reject(err)
+                                                                    })
+                                                       finalLogs.on('error',
+                                                                    () => {
+                                                                      stop()
+                                                                      reject(err)
+                                                                    })
+                                                     }
+                                                     catch (ex) {
+                                                       d('CO final logs spawn failed: ' + ex.message)
+                                                       stop()
+                                                       reject(err)
+                                                     }
                                                    })
                                         })
 

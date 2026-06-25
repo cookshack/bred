@@ -261,6 +261,16 @@ div.code-thought:hover {
   align-items: center;
 }
 
+.code-h-right .code-docker,
+.code-h-right .code-docker[data-run] {
+  color: var(--clr-text);
+}
+
+.code-docker > img,
+.code-docker-name {
+  pointer-events: none;
+}
+
 .code-docker > img {
   height: 1rem;
   width: 1rem;

@@ -58,7 +58,9 @@ async function ensureClient
                                                                                          client = OpenCode.createOpencodeClient({ baseUrl: data.url, directory: buf.dir.replace(/\/$/, '') })
                                                                                          buf.vars('code').client = client
                                                                                          buf.vars('code').serverUrl = data.url
+                                                                                         buf.vars('code').containerID = data.containerID
                                                                                          buf.vars('code').spawnedBufferID = buf.id
+                                                                                         Ui.updateDocker(buf)
                                                                                          buf.vars('code').spawnPromise = 0
                                                                                          resolve(client)
                                                                                        }

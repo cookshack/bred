@@ -143,6 +143,22 @@ function showDetails
     Mess.say('Must be in a docker buffer')
 }
 
+function showDetailsFromClick
+(we) {
+  let el, id
+
+  el = we?.e?.target
+  id = el?.dataset?.id
+  if (id) {
+    let p
+
+    p = Pane.current()
+    showDetailsInner(id, p.dir, 0)
+    return
+  }
+  Mess.yell('Missing container id')
+}
+
 function showDetailsInner
 (id, dir, split) {
   let name, b
@@ -330,12 +346,15 @@ function init
   Em.on('g', 'refresh docker', mo)
 
   Cmd.add('docker', () => openDocker())
+
+  Cmd.add('docker details', (u, we) => showDetailsFromClick(we))
 }
 
 export
 function free
 () {
   Cmd.remove('docker')
+  Cmd.remove('docker details')
   Cmd.remove('stop container')
   Cmd.remove('show details')
   Cmd.remove('show details other pane')

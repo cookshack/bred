@@ -23,9 +23,10 @@ function divW
                                img(Icon.path('assist'), 'Code', 'filter-clr-text')),
                          divCl('code-title', Ed.makeMlDir(dir)),
                          divCl('code-h-right',
-                               [ divCl('code-docker',
+                               [ divCl('code-docker onfill',
                                        [ img(Icon.path('docker'), 'Docker', 'filter-clr-text'),
-                                         span('', 'code-docker-name') ]),
+                                         span('', 'code-docker-name') ],
+                                       { 'data-run': 'docker details', 'data-id': '' }),
                                  divCl('code-agent', agent || '', { 'data-run': 'Set Agent' }),
                                  divCl('code-thought code-icon',
                                        img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
@@ -335,17 +336,21 @@ function appendToolMsg
 export
 function updateDocker
 (buf) {
-  let name
+  let name, id
 
   name = buf.vars('code').containerName || ''
+  id = buf.vars('code').containerID || ''
   buf.views.forEach(view => {
                       if (view.eleOrReserved) {
                         let h
 
                         h = view.eleOrReserved.querySelector('.code-h')
                         if (h) {
-                          let el
+                          let dockerEl, el
 
+                          dockerEl = h.querySelector('.code-docker')
+                          if (dockerEl)
+                            dockerEl.dataset.id = id
                           el = h.querySelector('.code-docker-name')
                           if (el)
                             el.innerText = name

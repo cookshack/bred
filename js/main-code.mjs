@@ -40,7 +40,7 @@ async function onSpawn
                                                                    'nerdctl *': 'deny' } } } })
 
     servers.set(bufferID, server)
-    e.sender.send(ch, { url: server.url, containerName: name })
+    e.sender.send(ch, { url: server.url, containerName: name, containerID: server.containerID })
   }
   catch (err) {
     d('CODE spawn failed: ' + err.message)

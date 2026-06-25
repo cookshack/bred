@@ -251,6 +251,7 @@ async function spawnDocker
                                                     d('CODE SERVER docker container healthy: ' + containerID)
                                                     resolve({ url,
                                                               containerName: name,
+                                                              containerID,
                                                               close
                                                               () {
                       d('CODE SERVER docker stop ' + name)
@@ -282,6 +283,7 @@ async function spawnLocal
                                                     config: spec.config,
                                                     timeout: spec.timeout })
   server.containerName = ''
+  server.containerID = ''
   return server
 }
 

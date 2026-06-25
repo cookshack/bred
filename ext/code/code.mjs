@@ -844,14 +844,14 @@ function send
 
                                 if (res?.error) {
                                   d({ resError: res.error })
-                                  Ui.appendMsg(buf, 'assistant', 'Error: ' + res.error.message)
+                                  Ui.appendMsg(buf, 'assistant', 'Error: ' + (res.error.message || JSON.stringify(res.error)))
                                   buf.vars('code').client = 0
                                   buf.vars('code').streamActive = 0
                                   Ev.startSub(buf, events)
                                 }
                               }).catch(err => {
                                          d(err)
-                                         Ui.appendMsg(buf, 'assistant', 'Error: ' + err.message)
+                                         Ui.appendMsg(buf, 'assistant', 'Error: ' + (err.message || JSON.stringify(err)))
                                          buf.vars('code').client = 0
                                          buf.vars('code').streamActive = 0
                                          Ev.startSub(buf, events)

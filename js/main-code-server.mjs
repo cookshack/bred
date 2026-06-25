@@ -33,9 +33,9 @@ function mountArgs
            '-v', home + '/alts/main/gvm/scap-data:' + home + '/alts/main/gvm/scap-data:ro',
            '-v', home + '/alts/main/gvm/data-objects/gvmd/22.04:' + home + '/alts/main/gvm/data-objects/gvmd/22.04:ro',
            '-v', home + '/src/opencode:' + home + '/src/opencode:ro',
-           '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro',
            '-v', home + '/.gitignore:/home/node/.gitignore:ro',
-           '-v', dataDir(workingDir) + ':/home/node/.local/share/opencode' ]
+           '-v', dataDir(workingDir) + ':/home/node/.local/share/opencode',
+           '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro' ]
 }
 
 function containerRunning
@@ -97,7 +97,7 @@ function containerPort
                                                 output += chunk.toString()
                                               })
                        proc.on('close', code => {
-                                          let match
+                                          let match, lines, line
 
                                           clearTimeout(timer)
                                           if (timedOut)
@@ -106,7 +106,9 @@ function containerPort
                                             reject(new Error('docker port failed with code ' + code + ': ' + output))
                                             return
                                           }
-                                          match = output.trim().match(/:(\d+)$/)
+                                          lines = output.trim().split('\n')
+                                          line = lines.find(l => /\d+\.\d+\.\d+\.\d+:/.test(l)) || lines[0]
+                                          match = line.match(/:(\d+)/)
                                           if (match)
                                             resolve(parseInt(match[1]))
                                           else
@@ -288,7 +290,6 @@ async function spawnDocker
                                                     return healthCheck(url, healthTimeout, name, spec.send).then(() => url)
                                                   })
                                             .then(url => {
-                                                    stopLogFollower()
                                                     d('CODE SERVER docker container healthy: ' + containerID)
                                                     resolve({ url,
                                                               containerName: name,

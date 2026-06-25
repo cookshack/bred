@@ -7,11 +7,17 @@ check:
 format:
 	npm run format
 
-oc: .oc-stamp
-
-.oc-stamp: docker/opencode/Dockerfile
-	docker build --progress=plain -t opencode-bred docker/opencode/
-	touch .oc-stamp
+.PHONY: oc
+oc:
+	@if ! docker image inspect opencode-bred >/dev/null 2>&1; then \
+	  echo "image missing, building"; \
+	  docker build --progress=plain -t opencode-bred docker/opencode/; \
+	  touch .oc-stamp; \
+	elif [ docker/opencode/Dockerfile -nt .oc-stamp ]; then \
+	  echo "Dockerfile changed, rebuilding"; \
+	  docker build --progress=plain -t opencode-bred docker/opencode/; \
+	  touch .oc-stamp; \
+	fi
 
 fix-node-pty:
 	npx electron-rebuild -w node-pty

@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+import { resolveDataDir } from '../js/oc-data.mjs'
+
+console.log(resolveDataDir(process.argv[2]))

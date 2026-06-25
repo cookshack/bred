@@ -1,10 +1,10 @@
-import Fs from 'node:fs'
 import http from 'node:http'
 import { spawn } from 'node:child_process'
 import * as U from './util.mjs'
 import { d } from './main-log.mjs'
 
 import * as LocalServer from '../lib/opencode/v2/server.js'
+import { resolveDataDir } from './oc-data.mjs'
 
 let useDocker
 
@@ -16,13 +16,8 @@ function containerName
   return 'bred-code-' + process.pid + '-' + bufferID
 }
 
-function dataDir
-(workingDir) {
-  return process.env.HOME + '/.local/state/bred/code-data' + workingDir
-}
-
 function mountArgs
-(workingDir, authPath) {
+(workingDir, dataDir, authPath) {
   let home
 
   home = process.env.HOME
@@ -34,7 +29,7 @@ function mountArgs
            '-v', home + '/alts/main/gvm/data-objects/gvmd/22.04:' + home + '/alts/main/gvm/data-objects/gvmd/22.04:ro',
            '-v', home + '/src/opencode:' + home + '/src/opencode:ro',
            '-v', home + '/.gitignore:/home/node/.gitignore:ro',
-           '-v', dataDir(workingDir) + ':/home/node/.local/share/opencode',
+           '-v', dataDir + ':/home/node/.local/share/opencode',
            '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro' ]
 }
 
@@ -180,7 +175,7 @@ function healthCheck
 
 async function spawnDocker
 (spec) {
-  let name, workingDir, config, dockerTimeout, healthTimeout, authPath, args
+  let name, workingDir, config, dockerTimeout, healthTimeout, authPath, args, dataDir
 
   spec = spec || {}
   name = containerName(spec.bufferID)
@@ -191,11 +186,10 @@ async function spawnDocker
   dockerTimeout = 10000
   healthTimeout = spec.timeout || 30000
   authPath = process.env.HOME + '/.local/share/opencode/auth.json'
-
-  Fs.mkdirSync(dataDir(workingDir), { recursive: true })
+  dataDir = resolveDataDir(workingDir)
 
   args = []
-  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...mountArgs(workingDir, authPath), '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
+  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...mountArgs(workingDir, dataDir, authPath), '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
   if (config.logLevel)
     args.push('--log-level=' + config.logLevel)
 

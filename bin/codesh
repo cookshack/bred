@@ -6,9 +6,7 @@ if [ $# -gt 0 ]; then
 fi
 
 AUTH="$HOME/.local/share/opencode/auth.json"
-LOCAL_SHARE="$HOME/.local/state/bred/code-data$PWD"
-
-mkdir -p "$LOCAL_SHARE"
+LOCAL_SHARE="$("$(dirname "$0")/oc-data-dir" "$PWD")"
 
 exec docker run -it --rm --name "bred-code-sh-$$" \
   -v "$PWD:$PWD" \

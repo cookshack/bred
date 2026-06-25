@@ -58,7 +58,8 @@ function choose
   spec = spec || {}
   chooseCb = cb
   d(chooseCb)
-  list = choices?.map(choice => divCl('float-choice', choice, { 'data-run': 'choose' }))
+  list = divCl('float-choices',
+               choices?.map(choice => divCl('float-choice', choice, { 'data-run': 'choose' })))
   demand(chooseEm,
          [ divCl('float-ww',
                  divCl('float-w',

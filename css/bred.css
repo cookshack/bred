@@ -1044,6 +1044,7 @@ span.core-leadingSpace,
 .float-ww {
   bottom: auto;
   width: 100%;
+  max-height: 100vh;
   border-bottom: 2px solid var(--clr-nb3);
   background: var(--clr-bg);
   padding: 1rem;
@@ -1070,6 +1071,7 @@ span.core-leadingSpace,
   width: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .float-h {
@@ -1095,6 +1097,12 @@ span.core-leadingSpace,
   margin: 0.5rem;
   padding: 0.5rem;
   min-width: 3rem;
+}
+
+.float-choices {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .float-files {

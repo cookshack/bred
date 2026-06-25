@@ -1064,16 +1064,19 @@ function listModels
                                 byChoice = new Map()
                                 await build()
 
-                                Prompt.choose(Util.iconAgent() + ' Models', choices, {}, sel => {
-                                                                                           let info
+                                Prompt.choose(Util.iconAgent() + ' Set code model',
+                                              choices,
+                                              {},
+                                              sel => {
+                                                let info
 
-                                                                                           if (sel == null)
-                                                                                             return
+                                                if (sel == null)
+                                                  return
 
-                                                                                           info = byChoice.get(sel)
-                                                                                           if (info)
-                                                                                             setModel(buf, info.providerID, info.modelID, info.variant)
-                                                                                         })
+                                                info = byChoice.get(sel)
+                                                if (info)
+                                                  setModel(buf, info.providerID, info.modelID, info.variant)
+                                              })
                               }).catch(err => {
                                          Mess.yell('Failed: ' + err.message)
                                          d('CO listModels error: ' + err.message)

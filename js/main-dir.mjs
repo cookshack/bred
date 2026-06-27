@@ -16,8 +16,16 @@ function onGet
 
     st = Fs.lstatSync(path,
                       { throwIfNoEntry: false })
-    if (st)
+    if (st) {
       st.link = st.isSymbolicLink()
+      if (st.link) {
+        let stTarget
+
+        stTarget = Fs.statSync(path, { throwIfNoEntry: false })
+        if (stTarget && stTarget.isDirectory())
+          st.linkDir = 1
+      }
+    }
     return st
   }
 

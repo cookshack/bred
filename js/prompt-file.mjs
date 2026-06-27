@@ -212,6 +212,8 @@ function init
   function isDir
   (f) {
     if (f?.stat) {
+      if (f.stat.link && f.stat.linkDir)
+        return 1
       if (f.stat.mode & (1 << 15))
         return 0
       return 1

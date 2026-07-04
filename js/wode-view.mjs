@@ -7,6 +7,7 @@ import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import Mk from './mk.mjs'
 import * as Mess from './mess.mjs'
+import * as Mode from './mode.mjs'
 import * as Pane from './Pane.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
@@ -307,7 +308,7 @@ function _viewInit
   (content) {
     // these must be ed modes
     if (content && content.length) {
-      let l
+      let l, m
 
       l = WodeLang.langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(content))
       if (l)
@@ -322,6 +323,15 @@ function _viewInit
         return 'makefile'
       if (content.startsWith('#!/usr/bin/env python'))
         return 'python'
+
+      m = content.match(/-\*-\s*(?:mode:\s*)?(\S+).*-\*-/)
+      if (m) {
+        let mode
+
+        mode = m[1].toLowerCase()
+        if (Mode.get(mode))
+          return mode
+      }
     }
     return 0
   }
@@ -677,7 +687,7 @@ function _viewInit
     path = buf.path
     d('WODE get file')
     Tron.cmd('file.get', [ path ], (err, data) => {
-                                     let mode
+                                     let mode, lang
 
                                      if (err) {
                                        Mess.log('file: ' + buf.file)
@@ -712,7 +722,11 @@ function _viewInit
                                        mode = modeFromFirstLine(data.data) || mode
 
                                      mode = mode || 'text'
-                                     vsetLang(view, WodeMode.modeLang(mode))
+                                     lang = WodeMode.modeLang(mode)
+                                     if (lang && WodeLang.langs.find(l => l.id == lang))
+                                       vsetLang(view, lang)
+                                     else
+                                       vsetLang(view, 'text')
                                      d('chose mode 2: ' + mode)
                                      buf.mode = mode
                                      Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')

@@ -201,6 +201,20 @@ function find
   return undefined
 }
 
+let _onSeize
+
+export
+function onSeize
+(buf) {
+  _onSeize?.(buf)
+}
+
+export
+function setOnSeize
+(fn) {
+  _onSeize = fn
+}
+
 export
 function map
 (cb) { // (m,i)

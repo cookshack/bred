@@ -114,15 +114,8 @@ function makeDecorator
 export
 function decorate
 (view, mode) {
-  if (mode?.decorators) {
-    let decorators
+  let decorators
 
-    decorators = []
-    mode.decorators.forEach(dec => {
-                              d(dec)
-                              decorators.push(makeDecorator(dec))
-                            })
-
-    view.ed.dispatch({ effects: view.wode.decorMode.reconfigure(decorators) })
-  }
+  decorators = mode?.decorators?.map(makeDecorator) || []
+  view.ed.dispatch({ effects: view.wode.decorMode.reconfigure(decorators) })
 }

@@ -6,12 +6,19 @@ import * as Loc from './loc.mjs'
 import Mk from './mk.mjs'
 import * as Mode from './mode.mjs'
 import * as U from './util.mjs'
-import * as Win from './win.mjs'
 import * as Wode from './wode.mjs'
 import * as WodeDecor from './wode-decor.mjs'
 import { d } from './mess.mjs'
 
 export let wexts
+
+function onSeize
+(buf) {
+  buf.views.forEach(v => {
+                      v.ed && WodeDecor.decorate(v, buf.mode)
+                    })
+}
+Mode.setOnSeize(onSeize)
 
 export
 function modeFromLang
@@ -80,9 +87,6 @@ function seize
                     exts = makeExtsMode(v)
                     effects = v.wode.comp.extsMode.reconfigure(exts)
                     v.ed.dispatch({ effects })
-
-                    if (v.ed && (v.win == Win.current()))
-                      WodeDecor.decorate(v, b.mode)
                   })
 }
 

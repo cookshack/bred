@@ -121,8 +121,8 @@ function make
     if (mo) {
       mode?.stop(b)
       mode = mo
-      if (mode.seize)
-        mode.seize(b)
+      mode.seize?.(b)
+      Mode.onSeize(b)
       mode.start(b)
     }
     else

@@ -1,0 +1,13 @@
+{
+  "name": "@cookshack/bred-ext-outline",
+  "version": "0.1.0",
+  "description": "Outline mode with heading highlighting",
+  "main": "outline.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "bin/postinstall && touch .READY"
+  },
+  "author": "Matt Mundell",
+  "license": "CC0-1.0",
+  "dependencies": {}
+}

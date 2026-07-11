@@ -322,13 +322,13 @@ function shellOrSpawn1
       let sv
 
       sv = b.vars('Shell')
+      if (sv.ch) {
+        Mess.yell('Command already running')
+        return
+      }
       if (sv.chOff) {
         sv.chOff()
         sv.chOff = 0
-      }
-      if (sv.ch) {
-        Tron.send(sv.ch, { exit: 1 })
-        sv.ch = 0
       }
       b.dir = dir
       b.views.forEach(view => {

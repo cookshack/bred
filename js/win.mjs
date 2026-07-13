@@ -120,6 +120,9 @@ function makeContext
                              context0(p.buf, 'Annotate', 'Vc Annotate'),
                              contextLine())
                     p && appendContextMode(context, p)
+                    p && append(context.el,
+                                context0(p.buf, 'Open Parent Dir', 'parent'),
+                                contextLine())
                     p && addCopy(p)
                     appendSpell(p)
                     appendRun(p)
@@ -133,6 +136,9 @@ function makeContext
                   })
                 else {
                   p && appendContextMode(context, p)
+                  p && append(context.el,
+                              context0(p.buf, 'Open Parent Dir', 'parent'),
+                              contextLine())
                   p && addCopy(p)
                   appendSpell(p)
                   appendRun(p)

@@ -236,12 +236,21 @@ function appendMsg
                           mdResult = makeMarkdownEd(text || '')
                           contentEl = mdResult.el
                         }
-                        appendX(w,
-                                divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                                      role == 'user'
-                                        ? [ contentEl, span(tsText, 'code-msg-timestamp') ]
-                                        : [ contentEl ],
-                                      { 'data-partid': partID || 0 }))
+                        if (role == 'user') {
+                          appendX(w,
+                                  divCl('code-msg code-msg-user',
+                                        [ contentEl ],
+                                        { 'data-partid': partID || 0 }))
+                          appendX(w,
+                                  divCl('code-msg code-msg-user',
+                                        [ span(tsText,
+                                               'code-msg-timestamp') ]))
+                        }
+                        else
+                          appendX(w,
+                                  divCl('code-msg code-msg-assistant',
+                                        [ contentEl ],
+                                        { 'data-partid': partID || 0 }))
                         if (mdResult) {
                           view.vars('code').eds = view.vars('code').eds || []
                           view.vars('code').eds.push(mdResult.ed)

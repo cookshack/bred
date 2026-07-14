@@ -75,7 +75,6 @@ div.code-thought:hover {
 
 .code-msg-user {
   align-self: flex-end;
-  border-right: 0.25rem solid var(--clr-syntax3);
 }
 
 .code-msg-assistant {
@@ -98,12 +97,9 @@ div.code-thought:hover {
 }
 
 .code-msg-timestamp {
+  padding: var(--cm-pad);
   font-size: 0.9rem;
-}
-
-.code-msg-user .code-msg-timestamp {
-  margin-top: 0.5rem;
-  align-self: flex-end;
+  color: var(--clr-syntax3);
 }
 
 .code-msg-model,
@@ -131,6 +127,7 @@ div.code-thought:hover {
 }
 
 .code-msg-user .code-msg-text {
+  border-right: 0.25rem solid var(--clr-syntax3);
   background: var(--clr-fill);
 }
 

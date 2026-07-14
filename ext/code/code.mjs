@@ -162,14 +162,27 @@ function updateCredits
            })
 }
 
+function ts
+() {
+  let now, h, m, s
+
+  now = new Date()
+  h = String(now.getHours()).padStart(2, '0')
+  m = String(now.getMinutes()).padStart(2, '0')
+  s = String(now.getSeconds()).padStart(2, '0')
+  return h + 'h' + m + ':' + s
+}
+
 function appendModel
 (buf, model) {
   Util.eachCodeW(buf, (view, w) => {
                         Ui.appendX(w,
                                    divCl('code-msg code-msg-role',
-                                         span(model,
-                                              'code-msg-model',
-                                              { 'data-run': 'set code model' })))
+                                         [ span(ts(),
+                                                'code-msg-timestamp'),
+                                           span(model,
+                                                'code-msg-model',
+                                                { 'data-run': 'set code model' }) ]))
                       })
 }
 

@@ -86,12 +86,24 @@ div.code-thought:hover {
 .code-msg-role {
   padding: var(--cm-pad);
   display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.code-msg-model,
+.code-msg-model[data-run] {
+  display: flex;
+  min-height: 1rem;
+}
+
+.code-msg-timestamp {
+  font-size: 0.9rem;
 }
 
 .code-msg-model,
 .code-msg-model[data-run] {
   color: var(--clr-nb3);
-  align-self: flex-start;
 }
 
 .code-msg-user .code-msg-role {

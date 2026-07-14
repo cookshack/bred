@@ -234,43 +234,46 @@ function initCmds
 
   function defAt
   (l, col) { // 1 indexed
-    let end
-
     d(l)
     d(col)
-    if (l.length == 0)
-      return 0
-    if (col == 0)
-      return 0
-    col--
-    // mv back over word chars to get start
-    while (1)
-      if (/[._a-zA-Z0-9]/.test(l[col])) {
-        if (col == 0)
-          break
-        col--
-      }
-      else {
-        col++
-        break
-      }
+    if (typeof l == 'string') {
+      let end
 
-    l = l.slice(col)
-    d(col)
-    d(l)
-    col = 0
-    end = l.length
-    // mv forward over word chars to get end
-    while (1)
-      if (/[._a-zA-Z0-9]/.test(l[col])) {
-        col++
-        if (col == end)
+      if (l.length == 0)
+        return 0
+      if (col == 0)
+        return 0
+      col--
+      // mv back over word chars to get start
+      while (1)
+        if (/[._a-zA-Z0-9]/.test(l[col])) {
+          if (col == 0)
+            break
+          col--
+        }
+        else {
+          col++
           break
-      }
-      else
-        break
+        }
 
-    return l.slice(0, col)
+      l = l.slice(col)
+      d(col)
+      d(l)
+      col = 0
+      end = l.length
+      // mv forward over word chars to get end
+      while (1)
+        if (/[._a-zA-Z0-9]/.test(l[col])) {
+          col++
+          if (col == end)
+            break
+        }
+        else
+          break
+
+      return l.slice(0, col)
+    }
+    return 0
   }
 
   function incrFont

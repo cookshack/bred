@@ -977,7 +977,7 @@ export
 function getCTag
 (name) {
   // {"_type": "tag", "name": "divW", "path": "js/shell.mjs", "pattern": "/^function divW$/", "kind": "function"},
-  if (name.includes('.')) {
+  if ((typeof name == 'string') && name.includes('.')) {
     let split, ctag
 
     // Hack for finding eg Ed.divW in ed.mjs instead of in about.mjs

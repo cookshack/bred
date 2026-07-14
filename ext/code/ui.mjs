@@ -185,9 +185,16 @@ export
 function appendMsg
 (buf, role, text, partID) {
   Util.eachCodeW(buf, (view, w) => {
-                        let contentEl, mdResult
+                        let contentEl, mdResult, tsText
 
                         if (role == 'user') {
+                          let now, h, m, s
+
+                          now = new Date()
+                          h = String(now.getHours()).padStart(2, '0')
+                          m = String(now.getMinutes()).padStart(2, '0')
+                          s = String(now.getSeconds()).padStart(2, '0')
+                          tsText = h + 'h' + m + ':' + s
                         }
                         else {
                           let el
@@ -231,7 +238,9 @@ function appendMsg
                         }
                         appendX(w,
                                 divCl('code-msg code-msg-' + (role == 'user' ? 'user' : 'assistant'),
-                                      [ contentEl ],
+                                      role == 'user'
+                                        ? [ contentEl, span(tsText, 'code-msg-timestamp') ]
+                                        : [ contentEl ],
                                       { 'data-partid': partID || 0 }))
                         if (mdResult) {
                           view.vars('code').eds = view.vars('code').eds || []

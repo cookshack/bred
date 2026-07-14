@@ -101,6 +101,11 @@ div.code-thought:hover {
   font-size: 0.9rem;
 }
 
+.code-msg-user .code-msg-timestamp {
+  margin-top: 0.5rem;
+  align-self: flex-end;
+}
+
 .code-msg-model,
 .code-msg-model[data-run] {
   color: var(--clr-nb3);

@@ -149,6 +149,7 @@ function initStash
   Em.on('e', 'stash open', moS)
   Em.on('g', 'vc stash enumerate', moS)
   Em.on('Enter', 'stash open', moS)
+  Em.on('=', 'stash open', moS)
 }
 
 function stateClr

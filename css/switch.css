@@ -27,7 +27,7 @@
   height: min-content;
 
   display: grid;
-  grid-template-columns: minmax(min-content, max-content) minmax(min-content, max-content) auto;
+  grid-template-columns: minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) auto;
   grid-gap: 0.5rem;
 }
 
@@ -48,6 +48,11 @@
   position: relative; /* for .switch-needle */
 }
 
+.switch-icon {
+  text-align: center;
+  width: 1.4em;
+}
+
 div.switch-name {
   color: var(--clr-text);
 }
@@ -62,6 +67,11 @@ div.switch-name {
 
 .switch-name.selected {
   background: var(--clr-bg);
+}
+
+.switch-name.busy::before {
+  content: '🌊';
+  margin-right: 0.25rem;
 }
 
 .switch-sep {

@@ -165,20 +165,25 @@ function init
                     eNeedle = divCl('switch-needle' + ((all.length || rec.length) ? '' : ' switch-zero'),
                                     needles)
 
+                    all.forEach(b => d('SW busy ' + b.name + ' shell=' + b.vars('Shell')?.ch + ' code=' + b.vars('code')?.busy + ' icon=' + (b.vars('Shell')?.ch ? '🌊' : b.vars('code')?.busy ? '⚡' : '')))
                     append(under,
                            divCl('switch-list',
-                                 [ all.map((b,i) => [ divCl('switch-name onfill' + (i == 0 ? ' selected' : ''),
+                                 [ all.map((b,i) => [ divCl('switch-icon',
+                                                               b.vars('Shell')?.ch ? '🌊' : b.vars('code')?.busy ? '⚡' : ''),
+                                                      divCl('switch-name onfill' + (i == 0 ? ' selected' : ''),
                                                             b.name,
                                                             { 'data-id': b.id,
                                                               'data-run': 'select' }),
                                                       divCl('switch-mode', b.mode.key),
                                                       divCl('switch-path', compactPath(b.path)) ]),
                      all.length ? eNeedle : [],
-                                   rec.length && [ divCl('switch-sep' + (all.length ? '' : 'top'),
+                                   rec.length && [ divCl('switch-icon', ''),
+                                                   divCl('switch-sep' + (all.length ? '' : 'top'),
                                                          'Recent'),
                                                    divCl('switch-mode'),
                                                    divCl('switch-path') ],
-                                   rec.map((r,i) => [ divCl('switch-name onfill' + (((i == 0) && (all.length == 0)) ? ' selected' : ''),
+                                   rec.map((r,i) => [ divCl('switch-icon', ''),
+                                                      divCl('switch-name onfill' + (((i == 0) && (all.length == 0)) ? ' selected' : ''),
                                                             [ r.name,
                                                               // need it here for absolute positioning
                                                               (i == 0) && (all.length == 0) && eNeedle ],

@@ -294,6 +294,7 @@ div.code-thought:hover {
 
 .code-under-model {
   white-space: nowrap;
+  color: var(--clr-nb3);
 }
 
 .code-under-end {

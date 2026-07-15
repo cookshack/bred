@@ -186,6 +186,29 @@ div.code-thought:hover {
   display: none;
 }
 
+.code-thinking-hidden .code-msg-thinking-visible {
+  display: flex;
+}
+
+.code-msg-thinking .code-msg-arrow {
+  cursor: pointer;
+  font-style: normal;
+  display: inline-block;
+  margin-right: 0.25rem;
+}
+
+.code-msg-thinking .code-msg-arrow::before {
+  content: '▾';
+}
+
+.code-thinking-hidden .code-msg-arrow::before {
+  content: '▸';
+}
+
+.code-thinking-hidden .code-msg-thinking-visible .code-msg-arrow::before {
+  content: '▾';
+}
+
 .code-msg-tool {
   gap: 0.5rem;
   margin-top: 0.5rem;
@@ -224,7 +247,6 @@ div.code-thought:hover {
   content: '▾';
 }
 
-.code-thinking-hidden .code-msg-arrow::before,
 .code-msg-tool.code-closed .code-msg-arrow::before {
   content: '▸';
 }

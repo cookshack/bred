@@ -352,9 +352,13 @@ function appendThinking
   }
 
   Util.eachCodeW(buf, (view, w) => {
+                        let arrow
+
+                        arrow = span('', 'code-msg-arrow', { 'data-run': 'toggle thinking block' })
                         appendX(w,
                                 divCl('code-msg code-msg-thinking',
-                                      [ divCl('code-msg-text', text) ],
+                                      [ arrow,
+                                        divCl('code-msg-text', text) ],
                                       { 'data-partid': partId || 0 }))
                       })
 }

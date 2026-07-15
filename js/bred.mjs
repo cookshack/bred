@@ -1236,7 +1236,8 @@ function initSearch
         removeCharFromSearch: removeOneFromSearch,
         next,
         previous,
-        done }
+        done,
+        cancel: searchCancel }
 
   mapSearch = Em.make(spec.emName)
 
@@ -1264,6 +1265,8 @@ function initSearch
   Em.on('C-s', 'search forward again', mapSearch)
   Em.on('C-r', 'search backward again', mapSearch)
   Em.on('C-w', 'add word to search', mapSearch)
+
+  return s
 }
 
 function initDivSearch

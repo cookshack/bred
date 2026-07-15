@@ -80,6 +80,7 @@ function demand
 (em, co) {
   let p, area
 
+  Ed.cancelActiveSearch()
   p = Pane.current()
   $callerView = p.view
   Area.getByName(p.win, 'bred-float')?.close()

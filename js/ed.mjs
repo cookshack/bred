@@ -38,7 +38,7 @@ export let ctags
 
 let bepRow, bepCol, bepGt, bepGtEq, bepLt, bepLtEq, posRow, posCol, tokenRe, nonTokenRe, onCursors
 let bepToPos, offToBep, posToBep
-let pageBreakRe, pageCmds
+let pageBreakRe, pageCmds, search
 
 export { bepRow, bepCol, bepGt, bepGtEq, bepLt, bepLtEq, posRow, posCol, tokenRe, nonTokenRe, onCursors }
 export { bepToPos, offToBep, posToBep }
@@ -777,16 +777,22 @@ function initQR
 
 function initSearch
 (mo) {
-  Bred.initSearch(vfind,
-                  { Backend,
-                    cancel: Backend.cancel,
-                    cleanup
-                    (s) {
-                      Backend.clearDecorMatch(s.st.view, s.st)
-                      Backend.clearDecorAll(s.st.view, s.st)
-                    },
-                    emName: 'Ed: Search',
-                    mode: mo })
+  search = Bred.initSearch(vfind,
+                           { Backend,
+                             cancel: Backend.cancel,
+                             cleanup
+                             (s) {
+                               Backend.clearDecorMatch(s.st.view, s.st)
+                               Backend.clearDecorAll(s.st.view, s.st)
+                             },
+                             emName: 'Ed: Search',
+                             mode: mo })
+}
+
+export function cancelActiveSearch
+() {
+  if (search?.st)
+    search.cancel()
 }
 
 export
@@ -1445,6 +1451,7 @@ function revert
 () {
   let view
 
+  cancelActiveSearch()
   view = View.current()
   if (view.buf.path) {
     if (view.buf.modified) {

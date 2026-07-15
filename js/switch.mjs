@@ -165,11 +165,11 @@ function init
                     eNeedle = divCl('switch-needle' + ((all.length || rec.length) ? '' : ' switch-zero'),
                                     needles)
 
-                    all.forEach(b => d('SW busy ' + b.name + ' shell=' + b.vars('Shell')?.ch + ' code=' + b.vars('code')?.busy + ' icon=' + (b.vars('Shell')?.ch ? '🌊' : b.vars('code')?.busy ? '⚡' : '')))
+                    all.forEach(b => d('SW busy ' + b.name + ' shell=' + b.vars('Shell')?.ch + ' mode=' + b.mode?.key + ' icon=' + (b.vars('Shell')?.ch ? '🌊' : b.mode?.key == 'code' ? '⚡' : '')))
                     append(under,
                            divCl('switch-list',
                                  [ all.map((b,i) => [ divCl('switch-icon',
-                                                               b.vars('Shell')?.ch ? '🌊' : b.vars('code')?.busy ? '⚡' : ''),
+                                                               b.vars('Shell')?.ch ? '🌊' : b.mode?.key == 'code' ? '⚡' : ''),
                                                       divCl('switch-name onfill' + (i == 0 ? ' selected' : ''),
                                                             b.name,
                                                             { 'data-id': b.id,

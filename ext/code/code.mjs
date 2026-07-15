@@ -1076,7 +1076,15 @@ function toggleDetails
   let el
 
   el = we.e.target.closest('.code-msg-tool')
-  Css.toggle(el, 'code-closed')
+  if (el)
+    if (Css.has(el, 'code-closed')) {
+      Css.remove(el, 'code-closed')
+      Css.add(el, 'code-details-open')
+    }
+    else {
+      Css.remove(el, 'code-details-open')
+      Css.add(el, 'code-closed')
+    }
 }
 
 function setAgent

@@ -186,20 +186,6 @@ div.code-thought:hover {
   display: none;
 }
 
-.code-thinking-hidden .code-msg-arrow::before,
-.code-msg-tool.code-closed .code-msg-arrow::before {
-  content: '▸';
-}
-
-.code-thinking-hidden .code-patch-ed,
-.code-thinking-hidden .code-code-ed,
-.code-thinking-hidden .code-msg-under,
-.code-msg-tool.code-closed > .code-patch-ed,
-.code-msg-tool.code-closed > .code-code-ed,
-.code-msg-tool.code-closed > .code-msg-under {
-  display: none;
-}
-
 .code-msg-tool {
   gap: 0.5rem;
   margin-top: 0.5rem;
@@ -242,12 +228,29 @@ div.code-thought:hover {
   content: '▸';
 }
 
-.code-thinking-hidden .code-patch-ed,
-.code-thinking-hidden .code-code-ed,
-.code-thinking-hidden .code-msg-under,
+.code-msg-tool.code-details-open .code-msg-arrow::before {
+  content: '▾';
+}
+
 .code-msg-tool.code-closed > .code-patch-ed,
 .code-msg-tool.code-closed > .code-code-ed,
 .code-msg-tool.code-closed > .code-msg-under {
+  display: none;
+}
+
+.code-msg-tool.code-details-open > .code-patch-ed,
+.code-msg-tool.code-details-open > .code-code-ed,
+.code-msg-tool.code-details-open > .code-msg-under {
+  display: block;
+}
+
+.code-thinking-hidden .code-msg-tool:not(.code-details-open):not(.code-closed) .code-msg-arrow::before {
+  content: '▸';
+}
+
+.code-thinking-hidden .code-msg-tool:not(.code-details-open):not(.code-closed) > .code-patch-ed,
+.code-thinking-hidden .code-msg-tool:not(.code-details-open):not(.code-closed) > .code-code-ed,
+.code-thinking-hidden .code-msg-tool:not(.code-details-open):not(.code-closed) > .code-msg-under {
   display: none;
 }
 

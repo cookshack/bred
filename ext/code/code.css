@@ -100,8 +100,15 @@ div.code-thought:hover {
   display: flex;
   flex-direction: row;
   align-items: center;
-  align-self: flex-end;
   gap: 0.25rem;
+}
+
+.code-msg-ts-user {
+  align-self: flex-end;
+}
+
+.code-msg-ts-agent {
+  align-self: flex-start;
 }
 
 .code-msg-scroll-up,

@@ -240,16 +240,9 @@ function appendMsg
   }
 
   Util.eachCodeW(buf, (view, w) => {
-                        let contentEl, mdResult, tsText
+                        let contentEl, mdResult, tsText, now, h, m, s
 
                         if (role == 'user') {
-                          let now, h, m, s
-
-                          now = new Date()
-                          h = String(now.getHours()).padStart(2, '0')
-                          m = String(now.getMinutes()).padStart(2, '0')
-                          s = String(now.getSeconds()).padStart(2, '0')
-                          tsText = h + 'h' + m + ':' + s
                         }
                         else {
                           let el
@@ -260,7 +253,6 @@ function appendMsg
 
                             ed = view.vars('code').partEds?.[partID]
                             if (ed) {
-                              // Editor exists from delta path — update stored text only
                               buf.vars('code').partTexts = buf.vars('code').partTexts || {}
                               buf.vars('code').partTexts[partID] = text
                             }
@@ -285,6 +277,12 @@ function appendMsg
                           }
                         }
 
+                        now = new Date()
+                        h = String(now.getHours()).padStart(2, '0')
+                        m = String(now.getMinutes()).padStart(2, '0')
+                        s = String(now.getSeconds()).padStart(2, '0')
+                        tsText = h + 'h' + m + ':' + s
+
                         if (role == 'user')
                           contentEl = divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
                         else {
@@ -303,7 +301,7 @@ function appendMsg
                           scrollerDown = span('▼', 'code-msg-scroll-down')
                           scrollerDown.onclick = scrollToNextMsg
                           appendX(w,
-                                  divCl('code-msg-ts',
+                                  divCl('code-msg-ts code-msg-ts-user',
                                         [ scroller,
                                           scrollerDown,
                                           span(tsText,

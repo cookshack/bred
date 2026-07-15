@@ -173,13 +173,117 @@ function ts
   return h + 'h' + m + ':' + s
 }
 
+function scrollToPrevRole
+(e) {
+  let el
+
+  el = e.target.closest('.code-msg-role')
+  if (el) {
+    let prev
+
+    prev = el.previousElementSibling
+    while (prev) {
+      if (Css.has(prev, 'code-msg-role'))
+        break
+      prev = prev.previousElementSibling
+    }
+    if (prev) {
+      let content
+
+      content = prev.previousElementSibling
+      while (content) {
+        if (Css.has(content, 'code-msg-assistant'))
+          break
+        content = content.previousElementSibling
+      }
+      if (content)
+        content.scrollIntoView({ block: 'start', behavior: 'instant' })
+      else {
+        content = prev.nextElementSibling
+        while (content) {
+          if (Css.has(content, 'code-msg-assistant'))
+            break
+          content = content.nextElementSibling
+        }
+        if (content)
+          content.scrollIntoView({ block: 'start', behavior: 'instant' })
+        else
+          prev.scrollIntoView({ block: 'start', behavior: 'instant' })
+      }
+    }
+    else {
+      let w
+
+      w = el.closest('.code-w')
+      if (w)
+        w.scrollTop = 0
+    }
+  }
+}
+
+function scrollToNextRole
+(e) {
+  let el
+
+  el = e.target.closest('.code-msg-role')
+  if (el) {
+    let nextMsg
+
+    nextMsg = el.nextElementSibling
+    while (nextMsg) {
+      if (Css.has(nextMsg, 'code-msg-role'))
+        break
+      nextMsg = nextMsg.nextElementSibling
+    }
+    if (nextMsg) {
+      let content
+
+      content = nextMsg.nextElementSibling
+      while (content) {
+        if (Css.has(content, 'code-msg-assistant'))
+          break
+        content = content.nextElementSibling
+      }
+      if (content)
+        content.scrollIntoView({ block: 'start', behavior: 'instant' })
+      else {
+        content = nextMsg.previousElementSibling
+        while (content) {
+          if (Css.has(content, 'code-msg-assistant'))
+            break
+          content = content.previousElementSibling
+        }
+        if (content)
+          content.scrollIntoView({ block: 'start', behavior: 'instant' })
+        else
+          nextMsg.scrollIntoView({ block: 'start', behavior: 'instant' })
+      }
+    }
+    else {
+      let underW
+
+      underW = el.closest('.code-w')?.querySelector('.code-under-w')
+      if (underW)
+        underW.scrollIntoView({ block: 'end', behavior: 'instant' })
+    }
+  }
+}
+
 function appendModel
 (buf, model) {
   Util.eachCodeW(buf, (view, w) => {
+                        let scroller, scrollerDown
+
+                        scroller = span('▲', 'code-msg-scroll-up')
+                        scroller.onclick = scrollToPrevRole
+                        scrollerDown = span('▼', 'code-msg-scroll-down')
+                        scrollerDown.onclick = scrollToNextRole
                         Ui.appendX(w,
                                    divCl('code-msg code-msg-role',
                                          [ span(ts(),
                                                 'code-msg-timestamp'),
+                                           scroller,
+                                           scrollerDown,
                                            span(model,
                                                 'code-msg-model',
                                                 { 'data-run': 'set code model' }) ]))

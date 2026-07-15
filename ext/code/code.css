@@ -186,27 +186,18 @@ div.code-thought:hover {
   display: none;
 }
 
-.code-thinking-hidden .code-msg-thinking-visible {
-  display: flex;
-}
-
-.code-msg-thinking .code-msg-arrow {
-  cursor: pointer;
-  font-style: normal;
-  display: inline-block;
-  margin-right: 0.25rem;
-}
-
-.code-msg-thinking .code-msg-arrow::before {
-  content: '▾';
-}
-
-.code-thinking-hidden .code-msg-arrow::before {
+.code-thinking-hidden .code-msg-arrow::before,
+.code-msg-tool.code-closed .code-msg-arrow::before {
   content: '▸';
 }
 
-.code-thinking-hidden .code-msg-thinking-visible .code-msg-arrow::before {
-  content: '▾';
+.code-thinking-hidden .code-patch-ed,
+.code-thinking-hidden .code-code-ed,
+.code-thinking-hidden .code-msg-under,
+.code-msg-tool.code-closed > .code-patch-ed,
+.code-msg-tool.code-closed > .code-code-ed,
+.code-msg-tool.code-closed > .code-msg-under {
+  display: none;
 }
 
 .code-msg-tool {

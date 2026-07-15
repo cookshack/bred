@@ -1054,7 +1054,6 @@ function toggleThinking
                           if (w) {
                             let img, h
 
-                            Css.remove(w, 'code-msg-thinking-visible')
                             h = view.eleOrReserved.querySelector('.code-h')
                             img = h?.querySelector('.code-thought img')
                             if (p.buf.vars('code').thinkingHidden) {
@@ -1070,22 +1069,6 @@ function toggleThinking
                           }
                         }
                       })
-}
-
-function toggleThinkingBlock
-(u, we) {
-  let el
-
-  el = we.e.target.closest('.code-msg-thinking')
-  if (el) {
-    let w
-
-    w = el.closest('.code-w')
-    if (w) {
-      w.querySelectorAll('.code-msg-thinking-visible').forEach(e => Css.remove(e, 'code-msg-thinking-visible'))
-      Css.add(el, 'code-msg-thinking-visible')
-    }
-  }
 }
 
 function toggleDetails
@@ -2172,7 +2155,6 @@ function init
   Em.on('C-g', 'cancel prompt or cancel', mo)
 
   Cmd.add('toggle thinking', toggleThinking, mo)
-  Cmd.add('toggle thinking block', toggleThinkingBlock, mo)
   Cmd.add('toggle details', toggleDetails, mo)
   Cmd.add('cancel prompt or cancel', () => codeCancel(), mo)
 

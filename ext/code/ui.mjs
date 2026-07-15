@@ -184,6 +184,28 @@ function updateStatus
 export
 function appendMsg
 (buf, role, text, partID) {
+  function scrollToPrevMsg
+  (e) {
+    let tsEl
+
+    tsEl = e.target.closest('.code-msg-ts')
+    if (tsEl) {
+      let prevMsg
+
+      prevMsg = tsEl.previousElementSibling
+      if (prevMsg) {
+        prevMsg = prevMsg.previousElementSibling
+        while (prevMsg) {
+          if (Css.has(prevMsg, 'code-msg-user'))
+            break
+          prevMsg = prevMsg.previousElementSibling
+        }
+        if (prevMsg)
+          prevMsg.scrollIntoView({ block: 'start', behavior: 'instant' })
+      }
+    }
+  }
+
   Util.eachCodeW(buf, (view, w) => {
                         let contentEl, mdResult, tsText
 
@@ -237,13 +259,18 @@ function appendMsg
                           contentEl = mdResult.el
                         }
                         if (role == 'user') {
+                          let scroller
+
                           appendX(w,
                                   divCl('code-msg code-msg-user',
                                         [ contentEl ],
                                         { 'data-partid': partID || 0 }))
+                          scroller = span('▲', 'code-msg-scroll-up')
+                          scroller.onclick = scrollToPrevMsg
                           appendX(w,
-                                  divCl('code-msg code-msg-user',
-                                        [ span(tsText,
+                                  divCl('code-msg-ts',
+                                        [ scroller,
+                                          span(tsText,
                                                'code-msg-timestamp') ]))
                         }
                         else

@@ -96,6 +96,26 @@ div.code-thought:hover {
   min-height: 1rem;
 }
 
+.code-msg-ts {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.25rem;
+}
+
+.code-msg-scroll-up {
+  cursor: pointer;
+  padding: var(--cm-pad);
+  font-size: 0.9rem;
+  color: var(--clr-syntax3);
+  user-select: none;
+}
+
+.code-msg-scroll-up:hover {
+  color: var(--clr-emph);
+}
+
 .code-msg-timestamp {
   padding: var(--cm-pad);
   font-size: 0.9rem;

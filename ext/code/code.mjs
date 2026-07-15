@@ -173,6 +173,17 @@ function ts
   return h + 'h' + m + ':' + s
 }
 
+function scrollTo
+(el) {
+  let w
+
+  w = el.closest('.code-w')
+  if (w) {
+    el.scrollIntoView({ block: 'start', behavior: 'instant' })
+    w.scrollTop -= Math.round(0.5 * parseFloat(globalThis.getComputedStyle(w).fontSize))
+  }
+}
+
 function scrollToPrevRole
 (e) {
   let el
@@ -197,7 +208,7 @@ function scrollToPrevRole
         content = content.previousElementSibling
       }
       if (content)
-        content.scrollIntoView({ block: 'start', behavior: 'instant' })
+        scrollTo(content)
       else {
         content = prev.nextElementSibling
         while (content) {
@@ -206,9 +217,9 @@ function scrollToPrevRole
           content = content.nextElementSibling
         }
         if (content)
-          content.scrollIntoView({ block: 'start', behavior: 'instant' })
+          scrollTo(content)
         else
-          prev.scrollIntoView({ block: 'start', behavior: 'instant' })
+          scrollTo(prev)
       }
     }
     else {
@@ -245,7 +256,7 @@ function scrollToNextRole
         content = content.nextElementSibling
       }
       if (content)
-        content.scrollIntoView({ block: 'start', behavior: 'instant' })
+        scrollTo(content)
       else {
         content = nextMsg.previousElementSibling
         while (content) {
@@ -254,9 +265,9 @@ function scrollToNextRole
           content = content.previousElementSibling
         }
         if (content)
-          content.scrollIntoView({ block: 'start', behavior: 'instant' })
+          scrollTo(content)
         else
-          nextMsg.scrollIntoView({ block: 'start', behavior: 'instant' })
+          scrollTo(nextMsg)
       }
     }
     else {

@@ -184,6 +184,17 @@ function updateStatus
 export
 function appendMsg
 (buf, role, text, partID) {
+  function scrollHalfRem
+  (el) {
+    let w
+
+    w = el.closest('.code-w')
+    if (w) {
+      el.scrollIntoView({ block: 'start', behavior: 'instant' })
+      w.scrollTop -= Math.round(0.5 * parseFloat(globalThis.getComputedStyle(w).fontSize))
+    }
+  }
+
   function scrollToPrevMsg
   (e) {
     let tsEl
@@ -202,7 +213,7 @@ function appendMsg
         }
       }
       if (prevMsg)
-        prevMsg.scrollIntoView({ block: 'start', behavior: 'instant' })
+        scrollHalfRem(prevMsg)
       else {
         let w
 
@@ -228,7 +239,7 @@ function appendMsg
         nextMsg = nextMsg.nextElementSibling
       }
       if (nextMsg)
-        nextMsg.scrollIntoView({ block: 'start', behavior: 'instant' })
+        scrollHalfRem(nextMsg)
       else {
         let underW
 

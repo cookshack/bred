@@ -200,8 +200,15 @@ function appendMsg
             break
           prevMsg = prevMsg.previousElementSibling
         }
-        if (prevMsg)
-          prevMsg.scrollIntoView({ block: 'start', behavior: 'instant' })
+      }
+      if (prevMsg)
+        prevMsg.scrollIntoView({ block: 'start', behavior: 'instant' })
+      else {
+        let w
+
+        w = tsEl.closest('.code-w')
+        if (w)
+          w.scrollTop = 0
       }
     }
   }
@@ -222,6 +229,13 @@ function appendMsg
       }
       if (nextMsg)
         nextMsg.scrollIntoView({ block: 'start', behavior: 'instant' })
+      else {
+        let underW
+
+        underW = tsEl.closest('.code-w')?.querySelector('.code-under-w')
+        if (underW)
+          underW.scrollIntoView({ block: 'end', behavior: 'instant' })
+      }
     }
   }
 

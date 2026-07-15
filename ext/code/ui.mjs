@@ -206,6 +206,25 @@ function appendMsg
     }
   }
 
+  function scrollToNextMsg
+  (e) {
+    let tsEl
+
+    tsEl = e.target.closest('.code-msg-ts')
+    if (tsEl) {
+      let nextMsg
+
+      nextMsg = tsEl.nextElementSibling
+      while (nextMsg) {
+        if (Css.has(nextMsg, 'code-msg-user'))
+          break
+        nextMsg = nextMsg.nextElementSibling
+      }
+      if (nextMsg)
+        nextMsg.scrollIntoView({ block: 'start', behavior: 'instant' })
+    }
+  }
+
   Util.eachCodeW(buf, (view, w) => {
                         let contentEl, mdResult, tsText
 
@@ -259,7 +278,7 @@ function appendMsg
                           contentEl = mdResult.el
                         }
                         if (role == 'user') {
-                          let scroller
+                          let scroller, scrollerDown
 
                           appendX(w,
                                   divCl('code-msg code-msg-user',
@@ -267,9 +286,12 @@ function appendMsg
                                         { 'data-partid': partID || 0 }))
                           scroller = span('▲', 'code-msg-scroll-up')
                           scroller.onclick = scrollToPrevMsg
+                          scrollerDown = span('▼', 'code-msg-scroll-down')
+                          scrollerDown.onclick = scrollToNextMsg
                           appendX(w,
                                   divCl('code-msg-ts',
                                         [ scroller,
+                                          scrollerDown,
                                           span(tsText,
                                                'code-msg-timestamp') ]))
                         }

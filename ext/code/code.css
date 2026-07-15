@@ -104,7 +104,8 @@ div.code-thought:hover {
   gap: 0.25rem;
 }
 
-.code-msg-scroll-up {
+.code-msg-scroll-up,
+.code-msg-scroll-down {
   cursor: pointer;
   padding: var(--cm-pad);
   font-size: 0.9rem;
@@ -112,7 +113,8 @@ div.code-thought:hover {
   user-select: none;
 }
 
-.code-msg-scroll-up:hover {
+.code-msg-scroll-up:hover,
+.code-msg-scroll-down:hover {
   color: var(--clr-emph);
 }
 

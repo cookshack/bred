@@ -7,6 +7,7 @@ import * as Em from '../../js/Em.mjs'
 import * as Icon from '../../js/icon.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
+import * as Opt from '../../js/opt.mjs'
 import * as Pane from '../../js/Pane.mjs'
 import * as View from '../../js/view.mjs'
 import { d } from '../../js/mess.mjs'
@@ -139,7 +140,8 @@ function init
       model = Util.getModel()
       variant = Util.getVariant()
 
-      buf = Buf.add(name, 'code', Ui.divW(sessionDir), sessionDir)
+      buf = Buf.add(name, 'code', Ui.divW(sessionDir, Opt.get('code.agent')), sessionDir)
+      buf.opts.set('code.agent', Opt.get('code.agent'))
       buf.vars('code').provider = provider
       buf.vars('code').model = model
       buf.vars('code').variant = variant

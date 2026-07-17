@@ -50,7 +50,7 @@ function divW
 
 function scroll
 (underW) {
-  d('CO SCROLL')
+  //d('CO SCROLL')
   underW.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' })
 }
 
@@ -75,7 +75,7 @@ function withScroll
   underW = w.querySelector('.code-under-w') || d('CO underW missing')
 
   wasVisible = underVisible(w, underW)
-  d({ wasVisible })
+  //d({ wasVisible })
 
   if (cb)
     cb(underW)

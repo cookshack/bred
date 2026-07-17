@@ -72,42 +72,60 @@ function init
     () {
       let pane, name, buf, provider, model, variant
 
-      function appendMsgs
-      (r) {
-        d({ r })
-        for (let msg of (r.data || []))
-          for (let part of (msg.parts || []))
-            if (part.type == 'text')
-              Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
-            else if (part.type == 'reasoning' && part.text)
-              Ui.appendThinking(buf, part.text, part.id)
-            else if (part.type == 'tool') {
-              let label
-
-              label = part.tool
-              if (part.tool == 'bash' && part.state?.input?.command)
-                label += ': ' + part.state.input.command
-              else if (part.state?.input?.filePath)
-                label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
-              else if (part.state?.input?.pattern)
-                label += ' "' + part.state.input.pattern + '"'
-              else if (part.state?.input?.query)
-                label += ': ' + part.state.input.query
-              else if (part.state?.input?.url)
-                label += ' ' + part.state.input.url
-              Ui.appendToolMsg(buf, part.callID, label,
-                               part.state?.output || part.state?.error)
-            }
-      }
-
       function onMessages
-      (msgs) {
-        Ui.updateStatus(buf, '🔃 Rendering...', '', '', '')
-        appendMsgs(msgs)
-        Ev.startSub(buf, events)
-        globalThis.requestAnimationFrame(() => {
-                                           Ui.updateStatus(buf, 'Rendered', '', '', '')
-                                         })
+      (res) {
+        let data
+
+        function processBatch
+        (i) {
+          let end
+
+          end = Math.min(i + 10, data.length)
+          for (; i < end; i++) {
+            let msg
+
+            msg = data[i]
+            for (let part of (msg.parts || []))
+              if (part.type == 'text')
+                Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
+              else if (part.type == 'reasoning' && part.text)
+                Ui.appendThinking(buf, part.text, part.id)
+              else if (part.type == 'tool') {
+                let label
+
+                label = part.tool
+                if (part.tool == 'bash' && part.state?.input?.command)
+                  label += ': ' + part.state.input.command
+                else if (part.state?.input?.filePath)
+                  label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
+                else if (part.state?.input?.pattern)
+                  label += ' "' + part.state.input.pattern + '"'
+                else if (part.state?.input?.query)
+                  label += ': ' + part.state.input.query
+                else if (part.state?.input?.url)
+                  label += ' ' + part.state.input.url
+                Ui.appendToolMsg(buf, part.callID, label,
+                                 part.state?.output || part.state?.error)
+              }
+          }
+          Ui.updateStatus(buf, '🔃 Loading... ' + end + '/' + data.length, '', '', '')
+
+          if (end < data.length)
+            globalThis.requestAnimationFrame(() => processBatch(end))
+          else {
+            Ev.startSub(buf, events)
+            globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'Rendered', '', '', ''))
+          }
+        }
+
+        data = res.data || []
+        if (data.length == 0) {
+          Ev.startSub(buf, events)
+          return
+        }
+
+        Ui.updateStatus(buf, '🔃 Loading... 0/' + data.length, '', '', '')
+        processBatch(0)
       }
 
       pane = Pane.current()

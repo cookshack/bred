@@ -100,6 +100,16 @@ function init
             }
       }
 
+      function onMessages
+      (msgs) {
+        Ui.updateStatus(buf, '🔃 Rendering...', '', '', '')
+        appendMsgs(msgs)
+        Ev.startSub(buf, events)
+        globalThis.requestAnimationFrame(() => {
+                                           Ui.updateStatus(buf, 'Rendered', '', '', '')
+                                         })
+      }
+
       pane = Pane.current()
       name = 'CO ' + (sessionDir || '').replace(/\/?$/, '/')
 
@@ -125,12 +135,13 @@ function init
                                     pane.setBuf(buf,
                                                 {},
                                                 () => {
+                                                  buf.vars('code').busy = 1
+                                                  Ui.updateStatus(buf, '🔃 Loading session...', '', '', '')
                                                   c.session.messages({ sessionID,
-                                                                       directory: sessionDir }).then(appendMsgs)
+                                                                       directory: sessionDir }).then(onMessages)
 
                                                   buf.vars('code').firstPromptSent = 1
                                                   Prompt.nestBuf(buf)
-                                                  Ev.startSub(buf, events)
                                                   buf.views.forEach(view => {
                                                                       if (view.eleOrReserved) {
                                                                         let w
@@ -153,6 +164,8 @@ function init
                                                                     })
                                                 })
                                   }).catch(err => {
+                                             buf.vars('code').busy = 0
+                                             Ui.updateStatus(buf, '☠ Error', '', '', '')
                                              Mess.yell('Failed: ' + err.message)
                                            })
     }

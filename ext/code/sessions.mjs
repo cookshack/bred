@@ -88,8 +88,6 @@ function init
             for (let part of (msg.parts || []))
               if (part.type == 'text')
                 Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
-              else if (part.type == 'reasoning' && part.text)
-                Ui.appendThinking(buf, part.text, part.id)
               else if (part.type == 'tool') {
                 let label
 

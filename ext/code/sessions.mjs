@@ -113,13 +113,16 @@ function init
             globalThis.requestAnimationFrame(() => processBatch(end))
           else {
             Ev.startSub(buf, events)
+            buf.vars('code').busy = 0
             globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'Rendered', '', '', ''))
           }
         }
 
         data = res.data || []
         if (data.length == 0) {
+          buf.vars('code').busy = 0
           Ev.startSub(buf, events)
+          globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'OK', '', '', ''))
           return
         }
 

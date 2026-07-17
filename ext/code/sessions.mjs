@@ -101,7 +101,7 @@ function init
       }
 
       pane = Pane.current()
-      name = 'CO ' + sessionDir
+      name = 'CO ' + (sessionDir || '').replace(/\/?$/, '/')
 
       buf = Buf.find(b => b.name == name)
       if (buf) {

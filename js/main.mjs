@@ -1080,38 +1080,6 @@ function socket
 
 function whenHaveDeps
 (program) {
-  if (options.bounds) {
-    let s
-
-    s = options.bounds.split(',')
-    if (s.length == 4) {
-      options.bounds = { x: parseInt(s[0].trim()),
-                         y: parseInt(s[1].trim()),
-                         width: parseInt(s[2].trim()),
-                         height: parseInt(s[3].trim()) }
-      if (isNaN(options.bounds.x)) {
-        console.error('Error parsing x in --bounds')
-        program.help()
-      }
-      if (isNaN(options.bounds.y)) {
-        console.error('Error parsing y in --bounds')
-        program.help()
-      }
-      if (isNaN(options.bounds.width)) {
-        console.error('Error parsing width in --bounds')
-        program.help()
-      }
-      if (isNaN(options.bounds.height)) {
-        console.error('Error parsing height in --bounds')
-        program.help()
-      }
-    }
-    else {
-      console.error('Error parsing value of --bounds')
-      program.help()
-    }
-  }
-
   d(JSON.stringify(Process.env, null, 2))
 
   log('Bred ' + version)
@@ -1229,6 +1197,38 @@ async function whenReady
   options = program.opts()
   if (options.wait)
     options.waitForDevtools = true
+
+  if (options.bounds) {
+    let s
+
+    s = options.bounds.split(',')
+    if (s.length == 4) {
+      options.bounds = { x: parseInt(s[0].trim()),
+                         y: parseInt(s[1].trim()),
+                         width: parseInt(s[2].trim()),
+                         height: parseInt(s[3].trim()) }
+      if (isNaN(options.bounds.x)) {
+        console.error('Error parsing x in --bounds')
+        program.help()
+      }
+      if (isNaN(options.bounds.y)) {
+        console.error('Error parsing y in --bounds')
+        program.help()
+      }
+      if (isNaN(options.bounds.width)) {
+        console.error('Error parsing width in --bounds')
+        program.help()
+      }
+      if (isNaN(options.bounds.height)) {
+        console.error('Error parsing height in --bounds')
+        program.help()
+      }
+    }
+    else {
+      console.error('Error parsing value of --bounds')
+      program.help()
+    }
+  }
 
   shell = Process.env.SHELL || 'sh'
 

@@ -58,6 +58,13 @@ function makeContext
 (win) {
   let context
 
+  function contextLineIcons
+  () {
+    return divCl('bred-context-line-icons',
+                 [ divCl('bred-context-icon onfill', '⋀', { 'data-run': 'parent' }),
+                   divCl('bred-context-icon onfill', '⟱', { 'data-run': 'bury' }) ])
+  }
+
   function appendRun
   (p) {
     if (p && p.view.ed)
@@ -121,7 +128,7 @@ function makeContext
                              contextLine())
                     p && appendContextMode(context, p)
                     p && append(context.el,
-                                context0(p.buf, 'Open Parent Dir', 'parent'),
+                                contextLineIcons(),
                                 contextLine())
                     p && addCopy(p)
                     appendSpell(p)
@@ -137,7 +144,7 @@ function makeContext
                 else {
                   p && appendContextMode(context, p)
                   p && append(context.el,
-                              context0(p.buf, 'Open Parent Dir', 'parent'),
+                              contextLineIcons(),
                               contextLine())
                   p && addCopy(p)
                   appendSpell(p)

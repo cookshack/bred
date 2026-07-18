@@ -634,6 +634,20 @@ div.bred-menu1-item {
   margin: 0.3rem 0 0.3rem 0;
 }
 
+.bred-context-line-icons {
+  display: flex;
+  flex-direction: row;
+}
+
+.bred-context-icon {
+  cursor: pointer;
+  width: 1.8rem;
+  height: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .bred-menu1,
 .bred-menu1-item:last-child,
 .bred-context,

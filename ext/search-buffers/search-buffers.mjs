@@ -133,7 +133,8 @@ function init
 
     p = Pane.current()
     Prompt.ask({ text: 'Search Buffers',
-                 hist },
+                 hist,
+                 nest: 1 },
                needle => searchBufs(p.dir, regex, needle, hist))
   }
 

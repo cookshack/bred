@@ -124,7 +124,8 @@ function init
 
     p = Pane.current()
     Prompt.ask({ text: 'Search lines',
-                 hist },
+                 hist,
+                 nest: 1 },
                needle => searchLines(p.dir, p.buf, p.view, regex, needle))
   }
 

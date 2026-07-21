@@ -87,7 +87,8 @@ function init
   function prompt
   (recurse, regex) {
     Prompt.ask({ text: 'Search files' + (recurse ? ' recursively' : ''),
-                 hist },
+                 hist,
+                 nest: 1 },
                needle => searchFiles(recurse, regex, needle))
   }
 

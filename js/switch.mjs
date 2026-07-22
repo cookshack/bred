@@ -27,29 +27,6 @@ function init
                                       divCl('switch-under-icon', img('img/prompt.svg', '>', 'filter-clr-nb0')) ] })
   }
 
-  function compactPath
-  (path) {
-    let file, home
-
-    file = 'file://'
-    home = Loc.home() // guaranteed trailing /
-
-    if (path.startsWith(file + home))
-      return ':' + path.slice(file.length + home.length)
-
-    if (path.startsWith(file))
-      return path.slice(file.length)
-
-    if (path.startsWith(home))
-      return ':' + path.slice(home.length)
-
-    home = home.slice(0, home.length - 1)
-    if (path.startsWith(home))
-      return ':' + path.slice(home.length)
-
-    return path
-  }
-
   function refresh
   (view) {
     let text, needles, vars, all, needle, candidate, regex
@@ -178,7 +155,7 @@ function init
                                                       divCl('switch-mode-icon',
                                                             img(Icon.modePath(b.mode.key, 1), b.mode.key, 'filter-clr-text')),
                                                       divCl('switch-mode', b.mode.key),
-                                                      divCl('switch-path', compactPath(b.path)) ]),
+                                                      divCl('switch-path', Ed.makeMlDir(b.path)) ]),
                      all.length ? eNeedle : [],
                                    rec.length && [ divCl('switch-icon', ''),
                                                    divCl('switch-sep' + (all.length ? '' : 'top'),
@@ -195,7 +172,7 @@ function init
                                                               'data-path': r.path }),
                                                       divCl('switch-mode-icon', ''),
                                                       divCl('switch-mode', ''),
-                                                      divCl('switch-path', compactPath(r.path)) ]) ]))
+                                                      divCl('switch-path', Ed.makeMlDir(r.path)) ]) ]))
                   })
   }
 

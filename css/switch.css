@@ -75,6 +75,10 @@ div.switch-name {
   margin-left: 0.5rem;
 }
 
+.switch-path span[data-run] {
+  color: var(--clr-text);
+}
+
 .switch-name.selected {
   background: var(--clr-bg);
 }

@@ -176,7 +176,7 @@ function init
                                                             { 'data-id': b.id,
                                                               'data-run': 'select' }),
                                                       divCl('switch-mode-icon',
-                                                            img(Icon.modePath(b.mode.key), b.mode.key, 'filter-clr-text')),
+                                                            img(Icon.modePath(b.mode.key, 1), b.mode.key, 'filter-clr-text')),
                                                       divCl('switch-mode', b.mode.key),
                                                       divCl('switch-path', compactPath(b.path)) ]),
                      all.length ? eNeedle : [],

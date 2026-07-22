@@ -243,6 +243,14 @@ function mode
 
 export
 function modePath
-(name) {
-  return path(mode(name)?.name)
+(name, blankForLetter) {
+  let m
+
+  m = mode(name)
+  if (m) {
+    if (blankForLetter && m.name.startsWith('letter-'))
+      return 'img/blank.svg'
+    return path(m.name)
+  }
+  return 'img/blank.svg'
 }

@@ -27,7 +27,7 @@ function divW
                                        [ img(Icon.path('docker'), 'Docker', 'filter-clr-text'),
                                          span('', 'code-docker-name') ],
                                        { 'data-run': 'docker details', 'data-id': '' }),
-                                 divCl('code-agent', agent || '', { 'data-run': 'Set Agent' }),
+                                 divCl('code-agent', Util.iconAgent() + (agent || ''), { 'data-run': 'Set Agent' }),
                                  divCl('code-thought code-icon',
                                        img(Icon.path('thinking.active'), 'Thinking', 'filter-clr-text'),
                                        { 'data-run': 'toggle thinking' }) ]) ]),

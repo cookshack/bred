@@ -79,6 +79,10 @@ div.switch-name {
   color: var(--clr-text);
 }
 
+.switch-path span[data-run]:hover {
+  background-color: var(--clr-bg);
+}
+
 .switch-name.selected {
   background: var(--clr-bg);
 }

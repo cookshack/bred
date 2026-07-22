@@ -233,6 +233,7 @@ function mode
     if (key == 'python') return { name: 'python' }
     if (key == 'rust') return { name: 'rust' }
     if (key == 'sh') return { name: 'sh' }
+    if (key == 'shell') return { name: 'shell' }
     if (key == 'tex') return { name: 'tex' }
     if (key == 'text') return { name: 'text' }
     if (key == 'zig') return { name: 'zig' }

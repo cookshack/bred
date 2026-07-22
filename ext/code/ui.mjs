@@ -20,7 +20,7 @@ function divW
   return divCl('code-ww',
                [ divCl('code-h',
                        [ divCl('code-icon',
-                               img(Icon.path('assist'), 'Code', 'filter-clr-text')),
+                               img(Icon.modePath('code'), 'Code', 'filter-clr-text')),
                          divCl('code-title', Ed.makeMlDir(dir)),
                          divCl('code-h-right',
                                [ divCl('code-docker onfill',

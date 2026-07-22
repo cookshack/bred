@@ -148,6 +148,9 @@ function path
     if (name == 'refresh')
       return 'lib/svg/material-icons/refresh/materialicons/24px.svg'
 
+    if (name == 'robot')
+      return 'lib/svg/file-icons/Robots.svg'
+
     if (name == 'rust')
       return 'lib/svg/devopicons/rust.svg'
 
@@ -211,6 +214,7 @@ function mode
 (key) {
   if (key) {
     if (key == 'c_cpp') return { name: 'c_cpp' }
+    if (key == 'code') return { name: 'robot' }
     if (key == 'css') return { name: 'css' }
     if (key == 'csv') return { name: 'csv' }
     if (key == 'dockerfile') return { name: 'docker' }

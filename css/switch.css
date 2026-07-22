@@ -27,7 +27,7 @@
   height: min-content;
 
   display: grid;
-  grid-template-columns: minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) auto;
+  grid-template-columns: minmax(min-content, max-content) minmax(min-content, max-content) minmax(1.4em, max-content) minmax(min-content, max-content) auto;
   grid-gap: 0.5rem;
 }
 
@@ -59,6 +59,16 @@ div.switch-name {
 
 .switch-name:nth-child(2) {
   background-color: var(--clr-fill);
+}
+
+.switch-mode-icon {
+  text-align: center;
+  width: 1.4em;
+}
+
+.switch-mode-icon img {
+  height: 1em;
+  vertical-align: middle;
 }
 
 .switch-mode {

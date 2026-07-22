@@ -6,6 +6,7 @@ import * as Css from './css.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './Em.mjs'
 import * as Hist from './hist.mjs'
+import * as Icon from './icon.mjs'
 import * as Loc from './loc.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
@@ -174,12 +175,15 @@ function init
                                                             b.name,
                                                             { 'data-id': b.id,
                                                               'data-run': 'select' }),
+                                                      divCl('switch-mode-icon',
+                                                            img(Icon.modePath(b.mode.key), b.mode.key, 'filter-clr-text')),
                                                       divCl('switch-mode', b.mode.key),
                                                       divCl('switch-path', compactPath(b.path)) ]),
                      all.length ? eNeedle : [],
                                    rec.length && [ divCl('switch-icon', ''),
                                                    divCl('switch-sep' + (all.length ? '' : 'top'),
                                                          'Recent'),
+                                                   divCl('switch-mode-icon', ''),
                                                    divCl('switch-mode'),
                                                    divCl('switch-path') ],
                                    rec.map((r,i) => [ divCl('switch-icon', ''),
@@ -189,6 +193,7 @@ function init
                                                               (i == 0) && (all.length == 0) && eNeedle ],
                                                             { 'data-run': 'open link',
                                                               'data-path': r.path }),
+                                                      divCl('switch-mode-icon', ''),
                                                       divCl('switch-mode', ''),
                                                       divCl('switch-path', compactPath(r.path)) ]) ]))
                   })

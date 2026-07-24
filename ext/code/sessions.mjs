@@ -114,6 +114,17 @@ function init
     viewInit(View.current())
   }
 
+  function quitSearchOrBury
+  () {
+    let buf
+
+    buf = View.current().buf
+    if (buf.vars('Code Sessions').searchActive)
+      viewInit(View.current())
+    else
+      Cmd.run('bury', buf)
+  }
+
   function searchSessions
   () {
     let buf, view
@@ -397,7 +408,6 @@ function init
                                                      divCl('code-sessions-w bred-surface', '') ]),
                                              p.dir)
                                buf.icon = 'list'
-                               buf.addMode('view')
                                p.setBuf(buf)
                              }
                            })
@@ -410,5 +420,21 @@ function init
 
   Cmd.add('search sessions', searchSessions, mo)
 
+  Cmd.add('quit search or bury', quitSearchOrBury, mo)
+
   Em.on('g', 'refresh', mo)
+  Em.on('q', 'quit search or bury', mo)
+  Em.on('s', 'search sessions', mo)
+  Em.on('n', 'next line', mo)
+  Em.on('p', 'previous line', mo)
+  Em.on('Backspace', 'scroll up', mo)
+  Em.on(' ', 'scroll down', mo)
+  Em.on('ArrowUp', 'previous line', mo)
+  Em.on('ArrowDown', 'next line', mo)
+  Em.on('ArrowRight', 'forward character', mo)
+  Em.on('ArrowLeft', 'backward character', mo)
+  Em.on('PageUp', 'scroll up', mo)
+  Em.on('PageDown', 'scroll down', mo)
+  Em.on('Home', 'buffer start', mo)
+  Em.on('End', 'buffer end', mo)
 }

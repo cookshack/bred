@@ -58,6 +58,14 @@ function init
 
     view.buf.vars('Code Sessions').searchActive = 0
 
+    {
+      let searchEl
+
+      searchEl = view.eleOrReserved.querySelector('.code-sessions-search')
+      if (searchEl)
+        searchEl.innerText = '🔍'
+    }
+
     showSubagents = view.buf.vars('Code Sessions').showSubagents
     subEl = view.eleOrReserved.querySelector('.code-sessions-subagents')
     if (subEl)
@@ -148,6 +156,14 @@ function init
 
     w.innerHTML = 'Searching...'
     buf.vars('Code Sessions').searchActive = phrase
+
+    {
+      let searchEl
+
+      searchEl = buf.anyView(1)?.eleOrReserved?.querySelector('.code-sessions-search')
+      if (searchEl)
+        searchEl.innerText = '✕'
+    }
 
     Tron.acmd('code.searchSessions', [ buf.dir, phrase ])
       .then(rows => {

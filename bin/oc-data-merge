@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="${HOME}/.local/state/bred"
+OLDV="${1:-1.17.11}"
+NEWV="${2:-1.18.4}"
+OLD_BASE="${BASE}/code-data-${OLDV}"
+NEW_BASE="${BASE}/code-data-${NEWV}"
+TIMESTAMP=$(date +%s)
+BAK="${NEW_BASE}.bak.${TIMESTAMP}"
+
+if [ ! -d "$OLD_BASE" ]; then echo "No old data at ${OLD_BASE}"; exit 1; fi
+if [ ! -d "$NEW_BASE" ]; then echo "No new data at ${NEW_BASE}"; exit 1; fi
+
+echo "Backing up ${NEW_BASE} → ${BAK}..."
+cp -r "${NEW_BASE}" "${BAK}"
+
+echo "Merging old sessions from ${OLDV} into ${NEWV}..."
+
+find "${OLD_BASE}" -name 'opencode.db' -type f | while read -r old; do
+  dir="${old#${OLD_BASE}}"
+  dir="${dir%/opencode.db}"
+  new="${NEW_BASE}${dir}/opencode.db"
+
+  [ -f "$new" ] || continue
+
+  echo "  Merging ${dir}..."
+
+  get_cols() { sqlite3 "$1" "PRAGMA table_info($2)" | cut -d'|' -f2 | sort; }
+  tables=$(sqlite3 "${old}" ".tables")
+  merge_table() {
+    echo "$tables" | grep -qw "$1" || return 0
+    local oc nc c
+    oc=$(get_cols "$old" "$1")
+    nc=$(get_cols "$new" "$1")
+    c=$(comm -12 <(echo "$oc") <(echo "$nc") | paste -sd,)
+    [ -n "$c" ] || return 0
+    sqlite3 "$new" "ATTACH DATABASE '$old' AS o; INSERT OR IGNORE INTO $1($c) SELECT $c FROM o.$1; DETACH o;"
+  }
+  merge_table project
+  merge_table session
+  merge_table message
+  merge_table part
+  merge_table todo
+  merge_table session_message
+  merge_table session_input
+  merge_table session_context_epoch
+done
+
+echo "Done. Backup at ${BAK}"

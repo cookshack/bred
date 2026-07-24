@@ -71,9 +71,9 @@ function gatherCandidates
                     prefix = 'code-data-'
                     if (name.startsWith(prefix) == 0)
                       return
-                    if (name.endsWith(workingDir) == 0)
+                    if (Fs.existsSync(Path.join(BASE, name + workingDir)) == 0)
                       return
-                    ver = name.slice(prefix.length, name.length - workingDir.length)
+                    ver = name.slice(prefix.length)
                     if (ver == targetVersion)
                       return
                     if (ver.length == 0)

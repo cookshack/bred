@@ -541,9 +541,8 @@ function _viewInit
                            // right click, prevent cm from moving point
                            return true
 
-                         // else let cm move point, then run any handlers
-                         setTimeout(() => Bred.handleMouse('click', event))
-                         return false
+                          // else let cm move point — global onclick handles dispatch
+                          return false
                        },
                        paste
                        (event, editor) {

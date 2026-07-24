@@ -313,8 +313,17 @@ function getRefRepo
 }
 
 function getRefTitle
-() {
-  return Ed.makeDecor({ attr: { 'data-run': 'show pr' } })
+(view, match) {
+  let num, ownerRepo, attr
+
+  num = match[2]?.trim()
+  ownerRepo = match[6]
+  attr = { 'data-run': 'show pr' }
+  if (ownerRepo && num) {
+    attr['data-owner-repo'] = ownerRepo
+    attr['data-num'] = num
+  }
+  return Ed.makeDecor({ attr })
 }
 
 function getRefPrPr
@@ -1725,13 +1734,23 @@ function initPrs
   }
 
   function showPr
-  () {
-    let p, row
+  (u, we) {
+    let ownerRepo, num
 
-    p = Pane.current()
-    row = p.view.buf.vars('prs').rows[p.view.pos.row]
-    if (row.ownerRepo && row.num)
-      getAndShowPr(p, row.ownerRepo, row.num)
+    if (we?.e?.target?.dataset?.ownerRepo) {
+      ownerRepo = we.e.target.dataset.ownerRepo
+      num = we.e.target.dataset.num
+    }
+    else {
+      let p, row
+
+      p = Pane.current()
+      row = p.view.buf.vars('prs').rows[p.view.pos.row]
+      ownerRepo = row.ownerRepo
+      num = row.num
+    }
+    if (ownerRepo && num)
+      getAndShowPr(Pane.current(), ownerRepo, num)
     else
       Mess.yell('Missing ownerRepo or num')
   }

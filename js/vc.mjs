@@ -312,6 +312,39 @@ function getRefRepo
   return 0
 }
 
+function getRefTitle
+() {
+  return Ed.makeDecor({ attr: { 'data-run': 'show pr' } })
+}
+
+function getRefPrPr
+(view, match) {
+  let prNum, ownerRepo
+
+  prNum = match[2]?.trim()
+  ownerRepo = match[6]
+  if (ownerRepo) {
+    if (prNum)
+      return Ed.makeDecor({ attr: { style: 'color: var(--clr-syntax1)',
+                                    'data-run': 'open externally',
+                                    'data-url': 'https://github.com/' + ownerRepo + '/pull/' + prNum } })
+    return {}
+  }
+  return 0
+}
+
+function getRefRepoPr
+(view, match) {
+  let ownerRepo
+
+  ownerRepo = match[6]
+  if (ownerRepo)
+    return Ed.makeDecor({ attr: { style: 'color: var(--rule-clr-comment)',
+                                  'data-run': 'open externally',
+                                  'data-url': 'https://github.com/' + ownerRepo } })
+  return 0
+}
+
 function getPr
 (basic, ownerRepo, prNum, cb) { // (res)
   let key, cached, url
@@ -1741,12 +1774,14 @@ function initPrs
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed',
-                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+.+\s+(\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+\/\S+)( \S+|)( .+|)$/d,
+                            decorators: [ { regex: /^(.) (    |   \d|  \d\d| \d\d\d|\d+) (\S+)\s+(.+?)\s+((?:[A-Z][a-z]{2} )?\d{4}-\d{2}-\d{2} \d{2}h\d{2}|\d{2}h\d{2} +) +(\S+\/\S+)( \S+|)( .+|)$/d,
                                             decor: [ { ref: getRefState },
-                                                     { ref: getRefPr },
-                                                     { ref: getRefRepo },
+                                                     { ref: getRefPrPr },
+                                                     { ref: getRefRepoPr },
+                                                     { ref: getRefTitle },
                                                      { attr: {} },
                                                      { attr: { style: 'color: var(--rule-clr-comment)' } },
+                                                     { attr: { style: 'color: var(--clr-syntax1)' } },
                                                      { attr: { style: 'color: var(--clr-syntax1)' } } ] } ] })
 
   Cmd.add('branch', () => branch(), mo)

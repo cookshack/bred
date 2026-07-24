@@ -1,5 +1,8 @@
 import * as Server from './main-code-server.mjs'
+import Database from 'better-sqlite3'
+import Path from 'node:path'
 import { d } from './main-log.mjs'
+import { resolveDataDir } from './oc-data.mjs'
 
 let servers
 
@@ -63,6 +66,32 @@ function onClose
     servers.delete(bufferID)
   }
   return {}
+}
+
+export
+function onSearchSessions
+(e, args) {
+  let [ dir, search ] = args
+  let dataDir, db, rows
+
+  dataDir = resolveDataDir(dir)
+  db = new Database(Path.join(dataDir, 'opencode.db'))
+
+  rows = db.prepare(`
+    SELECT s.id, s.title, s.directory, s.time_created,
+           (SELECT m2.data FROM message m2
+            WHERE m2.session_id = s.id AND m2.data LIKE ?
+            LIMIT 1) as snippet_source
+    FROM session s
+    WHERE s.title LIKE ?
+       OR EXISTS (SELECT 1 FROM message m
+                  WHERE m.session_id = s.id AND m.data LIKE ?)
+    ORDER BY s.time_created DESC
+    LIMIT 50
+  `).all('%' + search + '%', '%' + search + '%', '%' + search + '%')
+
+  db.close()
+  return rows
 }
 
 export

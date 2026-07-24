@@ -222,6 +222,9 @@ async function onAcmd
   if (name == 'code.close')
     return Code.onClose(e, args)
 
+  if (name == 'code.searchSessions')
+    return Code.onSearchSessions(e, args)
+
   if (name == 'browse.back')
     return Browse.onBack(e, args)
 
@@ -239,9 +242,6 @@ async function onAcmd
 
   if (name == 'browse.zoom')
     return Browse.onZoom(e, args)
-
-  if (name == 'code.close')
-    return Code.onClose(e, args)
 
   if (name == 'file.save.tmp')
     return MainFile.onSaveTmp(e, args)

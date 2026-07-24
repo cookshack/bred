@@ -457,16 +457,35 @@ div.code-thought:hover {
   font-family: var(--font-monospace);
 }
 
-.code-sessions-subagents {
+.code-sessions-search {
   cursor: pointer;
   padding: 0.5rem;
   margin-left: auto;
+  user-select: none;
+}
+
+.code-sessions-search:hover {
+  background-color: var(--clr-bg);
+}
+
+.code-sessions-subagents {
+  cursor: pointer;
+  padding: 0.5rem;
   margin-right: calc(0.25rem + var(--scrollbar-size) + var(--width-mini-icon) + 0.25rem);
   user-select: none;
 }
 
 .code-sessions-subagents:hover {
   background-color: var(--clr-bg);
+}
+
+.code-sessions-snippet {
+  grid-column: 1 / -1;
+  color: var(--clr-nb2);
+  padding: 0 0 0.5rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .code-question-item {

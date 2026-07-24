@@ -4,12 +4,15 @@ import * as Cmd from '../../js/cmd.mjs'
 import * as Css from '../../js/css.mjs'
 import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/Em.mjs'
+import * as Hist from '../../js/hist.mjs'
 import * as Icon from '../../js/icon.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Opt from '../../js/opt.mjs'
 import * as Pane from '../../js/Pane.mjs'
+import * as Tron from '../../js/tron.mjs'
 import * as View from '../../js/view.mjs'
+import { ask } from '../../js/prompt.mjs'
 import { d } from '../../js/mess.mjs'
 
 import * as Comm from './comm.mjs'
@@ -21,7 +24,7 @@ import * as Util from './util.mjs'
 export
 function init
 (events) {
-  let mo
+  let mo, searchHist
 
   function updateCount
   (view, n) {
@@ -44,12 +47,16 @@ function init
     }
 
     h = view.eleOrReserved.querySelector('.code-sessions-h')
-    if (h && h.querySelector('.code-sessions-subagents') == null) {
-      subEl = divCl('code-sessions-subagents', '⊞',
-                    { 'data-run': 'toggle subagents',
-                      title: 'Show/hide subagent sessions' })
-      h.appendChild(subEl)
+    if (h && h.querySelector('.code-sessions-search') == null) {
+      h.appendChild(divCl('code-sessions-search', '🔍',
+                          { 'data-run': 'search sessions',
+                            title: 'Search sessions' }))
+      h.appendChild(divCl('code-sessions-subagents', '⊞',
+                          { 'data-run': 'toggle subagents',
+                            title: 'Show/hide subagent sessions' }))
     }
+
+    view.buf.vars('Code Sessions').searchActive = 0
 
     showSubagents = view.buf.vars('Code Sessions').showSubagents
     subEl = view.eleOrReserved.querySelector('.code-sessions-subagents')
@@ -97,6 +104,92 @@ function init
     buf = View.current().buf
     buf.vars('Code Sessions').showSubagents = buf.vars('Code Sessions').showSubagents ? 0 : 1
     viewInit(View.current())
+  }
+
+  function searchSessions
+  () {
+    let buf, view
+
+    view = View.current()
+    buf = view.buf
+    if (buf.vars('Code Sessions').searchActive) {
+      viewInit(view)
+      return
+    }
+    ask({ text: 'Search sessions:',
+          hist: searchHist },
+        phrase => {
+          if (phrase == null || phrase.length == 0)
+            return
+          searchHist.add(phrase)
+          showSearchResults(buf, phrase)
+        })
+  }
+
+  function extractSnippet
+  (data, phrase) {
+    let idx
+
+    if (data == null)
+      return ''
+    idx = data.toLowerCase().indexOf(phrase.toLowerCase())
+    if (idx < 0)
+      return ''
+    return (idx > 40 ? '…' : '') + data.slice(Math.max(0, idx - 40), idx + phrase.length + 40).trim() + (idx + phrase.length + 40 < data.length ? '…' : '')
+  }
+
+  function showSearchResults
+  (buf, phrase) {
+    let w
+
+    w = buf.anyView(1)?.eleOrReserved?.querySelector('.code-sessions-w')
+    if (w == null)
+      return
+
+    w.innerHTML = 'Searching...'
+    buf.vars('Code Sessions').searchActive = phrase
+
+    Tron.acmd('code.searchSessions', [ buf.dir, phrase ])
+      .then(rows => {
+              let el
+
+              w.innerHTML = ''
+              el = buf.anyView(1)?.eleOrReserved?.querySelector('.edMl-file')
+              if (el)
+                el.innerText = 'Search: ' + rows.length + ' results'
+
+              append(w,
+                     rows.map(s => {
+                                let snippet, isTitle
+
+                                snippet = s.snippet_source ? extractSnippet(s.snippet_source, phrase) : ''
+                                if (snippet.length == 0 && s.title) {
+                                  snippet = extractSnippet(s.title, phrase)
+                                  isTitle = 1
+                                }
+                                if (snippet.length == 0)
+                                  return [ divCl('code-sessions-del', '✗',
+                                                 { 'data-run': 'delete session',
+                                                   'data-session-id': s.id,
+                                                   'data-session-dir': s.directory }),
+                                           divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
+                                                 { 'data-run': 'open code session',
+                                                   'data-session-id': s.id,
+                                                   'data-session-dir': s.directory }),
+                                           divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
+                                snippet = isTitle ? 'Title: ' + snippet : snippet
+                                return [ divCl('code-sessions-del', '✗',
+                                               { 'data-run': 'delete session',
+                                                 'data-session-id': s.id,
+                                                 'data-session-dir': s.directory }),
+                                         divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
+                                               { 'data-run': 'open code session',
+                                                 'data-session-id': s.id,
+                                                 'data-session-dir': s.directory }),
+                                         divCl('code-sessions-title', (s.title || '').split('\n')[0]),
+                                         divCl('code-sessions-snippet', snippet) ]
+                              }))
+            })
   }
 
   function openCodeSession
@@ -265,6 +358,8 @@ function init
               })
   }
 
+  searchHist = Hist.ensure('code.sessions.search')
+
   mo = Mode.add('Code Sessions', { viewInit })
 
   Cmd.add('refresh', () => viewInit(View.current()), mo)
@@ -296,6 +391,8 @@ function init
   Cmd.add('delete session', deleteSession, mo)
 
   Cmd.add('toggle subagents', toggleSubagents, mo)
+
+  Cmd.add('search sessions', searchSessions, mo)
 
   Em.on('g', 'refresh', mo)
 }

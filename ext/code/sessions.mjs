@@ -34,35 +34,69 @@ function init
 
   function viewInit
   (view, spec, cb) { // (view)
-    let w
+    let w, showSubagents, subEl, h
 
     w = view.eleOrReserved.querySelector('.code-sessions-w')
-    if (w) {
-      w.innerHTML = 'Fetching...'
-      Comm.ensureClient(view.buf).then(c => c.session.list().then(sessions => {
-                                                                    let filtered
-
-                                                                    w.innerHTML = ''
-                                                                    d({ sessions })
-                                                                    filtered = sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir))
-                                                                    updateCount(view, filtered.length)
-                                                                    append(w,
-                                                                           filtered.map(s => {
-                                                                                          return [ divCl('code-sessions-del', '✗',
-                                                                                                         { 'data-run': 'delete session',
-                                                                                                           'data-session-id': s.id,
-                                                                                                           'data-session-dir': s.directory }),
-                                                                                                   divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
-                                                                                                         { 'data-run': 'open code session',
-                                                                                                           'data-session-id': s.id,
-                                                                                                           'data-session-dir': s.directory }),
-                                                                                                   divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
-                                                                                        }))
-                                                                  }))
+    if (w == null) {
+      if (cb)
+        cb(view)
+      return
     }
+
+    h = view.eleOrReserved.querySelector('.code-sessions-h')
+    if (h && h.querySelector('.code-sessions-subagents') == null) {
+      subEl = divCl('code-sessions-subagents', '⊞',
+                    { 'data-run': 'toggle subagents',
+                      title: 'Show/hide subagent sessions' })
+      h.appendChild(subEl)
+    }
+
+    showSubagents = view.buf.vars('Code Sessions').showSubagents
+    subEl = view.eleOrReserved.querySelector('.code-sessions-subagents')
+    if (subEl)
+      subEl.innerText = showSubagents ? '⊟' : '⊞'
+
+    w.innerHTML = 'Fetching...'
+
+    Comm.ensureClient(view.buf)
+      .then(c => {
+              let opts
+
+              opts = { roots: showSubagents ? undefined : 'true' }
+              return c.session.list(opts)
+            })
+      .then(sessions => {
+              let filtered
+
+              w.innerHTML = ''
+              d({ sessions })
+              filtered = sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir))
+              updateCount(view, filtered.length)
+              append(w,
+                     filtered.map(s => {
+                                    return [ divCl('code-sessions-del', '✗',
+                                                   { 'data-run': 'delete session',
+                                                     'data-session-id': s.id,
+                                                     'data-session-dir': s.directory }),
+                                             divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
+                                                   { 'data-run': 'open code session',
+                                                     'data-session-id': s.id,
+                                                     'data-session-dir': s.directory }),
+                                             divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
+                                  }))
+            })
 
     if (cb)
       cb(view)
+  }
+
+  function toggleSubagents
+  () {
+    let buf
+
+    buf = View.current().buf
+    buf.vars('Code Sessions').showSubagents = buf.vars('Code Sessions').showSubagents ? 0 : 1
+    viewInit(View.current())
   }
 
   function openCodeSession
@@ -260,6 +294,8 @@ function init
   Cmd.add('open code session', openCodeSession, mo)
 
   Cmd.add('delete session', deleteSession, mo)
+
+  Cmd.add('toggle subagents', toggleSubagents, mo)
 
   Em.on('g', 'refresh', mo)
 }

@@ -450,10 +450,23 @@ div.code-thought:hover {
 .code-sessions-h {
   background: var(--clr-fill);
   display: flex;
+  align-items: center;
 }
 
 .code-sessions-id {
   font-family: var(--font-monospace);
+}
+
+.code-sessions-subagents {
+  cursor: pointer;
+  padding: 0.5rem;
+  margin-left: auto;
+  margin-right: calc(0.25rem + var(--scrollbar-size) + var(--width-mini-icon) + 0.25rem);
+  user-select: none;
+}
+
+.code-sessions-subagents:hover {
+  background-color: var(--clr-bg);
 }
 
 .code-question-item {

@@ -1807,7 +1807,7 @@ function initPrs
   Cmd.add('equal', () => equal(), mo)
   Cmd.add('refresh', () => refresh(Pane.current()), mo)
   Cmd.add('open pr', () => openPr(), mo)
-  Cmd.add('show pr', () => showPr(), mo)
+  Cmd.add('show pr', (u, we) => showPr(u, we), mo)
   Cmd.add('next pr', () => go(1), mo)
   Cmd.add('previous pr', () => go(-1), mo)
 

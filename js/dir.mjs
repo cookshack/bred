@@ -928,6 +928,34 @@ function init
                     dirVars = view.buf.vars('dir')
                     return divCl('dir-counts', dirVars.fileCount + ' files, ' + dirVars.dirCount + ' dirs')
                   } })
+    extras.push({ key: 'code-sessions',
+                  head
+                  () {
+                    return 'Code Sessions'
+                  },
+                  co
+                  (view) {
+                    let dirPath, codeBufs
+
+                    dirPath = view.buf.dir
+                    codeBufs = []
+                    Buf.forEach(b => {
+                      if ((b.mode.key == 'code') && (b.dir == dirPath))
+                        codeBufs.push(b)
+                    })
+                    if (codeBufs.length == 0)
+                      return divCl('code-sessions-none', 'None')
+                    return divCl('code-sessions-list',
+                                  codeBufs.map(b => {
+                                    let title
+
+                                    title = b.vars('code').sessionTitle || b.vars('code').prompt || 'New session'
+                                    return divCl('code-session-entry',
+                                                 span(title, 'dir-cs-title', { style: 'overflow:hidden;text-overflow:ellipsis;white-space:nowrap' }),
+                                                 { 'data-run': 'switch-to-buf',
+                                                   'data-buf-id': String(b.id) })
+                                 }))
+                  } })
     m = Mode.add('Dir', { viewInit, assist: { extras } })
   }
 
@@ -981,6 +1009,23 @@ function init
 
   Cmd.add('home', () => add(Pane.current(), ':'))
   Cmd.add('root', () => add(Pane.current(), '/'))
+
+  Cmd.add('switch-to-buf', (u, we) => {
+                             let el, id, buf
+
+                             el = we.e.target.closest('[data-buf-id]')
+                             id = el?.dataset?.bufId
+                             buf = Buf.find(b => b.id == id)
+                             if (buf) {
+                               let p
+
+                               p = Pane.current1()
+                               p.focus()
+                               p.setBuf(buf)
+                             }
+                             else
+                               Mess.yell('Missing buffer: ' + id)
+                           })
 
   DirOps.init(m)
 }

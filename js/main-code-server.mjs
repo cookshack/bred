@@ -189,7 +189,7 @@ async function spawnDocker
   dataDir = resolveDataDir(workingDir)
 
   args = []
-  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...mountArgs(workingDir, dataDir, authPath), '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
+  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...mountArgs(workingDir, dataDir, authPath), '-e', 'EXA_API_KEY', '-e', 'OPENCODE_WEBSEARCH_PROVIDER=' + (process.env.OPENCODE_WEBSEARCH_PROVIDER || 'exa'), '-e', 'OPENCODE_ENABLE_EXA=' + (process.env.OPENCODE_ENABLE_EXA || 'true'), '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
   if (config.logLevel)
     args.push('--log-level=' + config.logLevel)
 

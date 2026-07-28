@@ -1896,7 +1896,7 @@ function init
                              d('CO websearch: ' + query)
                              Ui.appendToolMsg(buf, part.callID, 'Web search: ' + query)
                            }
-                         },
+                          },
                          onComplete
                          (buf, part) {
                            let query, results
@@ -1904,10 +1904,15 @@ function init
                            query = part.state.input.query
                            results = part.state.metadata?.results
                            if (query) {
+                             let label
+
                              d('CO websearch completed with ' + results + ' results')
+                             label = 'Web search: ' + query
+                             if (results)
+                               label += ' (' + results + ' results)'
                              Ui.appendToolMsg(buf,
                                               part.callID,
-                                              'Web search: ' + query + ' (' + results + ' results)',
+                                              label,
                                               part.state.output)
                            }
                          },

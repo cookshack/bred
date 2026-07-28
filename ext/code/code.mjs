@@ -1936,7 +1936,7 @@ function init
                           url = part.state.input.url
                           if (url) {
                             d('CO webfetch: ' + url)
-                            Ui.appendToolMsg(buf, part.callID, 'Fetch ' + url)
+                            Ui.appendToolMsg(buf, part.callID, [ 'Fetch ', span(url, 'code-file', { 'data-run': 'open link', 'data-path': url }) ])
                           }
                         },
                         onComplete
@@ -1949,7 +1949,7 @@ function init
                             d('CO webfetch completed, size: ' + size)
                             Ui.appendToolMsg(buf,
                                              part.callID,
-                                             'Fetch ' + url + (size ? ' (' + size + ' bytes)' : ''))
+                                             [ 'Fetch ', span(url, 'code-file', { 'data-run': 'open link', 'data-path': url }), size ? ' (' + size + ' bytes)' : '' ])
                           }
                         },
                         onErr
@@ -1961,7 +1961,7 @@ function init
                             d('CO webfetch error')
                             Ui.appendToolMsg(buf,
                                              part.callID,
-                                             'Fetch ' + url,
+                                             [ 'Fetch ', span(url, 'code-file', { 'data-run': 'open link', 'data-path': url }) ],
                                              part.state.error)
                           }
                         } },

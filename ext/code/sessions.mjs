@@ -1,4 +1,4 @@
-import { append, divCl } from '../../js/dom.mjs'
+import { append, divCl, span } from '../../js/dom.mjs'
 import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Css from '../../js/css.mjs'
@@ -256,7 +256,7 @@ function init
                 else if (part.state?.input?.query)
                   label += ': ' + part.state.input.query
                 else if (part.state?.input?.url)
-                  label += ' ' + part.state.input.url
+                  label = [ part.tool + ' ', span(part.state.input.url, 'code-file', { 'data-run': 'open link', 'data-path': part.state.input.url }) ]
                 Ui.appendToolMsg(buf, part.callID, label,
                                  part.state?.output || part.state?.error)
               }

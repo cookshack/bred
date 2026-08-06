@@ -831,6 +831,7 @@ function handlePart
     d('CO agent stopped, skipping: ' + part.type)
   else if (part.type == 'text') {
     d('CO text part' + part.id)
+    buf.vars('code').gotContent = 1
     if (buf.vars('code').stepActiveSessions?.size) {
       d('CO update text: ' + part.text)
       Ui.appendMsg(buf, 0, part.text, part.id)
@@ -845,12 +846,15 @@ function handlePart
 
     buffered = (event.properties.delta || '')
     if (buffered) {
+      buf.vars('code').gotContent = 1
       d('CO reasoning append: ' + buffered)
       Ui.appendThinking(buf, buffered, part.id)
     }
   }
-  else if (part.type == 'tool')
+  else if (part.type == 'tool') {
+    buf.vars('code').gotContent = 1
     handleToolPart(buf, part)
+  }
 }
 
 function handlePartDelta
@@ -943,10 +947,13 @@ function send
 
                                 buf.vars('code').agentStopped = 0
                                 buf.vars('code').busy = 1
+                                buf.vars('code').gotContent = 0
 
                                 Ui.appendMsg(buf, 'user', text)
 
                                 Ev.startSub(buf, events)
+
+                                await buf.vars('code').streamReady
 
                                 agent = Util.getAgent(buf)
 
@@ -969,6 +976,26 @@ function send
                                 appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant))
                                 if (provider == 'openrouter')
                                   updateCredits(buf)
+
+                                await new Promise(r => setTimeout(r))
+                                if (buf.vars('code').gotContent == 0 && res.data?.parts)
+                                  for (let part of res.data.parts)
+                                    if (part.type == 'step-start') {
+                                      let steps
+
+                                      steps = buf.vars('code').stepActiveSessions
+                                      if (steps == null) {
+                                        steps = new Set()
+                                        buf.vars('code').stepActiveSessions = steps
+                                      }
+                                      steps.add(part.sessionID)
+                                    }
+                                    else if (part.type == 'text' && part.text)
+                                      Ui.appendMsg(buf, 0, part.text, part.id)
+                                    else if (part.type == 'reasoning' && part.text)
+                                      Ui.appendThinking(buf, part.text, part.id)
+                                    else if (part.type == 'tool')
+                                      handleToolPart(buf, part)
 
                                 if (res?.error) {
                                   d({ resError: res.error })
@@ -2051,9 +2078,9 @@ function init
                                     error = event.properties.error
                                     d({ error })
                                     if (error)
-                                      Mess.yell('🚨 session.error: ' + (error.name || '??') + ' ' + (error.data?.message || '????'))
+                                      Ui.appendMsg(buf, 'assistant', 'Error: ' + (error.data?.message || error.name || '??'))
                                     else
-                                      Mess.yell('🚨 session.error: error missing')
+                                      Ui.appendMsg(buf, 'assistant', 'Error: session error - details missing')
                                   }
                                 } },
              'session.updated': { onArrive

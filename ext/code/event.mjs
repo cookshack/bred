@@ -61,6 +61,9 @@ function startSub
       return
     }
 
+    state._resolveStreamReady?.()
+    state._resolveStreamReady = 0
+
     Ui.updateStatus(buf, '🔁 CONNECTED', '', '', VopenCode.version)
 
     while (state.streamActive) {
@@ -110,6 +113,7 @@ function startSub
       await Tron.acmd('code.close', [ state.spawnedBufferID ])
       state.spawnedBufferID = 0
     }
+    state.streamReady = new Promise(resolve => state._resolveStreamReady = resolve)
     state.client = 0
     state.lastEventTime = Date.now()
     Ui.updateStatus(buf, '🔁 RECONNECTING', '', '')
@@ -123,6 +127,7 @@ function startSub
   if (state.streamActive) return
   state.streamActive = 1
   state.lastEventTime = Date.now()
+  state.streamReady = new Promise(resolve => state._resolveStreamReady = resolve)
   Ui.updateStatus(buf, '🔁 CONNECTING', '', '')
 
   Comm.ensureClient(buf).then(runStream).catch(() => {

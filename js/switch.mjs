@@ -14,6 +14,14 @@ import * as Pane from './Pane.mjs'
 import * as Recent from './recent.mjs'
 import { d } from './mess.mjs'
 
+let pickFn
+
+export
+function pick
+(cb) {
+  return pickFn(cb)
+}
+
 export
 function init
 () {
@@ -39,10 +47,11 @@ function init
 
     text = buf.text() || ''
     under.innerHTML = ''
-    if (ml)
-      ml.innerText = 'Switch to buffer'
     vars = view.buf.vars('switch')
     vars.needle = vars.needle || ''
+    vars.full = vars.cb ? 0 : 1
+    if (ml)
+      ml.innerText = vars.title || 'Switch to buffer'
     needles = text
     needle = text.toLowerCase()
     if (needle.length) {
@@ -112,6 +121,9 @@ function init
                       rec = rec.filter(r => r.name.length)
                     }
 
+                    if (vars.full == 0)
+                      rec = []
+
                     if (all.length && all[0].name.length && needle.length)
                       candidate = all[0]
                     else if (rec.length && rec[0].name.length && needle.length)
@@ -137,7 +149,7 @@ function init
                       needles = needle
                     }
 
-                    if ((all.length == 0) && (rec.length == 0))
+                    if ((all.length == 0) && (rec.length == 0) && vars.full)
                       ml.innerText = 'Create buffer'
 
                     eNeedle = divCl('switch-needle' + ((all.length || rec.length) ? '' : ' switch-zero'),
@@ -191,9 +203,15 @@ function init
 
     b = Buf.find(b1 => b1.id == id)
     if (b) {
+      let cb
+
       if (text.length)
         hist.add(text)
-      p.setBuf(b)
+      cb = p.buf.vars('switch').cb
+      if (cb)
+        cb(b)
+      else
+        p.setBuf(b)
     }
     else
       Mess.say('Missing buffer ' + id)
@@ -227,6 +245,9 @@ function init
         Pane.open(f.dataset.path)
       return
     }
+
+    if (p.buf.vars('switch').cb)
+      return
 
     // create
     if (text.length) {
@@ -289,7 +310,7 @@ function init
   }
 
   function sw
-  () {
+  (cb) {
     let p, w, dir, needOn, old
 
     p = Pane.current1()
@@ -322,6 +343,8 @@ function init
       //buf.dir = 0
     }
     buf.vars('switch').oldBuf = old
+    buf.vars('switch').cb = cb || 0
+    buf.vars('switch').title = cb ? 'Compare with' : ''
 
     dir = p.dir
     p.setBuf(buf, {}, () => {
@@ -343,6 +366,7 @@ function init
   }
 
   hist = Hist.ensure('switch')
+  pickFn = cb => sw(cb)
 
   mo = Mode.add('Switch', { hidePoint: 1,
                             viewInit: Ed.viewInit,

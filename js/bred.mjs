@@ -6,6 +6,7 @@ import * as Apt from './apt.mjs'
 import * as Browse from './browse.mjs'
 import * as Buf from './Buf.mjs'
 import * as Cmd from './cmd.mjs'
+import * as Compare from './compare.mjs'
 import * as Cut from './cut.mjs'
 import * as Css from './css.mjs'
 import * as Dir from './dir.mjs'
@@ -121,6 +122,7 @@ function initPackages
                      Prompt.init()
                      Open.init()
                      Switch.init()
+                     Compare.init()
                      Tab.init()
                      Ext.init()
                      Place.init()

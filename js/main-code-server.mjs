@@ -18,21 +18,30 @@ function containerName
 
 function mountArgs
 (workingDir, dataDir, authPath) {
-  let home
+  let home, specs
+
+  function src
+  (spec) {
+    return spec.split(':')[0]
+  }
 
   home = process.env.HOME
+  if (workingDir.at(-1) == '/')
+    workingDir = workingDir.slice(0, -1)
+  specs = [ home + '/fresh/main:' + home + '/fresh/main',
+            home + '/src/review:' + home + '/src/review',
+            home + '/src/bred:' + home + '/src/bred',
+            home + '/alts/main/openvas/plugins:' + home + '/alts/main/openvas/plugins:ro',
+            home + '/alts/main/gvm/cert-data:' + home + '/alts/main/gvm/cert-data:ro',
+            home + '/alts/main/gvm/scap-data:' + home + '/alts/main/gvm/scap-data:ro',
+            home + '/alts/main/gvm/data-objects/gvmd/22.04:' + home + '/alts/main/gvm/data-objects/gvmd/22.04:ro',
+            home + '/src/opencode:' + home + '/src/opencode:ro',
+            home + '/.gitignore:/home/node/.gitignore:ro',
+            dataDir + ':/home/node/.local/share/opencode',
+            authPath + ':/home/node/.local/share/opencode/auth.json:ro' ]
+    .filter(s => (src(s) == workingDir) ? 0 : 1)
   return [ '-v', workingDir + ':' + workingDir,
-           '-v', home + '/fresh/main:' + home + '/fresh/main',
-           '-v', home + '/src/review:' + home + '/src/review',
-           '-v', home + '/src/bred:' + home + '/src/bred',
-           '-v', home + '/alts/main/openvas/plugins:' + home + '/alts/main/openvas/plugins:ro',
-           '-v', home + '/alts/main/gvm/cert-data:' + home + '/alts/main/gvm/cert-data:ro',
-           '-v', home + '/alts/main/gvm/scap-data:' + home + '/alts/main/gvm/scap-data:ro',
-           '-v', home + '/alts/main/gvm/data-objects/gvmd/22.04:' + home + '/alts/main/gvm/data-objects/gvmd/22.04:ro',
-           '-v', home + '/src/opencode:' + home + '/src/opencode:ro',
-           '-v', home + '/.gitignore:/home/node/.gitignore:ro',
-           '-v', dataDir + ':/home/node/.local/share/opencode',
-           '-v', authPath + ':/home/node/.local/share/opencode/auth.json:ro' ]
+           ...specs.flatMap(s => [ '-v', s ]) ]
 }
 
 function containerRunning

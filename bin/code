@@ -4,15 +4,22 @@ set -e
 AUTH="$HOME/.local/share/opencode/auth.json"
 LOCAL_SHARE="$("$(dirname "$0")/oc-data-dir" "$PWD")"
 
+ARGS=(-v "$PWD:$PWD")
+for m in \
+  "$HOME/fresh/main:$HOME/fresh/main" \
+  "$HOME/src/review:$HOME/src/review" \
+  "$HOME/src/bred:$HOME/src/bred" \
+  "$HOME/src/opencode:$HOME/src/opencode:ro" \
+  "$AUTH:/home/node/.local/share/opencode/auth.json:ro" \
+  "$HOME/.gitignore:/home/node/.gitignore:ro" \
+  "$LOCAL_SHARE:/home/node/.local/share/opencode"; do
+  if [ "${m%%:*}" != "$PWD" ]; then
+    ARGS+=(-v "$m")
+  fi
+done
+
 exec docker run -it --rm --name "bred-code-tui-$$" \
-  -v "$PWD:$PWD" \
-  -v "$HOME/fresh/main:$HOME/fresh/main" \
-  -v "$HOME/src/review:$HOME/src/review" \
-  -v "$HOME/src/bred:$HOME/src/bred" \
-  -v "$HOME/src/opencode:$HOME/src/opencode:ro" \
-  -v "$AUTH:/home/node/.local/share/opencode/auth.json:ro" \
-  -v "$HOME/.gitignore:/home/node/.gitignore:ro" \
-  -v "$LOCAL_SHARE:/home/node/.local/share/opencode" \
+  "${ARGS[@]}" \
   -w "$PWD" \
   opencode-bred \
   --model opencode-go/deepseek-v4-pro \

@@ -23,6 +23,8 @@ function mountArgs
   home = process.env.HOME
   return [ '-v', workingDir + ':' + workingDir,
            '-v', home + '/fresh/main:' + home + '/fresh/main',
+           '-v', home + '/src/review:' + home + '/src/review',
+           '-v', home + '/src/bred:' + home + '/src/bred',
            '-v', home + '/alts/main/openvas/plugins:' + home + '/alts/main/openvas/plugins:ro',
            '-v', home + '/alts/main/gvm/cert-data:' + home + '/alts/main/gvm/cert-data:ro',
            '-v', home + '/alts/main/gvm/scap-data:' + home + '/alts/main/gvm/scap-data:ro',

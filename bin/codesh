@@ -11,6 +11,8 @@ LOCAL_SHARE="$("$(dirname "$0")/oc-data-dir" "$PWD")"
 exec docker run -it --rm --name "bred-code-sh-$$" \
   -v "$PWD:$PWD" \
   -v "$HOME/fresh/main:$HOME/fresh/main" \
+  -v "$HOME/src/review:$HOME/src/review" \
+  -v "$HOME/src/bred:$HOME/src/bred" \
   -v "$HOME/src/opencode:$HOME/src/opencode:ro" \
   -v "$AUTH:/home/node/.local/share/opencode/auth.json:ro" \
   -v "$HOME/.gitignore:/home/node/.gitignore:ro" \

@@ -78,7 +78,7 @@ function gatherCandidates
                       return
                     if (ver.length == 0)
                       return
-                    out.push({ version: ver, path: Path.join(BASE, name) })
+                    out.push({ version: ver, path: Path.join(BASE, name + workingDir) })
                   })
   return out
 }

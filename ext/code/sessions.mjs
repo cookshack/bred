@@ -229,7 +229,15 @@ function init
 
       function onMessages
       (res) {
-        let data
+        let data, pendingModel
+
+        function flushModel
+        () {
+          if (pendingModel) {
+            pendingModel.model && Ui.appendModel(buf, pendingModel.model, pendingModel.at)
+            pendingModel = 0
+          }
+        }
 
         function processBatch
         (i) {
@@ -237,35 +245,49 @@ function init
 
           end = Math.min(i + 10, data.length)
           for (; i < end; i++) {
-            let msg
+            let msg, role
 
             msg = data[i]
-            for (let part of (msg.parts || []))
-              if (part.type == 'text')
-                Ui.appendMsg(buf, msg.info.role == 'user' ? 'user' : 0, part.text, part.id)
-              else if (part.type == 'tool') {
-                let label
+            role = msg.info.role
+            if (role == 'user') {
+              flushModel()
+              for (let part of (msg.parts || []))
+                if (part.type == 'text')
+                  Ui.appendMsg(buf, 'user', part.text, part.id, msg.info.time?.created)
+            }
+            else {
+              for (let part of (msg.parts || []))
+                if (part.type == 'reasoning' && part.text)
+                  Ui.appendThinking(buf, part.text, part.id)
+                else if (part.type == 'text')
+                  Ui.appendMsg(buf, 0, part.text, part.id)
+                else if (part.type == 'tool') {
+                  let label
 
-                label = part.tool
-                if (part.tool == 'bash' && part.state?.input?.command)
-                  label += ': ' + part.state.input.command
-                else if (part.state?.input?.filePath)
-                  label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
-                else if (part.state?.input?.pattern)
-                  label += ' "' + part.state.input.pattern + '"'
-                else if (part.state?.input?.query)
-                  label += ': ' + part.state.input.query
-                else if (part.state?.input?.url)
-                  label = [ part.tool + ' ', span(part.state.input.url, 'code-file', { 'data-run': 'open link', 'data-path': part.state.input.url }) ]
-                Ui.appendToolMsg(buf, part.callID, label,
-                                 part.state?.output || part.state?.error)
-              }
+                  label = part.tool
+                  if (part.tool == 'bash' && part.state?.input?.command)
+                    label += ': ' + part.state.input.command
+                  else if (part.state?.input?.filePath)
+                    label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
+                  else if (part.state?.input?.pattern)
+                    label += ' "' + part.state.input.pattern + '"'
+                  else if (part.state?.input?.query)
+                    label += ': ' + part.state.input.query
+                  else if (part.state?.input?.url)
+                    label = [ part.tool + ' ', span(part.state.input.url, 'code-file', { 'data-run': 'open link', 'data-path': part.state.input.url }) ]
+                  Ui.appendToolMsg(buf, part.callID, label,
+                                   part.state?.output || part.state?.error)
+                }
+              pendingModel = { model: Util.modelName(msg.info.modelID, msg.info.variant),
+                               at: msg.info.time?.created }
+            }
           }
           Ui.updateStatus(buf, '🔃 Loading... ' + end + '/' + data.length, '', '', '')
 
           if (end < data.length)
             globalThis.requestAnimationFrame(() => processBatch(end))
           else {
+            flushModel()
             Ev.startSub(buf, events)
             buf.vars('code').busy = 0
             globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'Rendered', '', '', ''))

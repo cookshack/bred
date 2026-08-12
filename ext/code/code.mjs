@@ -162,145 +162,6 @@ function updateCredits
            })
 }
 
-function ts
-() {
-  let now, h, m, s
-
-  now = new Date()
-  h = String(now.getHours()).padStart(2, '0')
-  m = String(now.getMinutes()).padStart(2, '0')
-  s = String(now.getSeconds()).padStart(2, '0')
-  return h + 'h' + m + ':' + s
-}
-
-function scrollTo
-(el) {
-  let w
-
-  w = el.closest('.code-w')
-  if (w) {
-    el.scrollIntoView({ block: 'start', behavior: 'instant' })
-    w.scrollTop -= Math.round(0.5 * parseFloat(globalThis.getComputedStyle(w).fontSize))
-  }
-}
-
-function scrollToPrevRole
-(e) {
-  let el
-
-  el = e.target.closest('.code-msg-role')
-  if (el) {
-    let prev
-
-    prev = el.previousElementSibling
-    while (prev) {
-      if (Css.has(prev, 'code-msg-role'))
-        break
-      prev = prev.previousElementSibling
-    }
-    if (prev) {
-      let content
-
-      content = prev.previousElementSibling
-      while (content) {
-        if (Css.has(content, 'code-msg-assistant'))
-          break
-        content = content.previousElementSibling
-      }
-      if (content)
-        scrollTo(content)
-      else {
-        content = prev.nextElementSibling
-        while (content) {
-          if (Css.has(content, 'code-msg-assistant'))
-            break
-          content = content.nextElementSibling
-        }
-        if (content)
-          scrollTo(content)
-        else
-          scrollTo(prev)
-      }
-    }
-    else {
-      let w
-
-      w = el.closest('.code-w')
-      if (w)
-        w.scrollTop = 0
-    }
-  }
-}
-
-function scrollToNextRole
-(e) {
-  let el
-
-  el = e.target.closest('.code-msg-role')
-  if (el) {
-    let nextMsg
-
-    nextMsg = el.nextElementSibling
-    while (nextMsg) {
-      if (Css.has(nextMsg, 'code-msg-role'))
-        break
-      nextMsg = nextMsg.nextElementSibling
-    }
-    if (nextMsg) {
-      let content
-
-      content = nextMsg.nextElementSibling
-      while (content) {
-        if (Css.has(content, 'code-msg-assistant'))
-          break
-        content = content.nextElementSibling
-      }
-      if (content)
-        scrollTo(content)
-      else {
-        content = nextMsg.previousElementSibling
-        while (content) {
-          if (Css.has(content, 'code-msg-assistant'))
-            break
-          content = content.previousElementSibling
-        }
-        if (content)
-          scrollTo(content)
-        else
-          scrollTo(nextMsg)
-      }
-    }
-    else {
-      let underW
-
-      underW = el.closest('.code-w')?.querySelector('.code-under-w')
-      if (underW)
-        underW.scrollIntoView({ block: 'end', behavior: 'instant' })
-    }
-  }
-}
-
-function appendModel
-(buf, model) {
-  Util.eachCodeW(buf, (view, w) => {
-                        let scroller, scrollerDown
-
-                        scroller = span('▲', 'code-msg-scroll-up')
-                        scroller.onclick = scrollToPrevRole
-                        scrollerDown = span('▼', 'code-msg-scroll-down')
-                        scrollerDown.onclick = scrollToNextRole
-                        Ui.appendX(w,
-                                   divCl('code-msg code-msg-role',
-                                         [ span(ts(),
-                                                'code-msg-timestamp'),
-                                           scroller,
-                                           scrollerDown,
-                                           span(model,
-                                                'code-msg-model',
-                                                { 'data-run': 'set code model' }) ]))
-                      })
-}
-
 function fileLabel
 (buf, tool, path, status, spec) {
   function bounds
@@ -973,7 +834,7 @@ function send
 
                                 ensureTitle(c, buf, sessionID, text)
 
-                                appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant))
+                                Ui.appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant))
                                 if (provider == 'openrouter')
                                   updateCredits(buf)
 
@@ -2129,7 +1990,7 @@ function init
                                    (buf, event) {
                                      if (event.properties.sessionID == buf.vars('code').sessionID) {
                                        Ui.appendMsg(buf, 0, '/' + event.properties.name + ' finished')
-                                       appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant))
+                                       Ui.appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant))
                                      }
                                    } } }
 

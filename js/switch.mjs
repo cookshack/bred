@@ -344,7 +344,7 @@ function init
     }
     buf.vars('switch').oldBuf = old
     buf.vars('switch').cb = cb || 0
-    buf.vars('switch').title = cb ? 'Compare with' : ''
+    buf.vars('switch').title = cb ? 'Compare ' + old.name + ' with' : ''
 
     dir = p.dir
     p.setBuf(buf, {}, () => {

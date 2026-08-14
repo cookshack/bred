@@ -8,5 +8,5 @@
    xmlns:svg="http://www.w3.org/2000/svg">
   <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 76 40 H 160 L 200 80 V 216 H 76 a 12 12 0 0 1 -12 -12 V 52 a 12 12 0 0 1 12 -12 Z" />
   <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 160 40 V 80 H 200" />
-  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 100 120 H 184 M 100 144 H 184 M 100 168 H 152" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 96 120 H 176 M 96 148 H 176 M 96 176 H 148" />
 </svg>

@@ -6,9 +6,10 @@
    version="1.1"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <circle cx="128" cy="40" r="13" style="fill:#000000" />
-  <path style="fill:none;stroke:#000000;stroke-width:16;stroke-linecap:round;stroke-linejoin:round" d="M 128 53 V 74 M 128 74 H 48 M 128 74 H 208 M 128 74 V 98 M 48 74 V 98 M 208 74 V 98" />
-  <circle cx="48" cy="114" r="13" style="fill:#000000" />
-  <circle cx="128" cy="114" r="13" style="fill:#000000" />
-  <circle cx="208" cy="114" r="13" style="fill:#000000" />
+  <circle style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;fill:#000000" cx="128" cy="40" r="13" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 128 53 V 74 M 128 74 H 48 M 128 74 H 208 M 128 74 V 98 M 48 74 V 98 M 208 74 V 98" />
+  <circle style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;fill:#000000" cx="48" cy="114" r="13" />
+  <circle style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;fill:#000000" cx="128" cy="114" r="13" />
+  <circle style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;fill:#000000" cx="208" cy="114" r="13" />
+  <text style="font-size:92px;font-family:sans-serif;text-align:center;text-anchor:middle;fill:#000000;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" x="128" y="206">DOM</text>
 </svg>

@@ -6,5 +6,11 @@
    version="1.1"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
-  <text style="font-size:96px;font-family:sans-serif;text-align:center;text-anchor:middle;fill:#000000" x="128" y="176">Dock</text>
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 40 160 A 84 84 0 0 1 208 160 A 88 44 0 0 0 40 160 Z" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 206 152 L 236 138 M 206 152 L 236 170" />
+  <circle style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;fill:#000000" cx="96" cy="126" r="6" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 74 92 C 70 80 78 72 74 58 M 88 90 C 84 80 92 72 88 58" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 106 81 H 136 V 108 H 106 Z" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 140 79 H 168 V 104 H 140 Z" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 111 55 H 133 V 78 H 111 Z" />
 </svg>

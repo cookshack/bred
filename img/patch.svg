@@ -8,6 +8,6 @@
    xmlns:svg="http://www.w3.org/2000/svg">
   <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 76 40 H 160 L 200 80 V 216 H 76 a 12 12 0 0 1 -12 -12 V 52 a 12 12 0 0 1 12 -12 Z" />
   <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 160 40 V 80 H 200" />
-  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 96 136 H 160 M 128 104 V 168" />
-  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 92 186 H 164" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 108 120 H 148 M 128 100 V 140" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 100 172 H 156" />
 </svg>

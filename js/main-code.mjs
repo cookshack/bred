@@ -35,6 +35,7 @@ async function onSpawn
                                    workingDir,
                                    send: msg => e.sender.send(statusCh, msg),
                                    config: { logLevel: 'DEBUG',
+                                             provider: { openrouter: { options: { provider: { sort: 'throughput' } } } },
                                              permission: { external_directory: 'allow',
                                                            read: { '/home/node/.local/share/opencode/auth.json': 'deny' },
                                                            bash: { 'docker *': 'deny',

@@ -124,7 +124,8 @@ function make
            //
            get otherwise
            () {
-             return otherwise.to
+             if (otherwise)
+               return otherwise.to
            },
            set otherwise
            (to) {

@@ -85,7 +85,7 @@ function after
   let i, sh
 
   sh = shared()
-  i = sh.ring.indexOf(b => b.id == buf.id)
+  i = sh.ring.findIndex(b2 => b2.id == buf.id)
   if ((i == -1)
       || (i >= sh.ring.length))
     return sh.ring[0]

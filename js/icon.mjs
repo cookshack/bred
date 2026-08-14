@@ -194,6 +194,101 @@ function path
       return 'lib/svg/file-icons/Zig.svg'
   }
 
+  if (name == 'arrow-down')
+    return 'img/arrow-down.svg'
+  if (name == 'arrow-left')
+    return 'img/arrow-left.svg'
+  if (name == 'arrow-right')
+    return 'img/arrow-right.svg'
+  if (name == 'arrow-up')
+    return 'img/arrow-up.svg'
+  if (name == 'binary')
+    return 'img/binary.svg'
+  if (name == 'browse')
+    return 'img/browse.svg'
+  if (name == 'c_cpp')
+    return 'img/c_cpp.svg'
+  if (name == 'chat')
+    return 'img/chat.svg'
+  if (name == 'clipboard')
+    return 'img/clipboard.svg'
+  if (name == 'close')
+    return 'img/close.svg'
+  if (name == 'config')
+    return 'img/config.svg'
+  if (name == 'css')
+    return 'img/css.svg'
+  if (name == 'dark')
+    return 'img/dark.svg'
+  if (name == 'diagnostic')
+    return 'img/diagnostic.svg'
+  if (name == 'dir')
+    return 'img/dir.svg'
+  if (name == 'docker')
+    return 'img/docker.svg'
+  if (name == 'dom')
+    return 'img/dom.svg'
+  if (name == 'elisp')
+    return 'img/elisp.svg'
+  if (name == 'external')
+    return 'img/external.svg'
+  if (name == 'handwave')
+    return 'img/handwave.svg'
+  if (name == 'help')
+    return 'img/help.svg'
+  if (name == 'html')
+    return 'img/html.svg'
+  if (name == 'javascript')
+    return 'img/javascript.svg'
+  if (name == 'json')
+    return 'img/json.svg'
+  if (name == 'light')
+    return 'img/light.svg'
+  if (name == 'lisp')
+    return 'img/lisp.svg'
+  if (name == 'list')
+    return 'img/list.svg'
+  if (name == 'log')
+    return 'img/log.svg'
+  if (name == 'manpage')
+    return 'img/manpage.svg'
+  if (name == 'markdown')
+    return 'img/markdown.svg'
+  if (name == 'patch')
+    return 'img/patch.svg'
+  if (name == 'perl')
+    return 'img/perl.svg'
+  if (name == 'python')
+    return 'img/python.svg'
+  if (name == 'refresh')
+    return 'img/refresh.svg'
+  if (name == 'robot')
+    return 'img/robot.svg'
+  if (name == 'rust')
+    return 'img/rust.svg'
+  if (name == 'save')
+    return 'img/save.svg'
+  if (name == 'save_edit')
+    return 'img/save_edit.svg'
+  if (name == 'search')
+    return 'img/search.svg'
+  if (name == 'sh')
+    return 'img/sh.svg'
+  if (name == 'stop')
+    return 'img/stop.svg'
+  if (name == 'tex')
+    return 'img/tex.svg'
+  if (name == 'text')
+    return 'img/text.svg'
+  if (name == 'trash')
+    return 'img/trash.svg'
+  if (name == 'tree')
+    return 'img/tree.svg'
+  if (name == 'x')
+    return 'img/x.svg'
+  if (name == 'zig')
+    return 'img/zig.svg'
+
   if (name.startsWith('letter-'))
     return 'img/letter/' + name + '.svg'
   if (name == 'blank')

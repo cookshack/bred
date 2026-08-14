@@ -7,6 +7,7 @@
   "scripts": {
     "test": "mocha",
     "test-indent": "mocha test/indent.mjs",
+    "coverage": "c8 --reporter=text --reporter=html mocha",
     "start-gdb": "gdb -q --args node node_modules/.bin/electron .",
     "start": "electron .",
     "inspect": "electron --inspect=5656 .",
@@ -19,6 +20,7 @@
   "author": "Matt Mundell",
   "license": "CC0-1.0",
   "devDependencies": {
+    "c8": "^12.0.0",
     "electron": "^41.4.0",
     "globals": "^16.0.0",
     "husky": "^9.0.11",

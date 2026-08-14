@@ -31,7 +31,7 @@ function make
            //
            set lineNumber
            (val) {
-             if (val < 0)
+             if (val < 1)
                row = 0
              else
                row = val - 1

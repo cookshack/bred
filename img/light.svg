@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="256"
+   height="256"
+   viewBox="0 0 256 256"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <circle style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" cx="128" cy="128" r="40" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 182 128 L 210 128" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 166.2 89.8 L 186 70" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 128 74 L 128 46" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 89.8 89.8 L 70 70" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 74 128 L 46 128" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 89.8 166.2 L 70 186" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 128 182 L 128 210" />
+  <path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round" d="M 166.2 166.2 L 186 186" />
+</svg>

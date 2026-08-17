@@ -32,8 +32,6 @@ globalThis.document = { dispatchEvent: () => {},
                         documentElement: { style: {} } }
 globalThis.Element = class Element {}
 globalThis.HTMLDocument = class HTMLDocument {}
-globalThis.tron = { acmd: async () => ({ prompts: [ { name: 'init-prompt-test',
-                                                      text: 'hi' } ] }) }
 
 test('ensure', 'name',
      () => {
@@ -445,10 +443,14 @@ test('to', 'out of bounds throws',
 
 test('init', 'loads prompts into histories',
      async () => {
-       let h
+       let h, prev
 
+       prev = globalThis.tron
+       globalThis.tron = { acmd: async () => ({ prompts: [ { name: 'init-prompt-test',
+                                                             text: 'hi' } ] }) }
        Hist.init()
        await new Promise(r => setTimeout(r, 0))
+       globalThis.tron = prev
        h = Hist.ensure('init-prompt-test')
        equal(h.items.length, 1)
        equal(h.nth(0), 'hi')

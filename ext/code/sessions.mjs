@@ -234,7 +234,7 @@ function init
         function flushModel
         () {
           if (pendingModel) {
-            pendingModel.model && Ui.appendModel(buf, pendingModel.model, pendingModel.at)
+            pendingModel.model && Ui.appendModel(buf, pendingModel.model, Util.fmtCost(pendingModel.cost), pendingModel.at)
             pendingModel = 0
           }
         }
@@ -279,6 +279,7 @@ function init
                                    part.state?.output || part.state?.error)
                 }
               pendingModel = { model: Util.modelName(msg.info.modelID, msg.info.variant),
+                               cost: msg.info.cost,
                                at: msg.info.time?.created }
             }
           }

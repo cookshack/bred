@@ -667,7 +667,7 @@ function scrollToNextRole
 
 export
 function appendModel
-(buf, model, at) {
+(buf, model, cost, at) {
   Util.eachCodeW(buf, (view, w) => {
                         let scroller, scrollerDown
 
@@ -683,6 +683,8 @@ function appendModel
                                         scrollerDown,
                                         span(model,
                                              'code-msg-model',
-                                             { 'data-run': 'set code model' }) ]))
+                                             { 'data-run': 'set code model' }),
+                                        span(cost,
+                                             'code-msg-cost') ]))
                       })
 }

@@ -614,6 +614,8 @@ function handleMessageUpdated
     if (total > 0)
       buf.vars('code').lastTokens = total
   }
+  if (info.cost && info.cost > 0)
+    buf.vars('code').lastCost = info.cost
   if (info.model)
     updateModelContextLimit(buf, info.model.providerID, info.model.modelID)
 }
@@ -834,7 +836,7 @@ function send
 
                                 ensureTitle(c, buf, sessionID, text)
 
-                                Ui.appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant))
+                                Ui.appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant), Util.fmtCost(res.data?.info?.cost))
                                 if (provider == 'openrouter')
                                   updateCredits(buf)
 
@@ -1990,7 +1992,7 @@ function init
                                    (buf, event) {
                                      if (event.properties.sessionID == buf.vars('code').sessionID) {
                                        Ui.appendMsg(buf, 0, '/' + event.properties.name + ' finished')
-                                       Ui.appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant))
+                                       Ui.appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant), Util.fmtCost(buf.vars('code').lastCost))
                                      }
                                    } } }
 

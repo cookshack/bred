@@ -19,6 +19,14 @@ function modelName
 }
 
 export
+function fmtCost
+(cost) {
+  if (cost && cost > 0)
+    return '$' + cost.toFixed(4)
+  return ''
+}
+
+export
 function makeRelative
 (buf, path) {
   if (path?.startsWith(buf.dir))

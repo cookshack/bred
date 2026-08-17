@@ -136,6 +136,11 @@ div.code-thought:hover {
   color: var(--clr-nb3);
 }
 
+.code-msg-cost {
+  font-size: 0.9rem;
+  color: var(--clr-syntax3);
+}
+
 .code-msg-user .code-msg-role {
   display: none;
   color: var(--clr-emph);

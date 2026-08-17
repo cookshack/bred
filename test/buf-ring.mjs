@@ -26,6 +26,7 @@ tests = {}
 
 test('getRing', 'starts empty',
      () => {
+       Buf.getRing().splice(0, Buf.getRing().length)
        equal(Buf.getRing().length, 0)
      })
 

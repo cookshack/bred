@@ -1,7 +1,9 @@
 import { equal } from 'node:assert/strict'
+import * as Cmd from '../js/cmd.mjs'
 import * as Em from '../js/Em.mjs'
 import * as EmMake from '../js/em.mjs'
 import * as EvParser from '../lib/ev-parser.mjs'
+import * as Mode from '../js/mode.mjs'
 
 let tests, _shared
 
@@ -54,6 +56,7 @@ _shared.opt = _shared.opt || { values: {}, types: {} }
 globalThis.bred = { _shared: () => _shared }
 
 Em.init()
+Cmd.init()
 Em.on('g', 'goto line')
 Em.on('C-x C-f', 'open file')
 Em.on('C-c A-g', 'two prefixes')
@@ -78,6 +81,31 @@ test('EvParser', 'alt prefix',
 test('EvParser', 'ctrl alt prefix',
      () => {
        equal(EvParser.parse('C-A-g').join(','), 'C-A-g')
+     })
+
+test('EvParser', 'empty string',
+     () => {
+       equal(EvParser.parse('').join(','), '')
+     })
+
+test('EvParser', 'space char key',
+     () => {
+       equal(EvParser.parse('C- ').join(','), 'C- ')
+     })
+
+test('EvParser', 'dash key',
+     () => {
+       equal(EvParser.parse('C--').join(','), 'C--')
+     })
+
+test('EvParser', 'three keys',
+     () => {
+       equal(EvParser.parse('C-c C-a C-t').join(','), 'C-c,C-a,C-t')
+     })
+
+test('EvParser', 'plain keys with space',
+     () => {
+       equal(EvParser.parse('a b').join(','), 'a,b')
      })
 
 test('Em.get', 'after init has root Global',
@@ -158,6 +186,209 @@ test('Em.look', 'unbound key gives no command',
        found = lookTo([ press('z', 'KeyZ', 0, 0) ])
        equal(found.to, undefined)
        equal(found.map, undefined)
+     })
+
+test('Em.look', 'explicit active list',
+     () => {
+       let found
+
+       Em.look([ press('g', 'KeyG', 0, 0) ],
+               [ Em.get('Global') ],
+               undefined,
+               (map, to) => {
+                 found = to
+               })
+       equal(found, 'goto line')
+     })
+
+test('Em.on', 'mode object targets mode em',
+     () => {
+       let mo
+
+       mo = Mode.add('emtest-mo', {})
+       Em.on('q', 'mode quack', mo)
+       equal(Em.seq('mode quack', { mode: mo }), 'q')
+       equal(Em.seq('mode quack'), 0)
+       Mode.remove('emtest-mo')
+     })
+
+test('Em.on', 'mode name string binds',
+     () => {
+       let mo
+
+       mo = Mode.add('emtest-mn', {})
+       Em.on('j', 'mode jun', 'emtest-mn')
+       equal(Em.seq('mode jun', { mode: mo }), 'j')
+       Mode.remove('emtest-mn')
+     })
+
+test('Em.on', 'em object is first map',
+     () => {
+       let em, found
+
+       em = EmMake.make('Direct')
+       Em.on('w', 'direct woot', em)
+       Em.look([ press('w', 'KeyW', 0, 0) ],
+               [ em ],
+               undefined,
+               (map, to) => {
+                 found = to
+               })
+       equal(found, 'direct woot')
+     })
+
+test('Em.on', 'missing mode tosses',
+     () => {
+       let caught
+
+       caught = 0
+       try {
+         Em.on('r', 'x', 'emtest-no-such')
+       }
+       catch {
+         caught = 1
+       }
+       equal(caught, 1)
+     })
+
+test('Em.on', 'key ended too early tosses',
+     () => {
+       let caught
+
+       caught = 0
+       try {
+         Em.on('C-', 'x')
+       }
+       catch {
+         caught = 1
+       }
+       equal(caught, 1)
+     })
+
+test('Em.on', 'three key sequence',
+     () => {
+       Em.on('C-c C-a C-t', 'triple t')
+       equal(Em.seq('triple t'), 'C-c C-a C-t')
+     })
+
+test('Em.on', 'ctrl alt single event',
+     () => {
+       Em.on('C-A-x', 'ctrl alt x')
+       equal(Em.seq('ctrl alt x'), 'C-A-x')
+     })
+
+test('Em.on', 'empty sequence tosses',
+     () => {
+       let caught
+
+       caught = 0
+       try {
+         Em.on('', 'empty thing')
+       }
+       catch {
+         caught = 1
+       }
+       equal(caught, 1)
+     })
+
+test('Em.seq', 'mode falls back to root',
+     () => {
+       let mo
+
+       mo = Mode.add('emtest-fb', {})
+       equal(Em.seq('open file', { mode: mo }), 'C-x C-f')
+     })
+
+test('Em.cancel', 'resets input buffer',
+     () => {
+       Em.on('C-c C-a C-t', 'triple t')
+       Em.cancel()
+       equal(Em.seq('triple t'), 'C-c C-a C-t')
+     })
+
+test('Em.mainGetActive', 'no buf root only',
+     () => {
+       let a
+
+       a = Em.mainGetActive()
+       equal(a.length, 1)
+       equal(a[0].key, 'Global:')
+     })
+
+test('Em.mainGetActive', 'mode and minors reverse',
+     () => {
+       let a, m1, m2, mo
+
+       mo = Mode.add('emtest-ma', {})
+       m1 = Mode.add('emtest-ma1', { minor: 1 })
+       m2 = Mode.add('emtest-ma2', { minor: 1 })
+       a = Em.mainGetActive({ mode: mo, minors: [ m1, m2 ] })
+       equal(a[0], m2.em)
+       equal(a[1], m1.em)
+       equal(a[2], mo.em)
+       equal(a[3].key, 'Global:')
+     })
+
+test('Em.mainGetActive', 'parents after mode',
+     () => {
+       let a, mo, pm
+
+       pm = Mode.add('emtest-pm', {})
+       mo = Mode.add('emtest-mp', { parentsForEm: [ 'emtest-pm' ] })
+       a = Em.mainGetActive({ mode: mo })
+       equal(a[0], mo.em)
+       equal(a[1], pm.em)
+       equal(a[2].key, 'Global:')
+     })
+
+test('Em.mainGetActive', 'missing parent warns',
+     () => {
+       let a, mo
+
+       mo = Mode.add('emtest-mw', { parentsForEm: [ 'emtest-nop' ] })
+       a = Em.mainGetActive({ mode: mo })
+       equal(a[0], mo.em)
+       equal(a[1].key, 'Global:')
+     })
+
+test('Em.replace', 'custom getActive used by look',
+     () => {
+       let em, found
+
+       em = EmMake.make('Custom')
+       em.on('v', 'custom vee')
+       Em.replace(() => [ em ])
+       Em.look([ press('v', 'KeyV', 0, 0) ],
+               undefined,
+               undefined,
+               (map, to) => {
+                 found = to
+               })
+       Em.replace(0)
+       equal(found, 'custom vee')
+     })
+
+test('Em.replace', 'restore mainGetActive',
+     () => {
+       let found
+
+       Em.look([ press('g', 'KeyG', 0, 0) ],
+               undefined,
+               undefined,
+               (map, to) => {
+                 found = to
+               })
+       equal(found, 'goto line')
+     })
+
+test('Em.seq', 'parent mode command',
+     () => {
+       let mo, pm
+
+       pm = Mode.add('emtest-sp', {})
+       Em.on('p', 'parent bind', pm)
+       mo = Mode.add('emtest-sm', { parentsForEm: [ 'emtest-sp' ] })
+       equal(Em.seq('parent bind', { mode: mo }), 'p')
      })
 
 test('em make', 'name on key',

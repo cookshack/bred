@@ -7,7 +7,7 @@
   "scripts": {
     "test": "mocha",
     "test-indent": "mocha test/indent.mjs",
-    "coverage": "c8 --reporter=text --reporter=html mocha",
+    "coverage": "c8 --include='js/**' --include='ext/**' --reporter=text --reporter=html mocha",
     "start-gdb": "gdb -q --args node node_modules/.bin/electron .",
     "start": "electron .",
     "inspect": "electron --inspect=5656 .",

@@ -215,6 +215,38 @@ test('remove', 'deletes from registry',
        equal(Cmd.get('remove me'), undefined)
      })
 
+test('runMo', 'runs command in mode with arg',
+     () => {
+       let got, mo
+
+       mo = Mode.add('rmo-key', {})
+       Cmd.add('rmo cmd', arg => got = arg, mo)
+       Cmd.runMo('rmo cmd', 'rmo-key', 9)
+       equal(got, 9)
+       equal(Cmd.last(), 'Rmo Cmd')
+     })
+
+test('runMo', 'missing cb leaves last',
+     () => {
+       let before, mo
+
+       mo = Mode.add('rmo-miss-key', {})
+       mo.cmds = { 'Rmo Miss': { name: 'Rmo Miss' } }
+       before = Cmd.last()
+       Cmd.runMo('rmo miss', 'rmo-miss-key', 9)
+       equal(Cmd.last(), before)
+     })
+
+test('runMo', 'missing name leaves last',
+     () => {
+       let before
+
+       Mode.add('rmo-noget-key', {})
+       before = Cmd.last()
+       Cmd.runMo('no such command', 'rmo-noget-key', 9)
+       equal(Cmd.last(), before)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

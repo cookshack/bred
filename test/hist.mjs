@@ -32,6 +32,8 @@ globalThis.document = { dispatchEvent: () => {},
                         documentElement: { style: {} } }
 globalThis.Element = class Element {}
 globalThis.HTMLDocument = class HTMLDocument {}
+globalThis.tron = { acmd: async () => ({ prompts: [ { name: 'init-prompt-test',
+                                                      text: 'hi' } ] }) }
 
 test('ensure', 'name',
      () => {
@@ -284,6 +286,29 @@ test('next', 'restores current with buf at end',
        equal(b._content, 'original')
      })
 
+test('next', 'with buf shows item',
+     () => {
+       let b, h
+
+       h = Hist.make('test-next-buf', 1)
+       h.add('c')
+       h.add('b')
+       h.add('a')
+       h.prev()
+       h.prev()
+       b = mbuf('')
+       h.next(b)
+       equal(b._content, 'a')
+     })
+
+test('next', 'empty history returns null',
+     () => {
+       let h
+
+       h = Hist.make('test-next-empty', 1)
+       equal(h.next(), null)
+     })
+
 test('reset', 'returns self',
      () => {
        let h
@@ -400,6 +425,33 @@ test('to', 'to(1) returns items[1]',
        h.add('b')
        h.add('a')
        equal(h.to(1), 'b')
+     })
+
+test('to', 'out of bounds throws',
+     () => {
+       let caught, h
+
+       h = Hist.make('test-to-oob', 1)
+       h.add('a')
+       caught = 0
+       try {
+         h.to(5)
+       }
+       catch {
+         caught = 1
+       }
+       equal(caught, 1)
+     })
+
+test('init', 'loads prompts into histories',
+     async () => {
+       let h
+
+       Hist.init()
+       await new Promise(r => setTimeout(r, 0))
+       h = Hist.ensure('init-prompt-test')
+       equal(h.items.length, 1)
+       equal(h.nth(0), 'hi')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

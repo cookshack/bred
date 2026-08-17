@@ -3,7 +3,7 @@ import * as Em from '../js/Em.mjs'
 import * as EmMake from '../js/em.mjs'
 import * as EvParser from '../lib/ev-parser.mjs'
 
-let tests
+let tests, _shared
 
 function test
 (group, name, cb) {
@@ -21,6 +21,17 @@ function press
            mouse: 0 }
 }
 
+function mpress
+(name) {
+  return { e: { key: '',
+                code: '',
+                ctrlKey: 0,
+                altKey: 0,
+                preventDefault: () => {} },
+           mouse: 1,
+           name }
+}
+
 function lookTo
 (wes) {
   let found
@@ -33,6 +44,14 @@ function lookTo
           })
   return found
 }
+
+globalThis.document = { dispatchEvent: () => {},
+                        documentElement: { style: {} } }
+globalThis.Element = class Element {}
+globalThis.HTMLDocument = class HTMLDocument {}
+_shared = globalThis.bred?._shared?.() || {}
+_shared.opt = _shared.opt || { values: {}, types: {} }
+globalThis.bred = { _shared: () => _shared }
 
 Em.init()
 Em.on('g', 'goto line')
@@ -241,6 +260,111 @@ test('em make', 'control key goes through submap',
                  found = to
                })
        equal(found, 'sub goto')
+     })
+
+test('em make', 'mouse binding',
+     () => {
+       let em, found
+
+       em = EmMake.make('Num')
+       em.on('Left', 'mouse left')
+       em.look([ mpress('Left') ],
+               to => {
+                 found = to
+               })
+       equal(found, 'mouse left')
+     })
+
+test('em make', 'command before end of sequence warns',
+     () => {
+       let em, found
+
+       em = EmMake.make('Num')
+       em.on('a', 'first cmd')
+       em.look([ press('a', 'KeyA', 0, 0),
+                 press('b', 'KeyB', 0, 0) ],
+               to => {
+                 found = to
+               })
+       equal(found, undefined)
+     })
+
+test('em make', 'ctrl bound to command warns',
+     () => {
+       let em, found
+
+       em = EmMake.make('Num')
+       em.on('Control', 'ctrl cmd')
+       em.look([ press('a', 'KeyA', 1, 0) ],
+               to => {
+                 found = to
+               })
+       equal(found, undefined)
+     })
+
+test('em make', 'ctrl unbound returns nothing',
+     () => {
+       let em, found
+
+       em = EmMake.make('Num')
+       em.look([ press('a', 'KeyA', 1, 0) ],
+               to => {
+                 found = to
+               })
+       equal(found, undefined)
+     })
+
+test('em make', 'alt as map goes through submap',
+     () => {
+       let em, found, sub
+
+       em = EmMake.make('Num')
+       sub = EmMake.make('Sub')
+       em.on('Alt', sub)
+       sub.on('g', 'sub alt goto')
+       em.look([ press('g', 'KeyG', 0, 1) ],
+               to => {
+                 found = to
+               })
+       equal(found, 'sub alt goto')
+     })
+
+test('em make', 'alt bound to command warns',
+     () => {
+       let em, found
+
+       em = EmMake.make('Num')
+       em.on('Alt', 'alt cmd')
+       em.look([ press('a', 'KeyA', 0, 1) ],
+               to => {
+                 found = to
+               })
+       equal(found, undefined)
+     })
+
+test('em make', 'alt unbound returns nothing',
+     () => {
+       let em, found
+
+       em = EmMake.make('Num')
+       em.look([ press('a', 'KeyA', 0, 1) ],
+               to => {
+                 found = to
+               })
+       equal(found, undefined)
+     })
+
+test('em make', 'binding with no to logs and returns nothing',
+     () => {
+       let em, found
+
+       em = EmMake.make('Num')
+       em.on('x', 0)
+       em.look([ press('x', 'KeyX', 0, 0) ],
+               to => {
+                 found = to
+               })
+       equal(found, undefined)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

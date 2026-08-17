@@ -1,6 +1,6 @@
 import { deepStrictEqual } from 'node:assert/strict'
 
-import { computeRefine } from '../js/patch.mjs'
+import { computeRefine, refine } from '../js/patch.mjs'
 
 let tests
 
@@ -111,6 +111,24 @@ test('pure removal', 'extra - line', () => {
                                        deepStrictEqual(computeRefine(p([ 'old', 'gone' ], [ 'old' ])),
                                                        [ { line: 5, from: 1, to: 5, type: '-' } ])
                                      })
+
+test('pure addition', 'hunk with leading + line',
+     () => {
+       deepStrictEqual(computeRefine('--- a\n+++ b\n@@ -1,1 +1,2 @@\n context\n+added\n'),
+                       [])
+     })
+
+test('refine', 'calls cb with results',
+     () => {
+       let got
+
+       got = 0
+       refine('--- a\n+++ b\n@@ -1,1 +1,1 @@\n-abc\n+xyz\n',
+              r => got = r)
+       deepStrictEqual(got,
+                       [ { line: 4, from: 1, to: 4, type: '-' },
+                         { line: 5, from: 1, to: 4, type: '+' } ])
+     })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,

@@ -174,6 +174,70 @@ test('remove', 'removes from registry',
        equal(Mode.get('removekey'), undefined)
      })
 
+test('get', 'no key returns 0',
+     () => {
+       equal(Mode.get(), 0)
+       equal(Mode.get(0), 0)
+     })
+
+test('viewCopy', 'short length logs',
+     () => {
+       Mode.add('mode-vc', { viewCopy: () => {} })
+     })
+
+test('viewInit', 'short length logs',
+     () => {
+       Mode.add('mode-vi', { viewInit: () => {} })
+     })
+
+test('viewReopen', 'short length logs',
+     () => {
+       Mode.add('mode-vr', { viewReopen: () => {} })
+     })
+
+test('getParentEms', 'missing em warns',
+     () => {
+       let child, pm
+
+       pm = Mode.add('mode-pe', {})
+       pm.em = 0
+       child = Mode.add('mode-pe-c', { parentsForEm: [ 'mode-pe' ] })
+       equal(child.getParentEms().length, 0)
+     })
+
+test('viewReopen', 'with ele calls whenReady',
+     async () => {
+       let got, mo, view
+
+       mo = Mode.add('mode-rw', { viewInit: () => {}, viewCopy: () => {} })
+       got = 0
+       view = { ele: {} }
+       mo.viewReopen(view, 5, v => got = v)
+       await new Promise(r => setTimeout(r, 10))
+       equal(got, view)
+     })
+
+test('viewReopen', 'without ele calls viewInit',
+     () => {
+       let calls, mo
+
+       calls = []
+       mo = Mode.add('mode-ri', { viewInit: (view, s) => calls.push(s),
+                                  viewCopy: () => {} })
+       mo.viewReopen({}, 7, () => {})
+       equal(calls.length, 1)
+       equal(calls[0].lineNum, 7)
+     })
+
+test('onSeize', 'set and call',
+     () => {
+       let got
+
+       Mode.setOnSeize(b => got = b)
+       Mode.onSeize({ x: 2 })
+       equal(got.x, 2)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

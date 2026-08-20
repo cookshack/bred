@@ -334,6 +334,45 @@ function make
     }
   }
 
+  function bep
+  () {
+    if (walker.currentNode)
+      return { node: walker.currentNode, offset: pos }
+    return 0
+  }
+
+  function setAt
+  ({ node, offset }) {
+    if (node?.isConnected) {
+      let w2, n
+
+      w2 = globalThis.document.createTreeWalker(elePane, globalThis.NodeFilter.SHOW_TEXT)
+      while ((n = w2.nextNode()))
+        if (n == node) {
+          let len
+
+          walker = w2
+          len = node.wholeText.length
+          pos = offset
+          if (len == 0)
+            pos = 0
+          else if (pos > (len - 1))
+            pos = len - 1
+          sync()
+          return 1
+        }
+    }
+    return 0
+  }
+
+  function stale
+  () {
+    if (walker.currentNode)
+      if (walker.currentNode.isConnected)
+        return 0
+    return 1
+  }
+
   function search
   (str,
    // { backwards,
@@ -347,7 +386,12 @@ function make
 
     d('psr')
     spec = spec || {}
-    walker.currentNode || Mess.toss('missing currentNode')
+    if (stale()) {
+      // the DOM changed (eg agent streaming), re-walk from the top
+      init()
+      if (walker.currentNode == 0)
+        return 0
+    }
     startNode = walker.currentNode
     startPos = pos
     while (walker.currentNode) {
@@ -369,6 +413,11 @@ function make
       else
         i = text.indexOf(str, pos)
       if (i >= 0) {
+        if (spec.skipCurrent && (i == pos)) {
+          // re-searching, past the current match
+          pos = pos + 1
+          continue
+        }
         pos = i + (spec.backwards ? 0 : str.length)
         if (pos >= text.length)
           pos = text.length - 1
@@ -450,6 +499,8 @@ function make
            lineNext,
            linePrev,
            put,
+           bep,
+           setAt,
            search,
            sync }
 }

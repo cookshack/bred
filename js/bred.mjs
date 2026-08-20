@@ -1163,7 +1163,7 @@ function initSearch
     s.st.win = p.win
     s.st.view = view
     s.st.needle = ''
-    s.st.start = s.st.view.pos
+    s.st.start = view.buf.mode?.pos ? view.pos : view.point.bep()
     s.st.backward = backward
 
     s.st.echo = divCl('mini-echo')
@@ -1282,12 +1282,38 @@ function initDivSearch
    //   wrap,
    //   stayInPlace }
    spec) {
+    let range
+
     d('div vfind')
-    return view.point.search(needle, spec)
+    range = view.point.search(needle, spec)
+    if (range) {
+      range.startBep = { node: range.node, offset: range.start }
+      range.endBep = { node: range.node, offset: range.end }
+      range.text = range.node.wholeText.slice(range.start, range.end)
+    }
+    return range
   }
 
   initSearch(vfind,
-             { emName: 'Div: Search' })
+             { Backend:
+               { // positions are { node, offset }
+                 posToBep
+                 (view, bep) {
+                   return bep
+                 },
+                 vsetBep
+                 (view, bep) {
+                   view.point.setAt(bep)
+                 },
+                 vsetPos
+                 (view, bep) {
+                   view.point.setAt(bep)
+                 },
+                 vbepIncr
+                 (view, bep) {
+                   return { node: bep.node, offset: bep.offset + 1 }
+                 } },
+               emName: 'Div: Search' })
 }
 
 function initBindings

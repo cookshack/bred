@@ -108,6 +108,7 @@ function make
     append(spec.ele, reserved)
     reserved = 0
     prep()
+    point.init()
     if (scrollTop) {
       let scrollEl
 

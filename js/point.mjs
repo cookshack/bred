@@ -373,6 +373,27 @@ function make
     return 1
   }
 
+  // nearest scrollable container between the text and the pane,
+  // so matches can be scrolled into the visible region
+  function scrollerOf
+  (text) {
+    let n, sc
+
+    n = text?.parentNode
+    sc = 0
+    while (n) {
+      let st
+
+      if (n == elePane)
+        break
+      st = globalThis.getComputedStyle(n)
+      if (st && [ 'auto', 'scroll', 'overlay' ].includes(st.overflowY))
+        sc = n
+      n = n.parentNode
+    }
+    return sc
+  }
+
   function search
   (str,
    // { backwards,
@@ -447,7 +468,27 @@ function make
                 walker.currentNode.wholeText.length == 0 ? pos : pos + 1)
       re = ra.getBoundingClientRect()
       if (re) {
-        let eleRe
+        let eleRe, wantScroll
+
+        wantScroll = (skipScroll == 1) ? 0 : 1
+        if (wantScroll) {
+          let sc
+
+          sc = scrollerOf(walker.currentNode)
+          if (sc) {
+            let rs, h, cy, delta, half
+
+            rs = sc.getBoundingClientRect()
+            h = rs.bottom - rs.top
+            half = h / 2
+            cy = rs.top + half
+            delta = Math.round(re.y - cy)
+            if (delta) {
+              sc.scrollTop += delta
+              re = ra.getBoundingClientRect()
+            }
+          }
+        }
 
         eleRe = elePane.getBoundingClientRect()
         elePoint.style.top = (re.y - eleRe.y) + 'px'

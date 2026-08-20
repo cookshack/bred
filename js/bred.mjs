@@ -1155,7 +1155,7 @@ function initSearch
 
     p = Pane.current()
 
-    view = View.current(p)
+    view = spec.view ? spec.view(p) : View.current(p)
 
     s.st = { stack: [],
              caseSensitive: 0,
@@ -1181,7 +1181,7 @@ function initSearch
                                    img('img/search.svg', 'Search', 'filter-clr-nb0'),
                                    { 'data-run': 'search done' }),
                              s.st.echo ])
-    view.ele?.closest('.paneW')?.querySelector('.bred-overlay')?.prepend(s.st.searchBar)
+    view.elPane?.parentNode?.querySelector(':scope > .bred-overlay-w > .bred-overlay')?.prepend(s.st.searchBar)
 
     oldOnKeyDown = globalThis.onkeydown
     s.st.oldOnKeyDown = oldOnKeyDown
@@ -1313,6 +1313,7 @@ function initDivSearch
                  (view, bep) {
                    return { node: bep.node, offset: bep.offset + 1 }
                  } },
+               view: p => p.view,
                emName: 'Div: Search' })
 }
 

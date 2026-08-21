@@ -113,53 +113,113 @@ function codeInit
                               })
 }
 
-function updateCredits
-(buf) {
+function setCreditsText
+(buf, text) {
+  buf.views.forEach(view => {
+                      if (view.eleOrReserved) {
+                        let el
+
+                        el = view.eleOrReserved.querySelector('.code-under-credits')
+                        if (el)
+                          el.innerText = text
+                      }
+                    })
+}
+
+function getOpenrouterKey
+() {
   let key
 
   key = Opt.get('code.key')
   if (key.length == 0)
     key = Opt.get('query.key')
-  if (key.length == 0)
-    return
+  return key
+}
 
-  fetch('https://openrouter.ai/api/v1/auth/key',
-        { method: 'GET',
-          headers: { Authorization: 'Bearer ' + key,
-                     'Content-Type': 'application/json' } })
-    .then(response => {
-            if (response.ok) {
-              response.json().then(data => {
-                                     d({ data })
-                                     d(data.data.limit_remaining)
-                                     buf.views.forEach(view => {
-                                                         if (view.eleOrReserved) {
-                                                           let el
+function updateDeepinfraCredits
+(buf) {
+  Comm.ensureClient(buf).then(async c => {
+                                let providers, key
 
-                                                           el = view.eleOrReserved.querySelector('.code-under-credits')
-                                                           if (el) {
-                                                             let dol
+                                providers = await c.config.providers({ directory: buf.dir })
+                                providers.data.providers?.some(p => {
+                                                                 if (p.id == 'deepinfra') {
+                                                                   key = p.key
+                                                                   return true
+                                                                 }
+                                                               })
+                                if (key)
+                                  fetch('https://api.deepinfra.com/v1/me?checklist=true',
+                                        { method: 'GET',
+                                          headers: { Authorization: 'Bearer ' + key,
+                                                     'Content-Type': 'application/json' } })
+                                    .then(response => {
+                                            if (response.ok) {
+                                              response.json().then(data => {
+                                                                     let recent
 
-                                                             dol = parseFloat(data.data.limit_remaining)
-                                                             if (isNaN(dol))
-                                                               el.innerText = 'OR:$'
-                                                             else
-                                                               el.innerText = 'OR:$' + dol.toFixed(2)
-                                                           }
-                                                         }
+                                                                     recent = data.checklist?.recent || 0
+                                                                     if (data.checklist)
+                                                                       if (data.checklist.limit == null || data.checklist.limit < 0)
+                                                                         setCreditsText(buf, 'DI:used $' + recent.toFixed(2))
+                                                                       else
+                                                                         setCreditsText(buf, 'DI:$' + (data.checklist.limit - recent).toFixed(2))
+                                                                   })
+                                                .catch(err => {
+                                                         d('ERR .json: ' + err.message)
                                                        })
-                                   })
-                .catch(err => {
-                         d('ERR .json: ' + err.message)
-                       })
-              return
-            }
-            d('Error fetching credit info')
-          })
-    .catch(err => {
-             d('ERR fetch:')
-             d(err.message)
-           })
+                                              return
+                                            }
+                                            d('Error fetching deepinfra credits')
+                                          })
+                                    .catch(err => {
+                                             d('ERR fetch:')
+                                             d(err.message)
+                                           })
+                              })
+}
+
+function updateCredits
+(buf, provider) {
+  if (provider == 'openrouter') {
+    let key
+
+    key = getOpenrouterKey()
+    if (key.length == 0)
+      return
+
+    fetch('https://openrouter.ai/api/v1/auth/key',
+          { method: 'GET',
+            headers: { Authorization: 'Bearer ' + key,
+                       'Content-Type': 'application/json' } })
+      .then(response => {
+              if (response.ok) {
+                response.json().then(data => {
+                                       let dol
+
+                                       d({ data })
+                                       d(data.data.limit_remaining)
+                                       dol = parseFloat(data.data.limit_remaining)
+                                       if (isNaN(dol))
+                                         setCreditsText(buf, 'OR:$')
+                                       else
+                                         setCreditsText(buf, 'OR:$' + dol.toFixed(2))
+                                     })
+                  .catch(err => {
+                           d('ERR .json: ' + err.message)
+                         })
+                return
+              }
+              d('Error fetching credit info')
+            })
+      .catch(err => {
+               d('ERR fetch:')
+               d(err.message)
+             })
+    return
+  }
+  if (provider == 'deepinfra')
+    updateDeepinfraCredits(buf)
 }
 
 function fileLabel
@@ -837,8 +897,8 @@ function send
                                 ensureTitle(c, buf, sessionID, text)
 
                                 Ui.appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant), Util.fmtCost(res.data?.info?.cost))
-                                if (provider == 'openrouter')
-                                  updateCredits(buf)
+                                if (provider == 'openrouter' || provider == 'deepinfra')
+                                  updateCredits(buf, provider)
 
                                 await new Promise(r => setTimeout(r))
                                 if (buf.vars('code').gotContent == 0 && res.data?.parts)
@@ -1247,21 +1307,21 @@ function code
   pane = Pane.current()
   dir = pane.dir
   name = 'CO ' + dir
+  provider = Util.getProvider()
+  model = Util.getModel()
+  variant = Util.getVariant()
   {
     let buf
 
     buf = Buf.find(b => b.name == name)
     if (buf) {
       pane.setBuf(buf)
-      if (provider == 'openrouter')
-        updateCredits(buf)
+      if (provider == 'openrouter' || provider == 'deepinfra')
+        updateCredits(buf, provider)
       return
     }
   }
 
-  provider = Util.getProvider()
-  model = Util.getModel()
-  variant = Util.getVariant()
   if (given)
     run(given)
   else

@@ -24,7 +24,7 @@ import * as Sessions from './sessions.mjs'
 
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
-let hist, chatHist, stopTimeout, tools, events
+let hist, chatHist, stopTimeout, tools, events, mostRecentAgents
 
 function getSubagentIds
 (buf) {
@@ -1701,10 +1701,34 @@ function nextHist
   wh.next(view.buf)
 }
 
+function mostRecentAgent
+() {
+  let buf
+
+  if (mostRecentAgents.length == 0) {
+    Mess.yell('Run an agent first')
+    return
+  }
+  buf = mostRecentAgents.find(b => isShownInPane(b) == 0) || mostRecentAgents[0]
+  Pane.current().setBuf(buf)
+}
+
+function isShownInPane
+(b) {
+  let f
+
+  f = 0
+  Pane.forEach(pane => {
+                 if (pane.buf == b)
+                   f = 1
+               })
+  return f
+}
+
 export
 function init
 () {
-  let mo, moCodePrompt, mostRecentAgents
+  let mo, moCodePrompt
 
   tools = { read: { onPendOrRun
                     (buf, part) {
@@ -2173,18 +2197,7 @@ function init
                            code(Pane.current().buf.text())
                          })
 
-  Cmd.add('most recent agent', () => {
-                                 let buf
-
-                                 if (mostRecentAgents.length == 0) {
-                                   Mess.yell('Run an agent first')
-                                   return
-                                 }
-                                 buf = mostRecentAgents[0]
-                                 if (buf == Pane.current().buf && mostRecentAgents.length > 1)
-                                   buf = mostRecentAgents[1]
-                                 Pane.current().setBuf(buf)
-                               })
+  Cmd.add('most recent agent', mostRecentAgent)
 
   Pane.onSetBuf(view => {
                   if (view.buf.mode.key == 'code') {

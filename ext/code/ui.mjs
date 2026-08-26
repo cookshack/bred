@@ -5,6 +5,7 @@ import * as Icon from '../../js/icon.mjs'
 import { d } from '../../js/mess.mjs'
 
 import * as Util from './util.mjs'
+import { markdownTablePad } from './tables.mjs'
 
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
@@ -126,6 +127,7 @@ function makeMarkdownEd
                                        extensions: [ CMView.EditorView.editable.of(false),
                                                      CMView.EditorView.lineWrapping,
                                                      markdown({ codeLanguages: langs }),
+                                                     markdownTablePad(),
                                                      themeExtension ] })
   ed = new CMView.EditorView({ state, parent: el })
   return { el, ed }

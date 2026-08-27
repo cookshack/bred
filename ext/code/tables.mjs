@@ -71,7 +71,7 @@ function delimCells
     pipe = line.indexOf('|', i)
     if (pipe < 0)
       break
-    cells.push({ from: off + i, to: off + pipe })
+    cells.push({ from: off + i, to: off + pipe, pipe: off + pipe })
     i = pipe + 1
   }
   return cells
@@ -88,7 +88,14 @@ function rowsFor
                                             if ((n.name == 'TableHeader') || (n.name == 'TableRow')) {
                                               let cells
 
-                                              cells = (n.node.getChildren('TableCell') || []).map(c => ({ from: c.from, to: c.to }))
+                                              cells = (n.node.getChildren('TableCell') || []).map(c => {
+                                                                                              let pipe
+
+                                                                                              pipe = view.state.doc.sliceString(c.to, table.to).indexOf('|')
+                                                                                              if (pipe < 0)
+                                                                                                pipe = 0
+                                                                                              return { from: c.from, to: c.to, pipe: c.to + pipe }
+                                                                                            })
                                               rows.push({ delim: 0, cells })
                                             }
                                             else if ((n.name == 'TableDelimiter') && (n.to - n.from > 1))
@@ -130,17 +137,27 @@ function addTable
   for (let row of rows)
     if (row.cells.length == cols)
       for (let i = 0; i < row.cells.length; i++) {
-        let w
+        let cell, w, raw, pad
 
-        w = cellWidth(row.cells[i], view)
-        if ((i < row.cells.length - 1) && (width[i] + spaceW > w)) {
-          let pad
+        cell = row.cells[i]
+        w = cellWidth(cell, view)
+        if (row.delim) {
+          let trailingLen, lead
 
-          pad = Math.ceil((width[i] + spaceW - w) / spaceW)
-          if (pad < 1)
-            pad = 1
-          builder.add(row.cells[i].to, row.cells[i].to, new PadWidget(pad))
+          raw = view.state.doc.sliceString(cell.from, cell.to)
+          lead = raw.length - raw.trimStart().length
+          if (lead == 0)
+            builder.add(cell.from, cell.from, new PadWidget(1))
+          trailingLen = raw.length - raw.trimEnd().length
+          raw = measure(view.state.doc.sliceString(cell.to - trailingLen, cell.to), view)
+          pad = Math.ceil((width[i] + spaceW - w - raw) / spaceW)
         }
+        else {
+          raw = measure(view.state.doc.sliceString(cell.to, cell.pipe), view)
+          pad = Math.ceil((width[i] + spaceW - w - raw) / spaceW)
+        }
+        if (pad > 0)
+          builder.add(cell.pipe, cell.pipe, new PadWidget(pad))
       }
 }
 

@@ -30,40 +30,38 @@ imgNames = [ 'arrow-down', 'arrow-left', 'arrow-right', 'arrow-up',
              'robot', 'rust', 'save', 'save_edit', 'search', 'sh', 'stop',
              'tex', 'text', 'trash', 'tree', 'x', 'zig' ]
 
-test('setHave', 'flips icon paths',
+test('setHave', 'does not flip icon paths',
      () => {
        Icon.setHave(1)
-       equal(Icon.path('arrow-up'), 'lib/svg/octicons/arrow-up-24.svg')
+       equal(Icon.path('arrow-up'), 'img/arrow-up.svg')
        Icon.setHave(0)
        equal(Icon.path('arrow-up'), 'img/arrow-up.svg')
      })
 
-test('path', 'img fallback for every icon',
+test('path', 'img for every icon',
      () => {
        let ok
 
-       Icon.setHave(0)
        ok = imgNames.filter(name => Icon.path(name) == 'img/' + name + '.svg')
        equal(ok.length, imgNames.length)
      })
 
-test('path', 'lib path for every icon when have',
+test('path', 'img chosen even when have',
+     () => {
+       let ok
+
+       Icon.setHave(1)
+       ok = haveNames.filter(name => Icon.path(name).startsWith('img/'))
+       equal(ok.length, haveNames.length)
+     })
+
+test('path', 'no lib paths when have',
      () => {
        let ok
 
        Icon.setHave(1)
        ok = haveNames.filter(name => Icon.path(name).startsWith('lib/'))
-       equal(ok.length, haveNames.length)
-       Icon.setHave(0)
-     })
-
-test('path', 'lib paths specific',
-     () => {
-       Icon.setHave(1)
-       equal(Icon.path('python'), 'lib/svg/mfixx/python.svg')
-       equal(Icon.path('dark'), 'lib/svg/material-icons/dark_mode/materialiconsoutlined/24px.svg')
-       equal(Icon.path('robot'), 'lib/svg/file-icons/Robots.svg')
-       Icon.setHave(0)
+       equal(ok.length, 0)
      })
 
 test('path', 'preferred img names ignore have',

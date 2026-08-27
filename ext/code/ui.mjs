@@ -10,7 +10,7 @@ import { markdownTablePad } from './tables.mjs'
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 import { patch } from '../../js/wode-lang-patch.mjs'
-import { markdown } from '../../lib/@codemirror/lang-markdown.js'
+import { markdown, markdownLanguage } from '../../lib/@codemirror/lang-markdown.js'
 import { langs } from '../../js/wode-lang.mjs'
 import { modeFor } from '../../js/wode-mode.mjs'
 import { themeExtension } from '../../js/wode-theme.mjs'
@@ -55,17 +55,9 @@ function scroll
   underW.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' })
 }
 
-function underVisible
-(w, underW) {
-  if (underW) {
-    let rU, rW
-
-    rU = underW.getBoundingClientRect()
-    rW = w.getBoundingClientRect()
-    //d('CO ' + rU.bottom + ' < ' + rW.bottom + '?')
-    return rU.top < rW.bottom
-  }
-  return 0
+function atEnd
+(w) {
+  return Math.abs((w.scrollHeight - Math.ceil(w.scrollTop)) - w.clientHeight) < 10
 }
 
 export
@@ -75,7 +67,7 @@ function withScroll
 
   underW = w.querySelector('.code-under-w') || d('CO underW missing')
 
-  wasVisible = underVisible(w, underW)
+  wasVisible = atEnd(w)
   //d({ wasVisible })
 
   if (cb)
@@ -126,7 +118,8 @@ function makeMarkdownEd
   state = CMState.EditorState.create({ doc: text,
                                        extensions: [ CMView.EditorView.editable.of(false),
                                                      CMView.EditorView.lineWrapping,
-                                                     markdown({ codeLanguages: langs }),
+                                                     markdown({ base: markdownLanguage,
+                                                                codeLanguages: langs }),
                                                      markdownTablePad(),
                                                      themeExtension ] })
   ed = new CMView.EditorView({ state, parent: el })
@@ -538,7 +531,7 @@ function flushText
                               delta = chunks[partID]
                               tr = { changes: { from: ed.state.doc.length, to: ed.state.doc.length, insert: delta } }
                               underW = w.querySelector('.code-under-w')
-                              wasVisible = underW && underVisible(w, underW)
+                              wasVisible = underW && atEnd(w)
                               beforeTop = underW?.getBoundingClientRect().top
                               ed.dispatch(tr)
                               // CM defers DOM writes; re-check scroll next frame

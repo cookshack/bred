@@ -16,14 +16,10 @@ function fontChanged
 }
 
 function measure
-(text, view) {
-  let font
-
-  font = globalThis.getComputedStyle(view.contentDOM).font
-  fontChanged(font)
+(text) {
   if (ctx == null) {
     ctx = globalThis.document.createElement('canvas').getContext('2d')
-    ctx.font = font
+    ctx.font = measureFont
   }
   if (measureCache.has(text))
     return measureCache.get(text)
@@ -89,9 +85,10 @@ function rowsFor
                                               let cells
 
                                               cells = (n.node.getChildren('TableCell') || []).map(c => {
-                                                                                              let pipe
+                                                                                              let line, pipe
 
-                                                                                              pipe = view.state.doc.sliceString(c.to, table.to).indexOf('|')
+                                                                                              line = view.state.doc.lineAt(c.to)
+                                                                                              pipe = view.state.doc.sliceString(c.to, line.to).indexOf('|')
                                                                                               if (pipe < 0)
                                                                                                 pipe = 0
                                                                                               return { from: c.from, to: c.to, pipe: c.to + pipe }
@@ -108,7 +105,7 @@ function rowsFor
 
 function cellWidth
 (cell, view) {
-  return measure(view.state.doc.sliceString(cell.from, cell.to).trim(), view)
+  return measure(view.state.doc.sliceString(cell.from, cell.to).trim())
 }
 
 function addTable
@@ -133,7 +130,7 @@ function addTable
     }
   }
 
-  spaceW = measure(' ', view)
+  spaceW = measure(' ')
   for (let row of rows)
     if (row.cells.length == cols)
       for (let i = 0; i < row.cells.length; i++) {
@@ -149,11 +146,11 @@ function addTable
           if (lead == 0)
             builder.add(cell.from, cell.from, new PadWidget(1))
           trailingLen = raw.length - raw.trimEnd().length
-          raw = measure(view.state.doc.sliceString(cell.to - trailingLen, cell.to), view)
+          raw = measure(view.state.doc.sliceString(cell.to - trailingLen, cell.to))
           pad = Math.ceil((width[i] + spaceW - w - raw) / spaceW)
         }
         else {
-          raw = measure(view.state.doc.sliceString(cell.to, cell.pipe), view)
+          raw = measure(view.state.doc.sliceString(cell.to, cell.pipe))
           pad = Math.ceil((width[i] + spaceW - w - raw) / spaceW)
         }
         if (pad > 0)
@@ -166,6 +163,7 @@ function tableDecorations
 (view) {
   let builder
 
+  fontChanged(globalThis.getComputedStyle(view.contentDOM).font)
   builder = new CMState.RangeSetBuilder()
   for (let { from, to } of view.visibleRanges)
     CMLang.syntaxTree(view.state).iterate({ from,

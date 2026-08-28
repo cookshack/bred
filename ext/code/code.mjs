@@ -45,6 +45,18 @@ function sumTokens
     + (tokens.cache?.write || 0)
 }
 
+function fmtSessionStart
+(ts) {
+  let dt, h, m
+
+  dt = new Date(ts)
+  h = String(dt.getHours()).padStart(2, '0')
+  m = String(dt.getMinutes()).padStart(2, '0')
+  return String(dt.getFullYear()) + '-'
+    + String(dt.getMonth() + 1).padStart(2, '0') + '-'
+    + String(dt.getDate()).padStart(2, '0') + ' ' + h + 'h' + m
+}
+
 function codeInit
 () {
   let pane, dir, name, provider, model, existingBuf, buf
@@ -89,6 +101,7 @@ function codeInit
                                 c.session.create({ directory: buf.dir, title: '/init' })
                                   .then(res => {
                                           buf.vars('code').sessionID = res.data.id
+                                          buf.vars('code').sessionStart = res.data.time?.created
 
                                           pane.setBuf(buf, {}, () => {
                                                                  Prompt.nestBuf(buf, hist)
@@ -657,6 +670,22 @@ function handleSessionUpdated
                                       el = v.ele?.querySelector('.assist-extra.assist-mode-session-title')
                                       if (el)
                                         el.innerText = title
+                                    })
+                })
+  }
+  if (event.properties.info?.time?.created) {
+    let ts
+
+    ts = event.properties.info.time.created
+    buf.vars('code').sessionStart = buf.vars('code').sessionStart || ts
+    Buf.forEach(b => {
+                  if (b.mode.key == 'assist')
+                    b.views.forEach(v => {
+                                      let el
+
+                                      el = v.ele?.querySelector('.assist-extra.assist-mode-session-start')
+                                      if (el)
+                                        el.innerText = 'Started: ' + fmtSessionStart(ts)
                                     })
                 })
   }
@@ -1290,6 +1319,7 @@ function code
                                                                                         ...(prompt ? { title: prompt } : {}) })
 
                                                          buf.vars('code').sessionID = res.data.id
+                                                         buf.vars('code').sessionStart = res.data.time?.created
 
                                                          Prompt.nestBuf(buf, hist)
                                                          Ui.updateDocker(buf)
@@ -2074,6 +2104,14 @@ function init
                                         co
                                         (view) {
                                           return view.buf.vars('code')?.sessionTitle || view.buf.vars('code')?.prompt || ''
+                                        } },
+                                      { key: 'session-start',
+                                        co
+                                        (view) {
+                                          let ts
+
+                                          ts = view.buf.vars('code')?.sessionStart
+                                          return 'Started: ' + (ts ? fmtSessionStart(ts) : '?')
                                         } } ] },
                   onRemove
                   (buf) {

@@ -96,7 +96,8 @@ function init
                                              divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
                                                    { 'data-run': 'open code session',
                                                      'data-session-id': s.id,
-                                                     'data-session-dir': s.directory }),
+                                                     'data-session-dir': s.directory,
+                                                     'data-session-time': s.time?.created }),
                                              divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
                                   }))
             })
@@ -202,7 +203,8 @@ function init
                                            divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
                                                  { 'data-run': 'open code session',
                                                    'data-session-id': s.id,
-                                                   'data-session-dir': s.directory }),
+                                                   'data-session-dir': s.directory,
+                                                   'data-session-time': s.time_created }),
                                            divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
                                 snippet = isTitle ? 'Title: ' + snippet : snippet
                                 return [ divCl('code-sessions-del', '✗',
@@ -212,7 +214,8 @@ function init
                                          divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
                                                { 'data-run': 'open code session',
                                                  'data-session-id': s.id,
-                                                 'data-session-dir': s.directory }),
+                                                 'data-session-dir': s.directory,
+                                                 'data-session-time': s.time_created }),
                                          divCl('code-sessions-title', (s.title || '').split('\n')[0]),
                                          divCl('code-sessions-snippet', snippet) ]
                               }))
@@ -221,7 +224,7 @@ function init
 
   function openCodeSession
   (u, we) {
-    let sessionID, sessionDir
+    let sessionID, sessionDir, ts
 
     function open
     () {
@@ -326,6 +329,8 @@ function init
       buf.vars('code').model = model
       buf.vars('code').variant = variant
       buf.vars('code').sessionID = sessionID
+      if (ts)
+        buf.vars('code').sessionStart = ts
       buf.vars('code').thinkingHidden = 1
       buf.opt('core.lint.enabled', 1)
 
@@ -370,6 +375,9 @@ function init
 
     sessionID = we.e.target.dataset.sessionId
     sessionDir = we.e.target.dataset.sessionDir
+    ts = we.e.target.dataset.sessionTime
+    if (ts)
+      ts = Number(ts)
 
     open()
   }

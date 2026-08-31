@@ -1,194 +1,117 @@
-import * as CMState from '../../lib/@codemirror/state.js'
-import * as CMView from '../../lib/@codemirror/view.js'
-import * as CMLang from '../../lib/@codemirror/language.js'
-
-let ctx, measureFont, measureCache
-
-function fontChanged
-(font) {
-  if (font == measureFont)
-    return 0
-  measureFont = font
-  measureCache = new Map()
-  if (ctx)
-    ctx.font = font
-  return 1
-}
-
-function measure
-(text) {
-  if (ctx == null) {
-    ctx = globalThis.document.createElement('canvas').getContext('2d')
-    ctx.font = measureFont
-  }
-  if (measureCache.has(text))
-    return measureCache.get(text)
-  {
-    let w
-
-    w = ctx.measureText(text).width
-    measureCache.set(text, w)
-    return w
-  }
-}
-
-class PadWidget extends CMView.WidgetType {
-  constructor
-  (spaces) {
-    super()
-    this.spaces = spaces
-  }
-
-  eq
-  (other) {
-    return (other instanceof PadWidget) && (other.spaces == this.spaces)
-  }
-
-  toDOM
-  () {
-    let el
-
-    el = globalThis.document.createElement('span')
-    el.className = 'cm-table-pad'
-    el.textContent = '\u00a0'.repeat(this.spaces)
-    return el
-  }
-}
-
-function delimCells
-(line, off) {
-  let cells, i
+function splitCells
+(line) {
+  let cells, cur, i
 
   cells = []
-  i = line[0] == '|' ? 1 : 0
+  cur = ''
+  i = 0
   while (i < line.length) {
-    let pipe
+    let c
 
-    pipe = line.indexOf('|', i)
-    if (pipe < 0)
-      break
-    cells.push({ from: off + i, to: off + pipe, pipe: off + pipe })
-    i = pipe + 1
+    c = line[i]
+    if ((c == '\\') && (line[i + 1] == '|')) {
+      cur += '|'
+      i += 2
+    }
+    else if (c == '|') {
+      cells.push(cur.trim())
+      cur = ''
+      i++
+    }
+    else {
+      cur += c
+      i++
+    }
   }
+  cells.push(cur.trim())
   return cells
 }
 
-function rowsFor
-(table, view) {
-  let rows
+function rowCells
+(line) {
+  let s
 
-  rows = []
-  CMLang.syntaxTree(view.state).iterate({ from: table.from,
-                                          to: table.to,
-                                          enter: n => {
-                                            if ((n.name == 'TableHeader') || (n.name == 'TableRow')) {
-                                              let cells
-
-                                              cells = (n.node.getChildren('TableCell') || []).map(c => {
-                                                                                              let line, pipe
-
-                                                                                              line = view.state.doc.lineAt(c.to)
-                                                                                              pipe = view.state.doc.sliceString(c.to, line.to).indexOf('|')
-                                                                                              if (pipe < 0)
-                                                                                                pipe = 0
-                                                                                              return { from: c.from, to: c.to, pipe: c.to + pipe }
-                                                                                            })
-                                              rows.push({ delim: 0, cells })
-                                            }
-                                            else if ((n.name == 'TableDelimiter') && (n.to - n.from > 1))
-                                              rows.push({ delim: 1, cells: delimCells(view.state.doc.sliceString(n.from, n.to), n.from) })
-                                          } })
-  if (rows.length < 2)
-    return []
-  return rows
+  s = line.trim()
+  if (s.startsWith('|'))
+    s = s.slice(1)
+  if (s.endsWith('|'))
+    if (s.endsWith('\\|') == 0)
+      s = s.slice(0, -1)
+  return splitCells(s)
 }
 
-function cellWidth
-(cell, view) {
-  return measure(view.state.doc.sliceString(cell.from, cell.to).trim())
+function isDelimiter
+(line) {
+  let cells
+
+  if (line.indexOf('-') < 0)
+    return 0
+  cells = rowCells(line)
+  if (cells.length == 0)
+    return 0
+  return cells.every(c => /^:?-+:?$/.test(c))
 }
 
-function addTable
-(builder, table, view) {
-  let rows, cols, width, spaceW
+function looksLikeRow
+(line) {
+  return line.trimStart().startsWith('|')
+}
 
-  rows = rowsFor(table, view)
-  if (rows.length == 0)
-    return
+export
+function padTableText
+(text) {
+  let lines, out, i
 
-  cols = rows[0].cells.length
-  width = Array(cols)
-  for (let row of rows) {
-    if (cols == 0 || row.cells.length < cols || cols < row.cells.length)
-      continue
-    for (let i = 0; i < row.cells.length; i++) {
-      let w
+  lines = text.split('\n')
+  out = []
+  i = 0
+  while (i < lines.length)
+    if ((i + 1 < lines.length) && (isDelimiter(lines[i]) == 0) && looksLikeRow(lines[i]) && isDelimiter(lines[i + 1])) {
+      let rows, j, numCols, width
 
-      w = cellWidth(row.cells[i], view)
-      if (width[i] == null || w > width[i])
-        width[i] = w
-    }
-  }
+      rows = [ lines[i], lines[i + 1] ]
+      j = i + 2
+      while ((j < lines.length) && looksLikeRow(lines[j])) {
+        rows.push(lines[j])
+        j++
+      }
+      numCols = rowCells(lines[i]).length
+      width = Array(numCols).fill(0)
+      for (let row of rows)
+        if (isDelimiter(row) == 0) {
+          let cells
 
-  spaceW = measure(' ')
-  for (let row of rows)
-    if (row.cells.length == cols)
-      for (let i = 0; i < row.cells.length; i++) {
-        let cell, w, raw, pad
+          cells = rowCells(row)
+          if (cells.length == numCols)
+            for (let c = 0; c < numCols; c++)
+              if (cells[c].length > width[c])
+                width[c] = cells[c].length
+        }
+      for (let row of rows) {
+        let lead
 
-        cell = row.cells[i]
-        w = cellWidth(cell, view)
-        if (row.delim) {
-          let trailingLen, lead
+        lead = row.match(/^\s*/)[0]
+        if (isDelimiter(row)) {
+          let parts
 
-          raw = view.state.doc.sliceString(cell.from, cell.to)
-          lead = raw.length - raw.trimStart().length
-          if (lead == 0)
-            builder.add(cell.from, cell.from, new PadWidget(1))
-          trailingLen = raw.length - raw.trimEnd().length
-          raw = measure(view.state.doc.sliceString(cell.to - trailingLen, cell.to))
-          pad = Math.ceil((width[i] + spaceW - w - raw) / spaceW)
+          parts = rowCells(row).map((c, ci) => '-'.repeat(Math.max(width[ci] || 0, 1)))
+          out.push(lead + '| ' + parts.join(' | ') + ' |')
         }
         else {
-          raw = measure(view.state.doc.sliceString(cell.to, cell.pipe))
-          pad = Math.ceil((width[i] + spaceW - w - raw) / spaceW)
+          let cells
+
+          cells = rowCells(row)
+          if (cells.length == numCols)
+            out.push(lead + '| ' + cells.map((c, ci) => c.padEnd(width[ci])).join(' | ') + ' |')
+          else
+            out.push(row)
         }
-        if (pad > 0)
-          builder.add(cell.pipe, cell.pipe, new PadWidget(pad))
       }
-}
-
-export
-function tableDecorations
-(view) {
-  let builder
-
-  fontChanged(globalThis.getComputedStyle(view.contentDOM).font)
-  builder = new CMState.RangeSetBuilder()
-  for (let { from, to } of view.visibleRanges)
-    CMLang.syntaxTree(view.state).iterate({ from,
-                                            to,
-                                            enter: n => {
-                                              if (n.name == 'Table')
-                                                addTable(builder, n, view)
-                                            } })
-  return builder.finish()
-}
-
-export
-function markdownTablePad
-() {
-  return CMView.ViewPlugin.fromClass(class {
-    constructor
-    (view) {
-      this.decorations = tableDecorations(view)
+      i = j
     }
-
-    update
-    (update) {
-      if (update.docChanged || update.viewportChanged)
-        this.decorations = tableDecorations(update.view)
+    else {
+      out.push(lines[i])
+      i++
     }
-  },
-                                     { decorations: v => v.decorations })
+  return out.join('\n')
 }

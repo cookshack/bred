@@ -413,12 +413,6 @@ div.code-thought:hover {
   overflow: auto;
 }
 
-.code-markdown-ed .cm-table-pad {
-  display: inline-block;
-  white-space: pre;
-  user-select: none;
-}
-
 .code-code-ed {
   margin-top: 4px;
   overflow: hidden;

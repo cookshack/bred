@@ -5,7 +5,7 @@ import * as Icon from '../../js/icon.mjs'
 import { d } from '../../js/mess.mjs'
 
 import * as Util from './util.mjs'
-import { markdownTablePad } from './tables.mjs'
+import { padTableText } from './tables.mjs'
 
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
@@ -115,12 +115,11 @@ function makeMarkdownEd
   let el, state, ed
 
   el = divCl('code-markdown-ed')
-  state = CMState.EditorState.create({ doc: text,
+  state = CMState.EditorState.create({ doc: padTableText(text),
                                        extensions: [ CMView.EditorView.editable.of(false),
                                                      CMView.EditorView.lineWrapping,
                                                      markdown({ base: markdownLanguage,
                                                                 codeLanguages: langs }),
-                                                     markdownTablePad(),
                                                      themeExtension ] })
   ed = new CMView.EditorView({ state, parent: el })
   return { el, ed }
@@ -499,6 +498,7 @@ function chunkText
 (buf, partId, delta) {
   let chunks
 
+  globalThis.clearTimeout(buf.vars('code').finalizeTimer)
   chunks = Util.ensureTextChunks(buf)
   chunks[partId] = (chunks[partId] || '') + delta
   buf.vars('code').partTexts = buf.vars('code').partTexts || {}
@@ -539,7 +539,37 @@ function flushText
                                 globalThis.requestAnimationFrame(() => laterTick(underW, beforeTop, w))
                             }
                         })
+    globalThis.clearTimeout(buf.vars('code').finalizeTimer)
+    buf.vars('code').finalizeTimer = globalThis.setTimeout(() => finalizeText(buf), 500)
   }
+}
+
+export
+function finalizeText
+(buf) {
+  let parts
+
+  parts = buf.vars('code').partTexts
+  if (parts)
+    Util.eachCodeW(buf, (view, w) => {
+                          let eds
+
+                          eds = view.vars('code').partEds
+                          if (eds)
+                            for (let partID of Object.keys(eds)) {
+                              let raw, padded, ed, tr
+
+                              raw = parts[partID]
+                              if (raw == null)
+                                continue
+                              padded = padTableText(raw)
+                              ed = eds[partID]
+                              if (padded == ed.state.doc.toString())
+                                continue
+                              tr = { changes: { from: 0, to: ed.state.doc.length, insert: padded } }
+                              withScroll(w, () => ed.dispatch(tr))
+                            }
+                        })
 }
 
 function ts

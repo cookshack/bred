@@ -370,23 +370,24 @@ function fill
   }
 
   function appendLines
-  (view) {
-    let surf, scroll
+  (view, surf) {
+    surf = surf || view.eleOrReserved.querySelector('.dir-w')
+    if (surf) {
+      let scroll
 
-    surf = view.ele.firstElementChild.firstElementChild.nextElementSibling // dir-ww > dir-h,dir-w
+      if (view.vars('dir').scroll)
+        view.vars('dir').scroll.destroy()
 
-    if (view.vars('dir').scroll)
-      view.vars('dir').scroll.destroy()
-
-    scroll = Scroll.make(surf, { itemCount: view.buf.vars('dir').lines.length })
-    scroll.renderItem = (el, i) => {
-                          el.style.display = 'grid'
-                          el.style.gridTemplateColumns = 'repeat(7, auto)'
-                          view.buf.vars('dir').lines[i].forEach(cell => el.append(cell.cloneNode(true)))
-                        }
-    view.vars('dir').scroll = scroll
-    scroll.onScroll = () => redraw(view)
-    scroll.render()
+      scroll = Scroll.make(surf, { itemCount: view.buf.vars('dir').lines.length })
+      scroll.renderItem = (el, i) => {
+                            el.style.display = 'grid'
+                            el.style.gridTemplateColumns = 'repeat(7, auto)'
+                            view.buf.vars('dir').lines[i].forEach(cell => el.append(cell.cloneNode(true)))
+                          }
+      view.vars('dir').scroll = scroll
+      scroll.onScroll = () => redraw(view)
+      scroll.render()
+    }
   }
 
   ////
@@ -480,31 +481,35 @@ function fill
 
                               buf.views.forEach(v => {
                                                   if (v.eleOrReserved) {
-                                                    let surf
+                                                    let surf, connected
 
                                                     surf = v.eleOrReserved.querySelector('.dir-w')
-                                                    surf.innerHTML = ''
-                                                    if (lines.length == 0)
-                                                      surf.append(divCl('dir-empty', 'Empty directory'))
-                                                    surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
-                                                    surf.append(divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }))
-
-                                                    appendLines(v)
-
-                                                    if (current) {
-                                                      let el
-
-                                                      el = v.eleOrReserved.querySelector('.dir-name[data-name="' + current + '"]')
-                                                      if (el)
-                                                        put(v, el)
+                                                    connected = surf ? surf.isConnected : 0
+                                                    if (surf) {
+                                                      surf.innerHTML = ''
+                                                      if (lines.length == 0)
+                                                        surf.append(divCl('dir-empty', 'Empty directory'))
+                                                      surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
+                                                      surf.append(divCl('bred-gap', [], { style: 'height: calc(' + lines.length + ' * var(--line-height));' }))
                                                     }
-                                                    else {
-                                                      let first
 
-                                                      first = v.eleOrReserved.querySelector('.dir-name')
-                                                      if (first)
-                                                        put(v, first)
-                                                    }
+                                                    appendLines(v, surf)
+
+                                                    if (surf && connected)
+                                                      if (current) {
+                                                        let el
+
+                                                        el = v.eleOrReserved.querySelector('.dir-name[data-name="' + current + '"]')
+                                                        if (el)
+                                                          put(v, el)
+                                                      }
+                                                      else {
+                                                        let first
+
+                                                        first = v.eleOrReserved.querySelector('.dir-name')
+                                                        if (first)
+                                                          put(v, first)
+                                                      }
                                                   }
                                                 })
 
@@ -667,7 +672,8 @@ function refresh
       let surf
 
       surf = p.view.ele.querySelector('.dir-w')
-      surf.innerHTML = ''
+      if (surf)
+        surf.innerHTML = ''
     }
     fill(p.buf, bak, hid, sort, file, marked)
   }
@@ -903,9 +909,11 @@ function init
     hid = dirVars.hid ?? view.buf.opt('dir.show.hidden')
 
     surf = view.ele.querySelector('.dir-w')
-    surf.innerHTML = ''
-    surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
-    surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
+    if (surf) {
+      surf.innerHTML = ''
+      surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
+      surf.append(divCl('bred-gap', [], { style: 'height: calc(0 * var(--line-height));' }))
+    }
 
     fill(view.buf, bak, hid, sort, dirVars.initialFile)
 

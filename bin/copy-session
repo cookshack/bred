@@ -18,8 +18,9 @@ import { DatabaseSync } from 'node:sqlite'
 
 const uuid = process.argv[2]
 const workingDir = process.argv[3]
+const force = process.argv.includes('--force')
 if (!uuid || !workingDir) {
-  console.error('usage: copy-session <uuid> <working-dir>')
+  console.error('usage: copy-session <uuid> <working-dir> [--force]')
   process.exit(1)
 }
 
@@ -231,6 +232,12 @@ db.close()
 
 const projectDir = Path.join(OUT, slug(Path.basename(workingDir)))
 const file = Path.join(projectDir, `${fmtStamp(s.time_created)}-${slug(title)}.md`)
+
+if (Fs.existsSync(file) && !force) {
+  console.error(`❌ already exists: ${file}`)
+  console.error('   (not overwritten; pass --force to replace it)')
+  process.exit(1)
+}
 
 Fs.mkdirSync(projectDir, { recursive: true })
 Fs.writeFileSync(file, lines.join('\n'))

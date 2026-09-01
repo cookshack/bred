@@ -1,8 +1,9 @@
 #!/usr/bin/env -S node --disable-warning=ExperimentalWarning
 // search-sessions <term>
 // Search every bred session store under ~/.local/state/bred/code-data-*/
-// for <term>; print matching sessions as:  UUID  date  project-dir  "title"
-// (UUID first, for copy-session). Snippet line underneath each hit.
+// for <term>; print matching sessions as:  UUID  date  version  project-dir  "title"
+// (UUID first, for copy-session). Snippet line shows the term in context;
+// rows that only matched in the title or metadata get a note instead.
 
 import Fs from 'node:fs'
 import Path from 'node:path'
@@ -15,7 +16,7 @@ if (!term) {
 }
 
 const BASE = Path.join(process.env.HOME, '.local/state/bred')
-const LIKE = '%' + term + '%'
+const LOWER = term.toLowerCase()
 
 function walk
 (dir, out) {
@@ -57,16 +58,16 @@ function findDbs
   return out
 }
 
-function strip
-(s) {
-  return String(s || '').replace(/\s+/g, ' ').trim()
-}
-
 function storeVersion
 (dbPath) {
   const rel = Path.relative(BASE, dbPath)
   const m = rel.match(/^code-data(?:-([^/]+))?\//)
   return m ? (m[1] || '0') : '?'
+}
+
+function strip
+(s) {
+  return String(s || '').replace(/\s+/g, ' ').trim()
 }
 
 function fmtDate
@@ -78,22 +79,56 @@ function fmtDate
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-function snippetText
-(json) {
-  let d
-  try {
-    d = JSON.parse(json)
+// The text of a part as a user/agent would see it. Returns '' for parts
+// (step-start/step-finish) that carry no transcript material.
+function partText
+(d) {
+  switch (d.type) {
+    case 'text':
+      return d.text
+    case 'reasoning':
+      return d.text
+    case 'tool': {
+      const st = d.state || {}
+      return [ st.title, st.output,
+               typeof st.input == 'string' ? st.input
+                 : (st.input ? JSON.stringify(st.input) : '') ]
+        .filter(Boolean).join('\n')
+    }
+    case 'patch':
+      return (d.files || []).join('\n')
+    default:
+      return ''
   }
-  catch {
-    return ''
+}
+
+// First part whose displayed text contains the term; snippet shows the term
+// in context. Returns null when the session only matched elsewhere (title,
+// metadata, a step-finish).
+function snippetFor
+(db, sessionID) {
+  const parts = db.prepare('SELECT data FROM part WHERE session_id = ? ORDER BY time_created').all(sessionID)
+  for (const p of parts) {
+    let d
+    try {
+      d = JSON.parse(p.data)
+    }
+    catch {
+      continue
+    }
+    const text = partText(d)
+    if (!text)
+      continue
+    const idx = text.toLowerCase().indexOf(LOWER)
+    if (idx < 0)
+      continue
+    const start = Math.max(0, idx - 70)
+    const end = Math.min(text.length, idx + term.length + 90)
+    const pre = start > 0 ? '…' : ''
+    const post = end < text.length ? '…' : ''
+    return `[${d.type}${d.type == 'tool' && d.tool ? ' ' + d.tool : ''}] ${pre}${strip(text.slice(start, end))}${post}`
   }
-  if (d.type == 'text')
-    return d.text
-  if (d.type == 'reasoning')
-    return d.text
-  if (d.type == 'tool')
-    return d.state?.output || JSON.stringify(d.state?.input) || ''
-  return ''
+  return null
 }
 
 const rows = []
@@ -108,18 +143,15 @@ for (const dbPath of findDbs()) {
   }
   try {
     const q = db.prepare(`
-      SELECT s.id, s.title, s.directory, s.time_created,
-             (SELECT p.data FROM part p
-              WHERE p.session_id = s.id AND p.data LIKE ?
-              LIMIT 1) AS snip
-      FROM session s
-      WHERE s.title LIKE ?
+      SELECT id, title, directory, time_created
+      FROM session
+      WHERE title LIKE ?
          OR EXISTS (SELECT 1 FROM part p
-                    WHERE p.session_id = s.id AND p.data LIKE ?)
-      ORDER BY s.time_created DESC
+                    WHERE p.session_id = session.id AND p.data LIKE ?)
+      ORDER BY time_created DESC
     `)
-    for (const r of q.all(LIKE, LIKE, LIKE))
-      rows.push({ db: dbPath, version: storeVersion(dbPath), ...r })
+    for (const r of q.all('%' + term + '%', '%' + term + '%'))
+      rows.push({ db: dbPath, version: storeVersion(dbPath), snippet: snippetFor(db, r.id), ...r })
   }
   catch {
     // skip unreadable store
@@ -138,7 +170,8 @@ if (rows.length == 0) {
 
 for (const r of rows) {
   console.log(`${r.id}\t${fmtDate(r.time_created)}\t${r.version}\t${r.directory || ''}\t"${strip(r.title)}"`)
-  const snip = snippetText(r.snip)
-  if (snip)
-    console.log(`    ${strip(snip).slice(0, 140)}`)
+  if (r.snippet)
+    console.log(`    ${r.snippet}`)
+  else if (!String(r.title || '').toLowerCase().includes(LOWER))
+    console.log('    (matched title/metadata only — no text match)')
 }

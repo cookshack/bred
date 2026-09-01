@@ -1,17 +1,19 @@
 #!/usr/bin/env -S node --disable-warning=ExperimentalWarning
-// search-sessions <term>
+// search-sessions <term> [--subagents]
 // Search every bred session store under ~/.local/state/bred/code-data-*/
 // for <term>; print matching sessions as:  UUID  date  version  project-dir  "title"
 // (UUID first, for copy-session). Snippet line shows the term in context;
 // rows that only matched in the title or metadata get a note instead.
+// Subagent sessions (parent_id set) are excluded unless --subagents is given.
 
 import Fs from 'node:fs'
 import Path from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 
 const term = process.argv[2]
+const includeSubagents = process.argv.includes('--subagents')
 if (!term) {
-  console.error('usage: search-sessions <term>')
+  console.error('usage: search-sessions <term> [--subagents]')
   process.exit(1)
 }
 
@@ -145,9 +147,10 @@ for (const dbPath of findDbs()) {
     const q = db.prepare(`
       SELECT id, title, directory, time_created
       FROM session
-      WHERE title LIKE ?
+      WHERE ${includeSubagents ? '' : 'parent_id IS NULL AND '}
+        (title LIKE ?
          OR EXISTS (SELECT 1 FROM part p
-                    WHERE p.session_id = session.id AND p.data LIKE ?)
+                    WHERE p.session_id = session.id AND p.data LIKE ?))
       ORDER BY time_created DESC
     `)
     for (const r of q.all('%' + term + '%', '%' + term + '%'))

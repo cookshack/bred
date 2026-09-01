@@ -1,0 +1,144 @@
+#!/usr/bin/env -S node --disable-warning=ExperimentalWarning
+// search-sessions <term>
+// Search every bred session store under ~/.local/state/bred/code-data-*/
+// for <term>; print matching sessions as:  UUID  date  project-dir  "title"
+// (UUID first, for copy-session). Snippet line underneath each hit.
+
+import Fs from 'node:fs'
+import Path from 'node:path'
+import { DatabaseSync } from 'node:sqlite'
+
+const term = process.argv[2]
+if (!term) {
+  console.error('usage: search-sessions <term>')
+  process.exit(1)
+}
+
+const BASE = Path.join(process.env.HOME, '.local/state/bred')
+const LIKE = '%' + term + '%'
+
+function walk
+(dir, out) {
+  let entries
+  try {
+    entries = Fs.readdirSync(dir)
+  }
+  catch {
+    return
+  }
+  for (const name of entries) {
+    const p = Path.join(dir, name)
+    let st
+    try {
+      st = Fs.statSync(p)
+    }
+    catch {
+      continue
+    }
+    if (st.isDirectory())
+      walk(p, out)
+    else if (name === 'opencode.db')
+      out.push(p)
+  }
+}
+
+function findDbs
+() {
+  const out = []
+  if (!Fs.existsSync(BASE))
+    return out
+  for (const name of Fs.readdirSync(BASE)) {
+    if (name.startsWith('code-data') == 0)
+      continue
+    if (Fs.statSync(Path.join(BASE, name)).isDirectory() == 0)
+      continue
+    walk(Path.join(BASE, name), out)
+  }
+  return out
+}
+
+function strip
+(s) {
+  return String(s || '').replace(/\s+/g, ' ').trim()
+}
+
+function storeVersion
+(dbPath) {
+  const rel = Path.relative(BASE, dbPath)
+  const m = rel.match(/^code-data(?:-([^/]+))?\//)
+  return m ? (m[1] || '0') : '?'
+}
+
+function fmtDate
+(ms) {
+  if (!ms)
+    return ''
+  const d = new Date(ms)
+  const p = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+function snippetText
+(json) {
+  let d
+  try {
+    d = JSON.parse(json)
+  }
+  catch {
+    return ''
+  }
+  if (d.type == 'text')
+    return d.text
+  if (d.type == 'reasoning')
+    return d.text
+  if (d.type == 'tool')
+    return d.state?.output || JSON.stringify(d.state?.input) || ''
+  return ''
+}
+
+const rows = []
+
+for (const dbPath of findDbs()) {
+  let db
+  try {
+    db = new DatabaseSync(dbPath, { readOnly: true })
+  }
+  catch {
+    continue
+  }
+  try {
+    const q = db.prepare(`
+      SELECT s.id, s.title, s.directory, s.time_created,
+             (SELECT p.data FROM part p
+              WHERE p.session_id = s.id AND p.data LIKE ?
+              LIMIT 1) AS snip
+      FROM session s
+      WHERE s.title LIKE ?
+         OR EXISTS (SELECT 1 FROM part p
+                    WHERE p.session_id = s.id AND p.data LIKE ?)
+      ORDER BY s.time_created DESC
+    `)
+    for (const r of q.all(LIKE, LIKE, LIKE))
+      rows.push({ db: dbPath, version: storeVersion(dbPath), ...r })
+  }
+  catch {
+    // skip unreadable store
+  }
+  finally {
+    db.close()
+  }
+}
+
+rows.sort((a, b) => (b.time_created || 0) - (a.time_created || 0))
+
+if (rows.length == 0) {
+  console.log(`no sessions matching "${term}" under ${BASE}`)
+  process.exit(0)
+}
+
+for (const r of rows) {
+  console.log(`${r.id}\t${fmtDate(r.time_created)}\t${r.version}\t${r.directory || ''}\t"${strip(r.title)}"`)
+  const snip = snippetText(r.snip)
+  if (snip)
+    console.log(`    ${strip(snip).slice(0, 140)}`)
+}

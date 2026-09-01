@@ -31,6 +31,7 @@ function mountArgs
   specs = [ home + '/fresh/main:' + home + '/fresh/main',
             home + '/src/review:' + home + '/src/review',
             home + '/src/bred:' + home + '/src/bred',
+            home + '/sessions:' + home + '/sessions',
             home + '/alts/main/openvas/plugins:' + home + '/alts/main/openvas/plugins:ro',
             home + '/alts/main/gvm/cert-data:' + home + '/alts/main/gvm/cert-data:ro',
             home + '/alts/main/gvm/scap-data:' + home + '/alts/main/gvm/scap-data:ro',

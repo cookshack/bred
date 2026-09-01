@@ -1,0 +1,244 @@
+#!/usr/bin/env -S node --disable-warning=ExperimentalWarning
+// copy-session <uuid> <working-dir>
+// Copy one session out of a bred session store into ~/sessions as an
+// agent-readable markdown transcript. READ-ONLY on the source: the store is
+// opened readonly and never modified or deleted.
+//
+// The store for <working-dir> is located under
+// ~/.local/state/bred/code-data-*/<working-dir>/opencode.db. If the session
+// exists in several version stores, the store matching the current bundled
+// opencode version is preferred, else the highest version that has it.
+//
+// Output: ~/sessions/<project-slug>/<timestamp>-<title-slug>.md
+
+import Fs from 'node:fs'
+import Path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { DatabaseSync } from 'node:sqlite'
+
+const uuid = process.argv[2]
+const workingDir = process.argv[3]
+if (!uuid || !workingDir) {
+  console.error('usage: copy-session <uuid> <working-dir>')
+  process.exit(1)
+}
+
+const BRED = Path.resolve(Path.dirname(fileURLToPath(import.meta.url)), '..')
+const BASE = Path.join(process.env.HOME, '.local/state/bred')
+const OUT = Path.join(process.env.HOME, 'sessions')
+const OUTPUT_LIMIT = 4000
+
+let currentVersion = null
+try {
+  currentVersion = JSON.parse(Fs.readFileSync(Path.join(BRED, 'ext/code/lib/opencode/version.json'))).version
+}
+catch {
+  // unknown current version; fall back to highest found
+}
+
+function storeDbs
+() {
+  const out = []
+  if (!Fs.existsSync(BASE))
+    return out
+  for (const name of Fs.readdirSync(BASE)) {
+    if (name.startsWith('code-data') == 0)
+      continue
+    // versioned: code-data-<ver><workingDir>; unversioned legacy: code-data<workingDir>
+    const p = (name == 'code-data')
+      ? Path.join(BASE, 'code-data' + workingDir, 'opencode.db')
+      : Path.join(BASE, name + workingDir, 'opencode.db')
+    if (Fs.existsSync(p))
+      out.push({ version: name.slice('code-data'.length).replace(/^-/, '') || '0', path: p })
+  }
+  return out
+}
+
+function storesWith
+(stores) {
+  const hits = []
+  for (const s of stores) {
+    let db
+    try {
+      db = new DatabaseSync(s.path, { readOnly: true })
+    }
+    catch {
+      continue
+    }
+    try {
+      if (db.prepare('SELECT COUNT(*) AS c FROM session WHERE id = ?').get(uuid).c > 0)
+        hits.push(s)
+    }
+    finally {
+      db.close()
+    }
+  }
+  return hits
+}
+
+const hits = storesWith(storeDbs())
+
+if (hits.length == 0) {
+  console.error(`session ${uuid} not found in any bred store for ${workingDir}`)
+  console.error(`(stores under ${BASE}; run search-sessions to find the UUID)`)
+  process.exit(1)
+}
+
+let store = hits.find(s => s.version == currentVersion) || hits[0]
+if (hits.length > 1)
+  console.error(`session in ${hits.length} stores (${hits.map(s => s.version).join(', ')}); using ${store.version}`)
+
+// ---- read the session -------------------------------------------------------
+
+const db = new DatabaseSync(store.path, { readOnly: true })
+
+const s = db.prepare('SELECT * FROM session WHERE id = ?').get(uuid)
+const msgs = db.prepare('SELECT id, time_created, data FROM message WHERE session_id = ? ORDER BY time_created').all(uuid)
+
+let firstText = ''
+let firstModel = null
+{
+  const m = msgs.find(x => { let d; try { d = JSON.parse(x.data) } catch { return false } return d.role == 'user' })
+  if (m) {
+    try {
+      const d = JSON.parse(m.data)
+      if (d.model?.modelID)
+        firstModel = d.model.modelID
+    }
+    catch {}
+    for (const p of db.prepare('SELECT data FROM part WHERE message_id = ? ORDER BY time_created').all(m.id)) {
+      let pd
+      try { pd = JSON.parse(p.data) } catch { continue }
+      if (pd.type == 'text' && pd.text && !firstText)
+        firstText = pd.text.replace(/\s+/g, ' ').trim().slice(0, 100)
+    }
+  }
+}
+
+// ---- render -----------------------------------------------------------------
+
+function pad
+(n) {
+  return String(n).padStart(2, '0')
+}
+
+function fmtDate
+(ms) {
+  const d = new Date(ms)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
+function fmtStamp
+(ms) {
+  const d = new Date(ms)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}`
+}
+
+function slug
+(x) {
+  return String(x || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'session'
+}
+
+function truncate
+(x) {
+  x = String(x ?? '')
+  if (x.length <= OUTPUT_LIMIT)
+    return x
+  return x.slice(0, OUTPUT_LIMIT) + `\n… [truncated at ${OUTPUT_LIMIT} chars]`
+}
+
+function renderPart
+(p, out) {
+  switch (p.type) {
+    case 'text':
+      if (p.text)
+        out.push(p.text.replace(/\n+$/, ''))
+      break
+    case 'reasoning':
+      if (p.text)
+        out.push(`<details><summary>reasoning</summary>\n\n${p.text}\n\n</details>`)
+      break
+    case 'tool': {
+      const st = p.state || {}
+      out.push(`\n### tool: ${p.tool}`)
+      if (st.input !== undefined) {
+        let s
+        try { s = typeof st.input == 'string' ? st.input : JSON.stringify(st.input, null, 2) } catch { s = String(st.input) }
+        out.push('input:\n```json\n' + truncate(s) + '\n```')
+      }
+      if (st.output !== undefined)
+        out.push('output:\n```text\n' + truncate(st.output) + '\n```')
+      break
+    }
+    case 'patch': {
+      const files = (p.files || []).map(f => '- ' + f).join('\n')
+      out.push(`\n### patch — ${(p.files || []).length} file${(p.files || []).length == 1 ? '' : 's'}`)
+      if (files)
+        out.push(files)
+      break
+    }
+    default:
+      // step-start / step-finish / unknown: not transcript material
+      break
+  }
+}
+
+const lines = []
+const title = s.title || firstText || '(untitled)'
+
+lines.push(`# ${title}`)
+lines.push('')
+lines.push(`- session: ${s.id}`)
+lines.push(`- directory: ${s.directory || ''}`)
+lines.push(`- created: ${fmtDate(s.time_created)}`)
+lines.push(`- agent: ${s.agent || ''}`)
+lines.push(`- model: ${firstModel || ''}`)
+lines.push(`- copied from: ${store.path}`)
+lines.push('')
+lines.push('---')
+lines.push('')
+
+for (const m of msgs) {
+  let d
+  try {
+    d = JSON.parse(m.data)
+  }
+  catch {
+    continue
+  }
+  const created = d.time?.created || m.time_created
+  const parts = db.prepare('SELECT data FROM part WHERE message_id = ? ORDER BY time_created').all(m.id)
+  const blocks = []
+  for (const p of parts) {
+    let pd
+    try {
+      pd = JSON.parse(p.data)
+    }
+    catch {
+      continue
+    }
+    renderPart(pd, blocks)
+  }
+  lines.push(`## ${d.role || '?'} · ${fmtDate(created)}`)
+  lines.push('')
+  lines.push(blocks.length ? blocks.join('\n\n') : '_(no content)_')
+  lines.push('')
+}
+
+db.close()
+
+// ---- write ------------------------------------------------------------------
+
+const projectDir = Path.join(OUT, slug(Path.basename(workingDir)))
+const file = Path.join(projectDir, `${fmtStamp(s.time_created)}-${slug(title)}.md`)
+
+Fs.mkdirSync(projectDir, { recursive: true })
+Fs.writeFileSync(file, lines.join('\n'))
+
+const size = Fs.statSync(file).size
+if (size == 0) {
+  console.error(`error: wrote empty file ${file}`)
+  process.exit(1)
+}
+
+console.log(`copied ${uuid} (${title}) -> ${file} (${size} bytes)`)

@@ -13,6 +13,7 @@ for m in \
   "$HOME/fresh/main:$HOME/fresh/main" \
   "$HOME/src/review:$HOME/src/review" \
   "$HOME/src/bred:$HOME/src/bred" \
+  "$HOME/sessions:$HOME/sessions" \
   "$HOME/src/opencode:$HOME/src/opencode:ro" \
   "$AUTH:/home/node/.local/share/opencode/auth.json:ro" \
   "$HOME/.gitignore:/home/node/.gitignore:ro" \

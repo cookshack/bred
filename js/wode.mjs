@@ -195,8 +195,10 @@ function vsetBepSpec
     // the goalColumn is only set when the wrapping create is used.
     tr = { selection: CMState.EditorSelection.create([ CMState.EditorSelection.cursor(bep, 0, undefined, spec.goalCol) ]),
            userEvent: 'select' }
-  if (spec.reveal == 1)
-    tr.effects = CMView.EditorView.scrollIntoView(bep, { y: 'nearest' })
+  if (spec.reveal == 1) {
+    if (bepVisible(view, bep) == 0)
+      tr.effects = CMView.EditorView.scrollIntoView(bep, { y: 'nearest' })
+  }
   else if (spec.reveal == 2)
     tr.effects = CMView.EditorView.scrollIntoView(bep, { y: 'center' })
   else if (spec.reveal == 3)
@@ -977,13 +979,13 @@ function lineEnd
 export
 function vbufEnd
 (v) {
-  vexec(v, CMComm.cursorDocEnd)
+  vsetBepSpec(v, WodeBep.vgetBepEnd(v), { reveal: 1 })
 }
 
 export
 function vbufStart
 (v) {
-  vexec(v, CMComm.cursorDocStart)
+  vsetBepSpec(v, 0, { reveal: 1 })
 }
 
 function bufferStartEnd
@@ -992,12 +994,15 @@ function bufferStartEnd
 
   view = View.current()
   if (view.markActive) {
+    vexec(view, cursor, select)
+    return
   }
-  else {
-    setMark()
-    clearSelection(view)
-  }
-  vexec(view, cursor, select)
+  setMark()
+  clearSelection(view)
+  if (cursor == CMComm.cursorDocEnd)
+    vbufEnd(view)
+  else
+    vbufStart(view)
 }
 
 export

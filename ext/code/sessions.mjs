@@ -277,7 +277,7 @@ function init
                   else if (part.state?.input?.query)
                     label += ': ' + part.state.input.query
                   else if (part.state?.input?.url)
-                    label = [ part.tool + ' ', span(part.state.input.url, 'code-file', { 'data-run': 'open link', 'data-path': part.state.input.url }) ]
+                    label = [ part.tool + ' ', span(part.state.input.url, 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': part.state.input.url }) ]
                   Ui.appendToolMsg(buf, part.callID, label,
                                    part.state?.output || part.state?.error)
                 }

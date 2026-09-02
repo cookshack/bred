@@ -660,6 +660,16 @@ function initCmds
                                       Mess.say('Target missing path')
                                   })
 
+  Cmd.add('open link in other pane', (u, we) => {
+                                       if (we.e.target.dataset.path) {
+                                         Pane.nextOrSplit()
+                                         Open.link(we.e.target.dataset.path,
+                                                   we.e.target.dataset.line)
+                                       }
+                                       else
+                                         Mess.say('Target missing path')
+                                     })
+
   Cmd.add('say', () => Mess.say('Test of Mess.say'))
   Cmd.add('warn', () => Mess.warn('Test of Mess.warn'))
   Cmd.add('yell', () => Mess.yell('Test of Mess.yell'))

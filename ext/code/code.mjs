@@ -248,7 +248,7 @@ function fileLabel
   return [ tool + ' file ',
            divCl('code-file',
                  Util.makeRelative(buf, path),
-                 { 'data-run': 'open link', 'data-path': path }),
+                 { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': path }),
            bounds(),
            status || '' ]
 }
@@ -1940,7 +1940,7 @@ function init
                           url = part.state.input.url
                           if (url) {
                             d('CO webfetch: ' + url)
-                            Ui.appendToolMsg(buf, part.callID, [ 'Fetch ', span(url, 'code-file', { 'data-run': 'open link', 'data-path': url }) ])
+                            Ui.appendToolMsg(buf, part.callID, [ 'Fetch ', span(url, 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': url }) ])
                           }
                         },
                         onComplete
@@ -1953,7 +1953,7 @@ function init
                             d('CO webfetch completed, size: ' + size)
                             Ui.appendToolMsg(buf,
                                              part.callID,
-                                             [ 'Fetch ', span(url, 'code-file', { 'data-run': 'open link', 'data-path': url }), size ? ' (' + size + ' bytes)' : '' ])
+                                             [ 'Fetch ', span(url, 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': url }), size ? ' (' + size + ' bytes)' : '' ])
                           }
                         },
                         onErr
@@ -1965,7 +1965,7 @@ function init
                             d('CO webfetch error')
                             Ui.appendToolMsg(buf,
                                              part.callID,
-                                             [ 'Fetch ', span(url, 'code-file', { 'data-run': 'open link', 'data-path': url }) ],
+                                             [ 'Fetch ', span(url, 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': url }) ],
                                              part.state.error)
                           }
                         } },

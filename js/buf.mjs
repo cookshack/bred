@@ -618,13 +618,17 @@ function make
               if (ele?.querySelector('.bred-info-w.bred-info-disk'))
                 return
               ww = ele?.querySelector('.bred-info-ww')
-              if (ww)
+              if (ww) {
+                let buttons
+
+                buttons = b.mode?.diskButtons ? b.mode.diskButtons(b) : [ button('Revert', '', { 'data-run': 'Revert Buffer' }),
+                                                                             button('Overwrite', '', { 'data-run': 'Save' }) ]
                 Dom.append(ww,
                            divCl('bred-info-w bred-info-disk',
                                  [ divCl('bred-info-marker'),
                                    'Buffer modified on disk',
-                                   button('Revert', '', { 'data-run': 'Revert Buffer' }),
-                                   button('Overwrite', '', { 'data-run': 'Save' }) ]))
+                                   ...buttons ]))
+              }
             })
           else
             b.views.forEach(v => {

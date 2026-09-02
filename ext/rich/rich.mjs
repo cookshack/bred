@@ -1,4 +1,4 @@
-import { create, div, divCl } from '../../js/dom.mjs'
+import { append, button, create, div, divCl } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
@@ -9,6 +9,7 @@ import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/Pane.mjs'
 import * as Tron from '../../js/tron.mjs'
+import * as WodeWatch from '../../js/wode-watch.mjs'
 import { d } from '../../js/mess.mjs'
 
 import * as Marked from './lib/marked.js'
@@ -107,19 +108,36 @@ function render
   return []
 }
 
-function divW
-(md, dir, name) {
-  let co, lexer, tokens
+function parse
+(md) {
+  let lexer
 
   lexer = new Marked.Lexer()
-  tokens = lexer.lex(md)
+  return lexer.lex(md)
+}
+
+function divW
+(md, dir, name) {
+  let co, tokens
+
+  tokens = parse(md)
   d(tokens)
 
   co = tokens?.map(render)
 
   return divCl('rich-ww',
                [ Ed.divMl(dir, name, { icon: 'markdown' }),
+                 divCl('bred-info-www', divCl('bred-info-ww')),
                  divCl('rich-w bred-scroller', co) ])
+}
+
+function renderW
+(w, md) {
+  let co
+
+  co = parse(md)?.map(render)
+  w.innerHTML = ''
+  append(w, co)
 }
 
 export
@@ -142,6 +160,9 @@ function open
                                                  divW(data.data, loc.dirname, loc.filename),
                                                  loc.dirname)
                                    buf.vars('Rich').path = path
+                                   buf.stat = data.stat
+                                   buf.modifiedOnDisk = 0
+                                   WodeWatch.watch(buf, path)
                                    buf.addMode('view')
                                    p.setBuf(buf)
                                  })
@@ -164,6 +185,33 @@ function init
       Mess.yell('Missing path')
   }
 
+  function revert
+  () {
+    let buf, path
+
+    buf = Pane.current().buf
+    path = buf.vars('Rich').path
+    if (path == null) {
+      Mess.yell('Missing path')
+      return
+    }
+    Tron.cmd('file.get', [ path ], (err, data) => {
+                                     if (err) {
+                                       Mess.yell('Rich revert: ' + err.message)
+                                       return
+                                     }
+                                     buf.stat = data.stat
+                                     buf.modifiedOnDisk = 0
+                                     buf.views.forEach(view => {
+                                                         let w
+
+                                                         w = view.eleOrReserved?.querySelector('.rich-w')
+                                                         if (w)
+                                                           renderW(w, data.data)
+                                                       })
+                                   })
+  }
+
   function viewInit
   (view, spec, cb) { // (view)
     if (cb)
@@ -180,13 +228,16 @@ function init
   }
 
   mo = Mode.add('Rich', { viewInit,
-                          icon: { name: 'markdown' } })
+                          icon: { name: 'markdown' },
+                          diskButtons: () => [ button('Revert', '', { 'data-run': 'Revert Buffer' }) ] })
 
   Cmd.add('rich', () => rich())
 
   Cmd.add('edit', () => edit(), mo)
+  Cmd.add('revert buffer', () => revert(), mo)
 
   Em.on('e', 'edit', mo)
+  Em.on('C-c A-r', 'revert buffer', mo)
 }
 
 export

@@ -93,6 +93,7 @@ function add
   m.minor = spec.minor ? 1 : 0
   m.context = spec.context
   m.decorators = spec.decorators
+  m.diskButtons = spec.diskButtons
   m.em = spec.em || Em.make(m.name)
   m.exts = spec.exts
   m.wexts = spec.wexts

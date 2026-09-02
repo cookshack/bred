@@ -265,22 +265,10 @@ function init
     if (name) {
       let next
 
-      next = name
-      next = next.nextElementSibling // mode
-      next = next?.nextElementSibling // path
-      next = next?.nextElementSibling // name
-      while (next
-             && (Css.has(next, 'switch-sep')
-                 || Css.has(next, 'switch-needle')))
-        if (Css.has(next, 'switch-needle'))
-          next = next?.nextElementSibling
-        else {
-          next = next.nextElementSibling // mode
-          next = next?.nextElementSibling // path
-          next = next?.nextElementSibling // name
-        }
-
-      if (next && Css.has(next, 'switch-name')) {
+      next = name.nextElementSibling
+      while (next && Css.has(next, 'switch-name') == 0)
+        next = next.nextElementSibling
+      if (next) {
         Css.remove(name, 'selected')
         Css.add(next, 'selected')
       }
@@ -296,12 +284,9 @@ function init
     if (name) {
       let next
 
-      next = name
-      do {
-        next = next.previousElementSibling // path
-        next = next?.previousElementSibling // mode
-        next = next?.previousElementSibling // name
-      } while (next && Css.has(next, 'switch-sep'))
+      next = name.previousElementSibling
+      while (next && Css.has(next, 'switch-name') == 0)
+        next = next.previousElementSibling
       if (next) {
         Css.remove(name, 'selected')
         Css.add(next, 'selected')

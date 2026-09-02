@@ -271,7 +271,7 @@ function init
                   if (part.tool == 'bash' && part.state?.input?.command)
                     label += ': ' + part.state.input.command
                   else if (part.state?.input?.filePath)
-                    label += ' ' + Util.makeRelative(buf, part.state.input.filePath)
+                    label = [ part.tool + ' ', span(Util.makeRelative(buf, part.state.input.filePath), 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': part.state.input.filePath }) ]
                   else if (part.state?.input?.pattern)
                     label += ' "' + part.state.input.pattern + '"'
                   else if (part.state?.input?.query)

@@ -2496,9 +2496,9 @@ User →
                 'mini-web-search mini-icon onfill mini-em',
                 { 'data-run': 'go' }),
             div(divCl('mini-icon',
-                      img(Icon.path('chat'), 'Chat', 'filter-clr-text')),
+                      img(Icon.path('robot'), 'Code', 'filter-clr-text')),
                 'mini-chat mini-icon onfill mini-em',
-                { 'data-run': 'chat' }) ]
+                { 'data-run': 'code question' }) ]
   Panel.start('mini-panel', icons[1])
   Panel.start('mini-panel', icons[0])
 }

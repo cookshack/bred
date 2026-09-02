@@ -6,6 +6,7 @@ import * as Css from '../../js/css.mjs'
 import * as Em from '../../js/Em.mjs'
 import * as Hist from '../../js/hist.mjs'
 import * as Icon from '../../js/icon.mjs'
+import * as Loc from '../../js/loc.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Opt from '../../js/opt.mjs'
@@ -1291,7 +1292,7 @@ function next
 }
 
 function code
-(given) {
+(given, givenDir) {
   let pane, dir, name, provider, model, variant
 
   async function run
@@ -1301,7 +1302,7 @@ function code
     if (prompt)
       hist.add(prompt)
 
-    buf = Buf.add(name, 'code', Ui.divW(dir, Opt.get('code.agent')), pane.dir)
+    buf = Buf.add(name, 'code', Ui.divW(dir, Opt.get('code.agent')), dir)
     buf.vars('code').prompt = prompt
     buf.vars('code').provider = provider
     buf.vars('code').model = model
@@ -1335,7 +1336,7 @@ function code
   }
 
   pane = Pane.current()
-  dir = pane.dir
+  dir = givenDir || pane.dir
   name = 'CO ' + dir
   provider = Util.getProvider()
   model = Util.getModel()
@@ -1356,6 +1357,15 @@ function code
     run(given)
   else
     run()
+}
+
+function codeQuestion
+() {
+  let dir
+
+  dir = Loc.make('~/tmp/question').expand()
+  Tron.acmd('dir.make', [ dir ]).then(() => code(0, dir))
+    .catch(err => Mess.yell('code question: ' + err.message))
 }
 
 function viewInit
@@ -2156,6 +2166,7 @@ function init
 
   Cmd.add('code', (u, we, prompt) => code(prompt))
   Cmd.add('code init', codeInit)
+  Cmd.add('code question', () => codeQuestion())
 
   Cmd.add('respond', () => next(), mo)
 

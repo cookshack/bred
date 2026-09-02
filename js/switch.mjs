@@ -287,6 +287,12 @@ function init
       next = name.previousElementSibling
       while (next && Css.has(next, 'switch-name') == 0)
         next = next.previousElementSibling
+      if (next == null) {
+        let all
+
+        all = p.view.ele.querySelectorAll('.switch-name')
+        next = all[all.length - 1]
+      }
       if (next) {
         Css.remove(name, 'selected')
         Css.add(next, 'selected')

@@ -1053,18 +1053,23 @@ function toggleThinking
 
 function toggleDetails
 (u, we) {
-  let el
+  let el, w
 
   el = we.e.target.closest('.code-msg-tool')
-  if (el)
-    if (Css.has(el, 'code-closed')) {
-      Css.remove(el, 'code-closed')
-      Css.add(el, 'code-details-open')
-    }
-    else {
-      Css.remove(el, 'code-details-open')
-      Css.add(el, 'code-closed')
-    }
+  if (el == null)
+    return
+  w = el.closest('.code-w')
+  if (Css.has(el, 'code-details-open')) {
+    Css.remove(el, 'code-details-open')
+    Css.add(el, 'code-closed')
+  }
+  else if (Css.has(el, 'code-closed')
+           || (w && Css.has(w, 'code-thinking-hidden'))) {
+    Css.remove(el, 'code-closed')
+    Css.add(el, 'code-details-open')
+  }
+  else
+    Css.add(el, 'code-closed')
 }
 
 function setAgent

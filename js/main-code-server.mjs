@@ -33,6 +33,7 @@ function mountArgs
             home + '/src/bred:' + home + '/src/bred',
             home + '/src/uoc:' + home + '/src/uoc',
             home + '/src/bin:' + home + '/src/bin',
+            home + '/src/conventions:' + home + '/src/conventions',
             home + '/sessions:' + home + '/sessions',
             home + '/alts/main/openvas/plugins:' + home + '/alts/main/openvas/plugins:ro',
             home + '/alts/main/gvm/cert-data:' + home + '/alts/main/gvm/cert-data:ro',

@@ -227,7 +227,7 @@ function bepVisible
 
     scroller = view.ed.scrollDOM
     rect = makeRect(scroller.getBoundingClientRect(), scroller)
-    return lineFullyVisible(view, rect, bep)
+    return lineFullyVisible(view, rect, bep) ? 1 : 0
   }
   return 1
 }

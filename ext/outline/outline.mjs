@@ -1,6 +1,11 @@
 import * as Ed from '../../js/ed.mjs'
 import * as Mode from '../../js/mode.mjs'
 
+import * as CMLang from '../../lib/@codemirror/language.js'
+import * as CMState from '../../lib/@codemirror/state.js'
+
+import { outlineFoldService } from './outline-fold.mjs'
+
 export
 function init
 () {
@@ -8,6 +13,10 @@ function init
                         viewCopy: Ed.viewCopy,
                         initFns: Ed.initModeFns,
                         parentsForEm: 'ed',
+                        wexts: [ { backend: 'cm',
+                                   name: 'extOutlineFold',
+                                   make: () => ([ CMLang.foldService.of(outlineFoldService) ]),
+                                   part: new CMState.Compartment } ],
                         decorators: [ { regex: /^(\*{6,})/d,
                                         decor: [ { line: 1,
                                                    attr: { style: 'color: var(--clr-syntax5)' } } ] },

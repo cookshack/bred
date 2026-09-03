@@ -1,0 +1,68 @@
+                                                                -*- outline -*-
+* Bred
+
+A personal editor, built on CodeMirror. Everything below is an outline
+heading; fold any heading from the gutter to collapse its section.
+
+** Getting Started
+
+*** Installation
+
+Bred runs out of a git checkout — always a development build. No packaging.
+
+*** Opening files
+
+Use the file commands to open a buffer, or the samples buffer to browse
+these examples. Any buffer can be switched to Outline mode with:
+
+    M-x outline mode
+
+**** Editing
+
+Point motion, marks, and regions work as in any Ed mode buffer.
+
+**** Saving
+
+Save with the usual save command. Modified buffers show a save icon.
+
+** Folding
+
+*** Fold gutter
+
+Each foldable heading shows a marker in the gutter. Click it to fold or
+unfold the section. A folded heading keeps its text and shows a "…"
+placeholder after it.
+
+**** Nested sections
+
+Fold a level one heading and every deeper heading under it folds too.
+
+***** Deeper still
+
+Fold from here and only this section collapses.
+
+****** Even deeper
+
+Six stars is the deepest level shown by the highlighting.
+
+** Example outline
+
+*** Level two section
+
+Content at the second level.
+
+**** Level three section
+
+Content at the third level.
+
+**** Level three, again
+
+Sibling section at the same level — folding either one stops here.
+
+*** Level two, again
+
+Folding this level two section only hides its own children.
+
+* Second top level
+
+A sibling of "Bred": folding "Bred" stops before this heading.

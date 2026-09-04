@@ -121,6 +121,11 @@ function init
                       rec = rec.filter(r => r.name.length)
                     }
 
+                    if (needle.length) {
+                      all.sort((a, b) => nameCmp(a.name, b.name, needle))
+                      rec.sort((a, b) => nameCmp(a.name, b.name, needle))
+                    }
+
                     if (vars.full == 0)
                       rec = []
 
@@ -186,6 +191,27 @@ function init
                                                       divCl('switch-mode', ''),
                                                       divCl('switch-path', Ed.makeMlDir(r.path)) ]) ]))
                   })
+  }
+
+  function nameCmp
+  (a, b, needle) {
+    let an, bn, ap, bp, al, bl
+
+    an = a.toLowerCase()
+    bn = b.toLowerCase()
+    ap = an.startsWith(needle) ? 0 : 1
+    bp = bn.startsWith(needle) ? 0 : 1
+    if (ap < bp)
+      return -1
+    if (ap > bp)
+      return 1
+    al = an.length
+    bl = bn.length
+    if (al < bl)
+      return -1
+    if (al > bl)
+      return 1
+    return 0
   }
 
   function first

@@ -444,6 +444,7 @@ function initPrompt2
       if (prev) {
         p.buf.clear()
         p.view.insert(prev)
+        p.view.bufEnd()
       }
       else if (nth && (nth < 0))
         p.buf.clear()

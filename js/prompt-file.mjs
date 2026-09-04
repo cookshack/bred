@@ -154,6 +154,7 @@ function init
             // strip off any partial el.dataset.name
             text = Loc.make(text).dirname
           p.view.insert(text + el.dataset.name)
+          p.view.bufEnd()
           return
         }
         if (p.buf.text().length)

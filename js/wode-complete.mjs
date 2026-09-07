@@ -34,6 +34,7 @@ function topRow
   return 0
 }
 
+export
 function makeSearcher
 (view) {
   let opts
@@ -72,56 +73,57 @@ function makeSearcher
            find }
 }
 
+function isWhite
+(ch) {
+  return ch.charCodeAt(0) <= 32
+}
+
+// Get the word before point
+//
+export
+function getWord
+(view) {
+  let bep, bep1, word, start
+
+  bep = Wode.vgetBep(view)
+  start = Wode.vlineStart(view, bep)
+
+  if (bep <= start)
+    return 0
+
+  bep1 = bep
+  d('[' + charAt(view, bep1) + ']')
+  // mv backwards over any space
+  while (isWhite(charAt(view, bep1)))
+    bep1--
+  if (bep1 < start)
+    return 0
+
+  // mv backwards to start of word
+  while (1) {
+    if (bep1 == start)
+      break
+    d('[' + charAt(view, bep1) + ']')
+    if (isWhite(charAt(view, bep1))) {
+      bep1++
+      break
+    }
+    bep1--
+  }
+  if (bep1 < start)
+    // can this happen?
+    return 0
+  word = WodeRange.make(view, bep1, bep).text
+  word = word.trim() // safety
+  if (word.length == 0)
+    return 0
+  return word
+}
+
 export
 function init
 () {
   let last
-
-  function isWhite
-  (ch) {
-    return ch.charCodeAt(0) <= 32
-  }
-
-  // Get the word before point
-  //
-  function getWord
-  (view) {
-    let bep, bep1, word, start
-
-    bep = Wode.vgetBep(view)
-    start = Wode.vlineStart(view, bep)
-
-    if (bep <= start)
-      return 0
-
-    bep1 = bep
-    d('[' + charAt(view, bep1) + ']')
-    // mv backwards over any space
-    while (isWhite(charAt(view, bep1)))
-      bep1--
-    if (bep1 < start)
-      return 0
-
-    // mv backwards to start of word
-    while (1) {
-      if (bep1 == start)
-        break
-      d('[' + charAt(view, bep1) + ']')
-      if (isWhite(charAt(view, bep1))) {
-        bep1++
-        break
-      }
-      bep1--
-    }
-    if (bep1 < start)
-      // can this happen?
-      return 0
-    word = WodeRange.make(view, bep1, bep).text
-    word = word.trim() // safety
-    if (word.length == 0)
-      return 0
-    return word
-  }
 
   // Get a potential completion.
   //

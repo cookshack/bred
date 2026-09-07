@@ -170,14 +170,21 @@ function updateDeepinfraCredits
                                     .then(response => {
                                             if (response.ok) {
                                               response.json().then(data => {
-                                                                     let recent
+                                                                     let bal, recent
 
+                                                                     bal = data.checklist?.stripe_balance
                                                                      recent = data.checklist?.recent || 0
-                                                                     if (data.checklist)
-                                                                       if (data.checklist.limit == null || data.checklist.limit < 0)
-                                                                         setCreditsText(buf, 'DI:used $' + recent.toFixed(2))
+                                                                     if (bal == null)
+                                                                       setCreditsText(buf, 'DI:$0.00')
+                                                                     else {
+                                                                       let left
+
+                                                                       left = -bal - recent
+                                                                       if (left >= 0)
+                                                                         setCreditsText(buf, 'DI:$' + left.toFixed(2))
                                                                        else
-                                                                         setCreditsText(buf, 'DI:$' + (data.checklist.limit - recent).toFixed(2))
+                                                                         setCreditsText(buf, 'DI:-$' + (-left).toFixed(2))
+                                                                     }
                                                                    })
                                                 .catch(err => {
                                                          d('ERR .json: ' + err.message)

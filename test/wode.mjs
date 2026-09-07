@@ -228,6 +228,7 @@ test('selection', 'vsetBepSpec keeps selection with mark',
        Wode.vsetBepSpec(v, 5, { keepSelection: 1, goalCol: 4 })
        equal(v.ed.state.selection.main.anchor, 0)
        equal(v.ed.state.selection.main.head, 5)
+       equal(v.ed.state.selection.main.goalColumn, 4)
      })
 
 test('selection', 'vsetBep moves point',

@@ -187,9 +187,9 @@ function vsetBepSpec
 
   d('goalCol: ' + spec.goalCol)
   if (spec.keepSelection && view.markActive)
-    tr = { selection: { anchor: view.ed.state.selection.main.anchor,
-                        head: bep,
-                        goalColumn: spec.goalCol },
+    tr = { selection: CMState.EditorSelection.create([ CMState.EditorSelection.range(view.ed.state.selection.main.anchor,
+                                                                                      bep,
+                                                                                      spec.goalCol) ]),
            userEvent: 'select' }
   else
     // the goalColumn is only set when the wrapping create is used.

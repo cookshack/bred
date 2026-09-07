@@ -17,13 +17,15 @@ import * as Scib from './scib.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './util.mjs'
+import * as VcCommon from './vc-common.mjs'
+import * as VcGithub from './vc-github.mjs'
 import * as View from './view.mjs'
 import { d } from './mess.mjs'
 
 import * as Diff from '../lib/diff.js'
 import * as Opt from './opt.mjs'
 
-let clrs, cachedNotifications, cachedPrs, cachedReleases, cachedUser
+let clrs, cachedNotifications, cachedReleases, cachedUser
 
 function vcMl
 (args, mode) {
@@ -152,135 +154,13 @@ function initStash
   Em.on('=', 'stash open', moS)
 }
 
-function stateClr
-(state) {
-  if (state == 'M')
-    return '--clr-syntax3'
-  if (state == 'A')
-    return '--clr-syntax0'
-  if (state == 'R')
-    return '--clr-emph'
-  if (state == 'P')
-    return '--clr-syntax4'
-  if (state == 'D')
-    return '--clr-text'
-  if (state == 'O')
-    return '--clr-syntax1'
-  if (state == 'C')
-    return '--clr-nb2'
-  return '--clr-text'
-}
-
-function getToken
-() {
-  let token
-
-  token = Opt.get('core.vc.github.token')
-  token.length || Mess.toss('core.vc.github.token not set')
-  return token
-}
-
-function fetchArg
-(method, spec) { // { lastModified, accept }}
-  let headers
-
-  spec = spec || {}
-  headers = { Authorization: 'Bearer ' + getToken(),
-              Accept: spec.accept || 'application/vnd.github+json',
-              'X-GitHub-Api-Version': '2026-03-10' }
-
-  if (spec.lastModified)
-    headers['If-Modified-Since'] = spec.lastModified
-
-  return { method,
-           mode: 'cors',
-           cache: 'no-store',
-           headers }
-}
-
-function del
-(url, cb) { // (err)
-  return fetch(url, fetchArg('DELETE'))
-    .then(res => {
-            if (res.ok) {
-              cb()
-              return
-            }
-            throw new Error('HTTP ' + res.status)
-          })
-    .catch(err => cb(err))
-}
-
-function get
-(url,
- spec, // { lastModified, accept }
- cb) { // (err, status, data, headers)
-  spec = spec || {}
-  return fetch(url, fetchArg('GET', spec))
-    .then(res => {
-            if (res.ok) {
-              if (spec.accept?.endsWith('diff'))
-                res.text().then(data => cb(0, res.status, data, res.headers))
-              else
-                res.json().then(data => cb(0, res.status, data, res.headers))
-              return
-            }
-            cb(new Error('HTTP ' + res.status), res.status, 0, res.headers)
-          })
-    .catch(err => cb(err))
-}
-
-function patch
-(url, cb) { // (err)
-  return fetch(url, fetchArg('PATCH'))
-    .then(res => {
-            if (res.ok) {
-              cb()
-              return
-            }
-            throw new Error('HTTP ' + res.status)
-          })
-    .catch(err => cb(err))
-}
-
-function formatDate
-(str) {
-  if (str?.length) {
-    let date, now, days
-
-    days = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ]
-    date = new Date(str)
-    now = new Date()
-
-    if (((date.getFullYear() == now.getFullYear())
-         && (date.getMonth() == now.getMonth())
-         && (date.getDate() == now.getDate()))
-        || ((now - date) < (24 * 60 * 60 * 1000))) {
-      let time
-
-      time = String(date.getHours()).padStart(2, '0')
-        + 'h' + String(date.getMinutes()).padStart(2, '0')
-      return time.padEnd(20)
-    }
-
-    return days[date.getDay()] + ' '
-      + date.getFullYear()
-      + '-' + String(date.getMonth() + 1).padStart(2, '0')
-      + '-' + String(date.getDate()).padStart(2, '0')
-      + ' ' + String(date.getHours()).padStart(2, '0')
-      + 'h' + String(date.getMinutes()).padStart(2, '0')
-  }
-
-  return ''
-}
-
 function getRefState
 (view, match) {
   let state
 
   state = match[1]
   if (state)
-    return Ed.makeDecor({ attr: { style: 'color: var(' + stateClr(state) + ')' } })
+    return Ed.makeDecor({ attr: { style: 'color: var(' + VcCommon.stateClr(state) + ')' } })
   return 0
 }
 
@@ -354,109 +234,6 @@ function getRefRepoPr
   return 0
 }
 
-function getPr
-(basic, ownerRepo, prNum, cb) { // (res)
-  let key, cached, url
-
-  key = ownerRepo + '/' + prNum
-  cached = cachedPrs[key]
-  url = 'https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum
-
-  get(url,
-      { lastModified: cached?.lastModified },
-      (err, status, data, headers) => {
-        if (err) {
-          if (status == 304) {
-            if (cached) {
-              if (basic || cached.commits) {
-                cb(cached)
-                return
-              }
-              // Need to get it all
-              cached.lastModified = 0
-              getPr(0, ownerRepo, prNum, cb)
-              return
-            }
-            Mess.log('VC getPr somehow got 304 with cache miss')
-          }
-          cb()
-          return
-        }
-
-        if (data) {
-          let state
-
-          state = '?'
-          if (data.merged)
-            state = 'Merged'
-          else if (data.review_decision == 'APPROVED')
-            state = 'Approved'
-          else if (data.review_decision == 'CHANGES_REQUESTED')
-            state = 'Request for changes'
-          else if (data.review_decision == 'PENDING')
-            state = 'Pending'
-          else if (data.draft)
-            state = 'Draft'
-          else if (data.state)
-            state = U.capitalize(data.state)
-
-          for (let k in cachedPrs)
-            if (k.startsWith(ownerRepo + '/') && cachedPrs[k].branch == data.head.ref)
-              delete cachedPrs[k]
-
-          get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/reviews',
-              0,
-              (err2, status2, data2, headers2) => {
-                let reviews
-
-                reviews = []
-                if (data2)
-                  reviews = data2.map(r => ({ body: r.body,
-                                              user: r.user.login,
-                                              state: r.state,
-                                              submitted: r.submitted_at }))
-
-                if (basic) {
-                  cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), reviews, reviewsLastModified: headers2?.get('Last-Modified') }
-                  cb(cachedPrs[key])
-                  return
-                }
-
-                get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/commits',
-                    0,
-                    (err3, status3, data3, headers3) => {
-                      let commits
-
-                      commits = []
-                      if (data3)
-                        commits = data3.map(c => ({ sha: c.sha,
-                                                    message: c.commit.message.split('\n')[0],
-                                                    author: c.commit.author.name }))
-
-                      get('https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '/comments',
-                          0,
-                          (err4, status4, data4, headers4) => {
-                            let comments
-
-                            comments = []
-                            if (data4)
-                              comments = data4.map(c => ({ body: c.body,
-                                                           user: c.user.login,
-                                                           created: c.created_at }))
-
-                            cachedPrs[key] = { pr: data, state, branch: data.head.ref, prNum, lastModified: headers.get('Last-Modified'), reviews, reviewsLastModified: headers2?.get('Last-Modified'), commits, commitsLastModified: headers3?.get('Last-Modified'), comments, commentsLastModified: headers4?.get('Last-Modified') }
-                            cb(cachedPrs[key])
-                          })
-                    })
-              })
-          return
-        }
-
-        cb()
-      })
-
-}
-
 function getRelease
 (ownerRepo, tag, cb) { // (res)
   let key, cached, url
@@ -465,26 +242,26 @@ function getRelease
   cached = cachedReleases[key]
   url = 'https://api.github.com/repos/' + ownerRepo + '/releases/tags/' + tag
 
-  get(url,
-      { lastModified: cached?.lastModified },
-      (err, status, data, headers) => {
-        if (err) {
-          if ((status == 304) && cached) {
-            cb(cached)
-            return
-          }
-          cb()
-          return
-        }
+  VcGithub.get(url,
+               { lastModified: cached?.lastModified },
+               (err, status, data, headers) => {
+                 if (err) {
+                   if ((status == 304) && cached) {
+                     cb(cached)
+                     return
+                   }
+                   cb()
+                   return
+                 }
 
-        if (data) {
-          cachedReleases[key] = { release: data, lastModified: headers?.get('Last-Modified') }
-          cb(cachedReleases[key])
-          return
-        }
+                 if (data) {
+                   cachedReleases[key] = { release: data, lastModified: headers?.get('Last-Modified') }
+                   cb(cachedReleases[key])
+                   return
+                 }
 
-        cb()
-      })
+                 cb()
+               })
 
 }
 
@@ -574,7 +351,7 @@ function makePrBuf
   title = res.pr?.title || ('PR ' + num)
   body = res.pr?.body || ''
   text = '*Branch* ' + res.branch + '\n*State*  ' + res.state + ' (' + res.pr.state + ')\n'
-  text += '*Created* ' + formatDate(res.pr.created_at) + '\n'
+  text += '*Created* ' + VcCommon.formatDate(res.pr.created_at) + '\n'
   text += '*By* ' + res.pr.user.login + '\n'
   text += '\n# ' + title + '\n'
   text += '\n' + body.trim() + '\n'
@@ -591,7 +368,7 @@ function makePrBuf
     res.comments.forEach(c => {
                            let date
 
-                           date = formatDate(c.created)
+                           date = VcCommon.formatDate(c.created)
                            text += '\n**' + c.user + '** ' + date + '\n\n' + c.body + '\n'
                          })
   }
@@ -601,7 +378,7 @@ function makePrBuf
     res.reviews.forEach(r => {
                           let date
 
-                          date = formatDate(r.submitted)
+                          date = VcCommon.formatDate(r.submitted)
                           text += '\n**' + r.user + '** ' + r.state + ' ' + date + '\n'
                           if (r.body && r.body.length)
                             text += '\n' + r.body.trim() + '\n'
@@ -623,14 +400,14 @@ function makePrBuf
 function getAndShowPr
 (p, ownerRepo, num) {
   Mess.say('Fetching PR...')
-  getPr(0, ownerRepo, num,
-        res => {
-          Mess.say('')
-          if (res)
-            makePrBuf(p, num, res)
-          else
-            Mess.yell('PR missing')
-        })
+  VcGithub.getPr(0, ownerRepo, num,
+                 res => {
+                   Mess.say('')
+                   if (res)
+                     makePrBuf(p, num, res)
+                   else
+                     Mess.yell('PR missing')
+                 })
 }
 
 function prEqual
@@ -639,25 +416,25 @@ function prEqual
 
   url = 'https://api.github.com/repos/' + ownerRepo + '/pulls/' + prNum + '.diff'
   d('get ' + url)
-  get(url,
-      { accept: 'application/vnd.github.diff' },
-      (err, status, data) => {
-        if (err) {
-          Mess.yell('Hub: ' + err.message)
-          return
-        }
+  VcGithub.get(url,
+               { accept: 'application/vnd.github.diff' },
+               (err, status, data) => {
+                 if (err) {
+                   Mess.yell('Hub: ' + err.message)
+                   return
+                 }
 
-        Ed.make(p,
-                { name: 'PR-' + prNum + '.diff',
-                  dir: p.dir },
-                view => {
-                  view.buf.file = 'PR-' + prNum + '.diff'
-                  view.buf.mode = 'patch'
-                  view.buf.addMode('view')
-                  view.insert(data)
-                  view.buf.modified = 0
-                })
-      })
+                 Ed.make(p,
+                         { name: 'PR-' + prNum + '.diff',
+                           dir: p.dir },
+                         view => {
+                           view.buf.file = 'PR-' + prNum + '.diff'
+                           view.buf.mode = 'patch'
+                           view.buf.addMode('view')
+                           view.insert(data)
+                           view.buf.modified = 0
+                         })
+               })
 }
 
 export
@@ -674,19 +451,6 @@ function initHub
                    divCl('ml-close') ])
   }
 
-  function findPrNumByBranch
-  (ownerRepo, branchName) {
-    for (let key in cachedPrs) {
-      let cached
-
-      cached = cachedPrs[key]
-
-      if ((cached.branch == branchName) && key.startsWith(ownerRepo + '/'))
-        return cached.prNum
-    }
-    return 0
-  }
-
   function getNotifications
   (useCache, cb) {
     let url
@@ -695,36 +459,27 @@ function initHub
     if (Opt.get('core.vc.github.notifications.all'))
       url += '?all=true'
     d('get ' + url)
-    get(url,
-        { lastModified: useCache && lastModified },
-        (err, status, data, headers) => {
-          if (err) {
-            if (status == 304) {
-              d('VC 304 using cached notifications')
-              cb(cachedNotifications)
-              return
-            }
-            Mess.yell('Hub: ' + err.message)
-            return
-          }
-          if (useCache) {
-            lastModified = headers.get('Last-Modified')
-            for (let n of data)
-              cachedNotifications.set(n.id, n)
-            cb(cachedNotifications)
-          }
-          else
-            cb(new Map(data.map(n => [ n.id, n ])))
-        })
-  }
-
-  function shortReason
-  (reason) {
-    if (reason == 'review_requested')
-      return 'review'
-    if (reason == 'subscribed')
-      return 'sub'
-    return reason
+    VcGithub.get(url,
+                 { lastModified: useCache && lastModified },
+                 (err, status, data, headers) => {
+                   if (err) {
+                     if (status == 304) {
+                       d('VC 304 using cached notifications')
+                       cb(cachedNotifications)
+                       return
+                     }
+                     Mess.yell('Hub: ' + err.message)
+                     return
+                   }
+                   if (useCache) {
+                     lastModified = headers.get('Last-Modified')
+                     for (let n of data)
+                       cachedNotifications.set(n.id, n)
+                     cb(cachedNotifications)
+                   }
+                   else
+                     cb(new Map(data.map(n => [ n.id, n ])))
+                 })
   }
 
   function refresh
@@ -799,8 +554,8 @@ function initHub
                                    approvedBy: '',
                                    repo: n.repository.name,
                                    subject: n.subject.title.length > 70 ? n.subject.title.slice(0, 67) + '...' : n.subject.title,
-                                   reason: shortReason(n.reason),
-                                   updated: formatDate(n.updated_at),
+                                   reason: VcCommon.shortReason(n.reason),
+                                   updated: VcCommon.formatDate(n.updated_at),
                                    ownerRepo,
                                    url,
                                    id: n.id })
@@ -830,39 +585,39 @@ function initHub
         pending = rows.filter(r => r.type == 'PullRequest').length
         rows.forEach(r => {
                        if (r.type == 'PullRequest')
-                         getPr(1, r.ownerRepo, r.prNum,
-                               res => {
-                                 let view
+                         VcGithub.getPr(1, r.ownerRepo, r.prNum,
+                                        res => {
+                                          let view
 
-                                 if (res) {
-                                   let approvedBy
+                                          if (res) {
+                                            let approvedBy
 
-                                   r.prState = res.state
-                                   r.branch = res.branch
-                                   r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
-                                   approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
-                                   r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
-                                 }
-                                 pending--
-                                 if (pending)
-                                   return
-                                 // We have all PRs now.
-                                 view = buf?.anyView()
-                                 if (view) {
-                                   rows.forEach(r2 => widths[7] = Math.max(widths[7], r2.branch.length))
-                                   rows.forEach((r2, index2) => {
-                                                  let from, range, line
+                                            r.prState = res.state
+                                            r.branch = res.branch
+                                            r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
+                                            approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
+                                            r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
+                                          }
+                                          pending--
+                                          if (pending)
+                                            return
+                                          // We have all PRs now.
+                                          view = buf?.anyView()
+                                          if (view) {
+                                            rows.forEach(r2 => widths[7] = Math.max(widths[7], r2.branch.length))
+                                            rows.forEach((r2, index2) => {
+                                                           let from, range, line
 
-                                                  from = Ed.posToBep(view, Pos.make(index2, 0))
-                                                  range = Ed.makeRange(view,
-                                                                       from,
-                                                                       Ed.posToBep(view, Pos.make(index2 + 1, 0)))
-                                                  range.remove()
-                                                  line = makeLine(r2)
-                                                  buf.insert(line, from)
-                                                })
-                                 }
-                               })
+                                                           from = Ed.posToBep(view, Pos.make(index2, 0))
+                                                           range = Ed.makeRange(view,
+                                                                                from,
+                                                                                Ed.posToBep(view, Pos.make(index2 + 1, 0)))
+                                                           range.remove()
+                                                           line = makeLine(r2)
+                                                           buf.insert(line, from)
+                                                         })
+                                          }
+                                        })
                      })
       }
     }
@@ -883,7 +638,7 @@ function initHub
   () {
     cachedNotifications = new Map()
     lastModified = 0
-    cachedPrs = {}
+    VcGithub.clearCachedPrs()
     cachedReleases = {}
     cachedIssues = {}
     refresh(Pane.current())
@@ -897,27 +652,27 @@ function initHub
     threadId = p.view.buf.vars('hub').threadIds[p.view.pos.row]
     d('VC json ' + threadId)
     if (threadId)
-      get('https://api.github.com/notifications/threads/' + threadId,
-          0,
-          (err, status, data) => {
-            let file
+      VcGithub.get('https://api.github.com/notifications/threads/' + threadId,
+                   0,
+                   (err, status, data) => {
+                     let file
 
-            if (err) {
-              Mess.yell('Hub: ' + err.message)
-              return
-            }
+                     if (err) {
+                       Mess.yell('Hub: ' + err.message)
+                       return
+                     }
 
-            file = 'vc-hub-' + threadId + '.json'
-            Ed.make(p,
-                    { name: file,
-                      dir: p.dir },
-                    view => {
-                      view.buf.file = file
-                      view.buf.opts.set('core.lang', 'json')
-                      view.insert(JSON.stringify(data, null, 2))
-                      view.buf.modified = 0
-                    })
-          })
+                     file = 'vc-hub-' + threadId + '.json'
+                     Ed.make(p,
+                             { name: file,
+                               dir: p.dir },
+                             view => {
+                               view.buf.file = file
+                               view.buf.opts.set('core.lang', 'json')
+                               view.insert(JSON.stringify(data, null, 2))
+                               view.buf.modified = 0
+                             })
+                   })
     else
       Mess.yell('Missing thread ID')
   }
@@ -930,27 +685,27 @@ function initHub
     row = p.view.buf.vars('hub').rows[p.view.pos.row] || Mess.toss('Missing row')
     if (row.type == 'PullRequest')
       if (row.ownerRepo && row.prNum)
-        get('https://api.github.com/repos/' + row.ownerRepo + '/pulls/' + row.prNum,
-            0,
-            (err, status, data) => {
-              let file
+        VcGithub.get('https://api.github.com/repos/' + row.ownerRepo + '/pulls/' + row.prNum,
+                     0,
+                     (err, status, data) => {
+                       let file
 
-              if (err) {
-                Mess.yell('Hub: ' + err.message)
-                return
-              }
+                       if (err) {
+                         Mess.yell('Hub: ' + err.message)
+                         return
+                       }
 
-              file = 'vc-hub-pr-' + row.prNum + '.json'
-              Ed.make(p,
-                      { name: file,
-                        dir: p.dir },
-                      view => {
-                        view.buf.file = file
-                        view.buf.opts.set('core.lang', 'json')
-                        view.insert(JSON.stringify(data, null, 2))
-                        view.buf.modified = 0
-                      })
-            })
+                       file = 'vc-hub-pr-' + row.prNum + '.json'
+                       Ed.make(p,
+                               { name: file,
+                                 dir: p.dir },
+                               view => {
+                                 view.buf.file = file
+                                 view.buf.opts.set('core.lang', 'json')
+                                 view.insert(JSON.stringify(data, null, 2))
+                                 view.buf.modified = 0
+                               })
+                     })
       else
         Mess.yell('Missing ownerRepo or prNum')
     else
@@ -966,22 +721,22 @@ function initHub
     threadId = p.view.buf.vars('hub').threadIds[row]
     d('VC markRead ' + threadId)
     if (threadId)
-      patch('https://api.github.com/notifications/threads/' + threadId,
-            err => {
-              let from, range
+      VcGithub.patch('https://api.github.com/notifications/threads/' + threadId,
+                     err => {
+                       let from, range
 
-              if (err) {
-                Mess.yell('Hub: ' + err.message)
-                return
-              }
-              p.view.buf.vars('hub').threadIds.splice(row, 1)
-              p.view.buf.vars('hub').rows.splice(row, 1)
-              cachedNotifications.delete(threadId)
-              from = Ed.posToBep(p.view, Pos.make(row, 0))
-              range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Pos.make(row + 1, 0)))
-              range.remove()
-              Mess.say('Marked as read')
-            })
+                       if (err) {
+                         Mess.yell('Hub: ' + err.message)
+                         return
+                       }
+                       p.view.buf.vars('hub').threadIds.splice(row, 1)
+                       p.view.buf.vars('hub').rows.splice(row, 1)
+                       cachedNotifications.delete(threadId)
+                       from = Ed.posToBep(p.view, Pos.make(row, 0))
+                       range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Pos.make(row + 1, 0)))
+                       range.remove()
+                       Mess.say('Marked as read')
+                     })
     else
       Mess.yell('Missing thread ID')
   }
@@ -997,22 +752,22 @@ function initHub
       threadId = p.view.buf.vars('hub').threadIds[row]
       d('VC markDone ' + threadId)
       if (threadId)
-        del('https://api.github.com/notifications/threads/' + threadId,
-            err => {
-              let from, range
+        VcGithub.del('https://api.github.com/notifications/threads/' + threadId,
+                     err => {
+                       let from, range
 
-              if (err) {
-                Mess.yell('Hub: ' + err.message)
-                return
-              }
-              p.view.buf.vars('hub').threadIds.splice(row, 1)
-              p.view.buf.vars('hub').rows.splice(row, 1)
-              cachedNotifications.delete(threadId)
-              from = Ed.posToBep(p.view, Pos.make(row, 0))
-              range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Pos.make(row + 1, 0)))
-              range.remove()
-              Mess.say('Marked as done')
-            })
+                       if (err) {
+                         Mess.yell('Hub: ' + err.message)
+                         return
+                       }
+                       p.view.buf.vars('hub').threadIds.splice(row, 1)
+                       p.view.buf.vars('hub').rows.splice(row, 1)
+                       cachedNotifications.delete(threadId)
+                       from = Ed.posToBep(p.view, Pos.make(row, 0))
+                       range = Ed.makeRange(p.view, from, Ed.posToBep(p.view, Pos.make(row + 1, 0)))
+                       range.remove()
+                       Mess.say('Marked as done')
+                     })
       else
         Mess.yell('Missing thread ID')
     }
@@ -1135,20 +890,20 @@ function initHub
     function run
     (ownerRepo, branchName, prNum) {
       Mess.say('Getting PR ' + prNum)
-      getPr(0, ownerRepo, prNum,
-            res => {
-              if (res)
-                if (res.branch == branchName)
-                  ensureMainUpToDate(dir,
-                                     () => {
-                                       Mess.say('Starting agent')
-                                       Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branchName))
-                                     })
-                else
-                  Mess.yell('Branch ' + branchName + ' (vs PR ' + res.branch + ')')
-              else
-                Mess.yell('getPrState failed')
-            })
+      VcGithub.getPr(0, ownerRepo, prNum,
+                     res => {
+                       if (res)
+                         if (res.branch == branchName)
+                           ensureMainUpToDate(dir,
+                                              () => {
+                                                Mess.say('Starting agent')
+                                                Cmd.run('code', 0, 1, we, prompt(ownerRepo, prNum, branchName))
+                                              })
+                         else
+                           Mess.yell('Branch ' + branchName + ' (vs PR ' + res.branch + ')')
+                       else
+                         Mess.yell('getPrState failed')
+                     })
     }
 
     p = Pane.current()
@@ -1179,7 +934,7 @@ function initHub
                                               let cachedPrNum
 
                                               ownerRepo = ownerRepo.replace(/\.git$/, '')
-                                              cachedPrNum = findPrNumByBranch(ownerRepo, branchName)
+                                              cachedPrNum = VcGithub.findPrNumByBranch(ownerRepo, branchName)
 
                                               if (cachedPrNum)
                                                 run(ownerRepo, branchName, cachedPrNum)
@@ -1268,67 +1023,67 @@ function initHub
     cached = cachedIssues[key]
     url = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum
 
-    get(url,
-        { lastModified: cached?.lastModified },
-        (err, status, data, headers) => {
-          if (err) {
-            if ((status == 304) && cached) {
-              cb(cached)
-              return
-            }
-            cb()
-            return
-          }
+    VcGithub.get(url,
+                 { lastModified: cached?.lastModified },
+                 (err, status, data, headers) => {
+                   if (err) {
+                     if ((status == 304) && cached) {
+                       cb(cached)
+                       return
+                     }
+                     cb()
+                     return
+                   }
 
-          if (data) {
-            let commentsUrl, lastPage
+                   if (data) {
+                     let commentsUrl, lastPage
 
-            commentsUrl = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum + '/comments?sort=created&per_page=' + commentsPerPage
-            lastPage = parseInt(data.comments / commentsPerPage)
-            lastPage += ((data.comments % commentsPerPage) ? 1 : 0)
+                     commentsUrl = 'https://api.github.com/repos/' + ownerRepo + '/issues/' + issueNum + '/comments?sort=created&per_page=' + commentsPerPage
+                     lastPage = parseInt(data.comments / commentsPerPage)
+                     lastPage += ((data.comments % commentsPerPage) ? 1 : 0)
 
-            get(commentsUrl + '&page=' + lastPage,
-                0,
-                (err2, status2, data2, headers2) => {
-                  let comments, moreBefore, link
+                     VcGithub.get(commentsUrl + '&page=' + lastPage,
+                                  0,
+                                  (err2, status2, data2, headers2) => {
+                                    let comments, moreBefore, link
 
-                  moreBefore = 0
-                  link = headers2?.get('Link')
-                  if (link && link.includes('rel="prev"'))
-                    moreBefore = 1
-                  comments = []
-                  if (data2)
-                    comments = data2.map(c => ({ body: c.body,
-                                                 user: c.user.login,
-                                                 created: c.created_at }))
+                                    moreBefore = 0
+                                    link = headers2?.get('Link')
+                                    if (link && link.includes('rel="prev"'))
+                                      moreBefore = 1
+                                    comments = []
+                                    if (data2)
+                                      comments = data2.map(c => ({ body: c.body,
+                                                                   user: c.user.login,
+                                                                   created: c.created_at }))
 
-                  if ((lastPage > 1) && data2 && (data2.length < 10)) {
-                    get(commentsUrl + '&page=' + (lastPage - 1),
-                        0,
-                        (err3, status3, data3, headers3) => {
-                          link = headers3?.get('Link')
-                          if (link && link.includes('rel="prev"'))
-                            moreBefore = 1
-                          if (data3)
-                            comments = comments.concat(data3.map(c => ({ body: c.body,
-                                                                         user: c.user.login,
-                                                                         created: c.created_at })))
+                                    if ((lastPage > 1) && data2 && (data2.length < 10)) {
+                                      VcGithub.get(commentsUrl + '&page=' + (lastPage - 1),
+                                                   0,
+                                                   (err3, status3, data3, headers3) => {
+                                                     link = headers3?.get('Link')
+                                                     if (link && link.includes('rel="prev"'))
+                                                       moreBefore = 1
+                                                     if (data3)
+                                                       comments = comments.concat(data3.map(c => ({ body: c.body,
+                                                                                                    user: c.user.login,
+                                                                                                    created: c.created_at })))
 
-                          cachedIssues[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
-                          cb(cachedIssues[key])
-                        })
-                    return
-                  }
+                                                     cachedIssues[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
+                                                     cb(cachedIssues[key])
+                                                   })
+                                      return
+                                    }
 
-                  cachedIssues[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
-                  cb(cachedIssues[key])
-                })
+                                    cachedIssues[key] = { issue: data, lastModified: headers?.get('Last-Modified'), comments, commentsLastModified: headers2?.get('Last-Modified'), moreBefore }
+                                    cb(cachedIssues[key])
+                                  })
 
-            return
-          }
+                     return
+                   }
 
-          cb()
-        })
+                   cb()
+                 })
 
   }
 
@@ -1359,7 +1114,7 @@ function initHub
                      res.comments.forEach(c => {
                                             let date
 
-                                            date = formatDate(c.created)
+                                            date = VcCommon.formatDate(c.created)
                                             text += '**' + c.user + '** ' + date + '\n\n' + c.body + '\n\n'
                                           })
                    }
@@ -1389,44 +1144,44 @@ function initHub
     row = p.view.buf.vars('hub').rows[p.view.pos.row]
     if (row.type == 'Discussion')
       if (row.ownerRepo && row.issueNum)
-        get('https://api.github.com/repos/' + row.ownerRepo + '/discussions/' + row.issueNum,
-            0,
-            (err, status, data) => {
-              if (err) {
-                Mess.yell('Discussion: ' + err.message)
-                return
-              }
+        VcGithub.get('https://api.github.com/repos/' + row.ownerRepo + '/discussions/' + row.issueNum,
+                     0,
+                     (err, status, data) => {
+                       if (err) {
+                         Mess.yell('Discussion: ' + err.message)
+                         return
+                       }
 
-              get('https://api.github.com/repos/' + row.ownerRepo + '/discussions/' + row.issueNum + '/comments',
-                  0,
-                  (err2, status2, data2) => {
-                    let text
+                       VcGithub.get('https://api.github.com/repos/' + row.ownerRepo + '/discussions/' + row.issueNum + '/comments',
+                                    0,
+                                    (err2, status2, data2) => {
+                                      let text
 
-                    text = '# ' + data.title + '\n\n'
-                    text += (data.body || '') + '\n\n'
+                                      text = '# ' + data.title + '\n\n'
+                                      text += (data.body || '') + '\n\n'
 
-                    if (data2?.length) {
-                      text += '## Comments (' + data2.length + ')\n\n'
-                      data2.forEach(c => {
-                                      let date
+                                      if (data2?.length) {
+                                        text += '## Comments (' + data2.length + ')\n\n'
+                                        data2.forEach(c => {
+                                                        let date
 
-                                      date = formatDate(c.created_at)
-                                      text += '**' + c.user.login + '** ' + date + '\n\n' + c.body + '\n\n'
+                                                        date = VcCommon.formatDate(c.created_at)
+                                                        text += '**' + c.user.login + '** ' + date + '\n\n' + c.body + '\n\n'
+                                                      })
+                                      }
+
+                                      Ed.make(p,
+                                              { name: 'Discussion-' + row.issueNum + '.md',
+                                                dir: p.dir },
+                                              view => {
+                                                view.buf.file = 'Discussion-' + row.issueNum + '.md'
+                                                view.buf.opts.set('core.lang', 'markdown')
+                                                view.buf.addMode('view')
+                                                view.insert(text)
+                                                view.buf.modified = 0
+                                              })
                                     })
-                    }
-
-                    Ed.make(p,
-                            { name: 'Discussion-' + row.issueNum + '.md',
-                              dir: p.dir },
-                            view => {
-                              view.buf.file = 'Discussion-' + row.issueNum + '.md'
-                              view.buf.opts.set('core.lang', 'markdown')
-                              view.buf.addMode('view')
-                              view.insert(text)
-                              view.buf.modified = 0
-                            })
-                  })
-            })
+                     })
       else
         Mess.yell('Missing ownerRepo or issueNum')
     else
@@ -1471,7 +1226,7 @@ function initHub
 
   cachedIssues = {}
   cachedNotifications = new Map()
-  cachedPrs = {}
+  VcGithub.clearCachedPrs()
   cachedReleases = {}
   commentsPerPage = 100
 
@@ -1595,18 +1350,18 @@ function initPrs
     }
 
     Mess.say('Fetching user...')
-    get('https://api.github.com/user',
-        0,
-        (err, status, data) => {
-          if (err) {
-            Mess.yell('Get user: ' + err.message)
-            return
-          }
-          cachedUser = data.login
-          d('VC user: ' + cachedUser)
-          Mess.say('')
-          cb(cachedUser)
-        })
+    VcGithub.get('https://api.github.com/user',
+                 0,
+                 (err, status, data) => {
+                   if (err) {
+                     Mess.yell('Get user: ' + err.message)
+                     return
+                   }
+                   cachedUser = data.login
+                   d('VC user: ' + cachedUser)
+                   Mess.say('')
+                   cb(cachedUser)
+                 })
   }
 
   function prsUrl
@@ -1654,7 +1409,7 @@ function initPrs
                                        repo,
                                        ownerRepo,
                                        title: pr.title,
-                                       updated: formatDate(pr.updated_at),
+                                       updated: VcCommon.formatDate(pr.updated_at),
                                        branch: '',
                                        author: '',
                                        approvedBy: '',
@@ -1680,40 +1435,40 @@ function initPrs
 
       rows.forEach((r, index) => {
                      if (r.ownerRepo)
-                       getPr(0, r.ownerRepo, r.num,
-                             res => {
-                               if (res) {
-                                 let approvedBy, view
+                       VcGithub.getPr(0, r.ownerRepo, r.num,
+                                      res => {
+                                        if (res) {
+                                          let approvedBy, view
 
-                                 r.prState = res.state
-                                 r.branch = res.branch
-                                 r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
-                                 approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
-                                 r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
-                                 r.comments = res.comments?.length || 0
-                                 view = buf?.anyView()
-                                 if (view) {
-                                   let from, range, line
+                                          r.prState = res.state
+                                          r.branch = res.branch
+                                          r.author = '✎' + res.pr.user.login // 📝 too bright on dark, 🖍 too red
+                                          approvedBy = res.reviews?.find(rv => rv.state == 'APPROVED')
+                                          r.approvedBy = approvedBy ? ('✔' + approvedBy.user) : ''
+                                          r.comments = res.comments?.length || 0
+                                          view = buf?.anyView()
+                                          if (view) {
+                                            let from, range, line
 
-                                   from = Ed.posToBep(view, Pos.make(index, 0))
-                                   range = Ed.makeRange(view,
-                                                        from,
-                                                        Ed.posToBep(view, Pos.make(index + 1, 0)))
-                                   range.remove()
-                                   line = makeLine(r)
-                                   buf.insert(line, from)
-                                 }
-                               }
-                             })
+                                            from = Ed.posToBep(view, Pos.make(index, 0))
+                                            range = Ed.makeRange(view,
+                                                                 from,
+                                                                 Ed.posToBep(view, Pos.make(index + 1, 0)))
+                                            range.remove()
+                                            line = makeLine(r)
+                                            buf.insert(line, from)
+                                          }
+                                        }
+                                      })
                    })
     }
 
     p.buf.clear()
     p.buf.vars('prs').rows = []
 
-    ensureUser(user => get(prsUrl(user),
-                           0,
-                           (err, status, data) => err ? Mess.yell('PRs: ' + err.message) : refreshData(data)))
+    ensureUser(user => VcGithub.get(prsUrl(user),
+                                    0,
+                                    (err, status, data) => err ? Mess.yell('PRs: ' + err.message) : refreshData(data)))
   }
 
   function openPr
@@ -1831,23 +1586,23 @@ function initPrs
                            let p
 
                            p = Pane.current()
-                           ensureUser(user => get(prsUrl(user),
-                                                  0,
-                                                  (err, status, data) => {
-                                                    if (err) {
-                                                      Mess.yell('PRs: ' + err.message)
-                                                      return
-                                                    }
-                                                    Ed.make(p,
-                                                            { name: 'vc-prs.json',
-                                                              dir: p.dir },
-                                                            view => {
-                                                              view.buf.file = 'vc-prs.json'
-                                                              view.buf.opts.set('core.lang', 'json')
-                                                              view.insert(JSON.stringify(data, null, 2))
-                                                              view.buf.modified = 0
-                                                            })
-                                                  }))
+                           ensureUser(user => VcGithub.get(prsUrl(user),
+                                                           0,
+                                                           (err, status, data) => {
+                                                             if (err) {
+                                                               Mess.yell('PRs: ' + err.message)
+                                                               return
+                                                             }
+                                                             Ed.make(p,
+                                                                     { name: 'vc-prs.json',
+                                                                       dir: p.dir },
+                                                                     view => {
+                                                                       view.buf.file = 'vc-prs.json'
+                                                                       view.buf.opts.set('core.lang', 'json')
+                                                                       view.insert(JSON.stringify(data, null, 2))
+                                                                       view.buf.modified = 0
+                                                                     })
+                                                           }))
                          })
 
   Cmd.add('vc prs', () => {

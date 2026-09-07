@@ -437,7 +437,7 @@ function onPatch
                                   let out
 
                                   try {
-                                    out = Diff.applyPatch(data.data, patch)
+                                    out = Diff.applyPatch(data, patch)
                                   }
                                   catch (err2) {
                                     e.sender.send(ch, makeErr(err2))

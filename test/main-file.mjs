@@ -3,6 +3,7 @@ import Fs from 'node:fs'
 import Os from 'node:os'
 import Path from 'node:path'
 import Zlib from 'node:zlib'
+import * as Diff from '../lib/diff.js'
 import * as MainFile from '../js/main-file.mjs'
 
 let sends, tests, tmp
@@ -192,6 +193,46 @@ test('onTouch', 'updates times',
        path = tmpFile('a.txt', 'x')
        got = await send(MainFile.onTouch, [ path ])
        equal(got.err, undefined)
+     })
+
+test('onPatch', 'applies patch to file',
+     async () => {
+       let got, patch, path
+
+       path = tmpFile('a.txt', 'hello world\nsecond line\n')
+       patch = Diff.createPatch('a.txt',
+                                'hello world\nsecond line\n',
+                                'hello there\nsecond line\n')
+       got = await send(MainFile.onPatch, [ path, patch ])
+       equal(got.err, undefined)
+       equal(Fs.readFileSync(path, 'utf8'), 'hello there\nsecond line\n')
+     })
+
+test('onPatch', 'non matching patch fails',
+     async () => {
+       let got, patch, path
+
+       path = tmpFile('a.txt', 'ccc')
+       patch = Diff.createPatch('a.txt', 'aaa', 'bbb')
+       got = await send(MainFile.onPatch, [ path, patch ])
+       equal(got.err.message, 'Failed to apply patch')
+       equal(Fs.readFileSync(path, 'utf8'), 'ccc')
+     })
+
+test('onPatch', 'missing file returns err',
+     async () => {
+       let got
+
+       got = await send(MainFile.onPatch, [ Path.join(tmp, 'nope'), 'patch' ])
+       equal(got.err ? 1 : 0, 1)
+     })
+
+test('onPatch', 'relative path errors',
+     async () => {
+       let got
+
+       got = await send(MainFile.onPatch, [ 'a.txt', 'patch' ])
+       equal(got.err.message, 'Path must be absolute')
      })
 
 test('onSaveTmp', 'writes temp file',

@@ -7,33 +7,34 @@ export let extPatch
 export let extPatchDecor
 
 export
+function decorateRefines
+(ed, refines, decorPlus, decorMinus) {
+  let builder
+
+  if (ed.state.doc.length == 0)
+    return CMView.Decoration.none
+
+  builder = new CMState.RangeSetBuilder()
+  if (refines && refines.length)
+    for (let { from, to } of ed.visibleRanges)
+      for (let pos = from; pos <= to;) {
+        let line
+
+        line = ed.state.doc.lineAt(pos)
+        refines.filter(r => r.line == line.number).forEach(refine => {
+                                                             if ((refine.from < refine.to) && (refine.to <= line.length))
+                                                               builder.add(line.from + refine.from, line.from + refine.to,
+                                                                           refine.type == '+' ? decorPlus : decorMinus)
+                                                           })
+        pos = line.to + 1
+      }
+  return builder.finish()
+}
+
+export
 function init
 () {
   let decorPlus, decorMinus, decorEffect
-
-  function decorateRefines
-  (ed, refines) {
-    let builder
-
-    if (ed.state.doc.length == 0)
-      return CMView.Decoration.none
-
-    builder = new CMState.RangeSetBuilder()
-    if (refines && refines.length)
-      for (let { from, to } of ed.visibleRanges)
-        for (let pos = from; pos <= to;) {
-          let line
-
-          line = ed.state.doc.lineAt(pos)
-          refines.filter(r => r.line == line.number).forEach(refine => {
-                                                               if ((refine.from < refine.to) && (refine.to <= line.length))
-                                                                 builder.add(line.from + refine.from, line.from + refine.to,
-                                                                             refine.type == '+' ? decorPlus : decorMinus)
-                                                             })
-          pos = line.to + 1
-        }
-    return builder.finish()
-  }
 
   decorPlus = CMView.Decoration.mark({ class: 'patch-refine-plus' })
   decorMinus = CMView.Decoration.mark({ class: 'patch-refine-minus' })
@@ -63,18 +64,26 @@ function init
                                                 setTimeout(() => {
                                                              // Clear stale refines before recomputing
                                                              buf.vars('patch').refines = []
-                                                             edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view)) })
+                                                             edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
+                                                                                                                                 0,
+                                                                                                                                 decorPlus,
+                                                                                                                                 decorMinus)) })
                                                              Patch.refine(edUpdate.view.state.doc.toString(),
                                                                           refines => {
                                                                             buf.vars('patch').refines = refines
-                                                                            edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view, refines)) })
+                                                                            edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
+                                                                                                                                              refines,
+                                                                                                                                              decorPlus,
+                                                                                                                                              decorMinus)) })
                                                                           })
                                                            })
                                               else
                                                 setTimeout(() => {
                                                              if (buf.vars('patch').refines?.length)
                                                                edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
-                                                                                                                                buf.vars('patch').refines)) })
+                                                                                                                                 buf.vars('patch').refines,
+                                                                                                                                 decorPlus,
+                                                                                                                                 decorMinus)) })
                                                            })
                                           }
                                         }
@@ -87,7 +96,10 @@ function init
                                                                     buf = ed.bred?.view?.buf
                                                                     if (buf)
                                                                       buf.vars('patch').refines = refines
-                                                                    ed.dispatch({ effects: decorEffect.of(decorateRefines(ed, refines)) })
+                                                                    ed.dispatch({ effects: decorEffect.of(decorateRefines(ed,
+                                                                                                                          refines,
+                                                                                                                          decorPlus,
+                                                                                                                          decorMinus)) })
                                                                   })
                                                    })
 

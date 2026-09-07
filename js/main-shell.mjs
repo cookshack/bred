@@ -1,4 +1,5 @@
 import { app, ipcMain, shell as Shell } from 'electron'
+import { execFileSync } from 'child_process'
 import { d } from './main-log.mjs'
 import { makeErr } from './main-err.mjs'
 import * as Pty from 'node-pty'
@@ -76,6 +77,81 @@ function run
 
   try {
     let proc, env, cols, rows
+    let exited
+    let killTimers
+
+    function clearKillTimers
+    () {
+      killTimers.forEach(clearTimeout)
+      killTimers = []
+    }
+
+    function killFgGroup
+    (sig) {
+      let pgid
+
+      try {
+        pgid = parseInt(execFileSync('ps', [ '-o', 'tpgid=', '-p', String(proc.pid) ],
+                                     { encoding: 'utf8' }).trim(), 10)
+      }
+      catch (err) {
+        0 && d('tpgid lookup failed: ' + err.message)
+      }
+      pgid = (Number.isInteger(pgid) && pgid >= 2) ? pgid : proc.pid
+      try {
+        process.kill(-pgid, sig)
+      }
+      catch (err) {
+        0 && d('kill group failed: ' + err.message)
+      }
+    }
+
+    function stepInterrupt
+    () {
+      if (exited) return
+      killFgGroup('SIGINT')
+    }
+
+    function stepHangup
+    () {
+      if (exited) return
+      try {
+        process.kill(proc.pid, 'SIGHUP')
+      }
+      catch (err) {
+        0 && d('hangup failed: ' + err.message)
+      }
+    }
+
+    function stepKill
+    () {
+      if (exited) return
+      killFgGroup('SIGKILL')
+    }
+
+    // Behave like pressing Ctrl-C when the buffer is killed, then escalate
+    // so a process that ignores SIGINT can't hang the buffer forever.
+    function interruptAndEscalate
+    () {
+      // First the faithful Ctrl-C: the line discipline turns \x03 into
+      // SIGINT for the foreground process group (only when ISIG is on).
+      try {
+        proc.write('\x03')
+      }
+      catch (err) {
+        0 && d('write \\x03 failed: ' + err.message)
+      }
+      // Fallback SIGINT to the foreground process group: covers children
+      // that put the terminal in raw mode, where \x03 is just data.
+      killTimers.push(setTimeout(stepInterrupt, 1000))
+      // Then hangup on the child, as a middle step.
+      killTimers.push(setTimeout(stepHangup, 3000))
+      // Finally force-kill the whole foreground process group.
+      killTimers.push(setTimeout(stepKill, 5000))
+    }
+
+    exited = false
+    killTimers = []
 
     if (runInShell) {
       if (spec.multi)
@@ -167,6 +243,8 @@ function run
 
     proc.onExit(ret => {
                   d(ch + ': child process exited with code ' + ret.exitCode + ' stdOut=' + stdoutBuffer.length + ' stdErr=' + stderrBuffer.length)
+                  exited = true
+                  clearKillTimers()
                   // Ensure all buffered data is sent before closing
                   flushBuffers()
                   d(ch + ': sent close')
@@ -189,7 +267,7 @@ function run
                      if (data.input && data.input.length)
                        proc.write(data.input)
                      if (data.exit)
-                       process.kill(proc.pid, 'SIGHUP')
+                       interruptAndEscalate()
                    })
   }
   catch (err) {

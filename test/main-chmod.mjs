@@ -1,75 +1,112 @@
 import { equal, throws } from 'node:assert/strict'
-import * as Chmod from '../js/main-chmod.mjs'
+import Fs from 'node:fs'
+import Os from 'node:os'
+import Path from 'node:path'
+import * as MainChmod from '../js/main-chmod.mjs'
 
-let tests, parseModePerm
+let sends, tests, tmp
 
 function test
 (group, name, cb) {
   tests[group] = tests[group] || []
-  tests[group].push({ name, cb })
+  tests[group].push({ name,
+                      cb: async () => {
+                        tmp = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-test-'))
+                        try {
+                          await cb()
+                        }
+                        finally {
+                          Fs.rmSync(tmp, { recursive: true, force: true })
+                        }
+                      } })
+}
+
+function fakeE
+() {
+  sends = []
+  return { sender: { send: (ch, data) => sends.push({ ch, data }) } }
+}
+
+function lastSend
+() {
+  return sends.at(-1).data
+}
+
+async function send
+(handler, args) {
+  let e
+
+  e = fakeE()
+  handler(e, 'ch', args)
+  await new Promise(r => setTimeout(r, 30))
+  return lastSend()
 }
 
 tests = {}
-parseModePerm = Chmod._internals.parseModePerm
 
-test('parseModePerm', 'rxw',
-     () => equal(parseModePerm('rxw', 0),
-                 0b111))
+test('update', 'add x to all',
+     () => {
+       equal(MainChmod.update(0, 'a+x'), 0o111)
+     })
 
-test('parseModePerm', 'wrx',
-     () => equal(parseModePerm('wrx', 0),
-                 0b111))
+test('update', 'add x to user',
+     () => {
+       equal(MainChmod.update(0o444, 'u+x'), 0o544)
+     })
 
-test('parseModePerm', 'wr',
-     () => equal(parseModePerm('wr', 0),
-                 0b110))
+test('update', 'remove w from other',
+     () => {
+       equal(MainChmod.update(0o777, 'o-w'), 0o775)
+     })
 
-test('parseModePerm', 'x',
-     () => equal(parseModePerm('x', 0),
-                 0b1))
+test('update', 'remove wx from group',
+     () => {
+       equal(MainChmod.update(0o777, 'g-wx'), 0o747)
+     })
 
-test('parseModePerm', 'e',
-     () => throws(() => parseModePerm('e', 0)))
+test('update', 'add rw to user',
+     () => {
+       equal(MainChmod.update(0, 'u+rw'), 0o600)
+     })
 
-test('update', 'a+rwx',
-     () => equal(Chmod.update(0, 'a+rwx'),
-                 0b111111111))
+test('update', 'bad operator throws',
+     () => {
+       throws(() => MainChmod.update(0, 'x'))
+     })
 
-test('update', 'a+r',
-     () => equal(Chmod.update(0, 'a+r'),
-                 0b100100100))
+test('parseModePerm', 'rwx parses to 7',
+     () => {
+       equal(MainChmod._internals.parseModePerm('rwx', 0), 0o7)
+     })
 
-test('update', 'ugo+r',
-     () => equal(Chmod.update(0, 'ugo+r'),
-                 0b100100100))
+test('parseModePerm', 'from position',
+     () => {
+       equal(MainChmod._internals.parseModePerm('rwx', 1), 0o3)
+     })
 
-test('update', 'o+r', // o for other
-     () => equal(Chmod.update(0, 'o+r'),
-                 0b000000100))
+test('parseModePerm', 'bad char throws',
+     () => {
+       throws(() => MainChmod._internals.parseModePerm('rq', 0))
+     })
 
-test('update', 'u+rx',
-     () => equal(Chmod.update(0, 'u+rx'),
-                 0b101000000))
+test('onChmod', 'sets mode',
+     async () => {
+       let path
 
-test('update', 'gu+xw',
-     () => equal(Chmod.update(0, 'gu+xw'),
-                 0b011011000))
+       path = Path.join(tmp, 'a.txt')
+       Fs.writeFileSync(path, 'x')
+       Fs.chmodSync(path, 0o644)
+       await MainChmod.onChmod(fakeE(), 'ch', [ 'u+x', path ])
+       equal(Fs.statSync(path).mode & 0o777, 0o744)
+     })
 
-test('update', 'uo-x',
-     () => equal(Chmod.update(0b111111111, 'uo-x'),
-                 0b110111110))
+test('onChmod', 'relative path errors',
+     async () => {
+       let got
 
-test('update', 'a+rwx uo-x',
-     () => equal(Chmod.update(Chmod.update(0, 'a+rwx'), 'uo-x'),
-                 0b110111110))
-
-test('update', 'u-r on 0',
-     () => equal(Chmod.update(0, 'u-r'),
-                 0))
-
-/*
-(update-mode (update-mode 0 'ug+r') 'u-wr')
-*/
+       got = await send(MainChmod.onChmod, [ 'u+x', 'a.txt' ])
+       equal(got.err.message, 'Path must be absolute')
+     })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,

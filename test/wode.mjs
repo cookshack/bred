@@ -414,6 +414,90 @@ test('region', 'vregion getters',
        equal(reg.end.bep, 3)
      })
 
+test('movement', 'prevLine moves up keeping column',
+     () => {
+       let v
+
+       v = viewFor('a\nbb\nccc', 3)
+       Wode.prevLine(v, 1)
+       equal(v.ed.state.selection.main.head, 1)
+       equal(v.ed.state.selection.main.goalColumn, 1)
+     })
+
+test('movement', 'prevLine stays on first line',
+     () => {
+       let v
+
+       v = viewFor('a\nbb\nccc', 0)
+       Wode.prevLine(v, 1)
+       equal(v.ed.state.selection.main.head, 0)
+     })
+
+test('movement', 'prevLine repeats',
+     () => {
+       let v
+
+       v = viewFor('a\nbb\nccc', 5)
+       Wode.prevLine(v, 2)
+       equal(v.ed.state.selection.main.head, 0)
+     })
+
+test('movement', 'nextLine moves down keeping column',
+     () => {
+       let v
+
+       v = viewFor('a\nbb\nccc', 1)
+       Wode.nextLine(v, 1)
+       equal(v.ed.state.selection.main.head, 3)
+       equal(v.ed.state.selection.main.goalColumn, 1)
+     })
+
+test('movement', 'nextLine stays on last line',
+     () => {
+       let v
+
+       v = viewFor('a\nbb\nccc', 8)
+       Wode.nextLine(v, 1)
+       equal(v.ed.state.selection.main.head, 8)
+     })
+
+test('movement', 'nextLine repeats',
+     () => {
+       let v
+
+       v = viewFor('a\nbb\nccc', 0)
+       Wode.nextLine(v, 2)
+       equal(v.ed.state.selection.main.head, 5)
+     })
+
+test('editing', 'fill wraps paragraph',
+     () => {
+       let v
+
+       v = viewFor('hello world', 0)
+       Wode.fill(v, 5)
+       equal(v.ed.state.doc.toString(), 'hello\nworld\n')
+     })
+
+test('editing', 'fill leaves already wrapped paragraph',
+     () => {
+       let v
+
+       v = viewFor('hello\nworld\n', 0)
+       Wode.fill(v, 5)
+       equal(v.ed.state.doc.toString(), 'hello\nworld\n')
+     })
+
+test('region', 'vregion psns per line',
+     () => {
+       let psns, reg, v
+
+       v = viewFor('a\nbb\nccc', 3, 0)
+       reg = Wode.vregion(v)
+       psns = reg.psns.map(psn => psn.bep)
+       equal(psns.join(','), '0,2')
+     })
+
 test('misc', 'addMarkAt pushes mark',
      () => {
        let v

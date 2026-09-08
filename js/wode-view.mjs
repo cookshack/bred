@@ -257,9 +257,154 @@ async function init
             spec)
 }
 
+function modeFromFirstLine
+(content) {
+  // these must be ed modes
+  if (content && content.length) {
+    let l, m
+
+    l = WodeLang.langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(content))
+    if (l)
+      return WodeMode.modeFromLang(l.id)
+    if (content.startsWith('#!/bin/sh'))
+      return 'sh'
+    if (content.startsWith('#!/bin/bash'))
+      return 'sh'
+    if (content.startsWith('#!/usr/bin/env bash'))
+      return 'sh'
+    if (content.startsWith('#!/usr/bin/make'))
+      return 'makefile'
+    if (content.startsWith('#!/usr/bin/env python'))
+      return 'python'
+
+    m = content.match(/-\*-\s*(?:mode:\s*)?(\S+).*-\*-/)
+    if (m) {
+      let mode
+
+      mode = m[1].toLowerCase()
+      if (Mode.get(mode))
+        return mode
+    }
+  }
+  return 0
+}
+
+export
+function loadContent
+(view, ed, text, spec, lineNum, whenReady) {
+  let buf, useText
+
+  buf = view.buf
+
+  //// load file
+
+  useText = (typeof text == 'string') || text instanceof String
+  if (spec.revert)
+    useText = 0
+
+  if (useText) {
+    if (buf.modifiedOnDisk)
+      // Reset it so the revert dialog will appear (it will just skip existing views)
+      buf.modifiedOnDisk = 1
+    if (Number.isFinite(parseInt(lineNum)))
+      Wode.vgotoLine(view, lineNum)
+  }
+  else if (buf.file) {
+    let path
+
+    path = buf.path
+    d('WODE get file')
+    Tron.cmd('file.get', [ path ], (err, data) => {
+                                     let mode, lang
+
+                                     if (err) {
+                                       Mess.log('file: ' + buf.file)
+                                       Mess.log(' dir: ' + buf.dir)
+                                       Mess.log('path: ' + path)
+                                       Mess.toss('Wodemirror viewInit: ' + err.message)
+                                       return
+                                     }
+
+                                     d('WODE got file')
+
+                                     buf.modifiedOnDisk = 0
+                                     buf.stat = data.stat
+                                     d('WODE new mtime ' + buf.stat.mtimeMs)
+
+                                     WodeWatch.watch(buf, path)
+
+                                     if (data.realpath) {
+                                       let real
+
+                                       real = Loc.make(data.realpath)
+                                       buf.dir = real.dirname
+                                       buf.file = real.filename
+                                       Ed.setMlDir(buf, buf.dir)
+                                     }
+
+                                     mode = WodeMode.modeFor(path)
+                                     if (mode == 'Ed')
+                                       mode = 'text'
+                                     d('mode offered: ' + mode)
+                                     if (mode ? (mode == 'text') : 1)
+                                       mode = modeFromFirstLine(data.data) || mode
+
+                                     mode = mode || 'text'
+                                     lang = WodeMode.modeLang(mode)
+                                     if (lang && WodeLang.langs.find(l => l.id == lang))
+                                       vsetLang(view, lang)
+                                     else
+                                       vsetLang(view, 'text')
+                                     d('chose mode 2: ' + mode)
+                                     buf.mode = mode
+                                     Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
+                                     WodeDecor.decorate(view, buf.mode)
+
+                                     buf.addToRecents()
+
+                                     WodeCommon.setValue(ed, data.data, false)
+                                     if (view == View.current())
+                                       ed.focus()
+                                     if (Number.isFinite(parseInt(lineNum))) {
+                                       Wode.vgotoLine(view, lineNum)
+                                       0 && setTimeout(() => Wode.recenter(ed))
+                                     }
+
+                                     if (whenReady)
+                                       whenReady(view)
+                                     WodeCommon.runOnCursors(view)
+                                   })
+    return
+  }
+
+  {
+    let mode
+
+    mode = buf.mode.key
+    if (mode) {
+      let lang
+
+      d('mode from buf: ' + mode)
+      lang = WodeMode.modeLang(mode)
+      if (lang && WodeLang.langs.find(l => l.id == lang))
+        vsetLang(view, lang)
+      else
+        vsetLang(view, 'text')
+    }
+  }
+
+  WodeDecor.decorate(view, buf.mode)
+  Css.enable(view.ele)
+  d('ready empty ed')
+  view.ready = 1
+  if (whenReady)
+    whenReady(view)
+  WodeCommon.runOnCursors(view)
+}
+
 function _viewInit
 (peer, view, text, modeWhenText, lineNum, whenReady, placeholder, spec) {
-  let ed, buf, edWW, edW, opts, domEventHandlers, useText
+  let ed, buf, edWW, edW, opts, domEventHandlers
   let decorator
   let updateListener, selectTimeout
 
@@ -302,38 +447,6 @@ function _viewInit
     selectTimeout = 0
     //d('SELECT ' + str)
     Tron.cmd1('clip.select', [ str ])
-  }
-
-  function modeFromFirstLine
-  (content) {
-    // these must be ed modes
-    if (content && content.length) {
-      let l, m
-
-      l = WodeLang.langs.find(lang => lang.firstLine && (new RegExp(lang.firstLine)).test(content))
-      if (l)
-        return WodeMode.modeFromLang(l.id)
-      if (content.startsWith('#!/bin/sh'))
-        return 'sh'
-      if (content.startsWith('#!/bin/bash'))
-        return 'sh'
-      if (content.startsWith('#!/usr/bin/env bash'))
-        return 'sh'
-      if (content.startsWith('#!/usr/bin/make'))
-        return 'makefile'
-      if (content.startsWith('#!/usr/bin/env python'))
-        return 'python'
-
-      m = content.match(/-\*-\s*(?:mode:\s*)?(\S+).*-\*-/)
-      if (m) {
-        let mode
-
-        mode = m[1].toLowerCase()
-        if (Mode.get(mode))
-          return mode
-      }
-    }
-    return 0
   }
 
   d('WODE ================== _viewInit')
@@ -667,122 +780,7 @@ function _viewInit
     view.ev_onDidBlurEditorWidget = ed.onDidBlurEditorWidget('XonDidBlurEditorWidget')
   }
 
-  //// load file
-
-  useText = (typeof text == 'string') || text instanceof String
-  if (spec.revert)
-    useText = 0
-
-  if (useText) {
-    if (buf.modifiedOnDisk)
-      // Reset it so the revert dialog will appear (it will just skip existing views)
-      buf.modifiedOnDisk = 1
-    if (Number.isFinite(parseInt(lineNum)))
-      Wode.vgotoLine(view, lineNum)
-  }
-  else if (buf.file) {
-    let path
-
-    path = buf.path
-    d('WODE get file')
-    Tron.cmd('file.get', [ path ], (err, data) => {
-                                     let mode, lang
-
-                                     if (err) {
-                                       Mess.log('file: ' + buf.file)
-                                       Mess.log(' dir: ' + buf.dir)
-                                       Mess.log('path: ' + path)
-                                       Mess.toss('Wodemirror viewInit: ' + err.message)
-                                       return
-                                     }
-
-                                     d('WODE got file')
-
-                                     buf.modifiedOnDisk = 0
-                                     buf.stat = data.stat
-                                     d('WODE new mtime ' + buf.stat.mtimeMs)
-
-                                     WodeWatch.watch(buf, path)
-
-                                     if (data.realpath) {
-                                       let real
-
-                                       real = Loc.make(data.realpath)
-                                       buf.dir = real.dirname
-                                       buf.file = real.filename
-                                       Ed.setMlDir(buf, buf.dir)
-                                     }
-
-                                     mode = WodeMode.modeFor(path)
-                                     if (mode == 'Ed')
-                                       mode = 'text'
-                                     d('mode offered: ' + mode)
-                                     if (mode ? (mode == 'text') : 1)
-                                       mode = modeFromFirstLine(data.data) || mode
-
-                                     mode = mode || 'text'
-                                     lang = WodeMode.modeLang(mode)
-                                     if (lang && WodeLang.langs.find(l => l.id == lang))
-                                       vsetLang(view, lang)
-                                     else
-                                       vsetLang(view, 'text')
-                                     d('chose mode 2: ' + mode)
-                                     buf.mode = mode
-                                     Ed.setIcon(buf, '.edMl-type', Icon.mode(mode)?.name, 'describe buffer')
-                                     WodeDecor.decorate(view, buf.mode)
-
-                                     buf.addToRecents()
-
-                                     WodeCommon.setValue(ed, data.data, false)
-                                     if (view == View.current())
-                                       ed.focus()
-                                     if (Number.isFinite(parseInt(lineNum))) {
-                                       Wode.vgotoLine(view, lineNum)
-                                       //ed.renderer.once('afterRender', () => recenter(ed))
-                                       0 && setTimeout(() => Wode.recenter(ed))
-                                     }
-
-                                     if (whenReady)
-                                       whenReady(view)
-                                     WodeCommon.runOnCursors(view)
-
-                                     //ed.session.getUndoManager().reset()
-
-                                     /*
-      ed.on('input', () => {
-        if (ed.session.getUndoManager().isClean()) {
-          view.buf.modified = 0
-          Ed.setIcon(view.buf, '.edMl-mod', 'blank')
-        }
-      })
-      */
-                                   })
-    return
-  }
-
-  {
-    let mode
-
-    mode = buf.mode.key
-    if (mode) {
-      let lang
-
-      d('mode from buf: ' + mode)
-      lang = WodeMode.modeLang(mode)
-      if (lang && WodeLang.langs.find(l => l.id == lang))
-        vsetLang(view, lang)
-      else
-        vsetLang(view, 'text')
-    }
-  }
-
-  WodeDecor.decorate(view, buf.mode)
-  Css.enable(view.ele)
-  d('ready empty ed')
-  view.ready = 1
-  if (whenReady)
-    whenReady(view)
-  WodeCommon.runOnCursors(view)
+  loadContent(view, ed, text, spec, lineNum, whenReady)
 }
 
 export

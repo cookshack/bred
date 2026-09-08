@@ -602,14 +602,39 @@ function toggleQuestionOption
   }
 }
 
+function activeQuestionID
+(buf) {
+  let req
+
+  req = buf.vars('code')?.questions?.[0]
+  return req?.id
+}
+
+function questionEl
+(buf, requestID, we) {
+  let el, w
+
+  el = we?.e?.target?.closest?.('.code-msg-question')
+  if (el)
+    return el
+  w = Pane.current().view.eleOrReserved.querySelector('.code-w')
+  if (w)
+    el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
+  return el
+}
+
 function answerQuestion
 (u, we) {
-  let buf, el, requestID, items, answers
+  let buf, requestID, el, items, answers
 
   buf = Pane.current().buf
-  el = we.e.target.closest('.code-msg-question')
-  requestID = el.dataset.requestid
-  items = el.querySelectorAll('.code-question-item')
+  requestID = activeQuestionID(buf)
+  if (requestID == null) {
+    Mess.yell('No question pending')
+    return
+  }
+  el = questionEl(buf, requestID, we)
+  items = el ? el.querySelectorAll('.code-question-item') : []
   answers = []
   items.forEach(item => {
                   let selected, custom, ans
@@ -626,13 +651,27 @@ function answerQuestion
 }
 
 function skipQuestion
-(u, we) {
-  let buf, el, requestID
+() {
+  let buf, requestID
 
   buf = Pane.current().buf
-  el = we.e.target.closest('.code-msg-question')
-  requestID = el.dataset.requestid
+  requestID = activeQuestionID(buf)
+  if (requestID == null) {
+    Mess.yell('No question pending')
+    return
+  }
   questionRespond(buf, requestID)
+}
+
+function skipQuestionOrStop
+() {
+  let buf
+
+  buf = Pane.current().buf
+  if (buf.vars('code')?.questions?.length)
+    skipQuestion()
+  else
+    stopWithCaution()
 }
 
 function handlePermissionAsked
@@ -2198,7 +2237,7 @@ function init
   Em.on('b', 'set agent build', mo)
   Em.on('p', 'set agent plan', mo)
   Em.on('q', 'bury', mo)
-  Em.on('s', 'stop with caution', mo)
+  Em.on('s', 'skip question or stop', mo)
   Em.on('t', 'toggle thinking', mo)
   Em.on('C-g', 'cancel prompt or cancel', mo)
 
@@ -2212,9 +2251,12 @@ function init
 
   Cmd.add('set code model', () => listModels(), mo)
 
+  Em.on('a', 'answer question', mo)
+
   Cmd.add('toggle question option', toggleQuestionOption, mo)
   Cmd.add('answer question', answerQuestion, mo)
   Cmd.add('skip question', skipQuestion, mo)
+  Cmd.add('skip question or stop', skipQuestionOrStop, mo)
 
   Cmd.add('code buffer', () => {
                            code(Pane.current().buf.text())

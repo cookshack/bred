@@ -7,6 +7,7 @@ import * as Ed from '../js/ed.mjs'
 import * as Em from '../js/Em.mjs'
 import Mk from '../js/mk.mjs'
 import * as Mode from '../js/mode.mjs'
+import * as Wode from '../js/wode.mjs'
 import * as WodeView from '../js/wode-view.mjs'
 import { setupDom } from './dom-help.mjs'
 
@@ -115,7 +116,19 @@ function setup
            onFocuss: Mk.array,
            onRemove: () => {},
            buf }
+  globalThis.bredWin.currentArea.tabs[0].frames[0].panes[0].view = view
   readyView = 0
+}
+
+async function openDoc
+(text) {
+  Fs.writeFileSync(filePath, text)
+  await open()
+}
+
+function goto
+(head) {
+  view.ed.dispatch({ selection: { head, anchor: head } })
 }
 
 async function open
@@ -217,6 +230,73 @@ test('revert', 're-enables the view element',
        await open()
        await revert()
        equal(view.ele.getAttribute('inert'), null)
+     })
+
+test('movement', 'vforward moves right by chars',
+     async () => {
+       await openDoc('ab\ncd\nef')
+       goto(0)
+       Wode.vforward(view, 1)
+       equal(view.ed.state.selection.main.head, 1)
+       Wode.vforward(view, 3)
+       equal(view.ed.state.selection.main.head, 4)
+     })
+
+test('movement', 'forward uses current view',
+     async () => {
+       await openDoc('ab\ncd\nef')
+       goto(0)
+       Wode.forward(2)
+       equal(view.ed.state.selection.main.head, 2)
+     })
+
+test('movement', 'backward moves left',
+     async () => {
+       await openDoc('ab\ncd\nef')
+       goto(4)
+       Wode.backward(1)
+       equal(view.ed.state.selection.main.head, 3)
+     })
+
+test('movement', 'groupForward and groupBackward',
+     async () => {
+       await openDoc('ab\ncd\nef')
+       goto(0)
+       Wode.groupForward(1)
+       equal(view.ed.state.selection.main.head, 2)
+       goto(4)
+       Wode.groupBackward(1)
+       equal(view.ed.state.selection.main.head, 3)
+     })
+
+test('movement', 'lineStart and lineEnd',
+     async () => {
+       await openDoc('ab\ncd\nef')
+       goto(4)
+       Wode.lineStart(view)
+       equal(view.ed.state.selection.main.head, 3)
+       goto(0)
+       Wode.lineEnd(view)
+       equal(view.ed.state.selection.main.head, 2)
+     })
+
+test('movement', 'nextBoundary and prevBoundary',
+     async () => {
+       await openDoc('ab\ncd\nef')
+       goto(0)
+       Wode.nextBoundary(view, 1)
+       equal(view.ed.state.selection.main.head, 2)
+       goto(5)
+       Wode.prevBoundary(view, 1)
+       equal(view.ed.state.selection.main.head, 3)
+     })
+
+test('movement', 'selectAll selects the doc',
+     async () => {
+       await openDoc('ab\ncd\nef')
+       Wode.selectAll()
+       equal(view.ed.state.selection.main.from, 0)
+       equal(view.ed.state.selection.main.to, 8)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

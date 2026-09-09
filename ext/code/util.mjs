@@ -118,3 +118,42 @@ function ensureTextChunks
     return chunks
   return buf.vars('code').textChunks = {}
 }
+
+export
+function sumTokens
+(tokens) {
+  return (tokens.input || 0)
+    + (tokens.output || 0)
+    + (tokens.reasoning || 0)
+    + (tokens.cache?.read || 0)
+    + (tokens.cache?.write || 0)
+}
+
+export
+function fmtSessionStart
+(ts) {
+  let dt, h, m
+
+  dt = new Date(ts)
+  h = String(dt.getHours()).padStart(2, '0')
+  m = String(dt.getMinutes()).padStart(2, '0')
+  return String(dt.getFullYear()) + '-'
+    + String(dt.getMonth() + 1).padStart(2, '0') + '-'
+    + String(dt.getDate()).padStart(2, '0') + ' ' + h + 'h' + m
+}
+
+export
+function calculateTokenPercentage
+(buf) {
+  let tokens, modelLimit, ret
+
+  ret = ''
+  tokens = buf.vars('code').lastTokens
+  modelLimit = buf.vars('code').modelContextLimit
+  if (tokens) {
+    ret += ('T:' + tokens)
+    if (modelLimit)
+      ret += (' ' + Math.round((tokens / modelLimit) * 100) + '%')
+  }
+  return ret
+}

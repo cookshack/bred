@@ -37,27 +37,6 @@ function getSubagentCallIds
   return buf.vars('code').subagentCallIds || (buf.vars('code').subagentCallIds = new Map())
 }
 
-function sumTokens
-(tokens) {
-  return (tokens.input || 0)
-    + (tokens.output || 0)
-    + (tokens.reasoning || 0)
-    + (tokens.cache?.read || 0)
-    + (tokens.cache?.write || 0)
-}
-
-function fmtSessionStart
-(ts) {
-  let dt, h, m
-
-  dt = new Date(ts)
-  h = String(dt.getHours()).padStart(2, '0')
-  m = String(dt.getMinutes()).padStart(2, '0')
-  return String(dt.getFullYear()) + '-'
-    + String(dt.getMonth() + 1).padStart(2, '0') + '-'
-    + String(dt.getDate()).padStart(2, '0') + ' ' + h + 'h' + m
-}
-
 function codeInit
 () {
   let pane, dir, name, provider, model, existingBuf, buf
@@ -407,21 +386,6 @@ function updateStatus
     d('🌱 TODO status: ' + req.status?.type)
 }
 
-function calculateTokenPercentage
-(buf) {
-  let tokens, modelLimit, ret
-
-  ret = ''
-  tokens = buf.vars('code').lastTokens
-  modelLimit = buf.vars('code').modelContextLimit
-  if (tokens) {
-    ret += ('T:' + tokens)
-    if (modelLimit)
-      ret += (' ' + Math.round((tokens / modelLimit) * 100) + '%')
-  }
-  return ret
-}
-
 function updateModelContextLimit
 (buf, providerID, modelID) {
   let lastProviderID, lastModelID
@@ -732,7 +696,7 @@ function handleSessionUpdated
 
                                       el = v.ele?.querySelector('.assist-extra.assist-mode-session-start')
                                       if (el)
-                                        el.innerText = 'Started: ' + fmtSessionStart(ts)
+                                        el.innerText = 'Started: ' + Util.fmtSessionStart(ts)
                                     })
                 })
   }
@@ -746,7 +710,7 @@ function handleMessageUpdated
   if (info.tokens) {
     let total
 
-    total = sumTokens(info.tokens)
+    total = Util.sumTokens(info.tokens)
     if (total > 0)
       buf.vars('code').lastTokens = total
   }
@@ -802,7 +766,7 @@ function handlePart
   if (part.tokens) {
     let total
 
-    total = sumTokens(part.tokens)
+    total = Util.sumTokens(part.tokens)
     if (total > 0)
       buf.vars('code').lastTokens = total
   }
@@ -2083,7 +2047,7 @@ function init
                                (buf, event) {
                                  if (Util.isSessionMatch(buf, event.properties.sessionID))
                                    if (event.properties.sessionID == buf.vars('code').sessionID)
-                                     updateIdle(buf, calculateTokenPercentage(buf))
+                                     updateIdle(buf, Util.calculateTokenPercentage(buf))
                                    else
                                      handleSubagentIdle(buf, event)
                                } },
@@ -2091,7 +2055,7 @@ function init
                                  (buf, event) {
                                    if (Util.isSessionMatch(buf, event.properties.sessionID)
                                        && event.properties.sessionID == buf.vars('code').sessionID)
-                                     updateStatus(buf, event.properties, calculateTokenPercentage(buf))
+                                     updateStatus(buf, event.properties, Util.calculateTokenPercentage(buf))
                                  } },
              'permission.asked': { onArrive
                                    (buf, event) {
@@ -2196,7 +2160,7 @@ function init
                                           let ts
 
                                           ts = view.buf.vars('code')?.sessionStart
-                                          return 'Started: ' + (ts ? fmtSessionStart(ts) : '?')
+                                          return 'Started: ' + (ts ? Util.fmtSessionStart(ts) : '?')
                                         } } ] },
                   onRemove
                   (buf) {

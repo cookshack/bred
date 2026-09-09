@@ -89,6 +89,15 @@ function fireWatch
                    })
 }
 
+function fireChannel
+(ch, data) {
+  let cb
+
+  cb = watchCbs.get(ch)
+  if (cb)
+    cb(data)
+}
+
 async function waitPeer
 (id, text) {
   for (let i = 0; i < 100; i++) {
@@ -97,6 +106,16 @@ async function waitPeer
     await new Promise(r => setTimeout(r, 20))
   }
   throw new Error('peer text did not reach ' + text)
+}
+
+async function waitDoc
+(v, text) {
+  for (let i = 0; i < 100; i++) {
+    if (v.ed?.state.doc.toString() == text)
+      return
+    await new Promise(r => setTimeout(r, 20))
+  }
+  throw new Error('doc did not reach ' + text)
 }
 
 function setup
@@ -133,7 +152,8 @@ function setup
                                 if (name == 'peer.get')
                                   return MainPeer.onGet(fakeE(), args)
                                 if (name == 'peer.push')
-                                  return MainPeer.onPush(fakeE(), args)
+                                  return MainPeer.onPush({ sender: { send: (ch, data) => fireChannel(ch, data) } },
+                                                         args)
                                 return {}
                               },
                       cmd: async (name, args) => {
@@ -143,6 +163,10 @@ function setup
                              }
                              if (name == 'file.watch')
                                return { err: 0, ch: 'watch-ch' }
+                             if (name == 'peer.pull')
+                               MainPeer.onPull({ sender: { send: (ch, data) => fireChannel(ch, data) } },
+                                               'ch',
+                                               args)
                              return { err: 0, ch: 0 }
                            },
                       receive: (ch, cb2) => {
@@ -204,6 +228,17 @@ async function revert
 () {
   readyView = 0
   await WodeView.revertV(view, {}, v => readyView = v)
+  await new Promise(r => setTimeout(r, 50))
+}
+
+async function openSeeded
+() {
+  MainPeer.get(buf.id)
+  MainPeer.onPush(fakeE(), [ buf.id, 0, [ { clientID: 'seed',
+                                            changes: CMState.ChangeSet.of({ from: 0, to: 0, insert: 'v1' }, 0).toJSON() } ] ])
+  MainPeer.get(buf.id)
+  readyView = 0
+  await WodeView.init(view, {}, v => readyView = v)
   await new Promise(r => setTimeout(r, 50))
 }
 
@@ -636,6 +671,50 @@ test('ed', 'enable and enableBuf set opts',
        equal(Opt.get('core.test.enable'), 1)
        Ed.enableBuf(1, 'core.test.buf')
        equal(optsSet.some(o => o[0] == 'core.test.buf' && o[1] == 1), true)
+     })
+
+test('collab', 'second view shows existing content',
+     async () => {
+       let vB
+
+       await open()
+       vB = makeView(buf)
+       extraViews.push(vB)
+       await new Promise((res, rej) => {
+                           WodeView.init(vB, {}, res)
+                           setTimeout(() => rej(new Error('init timeout')), 3000)
+                         })
+       equal(vB.ed.state.doc.toString(), 'v1')
+     })
+
+test('collab', 'second view receives edit from first',
+     async () => {
+       let vB
+
+       await openSeeded()
+       vB = makeView(buf)
+       extraViews.push(vB)
+       await new Promise((res, rej) => {
+                           WodeView.init(vB, {}, res)
+                           setTimeout(() => rej(new Error('init timeout')), 3000)
+                         })
+       view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
+       await waitDoc(vB, 'v1X')
+     })
+
+test('collab', 'edits from second view reach first',
+     async () => {
+       let vB
+
+       await openSeeded()
+       vB = makeView(buf)
+       extraViews.push(vB)
+       await new Promise((res, rej) => {
+                           WodeView.init(vB, {}, res)
+                           setTimeout(() => rej(new Error('init timeout')), 3000)
+                         })
+       vB.ed.dispatch({ changes: { from: 0, insert: 'Z' } })
+       await waitDoc(view, 'Zv1')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

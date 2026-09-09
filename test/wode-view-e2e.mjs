@@ -6,13 +6,17 @@ import * as Cmd from '../js/cmd.mjs'
 import * as Ed from '../js/ed.mjs'
 import * as Em from '../js/Em.mjs'
 import Mk from '../js/mk.mjs'
+import * as MainPeer from '../js/main-peer.mjs'
 import * as Mode from '../js/mode.mjs'
 import * as Wode from '../js/wode.mjs'
+import * as WodePeer from '../js/wode-peer.mjs'
 import * as WodeView from '../js/wode-view.mjs'
+import * as CMState from '../lib/@codemirror/state.js'
+import * as CMView from '../lib/@codemirror/view.js'
 import { setupDom } from './dom-help.mjs'
 
-let domWin, fileGetArgs, fileGetErr, filePath, readyView, savedDocument, savedElement, savedHTMLDocument, savedOpt
-let savedTron, tests, tmp, view, _shared
+let buf, bufSeq, domWin, extraViews, fileGetArgs, fileGetErr, filePath, readyView
+let savedDocument, savedElement, savedHTMLDocument, savedOpt, savedTron, tests, tmp, view, watchCbs, _shared
 
 function test
 (group, name, cb) {
@@ -25,6 +29,7 @@ function test
                         }
                         finally {
                           view.ed?.destroy()
+                          extraViews.forEach(v => v.ed?.destroy())
                           domWin?.happyDOM?.cancelAsync()
                           Fs.rmSync(tmp, { recursive: true, force: true })
                         }
@@ -41,15 +46,69 @@ function emReady
   }
 }
 
+function fakeE
+() {
+  return { sender: { send: () => {} } }
+}
+
+function makeEle
+() {
+  let edW, edWW, ele
+
+  ele = globalThis.document.createElement('div')
+  edWW = globalThis.document.createElement('div')
+  edW = globalThis.document.createElement('div')
+  edW.className = 'edW'
+  edWW.appendChild(edW)
+  ele.appendChild(edWW)
+  return ele
+}
+
+function makeView
+(vbuf) {
+  let v
+
+  v = { vid: 1,
+        ready: 1,
+        marks: [],
+        ele: makeEle(),
+        onChanges: Mk.array,
+        onFocuss: Mk.array,
+        onRemove: () => {},
+        buf: vbuf }
+  return v
+}
+
+function fireWatch
+(data) {
+  watchCbs.forEach((cb, ch) => {
+                     if (typeof ch == 'string')
+                       return
+                     cb(data)
+                   })
+}
+
+async function waitPeer
+(id, text) {
+  for (let i = 0; i < 100; i++) {
+    if (MainPeer.onGet(fakeE(), [ id ]).text == text)
+      return
+    await new Promise(r => setTimeout(r, 20))
+  }
+  throw new Error('peer text did not reach ' + text)
+}
+
 function setup
 () {
-  let buf, edW, edWW, ele
 
+  bufSeq = (bufSeq || 0) + 1
   tmp = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-e2e-'))
   filePath = Path.join(tmp, 'a.txt')
   Fs.writeFileSync(filePath, 'v1')
   fileGetArgs = 0
   fileGetErr = 0
+  watchCbs = new Map()
+  extraViews = []
   domWin = setupDom()
 
   globalThis.bredWin = { currentArea: { tabs: [ { el: { classList: { contains: () => 1 } },
@@ -66,9 +125,11 @@ function setup
     }
   })(globalThis.document.dispatchEvent.bind(globalThis.document))
 
-  globalThis.tron = { acmd: async name => {
+  globalThis.tron = { acmd: async (name, args) => {
                                 if (name == 'peer.get')
-                                  return { version: 0, fresh: 1, text: '' }
+                                  return MainPeer.onGet(fakeE(), args)
+                                if (name == 'peer.push')
+                                  return MainPeer.onPush(fakeE(), args)
                                 return {}
                               },
                       cmd: async (name, args) => {
@@ -76,6 +137,8 @@ function setup
                                fileGetArgs = args
                                return 'file-get-ch'
                              }
+                             if (name == 'file.watch')
+                               return { err: 0, ch: 'watch-ch' }
                              return { err: 0, ch: 0 }
                            },
                       receive: (ch, cb2) => {
@@ -87,16 +150,12 @@ function setup
                         else
                           cb2({ err: 0 })
                       },
-                      on: () => () => {} }
+                      on: (ch, cb) => {
+                        watchCbs.set(ch, cb)
+                        return () => watchCbs.delete(ch)
+                      } }
 
-  ele = globalThis.document.createElement('div')
-  edWW = globalThis.document.createElement('div')
-  edW = globalThis.document.createElement('div')
-  edW.className = 'edW'
-  edWW.appendChild(edW)
-  ele.appendChild(edWW)
-
-  buf = { id: 'b1',
+  buf = { id: 'b' + bufSeq,
           file: filePath,
           path: filePath,
           dir: Path.dirname(filePath),
@@ -104,6 +163,8 @@ function setup
           views: [],
           co: 0,
           opts: { set: () => {} },
+          opt: () => 0,
+          placeholder: 0,
           vars: () => ({ fillParent: 1 }),
           minors: [],
           addToRecents: () => {},
@@ -112,14 +173,7 @@ function setup
           modifiedOnDisk: 0,
           stat: 0,
           icon: '' }
-  view = { vid: 1,
-           ready: 1,
-           marks: [],
-           ele,
-           onChanges: Mk.array,
-           onFocuss: Mk.array,
-           onRemove: () => {},
-           buf }
+  view = makeView(buf)
   globalThis.bredWin.currentArea.tabs[0].frames[0].panes[0].view = view
   readyView = 0
 }
@@ -320,6 +374,103 @@ test('movement', 'selectAll selects the doc',
        Wode.selectAll()
        equal(view.ed.state.selection.main.from, 0)
        equal(view.ed.state.selection.main.to, 8)
+     })
+
+test('sync', 'peer holds file content after open',
+     async () => {
+       await open()
+       await waitPeer(buf.id, 'v1')
+     })
+
+test('sync', 'peer receives edit',
+     async () => {
+       await open()
+       view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
+       await waitPeer(buf.id, 'v1X')
+     })
+
+test('copy', 'new view gets content',
+     async () => {
+       let to
+
+       await open()
+       to = makeView(buf)
+       extraViews.push(to)
+       await new Promise((res, rej) => {
+                           WodeView.copy(to, view, 1, res)
+                           setTimeout(() => rej(new Error('copy timeout')), 3000)
+                         })
+       equal(to.ed.state.doc.toString(), 'v1')
+     })
+
+test('watch', 'file change sets modifiedOnDisk',
+     async () => {
+       await open()
+       equal(buf.modifiedOnDisk, 0)
+       fireWatch({ err: 0, type: 'change', stat: { mtimeMs: 999 } })
+       await new Promise(r => setTimeout(r, 30))
+       equal(buf.modifiedOnDisk, 1)
+     })
+
+test('modified', 'edit marks buffer modified',
+     async () => {
+       await open()
+       view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
+       equal(buf.modified, 1)
+     })
+
+test('modified', 'edit during revert not marked',
+     async () => {
+       await open()
+       view.ready = 0
+       buf.reverting = 1
+       view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
+       equal(buf.modified, 0)
+       equal(view.ready, 1)
+     })
+
+test('reopen', 'preserves content and readies view',
+     async () => {
+       await open()
+       await new Promise((res, rej) => {
+                           WodeView.reopen(view, 1, res)
+                           setTimeout(() => rej(new Error('reopen timeout')), 3000)
+                         })
+       equal(view.ed.state.doc.toString(), 'v1')
+       equal(view.ready, 1)
+     })
+
+test('peer plugin', 'pushes on edit, pulls updates, destroys',
+     async () => {
+       let chOff, parent, pullCb, pushes, state, v
+
+       pushes = []
+       globalThis.tron = { acmd: async (name, args) => {
+                                     if (name == 'peer.push') {
+                                       pushes.push(args)
+                                       return {}
+                                     }
+                                     return {}
+                                   },
+                           cmd: async () => ({ err: 0, ch: 0 }),
+                           receive: (ch, cb2) => cb2({ err: 0 }),
+                           on: (ch, cb) => {
+                             pullCb = cb
+                             return () => chOff = 1
+                           } }
+       parent = globalThis.document.createElement('div')
+       globalThis.document.body.appendChild(parent)
+       state = CMState.EditorState.create({ doc: 'a',
+                                            extensions: WodePeer.make('pid1', 0) })
+       v = new CMView.EditorView({ state, parent })
+       v.dispatch({ changes: { from: 1, insert: 'b' } })
+       await new Promise(r => setTimeout(r, 30))
+       equal(pushes.length > 0, true)
+       pullCb({ err: 0, updates: [] })
+       await new Promise(r => setTimeout(r, 30))
+       equal(v.state.doc.toString(), 'ab')
+       v.destroy()
+       equal(chOff, 1)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

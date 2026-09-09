@@ -109,6 +109,8 @@ function setup
   fileGetErr = 0
   watchCbs = new Map()
   extraViews = []
+  _shared.cut = _shared.cut || { ring: [], buf: { views: [] } }
+  globalThis.bred = { _shared: () => _shared }
   domWin = setupDom()
 
   globalThis.bredWin = { currentArea: { tabs: [ { el: { classList: { contains: () => 1 } },
@@ -214,6 +216,7 @@ _shared.opt = _shared.opt || { values: {},
 _shared.buf = _shared.buf || {}
 _shared.buf.buffers = _shared.buf.buffers || []
 _shared.buf.ring = _shared.buf.ring || []
+_shared.cut = _shared.cut || { ring: [], buf: { views: [] } }
 savedOpt = _shared.opt
 _shared.opt = { values: {},
                 types: {},
@@ -471,6 +474,54 @@ test('peer plugin', 'pushes on edit, pulls updates, destroys',
        equal(v.state.doc.toString(), 'ab')
        v.destroy()
        equal(chOff, 1)
+     })
+
+test('editing', 'selfInsert types char',
+     async () => {
+       await openDoc('v1')
+       goto(0)
+       Wode.selfInsert(1, { e: { key: 'x' } })
+       equal(view.ed.state.doc.toString(), 'xv1')
+     })
+
+test('editing', 'trim removes trailing whitespace',
+     async () => {
+       await openDoc('a b  ')
+       goto(5)
+       Wode.trim()
+       equal(view.ed.state.doc.toString(), 'a b')
+     })
+
+test('editing', 'transposeChars swaps chars',
+     async () => {
+       await openDoc('ab')
+       goto(1)
+       Wode.transposeChars()
+       equal(view.ed.state.doc.toString(), 'ba')
+     })
+
+test('editing', 'cutLine cuts to end of line',
+     async () => {
+       await openDoc('ab\ncd')
+       goto(0)
+       Wode.cutLine()
+       equal(view.ed.state.doc.toString(), '\ncd')
+     })
+
+test('editing', 'delNextWordBound deletes next word',
+     async () => {
+       await openDoc('a b')
+       goto(0)
+       Wode.delNextWordBound(1)
+       equal(view.ed.state.doc.toString(), ' b')
+     })
+
+test('editing', 'capitalizeWord from word end',
+     async () => {
+       await openDoc('hello world')
+       goto(7)
+       Wode.capitalizeWord()
+       equal(view.ed.state.doc.toString(), 'hello wOrld')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

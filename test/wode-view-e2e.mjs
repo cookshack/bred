@@ -8,6 +8,7 @@ import * as Em from '../js/Em.mjs'
 import Mk from '../js/mk.mjs'
 import * as MainPeer from '../js/main-peer.mjs'
 import * as Mode from '../js/mode.mjs'
+import * as Opt from '../js/opt.mjs'
 import * as Wode from '../js/wode.mjs'
 import * as WodePeer from '../js/wode-peer.mjs'
 import * as WodeView from '../js/wode-view.mjs'
@@ -15,7 +16,7 @@ import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
 import { setupDom } from './dom-help.mjs'
 
-let buf, bufSeq, domWin, extraViews, fileGetArgs, fileGetErr, filePath, readyView
+let buf, bufSeq, domWin, extraViews, fileGetArgs, fileGetErr, filePath, optsSet, readyView
 let savedDocument, savedElement, savedHTMLDocument, savedOpt, savedTron, tests, tmp, view, watchCbs, _shared
 
 function test
@@ -109,7 +110,8 @@ function setup
   fileGetErr = 0
   watchCbs = new Map()
   extraViews = []
-  _shared.cut = _shared.cut || { ring: [], buf: { views: [] } }
+  optsSet = []
+  _shared.cut = { ring: [], buf: { views: [] } }
   globalThis.bred = { _shared: () => _shared }
   domWin = setupDom()
 
@@ -164,7 +166,7 @@ function setup
           mode: Mode.get('text'),
           views: [],
           co: 0,
-          opts: { set: () => {} },
+          opts: { set: (name, v) => optsSet.push([ name, v ]) },
           opt: () => 0,
           placeholder: 0,
           vars: () => ({ fillParent: 1 }),
@@ -522,6 +524,118 @@ test('editing', 'capitalizeWord from word end',
        goto(7)
        Wode.capitalizeWord()
        equal(view.ed.state.doc.toString(), 'hello wOrld')
+     })
+
+test('editing', 'openLine splits line',
+     async () => {
+       await openDoc('ab\ncd')
+       goto(1)
+       Wode.openLine()
+       equal(view.ed.state.doc.toString(), 'a\nb\ncd')
+     })
+
+test('editing', 'insertSlash inserts slash',
+     async () => {
+       await openDoc('ab')
+       goto(0)
+       Wode.insertSlash(1)
+       equal(view.ed.state.doc.toString(), '/ab')
+     })
+
+test('editing', 'suggest does not change doc',
+     async () => {
+       await openDoc('ab')
+       Wode.suggest()
+       equal(view.ed.state.doc.toString(), 'ab')
+     })
+
+test('editing', 'indentLine on plain text',
+     async () => {
+       await openDoc('  hello')
+       goto(0)
+       Wode.indentLine()
+       equal(view.ed.state.doc.toString(), 'hello')
+       equal(view.ed.state.selection.main.head, 0)
+     })
+
+test('editing', 'sortLines sorts lines',
+     async () => {
+       await openDoc('b\na\n')
+       Wode.sortLines()
+       equal(view.ed.state.doc.toString(), 'a\nb\n')
+     })
+
+test('editing', 'yank inserts from cut ring',
+     async () => {
+       await openDoc('ab')
+       globalThis.bred._shared().cut.ring.push('x')
+       goto(0)
+       Wode.yank()
+       equal(view.ed.state.doc.toString(), 'xab')
+     })
+
+test('editing', 'commentRegion no comment syntax leaves doc',
+     async () => {
+       await openDoc('ab')
+       Wode.commentRegion(1)
+       equal(view.ed.state.doc.toString(), 'ab')
+     })
+
+test('editing', 'undo and redo',
+     async () => {
+       await openDoc('ab')
+       goto(1)
+       view.ed.dispatch({ changes: { from: 1, insert: 'x' } })
+       equal(view.ed.state.doc.toString(), 'axb')
+       Wode.undo()
+       equal(view.ed.state.doc.toString(), 'ab')
+       Wode.redo()
+       equal(view.ed.state.doc.toString(), 'axb')
+     })
+
+test('ed', 'escapeForRe escapes regex chars',
+     () => {
+       equal(Ed.escapeForRe('a.b*'), 'a\\.b\\*')
+     })
+
+test('ed', 'charForInsert plain key',
+     () => {
+       equal(Ed.charForInsert({ e: { key: 'x' } }), 'x')
+     })
+
+test('ed', 'charForInsert control key',
+     () => {
+       equal(Ed.charForInsert({ e: { key: 'a', ctrlKey: 1 } }), String.fromCharCode(1))
+     })
+
+test('ed', 'charForInsert tab and enter',
+     () => {
+       equal(Ed.charForInsert({ e: { key: 'Tab' } }), String.fromCharCode(9))
+       equal(Ed.charForInsert({ e: { key: 'Enter' } }), String.fromCharCode(10))
+     })
+
+test('ed', 'supportsExt matches registered ext',
+     () => {
+       equal(Ed.supportsExt('css'), 1)
+       equal(Ed.supportsExt('zzz'), 0)
+     })
+
+test('ed', 'findLang finds language',
+     () => {
+       equal(Ed.findLang('css') ? 1 : 0, 1)
+     })
+
+test('ed', 'mtypeFromExt maps extension',
+     () => {
+       equal(Ed.mtypeFromExt('css') ? 1 : 0, 1)
+     })
+
+test('ed', 'enable and enableBuf set opts',
+     () => {
+       Ed.enable(1, 'core.test.enable')
+       equal(Opt.get('core.test.enable'), 1)
+       Ed.enableBuf(1, 'core.test.buf')
+       equal(optsSet.some(o => o[0] == 'core.test.buf' && o[1] == 1), true)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

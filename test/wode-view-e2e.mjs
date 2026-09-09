@@ -717,6 +717,17 @@ test('collab', 'edits from second view reach first',
        await waitDoc(view, 'Zv1')
      })
 
+test('langs', 'c language loads for highlighting',
+     async () => {
+       let lang
+
+       await new Promise(r => setTimeout(r, 100))
+       lang = Ed.findLang('c')
+       equal(lang ? 1 : 0, 1)
+       equal(typeof lang.load, 'function')
+       equal(lang.language ? 1 : 0, 1)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

@@ -162,7 +162,8 @@ function init
   // finds a mode with append.  The grammar loads async below.
   Mode.add('patch', { initFns: Ed.initModeFns, parentsForEm: 'ed' })
 
-  languages = CMData.languages.filter(l => [ 'diff', 'javascript', 'markdown' ].includes(l.name.toLowerCase()) ? 0 : 1).map(l => ({ ...l }))
+  languages = CMData.languages.filter(l => [ 'diff', 'javascript', 'markdown' ].includes(l.name.toLowerCase()) ? 0 : 1)
+    .map(l => Object.assign(Object.create(Object.getPrototypeOf(l)), l))
   langs = []
 
   languages.forEach(l => addLang(l, 1))

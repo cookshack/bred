@@ -11,7 +11,7 @@ import * as Wode from '../js/wode.mjs'
 import * as WodeView from '../js/wode-view.mjs'
 import { setupDom } from './dom-help.mjs'
 
-let domWin, fileGetArgs, filePath, readyView, savedDocument, savedElement, savedHTMLDocument, savedOpt
+let domWin, fileGetArgs, fileGetErr, filePath, readyView, savedDocument, savedElement, savedHTMLDocument, savedOpt
 let savedTron, tests, tmp, view, _shared
 
 function test
@@ -49,6 +49,7 @@ function setup
   filePath = Path.join(tmp, 'a.txt')
   Fs.writeFileSync(filePath, 'v1')
   fileGetArgs = 0
+  fileGetErr = 0
   domWin = setupDom()
 
   globalThis.bredWin = { currentArea: { tabs: [ { el: { classList: { contains: () => 1 } },
@@ -79,7 +80,10 @@ function setup
                            },
                       receive: (ch, cb2) => {
                         if (ch == 'file-get-ch')
-                          cb2({ err: 0, data: Fs.readFileSync(filePath, 'utf8'), stat: Fs.statSync(filePath), realpath: filePath })
+                          if (fileGetErr)
+                            cb2({ err: { message: 'boom' } })
+                          else
+                            cb2({ err: 0, data: Fs.readFileSync(filePath, 'utf8'), stat: Fs.statSync(filePath), realpath: filePath })
                         else
                           cb2({ err: 0 })
                       },
@@ -230,6 +234,25 @@ test('revert', 're-enables the view element',
        await open()
        await revert()
        equal(view.ele.getAttribute('inert'), null)
+     })
+
+test('revert', 'file.get error keeps previous content',
+     async () => {
+       await open()
+       fileGetErr = 1
+       await revert()
+       equal(view.ed.state.doc.toString(), 'v1')
+       equal(view.ele.getAttribute('inert'), null)
+       equal(readyView, view)
+     })
+
+test('open', 'file.get error is ready not dead',
+     async () => {
+       fileGetErr = 1
+       await open()
+       equal(view.ed.state.doc.toString(), '')
+       equal(view.ready, 1)
+       equal(readyView, view)
      })
 
 test('movement', 'vforward moves right by chars',

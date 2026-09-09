@@ -291,7 +291,7 @@ function modeFromFirstLine
 
 export
 function loadContent
-(view, ed, text, spec, lineNum, whenReady) {
+(view, ed, text, spec, lineNum, whenReady, oldText) {
   let buf, useText
 
   buf = view.buf
@@ -321,7 +321,13 @@ function loadContent
                                        Mess.log('file: ' + buf.file)
                                        Mess.log(' dir: ' + buf.dir)
                                        Mess.log('path: ' + path)
-                                       Mess.toss('Wodemirror viewInit: ' + err.message)
+                                       Mess.yell('Wodemirror viewInit: ' + err.message)
+                                       if (U.isDefined(oldText))
+                                         WodeCommon.setValue(ed, oldText, false)
+                                       Css.enable(view.ele)
+                                       view.ready = 1
+                                       if (whenReady)
+                                         whenReady(view)
                                        return
                                      }
 
@@ -404,7 +410,7 @@ function loadContent
 
 function _viewInit
 (peer, view, text, modeWhenText, lineNum, whenReady, placeholder, spec) {
-  let ed, buf, edWW, edW, opts, domEventHandlers
+  let ed, buf, edWW, edW, oldText, opts, domEventHandlers
   let decorator
   let updateListener, selectTimeout
 
@@ -721,8 +727,10 @@ function _viewInit
   else {
     let startState
 
-    if (view.ed)
+    if (view.ed) {
+      oldText = view.ed.state.doc.toString()
       view.ed.destroy()
+    }
 
     startState = CMState.EditorState.create({ doc: text || '',
                                               extensions: opts })
@@ -780,7 +788,7 @@ function _viewInit
     view.ev_onDidBlurEditorWidget = ed.onDidBlurEditorWidget('XonDidBlurEditorWidget')
   }
 
-  loadContent(view, ed, text, spec, lineNum, whenReady)
+  loadContent(view, ed, text, spec, lineNum, whenReady, oldText)
 }
 
 export

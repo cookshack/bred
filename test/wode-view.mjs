@@ -7,7 +7,7 @@ import * as Em from '../js/Em.mjs'
 import * as Mode from '../js/mode.mjs'
 import * as WodeView from '../js/wode-view.mjs'
 
-let ed, fileGetArgs, filePath, readyView, savedDocument
+let ed, fileGetArgs, fileGetErr, filePath, readyView, savedDocument
 let savedElement, savedHTMLDocument, savedOpt, savedTron, tests, _shared, view
 
 function test
@@ -37,6 +37,7 @@ function setup
   fileContent = 'the file content'
   filePath = '/tmp/wode-view-test.txt'
   fileGetArgs = 0
+  fileGetErr = 0
   decorC = new CMState.Compartment()
   ed = { state: EditorState.create({ doc: '' }),
          dispatch: tr => ed.state = ed.state.update(tr).state,
@@ -86,7 +87,10 @@ function setup
                               },
                       receive: (ch, cb2) => {
                         if (ch == 'file-get-ch')
-                          cb2({ err: 0, data: fileContent, stat: { mtimeMs: 1 }, realpath: filePath })
+                          if (fileGetErr)
+                            cb2({ err: { message: 'boom' } })
+                          else
+                            cb2({ err: 0, data: fileContent, stat: { mtimeMs: 1 }, realpath: filePath })
                         else
                           cb2({ err: 0 })
                       },
@@ -95,8 +99,8 @@ function setup
 }
 
 async function load
-(text, spec) {
-  WodeView.loadContent(view, ed, text, spec, 0, v => readyView = v)
+(text, spec, oldText) {
+  WodeView.loadContent(view, ed, text, spec, 0, v => readyView = v, oldText)
   await new Promise(r => setTimeout(r, 30))
   return readyView
 }
@@ -194,6 +198,28 @@ test('empty', 'no file gives empty doc',
        let rv
 
        view.buf.file = 0
+       rv = await load(0, {})
+       equal(ed.state.doc.toString(), '')
+       equal(rv, view)
+       equal(view.ready, 1)
+     })
+
+test('error', 'revert restores previous content',
+     async () => {
+       let rv
+
+       fileGetErr = 1
+       rv = await load('stale', { revert: 1 }, 'old content')
+       equal(ed.state.doc.toString(), 'old content')
+       equal(rv, view)
+       equal(view.ready, 1)
+     })
+
+test('error', 'open without old text is ready not dead',
+     async () => {
+       let rv
+
+       fileGetErr = 1
        rv = await load(0, {})
        equal(ed.state.doc.toString(), '')
        equal(rv, view)

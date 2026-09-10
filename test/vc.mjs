@@ -118,19 +118,34 @@ test('modes', 'modes registered',
      () => {
        let keys
 
-       keys = [ 'stash', 'commit result', 'vc hub', 'vc prs', 'vc log',
-                'vc log one-line', 'equal', 'vc annotate', 'branch' ]
+       keys = [ 'stash', 'stash apply', 'commit result', 'vc hub', 'vc prs',
+                'vc log', 'vc log one-line', 'equal', 'vc annotate', 'branch' ]
        keys.forEach(key => equal(Mode.get(key) ? 1 : 0, 1, key))
      })
 
 test('modes', 'parented on ed',
      () => {
        equal(Mode.get('stash').parentsForEm.join(','), 'ed')
+       equal(Mode.get('stash apply').parentsForEm.join(','), 'ed')
        equal(Mode.get('vc hub').parentsForEm.join(','), 'ed')
        equal(Mode.get('vc prs').parentsForEm.join(','), 'ed')
        equal(Mode.get('vc log').parentsForEm.join(','), 'ed')
        equal(Mode.get('vc annotate').parentsForEm.join(','), 'ed')
        equal(Mode.get('branch').parentsForEm.join(','), 'ed')
+     })
+
+test('modes', 'stash apply conflict decorators',
+     () => {
+       let decorators
+
+       decorators = Mode.get('stash apply').decorators
+       equal(decorators.length, 4)
+       equal(decorators[0].regex.test('CONFLICT (content): Merge conflict in a.js') ? 1 : 0, 1)
+       equal(decorators[0].regex.test('CONFLICT (modify/delete): a.js deleted in HEAD') ? 1 : 0, 1)
+       equal(decorators[0].regex.test('Auto-merging a.js') ? 1 : 0, 0)
+       equal(decorators[1].regex.test('CONFLICT (content): Merge conflict in a.js') ? 1 : 0, 1)
+       equal(decorators[2].regex.test('done.') ? 1 : 0, 1)
+       equal(decorators[3].regex.test('Please commit your changes or stash them before you merge.') ? 1 : 0, 1)
      })
 
 test('bindings', 'stash mode keys',

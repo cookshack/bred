@@ -85,7 +85,7 @@ function git
 export
 function initStash
 () {
-  let moS
+  let moApply, moS
 
   Cmd.add('stash open', () => {
                           let line
@@ -118,7 +118,8 @@ function initStash
 
                              st = /[^@]+@{([^}]+)/.exec(line)[1]
                              if (st && st.length)
-                               git(Loc.appDir().join('bin/git-stash-apply') + ' ' + st)
+                               git(Loc.appDir().join('bin/git-stash-apply') + ' ' + st,
+                                   'stash apply')
                              else
                                Mess.warn('Failed to extract stash num: ' + line)
                            }
@@ -145,6 +146,25 @@ function initStash
                             viewCopy: Ed.viewCopy,
                             initFns: Ed.initModeFns,
                             parentsForEm: 'ed' })
+
+  moApply = Mode.add('Stash Apply', { viewInit: Ed.viewInit,
+                                      viewCopy: Ed.viewCopy,
+                                      initFns: Ed.initModeFns,
+                                      parentsForEm: 'ed',
+                                      decorators: [ { regex: /^(CONFLICT(?: \([^)]*\))?:.*)$/d,
+                                                      decor: [ { line: 1,
+                                                                 attr: { style: '--background-color: rgba(220 50 47 / 15%);',
+                                                                         class: 'bred-bg' } } ] },
+                                                    { regex: /^(CONFLICT)/d,
+                                                      decor: [ { attr: { style: 'color: var(--clr-nb3); font-weight: bold;' } } ] },
+                                                    { regex: /^(done\.)$/d,
+                                                      decor: [ { attr: { style: 'color: var(--clr-syntax0); font-weight: bold;' } } ] },
+                                                    { regex: /^(Please commit your changes or stash them before you merge\.)$/d,
+                                                      decor: [ { attr: { style: 'color: var(--clr-syntax5); font-weight: bold;' } } ] } ] })
+
+  Em.on('q', 'bury', moApply)
+  Em.on('Backspace', 'scroll up', moApply)
+  Em.on(' ', 'scroll down', moApply)
 
   Em.on('a', 'stash apply', moS)
   Em.on('d', 'stash drop', moS)
@@ -2947,7 +2967,7 @@ function init
   Cmd.add('vc reset', () => reset())
   Cmd.add('vc show', () => showHash())
   Cmd.add('vc stash', () => git('git stash --include-untracked'))
-  Cmd.add('vc stash apply', () => git(Loc.appDir().join('bin/git-stash-apply')))
+  Cmd.add('vc stash apply', () => git(Loc.appDir().join('bin/git-stash-apply'), 'stash apply'))
   Cmd.add('vc stash drop', () => git(Loc.appDir().join('bin/git-stash-drop')))
   Cmd.add('vc stash enumerate', () => git('git stash list', 'stash', [], 1))
   Cmd.add('vc stash pop', () => Shell.shell1('git-stash-pop', { end: 1 }))

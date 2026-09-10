@@ -365,7 +365,8 @@ function make
     // reconf all the 'div' extensions for this buf so they're initialised for the view
     BufCommon.divExts.forEach(dext => {
                                 0 && d('dext ' + dext.name)
-                                dext?.reconf(b)
+                                if (dext?.reconf)
+                                  dext.reconf(b)
                               })
   }
 

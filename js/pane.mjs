@@ -168,10 +168,11 @@ function add
     if (skipEd) {
       // prevents recurse
     }
+    else if (p.currentNestedView?.ed)
+      // commands are routed to the nested view, so focus must follow
+      p.currentNestedView.ed.focus()
     else if (p.view?.ed)
       p.view.ed.focus()
-    else if (p.currentNestedView?.ed)
-      p.currentNestedView.ed.focus()
 
     if (View.onFocuss)
       View.onFocuss.forEach(cb => cb(view))

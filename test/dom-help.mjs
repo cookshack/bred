@@ -8,7 +8,7 @@ function setupDom
   window = new Window()
 
   keys = [ 'document', 'navigator', 'Element', 'HTMLElement', 'HTMLDocument',
-           'Node', 'Text', 'DocumentFragment', 'Comment', 'Event', 'CustomEvent',
+           'Node', 'NodeFilter', 'Text', 'DocumentFragment', 'Comment', 'Event', 'CustomEvent',
            'DOMRect', 'getComputedStyle', 'requestAnimationFrame',
            'cancelAnimationFrame', 'ResizeObserver', 'MutationObserver',
            'IntersectionObserver', 'getSelection', 'FileReader', 'Blob', 'URL' ]

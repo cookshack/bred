@@ -13,6 +13,13 @@ Bred runs out of a git checkout — always a development build. No packaging.
 
 Portability is extremely low priority. Assume Debian-derived distro.
 
+## opencode container (`docker/opencode/`)
+
+Built with `make oc` (image `opencode-bred`), run via `bin/code` / `bin/codesh`. It bakes a
+headless render helper (system Chromium + puppeteer-core) at `/home/node/tools/render.mjs` and a
+global `render-web-page` skill, so agents can screenshot or measure local pages. See the skill for
+usage. Rebuild the image after changing the Dockerfile, `tools/`, or `skills/`.
+
 ## Linting
 
 Run `npm run check` to verify code style before you're done. This calls eslint with

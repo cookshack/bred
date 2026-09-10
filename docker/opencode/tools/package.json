@@ -1,0 +1,9 @@
+{
+  "name": "opencode-tools",
+  "private": true,
+  "type": "module",
+  "description": "Headless render helper for the opencode container",
+  "dependencies": {
+    "puppeteer-core": "^25.0.0"
+  }
+}

@@ -17,12 +17,12 @@ import { d } from './mess.mjs'
 
 function placeholder
 (p, from) {
-  let next
+  let dir
 
-  next = p.next
-  if (next
-      && (next.buf?.mode.key == 'dir'))
-    return Loc.make(next.buf.path).join(Loc.make(from).filename)
+  dir = DirCommon.nextDir(p)
+  if (dir && from)
+    return Loc.make(dir).join(Loc.make(from).filename)
+  return dir
 }
 
 function chmodMarked
@@ -291,12 +291,13 @@ function copy
   let p, marked, hist
 
   function cpMarked
-  (dir) {
+  (dir, ph) {
     let list
 
     list = DirCommon.under(dir, marked)
     Prompt.ask({ text: 'Copy these files to',
                  hist,
+                 placeholder: ph,
                  under: divCl('float-files', list.divs) },
                dest => {
                  let absDest
@@ -371,7 +372,7 @@ function copy
 
   marked = DirCommon.getMarked(p.buf)
   if (marked.length) {
-    cpMarked(Loc.make(p.dir).ensureSlash())
+    cpMarked(Loc.make(p.dir).ensureSlash(), placeholder(p))
     return
   }
   else {
@@ -398,12 +399,13 @@ function rename
   let p, marked, hist
 
   function renameMarked
-  (dir) {
+  (dir, ph) {
     let list
 
     list = DirCommon.under(dir, marked)
     Prompt.ask({ text: 'Move these files to',
                  hist,
+                 placeholder: ph,
                  under: divCl('float-files', list.divs) },
                dest => {
                  let absDest
@@ -454,7 +456,7 @@ function rename
   hist = p.buf.vars('dir').hist
   marked = DirCommon.getMarked(p.buf)
   if (marked.length) {
-    renameMarked(Loc.make(p.dir).ensureSlash(), marked)
+    renameMarked(Loc.make(p.dir).ensureSlash(), placeholder(p))
     return
   }
   else {

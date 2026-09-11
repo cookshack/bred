@@ -42,6 +42,18 @@ function current
   return view?.point?.over()
 }
 
+// the dir in the next pane, if there is one
+export
+function nextDir
+(p) {
+  let next
+
+  next = p.next
+  if (next
+      && (next.buf?.mode.key == 'dir'))
+    return Loc.make(next.buf.path).ensureSlash()
+}
+
 export
 function abs
 (to, dir) {

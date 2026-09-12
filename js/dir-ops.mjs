@@ -25,6 +25,23 @@ function placeholder
   return dir
 }
 
+// Resolve the full destination path. A trailing / means into that existing dir.
+function resolveDest
+(from, to, dir, cb) { // (err, target)
+  to = DirCommon.abs(to, dir)
+  if (to.endsWith('/'))
+    Tron.cmd('file.stat', to, (err, data) => {
+                                if (err)
+                                  cb('Destination must be an existing dir: ' + to)
+                                else if (data.data.mode & (1 << 15))
+                                  cb('Destination must be a dir: ' + to)
+                                else
+                                  cb(0, Loc.make(to).join(DirCommon.baseName(from)))
+                              })
+  else
+    cb(0, to)
+}
+
 function chmodMarked
 (dir, marked) {
   let hist, list
@@ -318,53 +335,44 @@ function copy
   (from, to, dir) {
 
     function ok
-    () {
-      hist.add(to)
-      Tron.cmd('file.cp', [ from, to ], err => {
-                                          if (err) {
-                                            Mess.yell('file.cp: ' + err.message)
-                                            return
-                                          }
-                                          Mess.say(from + ' ⧉⮞ ' + to)
-                                        })
+    (target) {
+      hist.add(target)
+      Tron.cmd('file.cp', [ from, target ], err => {
+                                              if (err) {
+                                                Mess.yell('file.cp: ' + err.message)
+                                                return
+                                              }
+                                              Mess.say(from + ' ⧉⮞ ' + target)
+                                            })
     }
 
     function confirm
-    () {
+    (target) {
       Prompt.yn('File exists. Overwrite?',
                 { icon: 'warning' },
-                yes => yes && ok())
+                yes => yes && ok(target))
     }
 
-    to = DirCommon.abs(to, dir)
     from = DirCommon.abs(from, dir)
-    Tron.cmd('file.stat', to, (err, data) => {
-                                if (err)
-                                  if (err.code == 'ENOENT')
-                                  // new file
-                                    ok()
-                                  else
-                                    Mess.toss('file.stat: ' + err.message)
-                                else
-                                // dest exists
-                                  if (data.data.mode & (1 << 15))
-                                  // dest is file
-                                    confirm()
-                                  else {
-                                    // dest is dir, cp file into that dir
-                                    to = Loc.make(to).join(Loc.make(from).filename)
-                                    Tron.cmd('file.stat', to, err2 => {
-                                                                if (err2)
-                                                                  if (err2.code == 'ENOENT')
-                                                                  // new file
-                                                                    ok()
-                                                                  else
-                                                                    Mess.toss('file.stat: ' + err2.message)
-                                                                else
-                                                                  confirm()
-                                                              })
-                                  }
-                              })
+    resolveDest(from, to, dir, (fail, target) => {
+                                 if (fail) {
+                                   Mess.yell(fail)
+                                   return
+                                 }
+                                 Tron.cmd('file.stat', target, (err, data) => {
+                                                                 if (err)
+                                                                   if (err.code == 'ENOENT')
+                                                                   // new dest
+                                                                     ok(target)
+                                                                   else
+                                                                     Mess.toss('file.stat: ' + err.message)
+                                                                 else if (data.data.mode & (1 << 15))
+                                                                 // dest is a file
+                                                                   confirm(target)
+                                                                 else
+                                                                   Mess.yell('Destination dir exists: ' + target)
+                                                               })
+                               })
   }
 
   p = Pane.current()
@@ -424,32 +432,50 @@ function rename
 
   function run
   (from, to, dir) {
+
+    function mv
+    (target, overwrite) {
+      let args
+
+      hist.add(target)
+      args = overwrite ? [ from, target, { overwrite: 1 } ] : [ from, target ]
+      Tron.cmd('file.mv', args, err => {
+                                  if (err) {
+                                    Mess.yell('file.mv: ' + err.message)
+                                    return
+                                  }
+                                  Mess.say(from + ' ⮞ ' + target)
+                                })
+    }
+
+    function confirm
+    (target) {
+      Prompt.yn('File exists. Overwrite?',
+                { icon: 'warning' },
+                yes => yes && mv(target, 1))
+    }
+
     d('run from: ' + from)
-    to = DirCommon.abs(to, dir)
     from = DirCommon.abs(from, dir)
-    hist.add(to)
-    Tron.cmd('file.mv', [ from, to ], err => {
-                                        if (err?.exists) {
-                                          Prompt.yn('File exists. Overwrite?',
-                                                    { icon: 'warning' },
-                                                    yes => {
-                                                      if (yes)
-                                                        Tron.cmd('file.mv', [ from, to, { overwrite: 1 } ], err2 => {
-                                                                                                              if (err2) {
-                                                                                                                Mess.yell('file.mv: ' + err2.message)
-                                                                                                                return
-                                                                                                              }
-                                                                                                              Mess.say(from + ' ⮞ ' + to)
-                                                                                                            })
-                                                    })
-                                          return
-                                        }
-                                        if (err) {
-                                          Mess.yell('file.mv: ' + err.message)
-                                          return
-                                        }
-                                        Mess.say(from + ' ⮞ ' + to)
-                                      })
+    resolveDest(from, to, dir, (fail, target) => {
+                                 if (fail) {
+                                   Mess.yell(fail)
+                                   return
+                                 }
+                                 Tron.cmd('file.stat', target, (err, data) => {
+                                                                 if (err)
+                                                                   if (err.code == 'ENOENT')
+                                                                   // new dest
+                                                                     mv(target)
+                                                                   else
+                                                                     Mess.toss('file.stat: ' + err.message)
+                                                                 else if (data.data.mode & (1 << 15))
+                                                                 // dest is a file
+                                                                   confirm(target)
+                                                                 else
+                                                                   Mess.yell('Destination dir exists: ' + target)
+                                                               })
+                               })
   }
 
   p = Pane.current()

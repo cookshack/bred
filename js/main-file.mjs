@@ -34,8 +34,9 @@ function cpMany
     }
   }
   for (let file of from)
-    Fs.copyFileSync(file, // from
-                    Path.join(to, Path.basename(file))) // to
+    Fs.cpSync(file, // from
+              Path.join(to, Path.basename(file)), // to
+              { recursive: true })
   e.sender.send(ch, {})
   return
 }
@@ -65,12 +66,12 @@ function onCp
   }
 
   if (from.startsWith('/') && to.startsWith('/')) {
-    Fs.copyFile(from, to, 0, err => {
-                               if (err)
-                                 e.sender.send(ch, makeErr(err))
-                               else
-                                 e.sender.send(ch, {})
-                             })
+    Fs.cp(from, to, { recursive: true }, err => {
+                                           if (err)
+                                             e.sender.send(ch, makeErr(err))
+                                           else
+                                             e.sender.send(ch, {})
+                                         })
     return
   }
   e.sender.send(ch, errMsg('Paths must be absolute'))

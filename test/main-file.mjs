@@ -186,6 +186,35 @@ test('onCp', 'copies file',
        equal(Fs.readFileSync(to, 'utf8'), 'x')
      })
 
+test('onCp', 'copies dir recursively',
+     async () => {
+       let from, to
+
+       from = Path.join(tmp, 'src')
+       Fs.mkdirSync(Path.join(from, 'sub'), { recursive: true })
+       Fs.writeFileSync(Path.join(from, 'a.txt'), 'x')
+       Fs.writeFileSync(Path.join(from, 'sub', 'b.txt'), 'y')
+       to = Path.join(tmp, 'dst')
+       await send(MainFile.onCp, [ from, to ])
+       equal(Fs.readFileSync(Path.join(to, 'a.txt'), 'utf8'), 'x')
+       equal(Fs.readFileSync(Path.join(to, 'sub', 'b.txt'), 'utf8'), 'y')
+     })
+
+test('onCp', 'copies many including a dir',
+     async () => {
+       let dir, file, to
+
+       dir = Path.join(tmp, 'src')
+       Fs.mkdirSync(dir)
+       Fs.writeFileSync(Path.join(dir, 'a.txt'), 'x')
+       file = tmpFile('b.txt', 'y')
+       to = Path.join(tmp, 'dst')
+       Fs.mkdirSync(to)
+       await send(MainFile.onCp, [ [ dir, file ], to ])
+       equal(Fs.readFileSync(Path.join(to, 'src', 'a.txt'), 'utf8'), 'x')
+       equal(Fs.readFileSync(Path.join(to, 'b.txt'), 'utf8'), 'y')
+     })
+
 test('onTouch', 'updates times',
      async () => {
        let got, path

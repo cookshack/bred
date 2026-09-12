@@ -54,6 +54,17 @@ function nextDir
     return Loc.make(next.buf.path).ensureSlash()
 }
 
+// basename that works for dirs (whose paths may end with /)
+export
+function baseName
+(path) {
+  let loc
+
+  loc = Loc.make(path)
+  loc.removeSlash()
+  return loc.filename
+}
+
 export
 function abs
 (to, dir) {

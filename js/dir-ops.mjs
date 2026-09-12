@@ -552,24 +552,63 @@ function del
 
 function delMarked
 (dir, marked) {
-  let list
+  let list, nonEmpty, pending
+
+  function finish
+  (item, err, recurse) {
+    if (err) {
+      if (item.isDir && (err.code == 'ENOTEMPTY') && (recurse == undefined))
+        nonEmpty.push(item)
+      else
+        Mess.yell('Error deleting: ' + err.message)
+      return
+    }
+    marked.rm(item.name)
+  }
+
+  function rm
+  (item, recurse) {
+    Tron.cmd(item.isDir ? 'dir.rm' : 'file.rm',
+             recurse ? [ item.path, { recurse: 1 } ] : [ item.path ],
+             err => {
+               finish(item, err, recurse)
+               pending--
+               if (pending == 0)
+                 askRecurse()
+             })
+  }
+
+  function askRecurse
+  () {
+    let dirs
+
+    if (nonEmpty.length == 0)
+      return
+    dirs = nonEmpty
+    nonEmpty = []
+    Prompt.yn('RECURSIVELY delete these dirs?',
+              { icon: 'trash',
+                under: divCl('float-files',
+                             dirs.map(item => [ divCl('float-f-name', item.name),
+                                                divCl('float-f-path', item.path) ])) },
+              yes => {
+                if (yes) {
+                  pending = dirs.length
+                  dirs.forEach(item => rm(item, 1))
+                }
+              })
+  }
 
   list = DirCommon.under(dir, marked)
+  nonEmpty = []
   Prompt.yn('Delete these?',
             { icon: 'trash',
               under: divCl('float-files', list.divs) },
             yes => {
-              if (yes)
-                list.paths.forEach(item =>
-                  Tron.cmd(item.isDir ? 'dir.rm' : 'file.rm',
-                           [ item.path ],
-                           err => {
-                             if (err) {
-                               Mess.yell('Error deleting: ' + err.message)
-                               return
-                             }
-                             marked.rm(item.name)
-                           }))
+              if (yes) {
+                pending = list.paths.length
+                list.paths.forEach(item => rm(item))
+              }
             })
 }
 

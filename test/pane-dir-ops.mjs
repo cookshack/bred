@@ -1,8 +1,10 @@
 import { equal } from 'node:assert/strict'
 import * as Area from '../js/Area.mjs'
+import * as Cmd from '../js/cmd.mjs'
 import * as DirCommon from '../js/dir-common.mjs'
 import * as DirOps from '../js/dir-ops.mjs'
 import * as Hist from '../js/hist.mjs'
+import * as Prompt from '../js/prompt.mjs'
 import * as Win from '../js/win.mjs'
 import { setupPanes, wait } from './pane-helpers.mjs'
 
@@ -41,11 +43,11 @@ function promptBuf
 }
 
 function mark
-(p, names) {
+(p, names, type) {
   let marked
 
   marked = DirCommon.getMarked(p.buf)
-  names.forEach(name => marked.add(name, 'f'))
+  names.forEach(name => marked.add(name, type || 'f'))
 }
 
 // make the cursor appear over the given entry
@@ -54,25 +56,38 @@ function selectEntry
   globalThis.document.elementFromPoint = () => ({ dataset: { path: entry, type: 'd' } })
 }
 
-// record tron calls; dirPaths are the paths that exist as dirs
+// record tron calls; opts.dirs exist as dirs, opts.nonEmpty fail non-recursive rm
 function mockTron
-(dirPaths) {
+(opts) {
   let calls
 
   calls = []
   globalThis.tron = { cmd: async (name, args) => {
-                        calls.push({ name, args })
-                        return 'mock-' + name
+                        let ch
+
+                        ch = 'mock-' + calls.length
+                        calls.push({ ch, name, args })
+                        return ch
                       },
                       receive: (ch, cb) => {
                                  let call
 
-                                 call = calls.at(-1)
+                                 call = calls.find(c => c.ch == ch)
                                  if (call.name == 'file.stat')
-                                   if (dirPaths.includes(call.args))
+                                   if (opts.dirs?.includes(call.args))
                                      cb({ err: 0, data: { mode: 0o040000 } })
                                    else
                                      cb({ err: { code: 'ENOENT', message: 'missing' } })
+                                 else if (call.name == 'dir.rm') {
+                                   let spec
+
+                                   spec = call.args[1]
+                                   if (opts.nonEmpty?.includes(call.args[0])
+                                       && (spec?.recurse == undefined))
+                                     cb({ err: { code: 'ENOTEMPTY', message: 'Directory not empty' } })
+                                   else
+                                     cb({ err: 0 })
+                                 }
                                  else
                                    cb({ err: 0 })
                                },
@@ -94,6 +109,9 @@ function submit
   buf = promptBuf()
   buf.vars('prompt').run(name == undefined ? buf.placeholder : name)
 }
+
+// bred.mjs registers this; tests don't load it
+Cmd.add('close demand', () => Prompt.close())
 
 tests = {}
 
@@ -202,7 +220,7 @@ function setupOneDir
   pinBuf(pB, fakeDirBuf('/here'), '/here')
   pB.buf.vars('dir').hist = Hist.make('pane-dir-ops')
   selectEntry('/here/mydir/')
-  calls = mockTron(dirPaths)
+  calls = mockTron({ dirs: dirPaths })
   return { calls, pA, pB }
 }
 
@@ -268,6 +286,92 @@ test('rename', 'unmarked dir moves into the next pane dir',
        mv = calls.find(c => c.name == 'file.mv')
        equal(mv?.args[0], '/here/mydir/')
        equal(mv?.args[1], '/other/dir/mydir')
+     })
+
+// set up marked entries in the current pane; opts = { files, dirs, nonEmpty }
+function setupMarked
+(opts) {
+  let calls, pA, pB, panes
+
+  panes = setupPanes()
+  pA = panes.pA
+  pB = panes.pB
+
+  pinBuf(pA, fakeDirBuf('/other/dir'), '/other/dir')
+  pinBuf(pB, fakeDirBuf('/here'), '/here')
+  pB.buf.vars('dir').hist = Hist.make('pane-dir-ops')
+  mark(pB, opts.files || [])
+  mark(pB, opts.dirs || [], 'd')
+  calls = mockTron({ nonEmpty: opts.nonEmpty })
+  return { calls, pB }
+}
+
+function recursed
+(calls) {
+  return calls.filter(c => (c.name == 'dir.rm') && (c.args[1]?.recurse == 1))
+}
+
+test('delete', 'marked non-empty dirs ask to recurse',
+     async () => {
+       let calls, op
+
+       op = setupMarked({ dirs: [ 'd1', 'd2' ],
+                          nonEmpty: [ '/here/d1', '/here/d2' ] })
+       calls = op.calls
+
+       DirOps.del()
+       Cmd.run('yes')
+       await wait(30)
+
+       equal(recursed(calls).length, 0)
+
+       Cmd.run('yes')
+       await wait(30)
+
+       equal(recursed(calls).length, 2)
+       equal(DirCommon.getMarked(op.pB.buf).length, 0)
+     })
+
+test('delete', 'only non-empty dirs get recursed',
+     async () => {
+       let calls, op
+
+       op = setupMarked({ files: [ 'f.txt' ],
+                          dirs: [ 'd1', 'd2' ],
+                          nonEmpty: [ '/here/d2' ] })
+       calls = op.calls
+
+       DirOps.del()
+       Cmd.run('yes')
+       await wait(30)
+
+       Cmd.run('yes')
+       await wait(30)
+
+       equal(calls.some(c => (c.name == 'file.rm') && (c.args[0] == '/here/f.txt')), true)
+       equal(recursed(calls).length, 1)
+       equal(recursed(calls)[0].args[0], '/here/d2')
+       equal(DirCommon.getMarked(op.pB.buf).length, 0)
+     })
+
+test('delete', 'declining recursion keeps non-empty dirs marked',
+     async () => {
+       let calls, op
+
+       op = setupMarked({ dirs: [ 'd1', 'd2' ],
+                          nonEmpty: [ '/here/d2' ] })
+       calls = op.calls
+
+       DirOps.del()
+       Cmd.run('yes')
+       await wait(30)
+
+       Cmd.run('no')
+       await wait(30)
+
+       equal(recursed(calls).length, 0)
+       equal(DirCommon.getMarked(op.pB.buf).has('d2')?.name, 'd2')
+       equal(DirCommon.getMarked(op.pB.buf).has('d1'), undefined)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

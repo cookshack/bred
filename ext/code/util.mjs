@@ -64,6 +64,23 @@ function isSubagentId
   return buf?.vars('code')?.subagentIds?.has(id)
 }
 
+// why a prompt can't be sent now, if any
+export
+function promptBlocked
+(buf) {
+  if (buf.vars('code').permissions?.length)
+    return 'Permission check pending'
+  if (buf.vars('code').questions?.length)
+    return 'Question pending'
+  if (buf.vars('code').sessionID) {
+    // ok
+  }
+  else
+    return 'ERR session missing'
+  if (buf.vars('code').busy)
+    return 'Agent is busy'
+}
+
 export
 function isSessionMatch
 (buf, id) {

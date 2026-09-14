@@ -329,11 +329,16 @@ function yn
   if (id)
     ynRespond(buf, id, yes)
   else {
-    let codeBuf, promptBuf
+    let codeBuf, promptBuf, block
 
     codeBuf = buf.parent || buf
+    block = Util.promptBlocked(codeBuf)
+    if (block) {
+      Mess.yell(block)
+      return
+    }
     setAgent(codeBuf, 'build')
-    promptBuf = buf.vars('code').promptBuf
+    promptBuf = codeBuf.vars('code').promptBuf
     promptBuf.clear()
     promptBuf.append(yes ? 'yes' : 'no')
     submitPrompt()
@@ -1270,32 +1275,14 @@ function openPrompt
 
 function next
 () {
-  let p, buf, provider, model, variant
+  let p, buf, block, provider, model, variant
 
   p = Pane.current()
   buf = p.buf
 
-  if (buf.vars('code').permissions?.length) {
-    Mess.yell('Permission check pending')
-    return
-  }
-
-  if (buf.vars('code').questions?.length) {
-    Mess.yell('Question pending')
-    return
-  }
-
-  if (buf?.vars('code')?.sessionID) {
-    // OK
-  }
-  else {
-    Mess.yell('ERR session missing')
-    return
-  }
-
-  if (buf.vars('code').busy) {
-    d('busy')
-    Mess.yell('Agent is busy')
+  block = Util.promptBlocked(buf)
+  if (block) {
+    Mess.yell(block)
     return
   }
 
@@ -1622,11 +1609,16 @@ function bufStart
 
 function submitPrompt
 () {
-  let buf, p, text, codeBuf, whichHist
+  let buf, p, text, codeBuf, whichHist, block
 
   p = Pane.current()
   buf = p.buf
   codeBuf = buf.parent || buf
+  block = Util.promptBlocked(codeBuf)
+  if (block) {
+    Mess.yell(block)
+    return
+  }
   text = buf.vars('code').promptBuf.text()
   if (text.length)
     text = text.trim()

@@ -225,6 +225,36 @@ test('calculateTokenPercentage', 'no tokens empty',
        equal(CodeUtil.calculateTokenPercentage(buf), '')
      })
 
+test('promptBlocked', 'ready returns undefined',
+     () => {
+       equal(CodeUtil.promptBlocked(bufFor({ code: { sessionID: 's1' } })),
+             undefined)
+     })
+
+test('promptBlocked', 'busy',
+     () => {
+       equal(CodeUtil.promptBlocked(bufFor({ code: { sessionID: 's1', busy: 1 } })),
+             'Agent is busy')
+     })
+
+test('promptBlocked', 'questions pending',
+     () => {
+       equal(CodeUtil.promptBlocked(bufFor({ code: { sessionID: 's1', questions: [ {} ] } })),
+             'Question pending')
+     })
+
+test('promptBlocked', 'permissions pending',
+     () => {
+       equal(CodeUtil.promptBlocked(bufFor({ code: { sessionID: 's1', permissions: [ {} ] } })),
+             'Permission check pending')
+     })
+
+test('promptBlocked', 'missing session',
+     () => {
+       equal(CodeUtil.promptBlocked(bufFor({ code: {} })),
+             'ERR session missing')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

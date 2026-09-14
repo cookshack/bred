@@ -170,6 +170,31 @@ test('remove', 'removing a running buf exits the current channel',
        }
      })
 
+test('remove', 'rerun then remove exits only the current channel',
+     async () => {
+       let oldSend, panes, sends
+
+       panes = setupPanes()
+       oldSend = globalThis.tron.send
+       sends = []
+       globalThis.tron.send = (ch2, data) => sends.push({ ch: ch2, data })
+       try {
+         let buf
+
+         buf = await run('echo hi')
+         await emit(panes, buf.vars('Shell').ch, { close: 1, code: 0 })
+
+         buf = await run('echo hi')
+         buf.remove()
+
+         equal(sends.length, 1)
+         equal(sends[0].ch, buf.vars('Shell').ch)
+       }
+       finally {
+         globalThis.tron.send = oldSend
+       }
+     })
+
 test('run', 'random event orders keep text consistent',
      async () => {
        let seed

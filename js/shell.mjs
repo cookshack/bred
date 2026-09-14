@@ -158,10 +158,18 @@ function run
     b.vars('shell').args = args
     b.vars('shell').spec = spec
     b.vars('shell').code = null
-    b.onRemove(() => {
-                 d('SHELL exit ' + ch)
-                 Tron.send(ch, { exit: 1 })
-               })
+    if (b.vars('shell').remover == undefined) {
+      b.vars('shell').remover = 1
+      b.onRemove(() => {
+                   let cur
+
+                   // only the current process should be interrupted
+                   cur = b.vars('Shell').ch
+                   d('SHELL exit ' + cur)
+                   if (cur)
+                     Tron.send(cur, { exit: 1 })
+                 })
+    }
   }
 
   if (b && spec.echo) {

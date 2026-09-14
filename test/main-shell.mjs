@@ -116,6 +116,22 @@ test('run', 'input is written to the process',
        await waitFor(() => closed(run))
      })
 
+test('run', 'input from another sender is ignored',
+     async () => {
+       let l, run
+
+       run = start('/bin/cat', [])
+       l = run.ipc.listeners[0].cb
+
+       l({ sender: {} }, { input: 'nope\n' })
+       l(run.e, { input: 'yep\n' })
+       await waitFor(() => stdout(run).includes('yep'))
+       equal(stdout(run).includes('nope'), false)
+
+       l(run.e, { exit: 1 })
+       await waitFor(() => closed(run))
+     })
+
 test('run', 'exit input interrupts the process',
      async () => {
        let l, run
@@ -126,6 +142,16 @@ test('run', 'exit input interrupts the process',
        l(run.e, { exit: 1 })
        await waitFor(() => closed(run), 3000)
        equal(run.events.at(-1).data.close, 1)
+     })
+
+test('run', 'listener is removed when the process exits',
+     async () => {
+       let run
+
+       run = start('/bin/sh', [ '-c', 'echo hi' ])
+       equal(run.ipc.listeners.length, 1)
+       await waitFor(() => closed(run))
+       equal(run.ipc.listeners.length, 0)
      })
 
 test('run', 'background child does not block close',

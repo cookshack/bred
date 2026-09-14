@@ -76,13 +76,33 @@ function run
 
   try {
     let proc, env, cols, rows
-    let exited
+    let exited, listening
     let killTimers
 
     function clearKillTimers
     () {
       killTimers.forEach(clearTimeout)
       killTimers = []
+    }
+
+    function stopListening
+    () {
+      if (listening) {
+        deps.ipcMain.removeListener(ch, onInput)
+        listening = 0
+      }
+    }
+
+    function onInput
+    (ev, data) {
+      d(ch + ': on: ' + JSON.stringify(data))
+      // ignore inputs meant for another run that reuses the channel
+      if (ev.sender == sender) {
+        if (data.input && data.input.length)
+          proc.write(data.input)
+        if (data.exit)
+          interruptAndEscalate()
+      }
     }
 
     function killFgGroup
@@ -150,6 +170,7 @@ function run
     }
 
     exited = false
+    listening = 0
     killTimers = []
 
     if (runInShell) {
@@ -244,6 +265,7 @@ function run
                   d(ch + ': child process exited with code ' + ret.exitCode + ' stdOut=' + stdoutBuffer.length + ' stdErr=' + stderrBuffer.length)
                   exited = true
                   clearKillTimers()
+                  stopListening()
                   // Ensure all buffered data is sent before closing
                   flushBuffers()
                   d(ch + ': sent close')
@@ -261,13 +283,8 @@ function run
                      scheduleFlush()
                    })
 
-    deps.ipcMain.on(ch, (ev, data) => {
-                          d(ch + ': on: ' + JSON.stringify(data))
-                          if (data.input && data.input.length)
-                            proc.write(data.input)
-                          if (data.exit)
-                            interruptAndEscalate()
-                        })
+    deps.ipcMain.on(ch, onInput)
+    listening = 1
   }
   catch (err) {
     d(ch + ' child process caught err ' + err)

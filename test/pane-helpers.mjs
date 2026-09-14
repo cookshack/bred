@@ -12,6 +12,7 @@ import * as BufCommon from '../js/buf-common.mjs'
 import * as Prompt from '../js/prompt.mjs'
 import * as Shell from '../js/shell.mjs'
 import * as View from '../js/view.mjs'
+import Mk from '../js/mk.mjs'
 import { setupDom } from './dom-help.mjs'
 
 let inited, _shared
@@ -142,7 +143,7 @@ function setupPanes
 () {
   let area, boot, domWin, frame, pA, pB, shellChans, win
 
-  _shared.buf = { buffers: [], ring: [], id: 1 }
+  _shared.buf = { buffers: Mk.array, ring: Mk.array, id: 1 }
   _shared.cut = { ring: [], buf: { views: [] } }
   _shared.win = { wins: [], id: 1 }
   globalThis.bred = { _shared: () => _shared }

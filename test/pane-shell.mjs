@@ -1,0 +1,219 @@
+import { equal } from 'node:assert/strict'
+import * as Css from '../js/css.mjs'
+import * as Shell from '../js/shell.mjs'
+import { setupPanes, wait } from './pane-helpers.mjs'
+
+let tests
+
+function test
+(group, name, cb) {
+  tests[group] = tests[group] || []
+  tests[group].push({ name, cb })
+}
+
+// runs a shell command in a buffer, resolving once the view is ready
+function run
+(sc, spec) {
+  spec = { end: 1, ...spec }
+  return new Promise(res => Shell.shell1(sc, spec, buf => res(buf)))
+}
+
+function text
+(buf) {
+  return buf.views[0].ed.state.doc.toString()
+}
+
+function busy
+(buf) {
+  let el
+
+  el = buf.views[0].ele.querySelector('.shell-exit-w')
+  return Css.has(el, 'shell-busy') ? 1 : 0
+}
+
+// emit a shell event; the tron wrapper handles it in a timeout
+async function emit
+(panes, ch, data) {
+  panes.shellChans[ch](data)
+  await wait(10)
+}
+
+function rand
+(state) {
+  state.n = ((state.n * 1103515245) + 12345) % 2147483648
+  return state.n
+}
+
+tests = {}
+
+test('run', 'stdout then close updates buf and clears busy',
+     async () => {
+       let buf, ch, panes
+
+       panes = setupPanes()
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+       equal(busy(buf), 1)
+
+       await emit(panes, ch, { stdout: 'hi\n' })
+       equal(text(buf).includes('hi'), true)
+
+       await emit(panes, ch, { close: 1, code: 0 })
+       equal(buf.vars('shell').code, 0)
+       equal(busy(buf), 0)
+     })
+
+test('run', 'close without output, non-zero code',
+     async () => {
+       let buf, ch, panes
+
+       panes = setupPanes()
+       buf = await run('false')
+       ch = buf.vars('Shell').ch
+
+       await emit(panes, ch, { close: 1, code: 3 })
+       equal(buf.vars('shell').code, 3)
+       equal(busy(buf), 0)
+     })
+
+test('run', 'stderr is appended',
+     async () => {
+       let buf, ch, panes
+
+       panes = setupPanes()
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+
+       await emit(panes, ch, { stderr: 'oops\n' })
+       equal(text(buf).includes('oops'), true)
+
+       await emit(panes, ch, { close: 1, code: 0 })
+     })
+
+test('run', 'late output after close is ignored',
+     async () => {
+       let buf, ch, h, panes
+
+       panes = setupPanes()
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+       h = panes.shellChans[ch]
+
+       await emit(panes, ch, { stdout: 'before\n' })
+       await emit(panes, ch, { close: 1, code: 0 })
+       h({ stdout: 'after\n' })
+       await wait(10)
+
+       equal(text(buf).includes('before'), true)
+       equal(text(buf).includes('after'), false)
+     })
+
+test('run', 'rerunning reuses the buf and ignores the old channel',
+     async () => {
+       let buf, ch1, ch2, h1, panes
+
+       panes = setupPanes()
+       buf = await run('echo hi')
+       ch1 = buf.vars('Shell').ch
+       h1 = panes.shellChans[ch1]
+
+       await emit(panes, ch1, { close: 1, code: 0 })
+
+       buf = await run('echo hi')
+       ch2 = buf.vars('Shell').ch
+       equal(ch2 == ch1, false)
+       equal(busy(buf), 1)
+
+       h1({ stdout: 'stale\n' })
+       await wait(10)
+       equal(text(buf).includes('stale'), false)
+
+       await emit(panes, ch2, { close: 1, code: 0 })
+       equal(buf.vars('shell').code, 0)
+       equal(busy(buf), 0)
+     })
+
+test('remove', 'removing a running buf exits the current channel',
+     async () => {
+       let oldSend, sends
+
+       setupPanes()
+       oldSend = globalThis.tron.send
+       sends = []
+       globalThis.tron.send = (ch2, data) => sends.push({ ch: ch2, data })
+       try {
+         let buf, ch
+
+         buf = await run('echo hi')
+         ch = buf.vars('Shell').ch
+
+         buf.remove()
+
+         equal(sends.length, 1)
+         equal(sends[0].ch, ch)
+         equal(sends[0].data.exit, 1)
+       }
+       finally {
+         globalThis.tron.send = oldSend
+       }
+     })
+
+test('run', 'random event orders keep text consistent',
+     async () => {
+       let seed
+
+       for (seed = 1; seed <= 20; seed++)
+         await trial(seed)
+     })
+
+async function trial
+(seed) {
+  let buf, ch, closed, expected, h, panes, r, state
+
+  panes = setupPanes()
+  buf = await run('echo fuzz')
+  ch = buf.vars('Shell').ch
+  h = panes.shellChans[ch]
+  expected = ''
+  closed = 0
+
+  r = { n: seed }
+  state = [ 'a', 'b', 'close', 'stale' ]
+  for (let i = state.length - 1; i > 0; i--) {
+    let j, tmp
+
+    j = rand(r) % (i + 1)
+    tmp = state[i]
+    state[i] = state[j]
+    state[j] = tmp
+  }
+
+  for (let e of state) {
+    if (e == 'close') {
+      h({ close: 1, code: 0 })
+      closed = 1
+    }
+    else {
+      h({ stdout: e + '\n' })
+      if (closed == 0)
+        expected += e + '\n'
+    }
+    await wait(5)
+  }
+
+  equal(text(buf), expected)
+  equal(busy(buf), 0)
+}
+
+function mochaIt
+(cb) {
+  return function
+         () {
+           this.timeout(10000)
+           return cb()
+         }
+}
+
+Object.entries(tests).forEach(group => globalThis.describe(group[0],
+                                                           () => group[1].forEach(t => globalThis.it(t.name,
+                                                                                                     mochaIt(t.cb)))))

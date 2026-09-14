@@ -123,6 +123,7 @@ function run
  //   afterEndPoint,
  //
  //   cols,
+ //   echo, // echo command as first line
  //   runInShell,
  //   onStdout, // (str)
  //   onStderr, // (str)
@@ -161,6 +162,11 @@ function run
                  d('SHELL exit ' + ch)
                  Tron.send(ch, { exit: 1 })
                })
+  }
+
+  if (b && spec.echo) {
+    b.append('$ ' + sc + '\n')
+    b.vars('Shell').lastLineText = b.line(-1)
   }
 
   // Define the IPC handler so we can remove it after the command finishes
@@ -278,6 +284,7 @@ function shellOrSpawn1
  // { end, // insert at end
  //   afterEndPoint, // see run
  //   args,
+ //   echo, // echo command as first line
  //   hist,
  //   shell,
  //   multi, // keep listening for more commands
@@ -405,6 +412,7 @@ function shellOrSpawn1
            run(dir, sc, spec.args,
                { buf,
                  cols: p.cols,
+                 echo: spec.echo,
                  end: spec.end,
                  afterEndPoint: spec.afterEndPoint,
                  runInShell: spec.shell,

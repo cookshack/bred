@@ -22,6 +22,7 @@ function runText
     Shell.shell1(sc,
                  { end: spec.end ?? 1,
                    afterEndPoint: spec.afterEndPoint ?? 0,
+                   echo: spec.echo,
                    hist: spec.hist, // sc is added to this
                    onClose: spec.onClose },
                  buf => {
@@ -56,7 +57,8 @@ function scib
                hist,
                onReady: cb },
              sc => {
-               runText(sc, { hist,
+               runText(sc, { echo: 1,
+                             hist,
                              shellHist: Hist.ensure('scib: ' + sc).reset() })
              })
 }
@@ -80,7 +82,7 @@ function initRTL
     l = p.line()
     if (l && l.length)
       Shell.shell1(l,
-                   { end: 1, hist },
+                   { echo: 1, end: 1, hist },
                    buf => {
                      buf.mode = 'shell'
                      buf.opts.set('ansi.enabled', 1)

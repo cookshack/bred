@@ -75,6 +75,43 @@ test('focus', 'submitted shell command keeps focus on its buffer',
        checkPaneInvariants(panes.frame)
      })
 
+test('scib', 'submitted command is echoed first in its buffer',
+     async () => {
+       let f, np, panes, sBuf
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       Scib.scib()
+       await waitFor(() => f.vars('prompt')?.nest?.promptBuf?.views[0]?.ed)
+       np = f.vars('prompt').nest.promptBuf
+       np.views[0].ed.dispatch({ changes: { from: 0, insert: 'echo hi' } })
+       Cmd.runMo('submit', 'Nested Prompt')
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       sBuf = panes.pB.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ echo hi', 'command echoed first')
+       equal(sBuf.views[0].ed.state.doc.lines, 2, 'output follows echo line')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'run this line echoes the command in its buffer',
+     async () => {
+       let f, panes, sBuf
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       Cmd.run('run this line')
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       sBuf = panes.pB.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ the file content', 'command echoed first')
+       checkPaneInvariants(panes.frame)
+     })
+
 test('scenario', 'navigate between two file panes',
      async () => {
        let f1, f2, panes, rt

@@ -190,6 +190,14 @@ function run
                   return
 
               if (err) {
+                if (b) {
+                  b.ml.set('busy', 'exit err')
+                  b.vars('shell').code = null
+                  b.vars('Shell').chOff = 0
+                  b.vars('Shell').ch = 0
+                }
+                if (spec.onErr)
+                  spec.onErr(b, err)
                 Mess.yell('Shell.run: ' + err.message)
                 // Clean up on error
                 off()

@@ -108,6 +108,18 @@ test('run', 'late output after close is ignored',
        equal(text(buf).includes('after'), false)
      })
 
+test('run', 'spawn error clears busy',
+     async () => {
+       let buf, ch, panes
+
+       panes = setupPanes()
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+
+       await emit(panes, ch, { err: new Error('spawn failed') })
+       equal(busy(buf), 0)
+     })
+
 test('run', 'rerunning reuses the buf and ignores the old channel',
      async () => {
        let buf, ch1, ch2, h1, panes

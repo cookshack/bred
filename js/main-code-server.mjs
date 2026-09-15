@@ -1,4 +1,5 @@
 import http from 'node:http'
+import fs from 'node:fs'
 import { spawn } from 'node:child_process'
 import * as U from './util.mjs'
 import { d } from './main-log.mjs'
@@ -18,7 +19,7 @@ function containerName
 
 function mountArgs
 (workingDir, dataDir, authPath) {
-  let home, specs
+  let home, specs, configFile
 
   function src
   (spec) {
@@ -43,6 +44,10 @@ function mountArgs
             home + '/.gitignore:/home/node/.gitignore:ro',
             dataDir + ':/home/node/.local/share/opencode',
             authPath + ':/home/node/.local/share/opencode/auth.json:ro' ]
+  configFile = home + '/.config/opencode/opencode.json'
+  if (fs.existsSync(configFile))
+    specs.push(configFile + ':/home/node/.config/opencode/opencode.json:ro')
+  specs = specs
     .filter(s => (src(s) == workingDir) ? 0 : 1)
   return [ '-v', workingDir + ':' + workingDir,
            ...specs.flatMap(s => [ '-v', s ]) ]

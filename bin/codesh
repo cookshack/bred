@@ -23,6 +23,10 @@ for m in \
   fi
 done
 
+if [ -f "$HOME/.config/opencode/opencode.json" ]; then
+  ARGS+=(-v "$HOME/.config/opencode/opencode.json:/home/node/.config/opencode/opencode.json:ro")
+fi
+
 exec docker run -it --rm --name "bred-code-sh-$$" \
   "${ARGS[@]}" \
   --entrypoint bash \

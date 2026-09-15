@@ -2133,8 +2133,8 @@ function init
   mostRecentAgents = []
 
   Opt.declare('code.agent', 'str', 'plan')
-  Opt.declare('code.model.agent', 'str', 'deepseek-v4-pro')
-  Opt.declare('code.provider.agent', 'str', 'opencode-go')
+  Opt.declare('code.model.agent', 'str', 'deepseek/deepseek-v4-flash')
+  Opt.declare('code.provider.agent', 'str', 'goat')
   Opt.declare('code.variant.agent', 'str', '')
   Opt.declare('code.key', 'str', '')
   mo = Mode.add('code',

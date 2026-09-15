@@ -19,9 +19,13 @@ for m in \
   fi
 done
 
+if [ -f "$HOME/.config/opencode/opencode.json" ]; then
+  ARGS+=(-v "$HOME/.config/opencode/opencode.json:/home/node/.config/opencode/opencode.json:ro")
+fi
+
 exec docker run -it --rm --name "bred-code-tui-$$" \
   "${ARGS[@]}" \
   -w "$PWD" \
   opencode-bred \
-  --model opencode-go/deepseek-v4-pro \
+  --model goat/deepseek/deepseek-v4-flash \
   --agent plan

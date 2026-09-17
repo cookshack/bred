@@ -1273,6 +1273,33 @@ function openPrompt
   }
 }
 
+// A view with a real element. A buried buf's sole view is closed (view.ele
+// undefined) but stays in buf.views, so presence in buf.views is not enough.
+function liveView
+(buf) {
+  return buf.views.find(v => v.ele)
+}
+
+// Startup work that needs a live view: nest the prompt buffer and, for a
+// promptless start, open it. If the buf was buried while the session was being
+// created there is no live view, so leave startupPending set and let viewInit /
+// viewReopen finish the job when the buf is shown again.
+function finishStartup
+(buf) {
+  let pending, view
+
+  pending = buf.vars('code').startupPending
+  if (pending == null)
+    return
+  view = liveView(buf)
+  if (view == null)
+    return
+  buf.vars('code').startupPending = 0
+  Prompt.nestBuf(buf, hist)
+  if (pending.open)
+    openPrompt(buf, Pane.holdingView(view), pending.provider, pending.model, pending.variant)
+}
+
 function next
 () {
   let p, buf, block, provider, model, variant
@@ -1323,14 +1350,19 @@ function code
 
                                                          buf.vars('code').sessionID = res.data.id
                                                          buf.vars('code').sessionStart = res.data.time?.created
+                                                         buf.vars('code').startupPending = { provider,
+                                                                                             model,
+                                                                                             variant,
+                                                                                             open: prompt ? 0 : 1 }
 
-                                                         Prompt.nestBuf(buf, hist)
                                                          Ui.updateDocker(buf)
                                                          Ui.appendMsg(buf, 0, 'Ready for prompt.')
+                                                         // The buf may have been buried while the session was
+                                                         // created, closing its view. Nests/opens the prompt when a
+                                                         // live view is available (now or on reopen).
+                                                         finishStartup(buf)
                                                          if (prompt)
                                                            send(buf, prompt, provider, model, variant)
-                                                         else
-                                                           openPrompt(buf, pane, provider, model, variant)
                                                        }).catch(err => {
                                                                   Mess.yell('Failed: ' + err.message)
                                                                 })
@@ -1390,6 +1422,7 @@ function viewInit
       }
     }
   }
+  finishStartup(view.buf)
   if (cb)
     cb(view)
 }
@@ -1583,6 +1616,7 @@ function viewReopen
     // timeout so behaves like viewInit
     setTimeout(() => {
                  bufEnd(view)
+                 finishStartup(view.buf)
                  if (whenReady)
                    whenReady(view)
                })

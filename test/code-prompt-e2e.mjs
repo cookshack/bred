@@ -1,11 +1,13 @@
 import { equal } from 'node:assert/strict'
 import * as Buf from '../js/Buf.mjs'
+import * as Cmd from '../js/cmd.mjs'
 import * as Code from '../ext/code/code.mjs'
 import * as CodePrompt from '../ext/code/prompt.mjs'
 import * as Css from '../js/css.mjs'
+import * as Mode from '../js/mode.mjs'
 import * as Scib from '../js/scib.mjs'
 import * as Ui from '../ext/code/ui.mjs'
-import { setBuf, setupPanes, wait, waitFor } from './pane-helpers.mjs'
+import { fileBuf, setBuf, setupPanes, wait, waitFor } from './pane-helpers.mjs'
 
 let inited, saved, tests
 
@@ -70,6 +72,25 @@ async function setup
   return { panes, buf }
 }
 
+async function setupStart
+() {
+  let mo, panes
+
+  panes = setupPanes()
+  if (inited == 0) {
+    Code.init()
+    inited = 1
+  }
+  // the markdown lang loads async via tron, which the harness doesn't provide,
+  // so the mode here is a stub. openPrompt sets a placeholder, which needs it.
+  mo = Mode.getOrAdd('markdown')
+  mo.setPlaceholder = mo.setPlaceholder || (() => {})
+  // boot views must finish before code startup, else a late callback re-points
+  // the pane's view and the bury below closes the wrong view
+  await waitFor(() => panes.pA.view?.ready && panes.pB.view?.ready)
+  return { panes }
+}
+
 function nestIds
 (view) {
   return [ ...view.ele.querySelectorAll('[data-bred-nested-buf-id]') ]
@@ -119,6 +140,60 @@ test('viewCopy', 'expanding the copied prompt shows no leftover',
        equal(nested.length, 1, 'only the code prompt is nested')
        equal(nested[0].dataset.bredNestedBufId, codeId)
        equal(cw.textContent.includes('Shell Command in'), false, 'no stale shell prompt text')
+     })
+
+test('startup', 'burying before the prompt appears still yields a usable prompt',
+     async () => {
+       let create, fake, orig, panes, resolveCreate, started
+
+       function patchedSetBuf
+       (b, spec, cb) {
+         if (b?.mode?.key == 'code') {
+           b.vars('code').client = fake
+           started = b
+         }
+         return orig(b, spec, cb)
+       }
+
+       ({ panes } = await setupStart())
+
+       create = new Promise(r => resolveCreate = r)
+       fake = { session: { abort: () => Promise.resolve({}),
+                           command: () => Promise.resolve({}),
+                           create: () => create,
+                           prompt: () => Promise.resolve({ data: { info: {}, parts: [] } }) } }
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = patchedSetBuf
+       try {
+         Cmd.run('code')
+         await waitFor(() => started && started.views[0]?.ele)
+
+         // bury while session.create is still in flight
+         await setBuf(panes.pB, fileBuf('x.txt'))
+         equal(started.views[0].ele, undefined, 'code view must be closed while buried')
+
+         resolveCreate({ data: { id: 'ses1', time: { created: Date.now() } } })
+         await wait(50)
+         equal(started.vars('code').sessionID, 'ses1', 'session must be created')
+
+         // returning to the buffer must show a usable prompt
+         await setBuf(panes.pB, started)
+         await wait(50)
+
+         equal(started.vars('code').promptBuf?.views.length >= 1,
+               true,
+               'prompt view must be nested after reopening')
+         equal(nestIds(panes.pB.view).includes(String(started.vars('code').promptBuf.id)),
+               true,
+               'prompt must be nested in the reopened view')
+         equal(Css.has(panes.pB.view.ele.querySelector('.code-prompt-w'), 'retracted'),
+               false,
+               'prompt must be expanded after reopening')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
      })
 
 function mochaIt

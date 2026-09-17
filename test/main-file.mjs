@@ -36,11 +36,14 @@ function lastSend
 
 async function send
 (handler, args) {
-  let e
+  let e, i
 
   e = fakeE()
   handler(e, 'ch', args)
-  await new Promise(r => setTimeout(r, 30))
+  // wait for a reply instead of a fixed delay, which can be too short under load
+  for (i = 0; (i < 200) && (sends.length == 0); i++)
+    await new Promise(r => setTimeout(r, 5))
+  await new Promise(r => setTimeout(r, 5))
   return lastSend()
 }
 

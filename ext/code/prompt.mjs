@@ -42,6 +42,8 @@ function nestBuf
   buf.views.forEach(view => {
                       let container
 
+                      if (view.ele.querySelector('[data-bred-nested-buf-id="' + promptBuf.id + '"]'))
+                        return
                       container = view.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
                       append(container, divCl('bred-nested-pane-w', [], { 'data-bred-nested-buf-id': promptBuf.id }))
                     })

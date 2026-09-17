@@ -1513,7 +1513,11 @@ function viewCopy
 
   if (from.nestedViews)
     from.nestedViews.forEach(nv => {
-                               let outer, nestedView
+                               let outer, nestedView, src
+
+                               src = from.ele.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"]')
+                               if (src?.closest('.code-prompt-w') == null)
+                                 return
 
                                outer = to.ele.querySelector('.code-prompt-w .bred-nested-pane-w')
                                if (outer) {

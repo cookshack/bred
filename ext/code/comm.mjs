@@ -31,7 +31,7 @@ async function ensureClient
                                                          }
                                                          if (data.log) {
                                                            d(data.log)
-                                                           Ui.appendMsg(buf, 0, data.log)
+                                                           Ui.appendServerLog(buf, data.log)
                                                          }
                                                        })
 

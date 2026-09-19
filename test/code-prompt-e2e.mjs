@@ -196,6 +196,32 @@ test('startup', 'burying before the prompt appears still yields a usable prompt'
        }
      })
 
+test('log', 'server logs keep only the newest hundred',
+     async () => {
+       let buf, els, i, panes
+
+       ({ panes, buf } = await setup())
+       for (i = 0; i < 125; i++)
+         Ui.appendServerLog(buf, 'log ' + i)
+
+       els = panes.pB.view.ele.querySelectorAll('.code-msg-log')
+       equal(els.length, 100, 'only the newest logs are kept')
+       equal(els[0].textContent.includes('log 25'), true, 'oldest logs are removed')
+       equal(els[99].textContent.includes('log 124'), true, 'newest log is kept')
+     })
+
+test('log', 'normal messages are not capped or marked',
+     async () => {
+       let buf, i, panes
+
+       ({ panes, buf } = await setup())
+       for (i = 0; i < 25; i++)
+         Ui.appendMsg(buf, 'user', 'msg ' + i)
+
+       equal(panes.pB.view.ele.querySelectorAll('.code-msg-user').length, 25, 'all user messages are kept')
+       equal(panes.pB.view.ele.querySelectorAll('.code-msg-log').length, 0, 'plain messages are not log messages')
+     })
+
 function mochaIt
 (cb) {
   return function

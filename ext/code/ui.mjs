@@ -177,7 +177,7 @@ function updateStatus
 
 export
 function appendMsg
-(buf, role, text, partID, at) {
+(buf, role, text, partID, at, spec) {
   function scrollHalfRem
   (el) {
     let w
@@ -314,7 +314,7 @@ function appendMsg
                         }
                         else
                           appendX(w,
-                                  divCl('code-msg code-msg-assistant',
+                                  divCl('code-msg code-msg-assistant' + (spec?.log ? ' code-msg-log' : ''),
                                         [ contentEl ],
                                         { 'data-partid': partID || 0 }))
                         if (mdResult) {
@@ -331,6 +331,25 @@ function appendMsg
                           underW = w.querySelector('.code-under-w')
                           scroll(underW)
                         }
+                      })
+}
+
+// Server/spawn log lines are useful but can pile up over a long-lived buffer,
+// so keep only the newest ones.
+export
+function appendServerLog
+(buf, text) {
+  let maxServerLogs
+
+  maxServerLogs = 100
+  appendMsg(buf, 0, text, undefined, undefined, { log: 1 })
+  Util.eachCodeW(buf, (view, w) => {
+                        let els, excess
+
+                        els = w.querySelectorAll('.code-msg-log')
+                        excess = els.length - maxServerLogs
+                        for (let i = 0; i < excess; i++)
+                          els[i].remove()
                       })
 }
 

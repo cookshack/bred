@@ -103,14 +103,16 @@ function chmod
              })
 }
 
+export
 function link
 () {
-  let p, el, target
+  let p, el, target, hist
 
   function run
   (from, dir) {
     let absTarget
 
+    hist.add(from)
     absTarget = DirCommon.abs(target, dir)
     Tron.cmd('file.ln', [ absTarget, from ], (err, data) => {
                                                Mess.log('file.ln:  ' + data.from + ' ⎘ ' + data.target + ' in ' + data.cwd)
@@ -124,6 +126,7 @@ function link
   }
 
   p = Pane.current()
+  hist = p.buf.vars('dir').hist
   if (DirCommon.getMarked(p.buf).length) {
     Mess.yell('Clear marks first')
     return
@@ -137,7 +140,8 @@ function link
     return
   }
 
-  Prompt.ask({ text: 'Link from:' },
+  Prompt.ask({ text: 'Link from:',
+               hist },
              name => run(name, p.dir))
 }
 

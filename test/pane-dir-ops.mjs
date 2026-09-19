@@ -207,6 +207,31 @@ test('copy', 'marked files fall back to destination history',
        equal(promptBuf()?.placeholder, '/last/dest/')
      })
 
+test('link', 'prompt records the entered name in the dir history',
+     async () => {
+       let calls, hist, pA, pB, panes
+
+       panes = setupPanes()
+       pA = panes.pA
+       pB = panes.pB
+
+       pinBuf(pA, fakeDirBuf('/other/dir'), '/other/dir')
+       pinBuf(pB, fakeDirBuf('/here'), '/here')
+       hist = Hist.make('pane-dir-ops')
+       pB.buf.vars('dir').hist = hist
+       selectEntry('/here/mydir/')
+       calls = mockTron({})
+
+       DirOps.link()
+       submit('mylink')
+       await wait(30)
+
+       equal(hist.nth(0), 'mylink')
+       equal(calls.some(c => (c.name == 'file.ln')
+                             && (c.args[0] == '/here/mydir/')
+                             && (c.args[1] == 'mylink')), true)
+     })
+
 // set up an unmarked copy/rename of /here/mydir in the current pane
 function setupOneDir
 (dirPaths) {

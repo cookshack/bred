@@ -15,6 +15,7 @@ import * as Pane from './Pane.mjs'
 import * as Recent from './recent.mjs'
 import * as Scroll from './scroll.mjs'
 import * as Tron from './tron.mjs'
+import * as U from './util.mjs'
 import * as View from './view.mjs'
 import * as DirMarked from './dir-marked.mjs'
 import * as DirOps from './dir-ops.mjs'
@@ -290,7 +291,7 @@ function fill
 
   function makeF
   (f) {
-    let name, file, on, type
+    let name, file, on, type, linkTarget
 
     function join
     (dir, rest) {
@@ -339,6 +340,16 @@ function fill
                  'data-path': join(path, f.name) + (type == 'd' ? '/' : ''),
                  'data-run': 'open link' })
 
+    if (f.stat?.link) {
+      let cls
+
+      cls = f.stat.linkBroken ? ' dir-link-broken' : ''
+      linkTarget = [ span('→', 'dir-link-arrow' + cls),
+                     span(U.shortHome(f.stat.target || '?'),
+                          'dir-link-dest',
+                          { title: f.stat.linkDest || f.stat.target || '' }) ]
+    }
+
     on = marked.has(f.name) ? ' on' : ''
 
     return [ divCl('dir-mark' + on,
@@ -351,7 +362,7 @@ function fill
              divCl(on, f.group || f.stat?.gid),
              divCl('dir-size' + on, f.stat ? size() : '?'),
              divCl('dir-date' + on, f.stat ? formatDate(new Date(f.stat.mtimeMs)) : '?'),
-             divCl('dir-name-w' + on, name) ]
+             divCl('dir-name-w' + on, [ name, linkTarget ]) ]
   }
 
   function redraw

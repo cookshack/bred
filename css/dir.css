@@ -82,6 +82,7 @@ div.dir-mark {
 
 .dir-name-w {
   display: flex;
+  gap: 0.4rem;
 }
 
 .dir-name {
@@ -112,6 +113,22 @@ div.dir-h-dir,
 
 .dir-name[data-type="l"] {
   color: var(--clr-syntax3);
+}
+
+.dir-link-arrow,
+.dir-link-dest {
+  color: var(--clr-text-light);
+}
+
+.dir-link-dest {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 40ch;
+}
+
+.dir-link-arrow.dir-link-broken {
+  color: var(--clr-nb3);
 }
 
 .dir-empty {

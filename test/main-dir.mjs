@@ -79,6 +79,31 @@ test('onGet', 'file path lists parent',
        equal(got.data.some(e => e.name == 'a.txt'), true)
      })
 
+test('onGet', 'flags symlink targets',
+     async () => {
+       let got, link
+
+       Fs.writeFileSync(Path.join(tmp, 'real.txt'), 'x')
+       Fs.mkdirSync(Path.join(tmp, 'realDir'))
+       Fs.symlinkSync('real.txt', Path.join(tmp, 'linkFile'))
+       Fs.symlinkSync(Path.join(tmp, 'realDir'), Path.join(tmp, 'linkDir'))
+       Fs.symlinkSync('/nowhere', Path.join(tmp, 'linkBroken'))
+
+       got = await send(MainDir.onGet, tmp)
+
+       link = got.data.find(e => e.name == 'linkFile')
+       equal(link.stat.link, true)
+       equal(link.stat.target, 'real.txt')
+       equal(link.stat.linkDest, Path.join(tmp, 'real.txt'))
+       equal(link.stat.linkBroken, undefined)
+
+       equal(got.data.find(e => e.name == 'linkDir').stat.linkDir, 1)
+
+       link = got.data.find(e => e.name == 'linkBroken')
+       equal(link.stat.target, '/nowhere')
+       equal(link.stat.linkBroken, 1)
+     })
+
 test('onMake', 'creates dir recursively',
      async () => {
        let path

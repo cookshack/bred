@@ -21,9 +21,20 @@ function onGet
       if (st.link) {
         let stTarget
 
+        try {
+          st.target = Fs.readlinkSync(path)
+          st.linkDest = Path.resolve(Path.dirname(path), st.target)
+        }
+        catch {
+          st.target = '?'
+        }
         stTarget = Fs.statSync(path, { throwIfNoEntry: false })
-        if (stTarget && stTarget.isDirectory())
-          st.linkDir = 1
+        if (stTarget) {
+          if (stTarget.isDirectory())
+            st.linkDir = 1
+        }
+        else
+          st.linkBroken = 1
       }
     }
     return st

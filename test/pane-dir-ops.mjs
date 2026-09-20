@@ -4,6 +4,7 @@ import * as Cmd from '../js/cmd.mjs'
 import * as DirCommon from '../js/dir-common.mjs'
 import * as DirOps from '../js/dir-ops.mjs'
 import * as Hist from '../js/hist.mjs'
+import * as Loc from '../js/loc.mjs'
 import * as Prompt from '../js/prompt.mjs'
 import * as Win from '../js/win.mjs'
 import { setupPanes, wait } from './pane-helpers.mjs'
@@ -153,6 +154,41 @@ test('baseName', 'file path',
        equal(DirCommon.baseName('/a/f.txt'), 'f.txt')
      })
 
+test('expandTilde', 'expands ~ and ~/ only',
+     () => {
+       let saved
+
+       saved = Loc.home()
+       try {
+         Loc.homeSet('/home/matt')
+         equal(DirCommon.expandTilde('~'), '/home/matt/')
+         equal(DirCommon.expandTilde('~/'), '/home/matt/')
+         equal(DirCommon.expandTilde('~/x'), '/home/matt/x')
+       }
+       finally {
+         Loc.homeSet(saved)
+       }
+       equal(DirCommon.expandTilde('~user'), '~user')
+       equal(DirCommon.expandTilde('a/b'), 'a/b')
+     })
+
+test('abs', 'expands a leading tilde',
+     () => {
+       let saved
+
+       saved = Loc.home()
+       try {
+         Loc.homeSet('/home/matt')
+         equal(DirCommon.abs('~/', '/here'), '/home/matt/')
+         equal(DirCommon.abs('~/x', '/here'), '/home/matt/x')
+       }
+       finally {
+         Loc.homeSet(saved)
+       }
+       equal(DirCommon.abs('x', '/here'), '/here/x')
+       equal(DirCommon.abs('/abs', '/here'), '/abs')
+     })
+
 test('copy', 'marked files offer the next pane dir',
      () => {
        let pA, pB, panes
@@ -230,6 +266,38 @@ test('link', 'prompt records the entered name in the dir history',
        equal(calls.some(c => (c.name == 'file.ln')
                              && (c.args[0] == '/here/mydir/')
                              && (c.args[1] == 'mylink')), true)
+     })
+
+test('link', 'expands a tilde destination',
+     async () => {
+       let calls, hist, pA, pB, panes, saved
+
+       saved = Loc.home()
+       panes = setupPanes()
+       pA = panes.pA
+       pB = panes.pB
+
+       pinBuf(pA, fakeDirBuf('/other/dir'), '/other/dir')
+       pinBuf(pB, fakeDirBuf('/here'), '/here')
+       hist = Hist.make('pane-dir-ops')
+       pB.buf.vars('dir').hist = hist
+       selectEntry('/here/mydir/')
+       calls = mockTron({})
+
+       try {
+         Loc.homeSet('/home/matt')
+         DirOps.link()
+         submit('~/')
+         await wait(30)
+
+         equal(hist.nth(0), '~/', 'history keeps the raw input')
+         equal(calls.some(c => (c.name == 'file.ln')
+                               && (c.args[0] == '/here/mydir/')
+                               && (c.args[1] == '/home/matt/')), true)
+       }
+       finally {
+         Loc.homeSet(saved)
+       }
      })
 
 // set up an unmarked copy/rename of /here/mydir in the current pane

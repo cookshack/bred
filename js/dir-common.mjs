@@ -65,9 +65,19 @@ function baseName
   return loc.filename
 }
 
+// expand a leading ~ (or ~/) the way a shell would
+export
+function expandTilde
+(path) {
+  if ((path == '~') || path.startsWith('~/'))
+    return Loc.make(path).expand()
+  return path
+}
+
 export
 function abs
 (to, dir) {
+  to = expandTilde(to)
   if (to.startsWith('/'))
     return to
   return Loc.make(dir).join(to)

@@ -531,10 +531,11 @@ function onStat
                                              else {
                                                let dest
 
-                                               dest = Path.join(Path.dirname(onArgs), string)
+                                               // resolve, not join, so an absolute link target isn't appended to the dir
+                                               dest = Path.resolve(Path.dirname(onArgs), string)
                                                Fs.stat(dest, (err3, data3) => {
                                                                if (err3)
-                                                                 e.sender.send(ch, { err3 })
+                                                                 e.sender.send(ch, { err: err3 })
                                                                else
                                                                  e.sender.send(ch, { data: data3,
                                                                                      link: 1,

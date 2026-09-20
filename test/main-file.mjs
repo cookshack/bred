@@ -141,6 +141,44 @@ test('onStat', 'missing file returns err',
        equal(got.err ? 1 : 0, 1)
      })
 
+test('onStat', 'symlink to a dir resolves the target',
+     async () => {
+       let got, link, target
+
+       target = Path.join(tmp, 'd')
+       Fs.mkdirSync(target)
+       link = Path.join(tmp, 'b')
+       Fs.symlinkSync(target, link)
+       got = await send(MainFile.onStat, link)
+       equal(got.link, 1)
+       equal(got.dest, target)
+       equal(got.data.isDirectory(), true)
+     })
+
+test('onStat', 'symlink with a relative target resolves the target',
+     async () => {
+       let got, link, target
+
+       target = Path.join(tmp, 'd')
+       Fs.mkdirSync(target)
+       link = Path.join(tmp, 'b')
+       Fs.symlinkSync('d', link)
+       got = await send(MainFile.onStat, link)
+       equal(got.link, 1)
+       equal(got.dest, target)
+       equal(got.data.isDirectory(), true)
+     })
+
+test('onStat', 'broken symlink returns err',
+     async () => {
+       let got, link
+
+       link = Path.join(tmp, 'b')
+       Fs.symlinkSync(Path.join(tmp, 'nope'), link)
+       got = await send(MainFile.onStat, link)
+       equal(got.err ? 1 : 0, 1)
+     })
+
 test('onRm', 'removes file',
      async () => {
        let path

@@ -114,6 +114,7 @@ function link
 
     hist.add(from)
     absTarget = DirCommon.abs(target, dir)
+    from = DirCommon.expandTilde(from)
     Tron.cmd('file.ln', [ absTarget, from ], (err, data) => {
                                                Mess.log('file.ln:  ' + data.from + ' ⎘ ' + data.target + ' in ' + data.cwd)
                                                Mess.log('file.ln: (' + data.absFrom + ' ⎘ ' + data.absTarget + ')')

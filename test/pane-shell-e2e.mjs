@@ -40,8 +40,10 @@ function bridge
   chans = {}
   bridges.push(chans)
   sender = { send: (ch, data) => {
-                      if (chans[ch])
-                        chans[ch](data)
+                      setImmediate(() => {
+                                     if (chans[ch])
+                                       chans[ch](data)
+                                   })
                     } }
   ipc = { cbs: {},
           on: (ch, cb) => {

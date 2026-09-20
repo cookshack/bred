@@ -255,8 +255,6 @@ function run
 
     proc.onData(data => {
                   d(ch + ' data: ' + data.length + ' bytes')
-                  d(ch + ' data: ' + data)
-                  d(ch + ' typeof data: ' + typeof data)
                   stdoutBuffer += data
                   scheduleFlush()
                 })

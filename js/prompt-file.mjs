@@ -380,6 +380,8 @@ function init
   Em.on('Escape', 'close buffer', mo)
   Em.on('C-n', 'Next Selection', mo)
   Em.on('C-p', 'Previous Selection', mo)
+  Em.on('ArrowDown', 'Next Selection', mo)
+  Em.on('ArrowUp', 'Previous Selection', mo)
   Em.on('C-s', 'Idle', mo)
   Em.on('C-r', 'Idle', mo)
 

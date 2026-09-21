@@ -35,8 +35,12 @@ function wait
 
 export
 async function waitFor
-(cb) {
-  for (let i = 0; i < 100; i++) {
+(cb, ms) {
+  let start, timeout
+
+  timeout = ms ?? 1000
+  start = Date.now()
+  while ((Date.now() - start) < timeout) {
     if (cb())
       return
     await wait(10)

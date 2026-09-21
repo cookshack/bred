@@ -203,6 +203,30 @@ test('run', 'random event orders keep text consistent',
          await trial(seed)
      })
 
+// deterministic version of the e2e large-output check: drive the renderer with
+// known chunks so completeness does not depend on pty read timing
+test('run', 'large output arrives complete',
+     async () => {
+       let buf, ch, i, j, panes
+
+       panes = setupPanes()
+       buf = await run('echo big')
+       ch = buf.vars('Shell').ch
+       for (i = 1; i <= 100000; i += 5000) {
+         let piece
+
+         piece = ''
+         for (j = i; j < (i + 5000); j++)
+           piece += j + '\n'
+         await emit(panes, ch, { stdout: piece })
+       }
+       await emit(panes, ch, { close: 1, code: 0 })
+
+       equal(text(buf).includes('100000\n'), true)
+       equal(text(buf).split('\n').length, 100001)
+       equal(busy(buf), 0)
+     })
+
 async function trial
 (seed) {
   let buf, ch, closed, expected, h, panes, r, state

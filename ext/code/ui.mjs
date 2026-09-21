@@ -15,6 +15,8 @@ import { langs } from '../../js/wode-lang.mjs'
 import { modeFor } from '../../js/wode-mode.mjs'
 import { themeExtension } from '../../js/wode-theme.mjs'
 
+import { hideMarks } from './md.mjs'
+
 export
 function divW
 (dir, agent) {
@@ -111,16 +113,19 @@ function makePatchEd
 }
 
 function makeMarkdownEd
-(text) {
-  let el, state, ed
+(text, hide) {
+  let el, state, ed, exts
 
+  exts = [ CMView.EditorView.editable.of(false),
+           CMView.EditorView.lineWrapping,
+           markdown({ base: markdownLanguage,
+                      codeLanguages: langs }),
+           themeExtension ]
+  if (hide)
+    exts.push(hideMarks)
   el = divCl('code-markdown-ed')
   state = CMState.EditorState.create({ doc: padTableText(text),
-                                       extensions: [ CMView.EditorView.editable.of(false),
-                                                     CMView.EditorView.lineWrapping,
-                                                     markdown({ base: markdownLanguage,
-                                                                codeLanguages: langs }),
-                                                     themeExtension ] })
+                                       extensions: exts })
   ed = new CMView.EditorView({ state, parent: el })
   return { el, ed }
 }
@@ -268,7 +273,7 @@ function appendMsg
                               if (oldMdEl) {
                                 let mdEd
 
-                                mdEd = makeMarkdownEd(text)
+                                mdEd = makeMarkdownEd(text, 1)
                                 withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
                                 view.vars('code').eds = view.vars('code').eds || []
                                 view.vars('code').eds.push(mdEd.ed)
@@ -291,7 +296,7 @@ function appendMsg
                         if (role == 'user')
                           contentEl = divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
                         else {
-                          mdResult = makeMarkdownEd(text || '')
+                          mdResult = makeMarkdownEd(text || '', spec?.log ? 0 : 1)
                           contentEl = mdResult.el
                         }
                         if (role == 'user') {

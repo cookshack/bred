@@ -5,6 +5,7 @@ import * as Pane from './Pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
 import * as Win from './win.mjs'
+import * as Wode from './wode.mjs'
 import { d } from './mess.mjs'
 
 let hist
@@ -67,19 +68,22 @@ function initRTL
 () {
   function runThisLine
   (u, we) {
-    let p, l
+    let l, p, win, x, y
 
     p = Pane.current()
-    if (we?.e && (we.e.button == 0)) {
-      let x, y, win
+    win = Win.current()
+    x = win.lastContextClick?.x
+    y = win.lastContextClick?.y
 
-      win = Win.current()
-      x = win.lastContextClick?.x ?? 0
-      y = win.lastContextClick?.y ?? 0
-      p.goXY(x, y)
+    // codemirror editors (eg code blocks in agent messages) aren't bred views
+    l = Wode.lineAtCoords(win, x, y)
+
+    if (l == null) {
+      if (we?.e && (we.e.button == 0))
+        p.goXY(x ?? 0, y ?? 0)
+      l = p.line()
     }
 
-    l = p.line()
     if (l && l.length)
       Shell.shell1(l,
                    { echo: 1, end: 1, hist },

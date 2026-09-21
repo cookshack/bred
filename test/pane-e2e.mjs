@@ -3,6 +3,8 @@ import * as Cmd from '../js/cmd.mjs'
 import * as Pane from '../js/Pane.mjs'
 import * as Scib from '../js/scib.mjs'
 import * as View from '../js/view.mjs'
+import * as CMState from '../lib/@codemirror/state.js'
+import * as CMView from '../lib/@codemirror/view.js'
 import { checkPaneInvariants, fileBuf, focusRoundTrip, sameView, setBuf, setupPanes, wait, waitFor } from './pane-helpers.mjs'
 
 let tests
@@ -109,6 +111,29 @@ test('rtl', 'run this line echoes the command in its buffer',
 
        sBuf = panes.pB.buf
        equal(sBuf.views[0].ed.state.doc.line(1).text, '$ the file content', 'command echoed first')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'run this line reads a code editor line',
+     async () => {
+       let ed, f, panes, parent, sBuf, state
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       parent = globalThis.document.createElement('div')
+       globalThis.document.body.appendChild(parent)
+       state = CMState.EditorState.create({ doc: 'one\ntwo\nthree\n' })
+       ed = new CMView.EditorView({ state, parent })
+       ed.focus()
+       ed.dispatch({ selection: { anchor: ed.state.doc.line(2).from + 1 } })
+
+       Cmd.run('run this line')
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       sBuf = panes.pB.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ two', 'line under point echoed')
        checkPaneInvariants(panes.frame)
      })
 

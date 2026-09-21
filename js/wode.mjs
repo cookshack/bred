@@ -2065,6 +2065,43 @@ function vtokenAt
   return null
 }
 
+// text of the line at a point, from any cm editor (eg embedded in a message,
+// where there is no bred view). Coordinates may be missing (falls back to the
+// focused editor).
+export
+function lineAtCoords
+(win, x, y) {
+  let el
+
+  if (U.isPresent(x) && U.isPresent(y)) {
+    let els
+
+    // the context menu sits over the click point, so skip overlays
+    els = win.document.elementsFromPoint?.(x, y) || []
+    for (let e of els) {
+      el = e.closest?.('.cm-editor')
+      if (el)
+        break
+    }
+  }
+  if (el == null)
+    el = win.document.activeElement?.closest?.('.cm-editor')
+  if (el) {
+    let view
+
+    view = CMView.EditorView.findFromDOM(el)
+    if (view) {
+      let pos
+
+      pos = (U.isPresent(x) && U.isPresent(y)) ? view.posAtCoords({ x, y }) : null
+      if (pos == null)
+        pos = view.state.selection.main.head
+      return view.state.doc.lineAt(pos).text
+    }
+  }
+  return null
+}
+
 export
 function vforLines
 (view, cb) { // (line)

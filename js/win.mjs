@@ -66,8 +66,8 @@ function makeContext
   }
 
   function appendRun
-  (p) {
-    if (p && p.view.ed)
+  (p, target) {
+    if (p && (p.view.ed || target?.closest?.('.cm-editor')))
       append(context.el,
              context0(p.buf, 'Run This Line In Shell', 'run this line'),
              contextLine())
@@ -132,7 +132,7 @@ function makeContext
                                 contextLine())
                     p && addCopy(p)
                     appendSpell(p)
-                    appendRun(p)
+                    appendRun(p, target)
                     if (Ext.get('hex'))
                       append(context.el,
                              context0(p.buf, 'Hex'),
@@ -148,7 +148,7 @@ function makeContext
                               contextLine())
                   p && addCopy(p)
                   appendSpell(p)
-                  appendRun(p)
+                  appendRun(p, target)
                   appendStep(p)
                   Css.add(context.el, 'bred-open')
                   cb && cb()

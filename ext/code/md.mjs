@@ -4,12 +4,24 @@ import { syntaxTree } from '../../lib/@codemirror/language.js'
 // Mark nodes whose punctuation is hidden in rendered markdown (eg the ** of
 // bold). The syntax tree and highlighting stay, only the marks disappear.
 // Code also gets a fill background so it stands out from prose.
-let decorationCode, decorationHidden, decorationInline, hiddenNodes
+let decorationCode, decorationCodeStart, decorationHidden, decorationInline, hiddenNodes
 
 decorationCode = CMView.Decoration.line({ class: 'code-md-code' })
+decorationCodeStart = CMView.Decoration.line({ class: 'code-md-code code-md-code-start' })
 decorationHidden = CMView.Decoration.replace({})
 decorationInline = CMView.Decoration.mark({ class: 'code-md-inline' })
 hiddenNodes = [ 'EmphasisMark', 'CodeMark', 'HeaderMark', 'StrikethroughMark' ]
+
+// middle click opens a link (via auxclick); don't let it paste the primary
+// selection into whatever editable buf currently has focus
+function blockPaste
+(event) {
+  if (event.button == 1) {
+    event.preventDefault()
+    return 1
+  }
+  return 0
+}
 
 function makeMarks
 (view) {
@@ -47,23 +59,28 @@ function makeMarks
 
         url = node.node.getChild('URL')
         if (url) {
-          let link
+          let href, link
 
+          href = v.state.doc.sliceString(url.from, url.to)
           link = CMView.Decoration.mark({ class: 'code-md-link',
                                           attributes: { 'data-run': 'open link',
-                                                        'data-runaux': 'open link in other pane',
-                                                        'data-path': v.state.doc.sliceString(url.from, url.to) } })
+                                                        'data-runaux': 'open externally',
+                                                        'data-path': href,
+                                                        'data-url': href } })
           ranges.push(link.range(node.from, node.to))
         }
       }
       else if ((node.name == 'FencedCode') || (node.name == 'CodeBlock')) {
-        let pos
+        let pos, start
 
-        for (pos = node.from; pos <= node.to;) {
+        pos = node.from
+        start = node.name == 'FencedCode' ? 1 : 0
+        for (; pos <= node.to;) {
           let line
 
           line = v.state.doc.lineAt(pos)
-          ranges.push(decorationCode.range(line.from))
+          ranges.push((start ? decorationCodeStart : decorationCode).range(line.from))
+          start = 0
           pos = line.to + 1
         }
       }
@@ -88,4 +105,6 @@ function makeMarks
 
 export let hideMarks
 
-hideMarks = CMView.ViewPlugin.define(makeMarks, { decorations: v => v.decorations })
+hideMarks = CMView.ViewPlugin.define(makeMarks,
+                                     { decorations: v => v.decorations,
+                                       eventHandlers: { mousedown: blockPaste } })

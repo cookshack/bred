@@ -124,6 +124,7 @@ test('md marks', 'hides fenced code marks but keeps the info',
        equal(rendered(view).includes('foo'), true)
        equal(rendered(view).includes('```'), false)
        equal(view.contentDOM.querySelectorAll('.code-md-code').length > 0, true)
+       equal(view.contentDOM.querySelector('.code-md-code-start')?.textContent, 'js')
      })
 
 test('md marks', 'keeps list, quote and link marks',
@@ -155,8 +156,9 @@ test('md marks', 'marks links with their url',
        el = view.contentDOM.querySelector('.code-md-link')
 
        equal(el?.dataset.path, 'http://x')
+       equal(el?.dataset.url, 'http://x')
        equal(el?.dataset.run, 'open link')
-       equal(el?.dataset.runaux, 'open link in other pane')
+       equal(el?.dataset.runaux, 'open externally')
        equal(rendered(view).includes('[a](http://x)'), true)
      })
 
@@ -169,6 +171,18 @@ test('md marks', 'marks autolinks with their url',
 
        equal(el?.dataset.path, 'http://x')
        equal(el?.dataset.run, 'open link')
+     })
+
+test('md marks', 'blocks middle click paste',
+     async () => {
+       let event, view
+
+       view = await make('a')
+       event = new domWin.MouseEvent('mousedown', { button: 1,
+                                                    bubbles: 1,
+                                                    cancelable: 1 })
+       view.contentDOM.dispatchEvent(event)
+       equal(event.defaultPrevented, true)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

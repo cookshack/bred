@@ -406,6 +406,7 @@ div.code-thought:hover {
   width: fit-content;
   max-width: 100%;
   padding-right: var(--cm-pad);
+  padding-bottom: var(--cm-pad);
 }
 
 .code-markdown-ed .cm-editor {
@@ -416,6 +417,14 @@ div.code-thought:hover {
 .code-md-inline,
 .code-md-code {
   background-color: var(--clr-bg);
+}
+
+.code-md-code-start {
+  text-align: right;
+  color: var(--clr-syntax3);
+  font-size: 0.75em;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .code-md-link {

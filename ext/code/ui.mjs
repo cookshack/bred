@@ -113,7 +113,7 @@ function makePatchEd
 }
 
 function makeMarkdownEd
-(text, hide) {
+(text, decorate) {
   let el, state, ed, exts
 
   exts = [ CMView.EditorView.editable.of(false),
@@ -121,7 +121,7 @@ function makeMarkdownEd
            markdown({ base: markdownLanguage,
                       codeLanguages: langs }),
            themeExtension ]
-  if (hide)
+  if (decorate)
     exts.push(hideMarks)
   el = divCl('code-markdown-ed')
   state = CMState.EditorState.create({ doc: padTableText(text),

@@ -202,7 +202,7 @@ function initMouse
   (e) {
     x = e.pageX
     y = e.pageY
-    target = e.target
+    target = e.target.closest?.('[data-run]') || e.target
     if (to)
       // When the timeout runs updateHover will use the new target.
       return
@@ -618,17 +618,18 @@ function initCmds
                                  })
 
   Cmd.add('open externally', (u, we) => {
-                               let url
+                               let el, url
 
-                               url = we.e.target.dataset.url?.trim()
+                               el = we.e.target.closest('[data-url]') || we.e.target
+                               url = el.dataset.url?.trim()
                                if (url)
                                  if (url.startsWith('#')) {
-                                   let p, el
+                                   let p, target
 
                                    p = Pane.current()
-                                   el = p.view.ele?.querySelector('[data-target="' + url.slice(1) + '"]')
-                                   if (el)
-                                     el.scrollIntoView()
+                                   target = p.view.ele?.querySelector('[data-target="' + url.slice(1) + '"]')
+                                   if (target)
+                                     target.scrollIntoView()
                                    else
                                      Mess.yell('Missing target')
                                  }
@@ -644,27 +645,36 @@ function initCmds
                              })
 
   Cmd.add('open link', (u, we) => {
-                         if (we.e.target.dataset.path)
-                           Open.link(we.e.target.dataset.path,
-                                     we.e.target.dataset.line)
+                         let el
+
+                         el = we.e.target.closest('[data-path]') || we.e.target
+                         if (el.dataset.path)
+                           Open.link(el.dataset.path,
+                                     el.dataset.line)
                          else
                            Mess.say('Target missing path')
                        })
 
   Cmd.add('open link in new tab', (u, we) => {
-                                    if (we.e.target.dataset.path)
-                                      Open.link(we.e.target.dataset.path,
-                                                we.e.target.dataset.line,
+                                    let el
+
+                                    el = we.e.target.closest('[data-path]') || we.e.target
+                                    if (el.dataset.path)
+                                      Open.link(el.dataset.path,
+                                                el.dataset.line,
                                                 1)
                                     else
                                       Mess.say('Target missing path')
                                   })
 
   Cmd.add('open link in other pane', (u, we) => {
-                                       if (we.e.target.dataset.path) {
+                                       let el
+
+                                       el = we.e.target.closest('[data-path]') || we.e.target
+                                       if (el.dataset.path) {
                                          Pane.nextOrSplit()
-                                         Open.link(we.e.target.dataset.path,
-                                                   we.e.target.dataset.line)
+                                         Open.link(el.dataset.path,
+                                                   el.dataset.line)
                                        }
                                        else
                                          Mess.say('Target missing path')

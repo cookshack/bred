@@ -270,7 +270,7 @@ function originalHandle
     if (we.e?.button == 1) {
       let run, target
 
-      target = we.e?.target
+      target = we.e?.target?.closest?.('[data-runaux]') || we.e?.target
       run = target?.dataset?.runaux
       if (run) {
         let p

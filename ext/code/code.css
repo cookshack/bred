@@ -413,6 +413,15 @@ div.code-thought:hover {
   overflow: auto;
 }
 
+.code-md-inline,
+.code-md-code {
+  background-color: var(--clr-bg);
+}
+
+.code-md-link {
+  cursor: pointer;
+}
+
 .code-code-ed {
   margin-top: 4px;
   overflow: hidden;

@@ -1,7 +1,7 @@
 import { equal } from 'node:assert/strict'
 import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
-import { markdown } from '../lib/@codemirror/lang-markdown.js'
+import { markdown, markdownLanguage } from '../lib/@codemirror/lang-markdown.js'
 import { hideMarks } from '../ext/code/md.mjs'
 import { setupDom } from './dom-help.mjs'
 
@@ -65,7 +65,7 @@ async function make
   parent = globalThis.document.createElement('div')
   globalThis.document.body.appendChild(parent)
   state = CMState.EditorState.create({ doc,
-                                       extensions: [ markdown(), hideMarks ] })
+                                       extensions: [ markdown({ base: markdownLanguage }), hideMarks ] })
   view = new CMView.EditorView({ state, parent })
   views.push(view)
   // let CM flush its scheduled render
@@ -101,6 +101,7 @@ test('md marks', 'hides inline code backticks',
 
        equal(rendered(view).includes('code'), true)
        equal(rendered(view).includes('`'), false)
+       equal(view.contentDOM.querySelector('.code-md-inline')?.textContent, 'code')
      })
 
 test('md marks', 'hides heading mark and its space',
@@ -122,6 +123,7 @@ test('md marks', 'hides fenced code marks but keeps the info',
        equal(rendered(view).includes('js'), true)
        equal(rendered(view).includes('foo'), true)
        equal(rendered(view).includes('```'), false)
+       equal(view.contentDOM.querySelectorAll('.code-md-code').length > 0, true)
      })
 
 test('md marks', 'keeps list, quote and link marks',
@@ -133,6 +135,40 @@ test('md marks', 'keeps list, quote and link marks',
        equal(rendered(view).includes('- '), true)
        equal(rendered(view).includes('[a](http://x)'), true)
        equal(rendered(view).includes('> q'), true)
+     })
+
+test('md marks', 'hides strikethrough punctuation',
+     async () => {
+       let view
+
+       view = await make('a ~~b~~ c')
+
+       equal(rendered(view).includes('b'), true)
+       equal(rendered(view).includes('~~'), false)
+     })
+
+test('md marks', 'marks links with their url',
+     async () => {
+       let el, view
+
+       view = await make('[a](http://x)')
+       el = view.contentDOM.querySelector('.code-md-link')
+
+       equal(el?.dataset.path, 'http://x')
+       equal(el?.dataset.run, 'open link')
+       equal(el?.dataset.runaux, 'open link in other pane')
+       equal(rendered(view).includes('[a](http://x)'), true)
+     })
+
+test('md marks', 'marks autolinks with their url',
+     async () => {
+       let el, view
+
+       view = await make('<http://x>')
+       el = view.contentDOM.querySelector('.code-md-link')
+
+       equal(el?.dataset.path, 'http://x')
+       equal(el?.dataset.run, 'open link')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

@@ -3,10 +3,13 @@ import { syntaxTree } from '../../lib/@codemirror/language.js'
 
 // Mark nodes whose punctuation is hidden in rendered markdown (eg the ** of
 // bold). The syntax tree and highlighting stay, only the marks disappear.
-let decorationHidden, hiddenNodes
+// Code also gets a fill background so it stands out from prose.
+let decorationCode, decorationHidden, decorationInline, hiddenNodes
 
-hiddenNodes = [ 'EmphasisMark', 'CodeMark', 'HeaderMark' ]
+decorationCode = CMView.Decoration.line({ class: 'code-md-code' })
 decorationHidden = CMView.Decoration.replace({})
+decorationInline = CMView.Decoration.mark({ class: 'code-md-inline' })
+hiddenNodes = [ 'EmphasisMark', 'CodeMark', 'HeaderMark', 'StrikethroughMark' ]
 
 function makeMarks
 (view) {
@@ -25,13 +28,52 @@ function makeMarks
         end = node.name == 'HeaderMark' ? Math.min(node.to + 1, len) : node.to
         ranges.push(decorationHidden.range(node.from, end))
       }
+      else if (node.name == 'InlineCode') {
+        let first, last
+
+        first = node.node.firstChild
+        last = node.node.lastChild
+        if (first?.name == 'CodeMark' && last?.name == 'CodeMark') {
+          let from, to
+
+          from = node.from + (first.to - first.from)
+          to = node.to - (last.to - last.from)
+          if (to > from)
+            ranges.push(decorationInline.range(from, to))
+        }
+      }
+      else if (node.name == 'Link' || node.name == 'Autolink') {
+        let url
+
+        url = node.node.getChild('URL')
+        if (url) {
+          let link
+
+          link = CMView.Decoration.mark({ class: 'code-md-link',
+                                          attributes: { 'data-run': 'open link',
+                                                        'data-runaux': 'open link in other pane',
+                                                        'data-path': v.state.doc.sliceString(url.from, url.to) } })
+          ranges.push(link.range(node.from, node.to))
+        }
+      }
+      else if ((node.name == 'FencedCode') || (node.name == 'CodeBlock')) {
+        let pos
+
+        for (pos = node.from; pos <= node.to;) {
+          let line
+
+          line = v.state.doc.lineAt(pos)
+          ranges.push(decorationCode.range(line.from))
+          pos = line.to + 1
+        }
+      }
     }
 
     ranges = []
     len = v.state.doc.length
     for (let { from, to } of v.visibleRanges)
       syntaxTree(v.state).iterate({ from, to, enter })
-    return CMView.Decoration.set(ranges)
+    return CMView.Decoration.set(ranges, true)
   }
 
   function update

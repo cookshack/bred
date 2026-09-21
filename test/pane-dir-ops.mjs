@@ -53,8 +53,8 @@ function mark
 
 // make the cursor appear over the given entry
 function selectEntry
-(entry) {
-  globalThis.document.elementFromPoint = () => ({ dataset: { path: entry, type: 'd' } })
+(entry, name) {
+  globalThis.document.elementFromPoint = () => ({ dataset: { path: entry, name, type: 'd' } })
 }
 
 // record tron calls; opts.dirs exist as dirs, opts.nonEmpty fail non-recursive rm
@@ -398,6 +398,48 @@ function setupMarked
   calls = mockTron({ nonEmpty: opts.nonEmpty })
   return { calls, pB }
 }
+
+test('chmod', 'targets the entry under point, not the topmost',
+     async () => {
+       let calls, decoy, doc, op
+
+       op = setupOneDir([])
+       calls = op.calls
+
+       // a top row that a querySelector-based lookup would wrongly pick
+       doc = op.pB.view.ele.ownerDocument
+       decoy = doc.createElement('div')
+       decoy.className = 'dir-name'
+       decoy.setAttribute('data-path', '/here/aaa')
+       decoy.setAttribute('data-name', 'aaa')
+       op.pB.view.ele.appendChild(decoy)
+       selectEntry('/here/mydir/', 'mydir')
+
+       DirOps.chmod()
+       submit('755')
+       await wait(30)
+
+       equal(calls.some(c => (c.name == 'file.chmod')
+                             && (c.args[0] == '755')
+                             && (c.args[1] == '/here/mydir')), true)
+       equal(calls.some(c => (c.name == 'file.chmod')
+                             && (c.args[1] == '/here/aaa')), false)
+     })
+
+test('chmod', 'marked entries each get chmodded',
+     async () => {
+       let calls, op
+
+       op = setupMarked({ files: [ 'a.txt', 'b.txt' ] })
+       calls = op.calls
+
+       DirOps.chmod()
+       submit('644')
+       await wait(30)
+
+       equal(calls.some(c => (c.name == 'file.chmod') && (c.args[1] == '/here/a.txt')), true)
+       equal(calls.some(c => (c.name == 'file.chmod') && (c.args[1] == '/here/b.txt')), true)
+     })
 
 function recursed
 (calls) {

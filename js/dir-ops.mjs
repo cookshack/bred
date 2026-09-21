@@ -66,6 +66,7 @@ function chmodMarked
              })
 }
 
+export
 function chmod
 () {
   let p, el, path, marked, hist
@@ -79,7 +80,7 @@ function chmod
     return
   }
 
-  el = p.view.ele.querySelector('.dir-name[data-path]')
+  el = DirCommon.current(p)
   if (el && el.dataset.path)
     path = el.dataset.name ?? el.dataset.path
   else {

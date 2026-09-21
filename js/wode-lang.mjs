@@ -87,6 +87,10 @@ function init
       lang.filenames = [ ...(lang.filenames || []), 'Vagrantfile' ]
     if (lang.id == 'rust')
       lang.alias = [ ...(lang.alias || []), 'rs' ]
+    // fence info strings (eg ```js) are matched against alias only, so let
+    // extensions double as aliases
+    lang.alias = [ ...(lang.alias || []),
+                   ...(lang.extensions || []).map(e => e.replace(/^\./, '').toLowerCase()) ]
     if (lang.load)
       lang.load().then(l => lang.language = l)
     if (opt.front)

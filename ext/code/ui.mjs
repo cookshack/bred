@@ -17,6 +17,10 @@ import { themeExtension } from '../../js/wode-theme.mjs'
 
 import { hideMarks } from './md.mjs'
 
+import { atEnd, makeStick } from './scroll.mjs'
+
+export { atEnd }
+
 export
 function divW
 (dir, agent) {
@@ -57,10 +61,21 @@ function scroll
   underW.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' })
 }
 
-export
-function atEnd
+let sticks
+
+sticks = new WeakMap()
+
+// whether w should stay pinned to the end (until the user scrolls away)
+function stick
 (w) {
-  return Math.abs((w.scrollHeight - Math.ceil(w.scrollTop)) - w.clientHeight) < 10
+  let fn
+
+  fn = sticks.get(w)
+  if (fn == null) {
+    fn = makeStick(w)
+    sticks.set(w, fn)
+  }
+  return fn()
 }
 
 export
@@ -80,7 +95,7 @@ function withScroll
 
   underW = w.querySelector('.code-under-w') || d('CO underW missing')
 
-  wasVisible = atEnd(w)
+  wasVisible = stick(w)
   //d({ wasVisible })
 
   if (cb)
@@ -520,12 +535,9 @@ function flushThink
 }
 
 function laterTick
-(underW, beforeTop, w) {
-  let afterTop
-
-  afterTop = underW.getBoundingClientRect().top
-  if (afterTop - beforeTop)
-    w.scrollTop += afterTop - beforeTop
+(underW, w) {
+  if (stick(w))
+    scroll(underW)
 }
 
 export
@@ -560,18 +572,17 @@ function flushText
                           eds = view.vars('code').partEds
                           for (let partID of Object.keys(chunks))
                             if (eds?.[partID]) {
-                              let ed, delta, tr, underW, wasVisible, beforeTop
+                              let ed, delta, tr, underW, wasVisible
 
                               ed = eds[partID]
                               delta = chunks[partID]
                               tr = { changes: { from: ed.state.doc.length, to: ed.state.doc.length, insert: delta } }
                               underW = w.querySelector('.code-under-w')
-                              wasVisible = underW && atEnd(w)
-                              beforeTop = underW?.getBoundingClientRect().top
+                              wasVisible = underW && stick(w)
                               ed.dispatch(tr)
                               // CM defers DOM writes; re-check scroll next frame
                               if (wasVisible && underW)
-                                globalThis.requestAnimationFrame(() => laterTick(underW, beforeTop, w))
+                                globalThis.requestAnimationFrame(() => laterTick(underW, w))
                             }
                         })
     globalThis.clearTimeout(buf.vars('code').finalizeTimer)

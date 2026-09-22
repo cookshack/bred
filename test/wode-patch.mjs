@@ -104,6 +104,38 @@ test('decorateRefines', 'visible ranges limit lines',
        equal(got[0].from, 8)
      })
 
+test('decorateRefines', 'emitted ranges stay within the doc',
+     () => {
+       let doc, got
+
+       doc = 'aaa\nbbb\nccc'
+       got = entries(edFor(doc), [ { line: 1, from: 0, to: 3, type: '+' },
+                                   { line: 2, from: 0, to: 3, type: '-' },
+                                   { line: 3, from: 1, to: 2, type: '+' } ])
+       equal(got.length, 3)
+       got.forEach(r => {
+                     equal(r.from >= 0, true, 'from in doc')
+                     equal(r.to <= doc.length, true, 'to in doc')
+                   })
+     })
+
+test('decorateRefines', 'refine ending at line end is included',
+     () => {
+       let got
+
+       got = entries(edFor('aaa\nbbb'), [ { line: 1, from: 0, to: 3, type: '+' } ])
+       equal(got.length, 1)
+       equal(got[0].from, 0)
+       equal(got[0].to, 3)
+     })
+
+test('decorateRefines', 'stale refines from a longer doc are skipped',
+     () => {
+       equal(entries(edFor('aaa'), [ { line: 2, from: 0, to: 2, type: '+' },
+                                     { line: 1, from: 0, to: 99, type: '-' },
+                                     { line: 9, from: 0, to: 1, type: '+' } ]).length, 0)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

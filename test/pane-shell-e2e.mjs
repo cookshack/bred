@@ -1,8 +1,13 @@
 import { equal } from 'node:assert/strict'
+import * as Buf from '../js/Buf.mjs'
+import * as Cmd from '../js/cmd.mjs'
 import * as Css from '../js/css.mjs'
+import * as Mess from '../js/mess.mjs'
+import * as Pane from '../js/Pane.mjs'
 import * as Pty from 'node-pty'
 import * as Shell from '../js/shell.mjs'
 import * as ShellRun from '../js/shell-run.mjs'
+import * as Vc from '../js/vc.mjs'
 import { setupPanes, waitFor } from './pane-helpers.mjs'
 
 let bridges, tests
@@ -183,6 +188,46 @@ test('e2e', 'removing a running buf sends exit to the current channel',
 
        await waitFor(() => exits == 1, 2000)
        equal(exits, 1)
+     })
+
+test('e2e', 'vc show streams a patch without yelling',
+     async () => {
+       let gitPager, pager
+
+       setupPanes()
+       bridge()
+       if (Cmd.get('vc show') == undefined)
+         Vc.init()
+
+       // the child runs under a pty, so git would page; keep it non-interactive
+       pager = process.env.PAGER
+       gitPager = process.env.GIT_PAGER
+       process.env.PAGER = 'cat'
+       process.env.GIT_PAGER = 'cat'
+
+       try {
+         let before, buf, yells
+
+         before = Mess.messages().length
+         Pane.current().buf.dir = process.cwd()
+         Cmd.run('vc show')
+
+         await waitFor(() => {
+                         buf = Buf.find(b => b.name.startsWith('SC: git show'))
+                         return buf?.views[0]?.ed?.state.doc.toString().includes('diff --git')
+                       },
+                       5000)
+         await waitFor(() => Number.isInteger(buf.vars('shell').code), 5000)
+
+         yells = Mess.messages().slice(before).filter(m => m.type == 'yell').map(m => m.text)
+         equal(text(buf).includes('@@'), true)
+         equal(buf.mode.key, 'patch')
+         equal(yells.length, 0, 'yells: ' + yells.join(' | '))
+       }
+       finally {
+         process.env.PAGER = pager
+         process.env.GIT_PAGER = gitPager
+       }
      })
 
 function mochaIt

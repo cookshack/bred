@@ -106,7 +106,8 @@ function decos
 
   got = []
   set = view.state.field(WodePatch.extPatchDecor)
-  set.between(0, view.state.doc.length, (from, to) => got.push({ from, to }))
+  // scan well past the doc so ranges that overrun the end are still reported
+  set.between(0, 1e9, (from, to) => got.push({ from, to }))
   return got
 }
 
@@ -169,6 +170,20 @@ test('extPatch', 'one byte at a time stays in bounds',
 
        view = makePatchView()
        await stream(view, patch, 1)
+       checkInBounds(view)
+       equal(errors.length, 0)
+     })
+
+test('extPatch', 'decorations are in bounds immediately after a shrink',
+     async () => {
+       let view
+
+       view = makePatchView()
+       await stream(view, patch, 9)
+       equal(decos(view).length > 0, true, 'expected refine decorations')
+       // shrink without waiting: the view can render against this state before
+       // the plugin's deferred recompute runs, so it must already be in bounds
+       view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: 'x' } })
        checkInBounds(view)
        equal(errors.length, 0)
      })

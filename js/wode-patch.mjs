@@ -44,6 +44,9 @@ function init
   extPatchDecor = CMState.StateField.define({ create: () => CMView.Decoration.none,
                                               update
                                               (value, tr) {
+                                                // field values are not auto-mapped, so map
+                                                // first or a shrinking doc leaves stale ranges
+                                                value = value.map(tr.changes)
                                                 for (let effect of tr.effects)
                                                   if (effect.is(decorEffect))
                                                     return effect.value

@@ -57,9 +57,20 @@ function scroll
   underW.scrollIntoView({ block: 'end', inline: 'nearest', behavior: 'instant' })
 }
 
+export
 function atEnd
 (w) {
   return Math.abs((w.scrollHeight - Math.ceil(w.scrollTop)) - w.clientHeight) < 10
+}
+
+export
+function keepAtEnd
+(w) {
+  let underW
+
+  underW = w.querySelector('.code-under-w')
+  if (underW)
+    scroll(underW)
 }
 
 export

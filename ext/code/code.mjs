@@ -1251,13 +1251,21 @@ function openPrompt
   buf.vars('code').promptBuf.placeholder = wh?.nth(0)?.toString()
 
   buf.views.forEach(view => {
-                      let container
+                      let container, w
 
                       container = view.ele.querySelector('.code-prompt-w')
+                      w = view.ele.querySelector('.code-w')
                       if (container) {
                         let mlModel
 
-                        Css.expand(container)
+                        // the prompt takes height from the scroller, so keep
+                        // the end in view if it was there before
+                        if (w && Ui.atEnd(w)) {
+                          Css.expand(container)
+                          globalThis.requestAnimationFrame(() => Ui.keepAtEnd(w))
+                        }
+                        else
+                          Css.expand(container)
                         mlModel = container.querySelector('.code-prompt-model')
                         if (mlModel)
                           mlModel.innerText = '🗩 ' + provider + '/' + Util.modelName(model, variant)

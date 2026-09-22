@@ -3,6 +3,7 @@ import * as Tron from '../../js/tron.mjs'
 import { d } from '../../js/mess.mjs'
 
 import * as Comm from './comm.mjs'
+import * as Pacer from './pacer.mjs'
 import * as Ui from './ui.mjs'
 import * as Util from './util.mjs'
 
@@ -10,12 +11,9 @@ import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
 function handle
 (buf, events, globalEvent) {
-  let h, evSessionID, subagent, event
+  let h, event
 
   event = globalEvent.payload
-
-  d('CO ' + event.type)
-  d({ event })
 
   if (globalEvent.directory)
     if (Util.sameDir(globalEvent.directory, buf.dir)) {
@@ -25,17 +23,12 @@ function handle
       d('CO skip, for dir ' + globalEvent.directory)
 
   h = events[event.type]
-  if (h) {
-    if (h.onArrive)
-      h.onArrive(buf, event)
-    return
-  }
-
-  evSessionID = event.properties?.sessionID
-    || event.properties?.part?.sessionID
-    || event.properties?.info?.id
-  subagent = Util.isSubagentId(buf, evSessionID)
-  d('🌱 TODO handle ' + event.type + (subagent ? ' (subagent)' : ''))
+  if (h?.onArrive)
+    h.onArrive(buf, event)
+  else if (h == null)
+    // unknown event type (the handler map has entries with no onArrive, eg
+    // server.heartbeat/sync, that we intentionally ignore)
+    d('🌱 TODO handle ' + event.type)
 }
 
 export
@@ -45,7 +38,7 @@ function startSub
 
   async function runStream
   (client) {
-    let iter
+    let due, iter
 
     try {
       let evs
@@ -65,6 +58,8 @@ function startSub
     state._resolveStreamReady = 0
 
     Ui.updateStatus(buf, '🔁 CONNECTED', '', '', VopenCode.version)
+
+    due = Pacer.makePacer(16)
 
     while (state.streamActive) {
       let timeoutMs, timeoutPromise
@@ -86,9 +81,10 @@ function startSub
           return
         }
 
-        // give event loop a chance, in case flurry of events is freezing ui
-        await U.cede()
         handle(buf, events, result.value)
+        // yield only every frame, so a backlog drains fast but the ui breathes
+        if (due(Date.now()))
+          await U.cede()
       }
       catch (err) {
         if (err.message == 'heartbeat-timeout') {

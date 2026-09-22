@@ -18,7 +18,9 @@ import { d } from '../../js/mess.mjs'
 
 import * as Comm from './comm.mjs'
 import * as Ev from './event.mjs'
+import * as PartCache from './part-cache.mjs'
 import * as Prompt from './prompt.mjs'
+import * as Stop from './stop.mjs'
 import * as Ui from './ui.mjs'
 import * as Util from './util.mjs'
 import * as Sessions from './sessions.mjs'
@@ -378,9 +380,6 @@ function updateIdle
 function updateStatus
 (buf, req, tokenInfo) {
 
-  d('CO updateStatus')
-  d({ tokenInfo })
-
   if (req.status?.type == 'busy')
     Ui.updateStatus(buf, '🌊', Util.modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
   else if (req.status?.type == 'idle')
@@ -388,6 +387,7 @@ function updateStatus
   else if (req.status?.type == 'retry')
     Ui.updateStatus(buf, '🔁 retry' + (req.status.message ? ': ' + req.status.message : ''), Util.modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
   else if (req.status?.type)
+    // unknown status type
     d('🌱 TODO status: ' + req.status?.type)
 }
 
@@ -410,7 +410,6 @@ function updateModelContextLimit
                                   let providers, model
 
                                   providers = await c.config.providers({ directory: buf.dir })
-                                  d({ providers })
                                   providers.data.providers?.some(p => {
                                                                    if (p.id == providerID) {
                                                                      model = p.models?.[modelID]
@@ -421,10 +420,8 @@ function updateModelContextLimit
                                     d('CO modelContextLimit ' + model.limit.context)
                                     buf.vars('code').modelContextLimit = model.limit.context
                                   }
-                                  else {
+                                  else
                                     d('CO modelContextLimit missing')
-                                    d({ providers })
-                                  }
                                 }
                                 catch (err) {
                                   d('CO failed to get providers: ' + err.message)
@@ -725,23 +722,11 @@ function handleMessageUpdated
     updateModelContextLimit(buf, info.model.providerID, info.model.modelID)
 }
 
-function icon
-(tool) {
-  if (tool == 'edit')
-    return '💾 '
-  if (tool == 'read')
-    return '💾 '
-  if (tool == 'write')
-    return '💾 '
-  return '▶️ '
-}
-
 function handleToolPart
 (buf, part) {
   let status, h
 
   status = part.state?.status
-  d('CO tool: ' + icon(part.tool) + part.tool + ' ' + status)
 
   h = tools[part.tool]
   if (h) {
@@ -779,7 +764,6 @@ function handlePart
   if (part.type == 'step-start') {
     let steps
 
-    d('CO step-start')
     steps = buf.vars('code').stepActiveSessions
     if (steps == null) {
       steps = new Set()
@@ -790,32 +774,21 @@ function handlePart
   else if (part.type == 'step-finish') {
     let steps
 
-    d('CO step-finish')
     steps = buf.vars('code').stepActiveSessions
     if (steps)
       steps.delete(part.sessionID)
   }
-  else if (buf.vars('code').agentStopped)
-    d('CO agent stopped, skipping: ' + part.type)
   else if (part.type == 'text') {
-    d('CO text part' + part.id)
     buf.vars('code').gotContent = 1
-    if (buf.vars('code').stepActiveSessions?.size) {
-      d('CO update text: ' + part.text)
+    if (buf.vars('code').stepActiveSessions?.size)
       Ui.appendMsg(buf, 0, part.text, part.id)
-    }
-    else
-      d('CO text outside step: ' + part.text)
   }
   else if (part.type == 'reasoning') {
     let buffered
 
-    //d('CO reasoning part ' + part.id)
-
     buffered = (event.properties.delta || '')
     if (buffered) {
       buf.vars('code').gotContent = 1
-      d('CO reasoning append: ' + buffered)
       Ui.appendThinking(buf, buffered, part.id)
     }
   }
@@ -825,37 +798,52 @@ function handlePart
   }
 }
 
+function partCache
+(view) {
+  let cache
+
+  cache = view.vars('code').partEls
+  if (cache == null) {
+    cache = new Map()
+    view.vars('code').partEls = cache
+  }
+  return cache
+}
+
 function handlePartDelta
 (buf, event) {
-  let delta, field
+  let delta, field, partID
 
   delta = event.properties.delta
   field = event.properties.field
+  partID = event.properties.partID
 
   if (field == 'text' && delta) {
-    let w
+    let view, w
 
-    w = buf.anyView(1)?.eleOrReserved?.querySelector('.code-w')
-    if (w?.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')) {
-      Ui.chunkThink(buf, event.properties.partID, delta)
+    view = buf.anyView(1)
+    w = view?.eleOrReserved?.querySelector('.code-w')
+    if (w && PartCache.find(partCache(view), w, partID, 'code-msg-thinking', 'think')) {
+      Ui.chunkThink(buf, partID, delta)
       return
     }
   }
 
   Util.eachCodeW(buf, (view, w) => {
-                        let msgEl, thinkingEl, textEl
+                        let cache, msgEl, textEl, thinkEl
 
-                        msgEl = w.querySelector('.code-msg-assistant[data-partid="' + event.properties.partID + '"]')
+                        cache = partCache(view)
+                        msgEl = PartCache.find(cache, w, partID, 'code-msg-assistant', 'msg')
                         if (msgEl) {
                           textEl = msgEl.querySelector('.code-msg-text')
                           if (textEl && field == 'text')
                             Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
                           else if (field == 'text' && msgEl.querySelector('.code-markdown-ed'))
-                            Ui.chunkText(buf, event.properties.partID, delta)
+                            Ui.chunkText(buf, partID, delta)
                         }
-                        thinkingEl = w.querySelector('.code-msg-thinking[data-partid="' + event.properties.partID + '"]')
-                        if (thinkingEl && field == 'text') {
-                          textEl = thinkingEl.querySelector('.code-msg-text')
+                        thinkEl = PartCache.find(cache, w, partID, 'code-msg-thinking', 'think')
+                        if (thinkEl && field == 'text') {
+                          textEl = thinkEl.querySelector('.code-msg-text')
                           if (textEl)
                             Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
                         }
@@ -863,7 +851,7 @@ function handlePartDelta
                           Ui.appendX(w,
                                      divCl('code-msg code-msg-thinking',
                                            [ divCl('code-msg-text', delta) ],
-                                           { 'data-partid': event.properties.partID || 0 }))
+                                           { 'data-partid': partID || 0 }))
                       })
 }
 
@@ -986,15 +974,14 @@ function stopAgent
   buf.vars('code').agentStopped = 1
   Comm.ensureClient(buf).then(async client => {
                                 try {
-                                  await client.session.abort({ sessionID, directory: buf.dir })
-                                  d('CO stop done')
+                                  await Stop.cancel(client, sessionID, buf.dir)
                                   Mess.yell('Stopped agent')
                                 }
                                 catch (err) {
-                                  d('CO stop error: ' + err.message)
+                                  Mess.yell('Stop failed: ' + err.message)
                                 }
                               }).catch(err => {
-                                         d('CO stop Comm.ensureClient error: ' + err.message)
+                                         Mess.yell('Stop failed: ' + err.message)
                                        })
 }
 

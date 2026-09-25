@@ -224,6 +224,57 @@ test('log', 'normal messages are not capped or marked',
        equal(panes.pB.view.ele.querySelectorAll('.code-msg-log').length, 0, 'plain messages are not log messages')
      })
 
+test('order', 'model line comes after the assistant response',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+
+       fake = { global: { event: () => Promise.resolve({ stream: { [Symbol.asyncIterator]: () => ({ next: () => new Promise(() => {}) }) } }) },
+                session: { create: () => Promise.resolve({ data: { id: 'ses-order',
+                                                                   time: { created: 1 } } }),
+                           update: () => Promise.resolve({}),
+                           prompt: () => Promise.resolve({ data: { info: { modelID: 'test-model',
+                                                                           cost: 0 },
+                                                                   parts: [ { id: 'prtorder',
+                                                                              type: 'text',
+                                                                              text: 'the agent response' } ] } }) } }
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let order, w
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-model'))
+
+         w = created.views[0].ele.querySelector('.code-w')
+         order = [ ...w.querySelectorAll('.code-msg') ].map(el => {
+                                                              if (el.querySelector('.code-msg-model'))
+                                                                return 'model'
+                                                              if (Css.has(el, 'code-msg-assistant'))
+                                                                return 'assistant'
+                                                              if (Css.has(el, 'code-msg-user'))
+                                                                return 'user'
+                                                              return 'other'
+                                                            })
+         equal(order.indexOf('model') > order.lastIndexOf('assistant'),
+               true,
+               'model must come after the assistant response: ' + order.join(','))
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
 function mochaIt
 (cb) {
   return function

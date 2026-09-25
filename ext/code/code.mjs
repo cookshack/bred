@@ -929,7 +929,6 @@ function send
 
                                 ensureTitle(c, buf, sessionID, text)
 
-                                Ui.appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant), Util.fmtCost(res.data?.info?.cost))
                                 if (provider == 'openrouter' || provider == 'deepinfra')
                                   updateCredits(buf, provider)
 
@@ -960,6 +959,10 @@ function send
                                   buf.vars('code').streamActive = 0
                                   Ev.startSub(buf, events)
                                 }
+
+                                // after the response, so the model footer never
+                                // lands above a response that rendered late
+                                Ui.appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant), Util.fmtCost(res.data?.info?.cost))
                               }).catch(err => {
                                          d(err)
                                          Ui.appendMsg(buf, 'assistant', 'Error: ' + (err.message || JSON.stringify(err)))

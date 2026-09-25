@@ -1,4 +1,4 @@
-FROM node:24-slim
+FROM node:24
 
 RUN apt-get update && apt-get install -y --no-install-recommends clangd cppcheck git file iputils-ping procps ripgrep shellcheck strace traceroute chromium fonts-liberation && rm -rf /var/lib/apt/lists/*
 

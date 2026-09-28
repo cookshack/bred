@@ -1570,7 +1570,10 @@ function initTest
                                     divCl('test_buffer-circle') ]),
            divCl('test_buffer-nested-div'),
            divCl('test_buffer-nested-js'),
-           divCl('test_buffer-3', div('This can be resized.')),
+           // Size is view state (like scroll position), not buffer state, so
+           // each pane resizes independently; a new split starts from the
+           // cloning view's size.
+           divCl('test_buffer-3', div('This can be resized.  The size is per view, so each pane resizes independently.')),
            divCl('test_buffer-4', divCl('test_buffer-center',
                                         'Click to change.',
                                         { 'data-run': 'move' })),

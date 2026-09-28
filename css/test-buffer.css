@@ -56,6 +56,7 @@
   padding: 1rem;
   background-color: var(--clr-fill);
   resize: both;
+  overflow: hidden; /* resize needs overflow other than visible */
   display: flex;
   justify-content: center;
   align-items: center;

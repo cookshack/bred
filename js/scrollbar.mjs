@@ -69,6 +69,13 @@ function make
     e.stopPropagation()
   }
 
+  // Only the primary button: leave the right button for the context menu.
+  function stopLeft
+  (e) {
+    if (e.button == 0)
+      stop(e)
+  }
+
   function bind
   (el, ev, fn) {
     el.addEventListener(ev, fn)
@@ -167,6 +174,8 @@ function make
   (e) {
     let rect, y
 
+    if (e.button)
+      return
     stop(e)
     rect = track.getBoundingClientRect()
     y = (e.clientY - rect.top) - (thumbHeight / 2)
@@ -175,6 +184,8 @@ function make
 
   function onThumbDown
   (e) {
+    if (e.button)
+      return
     stop(e)
     drag = { y: e.clientY, top: scroller.scrollTop }
     if (thumb.setPointerCapture)
@@ -259,11 +270,9 @@ function make
   Css.add(scroller, 'bred-has-scrollbar')
   append(host, bar)
 
-  bind(bar, 'mousedown', stop)
-  bind(bar, 'pointerdown', stop)
+  bind(bar, 'mousedown', stopLeft)
   bind(bar, 'click', stop)
   bind(bar, 'auxclick', stop)
-  bind(bar, 'contextmenu', stop)
   bind(bar, 'dblclick', stop)
 
   bind(upDblBtn, 'click', onUpDouble)

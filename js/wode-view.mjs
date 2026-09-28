@@ -551,6 +551,9 @@ function _viewInit
                                                            return 1
                                                          }
 
+                                                         if (view.scrollbar && (update.docChanged || update.viewportChanged || update.geometryChanged))
+                                                           view.scrollbar.update()
+
                                                          // HACK: Past a certain line in big buffers CM has the right window.getSelection()
                                                          //       but the text is missing from the X primary selection buffer. Maybe due
                                                          //       to timing or something because CM is tracking its own selection in

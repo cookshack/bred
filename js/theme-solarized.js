@@ -56,8 +56,8 @@ function fillMeanings
   common.pointBorder = common.nb0
   common.pointCurrent = common.nb3
 
-  common.scroll = common.textLight
-  common.scrollFill = common.fill
+  common.scroll = meanings.textLight ?? meanings.text
+  common.scrollFill = meanings.fill ?? meanings.bg
 
   Object.assign(meanings, common)
 

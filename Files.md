@@ -874,6 +874,15 @@ Scrolling functionality
 - `redraw(view, spec, cb)` - Redraws scrollable content
 - `show(surf, numLines)` - Shows scrollable content
 
+### js/scrollbar.mjs
+
+Custom DOM scrollbar for a scroll container (currently editor panes)
+
+**Functions:**
+- `make(scroller, opts)` - Hides the native scrollbar, builds the bar in the scroller's parent, and returns `{ update, render, destroy, el }` (`update` is rAF-throttled)
+- `thumbFor(scrollTop, scrollHeight, clientHeight, trackHeight)` - Thumb size/position (pure)
+- `scrollForThumb(thumbTop, trackHeight, thumbHeight, scrollHeight, clientHeight)` - Scroll offset for a thumb position (pure)
+
 ### js/shell.mjs
 
 Shell command execution

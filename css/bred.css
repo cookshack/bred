@@ -88,6 +88,7 @@
   --z-info: 80;
   --z-framesep: 70;
   --z-indent-marker: 50; /* above line */
+  --z-scrollbar: 55; /* above content, below close */
   --z-below-selection: -3; /* cm selection is -2 */
   --z-activeLine: -1; /* for the :after of the activeLine, eg to set a background */
   --z-below-activeLine: calc(var(--z-activeLine) - 1);
@@ -119,6 +120,120 @@
   background-color: var(--clr-scroll);
   border-radius: 9px;       /* roundness of the scroll thumb */
   border: 4px solid var(--clr-scroll-fill);  /* creates padding around scroll thumb */
+}
+
+/* Custom scrollbar (js/scrollbar.mjs). We hide the native scrollbar and reserve
+   the gutter ourselves, so hiding causes no reflow. scrollbar-width:none is the
+   standard property and works for both classic and overlay scrollbars; it hides
+   the horizontal bar too, which is fine while wrap is on (the default). */
+.bred-scrollbar-host {
+  position: relative;
+}
+
+.bred-has-scrollbar {
+  scrollbar-width: none;
+  padding-right: var(--scrollbar-size);
+}
+
+.bred-scrollbar {
+  position: absolute;
+  z-index: var(--z-scrollbar);
+  display: flex;
+  flex-direction: column;
+  width: var(--scrollbar-size);
+  pointer-events: none;
+  user-select: none;
+  background-color: var(--clr-scroll-fill);
+}
+
+.bred-scrollbar-hidden {
+  display: none;
+}
+
+.bred-scrollbar-btn {
+  height: var(--scrollbar-size);
+  min-height: var(--scrollbar-size);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bred-scrollbar-btn::before {
+  content: '';
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+.bred-scrollbar-up::before {
+  border-bottom: 5px solid var(--clr-scroll);
+}
+
+.bred-scrollbar-down::before {
+  border-top: 5px solid var(--clr-scroll);
+}
+
+/* Double arrows: jump to the buffer start (up) or end (down). */
+.bred-scrollbar-up-dbl,
+.bred-scrollbar-down-dbl {
+  position: relative;
+}
+
+.bred-scrollbar-up-dbl::before,
+.bred-scrollbar-up-dbl::after,
+.bred-scrollbar-down-dbl::before,
+.bred-scrollbar-down-dbl::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 0;
+  height: 0;
+  margin-left: -4px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+}
+
+.bred-scrollbar-up-dbl::before {
+  top: 2px;
+  border-bottom: 4px solid var(--clr-scroll);
+}
+
+.bred-scrollbar-up-dbl::after {
+  top: 7px;
+  border-bottom: 4px solid var(--clr-scroll);
+}
+
+.bred-scrollbar-down-dbl::before {
+  top: 3px;
+  border-top: 4px solid var(--clr-scroll);
+}
+
+.bred-scrollbar-down-dbl::after {
+  top: 8px;
+  border-top: 4px solid var(--clr-scroll);
+}
+
+.bred-scrollbar-btn:hover {
+  background-color: var(--clr-bg);
+}
+
+.bred-scrollbar-track {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  pointer-events: auto;
+}
+
+.bred-scrollbar-thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  box-sizing: border-box;
+  border-radius: 9px;
+  border: 3px solid var(--clr-scroll-fill);
+  background-color: var(--clr-scroll);
+  pointer-events: auto;
 }
 
 div[data-run],

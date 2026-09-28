@@ -4,6 +4,7 @@ import * as Css from './css.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './Pane.mjs'
 import * as Point from './point.mjs'
+import * as Scrollbar from './scrollbar.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
@@ -32,7 +33,7 @@ function make
  //   lineNum }
  spec, // { ... }
  whenReady) { // (view) // called when buf ready to use
-  let v, active, ready, point, modeVars, onCloses, onRemoves, scrollTop, win, existing, nestedViews
+  let v, active, ready, point, modeVars, onCloses, onRemoves, scrollbar, scrollTop, win, existing, nestedViews
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
   // Like a stash.
@@ -44,6 +45,25 @@ function make
       return
     spec.views.push(view)
     Mess.log('nest-View.make: buf.views.length after push=' + spec.views.length)
+  }
+
+  function attachScrollbar
+  () {
+    detachScrollbar()
+    if (v.ed)
+      scrollbar = Scrollbar.make(v.ed.scrollDOM,
+                                 { content: v.ed.contentDOM,
+                                   lineHeight: () => v.ed.defaultLineHeight,
+                                   onUpDbl: () => bufStart(),
+                                   onDownDbl: () => bufEnd() })
+  }
+
+  function detachScrollbar
+  () {
+    if (scrollbar) {
+      scrollbar.destroy()
+      scrollbar = null
+    }
   }
 
   // used by wace,won  remove when they do peer
@@ -71,6 +91,7 @@ function make
   function close
   () {
     d('VIEW ' + b.id + '.' + spec.vid + ' closing')
+    detachScrollbar()
     onCloses.forEach(cb => cb())
     if (nestedViews)
       nestedViews.forEach(nv => nv.close())
@@ -116,6 +137,7 @@ function make
       if (scrollEl)
         scrollEl.scrollTop = scrollTop
     }
+    attachScrollbar()
     if (nestedViews)
       nestedViews.forEach(nv => {
                             let paneEl, pointEl
@@ -389,6 +411,7 @@ function make
     // timeout so behaves like viewInit,viewCopy
     d('VIEW ready1 timeout')
     setTimeout(() => {
+                 attachScrollbar()
                  ready = 1
                  d('VIEW ready1 whenReady')
                  if (whenReady)
@@ -485,6 +508,10 @@ function make
         get point
         () {
           return point
+        },
+        get scrollbar
+        () {
+          return scrollbar
         },
         get pos
         () {
@@ -590,6 +617,7 @@ function make
       spec.mode.viewCopy(v, spec.views[0], spec.lineNum,
                          view => {
                            ensurePushed(v)
+                           attachScrollbar()
                            Mess.log('nest-View.make: viewCopy push, buf.views.length=' + spec.views.length)
                            if (whenReady)
                              whenReady(view)
@@ -615,6 +643,7 @@ function make
                              wextsMode: spec.mode.wexts },
                            view => {
                              ensurePushed(v)
+                             attachScrollbar()
                              Mess.log('nest-View.make: buf.views.length after push=' + spec.views.length)
                              if (whenReady)
                                whenReady(view)

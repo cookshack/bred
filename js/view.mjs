@@ -47,19 +47,37 @@ function make
     Mess.log('nest-View.make: buf.views.length after push=' + spec.views.length)
   }
 
+  // The element a view scrolls. Editors use their CodeMirror scroller; div
+  // views use their own surface, falling back to the pane scroller.
+  function scrollerFor
+  () {
+    if (v.ed)
+      return v.ed.scrollDOM
+    return v.ele?.querySelector('.bred-scroller, .dir-w, .mess-w, .hex-main-body')
+        || v.elPane?.parentNode
+  }
+
   function attachScrollbar
   () {
+    let scroller
+
     detachScrollbar()
-    if (v.ed)
-      scrollbar = Scrollbar.make(v.ed.scrollDOM,
-                                 { content: v.ed.contentDOM,
-                                   lineHeight: () => v.ed.defaultLineHeight,
-                                   onInteract: () => {
-                                                  win.context.close()
-                                                  win.menu.close()
-                                                },
-                                   onUpDbl: () => bufStart(),
-                                   onDownDbl: () => bufEnd() })
+    scroller = scrollerFor()
+    if (scroller) {
+      let opts
+
+      opts = { onInteract: () => {
+                              win.context.close()
+                              win.menu.close()
+                            },
+               onUpDbl: () => bufStart(),
+               onDownDbl: () => bufEnd() }
+      if (v.ed) {
+        opts.content = v.ed.contentDOM
+        opts.lineHeight = () => v.ed.defaultLineHeight
+      }
+      scrollbar = Scrollbar.make(scroller, opts)
+    }
   }
 
   function detachScrollbar

@@ -876,7 +876,7 @@ Scrolling functionality
 
 ### js/scrollbar.mjs
 
-Custom DOM scrollbar for a scroll container (currently editor panes)
+Custom DOM scrollbar for a scroll container (editor and div views)
 
 **Functions:**
 - `make(scroller, opts)` - Hides the native scrollbar, builds the bar in the scroller's parent, and returns `{ update, render, destroy, el }` (`update` is rAF-throttled)

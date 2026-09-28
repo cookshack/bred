@@ -60,7 +60,7 @@ export
 function make
 (scroller, opts) {
   let host, bar, upBtn, downBtn, upDblBtn, downDblBtn, track, thumb, bindings,
-      size, scrollHeight, clientHeight, thumbTop, thumbHeight, rafId, ro, mo,
+      size, scrollHeight, clientHeight, thumbHeight, rafId, ro, mo,
       drag, lineHeight, onUpDbl, onDownDbl, observe
 
   function stop
@@ -127,7 +127,6 @@ function make
     layout()
     info = thumbFor(scroller.scrollTop, scrollHeight, clientHeight, trackHeight())
     thumbHeight = info.height
-    thumbTop = info.top
     thumb.style.height = info.height + 'px'
     thumb.style.transform = 'translateY(' + info.top + 'px)'
   }
@@ -170,11 +169,8 @@ function make
 
     stop(e)
     rect = track.getBoundingClientRect()
-    y = e.clientY - rect.top
-    if (y < thumbTop)
-      scroller.scrollTop -= (clientHeight * 0.9)
-    else
-      scroller.scrollTop += (clientHeight * 0.9)
+    y = (e.clientY - rect.top) - (thumbHeight / 2)
+    scroller.scrollTop = scrollForThumb(y, trackHeight(), thumbHeight, scrollHeight, clientHeight)
   }
 
   function onThumbDown
@@ -275,7 +271,7 @@ function make
   bind(downBtn, 'click', onDown)
   bind(downDblBtn, 'click', onDownDouble)
 
-  bind(track, 'mousedown', onTrackDown)
+  bind(track, 'pointerdown', onTrackDown)
 
   bind(thumb, 'pointerdown', onThumbDown)
   bind(thumb, 'pointermove', onThumbMove)

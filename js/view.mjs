@@ -54,6 +54,10 @@ function make
       scrollbar = Scrollbar.make(v.ed.scrollDOM,
                                  { content: v.ed.contentDOM,
                                    lineHeight: () => v.ed.defaultLineHeight,
+                                   onInteract: () => {
+                                                  win.context.close()
+                                                  win.menu.close()
+                                                },
                                    onUpDbl: () => bufStart(),
                                    onDownDbl: () => bufEnd() })
   }

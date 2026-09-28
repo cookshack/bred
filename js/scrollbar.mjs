@@ -61,10 +61,12 @@ function make
 (scroller, opts) {
   let host, bar, upBtn, downBtn, upDblBtn, downDblBtn, track, thumb, bindings,
       size, scrollHeight, clientHeight, thumbHeight, rafId, ro, mo,
-      drag, lineHeight, onUpDbl, onDownDbl, observe
+      drag, lineHeight, onUpDbl, onDownDbl, onInteract, observe
 
   function stop
   (e) {
+    if (onInteract && (e.button == 0))
+      onInteract()
     e.preventDefault()
     e.stopPropagation()
   }
@@ -73,6 +75,12 @@ function make
   function stopLeft
   (e) {
     if (e.button == 0)
+      stop(e)
+  }
+
+  function stopMiddle
+  (e) {
+    if (e.button == 1)
       stop(e)
   }
 
@@ -251,6 +259,7 @@ function make
   lineHeight = opts.lineHeight || Math.round(size * 1.4)
   onUpDbl = opts.onUpDbl
   onDownDbl = opts.onDownDbl
+  onInteract = opts.onInteract
   bindings = []
   rafId = 0
   observe = [ scroller, scroller.parentElement ]
@@ -272,7 +281,7 @@ function make
 
   bind(bar, 'mousedown', stopLeft)
   bind(bar, 'click', stop)
-  bind(bar, 'auxclick', stop)
+  bind(bar, 'auxclick', stopMiddle)
   bind(bar, 'dblclick', stop)
 
   bind(upDblBtn, 'click', onUpDouble)

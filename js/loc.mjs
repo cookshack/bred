@@ -248,6 +248,41 @@ function make
     return 1
   }
 
+  // Collapse '.' and '..' segments. No fs access, just string work.
+  function normalize
+  () {
+    if (path) {
+      let abs, segs, out
+
+      abs = path.startsWith('/')
+      segs = path.split('/')
+      out = []
+      for (let i = 0; i < segs.length; i++) {
+        let seg
+
+        seg = segs[i]
+        if ((seg.length == 0) || (seg == '.'))
+          // empty (repeated //) and current dir drop out
+          continue
+        if (seg == '..') {
+          if (out.length && (out[out.length - 1] == '..'))
+            out.push('..')
+          else if (out.length)
+            out.pop()
+          else if (abs)
+            // /.. stays at /
+            continue
+          else
+            out.push('..')
+          continue
+        }
+        out.push(seg)
+      }
+      path = (abs ? '/' : '') + out.join('/')
+    }
+    return path
+  }
+
   function needsDotExpand
   () {
     if (path) {
@@ -301,6 +336,7 @@ function make
            expand,
            join,
            needsDotExpand,
+           normalize,
            parent,
            removeSlash }
 }

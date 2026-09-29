@@ -302,6 +302,36 @@ test('needsDotExpand', 'empty path',
        equal(Loc.make().needsDotExpand(), 0)
      })
 
+test('normalize', 'collapses dot',
+     () => {
+       equal(Loc.make('/a/./b').normalize(), '/a/b')
+     })
+
+test('normalize', 'collapses dot dot',
+     () => {
+       equal(Loc.make('/a/b/../c').normalize(), '/a/c')
+     })
+
+test('normalize', 'trailing dot dot',
+     () => {
+       equal(Loc.make('/a/b/..').normalize(), '/a')
+     })
+
+test('normalize', 'cannot go above root',
+     () => {
+       equal(Loc.make('/../a').normalize(), '/a')
+     })
+
+test('normalize', 'relative keeps leading dot dot',
+     () => {
+       equal(Loc.make('../a/./b').normalize(), '../a/b')
+     })
+
+test('normalize', 'collapses repeated slash',
+     () => {
+       equal(Loc.make('/a//b').normalize(), '/a/b')
+     })
+
 test('profile', 'set and get',
      () => {
        Loc.profileSet('prof1')

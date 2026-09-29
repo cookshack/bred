@@ -15,11 +15,10 @@ function prepDir
   if (dir) {
     dir = Loc.make(dir)
 
-    if (dir.needsDotExpand())
-      Mess.toss('. expansion is hard')
-
     dir.ensureSlash()
     dir.expand()
+    dir.normalize()
+    dir.ensureSlash()
 
     if (dir.relative)
       Mess.toss('Absolute path required')

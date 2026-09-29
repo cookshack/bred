@@ -573,6 +573,30 @@ test('ed', 'set and get',
        equal(b.ed, 1)
      })
 
+test('prepDir', 'collapses dot',
+     () => {
+       equal(BufCommon.prepDir('/a/./b'), '/a/b/')
+     })
+
+test('prepDir', 'collapses dot dot',
+     () => {
+       equal(BufCommon.prepDir('/a/b/../c'), '/a/c/')
+     })
+
+test('prepDir', 'relative still tosses',
+     () => {
+       let caught
+
+       caught = 0
+       try {
+         BufCommon.prepDir('./a')
+       }
+       catch {
+         caught = 1
+       }
+       equal(caught, 1)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

@@ -141,15 +141,15 @@ function formatDate
 }
 
 function put
-(v, el) {
+(v, el, skipScroll) {
   if (el) {
-    v.point.put(el)
+    v.point.put(el, skipScroll)
     v.buf.vars('dir').current = el
   }
 }
 
 function putByIndex
-(v, idx) {
+(v, idx, skipScroll) {
   let lines, scroll, el, path, surf
 
   lines = v.buf.vars('dir').lines
@@ -160,16 +160,16 @@ function putByIndex
   el = v.ele.querySelector('.dir-name[data-path="' + path + '"]')
   surf = v.ele.querySelector('.dir-w')
   if (el && (visible(el, surf))) {
-    put(v, el)
+    put(v, el, skipScroll)
     return
   }
   el = scroll.toIndex(idx)
   el = v.ele.querySelector('.dir-name[data-path="' + path + '"]')
-  put(v, el)
+  put(v, el, skipScroll)
 }
 
 function topLine
-(v) {
+(v, skipScroll) {
   let all
 
   all = v.ele.querySelectorAll('.dir-name')
@@ -179,14 +179,14 @@ function topLine
     surf = all[0].closest('.dir-w')
     for (let i = 0; i < all.length; i++)
       if (visible(all[i], surf)) {
-        put(v, all[i])
+        put(v, all[i], skipScroll)
         return
       }
   }
 }
 
 function lastVisibleLine
-(v) {
+(v, skipScroll) {
   let all
 
   all = v.ele.querySelectorAll('.dir-name')
@@ -198,7 +198,7 @@ function lastVisibleLine
       if (visible(all[i], surf))
         last = all[i]
     if (last)
-      put(v, last)
+      put(v, last, skipScroll)
   }
 }
 
@@ -254,13 +254,13 @@ function nextLine
 }
 
 function nearestLine
-(v) {
+(v, skipScroll) {
   let h, el
 
   h = v.ele.querySelector('.dir-h')
   if (v.point.over(h)) {
     //d('over')
-    topLine(v)
+    topLine(v, skipScroll)
     return
   }
   el = v.point.over()
@@ -271,7 +271,9 @@ function nearestLine
     //d(el.className)
     do {
       if (Css.has(el.firstElementChild, 'dir-name')) {
-        put(v, el.firstElementChild)
+        put(v, el.firstElementChild, skipScroll)
+        if (skipScroll)
+          return
         if (visible (el))
           return
         nextLine()
@@ -281,8 +283,27 @@ function nearestLine
     }
     while (el)
   }
-  topLine(v)
+  topLine(v, skipScroll)
   return
+}
+
+// Called when the user scrolls the dir listing, so re-render for the new
+// position but keep the scroll where the user put it (skipScroll=1): the
+// cursor follows the line under the point instead of recentering it.
+export
+function redraw
+(view) {
+  let lines, el, scroll
+
+  lines = view.buf.vars('dir').lines
+  el = view.buf.vars('dir').current
+  scroll = view.vars('dir').scroll
+  scroll.updateItemCount(lines.length)
+  scroll.render()
+  if (visible(el))
+    put(view, el, 1)
+  else
+    nearestLine(view, 1)
 }
 
 function fill
@@ -363,21 +384,6 @@ function fill
              divCl('dir-size' + on, f.stat ? size() : '?'),
              divCl('dir-date' + on, f.stat ? formatDate(new Date(f.stat.mtimeMs)) : '?'),
              divCl('dir-name-w' + on, [ name, linkTarget ]) ]
-  }
-
-  function redraw
-  (view) {
-    let lines, el, scroll
-
-    lines = view.buf.vars('dir').lines
-    el = view.buf.vars('dir').current
-    scroll = view.vars('dir').scroll
-    scroll.updateItemCount(lines.length)
-    scroll.render()
-    if (visible(el))
-      put(view, el)
-    else
-      nearestLine(view)
   }
 
   function appendLines

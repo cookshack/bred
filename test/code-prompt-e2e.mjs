@@ -196,18 +196,20 @@ test('startup', 'burying before the prompt appears still yields a usable prompt'
        }
      })
 
-test('log', 'server logs keep only the newest hundred',
+test('log', 'server logs keep only the newest twenty',
      async () => {
        let buf, els, i, panes
 
        ({ panes, buf } = await setup())
-       for (i = 0; i < 125; i++)
+       for (i = 0; i < 25; i++)
          Ui.appendServerLog(buf, 'log ' + i)
 
        els = panes.pB.view.ele.querySelectorAll('.code-msg-log')
-       equal(els.length, 100, 'only the newest logs are kept')
-       equal(els[0].textContent.includes('log 25'), true, 'oldest logs are removed')
-       equal(els[99].textContent.includes('log 124'), true, 'newest log is kept')
+       equal(els.length, 20, 'only the newest logs are kept')
+       equal(els[0].textContent.includes('log 5'), true, 'oldest logs are removed')
+       equal(els[19].textContent.includes('log 24'), true, 'newest log is kept')
+       equal(panes.pB.view.ele.querySelector('.code-msg-log .code-markdown-ed'), null,
+             'logs do not build a markdown editor each')
      })
 
 test('log', 'normal messages are not capped or marked',

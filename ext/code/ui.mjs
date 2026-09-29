@@ -321,8 +321,10 @@ function appendMsg
 
                         if (role == 'user')
                           contentEl = divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
+                        else if (spec?.log)
+                          contentEl = divCl('code-msg-text', text || '')
                         else {
-                          mdResult = makeMarkdownEd(text || '', spec?.log ? 0 : 1)
+                          mdResult = makeMarkdownEd(text || '', 1)
                           contentEl = mdResult.el
                         }
                         if (role == 'user') {
@@ -372,15 +374,23 @@ function appendServerLog
 (buf, text) {
   let maxServerLogs
 
-  maxServerLogs = 100
+  maxServerLogs = 20
   appendMsg(buf, 0, text, undefined, undefined, { log: 1 })
   Util.eachCodeW(buf, (view, w) => {
-                        let els, excess
+                        let els, excess, beforeTop, beforeH, afterH
 
                         els = w.querySelectorAll('.code-msg-log')
                         excess = els.length - maxServerLogs
+                        if (excess <= 0)
+                          return
+                        beforeTop = w.scrollTop
+                        beforeH = w.scrollHeight
                         for (let i = 0; i < excess; i++)
                           els[i].remove()
+                        if (stick(w))
+                          return
+                        afterH = w.scrollHeight
+                        w.scrollTop = beforeTop - (beforeH - afterH)
                       })
 }
 

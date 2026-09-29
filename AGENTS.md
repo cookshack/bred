@@ -13,6 +13,10 @@ Bred runs out of a git checkout — always a development build. No packaging.
 
 Portability is extremely low priority. Assume Debian-derived distro.
 
+## Commits
+
+Always commit changes once they're done and verified. Don't wait to be asked.
+
 ## opencode container (`docker/opencode/`)
 
 Built with `make oc` (image `opencode-bred`), run via `bin/code` / `bin/codesh`. It bakes a

@@ -27,10 +27,14 @@ function callerView
 export
 function yn
 (content,
- spec, // { icon, under }
+ spec, // { icon, under, nest }
  cb) { // (yes)
   spec = spec || {}
   ynCb = cb
+  if (spec.nest) {
+    nestYn(content, spec, cb)
+    return
+  }
   demand(ynEm,
          [ divCl('float-ww',
                  divCl('float-w',
@@ -215,6 +219,81 @@ function ensurePromptBuf
   return vars
 }
 
+// expand/reuse the nested prompt container in each parent view, update its
+// label, and focus it
+function showNest
+(p, parent, vars, text, icon) {
+  parent.views.forEach(view => {
+                         let container
+
+                         container = view.ele.querySelector('.bred-prompt-ask-nest-w')
+                         if (container) {
+                           let nestedView
+
+                           Css.expand(container)
+                           nestedView = view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
+                           if (nestedView?.ele) {
+                             let mlIcon, mlText
+
+                             mlText = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
+                             if (mlText)
+                               mlText.innerText = text || ''
+                             mlIcon = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-icon')
+                             if (mlIcon)
+                               if (icon) {
+                                 mlIcon.src = Icon.path(icon)
+                                 mlIcon.alt = Icon.alt(icon)
+                                 Css.expand(mlIcon)
+                               }
+                               else
+                                 Css.retract(mlIcon)
+                           }
+                           if (view == p.view && nestedView?.ele)
+                             p.focusViewAt(nestedView.ele)
+                         }
+                       })
+}
+
+function retractNest
+(parent) {
+  parent.views.forEach(view => {
+                         let container
+
+                         container = view.ele.querySelector('.bred-prompt-ask-nest-w')
+                         if (container) {
+                           let nestedPane
+
+                           Css.retract(container)
+                           nestedPane = container.querySelector('.pane.bred-nested.current')
+                           if (nestedPane)
+                             Css.remove(nestedPane, 'current')
+                         }
+                       })
+}
+
+// a yes/no confirm shown as a nested prompt instead of a float
+function nestYn
+(content,
+ spec,
+ cb) {
+  let p, parent, vars
+
+  p = Pane.current()
+  parent = p.buf
+  vars = ensurePromptBuf(parent,
+                         [ img('', '', 'filter-clr-text bred-prompt-ask-nest-ml-icon retracted'),
+                           divCl('bred-prompt-ask-nest-ml-text', content) ],
+                         '')
+  vars.nest.promptBuf.clear()
+  vars.nest.promptBuf.placeholder = ''
+  vars.nest.yn = 1
+  vars.nest.cb = cb
+  vars.nest.hist = undefined
+  showNest(p, parent, vars, content, 0)
+  if (spec.onReady)
+    spec.onReady(vars.nest.promptBuf)
+}
+
 export
 function ask
 (spec, // { hist, text, onReady, placeholder, suggest, under, w }
@@ -250,36 +329,9 @@ function ask
 
     vars.nest.cb = cb
     vars.nest.hist = spec.hist
+    vars.nest.yn = 0
 
-    parent.views.forEach(view => {
-                           let container
-
-                           container = view.ele.querySelector('.bred-prompt-ask-nest-w')
-                           if (container) {
-                             let nestedView
-
-                             Css.expand(container)
-                             nestedView = view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
-                             if (nestedView?.ele) {
-                               let mlText, mlIcon
-
-                               mlText = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
-                               if (mlText)
-                                 mlText.innerText = spec.text || ''
-                               mlIcon = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-icon')
-                               if (mlIcon)
-                                 if (spec.icon) {
-                                   mlIcon.src = Icon.path(spec.icon)
-                                   mlIcon.alt = Icon.alt(spec.icon)
-                                   Css.expand(mlIcon)
-                                 }
-                                 else
-                                   Css.retract(mlIcon)
-                             }
-                             if (view == p.view && nestedView?.ele)
-                               p.focusViewAt(nestedView.ele)
-                           }
-                         })
+    showNest(p, parent, vars, spec.text || '', spec.icon)
 
     if (spec.onReady)
       spec.onReady(vars.nest.promptBuf)
@@ -529,6 +581,8 @@ function initNest
     vars = parent.vars('prompt')
     if (vars.nest == null)
       return
+    if (vars.nest.yn)
+      return
     promptBuf = vars.nest.promptBuf
     text = promptBuf.text()
     if (text.length)
@@ -539,19 +593,7 @@ function initNest
     vars.nest.hist?.add(text)
     promptBuf.clear()
 
-    parent.views.forEach(view => {
-                           let container
-
-                           container = view.ele.querySelector('.bred-prompt-ask-nest-w')
-                           if (container) {
-                             let nestedPane
-
-                             Css.retract(container)
-                             nestedPane = container.querySelector('.pane.bred-nested.current')
-                             if (nestedPane)
-                               Css.remove(nestedPane, 'current')
-                           }
-                         })
+    retractNest(parent)
 
     p.focus()
     if (cb)
@@ -560,31 +602,42 @@ function initNest
 
   function cancel
   () {
-    let p, parent
-    let vars
+    let p, parent, vars
 
     p = Pane.current()
     parent = p.buf
-
     vars = parent.vars('prompt')
     if (vars.nest == null)
       return
-
-    parent.views.forEach(view => {
-                           let container
-
-                           container = view.ele.querySelector('.bred-prompt-ask-nest-w')
-                           if (container) {
-                             let nestedPane
-
-                             Css.retract(container)
-                             nestedPane = container.querySelector('.pane.bred-nested.current')
-                             if (nestedPane)
-                               Css.remove(nestedPane, 'current')
-                           }
-                         })
-
+    vars.nest.yn = 0
+    vars.nest.cb = 0
+    retractNest(parent)
     p.focus()
+  }
+
+  // y/n/c while a yes/no confirm is showing; otherwise insert the typed char
+  function answerNest
+  (kind, we) {
+    let p, parent, vars
+
+    p = Pane.current()
+    parent = p.buf
+    vars = parent.vars('prompt')
+    if (vars.nest?.yn) {
+      let cb
+
+      cb = vars.nest.cb
+      vars.nest.yn = 0
+      vars.nest.cb = 0
+      retractNest(parent)
+      p.focus()
+      if (kind == 'yes')
+        cb && cb(1)
+      else if (kind == 'no')
+        cb && cb(0)
+    }
+    else
+      Cmd.runMo('self insert', 'Ed', 1, we)
   }
 
   function prevHist
@@ -618,12 +671,18 @@ function initNest
   Cmd.add('cancel', () => cancel(), mo)
   Cmd.add('next history item', () => nextHist(), mo)
   Cmd.add('previous history item', () => prevHist(), mo)
+  Cmd.add('nested yes', (u, we) => answerNest('yes', we), mo)
+  Cmd.add('nested no', (u, we) => answerNest('no', we), mo)
+  Cmd.add('nested cancel', (u, we) => answerNest('cancel', we), mo)
 
   Em.on('Enter', 'submit', mo)
   Em.on('C-g', 'cancel', mo)
   Em.on('Escape', 'cancel', mo)
   Em.on('A-p', 'previous history item', mo)
   Em.on('A-n', 'next history item', mo)
+  Em.on('y', 'nested yes', mo)
+  Em.on('n', 'nested no', mo)
+  Em.on('c', 'nested cancel', mo)
 }
 
 export

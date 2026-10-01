@@ -1,6 +1,7 @@
 import { equal } from 'node:assert/strict'
 import * as Cmd from '../js/cmd.mjs'
 import * as Pane from '../js/Pane.mjs'
+import * as Prompt from '../js/prompt.mjs'
 import * as Scib from '../js/scib.mjs'
 import * as View from '../js/view.mjs'
 import * as CMState from '../lib/@codemirror/state.js'
@@ -181,6 +182,38 @@ test('scenario', 'cancelling a nested prompt returns focus to parent',
 
        rt = focusRoundTrip(panes.pA, panes.pB)
        sameView(rt.focused, f.views[0], 'parent editor must be focused after cancel')
+     })
+
+test('prompt', 'nested yes/no confirm shows in the pane and answers with y/n',
+     async () => {
+       let f, np, panes, res
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       res = []
+       Prompt.yn('Rerun command?', { nest: 1 }, yes => res.push(yes))
+       await waitFor(() => f.vars('prompt')?.nest?.promptBuf?.views[0]?.ed)
+       np = f.vars('prompt').nest.promptBuf
+       sameView(View.current(panes.pB), np.views[0], 'nested confirm is focused')
+       equal(np.views[0].ele.querySelector('.bred-prompt-ask-nest-ml-text').innerText,
+             'Rerun command?',
+             'confirm text shown in the pane')
+
+       Cmd.runMo('nested yes', 'Nested Prompt')
+       await wait(20)
+       equal(res.length, 1, 'yes answered')
+       equal(res[0], 1, 'yes value reached the callback')
+       sameView(View.current(panes.pB), f.views[0], 'parent focused after answering')
+
+       Prompt.yn('Rerun command?', { nest: 1 }, yes => res.push(yes))
+       await wait(20)
+       Cmd.runMo('nested no', 'Nested Prompt')
+       await wait(20)
+       equal(res.length, 2, 'no answered')
+       equal(res[1], 0, 'no value reached the callback')
+       checkPaneInvariants(panes.frame)
      })
 
 test('scenario', 'switching buffers in a pane reuses the pane view',

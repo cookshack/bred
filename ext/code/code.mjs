@@ -1046,7 +1046,8 @@ function messageMenu
   if (messageID == null || messageID.length == 0)
     return
   Prompt.choose('Message',
-                [ 'View JSON', 'Delete Message' ],
+                [ 'View JSON',
+                  { name: 'Delete Message', enable: buf.vars('code').busy ? 0 : 1 } ],
                 {},
                 choice => {
                   if (choice == 'View JSON')

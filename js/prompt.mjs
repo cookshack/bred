@@ -47,6 +47,22 @@ function yn
            divCl('float-shade') ])
 }
 
+// A choice is a plain string, or { name, enable } to allow greying out.
+function choiceEl
+(choice) {
+  let enable, name
+
+  enable = 1
+  name = choice
+  if (choice?.name) {
+    name = choice.name
+    enable = Object.hasOwn(choice, 'enable') ? choice.enable : 1
+  }
+  return divCl('float-choice' + (enable ? '' : ' disabled'),
+               name,
+               enable ? { 'data-run': 'choose' } : {})
+}
+
 export
 function choose
 (content,
@@ -59,7 +75,7 @@ function choose
   chooseCb = cb
   d(chooseCb)
   list = divCl('float-choices',
-               choices?.map(choice => divCl('float-choice', choice, { 'data-run': 'choose' })))
+               choices?.map(choice => choiceEl(choice)))
   demand(chooseEm,
          [ divCl('float-ww',
                  divCl('float-w',

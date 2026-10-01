@@ -197,11 +197,14 @@ test('prompt', 'nested yes/no confirm shows in the pane and answers with y/n',
        await waitFor(() => f.vars('prompt')?.nest?.promptBuf?.views[0]?.ed)
        np = f.vars('prompt').nest.promptBuf
        sameView(View.current(panes.pB), np.views[0], 'nested confirm is focused')
-       equal(np.views[0].ele.querySelector('.bred-prompt-ask-nest-ml-text').innerText,
-             'Rerun command?',
+       equal(np.views[0].ele.querySelector('.bred-prompt-ask-nest-ml-text').innerText.startsWith('Rerun command?'),
+             true,
              'confirm text shown in the pane')
+       equal(np.views[0].ele.querySelectorAll('.bred-prompt-ask-nest-ml-text button').length,
+             3,
+             'yes/no/cancel buttons shown')
 
-       Cmd.runMo('nested yes', 'Nested Prompt')
+       Cmd.run('nested yes')
        await wait(20)
        equal(res.length, 1, 'yes answered')
        equal(res[0], 1, 'yes value reached the callback')
@@ -209,7 +212,7 @@ test('prompt', 'nested yes/no confirm shows in the pane and answers with y/n',
 
        Prompt.yn('Rerun command?', { nest: 1 }, yes => res.push(yes))
        await wait(20)
-       Cmd.runMo('nested no', 'Nested Prompt')
+       Cmd.run('nested no')
        await wait(20)
        equal(res.length, 2, 'no answered')
        equal(res[1], 0, 'no value reached the callback')

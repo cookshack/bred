@@ -1627,6 +1627,15 @@ div.bred-open-under-f {
 
 .bred-prompt-ask-nest-ml-text {
   color: var(--clr-nb0);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.bred-prompt-ask-nest-ml-text button {
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 0.9rem;
 }
 
 .bred-overlay-w {

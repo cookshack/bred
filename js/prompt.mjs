@@ -290,6 +290,22 @@ function nestYn
   vars.nest.cb = cb
   vars.nest.hist = undefined
   showNest(p, parent, vars, content, 0)
+  parent.views.forEach(view => {
+                         let nestedView
+
+                         nestedView = view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
+                         if (nestedView?.ele) {
+                           let ml
+
+                           ml = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
+                           if (ml)
+                             append(ml,
+                                    [ ' ',
+                                      button([ span('y', 'key'), 'es' ], '', { 'data-run': 'nested yes' }),
+                                      button([ span('n', 'key'), 'o' ], '', { 'data-run': 'nested no' }),
+                                      button([ span('c', 'key'), 'ancel' ], '', { 'data-run': 'nested cancel' }) ])
+                         }
+                       })
   if (spec.onReady)
     spec.onReady(vars.nest.promptBuf)
 }
@@ -671,9 +687,9 @@ function initNest
   Cmd.add('cancel', () => cancel(), mo)
   Cmd.add('next history item', () => nextHist(), mo)
   Cmd.add('previous history item', () => prevHist(), mo)
-  Cmd.add('nested yes', (u, we) => answerNest('yes', we), mo)
-  Cmd.add('nested no', (u, we) => answerNest('no', we), mo)
-  Cmd.add('nested cancel', (u, we) => answerNest('cancel', we), mo)
+  Cmd.add('nested yes', (u, we) => answerNest('yes', we))
+  Cmd.add('nested no', (u, we) => answerNest('no', we))
+  Cmd.add('nested cancel', (u, we) => answerNest('cancel', we))
 
   Em.on('Enter', 'submit', mo)
   Em.on('C-g', 'cancel', mo)

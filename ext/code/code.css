@@ -82,6 +82,10 @@ div.code-thought:hover {
   border-left: 0.25rem solid var(--clr-syntax3);
 }
 
+.code-msg-assistant.code-msg-log {
+  border-left-color: var(--clr-text-light);
+}
+
 .code-msg-role {
   padding: var(--cm-pad);
   display: flex;

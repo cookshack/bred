@@ -129,7 +129,7 @@ div.code-thought:hover {
   color: var(--clr-emph);
 }
 
-.code-msg-menu {
+.code-msg-menu[data-run] {
   cursor: pointer;
   padding: var(--cm-pad);
   font-size: 0.9rem;
@@ -137,7 +137,7 @@ div.code-thought:hover {
   user-select: none;
 }
 
-.code-msg-menu:hover {
+.code-msg-menu[data-run]:hover {
   color: var(--clr-emph);
 }
 

@@ -28,7 +28,7 @@ import * as Sessions from './sessions.mjs'
 
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
-let hist, chatHist, stopTimeout, tools, events, mostRecentAgents
+let agentCycle, hist, chatHist, stopTimeout, tools, events, mostRecentAgents
 
 function getSubagentIds
 (buf) {
@@ -1849,28 +1849,56 @@ function nextHist
   wh.next(view.buf)
 }
 
+function isShownInCurrentTab
+(b) {
+  let f, tab
+
+  f = 0
+  tab = Pane.current().frame.tab
+  Pane.forEach(pane => {
+                 if (pane.buf == b && pane.frame.tab == tab)
+                   f = 1
+               })
+  return f
+}
+
+// Snapshot the recency order starting just after cur (cur wraps at the end),
+// dropping buffers already visible elsewhere in the current tab.
+function startAgentCycle
+(cur) {
+  let i, order
+
+  i = mostRecentAgents.indexOf(cur)
+  if (i >= 0)
+    order = mostRecentAgents.slice(i + 1).concat(mostRecentAgents.slice(0, i + 1))
+  else
+    order = mostRecentAgents.slice()
+  order = order.filter(b => (b == cur) || (isShownInCurrentTab(b) == 0))
+  return { list: order, idx: 0, last: 0 }
+}
+
 function mostRecentAgent
 () {
-  let buf
+  let buf, cur, list, restart
 
   if (mostRecentAgents.length == 0) {
     Mess.yell('Run an agent first')
     return
   }
-  buf = mostRecentAgents.find(b => isShownInPane(b) == 0) || mostRecentAgents[0]
+  cur = Pane.current().buf
+  restart = agentCycle && agentCycle.last == cur ? 0 : 1
+  if (restart)
+    agentCycle = startAgentCycle(cur)
+  list = agentCycle.list
+  if (list.length == 0 || (list.length == 1 && list[0] == cur)) {
+    Mess.yell('No other agent')
+    agentCycle = 0
+    return
+  }
+  buf = list[agentCycle.idx]
+  agentCycle.idx = (agentCycle.idx + 1) % list.length
+  agentCycle.last = buf
   Pane.current().setBuf(buf)
-}
-
-function isShownInPane
-(b) {
-  let f
-
-  f = 0
-  Pane.forEach(pane => {
-                 if (pane.buf == b)
-                   f = 1
-               })
-  return f
 }
 
 export
@@ -2292,6 +2320,7 @@ function init
                     i = mostRecentAgents.indexOf(buf)
                     if (i >= 0)
                       mostRecentAgents.splice(i, 1)
+                    agentCycle = 0
                     buf.vars('code').streamActive = 0
                     buf.views?.forEach(view => {
                       view.vars('code').eds?.forEach(ed => ed.destroy())

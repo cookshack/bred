@@ -135,6 +135,12 @@ div.code-thought:hover {
   color: var(--clr-syntax3);
 }
 
+.code-msg-agent {
+  padding: var(--cm-pad);
+  font-size: 0.9rem;
+  color: var(--clr-emph);
+}
+
 .code-msg-model,
 .code-msg-model[data-run] {
   color: var(--clr-nb3);
@@ -323,6 +329,12 @@ div.code-thought:hover {
 .code-h-right .code-agent,
 .code-h-right .code-docker {
   margin-right: 0.5rem;
+}
+
+.code-ww:has(.code-prompt-w .pane.bred-nested.current) .code-agent {
+  background-color: var(--clr-bg);
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px var(--clr-bg);
 }
 
 .code-docker {

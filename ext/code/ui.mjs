@@ -328,7 +328,7 @@ function appendMsg
                           contentEl = mdResult.el
                         }
                         if (role == 'user') {
-                          let scroller, scrollerDown
+                          let agentEl, scroller, scrollerDown
 
                           appendX(w,
                                   divCl('code-msg code-msg-user',
@@ -338,12 +338,13 @@ function appendMsg
                           scroller.onclick = scrollToPrevMsg
                           scrollerDown = span('▼', 'code-msg-scroll-down')
                           scrollerDown.onclick = scrollToNextMsg
+                          agentEl = spec?.agent ? span(Util.iconAgent() + spec.agent, 'code-msg-agent') : 0
                           appendX(w,
                                   divCl('code-msg-ts code-msg-ts-user',
-                                        [ scroller,
+                                        [ agentEl,
+                                          scroller,
                                           scrollerDown,
-                                          span(tsText,
-                                               'code-msg-timestamp') ]))
+                                          span(tsText, 'code-msg-timestamp') ]))
                         }
                         else
                           appendX(w,

@@ -58,7 +58,7 @@ function codeInit
     existingBuf.vars('code').busy = 1
     pane.setBuf(existingBuf)
     existingBuf.vars('code').agentStopped = 0
-    Ui.appendMsg(existingBuf, 'user', '/init')
+    Ui.appendMsg(existingBuf, 'user', '/init', undefined, undefined, { agent: 'build' })
     updateBufAgent(existingBuf, 'build')
     Ev.startSub(existingBuf, events)
     Comm.ensureClient(existingBuf).then(c => {
@@ -89,7 +89,7 @@ function codeInit
                                                                  Prompt.nestBuf(buf, hist)
                                                                  buf.vars('code').firstPromptSent = 1
                                                                  buf.vars('code').busy = 1
-                                                                 Ui.appendMsg(buf, 'user', '/init')
+                                                                 Ui.appendMsg(buf, 'user', '/init', undefined, undefined, { agent: 'build' })
                                                                  updateBufAgent(buf, 'build')
                                                                  Ui.updateDocker(buf)
                                                                  Ev.startSub(buf, events)
@@ -905,13 +905,13 @@ function send
                                 buf.vars('code').busy = 1
                                 buf.vars('code').gotContent = 0
 
-                                Ui.appendMsg(buf, 'user', text)
+                                agent = Util.getAgent(buf)
+
+                                Ui.appendMsg(buf, 'user', text, undefined, undefined, { agent })
 
                                 Ev.startSub(buf, events)
 
                                 await buf.vars('code').streamReady
-
-                                agent = Util.getAgent(buf)
 
                                 updateBufAgent(buf, agent)
 

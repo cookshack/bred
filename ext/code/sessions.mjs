@@ -256,7 +256,7 @@ function init
               flushModel()
               for (let part of (msg.parts || []))
                 if (part.type == 'text')
-                  Ui.appendMsg(buf, 'user', part.text, part.id, msg.info.time?.created)
+                  Ui.appendMsg(buf, 'user', part.text, part.id, msg.info.time?.created, { agent: msg.info.agent })
             }
             else {
               for (let part of (msg.parts || []))

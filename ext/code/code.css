@@ -129,6 +129,18 @@ div.code-thought:hover {
   color: var(--clr-emph);
 }
 
+.code-msg-menu {
+  cursor: pointer;
+  padding: var(--cm-pad);
+  font-size: 0.9rem;
+  color: var(--clr-syntax3);
+  user-select: none;
+}
+
+.code-msg-menu:hover {
+  color: var(--clr-emph);
+}
+
 .code-msg-agent,
 .code-msg-timestamp {
   padding: var(--cm-pad);

@@ -237,7 +237,7 @@ function init
         function flushModel
         () {
           if (pendingModel) {
-            pendingModel.model && Ui.appendModel(buf, pendingModel.model, Util.fmtCost(pendingModel.cost), pendingModel.at)
+            pendingModel.model && Ui.appendModel(buf, pendingModel.model, Util.fmtCost(pendingModel.cost), pendingModel.at, pendingModel.messageID)
             pendingModel = 0
           }
         }
@@ -252,6 +252,7 @@ function init
 
             msg = data[i]
             role = msg.info.role
+            buf.vars('code').curMessageID = msg.info.id
             if (role == 'user') {
               flushModel()
               for (let part of (msg.parts || []))
@@ -283,7 +284,8 @@ function init
                 }
               pendingModel = { model: Util.modelName(msg.info.modelID, msg.info.variant),
                                cost: msg.info.cost,
-                               at: msg.info.time?.created }
+                               at: msg.info.time?.created,
+                               messageID: msg.info.id }
             }
           }
           Ui.updateStatus(buf, '🔃 Loading... ' + end + '/' + data.length, '', '', '')

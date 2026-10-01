@@ -3,6 +3,7 @@ import { button, create, divCl, span } from '../../js/dom.mjs'
 import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Css from '../../js/css.mjs'
+import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/Em.mjs'
 import * as Hist from '../../js/hist.mjs'
 import * as Icon from '../../js/icon.mjs'
@@ -726,6 +727,8 @@ function handleToolPart
 (buf, part) {
   let status, h
 
+  if (part.messageID)
+    buf.vars('code').curMessageID = part.messageID
   status = part.state?.status
 
   h = tools[part.tool]
@@ -752,6 +755,9 @@ function handlePart
   let part
 
   part = event.properties.part
+
+  if (part.messageID)
+    buf.vars('code').curMessageID = part.messageID
 
   if (part.tokens) {
     let total
@@ -899,7 +905,7 @@ function send
   sessionID = buf.vars('code').sessionID
 
   Comm.ensureClient(buf).then(async c => {
-                                let agent, res
+                                let agent, res, tmpID
 
                                 buf.vars('code').agentStopped = 0
                                 buf.vars('code').busy = 1
@@ -907,7 +913,8 @@ function send
 
                                 agent = Util.getAgent(buf)
 
-                                Ui.appendMsg(buf, 'user', text, undefined, undefined, { agent })
+                                tmpID = 'tmp_' + uuidv4()
+                                Ui.appendMsg(buf, 'user', text, undefined, undefined, { agent, messageID: tmpID })
 
                                 Ev.startSub(buf, events)
 
@@ -926,6 +933,8 @@ function send
 
                                 d('CO SEND done')
                                 d({ res })
+
+                                backfillMessageID(buf, tmpID, res.data?.info?.parentID)
 
                                 ensureTitle(c, buf, sessionID, text)
 
@@ -962,7 +971,7 @@ function send
 
                                 // after the response, so the model footer never
                                 // lands above a response that rendered late
-                                Ui.appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant), Util.fmtCost(res.data?.info?.cost))
+                                Ui.appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant), Util.fmtCost(res.data?.info?.cost), undefined, res.data?.info?.id)
                               }).catch(err => {
                                          d(err)
                                          Ui.appendMsg(buf, 'assistant', 'Error: ' + (err.message || JSON.stringify(err)))
@@ -970,6 +979,91 @@ function send
                                          buf.vars('code').streamActive = 0
                                          Ev.startSub(buf, events)
                                        })
+}
+
+// The live user message is rendered before the server assigns its id, so tag
+// it with a temporary id and swap in the real one (the assistant's parentID)
+// once the turn completes.
+function backfillMessageID
+(buf, tmpID, realID) {
+  if (realID == null)
+    return
+  Util.eachCodeW(buf, (view, w) => {
+                        w.querySelectorAll('[data-messageid="' + tmpID + '"]').forEach(el => el.setAttribute('data-messageid', realID))
+                      })
+}
+
+function viewMessageJSON
+(buf, messageID) {
+  let pane
+
+  pane = Pane.current()
+  Comm.ensureClient(buf).then(async c => {
+                                let res
+
+                                res = await c.session.message({ sessionID: buf.vars('code').sessionID,
+                                                                messageID,
+                                                                directory: buf.dir })
+                                Ed.make(pane,
+                                        { name: 'code-msg-' + messageID.replace(/^msg_/, '') + '.json',
+                                          dir: buf.dir },
+                                        view => {
+                                          view.buf.opts.set('core.lang', 'json')
+                                          view.insert(JSON.stringify(res.data, null, 2))
+                                          view.buf.modified = 0
+                                        })
+                              }).catch(err => {
+                                         Mess.yell('View failed: ' + err.message)
+                                         d('CO view message error: ' + err.message)
+                                       })
+}
+
+function removeMessageEls
+(buf, messageID) {
+  Util.eachCodeW(buf, (view, w) => {
+                        w.querySelectorAll('[data-messageid="' + messageID + '"]').forEach(el => el.remove())
+                      })
+}
+
+function deleteMessage
+(buf, messageID) {
+  Comm.ensureClient(buf).then(async c => {
+                                await c.session.deleteMessage({ sessionID: buf.vars('code').sessionID, messageID, directory: buf.dir })
+                                removeMessageEls(buf, messageID)
+                              }).catch(err => {
+                                         Mess.yell('Delete failed: ' + err.message)
+                                         d('CO delete message error: ' + err.message)
+                                       })
+}
+
+function messageMenu
+(u, we) {
+  let buf, el, messageID
+
+  buf = Pane.current().buf
+  el = we.e.target.closest('[data-messageid]')
+  messageID = el?.dataset.messageid
+  if (messageID == null || messageID.length == 0)
+    return
+  Prompt.choose('Message',
+                [ 'View JSON', 'Delete Message' ],
+                {},
+                choice => {
+                  if (choice == 'View JSON')
+                    viewMessageJSON(buf, messageID)
+                  else if (choice == 'Delete Message') {
+                    if (buf.vars('code').busy) {
+                      Mess.yell('Agent is busy')
+                      return
+                    }
+                    Prompt.yn('Delete message? (does not restore file changes)',
+                              { icon: 'trash' },
+                              yes => {
+                                if (yes)
+                                  deleteMessage(buf, messageID)
+                              })
+                  }
+                })
 }
 
 function stopAgent
@@ -2242,6 +2336,8 @@ function init
   Cmd.add('set agent build', () => setAgent(Pane.current().buf, 'build'), mo)
 
   Cmd.add('set code model', () => listModels(), mo)
+
+  Cmd.add('message menu', messageMenu, mo)
 
   Em.on('a', 'answer question', mo)
 

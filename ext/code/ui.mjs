@@ -276,7 +276,9 @@ function appendMsg
   }
 
   Util.eachCodeW(buf, (view, w) => {
-                        let contentEl, mdResult, tsText, now, h, m, s
+                        let contentEl, mdResult, messageID, tsText, now, h, m, s
+
+                        messageID = spec?.messageID ?? buf.vars('code').curMessageID
 
                         if (role == 'user') {
                         }
@@ -333,7 +335,8 @@ function appendMsg
                           appendX(w,
                                   divCl('code-msg code-msg-user',
                                         [ contentEl ],
-                                        { 'data-partid': partID || 0 }))
+                                        { 'data-partid': partID || 0,
+                                          'data-messageid': messageID || '' }))
                           scroller = span('▲', 'code-msg-scroll-up')
                           scroller.onclick = scrollToPrevMsg
                           scrollerDown = span('▼', 'code-msg-scroll-down')
@@ -344,13 +347,16 @@ function appendMsg
                                         [ agentEl,
                                           scroller,
                                           scrollerDown,
-                                          span(tsText, 'code-msg-timestamp') ]))
+                                          span(tsText, 'code-msg-timestamp'),
+                                          span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ],
+                                        { 'data-messageid': messageID || '' }))
                         }
                         else
                           appendX(w,
                                   divCl('code-msg code-msg-assistant' + (spec?.log ? ' code-msg-log' : ''),
                                         [ contentEl ],
-                                        { 'data-partid': partID || 0 }))
+                                        { 'data-partid': partID || 0,
+                                          'data-messageid': messageID || '' }))
                         if (mdResult) {
                           view.vars('code').eds = view.vars('code').eds || []
                           view.vars('code').eds.push(mdResult.ed)
@@ -410,7 +416,8 @@ function appendThinking
                         appendX(w,
                                 divCl('code-msg code-msg-thinking',
                                       [ divCl('code-msg-text', text) ],
-                                      { 'data-partid': partId || 0 }))
+                                      { 'data-partid': partId || 0,
+                                        'data-messageid': buf.vars('code').curMessageID || '' }))
                       })
 }
 
@@ -452,7 +459,8 @@ function appendToolMsg
                                                 ' ',
                                                 label ]),
                                         underEl ],
-                                      { 'data-callid': callID }))
+                                      { 'data-callid': callID,
+                                        'data-messageid': (spec.messageID ?? buf.vars('code').curMessageID) || '' }))
                       })
   if (callID && label)
     Util.eachCodeW(buf, (view, w) => {
@@ -749,10 +757,11 @@ function scrollToNextRole
 
 export
 function appendModel
-(buf, model, cost, at) {
+(buf, model, cost, at, messageID) {
   Util.eachCodeW(buf, (view, w) => {
                         let scroller, scrollerDown
 
+                        messageID = messageID ?? buf.vars('code').curMessageID
                         scroller = span('▲', 'code-msg-scroll-up')
                         scroller.onclick = scrollToPrevRole
                         scrollerDown = span('▼', 'code-msg-scroll-down')
@@ -767,6 +776,8 @@ function appendModel
                                              'code-msg-model',
                                              { 'data-run': 'set code model' }),
                                         span(cost,
-                                             'code-msg-cost') ]))
+                                             'code-msg-cost'),
+                                        span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ],
+                                      { 'data-messageid': messageID || '' }))
                       })
 }

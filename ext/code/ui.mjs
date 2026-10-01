@@ -768,7 +768,8 @@ function appendModel
                         scrollerDown.onclick = scrollToNextRole
                         appendX(w,
                                 divCl('code-msg code-msg-role',
-                                      [ span(ts(at),
+                                      [ span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }),
+                                        span(ts(at),
                                              'code-msg-timestamp'),
                                         scroller,
                                         scrollerDown,
@@ -776,8 +777,7 @@ function appendModel
                                              'code-msg-model',
                                              { 'data-run': 'set code model' }),
                                         span(cost,
-                                             'code-msg-cost'),
-                                        span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ],
+                                             'code-msg-cost') ],
                                       { 'data-messageid': messageID || '' }))
                       })
 }

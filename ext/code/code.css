@@ -329,9 +329,6 @@ div.code-thought:hover {
 
 .code-ww:has(.code-prompt-w .pane.bred-nested.current) .code-agent {
   color: var(--clr-nb3);
-  background-color: var(--clr-bg);
-  border-radius: 2px;
-  box-shadow: 0 0 0 2px var(--clr-bg);
 }
 
 .code-docker {

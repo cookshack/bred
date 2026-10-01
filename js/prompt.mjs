@@ -271,7 +271,8 @@ function retractNest
                        })
 }
 
-// a yes/no confirm shown as a nested prompt instead of a float
+// a yes/no confirm shown as a row inside the pane (no text entry) instead of
+// a float; the parent buf gets a minor mode so y/n/c work from the keyboard
 function nestYn
 (content,
  spec,
@@ -280,34 +281,24 @@ function nestYn
 
   p = Pane.current()
   parent = p.buf
-  vars = ensurePromptBuf(parent,
-                         [ img('', '', 'filter-clr-text bred-prompt-ask-nest-ml-icon retracted'),
-                           divCl('bred-prompt-ask-nest-ml-text', content) ],
-                         '')
-  vars.nest.promptBuf.clear()
-  vars.nest.promptBuf.placeholder = ''
-  vars.nest.yn = 1
-  vars.nest.cb = cb
-  vars.nest.hist = undefined
-  showNest(p, parent, vars, content, 0)
+  vars = parent.vars('prompt')
+  vars.confirm = { cb }
+  parent.addMode('Nested Confirm')
   parent.views.forEach(view => {
-                         let nestedView
+                         let w
 
-                         nestedView = view.nestedViews?.find(nv => nv.buf == vars.nest.promptBuf)
-                         if (nestedView?.ele) {
-                           let ml
-
-                           ml = nestedView.ele.querySelector('.bred-prompt-ask-nest-ml-text')
-                           if (ml)
-                             append(ml,
-                                    [ ' ',
-                                      button([ span('y', 'key'), 'es' ], '', { 'data-run': 'nested yes' }),
-                                      button([ span('n', 'key'), 'o' ], '', { 'data-run': 'nested no' }),
-                                      button([ span('c', 'key'), 'ancel' ], '', { 'data-run': 'nested cancel' }) ])
-                         }
+                         w = view.ele.querySelector('.bred-confirm-w')
+                         if (w)
+                           w.remove()
+                         view.ele.prepend(divCl('bred-confirm-w',
+                                                [ divCl('bred-confirm-text', content),
+                                                  button([ span('y', 'key'), 'es' ], '', { 'data-run': 'nested yes' }),
+                                                  button([ span('n', 'key'), 'o' ], '', { 'data-run': 'nested no' }),
+                                                  button([ span('c', 'key'), 'ancel' ], '', { 'data-run': 'nested cancel' }) ]))
                        })
+  p.focus()
   if (spec.onReady)
-    spec.onReady(vars.nest.promptBuf)
+    spec.onReady(parent)
 }
 
 export
@@ -345,7 +336,6 @@ function ask
 
     vars.nest.cb = cb
     vars.nest.hist = spec.hist
-    vars.nest.yn = 0
 
     showNest(p, parent, vars, spec.text || '', spec.icon)
 
@@ -586,7 +576,7 @@ function initPrompt2
 
 function initNest
 () {
-  let mo
+  let mo, moConfirm
 
   function submit
   () {
@@ -596,8 +586,6 @@ function initNest
     parent = p.buf
     vars = parent.vars('prompt')
     if (vars.nest == null)
-      return
-    if (vars.nest.yn)
       return
     promptBuf = vars.nest.promptBuf
     text = promptBuf.text()
@@ -625,35 +613,34 @@ function initNest
     vars = parent.vars('prompt')
     if (vars.nest == null)
       return
-    vars.nest.yn = 0
-    vars.nest.cb = 0
     retractNest(parent)
     p.focus()
   }
 
-  // y/n/c while a yes/no confirm is showing; otherwise insert the typed char
-  function answerNest
-  (kind, we) {
-    let p, parent, vars
+  function answerConfirm
+  (kind) {
+    let p, parent, vars, cb
 
     p = Pane.current()
     parent = p.buf
     vars = parent.vars('prompt')
-    if (vars.nest?.yn) {
-      let cb
+    if (vars.confirm == null)
+      return
+    cb = vars.confirm.cb
+    vars.confirm = undefined
+    parent.views.forEach(view => {
+                           let w
 
-      cb = vars.nest.cb
-      vars.nest.yn = 0
-      vars.nest.cb = 0
-      retractNest(parent)
-      p.focus()
-      if (kind == 'yes')
-        cb && cb(1)
-      else if (kind == 'no')
-        cb && cb(0)
-    }
-    else
-      Cmd.runMo('self insert', 'Ed', 1, we)
+                           w = view.ele.querySelector('.bred-confirm-w')
+                           if (w)
+                             w.remove()
+                         })
+    parent.rmMode('Nested Confirm')
+    p.focus()
+    if (kind == 'yes')
+      cb && cb(1)
+    else if (kind == 'no')
+      cb && cb(0)
   }
 
   function prevHist
@@ -687,18 +674,20 @@ function initNest
   Cmd.add('cancel', () => cancel(), mo)
   Cmd.add('next history item', () => nextHist(), mo)
   Cmd.add('previous history item', () => prevHist(), mo)
-  Cmd.add('nested yes', (u, we) => answerNest('yes', we))
-  Cmd.add('nested no', (u, we) => answerNest('no', we))
-  Cmd.add('nested cancel', (u, we) => answerNest('cancel', we))
 
   Em.on('Enter', 'submit', mo)
   Em.on('C-g', 'cancel', mo)
   Em.on('Escape', 'cancel', mo)
   Em.on('A-p', 'previous history item', mo)
   Em.on('A-n', 'next history item', mo)
-  Em.on('y', 'nested yes', mo)
-  Em.on('n', 'nested no', mo)
-  Em.on('c', 'nested cancel', mo)
+
+  moConfirm = Mode.add('Nested Confirm', { minor: 1 })
+  Cmd.add('nested yes', () => answerConfirm('yes'), moConfirm)
+  Cmd.add('nested no', () => answerConfirm('no'), moConfirm)
+  Cmd.add('nested cancel', () => answerConfirm('cancel'), moConfirm)
+  Em.on('y', 'nested yes', moConfirm)
+  Em.on('n', 'nested no', moConfirm)
+  Em.on('c', 'nested cancel', moConfirm)
 }
 
 export

@@ -186,7 +186,7 @@ test('scenario', 'cancelling a nested prompt returns focus to parent',
 
 test('prompt', 'nested yes/no confirm shows in the pane and answers with y/n',
      async () => {
-       let f, np, panes, res
+       let f, panes, res, w
 
        panes = setupPanes()
        f = fileBuf('a.txt')
@@ -194,25 +194,23 @@ test('prompt', 'nested yes/no confirm shows in the pane and answers with y/n',
 
        res = []
        Prompt.yn('Rerun command?', { nest: 1 }, yes => res.push(yes))
-       await waitFor(() => f.vars('prompt')?.nest?.promptBuf?.views[0]?.ed)
-       np = f.vars('prompt').nest.promptBuf
-       sameView(View.current(panes.pB), np.views[0], 'nested confirm is focused')
-       equal(np.views[0].ele.querySelector('.bred-prompt-ask-nest-ml-text').innerText.startsWith('Rerun command?'),
-             true,
-             'confirm text shown in the pane')
-       equal(np.views[0].ele.querySelectorAll('.bred-prompt-ask-nest-ml-text button').length,
-             3,
-             'yes/no/cancel buttons shown')
+       await wait(20)
+       w = f.views[0].ele.querySelector('.bred-confirm-w')
+       equal(w == null, false, 'confirm shown in the pane')
+       equal(w.querySelector('.bred-confirm-text').innerText, 'Rerun command?', 'confirm text shown')
+       equal(w.querySelectorAll('button').length, 3, 'yes/no/cancel buttons shown')
+       equal(f.minors.some(m => m.key == 'nested confirm'), true, 'confirm minor mode active')
 
-       Cmd.run('nested yes')
+       Cmd.run('nested yes', f)
        await wait(20)
        equal(res.length, 1, 'yes answered')
        equal(res[0], 1, 'yes value reached the callback')
-       sameView(View.current(panes.pB), f.views[0], 'parent focused after answering')
+       equal(f.views[0].ele.querySelector('.bred-confirm-w') == null, true, 'confirm removed')
+       equal(f.minors.some(m => m.key == 'nested confirm'), false, 'confirm mode removed')
 
        Prompt.yn('Rerun command?', { nest: 1 }, yes => res.push(yes))
        await wait(20)
-       Cmd.run('nested no')
+       Cmd.run('nested no', f)
        await wait(20)
        equal(res.length, 2, 'no answered')
        equal(res[1], 0, 'no value reached the callback')

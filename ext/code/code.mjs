@@ -1057,7 +1057,7 @@ function messageMenu
                       Mess.yell('Agent is busy')
                       return
                     }
-                    Prompt.yn('Delete message? (does not restore file changes)',
+                    Prompt.yn('Delete message?',
                               { icon: 'trash' },
                               yes => {
                                 if (yes)

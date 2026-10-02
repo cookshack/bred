@@ -1,5 +1,5 @@
 import { equal } from 'node:assert/strict'
-import { atEnd, makeStick } from '../ext/code/scroll.mjs'
+import { atEnd, makeStick, nextMsgIndex, prevMsgIndex } from '../ext/code/scroll.mjs'
 
 let tests
 
@@ -103,6 +103,40 @@ test('stick', 're-pins when the user scrolls back',
        w.scrollTop = 800
        w.fireScroll()
        equal(pinned(), 1)
+     })
+
+test('msg nav', 'prev at the top scrolls to the top',
+     () => {
+       equal(prevMsgIndex([ 100, 500, 900 ], 0), -1)
+     })
+
+test('msg nav', 'prev from the buffer end goes to the last message',
+     () => {
+       equal(prevMsgIndex([ 100, 500, 900 ], 5000), 2)
+     })
+
+test('msg nav', 'repeated prev steps through every message',
+     () => {
+       equal(prevMsgIndex([ 100, 500, 900 ], 900 - 7), 1)
+       equal(prevMsgIndex([ 100, 500, 900 ], 500 - 7), 0)
+       equal(prevMsgIndex([ 100, 500, 900 ], 100 - 7), -1)
+     })
+
+test('msg nav', 'next from the top goes to the first message',
+     () => {
+       equal(nextMsgIndex([ 100, 500, 900 ], 0, 7), 0)
+     })
+
+test('msg nav', 'next from the buffer end scrolls to the end',
+     () => {
+       equal(nextMsgIndex([ 100, 500, 900 ], 900 - 7, 7), -1)
+     })
+
+test('msg nav', 'repeated next steps through every message',
+     () => {
+       equal(nextMsgIndex([ 100, 500, 900 ], 100 - 7, 7), 1)
+       equal(nextMsgIndex([ 100, 500, 900 ], 500 - 7, 7), 2)
+       equal(nextMsgIndex([ 100, 500, 900 ], 900 - 7, 7), -1)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

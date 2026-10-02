@@ -17,20 +17,26 @@ import { themeExtension } from '../../js/wode-theme.mjs'
 
 import { hideMarks } from './md.mjs'
 
-import { atEnd, makeStick } from './scroll.mjs'
+import { atEnd, makeStick, nextMsgIndex, prevMsgIndex } from './scroll.mjs'
 
 export { atEnd }
 
 export
 function divW
 (dir, agent) {
+  let navDown, navUp
+
+  navUp = span('▲', 'code-nav-up', { 'data-run': 'message prev' })
+  navDown = span('▼', 'code-nav-down', { 'data-run': 'message next' })
+
   return divCl('code-ww',
                [ divCl('code-h',
                        [ divCl('code-icon',
                                img(Icon.modePath('code'), 'Code', 'filter-clr-text')),
                          divCl('code-title', Ed.makeMlDir(dir)),
                          divCl('code-h-right',
-                               [ divCl('code-docker onfill',
+                               [ divCl('code-nav', [ navUp, navDown ]),
+                                 divCl('code-docker onfill',
                                        [ img(Icon.path('docker'), 'Docker', 'filter-clr-text'),
                                          span('', 'code-docker-name') ],
                                        { 'data-run': 'docker details', 'data-id': '' }),
@@ -209,72 +215,6 @@ function updateStatus
 export
 function appendMsg
 (buf, role, text, partID, at, spec) {
-  function scrollHalfRem
-  (el) {
-    let w
-
-    w = el.closest('.code-w')
-    if (w) {
-      el.scrollIntoView({ block: 'start', behavior: 'instant' })
-      w.scrollTop -= Math.round(0.5 * parseFloat(globalThis.getComputedStyle(w).fontSize))
-    }
-  }
-
-  function scrollToPrevMsg
-  (e) {
-    let tsEl
-
-    tsEl = e.target.closest('.code-msg-ts')
-    if (tsEl) {
-      let prevMsg
-
-      prevMsg = tsEl.previousElementSibling
-      if (prevMsg) {
-        prevMsg = prevMsg.previousElementSibling
-        while (prevMsg) {
-          if (Css.has(prevMsg, 'code-msg-user'))
-            break
-          prevMsg = prevMsg.previousElementSibling
-        }
-      }
-      if (prevMsg)
-        scrollHalfRem(prevMsg)
-      else {
-        let w
-
-        w = tsEl.closest('.code-w')
-        if (w)
-          w.scrollTop = 0
-      }
-    }
-  }
-
-  function scrollToNextMsg
-  (e) {
-    let tsEl
-
-    tsEl = e.target.closest('.code-msg-ts')
-    if (tsEl) {
-      let nextMsg
-
-      nextMsg = tsEl.nextElementSibling
-      while (nextMsg) {
-        if (Css.has(nextMsg, 'code-msg-user'))
-          break
-        nextMsg = nextMsg.nextElementSibling
-      }
-      if (nextMsg)
-        scrollHalfRem(nextMsg)
-      else {
-        let underW
-
-        underW = tsEl.closest('.code-w')?.querySelector('.code-under-w')
-        if (underW)
-          underW.scrollIntoView({ block: 'end', behavior: 'instant' })
-      }
-    }
-  }
-
   Util.eachCodeW(buf, (view, w) => {
                         let contentEl, mdResult, messageID, tsText, now, h, m, s
 
@@ -330,23 +270,17 @@ function appendMsg
                           contentEl = mdResult.el
                         }
                         if (role == 'user') {
-                          let agentEl, scroller, scrollerDown
+                          let agentEl
 
                           appendX(w,
                                   divCl('code-msg code-msg-user',
                                         [ contentEl ],
                                         { 'data-partid': partID || 0,
                                           'data-messageid': messageID || '' }))
-                          scroller = span('▲', 'code-msg-scroll-up')
-                          scroller.onclick = scrollToPrevMsg
-                          scrollerDown = span('▼', 'code-msg-scroll-down')
-                          scrollerDown.onclick = scrollToNextMsg
                           agentEl = spec?.agent ? span(Util.iconAgent() + spec.agent, 'code-msg-agent') : 0
                           appendX(w,
                                   divCl('code-msg-ts code-msg-ts-user',
                                         [ agentEl,
-                                          scroller,
-                                          scrollerDown,
                                           span(tsText, 'code-msg-timestamp'),
                                           span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ],
                                         { 'data-messageid': messageID || '' }))
@@ -648,131 +582,65 @@ function ts
   return h + 'h' + m + ':' + s
 }
 
-function scrollTo
-(el) {
+// The bit of the previous message to leave visible above a jumped-to one. Also
+// used as the step size so a repeated click keeps advancing.
+function halfRem
+(w) {
+  return Math.round(0.5 * parseFloat(globalThis.getComputedStyle(w).fontSize))
+}
+
+function msgEls
+(w) {
+  return [ ...w.querySelectorAll('.code-msg-user') ]
+}
+
+// Top of each message in the scroller's scroll coordinates (offsetTop is not
+// usable because .code-w is not a positioned element).
+function msgTops
+(w, els) {
+  let rect
+
+  rect = w.getBoundingClientRect()
+  return els.map(el => Math.round(el.getBoundingClientRect().top - rect.top + w.scrollTop))
+}
+
+function scrollMsgW
+(w, dir) {
+  let els, i, tops
+
+  els = msgEls(w)
+  tops = msgTops(w, els)
+  i = dir < 0 ? prevMsgIndex(tops, w.scrollTop)
+              : nextMsgIndex(tops, w.scrollTop, halfRem(w))
+  if (i < 0)
+    w.scrollTop = dir < 0 ? 0 : w.scrollHeight
+  else {
+    els[i].scrollIntoView({ block: 'start', behavior: 'instant' })
+    w.scrollTop -= halfRem(w)
+  }
+}
+
+// Header nav: step to the previous (dir < 0) or next user message.
+export
+function navMsg
+(we, dir) {
   let w
 
-  w = el.closest('.code-w')
-  if (w) {
-    el.scrollIntoView({ block: 'start', behavior: 'instant' })
-    w.scrollTop -= Math.round(0.5 * parseFloat(globalThis.getComputedStyle(w).fontSize))
-  }
-}
-
-function scrollToPrevRole
-(e) {
-  let el
-
-  el = e.target.closest('.code-msg-role')
-  if (el) {
-    let prev
-
-    prev = el.previousElementSibling
-    while (prev) {
-      if (Css.has(prev, 'code-msg-role'))
-        break
-      prev = prev.previousElementSibling
-    }
-    if (prev) {
-      let content
-
-      content = prev.previousElementSibling
-      while (content) {
-        if (Css.has(content, 'code-msg-assistant'))
-          break
-        content = content.previousElementSibling
-      }
-      if (content)
-        scrollTo(content)
-      else {
-        content = prev.nextElementSibling
-        while (content) {
-          if (Css.has(content, 'code-msg-assistant'))
-            break
-          content = content.nextElementSibling
-        }
-        if (content)
-          scrollTo(content)
-        else
-          scrollTo(prev)
-      }
-    }
-    else {
-      let w
-
-      w = el.closest('.code-w')
-      if (w)
-        w.scrollTop = 0
-    }
-  }
-}
-
-function scrollToNextRole
-(e) {
-  let el
-
-  el = e.target.closest('.code-msg-role')
-  if (el) {
-    let nextMsg
-
-    nextMsg = el.nextElementSibling
-    while (nextMsg) {
-      if (Css.has(nextMsg, 'code-msg-role'))
-        break
-      nextMsg = nextMsg.nextElementSibling
-    }
-    if (nextMsg) {
-      let content
-
-      content = nextMsg.nextElementSibling
-      while (content) {
-        if (Css.has(content, 'code-msg-assistant'))
-          break
-        content = content.nextElementSibling
-      }
-      if (content)
-        scrollTo(content)
-      else {
-        content = nextMsg.previousElementSibling
-        while (content) {
-          if (Css.has(content, 'code-msg-assistant'))
-            break
-          content = content.previousElementSibling
-        }
-        if (content)
-          scrollTo(content)
-        else
-          scrollTo(nextMsg)
-      }
-    }
-    else {
-      let underW
-
-      underW = el.closest('.code-w')?.querySelector('.code-under-w')
-      if (underW)
-        underW.scrollIntoView({ block: 'end', behavior: 'instant' })
-    }
-  }
+  w = we?.e?.target?.closest?.('.code-ww')?.querySelector('.code-w')
+  if (w)
+    scrollMsgW(w, dir)
 }
 
 export
 function appendModel
 (buf, model, cost, at, messageID) {
   Util.eachCodeW(buf, (view, w) => {
-                        let scroller, scrollerDown
-
                         messageID = messageID ?? buf.vars('code').curMessageID
-                        scroller = span('▲', 'code-msg-scroll-up')
-                        scroller.onclick = scrollToPrevRole
-                        scrollerDown = span('▼', 'code-msg-scroll-down')
-                        scrollerDown.onclick = scrollToNextRole
                         appendX(w,
                                 divCl('code-msg code-msg-role',
                                       [ span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }),
                                         span(ts(at),
                                              'code-msg-timestamp'),
-                                        scroller,
-                                        scrollerDown,
                                         span(model,
                                              'code-msg-model',
                                              { 'data-run': 'set code model' }),

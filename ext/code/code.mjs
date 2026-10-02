@@ -2368,6 +2368,8 @@ function init
   Cmd.add('set code model', () => listModels(), mo)
 
   Cmd.add('message menu', messageMenu, mo)
+  Cmd.add('message prev', (u, we) => Ui.navMsg(we, -1), mo)
+  Cmd.add('message next', (u, we) => Ui.navMsg(we, 1), mo)
 
   Em.on('a', 'answer question', mo)
 

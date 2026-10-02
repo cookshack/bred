@@ -115,8 +115,15 @@ div.code-thought:hover {
   align-self: flex-start;
 }
 
-.code-msg-scroll-up,
-.code-msg-scroll-down {
+.code-nav {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.code-nav-up,
+.code-nav-down {
   cursor: pointer;
   padding: var(--cm-pad);
   font-size: 0.9rem;
@@ -124,8 +131,8 @@ div.code-thought:hover {
   user-select: none;
 }
 
-.code-msg-scroll-up:hover,
-.code-msg-scroll-down:hover {
+.code-nav-up:hover,
+.code-nav-down:hover {
   color: var(--clr-emph);
 }
 

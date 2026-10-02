@@ -224,6 +224,30 @@ test('log', 'normal messages are not capped or marked',
        equal(panes.pB.view.ele.querySelectorAll('.code-msg-log').length, 0, 'plain messages are not log messages')
      })
 
+test('nav', 'header has one message nav pair and no inline arrows',
+     async () => {
+       let buf, down, nav, panes, up
+
+       ({ panes, buf } = await setup())
+       Ui.appendMsg(buf, 'user', 'first')
+       Ui.appendModel(buf, 'test-model', '0')
+       Ui.appendMsg(buf, 'user', 'second')
+
+       nav = panes.pB.view.ele.querySelectorAll('.code-nav')
+       equal(nav.length, 1, 'one nav pair in the header')
+       up = nav[0].querySelector('.code-nav-up')
+       down = nav[0].querySelector('.code-nav-down')
+       equal(up?.dataset.run, 'message prev', 'up arrow runs message prev')
+       equal(down?.dataset.run, 'message next', 'down arrow runs message next')
+       equal(panes.pB.view.ele.querySelectorAll('.code-msg-scroll-up, .code-msg-scroll-down').length,
+             0,
+             'no inline message arrows')
+       // running the commands must not throw (happy-dom has no layout, but the
+       // scroll math still runs)
+       Cmd.run('message prev', buf, 0, { e: { target: up } })
+       Cmd.run('message next', buf, 0, { e: { target: down } })
+     })
+
 test('order', 'model line comes after the assistant response',
      async () => {
        let created, fake, orig, panes

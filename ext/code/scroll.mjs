@@ -6,6 +6,30 @@ function atEnd
   return Math.abs((w.scrollHeight - Math.ceil(w.scrollTop)) - w.clientHeight) < 10
 }
 
+// Index of the message to jump to when going up from scrollTop: the last one
+// strictly above the viewport. -1 means there is none, so scroll to the top.
+export
+function prevMsgIndex
+(tops, scrollTop) {
+  for (let i = tops.length - 1; i >= 0; i--)
+    if (tops[i] < scrollTop - 1)
+      return i
+  return -1
+}
+
+// Index of the message to jump to when going down from scrollTop: the first one
+// below the viewport plus pad (the offset we leave above a jumped-to message,
+// so a repeat click keeps stepping instead of re-selecting the same one).
+// -1 means there is none, so scroll to the end.
+export
+function nextMsgIndex
+(tops, scrollTop, pad) {
+  for (let i = 0; i < tops.length; i++)
+    if (tops[i] > scrollTop + pad)
+      return i
+  return -1
+}
+
 // Returns a fn telling whether w should stay pinned to the end. Starts pinned;
 // scrolling up unpins, being at the end re-pins. Our own scrolls to the end and
 // content growth both keep it pinned.

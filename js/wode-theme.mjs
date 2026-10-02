@@ -61,7 +61,7 @@ function themeStyles
              { tag: tags.invalid, color: Theme.fg('invalid') },
              { tag: tags.special(tags.invalid), backgroundColor: Theme.meanings.fill, color: Theme.meanings.nb3, fontWeight: 'bold' },
              { tag: tags.keyword, color: Theme.fg('keyword') },
-             { tag: tags.link, color: Theme.fg(''), textDecoration: 'underline' },
+             { tag: [ tags.link, tags.url ], color: Theme.fg(''), textDecoration: 'underline' },
              { tag: tags.meta, backgroundColor: Theme.meanings.fill }, // eg patch @@ line
              { tag: tags.null, color: Theme.fg('variable.name') },
              { tag: tags.number, color: Theme.fg('number') },

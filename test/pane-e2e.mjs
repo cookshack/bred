@@ -16,6 +16,15 @@ function test
   tests[group].push({ name, cb })
 }
 
+function keydown
+(key, code, ctrl, alt) {
+  return { key,
+           code,
+           ctrlKey: ctrl,
+           altKey: alt,
+           preventDefault: () => {} }
+}
+
 tests = {}
 
 test('focus', 'pane focus targets the current view editor',
@@ -252,6 +261,46 @@ test('scenario', 'closing a pane keeps the remaining pane consistent',
        equal(panes.frame.panes.length, 1)
        sameView(Pane.current(panes.frame), panes.pA, 'remaining pane is current')
        checkPaneInvariants(panes.frame)
+     })
+
+test('search', 'add word after a failed backward match is safe',
+     async () => {
+       let f, opt, panes
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+       f.insert('alpha beta\ngamma delta\n')
+       View.current(panes.pB).ed.dispatch({ selection: { anchor: 0 } })
+       opt = globalThis.bred._shared().opt
+
+       globalThis.onkeydown = () => {}
+       Cmd.run('search backward', panes.pB.buf)
+       // backward search with no match leaves a failed match on the stack
+       globalThis.onkeydown(keydown('z', 'KeyZ', 0, 0))
+
+       opt.values['core.throwOnWarn.enabled'] = 1
+       try {
+         let cwErr
+
+         cwErr = 0
+         try {
+           // 'add word to search' on a failed match used to throw
+           globalThis.onkeydown(keydown('w', 'KeyW', 1, 0))
+         }
+         catch (e) {
+           cwErr = e
+         }
+         // a throwing command must not leave stale input buffering: the next
+         // key would otherwise resolve the leftover command and report
+         // 'look1 found command before end'
+         globalThis.onkeydown(keydown('q', 'KeyQ', 0, 0))
+         equal(cwErr, 0, 'add word must not throw on a failed match')
+       }
+       finally {
+         opt.values['core.throwOnWarn.enabled'] = 0
+         Cmd.run('search cancel', panes.pB.buf)
+       }
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

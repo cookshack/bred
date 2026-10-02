@@ -1142,7 +1142,7 @@ function initSearch
 
       // about to search forward
       match = s.st.stack?.at(-1)
-      if (match)
+      if (match?.range)
         spec.Backend?.vsetBep(s.st.view, match.range.startBep)
 
       needleRe = Ed.escapeForRe(s.st.needle) + '[^a-zA-Z0-9]*[a-zA-Z0-9]+'
@@ -1229,8 +1229,8 @@ function initSearch
                                                        return
 
                                                      // cmd
-                                                     Cmd.run(to, s.st.view?.buf, 1, we)
                                                      wes = []
+                                                     Cmd.run(to, s.st.view?.buf, 1, we)
                                                      return
                                                    }
 

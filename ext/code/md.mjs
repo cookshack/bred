@@ -23,6 +23,15 @@ function blockPaste
   return 0
 }
 
+function linkDeco
+(href) {
+  return CMView.Decoration.mark({ class: 'code-md-link',
+                                  attributes: { 'data-run': 'open link',
+                                                'data-runaux': 'open externally',
+                                                'data-path': href,
+                                                'data-url': href } })
+}
+
 function makeMarks
 (view) {
   let plugin
@@ -59,16 +68,26 @@ function makeMarks
 
         url = node.node.getChild('URL')
         if (url) {
-          let href, link
+          let href
 
           href = v.state.doc.sliceString(url.from, url.to)
-          link = CMView.Decoration.mark({ class: 'code-md-link',
-                                          attributes: { 'data-run': 'open link',
-                                                        'data-runaux': 'open externally',
-                                                        'data-path': href,
-                                                        'data-url': href } })
-          ranges.push(link.range(node.from, node.to))
+          ranges.push(linkDeco(href).range(node.from, node.to))
         }
+      }
+      else if (node.name == 'URL') {
+        // Bare url autolinked by GFM. Skip when Link/Autolink already handled
+        // it as a child, and only make http(s) clickable (Open.link does not
+        // know what to do with www. or bare emails).
+        let href, parent
+
+        parent = node.node.parent?.name
+        if ((parent == 'Link') || (parent == 'Autolink'))
+          // handled when the parent was visited
+          return
+
+        href = v.state.doc.sliceString(node.from, node.to)
+        if (href.startsWith('http://') || href.startsWith('https://'))
+          ranges.push(linkDeco(href).range(node.from, node.to))
       }
       else if ((node.name == 'FencedCode') || (node.name == 'CodeBlock')) {
         let pos, start

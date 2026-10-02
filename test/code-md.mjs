@@ -173,6 +173,27 @@ test('md marks', 'marks autolinks with their url',
        equal(el?.dataset.run, 'open link')
      })
 
+test('md marks', 'marks bare http links',
+     async () => {
+       let el, view
+
+       view = await make('see https://example.com/a?b=1 now')
+       el = view.contentDOM.querySelector('.code-md-link')
+
+       equal(el?.dataset.path, 'https://example.com/a?b=1')
+       equal(el?.dataset.url, 'https://example.com/a?b=1')
+       equal(el?.dataset.run, 'open link')
+       equal(el?.textContent, 'https://example.com/a?b=1')
+     })
+
+test('md marks', 'leaves www and bare emails unmarked',
+     async () => {
+       let view
+
+       view = await make('www.example.com and a@b.com')
+       equal(view.contentDOM.querySelector('.code-md-link'), null)
+     })
+
 test('md marks', 'blocks middle click paste',
      async () => {
        let event, view

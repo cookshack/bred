@@ -69,13 +69,12 @@ function makeContext
   function appendRun
   (p, target, we) {
     if (p && (p.view.ed || target?.closest?.('.cm-editor'))) {
-      append(context.el,
-             context0(p.buf, 'Run This Line In Shell', 'run this line'),
-             contextLine())
+      let group
+
+      group = [ context0(p.buf, 'Run This Line In Shell', 'run this line') ]
       if (Wode.codeAtCoords(win, we?.e?.clientX, we?.e?.clientY))
-        append(context.el,
-               context0(p.buf, 'Run This Code In Shell', 'run this code in shell'),
-               contextLine())
+        group.push(context0(p.buf, 'Run This Code In Shell', 'run this code in shell'))
+      append(context.el, group, contextLine())
     }
   }
 

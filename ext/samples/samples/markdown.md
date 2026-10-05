@@ -15,7 +15,7 @@ This is a paragraph with **bold** and *italic* text.
 
 ## Code
 
-Inline `code` example.
+Inline `ls -la` example.
 
 ```javascript
 

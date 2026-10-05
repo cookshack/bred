@@ -127,13 +127,14 @@ div.code-thought:hover {
   cursor: pointer;
   padding: var(--cm-pad);
   font-size: 0.9rem;
-  color: var(--clr-syntax3);
+  color: var(--clr-text);
   user-select: none;
 }
 
-.code-nav-up:hover,
-.code-nav-down:hover {
+span.code-nav-up:hover,
+span.code-nav-down:hover {
   color: var(--clr-emph);
+  background-color: var(--clr-bg);
 }
 
 .code-msg-menu[data-run] {

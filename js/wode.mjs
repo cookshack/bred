@@ -2065,6 +2065,59 @@ function vtokenAt
   return null
 }
 
+// code (inline span or fenced/indented block) at a point in any cm editor,
+// eg a markdown code block embedded in an agent message. Returns the code
+// text with the surrounding backticks/fence lines removed, or null when the
+// point is not in code.
+export
+function codeAtCoords
+(win, x, y) {
+  let el
+
+  if (U.isPresent(x) && U.isPresent(y)) {
+    let els
+
+    els = win.document.elementsFromPoint?.(x, y) || []
+    for (let e of els) {
+      el = e.closest?.('.cm-editor')
+      if (el)
+        break
+    }
+  }
+  if (el == null)
+    el = win.document.activeElement?.closest?.('.cm-editor')
+  if (el) {
+    let view
+
+    view = CMView.EditorView.findFromDOM(el)
+    if (view) {
+      let node, pos
+
+      pos = (U.isPresent(x) && U.isPresent(y)) ? view.posAtCoords({ x, y }) : null
+      if (pos == null)
+        pos = view.state.selection.main.head
+      node = CMLang.syntaxTree(view.state).resolve(pos)
+      for (; node; node = node.parent) {
+        if (node.name == 'InlineCode') {
+          let s
+
+          s = view.state.doc.sliceString(node.from, node.to)
+          return s.replace(/^`+/, '').replace(/`+$/, '')
+        }
+        if ((node.name == 'FencedCode') || (node.name == 'CodeBlock')) {
+          let text
+
+          text = node.getChild('CodeText')
+          if (text)
+            return view.state.doc.sliceString(text.from, text.to)
+          return view.state.doc.sliceString(node.from, node.to)
+        }
+      }
+    }
+  }
+  return null
+}
+
 // text of the line at a point, from any cm editor (eg embedded in a message,
 // where there is no bred view). Coordinates may be missing (falls back to the
 // focused editor).

@@ -12,6 +12,7 @@ import * as Pane from './Pane.mjs'
 import * as Tab from './tab.mjs'
 import * as Shell from './shell.mjs'
 import * as Tron from './tron.mjs'
+import * as Wode from './wode.mjs'
 import { d } from './mess.mjs'
 
 function context0
@@ -66,11 +67,16 @@ function makeContext
   }
 
   function appendRun
-  (p, target) {
-    if (p && (p.view.ed || target?.closest?.('.cm-editor')))
+  (p, target, we) {
+    if (p && (p.view.ed || target?.closest?.('.cm-editor'))) {
       append(context.el,
              context0(p.buf, 'Run This Line In Shell', 'run this line'),
              contextLine())
+      if (Wode.codeAtCoords(win, we?.e?.clientX, we?.e?.clientY))
+        append(context.el,
+               context0(p.buf, 'Run This Code In Shell', 'run this code in shell'),
+               contextLine())
+    }
   }
 
   function appendSpell
@@ -132,7 +138,7 @@ function makeContext
                                 contextLine())
                     p && addCopy(p)
                     appendSpell(p)
-                    appendRun(p, target)
+                    appendRun(p, target, we)
                     if (Ext.get('hex'))
                       append(context.el,
                              context0(p.buf, 'Hex'),
@@ -148,7 +154,7 @@ function makeContext
                               contextLine())
                   p && addCopy(p)
                   appendSpell(p)
-                  appendRun(p, target)
+                  appendRun(p, target, we)
                   appendStep(p)
                   Css.add(context.el, 'bred-open')
                   cb && cb()

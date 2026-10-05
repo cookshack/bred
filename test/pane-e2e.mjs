@@ -6,6 +6,7 @@ import * as Scib from '../js/scib.mjs'
 import * as View from '../js/view.mjs'
 import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
+import { markdown } from '../lib/@codemirror/lang-markdown.js'
 import { checkPaneInvariants, fileBuf, focusRoundTrip, sameView, setBuf, setupPanes, wait, waitFor } from './pane-helpers.mjs'
 
 let tests
@@ -144,6 +145,54 @@ test('rtl', 'run this line reads a code editor line',
 
        sBuf = panes.pB.buf
        equal(sBuf.views[0].ed.state.doc.line(1).text, '$ two', 'line under point echoed')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'run this code runs inline code from a markdown editor',
+     async () => {
+       let ed, f, panes, parent, sBuf, state
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       parent = globalThis.document.createElement('div')
+       globalThis.document.body.appendChild(parent)
+       state = CMState.EditorState.create({ doc: '2. `sudo apt remove syncthing mixxx` — removes',
+                                            extensions: [ markdown() ] })
+       ed = new CMView.EditorView({ state, parent })
+       ed.focus()
+       ed.dispatch({ selection: { anchor: 8 } })
+
+       Cmd.run('run this code in shell')
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       sBuf = panes.pB.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ sudo apt remove syncthing mixxx', 'inline code echoed')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'run this code runs a fenced block from a markdown editor',
+     async () => {
+       let ed, f, panes, parent, sBuf, state
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       parent = globalThis.document.createElement('div')
+       globalThis.document.body.appendChild(parent)
+       state = CMState.EditorState.create({ doc: 'before\n```sh\necho one\necho two\n```\nafter',
+                                            extensions: [ markdown() ] })
+       ed = new CMView.EditorView({ state, parent })
+       ed.focus()
+       ed.dispatch({ selection: { anchor: 18 } })
+
+       Cmd.run('run this code in shell')
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       sBuf = panes.pB.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ echo one', 'first block line echoed')
        checkPaneInvariants(panes.frame)
      })
 

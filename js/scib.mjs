@@ -98,7 +98,32 @@ function initRTL
       Mess.say('Line missing')
   }
 
+  function runThisCode
+  () {
+    let code, win, x, y
+
+    win = Win.current()
+    x = win.lastContextClick?.x
+    y = win.lastContextClick?.y
+
+    code = Wode.codeAtCoords(win, x, y)
+
+    if (code == null)
+      Mess.say('No code at point')
+    else if (code.length)
+      Shell.shell1(code,
+                   { echo: 1, end: 1, hist },
+                   buf => {
+                     buf.mode = 'shell'
+                     buf.opts.set('ansi.enabled', 1)
+                     buf.opts.set('core.highlight.specials.enabled', 0)
+                   })
+    else
+      Mess.say('Code empty')
+  }
+
   Cmd.add('run this line', runThisLine)
+  Cmd.add('run this code in shell', runThisCode)
 }
 
 export

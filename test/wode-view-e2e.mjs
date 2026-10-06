@@ -16,8 +16,13 @@ import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
 import { setupDom } from './dom-help.mjs'
 
-let buf, bufSeq, domWin, extraViews, fileGetArgs, fileGetErr, filePath, optsSet, readyView
+let buf, bufSeq, domWin, extraViews, fileGetArgs, fileGetDelay, fileGetErr, filePath, optsSet, peerPushDelay, readyView
 let savedDocument, savedElement, savedHTMLDocument, savedOpt, savedTron, tests, tmp, view, watchCbs, _shared
+
+function sleep
+(ms) {
+  return new Promise(r => setTimeout(r, ms))
+}
 
 function test
 (group, name, cb) {
@@ -126,7 +131,9 @@ function setup
   filePath = Path.join(tmp, 'a.txt')
   Fs.writeFileSync(filePath, 'v1')
   fileGetArgs = 0
+  fileGetDelay = 0
   fileGetErr = 0
+  peerPushDelay = 0
   watchCbs = new Map()
   extraViews = []
   optsSet = []
@@ -151,9 +158,11 @@ function setup
   globalThis.tron = { acmd: async (name, args) => {
                                 if (name == 'peer.get')
                                   return MainPeer.onGet(fakeE(), args)
-                                if (name == 'peer.push')
+                                if (name == 'peer.push') {
+                                  await sleep(peerPushDelay)
                                   return MainPeer.onPush({ sender: { send: (ch, data) => fireChannel(ch, data) } },
                                                          args)
+                                }
                                 return {}
                               },
                       cmd: async (name, args) => {
@@ -171,10 +180,13 @@ function setup
                            },
                       receive: (ch, cb2) => {
                         if (ch == 'file-get-ch')
-                          if (fileGetErr)
-                            cb2({ err: { message: 'boom' } })
-                          else
-                            cb2({ err: 0, data: Fs.readFileSync(filePath, 'utf8'), stat: Fs.statSync(filePath), realpath: filePath })
+                          setTimeout(() => {
+                                       if (fileGetErr)
+                                         cb2({ err: { message: 'boom' } })
+                                       else
+                                         cb2({ err: 0, data: Fs.readFileSync(filePath, 'utf8'), stat: Fs.statSync(filePath), realpath: filePath })
+                                     },
+                                     fileGetDelay)
                         else
                           cb2({ err: 0 })
                       },
@@ -338,6 +350,92 @@ test('revert', 'file.get error keeps previous content',
        equal(view.ed.state.doc.toString(), 'v1')
        equal(view.ele.getAttribute('inert'), null)
        equal(readyView, view)
+       equal(buf.reverting, 0)
+       equal(view.ready, 1)
+     })
+
+test('revert', 'init then revert before ready does not throw',
+     async () => {
+       let caught, readyEd, readyReady
+
+       caught = 0
+       WodeView.init(view, {}, () => {})
+       try {
+         WodeView.revertV(view, {}, v => {
+                                      readyEd = v.ed ? 1 : 0
+                                      readyReady = v.ready
+                                    })
+       }
+       catch (err) {
+         caught = err
+       }
+       await sleep(150)
+       equal(caught, 0, caught?.message)
+       equal(view.ed.state.doc.toString(), 'v1')
+       equal(readyEd, 1)
+       equal(readyReady, 1)
+     })
+
+test('revert', 'edit then revert restores disk content',
+     async () => {
+       await open()
+       view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
+       await waitPeer(buf.id, 'v1X')
+       equal(buf.modified, 1)
+       await revert()
+       equal(view.ed.state.doc.toString(), 'v1')
+       equal(buf.modified, 0)
+       equal(buf.reverting, 0)
+       equal(view.ready, 1)
+     })
+
+test('revert', 'two concurrent reverts keep content',
+     async () => {
+       await open()
+       WodeView.revertV(view, {}, () => {})
+       WodeView.revertV(view, {}, () => {})
+       await sleep(200)
+       equal(view.ed.state.doc.toString(), 'v1')
+     })
+
+test('revert', 'revert in a split view keeps both views',
+     async () => {
+       let vB
+
+       await open()
+       vB = makeView(buf)
+       extraViews.push(vB)
+       await new Promise((res, rej) => {
+                           WodeView.init(vB, {}, res)
+                           setTimeout(() => rej(new Error('init timeout')), 3000)
+                         })
+       equal(vB.ed.state.doc.toString(), 'v1')
+       await new Promise((res, rej) => {
+                           WodeView.revertV(vB, {}, res)
+                           setTimeout(() => rej(new Error('revert timeout')), 3000)
+                         })
+       equal(vB.ed.state.doc.toString(), 'v1')
+       equal(view.ed.state.doc.toString(), 'v1')
+     })
+
+test('revert', 'revert during open with slow file.get keeps content',
+     async () => {
+       fileGetDelay = 50
+       WodeView.init(view, {}, () => {})
+       await sleep(5)
+       WodeView.revertV(view, {}, () => {})
+       await sleep(250)
+       equal(view.ed.state.doc.toString(), 'v1')
+     })
+
+test('revert', 'stale peer push during revert keeps content',
+     async () => {
+       await open()
+       peerPushDelay = 50
+       view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
+       WodeView.revertV(view, {}, () => {})
+       await sleep(350)
+       equal(view.ed.state.doc.toString(), 'v1')
      })
 
 test('open', 'file.get error is ready not dead',

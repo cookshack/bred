@@ -26,6 +26,7 @@ import * as WodeWatch from './wode-watch.mjs'
 import { d } from './mess.mjs'
 
 import * as CMAuto from '../lib/@codemirror/autocomplete.js'
+import * as CMCollab from '../lib/@codemirror/collab.js'
 import * as CMComm from '../lib/@codemirror/commands.js'
 import * as CMLang from '../lib/@codemirror/language.js'
 import * as CMLint from '../lib/@codemirror/lint.js'
@@ -226,6 +227,30 @@ function vsetLang
                                                              })
 }
 
+// Wait until this view has no unconfirmed peer updates, so that main has
+// acknowledged everything the current editor sent before we rebuild it.
+// Otherwise a push still in flight can land on main after a revert and be
+// replayed onto the new editor.
+async function flushPeer
+(view) {
+  let i
+
+  for (i = 0; i < 200; i++) {
+    let state
+
+    state = view.ed?.state
+    if (state)
+      try {
+        if (CMCollab.sendableUpdates(state).length == 0)
+          return
+      }
+      catch {
+        return
+      }
+    await new Promise(r => setTimeout(r, 10))
+  }
+}
+
 export
 async function init
 (view,
@@ -244,6 +269,8 @@ async function init
   view.buf.modified = 0
   Ed.setIcon(view.buf, '.edMl-mod', 'blank')
   view.ready = 0
+  if (spec.revert)
+    await flushPeer(view)
   data = await Tron.acmd('peer.get', [ view.buf.id ])
   d('WODE peer.get ' + view.buf.id + ' ok (' + view.buf.name + ')')
   d({ data })
@@ -833,27 +860,52 @@ function copy
                 whenReady)
 }
 
+function whenViewReady
+(view, cb) { // (view)
+  let tries
+
+  function check
+  () {
+    if (view.ed && view.ready)
+      cb(view)
+    else if (++tries < 200)
+      setTimeout(check, 10)
+  }
+
+  tries = 0
+  check()
+}
+
 export
 function revertV
 (view,
  spec, // { lineNum }
  whenReady) { // (view)
-  let lineNum
-
   d('WODE =====>>>>>>>>>> revertV')
 
   spec = spec || {}
 
-  Css.disable(view.ele)
-  lineNum = spec.lineNum ?? (WodeBep.bepRow(view, WodeBep.vgetBep(view)) + 1)
+  if (view.ed) {
+    let lineNum
 
-  view.ready = 0 // limit onChange handler
-  view.buf.reverting = 1
-  init(view, { revert: 1, lineNum }, v => {
-                                       v.buf.reverting = 0 // TODO might run before other views get the onChanges?
-                                       if (whenReady)
-                                         whenReady(v)
-                                     })
+    Css.disable(view.ele)
+    lineNum = spec.lineNum ?? (WodeBep.bepRow(view, WodeBep.vgetBep(view)) + 1)
+
+    view.ready = 0 // limit onChange handler
+    view.buf.reverting = 1
+    init(view, { revert: 1, lineNum }, v => {
+                                         v.buf.reverting = 0 // TODO might run before other views get the onChanges?
+                                         if (whenReady)
+                                           whenReady(v)
+                                       })
+  }
+  else {
+    // View is still being initialized. Its loader reads the file anyway, so
+    // wait until it is ready and then revert for real, rather than claiming
+    // readiness (and running whenReady) while there is no editor.
+    d('WODE revertV waiting for ready')
+    whenViewReady(view, v => revertV(v, spec, whenReady))
+  }
 
   d('WODE =====>>>>>>>>>> revertV done')
 }

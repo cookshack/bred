@@ -7,6 +7,7 @@ import Store from 'electron-store'
 let stores, profile, hist, prompt
 
 import { d, log } from './main-log.mjs'
+import * as Migrate from './hist-migrate.mjs'
 
 function initPrompt
 (db) {
@@ -172,55 +173,7 @@ function initHist
   log('Opening hist: ' + path)
   db = new Database(profile.dir + '/hist.db')
 
-  db.prepare('CREATE TABLE IF NOT EXISTS meta (id INTEGER PRIMARY KEY, name, value, UNIQUE(name))').run()
-
-  {
-    let ver, row
-
-    // Migration
-
-    function setDbVersion
-    (v) {
-      ver = v
-      db.prepare("INSERT INTO meta (name, value) VALUES ('db_version', ?) ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value")
-        .run(ver)
-    }
-
-    row = db.prepare("SELECT value FROM meta WHERE name = 'db_version'").get()
-    ver = parseInt(row?.value || 0)
-    d('Check migration...')
-    d('Current version: ' + ver)
-    if (ver == 0) {
-      d('Migrating: 0 to 1')
-      db.transaction(() => {
-                       db.prepare('ALTER TABLE urls RENAME TO visits').run()
-                       setDbVersion(1)
-                     })()
-    }
-    db.prepare('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, last, count, UNIQUE(href))').run()
-    db.prepare('CREATE TABLE IF NOT EXISTS visits (id INTEGER PRIMARY KEY, type, href, title, hostname, port, pathname, search, hash, time)').run()
-
-    if (ver == 1) {
-      d('Migrating: 1 to 2')
-      db.transaction(() => {
-                       // distinct hrefs with most recent access time
-                       db.prepare(`WITH ranked_table AS (SELECT *,
-                                          MIN(id) OVER (PARTITION BY href ORDER BY time) AS first_occurrence_id
-                                          FROM visits)
-                    INSERT INTO urls (type, href, title, hostname, port, pathname, search, hash, last, count)
-                    SELECT type, href, title, hostname, port, pathname, search, hash, time, 1
-                    FROM ranked_table
-                    WHERE id = first_occurrence_id
-                    ORDER BY time DESC`)
-                         .run()
-                       setDbVersion(2)
-                     })()
-    }
-
-    db.prepare('CREATE TABLE IF NOT EXISTS prompts (id INTEGER PRIMARY KEY, name, text, time)').run()
-
-    d('Check migration... done.')
-  }
+  Migrate.migrate(db)
 
   hist = { add,
            get,

@@ -7,7 +7,7 @@ import Store from 'electron-store'
 let stores, profile, hist, prompt
 
 import { d, log } from './main-log.mjs'
-import * as Migrate from './hist-migrate.mjs'
+import * as Migrate from './main-hist-migrate.mjs'
 
 function initPrompt
 (db) {

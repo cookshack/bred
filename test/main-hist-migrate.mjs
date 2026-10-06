@@ -1,6 +1,6 @@
 import { equal, ok } from 'node:assert/strict'
 import { DatabaseSync } from 'node:sqlite'
-import { migrate } from '../js/hist-migrate.mjs'
+import { migrate } from '../js/main-hist-migrate.mjs'
 
 let tests
 

@@ -462,11 +462,12 @@ function initCmds
                                 })
 
   Cmd.add('toggle frame left', () => {
-                                 let win, currentTab
+                                 let closing, win, currentTab
 
                                  win = Win.current()
                                  currentTab = Tab.current(win.main)
-                                 if (Css.toggle(currentTab.frameLeft.el, 'retracted')) {
+                                 closing = Css.has(currentTab.frameLeft.el, 'retracted') == 0
+                                 if (closing) {
                                    Tab.forEach(win.main, tab => {
                                                            tab.frame1.focus()
                                                            tab.frameLeft.retract()

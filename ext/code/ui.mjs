@@ -26,8 +26,10 @@ function divW
 (dir, agent) {
   let navDown, navUp
 
-  navUp = span('▲', 'code-nav-up', { 'data-run': 'message prev' })
-  navDown = span('▼', 'code-nav-down', { 'data-run': 'message next' })
+  navUp = divCl('code-nav-up', img(Icon.path('arrow-up'), 'Previous message', 'filter-clr-text'),
+                { 'data-run': 'message prev' })
+  navDown = divCl('code-nav-down', img(Icon.path('arrow-down'), 'Next message', 'filter-clr-text'),
+                  { 'data-run': 'message next' })
 
   return divCl('code-ww',
                [ divCl('code-h',

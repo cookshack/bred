@@ -90,6 +90,7 @@ function codeInit
                                                                  Prompt.nestBuf(buf, hist)
                                                                  buf.vars('code').firstPromptSent = 1
                                                                  buf.vars('code').busy = 1
+                                                                 updateNav(buf)
                                                                  Ui.appendMsg(buf, 'user', '/init', undefined, undefined, { agent: 'build' })
                                                                  updateBufAgent(buf, 'build')
                                                                  Ui.updateDocker(buf)
@@ -898,6 +899,9 @@ function send
 (buf, text, provider, model, variant) {
   let sessionID
 
+  buf.vars('code').firstPromptSent = 1
+  updateNav(buf)
+
   provider = provider || Util.getProvider(buf)
   model = model || Util.getModel(buf)
   variant = variant || Util.getVariant(buf)
@@ -1495,8 +1499,25 @@ function codeQuestion
     .catch(err => Mess.yell('code question: ' + err.message))
 }
 
+function updateNav
+(buf) {
+  if (buf)
+    buf.views.forEach(view => {
+                        let w
+
+                        w = view.ele?.querySelector?.('.code-ww')
+                        if (w == null)
+                          return
+                        if (buf.vars('code').firstPromptSent)
+                          Css.remove(w, 'code-nav-hidden')
+                        else
+                          Css.add(w, 'code-nav-hidden')
+                      })
+}
+
 function viewInit
 (view, spec, cb) { // (view)
+  updateNav(view.buf)
   if (view.buf?.vars('code')?.thinkingHidden) {
     let w
 
@@ -1524,6 +1545,7 @@ function viewCopy
 (to, from, lineNum, cb) {
   let fromW, toW
 
+  updateNav(to.buf)
   fromW = from.ele.querySelector('.code-w')
   toW = to.ele.querySelector('.code-w')
   if (fromW && toW) {
@@ -1709,6 +1731,7 @@ function viewReopen
     // timeout so behaves like viewInit
     setTimeout(() => {
                  bufEnd(view)
+                 updateNav(view.buf)
                  finishStartup(view.buf)
                  if (whenReady)
                    whenReady(view)

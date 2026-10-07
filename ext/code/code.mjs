@@ -1499,25 +1499,28 @@ function codeQuestion
     .catch(err => Mess.yell('code question: ' + err.message))
 }
 
+function applyNav
+(view) {
+  let w
+
+  w = view.ele?.querySelector?.('.code-ww')
+  if (w == null)
+    return
+  if (view.buf.vars('code').firstPromptSent)
+    Css.remove(w, 'code-nav-hidden')
+  else
+    Css.add(w, 'code-nav-hidden')
+}
+
 function updateNav
 (buf) {
   if (buf)
-    buf.views.forEach(view => {
-                        let w
-
-                        w = view.ele?.querySelector?.('.code-ww')
-                        if (w == null)
-                          return
-                        if (buf.vars('code').firstPromptSent)
-                          Css.remove(w, 'code-nav-hidden')
-                        else
-                          Css.add(w, 'code-nav-hidden')
-                      })
+    buf.views.forEach(applyNav)
 }
 
 function viewInit
 (view, spec, cb) { // (view)
-  updateNav(view.buf)
+  applyNav(view)
   if (view.buf?.vars('code')?.thinkingHidden) {
     let w
 
@@ -1545,7 +1548,7 @@ function viewCopy
 (to, from, lineNum, cb) {
   let fromW, toW
 
-  updateNav(to.buf)
+  applyNav(to)
   fromW = from.ele.querySelector('.code-w')
   toW = to.ele.querySelector('.code-w')
   if (fromW && toW) {
@@ -1731,7 +1734,7 @@ function viewReopen
     // timeout so behaves like viewInit
     setTimeout(() => {
                  bufEnd(view)
-                 updateNav(view.buf)
+                 applyNav(view)
                  finishStartup(view.buf)
                  if (whenReady)
                    whenReady(view)

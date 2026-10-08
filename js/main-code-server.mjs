@@ -31,6 +31,7 @@ function mountArgs
     workingDir = workingDir.slice(0, -1)
   specs = [ home + '/fresh/main:' + home + '/fresh/main',
             home + '/src/review:' + home + '/src/review',
+            home + '/src/review2:' + home + '/src/review2',
             home + '/src/bred:' + home + '/src/bred',
             home + '/src/uoc:' + home + '/src/uoc',
             home + '/src/bin:' + home + '/src/bin',

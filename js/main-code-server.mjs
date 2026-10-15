@@ -4,12 +4,7 @@ import { spawn } from 'node:child_process'
 import * as U from './util.mjs'
 import { d } from './main-log.mjs'
 
-import * as LocalServer from '../lib/opencode/v2/server.js'
 import { resolveDataDir } from './oc-data.mjs'
-
-let useDocker
-
-useDocker = 1
 
 export
 function containerName
@@ -171,15 +166,15 @@ function healthCheck
 
                          d('CODE SERVER health check ' + url)
                          send({ log: 'CODE SERVER health check ' + url })
-                         req = http.get(url + '/global/health', res => {
-                                                                  if (res.statusCode == 200) {
-                                                                    res.resume()
-                                                                    resolve()
-                                                                    return
-                                                                  }
-                                                                  res.resume()
-                                                                  setTimeout(check, ms)
-                                                                })
+                         req = http.get(url + '/api/info', res => {
+                                                             if (res.statusCode == 200) {
+                                                               res.resume()
+                                                               resolve()
+                                                               return
+                                                             }
+                                                             res.resume()
+                                                             setTimeout(check, ms)
+                                                           })
                          req.setTimeout(2000, () => {
                                                 req.destroy()
                                                 setTimeout(check, ms)
@@ -356,23 +351,8 @@ async function spawnDocker
                      })
 }
 
-async function spawnLocal
-(spec) {
-  let server
-
-  server = await LocalServer.createOpencodeServer({ hostname: spec.hostname || '127.0.0.1',
-                                                    port: spec.port,
-                                                    config: spec.config,
-                                                    timeout: spec.timeout })
-  server.containerName = ''
-  server.containerID = ''
-  return server
-}
-
 export
 async function create
 (spec) {
-  if (useDocker)
-    return spawnDocker(spec)
-  return spawnLocal(spec)
+  return spawnDocker(spec)
 }

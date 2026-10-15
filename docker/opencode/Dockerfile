@@ -1,10 +1,12 @@
 FROM node:24
 
-RUN apt-get update && apt-get install -y --no-install-recommends clangd clang-format cppcheck git file iputils-ping procps python3-pip ripgrep shellcheck strace traceroute chromium fonts-liberation && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl clangd clang-format cppcheck git file iputils-ping procps python3-pip ripgrep shellcheck strace traceroute chromium fonts-liberation && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --break-system-packages --no-cache-dir gersemi
 
-RUN npm install --global opencode-ai@1.18.18
+RUN curl -fsSL https://opencode.ai/v2/install | bash -s -- --version 2.0.29 --no-modify-path \
+ && mv /root/.opencode/bin/opencode /usr/local/bin/opencode \
+ && chmod 755 /usr/local/bin/opencode
 
 # Headless render helper: system Chromium + puppeteer-core (see tools/render.mjs)
 COPY tools /home/node/tools

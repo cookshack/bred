@@ -7,6 +7,7 @@ import * as Css from '../js/css.mjs'
 import * as Mode from '../js/mode.mjs'
 import * as Scib from '../js/scib.mjs'
 import * as Ui from '../ext/code/ui.mjs'
+import * as Fake from './fake-oc.mjs'
 import { fileBuf, setBuf, setupPanes, wait, waitFor } from './pane-helpers.mjs'
 
 let inited, saved, tests
@@ -250,19 +251,14 @@ test('nav', 'header has one message nav pair and no inline arrows',
 
 test('order', 'model line comes after the assistant response',
      async () => {
-       let created, fake, orig, panes
+       let created, fake, orig, panes, promptRes
 
        ({ panes } = await setupStart())
 
-       fake = { global: { event: () => Promise.resolve({ stream: { [Symbol.asyncIterator]: () => ({ next: () => new Promise(() => {}) }) } }) },
-                session: { create: () => Promise.resolve({ data: { id: 'ses-order',
-                                                                   time: { created: 1 } } }),
-                           update: () => Promise.resolve({}),
-                           prompt: () => Promise.resolve({ data: { info: { modelID: 'test-model',
-                                                                           cost: 0 },
-                                                                   parts: [ { id: 'prtorder',
-                                                                              type: 'text',
-                                                                              text: 'the agent response' } ] } }) } }
+       promptRes = { data: { info: { modelID: 'test-model', cost: 0 }, parts: [ { id: 'prtorder', type: 'text', text: 'the agent response' } ] } }
+       fake = Fake.make({ responses: { 'session.create': { data: { id: 'ses-order', time: { created: 1 } } },
+                                       'session.update': {},
+                                       'session.prompt': promptRes } })
 
        orig = panes.pB.setBuf.bind(panes.pB)
        panes.pB.setBuf = (b, spec, cb) => {

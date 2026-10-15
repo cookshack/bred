@@ -15,6 +15,11 @@ function init
   servers = new Map()
 }
 
+function basicAuth
+(password) {
+  return 'Basic ' + Buffer.from('opencode:' + password).toString('base64')
+}
+
 export
 async function onSpawn
 (e, ch, args) {
@@ -47,7 +52,7 @@ async function onSpawn
     e.sender.send(ch, { url: server.url,
                         containerName: server.containerName || name,
                         containerID: server.containerID,
-                        auth: process.env.BRED_OC_SERVER_AUTH })
+                        auth: server.password ? basicAuth(server.password) : process.env.BRED_OC_SERVER_AUTH })
   }
   catch (err) {
     d('CODE spawn failed: ' + err.message)

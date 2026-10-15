@@ -1,6 +1,7 @@
 import http from 'node:http'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
+import { randomBytes } from 'node:crypto'
 import * as U from './util.mjs'
 import { d } from './main-log.mjs'
 
@@ -134,13 +135,19 @@ function containerPort
                      })
 }
 
+function basicAuth
+(password) {
+  return 'Basic ' + Buffer.from('opencode:' + password).toString('base64')
+}
+
 function healthCheck
-(url, timeout, cName, send) {
-  let start, ms, attempts
+(url, timeout, cName, send, password) {
+  let start, ms, attempts, headers
 
   start = Date.now()
   ms = 200
   attempts = 0
+  headers = password ? { authorization: basicAuth(password) } : undefined
 
   return new Promise((resolve, reject) => {
                        async function check
@@ -166,15 +173,15 @@ function healthCheck
 
                          d('CODE SERVER health check ' + url)
                          send({ log: 'CODE SERVER health check ' + url })
-                         req = http.get(url + '/api/info', res => {
-                                                             if (res.statusCode == 200) {
-                                                               res.resume()
-                                                               resolve()
-                                                               return
-                                                             }
-                                                             res.resume()
-                                                             setTimeout(check, ms)
-                                                           })
+                         req = http.get(url + '/api/info', { headers }, res => {
+                                                                          if (res.statusCode == 200) {
+                                                                            res.resume()
+                                                                            resolve()
+                                                                            return
+                                                                          }
+                                                                          res.resume()
+                                                                          setTimeout(check, ms)
+                                                                        })
                          req.setTimeout(2000, () => {
                                                 req.destroy()
                                                 setTimeout(check, ms)
@@ -191,7 +198,7 @@ function healthCheck
 
 async function spawnDocker
 (spec) {
-  let name, workingDir, config, dockerTimeout, healthTimeout, authPath, args, dataDir
+  let name, workingDir, config, dockerTimeout, healthTimeout, authPath, args, dataDir, password
 
   spec = spec || {}
   name = containerName(spec.bufferID)
@@ -203,9 +210,10 @@ async function spawnDocker
   healthTimeout = spec.timeout || 30000
   authPath = process.env.HOME + '/.local/share/opencode/auth.json'
   dataDir = resolveDataDir(workingDir)
+  password = randomBytes(24).toString('base64url')
 
   args = []
-  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...mountArgs(workingDir, dataDir, authPath), '-e', 'EXA_API_KEY', '-e', 'OPENCODE_WEBSEARCH_PROVIDER=' + (process.env.OPENCODE_WEBSEARCH_PROVIDER || 'exa'), '-e', 'OPENCODE_ENABLE_EXA=' + (process.env.OPENCODE_ENABLE_EXA || 'true'), '-e', 'OPENCODE_LOG_LEVEL=' + (process.env.OPENCODE_LOG_LEVEL || 'DEBUG'), '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
+  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...mountArgs(workingDir, dataDir, authPath), '-e', 'EXA_API_KEY', '-e', 'OPENCODE_WEBSEARCH_PROVIDER=' + (process.env.OPENCODE_WEBSEARCH_PROVIDER || 'exa'), '-e', 'OPENCODE_ENABLE_EXA=' + (process.env.OPENCODE_ENABLE_EXA || 'true'), '-e', 'OPENCODE_LOG_LEVEL=' + (process.env.OPENCODE_LOG_LEVEL || 'DEBUG'), '-e', 'OPENCODE_PASSWORD=' + password, '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
   if (config.logLevel)
     args.push('--log-level=' + config.logLevel)
 
@@ -297,13 +305,14 @@ async function spawnDocker
 
                                                     d('CODE SERVER docker container ' + containerID + ' on ' + url)
                                                     d('CODE SERVER running health check for ' + containerID + ' on ' + url)
-                                                    return healthCheck(url, healthTimeout, name, spec.send).then(() => url)
+                                                    return healthCheck(url, healthTimeout, name, spec.send, password).then(() => url)
                                                   })
                                             .then(url => {
                                                     d('CODE SERVER docker container healthy: ' + containerID)
                                                     resolve({ url,
                                                               containerName: name,
                                                               containerID,
+                                                              password,
                                                               close: stop })
                                                   })
                                             .catch(err => {
@@ -360,14 +369,16 @@ async function create
   // container. Used to iterate against a scoped container we start by hand.
   url = process.env.BRED_OC_SERVER_URL
   if (url) {
-    let send
+    let send, password
 
     send = spec?.send || (() => {})
+    password = process.env.BRED_OC_SERVER_PASSWORD
     send({ log: 'CO attaching to external server ' + url })
-    await healthCheck(url, spec?.timeout || 30000, '', send)
+    await healthCheck(url, spec?.timeout || 30000, '', send, password)
     return { url,
              containerName: '',
              containerID: '',
+             password,
              close: () => {} }
   }
   return spawnDocker(spec)

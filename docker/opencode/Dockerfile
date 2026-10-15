@@ -15,6 +15,9 @@ RUN npm install --prefix /home/node/tools --omit=dev
 # Global skill so agents discover the render helper in every session
 COPY skills /home/node/.config/opencode/skills
 
+# Global rules so every session knows the agent cannot push
+COPY global-AGENTS.md /home/node/.config/opencode/AGENTS.md
+
 RUN mkdir -p /home/node/.local/share/opencode && chown -R node:node /home/node/.local /home/node/tools /home/node/.config
 USER node
 RUN git config --global core.excludesFile /home/node/.gitignore

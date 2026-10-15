@@ -14,6 +14,7 @@ import * as Shell from '../js/shell.mjs'
 import * as View from '../js/view.mjs'
 import Mk from '../js/mk.mjs'
 import { setupDom } from './dom-help.mjs'
+import * as Fake from './fake-oc.mjs'
 
 let inited, _shared
 
@@ -77,6 +78,20 @@ export
 function fileBuf
 (name) {
   return Buf.add(name, 'ed', Ed.divW('/tmp', name), '/tmp', { file: name })
+}
+
+// Point a code buffer at a fake client so the extension never spawns a server.
+export
+function injectClient
+(buf, client) {
+  buf.vars('code').client = client
+}
+
+// Build a v2 event envelope for replay through a fake client.
+export
+function ocEvent
+(type, data, directory) {
+  return Fake.event(type, data, directory)
 }
 
 export

@@ -907,13 +907,13 @@ function ensureTitle
 // v2 rejects an unknown model variant at execution time, so only send one the
 // model advertises in its catalog.
 async function resolveVariant
-(c, directory, providerID, modelID, variant) {
+(c, buf, providerID, modelID, variant) {
   if (variant == undefined || variant.length == 0)
     return variant
   try {
     let models
 
-    models = await c.model.list({ location: { directory } })
+    models = await c.model.list({ location: { directory: buf.dir } })
     if ((models.data || []).some(m => m.providerID == providerID
                                       && m.modelID == modelID
                                       && (m.variants || []).some(v => v.id == variant)))
@@ -922,7 +922,7 @@ async function resolveVariant
   catch {
   }
   d('CO variant ' + variant + ' unavailable, omitting')
-  Mess.yell('Variant "' + variant + '" unavailable for ' + providerID + '/' + modelID + ' (omitting)')
+  Ui.appendMsg(buf, 'assistant', 'Warning: variant "' + variant + '" unavailable for ' + providerID + '/' + modelID + ' (omitting)')
   return 0
 }
 
@@ -959,7 +959,7 @@ function send
 
                                 d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
 
-                                variant = await resolveVariant(c, buf.dir, provider, model, variant)
+                                variant = await resolveVariant(c, buf, provider, model, variant)
 
                                 await c.session.switchModel({ sessionID, model: { id: model, providerID: provider, variant: variant || undefined } })
                                 await c.session.switchAgent({ sessionID, agent })

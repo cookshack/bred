@@ -25,7 +25,6 @@ fi
 
 exec docker run -it --rm --name "bred-code-tui-$$" \
   "${ARGS[@]}" \
+  -e "OPENCODE_CONFIG_CONTENT={\"model\":\"goat/deepseek/deepseek-v4-flash\",\"default_agent\":\"plan\"}" \
   -w "$PWD" \
-  opencode-bred \
-  --model goat/deepseek/deepseek-v4-flash \
-  --agent plan
+  opencode-bred

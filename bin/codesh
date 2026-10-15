@@ -5,8 +5,9 @@ if [ $# -gt 0 ]; then
   exec docker exec -it "$1" bash
 fi
 
+BRED="$(dirname "$(realpath "$0")")"
 AUTH="$HOME/.local/share/opencode/auth.json"
-LOCAL_SHARE="$("$(dirname "$0")/oc-data-dir" "$PWD")"
+LOCAL_SHARE="$("$BRED/oc-data-dir" "$PWD")"
 
 ARGS=(-v "$PWD:$PWD")
 for m in \

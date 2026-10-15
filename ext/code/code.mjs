@@ -433,7 +433,7 @@ function checkForPatch
   if ((req.permission == 'edit') || (req.type == 'edit')) {
     let path
 
-    path = (req.metadata?.filepath || req.metadata?.filePath)
+    path = (req.metadata?.filepath || req.metadata?.filePath || req.metadata?.path)
     if (path) {
       d('CO permission file: ' + path)
       buf.vars('code').patch = req.metadata?.diff
@@ -1905,7 +1905,7 @@ function init
                     (buf, part) {
                       let path
 
-                      path = part.state.input.filePath
+                      path = part.state.input.path
                       if (path) {
                         d('CO read file: ' + path)
                         Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, 0,
@@ -1916,7 +1916,7 @@ function init
                     (buf, part) {
                       let path
 
-                      path = part.state.input.filePath
+                      path = part.state.input.path
                       if (path) {
                         d('CO read file completed: ' + path)
                         Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' ✔️',
@@ -1971,32 +1971,32 @@ function init
                                          part.state.output)
                       }
                     } },
-            bash: { onPendOrRun
-                    (buf, part) {
-                      let command
+            shell: { onPendOrRun
+                     (buf, part) {
+                       let command
 
-                      command = part.state.input.command
-                      if (command) {
-                        d('CO bash: ' + command)
-                        Ui.appendToolMsg(buf, part.callID, 'bash: ' + command + (part.state?.status == 'pending' ? ' (pending)' : ''))
-                      }
-                    },
-                    onComplete
-                    (buf, part) {
-                      let command, exitCode
+                       command = part.state.input.command
+                       if (command) {
+                         d('CO shell: ' + command)
+                         Ui.appendToolMsg(buf, part.callID, 'shell: ' + command + (part.state?.status == 'pending' ? ' (pending)' : ''))
+                       }
+                     },
+                     onComplete
+                     (buf, part) {
+                       let command, exitCode
 
-                      command = part.state.input.command
-                      exitCode = part.state.metadata?.exit
-                      if (command) {
-                        d('CO bash completed: ' + command + ' (exit ' + exitCode + ')')
-                        Ui.appendToolMsg(buf, part.callID, 'bash: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
-                      }
-                    } },
+                       command = part.state.input.command
+                       exitCode = part.state.metadata?.exit
+                       if (command) {
+                         d('CO shell completed: ' + command + ' (exit ' + exitCode + ')')
+                         Ui.appendToolMsg(buf, part.callID, 'shell: $ ' + command + ' (exit ' + exitCode + ')', part.state.output)
+                       }
+                     } },
             write: { onPendOrRun
                      (buf, part) {
                        let path
 
-                       path = part.state.input.filePath
+                       path = part.state.input.path
                        if (path) {
                          d('CO write file: ' + path)
                          Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, 0,
@@ -2009,7 +2009,7 @@ function init
                      (buf, part) {
                        let path
 
-                       path = part.state.input.filePath
+                       path = part.state.input.path
                        if (path) {
                          d('CO write file: ' + path)
                          Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️',
@@ -2022,7 +2022,7 @@ function init
                     (buf, part) {
                       let path
 
-                      path = part.state.input.filePath
+                      path = part.state.input.path
                       if (path) {
                         d('CO edit file: ' + path)
                         Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, 0,
@@ -2033,7 +2033,7 @@ function init
                     (buf, part) {
                       let path
 
-                      path = part.state.input.filePath
+                      path = part.state.input.path
                       if (path) {
                         let under
 
@@ -2049,7 +2049,7 @@ function init
                     (buf, part) {
                       let path
 
-                      path = part.state.input.filePath
+                      path = part.state.input.path
                       if (path) {
                         let under
 
@@ -2062,6 +2062,20 @@ function init
                         Ui.appendMsg(buf, 0, part.state?.error, part.id)
                       }
                     } },
+            patch: { onPendOrRun
+                     (buf, part) {
+                       d('CO patch')
+                       Ui.appendToolMsg(buf, part.callID, 'Patch')
+                     },
+                     onComplete
+                     (buf, part) {
+                       let files
+
+                       files = part.state.metadata?.files
+                       d('CO patch completed')
+                       Ui.appendToolMsg(buf, part.callID, 'Patch' + (files ? ' (' + files.length + ' files)' : ''),
+                                        part.state.output, { format: 'patch' })
+                     } },
             websearch: { onPendOrRun
                          (buf, part) {
                            let query
@@ -2140,13 +2154,13 @@ function init
                                              part.state.error)
                           }
                         } },
-            task: { onPendOrRun
-                    (buf, part) {
+            subagent: { onPendOrRun
+                        (buf, part) {
                       let desc, agent, sessionId
 
                       desc = part.state.input.description
-                      agent = part.state.input.subagent_type
-                      sessionId = part.state.metadata?.sessionId
+                      agent = part.state.input.agent
+                      sessionId = (part.state.metadata?.sessionID || part.state.metadata?.sessionId)
                       if (sessionId) {
                         getSubagentIds(buf).set(sessionId, 1)
                         getSubagentCallIds(buf).set(sessionId, part.callID)
@@ -2154,13 +2168,13 @@ function init
                       desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
                       Ui.appendToolMsg(buf, part.callID, desc)
                     },
-                    onComplete
-                    (buf, part) {
+                        onComplete
+                        (buf, part) {
                       let desc, agent, sessionId
 
                       desc = part.state.input.description
-                      agent = part.state.input.subagent_type
-                      sessionId = part.state.metadata?.sessionId
+                      agent = part.state.input.agent
+                      sessionId = (part.state.metadata?.sessionID || part.state.metadata?.sessionId)
                       if (sessionId) {
                         let ids
 
@@ -2171,13 +2185,13 @@ function init
                       desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✔️') : ('Task (' + agent + ' agent) ✔️')
                       Ui.appendToolMsg(buf, part.callID, desc, part.state.output)
                     },
-                    onErr
-                    (buf, part) {
+                        onErr
+                        (buf, part) {
                       let desc, agent, sessionId
 
                       desc = part.state.input.description
-                      agent = part.state.input.subagent_type
-                      sessionId = part.state.metadata?.sessionId
+                      agent = part.state.input.agent
+                      sessionId = (part.state.metadata?.sessionID || part.state.metadata?.sessionId)
                       if (sessionId) {
                         let ids
 

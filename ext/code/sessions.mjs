@@ -286,10 +286,10 @@ function init
 
                   input = content.state?.input || {}
                   label = content.name
-                  if (content.name == 'bash' && input.command)
+                  if (content.name == 'shell' && input.command)
                     label += ': ' + input.command
-                  else if (input.filePath)
-                    label = [ content.name + ' ', span(Util.makeRelative(buf, input.filePath), 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': input.filePath }) ]
+                  else if (input.path)
+                    label = [ content.name + ' ', span(Util.makeRelative(buf, input.path), 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': input.path }) ]
                   else if (input.pattern)
                     label += ' "' + input.pattern + '"'
                   else if (input.query)

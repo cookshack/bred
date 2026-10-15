@@ -255,6 +255,13 @@ test('promptBlocked', 'missing session',
              'ERR session missing')
      })
 
+test('apiDir', 'strips a trailing slash but keeps root',
+     () => {
+       equal(CodeUtil.apiDir({ dir: '/a/b/' }), '/a/b')
+       equal(CodeUtil.apiDir({ dir: '/a/b' }), '/a/b')
+       equal(CodeUtil.apiDir({ dir: '/' }), '/')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

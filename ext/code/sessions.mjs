@@ -92,7 +92,7 @@ function init
       .then(c => {
               let opts
 
-              opts = { directory: view.buf.dir }
+              opts = { directory: Util.apiDir(view.buf) }
               return c.session.list(opts)
             })
       .then(sessions => {

@@ -80,7 +80,7 @@ function codeInit
   buf.opt('core.lint.enabled', 1)
 
   Comm.ensureClient(buf).then(c => {
-                                c.session.create({ location: { directory: buf.dir },
+                                c.session.create({ location: { directory: Util.apiDir(buf) },
                                                    title: '/init',
                                                    agent: 'build',
                                                    model: { id: model, providerID: provider } })
@@ -137,7 +137,7 @@ function updateDeepinfraCredits
   Comm.ensureClient(buf).then(async c => {
                                 let providers, key
 
-                                providers = await c.provider.list({ location: { directory: buf.dir } })
+                                providers = await c.provider.list({ location: { directory: Util.apiDir(buf) } })
                                 providers.data?.some(p => p.id == 'deepinfra')
                                 if (key)
                                   fetch('https://api.deepinfra.com/v1/me?checklist=true',
@@ -408,7 +408,7 @@ function updateModelContextLimit
                                 try {
                                   let models, model
 
-                                  models = await c.model.list({ location: { directory: buf.dir } })
+                                  models = await c.model.list({ location: { directory: Util.apiDir(buf) } })
                                   models.data?.some(m => {
                                                       if (m.providerID == providerID && m.modelID == modelID) {
                                                         model = m
@@ -917,7 +917,7 @@ async function resolveVariant
   try {
     let models
 
-    models = await c.model.list({ location: { directory: buf.dir } })
+    models = await c.model.list({ location: { directory: Util.apiDir(buf) } })
     if ((models.data || []).some(m => m.providerID == providerID
                                       && m.modelID == modelID
                                       && (m.variants || []).some(v => v.id == variant)))
@@ -1255,7 +1255,7 @@ function listModels
                                   byChoice = new Map(entries.map(e => [ e.fullId + (e.active ? ' ◀ current' : ''), e ]))
                                 }
 
-                                res = await c.model.list({ location: { directory: buf.dir } })
+                                res = await c.model.list({ location: { directory: Util.apiDir(buf) } })
                                 providers = res.data || []
 
                                 choices = []
@@ -1411,7 +1411,7 @@ function code
                                                          let res
 
                                                          Ui.appendMsg(buf, 0, 'Creating session...')
-                                                         res = await c.session.create({ location: { directory: buf.dir },
+                                                         res = await c.session.create({ location: { directory: Util.apiDir(buf) },
                                                                                         ...(prompt ? { title: prompt } : {}) })
 
                                                          buf.vars('code').sessionID = res.id

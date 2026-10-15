@@ -114,6 +114,14 @@ function sameDir
   return a == b
 }
 
+// The server stores session directories without a trailing slash and matches
+// them exactly, so strip the buffer's trailing slash before calling the API.
+export
+function apiDir
+(buf) {
+  return buf.dir.length > 1 ? buf.dir.replace(/\/$/, '') : buf.dir
+}
+
 export
 function ensureThinkChunks
 (buf) {

@@ -55,6 +55,17 @@ function storeDbs
   return out
 }
 
+function sessionTable
+(db) {
+  try {
+    db.prepare('SELECT 1 FROM session_v2 LIMIT 1')
+    return 'session_v2'
+  }
+  catch {
+    return 'session'
+  }
+}
+
 function storesWith
 (stores) {
   const hits = []
@@ -67,7 +78,7 @@ function storesWith
       continue
     }
     try {
-      if (db.prepare('SELECT COUNT(*) AS c FROM session_v2 WHERE id = ?').get(uuid).c > 0)
+      if (db.prepare('SELECT COUNT(*) AS c FROM ' + sessionTable(db) + ' WHERE id = ?').get(uuid).c > 0)
         hits.push(s)
     }
     finally {
@@ -93,7 +104,7 @@ if (hits.length > 1)
 
 const db = new DatabaseSync(store.path, { readOnly: true })
 
-const s = db.prepare('SELECT * FROM session_v2 WHERE id = ?').get(uuid)
+const s = db.prepare('SELECT * FROM ' + sessionTable(db) + ' WHERE id = ?').get(uuid)
 const msgs = db.prepare('SELECT id, seq, type, time_created, data FROM session_message WHERE session_id = ? ORDER BY seq').all(uuid)
 
 let firstText = ''

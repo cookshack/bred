@@ -81,17 +81,25 @@ export
 function onSearchSessions
 (e, args) {
   let [ dir, search ] = args
-  let dataDir, db, rows
+  let dataDir, db, rows, tbl
 
   dataDir = resolveDataDir(dir)
   db = new Database(Path.join(dataDir, 'opencode.db'))
+
+  try {
+    db.prepare('SELECT 1 FROM session_v2 LIMIT 1')
+    tbl = 'session_v2'
+  }
+  catch {
+    tbl = 'session'
+  }
 
   rows = db.prepare(`
     SELECT s.id, s.title, s.directory, s.time_created,
            (SELECT m2.data FROM session_message m2
             WHERE m2.session_id = s.id AND m2.data LIKE ?
             LIMIT 1) as snippet_source
-    FROM session_v2 s
+    FROM ${tbl} s
     WHERE s.title LIKE ?
        OR EXISTS (SELECT 1 FROM session_message m
                   WHERE m.session_id = s.id AND m.data LIKE ?)

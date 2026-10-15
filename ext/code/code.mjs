@@ -904,6 +904,27 @@ function ensureTitle
     .catch(() => {})
 }
 
+// v2 rejects an unknown model variant at execution time, so only send one the
+// model advertises in its catalog.
+async function resolveVariant
+(c, directory, providerID, modelID, variant) {
+  if (variant == undefined || variant.length == 0)
+    return variant
+  try {
+    let models
+
+    models = await c.model.list({ location: { directory } })
+    if ((models.data || []).some(m => m.providerID == providerID
+                                      && m.modelID == modelID
+                                      && (m.variants || []).some(v => v.id == variant)))
+      return variant
+  }
+  catch {
+  }
+  d('CO variant ' + variant + ' unavailable, omitting')
+  return 0
+}
+
 function send
 (buf, text, provider, model, variant) {
   let sessionID
@@ -936,6 +957,8 @@ function send
                                 updateBufAgent(buf, agent)
 
                                 d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
+
+                                variant = await resolveVariant(c, buf.dir, provider, model, variant)
 
                                 await c.session.switchModel({ sessionID, model: { id: model, providerID: provider, variant: variant || undefined } })
                                 await c.session.switchAgent({ sessionID, agent })

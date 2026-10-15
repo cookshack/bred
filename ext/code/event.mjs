@@ -144,6 +144,9 @@ function handle
 (buf, events, ev) {
   let legacies
 
+  if (ev.type.indexOf('session.text') < 0 && ev.type.indexOf('session.reasoning') < 0 && ev.type.indexOf('session.tool') < 0)
+    d('CO evt ' + ev.type)
+
   if (ev.location?.directory && (Util.sameDir(ev.location.directory, buf.dir) == 0))
     d('CO skip, for dir ' + ev.location.directory)
 

@@ -363,6 +363,10 @@ function updateBufAgent
 function updateIdle
 (buf, tokenInfo) {
   Ui.updateStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
+  // v2 streams the response after the prompt resolves, so the model footer is
+  // appended when the turn ends rather than when the prompt is accepted.
+  if (buf.vars('code').busy)
+    Ui.appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant), Util.fmtCost(buf.vars('code').lastCost), undefined, buf.vars('code').curMessageID)
   buf.vars('code').busy = 0
   Mess.yell('')
   if (buf.vars('code').agentStopped) {
@@ -973,10 +977,6 @@ function send
 
                                 if (provider == 'openrouter' || provider == 'deepinfra')
                                   updateCredits(buf, provider)
-
-                                // after the response, so the model footer never
-                                // lands above a response that rendered late
-                                Ui.appendModel(buf, Util.modelName(model, variant), Util.fmtCost(buf.vars('code').lastCost), undefined, buf.vars('code').curMessageID)
                               }).catch(err => {
                                          d(err)
                                          Ui.appendMsg(buf, 'assistant', 'Error: ' + (err.message || JSON.stringify(err)))

@@ -67,7 +67,7 @@ function storesWith
       continue
     }
     try {
-      if (db.prepare('SELECT COUNT(*) AS c FROM session WHERE id = ?').get(uuid).c > 0)
+      if (db.prepare('SELECT COUNT(*) AS c FROM session_v2 WHERE id = ?').get(uuid).c > 0)
         hits.push(s)
     }
     finally {
@@ -93,26 +93,29 @@ if (hits.length > 1)
 
 const db = new DatabaseSync(store.path, { readOnly: true })
 
-const s = db.prepare('SELECT * FROM session WHERE id = ?').get(uuid)
-const msgs = db.prepare('SELECT id, time_created, data FROM message WHERE session_id = ? ORDER BY time_created').all(uuid)
+const s = db.prepare('SELECT * FROM session_v2 WHERE id = ?').get(uuid)
+const msgs = db.prepare('SELECT id, seq, type, time_created, data FROM session_message WHERE session_id = ? ORDER BY seq').all(uuid)
 
 let firstText = ''
 let firstModel = null
 {
-  const m = msgs.find(x => { let d; try { d = JSON.parse(x.data) } catch { return false } return d.role == 'user' })
-  if (m) {
+  const um = msgs.find(x => x.type == 'user')
+  if (um) {
     try {
-      const d = JSON.parse(m.data)
-      if (d.model?.modelID)
-        firstModel = d.model.modelID
+      const d = JSON.parse(um.data)
+      if (d.text)
+        firstText = d.text.replace(/\s+/g, ' ').trim().slice(0, 100)
     }
     catch {}
-    for (const p of db.prepare('SELECT data FROM part WHERE message_id = ? ORDER BY time_created').all(m.id)) {
-      let pd
-      try { pd = JSON.parse(p.data) } catch { continue }
-      if (pd.type == 'text' && pd.text && !firstText)
-        firstText = pd.text.replace(/\s+/g, ' ').trim().slice(0, 100)
+  }
+  const am = msgs.find(x => x.type == 'assistant')
+  if (am) {
+    try {
+      const d = JSON.parse(am.data)
+      if (d.model?.id)
+        firstModel = d.model.id
     }
+    catch {}
   }
 }
 
@@ -148,39 +151,36 @@ function truncate
   return x.slice(0, OUTPUT_LIMIT) + `\n… [truncated at ${OUTPUT_LIMIT} chars]`
 }
 
-function renderPart
-(p, out) {
-  switch (p.type) {
-    case 'text':
-      if (p.text)
-        out.push(p.text.replace(/\n+$/, ''))
-      break
-    case 'reasoning':
-      if (p.text)
-        out.push(`<details><summary>reasoning</summary>\n\n${p.text}\n\n</details>`)
-      break
-    case 'tool': {
-      const st = p.state || {}
-      out.push(`\n### tool: ${p.tool}`)
-      if (st.input !== undefined) {
-        let s
-        try { s = typeof st.input == 'string' ? st.input : JSON.stringify(st.input, null, 2) } catch { s = String(st.input) }
-        out.push('input:\n```json\n' + truncate(s) + '\n```')
-      }
-      if (st.output !== undefined)
-        out.push('output:\n```text\n' + truncate(st.output) + '\n```')
-      break
+function toolOutput
+(st) {
+  if (st?.output)
+    return st.output
+  if (st?.error)
+    return st.error.message || JSON.stringify(st.error)
+  return (st?.content || []).filter(c => c.type == 'text').map(c => c.text).join('\n')
+}
+
+function renderContent
+(c, out) {
+  if (c.type == 'text') {
+    if (c.text)
+      out.push(c.text.replace(/\n+$/, ''))
+  }
+  else if (c.type == 'reasoning') {
+    if (c.text)
+      out.push(`<details><summary>reasoning</summary>\n\n${c.text}\n\n</details>`)
+  }
+  else if (c.type == 'tool') {
+    const st = c.state || {}
+    out.push(`\n### tool: ${c.name}`)
+    if (st.input !== undefined) {
+      let s
+      try { s = typeof st.input == 'string' ? st.input : JSON.stringify(st.input, null, 2) } catch { s = String(st.input) }
+      out.push('input:\n```json\n' + truncate(s) + '\n```')
     }
-    case 'patch': {
-      const files = (p.files || []).map(f => '- ' + f).join('\n')
-      out.push(`\n### patch — ${(p.files || []).length} file${(p.files || []).length == 1 ? '' : 's'}`)
-      if (files)
-        out.push(files)
-      break
-    }
-    default:
-      // step-start / step-finish / unknown: not transcript material
-      break
+    const output = toolOutput(st)
+    if (output)
+      out.push('output:\n```text\n' + truncate(output) + '\n```')
   }
 }
 
@@ -207,20 +207,18 @@ for (const m of msgs) {
   catch {
     continue
   }
-  const created = d.time?.created || m.time_created
-  const parts = db.prepare('SELECT data FROM part WHERE message_id = ? ORDER BY time_created').all(m.id)
   const blocks = []
-  for (const p of parts) {
-    let pd
-    try {
-      pd = JSON.parse(p.data)
-    }
-    catch {
-      continue
-    }
-    renderPart(pd, blocks)
+  if (m.type == 'user') {
+    if (d.text)
+      blocks.push(d.text.replace(/\n+$/, ''))
   }
-  lines.push(`## ${d.role || '?'} · ${fmtDate(created)}`)
+  else if (m.type == 'assistant') {
+    for (const c of (d.content || []))
+      renderContent(c, blocks)
+  }
+  else if (d.text)
+    blocks.push(d.text)
+  lines.push(`## ${m.type || '?'} · ${fmtDate(m.time_created)}`)
   lines.push('')
   lines.push(blocks.length ? blocks.join('\n\n') : '_(no content)_')
   lines.push('')

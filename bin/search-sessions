@@ -81,44 +81,46 @@ function fmtDate
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-// The text of a part as a user/agent would see it. Returns '' for parts
-// (step-start/step-finish) that carry no transcript material.
-function partText
-(d) {
-  switch (d.type) {
-    case 'text':
-      return d.text
-    case 'reasoning':
-      return d.text
-    case 'tool': {
-      const st = d.state || {}
-      return [ st.title, st.output,
-               typeof st.input == 'string' ? st.input
-                 : (st.input ? JSON.stringify(st.input) : '') ]
-        .filter(Boolean).join('\n')
+// The text of a v2 message as a user/agent would see it. Returns '' for
+// messages that carry no transcript material.
+function messageText
+(m) {
+  let data, out, i, c, st
+
+  data = m.data || {}
+  if (m.type == 'assistant') {
+    out = []
+    for (i = 0; i < (data.content || []).length; i++) {
+      c = data.content[i]
+      if (c.type == 'text' || c.type == 'reasoning')
+        out.push(c.text)
+      else if (c.type == 'tool') {
+        st = c.state || {}
+        out.push([ c.name, st.output,
+                   typeof st.input == 'string' ? st.input
+                     : (st.input ? JSON.stringify(st.input) : '') ]
+          .filter(Boolean).join('\n'))
+      }
     }
-    case 'patch':
-      return (d.files || []).join('\n')
-    default:
-      return ''
+    return out.join('\n')
   }
+  return data.text || ''
 }
 
-// First part whose displayed text contains the term; snippet shows the term
-// in context. Returns null when the session only matched elsewhere (title,
-// metadata, a step-finish).
+// First message whose displayed text contains the term; snippet shows the term
+// in context. Returns null when the session only matched elsewhere (title).
 function snippetFor
 (db, sessionID) {
-  const parts = db.prepare('SELECT data FROM part WHERE session_id = ? ORDER BY time_created').all(sessionID)
-  for (const p of parts) {
+  const msgs = db.prepare('SELECT type, data FROM session_message WHERE session_id = ? ORDER BY seq').all(sessionID)
+  for (const m of msgs) {
     let d
     try {
-      d = JSON.parse(p.data)
+      d = JSON.parse(m.data)
     }
     catch {
       continue
     }
-    const text = partText(d)
+    const text = messageText({ type: m.type, data: d })
     if (!text)
       continue
     const idx = text.toLowerCase().indexOf(LOWER)
@@ -128,7 +130,7 @@ function snippetFor
     const end = Math.min(text.length, idx + term.length + 90)
     const pre = start > 0 ? '…' : ''
     const post = end < text.length ? '…' : ''
-    return `[${d.type}${d.type == 'tool' && d.tool ? ' ' + d.tool : ''}] ${pre}${strip(text.slice(start, end))}${post}`
+    return `[${m.type}] ${pre}${strip(text.slice(start, end))}${post}`
   }
   return null
 }
@@ -146,11 +148,11 @@ for (const dbPath of findDbs()) {
   try {
     const q = db.prepare(`
       SELECT id, title, directory, time_created
-      FROM session
+      FROM session_v2
       WHERE ${includeSubagents ? '' : 'parent_id IS NULL AND '}
         (title LIKE ?
-         OR EXISTS (SELECT 1 FROM part p
-                    WHERE p.session_id = session.id AND p.data LIKE ?))
+         OR EXISTS (SELECT 1 FROM session_message m
+                    WHERE m.session_id = session_v2.id AND m.data LIKE ?))
       ORDER BY time_created DESC
     `)
     for (const r of q.all('%' + term + '%', '%' + term + '%'))

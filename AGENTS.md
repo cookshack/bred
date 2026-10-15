@@ -122,24 +122,40 @@ Read `doc/Globals.md` for singleton modules:
 
 ## ext/code: Opencode UI
 
+Uses opencode v2 via `@opencode/client` (copied into `ext/code/lib/opencode/` by
+`bin/postinstall`, which also writes `version.json`). Generated types live at
+`ext/code/lib/opencode/promise/generated/types.d.ts`.
+
 ### Files
 - `ext/code/code.mjs` — main extension
 - `ext/code/code.css` — styles
-- `ext/code/lib/opencode.js` — SDK wrapper
-- `ext/code/lib/gen/` — generated SDK
+- `ext/code/comm.mjs` — client creation (`OpenCode.make`)
+- `ext/code/event.mjs` — v2 event subscription + translation to legacy events
+- `ext/code/stop.mjs` — `session.interrupt`
 
 ### Conventions
 - Match events by `sessionID` from `buf.vars('code')`
-- For uncertain SDK API usage, check `opencode-src/packages/opencode/src/cli/cmd/tui/` for reference patterns
-- `opencode-src/` is a symlink to the actual source
+- `event.mjs` translates v2 events (`{ type, data, location }`) into the legacy
+  `{ type, properties }` shapes the handlers in `code.mjs` consume. Prefer adding
+  a translation there over changing every handler.
+- v2 client methods return parsed output and **reject** on error (no `{ data, error }`).
+- Session methods take `location: { directory }`; prompts take `{ sessionID, text }`
+  and model/agent are set with `session.switchModel` / `session.switchAgent`.
+- Test the extension offline with `test/fake-oc.mjs` + `test/code-events.mjs`.
 
 ### Key SDK Methods
-- `client.session.create({ body: { title } })` — create session
-- `client.session.prompt({ path: { id }, body: { parts, model } })` — send prompt
-- `client.event.subscribe({})` — subscribe to events (returns `{ stream }`)
-- `client.postSessionIdPermissionsPermissionId({ path: { id, permissionID }, body: { response } })` — respond to permissions
+- `OpenCode.make({ baseUrl, headers })` — create client
+- `client.session.create({ location: { directory }, title, agent, model })`
+- `client.session.switchModel({ sessionID, model: { id, providerID, variant } })`
+- `client.session.switchAgent({ sessionID, agent })`
+- `client.session.prompt({ sessionID, text })`
+- `client.message.list({ sessionID })`
+- `client.event.subscribe()` — async iterable of v2 events
+- `client.permission.reply({ sessionID, requestID, decision })`
+- `client.session.form.reply({ sessionID, formID, answer })` / `.cancel(...)`
+- `client.provider.list({ location })` / `client.model.list({ location })`
 
 ### Known Issues
 - Event stream must be started before sending prompts
 - Each buffer needs its own event subscription
-- Thinking content arrives incrementally via delta updates
+- v2 event subscriptions are live-only (no replay); bred reconnects on drop

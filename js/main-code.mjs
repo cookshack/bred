@@ -83,13 +83,13 @@ function onSearchSessions
 
   rows = db.prepare(`
     SELECT s.id, s.title, s.directory, s.time_created,
-           (SELECT p2.data FROM part p2
-            WHERE p2.session_id = s.id AND p2.data LIKE ?
+           (SELECT m2.data FROM session_message m2
+            WHERE m2.session_id = s.id AND m2.data LIKE ?
             LIMIT 1) as snippet_source
-    FROM session s
+    FROM session_v2 s
     WHERE s.title LIKE ?
-       OR EXISTS (SELECT 1 FROM part p
-                  WHERE p.session_id = s.id AND p.data LIKE ?)
+       OR EXISTS (SELECT 1 FROM session_message m
+                  WHERE m.session_id = s.id AND m.data LIKE ?)
     ORDER BY s.time_created DESC
     LIMIT 50
   `).all('%' + search + '%', '%' + search + '%', '%' + search + '%')

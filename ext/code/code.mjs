@@ -922,6 +922,7 @@ async function resolveVariant
   catch {
   }
   d('CO variant ' + variant + ' unavailable, omitting')
+  Mess.yell('Variant "' + variant + '" unavailable for ' + providerID + '/' + modelID + ' (omitting)')
   return 0
 }
 

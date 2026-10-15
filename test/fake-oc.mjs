@@ -82,6 +82,8 @@ function make
   sessionGroup.prompt = input => respond('session.prompt', input)
   sessionGroup.command = input => respond('session.command', input)
   sessionGroup.interrupt = input => respond('session.interrupt', input)
+  sessionGroup.switchAgent = input => respond('session.switchAgent', input)
+  sessionGroup.switchModel = input => respond('session.switchModel', input)
   sessionGroup.message = { get: input => respond('session.message.get', input) }
 
   client = {}

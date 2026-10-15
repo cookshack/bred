@@ -13,30 +13,31 @@ function test
 
 tests = {}
 
-test('stop', 'aborts the session with the directory',
+test('stop', 'interrupts the session',
      async () => {
        let calls, client
 
        calls = []
-       client = { session: { abort: async args => {
+       client = { session: { interrupt: async args => {
                                             calls.push(args)
-                                            return { data: true }
+                                            return {}
                                           } } }
 
-       await Stop.cancel(client, 's1', '/a')
+       await Stop.cancel(client, 's1')
        equal(calls.length, 1)
        equal(calls[0].sessionID, 's1')
-       equal(calls[0].directory, '/a')
      })
 
-test('stop', 'throws on an error result',
+test('stop', 'propagates an interrupt error',
      async () => {
        let client, err
 
-       client = { session: { abort: async () => ({ error: { message: 'nope' } }) } }
+       client = { session: { interrupt: async () => {
+                                            throw new Error('nope')
+                                          } } }
        err = 0
        try {
-         await Stop.cancel(client, 's1', '/a')
+         await Stop.cancel(client, 's1')
        }
        catch (e) {
          err = e
@@ -44,18 +45,18 @@ test('stop', 'throws on an error result',
        equal(err?.message, 'nope')
      })
 
-test('stop', 'missing session id does not call abort',
+test('stop', 'missing session id does not interrupt',
      async () => {
        let calls, client, err
 
        calls = 0
-       client = { session: { abort: async () => {
+       client = { session: { interrupt: async () => {
                                             calls++
-                                            return { data: true }
+                                            return {}
                                           } } }
        err = 0
        try {
-         await Stop.cancel(client, null, '/a')
+         await Stop.cancel(client, null)
        }
        catch (e) {
          err = e

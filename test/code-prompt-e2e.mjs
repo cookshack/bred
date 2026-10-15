@@ -159,10 +159,13 @@ test('startup', 'burying before the prompt appears still yields a usable prompt'
        ({ panes } = await setupStart())
 
        create = new Promise(r => resolveCreate = r)
-       fake = { session: { abort: () => Promise.resolve({}),
-                           command: () => Promise.resolve({}),
-                           create: () => create,
-                           prompt: () => Promise.resolve({ data: { info: {}, parts: [] } }) } }
+       fake = Fake.make({ responses: { 'session.create': () => create,
+                                       'session.update': {},
+                                       'session.command': {},
+                                       'session.interrupt': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
 
        orig = panes.pB.setBuf.bind(panes.pB)
        panes.pB.setBuf = patchedSetBuf
@@ -174,7 +177,7 @@ test('startup', 'burying before the prompt appears still yields a usable prompt'
          await setBuf(panes.pB, fileBuf('x.txt'))
          equal(started.views[0].ele, undefined, 'code view must be closed while buried')
 
-         resolveCreate({ data: { id: 'ses1', time: { created: Date.now() } } })
+         resolveCreate({ id: 'ses1', time: { created: Date.now() } })
          await wait(50)
          equal(started.vars('code').sessionID, 'ses1', 'session must be created')
 
@@ -251,14 +254,15 @@ test('nav', 'header has one message nav pair and no inline arrows',
 
 test('order', 'model line comes after the assistant response',
      async () => {
-       let created, fake, orig, panes, promptRes
+       let created, fake, orig, panes
 
        ({ panes } = await setupStart())
 
-       promptRes = { data: { info: { modelID: 'test-model', cost: 0 }, parts: [ { id: 'prtorder', type: 'text', text: 'the agent response' } ] } }
-       fake = Fake.make({ responses: { 'session.create': { data: { id: 'ses-order', time: { created: 1 } } },
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-order', time: { created: 1 } },
                                        'session.update': {},
-                                       'session.prompt': promptRes } })
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
 
        orig = panes.pB.setBuf.bind(panes.pB)
        panes.pB.setBuf = (b, spec, cb) => {

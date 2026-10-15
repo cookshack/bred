@@ -62,13 +62,12 @@ function codeInit
     Ui.appendMsg(existingBuf, 'user', '/init', undefined, undefined, { agent: 'build' })
     updateBufAgent(existingBuf, 'build')
     Ev.startSub(existingBuf, events)
-    Comm.ensureClient(existingBuf).then(c => {
-                                          c.session.command({ sessionID: existingBuf.vars('code').sessionID,
-                                                              directory: existingBuf.dir,
-                                                              command: 'init',
-                                                              arguments: '',
-                                                              agent: 'build',
-                                                              model: existingBuf.vars('code').provider + '/' + existingBuf.vars('code').model })
+    Comm.ensureClient(existingBuf).then(async c => {
+                                          await c.session.switchAgent({ sessionID: existingBuf.vars('code').sessionID,
+                                                                        agent: 'build' })
+                                          await c.session.command({ sessionID: existingBuf.vars('code').sessionID,
+                                                                    name: 'init',
+                                                                    text: '' })
                                         })
     return
   }
@@ -81,10 +80,13 @@ function codeInit
   buf.opt('core.lint.enabled', 1)
 
   Comm.ensureClient(buf).then(c => {
-                                c.session.create({ directory: buf.dir, title: '/init' })
+                                c.session.create({ location: { directory: buf.dir },
+                                                   title: '/init',
+                                                   agent: 'build',
+                                                   model: { id: model, providerID: provider } })
                                   .then(res => {
-                                          buf.vars('code').sessionID = res.data.id
-                                          buf.vars('code').sessionStart = res.data.time?.created
+                                          buf.vars('code').sessionID = res.id
+                                          buf.vars('code').sessionStart = res.time?.created
 
                                           pane.setBuf(buf, {}, () => {
                                                                  Prompt.nestBuf(buf, hist)
@@ -96,12 +98,9 @@ function codeInit
                                                                  Ui.updateDocker(buf)
                                                                  Ev.startSub(buf, events)
 
-                                                                 c.session.command({ sessionID: res.data.id,
-                                                                                     directory: buf.dir,
-                                                                                     command: 'init',
-                                                                                     arguments: '',
-                                                                                     agent: 'build',
-                                                                                     model: provider + '/' + model })
+                                                                 c.session.command({ sessionID: res.id,
+                                                                                     name: 'init',
+                                                                                     text: '' })
                                                                })
                                         })
                                   .catch(err => {
@@ -138,13 +137,8 @@ function updateDeepinfraCredits
   Comm.ensureClient(buf).then(async c => {
                                 let providers, key
 
-                                providers = await c.config.providers({ directory: buf.dir })
-                                providers.data.providers?.some(p => {
-                                                                 if (p.id == 'deepinfra') {
-                                                                   key = p.key
-                                                                   return true
-                                                                 }
-                                                               })
+                                providers = await c.provider.list({ location: { directory: buf.dir } })
+                                providers.data?.some(p => p.id == 'deepinfra')
                                 if (key)
                                   fetch('https://api.deepinfra.com/v1/me?checklist=true',
                                         { method: 'GET',
@@ -299,10 +293,9 @@ function ynRespond
                                   // Check the SDK method parameters against the OpenAPI spec in
                                   // `http://127.0.0.1:PORT/doc` to verify all required params
                                   // (especially query params like `directory`) are being passed.
-                                  await c.permission.respond({ sessionID,
-                                                               permissionID: id,
-                                                               response,
-                                                               directory: buf.dir })
+                                  await c.permission.reply({ sessionID,
+                                                             requestID: id,
+                                                             decision: response })
                                   Util.eachCodeW(buf, (view, w) => {
                                                         let el
 
@@ -409,15 +402,15 @@ function updateModelContextLimit
   buf.vars('code').lastModelID = modelID
   Comm.ensureClient(buf).then(async c => {
                                 try {
-                                  let providers, model
+                                  let models, model
 
-                                  providers = await c.config.providers({ directory: buf.dir })
-                                  providers.data.providers?.some(p => {
-                                                                   if (p.id == providerID) {
-                                                                     model = p.models?.[modelID]
-                                                                     return true
-                                                                   }
-                                                                 })
+                                  models = await c.model.list({ location: { directory: buf.dir } })
+                                  models.data?.some(m => {
+                                                      if (m.providerID == providerID && m.modelID == modelID) {
+                                                        model = m
+                                                        return true
+                                                      }
+                                                    })
                                   if (model?.limit?.context) {
                                     d('CO modelContextLimit ' + model.limit.context)
                                     buf.vars('code').modelContextLimit = model.limit.context
@@ -499,13 +492,29 @@ function appendQuestion
                       })
 }
 
+function formAnswer
+(req, answers) {
+  let out, questions, i
+
+  questions = req?.questions || []
+  out = {}
+  for (i = 0; i < questions.length; i++)
+    out[questions[i].key || String(i)] = (answers[i]?.length || 0) > 1 ? answers[i] : (answers[i]?.[0] || '')
+  return out
+}
+
 function questionRespond
 (buf, requestID, answers) {
   d('CO question ' + (answers ? 'reply' : 'reject'))
   Comm.ensureClient(buf).then(async c => {
                                 try {
+                                  let req
+
+                                  req = (buf.vars('code').questions || []).find(q => q.id == requestID)
                                   if (answers) {
-                                    await c.question.reply({ requestID, answers, directory: buf.dir })
+                                    await c.session.form.reply({ sessionID: req?.sessionID || buf.vars('code').sessionID,
+                                                                 formID: requestID,
+                                                                 answer: formAnswer(req, answers) })
                                     Util.eachCodeW(buf, (view, w) => {
                                                           let el
 
@@ -523,7 +532,8 @@ function questionRespond
                                                         })
                                   }
                                   else {
-                                    await c.question.reject({ requestID, directory: buf.dir })
+                                    await c.session.form.cancel({ sessionID: req?.sessionID || buf.vars('code').sessionID,
+                                                                  formID: requestID })
                                     Util.eachCodeW(buf, (view, w) => {
                                                           let el
 
@@ -890,7 +900,6 @@ function ensureTitle
     return
   buf.vars('code').titleUpdated = 1
   c.session.update({ sessionID,
-                     directory: buf.dir,
                      title: text })
     .catch(() => {})
 }
@@ -928,54 +937,22 @@ function send
 
                                 d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
 
-                                res = await c.session.prompt({ sessionID,
-                                                               directory: buf.dir,
-                                                               model: { providerID: provider, modelID: model },
-                                                               agent,
-                                                               variant: variant || undefined,
-                                                               parts: [ { id: 'prt_' + uuidv4(), type: 'text', text } ] })
+                                await c.session.switchModel({ sessionID, model: { id: model, providerID: provider, variant: variant || undefined } })
+                                await c.session.switchAgent({ sessionID, agent })
+
+                                res = await c.session.prompt({ sessionID, text })
 
                                 d('CO SEND done')
                                 d({ res })
-
-                                backfillMessageID(buf, tmpID, res.data?.info?.parentID)
 
                                 ensureTitle(c, buf, sessionID, text)
 
                                 if (provider == 'openrouter' || provider == 'deepinfra')
                                   updateCredits(buf, provider)
 
-                                await new Promise(r => setTimeout(r))
-                                if (buf.vars('code').gotContent == 0 && res.data?.parts)
-                                  for (let part of res.data.parts)
-                                    if (part.type == 'step-start') {
-                                      let steps
-
-                                      steps = buf.vars('code').stepActiveSessions
-                                      if (steps == null) {
-                                        steps = new Set()
-                                        buf.vars('code').stepActiveSessions = steps
-                                      }
-                                      steps.add(part.sessionID)
-                                    }
-                                    else if (part.type == 'text' && part.text)
-                                      Ui.appendMsg(buf, 0, part.text, part.id)
-                                    else if (part.type == 'reasoning' && part.text)
-                                      Ui.appendThinking(buf, part.text, part.id)
-                                    else if (part.type == 'tool')
-                                      handleToolPart(buf, part)
-
-                                if (res?.error) {
-                                  d({ resError: res.error })
-                                  Ui.appendMsg(buf, 'assistant', 'Error: ' + (res.error.message || JSON.stringify(res.error)))
-                                  buf.vars('code').client = 0
-                                  buf.vars('code').streamActive = 0
-                                  Ev.startSub(buf, events)
-                                }
-
                                 // after the response, so the model footer never
                                 // lands above a response that rendered late
-                                Ui.appendModel(buf, Util.modelName(res.data?.info?.modelID || '???', variant), Util.fmtCost(res.data?.info?.cost), undefined, res.data?.info?.id)
+                                Ui.appendModel(buf, Util.modelName(model, variant), Util.fmtCost(buf.vars('code').lastCost), undefined, buf.vars('code').curMessageID)
                               }).catch(err => {
                                          d(err)
                                          Ui.appendMsg(buf, 'assistant', 'Error: ' + (err.message || JSON.stringify(err)))
@@ -983,18 +960,6 @@ function send
                                          buf.vars('code').streamActive = 0
                                          Ev.startSub(buf, events)
                                        })
-}
-
-// The live user message is rendered before the server assigns its id, so tag
-// it with a temporary id and swap in the real one (the assistant's parentID)
-// once the turn completes.
-function backfillMessageID
-(buf, tmpID, realID) {
-  if (realID == null)
-    return
-  Util.eachCodeW(buf, (view, w) => {
-                        w.querySelectorAll('[data-messageid="' + tmpID + '"]').forEach(el => el.setAttribute('data-messageid', realID))
-                      })
 }
 
 function viewMessageJSON
@@ -1005,15 +970,13 @@ function viewMessageJSON
   Comm.ensureClient(buf).then(async c => {
                                 let res
 
-                                res = await c.session.message({ sessionID: buf.vars('code').sessionID,
-                                                                messageID,
-                                                                directory: buf.dir })
+                                res = await c.session.message.get({ sessionID: buf.vars('code').sessionID, messageID })
                                 Ed.make(pane,
                                         { name: 'code-msg-' + messageID.replace(/^msg_/, '') + '.json',
                                           dir: buf.dir },
                                         view => {
                                           view.buf.opts.set('core.lang', 'json')
-                                          view.insert(JSON.stringify(res.data, null, 2))
+                                          view.insert(JSON.stringify(res, null, 2))
                                           view.buf.modified = 0
                                         })
                               }).catch(err => {
@@ -1022,22 +985,11 @@ function viewMessageJSON
                                        })
 }
 
-function removeMessageEls
-(buf, messageID) {
-  Util.eachCodeW(buf, (view, w) => {
-                        w.querySelectorAll('[data-messageid="' + messageID + '"]').forEach(el => el.remove())
-                      })
-}
-
 function deleteMessage
 (buf, messageID) {
-  Comm.ensureClient(buf).then(async c => {
-                                await c.session.deleteMessage({ sessionID: buf.vars('code').sessionID, messageID, directory: buf.dir })
-                                removeMessageEls(buf, messageID)
-                              }).catch(err => {
-                                         Mess.yell('Delete failed: ' + err.message)
-                                         d('CO delete message error: ' + err.message)
-                                       })
+  // v2 has no delete-message operation.
+  Mess.yell('Delete message is not supported by opencode v2')
+  d('CO delete message unsupported: ' + messageID)
 }
 
 function messageMenu
@@ -1076,7 +1028,7 @@ function stopAgent
   buf.vars('code').agentStopped = 1
   Comm.ensureClient(buf).then(async client => {
                                 try {
-                                  await Stop.cancel(client, sessionID, buf.dir)
+                                  await Stop.cancel(client, sessionID)
                                   Mess.yell('Stopped agent')
                                 }
                                 catch (err) {
@@ -1262,32 +1214,25 @@ function listModels
                                   let entries
 
                                   entries = []
-                                  providers.forEach(p => {
-                                                      let modelIDs
+                                  providers.forEach(m => {
+                                                      let fullId, active
 
-                                                      modelIDs = Object.keys(p.models || {})
-                                                      if (modelIDs.length == 0)
-                                                        return
-                                                      modelIDs.forEach(modelID => {
-                                                                         let fullId, active
-
-                                                                         fullId = p.id + '/' + modelID
-                                                                         active = p.id == buf.vars('code').provider
-            && modelID == buf.vars('code').model
-                                                                         entries.push({ fullId,
-                                                                                        active,
-                                                                                        providerID: p.id,
-                                                                                        modelID,
-                                                                                        sortKey: rank(p.id) + '/' + p.id + '/' + modelID })
-                                                                       })
+                                                      fullId = m.providerID + '/' + m.modelID
+                                                      active = m.providerID == buf.vars('code').provider
+            && m.modelID == buf.vars('code').model
+                                                      entries.push({ fullId,
+                                                                     active,
+                                                                     providerID: m.providerID,
+                                                                     modelID: m.modelID,
+                                                                     sortKey: rank(m.providerID) + '/' + m.providerID + '/' + m.modelID })
                                                     })
                                   entries.sort((a, b) => (a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0))
                                   choices = entries.map(e => e.fullId + (e.active ? ' ◀ current' : ''))
                                   byChoice = new Map(entries.map(e => [ e.fullId + (e.active ? ' ◀ current' : ''), e ]))
                                 }
 
-                                res = await c.config.providers({ directory: buf.dir })
-                                providers = res.data.providers || []
+                                res = await c.model.list({ location: { directory: buf.dir } })
+                                providers = res.data || []
 
                                 choices = []
                                 byChoice = new Map()
@@ -1304,8 +1249,8 @@ function listModels
                                                   if (info) {
                                                     let model, variantKeys
 
-                                                    model = providers.find(p => p.id == info.providerID)?.models?.[info.modelID]
-                                                    variantKeys = model?.variants ? Object.keys(model.variants) : []
+                                                    model = providers.find(m => m.providerID == info.providerID && m.modelID == info.modelID)
+                                                    variantKeys = (model?.variants || []).map(v => v.id)
                                                     if (variantKeys.length == 0) {
                                                       setModel(buf, info.providerID, info.modelID, '')
                                                       return
@@ -1442,11 +1387,11 @@ function code
                                                          let res
 
                                                          Ui.appendMsg(buf, 0, 'Creating session...')
-                                                         res = await c.session.create({ directory: buf.dir,
+                                                         res = await c.session.create({ location: { directory: buf.dir },
                                                                                         ...(prompt ? { title: prompt } : {}) })
 
-                                                         buf.vars('code').sessionID = res.data.id
-                                                         buf.vars('code').sessionStart = res.data.time?.created
+                                                         buf.vars('code').sessionID = res.id
+                                                         buf.vars('code').sessionStart = res.time?.created
                                                          buf.vars('code').startupPending = { provider,
                                                                                              model,
                                                                                              variant,
@@ -2293,8 +2238,8 @@ function init
                                          try {
                                            let h
 
-                                           h = await c.global.health()
-                                           d('CO server version: ' + (h.data?.version || '??'))
+                                            h = await c.server.info()
+                                            d('CO server version: ' + (h?.version || '??'))
                                          }
                                          catch (err) {
                                            d('CO health failed: ' + err.message)

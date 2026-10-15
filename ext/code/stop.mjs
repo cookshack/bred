@@ -1,14 +1,10 @@
-// Abort an agent run the way the rest of bred does (the sdk returns
-// { data, error } rather than throwing, so failures must be checked).
+// Interrupt an agent run the way the rest of bred does (the v2 client rejects
+// on failure rather than returning { data, error }).
 
 export
 async function cancel
-(client, sessionID, directory) {
-  let res
-
+(client, sessionID) {
   if (sessionID == null)
     throw new Error('missing sessionID')
-  res = await client.session.abort({ sessionID, directory })
-  if (res?.error)
-    throw new Error(res.error.message || JSON.stringify(res.error))
+  await client.session.interrupt({ sessionID })
 }

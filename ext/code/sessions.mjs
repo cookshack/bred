@@ -21,6 +21,21 @@ import * as Prompt from './prompt.mjs'
 import * as Ui from './ui.mjs'
 import * as Util from './util.mjs'
 
+function toolText
+(state) {
+  let i, out
+
+  if (state?.output)
+    return state.output
+  if (state?.error)
+    return state.error.message || JSON.stringify(state.error)
+  out = []
+  for (i = 0; i < (state?.content || []).length; i++)
+    if (state.content[i].type == 'text')
+      out.push(state.content[i].text)
+  return out.join('\n')
+}
+
 export
 function init
 (events) {
@@ -77,7 +92,7 @@ function init
       .then(c => {
               let opts
 
-              opts = { roots: showSubagents ? undefined : 'true' }
+              opts = { directory: view.buf.dir }
               return c.session.list(opts)
             })
       .then(sessions => {
@@ -85,18 +100,20 @@ function init
 
               w.innerHTML = ''
               d({ sessions })
-              filtered = sessions.data.filter(s => Util.sameDir(s.directory, view.buf.dir))
+              filtered = sessions.data || []
+              if (showSubagents == 0)
+                filtered = filtered.filter(s => s.parentID == null)
               updateCount(view, filtered.length)
               append(w,
                      filtered.map(s => {
                                     return [ divCl('code-sessions-del', '✗',
                                                    { 'data-run': 'delete session',
                                                      'data-session-id': s.id,
-                                                     'data-session-dir': s.directory }),
+                                                     'data-session-dir': view.buf.dir }),
                                              divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
                                                    { 'data-run': 'open code session',
                                                      'data-session-id': s.id,
-                                                     'data-session-dir': s.directory,
+                                                     'data-session-dir': view.buf.dir,
                                                      'data-session-time': s.time?.created }),
                                              divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
                                   }))
@@ -251,41 +268,41 @@ function init
             let msg, role
 
             msg = data[i]
-            role = msg.info.role
-            buf.vars('code').curMessageID = msg.info.id
+            role = msg.type
+            buf.vars('code').curMessageID = msg.id
             if (role == 'user') {
               flushModel()
-              for (let part of (msg.parts || []))
-                if (part.type == 'text')
-                  Ui.appendMsg(buf, 'user', part.text, part.id, msg.info.time?.created, { agent: msg.info.agent })
+              if (msg.text)
+                Ui.appendMsg(buf, 'user', msg.text, msg.id, msg.time?.created, { agent: msg.agents?.[0]?.name })
             }
-            else {
-              for (let part of (msg.parts || []))
-                if (part.type == 'reasoning' && part.text)
-                  Ui.appendThinking(buf, part.text, part.id)
-                else if (part.type == 'text')
-                  Ui.appendMsg(buf, 0, part.text, part.id)
-                else if (part.type == 'tool') {
-                  let label
+            else if (role == 'assistant') {
+              for (let content of (msg.content || []))
+                if (content.type == 'reasoning' && content.text)
+                  Ui.appendThinking(buf, content.text, msg.id)
+                else if (content.type == 'text' && content.text)
+                  Ui.appendMsg(buf, 0, content.text, msg.id)
+                else if (content.type == 'tool') {
+                  let input, label
 
-                  label = part.tool
-                  if (part.tool == 'bash' && part.state?.input?.command)
-                    label += ': ' + part.state.input.command
-                  else if (part.state?.input?.filePath)
-                    label = [ part.tool + ' ', span(Util.makeRelative(buf, part.state.input.filePath), 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': part.state.input.filePath }) ]
-                  else if (part.state?.input?.pattern)
-                    label += ' "' + part.state.input.pattern + '"'
-                  else if (part.state?.input?.query)
-                    label += ': ' + part.state.input.query
-                  else if (part.state?.input?.url)
-                    label = [ part.tool + ' ', span(part.state.input.url, 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': part.state.input.url }) ]
-                  Ui.appendToolMsg(buf, part.callID, label,
-                                   part.state?.output || part.state?.error)
+                  input = content.state?.input || {}
+                  label = content.name
+                  if (content.name == 'bash' && input.command)
+                    label += ': ' + input.command
+                  else if (input.filePath)
+                    label = [ content.name + ' ', span(Util.makeRelative(buf, input.filePath), 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': input.filePath }) ]
+                  else if (input.pattern)
+                    label += ' "' + input.pattern + '"'
+                  else if (input.query)
+                    label += ': ' + input.query
+                  else if (input.url)
+                    label = [ content.name + ' ', span(input.url, 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': input.url }) ]
+                  Ui.appendToolMsg(buf, content.id, label,
+                                   toolText(content.state))
                 }
-              pendingModel = { model: Util.modelName(msg.info.modelID, msg.info.variant),
-                               cost: msg.info.cost,
-                               at: msg.info.time?.created,
-                               messageID: msg.info.id }
+              pendingModel = { model: Util.modelName(msg.model?.modelID, msg.model?.variant),
+                               cost: msg.cost,
+                               at: msg.time?.created,
+                               messageID: msg.id }
             }
           }
           Ui.updateStatus(buf, '🔃 Loading... ' + end + '/' + data.length, '', '', '')
@@ -342,8 +359,7 @@ function init
                                                 () => {
                                                   buf.vars('code').busy = 1
                                                   Ui.updateStatus(buf, '🔃 Loading session...', '', '', '')
-                                                  c.session.messages({ sessionID,
-                                                                       directory: sessionDir }).then(onMessages)
+                                                  c.message.list({ sessionID }).then(onMessages)
 
                                                   buf.vars('code').firstPromptSent = 1
                                                   Prompt.nestBuf(buf)
@@ -386,17 +402,16 @@ function init
 
   function deleteSession
   (u, we) {
-    let sessionID, sessionDir
+    let sessionID
 
     sessionID = we.e.target.dataset.sessionId
-    sessionDir = we.e.target.dataset.sessionDir
 
     Prompt.yn('Delete session ' + sessionID.replace(/^sess_/, '') + '?',
               { icon: 'trash' },
               yes => {
                 if (yes)
                   Comm.ensureClient(View.current().buf)
-                    .then(c => c.session.delete({ sessionID, directory: sessionDir }))
+                    .then(c => c.session.remove({ sessionID }))
                     .then(() => {
                             View.current().buf.views.forEach(view => {
                                                                let w, el

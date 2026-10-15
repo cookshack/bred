@@ -2256,21 +2256,20 @@ function init
                                    (buf) {
                                      let client
 
-                                     client = buf.vars('code').client
-                                     if (client)
-                                       Comm.ensureClient(buf).then(async c => {
-                                         try {
-                                           let h
+                                      client = buf.vars('code').client
+                                      if (client)
+                                        Comm.ensureClient(buf).then(async c => {
+                                          try {
+                                            let h
 
                                             h = await c.server.info()
                                             d('CO server version: ' + (h?.version || '??'))
-                                         }
-                                         catch (err) {
-                                           d('CO health failed: ' + err.message)
-                                         }
-                                       })
-                                     Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
-                                   } },
+                                          }
+                                          catch (err) {
+                                            d('CO health failed: ' + err.message)
+                                          }
+                                        })
+                                    } },
              'server.heartbeat': {},
              'sync': {}, // workspace sync messages
              'command.executed': { onArrive

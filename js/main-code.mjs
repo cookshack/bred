@@ -19,9 +19,10 @@ export
 async function onSpawn
 (e, ch, args) {
   let [ bufferID, workingDir, statusCh ] = args
-  let name
+  let external, name
 
-  name = Server.containerName(bufferID)
+  external = process.env.BRED_OC_SERVER_URL
+  name = external ? '' : Server.containerName(bufferID)
 
   d('CODE spawn ' + bufferID + ' in ' + workingDir)
 
@@ -44,7 +45,10 @@ async function onSpawn
                                                                    'nerdctl *': 'deny' } } } })
 
     servers.set(bufferID, server)
-    e.sender.send(ch, { url: server.url, containerName: name, containerID: server.containerID })
+    e.sender.send(ch, { url: server.url,
+                        containerName: server.containerName || name,
+                        containerID: server.containerID,
+                        auth: process.env.BRED_OC_SERVER_AUTH })
   }
   catch (err) {
     d('CODE spawn failed: ' + err.message)

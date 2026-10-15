@@ -154,7 +154,7 @@ function healthCheck
                            return
                          }
 
-                         if (attempts % 10 == 0) {
+                         if (cName && attempts % 10 == 0) {
                            let running
 
                            running = await containerRunning(cName)
@@ -354,5 +354,21 @@ async function spawnDocker
 export
 async function create
 (spec) {
+  let url
+
+  // Dev-only seam: attach to an already-running server instead of spawning a
+  // container. Used to iterate against a scoped container we start by hand.
+  url = process.env.BRED_OC_SERVER_URL
+  if (url) {
+    let send
+
+    send = spec?.send || (() => {})
+    send({ log: 'CO attaching to external server ' + url })
+    await healthCheck(url, spec?.timeout || 30000, '', send)
+    return { url,
+             containerName: '',
+             containerID: '',
+             close: () => {} }
+  }
   return spawnDocker(spec)
 }

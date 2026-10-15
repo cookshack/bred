@@ -52,7 +52,8 @@ async function ensureClient
 
                                                                                        if (data.url) {
                                                                                          sent = 1
-                                                                                         client = OpenCode.make({ baseUrl: data.url })
+                                                                                         client = OpenCode.make({ baseUrl: data.url,
+                                                                                                                  headers: data.auth ? { authorization: data.auth } : undefined })
                                                                                          buf.vars('code').client = client
                                                                                          buf.vars('code').serverUrl = data.url
                                                                                          buf.vars('code').containerID = data.containerID

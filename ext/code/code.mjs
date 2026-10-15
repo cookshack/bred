@@ -2202,7 +2202,7 @@ function init
                                     error = event.properties.error
                                     d({ error })
                                     if (error)
-                                      Ui.appendMsg(buf, 'assistant', 'Error: ' + (error.data?.message || error.name || '??'))
+                                      Ui.appendMsg(buf, 'assistant', 'Error: ' + (error.message || error.data?.message || error.type || error.name || '??'))
                                     else
                                       Ui.appendMsg(buf, 'assistant', 'Error: session error - details missing')
                                   }

@@ -478,7 +478,7 @@ function appendQuestion
                                                                                                                          { 'data-run': 'toggle question option',
                                                                                                                            'data-qid': req.id,
                                                                                                                            'data-qi': qi,
-                                                                                                                           'data-opt': opt.label })),
+                                                                                                                           'data-opt': opt.value ?? opt.label })),
                                                                                    q.custom && create('input', [],
                                                                                                       'code-question-custom',
                                                                                                       { 'data-qid': req.id,

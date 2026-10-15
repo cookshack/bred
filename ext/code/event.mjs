@@ -39,7 +39,7 @@ function textOf
 // v2 forms replace v1 questions: map each field to a question the UI understands.
 function fieldQuestions
 (form) {
-  return (form.fields || []).map(f => ({ key: f.key, header: f.title, question: f.description, custom: f.custom, multiple: f.type == 'multiselect', options: (f.options || []).map(o => ({ label: o.label, description: o.description })) }))
+  return (form.fields || []).map(f => ({ key: f.key, header: f.title, question: f.description, custom: f.custom, multiple: f.type == 'multiselect', options: (f.options || []).map(o => ({ value: o.value, label: o.label, description: o.description })) }))
 }
 
 // Translate a v2 event into the legacy events the code handlers consume.

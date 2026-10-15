@@ -367,8 +367,6 @@ function updateIdle
   // appended when the turn ends rather than when the prompt is accepted.
   if (buf.vars('code').busy)
     Ui.appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant), Util.fmtCost(buf.vars('code').lastCost), undefined, buf.vars('code').curMessageID)
-  else
-    d('CO idle (not busy, no footer)')
   buf.vars('code').busy = 0
   Mess.yell('')
   if (buf.vars('code').agentStopped) {

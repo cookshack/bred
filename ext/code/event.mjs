@@ -70,7 +70,17 @@ function translate
   case 'session.status':
     out.push(legacy('session.status', { sessionID: data.sessionID, status: data.status }))
     break
+  case 'session.execution.started':
+    out.push(legacy('session.status', { sessionID: data.sessionID, status: { type: 'busy' } }))
+    break
+  case 'session.execution.succeeded':
+  case 'session.execution.interrupted':
+    out.push(legacy('session.status', { sessionID: data.sessionID, status: { type: 'idle' } }))
+    break
   case 'session.execution.failed':
+    out.push(legacy('session.error', { sessionID: data.sessionID, error: data.error }))
+    out.push(legacy('session.status', { sessionID: data.sessionID, status: { type: 'idle' } }))
+    break
   case 'session.step.failed':
     out.push(legacy('session.error', { sessionID: data.sessionID, error: data.error }))
     break
@@ -143,9 +153,6 @@ function translate
 function handle
 (buf, events, ev) {
   let legacies
-
-  if (ev.type.indexOf('session.text') < 0 && ev.type.indexOf('session.reasoning') < 0 && ev.type.indexOf('session.tool') < 0)
-    d('CO evt ' + ev.type)
 
   if (ev.location?.directory && (Util.sameDir(ev.location.directory, buf.dir) == 0))
     d('CO skip, for dir ' + ev.location.directory)

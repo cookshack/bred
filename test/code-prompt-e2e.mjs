@@ -278,11 +278,12 @@ test('order', 'model line comes after the assistant response',
 
          Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
          await waitFor(() => created?.views[0]?.ele)
-         // v2 streams the turn; the model footer lands at idle, after content.
+         // v2 streams the turn; the model footer lands at execution end, after content.
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-order' }))
          fake.push(Fake.event('session.step.started', { sessionID: 'ses-order', assistantMessageID: 'm1', agent: 'plan', model: { id: 'test-model', providerID: 'goat' } }))
          fake.push(Fake.event('session.text.started', { sessionID: 'ses-order', assistantMessageID: 'm1', ordinal: 0 }))
          fake.push(Fake.event('session.text.delta', { sessionID: 'ses-order', assistantMessageID: 'm1', ordinal: 0, delta: 'the agent response' }))
-         fake.push(Fake.event('session.idle', { sessionID: 'ses-order' }))
+         fake.push(Fake.event('session.execution.succeeded', { sessionID: 'ses-order' }))
          await waitFor(() => created.views[0].ele.querySelector('.code-msg-model'))
 
          w = created.views[0].ele.querySelector('.code-w')

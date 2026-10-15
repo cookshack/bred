@@ -38,6 +38,18 @@ function until
 
 tests = {}
 
+test('translate', 'execution lifecycle maps to status',
+     () => {
+       let buf, done, started
+
+       buf = makeBuf()
+       started = Ev.translate(buf, Fake.event('session.execution.started', { sessionID: 's1' }))
+       equal(started[0].type, 'session.status')
+       equal(started[0].properties.status.type, 'busy')
+       done = Ev.translate(buf, Fake.event('session.execution.succeeded', { sessionID: 's1' }))
+       equal(done[0].properties.status.type, 'idle')
+     })
+
 test('translate', 'session.idle and status map through',
      () => {
        let buf, leg

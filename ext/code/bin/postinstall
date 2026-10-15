@@ -3,5 +3,6 @@
 rm -rf lib/opencode/
 mkdir -p lib/opencode/
 cp -r node_modules/@opencode/client/dist/. lib/opencode/
+echo '{ "type": "module" }' > lib/opencode/package.json
 VERSION=$(cat node_modules/@opencode/client/package.json | grep '"version"' | head -1 | sed 's/.*: *"\([^"]*\)".*/\1/')
 echo "{ \"version\": \"$VERSION\" }" > lib/opencode/version.json

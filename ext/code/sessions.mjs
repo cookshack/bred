@@ -36,6 +36,35 @@ function toolText
   return out.join('\n')
 }
 
+// v2 paginates messages (default 50, newest first), so walk the cursor to load
+// the whole transcript oldest-first.
+export
+async function fetchMessages
+(c, sessionID) {
+  let cursor, data, guard
+
+  data = []
+  guard = 0
+  while (1) {
+    let params, res
+
+    params = { sessionID, limit: 200 }
+    if (cursor)
+      params.cursor = cursor
+    else
+      params.order = 'asc'
+    res = await c.message.list(params)
+    if ((res.data || []).length == 0)
+      break
+    data = data.concat(res.data)
+    cursor = res.cursor?.next
+    guard++
+    if (cursor == null || guard >= 1000)
+      break
+  }
+  return { data }
+}
+
 export
 function init
 (events) {
@@ -359,7 +388,7 @@ function init
                                                 () => {
                                                   buf.vars('code').busy = 1
                                                   Ui.updateStatus(buf, '🔃 Loading session...', '', '', '')
-                                                  c.message.list({ sessionID }).then(onMessages)
+                                                  fetchMessages(c, sessionID).then(onMessages)
 
                                                   buf.vars('code').firstPromptSent = 1
                                                   Prompt.nestBuf(buf)

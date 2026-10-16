@@ -1,5 +1,6 @@
 import { equal } from 'node:assert/strict'
 import * as Ev from '../ext/code/event.mjs'
+import * as Sessions from '../ext/code/sessions.mjs'
 import * as Fake from './fake-oc.mjs'
 
 let tests
@@ -145,6 +146,28 @@ test('pipeline', 'startSub dispatches translated events',
        equal(got[0].type, 'session.idle')
        equal(got[0].properties.sessionID, 's1')
        equal(got[1].properties.part.type, 'step-start')
+     })
+
+test('messages', 'fetchMessages pages oldest-first until exhausted',
+     async () => {
+       let calls, c, res
+
+       calls = []
+       c = { message: { list: async input => {
+         calls.push(input)
+         if (input.cursor == undefined)
+           return { data: [ { id: 'm1' }, { id: 'm2' } ], cursor: { next: 'c1' } }
+         if (input.cursor == 'c1')
+           return { data: [ { id: 'm3' } ], cursor: { next: 'c2' } }
+         return { data: [], cursor: {} }
+       } } }
+       res = await Sessions.fetchMessages(c, 's1')
+       equal(res.data.length, 3)
+       equal(res.data[0].id, 'm1')
+       equal(calls[0].order, 'asc')
+       equal(calls[0].cursor, undefined)
+       equal(calls[1].cursor, 'c1')
+       equal(calls[1].order, undefined)
      })
 
 test('fake', 'records calls and returns canned responses',

@@ -342,7 +342,7 @@ function init
             flushModel()
             Ev.startSub(buf, events)
             buf.vars('code').busy = 0
-            globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'Rendered', '', '', ''))
+            globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'OK', '', '', ''))
           }
         }
 

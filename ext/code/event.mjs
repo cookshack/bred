@@ -94,7 +94,7 @@ function translate
     out.push(legacy('message.updated', { info: { sessionID: data.sessionID, model: data.model } }))
     break
   case 'permission.asked':
-    out.push(legacy('permission.asked', { id: data.id, sessionID: data.sessionID, permission: data.action, type: data.action, resources: data.resources, save: data.save, metadata: data.metadata, callID: data.metadata?.callID, tool: { callID: data.metadata?.callID } }))
+    out.push(legacy('permission.asked', { id: data.id, sessionID: data.sessionID, permission: data.action, type: data.action, resources: data.resources, patterns: data.resources, always: data.save || [], save: data.save, metadata: data.metadata, callID: data.metadata?.callID, tool: { callID: data.metadata?.callID } }))
     break
   case 'form.created':
     out.push(legacy('question.asked', { id: data.form.id, sessionID: data.form.sessionID, questions: fieldQuestions(data.form), tool: { callID: data.form.metadata?.callID } }))
@@ -285,7 +285,10 @@ function startSub
     state._resolveStreamReady?.()
     state._resolveStreamReady = 0
     state.lastActivity = Date.now()
-    Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
+    if (state.busy)
+      Ui.updateStatus(buf, '🌊', Util.modelName(state.model, state.variant), '', VopenCode.version)
+    else
+      Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
 
     due = Pacer.makePacer(16)
 

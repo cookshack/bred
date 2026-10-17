@@ -898,14 +898,20 @@ function handleSubagentIdle
 
 function ensureTitle
 (c, buf, sessionID, text) {
-  if (buf.vars('code').prompt)
+  if (buf.vars('code').prompt) {
+    d('CO title skip (initial prompt)')
     return
-  if (buf.vars('code').titleUpdated)
+  }
+  if (buf.vars('code').titleUpdated) {
+    d('CO title skip (already set)')
     return
+  }
   buf.vars('code').titleUpdated = 1
+  d('CO title set: ' + text.slice(0, 40))
   c.session.update({ sessionID,
                      title: text })
-    .catch(() => {})
+    .then(() => d('CO title ok'))
+    .catch(err => d('CO title err: ' + err.message))
 }
 
 // v2 rejects an unknown model variant at execution time, so only send one the

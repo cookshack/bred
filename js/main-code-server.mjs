@@ -199,6 +199,55 @@ function healthCheck
                      })
 }
 
+function readAuthKeys
+() {
+  let file, json, out
+
+  file = process.env.HOME + '/.local/share/opencode/auth.json'
+  out = []
+  try {
+    json = JSON.parse(fs.readFileSync(file, 'utf8'))
+  }
+  catch {
+    return out
+  }
+  Object.keys(json).forEach(id => {
+                              let value
+
+                              value = json[id]
+                              if (value && value.type == 'api' && value.key)
+                                out.push([ id, value.key ])
+                            })
+  return out
+}
+
+// Fresh per-dir databases do not import the legacy auth.json credentials, so
+// seed them through the server's own API (idempotent via a stable id).
+async function seedCredentials
+(url, password) {
+  let keys, i
+
+  keys = readAuthKeys()
+  for (i = 0; i < keys.length; i++) {
+    let headers
+
+    headers = { 'content-type': 'application/json' }
+    if (password)
+      headers.authorization = basicAuth(password)
+    try {
+      await fetch(url + '/api/credential', { method: 'POST',
+                                             headers,
+                                             body: JSON.stringify({ id: 'cred_legacy_' + keys[i][0].replace(/[^a-zA-Z0-9._-]/g, '_'),
+                                                                    integrationID: keys[i][0],
+                                                                    label: 'API key',
+                                                                    value: { type: 'key', key: keys[i][1] } }) })
+    }
+    catch (err) {
+      d('CODE SERVER credential seed failed for ' + keys[i][0] + ': ' + err.message)
+    }
+  }
+}
+
 async function spawnDocker
 (spec) {
   let name, workingDir, config, dockerTimeout, healthTimeout, authPath, args, dataDir, password
@@ -305,7 +354,10 @@ async function spawnDocker
 
                                                     d('CODE SERVER docker container ' + containerID + ' on ' + url)
                                                     d('CODE SERVER running health check for ' + containerID + ' on ' + url)
-                                                    return healthCheck(url, healthTimeout, name, spec.send, password).then(() => url)
+                                                    return healthCheck(url, healthTimeout, name, spec.send, password).then(async () => {
+                                                                                                                             await seedCredentials(url, password)
+                                                                                                                             return url
+                                                                                                                           })
                                                   })
                                             .then(url => {
                                                     d('CODE SERVER docker container healthy: ' + containerID)

@@ -176,95 +176,158 @@ function startSub
 (buf, events) {
   let state
 
+  // The server sends SSE comment heartbeats (every 15s) that the client does
+  // not yield as events; it reports them via onActivity. Only treat the stream
+  // as dead when there has been no activity at all for three heartbeats.
+  function nextWithWatchdog
+  (iter, controller) {
+    return new Promise((resolve, reject) => {
+                         let timer
+
+                         function rearm
+                         () {
+                           clearTimeout(timer)
+                           timer = setTimeout(() => {
+                                                if (state.streamActive == 0) {
+                                                  controller.abort()
+                                                  return
+                                                }
+                                                if ((Date.now() - state.lastActivity) >= 45000)
+                                                  reject(new Error('heartbeat-timeout'))
+                                                else
+                                                  rearm()
+                                              }, 5000)
+                         }
+
+                         rearm()
+                         iter.next().then(result => {
+                                            clearTimeout(timer)
+                                            resolve(result)
+                                          }, err => {
+                                               clearTimeout(timer)
+                                               reject(err)
+                                             })
+                       })
+  }
+
+  function queueReconnect
+  () {
+    let delay
+
+    if (state.streamActive == 0) return
+    state.reconnectFails = (state.reconnectFails || 0) + 1
+    state.streamReady = new Promise(resolve => state._resolveStreamReady = resolve)
+    state.lastEventTime = Date.now()
+    Ui.updateStatus(buf, '🔁 RECONNECTING', '', '')
+    delay = Math.min(10000, 500 * Math.pow(2, Math.min(state.reconnectFails - 1, 6)))
+    setTimeout(reconnect, delay)
+  }
+
+  // A stream drop does not mean the server is gone: re-subscribe to the same
+  // client. Respawn the container only when the server is truly unreachable.
+  async function reconnect
+  () {
+    let client
+
+    if (state.streamActive == 0) return
+    if (state.reconnectFails >= 3) {
+      let alive
+
+      alive = 0
+      if (buf.vars('code').client)
+        try {
+          await buf.vars('code').client.server.info()
+          alive = 1
+        }
+        catch {
+        }
+      if (alive == 0) {
+        d('CO server unreachable, respawning')
+        if (state.spawnedBufferID) {
+          try {
+            await Tron.acmd('code.close', [ state.spawnedBufferID ])
+          }
+          catch {
+          }
+          state.spawnedBufferID = 0
+        }
+        state.client = 0
+      }
+      state.reconnectFails = 0
+    }
+    try {
+      client = await Comm.ensureClient(buf)
+    }
+    catch (err) {
+      d('CO reconnect spawn failed: ' + err.message)
+      queueReconnect()
+      return
+    }
+    runStream(client)
+  }
+
   async function runStream
   (client) {
-    let due, iter
+    let controller, due, iter
 
+    controller = new AbortController()
     try {
-      iter = client.event.subscribe()[Symbol.asyncIterator]()
+      iter = client.event.subscribe({ signal: controller.signal,
+                                      onActivity: () => state.lastActivity = Date.now() })[Symbol.asyncIterator]()
     }
     catch (err) {
       if (err.name == 'AbortError') return
       d('CO subscribe error: ' + err.message)
-      state.client = 0
-      setTimeout(() => tryReconnect(), 1000)
+      queueReconnect()
       return
     }
 
     state._resolveStreamReady?.()
     state._resolveStreamReady = 0
-
-    Ui.updateStatus(buf, '🔁 CONNECTED', '', '', VopenCode.version)
+    state.lastActivity = Date.now()
+    Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
 
     due = Pacer.makePacer(16)
 
-    while (state.streamActive) {
-      let timeoutMs, timeoutPromise
-
-      timeoutMs = 35000
-      timeoutPromise = new Promise((_, reject) => {
-                                     setTimeout(() => reject(new Error('heartbeat-timeout')), timeoutMs)
-                                   })
-
+    while (state.streamActive)
       try {
         let result
 
-        result = await Promise.race([ iter.next(), timeoutPromise ])
+        result = await nextWithWatchdog(iter, controller)
 
         state.lastEventTime = Date.now()
         if (result.done) {
-          state.client = 0
-          tryReconnect()
+          queueReconnect()
           return
         }
-
+        state.reconnectFails = 0
         handle(buf, events, result.value)
         // yield only every frame, so a backlog drains fast but the ui breathes
         if (due(Date.now()))
           await U.cede()
       }
       catch (err) {
-        if (err.message == 'heartbeat-timeout') {
-          d('CO heartbeat timeout, reconnecting')
-          state.client = 0
-          tryReconnect()
-          return
-        }
         if (err.name == 'AbortError') return
-        d('CO stream error: ' + err.message)
-        state.client = 0
-        tryReconnect()
+        if (err.message == 'heartbeat-timeout')
+          d('CO heartbeat timeout, reconnecting')
+        else
+          d('CO stream error: ' + err.message)
+        queueReconnect()
         return
       }
-    }
-  }
-
-  async function tryReconnect
-  () {
-    if (state.streamActive == 0) return
-    if (state.spawnedBufferID) {
-      await Tron.acmd('code.close', [ state.spawnedBufferID ])
-      state.spawnedBufferID = 0
-    }
-    state.streamReady = new Promise(resolve => state._resolveStreamReady = resolve)
-    state.client = 0
-    state.lastEventTime = Date.now()
-    Ui.updateStatus(buf, '🔁 RECONNECTING', '', '')
-    Comm.ensureClient(buf).then(runStream).catch(() => {
-                                                   d('CO reconnect spawn failed')
-                                                   setTimeout(tryReconnect, 1000)
-                                                 })
   }
 
   state = buf.vars('code')
   if (state.streamActive) return
   state.streamActive = 1
+  state.reconnectFails = 0
+  state.lastActivity = Date.now()
   state.lastEventTime = Date.now()
   state.streamReady = new Promise(resolve => state._resolveStreamReady = resolve)
   Ui.updateStatus(buf, '🔁 CONNECTING', '', '')
 
-  Comm.ensureClient(buf).then(runStream).catch(() => {
-                                                 d('CO spawn failed, retrying')
-                                                 setTimeout(() => startSub(buf), 1000)
+  Comm.ensureClient(buf).then(runStream).catch(err => {
+                                                 d('CO spawn failed: ' + err.message)
+                                                 queueReconnect()
                                                })
 }

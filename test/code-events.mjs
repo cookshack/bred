@@ -37,6 +37,17 @@ function until
                      })
 }
 
+async function* scripted
+(n) {
+  if (n == 1) {
+    yield { type: 'server.connected', data: {} }
+    throw new Error('boom')
+  }
+  yield { type: 'server.connected', data: {} }
+  yield { type: 'session.idle', data: { sessionID: 's1' } }
+  await new Promise(() => {})
+}
+
 tests = {}
 
 test('translate', 'execution lifecycle maps to status',
@@ -168,6 +179,24 @@ test('messages', 'fetchMessages pages oldest-first until exhausted',
        equal(calls[0].cursor, undefined)
        equal(calls[1].cursor, 'c1')
        equal(calls[1].order, undefined)
+     })
+
+test('pipeline', 'reconnects in place after a stream drop',
+     async () => {
+       let buf, fake, state, subs
+
+       subs = 0
+       fake = { event: { subscribe: () => {
+         subs++
+         return scripted(subs)
+       } } }
+       state = { client: fake }
+       buf = { vars: () => state, views: [] }
+       Ev.startSub(buf, { 'session.idle': { onArrive: () => state.idle = 1 } })
+       await until(() => subs >= 2 && state.idle, 3000)
+       state.streamActive = 0
+       equal(state.reconnectFails, 0)
+       equal(buf.vars('code').client, fake)
      })
 
 test('fake', 'records calls and returns canned responses',

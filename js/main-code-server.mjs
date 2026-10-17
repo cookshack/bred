@@ -149,6 +149,9 @@ function healthCheck
   attempts = 0
   headers = password ? { authorization: basicAuth(password) } : undefined
 
+  d('CODE SERVER waiting for ' + url)
+  send({ log: 'Waiting for server at ' + url })
+
   return new Promise((resolve, reject) => {
                        async function check
                        () {
@@ -157,6 +160,7 @@ function healthCheck
                          attempts++
 
                          if (Date.now() - start > timeout) {
+                           d('CODE SERVER health check timed out')
                            reject(new Error('docker health check timed out'))
                            return
                          }
@@ -171,11 +175,10 @@ function healthCheck
                            }
                          }
 
-                         d('CODE SERVER health check ' + url)
-                         send({ log: 'CODE SERVER health check ' + url })
                          req = http.get(url + '/api/info', { headers }, res => {
                                                                           if (res.statusCode == 200) {
                                                                             res.resume()
+                                                                            d('CODE SERVER healthy ' + url)
                                                                             resolve()
                                                                             return
                                                                           }
@@ -187,8 +190,8 @@ function healthCheck
                                                 setTimeout(check, ms)
                                               })
                          req.on('error', err => {
-                                           send({ log: 'CODE SERVER health check ' + url + ' ' + err.message })
-                                           d('CODE SERVER health check ERR: ' + err.message)
+                                           if (attempts == 1 || attempts % 50 == 0)
+                                             d('CODE SERVER health check error: ' + err.message)
                                            setTimeout(check, ms)
                                          })
                        }

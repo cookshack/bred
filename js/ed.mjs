@@ -1106,7 +1106,9 @@ function initModeFns
   (b, str, bep) {
     let view
 
-    view = b.anyView() || Mess.log('ED insert missing view')
+    // lax: fall back to a closed view so output to an undisplayed buffer
+    // still reaches its (stashed) editor doc
+    view = b.anyView(1) || Mess.log('ED insert missing view')
     if (view?.ed) {
       //d(b.name + ": insert: " + str)
       Backend.vinsertAt(view, bep, 1, str)

@@ -382,17 +382,17 @@ function shellOrSpawn1
   function onClose
   (b, code) {
     b.views.forEach(view => {
-                      if (view.ele) {
-                        let el
+                      let el
 
-                        el = view.ele.querySelector('.shell-exit-w')
-                        if (el) {
-                          Css.remove(el, 'shell-busy')
-                          if (code == 0)
-                            el.innerHTML = '✔ ' + code // 🏁 ✔✔✔ 🎉 ✅
-                          else
-                            el.innerHTML = '✘ ' + code // 🚨 ✘✘✘ 🚫 ❌
-                        }
+                      // use eleOrReserved so a stashed (closed) view's marker
+                      // is updated too; otherwise switching back shows BUSY
+                      el = view.eleOrReserved?.querySelector('.shell-exit-w')
+                      if (el) {
+                        Css.remove(el, 'shell-busy')
+                        if (code == 0)
+                          el.innerHTML = '✔ ' + code // 🏁 ✔✔✔ 🎉 ✅
+                        else
+                          el.innerHTML = '✘ ' + code // 🚨 ✘✘✘ 🚫 ❌
                       }
                     })
     if (spec.onClose)
@@ -402,14 +402,12 @@ function shellOrSpawn1
   function onErr
   (b, err) {
     b.views.forEach(view => {
-                      if (view.ele) {
-                        let el
+                      let el
 
-                        el = view.ele.querySelector('.shell-exit-w')
-                        if (el) {
-                          Css.remove(el, 'shell-busy')
-                          el.innerHTML = '☠️ ERR ' + err.message
-                        }
+                      el = view.eleOrReserved?.querySelector('.shell-exit-w')
+                      if (el) {
+                        Css.remove(el, 'shell-busy')
+                        el.innerHTML = '☠️ ERR ' + err.message
                       }
                     })
     if (spec.onErr)

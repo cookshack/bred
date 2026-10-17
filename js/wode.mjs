@@ -1400,7 +1400,9 @@ function vinsertAll
 export
 function vinsertAt
 (v, bep, u, text, setBep, to) {
-  if (v.ele) {
+  // A closed view keeps its editor (and doc) stashed, so writes still land
+  // even while the buffer isn't displayed.
+  if (v.ed) {
     clearSelection(v)
     if (typeof text == 'number')
       text = text.toString()

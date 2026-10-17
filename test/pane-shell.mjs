@@ -1,7 +1,7 @@
 import { equal } from 'node:assert/strict'
 import * as Css from '../js/css.mjs'
 import * as Shell from '../js/shell.mjs'
-import { setupPanes, wait } from './pane-helpers.mjs'
+import { setupPanes, wait, setBuf, fileBuf } from './pane-helpers.mjs'
 
 let tests
 
@@ -29,6 +29,11 @@ function busy
 
   el = buf.views[0].ele.querySelector('.shell-exit-w')
   return Css.has(el, 'shell-busy') ? 1 : 0
+}
+
+function mlBusy
+(buf) {
+  return buf.views[0].ele.querySelector('.ml-busy').innerText
 }
 
 // emit a shell event; the tron wrapper handles it in a timeout
@@ -106,6 +111,71 @@ test('run', 'late output after close is ignored',
 
        equal(text(buf).includes('before'), true)
        equal(text(buf).includes('after'), false)
+     })
+
+// switching away closes (stashes) the buf's view, so output and the exit
+// marker must still be applied to the stashed view/doc, not dropped
+test('switch', 'output and close while buffer is not displayed are kept',
+     async () => {
+       let buf, ch, other, panes
+
+       panes = setupPanes()
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+
+       other = fileBuf('switch-away.txt')
+       await setBuf(panes.pB, other)
+       equal(buf.views[0].ele == null, true, 'view should be stashed while away')
+
+       await emit(panes, ch, { stdout: 'hi\n' })
+       await emit(panes, ch, { close: 1, code: 0 })
+
+       await setBuf(panes.pB, buf)
+
+       equal(busy(buf), 0)
+       equal(mlBusy(buf), 'exit 0')
+       equal(buf.vars('shell').code, 0)
+       equal(text(buf).includes('hi'), true)
+     })
+
+test('switch', 'insert (non-end) output while buffer is not displayed is kept',
+     async () => {
+       let buf, ch, other, panes
+
+       panes = setupPanes()
+       buf = await run('echo hi', { end: 0 })
+       ch = buf.vars('Shell').ch
+
+       other = fileBuf('switch-insert.txt')
+       await setBuf(panes.pB, other)
+
+       await emit(panes, ch, { stdout: 'hi\n' })
+       await emit(panes, ch, { close: 1, code: 0 })
+
+       await setBuf(panes.pB, buf)
+
+       equal(busy(buf), 0)
+       equal(text(buf).includes('hi'), true)
+     })
+
+test('switch', 'error while buffer is not displayed clears busy',
+     async () => {
+       let buf, ch, other, panes
+
+       panes = setupPanes()
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+
+       other = fileBuf('switch-err.txt')
+       await setBuf(panes.pB, other)
+
+       await emit(panes, ch, { stderr: 'oops\n' })
+       await emit(panes, ch, { err: new Error('spawn failed') })
+
+       await setBuf(panes.pB, buf)
+
+       equal(busy(buf), 0)
+       equal(text(buf).includes('oops'), true)
      })
 
 test('run', 'spawn error clears busy',

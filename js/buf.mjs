@@ -493,18 +493,17 @@ function make
     function set
     (name, co) {
       b.views.forEach(v => {
-                        if (v.ele) {
-                          let el
+                        // eleOrReserved so a stashed (closed) view is updated too
+                        let el
 
-                          el = v.ele.querySelector(':scope > .edWW .ml')
-                          if (el) {
-                            let field
+                        el = v.eleOrReserved?.querySelector('.edWW .ml')
+                        if (el) {
+                          let field
 
-                            field = el.querySelector('.ml-' + name)
-                            if (field) {
-                              field.innerHTML = ''
-                              Dom.append(field, co)
-                            }
+                          field = el.querySelector('.ml-' + name)
+                          if (field) {
+                            field.innerHTML = ''
+                            Dom.append(field, co)
                           }
                         }
                       })

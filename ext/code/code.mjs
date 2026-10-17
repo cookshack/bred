@@ -898,19 +898,13 @@ function handleSubagentIdle
 
 function ensureTitle
 (c, buf, sessionID, text) {
-  if (buf.vars('code').prompt) {
-    d('CO title skip (initial prompt)')
+  if (buf.vars('code').prompt)
     return
-  }
-  if (buf.vars('code').titleUpdated) {
-    d('CO title skip (already set)')
+  if (buf.vars('code').titleUpdated)
     return
-  }
   buf.vars('code').titleUpdated = 1
-  d('CO title set: ' + text.slice(0, 40))
   c.session.update({ sessionID,
                      title: text })
-    .then(() => d('CO title ok'))
     .catch(err => d('CO title err: ' + err.message))
 }
 
@@ -1418,7 +1412,7 @@ function code
 
                                                          Ui.appendMsg(buf, 0, 'Creating session...')
                                                          res = await c.session.create({ location: { directory: Util.apiDir(buf) },
-                                                                                        ...(prompt ? { title: prompt } : {}) })
+                                                                                        title: prompt || 'New Session' })
 
                                                          buf.vars('code').sessionID = res.id
                                                          buf.vars('code').sessionStart = res.time?.created

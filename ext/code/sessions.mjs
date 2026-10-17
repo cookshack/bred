@@ -144,7 +144,7 @@ function init
                                                      'data-session-id': s.id,
                                                      'data-session-dir': view.buf.dir,
                                                      'data-session-time': s.time?.created }),
-                                             divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
+                                             divCl('code-sessions-title', (s.title || 'New Session').split('\n')[0]) ]
                                   }))
             })
 

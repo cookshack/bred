@@ -4,7 +4,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 
 RUN pip3 install --break-system-packages --no-cache-dir gersemi
 
-RUN curl -fsSL https://opencode.ai/v2/install | bash -s -- --version 2.0.29 --no-modify-path \
+RUN curl -fsSL https://opencode.ai/v2/install | bash -s -- --version 2.0.32 --no-modify-path \
  && mv /root/.opencode/bin/opencode /usr/local/bin/opencode \
  && chmod 755 /usr/local/bin/opencode
 

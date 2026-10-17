@@ -1,4 +1,5 @@
 import { equal } from 'node:assert/strict'
+import * as Code from '../ext/code/code.mjs'
 import * as Ev from '../ext/code/event.mjs'
 import * as Sessions from '../ext/code/sessions.mjs'
 import * as Fake from './fake-oc.mjs'
@@ -157,6 +158,22 @@ test('pipeline', 'startSub dispatches translated events',
        equal(got[0].type, 'session.idle')
        equal(got[0].properties.sessionID, 's1')
        equal(got[1].properties.part.type, 'step-start')
+     })
+
+test('forms', 'multiselect answers are always string arrays',
+     () => {
+       let a, req
+
+       req = { questions: [ { key: 'q0' }, { key: 'q1', multiple: 1 } ] }
+       a = Code.formAnswer(req, [ [ 'yes' ], [ 'one' ] ])
+       equal(a.q0, 'yes')
+       equal(Array.isArray(a.q1), true)
+       equal(a.q1.length, 1)
+       equal(a.q1[0], 'one')
+       a = Code.formAnswer(req, [ [], [] ])
+       equal(a.q0, '')
+       equal(Array.isArray(a.q1), true)
+       equal(a.q1.length, 0)
      })
 
 test('messages', 'fetchMessages pages oldest-first until exhausted',

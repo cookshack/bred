@@ -496,14 +496,22 @@ function appendQuestion
                       })
 }
 
+export
 function formAnswer
 (req, answers) {
   let out, questions, i
 
   questions = req?.questions || []
   out = {}
-  for (i = 0; i < questions.length; i++)
-    out[questions[i].key || String(i)] = (answers[i]?.length || 0) > 1 ? answers[i] : (answers[i]?.[0] || '')
+  for (i = 0; i < questions.length; i++) {
+    let sel
+
+    sel = answers[i] || []
+    if (questions[i].multiple)
+      out[questions[i].key || String(i)] = sel
+    else
+      out[questions[i].key || String(i)] = sel[0] || ''
+  }
   return out
 }
 
@@ -560,6 +568,7 @@ function questionRespond
                                 }
                                 catch (err) {
                                   d('CO question respond error: ' + err.message)
+                                  Mess.yell('Question reply failed: ' + err.message)
                                 }
                               })
 }

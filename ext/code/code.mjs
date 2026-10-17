@@ -1412,7 +1412,7 @@ function code
 
                                                          Ui.appendMsg(buf, 0, 'Creating session...')
                                                          res = await c.session.create({ location: { directory: Util.apiDir(buf) },
-                                                                                        title: prompt || 'New Session' })
+                                                                                        title: prompt || ('New session - ' + new Date().toISOString()) })
 
                                                          buf.vars('code').sessionID = res.id
                                                          buf.vars('code').sessionStart = res.time?.created

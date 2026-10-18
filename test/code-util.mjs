@@ -123,9 +123,10 @@ test('isSessionMatch', 'session id or subagent',
        equal(CodeUtil.isSessionMatch(buf, 'other'), false)
      })
 
-test('getProvider', 'default',
+test('getProvider', 'no fallback when unset',
      () => {
-       equal(CodeUtil.getProvider(0), 'opencode-go')
+       delete _shared.opt.values['code.provider.agent']
+       equal(CodeUtil.getProvider(0), undefined)
      })
 
 test('getProvider', 'opt overridden by buf',
@@ -139,9 +140,10 @@ test('getProvider', 'opt overridden by buf',
        delete _shared.opt.values['code.provider.agent']
      })
 
-test('getModel', 'default',
+test('getModel', 'no fallback when unset',
      () => {
-       equal(CodeUtil.getModel(0), 'deepseek-v4-pro')
+       delete _shared.opt.values['code.model.agent']
+       equal(CodeUtil.getModel(0), undefined)
      })
 
 test('getVariant', 'default empty',
@@ -227,8 +229,18 @@ test('calculateTokenPercentage', 'no tokens empty',
 
 test('promptBlocked', 'ready returns undefined',
      () => {
+       let buf
+
+       buf = bufFor({ code: { sessionID: 's1',
+                              provider: 'goat',
+                              model: 'deepseek/deepseek-v4.1-flash' } })
+       equal(CodeUtil.promptBlocked(buf), undefined)
+     })
+
+test('promptBlocked', 'no model selected',
+     () => {
        equal(CodeUtil.promptBlocked(bufFor({ code: { sessionID: 's1' } })),
-             undefined)
+             'No model selected')
      })
 
 test('promptBlocked', 'busy',

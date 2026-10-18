@@ -34,16 +34,21 @@ function makeRelative
   return path
 }
 
+// Provider and model come from Opt.declare in code.mjs (code.provider.agent,
+// code.model.agent) — the single source of truth. No fallbacks here on purpose:
+// a missing value is a configuration bug, and promptBlocked reports it rather
+// than us sending a made-up model.
+
 export
 function getProvider
 (buf) {
-  return (buf && buf.vars('code').provider) || Opt.get('code.provider.agent') || 'opencode-go'
+  return (buf && buf.vars('code').provider) || Opt.get('code.provider.agent')
 }
 
 export
 function getModel
 (buf) {
-  return (buf && buf.vars('code').model) || Opt.get('code.model.agent') || 'deepseek-v4-pro'
+  return (buf && buf.vars('code').model) || Opt.get('code.model.agent')
 }
 
 export
@@ -79,6 +84,11 @@ function promptBlocked
     return 'ERR session missing'
   if (buf.vars('code').busy)
     return 'Agent is busy'
+  if (getProvider(buf) && getModel(buf)) {
+    // ok
+  }
+  else
+    return 'No model selected'
 }
 
 export

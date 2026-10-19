@@ -123,7 +123,7 @@ function onLoadInit
 
 function onPaths
 (e) {
-  let home, user, win, frame
+  let home, user, win, frame, initFile
 
   frame = Profile.stores.frame
 
@@ -141,9 +141,17 @@ function onPaths
   catch (err) {
     console.warn('failed to get userData: ' + err.message)
   }
+  try {
+    // follow symlinks, since the buffer path is replaced by the real path
+    initFile = fs.realpathSync(Path.join(user, 'init.js'))
+  }
+  catch {
+    initFile = 0
+  }
   return { home,
            app: app.getAppPath(),
            user,
+           initFile,
            cwd: Process.cwd(),
            shell,
            profile: Profile.name(),

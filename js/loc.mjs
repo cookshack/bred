@@ -2,7 +2,7 @@ import * as Mess from './mess.mjs'
 import * as U from './util.mjs'
 //import { d } from './mess.mjs'
 
-let $appDir, $configDir, $iwd, $home, $profile, $shell
+let $appDir, $configDir, $iwd, $home, $profile, $shell, $initFile
 
 export
 function profileSet
@@ -40,6 +40,19 @@ export
 function configDir
 () {
   return make($configDir)
+}
+
+// Real path of the init file Bred loads, following symlinks (0 if missing).
+export
+function initFileSet
+(p) {
+  $initFile = p
+}
+
+export
+function initFile
+() {
+  return $initFile
 }
 
 // initial working dir

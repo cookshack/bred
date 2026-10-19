@@ -28,17 +28,26 @@ eslintConfig = { languageOptions: EslintConfig.languageOptions,
 // init.js is wrapped in a function whose parameters are injected by Bred, so
 // the raw file looks full of undefined variables to the linter.  Declare those
 // names for the init buffer only; real typos are still reported.
+function initGlobalsConfig
+() {
+  return { ...eslintConfig,
+           languageOptions: { ...eslintConfig.languageOptions,
+                              globals: { ...eslintConfig.languageOptions.globals,
+                                         ...InitArgs.globals() } } }
+}
+
 function eslintConfigFor
 (view) {
-  let path, initPath
+  let path, initPath, real
 
   path = Loc.make(view.buf.path).normalize()
   initPath = Loc.make(Loc.configDir().join('init.js')).normalize()
   if (path == initPath)
-    return { ...eslintConfig,
-             languageOptions: { ...eslintConfig.languageOptions,
-                                globals: { ...eslintConfig.languageOptions.globals,
-                                           ...InitArgs.globals() } } }
+    return initGlobalsConfig()
+  // symlinked init.js: the buffer path is the file's real path
+  real = Loc.initFile()
+  if (real && (path == Loc.make(real).normalize()))
+    return initGlobalsConfig()
   return eslintConfig
 }
 

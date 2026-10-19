@@ -350,6 +350,14 @@ test('configDir', 'set and get with slash',
        equal(Loc.configDir().path, '/cfg/')
      })
 
+test('initFile', 'set and get',
+     () => {
+       Loc.initFileSet('/dots/bred-init.js')
+       equal(Loc.initFile(), '/dots/bred-init.js')
+       Loc.initFileSet(0)
+       equal(Loc.initFile(), 0)
+     })
+
 test('iwd', 'set and get with slash',
      () => {
        Loc.iwdSet('/iwd')

@@ -1826,6 +1826,7 @@ function start1
   $version = data.version
   $os = data.os
   Loc.configDirSet(data.user)
+  Loc.initFileSet(data.initFile)
   Loc.shellSet(data.shell)
   Loc.profileSet(data.profile)
 

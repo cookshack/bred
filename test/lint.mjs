@@ -252,6 +252,7 @@ if (Lint._internals?.eslintConfigFor) {
          let config
 
          Loc.configDirSet('/home/u/.config/bred')
+         Loc.initFileSet(0)
          config = Lint._internals.eslintConfigFor({ buf: { path: '/home/u/.config/bred/init.js' } })
          equal(config.languageOptions.globals.Opt, 'readonly')
          equal(config.languageOptions.globals.Cmd, 'readonly')
@@ -263,6 +264,7 @@ if (Lint._internals?.eslintConfigFor) {
          let config
 
          Loc.configDirSet('/home/u/.config/bred')
+         Loc.initFileSet(0)
          config = Lint._internals.eslintConfigFor({ buf: { path: '/home/u/.config/bred/init.js' } })
          ok('console' in config.languageOptions.globals)
        })
@@ -272,8 +274,20 @@ if (Lint._internals?.eslintConfigFor) {
          let config
 
          Loc.configDirSet('/home/u/.config/bred')
+         Loc.initFileSet(0)
          config = Lint._internals.eslintConfigFor({ buf: { path: '/home/u/.config/bred//init.js' } })
          equal(config.languageOptions.globals.Opt, 'readonly')
+       })
+
+  test('eslintConfigFor', 'symlinked init file by real path',
+       () => {
+         let config
+
+         Loc.configDirSet('/home/u/.config/bred')
+         Loc.initFileSet('/home/u/dotfiles/bred-init.js')
+         config = Lint._internals.eslintConfigFor({ buf: { path: '/home/u/dotfiles/bred-init.js' } })
+         equal(config.languageOptions.globals.Opt, 'readonly')
+         Loc.initFileSet(0)
        })
 
   test('eslintConfigFor', 'other buffers unchanged',
@@ -281,8 +295,10 @@ if (Lint._internals?.eslintConfigFor) {
          let config
 
          Loc.configDirSet('/home/u/.config/bred')
+         Loc.initFileSet('/home/u/dotfiles/bred-init.js')
          config = Lint._internals.eslintConfigFor({ buf: { path: '/home/u/src/bred/js/foo.mjs' } })
          equal(config.languageOptions.globals.Opt, undefined)
+         Loc.initFileSet(0)
        })
 }
 

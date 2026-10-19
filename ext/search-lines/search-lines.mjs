@@ -200,6 +200,9 @@ function init
 
   Cmd.add('search lines', search)
   Cmd.add('match lines', u => search(u, 1))
+
+  Cmd.add('list matching lines',
+          () => Mess.yell('Use Search Lines or Match Lines'))
 }
 
 export
@@ -207,5 +210,6 @@ function free
 () {
   Cmd.remove('search lines')
   Cmd.remove('match lines')
+  Cmd.remove('list matching lines')
   Mode.remove('Search Lines')
 }

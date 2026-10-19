@@ -2,6 +2,7 @@ import { equal, ok } from 'node:assert/strict'
 
 // makeCmDiag is not exported, but we can reach it via _internals
 import * as Lint from '../ext/core/lint.mjs'
+import * as Loc from '../js/loc.mjs'
 
 let tests, makeCmDiag
 
@@ -240,6 +241,48 @@ if (makeCmDiag) {
            result = makeCmDiag(view, diag)
            equal(result.severity, expected)
          }
+       })
+}
+
+// --- eslintConfigFor tests ---
+
+if (Lint._internals?.eslintConfigFor) {
+  test('eslintConfigFor', 'init buffer declares Bred globals',
+       () => {
+         let config
+
+         Loc.configDirSet('/home/u/.config/bred')
+         config = Lint._internals.eslintConfigFor({ buf: { path: '/home/u/.config/bred/init.js' } })
+         equal(config.languageOptions.globals.Opt, 'readonly')
+         equal(config.languageOptions.globals.Cmd, 'readonly')
+         equal(config.languageOptions.globals.Win, 'readonly')
+       })
+
+  test('eslintConfigFor', 'keeps configured globals',
+       () => {
+         let config
+
+         Loc.configDirSet('/home/u/.config/bred')
+         config = Lint._internals.eslintConfigFor({ buf: { path: '/home/u/.config/bred/init.js' } })
+         ok('console' in config.languageOptions.globals)
+       })
+
+  test('eslintConfigFor', 'tolerates doubled slash',
+       () => {
+         let config
+
+         Loc.configDirSet('/home/u/.config/bred')
+         config = Lint._internals.eslintConfigFor({ buf: { path: '/home/u/.config/bred//init.js' } })
+         equal(config.languageOptions.globals.Opt, 'readonly')
+       })
+
+  test('eslintConfigFor', 'other buffers unchanged',
+       () => {
+         let config
+
+         Loc.configDirSet('/home/u/.config/bred')
+         config = Lint._internals.eslintConfigFor({ buf: { path: '/home/u/src/bred/js/foo.mjs' } })
+         equal(config.languageOptions.globals.Opt, undefined)
        })
 }
 

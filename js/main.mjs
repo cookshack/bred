@@ -7,6 +7,7 @@ import * as Ext from './main-ext.mjs'
 import * as MainFile from './main-file.mjs'
 import * as Files from './main-files.mjs'
 import * as Hover from './main-hover.mjs'
+import * as InitArgs from './init-args.mjs'
 import { d, log } from './main-log.mjs'
 import * as Log from './main-log.mjs'
 import * as Lsp from './main-lsp.mjs'
@@ -106,7 +107,7 @@ function onLoadInit
                                   e.sender.send(ch, { err })
                                   return
                                 }
-                                js = '(function (C,Cmd,Dom,Ed,Em,Hist,Loc,Opt,Pane,Mess,Mode,Dir,Place,Win) { "use strict"; Mess.log("Loading your init.js...");\n' + js + ';\nMess.log("Loading your init.js... done"); })(window.bred.C,window.bred.Cmd,window.bred.Dom,window.bred.Ed,window.bred.Em,window.bred.Hist,window.bred.Loc,window.bred.Opt,window.bred.Pane,window.bred.Mess,window.bred.Mode,window.bred.Dir,window.bred.Place,window.bred.Win)'
+                                js = '(function (' + InitArgs.params() + ') { "use strict"; Mess.log("Loading your init.js...");\n' + js + ';\nMess.log("Loading your init.js... done"); })(' + InitArgs.call() + ')'
                                 win.webContents.executeJavaScript(js).then(() => {
                                                                              log('Loading ' + file + ': done.')
                                                                              d('Loading ' + file + ': done.')

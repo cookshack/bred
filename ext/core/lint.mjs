@@ -4,6 +4,8 @@ import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Ed from '../../js/ed.mjs'
 import * as Icon from '../../js/icon.mjs'
+import * as InitArgs from '../../js/init-args.mjs'
+import * as Loc from '../../js/loc.mjs'
 import * as Mess from '../../js/mess.mjs'
 import * as Opt from '../../js/opt.mjs'
 import * as Pane from '../../js/Pane.mjs'
@@ -22,6 +24,23 @@ let wexts, part, Eslint, eslintConfig
 eslintConfig = { languageOptions: EslintConfig.languageOptions,
                  plugins: EslintConfig.plugins,
                  rules: EslintConfig.rules }
+
+// init.js is wrapped in a function whose parameters are injected by Bred, so
+// the raw file looks full of undefined variables to the linter.  Declare those
+// names for the init buffer only; real typos are still reported.
+function eslintConfigFor
+(view) {
+  let path, initPath
+
+  path = Loc.make(view.buf.path).normalize()
+  initPath = Loc.make(Loc.configDir().join('init.js')).normalize()
+  if (path == initPath)
+    return { ...eslintConfig,
+             languageOptions: { ...eslintConfig.languageOptions,
+                                globals: { ...eslintConfig.languageOptions.globals,
+                                           ...InitArgs.globals() } } }
+  return eslintConfig
+}
 
 function between
 (pos, from, to, side) {
@@ -121,7 +140,7 @@ function makeLinter
 (view) {
   if (Eslint)
     return [ CMLint.linter(CMJS.esLint(new Eslint.Linter(),
-                                       eslintConfig),
+                                       eslintConfigFor(view)),
                            { tooltipFilter: handleTooltipLint }),
              CMView.hoverTooltip(maybeLintTooltip, { hideOn: CMLint.hideTooltip,
                                                      hideOnChange: false }),
@@ -242,4 +261,4 @@ function free
 
 export let _internals
 
-_internals = { makeCmDiag }
+_internals = { eslintConfigFor, makeCmDiag }

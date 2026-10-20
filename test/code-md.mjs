@@ -3,7 +3,7 @@ import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
 import { markdown, markdownLanguage } from '../lib/@codemirror/lang-markdown.js'
 import { hideMarks } from '../ext/code/md.mjs'
-import { extTables } from '../ext/code/tables.mjs'
+import { extTables, padTableText } from '../ext/code/tables.mjs'
 import { setupDom } from './dom-help.mjs'
 
 let domWin, saved, tests, views
@@ -224,6 +224,18 @@ test('md tables', 'renders a table as DOM',
              '1,2')
        equal(rendered(view).includes('---'), false)
        equal(view.state.doc.toString(), doc, 'doc text unchanged')
+     })
+
+test('md tables', 'renders a table with a mismatched delimiter row',
+     async () => {
+       let doc, view
+
+       doc = '| a | b |\n| --- | --- | - |\n| 1 | 2 |\n'
+       view = await make(padTableText(doc))
+
+       equal(view.contentDOM.querySelector('.code-md-table table')?.tagName, 'TABLE')
+       equal([ ...view.contentDOM.querySelectorAll('.code-md-table th') ].map(el => el.textContent).join(','),
+             'a,b')
      })
 
 test('md tables', 'aligns columns from the delimiter row',

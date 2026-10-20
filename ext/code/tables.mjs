@@ -97,9 +97,14 @@ function padTableText
 
         lead = row.match(/^\s*/)[0]
         if (isDelimiter(row)) {
-          let parts
+          let cells, parts
 
-          parts = rowCells(row).map((c, ci) => '-'.repeat(Math.max(width[ci] || 0, 1)))
+          cells = rowCells(row)
+          // lezer only parses a table when the delimiter has the same number of
+          // cells as the header, and models sometimes emit an extra/stray cell
+          while (cells.length < numCols)
+            cells.push('---')
+          parts = cells.slice(0, numCols).map((c, ci) => '-'.repeat(Math.max(width[ci] || 0, 1)))
           out.push(lead + '| ' + parts.join(' | ') + ' |')
         }
         else {

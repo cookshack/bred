@@ -42,6 +42,14 @@ function makeMarks
 
     function enter
     (node) {
+      if (node.name == 'Table') {
+        let line
+
+        line = v.state.doc.lineAt(node.from)
+        // top-level tables are replaced by a block widget (see tables.mjs)
+        if (v.state.doc.sliceString(line.from, node.from).trim() == '')
+          return false
+      }
       if (hiddenNodes.includes(node.name)) {
         let end
 

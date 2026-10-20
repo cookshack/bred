@@ -476,6 +476,36 @@ div.code-thought:hover {
   cursor: pointer;
 }
 
+.code-md-table {
+  max-width: 100%;
+  padding: 0.25rem 0;
+  overflow-x: auto;
+}
+
+.code-md-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.code-md-table th,
+.code-md-table td {
+  border: 1px solid var(--clr-text-light);
+  padding: 0.15rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: break-word;
+}
+
+.code-md-table th {
+  background: var(--clr-bg);
+  white-space: nowrap;
+}
+
+.code-md-table code {
+  background: var(--clr-bg);
+  padding: 0 0.2rem;
+}
+
 .code-code-ed {
   margin-top: 4px;
   overflow: hidden;

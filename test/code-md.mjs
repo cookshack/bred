@@ -3,6 +3,7 @@ import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
 import { markdown, markdownLanguage } from '../lib/@codemirror/lang-markdown.js'
 import { hideMarks } from '../ext/code/md.mjs'
+import { extTables } from '../ext/code/tables.mjs'
 import { setupDom } from './dom-help.mjs'
 
 let domWin, saved, tests, views
@@ -65,7 +66,9 @@ async function make
   parent = globalThis.document.createElement('div')
   globalThis.document.body.appendChild(parent)
   state = CMState.EditorState.create({ doc,
-                                       extensions: [ markdown({ base: markdownLanguage }), hideMarks ] })
+                                       extensions: [ markdown({ base: markdownLanguage }),
+                                                     hideMarks,
+                                                     extTables ] })
   view = new CMView.EditorView({ state, parent })
   views.push(view)
   // let CM flush its scheduled render
@@ -204,6 +207,67 @@ test('md marks', 'blocks middle click paste',
                                                     cancelable: 1 })
        view.contentDOM.dispatchEvent(event)
        equal(event.defaultPrevented, true)
+     })
+
+test('md tables', 'renders a table as DOM',
+     async () => {
+       let doc, view, table
+
+       doc = '| a | b |\n| --- | --- |\n| 1 | 2 |\n'
+       view = await make(doc)
+       table = view.contentDOM.querySelector('.code-md-table table')
+
+       equal(table?.tagName, 'TABLE')
+       equal([ ...view.contentDOM.querySelectorAll('.code-md-table th') ].map(el => el.textContent).join(','),
+             'a,b')
+       equal([ ...view.contentDOM.querySelectorAll('.code-md-table td') ].map(el => el.textContent).join(','),
+             '1,2')
+       equal(rendered(view).includes('---'), false)
+       equal(view.state.doc.toString(), doc, 'doc text unchanged')
+     })
+
+test('md tables', 'aligns columns from the delimiter row',
+     async () => {
+       let view, th
+
+       view = await make('| a | b | c |\n| :-- | :-: | --: |\n| 1 | 2 | 3 |\n')
+       th = view.contentDOM.querySelectorAll('.code-md-table th')
+
+       equal(th[0].style.textAlign, 'left')
+       equal(th[1].style.textAlign, 'center')
+       equal(th[2].style.textAlign, 'right')
+     })
+
+test('md tables', 'renders inline marks inside cells',
+     async () => {
+       let view
+
+       view = await make('| `code` | [x](http://y) |\n| --- | --- |\n| **b** | 2 |\n')
+
+       equal(view.contentDOM.querySelector('.code-md-table code')?.textContent, 'code')
+       equal(view.contentDOM.querySelector('.code-md-table strong')?.textContent, 'b')
+       equal(view.contentDOM.querySelector('.code-md-table .code-md-link')?.dataset.path, 'http://y')
+     })
+
+test('md tables', 'leaves tables inside fenced code as text',
+     async () => {
+       let view
+
+       view = await make('```\n| a | b |\n| --- | --- |\n```\n')
+
+       equal(view.contentDOM.querySelector('.code-md-table'), null)
+       equal(rendered(view).includes('| a | b |'), true)
+     })
+
+test('md tables', 'updates when rows stream in',
+     async () => {
+       let view
+
+       view = await make('| a | b |\n| --- | --- |\n| 1 | 2 |\n')
+       view.dispatch({ changes: { from: view.state.doc.length, insert: '| 3 | 4 |' } })
+       await new Promise(r => setTimeout(r, 30))
+
+       equal(view.contentDOM.querySelectorAll('.code-md-table tbody td').length, 4)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

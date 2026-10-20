@@ -5,7 +5,7 @@ import * as Icon from '../../js/icon.mjs'
 import { d } from '../../js/mess.mjs'
 
 import * as Util from './util.mjs'
-import { padTableText } from './tables.mjs'
+import { extTables, padTableText } from './tables.mjs'
 
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
@@ -156,7 +156,7 @@ function makeMarkdownEd
                       codeLanguages: langs }),
            themeExtension ]
   if (decorate)
-    exts.push(hideMarks)
+    exts.push(hideMarks, extTables)
   el = divCl('code-markdown-ed')
   state = CMState.EditorState.create({ doc: padTableText(text),
                                        extensions: exts })

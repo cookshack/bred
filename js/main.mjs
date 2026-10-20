@@ -16,6 +16,7 @@ import Net from 'node:net'
 import Os from 'node:os'
 import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
+import * as Platform from './main-platform.mjs'
 import Process from 'node:process'
 import * as Profile from './main-profile.mjs'
 import * as Project from './main-project.mjs'
@@ -28,7 +29,7 @@ import Util from 'node:util'
 import { spawn, spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
-let version, options, dirUserData, shell, lastClipWrite, _win, mainStart, logWindow, logBuffer
+let version, options, dirUserData, shell, lastClipWrite, _win, mainStart, logWindow, logBuffer, platformHint
 
 function cmdDevtoolsClose
 (e) {
@@ -1305,6 +1306,10 @@ async function whenReady
 
   checkDeps(() => whenHaveDeps(program))
 }
+
+platformHint = Platform.ozonePlatform(Process.env)
+if (platformHint)
+  app.commandLine.appendSwitch('ozone-platform', platformHint)
 
 mainStart = performance.now()
 app.whenReady().then(whenReady)

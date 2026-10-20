@@ -18,15 +18,16 @@ function prevMsgIndex
 }
 
 // Index of the message to jump to when going down from scrollTop: the first one
-// below the viewport plus pad (the offset we leave above a jumped-to message,
-// so a repeat click keeps stepping instead of re-selecting the same one).
+// at least a pixel below the viewport plus pad (the offset we leave above a
+// jumped-to message, so a repeat click keeps stepping instead of re-selecting
+// the same one; the pixel absorbs sub-pixel scroll snapping).
 // -1 means there is none, or that the one we found can't be aligned with pad
 // above it (it's too close to the end), so scroll to the end instead.
 export
 function nextMsgIndex
 (tops, scrollTop, pad, max) {
   for (let i = 0; i < tops.length; i++)
-    if (tops[i] > scrollTop + pad)
+    if (tops[i] > scrollTop + pad + 1)
       return tops[i] - pad >= max ? -1 : i
   return -1
 }

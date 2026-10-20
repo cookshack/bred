@@ -145,6 +145,13 @@ test('msg nav', 'next to a message that cannot be aligned scrolls to the end',
        equal(nextMsgIndex([ 100, 500, 900 ], 500 - 7, 7, 890), -1)
      })
 
+test('msg nav', 'next after a sub-pixel landing steps past that message',
+     () => {
+       // scrollTop can snap half a pixel short of the message top (hidpi), so
+       // the message we landed on sits pad + 0.5 below the top, not pad
+       equal(nextMsgIndex([ 100.5, 500.5, 900.5 ], 900.5 - 7 - 0.5, 7, 2000), -1)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

@@ -597,13 +597,14 @@ function msgEls
 }
 
 // Top of each message in the scroller's scroll coordinates (offsetTop is not
-// usable because .code-w is not a positioned element).
+// usable because .code-w is not a positioned element). Keep them fractional:
+// rounding would fight the sub-pixel snapping the browser does on scroll.
 function msgTops
 (w, els) {
   let rect
 
   rect = w.getBoundingClientRect()
-  return els.map(el => Math.round(el.getBoundingClientRect().top - rect.top + w.scrollTop))
+  return els.map(el => el.getBoundingClientRect().top - rect.top + w.scrollTop)
 }
 
 function scrollMsgW

@@ -124,19 +124,25 @@ test('msg nav', 'repeated prev steps through every message',
 
 test('msg nav', 'next from the top goes to the first message',
      () => {
-       equal(nextMsgIndex([ 100, 500, 900 ], 0, 7), 0)
+       equal(nextMsgIndex([ 100, 500, 900 ], 0, 7, 1000), 0)
      })
 
 test('msg nav', 'next from the buffer end scrolls to the end',
      () => {
-       equal(nextMsgIndex([ 100, 500, 900 ], 900 - 7, 7), -1)
+       equal(nextMsgIndex([ 100, 500, 900 ], 900 - 7, 7, 1000), -1)
      })
 
 test('msg nav', 'repeated next steps through every message',
      () => {
-       equal(nextMsgIndex([ 100, 500, 900 ], 100 - 7, 7), 1)
-       equal(nextMsgIndex([ 100, 500, 900 ], 500 - 7, 7), 2)
-       equal(nextMsgIndex([ 100, 500, 900 ], 900 - 7, 7), -1)
+       equal(nextMsgIndex([ 100, 500, 900 ], 100 - 7, 7, 1000), 1)
+       equal(nextMsgIndex([ 100, 500, 900 ], 500 - 7, 7, 1000), 2)
+       equal(nextMsgIndex([ 100, 500, 900 ], 900 - 7, 7, 1000), -1)
+     })
+
+test('msg nav', 'next to a message that cannot be aligned scrolls to the end',
+     () => {
+       // 900 - 7 is past the end (890), so jumping there would leave us short
+       equal(nextMsgIndex([ 100, 500, 900 ], 500 - 7, 7, 890), -1)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

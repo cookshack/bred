@@ -608,17 +608,18 @@ function msgTops
 
 function scrollMsgW
 (w, dir) {
-  let els, i, tops
+  let els, i, pad, tops
 
   els = msgEls(w)
   tops = msgTops(w, els)
+  pad = halfRem(w)
   i = dir < 0 ? prevMsgIndex(tops, w.scrollTop)
-              : nextMsgIndex(tops, w.scrollTop, halfRem(w))
+              : nextMsgIndex(tops, w.scrollTop, pad, w.scrollHeight - w.clientHeight)
   if (i < 0)
     w.scrollTop = dir < 0 ? 0 : w.scrollHeight
   else {
     els[i].scrollIntoView({ block: 'start', behavior: 'instant' })
-    w.scrollTop -= halfRem(w)
+    w.scrollTop -= pad
   }
 }
 

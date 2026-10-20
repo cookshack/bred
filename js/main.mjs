@@ -1230,6 +1230,7 @@ async function whenReady
     .option('--inspect', 'listen for inspector messages on 9229')
     .option('--logfile <file>', 'file to write logs to (default: stdout)')
     .option('--no-sandbox', 'Turn off Chromium sandboxing')
+    .option('--no-zygote', 'Turn off the zygote process')
     .option('--profile <name>', 'Profile to use (default: Main)')
     .option('--disable-setuid-sandbox', 'Turn off UID sandboxing (eg if you want to run sudo)')
     .version(version)

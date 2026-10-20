@@ -16,10 +16,12 @@ function fakeWin
 
   win = new EventEmitter()
   win.bounds = { ...bounds }
+  win.destroyed = 0
   win.maximized = 0
   win.shown = 0
   win.getBounds = () => ({ ...win.bounds })
   win.getNormalBounds = () => ({ ...win.bounds })
+  win.isDestroyed = () => win.destroyed
   win.setBounds = b => {
                     win.bounds = { ...b }
                   }
@@ -76,6 +78,7 @@ test('makeWindowState', 'restores bounds after show and ignores startup events',
        equal(store.data.bounds, undefined)
 
        state.restore()
+       state.restore()
        equal(win.shown, 1)
        equal(win.bounds.x, 10)
        equal(win.bounds.y, 20)
@@ -107,6 +110,22 @@ test('makeWindowState', 'maximizes instead of setting bounds',
        equal(win.shown, 1)
        equal(win.maximized, 1)
        equal(win.bounds.x, 0)
+     })
+
+test('makeWindowState', 'ignores destroyed windows',
+     () => {
+       let win, store, state
+
+       win = fakeWin({ x: 0, y: 0, width: 800, height: 600 })
+       store = fakeStore()
+       state = WindowState.makeWindowState(win, store, { delay: 0 })
+       win.destroyed = 1
+
+       state.saveNow()
+       state.restore()
+
+       equal(store.data.bounds, undefined)
+       equal(win.shown, 0)
      })
 
 test('makeWindowState', 'saveNow writes current bounds',

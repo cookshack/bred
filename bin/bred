@@ -38,12 +38,6 @@ echo BRED_ORIGINAL_DIR: $BRED_ORIGINAL_DIR
 
 cd "$(dirname "$(realpath "$0")")/.."
 
-# Wayland does not let apps position their own windows. Prefer XWayland so
-# restored window bounds work. Set BRED_NATIVE_WAYLAND=1 to opt out.
-if [ "${XDG_SESSION_TYPE:-}" = "wayland" ] && [ "${BRED_NATIVE_WAYLAND:-0}" != "1" ] && [ -n "$DISPLAY" ]; then
-  export ELECTRON_OZONE_PLATFORM_HINT=x11
-fi
-
 while true; do
   check_modules_changed
   echo 0 > /tmp/bred-$$-relaunch

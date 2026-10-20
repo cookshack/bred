@@ -31,6 +31,19 @@ import * as Commander from 'commander'
 
 let version, options, dirUserData, shell, lastClipWrite, _win, mainStart, logWindow, logBuffer, platformHint
 
+function onUncaughtException
+(err) {
+  console.log(err.message)
+  try {
+    if (_win && (_win.isDestroyed() == 0))
+      _win.webContents.send('thrown', makeErr(err))
+  }
+  catch {
+  }
+}
+
+Process.on('uncaughtException', onUncaughtException)
+
 function cmdDevtoolsClose
 (e) {
   let win
@@ -542,7 +555,7 @@ function handleWindowOpen
 
 function createWindow
 (html, opts) {
-  let win, mode, hover, savedBounds, savedMaximized, windowState
+  let win, mode, hover, savedBounds, savedMaximized, windowState, showTimer
 
   mode = Profile.stores.opt.get('core.theme.mode')
   savedBounds = options.bounds || Profile.stores.state.get('bounds')
@@ -665,7 +678,15 @@ function createWindow
                      win.bred.hover.resize()
                    })
 
+  // GPU/paint problems can prevent ready-to-show from ever firing, which used
+  // to leave the window hidden forever.
+  showTimer = setTimeout(() => {
+                           if ((win.isDestroyed() == 0) && (win.isVisible() == 0))
+                             windowState.restore()
+                         }, 3000)
+
   win.once('ready-to-show', () => {
+                              clearTimeout(showTimer)
                               windowState.restore()
                               win.bred.hover.resize()
                             })
@@ -752,11 +773,6 @@ function createMainWindow
   _win = createWindow(html)
   Lsp.setWin(_win)
   d('timing: main startup: ' + Math.round(performance.now() - mainStart) + 'ms')
-
-  Process.on('uncaughtException', err => {
-                                    console.log(err.message)
-                                    _win.webContents.send('thrown', makeErr(err))
-                                  })
 }
 
 function setVersion
@@ -826,11 +842,6 @@ function checkDepsWin
   fontSize = Profile.stores.opt.get('core.fontSize') || 13
   html = '<html><head><title>Bred preparing...</title></head><body style="background: ' + bg + '; color: ' + color + '; font-family: monospace; white-space: pre-wrap; overflow-y: scroll; margin: 0; padding: 0.5rem; font-size: ' + fontSize + 'px;">Starting bred...</body></html>'
   uri = 'data:text/html,' + globalThis.encodeURIComponent(html)
-
-  Process.on('uncaughtException', err => {
-                                    console.log(err.message)
-                                    _win.webContents.send('thrown', makeErr(err))
-                                  })
 
   opts = { backgroundColor: bg,
            //frame: false,

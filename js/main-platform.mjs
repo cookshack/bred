@@ -1,10 +1,10 @@
-// Wayland does not let applications position their own windows, so saved
-// bounds cannot be restored there. Force XWayland unless explicitly disabled.
+// Native Wayland does not let applications position their own windows. XWayland
+// does, so allow opting into it for saved window bounds.
 export
 function ozonePlatform
 (env) {
-  if ((env.XDG_SESSION_TYPE == 'wayland')
-      && ((env.BRED_NATIVE_WAYLAND || '0') == '0')
+  if ((env.BRED_XWAYLAND == '1')
+      && (env.XDG_SESSION_TYPE == 'wayland')
       && env.DISPLAY)
     return 'x11'
   return 0

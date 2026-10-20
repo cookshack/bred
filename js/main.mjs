@@ -23,6 +23,7 @@ import * as Code from './main-code.mjs'
 import fs from 'node:fs'
 import * as Shell from './main-shell.mjs'
 import * as Step from './main-step.mjs'
+import * as WindowState from './main-window-state.mjs'
 import Util from 'node:util'
 import { spawn, spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
@@ -194,7 +195,8 @@ function saveMainWindowState
   try {
     if (_win) {
       Profile.stores.state.set('isDevToolsOpened', _win.webContents.isDevToolsOpened())
-      Profile.stores.state.set('bounds', _win.getBounds())
+      WindowState.saveWindowState(_win, Profile.stores.state)
+      d('window bounds saved ' + JSON.stringify(_win.getBounds()))
     }
   }
   catch (err) {
@@ -539,11 +541,12 @@ function handleWindowOpen
 
 function createWindow
 (html, opts) {
-  let win, mode, hover, savedBounds, restoring
+  let win, mode, hover, savedBounds, savedMaximized, windowState
 
   mode = Profile.stores.opt.get('core.theme.mode')
   savedBounds = options.bounds || Profile.stores.state.get('bounds')
-  restoring = 0
+  savedMaximized = Profile.stores.state.get('maximized')
+  d('window bounds restore ' + JSON.stringify(savedBounds) + ' maximized ' + savedMaximized)
 
   opts = opts || { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
                    frame: false,
@@ -554,6 +557,10 @@ function createWindow
   win = new BrowserWindow(opts)
   win.bred = win.bred || {}
   win.webContents.setMaxListeners(30)
+  windowState = WindowState.makeWindowState(win, Profile.stores.state,
+                                            { bounds: savedBounds,
+                                              maximized: savedMaximized,
+                                              delay: 250 })
 
   win.on('blur', () => {
                    d('BLUR WIN')
@@ -653,16 +660,12 @@ function createWindow
 
   hover.resize()
 
+  win.on('resize', () => {
+                     win.bred.hover.resize()
+                   })
+
   win.once('ready-to-show', () => {
-                              restoring = 1
-                              win.show()
-                              // restore position after show, because some window managers
-                              // ignore it while the window is still hidden
-                              if (savedBounds)
-                                win.setBounds(savedBounds)
-                              setTimeout(() => {
-                                           restoring = 0
-                                         }, 250)
+                              windowState.restore()
                               win.bred.hover.resize()
                             })
 
@@ -703,19 +706,8 @@ function createWindow
 
   win.on('close', () => {
                     Profile.stores.state.set('isDevToolsOpened', win.webContents.isDevToolsOpened())
-                    Profile.stores.state.set('bounds', win.getBounds())
+                    windowState.saveNow()
                   })
-
-  win.on('resize', () => {
-                     win.bred.hover.resize()
-                     if (restoring == 0)
-                       Profile.stores.state.set('bounds', win.getBounds())
-                   })
-
-  win.on('move', () => {
-                   if (restoring == 0)
-                     Profile.stores.state.set('bounds', win.getBounds())
-                 })
 
   if ((options.devtools == 'on')
       || ((options.devtools == 'auto') && Profile.stores.state.get('isDevToolsOpened'))) {

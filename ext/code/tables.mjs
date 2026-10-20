@@ -211,11 +211,23 @@ function appendInline
     out.push(state.doc.sliceString(node.from, node.to))
 }
 
+function appendBreakable
+(parent, text) {
+  let parts
+
+  parts = text.split(/([/\\_-])/)
+  for (let i = 0; i < parts.length; i++) {
+    append(parent, parts[i])
+    if (i % 2)
+      append(parent, create('wbr', '', ''))
+  }
+}
+
 function appendTokens
 (parent, tokens) {
   for (let token of tokens)
     if (typeof token == 'string')
-      append(parent, token)
+      appendBreakable(parent, token)
     else if (token.code == null) {
       let el
 
@@ -227,8 +239,13 @@ function appendTokens
       if (token.children)
         appendTokens(el, token.children)
     }
-    else
-      append(parent, create('code', token.code, 'code-md-inline'))
+    else {
+      let code
+
+      code = create('code', '', 'code-md-inline')
+      appendBreakable(code, token.code)
+      append(parent, code)
+    }
 }
 
 function cellTokens

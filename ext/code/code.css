@@ -477,6 +477,8 @@ div.code-thought:hover {
 }
 
 .code-md-table {
+  word-break: normal;
+  overflow-wrap: normal;
   max-width: 100%;
   padding: 0.25rem;
   overflow-x: auto;
@@ -493,12 +495,10 @@ div.code-thought:hover {
   padding: 0.15rem 0.5rem;
   text-align: left;
   vertical-align: top;
-  overflow-wrap: break-word;
 }
 
 .code-md-table th {
   background: var(--clr-bg);
-  white-space: nowrap;
 }
 
 .code-md-table code {

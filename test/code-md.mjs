@@ -249,6 +249,16 @@ test('md tables', 'renders inline marks inside cells',
        equal(view.contentDOM.querySelector('.code-md-table .code-md-link')?.dataset.path, 'http://y')
      })
 
+test('md tables', 'adds break opportunities inside code cells',
+     async () => {
+       let view
+
+       view = await make('| `a/b_c-d` |\n| --- |\n| 1 |\n')
+
+       equal(view.contentDOM.querySelectorAll('.code-md-table code wbr').length, 3)
+       equal(view.contentDOM.querySelector('.code-md-table code')?.textContent, 'a/b_c-d')
+     })
+
 test('md tables', 'leaves tables inside fenced code as text',
      async () => {
        let view

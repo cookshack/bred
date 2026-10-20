@@ -1,5 +1,6 @@
 // Native Wayland does not let applications position their own windows. XWayland
-// does, so allow opting into it for saved window bounds.
+// does, so allow opting into it for saved window bounds. See
+// doc/WindowBounds.md for the current XWayland issue and how to retest it.
 export
 function ozonePlatform
 (env) {

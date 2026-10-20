@@ -18,6 +18,9 @@ COPY skills /home/node/.config/opencode/skills
 # Global rules so every session knows the agent cannot push
 COPY global-AGENTS.md /home/node/.config/opencode/AGENTS.md
 
+# Global plugin: no background shell commands (keeps blocking calls visible)
+COPY plugin /home/node/.config/opencode/plugin
+
 RUN mkdir -p /home/node/.local/share/opencode && chown -R node:node /home/node/.local /home/node/tools /home/node/.config
 USER node
 RUN git config --global core.excludesFile /home/node/.gitignore

@@ -189,9 +189,23 @@ async function wrapOn
   return ch
 }
 
+function saveMainWindowState
+() {
+  try {
+    if (_win) {
+      Profile.stores.state.set('isDevToolsOpened', _win.webContents.isDevToolsOpened())
+      Profile.stores.state.set('bounds', _win.getBounds())
+    }
+  }
+  catch (err) {
+    log('ERR save main window state: ' + err.message)
+  }
+}
+
 function quit
 () {
   try {
+    saveMainWindowState()
     Code.closeAll()
     app.quit()
   }
@@ -217,6 +231,7 @@ function relaunch
     console.log(err.message)
   }
   try {
+    saveMainWindowState()
     Code.closeAll()
     app.exit(7)
   }
@@ -524,9 +539,11 @@ function handleWindowOpen
 
 function createWindow
 (html, opts) {
-  let win, mode, hover
+  let win, mode, hover, savedBounds, restoring
 
   mode = Profile.stores.opt.get('core.theme.mode')
+  savedBounds = options.bounds || Profile.stores.state.get('bounds')
+  restoring = 0
 
   opts = opts || { backgroundColor: (mode == 'dark') ? '#002b36' : '#fdf6e3', // --color-primary-bg
                    frame: false,
@@ -637,13 +654,22 @@ function createWindow
   hover.resize()
 
   win.once('ready-to-show', () => {
+                              restoring = 1
                               win.show()
+                              // restore position after show, because some window managers
+                              // ignore it while the window is still hidden
+                              if (savedBounds)
+                                win.setBounds(savedBounds)
+                              setTimeout(() => {
+                                           restoring = 0
+                                         }, 250)
                               win.bred.hover.resize()
                             })
 
   win.removeMenu()
 
-  win.setBounds(options.bounds || Profile.stores.state.get('bounds'))
+  if (savedBounds)
+    win.setBounds(savedBounds)
 
   try {
     //win.webContents.debugger.attach('1.3')
@@ -682,11 +708,13 @@ function createWindow
 
   win.on('resize', () => {
                      win.bred.hover.resize()
-                     Profile.stores.state.set('bounds', win.getBounds())
+                     if (restoring == 0)
+                       Profile.stores.state.set('bounds', win.getBounds())
                    })
 
   win.on('move', () => {
-                   Profile.stores.state.set('bounds', win.getBounds())
+                   if (restoring == 0)
+                     Profile.stores.state.set('bounds', win.getBounds())
                  })
 
   if ((options.devtools == 'on')

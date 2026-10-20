@@ -2,6 +2,7 @@ import { app, clipboard as Clipboard, BrowserWindow, ipcMain, Menu /*, net, prot
 import * as Browse from './main-browse.mjs'
 import CheckDeps from '../lib/check-dependencies.cjs'
 import * as Chmod from './main-chmod.mjs'
+import * as Clip from './main-clipboard.mjs'
 import * as Dir from './main-dir.mjs'
 import * as Ext from './main-ext.mjs'
 import * as MainFile from './main-file.mjs'
@@ -70,20 +71,20 @@ function cmdDevtoolsToggle
   return { open: 1 }
 }
 
-function cmdClipSelect
+async function cmdClipSelect
 (e, ch, onArgs) {
   let [ text ] = onArgs
 
-  Clipboard.writeText(text, 'selection')
+  await Clip.writeClipboard(Clipboard, text, 1)
   return {}
 }
 
-function cmdClipWrite
+async function cmdClipWrite
 (e, ch, onArgs) {
   let [ text ] = onArgs
 
   lastClipWrite = text
-  Clipboard.writeText(text, 'clipboard')
+  await Clip.writeClipboard(Clipboard, text, 0)
   return {}
 }
 
@@ -810,25 +811,36 @@ function setVersion
 
 function watchClip
 () {
-  let last
+  let last, checking
 
-  function check
+  async function check
   () {
-    let text
+    if (checking)
+      return
+    checking = 1
+    try {
+      let text
 
-    //d('check')
-    text = Clipboard.readText('clipboard')
-    if (text && text.length) {
-      if (text == last)
-        return
-      if (text == lastClipWrite)
-        return
-      //d('clip.new ' + text)
-      last = text
-      _win.webContents.send('clip.new', { text })
+      //d('check')
+      text = await Clip.readClipboard(Clipboard)
+      if (text && text.length) {
+        if (text == last)
+          return
+        if (text == lastClipWrite)
+          return
+        //d('clip.new ' + text)
+        last = text
+        _win.webContents.send('clip.new', { text })
+      }
+    }
+    catch {
+    }
+    finally {
+      checking = 0
     }
   }
 
+  checking = 0
   setInterval(check, 1 * 1000)
 }
 

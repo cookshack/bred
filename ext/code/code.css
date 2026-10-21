@@ -459,6 +459,18 @@ div.code-thought:hover {
   overflow: auto;
 }
 
+/* prose wraps at word boundaries; the global cm-lineWrapping rule uses
+   break-all, which splits words in rendered markdown */
+.code-markdown-ed .cm-content.cm-lineWrapping {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.code-markdown-ed .cm-line.code-md-code {
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
 .code-md-inline,
 .code-md-code {
   background-color: var(--clr-bg);

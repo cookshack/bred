@@ -184,7 +184,9 @@ function onPaths
                       node: Process.versions.node,
                       electron: Process.versions.electron,
                       chrome: Process.versions.chrome,
-                      v8: Process.versions.v8 } }
+                      v8: Process.versions.v8,
+                      display: Platform.display(Process.env,
+                                                app.commandLine.getSwitchValue('ozone-platform')) } }
 }
 
 async function wrapOn

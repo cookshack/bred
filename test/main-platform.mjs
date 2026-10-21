@@ -35,6 +35,27 @@ test('ozonePlatform', 'requires a display to force x11',
        equal(Platform.ozonePlatform({ BRED_XWAYLAND: '1', XDG_SESSION_TYPE: 'wayland' }), 0)
      })
 
+test('display', 'detects native wayland',
+     () => {
+       equal(Platform.display({ XDG_SESSION_TYPE: 'wayland',
+                                WAYLAND_DISPLAY: 'wayland-0' }, 0), 'Wayland')
+     })
+
+test('display', 'detects xwayland',
+     () => {
+       equal(Platform.display({ XDG_SESSION_TYPE: 'wayland' }, 'x11'), 'XWayland')
+     })
+
+test('display', 'detects x11',
+     () => {
+       equal(Platform.display({ XDG_SESSION_TYPE: 'x11', DISPLAY: ':0' }, 0), 'X11')
+     })
+
+test('display', 'falls back to WAYLAND_DISPLAY',
+     () => {
+       equal(Platform.display({ WAYLAND_DISPLAY: 'wayland-0' }, 0), 'Wayland')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

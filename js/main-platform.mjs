@@ -10,3 +10,16 @@ function ozonePlatform
     return 'x11'
   return 0
 }
+
+// What the app is really talking to, for the about table. A Wayland session
+// driven through the x11 ozone backend is XWayland.
+export
+function display
+(env, ozone) {
+  let wayland
+
+  wayland = (env.XDG_SESSION_TYPE == 'wayland') || env.WAYLAND_DISPLAY
+  if (wayland)
+    return ozone == 'x11' ? 'XWayland' : 'Wayland'
+  return 'X11'
+}

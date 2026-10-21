@@ -158,7 +158,8 @@ function open
                                    buf = Buf.add('Rich: ' + loc.filename,
                                                  'Rich',
                                                  divW(data.data, loc.dirname, loc.filename),
-                                                 loc.dirname)
+                                                 loc.dirname,
+                                                 { file: loc.filename })
                                    buf.vars('Rich').path = path
                                    buf.stat = data.stat
                                    buf.modifiedOnDisk = 0

@@ -9,7 +9,7 @@ import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
-export let onFocuss
+export let onFocuss, onMouseDowns
 
 export
 function onFocus
@@ -19,6 +19,18 @@ function onFocus
     onFocuss.delete(cb)
   }
   onFocuss.add(cb)
+  return { free }
+}
+
+export
+function onMouseDown
+(cb) { // (view, e)
+  function free
+  () {
+    onMouseDowns.delete(cb)
+  }
+  onMouseDowns = onMouseDowns || new Set()
+  onMouseDowns.add(cb)
   return { free }
 }
 
@@ -697,4 +709,5 @@ export
 function init
 () {
   onFocuss = new Set()
+  onMouseDowns = new Set()
 }

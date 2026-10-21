@@ -479,6 +479,13 @@ function add
         showLintMarker,
         focus,
         text }
+
+  // Notify view listeners before CodeMirror handles the event and moves the point.
+  ele.addEventListener('mousedown',
+                       e => {
+                         View.onMouseDowns?.forEach(cb => cb(p.view, e))
+                       },
+                       1)
   id++
 
   b || Mess.toss('buffer required')

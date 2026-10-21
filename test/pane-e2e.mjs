@@ -352,6 +352,35 @@ test('search', 'add word after a failed backward match is safe',
        }
      })
 
+test('search', 'clicking the buffer exits search',
+     async () => {
+       let f, old, panes
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+       f.insert('alpha beta\ngamma delta\n')
+       View.current(panes.pB).ed.dispatch({ selection: { anchor: 0 } })
+
+       old = () => {}
+       globalThis.onkeydown = old
+       Cmd.run('search forward', panes.pB.buf)
+       globalThis.onkeydown(keydown('a', 'KeyA', 0, 0))
+       equal(globalThis.onkeydown == old, false, 'search owns the key handler')
+
+       try {
+         panes.pB.ele.dispatchEvent(new globalThis.window.MouseEvent('mousedown',
+                                                                     { button: 0,
+                                                                       bubbles: 1 }))
+         equal(globalThis.onkeydown, old, 'clicking the buffer restores the key handler')
+       }
+       finally {
+         panes.pB.ele.dispatchEvent(new globalThis.window.MouseEvent('mousedown',
+                                                                     { button: 0,
+                                                                       bubbles: 1 }))
+       }
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

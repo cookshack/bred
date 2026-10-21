@@ -970,6 +970,7 @@ function initSearch
     s.st.view.buf.opts.set('core.highlight.occurrences.enabled', s.st.occur)
     spec.cleanup && spec.cleanup(s)
 
+    s.st.mouseFree?.free()
     s.st.searchBar?.remove()
     globalThis.onkeydown = s.st.oldOnKeyDown
     spec.cancel && spec.cancel()
@@ -1186,6 +1187,10 @@ function initSearch
     s.st.needle = ''
     s.st.start = view.buf.mode?.pos ? view.pos : view.point.bep()
     s.st.backward = backward
+    s.st.mouseFree = View.onMouseDown((v, e) => {
+                                        if (e.button == 0 && s.st)
+                                          searchCancel(1)
+                                      })
 
     s.st.echo = divCl('mini-echo')
     s.st.searchBar = divCl('bred-search-w',

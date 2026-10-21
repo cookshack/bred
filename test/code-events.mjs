@@ -77,6 +77,21 @@ test('translate', 'session.idle and status map through',
        equal(leg[0].properties.status.type, 'busy')
      })
 
+test('translate', 'session.model.selected maps ModelRef to modelID',
+     () => {
+       let buf, leg
+
+       buf = makeBuf()
+       leg = Ev.translate(buf, Fake.event('session.model.selected', { sessionID: 's1',
+                                                                      model: { id: 'deepseek/deepseek-v4.1-flash',
+                                                                               providerID: 'goat',
+                                                                               variant: 'max' } }))
+       equal(leg[0].type, 'message.updated')
+       equal(leg[0].properties.info.model.providerID, 'goat')
+       equal(leg[0].properties.info.model.modelID, 'deepseek/deepseek-v4.1-flash')
+       equal(leg[0].properties.info.model.variant, 'max')
+     })
+
 test('translate', 'permission.asked carries the action as permission',
      () => {
        let buf, leg

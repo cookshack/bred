@@ -91,7 +91,12 @@ function translate
     out.push(legacy('message.updated', { info: { sessionID: data.sessionID, tokens: data.tokens, cost: data.cost } }))
     break
   case 'session.model.selected':
-    out.push(legacy('message.updated', { info: { sessionID: data.sessionID, model: data.model } }))
+    // v2 sends ModelRef ({ id, providerID, variant }); the handlers expect the
+    // legacy modelID field.
+    out.push(legacy('message.updated', { info: { sessionID: data.sessionID,
+                                                 model: { providerID: data.model?.providerID,
+                                                          modelID: data.model?.id,
+                                                          variant: data.model?.variant } } }))
     break
   case 'permission.asked':
     out.push(legacy('permission.asked', { id: data.id, sessionID: data.sessionID, permission: data.action, type: data.action, resources: data.resources, patterns: data.resources, always: data.save || [], save: data.save, metadata: data.metadata, callID: data.metadata?.callID, tool: { callID: data.metadata?.callID } }))

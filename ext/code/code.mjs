@@ -731,7 +731,7 @@ function handleSessionUpdated
 
 function handleMessageUpdated
 (buf, event) {
-  let info
+  let info, modelID
 
   info = event.properties.info
   if (info.tokens) {
@@ -743,8 +743,11 @@ function handleMessageUpdated
   }
   if (info.cost && info.cost > 0)
     buf.vars('code').lastCost = info.cost
-  if (info.model)
-    updateModelContextLimit(buf, info.model.providerID, info.model.modelID)
+  // v2 usage events carry no model, and ModelRef uses id rather than modelID.
+  // Fall back to the buffer's current model so the context limit is fetched
+  // at least once per model (updateModelContextLimit caches by provider/model).
+  modelID = info.model?.modelID || info.model?.id
+  updateModelContextLimit(buf, info.model?.providerID || Util.getProvider(buf), modelID || Util.getModel(buf))
 }
 
 function handleToolPart
@@ -1313,6 +1316,7 @@ function openPrompt
 (buf, pane, provider, model, variant) {
   let wh
 
+  updateModelContextLimit(buf, provider, model)
   Mess.yell('')
   wh = whichHistFromBuf(buf)
   buf.vars('code').promptBuf.placeholder = wh?.nth(0)?.toString()
@@ -1456,6 +1460,7 @@ function code
     buf = Buf.find(b => b.name == name)
     if (buf) {
       pane.setBuf(buf)
+      updateModelContextLimit(buf, Util.getProvider(buf), Util.getModel(buf))
       if (provider == 'openrouter' || provider == 'deepinfra')
         updateCredits(buf, provider)
       return

@@ -38,22 +38,32 @@ test('ozonePlatform', 'requires a display to force x11',
 test('display', 'detects native wayland',
      () => {
        equal(Platform.display({ XDG_SESSION_TYPE: 'wayland',
-                                WAYLAND_DISPLAY: 'wayland-0' }, 0), 'Wayland')
+                                WAYLAND_DISPLAY: 'wayland-0' }, 0),
+             'Wayland (session: wayland, ozone: auto)')
      })
 
 test('display', 'detects xwayland',
      () => {
-       equal(Platform.display({ XDG_SESSION_TYPE: 'wayland' }, 'x11'), 'XWayland')
+       equal(Platform.display({ XDG_SESSION_TYPE: 'wayland' }, 'x11'),
+             'XWayland (session: wayland, ozone: x11)')
      })
 
 test('display', 'detects x11',
      () => {
-       equal(Platform.display({ XDG_SESSION_TYPE: 'x11', DISPLAY: ':0' }, 0), 'X11')
+       equal(Platform.display({ XDG_SESSION_TYPE: 'x11', DISPLAY: ':0' }, 0),
+             'X11 (session: x11, ozone: auto)')
      })
 
 test('display', 'falls back to WAYLAND_DISPLAY',
      () => {
-       equal(Platform.display({ WAYLAND_DISPLAY: 'wayland-0' }, 0), 'Wayland')
+       equal(Platform.display({ WAYLAND_DISPLAY: 'wayland-0' }, 0),
+             'Wayland (session: wayland, ozone: auto)')
+     })
+
+test('display', 'trusts an explicit wayland backend over the session',
+     () => {
+       equal(Platform.display({ XDG_SESSION_TYPE: 'x11' }, 'wayland'),
+             'Wayland (session: x11, ozone: wayland)')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

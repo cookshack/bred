@@ -19,8 +19,9 @@ without compositor support or a desktop-specific window rule.
 
 XWayland still allows clients to set position. `BRED_XWAYLAND=1` makes Bred pass
 `--ozone-platform=x11`, so bounds restore works on X11/XWayland setups. The
-About buffer (`C-h a`) reports which backend is in use (`Wayland`, `XWayland`,
-or `X11`) as `Display`, which helps when retesting the issue below.
+About buffer (`C-h a`) shows the effective backend and session as `Display`,
+e.g. `XWayland (session: wayland, ozone: x11)`, which helps when retesting the
+issue below.
 
 ## Known issue (2026-10-20, Ubuntu GNOME Wayland, Electron 44.9.1)
 

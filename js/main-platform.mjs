@@ -11,15 +11,20 @@ function ozonePlatform
   return 0
 }
 
-// What the app is really talking to, for the about table. A Wayland session
-// driven through the x11 ozone backend is XWayland.
+// What the session and ozone backend are, for the about table. A Wayland
+// session driven through the x11 ozone backend is XWayland.
 export
 function display
 (env, ozone) {
-  let wayland
+  let session, backend
 
-  wayland = (env.XDG_SESSION_TYPE == 'wayland') || env.WAYLAND_DISPLAY
-  if (wayland)
-    return ozone == 'x11' ? 'XWayland' : 'Wayland'
-  return 'X11'
+  session = env.XDG_SESSION_TYPE || (env.WAYLAND_DISPLAY ? 'wayland' : 'unknown')
+  ozone = ozone || 'auto'
+  if (ozone == 'x11')
+    backend = (session == 'wayland') ? 'XWayland' : 'X11'
+  else if (ozone == 'wayland')
+    backend = 'Wayland'
+  else
+    backend = (session == 'wayland') ? 'Wayland' : 'X11'
+  return backend + ' (session: ' + session + ', ozone: ' + ozone + ')'
 }

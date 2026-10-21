@@ -111,6 +111,44 @@ test('redraw', 'keeps scroll when the cursor line scrolled offscreen',
        equal(fake.point.puts[0].skipScroll, 1, 'must put without scrolling')
      })
 
+test('selectFile', 'moves point to the matching file',
+     () => {
+       let dirName, dirVars, view
+
+       dirName = { dataset: { name: 'b.txt' } }
+       dirVars = {}
+       view = { ele: { querySelectorAll: () => [ { dataset: { name: 'a.txt' } }, dirName ] },
+                buf: { vars: () => dirVars },
+                point: { puts: [],
+                         put
+                         (el) {
+                           this.puts.push(el)
+                         } } }
+
+       equal(Dir.selectFile(view, 'b.txt'), 1)
+       equal(view.point.puts.length, 1)
+       equal(view.point.puts[0], dirName)
+       equal(dirVars.current, dirName)
+     })
+
+test('selectFile', 'missing file leaves point alone',
+     () => {
+       let dirVars, view
+
+       dirVars = {}
+       view = { ele: { querySelectorAll: () => [ { dataset: { name: 'a.txt' } } ] },
+                buf: { vars: () => dirVars },
+                point: { puts: [],
+                         put
+                         (el) {
+                           this.puts.push(el)
+                         } } }
+
+       equal(Dir.selectFile(view, 'b.txt'), 0)
+       equal(view.point.puts.length, 0)
+       equal(dirVars.current, undefined)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

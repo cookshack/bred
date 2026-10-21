@@ -148,6 +148,25 @@ function put
   }
 }
 
+export
+function selectFile
+(v, name) {
+  let root
+
+  root = v.eleOrReserved || v.ele
+  if (name && root) {
+    let els
+
+    els = root.querySelectorAll('.dir-name')
+    for (let i = 0; i < els.length; i++)
+      if (els[i].dataset.name == name) {
+        put(v, els[i])
+        return 1
+      }
+  }
+  return 0
+}
+
 function putByIndex
 (v, idx, skipScroll) {
   let lines, scroll, el, path, surf
@@ -512,14 +531,9 @@ function fill
 
                                                     appendLines(v, surf)
 
-                                                    if (surf && connected)
-                                                      if (current) {
-                                                        let el
-
-                                                        el = v.eleOrReserved.querySelector('.dir-name[data-name="' + current + '"]')
-                                                        if (el)
-                                                          put(v, el)
-                                                      }
+                                                    if (surf && connected) {
+                                                      if (current)
+                                                        selectFile(v, current)
                                                       else {
                                                         let first
 
@@ -527,6 +541,8 @@ function fill
                                                         if (first)
                                                           put(v, first)
                                                       }
+                                                      buf.vars('dir').initialFile = 0
+                                                    }
                                                   }
                                                 })
 
@@ -628,7 +644,10 @@ function add
     exist.vars('dir').sort = sort
     exist.vars('dir').initialFile = initialFile
     exist.vars('dir').hist = hist
-    p.setBuf(exist)
+    p.setBuf(exist, {}, v => {
+                          if (selectFile(v, initialFile))
+                            exist.vars('dir').initialFile = 0
+                        })
     return
   }
 
@@ -683,7 +702,7 @@ function refresh
   vars.refreshing = 1
 
   if (p.dir && p.buf.file) {
-    file = file || currentFile() // must run before clear
+    file = p.buf.vars('dir').initialFile || file || currentFile() // must run before clear
     // Clear it before the async file.get so that it flashes
     if (p.view.ele) {
       let surf

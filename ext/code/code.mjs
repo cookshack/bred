@@ -814,7 +814,7 @@ function handlePart
   else if (part.type == 'text') {
     buf.vars('code').gotContent = 1
     if (buf.vars('code').stepActiveSessions?.size)
-      Ui.appendMsg(buf, 0, part.text, part.id)
+      Ui.appendMsg(buf, 0, part.text, part.id, 0, { subagent: Util.isSubagentId(buf, part.sessionID) })
   }
   else if (part.type == 'reasoning') {
     let buffered

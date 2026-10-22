@@ -340,6 +340,7 @@ test('subagent', 'task prompt is always shown, result follows it',
                                                        sessionID: 'ses-sub',
                                                        assistantMessageID: 'm1',
                                                        name: 'subagent',
+                                                       metadata: { sessionID: 'ses-child' },
                                                        input }))
          await waitFor(() => created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-sub"] .code-msg-prompt'))
          w = created.views[0].ele.querySelector('.code-w')
@@ -348,6 +349,15 @@ test('subagent', 'task prompt is always shown, result follows it',
                'prompt is visible without expanding')
          equal(el.querySelector('.code-msg-under'), null,
                'no result while the subagent runs')
+
+         // the child session's output is marked so it can be styled apart
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-child', assistantMessageID: 'c1', agent: 'explore', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.text.started', { sessionID: 'ses-child', assistantMessageID: 'c1', ordinal: 0 }))
+         await waitFor(() => w.querySelector('.code-msg-assistant.code-msg-subagent'))
+         equal(w.querySelectorAll('.code-msg-assistant.code-msg-subagent').length, 1,
+               'child output gets the subagent class')
+         equal(w.querySelector('.code-msg-assistant.code-msg-subagent').dataset.messageid, 'c1',
+               'the marked message belongs to the child session')
 
          fake.push(Fake.event('session.tool.success', { id: 'call-sub',
                                                         sessionID: 'ses-sub',

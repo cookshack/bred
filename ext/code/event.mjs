@@ -138,7 +138,7 @@ function translate
   case 'session.tool.called':
     state.toolInputs = state.toolInputs || {}
     state.toolInputs[data.id] = data.input
-    out.push(legacy('message.part.updated', { part: toolPart('running', data.input) }))
+    out.push(legacy('message.part.updated', { part: toolPart('running', data.input, { metadata: data.metadata || {} }) }))
     break
   case 'session.tool.progress':
     out.push(legacy('message.part.updated', { part: toolPart('running', 0, { metadata: data.metadata }) }))

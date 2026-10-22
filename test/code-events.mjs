@@ -154,6 +154,20 @@ test('translate', 'tool lifecycle maps to states',
        equal(success[0].properties.part.state.output, 'done')
      })
 
+test('translate', 'tool calls keep metadata, so subagents register early',
+     () => {
+       let buf, called
+
+       buf = makeBuf()
+       called = Ev.translate(buf, Fake.event('session.tool.called', { sessionID: 's1',
+                                                                      assistantMessageID: 'm1',
+                                                                      id: 't1',
+                                                                      name: 'subagent',
+                                                                      input: { description: 'x' },
+                                                                      metadata: { sessionID: 'child1' } }))
+       equal(called[0].properties.part.state.metadata.sessionID, 'child1')
+     })
+
 test('pipeline', 'startSub dispatches translated events',
      async () => {
        let buf, events, fake, got, state

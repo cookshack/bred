@@ -289,7 +289,9 @@ function appendMsg
                         }
                         else
                           appendX(w,
-                                  divCl('code-msg code-msg-assistant' + (spec?.log ? ' code-msg-log' : ''),
+                                  divCl('code-msg code-msg-assistant'
+                                        + (spec?.log ? ' code-msg-log' : '')
+                                        + (spec?.subagent ? ' code-msg-subagent' : ''),
                                         [ contentEl ],
                                         { 'data-partid': partID || 0,
                                           'data-messageid': messageID || '' }))

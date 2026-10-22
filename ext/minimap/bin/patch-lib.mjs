@@ -1,11 +1,14 @@
 // Patch the vendored minimap lib. sync-scope regenerates lib/ from
 // node_modules, so edits have to be applied here on every install.
 //
-// The stock lib touches CodeMirror's contentDOM while drawing: beforeDraw()
-// throws the font cache away on every render, so every render appends and
-// removes a mock line per tag to measure fonts. That makes CM remeasure and
-// repaint on every scroll frame, which shows up as the minimap (and anything
-// painted with it, like the custom scrollbar) blinking.
+// The stock lib makes redrawing expensive and redundant:
+//  - beforeDraw() throws the font cache away on every render, so every render
+//    appends and removes a mock line in contentDOM per tag to measure fonts;
+//  - render() reads and writes layout every frame, forcing CM to remeasure;
+//  - each scroll event queues its own requestAnimationFrame, so a burst of
+//    events redraws the whole canvas many times per frame.
+// Together that shows up as the minimap (and the scrollbar painted with it)
+// blinking and constantly recalculating.
 
 import { readFileSync, writeFileSync } from 'node:fs'
 
@@ -64,6 +67,77 @@ patch(`        this.dom.style.width = this.getWidth() + "px";
             this.canvas.height = domHeight * Scale.PixelMultiplier;
         if (this.canvas.style.height !== domHeight + "px")
             this.canvas.style.height = domHeight + "px";`)
+
+// Scrolling redraws every frame, and every read of the editor's box forces
+// CodeMirror to remeasure (and can flash the scrollbar as transient geometry is
+// observed). Size and overflow only change when geometry changes, so cache them
+// and refresh on update.geometryChanged.
+patch(`        if (now) {
+            this.text.update(update);
+            this.selection.update(update);
+            this.diagnostic.update(update);
+            this.render();
+        }`,
+      `        if (now) {
+            this.text.update(update);
+            this.selection.update(update);
+            this.diagnostic.update(update);
+            if (update.geometryChanged)
+                this._measure = true;
+            this.render();
+        }`)
+
+patch(`        this.text.beforeDraw();
+        this.updateBoxShadow();
+        const width = this.getWidth();`,
+      `        this.text.beforeDraw();
+        if (!this._measured || this._measure) {
+            this.updateBoxShadow();
+            this._width = this.getWidth();
+            this._height = this.view.dom.getBoundingClientRect().height;
+            this._measured = true;
+            this._measure = false;
+        }
+        const width = this._width;`)
+
+patch(`        const domHeight = this.view.dom.getBoundingClientRect().height;
+        if (this.inner.style.minHeight !== domHeight + "px")`,
+      `        const domHeight = this._height;
+        if (this.inner.style.minHeight !== domHeight + "px")`)
+
+// A burst of scroll events must not queue a full redraw each; coalesce to one
+// per frame for both the canvas and the viewport overlay.
+patch(`    eventHandlers: {
+        scroll() {
+            requestAnimationFrame(() => this.render());
+        },
+    },`,
+      `    eventHandlers: {
+        scroll() {
+            if (this._raf)
+                return;
+            this._raf = requestAnimationFrame(() => {
+                this._raf = 0;
+                this.render();
+            });
+        },
+    },`)
+
+patch(`    eventHandlers: {
+        scroll() {
+            requestAnimationFrame(() => this.computeTop());
+        },
+    },`,
+      `    eventHandlers: {
+        scroll() {
+            if (this._raf)
+                return;
+            this._raf = requestAnimationFrame(() => {
+                this._raf = 0;
+                this.computeTop();
+            });
+        },
+    },`)
 
 if (fail) {
   console.error('minimap patch: lib not modified')

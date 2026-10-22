@@ -1,2 +1,2 @@
 #!/bin/bash
-../../bin/sync-scope replit && ../../bin/fix-scope replit ../../../../lib/
+../../bin/sync-scope replit && ../../bin/fix-scope replit ../../../../lib/ && node bin/patch-lib.mjs

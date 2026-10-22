@@ -658,7 +658,16 @@ function make
                          })
     }
     else {
-      append(spec.ele, divCl('bred-view-w', [ ...spec.views[0].ele.children ].map(e => e.cloneNode(1))))
+      let co
+
+      co = [ ...spec.views[0].ele.children ].map(e => e.cloneNode(1))
+      // A scrollbar is view chrome, not content: the new view makes its own.
+      co.forEach(e => {
+                   if (Css.has(e, 'bred-scrollbar'))
+                     e.remove()
+                   e.querySelectorAll('.bred-scrollbar').forEach(el => el.remove())
+                 })
+      append(spec.ele, divCl('bred-view-w', co))
       ready1()
     }
   }

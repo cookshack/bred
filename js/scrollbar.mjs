@@ -56,6 +56,19 @@ function scrollForThumb
   return (thumbTop / room) * maxScroll
 }
 
+// A view cloned from another carries the source view's bar, which remembers the
+// source pane's geometry. The host owns exactly one bar, so drop stale copies.
+function removeBars
+(host) {
+  let el, next
+
+  for (el = host.firstElementChild; el; el = next) {
+    next = el.nextElementSibling
+    if (Css.has(el, 'bred-scrollbar'))
+      el.remove()
+  }
+}
+
 export
 function make
 (scroller, opts) {
@@ -275,6 +288,7 @@ function make
   track = divCl('bred-scrollbar-track', [ thumb ])
   bar = divCl('bred-scrollbar', [ upDblBtn, upBtn, track, downBtn, downDblBtn ])
 
+  removeBars(host)
   Css.add(host, 'bred-scrollbar-host')
   Css.add(scroller, 'bred-has-scrollbar')
   append(host, bar)

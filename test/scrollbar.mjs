@@ -1,12 +1,37 @@
 import { equal } from 'node:assert/strict'
 import * as Scrollbar from '../js/scrollbar.mjs'
+import { setupDom } from './dom-help.mjs'
 
-let tests
+let globalKeys, saved, tests
 
 function test
 (group, name, cb) {
   tests[group] = tests[group] || []
   tests[group].push({ name, cb })
+}
+
+// setupDom swaps in happy-dom; save and restore the globals so other test
+// files keep the ones they installed at load time
+globalKeys = 'document window navigator Element HTMLElement HTMLDocument Node NodeFilter Text DocumentFragment Comment Event CustomEvent DOMRect getComputedStyle requestAnimationFrame cancelAnimationFrame ResizeObserver MutationObserver IntersectionObserver getSelection FileReader Blob URL'.split(' ')
+
+function saveGlobals
+() {
+  saved = {}
+  globalKeys.forEach(k => saved[k] = globalThis[k])
+}
+
+function restoreGlobal
+(k) {
+  try {
+    globalThis[k] = saved[k]
+  }
+  catch {
+  }
+}
+
+function restoreGlobals
+() {
+  globalKeys.forEach(restoreGlobal)
 }
 
 tests = {}
@@ -69,6 +94,62 @@ test('scrollForThumb', 'bottom maps to bottom',
 test('scrollForThumb', 'zero when thumb fills track',
      () => {
        equal(Scrollbar.scrollForThumb(10, 100, 100, 1000, 200), 0)
+     })
+
+test('make', 'drops a bar copied in with cloned content',
+     () => {
+       let dom
+
+       saveGlobals()
+       try {
+         let bar, host, scroller, stale
+
+         dom = setupDom()
+         host = dom.document.createElement('div')
+         scroller = dom.document.createElement('div')
+         host.append(scroller)
+
+         // what cloneNode copies into a new view
+         stale = dom.document.createElement('div')
+         stale.className = 'bred-scrollbar'
+         host.append(stale)
+
+         bar = Scrollbar.make(scroller, {})
+         equal(host.querySelectorAll('.bred-scrollbar').length, 1, 'host owns one bar')
+         equal(host.firstElementChild == scroller, true, 'keeps the scroller')
+         bar.destroy()
+       }
+       finally {
+         dom?.happyDOM?.cancelAsync()
+         restoreGlobals()
+       }
+     })
+
+test('make', 'leaves bars of nested content alone',
+     () => {
+       let dom
+
+       saveGlobals()
+       try {
+         let bar, host, nested, scroller
+
+         dom = setupDom()
+         host = dom.document.createElement('div')
+         scroller = dom.document.createElement('div')
+         host.append(scroller)
+
+         nested = dom.document.createElement('div')
+         nested.innerHTML = '<div class="bred-scrollbar"></div>'
+         scroller.append(nested)
+
+         bar = Scrollbar.make(scroller, {})
+         equal(nested.querySelectorAll('.bred-scrollbar').length, 1, 'nested bar untouched')
+         bar.destroy()
+       }
+       finally {
+         dom?.happyDOM?.cancelAsync()
+         restoreGlobals()
+       }
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

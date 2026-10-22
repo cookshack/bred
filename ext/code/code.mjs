@@ -1254,8 +1254,11 @@ function listModels
                                                                      sortKey: fullId.toLowerCase() })
                                                     })
                                   entries.sort((a, b) => a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0)
-                                  choices = entries.map(e => e.fullId + (e.active ? ' ◀ current' : ''))
-                                  byChoice = new Map(entries.map(e => [ e.fullId + (e.active ? ' ◀ current' : ''), e ]))
+                                  choices = entries.map(e => (e.active
+                                    ? { name: [ e.fullId, span('◀ current', 'code-model-current') ],
+                                        value: e.fullId }
+                                    : e.fullId))
+                                  byChoice = new Map(entries.map(e => [ e.fullId, e ]))
                                 }
 
                                 res = await c.model.list({ location: { directory: Util.apiDir(buf) } })

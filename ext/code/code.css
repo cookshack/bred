@@ -537,6 +537,12 @@ div.code-thought:hover {
   font-style: normal;
 }
 
+.code-model-current {
+  color: var(--clr-nb3);
+  font-weight: bold;
+  margin-left: 0.75rem;
+}
+
 .code-sessions-ww {
   width: 100%;
   height: 100%;

@@ -51,20 +51,27 @@ function yn
            divCl('float-shade') ])
 }
 
-// A choice is a plain string, or { name, enable } to allow greying out.
+// A choice is a plain string, or { name, enable, value } to allow greying out
+// and to report a value other than the displayed text. Name may be nodes.
 function choiceEl
 (choice) {
-  let enable, name
+  let attrs, enable, name, value
 
   enable = 1
   name = choice
+  value = choice
   if (choice?.name) {
     name = choice.name
     enable = Object.hasOwn(choice, 'enable') ? choice.enable : 1
+    value = Object.hasOwn(choice, 'value') ? choice.value : name
   }
-  return divCl('float-choice' + (enable ? '' : ' disabled'),
-               name,
-               enable ? { 'data-run': 'choose' } : {})
+  attrs = {}
+  if (enable) {
+    attrs['data-run'] = 'choose'
+    if (typeof value == 'string')
+      attrs['data-choice'] = value
+  }
+  return divCl('float-choice' + (enable ? '' : ' disabled'), name, attrs)
 }
 
 export
@@ -736,9 +743,10 @@ function init
   Cmd.add('choose', (u, we) => {
                       Cmd.run('close demand')
                       if (chooseCb) {
-                        let choice
+                        let el, choice
 
-                        choice = we.e.target.innerText
+                        el = we.e?.target?.closest?.('.float-choice')
+                        choice = el?.dataset.choice || el?.innerText
                         chooseCb(choice)
                       }
                     })

@@ -2174,7 +2174,7 @@ function init
                         getSubagentCallIds(buf).set(sessionId, part.callID)
                       }
                       desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
-                      Ui.appendToolMsg(buf, part.callID, desc)
+                      Ui.appendToolMsg(buf, part.callID, desc, 0, { always: Util.subagentPrompt(part) })
                     },
                         onComplete
                         (buf, part) {
@@ -2191,7 +2191,7 @@ function init
                           ids.delete(sessionId)
                       }
                       desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✔️') : ('Task (' + agent + ' agent) ✔️')
-                      Ui.appendToolMsg(buf, part.callID, desc, part.state.output)
+                      Ui.appendToolMsg(buf, part.callID, desc, Util.subagentResult(part), { always: Util.subagentPrompt(part) })
                     },
                         onErr
                         (buf, part) {
@@ -2208,7 +2208,7 @@ function init
                           ids.delete(sessionId)
                       }
                       desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✘') : ('Task (' + agent + ' agent) ✘')
-                      Ui.appendToolMsg(buf, part.callID, desc, part.state.error)
+                      Ui.appendToolMsg(buf, part.callID, desc, Util.subagentResult(part), { always: Util.subagentPrompt(part) })
                     } } }
 
   events = { 'session.idle': { onArrive

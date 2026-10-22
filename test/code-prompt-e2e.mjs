@@ -305,6 +305,72 @@ test('order', 'model line comes after the assistant response',
        }
      })
 
+test('subagent', 'task prompt is always shown, result follows it',
+     async () => {
+       let created, fake, orig, panes, prompt
+
+       ({ panes } = await setupStart())
+
+       prompt = 'Find where the minimap is configured'
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-sub', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let el, input, order, w
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await waitFor(() => created.vars('code').sessionID)
+         input = { description: 'Explore minimap', agent: 'explore', prompt }
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-sub' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-sub', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.tool.called', { id: 'call-sub',
+                                                       sessionID: 'ses-sub',
+                                                       assistantMessageID: 'm1',
+                                                       name: 'subagent',
+                                                       input }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-sub"] .code-msg-prompt'))
+         w = created.views[0].ele.querySelector('.code-w')
+         el = w.querySelector('.code-msg-tool[data-callid="call-sub"]')
+         equal(el.querySelector('.code-msg-prompt').textContent, prompt,
+               'prompt is visible without expanding')
+         equal(el.querySelector('.code-msg-under'), null,
+               'no result while the subagent runs')
+
+         fake.push(Fake.event('session.tool.success', { id: 'call-sub',
+                                                        sessionID: 'ses-sub',
+                                                        assistantMessageID: 'm1',
+                                                        name: 'subagent',
+                                                        metadata: {},
+                                                        content: [ { type: 'text', text: 'found it' } ] }))
+         await waitFor(() => w.querySelector('.code-msg-tool[data-callid="call-sub"] .code-msg-under'))
+         el = w.querySelector('.code-msg-tool[data-callid="call-sub"]')
+         equal(el.querySelector('.code-msg-prompt').textContent, prompt,
+               'prompt stays after completion')
+         equal(el.querySelector('.code-msg-under').textContent.includes('found it'), true,
+               'result goes in the details')
+         order = [ ...el.querySelectorAll('.code-msg-prompt, .code-msg-under') ]
+           .map(e => Css.has(e, 'code-msg-prompt') ? 'prompt' : 'result')
+           .join(',')
+         equal(order, 'prompt,result', 'prompt comes before the result')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
 function mochaIt
 (cb) {
   return function

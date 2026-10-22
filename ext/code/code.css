@@ -259,6 +259,16 @@ div.code-thought:hover {
   background: var(--clr-fill);
 }
 
+/* The task prompt sent to a subagent: shown without expanding. */
+.code-msg-tool .code-msg-text.code-msg-prompt {
+  font-family: var(--font-monospace);
+  font-style: normal;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-left: 0.75rem;
+  border-left: 0.25rem solid var(--clr-fill);
+}
+
 .code-msg-tool .code-msg-arrow {
   cursor: pointer;
   font-style: normal;

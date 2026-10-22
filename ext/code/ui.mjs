@@ -366,10 +366,12 @@ function appendToolMsg
     buf.vars('code').callLabels[callID] = label
   }
   Util.eachCodeW(buf, (view, w) => {
-                        let els, underEl
+                        let els, underEl, alwaysEl
 
                         els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
                         els?.forEach(el => el.remove())
+                        if (spec.always)
+                          alwaysEl = divCl('code-msg-text code-msg-prompt', spec.always)
                         if (under && (spec.format == 'code')) {
                           let codeResult
 
@@ -394,6 +396,7 @@ function appendToolMsg
                                               [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : Util.iconRightArrow()),
                                                 ' ',
                                                 label ]),
+                                        alwaysEl,
                                         underEl ],
                                       { 'data-callid': callID,
                                         'data-messageid': (spec.messageID ?? buf.vars('code').curMessageID) || '' }))

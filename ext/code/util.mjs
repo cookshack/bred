@@ -154,6 +154,31 @@ function ensureTextChunks
   return buf.vars('code').textChunks = {}
 }
 
+// The task prompt a parent agent sent to a subagent. The field name is not
+// documented in the v2 types, so accept the obvious aliases.
+export
+function subagentPrompt
+(part) {
+  let input
+
+  input = part.state?.input || {}
+  return input.prompt || input.message || input.task || ''
+}
+
+// The subagent's result, or why it failed. Errors can be an object.
+export
+function subagentResult
+(part) {
+  let err
+
+  if (part.state?.output)
+    return part.state.output
+  err = part.state?.error
+  if (err)
+    return (typeof err == 'string') ? err : (err.message || String(err))
+  return ''
+}
+
 export
 function sumTokens
 (tokens) {

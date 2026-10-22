@@ -274,6 +274,35 @@ test('apiDir', 'strips a trailing slash but keeps root',
        equal(CodeUtil.apiDir({ dir: '/' }), '/')
      })
 
+test('subagentPrompt', 'reads the prompt, with aliases',
+     () => {
+       equal(CodeUtil.subagentPrompt({ state: { input: { prompt: 'go' } } }), 'go')
+       equal(CodeUtil.subagentPrompt({ state: { input: { message: 'm' } } }), 'm')
+       equal(CodeUtil.subagentPrompt({ state: { input: { task: 't' } } }), 't')
+     })
+
+test('subagentPrompt', 'missing prompt or input',
+     () => {
+       equal(CodeUtil.subagentPrompt({ state: { input: { description: 'd' } } }), '')
+       equal(CodeUtil.subagentPrompt({ state: {} }), '')
+       equal(CodeUtil.subagentPrompt({}), '')
+     })
+
+test('subagentResult', 'output wins, then string or object error',
+     () => {
+       equal(CodeUtil.subagentResult({ state: { output: 'done',
+                                                error: 'ignored' } }),
+             'done')
+       equal(CodeUtil.subagentResult({ state: { error: 'bad' } }), 'bad')
+       equal(CodeUtil.subagentResult({ state: { error: { message: 'worse' } } }), 'worse')
+     })
+
+test('subagentResult', 'nothing finished yet',
+     () => {
+       equal(CodeUtil.subagentResult({ state: {} }), '')
+       equal(CodeUtil.subagentResult({}), '')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

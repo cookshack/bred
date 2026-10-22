@@ -1,9 +1,12 @@
 import { equal } from 'node:assert/strict'
+import * as Buf from '../js/Buf.mjs'
 import * as Cmd from '../js/cmd.mjs'
+import * as Ed from '../js/ed.mjs'
 import * as Pane from '../js/Pane.mjs'
 import * as Prompt from '../js/prompt.mjs'
 import * as Scib from '../js/scib.mjs'
 import * as View from '../js/view.mjs'
+import { divCl } from '../js/dom.mjs'
 import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
 import { markdown } from '../lib/@codemirror/lang-markdown.js'
@@ -379,6 +382,21 @@ test('search', 'clicking the buffer exits search',
                                                                      { button: 0,
                                                                        bubbles: 1 }))
        }
+     })
+
+test('ed.make', 'a div buffer for the file does not block opening it',
+     async () => {
+       let panes, rich, v
+
+       panes = setupPanes()
+       rich = Buf.add('Rich: a.md', 'Rich', divCl('rich-ww'), '/tmp', { file: 'a.md' })
+       await setBuf(panes.pA, rich)
+       v = await new Promise(res => Ed.make(panes.pB,
+                                            { name: 'a.md', dir: '/tmp', file: 'a.md', lineNum: 1 },
+                                            res))
+       equal(v.buf == rich, false, 'must open an editable buffer')
+       equal(v.buf.name, 'a.md')
+       equal(v.ed ? 1 : 0, 1, 'new buffer is editable')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

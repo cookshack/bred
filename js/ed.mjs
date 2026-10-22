@@ -158,7 +158,12 @@ function make
     spec.dir = Loc.make(spec.dir)
     spec.dir.ensureSlash()
     if (spec.file)
-      exist = Buf.find(b => (b.fileType == 'file') && (b.file == spec.file) && (b.dir == spec.dir.path))
+      // Only reuse an editable buffer: other modes can represent the same
+      // file (eg Rich) without being an editor.
+      exist = Buf.find(b => (b.fileType == 'file')
+                       && (b.file == spec.file)
+                       && (b.dir == spec.dir.path)
+                       && (b.mode?.key == (modeKey || 'ed').toLowerCase()))
     if (exist) {
       p.setBuf(exist, { lineNum: spec.lineNum }, whenReady)
       return

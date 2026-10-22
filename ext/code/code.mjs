@@ -1236,15 +1236,6 @@ function listModels
   Comm.ensureClient(buf).then(async c => {
                                 let res, providers, choices, byChoice
 
-                                function rank
-                                (id) {
-                                  if (id == 'opencode-go')
-                                    return 0
-                                  if (id == 'opencode')
-                                    return 1
-                                  return 2
-                                }
-
                                 async function build
                                 () {
                                   let entries
@@ -1260,9 +1251,9 @@ function listModels
                                                                      active,
                                                                      providerID: m.providerID,
                                                                      modelID: m.modelID,
-                                                                     sortKey: rank(m.providerID) + '/' + m.providerID + '/' + m.modelID })
+                                                                     sortKey: fullId.toLowerCase() })
                                                     })
-                                  entries.sort((a, b) => (a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0))
+                                  entries.sort((a, b) => a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0)
                                   choices = entries.map(e => e.fullId + (e.active ? ' ◀ current' : ''))
                                   byChoice = new Map(entries.map(e => [ e.fullId + (e.active ? ' ◀ current' : ''), e ]))
                                 }

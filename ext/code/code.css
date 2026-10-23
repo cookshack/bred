@@ -594,6 +594,18 @@ div.code-thought:hover {
   font-family: var(--font-monospace);
 }
 
+/* A session started by a subagent call: marked with its agent, indented so the
+   list still reads as a hierarchy. Same accent as subagent output. */
+.code-sessions-agent {
+  color: var(--clr-syntax0);
+  font-family: var(--font-monospace);
+  margin-right: 0.25rem;
+}
+
+.code-sessions-child {
+  padding-left: 1rem;
+}
+
 .code-sessions-search {
   cursor: pointer;
   padding: 0.5rem;

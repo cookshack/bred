@@ -97,7 +97,7 @@ function onSearchSessions
   }
 
   rows = db.prepare(`
-    SELECT s.id, s.title, s.directory, s.time_created,
+    SELECT s.id, s.title, s.directory, s.time_created, s.parent_id, s.agent,
            (SELECT m2.data FROM session_message m2
             WHERE m2.session_id = s.id AND m2.data LIKE ?
             LIMIT 1) as snippet_source

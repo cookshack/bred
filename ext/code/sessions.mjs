@@ -128,6 +128,21 @@ function toolLabel
   return label
 }
 
+// The title cell of a session row. Child sessions (started by a subagent call)
+// are marked with their agent so they are readable while subagents are shown.
+export
+function sessionTitle
+(child, agent, title) {
+  let kids
+
+  kids = []
+  if (child)
+    kids.push(span('@' + (agent || 'subagent'), 'code-sessions-agent'))
+  if (title)
+    kids.push(title)
+  return divCl('code-sessions-title' + (child ? ' code-sessions-child' : ''), kids)
+}
+
 // Render a stored transcript into a code buffer. `children` maps child session
 // IDs to their messages so subagent output can be replayed where it happened.
 export
@@ -277,7 +292,7 @@ function init
         searchEl.innerText = '🔍'
     }
 
-    showSubagents = view.buf.vars('Code Sessions').showSubagents
+    showSubagents = view.buf.vars('Code Sessions').showSubagents ? 1 : 0
     subEl = view.eleOrReserved.querySelector('.code-sessions-subagents')
     if (subEl)
       subEl.innerText = showSubagents ? '⊟' : '⊞'
@@ -310,8 +325,9 @@ function init
                                                    { 'data-run': 'open code session',
                                                      'data-session-id': s.id,
                                                      'data-session-dir': view.buf.dir,
+                                                     'data-session-agent': s.agent || '',
                                                      'data-session-time': s.time?.created }),
-                                             divCl('code-sessions-title', (s.title || ('New session - ' + new Date(s.time?.created || Date.now()).toISOString())).split('\n')[0]) ]
+                                             sessionTitle(s.parentID, s.agent, (s.title || ('New session - ' + new Date(s.time?.created || Date.now()).toISOString())).split('\n')[0]) ]
                                   }))
             })
 
@@ -321,10 +337,11 @@ function init
 
   function toggleSubagents
   () {
-    let buf
+    let buf, showSubagents
 
     buf = View.current().buf
-    buf.vars('Code Sessions').showSubagents = buf.vars('Code Sessions').showSubagents ? 0 : 1
+    showSubagents = buf.vars('Code Sessions').showSubagents ? 1 : 0
+    buf.vars('Code Sessions').showSubagents = showSubagents ? 0 : 1
     viewInit(View.current())
   }
 
@@ -417,8 +434,9 @@ function init
                                                  { 'data-run': 'open code session',
                                                    'data-session-id': s.id,
                                                    'data-session-dir': s.directory,
+                                                   'data-session-agent': s.agent || '',
                                                    'data-session-time': s.time_created }),
-                                           divCl('code-sessions-title', (s.title || '').split('\n')[0]) ]
+                                           sessionTitle(s.parent_id, s.agent, (s.title || '').split('\n')[0]) ]
                                 snippet = isTitle ? 'Title: ' + snippet : snippet
                                 return [ divCl('code-sessions-del', '✗',
                                                { 'data-run': 'delete session',
@@ -428,8 +446,9 @@ function init
                                                { 'data-run': 'open code session',
                                                  'data-session-id': s.id,
                                                  'data-session-dir': s.directory,
+                                                 'data-session-agent': s.agent || '',
                                                  'data-session-time': s.time_created }),
-                                         divCl('code-sessions-title', (s.title || '').split('\n')[0]),
+                                         sessionTitle(s.parent_id, s.agent, (s.title || '').split('\n')[0]),
                                          divCl('code-sessions-snippet', snippet) ]
                               }))
             })
@@ -437,11 +456,11 @@ function init
 
   function openCodeSession
   (u, we) {
-    let sessionID, sessionDir, ts
+    let sessionID, sessionDir, sessionAgent, ts
 
     function open
     () {
-      let pane, name, buf, provider, model, variant
+      let pane, name, buf, provider, model, variant, agent
 
       function onMessages
       (c, res) {
@@ -472,9 +491,12 @@ function init
       provider = Util.getProvider()
       model = Util.getModel()
       variant = Util.getVariant()
+      // The agent the session was started with (a subagent's own agent, for a
+      // child session), so the header and further prompts match the session.
+      agent = sessionAgent || Opt.get('code.agent')
 
-      buf = Buf.add(name, 'code', Ui.divW(sessionDir, Opt.get('code.agent')), sessionDir)
-      buf.opts.set('code.agent', Opt.get('code.agent'))
+      buf = Buf.add(name, 'code', Ui.divW(sessionDir, agent), sessionDir)
+      buf.opts.set('code.agent', agent)
       buf.vars('code').provider = provider
       buf.vars('code').model = model
       buf.vars('code').variant = variant
@@ -529,6 +551,7 @@ function init
 
     sessionID = we.e.target.dataset.sessionId
     sessionDir = we.e.target.dataset.sessionDir
+    sessionAgent = we.e.target.dataset.sessionAgent
     ts = we.e.target.dataset.sessionTime
     if (ts)
       ts = Number(ts)

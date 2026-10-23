@@ -39,31 +39,47 @@ git pull
 
 Create ~/bin/bred with:
 ```bash
-#!/usr/bin/env bash
-cd ~/src/bred/ && bin/bred $*
+#!/bin/bash
+cd ~/src/bred && exec bin/bred "$@"
+```
+
+If node/npm come from nvm, a launcher started from a desktop icon won't find
+them: nvm is only added to PATH by an interactive shell's .bashrc. Source it
+first:
+```bash
+if ! command -v npm >/dev/null; then
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+fi
 ```
 
 ## Gnome Launcher
 
-1. Create ~/.local/share/applications/userapp-bred.desktop with:
+1. Create ~/.local/share/applications/bred.desktop with:
 
     ```ini
     [Desktop Entry]
-    Encoding=UTF-8
-    Version=1.0
     Type=Application
-    Exec=sh -e "/home/<USERNAME>/bin/bred > /dev/null 2>&1"
     Name=Bred
     Comment=Custom definition for Bred
     Icon=/home/<USERNAME>/src/bred/img/logo.png
     Terminal=false
+    Exec=/home/<USERNAME>/bin/bred
     ```
+
+    Point Exec straight at the script: it is not a shell command line, so
+    `sh -c "..."` wrappers and redirections either fail silently or are passed
+    as literal arguments. Write logs to a file from inside the script instead.
 
 2. Run:
 
     ```sh
+    chmod +x ~/.local/share/applications/bred.desktop
     update-desktop-database ~/.local/share/applications
     ```
+
+3. If clicking the icon does nothing, run `gtk-launch bred` in a terminal: it
+   reproduces the launcher's environment and shows the error.
 
 ## Issues
 

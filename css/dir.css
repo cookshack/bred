@@ -26,7 +26,7 @@
   overflow-y: auto;
 
   display: grid;
-  grid-template-columns: 1rem minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content);
+  grid-template-columns: 1rem minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) minmax(min-content, max-content) minmax(6ch, max-content);
 }
 
 .bred-gap {
@@ -36,6 +36,12 @@
 .dir-w > div {
   height: var(--line-height);
   padding-left: 0.8rem;
+
+  /* Rows are virtualized at a fixed height, so a long name must not wrap over
+     the next row. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 div.dir-mark {
@@ -83,10 +89,15 @@ div.dir-mark {
 .dir-name-w {
   display: flex;
   gap: 0.4rem;
+  min-width: 0;
 }
 
 .dir-name {
   cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dir-name[data-type="f"] {
@@ -125,6 +136,7 @@ div.dir-h-dir,
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 40ch;
+  min-width: 0;
 }
 
 .dir-link-arrow.dir-link-broken {

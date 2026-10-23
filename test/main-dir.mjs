@@ -150,6 +150,21 @@ test('onRm', 'relative path errors',
        equal(got.err.message, 'Path must be absolute')
      })
 
+test('onWatch', 'reports a new directory',
+     async () => {
+       let e, got
+
+       e = fakeE()
+       MainDir.onWatch(e, 'ch', [ tmp ])
+       Fs.mkdirSync(Path.join(tmp, 'newdir'))
+       await waitSend()
+       got = lastSend()
+       equal(got.name, 'newdir')
+       equal(got.type, 'rename')
+       equal(got.hidden, false)
+       equal(got.bak, false)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

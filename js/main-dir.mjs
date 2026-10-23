@@ -197,6 +197,9 @@ function onWatch
       //d('--- handle ---')
       //d('type: ' + type)
       //d('name: ' + name)
+      // Some events (eg the watched dir going away) have no filename; treat
+      // them as a plain change rather than throwing and closing the watcher.
+      name = name ? String(name) : ''
       e.sender.send(ch,
                     { type,
                       bak: name.endsWith('~'),

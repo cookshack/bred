@@ -378,7 +378,8 @@ function fill
                { 'data-type': type,
                  'data-name': f.name,
                  'data-path': join(path, f.name) + (type == 'd' ? '/' : ''),
-                 'data-run': 'open link' })
+                 'data-run': 'open link',
+                 title: f.name + (file ? '' : '/') })
 
     if (f.stat?.link) {
       let cls
@@ -632,6 +633,7 @@ function add
 
   dir = Loc.make(dir)
   dir.expand()
+  dir.normalize()
   dir.ensureSlash()
 
   if (p.buf.mode?.key == 'dir')
@@ -662,8 +664,8 @@ function add
   b.vars('dir').initialFile = initialFile
   b.vars('dir').hist = hist
   p.setBuf(b)
-  b.onRemove(() => stopWatching(dir.path))
-  watch(dir.path)
+  b.onRemove(() => stopWatching(b.path))
+  watch(b.path)
 }
 
 function up
@@ -717,6 +719,7 @@ function refresh
     Mess.yell('Missing dir/file')
 }
 
+export
 function refreshKeep
 (p, spec) { // { bak, hid, sort, file }
   let marked

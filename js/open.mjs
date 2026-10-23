@@ -1,6 +1,7 @@
 import * as Browse from './browse.mjs'
 import * as Cmd from './cmd.mjs'
 import * as Css from './css.mjs'
+import * as Dir from './dir.mjs'
 import * as Ed from './ed.mjs'
 import * as Em from './Em.mjs'
 import * as Ext from './ext.mjs'
@@ -154,6 +155,9 @@ function initMakeDir
                                     return
                                   }
                                   Mess.say('Added dir ' + abs)
+                                  // The watcher also refreshes, but don't rely on
+                                  // it to show what we just made.
+                                  Dir.refreshKeep(pane, {})
                                 })
     }
 

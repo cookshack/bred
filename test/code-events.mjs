@@ -92,6 +92,41 @@ test('translate', 'session.model.selected maps ModelRef to modelID',
        equal(leg[0].properties.info.model.variant, 'max')
      })
 
+test('translate', 'step end carries the step usage for the context percentage',
+     () => {
+       let buf, leg
+
+       buf = makeBuf()
+       leg = Ev.translate(buf, Fake.event('session.step.ended',
+                                          { sessionID: 's1',
+                                            cost: 1,
+                                            tokens: { input: 10,
+                                                      output: 20,
+                                                      reasoning: 30,
+                                                      cache: { read: 40, write: 50 } } }))
+       equal(leg[0].type, 'message.part.updated')
+       equal(leg[0].properties.part.type, 'step-finish')
+       equal(leg[0].properties.part.sessionID, 's1')
+       equal(leg[0].properties.part.tokens.cache.read, 40)
+     })
+
+test('translate', 'usage.updated carries the session cost but not its cumulative tokens',
+     () => {
+       let buf, leg
+
+       buf = makeBuf()
+       leg = Ev.translate(buf, Fake.event('session.usage.updated',
+                                          { sessionID: 's1',
+                                            cost: 2,
+                                            tokens: { input: 1000000,
+                                                      output: 0,
+                                                      reasoning: 0,
+                                                      cache: { read: 0, write: 0 } } }))
+       equal(leg[0].type, 'message.updated')
+       equal(leg[0].properties.info.cost, 2)
+       equal(leg[0].properties.info.tokens, undefined)
+     })
+
 test('translate', 'permission.asked carries the action as permission',
      () => {
        let buf, leg

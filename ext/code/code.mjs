@@ -786,7 +786,9 @@ function handlePart
   if (part.messageID)
     buf.vars('code').curMessageID = part.messageID
 
-  if (part.tokens) {
+  // Subagent steps have their own (smaller) usage; only the main session's
+  // steps drive the context percentage.
+  if (part.tokens && (part.sessionID == buf.vars('code').sessionID)) {
     let total
 
     total = Util.sumTokens(part.tokens)

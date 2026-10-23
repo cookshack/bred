@@ -88,7 +88,9 @@ function translate
     out.push(legacy('session.updated', { info: { id: data.sessionID, title: data.title } }))
     break
   case 'session.usage.updated':
-    out.push(legacy('message.updated', { info: { sessionID: data.sessionID, tokens: data.tokens, cost: data.cost } }))
+    // Tokens here are cumulative for the whole session, so they would read as a
+    // huge context percentage. The context percentage uses the step usage below.
+    out.push(legacy('message.updated', { info: { sessionID: data.sessionID, cost: data.cost } }))
     break
   case 'session.model.selected':
     // v2 sends ModelRef ({ id, providerID, variant }); the handlers expect the
@@ -110,7 +112,11 @@ function translate
     out.push(legacy('message.part.updated', { part: { type: 'step-start', sessionID: data.sessionID } }))
     break
   case 'session.step.ended':
-    out.push(legacy('message.part.updated', { part: { type: 'step-finish', sessionID: data.sessionID } }))
+    // The step's own usage, not the session totals. handlePart uses it for the
+    // context percentage.
+    out.push(legacy('message.part.updated', { part: { type: 'step-finish',
+                                                      sessionID: data.sessionID,
+                                                      tokens: data.tokens } }))
     break
   case 'session.text.started':
     state.textID = data.assistantMessageID + ':text:' + data.ordinal

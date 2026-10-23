@@ -2164,25 +2164,20 @@ function init
                         } },
             subagent: { onPendOrRun
                         (buf, part) {
-                      let desc, agent, sessionId
+                      let sessionId
 
-                      desc = part.state.input.description
-                      agent = part.state.input.agent
-                      sessionId = (part.state.metadata?.sessionID || part.state.metadata?.sessionId)
+                      sessionId = Util.subagentChildId(part)
                       if (sessionId) {
                         getSubagentIds(buf).set(sessionId, 1)
                         getSubagentCallIds(buf).set(sessionId, part.callID)
                       }
-                      desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent)') : ('Task (' + agent + ' agent)')
-                      Ui.appendToolMsg(buf, part.callID, desc, 0, { always: Util.subagentPrompt(part) })
+                      Ui.appendToolMsg(buf, part.callID, Util.subagentLabel(part), 0, { always: Util.subagentPrompt(part) })
                     },
                         onComplete
                         (buf, part) {
-                      let desc, agent, sessionId
+                      let sessionId
 
-                      desc = part.state.input.description
-                      agent = part.state.input.agent
-                      sessionId = (part.state.metadata?.sessionID || part.state.metadata?.sessionId)
+                      sessionId = Util.subagentChildId(part)
                       if (sessionId) {
                         let ids
 
@@ -2190,16 +2185,13 @@ function init
                         if (ids)
                           ids.delete(sessionId)
                       }
-                      desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✔️') : ('Task (' + agent + ' agent) ✔️')
-                      Ui.appendToolMsg(buf, part.callID, desc, Util.subagentResult(part), { always: Util.subagentPrompt(part) })
+                      Ui.appendToolMsg(buf, part.callID, Util.subagentLabel(part), Util.subagentResult(part), { always: Util.subagentPrompt(part) })
                     },
                         onErr
                         (buf, part) {
-                      let desc, agent, sessionId
+                      let sessionId
 
-                      desc = part.state.input.description
-                      agent = part.state.input.agent
-                      sessionId = (part.state.metadata?.sessionID || part.state.metadata?.sessionId)
+                      sessionId = Util.subagentChildId(part)
                       if (sessionId) {
                         let ids
 
@@ -2207,8 +2199,7 @@ function init
                         if (ids)
                           ids.delete(sessionId)
                       }
-                      desc = desc ? ('Task: ' + desc + ' (' + agent + ' agent) ✘') : ('Task (' + agent + ' agent) ✘')
-                      Ui.appendToolMsg(buf, part.callID, desc, Util.subagentResult(part), { always: Util.subagentPrompt(part) })
+                      Ui.appendToolMsg(buf, part.callID, Util.subagentLabel(part), Util.subagentResult(part), { always: Util.subagentPrompt(part) })
                     } } }
 
   events = { 'session.idle': { onArrive

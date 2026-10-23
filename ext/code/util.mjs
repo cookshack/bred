@@ -165,18 +165,58 @@ function subagentPrompt
   return input.prompt || input.message || input.task || ''
 }
 
-// The subagent's result, or why it failed. Errors can be an object.
+// The subagent's result, or why it failed. Errors can be an object. Live parts
+// carry output/error; parts loaded from history carry content instead.
 export
 function subagentResult
 (part) {
-  let err
+  let err, out
 
   if (part.state?.output)
     return part.state.output
   err = part.state?.error
   if (err)
     return (typeof err == 'string') ? err : (err.message || String(err))
-  return ''
+  out = []
+  for (let content of (part.state?.content || []))
+    if (content.type == 'text')
+      out.push(content.text)
+  return out.join('\n')
+}
+
+// Which agent a subagent call used. Live parts say agent, stored ones say
+// subagent_type.
+export
+function subagentAgent
+(part) {
+  let input
+
+  input = part.state?.input || {}
+  return input.agent || input.subagent_type || 'general'
+}
+
+export
+function subagentLabel
+(part) {
+  let input, desc, status
+
+  input = part.state?.input || {}
+  status = part.state?.status
+  desc = input.description
+  return (desc ? 'Task: ' + desc : 'Task')
+    + ' (' + subagentAgent(part) + ' agent)'
+    + (status == 'completed' ? ' ✔️' : (status == 'error' ? ' ✘' : ''))
+}
+
+// The child session a subagent call started. Live parts use sessionID, stored
+// ones use sessionId.
+export
+function subagentChildId
+(part) {
+  let md
+
+  md = part.state?.metadata || {}
+  return md.sessionID || md.sessionId || ''
 }
 
 export

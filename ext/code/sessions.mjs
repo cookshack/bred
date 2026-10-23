@@ -65,6 +65,173 @@ async function fetchMessages
   return { data }
 }
 
+// Sessions reopened from history store subagent calls as `task` (live events
+// call the tool `subagent`). Return { callID, sessionID } for each child
+// session so its transcript can be loaded too.
+export
+function subagentCalls
+(messages) {
+  let calls, seen
+
+  calls = []
+  seen = new Set()
+  for (let msg of (messages || []))
+    if (msg.type == 'assistant')
+      for (let content of (msg.content || []))
+        if ((content.type == 'tool')
+            && ((content.name == 'subagent') || (content.name == 'task'))) {
+          let id
+
+          id = Util.subagentChildId(content)
+          if (id && (seen.has(id) == 0)) {
+            seen.add(id)
+            calls.push({ callID: content.id, sessionID: id })
+          }
+        }
+  return calls
+}
+
+// Load the transcripts of every child session a stored subagent call started.
+export
+async function fetchSubagentMessages
+(c, messages) {
+  let children, calls
+
+  children = new Map()
+  calls = subagentCalls(messages)
+  for (let call of calls)
+    try {
+      children.set(call.sessionID, (await fetchMessages(c, call.sessionID)).data)
+    }
+    catch (err) {
+      d('CO subagent fetch failed: ' + err.message)
+    }
+  return children
+}
+
+function toolLabel
+(buf, content) {
+  let input, label
+
+  input = content.state?.input || {}
+  label = content.name
+  if (content.name == 'shell' && input.command)
+    label += ': ' + input.command
+  else if (input.path)
+    label = [ content.name + ' ', span(Util.makeRelative(buf, input.path), 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': input.path }) ]
+  else if (input.pattern)
+    label += ' "' + input.pattern + '"'
+  else if (input.query)
+    label += ': ' + input.query
+  else if (input.url)
+    label = [ content.name + ' ', span(input.url, 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': input.url }) ]
+  return label
+}
+
+// Render a stored transcript into a code buffer. `children` maps child session
+// IDs to their messages so subagent output can be replayed where it happened.
+export
+function renderHistory
+(buf, messages, children, done) {
+  let pendingModel
+
+  function flushModel
+  () {
+    if (pendingModel) {
+      pendingModel.model && Ui.appendModel(buf, pendingModel.model, Util.fmtCost(pendingModel.cost), pendingModel.at, pendingModel.messageID)
+      pendingModel = 0
+    }
+  }
+
+  function renderChild
+  (childID) {
+    let msgs, cur
+
+    msgs = children.get(childID)
+    if (msgs == null)
+      return
+    cur = buf.vars('code').curMessageID
+    for (let msg of msgs)
+      if (msg.type == 'assistant') {
+        buf.vars('code').curMessageID = msg.id
+        for (let content of (msg.content || []))
+          if (content.type == 'reasoning' && content.text)
+            Ui.appendThinking(buf, content.text, msg.id)
+          else if (content.type == 'text' && content.text)
+            Ui.appendMsg(buf, 0, content.text, msg.id, 0, { subagent: 1 })
+          else if (content.type == 'tool')
+            renderTool(content)
+      }
+    buf.vars('code').curMessageID = cur
+  }
+
+  function renderTool
+  (content) {
+    if ((content.name == 'subagent') || (content.name == 'task')) {
+      Ui.appendToolMsg(buf, content.id,
+                       Util.subagentLabel(content),
+                       Util.subagentResult(content),
+                       { always: Util.subagentPrompt(content) })
+      renderChild(Util.subagentChildId(content))
+      return
+    }
+    Ui.appendToolMsg(buf, content.id, toolLabel(buf, content), toolText(content.state))
+  }
+
+  function processBatch
+  (i) {
+    let end
+
+    end = Math.min(i + 10, messages.length)
+    for (; i < end; i++) {
+      let msg, role
+
+      msg = messages[i]
+      role = msg.type
+      buf.vars('code').curMessageID = msg.id
+      if (role == 'user') {
+        flushModel()
+        if (msg.text)
+          Ui.appendMsg(buf, 'user', msg.text, msg.id, msg.time?.created, { agent: msg.agents?.[0]?.name })
+      }
+      else if (role == 'assistant') {
+        for (let content of (msg.content || []))
+          if (content.type == 'reasoning' && content.text)
+            Ui.appendThinking(buf, content.text, msg.id)
+          else if (content.type == 'text' && content.text)
+            Ui.appendMsg(buf, 0, content.text, msg.id)
+          else if (content.type == 'tool')
+            renderTool(content)
+        pendingModel = { model: Util.modelName(msg.model?.modelID, msg.model?.variant),
+                         cost: msg.cost,
+                         at: msg.time?.created,
+                         messageID: msg.id }
+      }
+    }
+    Ui.updateStatus(buf, '🔃 Loading... ' + end + '/' + messages.length, '', '', '')
+
+    if (end < messages.length)
+      globalThis.requestAnimationFrame(() => processBatch(end))
+    else {
+      flushModel()
+      if (done)
+        done()
+    }
+  }
+
+  messages = messages || []
+  children = children || new Map()
+
+  if (messages.length == 0) {
+    if (done)
+      done()
+    return
+  }
+
+  Ui.updateStatus(buf, '🔃 Loading... 0/' + messages.length, '', '', '')
+  processBatch(0)
+}
+
 export
 function init
 (events) {
@@ -277,85 +444,20 @@ function init
       let pane, name, buf, provider, model, variant
 
       function onMessages
-      (res) {
-        let data, pendingModel
-
-        function flushModel
+      (c, res) {
+        function afterHistory
         () {
-          if (pendingModel) {
-            pendingModel.model && Ui.appendModel(buf, pendingModel.model, Util.fmtCost(pendingModel.cost), pendingModel.at, pendingModel.messageID)
-            pendingModel = 0
-          }
-        }
-
-        function processBatch
-        (i) {
-          let end
-
-          end = Math.min(i + 10, data.length)
-          for (; i < end; i++) {
-            let msg, role
-
-            msg = data[i]
-            role = msg.type
-            buf.vars('code').curMessageID = msg.id
-            if (role == 'user') {
-              flushModel()
-              if (msg.text)
-                Ui.appendMsg(buf, 'user', msg.text, msg.id, msg.time?.created, { agent: msg.agents?.[0]?.name })
-            }
-            else if (role == 'assistant') {
-              for (let content of (msg.content || []))
-                if (content.type == 'reasoning' && content.text)
-                  Ui.appendThinking(buf, content.text, msg.id)
-                else if (content.type == 'text' && content.text)
-                  Ui.appendMsg(buf, 0, content.text, msg.id)
-                else if (content.type == 'tool') {
-                  let input, label
-
-                  input = content.state?.input || {}
-                  label = content.name
-                  if (content.name == 'shell' && input.command)
-                    label += ': ' + input.command
-                  else if (input.path)
-                    label = [ content.name + ' ', span(Util.makeRelative(buf, input.path), 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': input.path }) ]
-                  else if (input.pattern)
-                    label += ' "' + input.pattern + '"'
-                  else if (input.query)
-                    label += ': ' + input.query
-                  else if (input.url)
-                    label = [ content.name + ' ', span(input.url, 'code-file', { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': input.url }) ]
-                  Ui.appendToolMsg(buf, content.id, label,
-                                   toolText(content.state))
-                }
-              pendingModel = { model: Util.modelName(msg.model?.modelID, msg.model?.variant),
-                               cost: msg.cost,
-                               at: msg.time?.created,
-                               messageID: msg.id }
-            }
-          }
-          Ui.updateStatus(buf, '🔃 Loading... ' + end + '/' + data.length, '', '', '')
-
-          if (end < data.length)
-            globalThis.requestAnimationFrame(() => processBatch(end))
-          else {
-            flushModel()
-            Ev.startSub(buf, events)
-            buf.vars('code').busy = 0
-            globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'OK', '', '', ''))
-          }
-        }
-
-        data = res.data || []
-        if (data.length == 0) {
-          buf.vars('code').busy = 0
           Ev.startSub(buf, events)
+          buf.vars('code').busy = 0
           globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'OK', '', '', ''))
-          return
         }
 
-        Ui.updateStatus(buf, '🔃 Loading... 0/' + data.length, '', '', '')
-        processBatch(0)
+        function afterChildren
+        (children) {
+          renderHistory(buf, res.data, children, afterHistory)
+        }
+
+        fetchSubagentMessages(c, res.data).then(afterChildren)
       }
 
       pane = Pane.current()
@@ -386,9 +488,14 @@ function init
                                     pane.setBuf(buf,
                                                 {},
                                                 () => {
+                                                  function onFetched
+                                                  (res) {
+                                                    onMessages(c, res)
+                                                  }
+
                                                   buf.vars('code').busy = 1
                                                   Ui.updateStatus(buf, '🔃 Loading session...', '', '', '')
-                                                  fetchMessages(c, sessionID).then(onMessages)
+                                                  fetchMessages(c, sessionID).then(onFetched)
 
                                                   buf.vars('code').firstPromptSent = 1
                                                   Prompt.nestBuf(buf)

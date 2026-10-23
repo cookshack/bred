@@ -303,6 +303,40 @@ test('subagentResult', 'nothing finished yet',
        equal(CodeUtil.subagentResult({}), '')
      })
 
+test('subagentResult', 'stored parts carry content instead of output',
+     () => {
+       equal(CodeUtil.subagentResult({ state: { content: [ { type: 'text', text: 'a' },
+                                                           { type: 'file', uri: 'x' },
+                                                           { type: 'text', text: 'b' } ] } }),
+             'a\nb')
+     })
+
+test('subagentAgent', 'agent, subagent_type, default',
+     () => {
+       equal(CodeUtil.subagentAgent({ state: { input: { agent: 'explore' } } }), 'explore')
+       equal(CodeUtil.subagentAgent({ state: { input: { subagent_type: 'plan' } } }), 'plan')
+       equal(CodeUtil.subagentAgent({ state: {} }), 'general')
+     })
+
+test('subagentLabel', 'task line with status marks',
+     () => {
+       let part
+
+       part = { state: { input: { description: 'Look around', subagent_type: 'explore' } } }
+       equal(CodeUtil.subagentLabel(part), 'Task: Look around (explore agent)')
+       part.state.status = 'completed'
+       equal(CodeUtil.subagentLabel(part), 'Task: Look around (explore agent) ✔️')
+       part.state.status = 'error'
+       equal(CodeUtil.subagentLabel(part), 'Task: Look around (explore agent) ✘')
+     })
+
+test('subagentChildId', 'both metadata spellings',
+     () => {
+       equal(CodeUtil.subagentChildId({ state: { metadata: { sessionID: 'child1' } } }), 'child1')
+       equal(CodeUtil.subagentChildId({ state: { metadata: { sessionId: 'child2' } } }), 'child2')
+       equal(CodeUtil.subagentChildId({ state: {} }), '')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

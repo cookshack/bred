@@ -6,6 +6,7 @@ import * as CodePrompt from '../ext/code/prompt.mjs'
 import * as Css from '../js/css.mjs'
 import * as Mode from '../js/mode.mjs'
 import * as Scib from '../js/scib.mjs'
+import * as Sessions from '../ext/code/sessions.mjs'
 import * as Ui from '../ext/code/ui.mjs'
 import * as Fake from './fake-oc.mjs'
 import { fileBuf, setBuf, setupPanes, wait, waitFor } from './pane-helpers.mjs'
@@ -379,6 +380,50 @@ test('subagent', 'task prompt is always shown, result follows it',
        finally {
          panes.pB.setBuf = orig
        }
+     })
+
+test('subagent', 'reopened session replays child output',
+     async () => {
+       let buf, children, el, messages, order, panes, prompt
+
+       ({ panes, buf } = await setup())
+       prompt = 'Find the thing'
+       messages = []
+       messages.push({ id: 'u1', type: 'user', text: 'hello' })
+       messages.push({ id: 'm1',
+                       type: 'assistant',
+                       model: { modelID: 'm', providerID: 'p' },
+                       content: [ { type: 'tool',
+                                    id: 'call1',
+                                    name: 'task',
+                                    state: { status: 'completed',
+                                             input: { description: 'Explore map', prompt, subagent_type: 'explore' },
+                                             metadata: { sessionId: 'kid1' },
+                                             content: [ { type: 'text', text: 'found it' } ] } },
+                                  { type: 'text', text: 'parent after' } ] })
+       children = new Map()
+       children.set('kid1', [ { id: 'c1',
+                                type: 'assistant',
+                                content: [ { type: 'text', text: 'child says hi' } ] } ])
+
+       Sessions.renderHistory(buf, messages, children)
+
+       await waitFor(() => panes.pB.view.ele.querySelector('.code-msg-assistant.code-msg-subagent'))
+       el = panes.pB.view.ele.querySelector('.code-msg-tool[data-callid="call1"]')
+       equal(Boolean(el), true, 'stored task call renders as a tool message')
+       equal(el.querySelector('.code-msg-text').textContent.includes('Task: Explore map (explore agent) ✔️'),
+             true,
+             'label uses the task description and agent')
+       equal(el.querySelector('.code-msg-prompt').textContent, prompt,
+             'the prompt is restored without expanding')
+       equal(el.querySelector('.code-msg-under').textContent.includes('found it'), true,
+             'the result is restored too')
+       equal(el.parentNode.querySelector('.code-msg-assistant.code-msg-subagent').dataset.messageid, 'c1',
+             'child output is marked as subagent')
+       order = [ ...el.parentNode.querySelectorAll('.code-msg-tool[data-callid="call1"], .code-msg-assistant.code-msg-subagent') ]
+         .map(e => Css.has(e, 'code-msg-tool') ? 'task' : 'child')
+         .join(',')
+       equal(order, 'task,child', 'child output follows the task line')
      })
 
 function mochaIt

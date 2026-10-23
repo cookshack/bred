@@ -227,6 +227,48 @@ test('messages', 'fetchMessages pages oldest-first until exhausted',
        equal(calls[1].order, undefined)
      })
 
+test('subagents', 'child sessions are collected from stored task parts',
+     () => {
+       let calls, messages
+
+       messages = []
+       messages.push({ type: 'user', text: 'hello' })
+       messages.push({ type: 'assistant',
+                       content: [ { type: 'tool', id: 'c1', name: 'task', state: { metadata: { sessionId: 'kid1' } } },
+                                  { type: 'text', text: 'x' } ] })
+       messages.push({ type: 'assistant',
+                       content: [ { type: 'tool', id: 'c2', name: 'subagent', state: { metadata: { sessionID: 'kid2' } } },
+                                  { type: 'tool', id: 'c3', name: 'task', state: { metadata: { sessionId: 'kid1' } } },
+                                  { type: 'tool', id: 'c4', name: 'read', state: { input: { path: 'a' } } } ] })
+
+       calls = Sessions.subagentCalls(messages)
+       equal(calls.length, 2, 'one call per child session')
+       equal(calls[0].callID, 'c1')
+       equal(calls[0].sessionID, 'kid1')
+       equal(calls[1].callID, 'c2')
+       equal(calls[1].sessionID, 'kid2')
+     })
+
+test('subagents', 'fetchSubagentMessages loads each child transcript',
+     async () => {
+       let c, children, lists
+
+       lists = []
+       c = { message: { list: async input => {
+         lists.push(input.sessionID)
+         if (input.sessionID == 'kid1')
+           return { data: [ { id: 'c1' } ], cursor: { next: null } }
+         return { data: [], cursor: {} }
+       } } }
+       children = await Sessions.fetchSubagentMessages(c,
+                                                       [ { type: 'assistant',
+                                                           content: [ { type: 'tool',
+                                                                        name: 'task',
+                                                                        state: { metadata: { sessionId: 'kid1' } } } ] } ])
+       equal(children.get('kid1')[0].id, 'c1')
+       equal(lists[0], 'kid1')
+     })
+
 test('pipeline', 'reconnects in place after a stream drop',
      async () => {
        let buf, fake, state, subs

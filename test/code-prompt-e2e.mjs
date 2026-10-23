@@ -348,6 +348,8 @@ test('subagent', 'task prompt is always shown, result follows it',
          el = w.querySelector('.code-msg-tool[data-callid="call-sub"]')
          equal(el.querySelector('.code-msg-prompt').textContent, prompt,
                'prompt is visible without expanding')
+         equal(el.querySelector('.code-msg-subagent-task').textContent, 'Task',
+               'the Task marker is tinted for subagents')
          equal(el.querySelector('.code-msg-under'), null,
                'no result while the subagent runs')
 
@@ -414,6 +416,8 @@ test('subagent', 'reopened session replays child output',
        equal(el.querySelector('.code-msg-text').textContent.includes('Task: Explore map (explore agent) ✔️'),
              true,
              'label uses the task description and agent')
+       equal(el.querySelector('.code-msg-subagent-task').textContent, 'Task',
+             'the Task marker is tinted for subagents')
        equal(el.querySelector('.code-msg-prompt').textContent, prompt,
              'the prompt is restored without expanding')
        equal(el.querySelector('.code-msg-under').textContent.includes('found it'), true,

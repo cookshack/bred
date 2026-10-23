@@ -274,6 +274,12 @@ div.code-thought:hover {
   border-left: 0.25rem solid var(--clr-fill);
 }
 
+/* Same accent as subagent output, so "green" reads as "subagent". */
+.code-msg-subagent-task {
+  color: var(--clr-syntax0);
+  font-style: normal;
+}
+
 .code-msg-tool .code-msg-arrow {
   cursor: pointer;
   font-style: normal;

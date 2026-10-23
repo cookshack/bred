@@ -169,7 +169,7 @@ function renderHistory
   (content) {
     if ((content.name == 'subagent') || (content.name == 'task')) {
       Ui.appendToolMsg(buf, content.id,
-                       Util.subagentLabel(content),
+                       Ui.subagentLabel(content),
                        Util.subagentResult(content),
                        { always: Util.subagentPrompt(content) })
       renderChild(Util.subagentChildId(content))

@@ -2171,7 +2171,7 @@ function init
                         getSubagentIds(buf).set(sessionId, 1)
                         getSubagentCallIds(buf).set(sessionId, part.callID)
                       }
-                      Ui.appendToolMsg(buf, part.callID, Util.subagentLabel(part), 0, { always: Util.subagentPrompt(part) })
+                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0, { always: Util.subagentPrompt(part) })
                     },
                         onComplete
                         (buf, part) {
@@ -2185,7 +2185,7 @@ function init
                         if (ids)
                           ids.delete(sessionId)
                       }
-                      Ui.appendToolMsg(buf, part.callID, Util.subagentLabel(part), Util.subagentResult(part), { always: Util.subagentPrompt(part) })
+                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), Util.subagentResult(part), { always: Util.subagentPrompt(part) })
                     },
                         onErr
                         (buf, part) {
@@ -2199,7 +2199,7 @@ function init
                         if (ids)
                           ids.delete(sessionId)
                       }
-                      Ui.appendToolMsg(buf, part.callID, Util.subagentLabel(part), Util.subagentResult(part), { always: Util.subagentPrompt(part) })
+                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), Util.subagentResult(part), { always: Util.subagentPrompt(part) })
                     } } }
 
   events = { 'session.idle': { onArrive

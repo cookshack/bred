@@ -339,6 +339,14 @@ function appendServerLog
                       })
 }
 
+// The Task label for a subagent call, with the marker tinted so it reads as
+// "green means subagent output".
+export
+function subagentLabel
+(part) {
+  return [ span('Task', 'code-msg-subagent-task'), Util.subagentLabel(part).slice(4) ]
+}
+
 export
 function appendThinking
 (buf, text, partId) {

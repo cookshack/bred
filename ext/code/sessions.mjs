@@ -130,17 +130,64 @@ function toolLabel
 
 // The title cell of a session row. Child sessions (started by a subagent call)
 // are marked with their agent so they are readable while subagents are shown.
+// `depth` is how many parents above the row is, which sets the indent.
 export
 function sessionTitle
-(child, agent, title) {
-  let kids
+(child, agent, title, depth) {
+  let kids, indent
 
   kids = []
   if (child)
     kids.push(span('@' + (agent || 'subagent'), 'code-sessions-agent'))
   if (title)
     kids.push(title)
-  return divCl('code-sessions-title' + (child ? ' code-sessions-child' : ''), kids)
+  indent = depth || 0
+  return divCl('code-sessions-title' + (indent ? ' code-sessions-child' : ''), kids,
+               indent > 1 ? { style: 'padding-left: ' + indent + 'rem' } : undefined)
+}
+
+// Sessions arrive in the server's order (most recently updated first) with
+// child sessions mixed in. Group each child under the session that started it
+// so the list's indent means what it looks like. Returns [ { session, depth } ].
+export
+function groupByParent
+(sessions) {
+  let roots, kids, out, seen
+
+  function add
+  (session, depth) {
+    if (seen.has(session.id))
+      return
+    seen.add(session.id)
+    out.push({ session, depth })
+    for (let child of (kids.get(session.id) || []))
+      add(child, depth + 1)
+  }
+
+  roots = []
+  kids = new Map()
+  out = []
+  seen = new Set()
+
+  for (let session of sessions)
+    if (session.parentID == null)
+      roots.push(session)
+    else {
+      if (kids.has(session.parentID) == 0)
+        kids.set(session.parentID, [])
+      kids.get(session.parentID).push(session)
+    }
+
+  for (let root of roots)
+    add(root, 0)
+
+  // A child whose parent is not in the list (eg deleted) is still shown. It is
+  // unindented so it does not look like it belongs to the row above.
+  for (let session of sessions)
+    if (seen.has(session.id) == 0)
+      add(session, 0)
+
+  return out
 }
 
 // Render a stored transcript into a code buffer. `children` maps child session
@@ -307,28 +354,32 @@ function init
               return c.session.list(opts)
             })
       .then(sessions => {
-              let filtered
+              let rows
 
               w.innerHTML = ''
               d({ sessions })
-              filtered = sessions.data || []
+              rows = sessions.data || []
               if (showSubagents == 0)
-                filtered = filtered.filter(s => s.parentID == null)
-              updateCount(view, filtered.length)
+                rows = rows.filter(s => s.parentID == null)
+              rows = groupByParent(rows)
+              updateCount(view, rows.length)
               append(w,
-                     filtered.map(s => {
-                                    return [ divCl('code-sessions-del', '✗',
-                                                   { 'data-run': 'delete session',
-                                                     'data-session-id': s.id,
-                                                     'data-session-dir': view.buf.dir }),
-                                             divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
-                                                   { 'data-run': 'open code session',
-                                                     'data-session-id': s.id,
-                                                     'data-session-dir': view.buf.dir,
-                                                     'data-session-agent': s.agent || '',
-                                                     'data-session-time': s.time?.created }),
-                                             sessionTitle(s.parentID, s.agent, (s.title || ('New session - ' + new Date(s.time?.created || Date.now()).toISOString())).split('\n')[0]) ]
-                                  }))
+                     rows.map(r => {
+                                let s
+
+                                s = r.session
+                                return [ divCl('code-sessions-del', '✗',
+                                               { 'data-run': 'delete session',
+                                                 'data-session-id': s.id,
+                                                 'data-session-dir': view.buf.dir }),
+                                         divCl('code-sessions-id', (s.id || '').replace(/^ses_/, ''),
+                                               { 'data-run': 'open code session',
+                                                 'data-session-id': s.id,
+                                                 'data-session-dir': view.buf.dir,
+                                                 'data-session-agent': s.agent || '',
+                                                 'data-session-time': s.time?.created }),
+                                         sessionTitle(s.parentID, s.agent, (s.title || ('New session - ' + new Date(s.time?.created || Date.now()).toISOString())).split('\n')[0], r.depth) ]
+                              }))
             })
 
     if (cb)

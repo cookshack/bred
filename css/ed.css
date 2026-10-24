@@ -58,6 +58,27 @@
   padding-right: 0.15rem;
 }
 
+/* Shell modeline dir: give way to the command when space runs out. */
+.ml-dir {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 100;
+}
+
+.ml-dir + .ml-busy {
+  margin-left: 0;
+  flex-shrink: 0;
+}
+
+.ml-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
 .edMl > div[data-run]:hover {
   background-color: var(--clr-bg);
 }

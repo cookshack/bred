@@ -326,6 +326,7 @@ function shellOrSpawn1
           append(ml,
                  divCl('edMl-type', img(Icon.path('shell'), 'Shell', 'filter-clr-text')),
                  divCl('ml-name', name),
+                 divCl('ml-dir edMl-dir', Ed.makeMlDir(dir)),
                  divCl('ml-busy'),
                  divCl('ml-close'))
         }

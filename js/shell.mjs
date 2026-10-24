@@ -309,12 +309,14 @@ function setExitDir
 }
 
 function setExitStatus
-(w, text) {
+(w, co) {
   let el
 
   el = w?.querySelector('.shell-exit-status')
-  if (el)
-    el.innerText = text
+  if (el) {
+    el.innerText = ''
+    append(el, co)
+  }
 }
 
 function shellOrSpawn1
@@ -417,9 +419,13 @@ function shellOrSpawn1
                       if (w) {
                         Css.remove(w, 'shell-busy')
                         if (code == 0)
-                          setExitStatus(w, '✔ ' + code) // 🏁 ✔✔✔ 🎉 ✅
+                          setExitStatus(w, [ span('✅', 'shell-exit-tick'),
+                                             ' ',
+                                             span(String(code), 'shell-exit-code') ]) // 🏁 ✔✔✔ 🎉
                         else
-                          setExitStatus(w, '✘ ' + code) // 🚨 ✘✘✘ 🚫 ❌
+                          setExitStatus(w, [ span('❌', 'shell-exit-tick'),
+                                             ' ',
+                                             span(String(code), 'shell-exit-code') ]) // 🚨 ✘✘✘ 🚫
                       }
                     })
     if (spec.onClose)

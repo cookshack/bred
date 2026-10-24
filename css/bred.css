@@ -2043,6 +2043,14 @@ div.cm-line.cm-activeLine::after {
   flex-shrink: 0;
 }
 
+.shell-exit-tick {
+  font-size: 1.15em;
+}
+
+.shell-exit-code {
+  font-weight: bold;
+}
+
 /* Front-first truncation: the tail of the path is the useful part. */
 .shell-exit-dir {
   margin-left: auto;

@@ -59,29 +59,12 @@
   padding-right: 0.15rem;
 }
 
-/* Shell modeline dir: JS fits it from the tail so the command stays whole. */
-.ml-dir {
-  overflow: hidden;
-  white-space: nowrap;
-  min-width: 0;
-  flex-shrink: 0;
-}
-
-.ml-dir + .ml-busy {
-  margin-left: 0;
-  flex-shrink: 0;
-}
-
-.ml-dir-more {
-  color: var(--clr-text-light);
-}
-
+/* Shell modeline keeps the command whole and ellipsises it at the end. */
 .ml-name {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   min-width: 0;
-  flex-shrink: 0;
 }
 
 .edMl > div[data-run]:hover {

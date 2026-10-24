@@ -2034,6 +2034,34 @@ div.cm-line.cm-activeLine::after {
   padding-bottom: 0;
   background: var(--clr-busy);
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  column-gap: 0.75rem;
+}
+
+.shell-exit-status {
+  flex-shrink: 0;
+}
+
+/* Front-first truncation: the tail of the path is the useful part. */
+.shell-exit-dir {
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
+}
+
+.shell-exit-dir-inner {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.shell-exit-dir-inner > span {
+  padding-left: 0.15rem;
+  padding-right: 0.15rem;
 }
 
 .patch-refine-minus,

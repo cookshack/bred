@@ -29,7 +29,9 @@ function divW
 () {
   let exitW
 
-  exitW = divCl('shell-exit-w shell-busy', busyCo())
+  exitW = divCl('shell-exit-w shell-busy',
+                [ divCl('shell-exit-status', busyCo()),
+                  divCl('shell-exit-dir') ])
   return Ed.divW(0, 0, { extraWWCss: 'shell-ww',
                          extraWCss: 'shell-w',
                          extraCo: exitW })
@@ -295,132 +297,24 @@ function run
             })
 }
 
-function makeMlDirEl
-(dir) {
+function setExitDir
+(w, dir) {
   let el
 
-  el = divCl('ml-dir edMl-dir', Ed.makeMlDir(dir))
-  el.dataset.dir = dir
-  return el
-}
-
-// The dir parts, derived from data-dir so clones of a truncated modeline can
-// still restore the full path.
-function mlDirComps
-(dir) {
-  let tmp
-
-  if (dir.dataset.dir == undefined)
-    return []
-  tmp = globalThis.document.createElement('div')
-  append(tmp, Ed.makeMlDir(dir.dataset.dir))
-  return [ ...tmp.querySelectorAll('span') ].map(s => ({ text: s.textContent,
-                                                         path: s.dataset.path }))
-}
-
-function renderMlDir
-(dir, comps, n) {
-  dir.innerHTML = ''
-  if (n > 0 && n < comps.length)
-    append(dir, span('…', 'ml-dir-more'))
-  comps.slice(comps.length - n).forEach((c, i) => {
-                                          if (i > 0)
-                                            append(dir, '/')
-                                          append(dir, span(c.text, { 'data-path': c.path,
-                                                                     'data-run': 'open link' }))
-                                        })
-}
-
-function mlOverflow
-(ml) {
-  let r, els, over
-
-  r = ml.getBoundingClientRect()
-  over = 0
-  els = [ ...ml.children ]
-  els.forEach(el => {
-                let er
-
-                er = el.getBoundingClientRect()
-                over = Math.max(over, er.right - r.right)
-              })
-  return over
-}
-
-// Keep the command whole while the dir can shrink. Only once the dir is gone
-// does the command itself get ellipsised.
-function fitMl
-(ml) {
-  let name, dir, comps, over, n
-
-  if (ml == undefined || ml.clientWidth == 0)
+  el = w.querySelector('.shell-exit-dir')
+  if (el == undefined)
     return
-  name = ml.querySelector('.ml-name')
-  dir = ml.querySelector('.ml-dir')
-  if (name == undefined || dir == undefined)
-    return
-  comps = mlDirComps(dir)
-  name.style.maxWidth = ''
-  renderMlDir(dir, comps, comps.length)
-  if (mlOverflow(ml) <= 0.5)
-    return
-  for (n = comps.length - 1; n >= 1; n--) {
-    renderMlDir(dir, comps, n)
-    if (mlOverflow(ml) <= 0.5)
-      return
-  }
-  renderMlDir(dir, comps, 0)
-  over = mlOverflow(ml)
-  if (over > 0)
-    name.style.maxWidth = Math.max(0, name.getBoundingClientRect().width - over) + 'px'
+  el.innerHTML = ''
+  append(el, span(Ed.makeMlDir(dir), 'shell-exit-dir-inner'))
 }
 
-function installMl
-(ml) {
-  let busy
+function setExitStatus
+(w, text) {
+  let el
 
-  if (ml == undefined)
-    return
-  fitMl(ml)
-  if (ml._mlRo)
-    return
-  busy = ml.querySelector('.ml-busy')
-  ml._mlRo = new globalThis.ResizeObserver(() => fitMl(ml))
-  ml._mlRo.observe(ml)
-  if (busy)
-    // the busy text changes (eg busy -> exit 0) after the modeline is built
-    ml._mlRo.observe(busy)
-}
-
-function fitView
-(v) {
-  installMl(v?.eleOrReserved?.querySelector('.edMl'))
-}
-
-function fitCb
-(view, cb) {
-  function fitted
-  (v) {
-    fitView(v || view)
-    cb(v)
-  }
-
-  return fitted
-}
-
-function withFit
-(fn) {
-  function wrapped
-  (view, ...rest) {
-    let i
-
-    i = rest.findLastIndex(a => typeof a == 'function')
-    if (i >= 0)
-      rest[i] = fitCb(view, rest[i])
-    return fn(view, ...rest)
-  }
-
-  return wrapped
+  el = w?.querySelector('.shell-exit-status')
+  if (el)
+    el.innerText = text
 }
 
 function shellOrSpawn1
@@ -454,16 +348,15 @@ function shellOrSpawn1
           append(ml,
                  divCl('edMl-type', img(Icon.path('shell'), 'Shell', 'filter-clr-text')),
                  divCl('ml-name', name),
-                 makeMlDirEl(dir),
                  divCl('ml-busy'),
                  divCl('ml-close'))
         }
-        installMl(ml)
 
         el = w.querySelector('.shell-exit-w')
         if (el) {
           Css.add(el, 'shell-busy')
-          el.innerHTML = busyCo()
+          setExitDir(el, dir)
+          setExitStatus(el, busyCo())
         }
       }
     }
@@ -516,17 +409,17 @@ function shellOrSpawn1
   function onClose
   (b, code) {
     b.views.forEach(view => {
-                      let el
+                      let w
 
                       // use eleOrReserved so a stashed (closed) view's marker
                       // is updated too; otherwise switching back shows BUSY
-                      el = view.eleOrReserved?.querySelector('.shell-exit-w')
-                      if (el) {
-                        Css.remove(el, 'shell-busy')
+                      w = view.eleOrReserved?.querySelector('.shell-exit-w')
+                      if (w) {
+                        Css.remove(w, 'shell-busy')
                         if (code == 0)
-                          el.innerHTML = '✔ ' + code // 🏁 ✔✔✔ 🎉 ✅
+                          setExitStatus(w, '✔ ' + code) // 🏁 ✔✔✔ 🎉 ✅
                         else
-                          el.innerHTML = '✘ ' + code // 🚨 ✘✘✘ 🚫 ❌
+                          setExitStatus(w, '✘ ' + code) // 🚨 ✘✘✘ 🚫 ❌
                       }
                     })
     if (spec.onClose)
@@ -536,12 +429,12 @@ function shellOrSpawn1
   function onErr
   (b, err) {
     b.views.forEach(view => {
-                      let el
+                      let w
 
-                      el = view.eleOrReserved?.querySelector('.shell-exit-w')
-                      if (el) {
-                        Css.remove(el, 'shell-busy')
-                        el.innerHTML = '☠️ ERR ' + err.message
+                      w = view.eleOrReserved?.querySelector('.shell-exit-w')
+                      if (w) {
+                        Css.remove(w, 'shell-busy')
+                        setExitStatus(w, '☠️ ERR ' + err.message)
                       }
                     })
     if (spec.onErr)
@@ -907,8 +800,8 @@ function initShell
 
   hist = Hist.ensure('shell')
 
-  mo = Mode.add('Shell', { viewInit: withFit(Ed.viewInit),
-                           viewCopy: withFit(Ed.viewCopy),
+  mo = Mode.add('Shell', { viewInit: Ed.viewInit,
+                           viewCopy: Ed.viewCopy,
                            initFns: Ed.initModeFns,
                            parentsForEm: 'ed' })
 

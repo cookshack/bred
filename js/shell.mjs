@@ -1,4 +1,4 @@
-import { append, divCl, img } from './dom.mjs'
+import { append, divCl, img, span } from './dom.mjs'
 
 import * as Buf from './Buf.mjs'
 import * as Cmd from './cmd.mjs'
@@ -295,6 +295,134 @@ function run
             })
 }
 
+function makeMlDirEl
+(dir) {
+  let el
+
+  el = divCl('ml-dir edMl-dir', Ed.makeMlDir(dir))
+  el.dataset.dir = dir
+  return el
+}
+
+// The dir parts, derived from data-dir so clones of a truncated modeline can
+// still restore the full path.
+function mlDirComps
+(dir) {
+  let tmp
+
+  if (dir.dataset.dir == undefined)
+    return []
+  tmp = globalThis.document.createElement('div')
+  append(tmp, Ed.makeMlDir(dir.dataset.dir))
+  return [ ...tmp.querySelectorAll('span') ].map(s => ({ text: s.textContent,
+                                                         path: s.dataset.path }))
+}
+
+function renderMlDir
+(dir, comps, n) {
+  dir.innerHTML = ''
+  if (n > 0 && n < comps.length)
+    append(dir, span('…', 'ml-dir-more'))
+  comps.slice(comps.length - n).forEach((c, i) => {
+                                          if (i > 0)
+                                            append(dir, '/')
+                                          append(dir, span(c.text, { 'data-path': c.path,
+                                                                     'data-run': 'open link' }))
+                                        })
+}
+
+function mlOverflow
+(ml) {
+  let r, els, over
+
+  r = ml.getBoundingClientRect()
+  over = 0
+  els = [ ...ml.children ]
+  els.forEach(el => {
+                let er
+
+                er = el.getBoundingClientRect()
+                over = Math.max(over, er.right - r.right)
+              })
+  return over
+}
+
+// Keep the command whole while the dir can shrink. Only once the dir is gone
+// does the command itself get ellipsised.
+function fitMl
+(ml) {
+  let name, dir, comps, over, n
+
+  if (ml == undefined || ml.clientWidth == 0)
+    return
+  name = ml.querySelector('.ml-name')
+  dir = ml.querySelector('.ml-dir')
+  if (name == undefined || dir == undefined)
+    return
+  comps = mlDirComps(dir)
+  name.style.maxWidth = ''
+  renderMlDir(dir, comps, comps.length)
+  if (mlOverflow(ml) <= 0.5)
+    return
+  for (n = comps.length - 1; n >= 1; n--) {
+    renderMlDir(dir, comps, n)
+    if (mlOverflow(ml) <= 0.5)
+      return
+  }
+  renderMlDir(dir, comps, 0)
+  over = mlOverflow(ml)
+  if (over > 0)
+    name.style.maxWidth = Math.max(0, name.getBoundingClientRect().width - over) + 'px'
+}
+
+function installMl
+(ml) {
+  let busy
+
+  if (ml == undefined)
+    return
+  fitMl(ml)
+  if (ml._mlRo)
+    return
+  busy = ml.querySelector('.ml-busy')
+  ml._mlRo = new globalThis.ResizeObserver(() => fitMl(ml))
+  ml._mlRo.observe(ml)
+  if (busy)
+    // the busy text changes (eg busy -> exit 0) after the modeline is built
+    ml._mlRo.observe(busy)
+}
+
+function fitView
+(v) {
+  installMl(v?.eleOrReserved?.querySelector('.edMl'))
+}
+
+function fitCb
+(view, cb) {
+  function fitted
+  (v) {
+    fitView(v || view)
+    cb(v)
+  }
+
+  return fitted
+}
+
+function withFit
+(fn) {
+  function wrapped
+  (view, ...rest) {
+    let i
+
+    i = rest.findLastIndex(a => typeof a == 'function')
+    if (i >= 0)
+      rest[i] = fitCb(view, rest[i])
+    return fn(view, ...rest)
+  }
+
+  return wrapped
+}
+
 function shellOrSpawn1
 (sc,
  // { end, // insert at end
@@ -326,10 +454,11 @@ function shellOrSpawn1
           append(ml,
                  divCl('edMl-type', img(Icon.path('shell'), 'Shell', 'filter-clr-text')),
                  divCl('ml-name', name),
-                 divCl('ml-dir edMl-dir', Ed.makeMlDir(dir)),
+                 makeMlDirEl(dir),
                  divCl('ml-busy'),
                  divCl('ml-close'))
         }
+        installMl(ml)
 
         el = w.querySelector('.shell-exit-w')
         if (el) {
@@ -778,8 +907,8 @@ function initShell
 
   hist = Hist.ensure('shell')
 
-  mo = Mode.add('Shell', { viewInit: Ed.viewInit,
-                           viewCopy: Ed.viewCopy,
+  mo = Mode.add('Shell', { viewInit: withFit(Ed.viewInit),
+                           viewCopy: withFit(Ed.viewCopy),
                            initFns: Ed.initModeFns,
                            parentsForEm: 'ed' })
 

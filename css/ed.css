@@ -34,6 +34,7 @@
   width: var(--width-mini-icon);
   height: var(--width-mini-icon);
   display: flex;
+  flex-shrink: 0;
 }
 
 .edMl-mod > img,
@@ -58,13 +59,12 @@
   padding-right: 0.15rem;
 }
 
-/* Shell modeline dir: give way to the command when space runs out. */
+/* Shell modeline dir: JS fits it from the tail so the command stays whole. */
 .ml-dir {
   overflow: hidden;
   white-space: nowrap;
-  text-overflow: ellipsis;
   min-width: 0;
-  flex-shrink: 100;
+  flex-shrink: 0;
 }
 
 .ml-dir + .ml-busy {
@@ -72,11 +72,16 @@
   flex-shrink: 0;
 }
 
+.ml-dir-more {
+  color: var(--clr-text-light);
+}
+
 .ml-name {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
   min-width: 0;
+  flex-shrink: 0;
 }
 
 .edMl > div[data-run]:hover {

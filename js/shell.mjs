@@ -319,6 +319,17 @@ function setExitStatus
   }
 }
 
+function syncExitDir
+(view) {
+  if (view?.buf?.mode?.key == 'shell') {
+    let w
+
+    w = view.eleOrReserved?.querySelector('.shell-exit-w')
+    if (w)
+      setExitDir(w, view.buf.dir)
+  }
+}
+
 function shellOrSpawn1
 (sc,
  // { end, // insert at end
@@ -826,6 +837,10 @@ function initShell
   Em.on('A-p', 'previous', mo)
   Em.on('A-n', 'next', mo)
   Em.on('Enter', 'shell run', mo)
+
+  // A view can be shown long after setMl last ran (reopen, switch, split), so
+  // refresh the bar from the buf's current dir whenever it reaches a pane.
+  Pane.onSetBuf(syncExitDir)
 
   Cmd.add('shell', shell)
 }

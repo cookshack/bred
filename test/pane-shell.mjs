@@ -343,6 +343,18 @@ async function trial
   equal(busy(buf), 0)
 }
 
+test('switch', 'showing the buffer refreshes the exit dir',
+     async () => {
+       let buf, panes
+
+       panes = setupPanes()
+       buf = await run('ls')
+       buf.views[0].ele.querySelector('.shell-exit-dir').textContent = '/stale'
+       buf.dir = '/tmp/fresh'
+       await setBuf(panes.pB, buf)
+       equal(exitDir(buf), '/tmp/fresh')
+     })
+
 test('reuse', 'reused command buffer shows the new dir in the exit bar',
      async () => {
        let b1, b2, buf, buf2, ch, panes

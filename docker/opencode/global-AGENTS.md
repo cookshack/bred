@@ -20,10 +20,11 @@ unit suite") — keep reporting until the run ends:
 - Only assistant text reaches the user. Text is delivered between tool calls,
   but an in-flight call blocks the turn, so progress cannot be spoken while a
   call runs.
-- Cycle: write the status line, then ONE tool call that sleeps exactly N
-  minutes and checks the state with a single quick command, then write the next
-  status line immediately. Keep the post-sleep command short so the report
-  follows within seconds. Repeat until the run ends, then summarise.
+- Cycle: write a status line, then make ONE tool call that sleeps exactly N
+  minutes and inspects the run however you need (logs, files, processes,
+  containers - as many commands as that takes), then write the next status
+  line. Repeat until the run ends, then summarise. Taking a little time to
+  inspect is fine; the cadence is what matters.
 - Write a report before the first sleep and never run two sleeps without a
   report between them. Do not encode progress as command output alone.
 - Background commands are disabled (no completion notification); never claim to

@@ -923,22 +923,29 @@ function ensureTitle
 }
 
 // v2 rejects an unknown model variant at execution time, so only send one the
-// model advertises in its catalog.
+// model advertises in its catalog. A catalog we cannot read (offline, server
+// still starting) says nothing about the variant, so keep it and let the send
+// report the real error.
 async function resolveVariant
 (c, buf, providerID, modelID, variant) {
+  let models, model
+
   if (variant == undefined || variant.length == 0)
     return variant
   try {
-    let models
-
     models = await c.model.list({ location: { directory: Util.apiDir(buf) } })
-    if ((models.data || []).some(m => m.providerID == providerID
-                                      && m.modelID == modelID
-                                      && (m.variants || []).some(v => v.id == variant)))
-      return variant
   }
-  catch {
+  catch (err) {
+    d('CO variant list failed: ' + err.message)
+    return variant
   }
+  model = (models.data || []).find(m => m.providerID == providerID && m.modelID == modelID)
+  if (model == undefined) {
+    d('CO variant ' + variant + ' unverified, model not listed')
+    return variant
+  }
+  if ((model.variants || []).some(v => v.id == variant))
+    return variant
   d('CO variant ' + variant + ' unavailable, omitting')
   Ui.appendMsg(buf, 'assistant', 'Warning: variant "' + variant + '" unavailable for ' + providerID + '/' + modelID + ' (omitting)')
   return 0

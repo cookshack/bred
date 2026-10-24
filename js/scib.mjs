@@ -72,14 +72,19 @@ function initRTL
 
     p = Pane.current()
     win = Win.current()
-    x = win.lastContextClick?.x
-    y = win.lastContextClick?.y
+
+    // Only a mouse run (from the context menu) has a click point. A key-bound
+    // run must use the cursor, else a stale earlier click decides the line.
+    if (we?.mouse) {
+      x = win.lastContextClick?.x
+      y = win.lastContextClick?.y
+    }
 
     // codemirror editors (eg code blocks in agent messages) aren't bred views
     l = Wode.lineAtCoords(win, x, y)
 
     if (l == null) {
-      if (we?.e && (we.e.button == 0))
+      if (we?.mouse && (we.e.button == 0))
         p.goXY(x ?? 0, y ?? 0)
       l = p.line()
     }
@@ -99,12 +104,15 @@ function initRTL
   }
 
   function runThisCode
-  () {
+  (u, we) {
     let code, win, x, y
 
     win = Win.current()
-    x = win.lastContextClick?.x
-    y = win.lastContextClick?.y
+    // As with runThisLine, only a mouse run has a real click point.
+    if (we?.mouse) {
+      x = win.lastContextClick?.x
+      y = win.lastContextClick?.y
+    }
 
     code = Wode.codeAtCoords(win, x, y)
 

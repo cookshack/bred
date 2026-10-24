@@ -29,6 +29,18 @@ function keydown
            preventDefault: () => {} }
 }
 
+// Make the next context click land at `pos` in `ed`. happy-dom has no layout,
+// so point lookups are stubbed at the editor instead of via real coordinates.
+function stubContextClick
+(ed, pos) {
+  let win
+
+  win = globalThis.bredWin
+  win.lastContextClick = { x: 4, y: 4 }
+  win.document.elementsFromPoint = () => [ ed.dom ]
+  ed.posAtCoords = () => pos
+}
+
 tests = {}
 
 test('focus', 'pane focus targets the current view editor',
@@ -148,6 +160,79 @@ test('rtl', 'run this line reads a code editor line',
 
        sBuf = panes.pB.buf
        equal(sBuf.views[0].ed.state.doc.line(1).text, '$ two', 'line under point echoed')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'run this line uses the line under point, not line one',
+     async () => {
+       let ed, f, panes, sBuf
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       ed = f.views[0].ed
+       ed.dispatch({ changes: { from: 0,
+                                to: ed.state.doc.length,
+                                insert: 'ls\npwd\necho hi\n' } })
+       ed.dispatch({ selection: { anchor: ed.state.doc.line(2).from } })
+       ed.focus()
+
+       Cmd.run('run this line')
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       sBuf = panes.pB.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ pwd', 'line under point is run')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'a key-bound run this line ignores a stale context click',
+     async () => {
+       let ed, f, panes, sBuf
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       ed = f.views[0].ed
+       ed.dispatch({ changes: { from: 0,
+                                to: ed.state.doc.length,
+                                insert: 'ls\npwd\necho hi\n' } })
+       ed.dispatch({ selection: { anchor: ed.state.doc.line(3).from } })
+       ed.focus()
+       // A right-click earlier in the session left a click point on line one.
+       // The key binding must not reuse it; the cursor decides.
+       stubContextClick(ed, 0)
+
+       Cmd.run('run this line')
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       sBuf = panes.pB.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ echo hi', 'cursor line is run, not the stale click line')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'a menu run this line uses the clicked line',
+     async () => {
+       let ed, f, panes, sBuf
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       ed = f.views[0].ed
+       ed.dispatch({ changes: { from: 0,
+                                to: ed.state.doc.length,
+                                insert: 'ls\npwd\necho hi\n' } })
+       ed.dispatch({ selection: { anchor: ed.state.doc.line(3).from } })
+       ed.focus()
+       stubContextClick(ed, 0)
+
+       Cmd.run('run this line', 0, 0, { mouse: 1, e: { button: 0 } })
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       sBuf = panes.pB.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ ls', 'clicked line is run')
        checkPaneInvariants(panes.frame)
      })
 

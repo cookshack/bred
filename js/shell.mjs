@@ -355,6 +355,9 @@ function shellOrSpawn1
         sv.chOff = 0
       }
       b.dir = dir
+      // b.co is the template new views clone from, so update it as well as
+      // the live views or a reopened buffer keeps the old dir.
+      setMl(b.co)
       b.views.forEach(view => {
                         let edWW
 

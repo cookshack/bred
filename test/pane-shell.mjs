@@ -1,5 +1,7 @@
 import { equal } from 'node:assert/strict'
 import * as Css from '../js/css.mjs'
+import * as Frame from '../js/frame.mjs'
+import * as Pane from '../js/Pane.mjs'
 import * as Shell from '../js/shell.mjs'
 import { setupPanes, wait, setBuf, fileBuf } from './pane-helpers.mjs'
 
@@ -34,6 +36,11 @@ function busy
 function mlBusy
 (buf) {
   return buf.views[0].ele.querySelector('.ml-busy').innerText
+}
+
+function exitDir
+(buf) {
+  return buf.views[0].ele.querySelector('.shell-exit-dir').textContent
 }
 
 // emit a shell event; the tron wrapper handles it in a timeout
@@ -335,6 +342,80 @@ async function trial
   equal(text(buf), expected)
   equal(busy(buf), 0)
 }
+
+test('reuse', 'reused command buffer shows the new dir in the exit bar',
+     async () => {
+       let b1, b2, buf, buf2, ch, panes
+
+       panes = setupPanes()
+       b1 = fileBuf('dir-one.txt')
+       b2 = fileBuf('dir-two.txt')
+
+       await setBuf(panes.pB, b1)
+       panes.pB.buf.dir = '/tmp/one'
+       buf = await run('ls')
+       equal(exitDir(buf), '/tmp/one')
+
+       ch = buf.vars('Shell').ch
+       await emit(panes, ch, { close: 1, code: 0 })
+
+       await setBuf(panes.pB, b2)
+       panes.pB.buf.dir = '/tmp/two'
+       buf2 = await run('ls')
+       equal(buf2 == buf, true, 'command buffer should be reused')
+       equal(exitDir(buf), '/tmp/two')
+     })
+
+test('reuse', 'reused command buffer shows the new dir in every pane showing it',
+     async () => {
+       let b1, b2, buf, buf2, ch, panes, viewA, viewB
+
+       panes = setupPanes()
+       b1 = fileBuf('dir-one.txt')
+       b2 = fileBuf('dir-two.txt')
+
+       await setBuf(panes.pB, b1)
+       panes.pB.buf.dir = '/tmp/one'
+       buf = await run('ls')
+       viewB = buf.views[0]
+       equal(exitDir(buf), '/tmp/one')
+
+       ch = buf.vars('Shell').ch
+       await emit(panes, ch, { close: 1, code: 0 })
+
+       // keep the shell buffer visible in pB while running the same command
+       // from another pane pointed at a different dir
+       await setBuf(panes.pA, b2)
+       panes.pA.buf.dir = '/tmp/two'
+       panes.pA.focus()
+       buf2 = await run('ls')
+       equal(buf2 == buf, true, 'command buffer should be reused')
+       equal(exitDir(buf), '/tmp/two')
+       viewA = panes.pA.view
+       equal(viewA?.ele?.querySelector('.shell-exit-dir').textContent, '/tmp/two')
+       equal(viewB.eleOrReserved.querySelector('.shell-exit-dir').textContent, '/tmp/two')
+     })
+
+test('reuse', 'runs in the invoking frame dir, not frame1 dir',
+     async () => {
+       let b1, b2, buf, fr, panes, pr
+
+       panes = setupPanes()
+       b1 = fileBuf('frame1.txt')
+       b2 = fileBuf('right.txt')
+
+       await setBuf(panes.pB, b1)
+       panes.pB.buf.dir = '/tmp/one'
+
+       fr = Frame.add(panes.frame.tab, { width: 25 })
+       pr = Pane.current(fr)
+       await setBuf(pr, b2)
+       pr.buf.dir = '/tmp/two'
+       pr.focus()
+
+       buf = await run('ls')
+       equal(exitDir(buf), '/tmp/two')
+     })
 
 function mochaIt
 (cb) {

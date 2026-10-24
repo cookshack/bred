@@ -333,7 +333,7 @@ function shellOrSpawn1
  spec,
  // (buf)
  cb) {
-  let p, dir
+  let p, dir, invoke
 
   function addBuf
   (whenReady) {
@@ -450,9 +450,12 @@ function shellOrSpawn1
   spec = spec || {}
   if (spec.hist)
     spec.hist.add(sc)
+  // The buffer opens in frame1, but the command belongs to the pane the user
+  // invoked it from (which can be in another frame).
+  invoke = Pane.current()
   p = Pane.current1()
+  dir = Loc.make(invoke?.buf?.dir || p.buf.dir)
   p.focus()
-  dir = Loc.make(p.buf.dir)
   dir.ensureSlash()
   dir = dir.path || Loc.home()
   addBuf(buf => {

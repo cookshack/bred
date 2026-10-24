@@ -91,6 +91,20 @@ div.code-thought:hover {
   border-left-color: var(--clr-text-light);
 }
 
+/* Interrupted turn: a tinted tag that sits inside the turn, above the model
+   footer, rather than reading as the start of the next turn. */
+.code-msg-assistant.code-msg-stopped {
+  border-left-color: var(--clr-syntax5);
+}
+
+.code-msg-stopped .code-msg-text {
+  color: var(--clr-emph);
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+  padding-top: 0.1rem;
+  padding-bottom: 0.1rem;
+}
+
 .code-msg-role {
   padding: var(--cm-pad);
   display: flex;

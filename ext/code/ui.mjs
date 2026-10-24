@@ -265,7 +265,7 @@ function appendMsg
 
                         if (role == 'user')
                           contentEl = divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
-                        else if (spec?.log)
+                        else if (spec?.log || spec?.stopped)
                           contentEl = divCl('code-msg-text', text || '')
                         else {
                           mdResult = makeMarkdownEd(text || '', 1)
@@ -291,7 +291,8 @@ function appendMsg
                           appendX(w,
                                   divCl('code-msg code-msg-assistant'
                                         + (spec?.log ? ' code-msg-log' : '')
-                                        + (spec?.subagent ? ' code-msg-subagent' : ''),
+                                        + (spec?.subagent ? ' code-msg-subagent' : '')
+                                        + (spec?.stopped ? ' code-msg-stopped' : ''),
                                         [ contentEl ],
                                         { 'data-partid': partID || 0,
                                           'data-messageid': messageID || '' }))

@@ -363,17 +363,19 @@ function updateBufAgent
 function updateIdle
 (buf, tokenInfo) {
   Ui.updateStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
+  // The stop marker belongs to the turn being ended, so it goes before the
+  // model footer (which reads as the turn's end line).
+  if (buf.vars('code').agentStopped) {
+    buf.vars('code').agentStopped = 0
+    Ui.appendMsg(buf, 0, '...stopped', undefined, undefined, { stopped: 1 })
+    buf.vars('code').stepActiveSessions = new Set()
+  }
   // v2 streams the response after the prompt resolves, so the model footer is
   // appended when the turn ends rather than when the prompt is accepted.
   if (buf.vars('code').busy)
     Ui.appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant), Util.fmtCost(buf.vars('code').lastCost), undefined, buf.vars('code').curMessageID)
   buf.vars('code').busy = 0
   Mess.yell('')
-  if (buf.vars('code').agentStopped) {
-    buf.vars('code').agentStopped = 0
-    Ui.appendMsg(buf, 0, '...stopped')
-    buf.vars('code').stepActiveSessions = new Set()
-  }
 }
 
 function updateStatus

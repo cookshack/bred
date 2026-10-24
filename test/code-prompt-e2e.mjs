@@ -306,6 +306,63 @@ test('order', 'model line comes after the assistant response',
        }
      })
 
+test('order', 'stop marker comes before the model footer',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-stop', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let order, w
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await waitFor(() => created.vars('code').busy)
+
+         // Stopping marks the buffer, then the interrupt resolves the turn.
+         created.vars('code').agentStopped = 1
+         fake.push(Fake.event('session.execution.interrupted', { sessionID: 'ses-stop' }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-stopped'))
+
+         w = created.views[0].ele.querySelector('.code-w')
+         order = [ ...w.querySelectorAll('.code-msg') ].map(el => {
+                                                              if (el.querySelector('.code-msg-model'))
+                                                                return 'model'
+                                                              if (Css.has(el, 'code-msg-stopped'))
+                                                                return 'stopped'
+                                                              if (Css.has(el, 'code-msg-assistant'))
+                                                                return 'assistant'
+                                                              if (Css.has(el, 'code-msg-user'))
+                                                                return 'user'
+                                                              return 'other'
+                                                            })
+         equal(order.includes('stopped'), true, 'the stop marker is rendered: ' + order.join(','))
+         equal(order.indexOf('model') > order.indexOf('stopped'),
+               true,
+               'stop marker must come before the model footer: ' + order.join(','))
+         equal(w.querySelector('.code-msg-stopped .code-markdown-ed'), null,
+               'the stop marker does not build a markdown editor')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
 test('subagent', 'task prompt is always shown, result follows it',
      async () => {
        let created, fake, orig, panes, prompt

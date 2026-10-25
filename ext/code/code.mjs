@@ -316,6 +316,21 @@ function ynRespond
     appendPermission(buf, buf.vars('code').permissions[0])
 }
 
+// whether the buf's input prompt is showing
+function promptOpen
+(buf) {
+  let open
+
+  buf?.views.forEach(view => {
+                       let container
+
+                       container = view.ele?.querySelector?.('.code-prompt-w')
+                       if (container && Css.has(container, 'retracted') == 0)
+                         open = 1
+                     })
+  return open
+}
+
 function yn
 (yes) {
   let buf, id, perms
@@ -329,6 +344,10 @@ function yn
     let codeBuf, promptBuf, block
 
     codeBuf = buf.parent || buf
+    if (promptOpen(codeBuf)) {
+      Mess.yell('Close the prompt first')
+      return
+    }
     block = Util.promptBlocked(codeBuf)
     if (block) {
       Mess.yell(block)

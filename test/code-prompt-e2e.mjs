@@ -4,6 +4,7 @@ import * as Cmd from '../js/cmd.mjs'
 import * as Code from '../ext/code/code.mjs'
 import * as CodePrompt from '../ext/code/prompt.mjs'
 import * as Css from '../js/css.mjs'
+import * as Mess from '../js/mess.mjs'
 import * as Mode from '../js/mode.mjs'
 import * as Scib from '../js/scib.mjs'
 import * as Sessions from '../ext/code/sessions.mjs'
@@ -97,6 +98,11 @@ function nestIds
 (view) {
   return [ ...view.ele.querySelectorAll('[data-bred-nested-buf-id]') ]
     .map(e => e.dataset.bredNestedBufId)
+}
+
+function yellsSince
+(n) {
+  return Mess.messages().slice(n).filter(m => m.type == 'yell').map(m => m.text)
 }
 
 tests = {}
@@ -199,6 +205,49 @@ test('startup', 'burying before the prompt appears still yields a usable prompt'
        finally {
          panes.pB.setBuf = orig
        }
+     })
+
+test('yn', 'y/n is refused while the prompt is open',
+     async () => {
+       let before, buf, fake, panes, yells
+
+       ({ panes, buf } = await setup())
+       fake = Fake.make({ responses: { 'session.prompt': {} } })
+       buf.vars('code').client = fake
+       buf.vars('code').sessionID = 'ses-yn'
+       buf.vars('code').provider = 'goat'
+       buf.vars('code').model = 'test-model'
+
+       Css.expand(panes.pB.view.ele.querySelector('.code-prompt-w'))
+       before = Mess.messages().length
+
+       Cmd.run('yes', buf)
+       Cmd.run('no', buf)
+
+       yells = yellsSince(before)
+       equal(yells.filter(t => t == 'Close the prompt first').length,
+             2,
+             'both keys are refused: ' + yells.join(' | '))
+       equal(fake._calls.length, 0, 'nothing is sent to the agent')
+     })
+
+test('yn', 'a pending permission is still answered with the prompt open',
+     async () => {
+       let buf, fake, panes, reply
+
+       ({ panes, buf } = await setup())
+       fake = Fake.make({ responses: { 'permission.reply': {} } })
+       buf.vars('code').client = fake
+       buf.vars('code').sessionID = 'ses-yn'
+       buf.vars('code').permissions = [ { id: 'p1', sessionID: 'ses-yn', req: { permission: 'edit' } } ]
+
+       Css.expand(panes.pB.view.ele.querySelector('.code-prompt-w'))
+       Cmd.run('yes', buf)
+       await waitFor(() => fake._calls.some(c => c.name == 'permission.reply'))
+
+       reply = fake._calls.find(c => c.name == 'permission.reply')
+       equal(reply.input.decision, 'once', 'permission is allowed')
+       equal(fake._calls.some(c => c.name == 'session.prompt'), false, 'no chat prompt is sent')
      })
 
 test('log', 'server logs keep only the newest twenty',

@@ -81,6 +81,8 @@ div.code-thought:hover {
 .code-msg-assistant {
   align-self: flex-start;
   border-left: 0.25rem solid var(--clr-syntax3);
+  /* a one word message must still be wide enough for its hover foot */
+  min-width: 8rem;
 }
 
 /* Text streamed from a subagent session: same shape, different accent. */
@@ -188,7 +190,7 @@ div.code-thought:hover {
    showing it never reflows the log; it may cover a line while hovered. */
 .code-msg-foot {
   position: absolute;
-  top: 0;
+  bottom: 0;
   right: 0;
   display: flex;
   flex-direction: row;
@@ -256,6 +258,7 @@ div.code-thought:hover {
 .code-msg-thinking {
   align-self: flex-start;
   margin-top: 4px;
+  min-width: 8rem;
 }
 
 .code-msg-thinking .code-msg-role {

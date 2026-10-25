@@ -85,6 +85,9 @@ function make
   sessionGroup.switchAgent = input => respond('session.switchAgent', input)
   sessionGroup.switchModel = input => respond('session.switchModel', input)
   sessionGroup.message = { get: input => respond('session.message.get', input) }
+  sessionGroup.revert = { stage: input => respond('session.revert.stage', input),
+                          clear: input => respond('session.revert.clear', input),
+                          commit: input => respond('session.revert.commit', input) }
 
   client = {}
   client._calls = calls

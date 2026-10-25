@@ -250,6 +250,43 @@ test('yn', 'a pending permission is still answered with the prompt open',
        equal(fake._calls.some(c => c.name == 'session.prompt'), false, 'no chat prompt is sent')
      })
 
+test('message menu', 'delete reverts to the message and reloads the transcript',
+     async () => {
+       let buf, fake, rows, stage
+
+       ({ buf } = await setup())
+
+       fake = Fake.make({ responses: { 'session.revert.stage': { messageID: 'm2' },
+                                       'session.revert.commit': {},
+                                       'message.list': { data: [ { id: 'u1',
+                                                                   type: 'user',
+                                                                   text: 'kept',
+                                                                   time: { created: 1 } } ],
+                                                         cursor: {} } } })
+       buf.vars('code').client = fake
+       buf.vars('code').sessionID = 'ses-del'
+
+       Ui.appendMsg(buf, 'user', 'kept', 'u1', 1, { messageID: 'u1' })
+       Ui.appendMsg(buf, 0, 'gone', 'm2:text:0', 1, { messageID: 'm2' })
+
+       await Code.deleteMessage(buf, 'm2')
+       await waitFor(() => buf.views[0].ele.querySelectorAll('.code-msg-assistant').length == 0)
+
+       stage = fake._calls.find(c => c.name == 'session.revert.stage')
+       equal(stage.input.sessionID, 'ses-del')
+       equal(stage.input.messageID, 'm2', 'reverts to the message that was clicked')
+       equal(stage.input.files, false, 'file changes are kept')
+       equal(fake._calls.findIndex(c => c.name == 'session.revert.stage')
+             < fake._calls.findIndex(c => c.name == 'session.revert.commit'),
+             true,
+             'commit comes after stage')
+
+       rows = [ ...buf.views[0].ele.querySelectorAll('.code-msg-user') ]
+       equal(rows.length, 1, 'the transcript is rendered again from the server')
+       equal(rows[0].innerText.trim(), 'kept')
+       equal(buf.vars('code').busy, 0, 'the buffer is usable again')
+     })
+
 test('log', 'server logs keep only the newest twenty',
      async () => {
        let buf, els, i, panes

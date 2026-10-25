@@ -214,8 +214,32 @@ function updateStatus
                     })
 }
 
-// Per-part time and menu. Hidden until the message is hovered so a long log
-// stays readable (see .code-msg-foot in code.css).
+// Drop every rendered message so the transcript can be rendered again (eg
+// after a revert deleted messages on the server).
+export
+function clearMsgs
+(buf) {
+  buf.vars('code').partTexts = {}
+  buf.vars('code').curMessageID = 0
+  buf.vars('code').callLabels = {}
+  for (let view of buf.views) {
+    let w
+
+    view.vars('code').eds?.forEach(ed => ed.destroy())
+    view.vars('code').eds = []
+    view.vars('code').partEds = {}
+    view.vars('code').partEls = new Map()
+    w = view.eleOrReserved?.querySelector('.code-w')
+    if (w)
+      for (let el of [ ...w.children ])
+        // the header and footer of the message area stay
+        if ([ 'code-session-title', 'code-under-w' ].includes(el.classList[0]) == 0)
+          el.remove()
+  }
+}
+
+// Per-part time and menu, overlaid on the message (see .code-msg-foot in
+// code.css).
 function msgFoot
 (time) {
   return divCl('code-msg-foot',

@@ -1115,11 +1115,47 @@ function viewMessageJSON
                                        })
 }
 
-function deleteMessage
+// v2 has no per-message delete. The closest thing is a revert to the message,
+// which removes it and everything after it, so the ui says so before doing it.
+// Files the agent changed are left alone (stage's default would restore them).
+export
+async function deleteMessage
 (buf, messageID) {
-  // v2 has no delete-message operation.
-  Mess.yell('Delete message is not supported by opencode v2')
-  d('CO delete message unsupported: ' + messageID)
+  let sessionID
+
+  sessionID = buf.vars('code').sessionID
+  buf.vars('code').busy = 1
+  Ui.updateStatus(buf, '🔃 Deleting...', '', '', '')
+  try {
+    let c
+
+    c = await Comm.ensureClient(buf)
+    await c.session.revert.stage({ sessionID, messageID, files: false })
+    await c.session.revert.commit({ sessionID })
+    await reloadTranscript(buf, c)
+    Mess.say('Deleted message')
+  }
+  catch (err) {
+    Mess.yell('Delete failed: ' + err.message)
+    d('CO delete error: ' + err.message)
+  }
+  finally {
+    buf.vars('code').busy = 0
+    Ui.updateStatus(buf, 'OK', '', '', '')
+  }
+}
+
+// Render the session's transcript again from the server, eg after a revert
+// removed messages.
+async function reloadTranscript
+(buf, c) {
+  let children, messages
+
+  Ui.clearMsgs(buf)
+  Ui.updateStatus(buf, '🔃 Loading session...', '', '', '')
+  messages = (await Sessions.fetchMessages(c, buf.vars('code').sessionID)).data
+  children = await Sessions.fetchSubagentMessages(c, messages)
+  await new Promise(resolve => Sessions.renderHistory(buf, messages, children, resolve))
 }
 
 // The message element a menu belongs to. Assistant and thinking messages hold
@@ -1197,7 +1233,7 @@ function messageMenu
                       Mess.yell('Agent is busy')
                       return
                     }
-                    Prompt.yn('Delete message?',
+                    Prompt.yn('Delete this message and everything after it? File changes are kept.',
                               { icon: 'trash' },
                               yes => {
                                 if (yes)

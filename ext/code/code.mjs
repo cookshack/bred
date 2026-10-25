@@ -3,6 +3,7 @@ import { button, create, divCl, span } from '../../js/dom.mjs'
 import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Css from '../../js/css.mjs'
+import * as Cut from '../../js/cut.mjs'
 import * as Ed from '../../js/ed.mjs'
 import * as Em from '../../js/Em.mjs'
 import * as Hist from '../../js/hist.mjs'
@@ -900,7 +901,7 @@ function handlePart
   else if (part.type == 'text') {
     buf.vars('code').gotContent = 1
     if (buf.vars('code').stepActiveSessions?.size)
-      Ui.appendMsg(buf, 0, part.text, part.id, 0, { subagent: Util.isSubagentId(buf, part.sessionID) })
+      Ui.appendMsg(buf, 0, part.text, part.id, part.time, { subagent: Util.isSubagentId(buf, part.sessionID) })
   }
   else if (part.type == 'reasoning') {
     let buffered
@@ -908,7 +909,7 @@ function handlePart
     buffered = (event.properties.delta || '')
     if (buffered) {
       buf.vars('code').gotContent = 1
-      Ui.appendThinking(buf, buffered, part.id)
+      Ui.appendThinking(buf, buffered, part.id, part.time)
     }
   }
   else if (part.type == 'tool') {
@@ -1121,21 +1122,75 @@ function deleteMessage
   d('CO delete message unsupported: ' + messageID)
 }
 
+// The message element a menu belongs to. Assistant and thinking messages hold
+// their own menu (so the foot is a child); user messages put the menu in the
+// row after the bubble.
+function messageEl
+(we) {
+  let el, prev
+
+  el = we?.e?.target?.closest?.('.code-msg')
+  if (el)
+    return el
+  el = we?.e?.target?.closest?.('.code-msg-ts')
+  prev = el?.previousElementSibling
+  if (prev?.classList.contains('code-msg'))
+    return prev
+  return 0
+}
+
+// The raw markdown behind a rendered message. The markdown view hides the
+// marks (** and # etc) and replaces tables with widgets, so copying the
+// selection loses them; partTexts keeps what the server sent.
+function messageMarkdown
+(buf, el) {
+  let partID, parts, textEl
+
+  partID = el.dataset.partid
+  parts = buf.vars('code').partTexts
+  if (parts && partID && Object.hasOwn(parts, partID))
+    return parts[partID]
+  textEl = el.querySelector('.code-msg-text')
+  return (textEl || el).innerText
+}
+
+function copyMessage
+(buf, we) {
+  let el, text
+
+  el = messageEl(we)
+  if (el == null)
+    return
+  text = messageMarkdown(buf, el).trim()
+  if (text.length == 0) {
+    Mess.yell('Nothing to copy')
+    return
+  }
+  Cut.add(text)
+  Mess.say('Copied as markdown')
+}
+
 function messageMenu
 (u, we) {
-  let buf, el, messageID
+  let buf, el, messageID, choices
 
   buf = Pane.current().buf
   el = we.e.target.closest('[data-messageid]')
   messageID = el?.dataset.messageid
   if (messageID == null || messageID.length == 0)
     return
+  choices = []
+  if (messageEl(we))
+    choices.push('Copy as Markdown')
+  choices.push('View JSON',
+               { name: 'Delete Message', enable: buf.vars('code').busy ? 0 : 1 })
   Prompt.choose('Message',
-                [ 'View JSON',
-                  { name: 'Delete Message', enable: buf.vars('code').busy ? 0 : 1 } ],
+                choices,
                 {},
                 choice => {
-                  if (choice == 'View JSON')
+                  if (choice == 'Copy as Markdown')
+                    copyMessage(buf, we)
+                  else if (choice == 'View JSON')
                     viewMessageJSON(buf, messageID)
                   else if (choice == 'Delete Message') {
                     if (buf.vars('code').busy) {

@@ -214,11 +214,20 @@ function updateStatus
                     })
 }
 
+// Per-part time and menu. Hidden until the message is hovered so a long log
+// stays readable (see .code-msg-foot in code.css).
+function msgFoot
+(time) {
+  return divCl('code-msg-foot',
+               [ time ? span(time, 'code-msg-timestamp') : 0,
+                 span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ])
+}
+
 export
 function appendMsg
 (buf, role, text, partID, at, spec) {
   Util.eachCodeW(buf, (view, w) => {
-                        let contentEl, mdResult, messageID, tsText, now, h, m, s
+                        let contentEl, mdResult, messageID, tsText
 
                         messageID = spec?.messageID ?? buf.vars('code').curMessageID
 
@@ -257,11 +266,9 @@ function appendMsg
                           }
                         }
 
-                        now = at ? new Date(at) : new Date()
-                        h = String(now.getHours()).padStart(2, '0')
-                        m = String(now.getMinutes()).padStart(2, '0')
-                        s = String(now.getSeconds()).padStart(2, '0')
-                        tsText = h + 'h' + m + ':' + s
+                        // A part knows when it was sent; anything else (eg an
+                        // errored out turn) has no time to show.
+                        tsText = at ? ts(at) : ''
 
                         if (role == 'user')
                           contentEl = divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
@@ -283,7 +290,7 @@ function appendMsg
                           appendX(w,
                                   divCl('code-msg-ts code-msg-ts-user',
                                         [ agentEl,
-                                          span(tsText, 'code-msg-timestamp'),
+                                          span(tsText || ts(), 'code-msg-timestamp'),
                                           span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ],
                                         { 'data-messageid': messageID || '' }))
                         }
@@ -293,7 +300,8 @@ function appendMsg
                                         + (spec?.log ? ' code-msg-log' : '')
                                         + (spec?.subagent ? ' code-msg-subagent' : '')
                                         + (spec?.stopped ? ' code-msg-stopped' : ''),
-                                        [ contentEl ],
+                                        [ contentEl,
+                                          spec?.log ? 0 : msgFoot(tsText) ],
                                         { 'data-partid': partID || 0,
                                           'data-messageid': messageID || '' }))
                         if (mdResult) {
@@ -350,7 +358,7 @@ function subagentLabel
 
 export
 function appendThinking
-(buf, text, partId) {
+(buf, text, partId, at) {
   let codeW
 
   codeW = buf.anyView(1)?.eleOrReserved?.querySelector('.code-w')
@@ -362,7 +370,8 @@ function appendThinking
   Util.eachCodeW(buf, (view, w) => {
                         appendX(w,
                                 divCl('code-msg code-msg-thinking',
-                                      [ divCl('code-msg-text', text) ],
+                                      [ divCl('code-msg-text', text),
+                                        msgFoot(at ? ts(at) : '') ],
                                       { 'data-partid': partId || 0,
                                         'data-messageid': buf.vars('code').curMessageID || '' }))
                       })

@@ -125,7 +125,9 @@ function translate
     break
   case 'session.text.started':
     state.textID = data.assistantMessageID + ':text:' + data.ordinal
-    out.push(legacy('message.part.updated', { part: { id: state.textID, type: 'text', text: '', messageID: data.assistantMessageID, sessionID: data.sessionID } }))
+    // time is when the part was sent, so each streamed update can show its own
+    // timestamp instead of the turn's start time.
+    out.push(legacy('message.part.updated', { part: { id: state.textID, type: 'text', text: '', messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() } }))
     break
   case 'session.text.delta':
     out.push(legacy('message.part.delta', { sessionID: data.sessionID, partID: state.textID, field: 'text', delta: data.delta }))
@@ -134,7 +136,7 @@ function translate
     state.thinkID = data.assistantMessageID + ':reason:' + data.ordinal
     break
   case 'session.reasoning.delta':
-    out.push(legacy('message.part.updated', { part: { id: state.thinkID, type: 'reasoning', messageID: data.assistantMessageID, sessionID: data.sessionID }, delta: data.delta }))
+    out.push(legacy('message.part.updated', { part: { id: state.thinkID, type: 'reasoning', messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() }, delta: data.delta }))
     break
   case 'session.tool.input.started':
     state.toolNames = state.toolNames || {}

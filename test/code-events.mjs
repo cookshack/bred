@@ -167,6 +167,7 @@ test('translate', 'text started then delta',
        buf = makeBuf()
        started = Ev.translate(buf, Fake.event('session.text.started', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 0 }))
        equal(started[0].properties.part.type, 'text')
+       equal(typeof started[0].properties.part.time, 'number', 'part knows when it was sent')
        leg = Ev.translate(buf, Fake.event('session.text.delta', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 0, delta: 'hi' }))
        equal(leg[0].type, 'message.part.delta')
        equal(leg[0].properties.delta, 'hi')
@@ -182,6 +183,7 @@ test('translate', 'reasoning delta carries the text field',
        leg = Ev.translate(buf, Fake.event('session.reasoning.delta', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 0, delta: 'think' }))
        equal(leg[0].properties.part.type, 'reasoning')
        equal(leg[0].properties.delta, 'think')
+       equal(typeof leg[0].properties.part.time, 'number', 'thinking knows when it was sent')
      })
 
 test('translate', 'tool lifecycle maps to states',

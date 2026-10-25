@@ -216,11 +216,13 @@ function renderHistory
     for (let msg of msgs)
       if (msg.type == 'assistant') {
         buf.vars('code').curMessageID = msg.id
-        for (let content of (msg.content || []))
+        // Index the parts so several text/reasoning parts of one stored
+        // message stay separate (live parts get their own id from the server).
+        for (let [ i, content ] of (msg.content || []).entries())
           if (content.type == 'reasoning' && content.text)
-            Ui.appendThinking(buf, content.text, msg.id)
+            Ui.appendThinking(buf, content.text, msg.id + ':' + i)
           else if (content.type == 'text' && content.text)
-            Ui.appendMsg(buf, 0, content.text, msg.id, 0, { subagent: 1 })
+            Ui.appendMsg(buf, 0, content.text, msg.id + ':' + i, 0, { subagent: 1 })
           else if (content.type == 'tool')
             renderTool(content)
       }
@@ -257,11 +259,12 @@ function renderHistory
           Ui.appendMsg(buf, 'user', msg.text, msg.id, msg.time?.created, { agent: msg.agents?.[0]?.name })
       }
       else if (role == 'assistant') {
-        for (let content of (msg.content || []))
+        // Index the parts so several text parts of one message stay separate.
+        for (let [ j, content ] of (msg.content || []).entries())
           if (content.type == 'reasoning' && content.text)
-            Ui.appendThinking(buf, content.text, msg.id)
+            Ui.appendThinking(buf, content.text, msg.id + ':' + j)
           else if (content.type == 'text' && content.text)
-            Ui.appendMsg(buf, 0, content.text, msg.id)
+            Ui.appendMsg(buf, 0, content.text, msg.id + ':' + j)
           else if (content.type == 'tool')
             renderTool(content)
         pendingModel = { model: Util.modelName(msg.model?.modelID, msg.model?.variant),

@@ -150,6 +150,16 @@ test('translate', 'form.created maps fields to questions',
        equal(leg[0].properties.questions[0].options[0].label, 'Red')
      })
 
+test('translate', 'form.cancelled clears the question',
+     () => {
+       let buf, leg
+
+       buf = makeBuf()
+       leg = Ev.translate(buf, Fake.event('form.cancelled', { id: 'f1', sessionID: 's1' }))
+       equal(leg[0].type, 'question.cancelled')
+       equal(leg[0].properties.id, 'f1')
+     })
+
 test('translate', 'text started then delta',
      () => {
        let buf, leg, started

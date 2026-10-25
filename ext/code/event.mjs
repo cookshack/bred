@@ -106,6 +106,11 @@ function translate
   case 'form.created':
     out.push(legacy('question.asked', { id: data.form.id, sessionID: data.form.sessionID, questions: fieldQuestions(data.form), tool: { callID: data.form.metadata?.callID } }))
     break
+  case 'form.cancelled':
+    // The server cancels pending forms when a turn is interrupted. Without
+    // this the question stays in the UI and blocks the prompt.
+    out.push(legacy('question.cancelled', { id: data.id, sessionID: data.sessionID }))
+    break
   case 'session.step.started':
     state.textID = 0
     state.thinkID = 0

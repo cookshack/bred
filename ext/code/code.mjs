@@ -375,6 +375,7 @@ function updateIdle
   if (buf.vars('code').busy)
     Ui.appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant), Util.fmtCost(buf.vars('code').lastCost), undefined, buf.vars('code').curMessageID)
   buf.vars('code').busy = 0
+  reconcileQuestions(buf)
   Mess.yell('')
 }
 
@@ -473,6 +474,8 @@ function handleQuestionAsked
 function appendQuestion
 (buf, req) {
   Util.eachCodeW(buf, (view, w) => {
+                        if (w.querySelector('.code-msg-question[data-requestid="' + req.id + '"]'))
+                          return
                         Ui.appendX(w,
                                    divCl('code-msg code-msg-question',
                                          [ divCl('code-msg-text', [ '▣ Questions' ]),
@@ -517,60 +520,120 @@ function formAnswer
   return out
 }
 
+function markQuestion
+(buf, requestID, text, cls) {
+  Util.eachCodeW(buf, (view, w) => {
+                        let el
+
+                        el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
+                        if (el) {
+                          let textEl
+
+                          Css.add(el, cls)
+                          textEl = el.querySelector('.code-msg-text')
+                          if (textEl)
+                            textEl.innerText = text
+                          el.querySelectorAll('.code-question-option').forEach(o => o.removeAttribute('data-run'))
+                          el.querySelectorAll('button').forEach(b => b.removeAttribute('data-run'))
+                        }
+                      })
+}
+
+// Forget a question the server no longer has (eg. the turn was interrupted
+// while it was pending) so it does not block the prompt forever.
+function dropQuestion
+(buf, requestID) {
+  buf.vars('code').questions = (buf.vars('code').questions || []).filter(q => (q.id == requestID) == 0)
+  if (buf.vars('code').questions.length)
+    appendQuestion(buf, buf.vars('code').questions[0])
+}
+
+function questionCancelled
+(buf, requestID) {
+  d('CO question cancelled: ' + requestID)
+  markQuestion(buf, requestID, '▣ Questions (cancelled)', 'code-question-cancelled')
+  dropQuestion(buf, requestID)
+}
+
+// The server reports FormNotFound / FormAlreadySettled once a form is gone.
+function formGone
+(err) {
+  let msg
+
+  msg = ((err.reason || '') + ' ' + (err.message || '')).toLowerCase()
+  return (msg.indexOf('not found') >= 0) || (msg.indexOf('already settled') >= 0)
+}
+
 function questionRespond
 (buf, requestID, answers) {
   d('CO question ' + (answers ? 'reply' : 'reject'))
   Comm.ensureClient(buf).then(async c => {
+                                let req, sessionID
+
+                                req = (buf.vars('code').questions || []).find(q => q.id == requestID)
+                                sessionID = req?.sessionID || buf.vars('code').sessionID
                                 try {
-                                  let req
-
-                                  req = (buf.vars('code').questions || []).find(q => q.id == requestID)
                                   if (answers) {
-                                    await c.session.form.reply({ sessionID: req?.sessionID || buf.vars('code').sessionID,
-                                                                 formID: requestID,
-                                                                 answer: formAnswer(req, answers) })
-                                    Util.eachCodeW(buf, (view, w) => {
-                                                          let el
-
-                                                          el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
-                                                          if (el) {
-                                                            let textEl
-
-                                                            Css.add(el, 'code-question-answered')
-                                                            textEl = el.querySelector('.code-msg-text')
-                                                            if (textEl)
-                                                              textEl.innerText = '▣ Questions (answered)'
-                                                            el.querySelectorAll('.code-question-option').forEach(o => o.removeAttribute('data-run'))
-                                                            el.querySelectorAll('button').forEach(b => b.removeAttribute('data-run'))
-                                                          }
-                                                        })
+                                    await c.session.form.reply({ sessionID, formID: requestID, answer: formAnswer(req, answers) })
+                                    markQuestion(buf, requestID, '▣ Questions (answered)', 'code-question-answered')
                                   }
                                   else {
-                                    await c.session.form.cancel({ sessionID: req?.sessionID || buf.vars('code').sessionID,
-                                                                  formID: requestID })
-                                    Util.eachCodeW(buf, (view, w) => {
-                                                          let el
-
-                                                          el = w.querySelector('.code-msg-question[data-requestid="' + requestID + '"]')
-                                                          if (el) {
-                                                            let textEl
-
-                                                            Css.add(el, 'code-question-skipped')
-                                                            textEl = el.querySelector('.code-msg-text')
-                                                            if (textEl)
-                                                              textEl.innerText = '▣ Questions (skipped)'
-                                                            el.querySelectorAll('.code-question-option').forEach(o => o.removeAttribute('data-run'))
-                                                            el.querySelectorAll('button').forEach(b => b.removeAttribute('data-run'))
-                                                          }
-                                                        })
+                                    await c.session.form.cancel({ sessionID, formID: requestID })
+                                    markQuestion(buf, requestID, '▣ Questions (skipped)', 'code-question-skipped')
                                   }
-                                  buf.vars('code').questions = buf.vars('code').questions.slice(1)
-                                  if (buf.vars('code').questions.length)
-                                    appendQuestion(buf, buf.vars('code').questions[0])
+                                  dropQuestion(buf, requestID)
                                 }
                                 catch (err) {
                                   d('CO question respond error: ' + err.message)
                                   Mess.yell('Question reply failed: ' + err.message)
+                                  if (formGone(err))
+                                    // Settle it locally too, otherwise the stale
+                                    // question keeps the prompt blocked.
+                                    questionCancelled(buf, requestID)
+                                }
+                              })
+}
+
+// Forms are live-only (no replay on reconnect) and the server cancels pending
+// ones when a turn is interrupted, so a missed form.cancelled leaves the
+// prompt blocked for good. When a turn ends, ask the server which forms are
+// still pending and settle the rest.
+function reconcileQuestions
+(buf) {
+  let questions, groups
+
+  questions = buf.vars('code').questions || []
+  if (questions.length == 0)
+    return
+  groups = {}
+  questions.forEach(q => {
+                      let sid
+
+                      sid = q.sessionID || buf.vars('code').sessionID
+                      groups[sid] = groups[sid] || []
+                      groups[sid].push(q.id)
+                    })
+  Object.keys(groups).forEach(sid => reconcileSessionQuestions(buf, sid, groups[sid]))
+}
+
+function reconcileSessionQuestions
+(buf, sessionID, ids) {
+  Comm.ensureClient(buf).then(async c => {
+                                try {
+                                  let live
+
+                                  live = (await c.session.form.list({ sessionID })).map(f => f.id)
+                                  ids.forEach(id => {
+                                                if (live.includes(id))
+                                                  return
+                                                if ((buf.vars('code').questions || []).every(q => (q.id == id) == 0))
+                                                  // Already settled locally.
+                                                  return
+                                                questionCancelled(buf, id)
+                                              })
+                                }
+                                catch (err) {
+                                  d('CO form list failed: ' + err.message)
                                 }
                               })
 }
@@ -2242,6 +2305,11 @@ function init
                                    if (Util.isSessionMatch(buf, event.properties.sessionID))
                                      handleQuestionAsked(buf, event)
                                  } },
+             'question.cancelled': { onArrive
+                                     (buf, event) {
+                                       if (Util.isSessionMatch(buf, event.properties.sessionID))
+                                         questionCancelled(buf, event.properties.id)
+                                     } },
              'session.error': { onArrive
                                 (buf, event) {
                                   if (event.properties?.sessionID == buf.vars('code').sessionID) {
@@ -2253,6 +2321,9 @@ function init
                                       Ui.appendMsg(buf, 'assistant', 'Error: ' + (error.message || error.data?.message || error.type || error.name || '??'))
                                     else
                                       Ui.appendMsg(buf, 'assistant', 'Error: session error - details missing')
+                                    // An interrupted turn can leave a question that
+                                    // the server already dropped.
+                                    reconcileQuestions(buf)
                                   }
                                 } },
              'session.updated': { onArrive

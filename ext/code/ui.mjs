@@ -214,6 +214,21 @@ function updateStatus
                     })
 }
 
+// A prompt is drawn before the server answers with its real message id, so
+// swap the placeholder for the id the server knows (revert, message.get etc).
+export
+function setMessageID
+(buf, fromID, toID) {
+  for (let view of buf.views) {
+    let w
+
+    w = view.eleOrReserved?.querySelector('.code-w')
+    if (w)
+      for (let el of w.querySelectorAll('[data-messageid="' + fromID + '"]'))
+        el.dataset.messageid = toID
+  }
+}
+
 // Drop every rendered message so the transcript can be rendered again (eg
 // after a revert deleted messages on the server).
 export

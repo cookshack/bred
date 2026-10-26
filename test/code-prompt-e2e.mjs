@@ -487,6 +487,42 @@ test('order', 'stop marker comes before the model footer',
        }
      })
 
+test('send', 'the user message takes the message id the server gives it',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-id', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': { id: 'msg_real1' } } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let w
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele?.querySelector('[data-messageid="msg_real1"]'))
+
+         w = created.views[0].ele.querySelector('.code-w')
+         equal(w.querySelectorAll('[data-messageid^="tmp_"]').length, 0, 'no placeholder ids are left')
+         equal(w.querySelector('.code-msg-user').dataset.messageid, 'msg_real1')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
 test('subagent', 'task prompt is always shown, result follows it',
      async () => {
        let created, fake, orig, panes, prompt

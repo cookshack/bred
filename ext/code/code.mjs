@@ -1076,6 +1076,9 @@ function send
 
                                 res = await c.session.prompt({ sessionID, text })
 
+                                if (res?.id)
+                                  Ui.setMessageID(buf, tmpID, res.id)
+
                                 d('CO SEND done')
                                 d({ res })
 

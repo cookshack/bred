@@ -1308,10 +1308,16 @@ function vsave
 (view, cb) { // (err)
   if (view?.ed)
     if (view.buf.path) {
-      Css.disable(view.ele)
+      let ele
+
+      ele = view.ele
+      if (ele)
+        Css.disable(ele)
       Tron.cmd('file.save', [ Loc.make(view.buf.path).expand(), view.ed.state.doc.toString() ], (err, data) => {
-                                                                                                  Css.enable(view.ele)
-                                                                                                  view.ed.focus()
+                                                                                                  if (ele) {
+                                                                                                    Css.enable(ele)
+                                                                                                    view.ed.focus()
+                                                                                                  }
                                                                                                   if (err) {
                                                                                                     if (cb)
                                                                                                       cb(err)

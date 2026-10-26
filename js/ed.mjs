@@ -880,7 +880,7 @@ function setIcon
     if (css == '.edMl-type')
       buf.icon = name
     set(buf.co)
-    buf.views.forEach(v => set(v.ele))
+    buf.views.forEach(v => set(v.eleOrReserved))
   }
 }
 
@@ -1075,7 +1075,9 @@ function initModeFns
   (b, cb) {
     let v
 
-    v = b.views.find(view => view.ele)
+    // Prefer a displayed editor, but fall back to a stashed (closed) one so
+    // modified buffers that aren't on screen can still be saved.
+    v = b.views.find(view => view.ele && view.ed) || b.views.find(view => view.ed)
     if (v)
       Backend.vsave(v, cb)
     else

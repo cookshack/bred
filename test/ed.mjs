@@ -143,6 +143,46 @@ test('bindings', 'control keys',
        equal(Em.seq('delete next char', { mode: mo }), 'Delete')
      })
 
+test('save', 'saves a stashed view',
+     async () => {
+       let b, cbErr, saved, tron
+
+       saved = 0
+       cbErr = undefined
+       tron = globalThis.tron
+       globalThis.tron = { cmd: async (name, args) => {
+                                  if (name == 'file.save')
+                                    saved = args
+                                  return 'ch'
+                                },
+                           receive: (ch, cb) => cb({ err: 0, stat: { mtimeMs: 1 } }),
+                           acmd: async () => ({}) }
+       b = { name: 'stashed.txt',
+             file: 'stashed.txt',
+             dir: '/tmp/',
+             path: '/tmp/stashed.txt',
+             modified: 1,
+             modifiedOnDisk: 1,
+             stat: 0,
+             views: [ { ele: 0,
+                        ed: { state: { doc: { toString: () => 'text' } },
+                              focus: () => {} } } ] }
+       b.views[0].buf = b
+       try {
+         Mode.get('ed').save(b, err => {
+                                  cbErr = err
+                                })
+         await new Promise(r => setTimeout(r, 20))
+       }
+       finally {
+         globalThis.tron = tron
+       }
+       equal(saved[0], '/tmp/stashed.txt')
+       equal(saved[1], 'text')
+       equal(cbErr, undefined)
+       equal(b.modified, 0)
+     })
+
 test('bindings', 'extended keys',
      () => {
        let mo

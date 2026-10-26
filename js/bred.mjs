@@ -223,6 +223,68 @@ function initMouse
   globalThis.document.addEventListener('mouseenter', xy)
 }
 
+export
+function saveAndX
+(quit) {
+  return new Promise(resolve => {
+                       let bufs, count, dones, errs, failed
+
+                       function finish
+                       () {
+                         let result
+
+                         result = { count,
+                                    errs,
+                                    failed }
+                         if (errs) {
+                           Mess.yell(errs + '/' + count + ' saves failed: ' + failed.join(', '))
+                           resolve(result)
+                           return
+                         }
+                         Cmd.run(quit ? 'exit' : 'relaunch')
+                         resolve(result)
+                       }
+
+                       function done
+                       (b, err) {
+                         if (err) {
+                           Mess.yell(err.message || 'Save failed')
+                           errs++
+                           failed.push(b.name)
+                         }
+                         else {
+                           Mess.say('Saved')
+                           dones++
+                         }
+
+                         if ((errs + dones) >= count)
+                           finish()
+                       }
+
+                       bufs = Buf.filter(b => b.file && b.modified)
+                       count = bufs.length
+                       dones = errs = 0
+                       failed = []
+
+                       if (count == 0) {
+                         finish()
+                         return
+                       }
+
+                       bufs.forEach(b => {
+                                      if (b.mode?.save)
+                                        try {
+                                          b.save(err => done(b, err))
+                                        }
+                                        catch (err) {
+                                          done(b, err)
+                                        }
+                                      else
+                                        done(b, new Error('Mode cannot save'))
+                                    })
+                     })
+}
+
 function initCmds
 () {
   function switchToTab
@@ -289,42 +351,6 @@ function initCmds
     globalThis.document.documentElement.style.fontSize = (px + incr) + 'px'
     //d('new size: ' + parseFloat(globalThis.getComputedStyle(globalThis.document.documentElement).fontSize))
     Opt.set('core.fontSize', (px + incr))
-  }
-
-  function saveAndX
-  (quit) {
-    let count, errs, dones
-
-    function done
-    (err) {
-      if (err) {
-        Mess.yell(err.message)
-        errs++
-      }
-      else {
-        Mess.say('Saved')
-        dones++
-      }
-
-      if ((errs + dones) >= count) {
-        if (errs) {
-          Mess.yell(`${errs}/${count} saves failed`)
-          Prompt.close()
-          return
-        }
-        Cmd.run(quit ? 'exit' : 'relaunch')
-      }
-    }
-
-    count = dones = errs = 0
-    Buf.forEach(b => {
-                  if (b.modified) {
-                    count++
-                    b.save(done)
-                  }
-                })
-
-    return
   }
 
   function quitOrRestart

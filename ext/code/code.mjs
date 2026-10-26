@@ -1118,14 +1118,16 @@ function viewMessageJSON
 // v2 has no per-message delete. The closest thing is a revert to the message,
 // which removes it and everything after it, so the ui says so before doing it.
 // Files the agent changed are left alone (stage's default would restore them).
+// Only offered on user messages: reverting from an assistant message would
+// leave the prompt that caused it behind.
 export
-async function rewindToMessage
+async function removeFromMessage
 (buf, messageID) {
   let sessionID
 
   sessionID = buf.vars('code').sessionID
   buf.vars('code').busy = 1
-  Ui.updateStatus(buf, '⏪ Rewinding...', '', '', '')
+  Ui.updateStatus(buf, '🔃 Removing...', '', '', '')
   try {
     let c
 
@@ -1133,11 +1135,11 @@ async function rewindToMessage
     await c.session.revert.stage({ sessionID, messageID, files: false })
     await c.session.revert.commit({ sessionID })
     await reloadTranscript(buf, c)
-    Mess.say('Rewound')
+    Mess.say('Removed')
   }
   catch (err) {
-    Mess.yell('Rewind failed: ' + err.message)
-    d('CO rewind error: ' + err.message)
+    Mess.yell('Remove failed: ' + err.message)
+    d('CO remove message error: ' + err.message)
   }
   finally {
     buf.vars('code').busy = 0
@@ -1208,18 +1210,22 @@ function copyMessage
 
 function messageMenu
 (u, we) {
-  let buf, el, messageID, choices
+  let buf, el, messageID, msgEl, choices
 
   buf = Pane.current().buf
   el = we.e.target.closest('[data-messageid]')
   messageID = el?.dataset.messageid
   if (messageID == null || messageID.length == 0)
     return
+  msgEl = messageEl(we)
   choices = []
-  if (messageEl(we))
+  if (msgEl)
     choices.push('Copy as Markdown')
-  choices.push('View JSON',
-               { name: 'Rewind To Here', enable: buf.vars('code').busy ? 0 : 1 })
+  choices.push('View JSON')
+  // reverting deletes the message and everything after it, so only offer it
+  // where that means "drop this prompt and the turn it started"
+  if (msgEl && Css.has(msgEl, 'code-msg-user'))
+    choices.push({ name: 'Remove From Here', enable: buf.vars('code').busy ? 0 : 1 })
   Prompt.choose('Message',
                 choices,
                 {},
@@ -1228,16 +1234,16 @@ function messageMenu
                     copyMessage(buf, we)
                   else if (choice == 'View JSON')
                     viewMessageJSON(buf, messageID)
-                  else if (choice == 'Rewind To Here') {
+                  else if (choice == 'Remove From Here') {
                     if (buf.vars('code').busy) {
                       Mess.yell('Agent is busy')
                       return
                     }
-                    Prompt.yn('Rewind to here? This message and everything after it will be removed. File changes are kept.',
+                    Prompt.yn('Remove this prompt and everything after it? File changes are kept.',
                               { icon: 'arrow-left' },
                               yes => {
                                 if (yes)
-                                  rewindToMessage(buf, messageID)
+                                  removeFromMessage(buf, messageID)
                               })
                   }
                 })

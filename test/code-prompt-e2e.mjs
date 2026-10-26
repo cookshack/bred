@@ -250,7 +250,7 @@ test('yn', 'a pending permission is still answered with the prompt open',
        equal(fake._calls.some(c => c.name == 'session.prompt'), false, 'no chat prompt is sent')
      })
 
-test('message menu', 'rewind reverts to the message and reloads the transcript',
+test('message menu', 'remove from here reverts to the message and reloads the transcript',
      async () => {
        let buf, fake, rows, stage
 
@@ -269,7 +269,7 @@ test('message menu', 'rewind reverts to the message and reloads the transcript',
        Ui.appendMsg(buf, 'user', 'kept', 'u1', 1, { messageID: 'u1' })
        Ui.appendMsg(buf, 0, 'gone', 'm2:text:0', 1, { messageID: 'm2' })
 
-       await Code.rewindToMessage(buf, 'm2')
+       await Code.removeFromMessage(buf, 'm2')
        await waitFor(() => buf.views[0].ele.querySelectorAll('.code-msg-assistant').length == 0)
 
        stage = fake._calls.find(c => c.name == 'session.revert.stage')
@@ -285,6 +285,44 @@ test('message menu', 'rewind reverts to the message and reloads the transcript',
        equal(rows.length, 1, 'the transcript is rendered again from the server')
        equal(rows[0].innerText.trim(), 'kept')
        equal(buf.vars('code').busy, 0, 'the buffer is usable again')
+     })
+
+test('message menu', 'remove from here is offered on a user message',
+     async () => {
+       let buf, float
+
+       ({ buf } = await setup())
+       Ui.appendMsg(buf, 'user', 'hi', 'u1', 1, { messageID: 'u1' })
+
+       Cmd.run('message menu',
+               buf,
+               0,
+               { e: { target: buf.views[0].ele.querySelector('.code-msg-user .code-msg-text') } })
+
+       float = globalThis.bredWin.areas.find(a => a.name == 'bred-float').el
+       equal([ ...float.querySelectorAll('.float-choice') ].map(el => el.innerText).includes('Remove From Here'),
+             true)
+       // put the em stack back for the files that run after this one
+       Cmd.run('close demand')
+     })
+
+test('message menu', 'remove from here is not offered on an assistant message',
+     async () => {
+       let buf, float
+
+       ({ buf } = await setup())
+       Ui.appendMsg(buf, 0, 'reply', 'm2:text:0', 1, { messageID: 'm2' })
+
+       Cmd.run('message menu',
+               buf,
+               0,
+               { e: { target: buf.views[0].ele.querySelector('.code-msg-assistant .code-msg-menu') } })
+
+       float = globalThis.bredWin.areas.find(a => a.name == 'bred-float').el
+       equal([ ...float.querySelectorAll('.float-choice') ].map(el => el.innerText).includes('Remove From Here'),
+             false)
+       // put the em stack back for the files that run after this one
+       Cmd.run('close demand')
      })
 
 test('log', 'server logs keep only the newest twenty',

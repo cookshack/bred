@@ -1119,13 +1119,13 @@ function viewMessageJSON
 // which removes it and everything after it, so the ui says so before doing it.
 // Files the agent changed are left alone (stage's default would restore them).
 export
-async function deleteMessage
+async function rewindToMessage
 (buf, messageID) {
   let sessionID
 
   sessionID = buf.vars('code').sessionID
   buf.vars('code').busy = 1
-  Ui.updateStatus(buf, '🔃 Deleting...', '', '', '')
+  Ui.updateStatus(buf, '⏪ Rewinding...', '', '', '')
   try {
     let c
 
@@ -1133,11 +1133,11 @@ async function deleteMessage
     await c.session.revert.stage({ sessionID, messageID, files: false })
     await c.session.revert.commit({ sessionID })
     await reloadTranscript(buf, c)
-    Mess.say('Deleted message')
+    Mess.say('Rewound')
   }
   catch (err) {
-    Mess.yell('Delete failed: ' + err.message)
-    d('CO delete error: ' + err.message)
+    Mess.yell('Rewind failed: ' + err.message)
+    d('CO rewind error: ' + err.message)
   }
   finally {
     buf.vars('code').busy = 0
@@ -1219,7 +1219,7 @@ function messageMenu
   if (messageEl(we))
     choices.push('Copy as Markdown')
   choices.push('View JSON',
-               { name: 'Delete Message', enable: buf.vars('code').busy ? 0 : 1 })
+               { name: 'Rewind To Here', enable: buf.vars('code').busy ? 0 : 1 })
   Prompt.choose('Message',
                 choices,
                 {},
@@ -1228,16 +1228,16 @@ function messageMenu
                     copyMessage(buf, we)
                   else if (choice == 'View JSON')
                     viewMessageJSON(buf, messageID)
-                  else if (choice == 'Delete Message') {
+                  else if (choice == 'Rewind To Here') {
                     if (buf.vars('code').busy) {
                       Mess.yell('Agent is busy')
                       return
                     }
-                    Prompt.yn('Delete this message and everything after it? File changes are kept.',
-                              { icon: 'trash' },
+                    Prompt.yn('Rewind to here? This message and everything after it will be removed. File changes are kept.',
+                              { icon: 'arrow-left' },
                               yes => {
                                 if (yes)
-                                  deleteMessage(buf, messageID)
+                                  rewindToMessage(buf, messageID)
                               })
                   }
                 })

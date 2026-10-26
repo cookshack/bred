@@ -250,7 +250,7 @@ test('yn', 'a pending permission is still answered with the prompt open',
        equal(fake._calls.some(c => c.name == 'session.prompt'), false, 'no chat prompt is sent')
      })
 
-test('message menu', 'delete reverts to the message and reloads the transcript',
+test('message menu', 'rewind reverts to the message and reloads the transcript',
      async () => {
        let buf, fake, rows, stage
 
@@ -269,7 +269,7 @@ test('message menu', 'delete reverts to the message and reloads the transcript',
        Ui.appendMsg(buf, 'user', 'kept', 'u1', 1, { messageID: 'u1' })
        Ui.appendMsg(buf, 0, 'gone', 'm2:text:0', 1, { messageID: 'm2' })
 
-       await Code.deleteMessage(buf, 'm2')
+       await Code.rewindToMessage(buf, 'm2')
        await waitFor(() => buf.views[0].ele.querySelectorAll('.code-msg-assistant').length == 0)
 
        stage = fake._calls.find(c => c.name == 'session.revert.stage')

@@ -22,7 +22,9 @@ Always commit changes once they're done and verified. Don't wait to be asked.
 Built with `make oc` (image `opencode-bred`), run via `bin/code` / `bin/codesh`. It bakes a
 headless render helper (system Chromium + puppeteer-core) at `/home/node/tools/render.mjs` and a
 global `render-web-page` skill, so agents can screenshot or measure local pages. See the skill for
-usage. Rebuild the image after changing the Dockerfile, `tools/`, or `skills/`.
+usage. It also bakes TeX Live (`pdflatex`, latex-base + latex-recommended) so agents can compile
+LaTeX documents in the container. Rebuild the image after changing the Dockerfile, `tools/`, or
+`skills/`.
 
 ## Linting
 

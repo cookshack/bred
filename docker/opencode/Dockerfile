@@ -1,6 +1,6 @@
 FROM node:24
 
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl clangd clang-format cppcheck git file iputils-ping procps python3-pip ripgrep shellcheck strace traceroute chromium fonts-liberation && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl clangd clang-format cppcheck git file iputils-ping procps python3-pip ripgrep shellcheck strace traceroute chromium fonts-liberation texlive-latex-base texlive-latex-recommended && rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --break-system-packages --no-cache-dir gersemi
 

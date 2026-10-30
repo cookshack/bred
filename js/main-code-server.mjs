@@ -222,25 +222,43 @@ function readAuthKeys
 }
 
 // Fresh per-dir databases do not import the legacy auth.json credentials, so
-// seed them through the server's own API (idempotent via a stable id).
+// seed them through the server's own API. The id is stable per integration; a
+// re-run after one key rotated must not leave the first-seeded key in the DB,
+// so a 409 conflict drops the stale credential and re-posts the new value.
 async function seedCredentials
 (url, password) {
   let keys, i
 
   keys = readAuthKeys()
   for (i = 0; i < keys.length; i++) {
-    let headers
+    let id, headers
 
+    id = 'cred_legacy_' + keys[i][0].replace(/[^a-zA-Z0-9._-]/g, '_')
     headers = { 'content-type': 'application/json' }
     if (password)
       headers.authorization = basicAuth(password)
     try {
-      await fetch(url + '/api/credential', { method: 'POST',
-                                             headers,
-                                             body: JSON.stringify({ id: 'cred_legacy_' + keys[i][0].replace(/[^a-zA-Z0-9._-]/g, '_'),
-                                                                    integrationID: keys[i][0],
-                                                                    label: 'API key',
-                                                                    value: { type: 'key', key: keys[i][1] } }) })
+      let res
+
+      res = await fetch(url + '/api/credential', { method: 'POST',
+                                                   headers,
+                                                   body: JSON.stringify({ id,
+                                                                          integrationID: keys[i][0],
+                                                                          label: 'API key',
+                                                                          value: { type: 'key', key: keys[i][1] } }) })
+      if (res.status == 409) {
+        await fetch(url + '/api/credential/' + encodeURIComponent(id),
+                    { method: 'DELETE',
+                      headers })
+        res = await fetch(url + '/api/credential', { method: 'POST',
+                                                     headers,
+                                                     body: JSON.stringify({ id,
+                                                                            integrationID: keys[i][0],
+                                                                            label: 'API key',
+                                                                            value: { type: 'key', key: keys[i][1] } }) })
+      }
+      if (res.ok == 0)
+        d('CODE SERVER credential seed failed for ' + keys[i][0] + ': ' + res.status)
     }
     catch (err) {
       d('CODE SERVER credential seed failed for ' + keys[i][0] + ': ' + err.message)

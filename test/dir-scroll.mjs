@@ -81,13 +81,17 @@ function fakeView
 
 test('redraw', 'keeps scroll when the cursor line is still visible',
      () => {
-       let fake, surf
+       let cur, fake, surf
 
        surf = fakeSurf(100)
-       fake = fakeView({ surf, current: visibleEl(surf, { top: 50, bottom: 70 }) })
+       cur = visibleEl(surf, { top: 50, bottom: 70 })
+       cur.dataset = { path: '/tmp/a' }
+       fake = fakeView({ surf, current: cur })
+       fake.view.ele.querySelector = sel => sel == '.dir-h' ? {} : cur
        Dir.redraw(fake.view)
        equal(surf.scrollTop, 100, 'must not jump back to the cursor')
        equal(fake.point.puts.length, 1)
+       equal(fake.point.puts[0].el, cur, 'keeps the cursor on its line')
        equal(fake.point.puts[0].skipScroll, 1, 'must put without scrolling')
        equal(fake.scroll.renderCount, 1, 'renders for the new position')
        equal(fake.scroll.count, 3, 'updates the item count')
@@ -95,20 +99,58 @@ test('redraw', 'keeps scroll when the cursor line is still visible',
 
 test('redraw', 'keeps scroll when the cursor line scrolled offscreen',
      () => {
-       let current, dirName, fake, row, surf
+       let current, dirName, fake, off, row, surf
 
        surf = fakeSurf(100)
        current = visibleEl(surf, { top: -40, bottom: -20 })
+       current.dataset = { path: '/tmp/off' }
+       off = visibleEl(surf, { top: -40, bottom: -20 })
+       off.dataset = { path: '/tmp/off' }
        dirName = { classList: { contains: n => n == 'dir-name' ? 1 : 0 },
                    closest: () => surf }
        row = { firstElementChild: dirName, nextElementSibling: 0 }
        dirName.parentNode = row
        fake = fakeView({ surf, current, over: dirName })
+       fake.view.ele.querySelector = sel => sel == '.dir-h' ? {} : off
        Dir.redraw(fake.view)
        equal(surf.scrollTop, 100, 'must not jump back')
        equal(fake.point.puts.length, 1)
        equal(fake.point.puts[0].el, dirName, 'cursor follows the line under the point')
        equal(fake.point.puts[0].skipScroll, 1, 'must put without scrolling')
+     })
+
+test('lastVisibleLine', 'includes a last row clipped by subpixel rounding',
+     () => {
+       let puts, rows, surf, view
+
+       surf = fakeSurf(0)
+       rows = [ visibleEl(surf, { top: 175, bottom: 199 }),
+                visibleEl(surf, { top: 199, bottom: 200.4 }) ]
+       puts = []
+       view = { ele: { querySelectorAll: () => rows },
+                buf: { vars: () => ({}) },
+                point: { put: (el, skipScroll) => puts.push({ el, skipScroll }) } }
+
+       Dir.lastVisibleLine(view)
+       equal(puts.length, 1)
+       equal(puts[0].el, rows[1], 'last row counts even when a fraction outside')
+     })
+
+test('lastVisibleLine', 'skips a row that is clearly clipped',
+     () => {
+       let puts, rows, surf, view
+
+       surf = fakeSurf(0)
+       rows = [ visibleEl(surf, { top: 175, bottom: 199 }),
+                visibleEl(surf, { top: 199, bottom: 205 }) ]
+       puts = []
+       view = { ele: { querySelectorAll: () => rows },
+                buf: { vars: () => ({}) },
+                point: { put: (el, skipScroll) => puts.push({ el, skipScroll }) } }
+
+       Dir.lastVisibleLine(view)
+       equal(puts.length, 1)
+       equal(puts[0].el, rows[0], 'must not pick a row below the listing')
      })
 
 test('selectFile', 'moves point to the matching file',

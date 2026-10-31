@@ -204,6 +204,7 @@ function topLine
   }
 }
 
+export
 function lastVisibleLine
 (v, skipScroll) {
   let all
@@ -226,12 +227,16 @@ function visible
   if (el) {
     surf = surf || el.closest('.dir-w')
     if (surf) {
-      let rsurf, rel
+      let rsurf, rel, slop
 
       rsurf = surf.getBoundingClientRect()
       rel = el.getBoundingClientRect()
-      return (rel.bottom <= rsurf.bottom)
-        && (rel.top >= rsurf.top)
+      // clientHeight/scrollHeight are rounded to integers while the box can
+      // have a fractional height, so at max scroll the last row can sit just
+      // outside the box.
+      slop = 1
+      return (rel.bottom <= (rsurf.bottom + slop))
+        && (rel.top >= (rsurf.top - slop))
     }
   }
 }
@@ -312,17 +317,25 @@ function nearestLine
 export
 function redraw
 (view) {
-  let lines, el, scroll
+  let lines, path, scroll
 
   lines = view.buf.vars('dir').lines
-  el = view.buf.vars('dir').current
+  path = view.buf.vars('dir').current?.dataset?.path
   scroll = view.vars('dir').scroll
   scroll.updateItemCount(lines.length)
   scroll.render()
-  if (visible(el))
-    put(view, el, 1)
-  else
-    nearestLine(view, 1)
+  // render replaces the DOM, so the remembered element is detached. Look the
+  // line up again by path so the cursor stays on it while it is still visible.
+  if (path) {
+    let el
+
+    el = view.ele.querySelector('.dir-name[data-path="' + path + '"]')
+    if (el && visible(el)) {
+      put(view, el, 1)
+      return
+    }
+  }
+  nearestLine(view, 1)
 }
 
 function fill

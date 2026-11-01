@@ -793,23 +793,23 @@ function currentFile
 }
 
 export
+function scrollEnd
+(p, top) {
+  let el
+
+  el = p.view.ele.querySelector('.bred-surface')
+  if (el) {
+    el.scroll(0, (top ? 0 : el.scrollHeight))
+    // The scroll-driven redraw renders the rows for the new position on the
+    // next frame, so look up the first/last row after it.
+    setTimeout(() => (top ? topLine(p.view) : lastVisibleLine(p.view)))
+  }
+}
+
+export
 function init
 () {
   let m
-
-  function scrollBottom
-  (top) {
-    let p, el
-
-    p = Pane.current()
-    el = p.view.ele.querySelector('.bred-surface')
-    if (el) {
-      el.scroll(0, (top ? 0 : el.scrollHeight))
-      // The scroll-driven redraw renders the rows for the new position on the
-      // next frame, so look up the first/last row after it.
-      setTimeout(() => (top ? topLine(p.view) : lastVisibleLine(p.view)))
-    }
-  }
 
   function scrollDown
   (upward) {
@@ -1022,8 +1022,8 @@ function init
   Opt.declare('dir.show.hidden', 'bool', 0)
   Opt.declare('dir.sort', 'str', 'time-desc')
 
-  Cmd.add('buffer start', () => scrollBottom(1), m)
-  Cmd.add('buffer end', () => scrollBottom(), m)
+  Cmd.add('buffer start', () => scrollEnd(Pane.current(), 1), m)
+  Cmd.add('buffer end', () => scrollEnd(Pane.current()), m)
   Cmd.add('clear marks', () => clear(), m)
   Cmd.add('mark', mark, m)
   Cmd.add('refresh', () => {

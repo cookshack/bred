@@ -805,10 +805,9 @@ function init
     el = p.view.ele.querySelector('.bred-surface')
     if (el) {
       el.scroll(0, (top ? 0 : el.scrollHeight))
-      if (top)
-        topLine(p.view)
-      else
-        setTimeout(() => lastVisibleLine(p.view))
+      // The scroll-driven redraw renders the rows for the new position on the
+      // next frame, so look up the first/last row after it.
+      setTimeout(() => (top ? topLine(p.view) : lastVisibleLine(p.view)))
     }
   }
 

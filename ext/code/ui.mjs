@@ -205,11 +205,19 @@ function updateStatus
                               versionEl.innerText = versionInfo
                             else
                               versionEl.innerText = ''
-                          if (tokenEl)
-                            if (tokenInfo)
+                          if (tokenEl) {
+                            let i
+
+                            // the colon reads as a separator, not as the T: label
+                            i = (tokenInfo || '').indexOf(':')
+                            tokenEl.innerText = ''
+                            if (i > 0)
+                              append(tokenEl, [ tokenInfo.slice(0, i),
+                                                span(':', 'code-under-token-colon'),
+                                                tokenInfo.slice(i + 1) ])
+                            else if (tokenInfo)
                               tokenEl.innerText = tokenInfo
-                            else
-                              tokenEl.innerText = ''
+                          }
                         }
                       }
                     })

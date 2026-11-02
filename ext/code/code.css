@@ -420,7 +420,8 @@ div.code-thought:hover {
   margin-right: 0.5rem;
 }
 
-.code-usage-sep {
+.code-usage-sep,
+.code-under-token-colon {
   color: var(--clr-text);
 }
 

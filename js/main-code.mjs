@@ -45,6 +45,7 @@ async function onSpawn
                                    mounts,
                                    send: msg => e.sender.send(statusCh, msg),
                                    config: { websearch: { provider: 'exa' },
+                                             references: Mounts.references(mounts, workingDir),
                                              permission: { external_directory: 'allow',
                                                            websearch: 'allow',
                                                            read: { '/home/node/.local/share/opencode/auth.json': 'deny' },

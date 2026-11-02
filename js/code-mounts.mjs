@@ -14,6 +14,16 @@ function labelFor
   return src
 }
 
+function refName
+(home, src) {
+  let rel
+
+  rel = src
+  if (src.startsWith(home + '/'))
+    rel = src.slice(home.length + 1)
+  return rel.split('/').join('-')
+}
+
 function argFor
 (m) {
   return m.src + ':' + (m.dest || m.src) + (m.ro ? ':ro' : '')
@@ -64,6 +74,30 @@ function candidateList
     .map(m => ({ path: m.src,
                  label: labelFor(home, m.src),
                  ro: m.ro || 0 }))
+}
+
+// opencode's project references, so the agent is told which extra dirs it has.
+// Names must avoid slashes, whitespace, backticks and commas.
+export
+function references
+(selected, workingDir, home, exists) {
+  let refs
+
+  home = home || process.env.HOME
+  exists = exists || fs.existsSync
+  workingDir = normal(workingDir)
+  refs = {}
+  extras(home)
+    .filter(m => exists(m.src))
+    .filter(m => (m.src == workingDir) ? 0 : 1)
+    .filter(m => (selected == null) || selected.includes(m.src))
+    .forEach(m => {
+               refs[refName(home, m.src)] = { path: m.src,
+                                              description: m.ro
+                                                ? 'Read-only directory mounted into the agent container for this session.'
+                                                : 'Writable directory mounted into the agent container for this session.' }
+             })
+  return refs
 }
 
 // selected == null means all extras, as before this was configurable.

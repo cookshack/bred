@@ -66,6 +66,31 @@ test('argList', 'a trailing slash on the working dir is normalised',
        equal(args.includes('/w:/w'), true)
      })
 
+test('references', 'every extra mount, minus the working dir',
+     () => {
+       let refs
+
+       refs = Mounts.references(null, home + '/src/bred', home, () => 1)
+       equal(refs['src-review'].path, home + '/src/review')
+       equal(refs['src-review'].description.includes('Writable'), true)
+       equal(refs['src-bred'], undefined)
+       equal(refs['src-opencode'].description.includes('Read-only'), true)
+       equal(refs['alts-main-gvm-cert-data'].path, home + '/alts/main/gvm/cert-data')
+     })
+
+test('references', 'only the selected extras',
+     () => {
+       let refs
+
+       refs = Mounts.references([ home + '/src/review' ], '/w', home, () => 1)
+       equal(Object.keys(refs).join(','), 'src-review')
+     })
+
+test('references', 'missing dirs are skipped',
+     () => {
+       equal(Object.keys(Mounts.references(null, '/w', home, () => 0)).length, 0)
+     })
+
 test('candidateList', 'labels use ~ and read-only is marked',
      () => {
        let list

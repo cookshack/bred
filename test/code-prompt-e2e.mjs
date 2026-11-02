@@ -219,6 +219,26 @@ test('mounts', 'clicking a mount toggles it without native checkbox state',
        equal(buf.vars('code').mounts.join(','), '/b,/a', 'clicking adds it back')
      })
 
+test('mounts', 'renderMounts mutates a standalone state for the session demand',
+     async () => {
+       let candidates, el, state
+
+       await setup()
+       candidates = [ { path: '/a', label: '~/a', ro: 0 },
+                      { path: '/b', label: '~/b', ro: 1 } ]
+       el = globalThis.document.createElement('div')
+       state = { candidates,
+                 mounts: candidates.map(c => c.path),
+                 locked: 0 }
+       Ui.renderMounts(el, state, () => {})
+       equal(el.querySelectorAll('input').length, 2, 'one checkbox per candidate')
+       equal([ ...el.querySelectorAll('input') ].map(i => i.checked ? 1 : 0).join(','),
+             '1,1',
+             'all candidates start selected')
+       el.querySelector('label').onclick({ preventDefault: () => {} })
+       equal(state.mounts.join(','), '/b', 'the caller-owned state is updated')
+     })
+
 test('yn', 'y/n is refused while the prompt is open',
      async () => {
        let before, buf, fake, panes, yells

@@ -510,11 +510,11 @@ function init
 
   function openCodeSession
   (u, we) {
-    let sessionID, sessionDir, sessionAgent, ts
+    let sessionID, sessionDir, sessionAgent, ts, pane, name, existing
 
     function open
-    () {
-      let pane, name, buf, provider, model, variant, agent
+    (mounts) {
+      let buf, provider, model, variant, agent
 
       function onMessages
       (c, res) {
@@ -533,15 +533,6 @@ function init
         fetchSubagentMessages(c, res.data).then(afterChildren)
       }
 
-      pane = Pane.current()
-      name = 'CO ' + (sessionDir || '').replace(/\/?$/, '/')
-
-      buf = Buf.find(b => b.name == name)
-      if (buf) {
-        pane.setBuf(buf)
-        return
-      }
-
       provider = Util.getProvider()
       model = Util.getModel()
       variant = Util.getVariant()
@@ -555,6 +546,7 @@ function init
       buf.vars('code').model = model
       buf.vars('code').variant = variant
       buf.vars('code').sessionID = sessionID
+      buf.vars('code').mounts = mounts
       if (ts)
         buf.vars('code').sessionStart = ts
       buf.vars('code').thinkingHidden = 1
@@ -603,6 +595,38 @@ function init
                                            })
     }
 
+    function showMounts
+    (candidates) {
+      let el, state, render
+
+      el = divCl('code-prompt-mounts')
+      state = { candidates,
+                mounts: candidates.map(c => c.path),
+                locked: 0 }
+      render = () => Ui.renderMounts(el, state, render)
+      render()
+      Prompt.yn('Open session in ' + sessionDir + '?',
+                { under: el },
+                yes => {
+                  if (yes)
+                    open(state.mounts)
+                })
+    }
+
+    function chooseMounts
+    () {
+      Tron.acmd('code.mounts', [ sessionDir ]).then(candidates => {
+                                                      if ((Array.isArray(candidates) == 0) || (candidates.length == 0)) {
+                                                        open(null)
+                                                        return
+                                                      }
+                                                      showMounts(candidates)
+                                                    }).catch(err => {
+                                                               d('CO mounts: ' + err.message)
+                                                               open(null)
+                                                             })
+    }
+
     sessionID = we.e.target.dataset.sessionId
     sessionDir = we.e.target.dataset.sessionDir
     sessionAgent = we.e.target.dataset.sessionAgent
@@ -610,7 +634,15 @@ function init
     if (ts)
       ts = Number(ts)
 
-    open()
+    pane = Pane.current()
+    name = 'CO ' + (sessionDir || '').replace(/\/?$/, '/')
+    existing = Buf.find(b => b.name == name)
+    if (existing)
+      pane.setBuf(existing)
+    else if (sessionDir)
+      chooseMounts()
+    else
+      open(null)
   }
 
   function deleteSession

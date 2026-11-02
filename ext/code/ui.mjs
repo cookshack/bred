@@ -261,75 +261,87 @@ function updateUsage
                     })
 }
 
-// Mounts for the first prompt. Real checkboxes, with mousedown cancelled so
-// clicking one does not take focus from the prompt editor (bred's key handler
-// prevents every keydown, so a focused checkbox would block typing).
+// Render the mount checkbox grid into el. state is { candidates, mounts, locked }
+// and state.mounts is mutated in place. onChange re-renders, eg every view of a
+// code buffer or the single container in the session-open demand.
 export
-function updateMounts
-(buf, candidates) {
-  let locked, mounts
+function renderMounts
+(el, state, onChange) {
+  let parts
 
   function toggle
   (c, checked) {
     if (checked) {
-      if (mounts.includes(c.path) == 0)
-        mounts.push(c.path)
+      if (state.mounts.includes(c.path) == 0)
+        state.mounts.push(c.path)
     }
     else {
       let i
 
-      i = mounts.indexOf(c.path)
+      i = state.mounts.indexOf(c.path)
       if (i >= 0)
-        mounts.splice(i, 1)
+        state.mounts.splice(i, 1)
     }
-    updateMounts(buf, candidates)
+    if (onChange)
+      onChange()
   }
 
-  locked = buf.vars('code').mountsLocked
-  mounts = buf.vars('code').mounts || []
+  parts = []
+  el.innerText = ''
+  if (state.candidates?.length) {
+    state.candidates.forEach(c => {
+                               let input, label
+
+                               input = create('input', [],
+                                              'code-prompt-mount-check',
+                                              { type: 'checkbox' })
+                               input.checked = state.mounts.includes(c.path) ? 1 : 0
+                               input.onmousedown = e => e.preventDefault()
+                               label = create('label',
+                                              [ input,
+                                                span(c.label + (c.ro ? ' (ro)' : ''),
+                                                     'code-prompt-mount-name') ],
+                                              'code-prompt-mount')
+                               label.dataset.hover = c.path + (c.ro ? ' (read-only)' : '')
+                               label.dataset.native = '1'
+                               label.onmousedown = e => e.preventDefault()
+                               if (state.locked)
+                                 input.disabled = 1
+                               else
+                               // bred prevents click defaults, so toggle
+                               // ourselves and keep focus in the editor
+                                 label.onclick = e => {
+                                                   e.preventDefault()
+                                                   toggle(c, state.mounts.includes(c.path) == 0)
+                                                 }
+                               parts.push(label)
+                             })
+    if (state.locked)
+      parts.push(span('(fixed)', 'code-prompt-mount-fixed'))
+  }
+  append(el, parts)
+}
+
+// Mounts for the first prompt of a code buffer. Real checkboxes, with mousedown
+// cancelled so clicking one does not take focus from the prompt editor (bred's
+// key handler prevents every keydown, so a focused checkbox would block typing).
+export
+function updateMounts
+(buf, candidates) {
+  let state
+
+  if (candidates?.length && (buf.vars('code').mounts == null))
+    buf.vars('code').mounts = candidates.map(c => c.path)
+  state = { candidates,
+            mounts: buf.vars('code').mounts || [],
+            locked: buf.vars('code').mountsLocked }
 
   buf.views.forEach(view => {
                       let el
 
                       el = view.eleOrReserved?.querySelector('.code-prompt-mounts')
-                      if (el) {
-                        let parts
-
-                        parts = []
-                        el.innerText = ''
-                        if (candidates?.length) {
-                          candidates.forEach(c => {
-                                               let input, label
-
-                                               input = create('input', [],
-                                                              'code-prompt-mount-check',
-                                                              { type: 'checkbox' })
-                                               input.checked = mounts.includes(c.path) ? 1 : 0
-                                               input.onmousedown = e => e.preventDefault()
-                                               label = create('label',
-                                                              [ input,
-                                                                span(c.label + (c.ro ? ' (ro)' : ''),
-                                                                     'code-prompt-mount-name') ],
-                                                              'code-prompt-mount')
-                                               label.dataset.hover = c.path + (c.ro ? ' (read-only)' : '')
-                                               label.dataset.native = '1'
-                                               label.onmousedown = e => e.preventDefault()
-                                               if (locked)
-                                                 input.disabled = 1
-                                               else
-                                                 // bred prevents click defaults, so
-                                                 // toggle ourselves and keep focus
-                                                 label.onclick = e => {
-                                                                   e.preventDefault()
-                                                                   toggle(c, mounts.includes(c.path) == 0)
-                                                                 }
-                                               parts.push(label)
-                                             })
-                          if (locked)
-                            parts.push(span('(fixed)', 'code-prompt-mount-fixed'))
-                        }
-                        append(el, parts)
-                      }
+                      if (el)
+                        renderMounts(el, state, () => updateMounts(buf, candidates))
                     })
 }
 

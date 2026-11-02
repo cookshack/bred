@@ -374,7 +374,9 @@ function usageHover
                           + '<td>' + reset + '</td>'
                           + '</tr>'
                    })
-  return '<table style="border-collapse: collapse;">' + rows.join('') + '</table>'
+  return '<table style="border-collapse: collapse; white-space: nowrap; width: max-content;">'
+    + rows.join('')
+    + '</table>'
 }
 
 export

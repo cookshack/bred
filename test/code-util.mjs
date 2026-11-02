@@ -424,7 +424,7 @@ test('usageHover', 'labels, percentages and countdowns in columns',
                  { key: '1w', pct: 2, resetAt: 0 },
                  { key: '1m', pct: 25, resetAt: new Date(now + 86400000).toISOString() } ]
        equal(CodeUtil.usageHover(usage, now),
-             '<table style="border-collapse: collapse;">'
+             '<table style="border-collapse: collapse; white-space: nowrap; width: max-content;">'
                + '<tr><td>5h</td><td style="padding: 0 0.75rem; text-align: right;">1%</td><td>resets in 1h</td></tr>'
                + '<tr><td>1w</td><td style="padding: 0 0.75rem; text-align: right;">2%</td><td></td></tr>'
                + '<tr><td>1m</td><td style="padding: 0 0.75rem; text-align: right;">25%</td><td>resets in 1d</td></tr>'

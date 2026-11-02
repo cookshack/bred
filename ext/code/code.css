@@ -408,6 +408,7 @@ div.code-thought:hover {
 .code-under-end {
   white-space: nowrap;
   display: flex;
+  color: var(--clr-syntax3);
 }
 
 .code-under-credits {
@@ -420,7 +421,7 @@ div.code-thought:hover {
 }
 
 .code-usage-sep {
-  color: var(--clr-syntax3);
+  color: var(--clr-text);
 }
 
 .code-usage-warn {

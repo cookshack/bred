@@ -1,5 +1,19 @@
 import * as Opt from '../../js/opt.mjs'
 
+// Command Code's plan catalog, mirroring the `cmd` CLI. The credits endpoint
+// reports only what is left, so the monthly percentage needs the grant size.
+let planCredits
+
+planCredits = { 'individual-go': 10,
+                'individual-go-v1': 10,
+                'individual-goat': 70,
+                'individual-pro': 30,
+                'individual-pro-v1': 80,
+                'individual-provider': 15,
+                'individual-max': 150,
+                'individual-ultra': 300,
+                'teams-pro': 40 }
+
 export
 function iconAgent
 () {
@@ -256,4 +270,111 @@ function calculateTokenPercentage
       ret += (' ' + Math.round((tokens / modelLimit) * 100) + '%')
   }
   return ret
+}
+
+// longest key first, so eg individual-pro-v1 wins over individual-pro
+function planGrant
+(planId) {
+  let id, keys, key
+
+  id = (planId || '').toLowerCase().replace(/_/g, '-')
+  keys = Object.keys(planCredits)
+  keys.sort((a, b) => b.length - a.length)
+  key = keys.find(k => id.startsWith(k))
+  if (key)
+    return planCredits[key]
+  return 0
+}
+
+function usagePct
+(used, cap) {
+  if (cap > 0)
+    return Math.min(100, Math.round((used / cap) * 100))
+  return 0
+}
+
+// resetAt can be epoch ms or an ISO string (the alpha endpoints are not
+// consistent about it), and 0 when the window has never been used.
+function resetMs
+(at) {
+  if (typeof at == 'number')
+    return at
+  if (typeof at == 'string' && at.length) {
+    let ms
+
+    ms = Date.parse(at)
+    if (isNaN(ms))
+      return 0
+    return ms
+  }
+  return 0
+}
+
+// The rolling windows use used/cap directly; monthly is what is left of the
+// plan grant for the current billing period.
+export
+function goatUsage
+(credits, planId, periodEnd) {
+  let usage, w, grant, remaining
+
+  usage = []
+  w = credits?.windowLimits
+  if (w?.fiveHour?.cap > 0)
+    usage.push({ key: '5h',
+                 pct: usagePct(w.fiveHour.used, w.fiveHour.cap),
+                 resetAt: w.fiveHour.resetAt })
+  if (w?.weekly?.cap > 0)
+    usage.push({ key: '1w',
+                 pct: usagePct(w.weekly.used, w.weekly.cap),
+                 resetAt: w.weekly.resetAt })
+  grant = planGrant(planId)
+  remaining = credits?.credits?.monthlyCredits
+  if ((grant > 0) && Number.isFinite(remaining))
+    usage.push({ key: '1m',
+                 pct: usagePct(Math.max(0, grant - remaining), grant),
+                 resetAt: periodEnd })
+  return usage
+}
+
+export
+function fmtResetIn
+(at, now) {
+  let ms, mins, d, h, m
+
+  ms = resetMs(at)
+  if ((ms <= 0) || isNaN(ms))
+    return ''
+  if (ms <= now)
+    return 'resets now'
+  mins = Math.ceil((ms - now) / 60000)
+  d = Math.floor(mins / 1440)
+  h = Math.floor((mins % 1440) / 60)
+  m = mins % 60
+  if (d > 0)
+    return 'resets in ' + d + 'd' + (h > 0 ? ' ' + h + 'h' : '')
+  if (h > 0)
+    return 'resets in ' + h + 'h' + (m > 0 ? ' ' + m + 'm' : '')
+  return 'resets in ' + m + 'm'
+}
+
+export
+function usageHover
+(usage, now) {
+  return usage.map(u => {
+                     let reset
+
+                     reset = fmtResetIn(u.resetAt, now)
+                     return u.key + ' ' + u.pct + '%' + (reset ? ' — ' + reset : '')
+                   })
+    .join('<br>')
+}
+
+export
+function usageCls
+(pct) {
+  if (pct > 90)
+    return 'code-usage-crit'
+  if (pct > 80)
+    return 'code-usage-warn'
+  return ''
 }

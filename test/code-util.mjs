@@ -337,6 +337,96 @@ test('subagentChildId', 'both metadata spellings',
        equal(CodeUtil.subagentChildId({ state: {} }), '')
      })
 
+test('goatUsage', '5h and 1w come from used/cap',
+     () => {
+       let usage
+
+       usage = CodeUtil.goatUsage({ windowLimits: { fiveHour: { used: 7, cap: 14, resetAt: 1000 },
+                                                    weekly: { used: 14, cap: 35, resetAt: 2000 } } },
+                                  '', '')
+       equal(usage.length, 2)
+       equal(usage[0].key, '5h')
+       equal(usage[0].pct, 50)
+       equal(usage[1].key, '1w')
+       equal(usage[1].pct, 40)
+     })
+
+test('goatUsage', 'monthly is what is spent of the plan grant',
+     () => {
+       let usage
+
+       usage = CodeUtil.goatUsage({ credits: { monthlyCredits: 52.5 },
+                                    windowLimits: {} },
+                                  'individual-goat',
+                                  '2026-11-15T10:48:46.000Z')
+       equal(usage.length, 1)
+       equal(usage[0].key, '1m')
+       equal(usage[0].pct, 25)
+       equal(usage[0].resetAt, '2026-11-15T10:48:46.000Z')
+     })
+
+test('goatUsage', 'a spent monthly pool is 100%',
+     () => {
+       let usage
+
+       usage = CodeUtil.goatUsage({ credits: { monthlyCredits: 0 } }, 'individual-goat', '')
+       equal(usage[0].pct, 100)
+     })
+
+test('goatUsage', 'unknown plan omits monthly',
+     () => {
+       equal(CodeUtil.goatUsage({ credits: { monthlyCredits: 5 } }, 'nope', '').length, 0)
+     })
+
+test('goatUsage', 'missing data yields no windows',
+     () => {
+       equal(CodeUtil.goatUsage({}, 'individual-goat', '').length, 0)
+       equal(CodeUtil.goatUsage(0, 'individual-goat', '').length, 0)
+     })
+
+test('usageCls', 'warn above 80, crit above 90',
+     () => {
+       equal(CodeUtil.usageCls(0), '')
+       equal(CodeUtil.usageCls(80), '')
+       equal(CodeUtil.usageCls(81), 'code-usage-warn')
+       equal(CodeUtil.usageCls(90), 'code-usage-warn')
+       equal(CodeUtil.usageCls(91), 'code-usage-crit')
+       equal(CodeUtil.usageCls(100), 'code-usage-crit')
+     })
+
+test('fmtResetIn', 'duration shapes',
+     () => {
+       let now
+
+       now = Date.UTC(2026, 10, 2, 12, 0, 0)
+       equal(CodeUtil.fmtResetIn(now + (2 * 3600000) + (14 * 60000), now), 'resets in 2h 14m')
+       equal(CodeUtil.fmtResetIn(now + (3 * 86400000) + (4 * 3600000), now), 'resets in 3d 4h')
+       equal(CodeUtil.fmtResetIn(now + 30000, now), 'resets in 1m')
+       equal(CodeUtil.fmtResetIn(now - 30000, now), 'resets now')
+       equal(CodeUtil.fmtResetIn(0, now), '')
+       equal(CodeUtil.fmtResetIn('nonsense', now), '')
+     })
+
+test('fmtResetIn', 'accepts ISO strings',
+     () => {
+       let now
+
+       now = Date.UTC(2026, 10, 2, 12, 0, 0)
+       equal(CodeUtil.fmtResetIn(new Date(now + 3600000).toISOString(), now), 'resets in 1h')
+     })
+
+test('usageHover', 'labels and countdowns',
+     () => {
+       let now, usage
+
+       now = Date.UTC(2026, 10, 2, 12, 0, 0)
+       usage = [ { key: '5h', pct: 1, resetAt: now + 3600000 },
+                 { key: '1w', pct: 2, resetAt: 0 },
+                 { key: '1m', pct: 25, resetAt: new Date(now + 86400000).toISOString() } ]
+       equal(CodeUtil.usageHover(usage, now),
+             '5h 1% — resets in 1h<br>1w 2%<br>1m 25% — resets in 1d')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

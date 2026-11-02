@@ -180,10 +180,10 @@ function initMouse
       return Cmd.canon(cmd)
     }
 
-    if (target?.dataset?.run?.length) {
+    if (target?.dataset?.hover?.length || target?.dataset?.run?.length) {
       let text
 
-      text = getText(target.dataset.run) || 'ERR'
+      text = target.dataset.hover || getText(target.dataset.run) || 'ERR'
       // Usually something like Close Demand, so too much info.
       //if (target.dataset.after?.length)
       //  text = text + ', then ' + (getText(target.dataset.after) || 'ERR')
@@ -202,7 +202,7 @@ function initMouse
   (e) {
     x = e.pageX
     y = e.pageY
-    target = e.target.closest?.('[data-run]') || e.target
+    target = e.target.closest?.('[data-run], [data-hover]') || e.target
     if (to)
       // When the timeout runs updateHover will use the new target.
       return

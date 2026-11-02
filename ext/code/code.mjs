@@ -29,7 +29,7 @@ import * as Sessions from './sessions.mjs'
 
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
-let agentCycle, hist, chatHist, stopTimeout, tools, events, mostRecentAgents
+let agentCycle, hist, chatHist, stopTimeout, tools, events, mostRecentAgents, goatUsageCache, goatUsageAt, goatUsagePending
 
 function getSubagentIds
 (buf) {
@@ -221,6 +221,54 @@ function updateCredits
     updateDeepinfraCredits(buf)
 }
 
+// Goat quota is account-wide, so one fetch and one cache serve every code
+// buffer. The billing endpoints are tiny but undocumented, so failures only
+// log, and a 60s floor keeps turn ends from hitting them repeatedly.
+function refreshGoatUsage
+(buf) {
+  if (Util.getProvider(buf) == 'goat') {
+    let cached, now
+
+    cached = goatUsageCache
+    if (cached) {
+      buf.vars('code').goatUsage = cached
+      Ui.updateUsage(buf, cached)
+    }
+
+    now = Date.now()
+    if (goatUsagePending || ((goatUsageAt > 0) && ((now - goatUsageAt) < 60000)))
+      return
+
+    goatUsageAt = now
+    goatUsagePending = 1
+    Tron.acmd('code.usage').then(res => {
+                                   let usage
+
+                                   goatUsagePending = 0
+                                   if (res?.err) {
+                                     d('CO usage: ' + res.err)
+                                     return
+                                   }
+                                   usage = Util.goatUsage(res.credits, res.planId, res.periodEnd)
+                                   goatUsageCache = usage
+                                   Buf.forEach(b => {
+                                                 if (b.mode.key == 'code' && (Util.getProvider(b) == 'goat')) {
+                                                   b.vars('code').goatUsage = usage
+                                                   Ui.updateUsage(b, usage)
+                                                 }
+                                               })
+                                 })
+      .catch(err => {
+               goatUsagePending = 0
+               d('CO usage failed: ' + err.message)
+             })
+  }
+  else {
+    buf.vars('code').goatUsage = 0
+    Ui.updateUsage(buf, 0)
+  }
+}
+
 function fileLabel
 (buf, tool, path, status, spec) {
   function bounds
@@ -383,6 +431,7 @@ function updateBufAgent
 function updateIdle
 (buf, tokenInfo) {
   Ui.updateStatus(buf, 'OK', '', tokenInfo, VopenCode.version)
+  refreshGoatUsage(buf)
   // The stop marker belongs to the turn being ended, so it goes before the
   // model footer (which reads as the turn's end line).
   if (buf.vars('code').agentStopped) {
@@ -1374,6 +1423,7 @@ function setModel
   buf.opts.set('code.variant.agent', variant || '')
   Hist.ensure('code.model').add(modelID)
   updateModelContextLimit(buf, providerID, modelID)
+  refreshGoatUsage(buf)
   updateModelPromptLabel(buf)
 }
 
@@ -1648,6 +1698,7 @@ function code
     if (buf) {
       pane.setBuf(buf)
       updateModelContextLimit(buf, Util.getProvider(buf), Util.getModel(buf))
+      refreshGoatUsage(buf)
       if (provider == 'openrouter' || provider == 'deepinfra')
         updateCredits(buf, provider)
       return
@@ -1691,6 +1742,7 @@ function updateNav
 function viewInit
 (view, spec, cb) { // (view)
   applyNav(view)
+  refreshGoatUsage(view.buf)
   if (view.buf?.vars('code')?.thinkingHidden) {
     let w
 

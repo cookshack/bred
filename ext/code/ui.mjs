@@ -53,6 +53,7 @@ function divW
                                  divCl('code-under code-under-model'),
                                  divCl('code-under-end',
                                        [ divCl('code-under code-under-credits', ''),
+                                         divCl('code-under code-under-usage', ''),
                                          divCl('code-under code-under-version', ''),
                                          divCl('code-under code-under-tokens', '') ]) ]) ]),
                  divCl('code-prompt-w retracted',
@@ -210,6 +211,43 @@ function updateStatus
                             else
                               tokenEl.innerText = ''
                         }
+                      }
+                    })
+}
+
+// Goat quota windows (5h/weekly/monthly), shown as eg 12%/34%/56%. The hover
+// text is recomputed on mouseenter so its countdown stays current without a
+// timer or another request.
+export
+function updateUsage
+(buf, usage) {
+  buf.views.forEach(view => {
+                      let el
+
+                      el = view.eleOrReserved?.querySelector('.code-under-usage')
+                      if (el) {
+                        let parts
+
+                        parts = []
+                        el.innerText = ''
+                        if (usage)
+                          usage.forEach((u, i) => {
+                                          if (i > 0)
+                                            parts.push('/')
+                                          parts.push(span(u.pct + '%', Util.usageCls(u.pct)))
+                                        })
+                        append(el, parts)
+                        if (usage)
+                          el.dataset.hover = Util.usageHover(usage, Date.now())
+                        else
+                          delete el.dataset.hover
+                        el.onmouseenter = () => {
+                                            let current
+
+                                            current = buf.vars('code').goatUsage
+                                            if (current)
+                                              el.dataset.hover = Util.usageHover(current, Date.now())
+                                          }
                       }
                     })
 }

@@ -1,6 +1,7 @@
 import * as Server from './main-code-server.mjs'
 import Database from 'better-sqlite3'
 import Path from 'node:path'
+import fs from 'node:fs'
 import { d } from './main-log.mjs'
 import { resolveDataDir } from './oc-data.mjs'
 
@@ -111,6 +112,60 @@ function onSearchSessions
 
   db.close()
   return rows
+}
+
+function getGoatKey
+() {
+  let file, json
+
+  file = process.env.HOME + '/.local/share/opencode/auth.json'
+  try {
+    json = JSON.parse(fs.readFileSync(file, 'utf8'))
+  }
+  catch {
+    return ''
+  }
+  return json.goat?.key || ''
+}
+
+async function billingGet
+(path, key) {
+  let res, text
+
+  res = await fetch('https://api.commandcode.ai' + path,
+                    { headers: { Authorization: 'Bearer ' + key },
+                      signal: AbortSignal.timeout(5000) })
+  text = await res.text()
+  if (res.ok == 0)
+    return { err: 'HTTP ' + res.status }
+  return { data: JSON.parse(text) }
+}
+
+// Command Code's alpha billing endpoints, the same ones the cmd CLI uses.
+// Undocumented, so the caller treats any error as "show nothing".
+export
+async function onUsage
+() {
+  let key
+
+  key = getGoatKey()
+  if (key.length == 0)
+    return { err: 'no goat key' }
+
+  try {
+    let credits, subs
+
+    credits = await billingGet('/alpha/billing/credits', key)
+    if (credits.err)
+      return credits
+    subs = await billingGet('/alpha/billing/subscriptions', key)
+    return { credits: credits.data,
+             planId: subs.data?.data?.planId || '',
+             periodEnd: subs.data?.data?.currentPeriodEnd || '' }
+  }
+  catch (err) {
+    return { err: err.message }
+  }
 }
 
 export

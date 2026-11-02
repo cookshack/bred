@@ -415,6 +415,18 @@ div.code-thought:hover {
   margin-right: 0.5rem;
 }
 
+.code-under-usage {
+  margin-right: 0.5rem;
+}
+
+.code-usage-warn {
+  color: var(--clr-nb1);
+}
+
+.code-usage-crit {
+  color: var(--clr-nb3);
+}
+
 .code-under-version {
   margin-right: 0.5rem;
 }

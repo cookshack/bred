@@ -480,9 +480,9 @@ div.code-thought:hover {
 }
 
 .code-prompt-mounts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 0.15rem 1rem;
   padding: 0.25rem 0;
   font-size: 0.9rem;
   color: var(--clr-text);
@@ -492,9 +492,15 @@ div.code-thought:hover {
 .code-prompt-mount {
   display: flex;
   align-items: center;
+  min-width: 0;
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
+}
+
+.code-prompt-mount-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .code-prompt-mount-check {

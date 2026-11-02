@@ -305,15 +305,24 @@ function updateMounts
                                                               'code-prompt-mount-check',
                                                               { type: 'checkbox' })
                                                input.checked = mounts.includes(c.path) ? 1 : 0
+                                               input.onmousedown = e => e.preventDefault()
+                                               label = create('label',
+                                                              [ input,
+                                                                span(c.label + (c.ro ? ' (ro)' : ''),
+                                                                     'code-prompt-mount-name') ],
+                                                              'code-prompt-mount')
+                                               label.dataset.hover = c.path + (c.ro ? ' (read-only)' : '')
+                                               label.dataset.native = '1'
+                                               label.onmousedown = e => e.preventDefault()
                                                if (locked)
                                                  input.disabled = 1
                                                else
-                                                 input.onchange = () => toggle(c, input.checked)
-                                               label = create('label',
-                                                              [ input,
-                                                                ' ' + c.label + (c.ro ? ' (ro)' : '') ],
-                                                              'code-prompt-mount')
-                                               label.onmousedown = e => e.preventDefault()
+                                                 // bred prevents click defaults, so
+                                                 // toggle ourselves and keep focus
+                                                 label.onclick = e => {
+                                                                   e.preventDefault()
+                                                                   toggle(c, mounts.includes(c.path) == 0)
+                                                                 }
                                                parts.push(label)
                                              })
                           if (locked)

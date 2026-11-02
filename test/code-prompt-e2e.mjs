@@ -194,6 +194,31 @@ test('startup', 'burying before the prompt appears still yields a usable prompt'
        }
      })
 
+test('mounts', 'clicking a mount toggles it without native checkbox state',
+     async () => {
+       let buf, el, inputs, panes
+
+       ({ panes, buf } = await setup())
+       buf.vars('code').deferSpawn = 1
+       buf.vars('code').mounts = [ '/a', '/b' ]
+       Ui.updateMounts(buf,
+                       [ { path: '/a', label: '~/a', ro: 0 },
+                         { path: '/b', label: '~/b', ro: 1 } ])
+       el = panes.pB.view.ele.querySelector('.code-prompt-mounts')
+       inputs = el.querySelectorAll('input')
+       equal(inputs.length, 2, 'one checkbox per mount')
+       equal([ ...inputs ].map(i => i.checked ? 1 : 0).join(','), '1,1', 'all mounts start checked')
+
+       // bred prevents click defaults, so the label handler does the toggle
+       el.querySelectorAll('label')[0].onclick({ preventDefault: () => {} })
+       equal(buf.vars('code').mounts.join(','), '/b', 'clicking removes the mount')
+       inputs = el.querySelectorAll('input')
+       equal([ ...inputs ].map(i => i.checked ? 1 : 0).join(','), '0,1', 'the box is redrawn unchecked')
+
+       el.querySelectorAll('label')[0].onclick({ preventDefault: () => {} })
+       equal(buf.vars('code').mounts.join(','), '/b,/a', 'clicking adds it back')
+     })
+
 test('yn', 'y/n is refused while the prompt is open',
      async () => {
        let before, buf, fake, panes, yells

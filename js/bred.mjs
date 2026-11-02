@@ -1455,6 +1455,9 @@ function initHandlers
           && (e.target.getAttribute('type') == 'color'))
         // special case for color picker
         return
+      if (e.target.closest?.('[data-native]'))
+        // native control, eg a checkbox the ui handles itself
+        return
       //d('BRED handleClick')
       handleMouse('click', e)
     }

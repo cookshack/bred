@@ -415,7 +415,7 @@ test('fmtResetIn', 'accepts ISO strings',
        equal(CodeUtil.fmtResetIn(new Date(now + 3600000).toISOString(), now), 'resets in 1h')
      })
 
-test('usageHover', 'labels and countdowns',
+test('usageHover', 'labels, percentages and countdowns in columns',
      () => {
        let now, usage
 
@@ -424,7 +424,11 @@ test('usageHover', 'labels and countdowns',
                  { key: '1w', pct: 2, resetAt: 0 },
                  { key: '1m', pct: 25, resetAt: new Date(now + 86400000).toISOString() } ]
        equal(CodeUtil.usageHover(usage, now),
-             '5h 1% — resets in 1h<br>1w 2%<br>1m 25% — resets in 1d')
+             '<table style="border-collapse: collapse;">'
+               + '<tr><td>5h</td><td style="padding: 0 0.75rem; text-align: right;">1%</td><td>resets in 1h</td></tr>'
+               + '<tr><td>1w</td><td style="padding: 0 0.75rem; text-align: right;">2%</td><td></td></tr>'
+               + '<tr><td>1m</td><td style="padding: 0 0.75rem; text-align: right;">25%</td><td>resets in 1d</td></tr>'
+               + '</table>')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

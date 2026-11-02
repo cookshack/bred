@@ -419,6 +419,10 @@ div.code-thought:hover {
   margin-right: 0.5rem;
 }
 
+.code-usage-sep {
+  color: var(--clr-syntax3);
+}
+
 .code-usage-warn {
   color: var(--clr-nb1);
 }

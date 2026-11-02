@@ -357,16 +357,24 @@ function fmtResetIn
   return 'resets in ' + m + 'm'
 }
 
+// A table keeps the label, percentage and reset countdown in columns, which
+// the hover's proportional font would not do with padded text.
 export
 function usageHover
 (usage, now) {
-  return usage.map(u => {
+  let rows
+
+  rows = usage.map(u => {
                      let reset
 
                      reset = fmtResetIn(u.resetAt, now)
-                     return u.key + ' ' + u.pct + '%' + (reset ? ' — ' + reset : '')
+                     return '<tr>'
+                          + '<td>' + u.key + '</td>'
+                          + '<td style="padding: 0 0.75rem; text-align: right;">' + u.pct + '%</td>'
+                          + '<td>' + reset + '</td>'
+                          + '</tr>'
                    })
-    .join('<br>')
+  return '<table style="border-collapse: collapse;">' + rows.join('') + '</table>'
 }
 
 export

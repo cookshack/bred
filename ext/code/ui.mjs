@@ -233,7 +233,7 @@ function updateUsage
                         if (usage)
                           usage.forEach((u, i) => {
                                           if (i > 0)
-                                            parts.push('/')
+                                            parts.push(span('/', 'code-usage-sep'))
                                           parts.push(span(u.pct + '%', Util.usageCls(u.pct)))
                                         })
                         append(el, parts)

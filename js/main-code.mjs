@@ -48,7 +48,7 @@ async function onSpawn
                                              references: Mounts.references(mounts, workingDir),
                                              permission: { external_directory: 'allow',
                                                            websearch: 'allow',
-                                                           read: { '/home/node/.local/share/opencode/auth.json': 'deny' },
+                                                           read: { [Mounts.containerAuthPath()]: 'deny' },
                                                            bash: { 'docker *': 'deny',
                                                                    'podman *': 'deny',
                                                                    'docker-compose *': 'deny',

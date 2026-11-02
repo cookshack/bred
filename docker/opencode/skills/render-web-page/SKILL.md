@@ -1,18 +1,18 @@
 ---
 name: render-web-page
-description: Use when you need to screenshot or measure a local web page headlessly - verifying HTML/CSS layout, rendered element widths, chart rendering, or visual regressions (for example index.html in the finance repo). Drives the container's Chromium via /home/node/tools/render.mjs.
+description: Use when you need to screenshot or measure a local web page headlessly - verifying HTML/CSS layout, rendered element widths, chart rendering, or visual regressions (for example index.html in the finance repo). Drives the container's Chromium via $HOME/tools/render.mjs.
 ---
 
 # Render a web page headlessly
 
 This container has a system Chromium (`/usr/bin/chromium`) plus `puppeteer-core`
-and a ready-made helper at `/home/node/tools/render.mjs`. Use it to actually see
+and a ready-made helper at `$HOME/tools/render.mjs`. Use it to actually see
 and measure pages instead of guessing about layout.
 
 ## Usage
 
 ```
-node /home/node/tools/render.mjs <file|url> [out.png] [width] [height] \
+node $HOME/tools/render.mjs <file|url> [out.png] [width] [height] \
   [--full-page] [--wait ms] [--settle ms] [--eval "<expr>"] [--json]
 ```
 
@@ -30,14 +30,14 @@ node /home/node/tools/render.mjs <file|url> [out.png] [width] [height] \
 Measure a rendered layout (no files written):
 
 ```
-node /home/node/tools/render.mjs file:///home/matt/src/finance/index.html --json \
+node $HOME/tools/render.mjs file:///home/matt/src/finance/index.html --json \
   --eval "document.querySelector('.col-output').getBoundingClientRect().width"
 ```
 
 Screenshot a specific tab (the app has a global `switchTab`):
 
 ```
-node /home/node/tools/render.mjs file:///home/matt/src/finance/index.html \
+node $HOME/tools/render.mjs file:///home/matt/src/finance/index.html \
   /tmp/cashflow.png 1280 1500 --eval "switchTab('cashflow')" --settle 2200
 ```
 

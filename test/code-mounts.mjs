@@ -19,7 +19,7 @@ test('argList', 'null selects every extra mount',
        args = Mounts.argList('/w', '/d', '/a', null, home, () => 1)
        equal(args.includes(home + '/src/bred:' + home + '/src/bred'), true)
        equal(args.includes(home + '/src/opencode:' + home + '/src/opencode:ro'), true)
-       equal(args.includes('/d:/home/node/.local/share/opencode'), true)
+       equal(args.includes('/d:' + Mounts.containerHome() + '/.local/share/opencode'), true)
      })
 
 test('argList', 'only the selected extras',
@@ -37,7 +37,7 @@ test('argList', 'an empty selection mounts only the working dir and infra',
 
        args = Mounts.argList('/w', '/d', '/a', [], home, () => 1)
        equal(args.includes('/w:/w'), true)
-       equal(args.includes('/d:/home/node/.local/share/opencode'), true)
+       equal(args.includes('/d:' + Mounts.containerHome() + '/.local/share/opencode'), true)
        equal(args.includes(home + '/src/review:' + home + '/src/review'), false)
      })
 
@@ -64,6 +64,16 @@ test('argList', 'a trailing slash on the working dir is normalised',
 
        args = Mounts.argList('/w/', '/d', '/a', null, home, () => 1)
        equal(args.includes('/w:/w'), true)
+     })
+
+test('infra', 'state and credentials live under the container home',
+     () => {
+       let args
+
+       args = Mounts.argList('/w', '/d', '/a', [], home, () => 1)
+       equal(args.includes('/d:' + Mounts.containerHome() + '/.local/share/opencode'), true)
+       equal(args.includes('/a:' + Mounts.containerAuthPath() + ':ro'), true)
+       equal(Mounts.containerAuthPath(), Mounts.containerHome() + '/.local/share/opencode/auth.json')
      })
 
 test('references', 'every extra mount, minus the working dir',

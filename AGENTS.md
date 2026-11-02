@@ -20,11 +20,13 @@ Always commit changes once they're done and verified. Don't wait to be asked.
 ## opencode container (`docker/opencode/`)
 
 Built with `make oc` (image `opencode-bred`), run via `bin/code` / `bin/codesh`. It bakes a
-headless render helper (system Chromium + puppeteer-core) at `/home/node/tools/render.mjs` and a
+headless render helper (system Chromium + puppeteer-core) at `$HOME/tools/render.mjs` and a
 global `render-web-page` skill, so agents can screenshot or measure local pages. See the skill for
 usage. It also bakes TeX Live (`pdflatex`, latex-base + latex-recommended) so agents can compile
 LaTeX documents in the container. Rebuild the image after changing the Dockerfile, `tools/`, or
-`skills/`.
+`skills/`. The container user is `matt` with home `/home/matt`, matching the host so that
+`~/src/...` means the same thing inside and outside; `/home/node` is a symlink to it for
+older scripts.
 
 ## Linting
 

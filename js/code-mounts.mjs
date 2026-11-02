@@ -1,5 +1,22 @@
 import fs from 'node:fs'
 
+// The container's home directory. Deliberately identical to the host's, so
+// that ~/src/... means the same thing inside and outside the container (see
+// docker/opencode/Dockerfile).
+export
+function containerHome
+() {
+  return '/home/matt'
+}
+
+// Where the agent's credentials land inside the container. main-code.mjs
+// denies reads of it, so both sides share this function.
+export
+function containerAuthPath
+() {
+  return containerHome() + '/.local/share/opencode/auth.json'
+}
+
 function normal
 (dir) {
   if (dir.at(-1) == '/')
@@ -53,12 +70,12 @@ function infra
 (home, dataDir, authPath, exists) {
   let list, configFile
 
-  list = [ { src: home + '/.gitignore', dest: '/home/node/.gitignore', ro: 1 },
-           { src: dataDir, dest: '/home/node/.local/share/opencode' },
-           { src: authPath, dest: '/home/node/.local/share/opencode/auth.json', ro: 1 } ]
+  list = [ { src: home + '/.gitignore', dest: containerHome() + '/.gitignore', ro: 1 },
+           { src: dataDir, dest: containerHome() + '/.local/share/opencode' },
+           { src: authPath, dest: containerAuthPath(), ro: 1 } ]
   configFile = home + '/.config/opencode/opencode.json'
   if (exists(configFile))
-    list.push({ src: configFile, dest: '/home/node/.config/opencode/opencode.json', ro: 1 })
+    list.push({ src: configFile, dest: containerHome() + '/.config/opencode/opencode.json', ro: 1 })
   return list
 }
 

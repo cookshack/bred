@@ -8,22 +8,32 @@ RUN curl -fsSL https://opencode.ai/v2/install | bash -s -- --version 2.0.32 --no
  && mv /root/.opencode/bin/opencode /usr/local/bin/opencode \
  && chmod 755 /usr/local/bin/opencode
 
+# Rename the base image's node user (uid 1000) to matt and give it the same home
+# as the host user. Bind mounts already arrive as uid 1000, so ownership is
+# unchanged; the point is that ~/src/... resolves the same inside and out.
+# /home/node is kept as a symlink so older scripts that hardcode it still work.
+RUN groupmod -n matt node \
+ && usermod -l matt -d /home/matt -m node \
+ && rm -rf /home/node \
+ && ln -s /home/matt /home/node
+
 # Headless render helper: system Chromium + puppeteer-core (see tools/render.mjs)
-COPY tools /home/node/tools
-RUN npm install --prefix /home/node/tools --omit=dev
+COPY tools /home/matt/tools
+RUN npm install --prefix /home/matt/tools --omit=dev
 
 # Global skill so agents discover the render helper in every session
-COPY skills /home/node/.config/opencode/skills
+COPY skills /home/matt/.config/opencode/skills
 
 # Global rules so every session knows the agent cannot push
-COPY global-AGENTS.md /home/node/.config/opencode/AGENTS.md
+COPY global-AGENTS.md /home/matt/.config/opencode/AGENTS.md
 
 # Global plugin: no background shell commands (keeps blocking calls visible)
-COPY plugin /home/node/.config/opencode/plugin
+COPY plugin /home/matt/.config/opencode/plugin
 
-RUN mkdir -p /home/node/.local/share/opencode && chown -R node:node /home/node/.local /home/node/tools /home/node/.config
-USER node
-RUN git config --global core.excludesFile /home/node/.gitignore
-WORKDIR /home/node
+RUN mkdir -p /home/matt/.local/share/opencode && chown -R matt:matt /home/matt/.local /home/matt/tools /home/matt/.config
+ENV HOME=/home/matt
+USER matt
+RUN git config --global core.excludesFile /home/matt/.gitignore
+WORKDIR /home/matt
 
 ENTRYPOINT ["opencode"]

@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import { spawn } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
 import * as U from './util.mjs'
+import * as Mounts from './code-mounts.mjs'
 import { d } from './main-log.mjs'
 
 import { resolveDataDir } from './oc-data.mjs'
@@ -11,43 +12,6 @@ export
 function containerName
 (bufferID) {
   return 'bred-code-' + process.pid + '-' + bufferID
-}
-
-function mountArgs
-(workingDir, dataDir, authPath) {
-  let home, specs, configFile
-
-  function src
-  (spec) {
-    return spec.split(':')[0]
-  }
-
-  home = process.env.HOME
-  if (workingDir.at(-1) == '/')
-    workingDir = workingDir.slice(0, -1)
-  specs = [ home + '/fresh/main:' + home + '/fresh/main',
-            home + '/src/review:' + home + '/src/review',
-            home + '/src/review2:' + home + '/src/review2',
-            home + '/src/bred:' + home + '/src/bred',
-            home + '/src/uoc:' + home + '/src/uoc',
-            home + '/src/bin:' + home + '/src/bin',
-            home + '/src/conventions:' + home + '/src/conventions',
-            home + '/sessions:' + home + '/sessions',
-            home + '/alts/main/openvas/plugins:' + home + '/alts/main/openvas/plugins:ro',
-            home + '/alts/main/gvm/cert-data:' + home + '/alts/main/gvm/cert-data:ro',
-            home + '/alts/main/gvm/scap-data:' + home + '/alts/main/gvm/scap-data:ro',
-            home + '/alts/main/gvm/data-objects/gvmd/22.04:' + home + '/alts/main/gvm/data-objects/gvmd/22.04:ro',
-            home + '/src/opencode:' + home + '/src/opencode:ro',
-            home + '/.gitignore:/home/node/.gitignore:ro',
-            dataDir + ':/home/node/.local/share/opencode',
-            authPath + ':/home/node/.local/share/opencode/auth.json:ro' ]
-  configFile = home + '/.config/opencode/opencode.json'
-  if (fs.existsSync(configFile))
-    specs.push(configFile + ':/home/node/.config/opencode/opencode.json:ro')
-  specs = specs
-    .filter(s => (src(s) == workingDir) ? 0 : 1)
-  return [ '-v', workingDir + ':' + workingDir,
-           ...specs.flatMap(s => [ '-v', s ]) ]
 }
 
 function containerRunning
@@ -283,7 +247,7 @@ async function spawnDocker
   password = randomBytes(24).toString('base64url')
 
   args = []
-  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...mountArgs(workingDir, dataDir, authPath), '-e', 'EXA_API_KEY', '-e', 'OPENCODE_WEBSEARCH_PROVIDER=' + (process.env.OPENCODE_WEBSEARCH_PROVIDER || 'exa'), '-e', 'OPENCODE_ENABLE_EXA=' + (process.env.OPENCODE_ENABLE_EXA || 'true'), '-e', 'OPENCODE_LOG_LEVEL=' + (process.env.OPENCODE_LOG_LEVEL || 'DEBUG'), '-e', 'OPENCODE_PASSWORD=' + password, '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
+  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...Mounts.argList(workingDir, dataDir, authPath, spec.mounts), '-e', 'EXA_API_KEY', '-e', 'OPENCODE_WEBSEARCH_PROVIDER=' + (process.env.OPENCODE_WEBSEARCH_PROVIDER || 'exa'), '-e', 'OPENCODE_ENABLE_EXA=' + (process.env.OPENCODE_ENABLE_EXA || 'true'), '-e', 'OPENCODE_LOG_LEVEL=' + (process.env.OPENCODE_LOG_LEVEL || 'DEBUG'), '-e', 'OPENCODE_PASSWORD=' + password, '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
   d('CODE SERVER docker: ' + args.join(' '))
 
   return new Promise((resolve, reject) => {

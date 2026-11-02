@@ -479,6 +479,33 @@ div.code-thought:hover {
   flex-shrink: 0;
 }
 
+.code-prompt-mounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  padding: 0.25rem 0;
+  font-size: 0.9rem;
+  color: var(--clr-text);
+  flex-shrink: 0;
+}
+
+.code-prompt-mount {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.code-prompt-mount-check {
+  margin: 0 0.3rem 0 0;
+  accent-color: var(--clr-nb0);
+}
+
+.code-prompt-mount-fixed {
+  color: var(--clr-nb2);
+}
+
 .code-prompt-model,
 .code-prompt-model[data-run] {
   color: var(--clr-nb0);

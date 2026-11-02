@@ -17,9 +17,10 @@ async function ensureClient
     return buf.vars('code').spawnPromise
 
   spawnPromise = new Promise((resolve, reject) => {
-                               let sent, statusCh, off
+                               let sent, statusCh, off, m
 
                                sent = 0
+                               m = buf.vars('code').mounts ?? null
 
                                statusCh = 'code.spawn.status.' + buf.id
                                off = Tron.on(statusCh, (err, data) => {
@@ -35,34 +36,38 @@ async function ensureClient
                                                          }
                                                        })
 
-                               Tron.cmd('code.spawn', [ buf.id, buf.dir, statusCh ], (err, data) => {
-                                                                                       d('CODE COMM code.spawn message')
-                                                                                       d({ data })
-                                                                                       off()
+                               buf.vars('code').mountsLocked = 1
+                               Ui.updateMounts(buf, buf.vars('code').mountCandidates)
+                               Tron.cmd('code.spawn', [ buf.id, buf.dir, statusCh, m ], (err, data) => {
+                                                                                          d('CODE COMM code.spawn message')
+                                                                                          d({ data })
+                                                                                          off()
 
-                                                                                       if (sent)
-                                                                                         return
+                                                                                          if (sent)
+                                                                                            return
 
-                                                                                       if (err) {
-                                                                                         sent = 1
-                                                                                         buf.vars('code').spawnPromise = 0
-                                                                                         reject(new Error(err.message || String(err)))
-                                                                                         return
-                                                                                       }
+                                                                                          if (err) {
+                                                                                            sent = 1
+                                                                                            buf.vars('code').spawnPromise = 0
+                                                                                            buf.vars('code').mountsLocked = 0
+                                                                                            Ui.updateMounts(buf, buf.vars('code').mountCandidates)
+                                                                                            reject(new Error(err.message || String(err)))
+                                                                                            return
+                                                                                          }
 
-                                                                                       if (data.url) {
-                                                                                         sent = 1
-                                                                                         client = OpenCode.make({ baseUrl: data.url,
-                                                                                                                  headers: data.auth ? { authorization: data.auth } : undefined })
-                                                                                         buf.vars('code').client = client
-                                                                                         buf.vars('code').serverUrl = data.url
-                                                                                         buf.vars('code').containerID = data.containerID
-                                                                                         buf.vars('code').spawnedBufferID = buf.id
-                                                                                         Ui.updateDocker(buf)
-                                                                                         buf.vars('code').spawnPromise = 0
-                                                                                         resolve(client)
-                                                                                       }
-                                                                                     })
+                                                                                          if (data.url) {
+                                                                                            sent = 1
+                                                                                            client = OpenCode.make({ baseUrl: data.url,
+                                                                                                                     headers: data.auth ? { authorization: data.auth } : undefined })
+                                                                                            buf.vars('code').client = client
+                                                                                            buf.vars('code').serverUrl = data.url
+                                                                                            buf.vars('code').containerID = data.containerID
+                                                                                            buf.vars('code').spawnedBufferID = buf.id
+                                                                                            Ui.updateDocker(buf)
+                                                                                            buf.vars('code').spawnPromise = 0
+                                                                                            resolve(client)
+                                                                                          }
+                                                                                        })
                              })
 
   buf.vars('code').spawnPromise = spawnPromise

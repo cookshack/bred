@@ -1,4 +1,4 @@
-import { append, divCl, img, span } from '../../js/dom.mjs'
+import { append, create, divCl, img, span } from '../../js/dom.mjs'
 import * as Css from '../../js/css.mjs'
 import * as Ed from '../../js/ed.mjs'
 import * as Icon from '../../js/icon.mjs'
@@ -57,7 +57,8 @@ function divW
                                          divCl('code-under code-under-version', ''),
                                          divCl('code-under code-under-tokens', '') ]) ]) ]),
                  divCl('code-prompt-w retracted',
-                       [ divCl('code-prompt-ml',
+                       [ divCl('code-prompt-mounts'),
+                         divCl('code-prompt-ml',
                                [ divCl('code-prompt-model onfill', '', { 'data-run': 'set code model' }),
                                  span('↵', 'code-submit onfill', { 'data-run': 'code submit' }) ]),
                          divCl('code-prompt-scroll',
@@ -256,6 +257,69 @@ function updateUsage
                                             if (current)
                                               el.dataset.hover = Util.usageHover(current, Date.now())
                                           }
+                      }
+                    })
+}
+
+// Mounts for the first prompt. Real checkboxes, with mousedown cancelled so
+// clicking one does not take focus from the prompt editor (bred's key handler
+// prevents every keydown, so a focused checkbox would block typing).
+export
+function updateMounts
+(buf, candidates) {
+  let locked, mounts
+
+  function toggle
+  (c, checked) {
+    if (checked) {
+      if (mounts.includes(c.path) == 0)
+        mounts.push(c.path)
+    }
+    else {
+      let i
+
+      i = mounts.indexOf(c.path)
+      if (i >= 0)
+        mounts.splice(i, 1)
+    }
+    updateMounts(buf, candidates)
+  }
+
+  locked = buf.vars('code').mountsLocked
+  mounts = buf.vars('code').mounts || []
+
+  buf.views.forEach(view => {
+                      let el
+
+                      el = view.eleOrReserved?.querySelector('.code-prompt-mounts')
+                      if (el) {
+                        let parts
+
+                        parts = []
+                        el.innerText = ''
+                        if (candidates?.length) {
+                          candidates.forEach(c => {
+                                               let input, label
+
+                                               input = create('input', [],
+                                                              'code-prompt-mount-check',
+                                                              { type: 'checkbox' })
+                                               input.checked = mounts.includes(c.path) ? 1 : 0
+                                               if (locked)
+                                                 input.disabled = 1
+                                               else
+                                                 input.onchange = () => toggle(c, input.checked)
+                                               label = create('label',
+                                                              [ input,
+                                                                ' ' + c.label + (c.ro ? ' (ro)' : '') ],
+                                                              'code-prompt-mount')
+                                               label.onmousedown = e => e.preventDefault()
+                                               parts.push(label)
+                                             })
+                          if (locked)
+                            parts.push(span('(fixed)', 'code-prompt-mount-fixed'))
+                        }
+                        append(el, parts)
                       }
                     })
 }

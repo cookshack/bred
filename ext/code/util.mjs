@@ -91,7 +91,7 @@ function promptBlocked
     return 'Permission check pending'
   if (buf.vars('code').questions?.length)
     return 'Question pending'
-  if (buf.vars('code').sessionID) {
+  if (buf.vars('code').sessionID || buf.vars('code').deferSpawn) {
     // ok
   }
   else

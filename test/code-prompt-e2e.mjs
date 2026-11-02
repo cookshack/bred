@@ -152,27 +152,16 @@ test('viewCopy', 'expanding the copied prompt shows no leftover',
 
 test('startup', 'burying before the prompt appears still yields a usable prompt',
      async () => {
-       let create, fake, orig, panes, resolveCreate, started
+       let orig, panes, started
 
        function patchedSetBuf
        (b, spec, cb) {
-         if (b?.mode?.key == 'code') {
-           b.vars('code').client = fake
+         if (b?.mode?.key == 'code')
            started = b
-         }
          return orig(b, spec, cb)
        }
 
        ({ panes } = await setupStart())
-
-       create = new Promise(r => resolveCreate = r)
-       fake = Fake.make({ responses: { 'session.create': () => create,
-                                       'session.update': {},
-                                       'session.command': {},
-                                       'session.interrupt': {},
-                                       'session.switchAgent': {},
-                                       'session.switchModel': {},
-                                       'session.prompt': {} } })
 
        orig = panes.pB.setBuf.bind(panes.pB)
        panes.pB.setBuf = patchedSetBuf
@@ -180,18 +169,16 @@ test('startup', 'burying before the prompt appears still yields a usable prompt'
          Cmd.run('code')
          await waitFor(() => started && started.views[0]?.ele)
 
-         // bury while session.create is still in flight
+         // bury before the prompt has been answered
          await setBuf(panes.pB, fileBuf('x.txt'))
          equal(started.views[0].ele, undefined, 'code view must be closed while buried')
-
-         resolveCreate({ id: 'ses1', time: { created: Date.now() } })
-         await wait(50)
-         equal(started.vars('code').sessionID, 'ses1', 'session must be created')
 
          // returning to the buffer must show a usable prompt
          await setBuf(panes.pB, started)
          await wait(50)
 
+         equal(started.vars('code').deferSpawn, 1, 'the spawn waits for the first prompt')
+         equal(started.vars('code').sessionID, undefined, 'no session before the first prompt')
          equal(started.vars('code').promptBuf?.views.length >= 1,
                true,
                'prompt view must be nested after reopening')

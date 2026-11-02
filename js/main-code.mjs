@@ -1,4 +1,5 @@
 import * as Server from './main-code-server.mjs'
+import * as Mounts from './code-mounts.mjs'
 import Database from 'better-sqlite3'
 import Path from 'node:path'
 import fs from 'node:fs'
@@ -24,7 +25,7 @@ function basicAuth
 export
 async function onSpawn
 (e, ch, args) {
-  let [ bufferID, workingDir, statusCh ] = args
+  let [ bufferID, workingDir, statusCh, mounts ] = args
   let external, name
 
   external = process.env.BRED_OC_SERVER_URL
@@ -41,6 +42,7 @@ async function onSpawn
     server = await Server.create({ hostname: '127.0.0.1',
                                    bufferID,
                                    workingDir,
+                                   mounts,
                                    send: msg => e.sender.send(statusCh, msg),
                                    config: { websearch: { provider: 'exa' },
                                              permission: { external_directory: 'allow',
@@ -166,6 +168,14 @@ async function onUsage
   catch (err) {
     return { err: err.message }
   }
+}
+
+export
+function onMounts
+(e, args) {
+  let [ workingDir ] = args
+
+  return Mounts.candidateList(workingDir)
 }
 
 export

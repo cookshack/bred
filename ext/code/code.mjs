@@ -269,6 +269,33 @@ function refreshGoatUsage
   }
 }
 
+// The candidate mount list is fetched once per buffer. The checkboxes only
+// matter before the server starts; afterwards they are frozen in the ui.
+function refreshMounts
+(buf) {
+  if (buf.vars('code').deferSpawn) {
+    let list
+
+    list = buf.vars('code').mountCandidates
+    if (list) {
+      Ui.updateMounts(buf, list)
+      return
+    }
+    Tron.acmd('code.mounts', [ buf.dir ]).then(candidates => {
+                                                 if (buf.vars('code').deferSpawn == 0)
+                                                   return
+                                                 if (Array.isArray(candidates) == 0)
+                                                   return
+                                                 buf.vars('code').mountCandidates = candidates
+                                                 if (buf.vars('code').mounts == null)
+                                                   buf.vars('code').mounts = candidates.map(c => c.path)
+                                                 Ui.updateMounts(buf, candidates)
+                                               }).catch(err => d('CO mounts: ' + err.message))
+  }
+  else
+    Ui.updateMounts(buf, 0)
+}
+
 function fileLabel
 (buf, tool, path, status, spec) {
   function bounds
@@ -464,7 +491,13 @@ function updateStatus
 
 function updateModelContextLimit
 (buf, providerID, modelID) {
-  let lastProviderID, lastModelID
+  let client, lastProviderID, lastModelID
+
+  // Do not spawn a deferred buffer just to size its context. send() calls this
+  // again once the client exists.
+  client = buf.vars('code').client
+  if (client?.model?.list == null)
+    return
 
   lastProviderID = buf.vars('code').lastProviderID
   lastModelID = buf.vars('code').lastModelID
@@ -476,28 +509,24 @@ function updateModelContextLimit
 
   buf.vars('code').lastProviderID = providerID
   buf.vars('code').lastModelID = modelID
-  Comm.ensureClient(buf).then(async c => {
-                                try {
-                                  let models, model
+  client.model.list({ location: { directory: Util.apiDir(buf) } }).then(models => {
+                                                                          let model
 
-                                  models = await c.model.list({ location: { directory: Util.apiDir(buf) } })
-                                  models.data?.some(m => {
-                                                      if (m.providerID == providerID && m.modelID == modelID) {
-                                                        model = m
-                                                        return true
-                                                      }
-                                                    })
-                                  if (model?.limit?.context) {
-                                    d('CO modelContextLimit ' + model.limit.context)
-                                    buf.vars('code').modelContextLimit = model.limit.context
-                                  }
-                                  else
-                                    d('CO modelContextLimit missing')
-                                }
-                                catch (err) {
-                                  d('CO failed to get providers: ' + err.message)
-                                }
-                              })
+                                                                          models.data?.some(m => {
+                                                                                              if (m.providerID == providerID && m.modelID == modelID) {
+                                                                                                model = m
+                                                                                                return true
+                                                                                              }
+                                                                                            })
+                                                                          if (model?.limit?.context) {
+                                                                            d('CO modelContextLimit ' + model.limit.context)
+                                                                            buf.vars('code').modelContextLimit = model.limit.context
+                                                                          }
+                                                                          else
+                                                                            d('CO modelContextLimit missing')
+                                                                        }).catch(err => {
+                                                                                   d('CO failed to get providers: ' + err.message)
+                                                                                 })
 }
 
 function checkForPatch
@@ -1087,28 +1116,44 @@ async function resolveVariant
 
 function send
 (buf, text, provider, model, variant) {
-  let sessionID
+  let agent, tmpID
 
   buf.vars('code').firstPromptSent = 1
+  buf.vars('code').agentStopped = 0
+  buf.vars('code').busy = 1
+  buf.vars('code').gotContent = 0
   updateNav(buf)
 
   provider = provider || Util.getProvider(buf)
   model = model || Util.getModel(buf)
   variant = variant || Util.getVariant(buf)
 
-  sessionID = buf.vars('code').sessionID
+  agent = Util.getAgent(buf)
+  tmpID = 'tmp_' + uuidv4()
+
+  if (buf.vars('code').client == null)
+    Ui.appendMsg(buf, 0, 'Spawning docker...')
+  Ui.appendMsg(buf, 'user', text, undefined, undefined, { agent, messageID: tmpID })
 
   Comm.ensureClient(buf).then(async c => {
-                                let agent, res, tmpID
+                                let res, sessionID
 
-                                buf.vars('code').agentStopped = 0
-                                buf.vars('code').busy = 1
-                                buf.vars('code').gotContent = 0
+                                updateModelContextLimit(buf, provider, model)
 
-                                agent = Util.getAgent(buf)
-
-                                tmpID = 'tmp_' + uuidv4()
-                                Ui.appendMsg(buf, 'user', text, undefined, undefined, { agent, messageID: tmpID })
+                                // A promptless start defers both the container
+                                // and its session until the first prompt, so
+                                // the chosen mounts can still apply.
+                                sessionID = buf.vars('code').sessionID
+                                if (sessionID == null) {
+                                  Ui.appendMsg(buf, 0, 'Creating session...')
+                                  res = await c.session.create({ location: { directory: Util.apiDir(buf) },
+                                                                 title: text || ('New session - ' + new Date().toISOString()) })
+                                  sessionID = res.id
+                                  buf.vars('code').sessionID = sessionID
+                                  buf.vars('code').sessionStart = res.time?.created
+                                  buf.vars('code').deferSpawn = 0
+                                  buf.vars('code').startupPending = 0
+                                }
 
                                 Ev.startSub(buf, events)
 
@@ -1138,6 +1183,7 @@ function send
                               }).catch(err => {
                                          d(err)
                                          Ui.appendMsg(buf, 'assistant', 'Error: ' + (err.message || JSON.stringify(err)))
+                                         buf.vars('code').busy = 0
                                          buf.vars('code').client = 0
                                          buf.vars('code').streamActive = 0
                                          Ev.startSub(buf, events)
@@ -1554,6 +1600,7 @@ function openPrompt
   let wh
 
   updateModelContextLimit(buf, provider, model)
+  refreshMounts(buf)
   Mess.yell('')
   wh = whichHistFromBuf(buf)
   buf.vars('code').promptBuf.placeholder = wh?.nth(0)?.toString()
@@ -1597,9 +1644,8 @@ function liveView
 }
 
 // Startup work that needs a live view: nest the prompt buffer and, for a
-// promptless start, open it. If the buf was buried while the session was being
-// created there is no live view, so leave startupPending set and let viewInit /
-// viewReopen finish the job when the buf is shown again.
+// promptless start, open it. A deferred start keeps startupPending set until
+// the first send, so burying and reopening the buf shows the prompt again.
 function finishStartup
 (buf) {
   let pending, view
@@ -1610,10 +1656,9 @@ function finishStartup
   view = liveView(buf)
   if (view == null)
     return
-  buf.vars('code').startupPending = 0
   Prompt.nestBuf(buf, hist)
   if (pending.open)
-    openPrompt(buf, Pane.holdingView(view), pending.provider, pending.model, pending.variant)
+    openPrompt(buf, Pane.holdingView(view), Util.getProvider(buf), Util.getModel(buf), Util.getVariant(buf))
 }
 
 function next
@@ -1656,32 +1701,15 @@ function code
     buf.opt('core.lint.enabled', 1)
 
     pane.setBuf(buf, {}, () => {
-                           Ui.appendMsg(buf, 0, 'Spawning docker...')
-                           Comm.ensureClient(buf).then(async c => {
-                                                         let res
-
-                                                         Ui.appendMsg(buf, 0, 'Creating session...')
-                                                         res = await c.session.create({ location: { directory: Util.apiDir(buf) },
-                                                                                        title: prompt || ('New session - ' + new Date().toISOString()) })
-
-                                                         buf.vars('code').sessionID = res.id
-                                                         buf.vars('code').sessionStart = res.time?.created
-                                                         buf.vars('code').startupPending = { provider,
-                                                                                             model,
-                                                                                             variant,
-                                                                                             open: prompt ? 0 : 1 }
-
-                                                         Ui.updateDocker(buf)
-                                                         Ui.appendMsg(buf, 0, 'Ready for prompt.')
-                                                         // The buf may have been buried while the session was
-                                                         // created, closing its view. Nests/opens the prompt when a
-                                                         // live view is available (now or on reopen).
-                                                         finishStartup(buf)
-                                                         if (prompt)
-                                                           send(buf, prompt, provider, model, variant)
-                                                       }).catch(err => {
-                                                                  Mess.yell('Failed: ' + err.message)
-                                                                })
+                           if (prompt)
+                             send(buf, prompt, provider, model, variant)
+                           else {
+                             // No session or container until the first prompt,
+                             // so the mount checkboxes can still be changed.
+                             buf.vars('code').deferSpawn = 1
+                             buf.vars('code').startupPending = { open: 1 }
+                             finishStartup(buf)
+                           }
                          })
   }
 
@@ -1699,6 +1727,7 @@ function code
       pane.setBuf(buf)
       updateModelContextLimit(buf, Util.getProvider(buf), Util.getModel(buf))
       refreshGoatUsage(buf)
+      refreshMounts(buf)
       if (provider == 'openrouter' || provider == 'deepinfra')
         updateCredits(buf, provider)
       return

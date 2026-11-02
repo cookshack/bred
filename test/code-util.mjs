@@ -267,6 +267,14 @@ test('promptBlocked', 'missing session',
              'ERR session missing')
      })
 
+test('promptBlocked', 'deferred spawn allows the first prompt',
+     () => {
+       equal(CodeUtil.promptBlocked(bufFor({ code: { deferSpawn: 1,
+                                                     provider: 'goat',
+                                                     model: 'm' } })),
+             undefined)
+     })
+
 test('apiDir', 'strips a trailing slash but keeps root',
      () => {
        equal(CodeUtil.apiDir({ dir: '/a/b/' }), '/a/b')

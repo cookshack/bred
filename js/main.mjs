@@ -271,6 +271,9 @@ async function onAcmd
   if (name == 'code.usage')
     return Code.onUsage(e, args)
 
+  if (name == 'code.mounts')
+    return Code.onMounts(e, args)
+
   if (name == 'browse.back')
     return Browse.onBack(e, args)
 

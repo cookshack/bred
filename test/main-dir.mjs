@@ -165,6 +165,33 @@ test('onWatch', 'reports a new directory',
        equal(got.bak, false)
      })
 
+// Bred's own log lives in an IPC handler, so listening to it would refresh the
+// dir, log again, and never settle.
+test('onWatch', 'ignores the log file',
+     async () => {
+       let log, sibling
+
+       log = Path.join(tmp, 'bred.log')
+       sibling = Path.join(tmp, 'other.txt')
+       MainDir.setLogFile(log)
+       try {
+         let e
+
+         e = fakeE()
+         MainDir.onWatch(e, 'ch', [ tmp ])
+         Fs.writeFileSync(log, 'x')
+         await new Promise(r => setTimeout(r, 300))
+         equal(sends.length, 0, 'must not report the log file')
+
+         Fs.writeFileSync(sibling, 'x')
+         await waitSend()
+         equal(lastSend().name, 'other.txt', 'reports everything else')
+       }
+       finally {
+         MainDir.setLogFile()
+       }
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

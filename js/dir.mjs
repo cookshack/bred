@@ -150,7 +150,7 @@ function put
 
 export
 function selectFile
-(v, name) {
+(v, name, skipScroll) {
   let root
 
   root = v.eleOrReserved || v.ele
@@ -160,7 +160,7 @@ function selectFile
     els = root.querySelectorAll('.dir-name')
     for (let i = 0; i < els.length; i++)
       if (els[i].dataset.name == name) {
-        put(v, els[i])
+        put(v, els[i], skipScroll)
         return 1
       }
   }
@@ -339,8 +339,8 @@ function redraw
 }
 
 function fill
-(buf, bak, hid, sort, current, marked) {
-  let path
+(buf, bak, hid, sort, current, marked, keepScroll) {
+  let path, seq
 
   function makeF
   (f) {
@@ -458,10 +458,21 @@ function fill
     sort = 'size-asc'
 
   path = path.expand()
+  seq = (buf.vars('dir').fillSeq || 0) + 1
+  buf.vars('dir').fillSeq = seq
   Tron.cmd('dir.get', path, (err, data) => {
-                              let co, lines, vars, fileCount, dirCount
+                              let co, lines, vars, fileCount, dirCount, stale
+
+                              // a newer fill was started while this one was in
+                              // flight, so this data is stale
+                              stale = (seq == buf.vars('dir').fillSeq) ? 0 : 1
+                              if (stale) {
+                                d('DIR fill stale')
+                                return
+                              }
 
                               if (err) {
+                                buf.vars('dir').refreshing = 0
                                 Mess.yell('Dir.fill: ' + err.message)
                                 return
                               }
@@ -547,13 +558,13 @@ function fill
 
                                                     if (surf && connected) {
                                                       if (current)
-                                                        selectFile(v, current)
+                                                        selectFile(v, current, keepScroll)
                                                       else {
                                                         let first
 
                                                         first = v.eleOrReserved.querySelector('.dir-name')
                                                         if (first)
-                                                          put(v, first)
+                                                          put(v, first, keepScroll)
                                                       }
                                                       buf.vars('dir').initialFile = 0
                                                     }
@@ -561,15 +572,56 @@ function fill
                                                 })
 
                               vars.refreshing = 0
-                              if (vars.pendingRefresh?.length) {
+                              if (vars.pendingRefresh) {
                                 let pending
 
-                                pending = vars.pendingRefresh[0]
-                                vars.pendingRefresh = vars.pendingRefresh.slice(1)
+                                pending = vars.pendingRefresh
+                                vars.pendingRefresh = 0
                                 d('DIR fill pending refresh')
-                                refresh(pending.p, pending.bak, pending.hid, pending.sort, pending.marked, pending.file)
+                                refresh(pending.p, pending.bak, pending.hid, pending.sort, pending.marked, pending.file, pending.keepScroll)
                               }
                             })
+}
+
+// A burst of fs events (eg a log file being appended) would otherwise refetch
+// and rebuild the listing on every event, which makes the dir flash. Coalesce
+// the events and refresh at most once per window.
+function watchEvent
+(path, w, data) {
+  let added
+
+  added = 0
+  Pane.forEach(pane => {
+                 if (pane.buf
+        && (pane.buf.mode?.key == 'dir')
+        && (pane.buf.path == path)) {
+                   if (data.bak
+                        && (pane.buf.opt('dir.show.backups') == 0))
+                     return
+                   if (data.hidden
+                        && (pane.buf.opt('dir.show.hidden') == 0))
+                     return
+                   w.dirty.add(pane)
+                   added = 1
+                 }
+               })
+  if (added)
+    w.throttle()
+}
+
+// The file to keep the point on is looked up when the refresh runs, since the
+// point may have moved while the events were coalescing.
+function watchRefresh
+(path, w) {
+  let panes
+
+  panes = [ ...w.dirty ]
+  w.dirty.clear()
+  panes.forEach(pane => {
+                  if ((pane.buf?.mode?.key == 'dir')
+                        && (pane.buf.path == path))
+                    refreshKeep(pane, { keepScroll: 1 })
+                })
 }
 
 function watch
@@ -577,7 +629,7 @@ function watch
   if (watching.has(path))
     return
   Tron.cmd1('dir.watch', [ path ], (err, ch) => {
-                                     let off
+                                     let w
 
                                      if (err) {
                                        Mess.log('watch failed on ' + path)
@@ -585,57 +637,30 @@ function watch
                                        return
                                      }
 
-                                     off = Tron.on(ch, (err2, data) => {
-                                                         let getFile
-
-                                                         // NB Beware of doing anything in here that modifies any dir being watched,
-                                                         //    eg logging in dir.get when --logfile, because that causes recursive
-                                                         //    behaviour.
-                                                         d('DIR 👀 watch ev')
-                                                         d({ data })
-                                                         getFile = 1
-                                                         Pane.forEach(pane => {
-                                                                        if (pane.buf
-            && (pane.buf.mode?.key == 'dir')
-            && (pane.buf.path == path)) {
-                                                                          let file
-
-                                                                          if (pane.buf.vars('dir').refreshing) {
-                                                                            // it's likely that the refresh that's in progress covers the change.
-                                                                            // Also currentFile() could be wrong if the refresh in progress has
-                                                                            // cleared the buf content.
-                                                                            d('DIR watch skip')
-                                                                            return
-                                                                          }
-                                                                          file = getFile && currentFile(pane)
-                                                                          console.log('DIR FILE: ' + file)
-                                                                          getFile = 0
-                                                                          if (data.bak) {
-                                                                            if (pane.buf.opt('dir.show.backups'))
-                                                                              refreshKeep(pane, { file })
-                                                                            return
-                                                                          }
-                                                                          if (data.hidden) {
-                                                                            if (pane.buf.opt('dir.show.hidden'))
-                                                                              refreshKeep(pane, { file })
-                                                                            return
-                                                                          }
-                                                                          refreshKeep(pane, { file })
-                                                                        }
-                                                                      })
-                                                       })
-
-                                     watching.set(path, off)
+                                     w = { dirty: new Set(),
+                                           off: 0,
+                                           throttle: U.throttle(() => watchRefresh(path, w), 300) }
+                                     w.off = Tron.on(ch, (err2, data) => {
+                                                           // NB Beware of doing anything in here that modifies any dir
+                                                           //    being watched, eg logging in dir.get when --logfile,
+                                                           //    because that causes recursive behaviour.
+                                                           if (err2)
+                                                             return
+                                                           watchEvent(path, w, data)
+                                                         })
+                                     watching.set(path, w)
                                    })
 }
 
 function stopWatching
 (path) {
-  let off
+  let w
 
-  off = watching.get(path)
-  if (off)
-    off()
+  w = watching.get(path)
+  if (w) {
+    w.throttle.cancel()
+    w.off()
+  }
   watching.delete(path)
 }
 
@@ -698,7 +723,7 @@ function up
 }
 
 function refresh
-(p, bak, hid, sort, marked, file) {
+(p, bak, hid, sort, marked, file, keepScroll) {
   let vars
 
   d('DIR refresh')
@@ -707,8 +732,8 @@ function refresh
 
   if (vars.refreshing) {
     d('DIR refresh pend')
-    vars.pendingRefresh = vars.pendingRefresh || []
-    vars.pendingRefresh.push({ p, bak, hid, sort, marked, file })
+    // only the newest request matters
+    vars.pendingRefresh = { p, bak, hid, sort, marked, file, keepScroll }
     return
   }
 
@@ -717,16 +742,10 @@ function refresh
   vars.refreshing = 1
 
   if (p.dir && p.buf.file) {
-    file = p.buf.vars('dir').initialFile || file || currentFile() // must run before clear
-    // Clear it before the async file.get so that it flashes
-    if (p.view.ele) {
-      let surf
-
-      surf = p.view.ele.querySelector('.dir-w')
-      if (surf)
-        surf.innerHTML = ''
-    }
-    fill(p.buf, bak, hid, sort, file, marked)
+    // the listing is replaced after file.get returns, so look the point up
+    // while the old rows are still in the DOM
+    file = p.buf.vars('dir').initialFile || file || currentFile(p)
+    fill(p.buf, bak, hid, sort, file, marked, keepScroll)
   }
   else
     Mess.yell('Missing dir/file')
@@ -734,7 +753,7 @@ function refresh
 
 export
 function refreshKeep
-(p, spec) { // { bak, hid, sort, file }
+(p, spec) { // { bak, hid, sort, file, keepScroll }
   let marked
 
   spec = spec || {}
@@ -743,7 +762,7 @@ function refreshKeep
   spec.sort = spec.sort ?? p.buf.opt('dir.sort')
 
   marked = DirCommon.getMarked(p.buf)
-  refresh(p, spec.bak, spec.hid, spec.sort, marked, spec.file)
+  refresh(p, spec.bak, spec.hid, spec.sort, marked, spec.file, spec.keepScroll)
 }
 
 function sortBy

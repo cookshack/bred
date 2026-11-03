@@ -1312,6 +1312,7 @@ async function whenReady
     let file
 
     d('logging to ' + options.logfile)
+    Dir.setLogFile(options.logfile)
     fs.mkdirSync(Path.dirname(options.logfile),
                  { recursive: true,
                    mode: 0o777 }) // drwxrwxrwx

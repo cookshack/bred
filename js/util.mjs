@@ -253,6 +253,50 @@ function formatDate
   return formatDateMonthDay(date, tz) + ', ' + formatTime(date, tz, timeFormat)
 }
 
+// Run fn at most once per ms. The first call runs on the next tick; calls made
+// while waiting are coalesced into one trailing call with the latest args.
+export
+function throttle
+(fn, ms) {
+  let timer, last, args
+
+  function run
+  () {
+    let a
+
+    timer = 0
+    a = args
+    args = 0
+    if (a) {
+      last = Date.now()
+      fn(...a)
+    }
+  }
+
+  function throttled
+  (...a) {
+    let wait
+
+    args = a
+    if (timer)
+      return
+    if (last == undefined)
+      wait = 0
+    else
+      wait = ms - (Date.now() - last)
+    timer = setTimeout(run, (wait > 0) ? wait : 0)
+  }
+
+  throttled.cancel = () => {
+                       if (timer)
+                         clearTimeout(timer)
+                       timer = 0
+                       args = 0
+                     }
+
+  return throttled
+}
+
 export
 function toss
 (msg) {

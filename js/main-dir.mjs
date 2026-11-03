@@ -4,6 +4,16 @@ import Fs from 'node:fs'
 import Path from 'node:path'
 import { spawn } from 'node:child_process'
 
+let logFile
+
+// Bred logs through IPC, so if the log file lives in a watched dir every log
+// line would trigger a refresh, which logs again. Ignore events for it.
+export
+function setLogFile
+(path) {
+  logFile = path ? Path.resolve(path) : undefined
+}
+
 // ASYNC: file system - read directory contents (blocking I/O)
 export
 function onGet
@@ -200,6 +210,8 @@ function onWatch
       // Some events (eg the watched dir going away) have no filename; treat
       // them as a plain change rather than throwing and closing the watcher.
       name = name ? String(name) : ''
+      if (logFile && (Path.resolve(path, name) == logFile))
+        return
       e.sender.send(ch,
                     { type,
                       bak: name.endsWith('~'),

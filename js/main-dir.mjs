@@ -4,14 +4,29 @@ import Fs from 'node:fs'
 import Path from 'node:path'
 import { spawn } from 'node:child_process'
 
-let logFile
+let logName, logDirId
 
-// Bred logs through IPC, so if the log file lives in a watched dir every log
-// line would trigger a refresh, which logs again. Ignore events for it.
+function fileId
+(path) {
+  let st
+
+  st = Fs.statSync(path, { throwIfNoEntry: false })
+  if (st)
+    return st.dev + ':' + st.ino
+}
+
+// Bred logs through IPC (or a redirected stdout), so if the log file lives in
+// a watched dir every log line would trigger a refresh, which logs again.
+// Ignore events for it.
 export
 function setLogFile
 (path) {
-  logFile = path ? Path.resolve(path) : undefined
+  let file
+
+  file = path ? Path.resolve(path) : undefined
+  logName = file && Path.basename(file)
+  // compare dirs by inode, so a symlinked path to the same dir still matches
+  logDirId = file && fileId(Path.dirname(file))
 }
 
 // ASYNC: file system - read directory contents (blocking I/O)
@@ -210,7 +225,8 @@ function onWatch
       // Some events (eg the watched dir going away) have no filename; treat
       // them as a plain change rather than throwing and closing the watcher.
       name = name ? String(name) : ''
-      if (logFile && (Path.resolve(path, name) == logFile))
+      if ((name == logName)
+          && (fileId(path) == logDirId))
         return
       e.sender.send(ch,
                     { type,

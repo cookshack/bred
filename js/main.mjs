@@ -30,7 +30,7 @@ import Util from 'node:util'
 import { spawn, spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
 
-let version, options, dirUserData, shell, lastClipWrite, _win, mainStart, logWindow, logBuffer, platformHint
+let version, options, dirUserData, shell, lastClipWrite, _win, mainStart, logWindow, logBuffer, platformHint, logFile
 
 function onUncaughtException
 (err) {
@@ -513,6 +513,25 @@ function onCmdCh
   return ch
 }
 
+// Where our log ends up, if anywhere: --logfile, or stdout redirected into a
+// file by the shell. The dir watcher ignores events for it so logging while a
+// dir is being refreshed can't keep triggering more refreshes.
+function findLogFile
+() {
+  if (options.logfile)
+    return options.logfile
+  try {
+    let target, st
+
+    target = fs.readlinkSync('/proc/self/fd/1')
+    st = fs.statSync(target)
+    if (st.isFile())
+      return target
+  }
+  catch {
+  }
+}
+
 async function onCmd
 (e, name, args) {
   let ret, ch
@@ -521,7 +540,7 @@ async function onCmd
   onCmdCount++
   onCmdCount = Math.min(onCmdCount, 1000000)
 
-  if ((name == 'dir.get') && options.logfile) {
+  if ((name == 'dir.get') && logFile) {
     // Skip because the dir watch handler calls dir.get, so this would cause recursive behaviour.
   }
   else
@@ -529,7 +548,7 @@ async function onCmd
 
   ret = onCmdCh(ch, e, name, args)
 
-  if ((name == 'dir.get') && options.logfile) {
+  if ((name == 'dir.get') && logFile) {
   }
   else
     d(ch + ': ' + name + ': done')
@@ -1308,11 +1327,14 @@ async function whenReady
   }
   d('timing: profile.init: ' + Math.round(performance.now() - profileStart) + 'ms')
 
+  logFile = findLogFile()
+  if (logFile)
+    Dir.setLogFile(logFile)
+
   if (options.logfile) {
     let file
 
     d('logging to ' + options.logfile)
-    Dir.setLogFile(options.logfile)
     fs.mkdirSync(Path.dirname(options.logfile),
                  { recursive: true,
                    mode: 0o777 }) // drwxrwxrwx

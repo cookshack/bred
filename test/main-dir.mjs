@@ -192,6 +192,28 @@ test('onWatch', 'ignores the log file',
        }
      })
 
+test('onWatch', 'ignores the log file watched through a symlinked dir',
+     async () => {
+       let link, log
+
+       log = Path.join(tmp, 'bred.log')
+       link = Path.join(tmp, 'link')
+       Fs.symlinkSync(tmp, link)
+       MainDir.setLogFile(log)
+       try {
+         let e
+
+         e = fakeE()
+         MainDir.onWatch(e, 'ch', [ link ])
+         Fs.writeFileSync(log, 'x')
+         await new Promise(r => setTimeout(r, 300))
+         equal(sends.length, 0, 'must match the log dir by inode')
+       }
+       finally {
+         MainDir.setLogFile()
+       }
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

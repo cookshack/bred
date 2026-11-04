@@ -1500,7 +1500,7 @@ function promptAgent
 
   buf = Pane.current().buf
   Prompt.choose(Util.iconAgent() + ' Agent',
-                [ 'build', 'plan' ],
+                [ 'build', 'planner' ],
                 {},
                 agent => {
                   if (agent) {
@@ -2642,7 +2642,7 @@ function init
 
   mostRecentAgents = []
 
-  Opt.declare('code.agent', 'str', 'plan')
+  Opt.declare('code.agent', 'str', 'planner')
   Opt.declare('code.model.agent', 'str', 'deepseek/deepseek-v4.1-flash')
   Opt.declare('code.provider.agent', 'str', 'goat')
   Opt.declare('code.variant.agent', 'str', '')
@@ -2702,7 +2702,7 @@ function init
   Em.on('Backspace', 'scroll up', mo)
   Em.on(' ', 'scroll down', mo)
   Em.on('b', 'set agent build', mo)
-  Em.on('p', 'set agent plan', mo)
+  Em.on('p', 'set agent planner', mo)
   Em.on('q', 'bury', mo)
   Em.on('s', 'skip question or stop', mo)
   Em.on('t', 'toggle thinking', mo)
@@ -2713,7 +2713,7 @@ function init
   Cmd.add('cancel prompt or cancel', () => codeCancel(), mo)
 
   Cmd.add('set agent', () => promptAgent(), mo)
-  Cmd.add('set agent plan', () => setAgent(Pane.current().buf, 'plan'), mo)
+  Cmd.add('set agent planner', () => setAgent(Pane.current().buf, 'planner'), mo)
   Cmd.add('set agent build', () => setAgent(Pane.current().buf, 'build'), mo)
 
   Cmd.add('set code model', () => listModels(), mo)

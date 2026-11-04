@@ -555,6 +555,65 @@ test('send', 'the user message takes the message id the server gives it',
        }
      })
 
+test('execute', 'shows the code and nested call count',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-exec', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let el, label
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await waitFor(() => created.vars('code').sessionID)
+
+         fake.push(Fake.event('session.tool.called', { id: 'call-exec',
+                                                       sessionID: 'ses-exec',
+                                                       assistantMessageID: 'm1',
+                                                       name: 'execute',
+                                                       input: { code: 'return 1' },
+                                                       metadata: {} }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-exec"] .code-code-ed'))
+         el = created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-exec"]')
+         label = el.querySelector('.code-msg-label')
+         equal(label.innerText, 'Execute')
+
+         fake.push(Fake.event('session.tool.progress', { id: 'call-exec',
+                                                         sessionID: 'ses-exec',
+                                                         assistantMessageID: 'm1',
+                                                         name: 'execute',
+                                                         metadata: { toolCalls: [ { tool: 'read', status: 'completed' } ] } }))
+         await waitFor(() => label.innerText == 'Execute (1 call)')
+
+         fake.push(Fake.event('session.tool.success', { id: 'call-exec',
+                                                        sessionID: 'ses-exec',
+                                                        assistantMessageID: 'm1',
+                                                        name: 'execute',
+                                                        content: [ { type: 'text', text: '1' } ],
+                                                        metadata: { toolCalls: [ { tool: 'read', status: 'completed' } ] } }))
+         await waitFor(() => label.innerText == 'Execute (1 call) ✔️')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
 test('subagent', 'task prompt is always shown, result follows it',
      async () => {
        let created, fake, orig, panes, prompt

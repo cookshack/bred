@@ -585,7 +585,7 @@ function appendToolMsg
                                       [ divCl('code-msg-text',
                                               [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : Util.iconRightArrow()),
                                                 ' ',
-                                                label ]),
+                                                span(label, 'code-msg-label') ]),
                                         alwaysEl,
                                         underEl ],
                                       { 'data-callid': callID,
@@ -614,6 +614,26 @@ function appendToolMsg
                             }
                           }
                         })
+}
+
+// Update just the label of an existing tool message, leaving its details (and
+// their codemirror) alone. Used by execute, whose nested call count streams.
+export
+function updateToolLabel
+(buf, callID, label) {
+  Util.eachCodeW(buf, (view, w) => {
+                        let el
+
+                        el = w.querySelector('.code-msg-tool[data-callid="' + callID + '"] .code-msg-label')
+                        if (el)
+                          el.innerText = label
+                      })
+}
+
+export
+function toolHasCode
+(buf, callID) {
+  return buf.views.some(view => Boolean(view.eleOrReserved?.querySelector('.code-msg-tool[data-callid="' + callID + '"] .code-code-ed')))
 }
 
 export

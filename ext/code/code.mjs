@@ -2183,7 +2183,55 @@ function init
 () {
   let mo, moCodePrompt
 
-  tools = { read: { onPendOrRun
+  function executeLabel
+  (part) {
+    let calls, n
+
+    calls = part.state?.metadata?.toolCalls
+    n = Array.isArray(calls) ? calls.length : 0
+    return 'Execute' + (n ? (' (' + n + (n == 1 ? ' call' : ' calls') + ')') : '')
+  }
+
+  tools = { execute: { onPendOrRun
+                       (buf, part) {
+                         let label, snippet
+
+                         snippet = part.state?.input?.code
+                         label = executeLabel(part)
+                         if (snippet && (Ui.toolHasCode(buf, part.callID) == 0))
+                           Ui.appendToolMsg(buf, part.callID, label, snippet, { format: 'code', path: 'execute.mjs' })
+                         else if (snippet)
+                           Ui.updateToolLabel(buf, part.callID, label)
+                         else
+                           Ui.appendToolMsg(buf, part.callID, label)
+                       },
+                       onComplete
+                       (buf, part) {
+                         let label, snippet
+
+                         snippet = part.state?.input?.code
+                         label = executeLabel(part) + (part.state.metadata?.error ? ' ✘' : ' ✔️')
+                         if (snippet && Ui.toolHasCode(buf, part.callID))
+                           Ui.updateToolLabel(buf, part.callID, label)
+                         else
+                           Ui.appendToolMsg(buf, part.callID, label, snippet, { format: 'code', path: 'execute.mjs' })
+                         if (part.state.metadata?.error && part.state.output)
+                           Ui.appendMsg(buf, 0, part.state.output, part.id)
+                       },
+                       onErr
+                       (buf, part) {
+                         let label, snippet
+
+                         snippet = part.state?.input?.code
+                         label = executeLabel(part) + ' ✘'
+                         if (snippet && Ui.toolHasCode(buf, part.callID))
+                           Ui.updateToolLabel(buf, part.callID, label)
+                         else
+                           Ui.appendToolMsg(buf, part.callID, label, snippet, { format: 'code', path: 'execute.mjs' })
+                         if (part.state.error)
+                           Ui.appendMsg(buf, 0, part.state.error, part.id)
+                       } },
+            read: { onPendOrRun
                     (buf, part) {
                       let path
 

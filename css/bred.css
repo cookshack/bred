@@ -236,6 +236,11 @@
   pointer-events: auto;
 }
 
+div[data-hover],
+span[data-hover] {
+  cursor: help;
+}
+
 div[data-run],
 span[data-run] {
   cursor: pointer;

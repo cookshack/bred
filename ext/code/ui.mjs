@@ -387,9 +387,11 @@ function clearMsgs
 // Per-part time and menu, overlaid on the message (see .code-msg-foot in
 // code.css).
 function msgFoot
-(time) {
+(at) {
   return divCl('code-msg-foot',
-               [ time ? span(time, 'code-msg-timestamp') : 0,
+               [ at ? span(ts(at),
+                           'code-msg-timestamp',
+                           { 'data-hover': fullDate(at) }) : 0,
                  span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ])
 }
 
@@ -460,7 +462,9 @@ function appendMsg
                           appendX(w,
                                   divCl('code-msg-ts code-msg-ts-user',
                                         [ agentEl,
-                                          span(tsText || ts(), 'code-msg-timestamp'),
+                                          span(tsText || ts(),
+                                               'code-msg-timestamp',
+                                               { 'data-hover': fullDate(at) }),
                                           span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ],
                                         { 'data-messageid': messageID || '' }))
                         }
@@ -471,7 +475,7 @@ function appendMsg
                                         + (spec?.subagent ? ' code-msg-subagent' : '')
                                         + (spec?.stopped ? ' code-msg-stopped' : ''),
                                         [ contentEl,
-                                          spec?.log ? 0 : msgFoot(tsText) ],
+                                          spec?.log ? 0 : msgFoot(at) ],
                                         { 'data-partid': partID || 0,
                                           'data-messageid': messageID || '' }))
                         if (mdResult) {
@@ -541,7 +545,7 @@ function appendThinking
                         appendX(w,
                                 divCl('code-msg code-msg-thinking',
                                       [ divCl('code-msg-text', text),
-                                        msgFoot(at ? ts(at) : '') ],
+                                        msgFoot(at) ],
                                       { 'data-partid': partId || 0,
                                         'data-messageid': buf.vars('code').curMessageID || '' }))
                       })
@@ -822,6 +826,18 @@ function ts
   return h + 'h' + m + ':' + s
 }
 
+// Full local date for the timestamp hovers; the labels themselves only show
+// the time of day.
+function fullDate
+(at) {
+  let dt, pad
+
+  pad = n => String(n).padStart(2, '0')
+  dt = at ? new Date(at) : new Date()
+  return dt.getFullYear() + '-' + pad(dt.getMonth() + 1) + '-' + pad(dt.getDate())
+    + ' ' + pad(dt.getHours()) + ':' + pad(dt.getMinutes()) + ':' + pad(dt.getSeconds())
+}
+
 // The bit of the previous message to leave visible above a jumped-to one. Also
 // used as the step size so a repeated click keeps advancing.
 function halfRem
@@ -882,7 +898,8 @@ function appendModel
                                 divCl('code-msg code-msg-role',
                                       [ span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }),
                                         span(ts(at),
-                                             'code-msg-timestamp'),
+                                             'code-msg-timestamp',
+                                             { 'data-hover': fullDate(at) }),
                                         span(model,
                                              'code-msg-model',
                                              { 'data-run': 'set code model' }),

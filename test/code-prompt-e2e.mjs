@@ -357,6 +357,21 @@ test('message menu', 'remove from here is not offered on an assistant message',
        Cmd.run('close demand')
      })
 
+test('timestamps', 'labels hover with the full local date',
+     async () => {
+       let at, buf, els, panes
+
+       ({ panes, buf } = await setup())
+       at = new Date(2026, 10, 4, 14, 32, 5).getTime()
+       Ui.appendMsg(buf, 'user', 'hi', 'u1', at)
+       Ui.appendMsg(buf, 0, 'reply', 'm2:text:0', at)
+       Ui.appendModel(buf, 'test-model', '0', at)
+
+       els = [ ...panes.pB.view.ele.querySelectorAll('.code-msg-timestamp') ]
+       equal(els.length, 3, 'every timestamp is hoverable')
+       els.forEach(el => equal(el.dataset.hover, '2026-11-04 14:32:05'))
+     })
+
 test('log', 'server logs keep only the newest twenty',
      async () => {
        let buf, els, i, panes

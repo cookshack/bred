@@ -305,6 +305,13 @@ div.code-thought:hover {
   background: var(--clr-fill);
 }
 
+.code-msg-tool > .code-code-ed,
+.code-msg-tool > .code-patch-ed {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--clr-fill);
+}
+
 .code-msg-tool .code-msg-text.code-msg-result {
   margin-top: 0.5rem;
   padding-top: 0.5rem;

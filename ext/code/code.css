@@ -307,9 +307,19 @@ div.code-thought:hover {
 
 .code-msg-tool > .code-code-ed,
 .code-msg-tool > .code-patch-ed {
-  margin-top: 0.5rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--clr-fill);
+  position: relative;
+  padding-left: 0.5rem;
+}
+
+.code-msg-tool > .code-code-ed::before,
+.code-msg-tool > .code-patch-ed::before {
+  content: '';
+  position: absolute;
+  left: 0.25rem;
+  top: 0;
+  bottom: 0;
+  width: 0.25rem;
+  background: var(--clr-fill);
 }
 
 .code-msg-tool .code-msg-text.code-msg-result {

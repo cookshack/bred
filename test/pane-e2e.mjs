@@ -236,6 +236,67 @@ test('rtl', 'a menu run this line uses the clicked line',
        checkPaneInvariants(panes.frame)
      })
 
+test('rtl', 'run this line in other pane uses the other pane and keeps focus',
+     async () => {
+       let f, panes, sBuf
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       Cmd.run('run this line in other pane')
+       await waitFor(() => panes.pA.buf?.name?.startsWith('SC: ') && panes.pA.buf.views[0]?.ed)
+
+       equal(panes.pB.buf, f, 'source pane keeps its buffer')
+       sBuf = panes.pA.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ the file content', 'line runs in the other pane')
+       sameView(View.current(panes.pB), f.views[0], 'focus stays in the source pane')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'run this line in other pane splits when there is no other pane',
+     async () => {
+       let f, panes, sPane
+
+       panes = setupPanes()
+       panes.pA.close()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       Cmd.run('run this line in other pane')
+       await waitFor(() => (panes.frame.panes.length == 2)
+                           && panes.frame.panes[1].buf?.name?.startsWith('SC: ')
+                           && panes.frame.panes[1].buf.views[0]?.ed)
+
+       sPane = panes.frame.panes[1]
+       equal(panes.frame.panes[0], panes.pB, 'the split goes after the source pane')
+       equal(sPane.buf.views[0].ed.state.doc.line(1).text, '$ the file content', 'line runs in the split')
+       sameView(View.current(panes.pB), f.views[0], 'focus stays in the source pane')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'run this line in other pane leaves the panes alone for an empty line',
+     async () => {
+       let ed, f, panes
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       ed = f.views[0].ed
+       ed.dispatch({ changes: { from: 0, to: ed.state.doc.length, insert: '\n' } })
+       ed.dispatch({ selection: { anchor: 0 } })
+       ed.focus()
+
+       Cmd.run('run this line in other pane')
+       await wait(50)
+
+       equal(panes.pA.buf.name, 'boot', 'other pane keeps its buffer')
+       equal(panes.frame.panes.length, 2, 'must not split')
+       sameView(View.current(panes.pB), f.views[0], 'focus stays in the source pane')
+       checkPaneInvariants(panes.frame)
+     })
+
 test('rtl', 'run this code runs inline code from a markdown editor',
      async () => {
        let ed, f, panes, parent, sBuf, state

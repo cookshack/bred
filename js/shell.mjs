@@ -336,7 +336,9 @@ function shellOrSpawn1
  //   afterEndPoint, // see run
  //   args,
  //   echo, // echo command as first line
+ //   focus, // default 1, set 0 to leave focus where it is
  //   hist,
+ //   pane, // default frame1's current pane
  //   shell,
  //   multi, // keep listening for more commands
  //   onClose // (buf, code)
@@ -464,9 +466,10 @@ function shellOrSpawn1
   // The buffer opens in frame1, but the command belongs to the pane the user
   // invoked it from (which can be in another frame).
   invoke = Pane.current()
-  p = Pane.current1()
+  p = spec.pane || Pane.current1()
   dir = Loc.make(invoke?.buf?.dir || p.buf.dir)
-  p.focus()
+  if (spec.focus ?? 1)
+    p.focus()
   dir.ensureSlash()
   dir = dir.path || Loc.home()
   addBuf(buf => {

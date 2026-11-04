@@ -71,7 +71,8 @@ function makeContext
     if (p && (p.view.ed || target?.closest?.('.cm-editor'))) {
       let group
 
-      group = [ context0(p.buf, 'Run This Line In Shell', 'run this line') ]
+      group = [ context0(p.buf, 'Run This Line In Shell', 'run this line'),
+                context0(p.buf, 'Run This Line In Other Pane', 'run this line in other pane') ]
       if (Wode.codeAtCoords(win, we?.e?.clientX, we?.e?.clientY))
         group.push(context0(p.buf, 'Run This Code In Shell', 'run this code in shell'))
       append(context.el, group, contextLine())

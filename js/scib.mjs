@@ -66,15 +66,16 @@ function scib
 
 function initRTL
 () {
-  function runThisLine
+  // The line under the click point for a menu run, or the cursor line for a
+  // key-bound run. A key-bound run must ignore a stale earlier click, else
+  // that click decides the line.
+  function lineUnderPoint
   (u, we) {
     let l, p, win, x, y
 
     p = Pane.current()
     win = Win.current()
 
-    // Only a mouse run (from the context menu) has a click point. A key-bound
-    // run must use the cursor, else a stale earlier click decides the line.
     if (we?.mouse) {
       x = win.lastContextClick?.x
       y = win.lastContextClick?.y
@@ -88,10 +89,19 @@ function initRTL
         p.goXY(x ?? 0, y ?? 0)
       l = p.line()
     }
+    return l
+  }
 
+  // pane is the target, or undefined for the usual frame1 pane
+  function runLine
+  (l, pane) {
     if (l && l.length)
       Shell.shell1(l,
-                   { echo: 1, end: 1, hist },
+                   { echo: 1,
+                     end: 1,
+                     hist,
+                     pane,
+                     focus: pane ? 0 : 1 },
                    buf => {
                      buf.mode = 'shell'
                      buf.opts.set('ansi.enabled', 1)
@@ -101,6 +111,31 @@ function initRTL
       Mess.say('Line empty')
     else
       Mess.say('Line missing')
+  }
+
+  function runThisLine
+  (u, we) {
+    runLine(lineUnderPoint(u, we))
+  }
+
+  function runThisLineInOtherPane
+  (u, we) {
+    let l
+
+    // find the line before moving, since the click and point are in this pane
+    l = lineUnderPoint(u, we)
+    if (l && l.length) {
+      let from, to
+
+      from = Pane.current()
+      to = Pane.nextOrSplit()
+      runLine(l, to)
+      // nextOrSplit focuses the other pane; the user is still working here
+      from.focus()
+    }
+    else
+      // nothing to run, so don't move or split
+      runLine(l)
   }
 
   function runThisCode
@@ -131,6 +166,7 @@ function initRTL
   }
 
   Cmd.add('run this line', runThisLine)
+  Cmd.add('run this line in other pane', runThisLineInOtherPane)
   Cmd.add('run this code in shell', runThisCode)
 }
 

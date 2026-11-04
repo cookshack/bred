@@ -556,7 +556,7 @@ function appendToolMsg
     buf.vars('code').callLabels[callID] = label
   }
   Util.eachCodeW(buf, (view, w) => {
-                        let els, underEl, alwaysEl
+                        let els, underEl, alwaysEl, resultEl
 
                         els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
                         els?.forEach(el => el.remove())
@@ -580,14 +580,17 @@ function appendToolMsg
                         }
                         else if (under)
                           underEl = divCl('code-msg-text code-msg-under', under)
+                        if (spec.result)
+                          resultEl = divCl('code-msg-text code-msg-under code-msg-result', spec.result)
                         appendX(w,
                                 divCl('code-msg code-msg-tool',
                                       [ divCl('code-msg-text',
-                                              [ (underEl ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : Util.iconRightArrow()),
+                                              [ ((underEl || resultEl) ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : Util.iconRightArrow()),
                                                 ' ',
                                                 span(label, 'code-msg-label') ]),
                                         alwaysEl,
-                                        underEl ],
+                                        underEl,
+                                        resultEl ],
                                       { 'data-callid': callID,
                                         'data-messageid': (spec.messageID ?? buf.vars('code').curMessageID) || '' }))
                       })
@@ -634,6 +637,28 @@ export
 function toolHasCode
 (buf, callID) {
   return buf.views.some(view => Boolean(view.eleOrReserved?.querySelector('.code-msg-tool[data-callid="' + callID + '"] .code-code-ed')))
+}
+
+// Add the tool's output to an existing message, below its code/details. The
+// result shares the under styling so the existing toggle hides/shows it too.
+export
+function appendToolResult
+(buf, callID, result) {
+  Util.eachCodeW(buf, (view, w) => {
+                        let el, resultEl, underEl
+
+                        el = w.querySelector('.code-msg-tool[data-callid="' + callID + '"]')
+                        if ((el == null) || (result == null) || (result.length == 0))
+                          return
+                        if (el.querySelector('.code-msg-result'))
+                          return
+                        resultEl = divCl('code-msg-text code-msg-under code-msg-result', result)
+                        underEl = el.querySelector('.code-msg-under, .code-code-ed, .code-patch-ed')
+                        if (underEl)
+                          underEl.after(resultEl)
+                        else
+                          el.append(resultEl)
+                      })
 }
 
 export

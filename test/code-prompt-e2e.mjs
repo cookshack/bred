@@ -608,6 +608,9 @@ test('execute', 'shows the code and nested call count',
                                                         content: [ { type: 'text', text: '1' } ],
                                                         metadata: { toolCalls: [ { tool: 'read', status: 'completed' } ] } }))
          await waitFor(() => label.innerText == 'Execute (1 call) ✔️')
+         await waitFor(() => el.querySelector('.code-msg-result'))
+         equal(el.querySelector('.code-msg-result').innerText, '1', 'the tool output is shown')
+         equal(Boolean(el.querySelector('.code-code-ed')), true, 'the code is still shown')
        }
        finally {
          panes.pB.setBuf = orig

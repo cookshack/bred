@@ -345,6 +345,57 @@ test('rtl', 'run this code runs a fenced block from a markdown editor',
        checkPaneInvariants(panes.frame)
      })
 
+test('rtl', 'run this code in other pane runs inline code in the other pane',
+     async () => {
+       let ed, f, panes, parent, sBuf, state
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       parent = globalThis.document.createElement('div')
+       globalThis.document.body.appendChild(parent)
+       state = CMState.EditorState.create({ doc: '2. `sudo apt remove syncthing mixxx` — removes',
+                                            extensions: [ markdown() ] })
+       ed = new CMView.EditorView({ state, parent })
+       ed.focus()
+       ed.dispatch({ selection: { anchor: 8 } })
+
+       Cmd.run('run this code in other pane')
+       await waitFor(() => panes.pA.buf?.name?.startsWith('SC: ') && panes.pA.buf.views[0]?.ed)
+
+       equal(panes.pB.buf, f, 'source pane keeps its buffer')
+       sBuf = panes.pA.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ sudo apt remove syncthing mixxx', 'inline code echoed')
+       sameView(View.current(panes.pB), f.views[0], 'focus stays in the source pane')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'run this code in other pane runs a fenced block in the other pane',
+     async () => {
+       let ed, f, panes, parent, sBuf, state
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       parent = globalThis.document.createElement('div')
+       globalThis.document.body.appendChild(parent)
+       state = CMState.EditorState.create({ doc: 'before\n```sh\necho one\necho two\n```\nafter',
+                                            extensions: [ markdown() ] })
+       ed = new CMView.EditorView({ state, parent })
+       ed.focus()
+       ed.dispatch({ selection: { anchor: 18 } })
+
+       Cmd.run('run this code in other pane')
+       await waitFor(() => panes.pA.buf?.name?.startsWith('SC: ') && panes.pA.buf.views[0]?.ed)
+
+       sBuf = panes.pA.buf
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ echo one', 'first block line echoed')
+       sameView(View.current(panes.pB), f.views[0], 'focus stays in the source pane')
+       checkPaneInvariants(panes.frame)
+     })
+
 test('scenario', 'navigate between two file panes',
      async () => {
        let f1, f2, panes, rt

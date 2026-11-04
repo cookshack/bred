@@ -138,24 +138,33 @@ function initRTL
       runLine(l)
   }
 
-  function runThisCode
+  // The code under the click point for a menu run, or under the point of the
+  // focused editor for a key-bound run.
+  function codeUnderPoint
   (u, we) {
-    let code, win, x, y
+    let win, x, y
 
     win = Win.current()
-    // As with runThisLine, only a mouse run has a real click point.
+    // As with lineUnderPoint, only a mouse run has a real click point.
     if (we?.mouse) {
       x = win.lastContextClick?.x
       y = win.lastContextClick?.y
     }
+    return Wode.codeAtCoords(win, x, y)
+  }
 
-    code = Wode.codeAtCoords(win, x, y)
-
+  // pane is the target, or undefined for the usual frame1 pane
+  function runCode
+  (code, pane) {
     if (code == null)
       Mess.say('No code at point')
     else if (code.length)
       Shell.shell1(code,
-                   { echo: 1, end: 1, hist },
+                   { echo: 1,
+                     end: 1,
+                     hist,
+                     pane,
+                     focus: pane ? 0 : 1 },
                    buf => {
                      buf.mode = 'shell'
                      buf.opts.set('ansi.enabled', 1)
@@ -165,9 +174,35 @@ function initRTL
       Mess.say('Code empty')
   }
 
+  function runThisCode
+  (u, we) {
+    runCode(codeUnderPoint(u, we))
+  }
+
+  function runThisCodeInOtherPane
+  (u, we) {
+    let code
+
+    // find the code before moving, since the click and point are in this pane
+    code = codeUnderPoint(u, we)
+    if (code && code.length) {
+      let from, to
+
+      from = Pane.current()
+      to = Pane.nextOrSplit()
+      runCode(code, to)
+      // nextOrSplit focuses the other pane; the user is still working here
+      from.focus()
+    }
+    else
+      // nothing to run, so don't move or split
+      runCode(code)
+  }
+
   Cmd.add('run this line', runThisLine)
   Cmd.add('run this line in other pane', runThisLineInOtherPane)
   Cmd.add('run this code in shell', runThisCode)
+  Cmd.add('run this code in other pane', runThisCodeInOtherPane)
 }
 
 export

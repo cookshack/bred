@@ -74,7 +74,8 @@ function makeContext
       group = [ context0(p.buf, 'Run This Line In Shell', 'run this line'),
                 context0(p.buf, 'Run This Line In Other Pane', 'run this line in other pane') ]
       if (Wode.codeAtCoords(win, we?.e?.clientX, we?.e?.clientY))
-        group.push(context0(p.buf, 'Run This Code In Shell', 'run this code in shell'))
+        group.push(context0(p.buf, 'Run This Code In Shell', 'run this code in shell'),
+                   context0(p.buf, 'Run This Code In Other Pane', 'run this code in other pane'))
       append(context.el, group, contextLine())
     }
   }

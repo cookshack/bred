@@ -11,12 +11,12 @@ format:
 oc:
 	@if ! docker image inspect opencode-bred >/dev/null 2>&1; then \
 	  echo "image missing, building"; \
-	  docker build --progress=plain -t opencode-bred docker/opencode/ && \
-	  touch .oc-stamp; \
-	elif [ docker/opencode/Dockerfile -nt .oc-stamp ]; then \
-	  echo "Dockerfile changed, rebuilding"; \
-	  docker build --progress=plain -t opencode-bred docker/opencode/ && \
-	  touch .oc-stamp; \
+	  docker build --progress=plain -t opencode-bred docker/opencode/ && touch .oc-stamp; \
+	elif [ ! -f .oc-stamp ] || [ -n "$$(find docker/opencode -newer .oc-stamp -print -quit 2>/dev/null)" ]; then \
+	  echo "build context changed, rebuilding"; \
+	  docker build --progress=plain -t opencode-bred docker/opencode/ && touch .oc-stamp; \
+	else \
+	  echo "opencode-bred image up to date"; \
 	fi
 
 fix-node-pty:

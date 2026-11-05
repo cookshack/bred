@@ -30,6 +30,8 @@ if [ -f "$HOME/.config/opencode/opencode.json" ]; then
   ARGS+=(-v "$HOME/.config/opencode/opencode.json:$CHOME/.config/opencode/opencode.json:ro")
 fi
 
+"$BRED/bin/oc-ensure"
+
 exec docker run -it --rm --name "bred-code-sh-$$" \
   "${ARGS[@]}" \
   --entrypoint bash \

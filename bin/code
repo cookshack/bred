@@ -26,6 +26,8 @@ if [ -f "$HOME/.config/opencode/opencode.json" ]; then
   ARGS+=(-v "$HOME/.config/opencode/opencode.json:$CHOME/.config/opencode/opencode.json:ro")
 fi
 
+"$BRED/bin/oc-ensure"
+
 exec docker run -it --rm --name "bred-code-tui-$$" \
   "${ARGS[@]}" \
   -e "OPENCODE_CONFIG_CONTENT={\"model\":\"goat/deepseek/deepseek-v4.1-flash\",\"default_agent\":\"planner\"}" \

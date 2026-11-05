@@ -2,6 +2,7 @@ import http from 'node:http'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
+import { fileURLToPath } from 'node:url'
 import * as U from './util.mjs'
 import * as Mounts from './code-mounts.mjs'
 import { d } from './main-log.mjs'
@@ -12,6 +13,20 @@ export
 function containerName
 (bufferID) {
   return 'bred-code-' + process.pid + '-' + bufferID
+}
+
+function ensureImage
+() {
+  return new Promise((resolve, reject) => {
+                       let proc
+
+                       // bin/oc-ensure rebuilds the opencode-bred image when the
+                       // docker/opencode build context changed; it is a no-op when
+                       // the image is current.
+                       proc = spawn(fileURLToPath(new URL('../bin/oc-ensure', import.meta.url)), [], { stdio: 'ignore' })
+                       proc.on('error', reject)
+                       proc.on('close', code => code == 0 ? resolve() : reject(new Error('oc-ensure failed with code ' + code)))
+                     })
 }
 
 function containerRunning
@@ -245,6 +260,8 @@ async function spawnDocker
   authPath = process.env.HOME + '/.local/share/opencode/auth.json'
   dataDir = resolveDataDir(workingDir)
   password = randomBytes(24).toString('base64url')
+
+  await ensureImage()
 
   args = []
   args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...Mounts.argList(workingDir, dataDir, authPath, spec.mounts), '-e', 'EXA_API_KEY', '-e', 'OPENCODE_WEBSEARCH_PROVIDER=' + (process.env.OPENCODE_WEBSEARCH_PROVIDER || 'exa'), '-e', 'OPENCODE_ENABLE_EXA=' + (process.env.OPENCODE_ENABLE_EXA || 'true'), '-e', 'OPENCODE_LOG_LEVEL=' + (process.env.OPENCODE_LOG_LEVEL || 'DEBUG'), '-e', 'OPENCODE_PASSWORD=' + password, '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')

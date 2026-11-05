@@ -1,0 +1,24 @@
+#!/bin/bash
+set -euo pipefail
+
+# Ensure the opencode-bred image is current; build it if the build context
+# (docker/opencode/) changed since the last build. Idempotent and fast when
+# nothing changed. This is the single source of the "run make oc" step — the
+# launchers (bin/code, bin/codesh) and the Code-server spawn call it before
+# starting a container, so the image is rebuilt automatically.
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+needs_build=0
+docker image inspect opencode-bred >/dev/null 2>&1 || needs_build=1
+if [ "$needs_build" = 0 ] && [ ! -f "$DIR/.oc-stamp" ]; then
+  needs_build=1
+fi
+if [ "$needs_build" = 0 ] && [ -n "$(find "$DIR/docker/opencode" -newer "$DIR/.oc-stamp" -print -quit 2>/dev/null || true)" ]; then
+  needs_build=1
+fi
+
+if [ "$needs_build" = 1 ]; then
+  docker build --progress=plain -t opencode-bred "$DIR/docker/opencode/" >&2
+  touch "$DIR/.oc-stamp"
+fi

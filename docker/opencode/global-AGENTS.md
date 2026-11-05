@@ -95,3 +95,7 @@ task, so do **not** delete them when a task or a conversation finishes — that 
 a session resumed from Code Sessions working with no re-checkout. Worktree pruning
 is housekeeping done outside the session (by you or on the host); do not remove
 worktrees yourself.
+
+Stale/prunable worktrees under `/tmp/opencode/` (from earlier sessions) are expected
+and harmless leftover scratch. Do not dwell on them, mention them, or prune them —
+just use your own and continue.

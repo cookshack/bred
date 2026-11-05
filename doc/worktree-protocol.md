@@ -102,6 +102,9 @@ Code Sessions keeps working with no re-checkout. Worktree cleanup belongs to the
 Code Session lifecycle (a future `ext/code` feature): prune when a Code Session
 is deleted, not when a conversation ends.
 
+Stale/prunable worktrees under `/tmp/opencode/` from earlier sessions are expected,
+disposable scratch — the agent ignores them and does not prune.
+
 ## Open decisions (resolved)
 
 - **Dependencies.** Let the agent handle them — it installs as it needs (fresh

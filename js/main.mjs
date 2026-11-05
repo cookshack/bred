@@ -29,6 +29,7 @@ import * as WindowState from './main-window-state.mjs'
 import Util from 'node:util'
 import { spawn, spawnSync } from 'node:child_process'
 import * as Commander from 'commander'
+import { ensureImage } from './main-code-server.mjs'
 
 let version, options, dirUserData, shell, lastClipWrite, _win, mainStart, logWindow, logBuffer, platformHint, logFile
 
@@ -1351,6 +1352,10 @@ async function whenReady
   Browse.init()
   Project.init()
   Code.init()
+
+  // Build the opencode image during startup prep if its build context changed,
+  // so Code bufs don't block on (or fail to find) a stale image.
+  await ensureImage()
 
   Menu.setApplicationMenu(null) // Apparently good for performance
 

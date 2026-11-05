@@ -84,8 +84,11 @@ that merge.
 
 ### Session end
 
-Remove all session worktrees: `git -C <repo_dir> worktree remove <worktree_dir>`,
-then `git worktree prune`.
+Worktrees are **not** removed here. They persist for the Code Session's lifetime
+and are reused (reset to the target branch each task), so a session resumed from
+Code Sessions keeps working with no re-checkout. Worktree cleanup belongs to the
+Code Session lifecycle (a future `ext/code` feature): prune when a Code Session
+is deleted, not when a conversation ends.
 
 ## Open decisions (resolved)
 
@@ -94,8 +97,9 @@ then `git worktree prune`.
 - **Trigger.** Any tracked-file edit in a git repo the session can reach.
 - **Worktree location/naming.** Whatever makes sense — a sibling `<repo>.wx/`
   dir (or anywhere outside the checkout); worktree branch `agent/<repo>-<task>`.
-- **Cleanup.** Yes, remove worktrees at session end — but cleanup must respect
-  **Code Sessions** (the `ext/code` session model). A worktree belongs to a Code
-  Session, so remove its worktrees when that Code Session ends, not when a
-  single conversation/turn does. Open item: reconcile with the code extension's
-  session lifecycle before enforcing removal.
+- **Cleanup.** Worktrees are **not** removed at task or session end — they persist
+  for the Code Session's lifetime and are reused (reset to the target branch each
+  task). This keeps a session resumed from Code Sessions working with no
+  re-checkout. Pruning happens only when a Code Session is actually deleted (a
+  future `ext/code` feature); until then leftover worktrees are cheap and harmless.
+  The in-container agent does not prune.

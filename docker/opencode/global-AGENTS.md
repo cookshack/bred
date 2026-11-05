@@ -69,5 +69,8 @@ own target branch (worktrees are per-repo, no cross-tree interaction).
 If a canonical dir has uncommitted changes that overlap the merge, **do not force
 or discard them** — stop that merge and report "main was dirty, merge skipped."
 
-When the session is done, remove your worktrees:
-`git -C <repo> worktree remove <worktree>` then `git worktree prune`.
+**Keep your worktrees for the life of the session.** They are reused and reset each
+task, so do **not** delete them when a task or a conversation finishes — that keeps
+a session resumed from Code Sessions working with no re-checkout. Worktree pruning
+is housekeeping done outside the session (by you or on the host); do not remove
+worktrees yourself.

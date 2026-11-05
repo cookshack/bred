@@ -73,8 +73,9 @@ Per task:
 3. Start a task branch: `git -C <worktree> checkout -b agent/<repo>-<task>`.
 4. Do the work **in the worktree dir**; commit incrementally (history preserved).
 5. Merge back **from the canonical dir** (the worktree cannot check out the target
-   branch — it is already checked out in the canonical dir):
-   `cd <repo> && git merge --no-ff agent/<repo>-<task>`.
+   branch — it is already checked out in the canonical dir), keeping **linear**
+   history (no merge commits):
+   `cd <repo> && git rebase <target> agent/<repo>-<task> && git merge --ff-only agent/<repo>-<task>`.
 6. Delete the task branch: `git -C <repo> branch -D agent/<repo>-<task>`.
 
 A task touching multiple repos gets **one worktree per repo**, each merged into its

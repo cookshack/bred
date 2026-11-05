@@ -11,7 +11,8 @@ When a session edits code in **any** git repo it can reach — the session
 `location` dir **or** a bound/mounted dir (e.g. `~/src/bred` or `~/src/review`
 while working in `~/src/infra`) — the agent should **not** edit the canonical
 checkout directly. It uses a **persistent worktree per repo per session**, does
-each task on a task branch, and merges back (`--no-ff`, history preserved) into
+each task on a task branch, and merges back (rebase + fast-forward, history
+preserved) into
 **the branch the dir was on when the task started**. The canonical checkout (and
 its branch) is never checked out or overwritten by the agent.
 
@@ -27,8 +28,9 @@ its branch) is never checked out or overwritten by the agent.
 - **Merge into the dir's current branch, not `main`.** The target branch may be
   any branch the dir is on. Target = `git -C <dir> branch --show-current`
   captured at task start.
-- **`--no-ff`, preserve history.** Task commits land in the target branch as-is,
-  unsquashed.
+- **Linear, preserve history.** Task commits land in the target branch unsquashed
+  via `rebase <target> agent/<task>` then `merge --ff-only` — flat log, no merge
+  commits.
 - **Auto-merge on task completion, review afterward** (matches the workflow of
   skimming `git diff` after the agent finishes). No human merge gate.
 - **Report, never force**, when the canonical dir is dirty — the user may
@@ -67,7 +69,7 @@ bound dir), **before the first tracked-file edit** to that repo. Read-only work
 4. Do the work **in the worktree dir**. Commit incrementally (history preserved).
 5. **On completion**, merge back **from the canonical dir** (the worktree cannot
    check out the target branch — it is already checked out in the canonical dir):
-   `cd <repo_dir> && git merge --no-ff agent/<repo>-<task>`.
+   `cd <repo_dir> && git rebase <target> agent/<repo>-<task> && git merge --ff-only agent/<repo>-<task>`.
 6. Clean up the task branch: `git -C <repo_dir> branch -D agent/<repo>-<task>`.
 
 ### Multi-repo tasks

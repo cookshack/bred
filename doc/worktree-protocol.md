@@ -94,7 +94,10 @@ is deleted, not when a conversation ends.
 
 - **Dependencies.** Let the agent handle them — it installs as it needs (fresh
   install in the worktree). No node_modules symlinking.
-- **Trigger.** Any tracked-file edit in a git repo the session can reach.
+- **Trigger.** Any tracked-file edit in a git repo the session can reach. No
+  exceptions for "scratch"/`tmp/` repos, and existing file-level
+  `git add && commit` instructions do not waive it. If tempted to skip, surface
+  it and wait — do not guess.
 - **Worktree location/naming.** Whatever makes sense — a sibling `<repo>.wx/`
   dir (or anywhere outside the checkout); worktree branch `agent/<repo>-<task>`.
 - **Cleanup.** Worktrees are **not** removed at task or session end — they persist

@@ -34,14 +34,28 @@ unit suite") — keep reporting until the run ends:
 - If the state stops changing, report that too; a stalled run is a status, not
   silence.
 
-## Working in a git worktree
+## Working in a git worktree (mandatory)
 
-Whenever you are about to modify tracked files in a git repo that the session can
-reach — the session directory or a bound/mounted directory (e.g. `~/src/bred`,
-`~/src/review`, `~/src/infra`) — **do not edit the canonical checkout directly.**
-Create a git worktree to work in, and merge it back when done. This keeps the
-user's main checkout (and whatever branch it sits on) untouched. (A read-only
-agent such as `planner` never modifies files, so this does not apply to it.)
+You **must not** modify tracked files in a canonical git checkout — do not `edit`,
+`git add`, or `git commit` on a repo's checked-out branch. Before any change to a
+repo you can reach, create a worktree, do the work there, then merge it back. This
+keeps the user's main checkout (and whatever branch it sits on) untouched. The rule
+has **no exceptions**:
+
+- It applies to **every** reachable repo — the session directory and any
+  bound/mounted directory (e.g. `~/src/bred`, `~/src/review`, `~/src/infra`).
+- A "scratch", "test", or `tmp/` repo is still a repo: use a worktree there too.
+- An existing file-level instruction telling you to `git add && git commit` a file
+  is about *how to commit*, not permission to skip the worktree. Do that commit
+  inside a worktree on your own branch, then merge it back.
+- The only commits you ever make are in a worktree, on a branch you created.
+
+If you are tempted to skip this because a repo seems small, scratch-like, or to
+have "its own rules" — do **not** guess and do **not** proceed. Stop, tell the user
+you are about to skip the worktree rule and why, and wait for a decision.
+
+(A read-only agent such as `planner` never modifies files, so this does not apply
+to it.)
 
 Per repo you edit, once per session:
 

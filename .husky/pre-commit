@@ -1,1 +1,9 @@
-npm run check && npm test
+npm run check &
+check=$!
+npm run test-fast &
+test=$!
+
+status=0
+wait "$check" || status=1
+wait "$test" || status=1
+exit "$status"

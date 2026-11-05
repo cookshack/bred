@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "mocha --exit",
+    "test-fast": "mocha --exit --ignore 'test/*e2e*.mjs'",
     "test-indent": "mocha test/indent.mjs",
     "coverage": "c8 --include='js/**' --include='ext/**' --reporter=text --reporter=html mocha --exit",
     "start-gdb": "gdb -q --args node node_modules/.bin/electron .",

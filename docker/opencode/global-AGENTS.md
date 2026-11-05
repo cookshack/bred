@@ -62,14 +62,10 @@ Per repo you edit, once per session:
 1. `cd <repo>`; record its current branch — `git -C <repo> branch --show-current`
    — as the target branch.
 2. Create one persistent worktree for this session:
-   `git -C <repo> worktree add -b agent/<repo>-<session> <repo>.wx/<session> <target>`
-   (a sibling worktree dir outside the checkout, e.g. `<repo>.wx/<session>`).
-
-The worktree path must be **writable** in the container. A sibling like `<repo>.wx/`
-only works when its parent is mounted writable (e.g. inside the session dir's source
-tree); for a repo whose sibling isn't writable (such as a `tmp/` repo with only `$PWD`
-mounted), fall back to a known-writable scratch dir (e.g. `/tmp/opencode/...` or
-`~/sessions/...`) instead of failing on the sibling.
+   `git -C <repo> worktree add -b agent/<repo>-<session> /tmp/opencode/<repo>-<session> <target>`
+   (`/tmp/opencode/...` is always writable in the container). The worktree is
+   disposable scratch — the merged work lives in the canonical checkout on the
+   host — so do not worry about it being non-persistent.
 
 Per task:
 

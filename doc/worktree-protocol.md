@@ -57,10 +57,10 @@ bound dir), **before the first tracked-file edit** to that repo. Read-only work
 1. `cd <repo_dir>`; confirm it is a git work tree.
 2. Record the repo's current branch: `git -C <repo_dir> branch --show-current`.
 3. Create one persistent worktree for this session/repo:
-   `git -C <repo_dir> worktree add -b agent/<repo>-<session> <worktree_dir> <target_branch>`.
-   The worktree path must be writable in the container; if a sibling `<repo>.wx/`
-   isn't (unmounted/read-only parent), fall back to a writable scratch dir (e.g.
-   `/tmp/opencode/...` or `~/sessions/...`).
+   `git -C <repo_dir> worktree add -b agent/<repo>-<session> /tmp/opencode/<repo>-<session> <target_branch>`.
+   `/tmp/opencode/...` is always writable in the container, so no sibling/fallback
+   needed. The worktree is disposable scratch (merged work lives in the canonical
+   checkout on the host), so its non-persistence across container restarts is fine.
 
 ### Per task
 
@@ -106,8 +106,9 @@ is deleted, not when a conversation ends.
   exceptions for "scratch"/`tmp/` repos, and existing file-level
   `git add && commit` instructions do not waive it. If tempted to skip, surface
   it and wait — do not guess.
-- **Worktree location/naming.** Whatever makes sense — a sibling `<repo>.wx/`
-  dir (or anywhere outside the checkout); worktree branch `agent/<repo>-<task>`.
+- **Worktree location/naming.** Use `/tmp/opencode/<repo>-<session>` (always writable
+  in the container); worktree branch `agent/<repo>-<session>`, task branch
+  `agent/<repo>-<task>`.
 - **Cleanup.** Worktrees are **not** removed at task or session end — they persist
   for the Code Session's lifetime and are reused (reset to the target branch each
   task). This keeps a session resumed from Code Sessions working with no

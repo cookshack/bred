@@ -17,6 +17,12 @@ This is a paragraph with **bold** and *italic* text.
 
 Inline `ls -la` example.
 
+```sh
+ls -la
+pwd
+echo hi
+```
+
 ```javascript
 
 function greet

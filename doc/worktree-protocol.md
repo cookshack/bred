@@ -58,6 +58,9 @@ bound dir), **before the first tracked-file edit** to that repo. Read-only work
 2. Record the repo's current branch: `git -C <repo_dir> branch --show-current`.
 3. Create one persistent worktree for this session/repo:
    `git -C <repo_dir> worktree add -b agent/<repo>-<session> <worktree_dir> <target_branch>`.
+   The worktree path must be writable in the container; if a sibling `<repo>.wx/`
+   isn't (unmounted/read-only parent), fall back to a writable scratch dir (e.g.
+   `/tmp/opencode/...` or `~/sessions/...`).
 
 ### Per task
 
@@ -67,9 +70,12 @@ bound dir), **before the first tracked-file edit** to that repo. Read-only work
    (cheap — the tree is already near-identical).
 3. Create a task branch: `git -C <worktree_dir> checkout -b agent/<repo>-<task>`.
 4. Do the work **in the worktree dir**. Commit incrementally (history preserved).
-5. **On completion**, merge back **from the canonical dir** (the worktree cannot
-   check out the target branch — it is already checked out in the canonical dir):
-   `cd <repo_dir> && git rebase <target> agent/<repo>-<task> && git merge --ff-only agent/<repo>-<task>`.
+5. **On completion**, merge back keeping **linear** history (no merge commits):
+   rebase the task branch **in the worktree** (the canonical dir cannot rebase it —
+   the task branch is checked out in the worktree), then fast-forward the target
+   from the canonical dir:
+   `git -C <worktree_dir> rebase <target>` then
+   `cd <repo_dir> && git merge --ff-only agent/<repo>-<task>`.
 6. Clean up the task branch: `git -C <repo_dir> branch -D agent/<repo>-<task>`.
 
 ### Multi-repo tasks

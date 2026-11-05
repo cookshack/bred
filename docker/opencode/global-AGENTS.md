@@ -65,6 +65,12 @@ Per repo you edit, once per session:
    `git -C <repo> worktree add -b agent/<repo>-<session> <repo>.wx/<session> <target>`
    (a sibling worktree dir outside the checkout, e.g. `<repo>.wx/<session>`).
 
+The worktree path must be **writable** in the container. A sibling like `<repo>.wx/`
+only works when its parent is mounted writable (e.g. inside the session dir's source
+tree); for a repo whose sibling isn't writable (such as a `tmp/` repo with only `$PWD`
+mounted), fall back to a known-writable scratch dir (e.g. `/tmp/opencode/...` or
+`~/sessions/...`) instead of failing on the sibling.
+
 Per task:
 
 1. Re-read the repo's current branch as the target branch.
@@ -72,10 +78,11 @@ Per task:
    is already near-identical to main).
 3. Start a task branch: `git -C <worktree> checkout -b agent/<repo>-<task>`.
 4. Do the work **in the worktree dir**; commit incrementally (history preserved).
-5. Merge back **from the canonical dir** (the worktree cannot check out the target
-   branch — it is already checked out in the canonical dir), keeping **linear**
-   history (no merge commits):
-   `cd <repo> && git rebase <target> agent/<repo>-<task> && git merge --ff-only agent/<repo>-<task>`.
+5. Merge back, keeping **linear** history (no merge commits): rebase the task branch
+   **in the worktree** (the canonical dir cannot rebase it — the task branch is checked
+   out in the worktree), then fast-forward the target from the canonical dir:
+   `git -C <worktree> rebase <target>` then
+   `cd <repo> && git merge --ff-only agent/<repo>-<task>`.
 6. Delete the task branch: `git -C <repo> branch -D agent/<repo>-<task>`.
 
 A task touching multiple repos gets **one worktree per repo**, each merged into its

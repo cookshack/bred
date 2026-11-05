@@ -87,12 +87,15 @@ that merge.
 Remove all session worktrees: `git -C <repo_dir> worktree remove <worktree_dir>`,
 then `git worktree prune`.
 
-## Open decisions
+## Open decisions (resolved)
 
-- **Dependencies.** Fresh `npm install` per worktree (slow but self-contained),
-  a symlinked shared `node_modules`, or no install (agent edits only; user
-  verifies on main). This is the biggest real-world perf determinant.
-- **Trigger.** Apply to any tracked-file edit (default), or only when the target
-  repo differs from the session `location` dir.
-- **Worktree location/naming.** e.g. sibling `<repo>.wx/agent/<session>`.
-- **After merge** whether to keep plans/diffs documented. (None yet.)
+- **Dependencies.** Let the agent handle them — it installs as it needs (fresh
+  install in the worktree). No node_modules symlinking.
+- **Trigger.** Any tracked-file edit in a git repo the session can reach.
+- **Worktree location/naming.** Whatever makes sense — a sibling `<repo>.wx/`
+  dir (or anywhere outside the checkout); worktree branch `agent/<repo>-<task>`.
+- **Cleanup.** Yes, remove worktrees at session end — but cleanup must respect
+  **Code Sessions** (the `ext/code` session model). A worktree belongs to a Code
+  Session, so remove its worktrees when that Code Session ends, not when a
+  single conversation/turn does. Open item: reconcile with the code extension's
+  session lifecycle before enforcing removal.

@@ -33,3 +33,41 @@ unit suite") — keep reporting until the run ends:
   report immediately; do not restart the interval or go silent.
 - If the state stops changing, report that too; a stalled run is a status, not
   silence.
+
+## Working in a git worktree
+
+Whenever you are about to modify tracked files in a git repo that the session can
+reach — the session directory or a bound/mounted directory (e.g. `~/src/bred`,
+`~/src/review`, `~/src/infra`) — **do not edit the canonical checkout directly.**
+Create a git worktree to work in, and merge it back when done. This keeps the
+user's main checkout (and whatever branch it sits on) untouched. (A read-only
+agent such as `planner` never modifies files, so this does not apply to it.)
+
+Per repo you edit, once per session:
+
+1. `cd <repo>`; record its current branch — `git -C <repo> branch --show-current`
+   — as the target branch.
+2. Create one persistent worktree for this session:
+   `git -C <repo> worktree add -b agent/<repo>-<session> <repo>.wx/<session> <target>`
+   (a sibling worktree dir outside the checkout, e.g. `<repo>.wx/<session>`).
+
+Per task:
+
+1. Re-read the repo's current branch as the target branch.
+2. Sync the worktree: `git -C <worktree> reset --hard <target>` (cheap — the tree
+   is already near-identical to main).
+3. Start a task branch: `git -C <worktree> checkout -b agent/<repo>-<task>`.
+4. Do the work **in the worktree dir**; commit incrementally (history preserved).
+5. Merge back **from the canonical dir** (the worktree cannot check out the target
+   branch — it is already checked out in the canonical dir):
+   `cd <repo> && git merge --no-ff agent/<repo>-<task>`.
+6. Delete the task branch: `git -C <repo> branch -D agent/<repo>-<task>`.
+
+A task touching multiple repos gets **one worktree per repo**, each merged into its
+own target branch (worktrees are per-repo, no cross-tree interaction).
+
+If a canonical dir has uncommitted changes that overlap the merge, **do not force
+or discard them** — stop that merge and report "main was dirty, merge skipped."
+
+When the session is done, remove your worktrees:
+`git -C <repo> worktree remove <worktree>` then `git worktree prune`.

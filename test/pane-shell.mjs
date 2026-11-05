@@ -1,4 +1,5 @@
 import { equal } from 'node:assert/strict'
+import * as Cmd from '../js/cmd.mjs'
 import * as Css from '../js/css.mjs'
 import * as Frame from '../js/frame.mjs'
 import * as Pane from '../js/Pane.mjs'
@@ -22,7 +23,12 @@ function run
 
 function text
 (buf) {
-  return buf.views[0].ed.state.doc.toString()
+  return viewText(buf.views[0])
+}
+
+function viewText
+(view) {
+  return view.ed.state.doc.toString()
 }
 
 function busy
@@ -118,6 +124,90 @@ test('run', 'late output after close is ignored',
 
        equal(text(buf).includes('before'), true)
        equal(text(buf).includes('after'), false)
+     })
+
+// A buffer can be shown in more than one pane (eg after running a line in
+// another pane and later running the same command normally). The pane the
+// user is watching must get the output itself; other views catch up by peer
+// sync, otherwise they show the exit code before any of the output.
+test('view', 'output reaches the focused view',
+     async () => {
+       let buf, ch, panes
+
+       panes = setupPanes()
+       // let the panes' initial boot views finish before adding another view
+       await wait(50)
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+
+       await setBuf(panes.pA, buf)
+       panes.pA.focus()
+       equal(buf.views.length, 2)
+
+       await emit(panes, ch, { stdout: 'hi\n' })
+       await emit(panes, ch, { close: 1, code: 0 })
+
+       equal(viewText(panes.pA.view).includes('hi'), true)
+       equal(panes.pA.view.ele.querySelector('.shell-exit-status').textContent, '✅ 0')
+       equal(buf.views[0].ele.querySelector('.shell-exit-status').textContent, '✅ 0')
+     })
+
+// The channel guard is only set once the view is ready, so two invocations
+// in the same tick must not start two processes on one buffer.
+test('run', 'two quick invocations start only one run',
+     async () => {
+       let buf, calls, orig
+
+       setupPanes()
+       await wait(50)
+       calls = []
+       orig = globalThis.tron.cmd
+       globalThis.tron.cmd = async (name, args) => {
+                               if (name == 'shell.run')
+                                 calls.push(args[0])
+                               return orig(name, args)
+                             }
+       try {
+         let start
+
+         start = run('echo hi')
+         // invoke again before the first one's view is ready
+         Shell.shell1('echo hi', { end: 1 })
+         buf = await start
+       }
+       finally {
+         globalThis.tron.cmd = orig
+       }
+
+       equal(calls.length, 1, 'only one run should start')
+       equal(buf.views.length, 1)
+     })
+
+// rerunning with g starts a new process on the same buffer, so the exit bar
+// must go back to busy instead of keeping the previous run's code
+test('rerun', 'rerunning via g resets the exit bar to busy',
+     async () => {
+       let buf, ch, panes, view
+
+       panes = setupPanes()
+       await wait(50)
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+       view = buf.views[0]
+
+       await emit(panes, ch, { close: 1, code: 3 })
+       equal(busy(buf), 0)
+       equal(view.ele.querySelector('.shell-exit-status').textContent, '❌ 3')
+
+       // type g in the exited shell buffer, then answer the rerun confirm
+       Cmd.runMo('self insert', 'Shell', 1, { e: { key: 'g' } })
+       await wait(20)
+       equal(view.ele.querySelector('.bred-confirm-w') == null, false)
+       Cmd.run('nested yes', buf)
+       await wait(20)
+
+       equal(buf.vars('shell').code, null)
+       equal(busy(buf), 1, 'exit bar should be busy during the rerun')
      })
 
 // switching away closes (stashes) the buf's view, so output and the exit

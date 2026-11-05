@@ -156,6 +156,7 @@ function run
   d("SHELL run '" + sc + "' [" + args + '] in ' + dir)
 
   if (b) {
+    markBusyAll(b)
     b.vars('shell').sc = sc
     b.vars('shell').args = args
     b.vars('shell').spec = spec
@@ -319,6 +320,23 @@ function setExitStatus
   }
 }
 
+function markBusy
+(el) {
+  Css.add(el, 'shell-busy')
+  setExitStatus(el, busyCo())
+}
+
+function markBusyAll
+(buf) {
+  buf.views.forEach(view => {
+                      let el
+
+                      el = view.eleOrReserved?.querySelector('.shell-exit-w')
+                      if (el)
+                        markBusy(el)
+                    })
+}
+
 function syncExitDir
 (view) {
   if (view?.buf?.mode?.key == 'shell') {
@@ -369,9 +387,8 @@ function shellOrSpawn1
 
         el = w.querySelector('.shell-exit-w')
         if (el) {
-          Css.add(el, 'shell-busy')
           setExitDir(el, dir)
-          setExitStatus(el, busyCo())
+          markBusy(el)
         }
       }
     }
@@ -383,7 +400,7 @@ function shellOrSpawn1
       let sv
 
       sv = b.vars('Shell')
-      if (sv.ch) {
+      if (sv.ch || sv.pending) {
         Mess.yell('Command already running')
         return
       }
@@ -414,7 +431,11 @@ function shellOrSpawn1
       setMl(w)
     }
 
+    b.vars('Shell').pending = 1
     p.setBuf(b, {}, () => {
+                      // run() sets Shell.ch synchronously from whenReady, so
+                      // clearing pending here cannot race another invocation
+                      b.vars('Shell').pending = 0
                       b.clear()
                       if (whenReady)
                         whenReady(b)

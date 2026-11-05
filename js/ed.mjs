@@ -1084,12 +1084,24 @@ function initModeFns
       cb(new Error('View missing'))
   }
 
+  // Prefer the view the user is looking at, so output reaches the pane they
+  // are watching. Other views are brought up to date by peer sync.
+  function appendView
+  (b) {
+    let view
+
+    view = Pane.current()?.view
+    if ((view?.buf == b) && view.ele && view.ed)
+      return view
+    return b.anyView(1)
+  }
+
   function append
   (b, str,
    afterEndPoint) { // if point at end, then final position of point will be before str.
     let view
 
-    view = b.anyView(1) || Mess.log('ED append missing view')
+    view = appendView(b) || Mess.log('ED append missing view')
     if (view?.ed) {
       let atEnd, end, bep, movePoint
 

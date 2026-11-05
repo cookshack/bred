@@ -76,7 +76,11 @@ bound dir), **before the first tracked-file edit** to that repo. Read-only work
    from the canonical dir:
    `git -C <worktree_dir> rebase <target>` then
    `cd <repo_dir> && git merge --ff-only agent/<repo>-<task>`.
-6. Clean up the task branch: `git -C <repo_dir> branch -D agent/<repo>-<task>`.
+6. Reset the worktree onto the session branch, then delete the task branch (the
+   task branch is checked out in the worktree, so the canonical dir cannot delete
+   it until the worktree moves off it):
+   `git -C <worktree_dir> checkout agent/<repo>-<session>` then
+   `git -C <repo_dir> branch -D agent/<repo>-<task>`.
 
 ### Multi-repo tasks
 

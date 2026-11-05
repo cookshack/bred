@@ -79,7 +79,10 @@ Per task:
    out in the worktree), then fast-forward the target from the canonical dir:
    `git -C <worktree> rebase <target>` then
    `cd <repo> && git merge --ff-only agent/<repo>-<task>`.
-6. Delete the task branch: `git -C <repo> branch -D agent/<repo>-<task>`.
+6. Reset the worktree back onto the session branch (the task branch is checked out
+   in it, so the canonical dir cannot delete it yet), then delete the task branch:
+   `git -C <worktree> checkout agent/<repo>-<session>` then
+   `git -C <repo> branch -D agent/<repo>-<task>`.
 
 A task touching multiple repos gets **one worktree per repo**, each merged into its
 own target branch (worktrees are per-repo, no cross-tree interaction).

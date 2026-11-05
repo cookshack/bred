@@ -2,7 +2,6 @@ import http from 'node:http'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
-import { fileURLToPath } from 'node:url'
 import * as U from './util.mjs'
 import * as Mounts from './code-mounts.mjs'
 import { d } from './main-log.mjs'
@@ -13,20 +12,6 @@ export
 function containerName
 (bufferID) {
   return 'bred-code-' + process.pid + '-' + bufferID
-}
-
-export function ensureImage
-() {
-  return new Promise((resolve, reject) => {
-                       let proc
-
-                       // bin/oc-ensure rebuilds the opencode-bred image when the
-                       // docker/opencode build context changed; it is a no-op when
-                       // the image is current.
-                       proc = spawn(fileURLToPath(new URL('../bin/oc-ensure', import.meta.url)), [], { stdio: 'ignore' })
-                       proc.on('error', reject)
-                       proc.on('close', code => code == 0 ? resolve() : reject(new Error('oc-ensure failed with code ' + code)))
-                     })
 }
 
 function containerRunning

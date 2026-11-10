@@ -328,13 +328,32 @@ function markBusy
 
 function markBusyAll
 (buf) {
-  buf.views.forEach(view => {
-                      let el
+  buf.views.forEach(view => markBusy(view.eleOrReserved?.querySelector('.shell-exit-w')))
+  // new views (eg a split) clone the buffer template, so keep it in step
+  markBusy(buf.co?.querySelector('.shell-exit-w'))
+}
 
-                      el = view.eleOrReserved?.querySelector('.shell-exit-w')
-                      if (el)
-                        markBusy(el)
-                    })
+function setExit
+(w, code) {
+  if (w) {
+    Css.remove(w, 'shell-busy')
+    if (code == 0)
+      setExitStatus(w, [ span('✅', 'shell-exit-tick'),
+                         ' ',
+                         span(String(code), 'shell-exit-code') ]) // 🏁 ✔✔✔ 🎉
+    else
+      setExitStatus(w, [ span('❌', 'shell-exit-tick'),
+                         ' ',
+                         span(String(code), 'shell-exit-code') ]) // 🚨 ✘✘✘ 🚫
+  }
+}
+
+function setErr
+(w, msg) {
+  if (w) {
+    Css.remove(w, 'shell-busy')
+    setExitStatus(w, '☠️ ERR ' + msg)
+  }
 }
 
 function syncExitDir
@@ -444,39 +463,20 @@ function shellOrSpawn1
 
   function onClose
   (b, code) {
-    b.views.forEach(view => {
-                      let w
-
-                      // use eleOrReserved so a stashed (closed) view's marker
-                      // is updated too; otherwise switching back shows BUSY
-                      w = view.eleOrReserved?.querySelector('.shell-exit-w')
-                      if (w) {
-                        Css.remove(w, 'shell-busy')
-                        if (code == 0)
-                          setExitStatus(w, [ span('✅', 'shell-exit-tick'),
-                                             ' ',
-                                             span(String(code), 'shell-exit-code') ]) // 🏁 ✔✔✔ 🎉
-                        else
-                          setExitStatus(w, [ span('❌', 'shell-exit-tick'),
-                                             ' ',
-                                             span(String(code), 'shell-exit-code') ]) // 🚨 ✘✘✘ 🚫
-                      }
-                    })
+    // use eleOrReserved so a stashed (closed) view's marker is updated too;
+    // otherwise switching back shows BUSY
+    b.views.forEach(view => setExit(view.eleOrReserved?.querySelector('.shell-exit-w'), code))
+    // a view opened later (eg a split) clones the buffer template, so it must
+    // carry the real code instead of BUSY
+    setExit(b.co?.querySelector('.shell-exit-w'), code)
     if (spec.onClose)
       spec.onClose(b, code)
   }
 
   function onErr
   (b, err) {
-    b.views.forEach(view => {
-                      let w
-
-                      w = view.eleOrReserved?.querySelector('.shell-exit-w')
-                      if (w) {
-                        Css.remove(w, 'shell-busy')
-                        setExitStatus(w, '☠️ ERR ' + err.message)
-                      }
-                    })
+    b.views.forEach(view => setErr(view.eleOrReserved?.querySelector('.shell-exit-w'), err.message))
+    setErr(b.co?.querySelector('.shell-exit-w'), err.message)
     if (spec.onErr)
       spec.onErr(b, err)
   }

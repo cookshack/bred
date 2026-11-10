@@ -152,6 +152,25 @@ test('view', 'output reaches the focused view',
        equal(buf.views[0].ele.querySelector('.shell-exit-status').textContent, '✅ 0')
      })
 
+// A view created after the command finished (eg a split) clones the buffer
+// template, so the template must carry the real exit code, not BUSY.
+test('view', 'a view created after the command finished shows its exit code',
+     async () => {
+       let buf, ch, panes
+
+       panes = setupPanes()
+       await wait(50)
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+       await emit(panes, ch, { stdout: 'hi\n' })
+       await emit(panes, ch, { close: 1, code: 0 })
+
+       await setBuf(panes.pA, buf)
+       equal(buf.views.length, 2)
+       equal(panes.pA.view.ele.querySelector('.shell-exit-status').textContent, '✅ 0')
+       equal(buf.views[0].ele.querySelector('.shell-exit-status').textContent, '✅ 0')
+     })
+
 // The channel guard is only set once the view is ready, so two invocations
 // in the same tick must not start two processes on one buffer.
 test('run', 'two quick invocations start only one run',

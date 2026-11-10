@@ -126,6 +126,18 @@ test('run', 'late output after close is ignored',
        equal(text(buf).includes('after'), false)
      })
 
+// A content-sized editor makes CodeMirror and the minimap renegotiate the
+// editor height every frame while a shell runs. Shell buffers fill their pane
+// like every other ed buffer, with the exit bar as a flex sibling.
+test('view', 'shell buffer fills its pane',
+     async () => {
+       let buf
+
+       setupPanes()
+       buf = await run('echo hi')
+       equal(buf.vars('ed').fillParent, 1)
+     })
+
 // A buffer can be shown in more than one pane (eg after running a line in
 // another pane and later running the same command normally). The pane the
 // user is watching must get the output itself; other views catch up by peer

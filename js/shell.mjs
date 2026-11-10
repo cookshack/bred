@@ -427,10 +427,7 @@ function shellOrSpawn1
       w = divW()
       b = Buf.add(name, 'Shell', w, dir)
       b.icon = 'shell'
-      // Let the editor fill the pane like any other ed buffer. With a
-      // content-sized box, CodeMirror and the minimap renegotiate the editor
-      // height every frame (the shell flicker). The exit bar is a flex sibling,
-      // so it still keeps its space.
+      b.vars('ed').fillParent = 0
       setMl(w)
     }
 

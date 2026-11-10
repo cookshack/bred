@@ -65,6 +65,20 @@ patch(`        this.dom.style.width = this.getWidth() + "px";
         if (this.canvas.style.height !== domHeight + "px")
             this.canvas.style.height = domHeight + "px";`)
 
+// Never make the editor a scroll container. With `overflow-y: auto` the browser
+// computes `overflow-x` as auto too, so a sub-pixel overflow shows native
+// scrollbars on both axes. Those take 15px off the editor, which reflows the
+// content, removes the overflow, hides the scrollbars again and loops forever.
+// The scroller (.cm-scroller) is the real scroll container.
+patch(`    "&": {
+        height: "100%",
+        overflowY: "auto",
+    },`,
+      `    "&": {
+        height: "100%",
+        overflow: "hidden",
+    },`)
+
 if (fail) {
   console.error('minimap patch: lib not modified')
   process.exit(1)

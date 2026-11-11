@@ -1,9 +1,10 @@
 import { equal } from 'node:assert/strict'
 import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
-import { markdown, markdownLanguage } from '../lib/@codemirror/lang-markdown.js'
+import * as CMMarkdown from '../lib/@codemirror/lang-markdown.js'
 import { hideMarks } from '../ext/code/md.mjs'
 import { extTables, padTableText } from '../ext/code/tables.mjs'
+import { makeMarkdown } from '../js/wode-lang-md.mjs'
 import { setupDom } from './dom-help.mjs'
 
 let domWin, saved, tests, views
@@ -66,7 +67,8 @@ async function make
   parent = globalThis.document.createElement('div')
   globalThis.document.body.appendChild(parent)
   state = CMState.EditorState.create({ doc,
-                                       extensions: [ markdown({ base: markdownLanguage }),
+                                       extensions: [ makeMarkdown(CMMarkdown,
+                                                                  { base: CMMarkdown.markdownLanguage }),
                                                      hideMarks,
                                                      extTables ] })
   view = new CMView.EditorView({ state, parent })
@@ -290,6 +292,40 @@ test('md tables', 'updates when rows stream in',
        await new Promise(r => setTimeout(r, 30))
 
        equal(view.contentDOM.querySelectorAll('.code-md-table tbody td').length, 4)
+     })
+
+test('md enter', 'Enter leaves the doc to bred, not to CM markup',
+     async () => {
+       let doc, view
+
+       // a plain line after a quote is part of the quote as far as CommonMark
+       // is concerned, so CM's markdown keymap would append another '>' line
+       doc = '> this is quoted\nthis is a new line'
+       view = await make(doc)
+       view.focus()
+       view.dispatch({ selection: { anchor: view.state.doc.length } })
+       view.contentDOM.dispatchEvent(new domWin.KeyboardEvent('keydown',
+                                                              { key: 'Enter',
+                                                                bubbles: 1,
+                                                                cancelable: 1 }))
+
+       equal(view.state.doc.toString(), doc, 'no quote marker is added')
+     })
+
+test('md enter', 'Backspace leaves the doc to bred, not to CM markup',
+     async () => {
+       let doc, view
+
+       doc = '> this is quoted'
+       view = await make(doc)
+       view.focus()
+       view.dispatch({ selection: { anchor: 2 } })
+       view.contentDOM.dispatchEvent(new domWin.KeyboardEvent('keydown',
+                                                              { key: 'Backspace',
+                                                                bubbles: 1,
+                                                                cancelable: 1 }))
+
+       equal(view.state.doc.toString(), doc, 'no quote markup is deleted')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

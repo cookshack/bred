@@ -9,6 +9,7 @@ import * as U from './util.mjs'
 import * as WodeMode from './wode-mode.mjs'
 import * as WodePatch from './wode-patch.mjs'
 import * as WodeLangIni from './wode-lang-ini.mjs'
+import * as WodeLangMd from './wode-lang-md.mjs'
 import * as WodeLangPatch from './wode-lang-patch.mjs'
 import * as WodeTheme from './wode-theme.mjs'
 import { d } from './mess.mjs'
@@ -276,7 +277,7 @@ function init
            { ext: [ 'md', 'markdown', 'mkd' ],
              load
              (m) {
-               return m.markdown({ codeLanguages: langs })
+               return WodeLangMd.makeMarkdown(m, { codeLanguages: langs })
              } })
 
   loadLang(Loc.appDir().join('lib/codemirror-lang-richdown.js'),

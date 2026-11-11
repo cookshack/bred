@@ -10,8 +10,9 @@ import { extTables, padTableText } from './tables.mjs'
 import * as CMState from '../../lib/@codemirror/state.js'
 import * as CMView from '../../lib/@codemirror/view.js'
 import { patch } from '../../js/wode-lang-patch.mjs'
-import { markdown, markdownLanguage } from '../../lib/@codemirror/lang-markdown.js'
+import * as CMMarkdown from '../../lib/@codemirror/lang-markdown.js'
 import { langs } from '../../js/wode-lang.mjs'
+import { makeMarkdown } from '../../js/wode-lang-md.mjs'
 import { modeFor } from '../../js/wode-mode.mjs'
 import { themeExtension } from '../../js/wode-theme.mjs'
 
@@ -154,8 +155,9 @@ function makeMarkdownEd
 
   exts = [ CMView.EditorView.editable.of(false),
            CMView.EditorView.lineWrapping,
-           markdown({ base: markdownLanguage,
-                      codeLanguages: langs }),
+           makeMarkdown(CMMarkdown,
+                        { base: CMMarkdown.markdownLanguage,
+                          codeLanguages: langs }),
            themeExtension ]
   if (decorate)
     exts.push(hideMarks, extTables)

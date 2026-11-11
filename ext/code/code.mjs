@@ -288,7 +288,7 @@ function refreshMounts
                                                    return
                                                  buf.vars('code').mountCandidates = candidates
                                                  if (buf.vars('code').mounts == null)
-                                                   buf.vars('code').mounts = candidates.map(c => c.path)
+                                                   buf.vars('code').mounts = Util.mountPaths(candidates)
                                                  Ui.updateMounts(buf, candidates)
                                                }).catch(err => d('CO mounts: ' + err.message))
   }

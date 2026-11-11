@@ -88,6 +88,30 @@ test('references', 'every extra mount, minus the working dir',
        equal(refs['alts-main-gvm-cert-data'].path, home + '/alts/main/gvm/cert-data')
      })
 
+test('argList', 'no selection skips unticked extras',
+     () => {
+       let args
+
+       args = Mounts.argList('/w', '/d', '/a', null, home, () => 1)
+       equal(args.some(a => a.startsWith(home + '/4:')), false)
+     })
+
+test('argList', 'an explicit selection can include an unticked extra',
+     () => {
+       let args
+
+       args = Mounts.argList('/w', '/d', '/a', [ home + '/4' ], home, () => 1)
+       equal(args.includes(home + '/4:' + home + '/4'), true)
+     })
+
+test('references', 'no selection skips unticked extras',
+     () => {
+       let refs
+
+       refs = Mounts.references(null, '/w', home, () => 1)
+       equal(Object.values(refs).some(r => r.path == home + '/4'), false)
+     })
+
 test('references', 'only the selected extras',
      () => {
        let refs
@@ -108,6 +132,26 @@ test('candidateList', 'labels use ~ and read-only is marked',
        list = Mounts.candidateList('/w', home, () => 1)
        equal(list[0].label.startsWith('~/'), true)
        equal(list.some(c => (c.path == home + '/src/opencode') && (c.ro == 1)), true)
+     })
+
+test('candidateList', 'unticked extras are offered but start off',
+     () => {
+       let list
+
+       list = Mounts.candidateList('/w', home, () => 1)
+       equal(list.some(c => (c.path == home + '/4') && c.unticked), true, '~/4 is offered')
+       equal(list.filter(c => c.unticked).length, 1, 'only ~/4 starts off')
+       equal(list.some(c => (c.path == home + '/src/bred') && c.unticked == 0), true)
+     })
+
+test('defaultSelection', 'skips unticked extras',
+     () => {
+       let list, mounts
+
+       list = Mounts.candidateList('/w', home, () => 1)
+       mounts = Mounts.defaultSelection(list)
+       equal(mounts.includes(home + '/4'), false, '~/4 is not mounted')
+       equal(mounts.includes(home + '/src/bred'), true, 'the others are')
      })
 
 test('candidateList', 'the working dir is not offered',

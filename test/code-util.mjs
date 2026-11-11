@@ -439,6 +439,12 @@ test('usageHover', 'labels, percentages and countdowns in columns',
                + '</table>')
      })
 
+test('mountPaths', 'skips unticked candidates',
+     () => {
+       equal(CodeUtil.mountPaths([ { path: '/a' }, { path: '/b', unticked: 1 } ]).join(','),
+             '/a')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

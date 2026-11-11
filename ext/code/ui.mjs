@@ -333,7 +333,7 @@ function updateMounts
   let state
 
   if (candidates?.length && (buf.vars('code').mounts == null))
-    buf.vars('code').mounts = candidates.map(c => c.path)
+    buf.vars('code').mounts = Util.mountPaths(candidates)
   state = { candidates,
             mounts: buf.vars('code').mounts || [],
             locked: buf.vars('code').mountsLocked }

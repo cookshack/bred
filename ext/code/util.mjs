@@ -388,3 +388,10 @@ function usageCls
     return 'code-usage-warn'
   return ''
 }
+
+// The candidate mounts to start with: the ones not marked unticked.
+export
+function mountPaths
+(candidates) {
+  return candidates.filter(c => (c.unticked ? 0 : 1)).map(c => c.path)
+}

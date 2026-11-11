@@ -601,7 +601,7 @@ function init
 
       el = divCl('code-prompt-mounts')
       state = { candidates,
-                mounts: candidates.map(c => c.path),
+                mounts: Util.mountPaths(candidates),
                 locked: 0 }
       render = () => Ui.renderMounts(el, state, render)
       render()

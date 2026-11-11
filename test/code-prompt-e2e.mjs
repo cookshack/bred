@@ -221,6 +221,20 @@ test('mounts', 'clicking a mount toggles it without native checkbox state',
        equal(buf.vars('code').mounts.join(','), '/b,/a', 'clicking adds it back')
      })
 
+test('mounts', 'an unticked candidate renders unchecked on the first prompt',
+     async () => {
+       let buf, els
+
+       ({ buf } = await setup())
+       await waitFor(() => buf.views.find(v => v.ele)?.ele)
+       Ui.updateMounts(buf, [ { path: '/a', label: '~/a', ro: 0 },
+                              { path: '/4', label: '~/4', ro: 0, unticked: 1 } ])
+
+       els = buf.views.find(v => v.ele).ele.querySelectorAll('.code-prompt-mounts input')
+       equal([ ...els ].map(i => i.checked ? 1 : 0).join(','), '1,0', 'only the ticked default is checked')
+       equal(buf.vars('code').mounts.join(','), '/a', '~/4 is not mounted by default')
+     })
+
 test('mounts', 'renderMounts mutates a standalone state for the session demand',
      async () => {
        let candidates, el, state

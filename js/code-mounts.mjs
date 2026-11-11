@@ -47,7 +47,8 @@ function argFor
 }
 
 // Directories the agent can see beyond the buffer's own dir. These are the
-// ones offered as checkboxes on the first prompt.
+// ones offered as checkboxes on the first prompt. An unticked extra is offered
+// but starts off: it is only mounted when the user ticks it.
 function extras
 (home) {
   return [ { src: home + '/fresh/main' },
@@ -58,6 +59,7 @@ function extras
            { src: home + '/src/bin' },
            { src: home + '/src/conventions' },
            { src: home + '/sessions' },
+           { src: home + '/4', unticked: 1 },
            { src: home + '/alts/main/openvas/plugins', ro: 1 },
            { src: home + '/alts/main/gvm/cert-data', ro: 1 },
            { src: home + '/alts/main/gvm/scap-data', ro: 1 },
@@ -90,7 +92,23 @@ function candidateList
     .filter(m => (m.src == workingDir) ? 0 : 1)
     .map(m => ({ path: m.src,
                  label: labelFor(home, m.src),
-                 ro: m.ro || 0 }))
+                 ro: m.ro || 0,
+                 unticked: m.unticked || 0 }))
+}
+
+// The mounts a candidate list starts with. Unticked extras are shown on the
+// first prompt, but stay out of the container until they are ticked.
+export
+function defaultSelection
+(candidates) {
+  return candidates.filter(c => (c.unticked ? 0 : 1)).map(c => c.path)
+}
+
+function picked
+(selected, m) {
+  if (selected == null)
+    return m.unticked ? 0 : 1
+  return selected.includes(m.src)
 }
 
 // opencode's project references, so the agent is told which extra dirs it has.
@@ -107,7 +125,7 @@ function references
   extras(home)
     .filter(m => exists(m.src))
     .filter(m => (m.src == workingDir) ? 0 : 1)
-    .filter(m => (selected == null) || selected.includes(m.src))
+    .filter(m => picked(selected, m))
     .forEach(m => {
                refs[refName(home, m.src)] = { path: m.src,
                                               description: m.ro
@@ -131,7 +149,7 @@ function argList
   list.push(...extras(home)
     .filter(m => exists(m.src))
     .filter(m => (m.src == workingDir) ? 0 : 1)
-    .filter(m => (selected == null) || selected.includes(m.src)))
+    .filter(m => picked(selected, m)))
   list.push(...infra(home, dataDir, authPath, exists))
   return list.flatMap(m => [ '-v', argFor(m) ])
 }

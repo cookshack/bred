@@ -10,6 +10,7 @@ import * as Opt from './opt.mjs'
 import * as Pane from './Pane.mjs'
 import * as Recent from './recent.mjs'
 import * as Tron from './tron.mjs'
+import * as View from './view.mjs'
 import * as U from './util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
@@ -382,9 +383,15 @@ function make
 
   function text
   () {
-    let v
+    let cur, v
 
-    v = b.views.find(v2 => v2.ele) || Mess.toss('view missing')
+    // Prefer the view the user is looking at: a buf shown in two panes has one
+    // view (and editor) per pane, and they are not always in step.
+    cur = View.current()
+    if ((cur?.buf == b) && cur.ele)
+      v = cur
+    else
+      v = b.views.find(v2 => v2.ele) || Mess.toss('view missing')
     if (b.mode?.text)
       return b.mode.text(v)
     Mess.toss('buf.add: text missing: ' + b.mode.key)

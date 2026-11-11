@@ -541,15 +541,9 @@ function initModeFns
 
   function clear
   (b) {
-    let view
-
-    view = b.anyView()
-    if (view) {
-      WodeCommon.setValue(view.ed, '', true)
-      return
-    }
-    // When the buffer was in some pane, but is no longer in any pane, then
-    // the view will be reused if the buffer is shown in a pane again.
+    // Every view: a buf shown in two panes has an editor per pane, and one
+    // left holding the old text would send it again the next time it is typed
+    // in. Closed views keep their editor for when they are reused.
     b.views.forEach(v => {
                       if (v.ed)
                         try {

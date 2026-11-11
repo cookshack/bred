@@ -7,6 +7,7 @@ import * as Bred from '../js/bred.mjs'
 import * as Css from '../js/css.mjs'
 import * as Mess from '../js/mess.mjs'
 import * as Mode from '../js/mode.mjs'
+import * as Pane from '../js/Pane.mjs'
 import * as Scib from '../js/scib.mjs'
 import * as Sessions from '../ext/code/sessions.mjs'
 import * as Ui from '../ext/code/ui.mjs'
@@ -812,6 +813,50 @@ test('focus', 'a click focuses the pane its target is in',
              true,
              'the nested pane is current')
      })
+
+test('split', 'a split does not make the prompt current',
+     async () => {
+       let buf, np, panes
+
+       ({ panes, buf } = await setup())
+       await waitFor(() => buf.views.find(v => v.ele)?.ele && buf.vars('code').promptBuf?.views[0]?.ele)
+       panes.pB.focus()
+       equal(panes.pB.currentNestedView == null, true, 'the prompt is not current before the split')
+
+       Pane.split()
+       await waitFor(() => panes.frame.panes.length == 3)
+       np = newPane(panes)
+       await waitFor(() => np.view?.ele)
+
+       // otherwise Enter is submit prompt instead of opening it
+       equal(np.currentNestedView == null, true, 'the prompt is not current in the new pane')
+     })
+
+test('split', 'a split keeps the prompt current when it was current',
+     async () => {
+       let buf, np, panes, pv
+
+       ({ panes, buf } = await setup())
+       await waitFor(() => buf.views.find(v => v.ele)?.ele && buf.vars('code').promptBuf?.views[0]?.ele)
+       pv = buf.vars('code').promptBuf.views[0]
+       panes.pB.focusViewAt(pv.ele)
+       equal(panes.pB.currentNestedView == pv, true, 'the prompt is current before the split')
+
+       Pane.split()
+       await waitFor(() => panes.frame.panes.length == 3)
+       np = newPane(panes)
+       await waitFor(() => np.view?.ele)
+
+       equal(np.currentNestedView?.buf == buf.vars('code').promptBuf,
+             true,
+             'the new pane keeps the prompt current')
+     })
+
+// the pane Pane.split added: not one of the two the fixture started with
+function newPane
+(panes) {
+  return panes.frame.panes.find(p => (p == panes.pA) || (p == panes.pB) ? 0 : 1)
+}
 
 function mochaIt
 (cb) {

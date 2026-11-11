@@ -1913,10 +1913,17 @@ function viewCopy
     }
   }
 
-  if (from.nestedViews)
-    from.nestedViews.forEach(nv => {
-                               let outer, nestedView, src
+  if (from.nestedViews) {
+    let fromPane
 
+    // only the nested view that was current in the source pane stays current:
+    // making the prompt current would send Enter to submit prompt instead of
+    // opening it
+    fromPane = Pane.holding(from.ele)
+    from.nestedViews.forEach(nv => {
+                               let fromPrompt, outer, nestedView, src
+
+                               fromPrompt = fromPane?.currentNestedView == nv
                                src = from.ele.querySelector('[data-bred-nested-buf-id="' + nv.buf.id + '"]')
                                if (src?.closest('.code-prompt-w') == null)
                                  return
@@ -1966,12 +1973,14 @@ function viewCopy
                                                          }
                                                        })
 
-                                 Css.add(pane, 'current')
+                                 if (fromPrompt)
+                                   Css.add(pane, 'current')
 
                                  to.nestedViews = to.nestedViews || []
                                  to.nestedViews.push(nestedView)
                                }
                              })
+  }
 
   if (cb)
     cb(to)

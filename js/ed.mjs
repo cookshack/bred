@@ -1084,13 +1084,14 @@ function initModeFns
       cb(new Error('View missing'))
   }
 
-  // Prefer the view the user is looking at, so output reaches the pane they
-  // are watching. Other views are brought up to date by peer sync.
-  function appendView
+  // Prefer the view the user is looking at (including a nested one, eg the
+  // code prompt), so output reaches the pane they are watching. Other views
+  // are brought up to date by peer sync.
+  function viewFor
   (b) {
     let view
 
-    view = Pane.current()?.view
+    view = View.current()
     if ((view?.buf == b) && view.ele && view.ed)
       return view
     return b.anyView(1)
@@ -1101,7 +1102,7 @@ function initModeFns
    afterEndPoint) { // if point at end, then final position of point will be before str.
     let view
 
-    view = appendView(b) || Mess.log('ED append missing view')
+    view = viewFor(b) || Mess.log('ED append missing view')
     if (view?.ed) {
       let atEnd, end, bep, movePoint
 
@@ -1127,7 +1128,7 @@ function initModeFns
 
     // lax: fall back to a closed view so output to an undisplayed buffer
     // still reaches its (stashed) editor doc
-    view = b.anyView(1) || Mess.log('ED insert missing view')
+    view = viewFor(b) || Mess.log('ED insert missing view')
     if (view?.ed) {
       //d(b.name + ": insert: " + str)
       Backend.vinsertAt(view, bep, 1, str)

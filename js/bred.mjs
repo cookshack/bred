@@ -61,11 +61,16 @@ function os
   return $os
 }
 
+// Focus the pane (and its current nested view) under the pointer. The event's
+// own target is used when there is one, since elementFromPoint can resolve to
+// something other than what the click landed on (eg a middle click into a
+// nested pane).
+export
 function focus
 (we) {
   let target, p
 
-  target = globalThis.document.elementFromPoint(we.e.clientX, we.e.clientY)
+  target = we.e?.target || globalThis.document.elementFromPoint(we.e.clientX, we.e.clientY)
   p = Pane.holding(target)
   if (p)
     p.focusViewAt(target)

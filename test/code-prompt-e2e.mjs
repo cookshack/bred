@@ -3,12 +3,14 @@ import * as Buf from '../js/Buf.mjs'
 import * as Cmd from '../js/cmd.mjs'
 import * as Code from '../ext/code/code.mjs'
 import * as CodePrompt from '../ext/code/prompt.mjs'
+import * as Bred from '../js/bred.mjs'
 import * as Css from '../js/css.mjs'
 import * as Mess from '../js/mess.mjs'
 import * as Mode from '../js/mode.mjs'
 import * as Scib from '../js/scib.mjs'
 import * as Sessions from '../ext/code/sessions.mjs'
 import * as Ui from '../ext/code/ui.mjs'
+import * as View from '../js/view.mjs'
 import * as Fake from './fake-oc.mjs'
 import { fileBuf, setBuf, setupPanes, wait, waitFor } from './pane-helpers.mjs'
 
@@ -754,6 +756,47 @@ test('subagent', 'reopened session replays child output',
          .map(e => Css.has(e, 'code-msg-tool') ? 'task' : 'child')
          .join(',')
        equal(order, 'task,child', 'child output follows the task line')
+     })
+
+test('focus', 'focusing by position makes the prompt current',
+     async () => {
+       let buf, live, panes, pv
+
+       ({ panes, buf } = await setup())
+       await waitFor(() => panes.pB.view?.buf == buf && buf.vars('code').promptBuf?.views[0]?.ele)
+       live = buf.views.find(v => v.ele)
+       pv = buf.vars('code').promptBuf.views[0]
+       panes.pB.focus()
+       equal(View.current() == live, true, 'the code view starts current')
+
+       globalThis.document.elementFromPoint = () => pv.ele
+       Bred.focus({ e: { clientX: 1, clientY: 1 } })
+
+       equal(View.current() == pv, true, 'the prompt is current')
+       equal(Css.has(live.ele.querySelector('.pane.bred-nested'), 'current'),
+             true,
+             'the nested pane is current')
+     })
+
+test('focus', 'a click focuses the pane its target is in',
+     async () => {
+       let buf, live, panes, pv
+
+       // no elementFromPoint here: a middle click into the prompt has to land
+       // from the event itself, the same way it did when the prompt was current
+       ({ panes, buf } = await setup())
+       await waitFor(() => panes.pB.view?.buf == buf && buf.vars('code').promptBuf?.views[0]?.ele)
+       live = buf.views.find(v => v.ele)
+       pv = buf.vars('code').promptBuf.views[0]
+       panes.pB.focus()
+       equal(View.current() == live, true, 'the code view starts current')
+
+       Bred.focus({ e: { target: pv.ele } })
+
+       equal(View.current() == pv, true, 'the prompt is current')
+       equal(Css.has(live.ele.querySelector('.pane.bred-nested'), 'current'),
+             true,
+             'the nested pane is current')
      })
 
 function mochaIt

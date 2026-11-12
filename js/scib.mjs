@@ -66,14 +66,22 @@ function scib
 
 function initRTL
 () {
-  // The pane whose buffer the context menu was opened on. Key-bound runs and
-  // runs from other menus (which are not inside a .bred-context) use the
-  // current pane, so a stale earlier click cannot decide where a command runs.
-  function sourcePane
+  // The pane whose buffer the context menu was opened on, or 0 for the usual
+  // frame1 target. Key-bound runs and runs from other menus (which are not
+  // inside a .bred-context) get 0, so a stale earlier click cannot decide where
+  // a command runs.
+  function menuPane
   (we) {
     if (we?.mouse && we.e?.target?.closest?.('.bred-context'))
-      return Win.current().context?.pane || Pane.current()
-    return Pane.current()
+      return Win.current().context?.pane || 0
+    return 0
+  }
+
+  // The pane whose buffer the command belongs to: the menu's pane, else the
+  // current pane.
+  function sourcePane
+  (we) {
+    return menuPane(we) || Pane.current()
   }
 
   // The line under the click point for a menu run, or the cursor line for a
@@ -101,9 +109,10 @@ function initRTL
     return l
   }
 
-  // pane is the target, or undefined for the usual frame1 pane
+  // pane is the target, or undefined for the usual frame1 pane; focus 1 moves
+  // focus to the command's buffer
   function runLine
-  (l, pane, dir) {
+  (l, pane, dir, focus) {
     if (l && l.length)
       Shell.shell1(l,
                    { echo: 1,
@@ -111,7 +120,7 @@ function initRTL
                      hist,
                      pane,
                      dir,
-                     focus: pane ? 0 : 1 },
+                     focus },
                    buf => {
                      buf.mode = 'shell'
                      buf.opts.set('ansi.enabled', 1)
@@ -128,7 +137,7 @@ function initRTL
     let p
 
     p = sourcePane(we)
-    runLine(lineUnderPoint(u, we, p), 0, p.buf?.dir)
+    runLine(lineUnderPoint(u, we, p), menuPane(we), p.buf?.dir, 1)
   }
 
   function runThisLineInOtherPane
@@ -146,7 +155,7 @@ function initRTL
       // menu was opened on
       p.focus()
       to = Pane.nextOrSplit()
-      runLine(l, to, dir)
+      runLine(l, to, dir, 0)
       // nextOrSplit focuses the other pane; the user is still working here
       p.focus()
     }
@@ -170,9 +179,10 @@ function initRTL
     return Wode.codeAtCoords(win, x, y)
   }
 
-  // pane is the target, or undefined for the usual frame1 pane
+  // pane is the target, or undefined for the usual frame1 pane; focus 1 moves
+  // focus to the command's buffer
   function runCode
-  (code, pane, dir) {
+  (code, pane, dir, focus) {
     if (code == null)
       Mess.say('No code at point')
     else if (code.length)
@@ -182,7 +192,7 @@ function initRTL
                      hist,
                      pane,
                      dir,
-                     focus: pane ? 0 : 1 },
+                     focus },
                    buf => {
                      buf.mode = 'shell'
                      buf.opts.set('ansi.enabled', 1)
@@ -197,7 +207,7 @@ function initRTL
     let p
 
     p = sourcePane(we)
-    runCode(codeUnderPoint(u, we), 0, p.buf?.dir)
+    runCode(codeUnderPoint(u, we), menuPane(we), p.buf?.dir, 1)
   }
 
   function runThisCodeInOtherPane
@@ -215,7 +225,7 @@ function initRTL
       // menu was opened on
       p.focus()
       to = Pane.nextOrSplit()
-      runCode(code, to, dir)
+      runCode(code, to, dir, 0)
       // nextOrSplit focuses the other pane; the user is still working here
       p.focus()
     }

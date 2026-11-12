@@ -41,6 +41,17 @@ function stubContextClick
   ed.posAtCoords = () => pos
 }
 
+// The menu item to use as the click target of a menu-run command.
+function contextItem
+(cmd, name) {
+  let ctx, item
+
+  ctx = divCl('bred-context')
+  item = divCl('bred-context-item', name, { 'data-run': cmd })
+  ctx.appendChild(item)
+  return item
+}
+
 tests = {}
 
 test('focus', 'pane focus targets the current view editor',
@@ -317,7 +328,7 @@ test('rtl', 'run this line in other pane runs in the source buffer dir',
 
 test('rtl', 'a menu run this line in other pane uses the pane the menu was opened on',
      async () => {
-       let ctx, ed, fA, fB, item, panes, sBuf
+       let ed, fA, fB, item, panes, sBuf
 
        panes = setupPanes()
        fA = fileBuf('clicked.txt')
@@ -335,11 +346,7 @@ test('rtl', 'a menu run this line in other pane uses the pane the menu was opene
                                 insert: 'ls\npwd\n' } })
        stubContextClick(ed, 0)
 
-       ctx = divCl('bred-context')
-       item = divCl('bred-context-item',
-                    'Run This Line In Other Pane',
-                    { 'data-run': 'run this line in other pane' })
-       ctx.appendChild(item)
+       item = contextItem('run this line in other pane', 'Run This Line In Other Pane')
        globalThis.bredWin.context = { pane: panes.pA }
 
        Cmd.run('run this line in other pane', 0, 0, { mouse: 1, e: { button: 0, target: item } })
@@ -350,6 +357,37 @@ test('rtl', 'a menu run this line in other pane uses the pane the menu was opene
        equal(sBuf.dir, '/tmp/clicked/', 'runs in the dir of the buffer the menu was opened on')
        equal(sBuf.views[0].ed.state.doc.line(1).text, '$ ls', 'clicked line is run')
        sameView(View.current(panes.pA), fA.views[0], 'focus returns to the clicked pane')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'a menu run this line in shell runs in the pane the menu was opened on',
+     async () => {
+       let ed, fA, fB, item, panes, sBuf
+
+       panes = setupPanes()
+       fA = fileBuf('clicked.txt')
+       fB = fileBuf('current.txt')
+       await setBuf(panes.pA, fA)
+       await setBuf(panes.pB, fB)
+       // the menu was opened in pane A while pane B stayed current
+       panes.pB.focus()
+
+       ed = fA.views[0].ed
+       ed.dispatch({ changes: { from: 0,
+                                to: ed.state.doc.length,
+                                insert: 'ls\npwd\n' } })
+       stubContextClick(ed, 0)
+
+       item = contextItem('run this line', 'Run This Line In Shell')
+       globalThis.bredWin.context = { pane: panes.pA }
+
+       Cmd.run('run this line', 0, 0, { mouse: 1, e: { button: 0, target: item } })
+       await waitFor(() => panes.pA.buf?.name?.startsWith('SC: ') && panes.pA.buf.views[0]?.ed)
+
+       sBuf = panes.pA.buf
+       equal(panes.pB.buf, fB, 'focused pane keeps its buffer')
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ ls', 'clicked line is run')
+       sameView(View.current(panes.pA), sBuf.views[0], 'focus follows the command')
        checkPaneInvariants(panes.frame)
      })
 

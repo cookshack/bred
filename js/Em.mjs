@@ -3,7 +3,7 @@ import * as Cmd from './cmd.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './Pane.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 
 import { make } from './em.mjs'
 export { make } from './em.mjs'

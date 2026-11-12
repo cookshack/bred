@@ -1,11 +1,11 @@
 import * as Server from './main-code-server.mjs'
-import * as Config from './code-config.mjs'
-import * as Mounts from './code-mounts.mjs'
+import * as Config from './main-code-config.mjs'
+import * as Mounts from './main-code-mounts.mjs'
 import Database from 'better-sqlite3'
 import Path from 'node:path'
 import fs from 'node:fs'
 import { d } from './main-log.mjs'
-import { resolveDataDir } from './oc-data.mjs'
+import { resolveDataDir } from './main-oc-data.mjs'
 
 let servers
 

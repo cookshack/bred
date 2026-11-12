@@ -1,5 +1,5 @@
 import { equal } from 'node:assert/strict'
-import * as Mounts from '../js/code-mounts.mjs'
+import * as Mounts from '../js/main-code-mounts.mjs'
 
 let tests, home
 

@@ -17,6 +17,16 @@ The codebase is organized into several categories:
 - Prompt and execution systems
 - Directory and file browsing functionality
 
+## File naming
+
+The prefix says which process may import a file:
+
+- `js/main-*.mjs` — main process only. `js/main.mjs` is the main entry point.
+- `js/common-*.mjs` — imported by both main and renderer code.
+- Everything else under `js/` and `ext/` — renderer/UI code.
+
+Tests may import any layer. `bin/check-layering.mjs` enforces the import rules and the names, and runs as part of `npm run check`.
+
 ## Core Application Files
 
 ### js/main.mjs
@@ -638,7 +648,7 @@ CSS manipulation utilities.
 - `retract(ele)` - Retracts element
 - `initCss(cb)` - Initializes CSS
 
-### js/util.mjs
+### js/common-util.mjs
 
 General utility functions.
 

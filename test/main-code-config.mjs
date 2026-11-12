@@ -1,5 +1,5 @@
 import { equal } from 'node:assert/strict'
-import * as Config from '../js/code-config.mjs'
+import * as Config from '../js/main-code-config.mjs'
 
 let tests
 

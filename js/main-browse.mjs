@@ -1,6 +1,6 @@
 import { BrowserWindow, ipcMain, WebContentsView } from 'electron'
 import * as Profile from './main-profile.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 
 import { d } from './main-log.mjs'
 

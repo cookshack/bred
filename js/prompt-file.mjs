@@ -11,7 +11,7 @@ import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './Pane.mjs'
 import * as Tron from './tron.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 import { d } from './mess.mjs'
 
 export

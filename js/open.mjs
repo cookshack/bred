@@ -13,7 +13,7 @@ import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
 import * as Tab from './tab.mjs'
 import * as Tron from './tron.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 import { d } from './mess.mjs'
 
 export

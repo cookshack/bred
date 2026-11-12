@@ -14,7 +14,7 @@ import * as Pane from './Pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scib from './scib.mjs'
 import * as Tron from './tron.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 import { d } from './mess.mjs'
 
 let reErr, reFile

@@ -1,7 +1,7 @@
 import * as Hist from './hist.mjs'
 import * as Mess from './mess.mjs'
 import * as Mode from './mode.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 //import { d } from './mess.mjs'
 
 import getCurrentLine from '../lib/get-current-line.js'

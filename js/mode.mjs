@@ -3,7 +3,7 @@ import * as Em from './Em.mjs'
 import * as Mess from './mess.mjs'
 import * as Opt from './opt.mjs'
 import * as Pane from './Pane.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 import { d } from './mess.mjs'
 
 let modes

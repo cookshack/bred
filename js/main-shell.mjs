@@ -1,9 +1,9 @@
 import { app, ipcMain, shell as Shell } from 'electron'
 import { makeErr } from './main-err.mjs'
 import * as Pty from 'node-pty'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 
-import * as ShellRun from './shell-run.mjs'
+import * as ShellRun from './main-shell-run.mjs'
 
 function deps
 () {

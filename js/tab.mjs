@@ -6,7 +6,7 @@ import * as Icon from './icon.mjs'
 import * as Frame from './frame.mjs'
 import * as Mess from './mess.mjs'
 import * as Pane from './Pane.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 
 let lastId
 

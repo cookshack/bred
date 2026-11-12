@@ -17,7 +17,7 @@ import * as Pane from './Pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Timing from './timing.mjs'
 import * as Tron from './tron.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 import * as View from './view.mjs'
 import { d } from './mess.mjs'
 

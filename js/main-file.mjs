@@ -7,7 +7,7 @@ import Path from 'node:path'
 import Zlib from 'node:zlib'
 
 import * as Diff from '../lib/diff.js'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 
 function decompress
 (data, path) {

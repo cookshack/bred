@@ -1,5 +1,5 @@
 import { equal } from 'node:assert/strict'
-import * as InitArgs from '../js/init-args.mjs'
+import * as InitArgs from '../js/common-init-args.mjs'
 
 let tests
 

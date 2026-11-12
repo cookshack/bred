@@ -1,5 +1,5 @@
 import * as Mess from './mess.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 //import { d } from './mess.mjs'
 
 let $appDir, $configDir, $iwd, $home, $profile, $shell, $initFile

@@ -2,11 +2,11 @@ import http from 'node:http'
 import fs from 'node:fs'
 import { spawn } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
-import * as U from './util.mjs'
-import * as Mounts from './code-mounts.mjs'
+import * as U from './common-util.mjs'
+import * as Mounts from './main-code-mounts.mjs'
 import { d } from './main-log.mjs'
 
-import { resolveDataDir } from './oc-data.mjs'
+import { resolveDataDir } from './main-oc-data.mjs'
 
 export
 function containerName

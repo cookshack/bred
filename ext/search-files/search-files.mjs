@@ -8,7 +8,7 @@ import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/Pane.mjs'
 import * as Prompt from '../../js/prompt.mjs'
 import * as Shell from '../../js/shell.mjs'
-import * as U from '../../js/util.mjs'
+import * as U from '../../js/common-util.mjs'
 //import { d } from '../../js/mess.mjs'
 
 export

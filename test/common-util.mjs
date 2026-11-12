@@ -1,5 +1,5 @@
 import { equal } from 'node:assert/strict'
-import * as U from '../js/util.mjs'
+import * as U from '../js/common-util.mjs'
 
 let tests
 

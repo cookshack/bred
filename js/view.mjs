@@ -5,7 +5,7 @@ import * as Mess from './mess.mjs'
 import * as Pane from './Pane.mjs'
 import * as Point from './point.mjs'
 import * as Scrollbar from './scrollbar.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 

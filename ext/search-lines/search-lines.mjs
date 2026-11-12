@@ -7,7 +7,7 @@ import * as Mess from '../../js/mess.mjs'
 import * as Mode from '../../js/mode.mjs'
 import * as Pane from '../../js/Pane.mjs'
 import * as Prompt from '../../js/prompt.mjs'
-import * as U from '../../js/util.mjs'
+import * as U from '../../js/common-util.mjs'
 //import { d } from '../../js/mess.mjs'
 
 import * as CMState from '../../lib/@codemirror/state.js'

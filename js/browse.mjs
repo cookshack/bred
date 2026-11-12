@@ -11,7 +11,7 @@ import * as Mode from './mode.mjs'
 import * as Open from './open.mjs'
 import * as Pane from './Pane.mjs'
 import * as Tron from './tron.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 import { d } from './mess.mjs'
 
 function initWeb

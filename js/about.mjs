@@ -19,7 +19,7 @@ import * as Opt from './opt.mjs'
 import * as Pane from './Pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Scroll from './scroll.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 import * as View from './view.mjs'
 import Vode from '../lib/@codemirror/version.json' with { type: 'json' }
 import Vqlite from '../lib/sqlite.json' with { type: 'json' }

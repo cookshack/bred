@@ -1,6 +1,6 @@
 import { equal } from 'node:assert/strict'
 import * as Pty from 'node-pty'
-import * as ShellRun from '../js/shell-run.mjs'
+import * as ShellRun from '../js/main-shell-run.mjs'
 
 let tests
 

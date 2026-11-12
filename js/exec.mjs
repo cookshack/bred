@@ -6,7 +6,7 @@ import * as Css from './css.mjs'
 import * as Em from './Em.mjs'
 import * as Mode from './mode.mjs'
 import * as Pane from './Pane.mjs'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 import { d } from './mess.mjs'
 
 export

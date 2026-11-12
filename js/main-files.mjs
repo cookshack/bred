@@ -1,6 +1,6 @@
 import Fs from 'node:fs'
 import * as CMState from '@codemirror/state'
-import * as U from './util.mjs'
+import * as U from './common-util.mjs'
 
 export
 function onLines

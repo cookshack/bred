@@ -6,7 +6,7 @@ import * as Mess from '../js/mess.mjs'
 import * as Pane from '../js/Pane.mjs'
 import * as Pty from 'node-pty'
 import * as Shell from '../js/shell.mjs'
-import * as ShellRun from '../js/shell-run.mjs'
+import * as ShellRun from '../js/main-shell-run.mjs'
 import * as Vc from '../js/vc.mjs'
 import { setupPanes, waitFor } from './pane-helpers.mjs'
 

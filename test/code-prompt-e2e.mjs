@@ -1,4 +1,5 @@
 import { equal } from 'node:assert/strict'
+import Fs from 'node:fs'
 import * as Buf from '../js/Buf.mjs'
 import * as Cmd from '../js/cmd.mjs'
 import * as Code from '../ext/code/code.mjs'
@@ -97,6 +98,32 @@ async function setupStart
   return { panes }
 }
 
+// A code buf whose prompt can be opened: the boot views must be ready first,
+// else their late callbacks re-point the pane and the prompt lands elsewhere.
+async function setupPrompt
+() {
+  let buf, mo, panes
+
+  panes = setupPanes()
+  if (inited == 0) {
+    Code.init()
+    inited = 1
+  }
+  await waitFor(() => panes.pA.view?.ready && panes.pB.view?.ready)
+  // the markdown lang loads async via tron, which the harness doesn't provide,
+  // so the mode here is a stub. openPrompt sets a placeholder, which needs it.
+  mo = Mode.getOrAdd('markdown')
+  mo.setPlaceholder = mo.setPlaceholder || (() => {})
+  buf = Buf.add('CO /tmp', 'code', Ui.divW('/tmp', 'build'), '/tmp')
+  // a started session with a model, so the prompt can be opened without a client
+  buf.vars('code').sessionID = 'ses-highlight'
+  buf.vars('code').provider = 'goat'
+  buf.vars('code').model = 'test-model'
+  await setBuf(panes.pB, buf)
+  CodePrompt.nestBuf(buf)
+  return { panes, buf }
+}
+
 function nestIds
 (view) {
   return [ ...view.ele.querySelectorAll('[data-bred-nested-buf-id]') ]
@@ -106,6 +133,21 @@ function nestIds
 function yellsSince
 (n) {
   return Mess.messages().slice(n).filter(m => m.type == 'yell').map(m => m.text)
+}
+
+// The agent highlight is one css rule, and these tests have no style engine, so
+// take that rule's :has() condition and check it against the app's own dom.
+// (matches() is not used because happy-dom caches :has() results.)
+function agentHighlight
+() {
+  let blocks, css, m, rule, sel
+
+  css = Fs.readFileSync(new URL('../ext/code/code.css', import.meta.url), 'utf8')
+  blocks = css.match(/\.[^{}]*\.code-agent[^{}]*\{[^}]*\}/g) || []
+  rule = blocks.find(b => b.includes('var(--clr-nb3)'))
+  sel = rule ? rule.slice(0, rule.indexOf('{')).trim() : 0
+  m = sel ? sel.match(/:has\((.*)\)/) : 0
+  return { sel, when: m ? m[1] : 0 }
 }
 
 tests = {}
@@ -850,6 +892,67 @@ test('split', 'a split keeps the prompt current when it was current',
        equal(np.currentNestedView?.buf == buf.vars('code').promptBuf,
              true,
              'the new pane keeps the prompt current')
+     })
+
+test('highlight', 'the agent is highlighted while the prompt is open',
+     async () => {
+       let buf, hl, panes, ww
+
+       ({ panes, buf } = await setupPrompt())
+       await waitFor(() => buf.views.find(v => v.ele)?.ele)
+       hl = agentHighlight()
+       equal(hl.sel == 0, false, 'code.css must highlight the agent')
+       equal(hl.when.includes(':not(.retracted)') == 1,
+             true,
+             'the highlight follows the open prompt, not its focus: ' + hl.sel)
+
+       panes.pB.focus()
+       Cmd.run('respond', buf)
+       await wait(20)
+       ww = buf.views.find(v => v.ele).ele.querySelector('.code-ww')
+       equal(ww.querySelector(hl.when) == null, false, 'an open prompt highlights the agent')
+
+       // clicking the transcript leaves the prompt open but drops its focus,
+       // which used to lose the highlight
+       Bred.focus({ e: { target: ww.querySelector('.code-h') } })
+       await wait(10)
+       equal(Css.has(ww.querySelector('.code-prompt-w'), 'retracted'), false, 'the prompt stays open')
+       equal(ww.querySelector(hl.when) == null, false, 'an open prompt still highlights the agent')
+
+       // cancelPrompt only retracts once a prompt has been sent
+       buf.vars('code').firstPromptSent = 1
+       Cmd.runMo('cancel prompt', 'Code Prompt')
+       await wait(20)
+       equal(Css.has(ww.querySelector('.code-prompt-w'), 'retracted'), true, 'the prompt closes')
+       equal(ww.querySelector(hl.when) == null, true, 'a closed prompt does not highlight the agent')
+     })
+
+test('highlight', 'a split pane highlights its open prompt',
+     async () => {
+       let buf, hl, np, panes, ww
+
+       ({ panes, buf } = await setupPrompt())
+       await waitFor(() => buf.views.find(v => v.ele)?.ele)
+       hl = agentHighlight()
+       panes.pB.focus()
+       Cmd.run('respond', buf)
+       await wait(20)
+       ww = buf.views.find(v => v.ele).ele.querySelector('.code-ww')
+       equal(ww.querySelector(hl.when) == null, false, 'the prompt is open before the split')
+
+       // open but not current: the copy is made from this state, and the split
+       // must still show the highlight (the new pane has the focus)
+       Bred.focus({ e: { target: ww.querySelector('.code-h') } })
+       await wait(10)
+       Pane.split()
+       await waitFor(() => panes.frame.panes.length == 3)
+       np = newPane(panes)
+       await waitFor(() => np.view?.ele && np.view.ele.querySelector('.code-ww'))
+       await wait(50)
+
+       ww = np.view.ele.querySelector('.code-ww')
+       equal(Css.has(ww.querySelector('.code-prompt-w'), 'retracted'), false, 'the copied prompt is open')
+       equal(ww.querySelector(hl.when) == null, false, 'the copied open prompt highlights the agent')
      })
 
 // the pane Pane.split added: not one of the two the fixture started with

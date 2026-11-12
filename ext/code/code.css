@@ -467,7 +467,9 @@ div.code-thought:hover {
   margin-right: 0.5rem;
 }
 
-.code-ww:has(.code-prompt-w .pane.bred-nested.current) .code-agent {
+/* while the prompt is open, not just while it has focus: clicking the
+   transcript used to clear the highlight even though the prompt stayed open */
+.code-ww:has(.code-prompt-w:not(.retracted)) .code-agent {
   color: var(--clr-nb3);
 }
 

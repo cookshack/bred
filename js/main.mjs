@@ -14,6 +14,7 @@ import * as Log from './main-log.mjs'
 import * as Lsp from './main-lsp.mjs'
 import { makeErr } from './main-err.mjs'
 import Net from 'node:net'
+import * as NetWatch from './main-net.mjs'
 import Os from 'node:os'
 import Path from 'node:path'
 import * as Peer from './main-peer.mjs'
@@ -273,6 +274,9 @@ async function onAcmd
 
   if (name == 'code.mounts')
     return Code.onMounts(e, args)
+
+  if (name == 'net.fingerprint')
+    return NetWatch.fingerprint()
 
   if (name == 'browse.back')
     return Browse.onBack(e, args)
@@ -1158,6 +1162,12 @@ function socket
   return 0
 }
 
+function netChanged
+(data) {
+  if (_win && (_win.isDestroyed() == 0))
+    _win.webContents.send('net.change', data)
+}
+
 function whenHaveDeps
 (program) {
   d(JSON.stringify(Process.env, null, 2))
@@ -1199,6 +1209,9 @@ function whenHaveDeps
 
   d('creating window')
   createMainWindow()
+
+  d('starting network watcher')
+  NetWatch.start(netChanged)
 
   d('setting up clipboard watcher')
   watchClip()

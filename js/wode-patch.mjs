@@ -3,29 +3,59 @@ import * as Patch from './patch.mjs'
 import * as CMState from '../lib/@codemirror/state.js'
 import * as CMView from '../lib/@codemirror/view.js'
 
+// Debounces for the deferred refine. A doc change waits long enough to
+// collapse a streaming command (shell flushes at most every 100ms) into one
+// refine, while a scroll only waits enough to coalesce a burst of events.
+let docDelay, viewportDelay
+
+docDelay = 100
+viewportDelay = 30
+
 export let extPatch
 export let extPatchDecor
+
+function cacheFor
+(buf) {
+  let v
+
+  v = buf.vars('patch')
+  v.cache = v.cache || new Map()
+  return v.cache
+}
 
 export
 function decorateRefines
 (ed, refines, decorPlus, decorMinus) {
-  let builder
+  let builder, byLine
 
   if (ed.state.doc.length == 0)
     return CMView.Decoration.none
 
+  byLine = new Map()
+  if (refines)
+    refines.forEach(r => {
+                      let a
+
+                      a = byLine.get(r.line)
+                      if (a == undefined)
+                        byLine.set(r.line, a = [])
+                      a.push(r)
+                    })
+
   builder = new CMState.RangeSetBuilder()
-  if (refines && refines.length)
+  if (byLine.size)
     for (let { from, to } of ed.visibleRanges)
       for (let pos = from; pos <= to;) {
-        let line
+        let line, a
 
         line = ed.state.doc.lineAt(pos)
-        refines.filter(r => r.line == line.number).forEach(refine => {
-                                                             if ((refine.from < refine.to) && (refine.to <= line.length))
-                                                               builder.add(line.from + refine.from, line.from + refine.to,
-                                                                           refine.type == '+' ? decorPlus : decorMinus)
-                                                           })
+        a = byLine.get(line.number)
+        if (a)
+          a.forEach(refine => {
+                      if ((refine.from < refine.to) && (refine.to <= line.length))
+                        builder.add(line.from + refine.from, line.from + refine.to,
+                          refine.type == '+' ? decorPlus : decorMinus)
+                    })
         pos = line.to + 1
       }
   return builder.finish()
@@ -55,57 +85,84 @@ function init
                                               provide: field => CMView.EditorView.decorations.from(field) })
 
   extPatch = CMView.ViewPlugin.define(ed => {
-                                        function update
-                                        (edUpdate) {
-                                          if (edUpdate.docChanged || edUpdate.viewportChanged) {
-                                            let buf
+                                        let timer
 
-                                            buf = edUpdate.view.bred?.view?.buf
-                                            if (buf)
-                                              if (edUpdate.docChanged)
-                                                // Timeout else "Calls to EditorView.update are not allowed while an update is in progress"
-                                                setTimeout(() => {
-                                                             // Clear stale refines before recomputing
-                                                             buf.vars('patch').refines = []
-                                                             edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
-                                                                                                                                 0,
-                                                                                                                                 decorPlus,
-                                                                                                                                 decorMinus)) })
-                                                             Patch.refine(edUpdate.view.state.doc.toString(),
-                                                                          refines => {
-                                                                            buf.vars('patch').refines = refines
-                                                                            edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
-                                                                                                                                              refines,
-                                                                                                                                              decorPlus,
-                                                                                                                                              decorMinus)) })
-                                                                          })
-                                                           })
-                                              else
-                                                setTimeout(() => {
-                                                             if (buf.vars('patch').refines?.length)
-                                                               edUpdate.view.dispatch({ effects: decorEffect.of(decorateRefines(edUpdate.view,
-                                                                                                                                 buf.vars('patch').refines,
-                                                                                                                                 decorPlus,
-                                                                                                                                 decorMinus)) })
-                                                           })
+                                        // The 1-based line numbers on screen.
+                                        function lineWindow
+                                        () {
+                                          let first, last
+
+                                          first = 0
+                                          last = 0
+                                          for (let { from, to } of ed.visibleRanges) {
+                                            let a, b
+
+                                            a = ed.state.doc.lineAt(from).number
+                                            b = ed.state.doc.lineAt(Math.min(to, ed.state.doc.length)).number
+                                            if ((first == 0) || (a < first))
+                                              first = a
+                                            if (b > last)
+                                              last = b
                                           }
+                                          if (first == 0)
+                                            return
+                                          return { first, last }
                                         }
 
-                                        setTimeout(() => {
-                                                     Patch.refine(ed.state.doc.toString(),
-                                                                  refines => {
-                                                                    let buf
+                                        // Only refine (and decorate) the hunks on screen.
+                                        // Diffing the whole patch is what made Vc Equal on a
+                                        // big diff (eg package-lock.json) freeze the editor.
+                                        function refresh
+                                        () {
+                                          let buf, w
 
-                                                                    buf = ed.bred?.view?.buf
-                                                                    if (buf)
-                                                                      buf.vars('patch').refines = refines
-                                                                    ed.dispatch({ effects: decorEffect.of(decorateRefines(ed,
-                                                                                                                          refines,
-                                                                                                                          decorPlus,
-                                                                                                                          decorMinus)) })
-                                                                  })
-                                                   })
+                                          buf = ed.bred?.view?.buf
+                                          if (buf == undefined)
+                                            return
+                                          w = lineWindow()
+                                          if (w) {
+                                            let refines
 
-                                        return { update }
+                                            refines = Patch.refineBlocks(ed.state.doc.toString(),
+                                                                         w.first,
+                                                                         w.last,
+                                                                         cacheFor(buf))
+                                            buf.vars('patch').refines = refines
+                                            ed.dispatch({ effects: decorEffect.of(decorateRefines(ed,
+                                                                                                  refines,
+                                                                                                  decorPlus,
+                                                                                                  decorMinus)) })
+                                          }
+                                          else
+                                            ed.dispatch({ effects: decorEffect.of(CMView.Decoration.none) })
+                                        }
+
+                                        function schedule
+                                        (delay) {
+                                          if (timer)
+                                            globalThis.clearTimeout(timer)
+                                          // Timeout else "Calls to EditorView.update are not
+                                          // allowed while an update is in progress".
+                                          timer = globalThis.setTimeout(() => {
+                                                                          timer = 0
+                                                                          refresh()
+                                                                        }, delay)
+                                        }
+
+                                        schedule(docDelay)
+
+                                        return { update
+                                                 (edUpdate) {
+                                                   if (edUpdate.docChanged)
+                                                     schedule(docDelay)
+                                                   else if (edUpdate.viewportChanged)
+                                                     schedule(viewportDelay)
+                                                 },
+                                                 destroy
+                                                 () {
+                                                   if (timer)
+                                                     globalThis.clearTimeout(timer)
+                                                   timer = 0
+                                                 } }
                                       })
 }

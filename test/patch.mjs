@@ -1,6 +1,6 @@
 import { deepStrictEqual, equal } from 'node:assert/strict'
 
-import { computeRefine, refine } from '../js/patch.mjs'
+import { computeRefine, refine, refineBlocks } from '../js/patch.mjs'
 
 let tests
 
@@ -197,6 +197,113 @@ test('ranges', 'unbalanced removals stay in bounds',
        show = p([ 'abc', 'gone one', 'gone two' ], [ 'abc' ])
        got = computeRefine(show)
        checkRanges(show, got)
+     })
+
+test('ranges', 'file headers get no refine',
+     () => {
+       let got, show, lines
+
+       show = 'diff --git a/one b/one\n' +
+              'index 111..222 100644\n' +
+              '--- one\n' +
+              '+++ one\n' +
+              '@@ -1,1 +1,1 @@\n' +
+              '-abc\n' +
+              '+abd\n' +
+              'diff --git a/two b/two\n' +
+              'index 333..444 100644\n' +
+              '--- two\n' +
+              '+++ two\n' +
+              '@@ -1,1 +1,1 @@\n' +
+              '-xyz\n' +
+              '+xyw\n'
+       got = computeRefine(show)
+       lines = show.split('\n')
+       equal(got.length > 0, true)
+       got.forEach(r => equal(/^(---|\+\+\+|diff |index |@@)/.test(lines[r.line - 1]), false,
+                              'header escaped refine: ' + lines[r.line - 1]))
+     })
+
+// Two hunks far apart, for the window tests below.
+function twoHunks
+() {
+  return '--- a/f\n' +
+    '+++ b/f\n' +
+    '@@ -1,2 +1,2 @@\n' +
+    '-abc\n' +
+    '+abd\n' +
+    ' context\n' +
+    '@@ -100,2 +100,2 @@\n' +
+    '-xyz\n' +
+    '+xyw\n' +
+    ' context\n'
+}
+
+test('refineBlocks', 'window gets only its hunk',
+     () => {
+       let got, all
+
+       all = computeRefine(twoHunks())
+       got = refineBlocks(twoHunks(), 4, 6, new Map())
+       deepStrictEqual(got, all.filter(r => [ 4, 5 ].includes(r.line)))
+       got = refineBlocks(twoHunks(), 8, 10, new Map())
+       deepStrictEqual(got, all.filter(r => [ 8, 9 ].includes(r.line)))
+     })
+
+test('refineBlocks', 'window on a + line still diffs its whole block',
+     () => {
+       let got
+
+       got = refineBlocks(twoHunks(), 5, 5, new Map())
+       deepStrictEqual(got.map(r => r.line).sort(), [ 4, 5 ])
+     })
+
+test('refineBlocks', 'window outside any hunk gets nothing',
+     () => {
+       deepStrictEqual(refineBlocks('plain\ntext\n', 1, 2, new Map()), [])
+     })
+
+test('refineBlocks', 'cold cache with no budget diffs nothing',
+     () => {
+       deepStrictEqual(refineBlocks(twoHunks(), 1, 10, new Map(), { budget: 0 }), [])
+     })
+
+test('refineBlocks', 'warm cache ignores the budget',
+     () => {
+       let cache, first
+
+       cache = new Map()
+       first = refineBlocks(twoHunks(), 1, 10, cache)
+       equal(first.length > 0, true)
+       deepStrictEqual(refineBlocks(twoHunks(), 1, 10, cache, { budget: 0 }), first)
+     })
+
+test('refineBlocks', 'second window reuses cached blocks',
+     () => {
+       let cache, got
+
+       cache = new Map()
+       refineBlocks(twoHunks(), 4, 6, cache)
+       equal(cache.size, 1)
+       got = refineBlocks(twoHunks(), 8, 10, cache)
+       equal(cache.size, 2)
+       deepStrictEqual(got, computeRefine(twoHunks()).filter(r => [ 8, 9 ].includes(r.line)))
+     })
+
+test('refineBlocks', 'ranges stay in bounds',
+     () => {
+       let got, show, lines
+
+       show = twoHunks()
+       lines = show.split('\n')
+       got = refineBlocks(show, 4, 10, new Map())
+       got.forEach(r => {
+                     equal(r.line >= 1, true)
+                     equal(r.line <= lines.length, true)
+                     equal(r.from >= 1, true)
+                     equal(r.from < r.to, true)
+                     equal(r.to <= lines[r.line - 1].length, true)
+                   })
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

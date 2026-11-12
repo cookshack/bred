@@ -97,7 +97,7 @@ async function stream
   for (let i = 0; i < text.length; i += chunk)
     view.dispatch({ changes: { from: view.state.doc.length,
                                insert: text.slice(i, i + chunk) } })
-  await new Promise(r => setTimeout(r, 100))
+  await new Promise(r => setTimeout(r, 300))
 }
 
 function decos
@@ -164,6 +164,22 @@ test('extPatch', 'streaming a patch yields in-bounds refinements',
        equal(errors.length, 0)
      })
 
+// Refining on every streamed chunk is what made Vc Equal freeze on a big diff,
+// so nothing is refined until the stream has been quiet for a moment.
+test('extPatch', 'streaming refines nothing until it settles',
+     async () => {
+       let view
+
+       view = makePatchView()
+       for (let i = 0; i < patch.length; i += 7)
+         view.dispatch({ changes: { from: view.state.doc.length,
+                                    insert: patch.slice(i, i + 7) } })
+       equal(decos(view).length, 0, 'no refine while streaming')
+       await new Promise(r => setTimeout(r, 300))
+       equal(decos(view).length > 0, true, 'refined after settling')
+       equal(errors.length, 0)
+     })
+
 test('extPatch', 'one byte at a time stays in bounds',
      async () => {
        let view
@@ -197,7 +213,7 @@ test('extPatch', 'shrinking the doc keeps decorations in bounds',
        view.dispatch({ changes: { from: 0,
                                   to: view.state.doc.length,
                                   insert: '--- a/f\n+++ b/f\n@@ -1,1 +1,1 @@\n-a\n+b\n' } })
-       await new Promise(r => setTimeout(r, 100))
+       await new Promise(r => setTimeout(r, 300))
        checkInBounds(view)
        equal(errors.length, 0)
      })
@@ -209,7 +225,7 @@ test('extPatch', 'clearing the doc keeps decorations in bounds',
        view = makePatchView()
        await stream(view, patch, 9)
        view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: '' } })
-       await new Promise(r => setTimeout(r, 100))
+       await new Promise(r => setTimeout(r, 300))
        equal(view.state.doc.length, 0)
        equal(decos(view).length, 0)
        equal(errors.length, 0)

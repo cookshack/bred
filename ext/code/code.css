@@ -467,9 +467,9 @@ div.code-thought:hover {
   margin-right: 0.5rem;
 }
 
-/* while the prompt is open, not just while it has focus: clicking the
-   transcript used to clear the highlight even though the prompt stayed open */
-.code-ww:has(.code-prompt-w:not(.retracted)) .code-agent {
+/* the agent name keeps the accent colour whether or not the prompt is open:
+   tying it to the prompt made it look plain text at random */
+.code-h-right .code-agent {
   color: var(--clr-nb3);
 }
 

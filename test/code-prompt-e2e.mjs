@@ -626,6 +626,175 @@ test('send', 'the user message takes the message id the server gives it',
        }
      })
 
+function startTurn
+(panes, fake, buf) {
+  let orig
+
+  orig = panes.pB.setBuf.bind(panes.pB)
+  panes.pB.setBuf = (b, spec, cb) => {
+                      if (b?.mode?.key == 'code') {
+                        b.vars('code').client = fake
+                        buf = b
+                      }
+                      return orig(b, spec, cb)
+                    }
+  Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+  return { orig, buf: () => buf }
+}
+
+test('net', 'stops a turn that has produced nothing',
+     async () => {
+       let fake, panes, turn
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-net', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {},
+                                       'session.interrupt': { interrupted: true } } })
+       turn = startTurn(panes, fake, 0)
+       try {
+         await waitFor(() => turn.buf()?.vars('code').turnActive)
+         await waitFor(() => turn.buf().vars('code').streamActive)
+
+         Code.onNetworkChange({ hasNetwork: 0 })
+         await waitFor(() => fake._calls.some(c => c.name == 'session.interrupt'))
+
+         fake.push(Fake.event('session.execution.interrupted', { sessionID: 'ses-net' }))
+         await waitFor(() => turn.buf().vars('code').busy == 0)
+
+         equal(turn.buf().views[0].ele.querySelectorAll('.code-msg-stopped').length,
+               1,
+               'the stopped turn is marked')
+         equal(turn.buf().views[0].ele.querySelector('.code-msg-stopped').textContent.includes('network went away'),
+               true,
+               'the marker says the network went away')
+         equal(turn.buf().vars('code').turnActive, 0, 'the turn is no longer active')
+       }
+       finally {
+         panes.pB.setBuf = turn.orig
+       }
+     })
+
+test('net', 'clears when the turn settled before the interrupt landed',
+     async () => {
+       let fake, panes, turn
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-net', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {},
+                                       'session.interrupt': { interrupted: false } } })
+       turn = startTurn(panes, fake, 0)
+       try {
+         await waitFor(() => turn.buf()?.vars('code').turnActive)
+         await waitFor(() => turn.buf().vars('code').streamActive)
+
+         Code.onNetworkChange({ hasNetwork: 0 })
+         await waitFor(() => fake._calls.some(c => c.name == 'session.interrupt'))
+         await waitFor(() => turn.buf().vars('code').busy == 0)
+
+         equal(turn.buf().vars('code').recovering, 0, 'the buffer is usable again')
+         equal(turn.buf().views[0].ele.querySelector('.code-under-status').innerText,
+               'OK',
+               'the status is restored')
+       }
+       finally {
+         panes.pB.setBuf = turn.orig
+       }
+     })
+
+test('net', 'warns without stopping a turn that has output',
+     async () => {
+       let fake, panes, turn
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-net', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {},
+                                       'session.interrupt': { interrupted: true } } })
+       turn = startTurn(panes, fake, 0)
+       try {
+         await waitFor(() => turn.buf()?.vars('code').turnActive)
+         await waitFor(() => turn.buf().vars('code').streamActive)
+
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-net' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-net', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.text.started', { sessionID: 'ses-net', assistantMessageID: 'm1', ordinal: 0 }))
+         fake.push(Fake.event('session.text.delta', { sessionID: 'ses-net', assistantMessageID: 'm1', ordinal: 0, delta: 'working' }))
+         await waitFor(() => turn.buf().vars('code').gotContent)
+
+         Code.onNetworkChange({ hasNetwork: 1 })
+         await wait(50)
+
+         equal(fake._calls.some(c => c.name == 'session.interrupt'), false, 'the turn is left running')
+         equal(turn.buf().vars('code').turnActive, 1, 'the turn is still active')
+         await waitFor(() => turn.buf().views[0].ele.querySelector('.code-msg-log'))
+         equal(turn.buf().views[0].ele.querySelector('.code-msg-log').textContent.includes('Network changed'),
+               true,
+               'the warning is visible')
+       }
+       finally {
+         panes.pB.setBuf = turn.orig
+       }
+     })
+
+test('net', 'ignores a change when no turn is active',
+     async () => {
+       let buf, fake
+
+       ({ buf } = await setup())
+       fake = Fake.make({ responses: { 'session.interrupt': { interrupted: true } } })
+       buf.vars('code').client = fake
+       buf.vars('code').busy = 1
+       buf.vars('code').turnActive = 0
+
+       Code.onNetworkChange({ hasNetwork: 0 })
+       await wait(50)
+
+       equal(fake._calls.some(c => c.name == 'session.interrupt'), false, 'loading is not a turn')
+     })
+
+test('net', 'reports a failed stop and leaves the turn busy',
+     async () => {
+       let fake, panes, turn
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-net', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {},
+                                       'session.interrupt': new Error('nope') } })
+       turn = startTurn(panes, fake, 0)
+       try {
+         let before, yells
+
+         await waitFor(() => turn.buf()?.vars('code').turnActive)
+         await waitFor(() => turn.buf().vars('code').streamActive)
+         before = Mess.messages().length
+
+         Code.onNetworkChange({ hasNetwork: 0 })
+         await waitFor(() => fake._calls.some(c => c.name == 'session.interrupt'))
+         await waitFor(() => yellsSince(before).some(t => t.includes('Stop failed')))
+
+         yells = yellsSince(before)
+         equal(yells.some(t => t.includes('Stop failed: nope')), true, 'the error is reported')
+         equal(turn.buf().vars('code').busy, 1, 'the turn is still marked busy')
+         equal(turn.buf().vars('code').recovering, 0, 'a later change can try again')
+         equal(turn.buf().views[0].ele.querySelectorAll('.code-msg-stopped').length, 0,
+               'no stop marker is added')
+       }
+       finally {
+         panes.pB.setBuf = turn.orig
+       }
+     })
+
 test('execute', 'shows the code and nested call count',
      async () => {
        let created, fake, orig, panes

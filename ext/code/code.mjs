@@ -29,7 +29,7 @@ import * as Sessions from './sessions.mjs'
 
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
-let agentCycle, hist, chatHist, stopTimeout, tools, events, mostRecentAgents, goatUsageCache, goatUsageAt, goatUsagePending
+let agentCycle, hist, chatHist, stopTimeout, tools, events, mostRecentAgents, goatUsageCache, goatUsageAt, goatUsagePending, netWatchStarted
 
 function getSubagentIds
 (buf) {
@@ -466,11 +466,19 @@ function updateIdle
     Ui.appendMsg(buf, 0, '...stopped', undefined, undefined, { stopped: 1 })
     buf.vars('code').stepActiveSessions = new Set()
   }
+  if (buf.vars('code').netStopped) {
+    buf.vars('code').netStopped = 0
+    Ui.appendMsg(buf, 0, netMessage(buf.vars('code').netGone ? 0 : 1, ' — turn stopped'), undefined, undefined, { stopped: 1 })
+    buf.vars('code').stepActiveSessions = new Set()
+  }
   // v2 streams the response after the prompt resolves, so the model footer is
   // appended when the turn ends rather than when the prompt is accepted.
   if (buf.vars('code').busy)
     Ui.appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant), Util.fmtCost(buf.vars('code').lastCost), undefined, buf.vars('code').curMessageID)
   buf.vars('code').busy = 0
+  buf.vars('code').turnActive = 0
+  buf.vars('code').recovering = 0
+  buf.vars('code').netHinted = 0
   reconcileQuestions(buf)
   Mess.yell('')
 }
@@ -478,8 +486,10 @@ function updateIdle
 function updateStatus
 (buf, req, tokenInfo) {
 
-  if (req.status?.type == 'busy')
+  if (req.status?.type == 'busy') {
+    buf.vars('code').turnActive = 1
     Ui.updateStatus(buf, '🌊', Util.modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
+  }
   else if (req.status?.type == 'idle')
     updateIdle(buf, tokenInfo)
   else if (req.status?.type == 'retry')
@@ -487,6 +497,101 @@ function updateStatus
   else if (req.status?.type)
     // unknown status type
     d('🌱 TODO status: ' + req.status?.type)
+}
+
+function netMessage
+(hasNetwork, tail) {
+  return (hasNetwork ? 'Network changed' : 'The network went away') + tail
+}
+
+function hintNet
+(buf, hasNetwork) {
+  let state
+
+  state = buf.vars('code')
+  if (state.netHinted)
+    return
+  state.netHinted = 1
+  Ui.appendMsg(buf, 0, netMessage(hasNetwork, ' — if the agent does not continue, press s twice to stop.'), undefined, undefined, { log: 1 })
+  Mess.yell(netMessage(hasNetwork, ' — press s twice if the agent stalls'))
+}
+
+async function stopForNet
+(buf, hasNetwork) {
+  let state
+
+  state = buf.vars('code')
+  state.recovering = 1
+  state.netStopped = 1
+  state.netGone = hasNetwork ? 0 : 1
+  Ui.updateStatus(buf, '🔁 stopping', '', '', VopenCode.version)
+  try {
+    let client, res
+
+    client = await Comm.ensureClient(buf)
+    res = await Stop.cancel(client, state.sessionID, { signal: AbortSignal.timeout(10000) })
+    // The turn may have settled just before the interrupt landed.
+    if (res?.interrupted == 0) {
+      state.netStopped = 0
+      state.recovering = 0
+      if (state.busy)
+        updateIdle(buf, Util.calculateTokenPercentage(buf))
+      else
+        Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
+    }
+  }
+  catch (err) {
+    state.recovering = 0
+    state.netStopped = 0
+    Mess.yell('Stop failed: ' + err.message)
+    d('CO net stop failed: ' + err.message)
+  }
+}
+
+function recoverOnNet
+(buf, hasNetwork) {
+  let state
+
+  state = buf.vars('code')
+  if ((state.turnActive == null) || (state.turnActive == 0))
+    return
+  if (state.recovering)
+    return
+  if (state.gotContent) {
+    hintNet(buf, hasNetwork)
+    return
+  }
+  stopForNet(buf, hasNetwork)
+}
+
+function eachBufOnNet
+(b, hasNetwork) {
+  if (b.mode?.key == 'code')
+    recoverOnNet(b, hasNetwork)
+}
+
+export
+function onNetworkChange
+(data) {
+  let hasNetwork
+
+  hasNetwork = data?.hasNetwork ? 1 : 0
+  Buf.forEach(b => eachBufOnNet(b, hasNetwork))
+}
+
+function netChanged
+(err, data) {
+  if (err)
+    return
+  onNetworkChange(data)
+}
+
+function startNetWatch
+() {
+  if (netWatchStarted)
+    return
+  netWatchStarted = 1
+  Tron.on('net.change', netChanged)
 }
 
 function updateModelContextLimit
@@ -1121,6 +1226,9 @@ function send
   buf.vars('code').firstPromptSent = 1
   buf.vars('code').agentStopped = 0
   buf.vars('code').busy = 1
+  buf.vars('code').turnActive = 1
+  buf.vars('code').netStopped = 0
+  buf.vars('code').netHinted = 0
   buf.vars('code').gotContent = 0
   updateNav(buf)
 
@@ -1184,6 +1292,7 @@ function send
                                          d(err)
                                          Ui.appendMsg(buf, 'assistant', 'Error: ' + (err.message || JSON.stringify(err)))
                                          buf.vars('code').busy = 0
+                                         buf.vars('code').turnActive = 0
                                          buf.vars('code').client = 0
                                          buf.vars('code').streamActive = 0
                                          Ev.startSub(buf, events)
@@ -2769,4 +2878,6 @@ function init
   Em.on('A-n', 'next history item', moCodePrompt)
 
   Sessions.init(events)
+
+  startNetWatch()
 }

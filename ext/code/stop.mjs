@@ -3,8 +3,8 @@
 
 export
 async function cancel
-(client, sessionID) {
+(client, sessionID, options) {
   if (sessionID == null)
     throw new Error('missing sessionID')
-  await client.session.interrupt({ sessionID })
+  return await client.session.interrupt({ sessionID }, options)
 }

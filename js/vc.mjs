@@ -70,16 +70,20 @@ function busyErr
 
 function git
 (cmd, mode, minors, afterEndPoint) {
-  // these use shell1 instead of spawn1 so that .bashrc is loaded (needed eg for nvm init)
+  // These use shell1 instead of spawn1 so that .bashrc is loaded (needed eg
+  // for nvm init). The patch language is only switched on once the command has
+  // finished: its refine plugin would otherwise refine the partial diff on
+  // every streamed chunk, which freezes the editor on a big diff (eg one that
+  // rewrites package-lock.json).
   Shell.shell1(cmd,
                { end: 1,
-                 afterEndPoint },
-               b => {
-                 if (mode)
-                   b.mode = mode
-                 minors?.forEach(minor => b.addMode(minor))
-                 b.addMode('view')
-               })
+                 afterEndPoint,
+                 onClose: b => {
+                   if (mode)
+                     b.mode = mode
+                   minors?.forEach(minor => b.addMode(minor))
+                 } },
+               b => b.addMode('view'))
 }
 
 export
@@ -2012,24 +2016,32 @@ function initEqual
 
   function equalN
   (num) {
+    // The patch mode is installed on close (see git above): refining a diff
+    // that is still streaming is what made Vc Equal slow.
     if ((num == null) || (num < 0))
       Shell.spawn1(Loc.appDir().join('bin/git-eq'),
                    [],
-                   { end: 1, afterEndPoint: 1 },
-                   finish)
+                   { end: 1,
+                     afterEndPoint: 1,
+                     onClose: finish },
+                   b => b.addMode('view'))
     else
       Shell.spawn1('git',
                    [ 'show', '--no-prefix', 'HEAD~' + num ],
-                   { end: 1, afterEndPoint: 1 },
-                   finish)
+                   { end: 1,
+                     afterEndPoint: 1,
+                     onClose: finish },
+                   b => b.addMode('view'))
   }
 
   function equalBr
   () {
     Shell.spawn1(Loc.appDir().join('bin/git-eq-br'),
                  [],
-                 { end: 1, afterEndPoint: 1 },
-                 finish)
+                 { end: 1,
+                   afterEndPoint: 1,
+                   onClose: finish },
+                 b => b.addMode('view'))
   }
 
   function equal
@@ -2155,12 +2167,12 @@ function showHash
 (hash) {
   Shell.shell1('git show --no-prefix' + (hash ? (' ' + hash) : ''),
                { end: 1,
-                 afterEndPoint: 1 },
-               b => {
-                 b.mode = 'patch'
-                 b.addMode('view')
-                 b.addMode('equal')
-               })
+                 afterEndPoint: 1,
+                 onClose: b => {
+                   b.mode = 'patch'
+                   b.addMode('equal')
+                 } },
+               b => b.addMode('view'))
 }
 
 function divW

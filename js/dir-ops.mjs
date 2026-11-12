@@ -163,10 +163,13 @@ function equal
   () {
     d('one: ' + one)
     d('two: ' + two)
+    // Patch mode waits for the diff to finish: see git() in vc.mjs.
     Shell.spawn1('diff',
                  [ '-u', one, two ],
-                 { end: 1, afterEndPoint: 1 },
-                 finish)
+                 { end: 1,
+                   afterEndPoint: 1,
+                   onClose: finish },
+                 b => b.addMode('view'))
   }
 
   function create

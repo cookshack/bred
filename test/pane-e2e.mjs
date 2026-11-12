@@ -297,6 +297,62 @@ test('rtl', 'run this line in other pane leaves the panes alone for an empty lin
        checkPaneInvariants(panes.frame)
      })
 
+test('rtl', 'run this line in other pane runs in the source buffer dir',
+     async () => {
+       let f, panes, sBuf
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+       panes.pB.buf.dir = '/tmp/source'
+       panes.pA.buf.dir = '/tmp/other'
+
+       Cmd.run('run this line in other pane')
+       await waitFor(() => panes.pA.buf?.name?.startsWith('SC: ') && panes.pA.buf.views[0]?.ed)
+
+       sBuf = panes.pA.buf
+       equal(sBuf.dir, '/tmp/source/', 'runs in the source buffer dir, not the other pane dir')
+       checkPaneInvariants(panes.frame)
+     })
+
+test('rtl', 'a menu run this line in other pane uses the pane the menu was opened on',
+     async () => {
+       let ctx, ed, fA, fB, item, panes, sBuf
+
+       panes = setupPanes()
+       fA = fileBuf('clicked.txt')
+       fB = fileBuf('current.txt')
+       await setBuf(panes.pA, fA)
+       await setBuf(panes.pB, fB)
+       panes.pA.buf.dir = '/tmp/clicked'
+       panes.pB.buf.dir = '/tmp/current'
+       // the menu was opened in pane A while pane B stayed current
+       panes.pB.focus()
+
+       ed = fA.views[0].ed
+       ed.dispatch({ changes: { from: 0,
+                                to: ed.state.doc.length,
+                                insert: 'ls\npwd\n' } })
+       stubContextClick(ed, 0)
+
+       ctx = divCl('bred-context')
+       item = divCl('bred-context-item',
+                    'Run This Line In Other Pane',
+                    { 'data-run': 'run this line in other pane' })
+       ctx.appendChild(item)
+       globalThis.bredWin.context = { pane: panes.pA }
+
+       Cmd.run('run this line in other pane', 0, 0, { mouse: 1, e: { button: 0, target: item } })
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       equal(panes.pA.buf, fA, 'source pane keeps its buffer')
+       sBuf = panes.pB.buf
+       equal(sBuf.dir, '/tmp/clicked/', 'runs in the dir of the buffer the menu was opened on')
+       equal(sBuf.views[0].ed.state.doc.line(1).text, '$ ls', 'clicked line is run')
+       sameView(View.current(panes.pA), fA.views[0], 'focus returns to the clicked pane')
+       checkPaneInvariants(panes.frame)
+     })
+
 test('rtl', 'run this code runs inline code from a markdown editor',
      async () => {
        let ed, f, panes, parent, sBuf, state

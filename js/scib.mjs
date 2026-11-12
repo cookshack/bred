@@ -66,14 +66,23 @@ function scib
 
 function initRTL
 () {
+  // The pane whose buffer the context menu was opened on. Key-bound runs and
+  // runs from other menus (which are not inside a .bred-context) use the
+  // current pane, so a stale earlier click cannot decide where a command runs.
+  function sourcePane
+  (we) {
+    if (we?.mouse && we.e?.target?.closest?.('.bred-context'))
+      return Win.current().context?.pane || Pane.current()
+    return Pane.current()
+  }
+
   // The line under the click point for a menu run, or the cursor line for a
   // key-bound run. A key-bound run must ignore a stale earlier click, else
-  // that click decides the line.
+  // that click decides the line. p is the pane the run belongs to.
   function lineUnderPoint
-  (u, we) {
-    let l, p, win, x, y
+  (u, we, p) {
+    let l, win, x, y
 
-    p = Pane.current()
     win = Win.current()
 
     if (we?.mouse) {
@@ -94,13 +103,14 @@ function initRTL
 
   // pane is the target, or undefined for the usual frame1 pane
   function runLine
-  (l, pane) {
+  (l, pane, dir) {
     if (l && l.length)
       Shell.shell1(l,
                    { echo: 1,
                      end: 1,
                      hist,
                      pane,
+                     dir,
                      focus: pane ? 0 : 1 },
                    buf => {
                      buf.mode = 'shell'
@@ -115,23 +125,30 @@ function initRTL
 
   function runThisLine
   (u, we) {
-    runLine(lineUnderPoint(u, we))
+    let p
+
+    p = sourcePane(we)
+    runLine(lineUnderPoint(u, we, p), 0, p.buf?.dir)
   }
 
   function runThisLineInOtherPane
   (u, we) {
-    let l
+    let dir, l, p
 
     // find the line before moving, since the click and point are in this pane
-    l = lineUnderPoint(u, we)
+    p = sourcePane(we)
+    l = lineUnderPoint(u, we, p)
+    dir = p.buf?.dir
     if (l && l.length) {
-      let from, to
+      let to
 
-      from = Pane.current()
+      // nextOrSplit works off the current pane, which must be the one the
+      // menu was opened on
+      p.focus()
       to = Pane.nextOrSplit()
-      runLine(l, to)
+      runLine(l, to, dir)
       // nextOrSplit focuses the other pane; the user is still working here
-      from.focus()
+      p.focus()
     }
     else
       // nothing to run, so don't move or split
@@ -155,7 +172,7 @@ function initRTL
 
   // pane is the target, or undefined for the usual frame1 pane
   function runCode
-  (code, pane) {
+  (code, pane, dir) {
     if (code == null)
       Mess.say('No code at point')
     else if (code.length)
@@ -164,6 +181,7 @@ function initRTL
                      end: 1,
                      hist,
                      pane,
+                     dir,
                      focus: pane ? 0 : 1 },
                    buf => {
                      buf.mode = 'shell'
@@ -176,23 +194,30 @@ function initRTL
 
   function runThisCode
   (u, we) {
-    runCode(codeUnderPoint(u, we))
+    let p
+
+    p = sourcePane(we)
+    runCode(codeUnderPoint(u, we), 0, p.buf?.dir)
   }
 
   function runThisCodeInOtherPane
   (u, we) {
-    let code
+    let code, dir, p
 
     // find the code before moving, since the click and point are in this pane
+    p = sourcePane(we)
     code = codeUnderPoint(u, we)
+    dir = p.buf?.dir
     if (code && code.length) {
-      let from, to
+      let to
 
-      from = Pane.current()
+      // nextOrSplit works off the current pane, which must be the one the
+      // menu was opened on
+      p.focus()
       to = Pane.nextOrSplit()
-      runCode(code, to)
+      runCode(code, to, dir)
       // nextOrSplit focuses the other pane; the user is still working here
-      from.focus()
+      p.focus()
     }
     else
       // nothing to run, so don't move or split

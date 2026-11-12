@@ -115,6 +115,8 @@ function makeContext
   }
 
   context = { el: divCl('bred-context'),
+              // pane the menu was opened on, which need not be the current one
+              pane: 0,
               close
               () {
                 Css.remove(context.el, 'bred-open')
@@ -127,6 +129,9 @@ function makeContext
 
                 target = win.document.elementFromPoint(we.e.clientX, we.e.clientY)
                 p = Pane.holding(target) // FIX uses current win
+                // commands run from the menu act on this pane's buffer, not on
+                // whatever pane happens to be current when the item is clicked
+                context.pane = p
                 if (p && (p.buf?.fileType == 'file'))
                   Shell.runToString(p.dir, 'git', [ 'ls-files', '--error-unmatch', p.buf.path ], false, (str, code) => {
                     if (code == 0)

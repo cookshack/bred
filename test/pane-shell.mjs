@@ -538,6 +538,19 @@ test('reuse', 'runs in the invoking frame dir, not frame1 dir',
        equal(exitDir(buf), '/tmp/two')
      })
 
+test('dir', 'an explicit spec dir wins over the invoking pane dir',
+     async () => {
+       let buf, f, panes
+
+       panes = setupPanes()
+       f = fileBuf('invoking.txt')
+       await setBuf(panes.pB, f)
+       panes.pB.buf.dir = '/tmp/invoking'
+
+       buf = await run('ls', { dir: '/tmp/explicit' })
+       equal(exitDir(buf), '/tmp/explicit')
+     })
+
 function mochaIt
 (cb) {
   return function

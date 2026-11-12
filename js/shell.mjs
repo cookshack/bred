@@ -372,6 +372,7 @@ function shellOrSpawn1
  // { end, // insert at end
  //   afterEndPoint, // see run
  //   args,
+ //   dir, // default the invoking pane's buffer dir
  //   echo, // echo command as first line
  //   focus, // default 1, set 0 to leave focus where it is
  //   hist,
@@ -485,10 +486,11 @@ function shellOrSpawn1
   if (spec.hist)
     spec.hist.add(sc)
   // The buffer opens in frame1, but the command belongs to the pane the user
-  // invoked it from (which can be in another frame).
+  // invoked it from (which can be in another frame, or not be current at all by
+  // the time we get here, so the caller can name its dir).
   invoke = Pane.current()
   p = spec.pane || Pane.current1()
-  dir = Loc.make(invoke?.buf?.dir || p.buf.dir)
+  dir = Loc.make(spec.dir ?? invoke?.buf?.dir ?? p.buf.dir)
   if (spec.focus ?? 1)
     p.focus()
   dir.ensureSlash()

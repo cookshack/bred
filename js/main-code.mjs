@@ -1,4 +1,5 @@
 import * as Server from './main-code-server.mjs'
+import * as Config from './code-config.mjs'
 import * as Mounts from './code-mounts.mjs'
 import Database from 'better-sqlite3'
 import Path from 'node:path'
@@ -44,15 +45,7 @@ async function onSpawn
                                    workingDir,
                                    mounts,
                                    send: msg => e.sender.send(statusCh, msg),
-                                   config: { websearch: { provider: 'exa' },
-                                             references: Mounts.references(mounts, workingDir),
-                                             permission: { external_directory: 'allow',
-                                                           websearch: 'allow',
-                                                           read: { [Mounts.containerAuthPath()]: 'deny' },
-                                                           bash: { 'docker *': 'deny',
-                                                                   'podman *': 'deny',
-                                                                   'docker-compose *': 'deny',
-                                                                   'nerdctl *': 'deny' } } } })
+                                   config: Config.build(mounts, workingDir) })
 
     servers.set(bufferID, server)
     e.sender.send(ch, { url: server.url,

@@ -839,6 +839,16 @@ function initShell
                  multi: 1 })
   }
 
+  // The echoed command line at the top of a shell buffer (scib, run this line,
+  // ...) must stand out from the output that follows it, and from later output
+  // lines which may themselves start with $. Only line one is styled.
+  function refCmdLine
+  (view, match, line) {
+    if (line.number == 1)
+      return Ed.makeDecor({ attr: { class: 'shell-cmd' } })
+    return 0
+  }
+
   // packages/codemirror-lang-kcl/src/index.ts:41:30 - error TS2345
   // /home/matt/fresh/main/gvmd/src/manage.h:1:1: error: unterminated comment
   reErr = /^([^:]+):([0-9]+):([0-9]*:?).*$/d
@@ -849,7 +859,9 @@ function initShell
   mo = Mode.add('Shell', { viewInit: Ed.viewInit,
                            viewCopy: Ed.viewCopy,
                            initFns: Ed.initModeFns,
-                           parentsForEm: 'ed' })
+                           parentsForEm: 'ed',
+                           decorators: [ { regex: /^(\$.*)$/d,
+                                           decor: [ { ref: refCmdLine } ] } ] })
 
   Cmd.add('line start', () => lineStart(), mo)
   Cmd.add('next', () => next(), mo)

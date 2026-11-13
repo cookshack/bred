@@ -135,6 +135,34 @@ test('scib', 'submitted command is echoed first in its buffer',
        checkPaneInvariants(panes.frame)
      })
 
+test('scib', 'only the echoed command line is highlighted',
+     async () => {
+       let ch, f, hl, np, panes, sBuf
+
+       panes = setupPanes()
+       f = fileBuf('a.txt')
+       await setBuf(panes.pB, f)
+
+       Scib.scib()
+       await waitFor(() => f.vars('prompt')?.nest?.promptBuf?.views[0]?.ed)
+       np = f.vars('prompt').nest.promptBuf
+       np.views[0].ed.dispatch({ changes: { from: 0, insert: 'echo hi' } })
+       Cmd.runMo('submit', 'Nested Prompt')
+       await waitFor(() => panes.pB.buf?.name?.startsWith('SC: ') && panes.pB.buf.views[0]?.ed)
+
+       sBuf = panes.pB.buf
+       // output lines can start with $ too, so the highlight must key on line 1
+       ch = sBuf.vars('Shell').ch
+       panes.shellChans[ch]({ stdout: '$ not a command\n' })
+       await waitFor(() => sBuf.views[0].ed.state.doc.lines == 3)
+       await waitFor(() => sBuf.views[0].ele.querySelector('.shell-cmd')?.textContent == '$ echo hi')
+
+       hl = sBuf.views[0].ele.querySelectorAll('.shell-cmd')
+       equal(hl.length, 1, 'only the echoed line is highlighted')
+       equal(hl[0].textContent, '$ echo hi', 'the echoed line is highlighted')
+       checkPaneInvariants(panes.frame)
+     })
+
 test('rtl', 'run this line echoes the command in its buffer',
      async () => {
        let f, panes, sBuf

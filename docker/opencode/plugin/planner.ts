@@ -2,15 +2,16 @@ import { Plugin } from "@opencode/plugin"
 
 // Port of the built-in opencode.plan plugin under the id "planner", so it does
 // not trip the built-in's id-keyed hooks or the ~/.opencode/plan carve-out
-// (that facility is gone). A read-only primary agent with plan's permissions.
+// (that facility is gone). A read-only primary agent with plan's permissions
+// and plan's reminder state machine.
 //
-// Plan keeps TWO reminders and reconciles them against the transcript on every
-// request: the enter text while plan is active, and a leave text the moment the
-// user switches away. Both are persisted into the session, so the reminder is
-// part of the conversation and can be cancelled later. Without the leave text a
-// switch to build leaves the last enter reminder as the transcript's only
-// statement about the agent's mode, and the model carries on believing it is
-// still in Planner mode.
+// Plan injects TWO reminders: the enter text while plan is active, and a leave
+// text as soon as the user switches away. Both are persisted into the session
+// (session.synthetic) so the reminder is part of the conversation and can be
+// cancelled later, and both are also reconciled per request against the
+// transcript. Without the leave text a switch leaves the last enter reminder as
+// the transcript's only statement about the agent's mode, and the model carries
+// on believing it is still in Planner mode.
 const ID = "planner"
 
 // Plan's enter reminder, adapted: "Planner mode" and no plan-directory line.
@@ -23,18 +24,33 @@ Do not modify any other files or ask a subagent to do so.
 You remain in Planner mode until the user switches agents. If the user asks you to implement changes, do not do so. Tell them they need to switch to the build agent.
 </system-reminder>`
 
+// Plan's leave reminder, plus the wording v1's plan mode used for the same
+// moment ("you are no longer in read-only mode ... permitted to make file
+// changes"). Saying what the agent MAY now do matters as much as cancelling the
+// old restriction: after a switch the model tends to stay timid.
 const LEAVE = `<system-reminder>
-You are NO LONGER in Planner mode. The previous Planner restrictions no longer apply. Any Planner mode instructions from earlier in this conversation are no longer active.
+You are NO LONGER in Planner mode. The previous Planner restrictions no longer apply. You are running as the build agent: you are permitted to make file changes, run shell commands and use your tools as needed. Any Planner mode instructions from earlier in this conversation are no longer active.
 </system-reminder>`
 
 const WRITE_TOOLS = new Set([ "edit", "write", "patch" ])
 
+interface RequestMessage
+{ role?: string
+  content?: ReadonlyArray<{ type?: string, text?: string }> }
+
+interface StoredMessage
+{ text?: string }
+
+interface SwitchEvent
+{ type: string
+  data: { sessionID: string, agent?: string, previous?: string } }
+
 // Reminders are inserted as single-part user messages, so only those count when
-// looking for the newest one.
-function lastReminder
-(messages: ReadonlyArray<{ role?: string, content: ReadonlyArray<{ type?: string, text?: string }> }>) {
+// looking for the newest one in a request.
+function requestReminder
+(messages: ReadonlyArray<RequestMessage>) {
   return messages.reduce<string | undefined>((found, message) => {
-    const part = message.role === "user" && message.content.length === 1
+    const part = message.role === "user" && message.content?.length === 1
       ? message.content[0]
       : undefined
 
@@ -44,6 +60,17 @@ function lastReminder
   }, undefined)
 }
 
+// The persisted copy is a synthetic (or user) session message, which carries
+// the text directly. Scan back: only the newest reminder decides.
+function storedReminder
+(messages: ReadonlyArray<StoredMessage>) {
+  for (let i = messages.length - 1; i >= 0; i--)
+    if (messages[i].text === ENTER || messages[i].text === LEAVE)
+      return messages[i].text
+
+  return undefined
+}
+
 // What the transcript should say for this request's agent, or nothing when it
 // already says the right thing.
 function reminderFor
@@ -51,6 +78,22 @@ function reminderFor
   if (agent === ID) return reminder === ENTER ? undefined : ENTER
 
   return reminder === ENTER ? LEAVE : undefined
+}
+
+// Plan's switch router. A created session starts in whatever agent it was
+// created with; a selected agent enters or leaves explicitly. `previous` is
+// undefined for the first switch, which is why the equality check comes first.
+function switchReminder
+(event: SwitchEvent) {
+  if (event.type === "session.created")
+    return event.data.agent === ID ? ENTER : undefined
+
+  if (event.type !== "session.agent.selected") return undefined
+  if (event.data.agent === event.data.previous) return undefined
+  if (event.data.agent === ID) return ENTER
+  if (event.data.previous === ID) return LEAVE
+
+  return undefined
 }
 
 export default Plugin.define({
@@ -63,21 +106,26 @@ export default Plugin.define({
         agent.mode = "primary"
         agent.permissions.push(
           { action: "question", resource: "*", effect: "allow" },
-          { action: "edit", resource: "*", effect: "deny" }
+          { action: "edit", resource: "*", effect: "deny" },
+          // Plan denies the general subagent (v1's task.general: deny) so the
+          // planner cannot hand a write to a delegate and bypass the deny above.
+          { action: "subagent", resource: "general", effect: "deny" }
         )
       })
     })
 
     // A rule-based deny short-circuits before the permission.evaluate hook runs,
     // so the model would only be told "Permission denied: edit". Name the way
-    // out instead. Plan does this from execute.after; execute.before needs no
-    // Tool.Error construction and pre-empts the permission denial entirely.
+    // out instead, in plan's phrasing. Plan does this from execute.after and
+    // builds a ToolFailure; execute.before needs no @opencode/ai import and
+    // pre-empts the permission denial entirely.
     await ctx.tool.hook("execute.before", (event) => {
       if (event.agent !== ID) return
       if (!WRITE_TOOLS.has(event.tool)) return
 
-      throw new Error("Planner is read-only: no file changes. Ask the user to "
-                      + "switch to the build agent if they want this written.")
+      throw new Error("Cannot use " + event.tool + " to modify files: the "
+                      + "Planner agent is read-only. Ask the user to switch to "
+                      + "the build agent if they want this written.")
     })
 
     const persist = async (sessionID: string, text: string) => {
@@ -88,12 +136,49 @@ export default Plugin.define({
       }
     }
 
+    // The event stream arrives over SSE, so a switch event and the prompt that
+    // follows it can race: the request hook may persist the reminder first. Read
+    // the session back and skip a reminder the transcript already ends with.
+    // Plan needs no such guard because its events are in-process.
+    const deliver = async (sessionID: string, text: string) => {
+      try {
+        const messages = await ctx.session.context({ sessionID })
+        if (storedReminder(messages) === text) return
+      } catch (err) {
+        console.error("[planner] failed to read context: " + err)
+        return
+      }
+
+      await persist(sessionID, text)
+    }
+
+    const controller = new AbortController()
+
+    void (async () => {
+      try {
+        const events = ctx.event.subscribe({ signal: controller.signal })
+
+        for await (const event of events) {
+          if (event.type !== "session.created"
+              && event.type !== "session.agent.selected")
+            continue
+
+          const text = switchReminder(event as SwitchEvent)
+
+          if (text) await deliver(event.data.sessionID, text)
+        }
+      } catch (err) {
+        if (!controller.signal.aborted)
+          console.error("[planner] event stream failed: " + err)
+      }
+    })()
+
     // Reconcile per request against the transcript, which is the only durable
     // record: compaction and committed reverts can drop reminders while the
     // session's agent stays put. Plan inserts before the user's prompt, which is
     // where agent-switch reminders land; mirror that.
     await ctx.session.hook("context", async (input) => {
-      const text = reminderFor(input.agent, lastReminder(input.messages))
+      const text = reminderFor(input.agent, requestReminder(input.messages))
 
       if (!text) return
 
@@ -109,5 +194,9 @@ export default Plugin.define({
 
       await persist(input.sessionID, text)
     })
+
+    // Hot reload replaces this plugin; abort the old stream rather than leave it
+    // running alongside the new one.
+    return () => controller.abort()
   },
 })

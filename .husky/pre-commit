@@ -1,9 +1,19 @@
-npm run check &
+#!/bin/sh
+set +e
+
+root=$(dirname "$(cd "$(git rev-parse --git-common-dir)" && pwd)")
+log="$root/.pre-commit.log"
+
+printf '== %s %s %s\n' "$(date -Is)" "$(git rev-parse --abbrev-ref HEAD)" "$(git log -1 --format='%h %s')" > "$log"
+
+bash -o pipefail -c 'npm run check 2>&1 | tee -a "$1"' sh "$log" &
 check=$!
-npm run test-fast &
+bash -o pipefail -c 'npm run test-fast 2>&1 | tee -a "$1"' sh "$log" &
 test=$!
 
 status=0
 wait "$check" || status=1
 wait "$test" || status=1
+
+printf '== exit %s\n' "$status" >> "$log"
 exit "$status"

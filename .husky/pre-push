@@ -1,1 +1,13 @@
-npm test
+#!/bin/sh
+set +e
+
+root=$(dirname "$(cd "$(git rev-parse --git-common-dir)" && pwd)")
+log="$root/.pre-push.log"
+
+printf '== %s %s %s\n' "$(date -Is)" "$(git rev-parse --abbrev-ref HEAD)" "$(git log -1 --format='%h %s')" > "$log"
+
+bash -o pipefail -c 'npm test 2>&1 | tee -a "$1"' sh "$log"
+status=$?
+
+printf '== exit %s\n' "$status" >> "$log"
+exit "$status"

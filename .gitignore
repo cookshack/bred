@@ -1,6 +1,8 @@
 .bred-module-hash
 .opencode/
 .oc-stamp
+.pre-commit.log
+.pre-push.log
 \#*\#
 *~
 *.bak

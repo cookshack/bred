@@ -80,8 +80,7 @@ export default Plugin.define({
                       + "switch to the build agent if they want this written.")
     })
 
-    const persist = async
-    (sessionID: string, text: string) => {
+    const persist = async (sessionID: string, text: string) => {
       try {
         await ctx.session.synthetic({ sessionID, text, resume: false })
       } catch (err) {
@@ -102,10 +101,11 @@ export default Plugin.define({
         ? input.messages.length - 1
         : input.messages.length
 
-      input.messages.splice(at, 0, {
-        role: "user",
-        content: [ { type: "text", text } ]
-      } as unknown as typeof input.messages[number])
+      // A plain object is enough: the request is already shaped at this point,
+      // and the persisted copy is built server-side by session.synthetic.
+      const reminder = { role: "user", content: [ { type: "text", text } ] }
+
+      input.messages.splice(at, 0, reminder as unknown as (typeof input.messages)[number])
 
       await persist(input.sessionID, text)
     })

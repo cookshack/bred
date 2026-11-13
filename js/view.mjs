@@ -49,7 +49,7 @@ function make
   // Keep ele content here when closed, until opened.
   // Required to preserve content when buffer out of all panes.
   // Like a stash.
-  let reserved
+  let reserved, readyTimeout
 
   function ensurePushed
   (view) {
@@ -125,6 +125,11 @@ function make
   function close
   () {
     d('VIEW ' + b.id + '.' + spec.vid + ' closing')
+    // a closed view must not report ready later: the pane would repoint at it
+    if (readyTimeout) {
+      clearTimeout(readyTimeout)
+      readyTimeout = 0
+    }
     detachScrollbar()
     onCloses.forEach(cb => cb())
     if (nestedViews)
@@ -444,13 +449,17 @@ function make
   () {
     // timeout so behaves like viewInit,viewCopy
     d('VIEW ready1 timeout')
-    setTimeout(() => {
-                 attachScrollbar()
-                 ready = 1
-                 d('VIEW ready1 whenReady')
-                 if (whenReady)
-                   whenReady(v)
-               })
+    readyTimeout = setTimeout(whenReady1)
+  }
+
+  function whenReady1
+  () {
+    readyTimeout = 0
+    attachScrollbar()
+    ready = 1
+    d('VIEW ready1 whenReady')
+    if (whenReady)
+      whenReady(v)
   }
 
   function reconfHead

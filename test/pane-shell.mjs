@@ -222,6 +222,16 @@ test('rerun', 'rerunning via g resets the exit bar to busy',
        Cmd.runMo('self insert', 'Shell', 1, { e: { key: 'g' } })
        await wait(20)
        equal(view.ele.querySelector('.bred-confirm-w') == null, false)
+
+       // C-g cancels without rerunning
+       Cmd.run('nested cancel', buf)
+       await wait(20)
+       equal(view.ele.querySelector('.bred-confirm-w') == null, true, 'cancel dismisses the confirm')
+       equal(buf.vars('shell').code, 3, 'cancel leaves the exit status alone')
+       equal(busy(buf), 0, 'cancel does not start a rerun')
+
+       Cmd.runMo('self insert', 'Shell', 1, { e: { key: 'g' } })
+       await wait(20)
        Cmd.run('nested yes', buf)
        await wait(20)
 

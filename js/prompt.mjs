@@ -695,6 +695,8 @@ function initNest
   Em.on('y', 'nested yes', moConfirm)
   Em.on('n', 'nested no', moConfirm)
   Em.on('c', 'nested cancel', moConfirm)
+  Em.on('C-g', 'nested cancel', moConfirm)
+  Em.on('Escape', 'nested cancel', moConfirm)
 }
 
 export

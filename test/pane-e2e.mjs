@@ -2,6 +2,7 @@ import { equal } from 'node:assert/strict'
 import * as Buf from '../js/Buf.mjs'
 import * as Cmd from '../js/cmd.mjs'
 import * as Ed from '../js/ed.mjs'
+import * as Em from '../js/Em.mjs'
 import * as Pane from '../js/Pane.mjs'
 import * as Prompt from '../js/prompt.mjs'
 import * as Scib from '../js/scib.mjs'
@@ -566,7 +567,7 @@ test('scenario', 'cancelling a nested prompt returns focus to parent',
 
 test('prompt', 'nested yes/no confirm shows in the pane and answers with y/n',
      async () => {
-       let f, panes, res, w
+       let confirmEm, f, found, panes, res, w
 
        panes = setupPanes()
        f = fileBuf('a.txt')
@@ -594,6 +595,27 @@ test('prompt', 'nested yes/no confirm shows in the pane and answers with y/n',
        await wait(20)
        equal(res.length, 2, 'no answered')
        equal(res[1], 0, 'no value reached the callback')
+
+       Prompt.yn('Rerun command?', { nest: 1 }, yes => res.push(yes))
+       await wait(20)
+       confirmEm = f.minors.find(m => m.key == 'nested confirm')?.em
+       // C-g/Escape must be bound on the confirm's own map; Em.seq would
+       // return the earlier c binding and couldn't tell them apart.
+       Em.look([ { e: keydown('g', 'KeyG', 1, 0) } ],
+               [ confirmEm ],
+               f,
+               (map, to) => found = to)
+       equal(found, 'nested cancel', 'C-g cancels the confirm')
+       Em.look([ { e: keydown('Escape', 'Escape', 0, 0) } ],
+               [ confirmEm ],
+               f,
+               (map, to) => found = to)
+       equal(found, 'nested cancel', 'Escape cancels the confirm')
+       Cmd.run('nested cancel', f)
+       await wait(20)
+       equal(res.length, 2, 'cancel does not answer')
+       equal(f.views[0].ele.querySelector('.bred-confirm-w') == null, true, 'confirm removed after cancel')
+       equal(f.minors.some(m => m.key == 'nested confirm'), false, 'confirm mode removed after cancel')
        checkPaneInvariants(panes.frame)
      })
 

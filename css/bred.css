@@ -1647,10 +1647,9 @@ div.bred-open-under-f {
   color: var(--clr-nb0);
 }
 
-.bred-confirm-w button {
-  padding-top: 0;
-  padding-bottom: 0;
-  font-size: 0.9rem;
+.bred-confirm-w > button {
+  padding: 0.5rem;
+  min-width: 3rem;
 }
 
 .bred-overlay-w {

@@ -1201,7 +1201,8 @@ async function resolveVariant
   if (variant == undefined || variant.length == 0)
     return variant
   try {
-    models = await c.model.list({ location: { directory: Util.apiDir(buf) } })
+    models = await c.model.list({ location: { directory: Util.apiDir(buf) } },
+                                { signal: AbortSignal.timeout(30000) })
   }
   catch (err) {
     d('CO variant list failed: ' + err.message)
@@ -1217,6 +1218,43 @@ async function resolveVariant
   d('CO variant ' + variant + ' unavailable, omitting')
   Ui.appendMsg(buf, 'assistant', 'Warning: variant "' + variant + '" unavailable for ' + providerID + '/' + modelID + ' (omitting)')
   return 0
+}
+
+// How long each startup step may take before it is called a stall. Only the
+// session request is generous: the rest are local calls against a server that
+// has already answered a health check. The prompt is not bounded: a turn can
+// legitimately run for minutes.
+let startupLimits
+
+startupLimits = { session: 60000, stream: 15000, model: 30000, agent: 30000 }
+
+// A stalled request prints nothing, so the last line in the buffer stays
+// 'Creating session...' whatever step is actually stuck. Name the step when it
+// turns slow, and fail it when it runs out of time, so a hang becomes an error
+// that says where it happened.
+function startupStep
+(buf, name, run) {
+  let t0, timer
+
+  t0 = Date.now()
+  timer = setTimeout(() => {
+                       Ui.appendMsg(buf, 0, '🌱 waiting on ' + name + ' (still no answer after 5s)...', undefined, undefined, { log: 1 })
+                       Ui.updateStatus(buf, '🔁 ' + name, '', '')
+                     }, 5000)
+  return run(AbortSignal.timeout(startupLimits[name] || 30000)).then(res => {
+                                                                       clearTimeout(timer)
+                                                                       d('CO startup ' + name + ' ' + (Date.now() - t0) + 'ms')
+                                                                       return res
+                                                                     }, err => {
+                                                                          let e, ms
+
+                                                                          clearTimeout(timer)
+                                                                          ms = Date.now() - t0
+                                                                          d('CO startup ' + name + ' failed after ' + ms + 'ms: ' + (err?.message || err))
+                                                                          e = new Error(name + ' step failed after ' + ms + 'ms: ' + (err?.message || err))
+                                                                          e.startupStep = name
+                                                                          throw e
+                                                                        })
 }
 
 function send
@@ -1254,8 +1292,9 @@ function send
                                 sessionID = buf.vars('code').sessionID
                                 if (sessionID == null) {
                                   Ui.appendMsg(buf, 0, 'Creating session...')
-                                  res = await c.session.create({ location: { directory: Util.apiDir(buf) },
-                                                                 title: text || ('New session - ' + new Date().toISOString()) })
+                                  res = await startupStep(buf, 'session', signal => c.session.create({ location: { directory: Util.apiDir(buf) },
+                                                                                                       title: text || ('New session - ' + new Date().toISOString()) },
+                                                                                                     { signal }))
                                   sessionID = res.id
                                   buf.vars('code').sessionID = sessionID
                                   buf.vars('code').sessionStart = res.time?.created
@@ -1265,7 +1304,7 @@ function send
 
                                 Ev.startSub(buf, events)
 
-                                await buf.vars('code').streamReady
+                                await startupStep(buf, 'stream', () => buf.vars('code').streamReady)
 
                                 updateBufAgent(buf, agent)
 
@@ -1273,8 +1312,9 @@ function send
 
                                 variant = await resolveVariant(c, buf, provider, model, variant)
 
-                                await c.session.switchModel({ sessionID, model: { id: model, providerID: provider, variant: variant || undefined } })
-                                await c.session.switchAgent({ sessionID, agent })
+                                await startupStep(buf, 'model', signal => c.session.switchModel({ sessionID, model: { id: model, providerID: provider, variant: variant || undefined } },
+                                                                                                { signal }))
+                                await startupStep(buf, 'agent', signal => c.session.switchAgent({ sessionID, agent }, { signal }))
 
                                 res = await c.session.prompt({ sessionID, text })
 
@@ -1295,6 +1335,17 @@ function send
                                          buf.vars('code').turnActive = 0
                                          buf.vars('code').client = 0
                                          buf.vars('code').streamActive = 0
+                                         if (err.startupStep) {
+                                           // A server that stopped answering stays that way,
+                                           // and its container left running would block the next
+                                           // spawn with a name clash. Close it and let the next
+                                           // send start a fresh one.
+                                           buf.vars('code').spawnedBufferID = 0
+                                           Tron.acmd('code.close', [ buf.id ])
+                                           Ui.appendMsg(buf, 0, 'The server stopped answering during startup, so the container was closed. Send again to start a new one.', undefined, undefined, { log: 1 })
+                                           Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
+                                           return
+                                         }
                                          Ev.startSub(buf, events)
                                        })
 }

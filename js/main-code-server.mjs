@@ -14,6 +14,20 @@ function containerName
   return 'bred-code-' + process.pid + '-' + bufferID
 }
 
+// A container left behind by an earlier spawn (a wedged server, or a close that
+// has not finished stopping) would block the run with a name clash, so clear the
+// name first. Names are per app run and buffer, so this is a no-op normally.
+function removeContainer
+(name) {
+  return new Promise(resolve => {
+                       let proc
+
+                       proc = spawn('docker', [ 'rm', '-f', name ])
+                       proc.on('close', () => resolve())
+                       proc.on('error', () => resolve())
+                     })
+}
+
 function containerRunning
 (name) {
   return new Promise(resolve => {
@@ -204,8 +218,11 @@ async function seedCredentials
     try {
       let res
 
+      // A wedged server must not stall the spawn forever: the seed is a nicety,
+      // not a reason to leave the buffer on 'Spawning docker...'.
       res = await fetch(url + '/api/credential', { method: 'POST',
                                                    headers,
+                                                   signal: AbortSignal.timeout(10000),
                                                    body: JSON.stringify({ id,
                                                                           integrationID: keys[i][0],
                                                                           label: 'API key',
@@ -213,9 +230,11 @@ async function seedCredentials
       if (res.status == 409) {
         await fetch(url + '/api/credential/' + encodeURIComponent(id),
                     { method: 'DELETE',
-                      headers })
+                      headers,
+                      signal: AbortSignal.timeout(10000) })
         res = await fetch(url + '/api/credential', { method: 'POST',
                                                      headers,
+                                                     signal: AbortSignal.timeout(10000),
                                                      body: JSON.stringify({ id,
                                                                             integrationID: keys[i][0],
                                                                             label: 'API key',
@@ -250,6 +269,8 @@ async function spawnDocker
   // same location, the user can browse the worktrees live while the agent works.
   worktreeDir = spec.worktreeDir || Mounts.worktreeRoot(process.env.HOME, name)
   fs.mkdirSync(worktreeDir, { recursive: true })
+
+  await removeContainer(name)
 
   args = []
   args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...Mounts.argList(workingDir, dataDir, authPath, spec.mounts, undefined, undefined, worktreeDir), '-e', 'BRED_WORKTREE_ROOT=' + worktreeDir, '-e', 'EXA_API_KEY', '-e', 'OPENCODE_WEBSEARCH_PROVIDER=' + (process.env.OPENCODE_WEBSEARCH_PROVIDER || 'exa'), '-e', 'OPENCODE_ENABLE_EXA=' + (process.env.OPENCODE_ENABLE_EXA || 'true'), '-e', 'OPENCODE_LOG_LEVEL=' + (process.env.OPENCODE_LOG_LEVEL || 'DEBUG'), '-e', 'OPENCODE_PASSWORD=' + password, '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')

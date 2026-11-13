@@ -10,6 +10,9 @@ AUTH="$HOME/.local/share/opencode/auth.json"
 LOCAL_SHARE="$("$BRED/oc-data-dir" "$PWD")"
 # Must match containerHome in js/code-mounts.mjs and the image's home.
 CHOME=/home/matt
+# Host-visible root for this run's agent worktrees (same path in and out).
+WT_ROOT="$HOME/worktrees/bred-code-sh-$$"
+mkdir -p "$WT_ROOT"
 
 ARGS=(-v "$PWD:$PWD")
 for m in \
@@ -17,6 +20,7 @@ for m in \
   "$HOME/src/review:$HOME/src/review" \
   "$HOME/src/bred:$HOME/src/bred" \
   "$HOME/sessions:$HOME/sessions" \
+  "$WT_ROOT:$WT_ROOT" \
   "$HOME/src/opencode:$HOME/src/opencode:ro" \
   "$AUTH:$CHOME/.local/share/opencode/auth.json:ro" \
   "$HOME/.gitignore:$CHOME/.gitignore:ro" \
@@ -34,6 +38,7 @@ fi
 
 exec docker run -it --rm --name "bred-code-sh-$$" \
   "${ARGS[@]}" \
+  -e "BRED_WORKTREE_ROOT=$WT_ROOT" \
   --entrypoint bash \
   -w "$PWD" \
   opencode-bred

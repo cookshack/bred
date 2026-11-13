@@ -34,7 +34,8 @@ async function onSpawn
 
   d('CODE spawn ' + bufferID + ' in ' + workingDir)
 
-  e.sender.send(statusCh, { containerName: name })
+  e.sender.send(statusCh, { containerName: name,
+                            worktreeRoot: name ? Mounts.worktreeRoot(process.env.HOME, name) : '' })
 
   try {
     let server
@@ -51,6 +52,7 @@ async function onSpawn
     e.sender.send(ch, { url: server.url,
                         containerName: server.containerName || name,
                         containerID: server.containerID,
+                        worktreeRoot: server.worktreeRoot || '',
                         auth: server.password ? basicAuth(server.password) : process.env.BRED_OC_SERVER_AUTH })
   }
   catch (err) {

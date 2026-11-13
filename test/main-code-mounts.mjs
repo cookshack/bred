@@ -76,6 +76,29 @@ test('infra', 'state and credentials live under the container home',
        equal(Mounts.containerAuthPath(), Mounts.containerHome() + '/.local/share/opencode/auth.json')
      })
 
+test('worktreeRoot', 'is a host path under ~/worktrees',
+     () => {
+       equal(Mounts.worktreeRoot(home, 'run-1'), home + '/worktrees/run-1')
+       equal(Mounts.worktreeRoot(home + '/', 'run-1'), home + '/worktrees/run-1')
+     })
+
+test('argList', 'mounts the worktree root read-write at the same path',
+     () => {
+       let args, root
+
+       root = home + '/worktrees/run-1'
+       args = Mounts.argList('/w', '/d', '/a', [], home, () => 1, root)
+       equal(args.includes(root + ':' + root), true)
+     })
+
+test('argList', 'omits the worktree root when none is given',
+     () => {
+       let args
+
+       args = Mounts.argList('/w', '/d', '/a', [], home, () => 1)
+       equal(args.some(a => a.startsWith(home + '/worktrees:')), false)
+     })
+
 test('references', 'every extra mount, minus the working dir',
      () => {
        let refs

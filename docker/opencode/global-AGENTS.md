@@ -62,10 +62,17 @@ Per repo you edit, once per session:
 1. `cd <repo>`; record its current branch — `git -C <repo> branch --show-current`
    — as the target branch.
 2. Create one persistent worktree for this session:
-   `git -C <repo> worktree add -b agent/<repo>-<session> /tmp/opencode/<repo>-<session> <target>`
-   (`/tmp/opencode/...` is always writable in the container). The worktree is
-   disposable scratch — the merged work lives in the canonical checkout on the
-   host — so do not worry about it being non-persistent.
+   `git -C <repo> worktree add -b agent/<repo>-<session> "${BRED_WORKTREE_ROOT:-/tmp/opencode}/<repo>" <target>`
+   `$BRED_WORKTREE_ROOT` is a host directory mounted into the container at the
+   same absolute path, so the user can browse the worktree live from the host
+   while you work. When it is unset (a non-docker run), fall back to
+   `/tmp/opencode`.
+
+   Worktrees and their branches persist on the host, so a resumed session can
+   already have `agent/<repo>-<session>`. If `worktree add -b` says the branch
+   exists, attach it without `-b`:
+   `git -C <repo> worktree add "${BRED_WORKTREE_ROOT:-/tmp/opencode}/<repo>" agent/<repo>-<session>`
+   (or start a fresh task branch from the target if it is checked out elsewhere).
 
 Per task:
 
@@ -92,10 +99,10 @@ or discard them** — stop that merge and report "main was dirty, merge skipped.
 
 **Keep your worktrees for the life of the session.** They are reused and reset each
 task, so do **not** delete them when a task or a conversation finishes — that keeps
-a session resumed from Code Sessions working with no re-checkout. Worktree pruning
-is housekeeping done outside the session (by you or on the host); do not remove
-worktrees yourself.
+a session resumed from Code Sessions working with no re-checkout, and lets the user
+keep browsing the files on the host afterwards. Worktree pruning is housekeeping
+done outside the session (by you or on the host); do not remove worktrees yourself.
 
-Stale/prunable worktrees under `/tmp/opencode/` (from earlier sessions) are expected
-and harmless leftover scratch. Do not dwell on them, mention them, or prune them —
-just use your own and continue.
+Stale/prunable worktrees under `$BRED_WORKTREE_ROOT` (shown on the host as
+`~/worktrees/...`) from earlier runs are expected and harmless leftover scratch.
+Do not dwell on them, mention them, or prune them — just use your own and continue.

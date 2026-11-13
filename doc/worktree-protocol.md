@@ -33,6 +33,11 @@ its branch) is never checked out or overwritten by the agent.
   commits.
 - **Auto-merge on task completion, review afterward** (matches the workflow of
   skimming `git diff` after the agent finishes). No human merge gate.
+- **Host-visible worktree root.** The worktree lives under
+  `$BRED_WORKTREE_ROOT` (a per-container dir at `~/worktrees/<slug>`), which is
+  bind-mounted into the container at the same absolute path. The user can watch
+  edits live from the host, and agent file links (`open link`) resolve because
+  the path exists on both sides.
 - **Report, never force**, when the canonical dir is dirty — the user may
   intentionally keep dirs on branches.
 
@@ -44,7 +49,9 @@ its branch) is never checked out or overwritten by the agent.
 - Worktrees share the object DB, refs, and config. Git ops (commit/diff/status/
   merge) run at the same speed as the main checkout.
 - The real cost is **dependencies**: `node_modules` is not shared per worktree.
-  This is the one decision that determines whether worktrees feel slow.
+  This is the one decision that determines whether worktrees feel slow. Because
+  worktrees now live on the host under `~/worktrees`, an install in one survives
+  container restarts and is reused across tasks in the same run.
 
 ## The protocol
 
@@ -57,10 +64,17 @@ bound dir), **before the first tracked-file edit** to that repo. Read-only work
 1. `cd <repo_dir>`; confirm it is a git work tree.
 2. Record the repo's current branch: `git -C <repo_dir> branch --show-current`.
 3. Create one persistent worktree for this session/repo:
-   `git -C <repo_dir> worktree add -b agent/<repo>-<session> /tmp/opencode/<repo>-<session> <target_branch>`.
-   `/tmp/opencode/...` is always writable in the container, so no sibling/fallback
-   needed. The worktree is disposable scratch (merged work lives in the canonical
-   checkout on the host), so its non-persistence across container restarts is fine.
+   `git -C <repo_dir> worktree add -b agent/<repo>-<session> "${BRED_WORKTREE_ROOT:-/tmp/opencode}/<repo>" <target_branch>`.
+   `$BRED_WORKTREE_ROOT` is a host directory mounted into the container at the
+   same absolute path (`~/worktrees/<slug>`), so the user can browse the worktree
+   live on the host while the agent works. When the variable is unset (a
+   non-docker run), fall back to `/tmp/opencode`, which is only container-local.
+
+   Worktrees and branches persist on the host, so a resumed session may already
+   have `agent/<repo>-<session>`. If `worktree add -b` reports that the branch
+   exists, attach it without `-b`:
+   `git -C <repo_dir> worktree add "${BRED_WORKTREE_ROOT:-/tmp/opencode}/<repo>" agent/<repo>-<session>`
+   (or start a fresh task branch from the target if it is checked out elsewhere).
 
 ### Per task
 
@@ -96,13 +110,14 @@ that merge.
 
 ### Session end
 
-Worktrees are **not** removed here. They persist for the Code Session's lifetime
-and are reused (reset to the target branch each task), so a session resumed from
-Code Sessions keeps working with no re-checkout. Worktree cleanup belongs to the
-Code Session lifecycle (a future `ext/code` feature): prune when a Code Session
-is deleted, not when a conversation ends.
+Worktrees are **not** removed here. They persist for the Code Session's lifetime —
+and on the host under `~/worktrees/` — and are reused (reset to the target branch
+each task), so a session resumed from Code Sessions keeps working with no
+re-checkout. The user may also still want to browse the files after the run.
+Worktree cleanup belongs to the Code Session lifecycle (a future `ext/code`
+feature): prune when a Code Session is deleted, not when a conversation ends.
 
-Stale/prunable worktrees under `/tmp/opencode/` from earlier sessions are expected,
+Stale/prunable worktrees under `~/worktrees/` from earlier runs are expected,
 disposable scratch — the agent ignores them and does not prune.
 
 ## Open decisions (resolved)
@@ -113,12 +128,15 @@ disposable scratch — the agent ignores them and does not prune.
   exceptions for "scratch"/`tmp/` repos, and existing file-level
   `git add && commit` instructions do not waive it. If tempted to skip, surface
   it and wait — do not guess.
-- **Worktree location/naming.** Use `/tmp/opencode/<repo>-<session>` (always writable
-  in the container); worktree branch `agent/<repo>-<session>`, task branch
-  `agent/<repo>-<task>`.
+- **Worktree location/naming.** Use `$BRED_WORKTREE_ROOT/<repo>`, where the
+  launcher sets `$BRED_WORKTREE_ROOT=~/worktrees/<container-slug>` — one host
+  directory per container, mounted at the same path. Worktree branch
+  `agent/<repo>-<session>`, task branch `agent/<repo>-<task>`. Fall back to
+  `/tmp/opencode` when the variable is unset.
 - **Cleanup.** Worktrees are **not** removed at task or session end — they persist
-  for the Code Session's lifetime and are reused (reset to the target branch each
-  task). This keeps a session resumed from Code Sessions working with no
-  re-checkout. Pruning happens only when a Code Session is actually deleted (a
-  future `ext/code` feature); until then leftover worktrees are cheap and harmless.
-  The in-container agent does not prune.
+  for the Code Session's lifetime, and on the host, and are reused (reset to the
+  target branch each task). This keeps a session resumed from Code Sessions working
+  with no re-checkout and lets the user browse the result afterwards. Pruning
+  happens only when a Code Session is actually deleted (a future `ext/code`
+  feature); until then leftover worktrees are cheap and harmless. The in-container
+  agent does not prune.

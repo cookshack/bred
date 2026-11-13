@@ -67,14 +67,25 @@ function extras
            { src: home + '/src/opencode', ro: 1 } ]
 }
 
+// Host-visible root for one container's agent worktrees. The container's home
+// is the host's home, so the same absolute path is browsable on both sides:
+// the user can watch agent edits live at ~/worktrees/<slug>.
+export
+function worktreeRoot
+(home, slug) {
+  return normal(home) + '/worktrees/' + slug
+}
+
 // Always mounted, never offered as a choice.
 function infra
-(home, dataDir, authPath, exists) {
+(home, dataDir, authPath, exists, worktreeDir) {
   let list, configFile
 
   list = [ { src: home + '/.gitignore', dest: containerHome() + '/.gitignore', ro: 1 },
            { src: dataDir, dest: containerHome() + '/.local/share/opencode' },
            { src: authPath, dest: containerAuthPath(), ro: 1 } ]
+  if (worktreeDir)
+    list.push({ src: worktreeDir })
   configFile = home + '/.config/opencode/opencode.json'
   if (exists(configFile))
     list.push({ src: configFile, dest: containerHome() + '/.config/opencode/opencode.json', ro: 1 })
@@ -136,9 +147,11 @@ function references
 }
 
 // selected == null means all extras, as before this was configurable.
+// worktreeDir is the per-container root that holds this session's worktrees;
+// the caller creates it on the host before starting the container.
 export
 function argList
-(workingDir, dataDir, authPath, selected, home, exists) {
+(workingDir, dataDir, authPath, selected, home, exists, worktreeDir) {
   let list
 
   home = home || process.env.HOME
@@ -150,6 +163,6 @@ function argList
     .filter(m => exists(m.src))
     .filter(m => (m.src == workingDir) ? 0 : 1)
     .filter(m => picked(selected, m)))
-  list.push(...infra(home, dataDir, authPath, exists))
+  list.push(...infra(home, dataDir, authPath, exists, worktreeDir))
   return list.flatMap(m => [ '-v', argFor(m) ])
 }

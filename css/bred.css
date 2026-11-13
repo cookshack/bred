@@ -2037,7 +2037,6 @@ div.cm-line.cm-activeLine::after {
 /* the echoed command line at the top of a shell/scib buffer */
 .shell-cmd {
   color: var(--clr-emph);
-  font-weight: bold;
 }
 
 .shell-exit-w {

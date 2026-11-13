@@ -477,6 +477,7 @@ function updateIdle
     Ui.appendModel(buf, Util.modelName(buf.vars('code').model, buf.vars('code').variant), Util.fmtCost(buf.vars('code').lastCost), undefined, buf.vars('code').curMessageID)
   buf.vars('code').busy = 0
   buf.vars('code').turnActive = 0
+  buf.vars('code').promptSent = 0
   buf.vars('code').recovering = 0
   buf.vars('code').netHinted = 0
   reconcileQuestions(buf)
@@ -525,6 +526,10 @@ async function stopForNet
   state.netStopped = 1
   state.netGone = hasNetwork ? 0 : 1
   Ui.updateStatus(buf, '🔁 stopping', '', '', VopenCode.version)
+  if (state.promptSent == 0) {
+    cancelSend(buf)
+    return
+  }
   try {
     let client, res
 
@@ -1220,47 +1225,93 @@ async function resolveVariant
   return 0
 }
 
-// How long each startup step may take before it is called a stall. Only the
-// session request is generous: the rest are local calls against a server that
-// has already answered a health check. The prompt is not bounded: a turn can
-// legitimately run for minutes.
+// How long each startup step may take before it is called a stall. Booting the
+// per-location services is the slow one in practice; the rest are local calls
+// against a server that has already answered a health check. The prompt is not
+// bounded: a turn can legitimately run for minutes.
 let startupLimits
 
-startupLimits = { session: 60000, stream: 15000, model: 30000, agent: 30000 }
+startupLimits = { session: 60000, boot: 60000, stream: 15000, model: 60000, agent: 60000 }
 
 // A stalled request prints nothing, so the last line in the buffer stays
 // 'Creating session...' whatever step is actually stuck. Name the step when it
-// turns slow, and fail it when it runs out of time, so a hang becomes an error
-// that says where it happened.
-function startupStep
+// turns slow, retry it once, and fail it with its name when it runs out of
+// time: a stall then reads as a stall instead of a hang, and a server that was
+// only slow is not thrown away.
+async function startupStep
 (buf, name, run) {
-  let t0, timer
+  let ms, i, t0, err, out
 
-  t0 = Date.now()
-  timer = setTimeout(() => {
-                       Ui.appendMsg(buf, 0, '🌱 waiting on ' + name + ' (still no answer after 5s)...', undefined, undefined, { log: 1 })
-                       Ui.updateStatus(buf, '🔁 ' + name, '', '')
-                     }, 5000)
-  return run(AbortSignal.timeout(startupLimits[name] || 30000)).then(res => {
-                                                                       clearTimeout(timer)
-                                                                       d('CO startup ' + name + ' ' + (Date.now() - t0) + 'ms')
-                                                                       return res
-                                                                     }, err => {
-                                                                          let e, ms
+  ms = startupLimits[name] || 30000
+  i = 0
+  err = 0
+  while (i < 2) {
+    let signal, slow
 
-                                                                          clearTimeout(timer)
-                                                                          ms = Date.now() - t0
-                                                                          d('CO startup ' + name + ' failed after ' + ms + 'ms: ' + (err?.message || err))
-                                                                          e = new Error(name + ' step failed after ' + ms + 'ms: ' + (err?.message || err))
-                                                                          e.startupStep = name
-                                                                          throw e
-                                                                        })
+    i++
+    t0 = Date.now()
+    slow = setTimeout(() => {
+                        Ui.appendMsg(buf, 0, '\u{1F331} waiting on ' + name + ' (still no answer after 5s)...', undefined, undefined, { log: 1 })
+                        Ui.updateStatus(buf, '\u{1F501} ' + name, '', '')
+                      }, 5000)
+    signal = AbortSignal.any([ AbortSignal.timeout(ms), buf.vars('code').sendCtrl.signal ])
+    try {
+      let res
+
+      res = await run(signal)
+      clearTimeout(slow)
+      d('CO startup ' + name + ' ' + (Date.now() - t0) + 'ms')
+      return res
+    }
+    catch (e) {
+      clearTimeout(slow)
+      err = e
+      d('CO startup ' + name + ' failed after ' + (Date.now() - t0) + 'ms: ' + (e?.message || e))
+      if (signal.reason?.name == 'TimeoutError' && i < 2)
+        Ui.appendMsg(buf, 0, '\u{1F331} ' + name + ' timed out, trying once more...', undefined, undefined, { log: 1 })
+      else
+        break
+    }
+  }
+  out = new Error(name + ' step failed after ' + (Date.now() - t0) + 'ms: ' + (err?.message || err))
+  out.startupStep = name
+  throw out
+}
+
+// A stop pressed before the prompt went out cancels the send rather than a
+// turn, so the chain must not walk on to session.prompt after it, and must not
+// report the cancelled request as a startup failure.
+function checkSend
+(buf, gen) {
+  let e
+
+  if (buf.vars('code').sendGen == gen)
+    return
+  e = new Error('send cancelled')
+  e.cancelled = 1
+  throw e
+}
+
+// A chain that a newer send (or a stop) has superseded must not report its own
+// abort as a startup failure.
+function sendStale
+(buf, gen, err) {
+  if (err?.cancelled)
+    return 1
+  return buf.vars('code').sendGen == gen ? 0 : 1
 }
 
 function send
 (buf, text, provider, model, variant) {
-  let agent, tmpID
+  let agent, tmpID, gen
 
+  // Each send owns a generation and an abort controller: a stop pressed while
+  // the startup chain is still running bumps the generation, so the chain sees
+  // it at the next step and never reaches the prompt.
+  buf.vars('code').sendGen = (buf.vars('code').sendGen || 0) + 1
+  buf.vars('code').sendCtrl = new AbortController()
+  buf.vars('code').promptSent = 0
+  gen = buf.vars('code').sendGen
   buf.vars('code').firstPromptSent = 1
   buf.vars('code').agentStopped = 0
   buf.vars('code').busy = 1
@@ -1284,6 +1335,8 @@ function send
   Comm.ensureClient(buf).then(async c => {
                                 let res, sessionID
 
+                                // A stop during the spawn must not go on to create a session.
+                                checkSend(buf, gen)
                                 updateModelContextLimit(buf, provider, model)
 
                                 // A promptless start defers both the container
@@ -1302,6 +1355,14 @@ function send
                                   buf.vars('code').startupPending = 0
                                 }
 
+                                checkSend(buf, gen)
+
+                                // The first session-scoped request is what boots the
+                                // per-location services, so give it its own step: a slow
+                                // boot then does not look like a slow model switch.
+                                await startupStep(buf, 'boot', signal => c.session.get({ sessionID }, { signal }))
+                                checkSend(buf, gen)
+
                                 Ev.startSub(buf, events)
 
                                 await startupStep(buf, 'stream', () => buf.vars('code').streamReady)
@@ -1311,11 +1372,15 @@ function send
                                 d('CO SEND (' + agent + ')' + (variant ? ' v:' + variant : ''))
 
                                 variant = await resolveVariant(c, buf, provider, model, variant)
+                                checkSend(buf, gen)
 
                                 await startupStep(buf, 'model', signal => c.session.switchModel({ sessionID, model: { id: model, providerID: provider, variant: variant || undefined } },
                                                                                                 { signal }))
+                                checkSend(buf, gen)
                                 await startupStep(buf, 'agent', signal => c.session.switchAgent({ sessionID, agent }, { signal }))
+                                checkSend(buf, gen)
 
+                                buf.vars('code').promptSent = 1
                                 res = await c.session.prompt({ sessionID, text })
 
                                 if (res?.id)
@@ -1330,6 +1395,10 @@ function send
                                   updateCredits(buf, provider)
                               }).catch(err => {
                                          d(err)
+                                         // A cancelled send is already reported by cancelSend; this
+                                         // chain only has to stop, not reset what a newer state owns.
+                                         if (sendStale(buf, gen, err))
+                                           return
                                          Ui.appendMsg(buf, 'assistant', 'Error: ' + (err.message || JSON.stringify(err)))
                                          buf.vars('code').busy = 0
                                          buf.vars('code').turnActive = 0
@@ -1507,12 +1576,42 @@ function messageMenu
                 })
 }
 
+// Before the prompt goes out there is no turn to interrupt: the thing to stop
+// is the pending send, so the chain is abandoned and the message never leaves.
+function cancelSend
+(buf) {
+  let state
+
+  state = buf.vars('code')
+  state.sendGen = (state.sendGen || 0) + 1
+  state.sendCtrl?.abort()
+  state.sendCtrl = new AbortController()
+  state.busy = 0
+  state.turnActive = 0
+  state.promptSent = 0
+  state.recovering = 0
+  state.netStopped = 0
+  Ui.appendMsg(buf, 0, 'Send cancelled', undefined, undefined, { log: 1 })
+  Ui.updateStatus(buf, 'OK', '', '', VopenCode.version)
+  Mess.yell('Send cancelled')
+}
+
 function stopAgent
 (buf, sessionID) {
-  buf.vars('code').agentStopped = 1
+  let state
+
+  state = buf.vars('code')
+  if (state.promptSent == 0) {
+    if (state.busy)
+      cancelSend(buf)
+    else
+      Mess.yell('Nothing to stop')
+    return
+  }
+  state.agentStopped = 1
   Comm.ensureClient(buf).then(async client => {
                                 try {
-                                  await Stop.cancel(client, sessionID)
+                                  await Stop.cancel(client, sessionID, { signal: AbortSignal.timeout(10000) })
                                   Mess.yell('Stopped agent')
                                 }
                                 catch (err) {

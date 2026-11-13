@@ -27,14 +27,17 @@ function fakeIpc
 }
 
 function start
-(sc, args, spec) {
+(sc, args, spec, opts) { // opts: { appPath, shell }
   let e, events, ipc
 
   events = []
   ipc = fakeIpc()
   e = { sender: { send: (ch, data) => events.push({ ch, data }) } }
-  ShellRun.run({ pty: Pty, ipcMain: ipc, appPath: '/tmp/bred' },
-               e, 'testCh', '/tmp', sc, args || [], spec || {}, { shell: '/bin/sh' })
+  ShellRun.run({ pty: Pty,
+                 ipcMain: ipc,
+                 appPath: opts?.appPath ?? '/tmp/bred' },
+               e, 'testCh', '/tmp', sc, args || [], spec || {},
+               { shell: opts?.shell ?? '/bin/sh' })
   return { e, events, ipc }
 }
 
@@ -161,6 +164,51 @@ test('run', 'background child does not block close',
        run = start('/bin/sh', [ '-c', 'sleep 2 & echo hi' ])
        await waitFor(() => closed(run), 1500)
        equal(stdout(run).includes('hi'), true)
+     })
+
+// A single run gets its command from bash's -c, not typed in, so nothing at
+// the end of the command line can swallow the exit.
+function startInShell
+(sc) {
+  return start(sc, [], { runInShell: 1 },
+               { shell: '/bin/bash', appPath: process.cwd() })
+}
+
+test('runInShell', 'a comment-only command closes instead of hanging',
+     async () => {
+       let run
+
+       run = startInShell('# anything')
+       await waitFor(() => closed(run))
+       equal(run.events.at(-1).data.code, 0)
+     })
+
+test('runInShell', 'a trailing comment does not swallow the exit',
+     async () => {
+       let run
+
+       run = startInShell('echo hi # note')
+       await waitFor(() => closed(run))
+       equal(stdout(run).includes('hi'), true)
+       equal(run.events.at(-1).data.code, 0)
+     })
+
+test('runInShell', 'the close code is the command status',
+     async () => {
+       let run
+
+       run = startInShell('false')
+       await waitFor(() => closed(run))
+       equal(run.events.at(-1).data.code, 1)
+     })
+
+test('runInShell', 'unterminated input closes with a syntax error',
+     async () => {
+       let run
+
+       run = startInShell('echo "abc')
+       await waitFor(() => closed(run))
+       equal(run.events.at(-1).data.code, 2)
      })
 
 function mochaIt

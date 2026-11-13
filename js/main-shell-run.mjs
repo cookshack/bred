@@ -177,7 +177,13 @@ function run
       if (spec.multi)
         args = [ '-i' ]
       else
-        args = [ '--init-file', deps.appPath + '/etc/single.bashrc', '-i' ]
+        // Pass the command as -c rather than typing it in afterwards: a typed
+        // line needs a trailing exit, and anything that comments out or
+        // continues past the end of that line (eg '# note', an unclosed
+        // quote, a trailing backslash) eats the exit and hangs the buffer.
+        // bash parses the whole -c string instead, and a syntax error simply
+        // exits.
+        args = [ '--init-file', deps.appPath + '/etc/single.bashrc', '-i', '-c', sc ]
       runInShell = sc
       //d('runInShell: ' + runInShell)
       sc = ctx.shell
@@ -230,28 +236,15 @@ function run
       }
     }
 
-    if (spec.multi) {
-      // want the prompt string
-    }
-    else
-      // happens too late, need to somehow set it in .bashrc (now done in single.bashrc above)
-      proc.write('export PS1=""\n')
-
-    if (runInShell) {
-      let cmd
-
-      if (spec.multi)
-        if (runInShell.length)
-          cmd = runInShell + '\n'
-        else
-          d('runInShell empty')
-      else
-        cmd = runInShell + ' && exit 2>/dev/null || exit 2>/dev/null\n'
-      if (cmd) {
-        d('proc.write cmd: ' + cmd)
-        proc.write(cmd)
+    // A single run got its command from -c, so there is no typed input. A
+    // multi run is a live shell, so type the first command (if any) into it.
+    if (runInShell && spec.multi)
+      if (runInShell.length) {
+        d('proc.write cmd: ' + runInShell)
+        proc.write(runInShell + '\n')
       }
-    }
+      else
+        d('runInShell empty')
 
     proc.onData(data => {
                   d(ch + ' data: ' + data.length + ' bytes')

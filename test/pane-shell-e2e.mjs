@@ -168,6 +168,18 @@ test('e2e', 'repeated reruns always close',
        }
      })
 
+test('e2e', 'comment-only command closes instead of hanging',
+     async () => {
+       let buf
+
+       setupPanes()
+       bridge()
+       buf = await run('# anything')
+
+       await waitFor(() => busy(buf) == 0, 3000)
+       equal(buf.vars('shell').code, 0)
+     })
+
 test('e2e', 'removing a running buf sends exit to the current channel',
      async () => {
        let buf, ch, exits, orig, state

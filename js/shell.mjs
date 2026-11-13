@@ -15,6 +15,7 @@ import * as Prompt from './prompt.mjs'
 import * as Scib from './scib.mjs'
 import * as Tron from './tron.mjs'
 import * as U from './common-util.mjs'
+import * as Win from './win.mjs'
 import { d } from './mess.mjs'
 
 let reErr, reFile
@@ -296,6 +297,19 @@ function run
               off()
               Mess.warn('tron ch should be ' + ch + ': ' + tch)
             })
+}
+
+export
+function rerun
+(p) {
+  let sc, args, spec
+
+  sc = p.buf.vars('shell').sc || Mess.toss('Shell command missing')
+  args = p.buf.vars('shell').args
+  spec = p.buf.vars('shell').spec
+  p.buf.clear()
+  spec.buf = p.buf
+  run(p.dir, sc, args, spec)
 }
 
 function setExitDir
@@ -782,16 +796,29 @@ function initShell
     h.prev(p.buf, 1, prep(p))
   }
 
-  function rerun
-  (p) {
-    let sc, args, spec
+  // The pane whose buffer the context menu was opened on, or 0 for the usual
+  // current pane.
+  function menuPane
+  (we) {
+    if (we?.mouse && we.e?.target?.closest?.('.bred-context'))
+      return Win.current().context?.pane || 0
+    return 0
+  }
 
-    sc = p.buf.vars('shell').sc || Mess.toss('Shell command missing')
-    args = p.buf.vars('shell').args
-    spec = p.buf.vars('shell').spec
-    p.buf.clear()
-    spec.buf = p.buf
-    run(p.dir, sc, args, spec)
+  function rerunCommand
+  (u, we) {
+    let isShell, p
+
+    p = menuPane(we) || Pane.current()
+    isShell = p?.buf?.mode?.key == 'shell'
+    if (isShell && U.isPresent(p.buf.vars('shell').code)) {
+      p.focus()
+      Prompt.yn('Rerun command?', { nest: 1 }, yes => yes && rerun(p))
+    }
+    else if (isShell)
+      Mess.say('Process still running')
+    else
+      Mess.say('Not a shell buffer')
   }
 
   function selfInsert
@@ -849,6 +876,16 @@ function initShell
     return 0
   }
 
+  // Only offer a rerun when the process has exited, which is also the only
+  // time g in the buffer reruns instead of inserting.
+  function contextItems
+  (buf) {
+    if (U.isPresent(buf.vars('shell').code))
+      return [ { name: 'Rerun Command',
+                 cmd: 'rerun command' } ]
+    return []
+  }
+
   // packages/codemirror-lang-kcl/src/index.ts:41:30 - error TS2345
   // /home/matt/fresh/main/gvmd/src/manage.h:1:1: error: unterminated comment
   reErr = /^([^:]+):([0-9]+):([0-9]*:?).*$/d
@@ -860,12 +897,14 @@ function initShell
                            viewCopy: Ed.viewCopy,
                            initFns: Ed.initModeFns,
                            parentsForEm: 'ed',
+                           context: contextItems,
                            decorators: [ { regex: /^(\$.*)$/d,
                                            decor: [ { ref: refCmdLine } ] } ] })
 
   Cmd.add('line start', () => lineStart(), mo)
   Cmd.add('next', () => next(), mo)
   Cmd.add('previous', () => prev(), mo)
+  Cmd.add('rerun command', rerunCommand)
   Cmd.add('self insert', selfInsert, mo)
   Cmd.add('quoted insert', quotedInsert, mo)
   Cmd.add('shell run', enter, mo)

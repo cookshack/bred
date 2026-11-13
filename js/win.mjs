@@ -40,10 +40,15 @@ function contextLine
 
 function appendContextMode
 (context, p) {
-  p.buf.mode.context?.forEach(item =>
+  let items
+
+  // context is a list, or a function of the buffer returning a list, so a mode
+  // can decide per buffer which items apply
+  items = typeof p.buf.mode.context == 'function' ? p.buf.mode.context(p.buf) : p.buf.mode.context
+  items?.forEach(item =>
     append(context.el,
            context0(p.buf, item.name || item.cmd, item.cmd)))
-  if (p.buf.mode.context)
+  if (items?.length)
     append(context.el,
            contextLine())
 }

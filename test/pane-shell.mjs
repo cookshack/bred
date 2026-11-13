@@ -229,6 +229,59 @@ test('rerun', 'rerunning via g resets the exit bar to busy',
        equal(busy(buf), 1, 'exit bar should be busy during the rerun')
      })
 
+test('rerun', 'context menu offers rerun only after the command exits',
+     async () => {
+       let buf, ch, items, panes
+
+       panes = setupPanes()
+       buf = await run('echo hi')
+       ch = buf.vars('Shell').ch
+
+       items = buf.mode.context(buf)
+       equal(items.length, 0, 'no rerun item while busy')
+
+       await emit(panes, ch, { close: 1, code: 0 })
+
+       items = buf.mode.context(buf)
+       equal(items.length, 1, 'one rerun item after exit')
+       equal(items[0].name, 'Rerun Command')
+       equal(items[0].cmd, 'rerun command')
+     })
+
+test('rerun', 'the context menu rerun uses the pane the menu was opened on',
+     async () => {
+       let buf, ctx, f, item, panes
+
+       panes = setupPanes()
+       f = fileBuf('current.txt')
+       await setBuf(panes.pA, f)
+       buf = await run('echo hi', { pane: panes.pB })
+       await emit(panes, buf.vars('Shell').ch, { close: 1, code: 0 })
+
+       // the menu was opened in pane B while pane A stayed current
+       panes.pA.focus()
+
+       ctx = globalThis.document.createElement('div')
+       ctx.className = 'bred-context'
+       item = globalThis.document.createElement('div')
+       item.dataset.run = 'rerun command'
+       ctx.appendChild(item)
+       globalThis.bredWin.context = { pane: panes.pB }
+
+       Cmd.run('rerun command', 0, 0, { mouse: 1, e: { button: 0, target: item } })
+       await wait(20)
+       equal(buf.views[0].ele.querySelector('.bred-confirm-w') == null, false,
+             'rerun confirm shown in the menu pane')
+       equal(Pane.current() == panes.pB, true, 'menu pane is focused')
+
+       Cmd.run('nested yes', buf)
+       await wait(20)
+
+       equal(panes.pA.buf, f, 'focused pane keeps its buffer')
+       equal(buf.vars('shell').code, null)
+       equal(busy(buf), 1, 'exit bar should be busy during the rerun')
+     })
+
 // switching away closes (stashes) the buf's view, so output and the exit
 // marker must still be applied to the stashed view/doc, not dropped
 test('switch', 'output and close while buffer is not displayed are kept',

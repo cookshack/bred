@@ -1,7 +1,6 @@
 import { d } from './main-log.mjs'
 
 import * as CMState from '@codemirror/state'
-import * as CMCollab from '@codemirror/collab'
 
 let bufs, onBufUpdate
 
@@ -47,7 +46,7 @@ function onGet
   let buf
 
   buf = get(id)
-  d('PEER ' + id + ' GET')
+  d('PEER ' + id + ' GET v' + buf.version)
   return { version: buf.version,
            fresh: buf.fresh,
            text: buf.text.toString() }
@@ -59,38 +58,83 @@ function changes
                              changes: u.changes.toJSON() }))
 }
 
+// Apply a batch without committing anything until every change fits.  A
+// failure leaves the text and the history exactly as they were, so a bad
+// batch can never leave them out of step.
+function applyUpdates
+(buf, updates) {
+  let text, i
+
+  text = buf.text
+  for (i = 0; i < updates.length; i++) {
+    let change
+
+    change = updates[i].changes
+    if (change.length == text.length)
+      text = change.apply(text)
+    else {
+      d('PEER ' + buf.id + ' ERR change length ' + change.length + ', doc length ' + text.length)
+      return 0
+    }
+  }
+  updates.forEach(update => buf.updates.push(update))
+  buf.text = text
+  return updates
+}
+
 export
 function onPull
 (e, ch, onArgs) {
   let [ id, version, pullCh ] = onArgs
 
-  d('============== PEER ' + id + ' PULLED (main sending) ' + pullCh)
+  d('PEER ' + id + ' PULL from v' + version)
   setTimeout(() => {
                let buf
 
                buf = get(id)
                if (version < buf.version)
                  e.sender.send(pullCh,
-                               { updates: changes(buf.updates.slice(version)) })
+                               { version,
+                                 updates: changes(buf.updates.slice(version)) })
                buf.chs.add(pullCh)
              })
   e.sender.send(ch, {}) // just ret here
 }
 
 export
+function onUnpull
+(e, onArgs) {
+  let [ id, ch ] = onArgs
+  let buf
+
+  buf = bufs[id]
+  if (buf)
+    buf.chs.delete(ch)
+  return {}
+}
+
+export
 function onPush
 (e, onArgs) {
   let [ id, version, updates ] = onArgs
-  let received, buf, applied
+  let buf, received, base
 
   buf = get(id)
-  received = updates.map(u => ({ clientID: u.clientID,
-                                 changes: CMState.ChangeSet.fromJSON(u.changes) }))
-  d('============= PEER ' + id + ' PUSHED (main receiving) ' + received.length)
-  d('    version: ' + version)
-  d('    buf.version: ' + buf.version)
-  if (1) {
-    d('    received: ' + received.length)
+  try {
+    received = updates.map(u => ({ clientID: u.clientID,
+                                   changes: CMState.ChangeSet.fromJSON(u.changes) }))
+  }
+  catch (err) {
+    d('PEER ' + id + ' ERR bad changes: ' + err.message)
+    return { version: buf.version,
+             resync: 1 }
+  }
+  // The version a peer sends is one more than its last confirmed version,
+  // so it is the version just before the first update in the batch.  The
+  // batch is only usable when that is exactly where we are.
+  base = version - 1
+  d('PEER ' + id + ' PUSH v' + version + ' n' + received.length + ' have ' + buf.version)
+  if (0) {
     d('    updates: ')
     updates.forEach(u => {
                       d('clientID: ' + u.clientID)
@@ -100,63 +144,31 @@ function onPush
     d('==')
   }
   if (received.length == 0)
-    return {}
-  applied = []
-  if (version == buf.version) {
-    // both at same version, new updates received.
-  }
-  else
-    try {
-      if (1)
-        d('over: ' + JSON.stringify(buf.updates.slice(version)))
-      received = CMCollab.rebaseUpdates(received, buf.updates.slice(version))
-    }
-    catch (err) {
-      d('ERR in rebaseUpdates: ' + err.message)
-      d('== ERR updates: ')
-      updates.forEach(u => {
-                        d('clientID: ' + u.clientID)
-                        d('changes:')
-                        d(JSON.stringify(u.changes))
-                      })
-      d('== ERR received: ')
-      received.forEach(r => {
-                         d('clientID: ' + r.clientID)
-                         d('changes:')
-                         d(JSON.stringify(r.changes))
-                         d('--')
-                       })
-      d('==')
-      throw err
-    }
-  try {
-    if (1)
-      d('    received 2: ' + received.length)
-    received.forEach(update => {
-                       d(JSON.stringify(update, null, 2))
-                       buf.updates.push(update)
-                       buf.text = update.changes.apply(buf.text)
-                       applied.push(update)
-                     })
-  }
-  catch (err) {
-    d('ERR ' + err.message)
-  }
-  if (applied.length && buf.chs.size) {
-    let push
+    return { version: buf.version }
+  if (base == buf.version) {
+    let applied
 
-    d('    WILL SEND')
-    push = changes(applied)
-    // must send to everyone, including peer that pushed.
-    buf.chs.forEach(pullCh => {
-                      d('    SEND TO ' + pullCh)
-                      e.sender.send(pullCh, { updates: push })
-                    })
-  }
-  if (applied.length && onBufUpdate)
-    onBufUpdate(id, buf.text.toString())
+    applied = applyUpdates(buf, received)
+    if (applied) {
+      if (buf.chs.size) {
+        let push
 
-  return {}
+        push = { version: base,
+                 updates: changes(applied) }
+        // must send to everyone, including the peer that pushed.
+        buf.chs.forEach(pullCh => e.sender.send(pullCh, push))
+      }
+      if (onBufUpdate)
+        onBufUpdate(id, buf.text.toString())
+      return { version: base,
+               updates: changes(applied) }
+    }
+  }
+  // The peer is not at our version.  Never guess by rebasing: ask it to
+  // pull what it is missing and push again.
+  d('PEER ' + id + ' RESYNC v' + version + ' n' + received.length + ' have ' + buf.version)
+  return { version: buf.version,
+           resync: 1 }
 }
 
 export

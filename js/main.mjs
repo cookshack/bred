@@ -320,6 +320,9 @@ async function onAcmd
   if (name == 'peer.push')
     return Peer.onPush(e, args)
 
+  if (name == 'peer.unpull')
+    return Peer.onUnpull(e, args)
+
   if (name == 'profile.hist.add')
     return Profile.onHistAdd(e, args)
 

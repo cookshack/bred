@@ -1,0 +1,11 @@
+--- @codemirror/state.js.orig
++++ @codemirror/state.js
+@@ -1109,6 +1109,8 @@
+             addSection(sections, b.ins, -1);
+             while (len) {
+                 let piece = Math.min(a.len, len);
++                if (piece == 0 && a.done)
++                    throw new Error("Mismatched change set lengths");
+                 if (a.ins >= 0 && inserted < a.i && a.len <= piece) {
+                     addSection(sections, 0, a.ins);
+                     if (insert)

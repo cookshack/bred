@@ -13,6 +13,7 @@ import * as Wode from '../js/wode.mjs'
 import * as WodePeer from '../js/wode-peer.mjs'
 import * as WodeView from '../js/wode-view.mjs'
 import * as CMState from '../lib/@codemirror/state.js'
+import * as CMCollab from '../lib/@codemirror/collab.js'
 import * as CMView from '../lib/@codemirror/view.js'
 import { setupDom } from './dom-help.mjs'
 
@@ -163,6 +164,8 @@ function setup
                                   return MainPeer.onPush({ sender: { send: (ch, data) => fireChannel(ch, data) } },
                                                          args)
                                 }
+                                if (name == 'peer.unpull')
+                                  return MainPeer.onUnpull({}, args)
                                 return {}
                               },
                       cmd: async (name, args) => {
@@ -233,25 +236,58 @@ async function open
 () {
   readyView = 0
   await WodeView.init(view, {}, v => readyView = v)
-  await new Promise(r => setTimeout(r, 50))
+  await waitReady()
+  await new Promise(r => setTimeout(r, 20))
 }
 
 async function revert
 () {
   readyView = 0
   await WodeView.revertV(view, {}, v => readyView = v)
-  await new Promise(r => setTimeout(r, 50))
+  await waitReady()
+  await new Promise(r => setTimeout(r, 20))
 }
 
 async function openSeeded
 () {
   MainPeer.get(buf.id)
-  MainPeer.onPush(fakeE(), [ buf.id, 0, [ { clientID: 'seed',
+  MainPeer.onPush(fakeE(), [ buf.id, 1, [ { clientID: 'seed',
                                             changes: CMState.ChangeSet.of({ from: 0, to: 0, insert: 'v1' }, 0).toJSON() } ] ])
   MainPeer.get(buf.id)
   readyView = 0
   await WodeView.init(view, {}, v => readyView = v)
-  await new Promise(r => setTimeout(r, 50))
+  await waitReady()
+  await new Promise(r => setTimeout(r, 20))
+}
+
+// Wait for the view callback and for any update it sent while loading to be
+// acknowledged, so the next edit starts from a settled state.  A fixed
+// sleep races with slow timers when the machine is busy.
+function peerFlushed
+(v) {
+  let state
+
+  state = v.ed?.state
+  if (state)
+    try {
+      return CMCollab.sendableUpdates(state).length == 0
+    }
+    catch {
+      return 1
+    }
+  return 1
+}
+
+async function waitReady
+() {
+  let i
+
+  for (i = 0; i < 200; i++) {
+    if (readyView == view && view.ready && peerFlushed(view))
+      return
+    await new Promise(r => setTimeout(r, 10))
+  }
+  throw new Error('view did not become ready')
 }
 
 savedOpt = 0
@@ -580,17 +616,20 @@ test('reopen', 'preserves content and readies view',
 
 test('peer plugin', 'pushes on edit, pulls updates, destroys',
      async () => {
-       let chOff, parent, pullCb, pushes, state, v
+       let chOff, parent, pullCb, pulls, pushes, state, v
 
+       pulls = []
        pushes = []
        globalThis.tron = { acmd: async (name, args) => {
-                                     if (name == 'peer.push') {
+                                     if (name == 'peer.push' && args[0] == 'pid1')
                                        pushes.push(args)
-                                       return {}
-                                     }
                                      return {}
                                    },
-                           cmd: async () => ({ err: 0, ch: 0 }),
+                           cmd: async (name, args) => {
+                                  if (name == 'peer.pull' && args[0] == 'pid1')
+                                    pulls.push(args)
+                                  return { err: 0, ch: 0 }
+                                },
                            receive: (ch, cb2) => cb2({ err: 0 }),
                            on: (ch, cb) => {
                              pullCb = cb
@@ -601,14 +640,107 @@ test('peer plugin', 'pushes on edit, pulls updates, destroys',
        state = CMState.EditorState.create({ doc: 'a',
                                             extensions: WodePeer.make('pid1', 0) })
        v = new CMView.EditorView({ state, parent })
+       equal(pulls.length, 1)
+       equal(pulls[0][1], 0)
        v.dispatch({ changes: { from: 1, insert: 'b' } })
        await new Promise(r => setTimeout(r, 30))
-       equal(pushes.length > 0, true)
-       pullCb({ err: 0, updates: [] })
+       equal(pushes.length > 0 ? 1 : 0, 1)
+       pullCb({ err: 0, version: 0, updates: [] })
        await new Promise(r => setTimeout(r, 30))
        equal(v.state.doc.toString(), 'ab')
+       equal(pulls.length, 1)
        v.destroy()
        equal(chOff, 1)
+     })
+
+test('peer plugin', 'a resync reply pulls instead of applying',
+     async () => {
+       let parent, pulls, state, v
+
+       pulls = []
+       globalThis.tron = { acmd: async (name, args) => {
+                                     if (name == 'peer.push' && args[0] == 'pid2')
+                                       return { version: 9, resync: 1 }
+                                     return {}
+                                   },
+                           cmd: async (name, args) => {
+                                  if (name == 'peer.pull' && args[0] == 'pid2')
+                                    pulls.push(args)
+                                  return { err: 0, ch: 0 }
+                                },
+                           receive: (ch, cb2) => cb2({ err: 0 }),
+                           on: () => () => {} }
+       parent = globalThis.document.createElement('div')
+       globalThis.document.body.appendChild(parent)
+       state = CMState.EditorState.create({ doc: 'a',
+                                            extensions: WodePeer.make('pid2', 0) })
+       v = new CMView.EditorView({ state, parent })
+       v.dispatch({ changes: { from: 1, insert: 'b' } })
+       await new Promise(r => setTimeout(r, 50))
+       equal(pulls.length, 2)
+       equal(pulls[1][1], 0)
+       equal(v.state.doc.toString(), 'ab')
+       v.destroy()
+     })
+
+test('peer plugin', 'only applies updates that start at the synced version',
+     async () => {
+       let change, parent, pullCb, pulls, state, v
+
+       pulls = []
+       globalThis.tron = { acmd: async () => ({}),
+                           cmd: async (name, args) => {
+                                  if (name == 'peer.pull' && args[0] == 'pid3')
+                                    pulls.push(args)
+                                  return { err: 0, ch: 0 }
+                                },
+                           receive: (ch, cb2) => cb2({ err: 0 }),
+                           on: (ch, cb) => {
+                             pullCb = cb
+                             return () => {}
+                           } }
+       parent = globalThis.document.createElement('div')
+       globalThis.document.body.appendChild(parent)
+       state = CMState.EditorState.create({ doc: 'a',
+                                            extensions: WodePeer.make('pid3', 0) })
+       v = new CMView.EditorView({ state, parent })
+       change = CMState.ChangeSet.of({ from: 0, to: 0, insert: 'x' }, 1).toJSON()
+       // starts at 1, but we are at 0, so it is not the next batch
+       pullCb({ err: 0, version: 1, updates: [ { clientID: 'r', changes: change } ] })
+       await new Promise(r => setTimeout(r, 30))
+       equal(v.state.doc.toString(), 'a')
+       equal(pulls.length, 2)
+       // now the batch we are waiting for
+       pullCb({ err: 0, version: 0, updates: [ { clientID: 'r', changes: change } ] })
+       await new Promise(r => setTimeout(r, 30))
+       equal(v.state.doc.toString(), 'xa')
+       v.destroy()
+     })
+
+test('peer plugin', 'destroy stops retries',
+     async () => {
+       let parent, pushes, state, v
+
+       pushes = []
+       globalThis.tron = { acmd: async (name, args) => {
+                                     if (name == 'peer.push' && args[0] == 'pid4')
+                                       pushes.push(args)
+                                     return {}
+                                   },
+                           cmd: async () => ({ err: 0, ch: 0 }),
+                           receive: (ch, cb2) => cb2({ err: 0 }),
+                           on: () => () => {} }
+       parent = globalThis.document.createElement('div')
+       globalThis.document.body.appendChild(parent)
+       state = CMState.EditorState.create({ doc: 'a',
+                                            extensions: WodePeer.make('pid4', 0) })
+       v = new CMView.EditorView({ state, parent })
+       v.dispatch({ changes: { from: 1, insert: 'b' } })
+       await new Promise(r => setTimeout(r, 30))
+       equal(pushes.length, 1)
+       v.destroy()
+       await new Promise(r => setTimeout(r, 250))
+       equal(pushes.length, 1)
      })
 
 test('editing', 'selfInsert types char',

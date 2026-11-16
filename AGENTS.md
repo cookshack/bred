@@ -38,8 +38,9 @@ Run `npm run check` to verify code style before you're done. This calls eslint w
 Run `npm test` (mocha) to run all tests.
 
 Run `npm run verify` to run the checks and stamp the tree, so the pre-push hook
-skips that tree on the next push. Run it after merging; merging in a worktree
-does not run the commit hooks.
+skips that tree on the next push. A post-merge hook runs it automatically when an
+`agent/*` branch is merged into the main checkout; the merge happens there, not in
+the worktree, so the worktree's own hooks do not run.
 
 The pre-push hook itself runs only the e2e files, in parallel:
 `bin/run-tests test/*e2e*.mjs`.

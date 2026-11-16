@@ -1,0 +1,14 @@
+#!/bin/sh
+# Verify the tree after an agent merge, so the push gate can skip it.
+# User pulls and manual merges are left alone.
+
+msg=$(git reflog -1 --format=%gs)
+
+case "$msg" in
+  "merge agent/"*)
+    gate=$(git rev-parse --show-toplevel)/bin/pre-push-check
+    if [ -x "$gate" ]; then
+      exec "$gate" --full --quiet
+    fi
+    ;;
+esac

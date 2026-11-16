@@ -1,13 +1,4 @@
 #!/bin/sh
-set +e
-
-root=$(dirname "$(cd "$(git rev-parse --git-common-dir)" && pwd)")
-log="$root/.pre-push.log"
-
-printf '== %s %s %s\n' "$(date -Is)" "$(git rev-parse --abbrev-ref HEAD)" "$(git log -1 --format='%h %s')" > "$log"
-
-bash -o pipefail -c 'npm test 2>&1 | tee -a "$1"' sh "$log"
-status=$?
-
-printf '== exit %s\n' "$status" >> "$log"
-exit "$status"
+# The gate is in bin/pre-push-check: it skips a tree that is already verified
+# and logs everything to .pre-push.log.
+exec "$(git rev-parse --show-toplevel)/bin/pre-push-check"

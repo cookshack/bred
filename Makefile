@@ -17,6 +17,7 @@ fix-sqlite3:
 	npx electron-rebuild -w better-sqlite3
 
 prep: version-sqlite fix-node-pty fix-sqlite3 fix-others fix-codemirror prep-mime
+	rm -f .pre-push.stamp .pre-push-e2e.stamp
 	./node_modules/@cookshack/eslint-config/bin/apply-patches
 	rm -f lib/callsites.js
 	cp -r node_modules/callsites/index.js lib/callsites.mjs

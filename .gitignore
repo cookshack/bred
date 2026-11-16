@@ -3,6 +3,8 @@
 .oc-stamp
 .pre-commit.log
 .pre-push.log
+.pre-push.stamp
+.pre-push-e2e.stamp
 \#*\#
 *~
 *.bak

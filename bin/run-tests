@@ -1,0 +1,67 @@
+#!/bin/bash
+# Run test files in parallel, one mocha process per file.
+# Usage: bin/run-tests test/foo.mjs test/bar.mjs
+# JOBS=n overrides the worker count (defaults to the cpu count).
+
+set +e
+
+files=()
+for f in "$@"; do
+  if [ -f "$f" ] && grep -q "test('" "$f"; then
+    files+=( "$f" )
+  fi
+done
+
+if [ ${#files[@]} -eq 0 ]; then
+  echo "run-tests: no test files given" >&2
+  exit 2
+fi
+
+jobs=${JOBS:-$(nproc)}
+if [ "$jobs" -gt "${#files[@]}" ]; then
+  jobs=${#files[@]}
+fi
+if [ "$jobs" -lt 1 ]; then
+  jobs=1
+fi
+
+root=$(git rev-parse --show-toplevel)
+cd "$root" || exit 2
+
+tmp=$(mktemp -d) || exit 2
+trap 'rm -rf "$tmp"' EXIT
+
+echo "== ${#files[@]} files, $jobs workers"
+
+start=$(date +%s)
+running=0
+i=0
+for f in "${files[@]}"; do
+  while [ "$running" -ge "$jobs" ]; do
+    wait -n
+    running=$((running-1))
+  done
+  node node_modules/mocha/bin/mocha.js --exit "$f" > "$tmp/$i.out" 2>&1 &
+  i=$((i+1))
+  running=$((running+1))
+done
+wait
+
+status=0
+for ((j=0; j<i; j++)); do
+  echo "== ${files[$j]}"
+  cat "$tmp/$j.out"
+  if grep -qE '^ *[0-9]+ passing' "$tmp/$j.out"; then
+    if grep -qE '^ *[0-9]+ failing' "$tmp/$j.out"; then
+      status=1
+    fi
+  else
+    status=1
+  fi
+done
+
+passing=$(cat "$tmp"/*.out | grep -oE '^ *[0-9]+ passing' | awk '{s+=$1} END {print s+0}')
+failing=$(cat "$tmp"/*.out | grep -oE '^ *[0-9]+ failing' | awk '{s+=$1} END {print s+0}')
+echo "== $passing passing, $failing failing, $(( $(date +%s) - start ))s"
+
+exit $status

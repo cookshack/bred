@@ -37,6 +37,13 @@ Run `npm run check` to verify code style before you're done. This calls eslint w
 
 Run `npm test` (mocha) to run all tests.
 
+Run `npm run verify` to run the checks and stamp the tree, so the pre-push hook
+skips that tree on the next push. Run it after merging; merging in a worktree
+does not run the commit hooks.
+
+The pre-push hook itself runs only the e2e files, in parallel:
+`bin/run-tests test/*e2e*.mjs`.
+
 Run `npm run test-indent` for a single test file. Adapt this pattern for others:
 `npx mocha test/<name>.mjs`
 

@@ -1,0 +1,65 @@
+#!/bin/bash
+# The push gate: skip when this tree is already verified, else run the checks.
+# The full suite (--full) stamps the tree so later pushes skip everything.
+
+set +e
+
+mode=e2e
+if [ "$1" = "--full" ]; then
+  mode=full
+fi
+
+root=$(dirname "$(cd "$(git rev-parse --git-common-dir)" && pwd)")
+tree=$(git rev-parse --show-toplevel)
+log="$root/.pre-push.log"
+stampFull="$root/.pre-push.stamp"
+stampE2e="$root/.pre-push-e2e.stamp"
+
+cd "$tree" || exit 2
+
+key() {
+  {
+    git rev-parse HEAD
+    git status --porcelain
+    cat "$tree/.bred-module-hash" 2>/dev/null || echo no-module-hash
+    node -v | cut -d. -f1
+    echo checks-v1
+  } | sha256sum | cut -d' ' -f1
+}
+
+printf '== %s %s %s %s\n' "$(date -Is)" "$(git rev-parse --abbrev-ref HEAD)" "$(git log -1 --format='%h %s')" "$mode" > "$log"
+
+k=$(key)
+
+if [ -f "$stampFull" ] && [ "$(cat "$stampFull")" = "$k" ]; then
+  printf 'skipped: tree verified (full)\n== exit 0\n' >> "$log"
+  exit 0
+fi
+
+if [ "$mode" = e2e ] && [ -f "$stampE2e" ] && [ "$(cat "$stampE2e")" = "$k" ]; then
+  printf 'skipped: tree verified (e2e)\n== exit 0\n' >> "$log"
+  exit 0
+fi
+
+if [ "$mode" = full ]; then
+  npm run check 2>&1 | tee -a "$log"
+  status=${PIPESTATUS[0]}
+  if [ "$status" = 0 ]; then
+    npm test 2>&1 | tee -a "$log"
+    status=${PIPESTATUS[0]}
+  fi
+else
+  "$tree/bin/run-tests" "$tree"/test/*e2e*.mjs 2>&1 | tee -a "$log"
+  status=${PIPESTATUS[0]}
+fi
+
+if [ "$status" = 0 ]; then
+  if [ "$mode" = full ]; then
+    printf '%s' "$k" > "$stampFull"
+  else
+    printf '%s' "$k" > "$stampE2e"
+  fi
+fi
+
+printf '== exit %s\n' "$status" >> "$log"
+exit "$status"

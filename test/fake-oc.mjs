@@ -95,6 +95,7 @@ function make
   client.push = push
   client.end = end
   client.server = { info: () => respond('server.info') }
+  client.debug = { location: { list: () => respond('debug.location.list') } }
   client.session = sessionGroup
   client.message = { list: input => respond('message.list', input) }
   client.provider = { list: input => respond('provider.list', input) }

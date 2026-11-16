@@ -1240,7 +1240,7 @@ startupLimits = { session: 60000, boot: 60000, stream: 15000, model: 60000, agen
 // time: a stall then reads as a stall instead of a hang, and a server that was
 // only slow is not thrown away.
 async function startupStep
-(buf, name, run) {
+(buf, c, name, run) {
   let ms, i, t0, err, out
 
   ms = startupLimits[name] || 30000
@@ -1276,7 +1276,70 @@ async function startupStep
   }
   out = new Error(name + ' step failed after ' + (Date.now() - t0) + 'ms: ' + (err?.message || err))
   out.startupStep = name
+  out.client = c
   throw out
+}
+
+// A stalled step has to say whether the server answers, whether the location
+// it waits on exists, and whether the session is readable. Every probe is
+// bounded, so a wedged server cannot stall the report about the wedge.
+async function startupReport
+(buf, c, step) {
+  let state
+
+  function say
+  (line) {
+    d(line)
+    Ui.appendMsg(buf, 0, line, undefined, undefined, { log: 1 })
+    // The renderer log is not in the logfile, so mirror the line there too.
+    Tron.acmd('log', [ line ]).catch(() => {})
+  }
+
+  function probe
+  (label, fn) {
+    return Promise.resolve()
+      .then(fn)
+      .then(res => {
+              say('startup: ' + label + ' ok' + (res == undefined ? '' : ': ' + res))
+            }, err => {
+                 say('startup: ' + label + ' failed: ' + (err?.message || err))
+               })
+  }
+
+  state = buf.vars('code')
+
+  say('startup: step=' + (step || 'manual')
+      + ' busy=' + (state.busy || 0)
+      + ' session=' + (state.sessionID || 'none')
+      + ' server=' + (state.serverUrl || 'none')
+      + ' gen=' + (state.sendGen || 0)
+      + ' container=' + (state.containerName || 'none'))
+
+  if (c == null) {
+    say('startup: no client yet')
+    return
+  }
+
+  await probe('server', async () => {
+                          let info
+
+                          info = await c.server.info({ signal: AbortSignal.timeout(3000) })
+                          return 'pid=' + info.pid + ' version=' + info.version
+                        })
+  await probe('locations', async () => {
+                             let dirs
+
+                             dirs = await c.debug.location.list({ signal: AbortSignal.timeout(3000) })
+                             return dirs.length + ' loaded, ours='
+                                 + (dirs.some(r => r.directory && Util.sameDir(r.directory, buf.dir)) ? 'yes' : 'no')
+                                 + ' (' + dirs.map(r => r.directory).join(', ') + ')'
+                           })
+  if (state.sessionID)
+    await probe('session', async () => {
+                             await c.session.get({ sessionID: state.sessionID },
+                                                 { signal: AbortSignal.timeout(3000) })
+                             return 'readable'
+                           })
 }
 
 // A stop pressed before the prompt went out cancels the send rather than a
@@ -1346,9 +1409,9 @@ function send
                                 sessionID = buf.vars('code').sessionID
                                 if (sessionID == null) {
                                   Ui.appendMsg(buf, 0, 'Creating session...')
-                                  res = await startupStep(buf, 'session', signal => c.session.create({ location: { directory: Util.apiDir(buf) },
-                                                                                                       title: text || ('New session - ' + new Date().toISOString()) },
-                                                                                                     { signal }))
+                                  res = await startupStep(buf, c, 'session', signal => c.session.create({ location: { directory: Util.apiDir(buf) },
+                                                                                                          title: text || ('New session - ' + new Date().toISOString()) },
+                                                                                                        { signal }))
                                   sessionID = res.id
                                   buf.vars('code').sessionID = sessionID
                                   buf.vars('code').sessionStart = res.time?.created
@@ -1361,12 +1424,12 @@ function send
                                 // The first session-scoped request is what boots the
                                 // per-location services, so give it its own step: a slow
                                 // boot then does not look like a slow model switch.
-                                await startupStep(buf, 'boot', signal => c.session.get({ sessionID }, { signal }))
+                                await startupStep(buf, c, 'boot', signal => c.session.get({ sessionID }, { signal }))
                                 checkSend(buf, gen)
 
                                 Ev.startSub(buf, events)
 
-                                await startupStep(buf, 'stream', () => buf.vars('code').streamReady)
+                                await startupStep(buf, c, 'stream', () => buf.vars('code').streamReady)
 
                                 updateBufAgent(buf, agent)
 
@@ -1375,10 +1438,10 @@ function send
                                 variant = await resolveVariant(c, buf, provider, model, variant)
                                 checkSend(buf, gen)
 
-                                await startupStep(buf, 'model', signal => c.session.switchModel({ sessionID, model: { id: model, providerID: provider, variant: variant || undefined } },
-                                                                                                { signal }))
+                                await startupStep(buf, c, 'model', signal => c.session.switchModel({ sessionID, model: { id: model, providerID: provider, variant: variant || undefined } },
+                                                                                                   { signal }))
                                 checkSend(buf, gen)
-                                await startupStep(buf, 'agent', signal => c.session.switchAgent({ sessionID, agent }, { signal }))
+                                await startupStep(buf, c, 'agent', signal => c.session.switchAgent({ sessionID, agent }, { signal }))
                                 checkSend(buf, gen)
 
                                 buf.vars('code').promptSent = 1
@@ -1394,12 +1457,19 @@ function send
 
                                 if (provider == 'openrouter' || provider == 'deepinfra')
                                   updateCredits(buf, provider)
-                              }).catch(err => {
+                              }).catch(async err => {
                                          d(err)
                                          // A cancelled send is already reported by cancelSend; this
                                          // chain only has to stop, not reset what a newer state owns.
                                          if (sendStale(buf, gen, err))
                                            return
+                                         // Probe the server before the teardown below takes it
+                                         // away: the report is the only record of why the step
+                                         // stalled. Each probe is bounded, so this cannot hang.
+                                         if (err.startupStep) {
+                                           Ui.updateStatus(buf, '🔁 startup report', '', '')
+                                           await startupReport(buf, err.client, err.startupStep)
+                                         }
                                          Ui.appendMsg(buf, 'assistant', 'Error: ' + (err.message || JSON.stringify(err)))
                                          buf.vars('code').busy = 0
                                          buf.vars('code').turnActive = 0
@@ -2961,6 +3031,22 @@ function init
   Cmd.add('code', (u, we, prompt) => code(prompt))
   Cmd.add('code init', codeInit)
   Cmd.add('code question', () => codeQuestion())
+  Cmd.add('code startup report', () => {
+                                   let buf
+
+                                   buf = Pane.current()?.buf
+                                   if (buf?.mode?.key == 'code') {
+                                     let c
+
+                                     c = buf.vars('code').client
+                                     // Detached: the report probes take up to a few seconds
+                                     // on a wedged server, and the prompt must stay responsive.
+                                     startupReport(buf, c, 'manual')
+                                       .catch(err => d('CO startup report failed: ' + (err?.message || err)))
+                                     return
+                                   }
+                                   Mess.yell('Not a code buffer')
+                                 }, mo)
 
   Cmd.add('respond', () => next(), mo)
 

@@ -275,6 +275,12 @@ async function onAcmd
   if (name == 'code.mounts')
     return Code.onMounts(e, args)
 
+  // Renderer-side diagnostics (console.debug never reaches the logfile).
+  if (name == 'log') {
+    Log.d(args[0])
+    return {}
+  }
+
   if (name == 'net.fingerprint')
     return NetWatch.fingerprint()
 

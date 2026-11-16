@@ -236,6 +236,34 @@ test('startup', 'burying before the prompt appears still yields a usable prompt'
        }
      })
 
+test('startup', 'the startup report names the step and probes the server',
+     async () => {
+       let before, buf, lines, panes
+
+       ({ panes, buf } = await setupPrompt())
+       panes.pB.focus()
+       buf.vars('code').client = Fake.make({ responses: { 'server.info': { pid: 4242, version: '2.0.32' },
+                                                          'debug.location.list': [ { directory: '/tmp' } ],
+                                                          'session.get': { id: 'ses-highlight' } } })
+       before = Mess.messages().length
+       Cmd.run('code startup report', buf)
+       await waitFor(() => Mess.messages()
+                              .slice(before)
+                              .some(m => String(m.text).startsWith('startup: session ok')))
+
+       lines = Mess.messages()
+         .slice(before)
+         .map(m => String(m.text))
+         .filter(t => t.startsWith('startup: '))
+
+       equal(lines[0],
+             'startup: step=manual busy=0 session=ses-highlight server=none gen=0 container=none',
+             'the report names the step and the buffer state')
+       equal(lines.includes('startup: server ok: pid=4242 version=2.0.32'), true, 'the server answered')
+       equal(lines.includes('startup: locations ok: 1 loaded, ours=yes (/tmp)'), true, 'the location is loaded')
+       equal(lines.includes('startup: session ok: readable'), true, 'the session is readable')
+     })
+
 test('mounts', 'clicking a mount toggles it without native checkbox state',
      async () => {
        let buf, el, inputs, panes

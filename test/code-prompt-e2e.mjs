@@ -248,8 +248,8 @@ test('startup', 'the startup report names the step and probes the server',
        before = Mess.messages().length
        Cmd.run('code startup report', buf)
        await waitFor(() => Mess.messages()
-                              .slice(before)
-                              .some(m => String(m.text).startsWith('startup: session ok')))
+         .slice(before)
+         .some(m => String(m.text).startsWith('startup: session ok')))
 
        lines = Mess.messages()
          .slice(before)

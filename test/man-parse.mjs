@@ -1,0 +1,347 @@
+import { equal } from 'node:assert/strict'
+import * as ManParse from '../js/man-parse.mjs'
+
+let tests
+
+function test
+(group, name, cb) {
+  tests[group] = tests[group] || []
+  tests[group].push({ name, cb })
+}
+
+function parsed
+(text, spec) {
+  return ManParse.parse(text, spec)
+}
+
+function asText
+(text, spec) {
+  return ManParse.toText(parsed(text, spec).doc.blocks)
+}
+
+function flat
+(spans) {
+  return ManParse.toText([ { kind: 'para', spans } ]).replace(/\n$/, '')
+}
+
+tests = {}
+
+test('title', 'TH fills the document header',
+     () => {
+       let r
+
+       r = parsed('.TH LS 1 "2024-01-01" "GNU" "User Commands"\n')
+       equal(r.doc.title, 'LS')
+       equal(r.doc.section, '1')
+       equal(r.doc.date, '2024-01-01')
+       equal(r.doc.source, 'GNU')
+     })
+
+test('headings', 'SH and SS make headings',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.SH NAME\n.SS Extra\n')
+       equal(r.doc.blocks[0].kind, 'heading')
+       equal(r.doc.blocks[0].level, 1)
+       equal(flat(r.doc.blocks[0].spans), 'NAME')
+       equal(r.doc.blocks[1].level, 2)
+     })
+
+test('paragraphs', 'text lines fill one paragraph',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.SH NAME\nfirst line\nsecond line\n')
+       equal(r.doc.blocks[1].kind, 'para')
+       equal(flat(r.doc.blocks[1].spans), 'first line second line')
+     })
+
+test('paragraphs', 'PP separates paragraphs',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\none\n.PP\ntwo\n')
+       equal(r.doc.blocks.filter(b => b.kind == 'para').length, 2)
+     })
+
+test('fonts', 'B keeps spaces between arguments',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.B foo bar\n')
+       equal(r.doc.blocks[0].spans[0].text, 'foo bar')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+     })
+
+test('fonts', 'BR concatenates alternating arguments',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.BR ls (1)\n')
+       equal(r.doc.blocks[0].spans[0].text, 'ls')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+       equal(r.doc.blocks[0].spans[1].text, '(1)')
+       equal(r.doc.blocks[0].spans[1].style, 'roman')
+     })
+
+test('fonts', 'inline font escapes change style until reset',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na \\fBbold\\fR plain\n')
+       equal(r.doc.blocks[0].spans.map(s => s.style).join(','), 'roman,bold,roman')
+     })
+
+test('tags', 'TP takes the next line as its tag',
+     () => {
+       let r, tag
+
+       r = parsed('.TH T 1\n.TP\n.B \\-h\nShow help.\n')
+       tag = r.doc.blocks[0]
+       equal(tag.kind, 'tag')
+       equal(flat(tag.tag), '-h')
+       equal(tag.blocks[0].kind, 'para')
+       equal(flat(tag.blocks[0].spans), 'Show help.')
+     })
+
+test('tags', 'IP takes its mark as an argument',
+     () => {
+       let r, tag
+
+       r = parsed('.TH T 1\n.IP \\(bu 2\nItem\n')
+       tag = r.doc.blocks[0]
+       equal(tag.kind, 'tag')
+       equal(flat(tag.tag), '•')
+       equal(flat(tag.blocks[0].spans), 'Item')
+     })
+
+test('tags', 'IP without a mark is a plain paragraph',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.IP\nIndented\n')
+       equal(r.doc.blocks[0].kind, 'para')
+     })
+
+test('insets', 'RS and RE group blocks',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\noutside\n.RS\ninside\n.RE\nafter\n')
+       equal(r.doc.blocks[0].kind, 'para')
+       equal(r.doc.blocks[1].kind, 'group')
+       equal(r.doc.blocks[1].blocks[0].kind, 'para')
+       equal(r.doc.blocks[2].kind, 'para')
+     })
+
+test('literal', 'nf keeps lines and fi ends it',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.nf\nline one\nline two\n.fi\nafter\n')
+       equal(r.doc.blocks[0].kind, 'pre')
+       equal(flat(r.doc.blocks[0].spans), 'line one\nline two')
+       equal(r.doc.blocks[1].kind, 'para')
+     })
+
+test('literal', 'EX is a monospace literal block',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.EX\ncode\n.EE\n')
+       equal(r.doc.blocks[0].kind, 'pre')
+       equal(r.doc.blocks[0].mono, 1)
+     })
+
+test('links', 'UR and UE make a link with trailing text',
+     () => {
+       let r, link
+
+       r = parsed('.TH T 1\n.UR https://example.com\nthe site\n.UE .\n')
+       link = r.doc.blocks[0].spans.find(s => s.href)
+       equal(link.href, 'https://example.com')
+       equal(link.text, 'the site')
+       equal(flat(r.doc.blocks[0].spans).endsWith('.') == 1, true)
+     })
+
+test('links', 'UR with no text shows the target',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.UR https://example.com\n.UE\n')
+       equal(flat(r.doc.blocks[0].spans), '<https://example.com>')
+     })
+
+test('synopsis', 'SY, OP and YS build a synopsis line',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.SY ls\n.OP \\-a all\n.YS\n')
+       equal(flat(r.doc.blocks[0].spans), 'ls [-a all]')
+     })
+
+test('strings', 'ds defines a string used by star',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.ds XX hello\n\\*(XX world\n')
+       equal(flat(r.doc.blocks[0].spans), 'hello world')
+     })
+
+test('strings', 'as appends to a string',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.ds XX one\n.as XX two\n\\*(XX\n')
+       equal(flat(r.doc.blocks[0].spans), 'onetwo')
+     })
+
+test('macros', 'de defines a macro with arguments',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.de M\n.B \\\\$1\n..\n.M bold\n')
+       equal(r.doc.blocks[0].spans[0].text, 'bold')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+     })
+
+test('macros', 'am appends to a macro',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.de M\none\n..\n.am M\ntwo\n..\n.M\n')
+       equal(flat(r.doc.blocks[0].spans), 'one two')
+     })
+
+test('macros', 'de ignores a trailing comment on its line',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.de M \\" comment\n.B hi\n..\n.M\n')
+       equal(flat(r.doc.blocks[0].spans), 'hi')
+     })
+
+test('conditions', 'if n is true and if t is false',
+     () => {
+       equal(asText('.TH T 1\n.if n yes\n.if t no\n'), 'yes\n')
+     })
+
+test('conditions', 'ie and el pick one branch',
+     () => {
+       equal(asText('.TH T 1\n.ie n first\n.el second\n'), 'first\n')
+     })
+
+test('conditions', 'a brace block is skipped when false',
+     () => {
+       equal(asText('.TH T 1\n.if t \\{\\\nhidden\n.\\}\nshown\n'), 'shown\n')
+     })
+
+test('conditions', 'registers are tested and expanded',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.nr X 5\n.if \\nX>3 big\nX is \\nX\n')
+       equal(flat(r.doc.blocks[0].spans), 'big X is 5')
+     })
+
+test('conditions', 'a string condition compares text',
+     () => {
+       equal(asText('.TH T 1\n.if \'a\'a\' same\n'), 'same\n')
+     })
+
+test('translation', 'tr maps characters',
+     () => {
+       equal(asText('.TH T 1\n.tr ab ba\nabba\n'), 'baab\n')
+     })
+
+test('escapes', 'special characters and dashes',
+     () => {
+       equal(flat(parsed('.TH T 1\na \\(em b \\[bu] c \\- d\n').doc.blocks[0].spans),
+             'a — b • c - d')
+     })
+
+test('escapes', 'continue joins lines without a space',
+     () => {
+       equal(flat(parsed('.TH T 1\njoin\\c\ned\n').doc.blocks[0].spans), 'joined')
+     })
+
+test('escapes', 'a break escape starts a new output line',
+     () => {
+       equal(flat(parsed('.TH T 1\none\\ptwo\n').doc.blocks[0].spans), 'one\ntwo')
+     })
+
+test('comments', 'comment lines and mid-line comments are dropped',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.\\" .wibble\nvisible \\" hidden\n')
+       equal(flat(r.doc.blocks[0].spans), 'visible')
+       equal(r.ok, 1)
+     })
+
+test('ignore', 'ig skips until the terminator',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.ig\n.wibble\n..\nshown\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'shown')
+     })
+
+test('include', 'so asks the caller for the included text',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.so other.1\n',
+                  { include: path => (path == 'other.1') ? '.B included\n' : 0 })
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'included')
+     })
+
+test('include', 'so without a loader fails',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.so other.1\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'include other.1')
+     })
+
+test('refusal', 'an unknown macro fails the page with its line',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.SH NAME\n.wibble x\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'macro wibble')
+       equal(r.fails[0].line, 3)
+     })
+
+test('refusal', 'an unknown character fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na \\(zz b\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'character \\(zz)')
+     })
+
+test('refusal', 'an unparsed condition fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.if nonsense text\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what.startsWith('condition'), true)
+     })
+
+test('text', 'toText walks the block model',
+     () => {
+       equal(asText('.TH T 1\n.SH NAME\n.B ls\n.TP\n.B \\-a\nall\n'),
+             '\nNAME\nls\n-a\nall\n')
+     })
+
+Object.entries(tests).forEach(group => globalThis.describe(group[0],
+                                                           () => group[1].forEach(t => globalThis.it(t.name,
+                                                                                                     t.cb))))

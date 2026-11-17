@@ -847,6 +847,29 @@ unknown is unsupported, because a page either renders faithfully or is refused.
 - `macroClass(name)` / `escapeClass(name)` - Class of one construct
 - `stringIsKnown(name)` / `registerIsKnown(name)` - Predefined groff names
 
+### js/man-char.mjs
+
+Special character names used by `\(xx` and `\[name]`, with groff's Latin
+accents, punctuation and Greek. An unknown name fails the page.
+
+**Functions:**
+- `charOf(name)` - Character for a two-character name, or `0`
+- `charOfBracket(name)` - Character for a bracketed name, including `uXXXX`
+  and `charNN`
+- `charByNumber(num)` - Character for a code point
+
+### js/man-parse.mjs
+
+Roff interpreter for man(7): turns a page into a renderer-agnostic block model
+(headings, paragraphs, tagged paragraphs, insets, literal blocks and inline
+styled runs). A page either parses or is refused; `fails` names the construct
+and line responsible.
+
+**Functions:**
+- `parse(text, spec)` - Returns `ok`, `fails` and `doc`; `spec.include(path)`
+  resolves `.so`
+- `toText(blocks)` - Plain text of the block model, for tests and diffs
+
 ### js/menu.mjs
 
 Menu system
@@ -1050,6 +1073,7 @@ Contains executable scripts and utilities:
 - Git-related scripts (git-stash-apply, git-stash-drop, etc.)
 - System integration scripts
 - Utility scripts for various operations
-- `man-audit` - Reports which installed man pages the roff dialect cannot
-  render, and why (`--root`, `--list`, `--json`)
+- `man-audit` - Reports which installed man pages cannot be rendered, and why.
+  `--parse` runs the interpreter; otherwise it reports the static inventory.
+  Also takes `--root`, `--list` and `--json`
 

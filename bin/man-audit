@@ -1,10 +1,14 @@
 #!/usr/bin/env node
 
 // Measure an installed manual page corpus against the roff dialect bred
-// supports. Pages either render or are refused, so this reports refusals and
-// the constructs responsible for them.
+// supports, or against the interpreter. Pages either render or are refused,
+// so this reports refusals and the constructs responsible for them.
 //
-//   bin/man-audit [--root DIR] [--list] [--json]
+//   bin/man-audit [--root DIR] [--parse] [--list] [--json]
+//
+// Without --parse it reports the static inventory (what the dialect covers,
+// upper bound). With --parse it runs the interpreter and reports what it
+// actually refuses.
 //
 // Exit status is 1 when any page would be refused.
 
@@ -12,20 +16,21 @@ import Fs from 'node:fs'
 import Path from 'node:path'
 import Zlib from 'node:zlib'
 
+import * as ManParse from '../js/man-parse.mjs'
 import * as Roff from '../js/man-roff.mjs'
 
 let opts, stats
 
 function usage
 () {
-  console.log('usage: man-audit [--root DIR] [--list] [--json]')
+  console.log('usage: man-audit [--root DIR] [--parse] [--list] [--json]')
 }
 
 function parseArgs
 (argv) {
   let out
 
-  out = { root: '/usr/share/man', list: 0, json: 0 }
+  out = { root: '/usr/share/man', list: 0, json: 0, parse: 0 }
   for (let i = 0; i < argv.length; i++) {
     let arg
 
@@ -38,6 +43,8 @@ function parseArgs
       out.list = 1
     else if (arg == '--json')
       out.json = 1
+    else if (arg == '--parse')
+      out.parse = 1
     else if ((arg == '--help') || (arg == '-h')) {
       usage()
       process.exit(0)
@@ -98,6 +105,27 @@ function readPage
   return buf.toString('utf8')
 }
 
+// Resolve a .so target below the corpus root.
+function includeLoader
+(root) {
+  return target => {
+    let file
+
+    file = Path.join(root, target)
+    try {
+      return readPage(file)
+    }
+    catch (err) {
+      try {
+        return readPage(file + '.gz')
+      }
+      catch (err2) {
+        return 0
+      }
+    }
+  }
+}
+
 function printTable
 (title, map) {
   let rows
@@ -108,24 +136,15 @@ function printTable
   console.log('')
   console.log(title)
   rows.slice(0, 20).forEach(row => {
-                              console.log('  ' + row.name.padEnd(22) +
+                              console.log('  ' + row.name.padEnd(30) +
                                           String(row.pages).padStart(6) + ' pages')
                             })
   if (rows.length > 20)
     console.log('  ... ' + (rows.length - 20) + ' more')
 }
 
-function report
+function printRefused
 () {
-  console.log('man-audit ' + opts.root)
-  console.log('')
-  console.log('  pages    ' + stats.pages +
-              '   (man ' + stats.man + ', mdoc ' + stats.mdoc + ', includes ' + stats.include + ')')
-  console.log('  refused  ' + stats.refused +
-              (stats.pages ? ('  (' + (100 * stats.refused / stats.pages).toFixed(1) + '%)') : ''))
-  printTable('refused by macro/escape:', stats.fails)
-  printTable('undefined strings/registers:', stats.unresolved)
-  printTable('tolerated (metric/ignore):', stats.tolerated)
   if (opts.list) {
     console.log('')
     console.log('refused pages:')
@@ -140,58 +159,110 @@ function report
   }
 }
 
+function reportScan
+() {
+  console.log('man-audit ' + opts.root + '  (dialect)')
+  console.log('')
+  console.log('  pages    ' + stats.pages +
+              '   (man ' + stats.man + ', mdoc ' + stats.mdoc + ', includes ' + stats.include + ')')
+  console.log('  refused  ' + stats.refused +
+              (stats.pages ? ('  (' + (100 * stats.refused / stats.pages).toFixed(1) + '%)') : ''))
+  printTable('refused by macro/escape:', stats.fails)
+  printTable('undefined strings/registers:', stats.unresolved)
+  printTable('tolerated (metric/ignore):', stats.tolerated)
+  printRefused()
+}
+
+function reportParse
+() {
+  let pct
+
+  pct = stats.pages ? (100 * (stats.pages - stats.refused) / stats.pages).toFixed(1) : '0.0'
+  console.log('man-audit ' + opts.root + '  (parse)')
+  console.log('')
+  console.log('  pages    ' + stats.pages +
+              '   (man ' + stats.man + ', mdoc ' + stats.mdoc + ', includes ' + stats.include + ')')
+  console.log('  parsed   ' + (stats.pages - stats.refused) + '  (' + pct + '%)')
+  console.log('  refused  ' + stats.refused)
+  printTable('refused by construct:', stats.fails)
+  printRefused()
+}
+
 opts = parseArgs(process.argv.slice(2))
 stats = { pages: 0, man: 0, mdoc: 0, include: 0, refused: 0,
           fails: {}, unresolved: {}, tolerated: {}, refusedPages: [] }
 
 {
-  let files
+  let files, include
 
   files = []
   walk(opts.root, files, {})
+  include = includeLoader(opts.root)
   files.forEach(file => {
-                   let scan
+                   let scan, result
 
                    stats.pages++
                    try {
-                     scan = Roff.scan(readPage(file))
+                     if (opts.parse)
+                       result = ManParse.parse(readPage(file), { include })
+                     else
+                       result = Roff.scan(readPage(file))
                    }
                    catch (err) {
                      stats.refused++
                      stats.refusedPages.push({ file, items: [ 'read error: ' + err.message ] })
                      return
                    }
-                   if (scan.kind == 'include') {
+                   if (opts.parse) {
+                     if (Roff.scan(readPage(file)).kind == 'mdoc')
+                       stats.mdoc++
+                     else
+                       stats.man++
+                     result.fails.forEach(item => {
+                                            bump(stats.fails, item.what)
+                                          })
+                     if (result.ok)
+                       return
+                     stats.refused++
+                     if (opts.list)
+                       stats.refusedPages.push({ file,
+                                                 items: result.fails.map(item => item.what +
+                                                                        ' (line ' + item.line + ')') })
+                     return
+                   }
+                   if (result.kind == 'include') {
                      stats.include++
                      return
                    }
-                   if (scan.kind == 'mdoc')
+                   if (result.kind == 'mdoc')
                      stats.mdoc++
                    else
                      stats.man++
-                   scan.fails.forEach(item => {
-                                        bump(stats.fails, item.kind + ' ' + item.name)
-                                      })
-                   scan.unresolved.forEach(item => {
-                                             bump(stats.unresolved, item.kind + ' ' + item.name)
-                                           })
-                   scan.tolerated.forEach(item => {
-                                            bump(stats.tolerated, item.kind + ' ' + item.name)
-                                          })
-                   if (scan.ok)
+                   result.fails.forEach(item => {
+                                          bump(stats.fails, item.kind + ' ' + item.name)
+                                        })
+                   result.unresolved.forEach(item => {
+                                               bump(stats.unresolved, item.kind + ' ' + item.name)
+                                             })
+                   result.tolerated.forEach(item => {
+                                              bump(stats.tolerated, item.kind + ' ' + item.name)
+                                            })
+                   if (result.ok)
                      return
                    stats.refused++
                    if (opts.list)
                      stats.refusedPages.push({ file,
-                                               items: scan.fails.map(item => item.kind + ' ' + item.name +
+                                               items: result.fails.map(item => item.kind + ' ' + item.name +
                                                                     ' (line ' + item.line + ', ' + item.cls + ')')
-                                                      .concat(scan.unresolved.map(item => item.kind + ' ' + item.name +
-                                                                                     ' (line ' + item.line + ', undefined)')) })
+                                                        .concat(result.unresolved.map(item => item.kind + ' ' + item.name +
+                                                                                            ' (line ' + item.line + ', undefined)')) })
                  })
 }
 
 if (opts.json)
   console.log(JSON.stringify(stats, null, 2))
+else if (opts.parse)
+  reportParse()
 else
-  report()
+  reportScan()
 process.exit(stats.refused ? 1 : 0)

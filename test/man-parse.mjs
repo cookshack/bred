@@ -74,6 +74,22 @@ test('fonts', 'B keeps spaces between arguments',
        equal(r.doc.blocks[0].spans[0].style, 'bold')
      })
 
+test('fonts', 'quoted arguments lose their quotes',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.B "foo bar"\n')
+       equal(flat(r.doc.blocks[0].spans), 'foo bar')
+     })
+
+test('headings', 'quoted headings lose their quotes',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.SH "SEE ALSO"\n')
+       equal(flat(r.doc.blocks[0].spans), 'SEE ALSO')
+     })
+
 test('fonts', 'BR concatenates alternating arguments',
      () => {
        let r
@@ -340,6 +356,69 @@ test('text', 'toText walks the block model',
      () => {
        equal(asText('.TH T 1\n.SH NAME\n.B ls\n.TP\n.B \\-a\nall\n'),
              '\nNAME\nls\n-a\nall\n')
+     })
+
+test('tables', 'a simple table keeps rows and cells',
+     () => {
+       let r, table
+
+       r = parsed('.TH T 1\n.TS\nl l.\none\ttwo\nthree\tfour\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.kind, 'table')
+       equal(table.rows.length, 2)
+       equal(flat(table.rows[0].cells[0].spans), 'one')
+       equal(flat(table.rows[1].cells[1].spans), 'four')
+     })
+
+test('tables', 'column modifiers set alignment and bold',
+     () => {
+       let r, table
+
+       r = parsed('.TH T 1\n.TS\nlb r c.\na\tb\tc\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.cols[0].bold, 1)
+       equal(table.cols[1].align, 'right')
+       equal(table.cols[2].align, 'center')
+     })
+
+test('tables', 'tab() selects the cell separator',
+     () => {
+       let r, table
+
+       r = parsed('.TH T 1\n.TS\ntab(:);\nl l.\none:two\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(flat(table.rows[0].cells[0].spans), 'one')
+       equal(flat(table.rows[0].cells[1].spans), 'two')
+     })
+
+test('tables', 'box is recorded as an option',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nbox;\nl l.\na\tb\n.TE\n')
+       equal(r.doc.blocks[0].options.box, 1)
+     })
+
+test('tables', 'T{ and T} make a multi-line cell',
+     () => {
+       let r, table
+
+       r = parsed('.TH T 1\n.TS\nl l.\none\tT{\ntwo lines\nT}\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(flat(table.rows[0].cells[1].spans), 'two lines')
+     })
+
+test('tables', 'T& starts another table',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nl.\na\n.T&\nl.\nb\n.TE\n')
+       equal(r.doc.blocks.filter(b => b.kind == 'table').length, 2)
+     })
+
+test('tables', 'toText joins cells in a row',
+     () => {
+       equal(asText('.TH T 1\n.TS\nl l.\na\tb\n.TE\n'), 'a | b\n')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

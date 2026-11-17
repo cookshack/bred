@@ -861,9 +861,9 @@ accents, punctuation and Greek. An unknown name fails the page.
 ### js/man-parse.mjs
 
 Roff interpreter for man(7): turns a page into a renderer-agnostic block model
-(headings, paragraphs, tagged paragraphs, insets, literal blocks and inline
-styled runs). A page either parses or is refused; `fails` names the construct
-and line responsible.
+(headings, paragraphs, tagged paragraphs, insets, literal blocks, tbl tables
+and inline styled runs). A page either parses or is refused; `fails` names the
+construct and line responsible.
 
 **Functions:**
 - `parse(text, spec)` - Returns `ok`, `fails` and `doc`; `spec.include(path)`

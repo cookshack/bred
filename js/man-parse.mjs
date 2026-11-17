@@ -1101,7 +1101,7 @@ function handleFont
   spans = []
   saved = c.font
   if (styles.length == 1)
-    pushSpans(spans, expand(c, rest.trim(), styles[0], lineNo).spans)
+    pushSpans(spans, expand(c, args.join(' '), styles[0], lineNo).spans)
   else
     for (i = 0; i < args.length; i++)
       pushSpans(spans, expand(c, args[i], styles[i % styles.length], lineNo).spans)
@@ -1277,6 +1277,185 @@ function splitCond
   return { cond: text.slice(0, i), rest: text.slice(i).trim() }
 }
 
+// tbl(1): .TS, an optional options line ending in ';', a layout section ending
+// in '.', data rows separated by a tab (or tab(x)), then .TE.
+function tableOptions
+(text) {
+  let opts
+
+  opts = { tab: '\t', box: 0, allbox: 0, center: 0, expand: 0 }
+  text.split(';').forEach(part => {
+                            let piece
+
+                            piece = part.trim()
+                            if (piece.startsWith('tab('))
+                              opts.tab = piece.slice(4, -1) || '\t'
+                            else if ((piece == 'box') || (piece == 'frame') || (piece == 'doublebox'))
+                              opts.box = 1
+                            else if (piece == 'allbox')
+                              opts.allbox = 1
+                            else if (piece == 'center')
+                              opts.center = 1
+                            else if (piece == 'expand')
+                              opts.expand = 1
+                          })
+  return opts
+}
+
+function tableColumns
+(text) {
+  let cols
+
+  cols = []
+  text.replace(/\|/g, ' ').split(/[ \t]+/).forEach(token => {
+                                                     let align, bold, italic, i
+
+                                                     token = token.trim()
+                                                     if ((token == '') || /^[-_=]+$/.test(token))
+                                                       return
+                                                     if (token[0] == 's') {
+                                                       cols.push({ span: 1 })
+                                                       return
+                                                     }
+                                                     if ('lrcna'.includes(token[0]) == 0)
+                                                       return
+                                                     align = 'left'
+                                                     bold = 0
+                                                     italic = 0
+                                                     if ((token[0] == 'r') || (token[0] == 'n'))
+                                                       align = 'right'
+                                                     else if (token[0] == 'c')
+                                                       align = 'center'
+                                                     for (i = 1; i < token.length; i++)
+                                                       if ((token[i] == 'b') || (token[i] == 'B'))
+                                                         bold = 1
+                                                       else if ((token[i] == 'i') || (token[i] == 'I'))
+                                                         italic = 1
+                                                     cols.push({ align, bold, italic })
+                                                   })
+  return cols
+}
+
+function tableCell
+(c, text, lineNo) {
+  let saved, spans
+
+  saved = c.font
+  spans = expand(c, text, saved, lineNo).spans
+  c.font = saved
+  return { spans }
+}
+
+function tableRows
+(c, lines, tab, lineNo) {
+  let rows, cells, multiline, buffer
+
+  rows = []
+  cells = []
+  multiline = 0
+  buffer = ''
+  lines.forEach(line => {
+                  let parts
+
+                  if (multiline) {
+                    if (line.trim().endsWith('T}')) {
+                      let tail
+
+                      tail = line.trim().slice(0, -2).trim()
+                      if (tail.length)
+                        buffer += (buffer.length ? '\n' : '') + tail
+                      cells.push(tableCell(c, buffer, lineNo))
+                      rows.push(cells)
+                      cells = []
+                      buffer = ''
+                      multiline = 0
+                    }
+                    else if (line.length)
+                      buffer += (buffer.length ? '\n' : '') + line
+                    return
+                  }
+                  if (line.trim() == '')
+                    return
+                  parts = line.split(tab)
+                  for (let i = 0; i < parts.length; i++) {
+                    let piece
+
+                    piece = parts[i].trim()
+                    if (piece == 'T{') {
+                      multiline = 1
+                      buffer = ''
+                      break
+                    }
+                    cells.push(tableCell(c, piece, lineNo))
+                  }
+                  if (multiline == 0)
+                    if (cells.length) {
+                      rows.push(cells)
+                      cells = []
+                    }
+                })
+  return rows
+}
+
+function tableFit
+(cells, cols) {
+  let out, at
+
+  out = []
+  at = 0
+  cols.forEach(col => {
+                 if (col.span && out.length) {
+                   out[out.length - 1].colspan = (out[out.length - 1].colspan || 1) + 1
+                   return
+                 }
+                 out.push({ spans: (cells[at] || { spans: [] }).spans })
+                 at++
+               })
+  while (at < cells.length) {
+    let last
+
+    last = out[out.length - 1]
+    if (last) {
+      pushSpan(last.spans, { text: ' ' })
+      pushSpans(last.spans, cells[at].spans)
+    }
+    at++
+  }
+  return out
+}
+
+function tableBuild
+(c, lines, lineNo) {
+  let opts, layout, at, cols, data
+
+  at = 0
+  while ((at < lines.length) && (lines[at].trim() == ''))
+    at++
+  opts = tableOptions('')
+  if ((at < lines.length) && lines[at].includes(';')) {
+    opts = tableOptions(lines[at])
+    at++
+  }
+  layout = ''
+  while (at < lines.length) {
+    let line
+
+    line = lines[at]
+    at++
+    if (line.trim().endsWith('.')) {
+      layout += ' ' + line.trim().slice(0, -1)
+      break
+    }
+    layout += ' ' + line.trim()
+  }
+  cols = tableColumns(layout)
+  data = lines.slice(at)
+  return { kind: 'table',
+           options: opts,
+           cols,
+           rows: tableRows(c, data, opts.tab, lineNo).map(cells => ({ cells: tableFit(cells, cols) })) }
+}
+
 function handleLine
 (c, control, style) {
   let name, rest, args
@@ -1297,7 +1476,7 @@ function handleLine
     if (args.length == 0)
       c.nextHeading = (name == 'SH') ? 1 : 2
     else
-      startHeading(c, (name == 'SH') ? 1 : 2, expand(c, rest, style, c.lineNo).spans)
+      startHeading(c, (name == 'SH') ? 1 : 2, expand(c, args.join(' '), style, c.lineNo).spans)
     break
   case 'PP':
   case 'LP':
@@ -1413,6 +1592,39 @@ function handleLine
   case 'UE':
   case 'ME':
     linkEnd(c, args[0] || '')
+    break
+  case 'TS':
+  case 'T&': {
+    let blocks, lines
+
+    blocks = []
+    lines = []
+    for (;;) {
+      let next
+
+      next = nextInput(c)
+      if (next == 0)
+        break
+      if (next.text.trim() == '.TE')
+        break
+      if (next.text.trim() == '.T&') {
+        blocks.push(lines)
+        lines = []
+        continue
+      }
+      lines.push(next.text)
+    }
+    blocks.push(lines)
+    blocks.forEach(block => {
+                     let table
+
+                     table = tableBuild(c, block, c.lineNo)
+                     closeTag(c)
+                     addBlock(c, table)
+                   })
+    break
+  }
+  case 'TE':
     break
   case 'PD':
   case 'DT':
@@ -1681,6 +1893,10 @@ function toText
     }
     else if (b.kind == 'pre')
       out += textOf(b.spans) + '\n'
+    else if (b.kind == 'table')
+      b.rows.forEach(row => {
+                       out += row.cells.map(cell => textOf(cell.spans)).join(' | ') + '\n'
+                     })
     else if (b.kind == 'group')
       b.blocks.forEach(block)
   }

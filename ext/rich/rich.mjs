@@ -1,4 +1,4 @@
-import { append, button, create, div, divCl } from '../../js/dom.mjs'
+import { append, button, create, div, divCl, img } from '../../js/dom.mjs'
 
 import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
@@ -16,6 +16,9 @@ import * as Marked from './lib/marked.js'
 import Purify from './lib/purify.js'
 
 export
+let _internals
+
+export
 function supports
 (mtype) {
   return mtype == 'text/markdown'
@@ -31,11 +34,22 @@ function rest
   return token.tokens?.map(render)
 }
 
+function cell
+(token) {
+  return create(token.header ? 'th' : 'td',
+                rest(token),
+                token.header ? 'rich-th' : 'rich-td',
+                token.align ? { style: 'text-align: ' + token.align } : undefined)
+}
+
 function render
 (token) {
   if (token) {
     if (token.type == 'blockquote')
       return divCl('rich-blockquote', rest(token))
+
+    if (token.type == 'br')
+      return create('br')
 
     if (token.type == 'code') {
       let el
@@ -73,6 +87,9 @@ function render
     if (token.type == 'hr')
       return divCl('rich-hr')
 
+    if (token.type == 'image')
+      return img(token.href, token.text, 'rich-img')
+
     if (token.type == 'link')
       return divCl('rich-a',
                    rest(token),
@@ -95,6 +112,14 @@ function render
 
     if (token.type == 'strong')
       return divCl('rich-b', rest(token))
+
+    if (token.type == 'table') {
+      let head, body
+
+      head = create('thead', create('tr', token.header.map(cell)))
+      body = create('tbody', token.rows.map(row => create('tr', row.map(cell))))
+      return create('table', [ head, body ], 'rich-table')
+    }
 
     if (token.type == 'text') {
       if (token.tokens)
@@ -121,7 +146,6 @@ function divW
   let co, tokens
 
   tokens = parse(md)
-  d(tokens)
 
   co = tokens?.map(render)
 
@@ -246,3 +270,5 @@ function free
 () {
   Mode.remove('Rich')
 }
+
+_internals = { parse, render }

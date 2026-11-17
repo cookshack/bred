@@ -93,6 +93,11 @@
   margin-top: 0.25rem;
 }
 
+.rich-img {
+  max-width: 100%;
+  align-self: flex-start;
+}
+
 .rich-spc {
   height: 0.5rem;
   min-height: 0.5rem;
@@ -106,6 +111,23 @@
 
 .rich-ol {
   list-style-type: decimal;
+}
+
+.rich-table {
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+  align-self: flex-start;
+}
+
+.rich-th,
+.rich-td {
+  border: 1px solid var(--clr-fill);
+  padding: 0.25rem 0.5rem;
+}
+
+.rich-th {
+  color: var(--clr-emph);
+  font-weight: bold;
 }
 
 .rich-li {

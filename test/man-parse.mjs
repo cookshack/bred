@@ -558,6 +558,51 @@ test('mdoc', 'Ex expands to the standard exit text',
        equal(flat(r.doc.blocks[0].spans), 'The ls utility exits 0 on success, and >0 if an error occurs.')
      })
 
+test('links', 'URL and MTO make links with trailing punctuation',
+     () => {
+       let r, spans
+
+       r = parsed('.TH T 1\n.URL https://example.com "The site" .\n')
+       spans = r.doc.blocks[0].spans
+       equal(spans[0].text, 'The site')
+       equal(spans[0].href, 'https://example.com')
+       equal(flat(spans), 'The site.')
+     })
+
+test('links', 'URL with empty text shows the target',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.URL https://example.com "" .\n')
+       equal(flat(r.doc.blocks[0].spans), 'https://example.com.')
+     })
+
+test('links', 'MTO uses a mailto link',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.MTO a@b "A Person" ,\n')
+       equal(r.doc.blocks[0].spans[0].href, 'mailto:a@b')
+       equal(r.doc.blocks[0].spans[0].text, 'A Person')
+     })
+
+test('links', 'the macro packages we implement are not loaded',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.mso www.tmac\n.LINKSTYLE blue R < >\n')
+       equal(r.ok, 1)
+     })
+
+test('links', 'other macro packages fail the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.mso strange.tmac\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'mso strange.tmac')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

@@ -2371,6 +2371,34 @@ function handleLine
   }
   case 'TE':
     break
+  case 'mso': {
+    let target
+
+    target = args[0] || ''
+    // The macros those packages provide (URL/MTO/LINKSTYLE, MT/ME, UR/UE)
+    // are implemented here, so loading them is not needed.
+    if ((target == 'www.tmac') || (target == 'an-ext.tmac'))
+      break
+    fail(c, c.lineNo, 'mso ' + target)
+    break
+  }
+  case 'LINKSTYLE':
+    break
+  case 'URL':
+  case 'MTO': {
+    let href, text, trailing, spans
+
+    href = expandText(c, args[0] || '', c.lineNo)
+    text = expandText(c, args[1] || '', c.lineNo) || href
+    trailing = args.slice(2).join(' ')
+    spans = [ { text,
+                style: c.font,
+                href: ((name == 'MTO') ? 'mailto:' : '') + href } ]
+    if (trailing.length)
+      pushSpan(spans, { text: trailing, style: 'roman' })
+    appendInline(c, spans)
+    break
+  }
   case 'PD':
   case 'DT':
   case 'UC':

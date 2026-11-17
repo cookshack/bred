@@ -1,0 +1,197 @@
+#!/usr/bin/env node
+
+// Measure an installed manual page corpus against the roff dialect bred
+// supports. Pages either render or are refused, so this reports refusals and
+// the constructs responsible for them.
+//
+//   bin/man-audit [--root DIR] [--list] [--json]
+//
+// Exit status is 1 when any page would be refused.
+
+import Fs from 'node:fs'
+import Path from 'node:path'
+import Zlib from 'node:zlib'
+
+import * as Roff from '../js/man-roff.mjs'
+
+let opts, stats
+
+function usage
+() {
+  console.log('usage: man-audit [--root DIR] [--list] [--json]')
+}
+
+function parseArgs
+(argv) {
+  let out
+
+  out = { root: '/usr/share/man', list: 0, json: 0 }
+  for (let i = 0; i < argv.length; i++) {
+    let arg
+
+    arg = argv[i]
+    if (arg == '--root') {
+      i++
+      out.root = argv[i]
+    }
+    else if (arg == '--list')
+      out.list = 1
+    else if (arg == '--json')
+      out.json = 1
+    else if ((arg == '--help') || (arg == '-h')) {
+      usage()
+      process.exit(0)
+    }
+    else {
+      console.error('unknown argument: ' + arg)
+      usage()
+      process.exit(2)
+    }
+  }
+  return out
+}
+
+function bump
+(map, key) {
+  let entry
+
+  entry = map[key]
+  if (entry == undefined) {
+    map[key] = { name: key, pages: 1, count: 1 }
+    return
+  }
+  entry.pages++
+  entry.count++
+}
+
+function walk
+(dir, out, seen) {
+  let entries
+
+  if (seen[dir])
+    return
+  seen[dir] = 1
+  try {
+    entries = Fs.readdirSync(dir, { withFileTypes: true })
+  }
+  catch (err) {
+    return
+  }
+  entries.forEach(entry => {
+                    let full
+
+                    full = Path.join(dir, entry.name)
+                    if (entry.isDirectory())
+                      walk(full, out, seen)
+                    else if (/^man[1-9]/.test(Path.basename(dir)))
+                      out.push(full)
+                  })
+}
+
+function readPage
+(file) {
+  let buf
+
+  buf = Fs.readFileSync(file)
+  if (file.endsWith('.gz'))
+    buf = Zlib.gunzipSync(buf)
+  return buf.toString('utf8')
+}
+
+function printTable
+(title, map) {
+  let rows
+
+  rows = Object.values(map).sort((a, b) => b.pages - a.pages)
+  if (rows.length == 0)
+    return
+  console.log('')
+  console.log(title)
+  rows.slice(0, 20).forEach(row => {
+                              console.log('  ' + row.name.padEnd(22) +
+                                          String(row.pages).padStart(6) + ' pages')
+                            })
+  if (rows.length > 20)
+    console.log('  ... ' + (rows.length - 20) + ' more')
+}
+
+function report
+() {
+  console.log('man-audit ' + opts.root)
+  console.log('')
+  console.log('  pages    ' + stats.pages +
+              '   (man ' + stats.man + ', mdoc ' + stats.mdoc + ', includes ' + stats.include + ')')
+  console.log('  refused  ' + stats.refused +
+              (stats.pages ? ('  (' + (100 * stats.refused / stats.pages).toFixed(1) + '%)') : ''))
+  printTable('refused by macro/escape:', stats.fails)
+  printTable('undefined strings/registers:', stats.unresolved)
+  printTable('tolerated (metric/ignore):', stats.tolerated)
+  if (opts.list) {
+    console.log('')
+    console.log('refused pages:')
+    stats.refusedPages.forEach(page => {
+                                 console.log('  ' + page.file)
+                                 page.items.forEach(item => {
+                                                       console.log('      ' + item)
+                                                     })
+                               })
+    if (stats.refusedPages.length < stats.refused)
+      console.log('  ... ' + (stats.refused - stats.refusedPages.length) + ' more')
+  }
+}
+
+opts = parseArgs(process.argv.slice(2))
+stats = { pages: 0, man: 0, mdoc: 0, include: 0, refused: 0,
+          fails: {}, unresolved: {}, tolerated: {}, refusedPages: [] }
+
+{
+  let files
+
+  files = []
+  walk(opts.root, files, {})
+  files.forEach(file => {
+                   let scan
+
+                   stats.pages++
+                   try {
+                     scan = Roff.scan(readPage(file))
+                   }
+                   catch (err) {
+                     stats.refused++
+                     stats.refusedPages.push({ file, items: [ 'read error: ' + err.message ] })
+                     return
+                   }
+                   if (scan.kind == 'include') {
+                     stats.include++
+                     return
+                   }
+                   if (scan.kind == 'mdoc')
+                     stats.mdoc++
+                   else
+                     stats.man++
+                   scan.fails.forEach(item => {
+                                        bump(stats.fails, item.kind + ' ' + item.name)
+                                      })
+                   scan.unresolved.forEach(item => {
+                                             bump(stats.unresolved, item.kind + ' ' + item.name)
+                                           })
+                   scan.tolerated.forEach(item => {
+                                            bump(stats.tolerated, item.kind + ' ' + item.name)
+                                          })
+                   if (scan.ok)
+                     return
+                   stats.refused++
+                   if (opts.list)
+                     stats.refusedPages.push({ file,
+                                               items: scan.fails.map(item => item.kind + ' ' + item.name +
+                                                                    ' (line ' + item.line + ', ' + item.cls + ')')
+                                                      .concat(scan.unresolved.map(item => item.kind + ' ' + item.name +
+                                                                                     ' (line ' + item.line + ', undefined)')) })
+                 })
+}
+
+if (opts.json)
+  console.log(JSON.stringify(stats, null, 2))
+else
+  report()
+process.exit(stats.refused ? 1 : 0)

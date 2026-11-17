@@ -835,6 +835,18 @@ Manual page viewer
 **Functions:**
 - `init()` - Initializes manual page viewer
 
+### js/man-roff.mjs
+
+Roff dialect inventory for manual pages. Classifies every macro, request and
+escape as renderable, metric (spacing only), ignorable or unsupported; anything
+unknown is unsupported, because a page either renders faithfully or is refused.
+
+**Functions:**
+- `scan(text)` - Scans a page, returning `kind` (man/mdoc/include), `ok`,
+  `fails`, `tolerated`, `unresolved` and construct counts
+- `macroClass(name)` / `escapeClass(name)` - Class of one construct
+- `stringIsKnown(name)` / `registerIsKnown(name)` - Predefined groff names
+
 ### js/menu.mjs
 
 Menu system
@@ -1038,4 +1050,6 @@ Contains executable scripts and utilities:
 - Git-related scripts (git-stash-apply, git-stash-drop, etc.)
 - System integration scripts
 - Utility scripts for various operations
+- `man-audit` - Reports which installed man pages the roff dialect cannot
+  render, and why (`--root`, `--list`, `--json`)
 

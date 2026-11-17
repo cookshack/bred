@@ -1,3 +1,20 @@
 #!/bin/bash
+#
+# Diff the working tree against the merge base with main, capped so the editor
+# can display it (see bin/diff-cap).
 
-git --no-pager diff --no-prefix $(git merge-base origin/main HEAD)
+set -o pipefail
+
+dir=$(cd "$(dirname "$0")" && pwd)
+
+# Unquoted on purpose: if there is no merge base, diff against the index like
+# plain git diff.
+git --no-pager diff --no-prefix $(git merge-base origin/main HEAD) | "$dir/diff-cap"
+
+code=$?
+# diff-cap stops reading once it has enough, which gives git a SIGPIPE; that is
+# a truncation, not an error.
+if [ "$code" -eq 141 ]; then
+  exit 0
+fi
+exit "$code"

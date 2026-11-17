@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# git show, with the diff capped at a size the editor can display.
+
+set -o pipefail
+
+dir=$(cd "$(dirname "$0")" && pwd)
+
+git --no-pager show "$@" | "$dir/diff-cap"
+
+code=$?
+# diff-cap stops reading once it has enough, which gives git a SIGPIPE; that is
+# a truncation, not an error.
+if [ "$code" -eq 141 ]; then
+  exit 0
+fi
+exit "$code"

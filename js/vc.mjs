@@ -1990,19 +1990,12 @@ function initEqual
     let b, num
 
     b = View.current().buf
-    if (/^SC: .*\/git-eq$/.test(b.name))
-      num = -1
-    else if (b.name == 'SC: git show --no-prefix')
-      num = 0
-    else {
-      let s
-
-      s = b.name.split('~')
-      num = parseInt(s[1])
-    }
+    // Commit num is set when the buffer is created. Parsing it from the name
+    // stopped working when git show moved behind bin/git-show.
+    num = b.vars('vc equal').num
     num += nth
     if (isNaN(num))
-      Mess.toss('Failed to parse commit num from buf name: ' + b.name)
+      Mess.toss('Failed to find commit num for buf: ' + b.name)
     equalN(num)
   }
 
@@ -2012,6 +2005,12 @@ function initEqual
     b.opts.set('core.lint.enabled', 0)
     b.addMode('view')
     b.addMode('equal')
+  }
+
+  function remember
+  (b, num) {
+    b.vars('vc equal').num = num
+    b.addMode('view')
   }
 
   function equalN
@@ -2024,14 +2023,14 @@ function initEqual
                    { end: 1,
                      afterEndPoint: 1,
                      onClose: finish },
-                   b => b.addMode('view'))
+                   b => remember(b, -1))
     else
-      Shell.spawn1('git',
-                   [ 'show', '--no-prefix', 'HEAD~' + num ],
+      Shell.spawn1(Loc.appDir().join('bin/git-show'),
+                   [ '--no-prefix', 'HEAD~' + num ],
                    { end: 1,
                      afterEndPoint: 1,
                      onClose: finish },
-                   b => b.addMode('view'))
+                   b => remember(b, num))
   }
 
   function equalBr
@@ -2165,14 +2164,28 @@ function reset
 
 function showHash
 (hash) {
-  Shell.shell1('git show --no-prefix' + (hash ? (' ' + hash) : ''),
+  let args
+
+  args = [ '--no-prefix' ]
+  if (hash)
+    args.push(hash)
+  // bin/git-show caps the diff at a readable size (see bin/diff-cap).
+  Shell.spawn1(Loc.appDir().join('bin/git-show'),
+               args,
                { end: 1,
                  afterEndPoint: 1,
                  onClose: b => {
                    b.mode = 'patch'
+                   b.opts.set('core.lint.enabled', 0)
+                   b.addMode('view')
                    b.addMode('equal')
                  } },
-               b => b.addMode('view'))
+               b => {
+                 // Next/previous commit only make sense from bare `git show`.
+                 if (hash == undefined)
+                   b.vars('vc equal').num = 0
+                 b.addMode('view')
+               })
 }
 
 function divW

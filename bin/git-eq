@@ -1,6 +1,61 @@
 #!/bin/bash
+#
+# Diff the working tree, including untracked files, but never hand the editor a
+# diff it can't display (see bin/diff-cap).
+#
+# Untracked files are diffed in full by vc equal: an 88MB log sitting in the
+# tree became a 93MB patch. Skip the big ones with a note.
+#
+# BRED_GIT_EQ_MAX_UNTRACKED (bytes) is the untracked limit.
 
-git --no-pager diff --no-prefix
+set -o pipefail
+
+dir=$(cd "$(dirname "$0")" && pwd)
+max=${BRED_GIT_EQ_MAX_UNTRACKED:-1048576}
+skipped=()
+untracked=()
+
 while IFS= read -r -d '' next; do
-  git --no-pager diff --no-prefix --no-index -- /dev/null "$next"
+  size=$(stat -c %s -- "$next" 2>/dev/null) || size=0
+  if [ "$size" -gt "$max" ]; then
+    skipped+=("$next: $(( (size + 524288) / 1048576 )) MB")
+  else
+    untracked+=("$next")
+  fi
 done < <(git ls-files -z --others --exclude-standard)
+
+if [ "${#skipped[@]}" -gt 0 ]; then
+  if [ "$max" -ge 1048576 ]; then
+    limit="$((max / 1048576)) MB"
+  else
+    limit="$max bytes"
+  fi
+  printf '# bred: not showing %d untracked file(s) over %s:\n' "${#skipped[@]}" "$limit"
+  for next in "${skipped[@]}"; do
+    printf '#   %s\n' "$next"
+  done
+  printf '# (gitignore them, or diff them in a shell)\n'
+fi
+
+{
+  # --no-index exits 1 when files differ, which is not an error here.
+  code=0
+
+  git --no-pager diff --no-prefix || code=$?
+  for next in "${untracked[@]}"; do
+    git --no-pager diff --no-prefix --no-index -- /dev/null "$next"
+    c=$?
+    if [ "$c" -gt 1 ]; then
+      code=$c
+    fi
+  done
+  exit "$code"
+} | "$dir/diff-cap"
+
+code=$?
+# diff-cap stops reading once it has enough, which gives git a SIGPIPE; that is
+# a truncation, not an error.
+if [ "$code" -eq 141 ]; then
+  exit 0
+fi
+exit "$code"

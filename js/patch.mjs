@@ -87,19 +87,35 @@ function diffBlock
   }
 }
 
+// A patch can be a string or a CodeMirror Text (the editor hands over its doc),
+// so a big buffer doesn't have to be copied to a string on every refine.
+// 0-based at(), 1-based line numbers.
+function sourceOf
+(patch) {
+  if (typeof patch == 'string') {
+    let lines
+
+    lines = patch.split('\n')
+    return { length: lines.length,
+             at: i => lines[i] }
+  }
+  return { length: patch.lines,
+           at: i => patch.line(i + 1).text }
+}
+
 // Index of the hunk header enclosing (or nearest before) a line, so a window
 // doesn't have to scan the whole patch. 1-based line numbers. A hunk bigger
 // than hunkStartMax gets no refine (it is only a highlight, so that is fine).
 function hunkStart
-(lines, first) {
+(src, first) {
   let cap, i, start
 
   cap = Math.max(0, first - 1 - hunkStartMax)
   start = cap
-  for (i = Math.min(first - 2, lines.length - 1); i >= cap; i--) {
+  for (i = Math.min(first - 2, src.length - 1); i >= cap; i--) {
     let c
 
-    c = lines[i]
+    c = src.at(i)
     if ((c[0] == '@' && c[1] == '@') || c.startsWith('diff ')) {
       start = i
       break
@@ -111,16 +127,19 @@ function hunkStart
 // Call onBlock({ oldLines, newLines, first, last }) for every changed block
 // between the 1-based line numbers first and last (inclusive). onBlock returns
 // 0 to stop scanning. Blocks are never split, so a block that starts before
-// first is passed whole.
+// first is passed whole. Nothing past last is scanned: a hunk can be enormous
+// (eg a whole file added) while only a screenful is visible.
 function scanBlocks
-(lines, first, last, start, onBlock) {
+(src, first, last, start, onBlock) {
   let i
 
   i = start
-  while (i < lines.length) {
+  while (i < src.length) {
     let c
 
-    c = lines[i]
+    if (i + 1 > last)
+      return
+    c = src.at(i)
     if (c.length == 0) {
       i++
       continue
@@ -130,10 +149,12 @@ function scanBlocks
     if (c[0] == '@' && c[1] == '@') {
       i++
 
-      while (i < lines.length) {
+      while (i < src.length) {
         let cur
 
-        cur = lines[i]
+        if (i + 1 > last)
+          return
+        cur = src.at(i)
         if (cur.length == 0 || (cur[0] == '@' && cur[1] == '@'))
           break
 
@@ -150,10 +171,10 @@ function scanBlocks
             oldLines = [ { text: cur.slice(1), lineNum: i + 1 } ]
             blockFirst = i + 1
             i++
-            while (i < lines.length) {
+            while (i < src.length) {
               let n
 
-              n = lines[i]
+              n = src.at(i)
               if (n.length && n[0] == '-') {
                 oldLines.push({ text: n.slice(1), lineNum: i + 1 })
                 i++
@@ -164,10 +185,10 @@ function scanBlocks
 
             // Collect matching + lines
             newLines = []
-            while (i < lines.length) {
+            while (i < src.length) {
               let n
 
-              n = lines[i]
+              n = src.at(i)
               if (n.length && n[0] == '+') {
                 newLines.push({ text: n.slice(1), lineNum: i + 1 })
                 i++
@@ -218,14 +239,14 @@ function cacheAdd
 export
 function computeRefine
 (patch) {
-  let lines, results
+  let src, results
 
-  lines = patch.split('\n')
+  src = sourceOf(patch)
   results = []
 
-  scanBlocks(lines, 1, lines.length, 0, block => {
-                                          diffBlock(results, block.oldLines, block.newLines)
-                                        })
+  scanBlocks(src, 1, src.length, 0, block => {
+                                      diffBlock(results, block.oldLines, block.newLines)
+                                    })
 
   return results
 }
@@ -234,39 +255,40 @@ function computeRefine
 // Results are cached by block text, so streaming a patch and scrolling over
 // it don't re-diff blocks that were already seen. spec: { budget, timeout } in
 // ms; a budget of 0 diffs nothing that isn't already cached.
+// patch is a string or a CodeMirror Text.
 export
 function refineBlocks
 (patch, first, last, cache, spec) {
-  let lines, results, start, budget, timeout, t0
+  let src, results, start, budget, timeout, t0
 
   spec = spec || {}
   budget = spec.budget ?? 40
   timeout = spec.timeout ?? 50
-  lines = patch.split('\n')
+  src = sourceOf(patch)
   results = []
-  start = hunkStart(lines, first)
+  start = hunkStart(src, first)
   t0 = Date.now()
 
-  scanBlocks(lines, first, last, start, block => {
-                                          let texts, key, refines
+  scanBlocks(src, first, last, start, block => {
+                                        let texts, key, refines
 
-                                          texts = blockTexts(block.oldLines, block.newLines)
-                                          key = blockKey(texts)
-                                          refines = cache.get(key)
-                                          if (refines == undefined) {
-                                            let t1
+                                        texts = blockTexts(block.oldLines, block.newLines)
+                                        key = blockKey(texts)
+                                        refines = cache.get(key)
+                                        if (refines == undefined) {
+                                          let t1
 
-                                            if ((budget == 0) || (Date.now() - t0 > budget))
-                                              return 0
-                                            refines = []
-                                            t1 = Date.now()
-                                            diffBlock(refines, block.oldLines, block.newLines, texts, timeout)
-                                            // A timed out diff is truncated, so leave it for a later pass.
-                                            if ((Date.now() - t1) < timeout)
-                                              cacheAdd(cache, key, refines)
-                                          }
-                                          refines.forEach(r => results.push(r))
-                                        })
+                                          if ((budget == 0) || (Date.now() - t0 > budget))
+                                            return 0
+                                          refines = []
+                                          t1 = Date.now()
+                                          diffBlock(refines, block.oldLines, block.newLines, texts, timeout)
+                                          // A timed out diff is truncated, so leave it for a later pass.
+                                          if ((Date.now() - t1) < timeout)
+                                            cacheAdd(cache, key, refines)
+                                        }
+                                        refines.forEach(r => results.push(r))
+                                      })
 
   return results
 }

@@ -123,7 +123,7 @@ function init
                                           if (w) {
                                             let refines
 
-                                            refines = Patch.refineBlocks(ed.state.doc.toString(),
+                                            refines = Patch.refineBlocks(ed.state.doc,
                                                                          w.first,
                                                                          w.last,
                                                                          cacheFor(buf))

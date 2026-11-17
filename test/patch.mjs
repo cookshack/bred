@@ -306,6 +306,62 @@ test('refineBlocks', 'ranges stay in bounds',
                    })
      })
 
+// A CodeMirror Text stand-in. refineBlocks can scan a doc without copying it to
+// a string; counting reads shows a scan can't creep past the window.
+function fakeDoc
+(lines) {
+  let reads
+
+  reads = 0
+  return { get reads
+           () {
+             return reads
+           },
+           lines: lines.length,
+           line
+           (n) {
+             reads++
+             return { text: lines[n - 1] }
+           } }
+}
+
+// One hunk that adds every line: like a log file committed in full.
+function hugeHunk
+(n) {
+  let lines
+
+  lines = [ '@@ -1,1 +1,' + n + ' @@' ]
+  while (lines.length < n)
+    lines.push('+x')
+  return lines
+}
+
+test('refineBlocks', 'a doc gives the same refinements as a string',
+     () => {
+       let doc
+
+       doc = fakeDoc(twoHunks().split('\n'))
+       deepStrictEqual(refineBlocks(doc, 4, 10, new Map()), computeRefine(twoHunks()))
+     })
+
+test('refineBlocks', 'a window at the top of a huge hunk reads only the window',
+     () => {
+       let doc
+
+       doc = fakeDoc(hugeHunk(400000))
+       deepStrictEqual(refineBlocks(doc, 1, 40, new Map()), [])
+       equal(doc.reads < 200, true, 'read ' + doc.reads + ' lines')
+     })
+
+test('refineBlocks', 'a window at the end of a huge hunk stays bounded',
+     () => {
+       let doc
+
+       doc = fakeDoc(hugeHunk(400000))
+       deepStrictEqual(refineBlocks(doc, 399990, 400000, new Map()), [])
+       equal(doc.reads < 50000, true, 'read ' + doc.reads + ' lines')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

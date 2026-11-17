@@ -162,6 +162,10 @@ function setupPanes
 () {
   let area, boot, domWin, frame, pA, pB, shellChans, win
 
+  // The app sets this at startup; tests that run bin/ scripts (git-eq,
+  // git-show) need it, and another test may have changed it.
+  Loc.appDirSet(process.cwd())
+
   _shared.buf = { buffers: Mk.array, ring: Mk.array, id: 1 }
   _shared.cut = { ring: [], buf: { views: [] } }
   _shared.win = { wins: [], id: 1 }

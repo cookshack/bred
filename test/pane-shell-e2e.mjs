@@ -225,7 +225,7 @@ test('e2e', 'vc show streams a patch without yelling',
          Cmd.run('vc show')
 
          await waitFor(() => {
-                         buf = Buf.find(b => b.name.startsWith('SC: git show'))
+                         buf = Buf.find(b => b.name.includes('git-show'))
                          return buf?.views[0]?.ed?.state.doc.toString().includes('diff --git')
                        },
                        5000)
@@ -240,6 +240,33 @@ test('e2e', 'vc show streams a patch without yelling',
          process.env.PAGER = pager
          process.env.GIT_PAGER = gitPager
        }
+     })
+
+test('e2e', 'vc equal streams a patch without yelling',
+     async () => {
+       let before, buf, yells
+
+       setupPanes()
+       bridge()
+       if (Cmd.get('vc equal') == undefined)
+         Vc.init()
+
+       before = Mess.messages().length
+       Pane.current().buf.dir = process.cwd()
+       // universalArg 1 is the vc equal path the user gets from C-x v =
+       Cmd.run('vc equal', 0, 1)
+
+       // A clean tree just leaves the buffer empty; either way it closes and
+       // becomes a patch buffer without complaining.
+       await waitFor(() => {
+                       buf = Buf.find(b => b.name.endsWith('git-eq'))
+                       return buf?.views[0]?.ed && Number.isInteger(buf.vars('shell').code)
+                     },
+                     10000)
+
+       yells = Mess.messages().slice(before).filter(m => m.type == 'yell').map(m => m.text)
+       equal(buf.mode.key, 'patch')
+       equal(yells.length, 0, 'yells: ' + yells.join(' | '))
      })
 
 function mochaIt

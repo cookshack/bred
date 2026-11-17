@@ -1,0 +1,90 @@
+#!/bin/bash
+#
+# Cap a diff at a displayable size, cutting at a complete file (a "diff --git"
+# boundary) so the result is still a valid patch.
+#
+# Diffing a tree with a huge file in it (eg an 88MB log that vc equal picks up
+# as untracked) used to stream a 93MB patch into the editor and stall it for
+# minutes. Print what fits and a note instead.
+#
+# usage: git diff ... | diff-cap [max-bytes]
+#        BRED_DIFF_CAP overrides the default.
+
+max=${1:-${BRED_DIFF_CAP:-2097152}}
+
+case "$max" in
+  ''|*[!0-9]*|0)
+    echo "diff-cap: bad max: $max" >&2
+    exit 1
+    ;;
+esac
+
+# Byte lengths, and bytes pass through unchanged.
+export LC_ALL=C
+
+exec awk -v max="$max" '
+function label (n) {
+  if (n >= 1048576)
+    return int((n + 1048575) / 1048576) " MB"
+  return n " bytes"
+}
+
+function marker () {
+  printf "diff --git a/(diff truncated) b/(diff truncated)\n"
+  printf "# bred: diff truncated at %s - see the rest with git diff in a shell\n", label(max)
+}
+
+function bail () {
+  marker()
+  done = 1
+  exit 0
+}
+
+function flush () {
+  for (j = 0; j < n; j++)
+    printf "%s\n", buf[j]
+  total += size
+}
+
+function take (line) {
+  if (total + size + length(line) + 1 > max)
+    bail()
+  buf[n++] = line
+  size += length(line) + 1
+}
+
+BEGIN {
+  total = 0
+  n = 0
+  size = 0
+  inFile = 0
+  done = 0
+}
+
+/^diff --git / {
+  if (inFile)
+    flush()
+  inFile = 1
+  n = 0
+  size = 0
+  take($0)
+  next
+}
+
+{
+  if (inFile)
+    take($0)
+  else {
+    # Preamble (notes, a commit message, etc) is small: pass it through.
+    printf "%s\n", $0
+    total += length($0) + 1
+  }
+}
+
+END {
+  if (done)
+    exit 0
+  if (inFile)
+    flush()
+}
+'

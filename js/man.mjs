@@ -257,6 +257,7 @@ function init
     }
     b = Buf.add('Man: ' + topic, 'Manpage', divW(), p.dir)
     b.icon = 'manpage'
+    b.addMode('view')
     st = b.vars('Manpage')
     st.topic = topic
     st.loading = 1

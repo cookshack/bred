@@ -16,7 +16,7 @@ import { makeMarkdown } from '../../js/wode-lang-md.mjs'
 import { modeFor } from '../../js/wode-mode.mjs'
 import { themeExtension } from '../../js/wode-theme.mjs'
 
-import { blockPaste, hideMarks } from './md.mjs'
+import { hideMarks } from './md.mjs'
 
 import { atEnd, makeStick, nextMsgIndex, prevMsgIndex } from './scroll.mjs'
 
@@ -142,7 +142,6 @@ function makePatchEd
   el = divCl('code-patch-ed')
   state = CMState.EditorState.create({ doc: text,
                                        extensions: [ CMView.EditorView.editable.of(false),
-                                                     CMView.EditorView.domEventHandlers({ mousedown: blockPaste }),
                                                      CMView.EditorView.lineWrapping,
                                                      patch(),
                                                      themeExtension ] })
@@ -176,7 +175,6 @@ function makeCodeEd
   el = divCl('code-code-ed')
   lang = langs.find(l => l.id == modeFor(path))
   exts = [ CMView.EditorView.editable.of(false),
-           CMView.EditorView.domEventHandlers({ mousedown: blockPaste }),
            CMView.EditorView.lineWrapping,
            themeExtension ]
   if (lang?.language)

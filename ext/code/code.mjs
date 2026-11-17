@@ -26,6 +26,7 @@ import * as Stop from './stop.mjs'
 import * as Ui from './ui.mjs'
 import * as Util from './util.mjs'
 import * as Sessions from './sessions.mjs'
+import { blockPaste } from './md.mjs'
 
 import VopenCode from './lib/opencode/version.json' with { type: 'json' }
 
@@ -2029,11 +2030,18 @@ function updateNav
 
 function viewInit
 (view, spec, cb) { // (view)
+  let w
+
+  // the message log is read only: a middle click in it would paste the primary
+  // selection into whatever editable buf has focus (on mouse up)
+  w = view.ele?.querySelector?.('.code-w')
+  if (w) {
+    w.onmousedown = blockPaste
+    w.onmouseup = blockPaste
+  }
   applyNav(view)
   refreshGoatUsage(view.buf)
   if (view.buf?.vars('code')?.thinkingHidden) {
-    let w
-
     w = view.ele?.querySelector?.('.code-w')
     if (w) {
       let h

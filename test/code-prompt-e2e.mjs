@@ -981,25 +981,37 @@ test('subagent', 'reopened session replays child output',
        equal(order, 'task,child', 'child output follows the task line')
      })
 
-test('middle click', 'a middle click in a code result is blocked',
+test('middle click', 'a middle click in the message log is blocked',
      async () => {
-       let buf, content, event, panes
+       let buf, content, event, panes, text
+
+       function middle
+       (el, type) {
+         let e
+
+         e = new globalThis.window.MouseEvent(type, { button: 1, bubbles: 1, cancelable: 1 })
+         el.dispatchEvent(e)
+         return e.defaultPrevented
+       }
 
        ({ panes, buf } = await setup())
        await waitFor(() => panes.pB.view?.ele?.querySelector('.code-w'))
        Ui.appendToolMsg(buf, 'call1', 'Read file', 'let b = 2', { format: 'code', path: 'x.js' })
+       Ui.appendToolMsg(buf, 'call2', 'Bash', 'some output', {})
        await waitFor(() => panes.pB.view.ele.querySelector('.code-code-ed .cm-content'))
        content = panes.pB.view.ele.querySelector('.code-code-ed .cm-content')
+       text = panes.pB.view.ele.querySelector('.code-msg-under')
 
-       event = new globalThis.window.MouseEvent('mousedown', { button: 1,
-                                                               bubbles: 1,
-                                                               cancelable: 1 })
-       content.dispatchEvent(event)
-       equal(event.defaultPrevented, true, 'the primary selection is not pasted')
+       // Chromium pastes the primary selection on mouse up, so that is the
+       // event that has to be cancelled
+       equal(middle(content, 'mouseup'), true, 'code result mouseup is blocked')
+       equal(middle(content, 'mousedown'), true, 'code result mousedown is blocked')
+       equal(middle(text, 'mouseup'), true, 'plain output mouseup is blocked')
+       equal(middle(text, 'mousedown'), true, 'plain output mousedown is blocked')
 
-       event = new globalThis.window.MouseEvent('mousedown', { button: 0,
-                                                               bubbles: 1,
-                                                               cancelable: 1 })
+       event = new globalThis.window.MouseEvent('mouseup', { button: 0,
+                                                             bubbles: 1,
+                                                             cancelable: 1 })
        content.dispatchEvent(event)
        equal(event.defaultPrevented, false, 'left click is left alone')
      })

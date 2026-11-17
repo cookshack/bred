@@ -981,6 +981,29 @@ test('subagent', 'reopened session replays child output',
        equal(order, 'task,child', 'child output follows the task line')
      })
 
+test('middle click', 'a middle click in a code result is blocked',
+     async () => {
+       let buf, content, event, panes
+
+       ({ panes, buf } = await setup())
+       await waitFor(() => panes.pB.view?.ele?.querySelector('.code-w'))
+       Ui.appendToolMsg(buf, 'call1', 'Read file', 'let b = 2', { format: 'code', path: 'x.js' })
+       await waitFor(() => panes.pB.view.ele.querySelector('.code-code-ed .cm-content'))
+       content = panes.pB.view.ele.querySelector('.code-code-ed .cm-content')
+
+       event = new globalThis.window.MouseEvent('mousedown', { button: 1,
+                                                               bubbles: 1,
+                                                               cancelable: 1 })
+       content.dispatchEvent(event)
+       equal(event.defaultPrevented, true, 'the primary selection is not pasted')
+
+       event = new globalThis.window.MouseEvent('mousedown', { button: 0,
+                                                               bubbles: 1,
+                                                               cancelable: 1 })
+       content.dispatchEvent(event)
+       equal(event.defaultPrevented, false, 'left click is left alone')
+     })
+
 test('focus', 'focusing by position makes the prompt current',
      async () => {
        let buf, live, panes, pv

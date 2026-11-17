@@ -14,6 +14,7 @@ hiddenNodes = [ 'EmphasisMark', 'CodeMark', 'HeaderMark', 'StrikethroughMark' ]
 
 // middle click opens a link (via auxclick); don't let it paste the primary
 // selection into whatever editable buf currently has focus
+export
 function blockPaste
 (event) {
   if (event.button == 1) {

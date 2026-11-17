@@ -1,20 +1,175 @@
 .manpage-ww {
   width: 100%;
   height: 100%;
-  padding: 0.5rem;
-  padding-top: 0;
-
-  display: flex;
-  justify-content: center;
+  overflow-y: auto;
 }
 
 .manpage-w {
   width: 100%;
-  padding: 1rem;
-  max-width: 50rem;
-  height: min-content;
+  max-width: 54rem;
+  margin: 0 auto;
+  padding: 1.5rem 2rem 4rem;
+  line-height: 1.45;
+  color: var(--clr-emph);
+}
 
+/* headings and table of contents */
+.manpage-w .man-h1 {
+  font-size: 1.15rem;
+  margin: 1.6em 0 0.4em;
+  padding-bottom: 0.15em;
+  border-bottom: 1px solid var(--clr-fill);
+}
+
+.manpage-w .man-h2 {
+  font-size: 1rem;
+  margin: 1.1em 0 0.3em;
+}
+
+.manpage-w .man-toc {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.9rem;
+  margin-bottom: 1.2rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--clr-fill);
+  font-size: 0.9em;
+}
+
+/* paragraphs and inline styles */
+.manpage-w p {
+  margin: 0.5em 0;
+}
+
+.manpage-w .man-synopsis {
+  font-weight: 600;
+}
+
+.manpage-w code,
+.manpage-w .man-mono {
+  font-family: var(--font-monospace);
+  font-size: 0.95em;
+}
+
+.manpage-w a {
+  color: inherit;
+  text-decoration: underline dotted;
+  cursor: pointer;
+}
+
+.manpage-w a:hover {
+  text-decoration: underline solid;
+}
+
+/* tagged paragraphs: tag on the left, body on the right */
+.manpage-w .man-tag {
+  display: grid;
+  grid-template-columns: minmax(5rem, max-content) 1fr;
+  gap: 0.15rem 1.2rem;
+  margin: 0.35em 0;
+}
+
+.manpage-w .man-tag-t {
+  font-weight: 600;
+}
+
+.manpage-w .man-tag-b p:first-child {
+  margin-top: 0;
+}
+
+.manpage-w .man-inset {
+  margin-left: 1.5rem;
+}
+
+/* literal blocks */
+.manpage-w .man-pre {
+  margin: 0.6em 0;
+  padding: 0.6rem 0.8rem;
+  background: var(--clr-fill);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  font-family: var(--font-monospace);
+  font-size: 0.9em;
+}
+
+/* lists */
+.manpage-w .man-list {
+  margin: 0.4em 0 0.4em 1.4rem;
+}
+
+.manpage-w .man-dl dt {
+  font-weight: 600;
+  margin-top: 0.5em;
+}
+
+.manpage-w .man-dl dd {
+  margin-left: 1.4em;
+}
+
+.manpage-w .man-ul li {
+  margin: 0.25em 0;
+}
+
+/* tables */
+.manpage-w .man-table {
+  border-collapse: collapse;
+  margin: 0.7em 0;
+  font-size: 0.95em;
+}
+
+.manpage-w .man-table td {
+  padding: 0.15em 0.7em;
+  vertical-align: top;
+  border-bottom: 1px solid var(--clr-fill);
+}
+
+.manpage-w .man-table.man-box td {
+  border: 1px solid var(--clr-fill);
+}
+
+.manpage-w .man-right {
+  text-align: right;
+}
+
+.manpage-w .man-center {
+  text-align: center;
+}
+
+.manpage-w .man-bold {
+  font-weight: 600;
+}
+
+.manpage-w .man-italic {
+  font-style: italic;
+}
+
+.manpage-w .man-space {
+  height: 0.5em;
+}
+
+/* refusals */
+.manpage-w .manpage-err {
+  font-family: var(--font-monospace);
+  color: var(--clr-nb3);
+  padding: 1rem 0;
+}
+
+.manpage-w .manpage-err-title {
+  font-size: 1.05rem;
+  margin-bottom: 0.4rem;
+}
+
+.manpage-w .manpage-err-path {
+  color: var(--clr-emph);
+  opacity: 0.7;
+  margin-bottom: 0.5rem;
+}
+
+.manpage-w .manpage-err-item {
+  margin: 0.1rem 0;
+}
+
+.manpage-w .manpage-err-note {
+  margin-top: 0.7rem;
+  opacity: 0.7;
 }

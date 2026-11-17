@@ -2552,6 +2552,80 @@ function handleLine
   }
 }
 
+// Linkify man conventions in text: name(section). The reference is often
+// split across font changes (`.BR ls (1)`), so the scan runs over the whole
+// span list and then regroups it.
+function pushChars
+(out, chars) {
+  chars.forEach(ch => {
+                  if (ch.br) {
+                    out.push({ br: 1 })
+                    return
+                  }
+                  pushSpan(out, { text: ch.ch, style: ch.style, href: ch.href })
+                })
+}
+
+function linkifySpans
+(spans) {
+  let chars, text, out, re, m, i
+
+  chars = []
+  spans.forEach(span => {
+                  if (span.br) {
+                    chars.push({ br: 1 })
+                    return
+                  }
+                  for (let at2 = 0; at2 < span.text.length; at2++)
+                    chars.push({ ch: span.text[at2], style: span.style, href: span.href })
+                })
+  text = chars.map(ch => (ch.br ? '\n' : ch.ch)).join('')
+  re = /([A-Za-z_][\w.+-]*)\(([1-9][a-z]*)\)/g
+  out = []
+  while ((m = re.exec(text))) {
+    let first, last
+
+    first = chars[m.index]
+    last = chars[m.index + m[0].length - 1]
+    if (first == undefined || last == undefined)
+      continue
+    if (first.href || last.href)
+      continue
+    for (i = 0; i < m[0].length; i++)
+      chars[m.index + i] = { ch: chars[m.index + i].ch,
+                             style: chars[m.index + i].style,
+                             href: 'man:' + m[1] + '(' + m[2] + ')' }
+  }
+  pushChars(out, chars)
+  return out
+}
+
+function linkifyBlocks
+(blocks) {
+  blocks.forEach(block => {
+                   if (block.spans)
+                     if (block.kind == 'pre')
+                       0
+                     else
+                       block.spans = linkifySpans(block.spans)
+                   if (block.tag)
+                     block.tag = linkifySpans(block.tag)
+                   if (block.blocks)
+                     linkifyBlocks(block.blocks)
+                   if (block.items)
+                     block.items.forEach(item => {
+                                           item.tag = linkifySpans(item.tag)
+                                           linkifyBlocks(item.blocks)
+                                         })
+                   if (block.rows)
+                     block.rows.forEach(row => {
+                                          row.cells.forEach(cell => {
+                                                              cell.spans = linkifySpans(cell.spans)
+                                                            })
+                                        })
+                 })
+}
+
 export
 function parse
 (text, spec) {
@@ -2651,6 +2725,7 @@ function parse
   closeTag(c)
   endPre(c)
   c.doc.blocks = c.root.blocks
+  linkifyBlocks(c.doc.blocks)
   return { ok: c.fails.length ? 0 : 1, fails: c.fails, doc: c.doc }
 }
 

@@ -830,10 +830,22 @@ Language Server Protocol client
 
 ### js/man.mjs
 
-Manual page viewer
+Manual page viewer. Finds a page with `man -w`, reads the roff source, parses
+it, and draws it in a div buffer; a page that cannot be parsed is refused with
+the offending constructs rather than shown badly. References such as `ls(1)`
+set `data-topic`, so clicks follow them; `g` reloads the page.
 
 **Functions:**
-- `init()` - Initializes manual page viewer
+- `init()` - Initializes the viewer and the `man` command
+
+### js/man-render.mjs
+
+Draws the man-parse block model as DOM: headings, paragraphs, tagged
+paragraphs, insets, lists, tables, literal blocks and inline styled runs.
+`man:` links carry `data-topic` for the viewer to follow.
+
+**Functions:**
+- `render(doc)` - Returns `{ el, toc }` for a parsed document
 
 ### js/man-roff.mjs
 

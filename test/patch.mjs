@@ -1,6 +1,9 @@
 import { deepStrictEqual, equal } from 'node:assert/strict'
 
+import * as CMState from '../lib/@codemirror/state.js'
+import * as CMView from '../lib/@codemirror/view.js'
 import { computeRefine, refine, refineBlocks } from '../js/patch.mjs'
+import { decorateRefines } from '../js/wode-patch.mjs'
 
 let tests
 
@@ -360,6 +363,51 @@ test('refineBlocks', 'a window at the end of a huge hunk stays bounded',
        doc = fakeDoc(hugeHunk(400000))
        deepStrictEqual(refineBlocks(doc, 399990, 400000, new Map()), [])
        equal(doc.reads < 50000, true, 'read ' + doc.reads + ' lines')
+     })
+
+// The same block twice, far apart: the refine cache is keyed by block text.
+function twinHunks
+() {
+  return '--- a/f\n' +
+    '+++ b/f\n' +
+    '@@ -1,3 +1,3 @@\n' +
+    '-abc def ghi\n' +
+    '+xyz def uvw\n' +
+    ' context\n' +
+    '@@ -20,3 +20,3 @@\n' +
+    '-abc def ghi\n' +
+    '+xyz def uvw\n' +
+    ' context\n'
+}
+
+test('refineBlocks', 'an identical block maps to its own lines',
+     () => {
+       let cache, warm, got
+
+       function linesOf
+       (refines) {
+         return [ ...new Set(refines.map(r => r.line)) ].sort((x, y) => x - y)
+       }
+
+       cache = new Map()
+       warm = refineBlocks(twinHunks(), 1, 6, cache)
+       deepStrictEqual(linesOf(warm), [ 4, 5 ])
+       got = refineBlocks(twinHunks(), 8, 12, cache)
+       deepStrictEqual(linesOf(got), [ 8, 9 ])
+     })
+
+test('decorateRefines', 'refines out of order do not throw',
+     () => {
+       let state, plus, minus
+
+       state = CMState.EditorState.create({ doc: 'abc def ghi\n' })
+       plus = CMView.Decoration.mark({ class: 'plus' })
+       minus = CMView.Decoration.mark({ class: 'minus' })
+       decorateRefines({ state, visibleRanges: [ { from: 0, to: state.doc.length } ] },
+                       [ { line: 1, from: 8, to: 11, type: '+' },
+                         { line: 1, from: 1, to: 4, type: '-' } ],
+                       plus,
+                       minus)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

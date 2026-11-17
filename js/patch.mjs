@@ -34,13 +34,23 @@ function blockKey
 
 function diffBlock
 (results, oldLines, newLines, texts, timeout) {
-  let changes, oldCur, newCur, j
+  let changes
 
   texts = texts || blockTexts(oldLines, newLines)
   if (timeout)
     changes = diffChars(texts.old, texts.new, { timeout })
   else
     changes = diffChars(texts.old, texts.new)
+  mapChanges(results, oldLines, newLines, changes)
+}
+
+// Map a diffChars result onto the block's lines. The changes are block
+// relative, so they can be cached by block text and reused wherever an
+// identical block appears (see refineBlocks); only the mapping is per block.
+function mapChanges
+(results, oldLines, newLines, changes) {
+  let oldCur, newCur, j
+
   oldCur = 0
   newCur = 0
 
@@ -270,24 +280,26 @@ function refineBlocks
   t0 = Date.now()
 
   scanBlocks(src, first, last, start, block => {
-                                        let texts, key, refines
+                                        let texts, key, changes
 
                                         texts = blockTexts(block.oldLines, block.newLines)
                                         key = blockKey(texts)
-                                        refines = cache.get(key)
-                                        if (refines == undefined) {
+                                        changes = cache.get(key)
+                                        if (changes == undefined) {
                                           let t1
 
                                           if ((budget == 0) || (Date.now() - t0 > budget))
                                             return 0
-                                          refines = []
                                           t1 = Date.now()
-                                          diffBlock(refines, block.oldLines, block.newLines, texts, timeout)
+                                          changes = diffChars(texts.old, texts.new, { timeout })
                                           // A timed out diff is truncated, so leave it for a later pass.
                                           if ((Date.now() - t1) < timeout)
-                                            cacheAdd(cache, key, refines)
+                                            cacheAdd(cache, key, changes)
                                         }
-                                        refines.forEach(r => results.push(r))
+                                        // Cached changes carry no line numbers: an
+                                        // identical block elsewhere in the patch must
+                                        // be mapped to its own lines.
+                                        mapChanges(results, block.oldLines, block.newLines, changes)
                                       })
 
   return results

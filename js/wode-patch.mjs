@@ -51,11 +51,13 @@ function decorateRefines
         line = ed.state.doc.lineAt(pos)
         a = byLine.get(line.number)
         if (a)
-          a.forEach(refine => {
-                      if ((refine.from < refine.to) && (refine.to <= line.length))
-                        builder.add(line.from + refine.from, line.from + refine.to,
+          // The builder throws (and the frame loses its decorations) if a pair
+          // of refines is not in order, so never trust the input order.
+          a.sort((x, y) => x.from - y.from).forEach(refine => {
+                                                      if ((refine.from < refine.to) && (refine.to <= line.length))
+                                                        builder.add(line.from + refine.from, line.from + refine.to,
                           refine.type == '+' ? decorPlus : decorMinus)
-                    })
+                                                    })
         pos = line.to + 1
       }
   return builder.finish()

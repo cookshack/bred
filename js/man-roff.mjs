@@ -192,19 +192,30 @@ function includeOf
 
 function kindOf
 (lines) {
-  let include
+  let include, ig
 
   include = includeOf(lines)
   if (include)
     return 'include'
+  ig = 0
   for (let i = 0; i < lines.length; i++) {
     let control
 
+    if (ig) {
+      if (lines[i].trim() == '..' || lines[i].trim() == ('.' + ig))
+        ig = 0
+      continue
+    }
     control = splitControl(lines[i])
     if (control && control.name) {
+      if (control.name == 'ig') {
+        ig = lines[i].replace(/^[.'][ \t]*ig[ \t]*/, '').trim() || '..'
+        continue
+      }
       if ((control.name == 'Dd') || (control.name == 'Dt'))
         return 'mdoc'
-      return 'man'
+      if ((control.name == 'TH') || (control.name == 'SH'))
+        return 'man'
     }
   }
   return 'man'

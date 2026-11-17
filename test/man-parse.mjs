@@ -421,6 +421,143 @@ test('tables', 'toText joins cells in a row',
        equal(asText('.TH T 1\n.TS\nl l.\na\tb\n.TE\n'), 'a | b\n')
      })
 
+test('mdoc', 'the prologue fills the document header',
+     () => {
+       let r
+
+       r = parsed('.Dd January 1, 2024\n.Dt LS 1\n.Os Linux\n')
+       equal(r.doc.title, 'LS')
+       equal(r.doc.section, '1')
+       equal(r.doc.date, 'January 1, 2024')
+       equal(r.doc.source, 'Linux')
+     })
+
+test('mdoc', 'Sh and Ss make headings',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh NAME\n.Ss Extra\n')
+       equal(r.doc.blocks[0].kind, 'heading')
+       equal(flat(r.doc.blocks[0].spans), 'NAME')
+       equal(r.doc.blocks[1].level, 2)
+     })
+
+test('mdoc', 'Nm and Nd make the NAME line',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh NAME\n.Nm ls\n.Nd list files\n')
+       equal(flat(r.doc.blocks[1].spans), 'ls — list files')
+     })
+
+test('mdoc', 'Xr is a cross reference link',
+     () => {
+       let r, link
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SEE ALSO\n.Xr ls 1 .\n')
+       link = r.doc.blocks[1].spans[0]
+       equal(link.text, 'ls(1)')
+       equal(link.href, 'man:ls(1)')
+       equal(flat(r.doc.blocks[1].spans), 'ls(1).')
+     })
+
+test('mdoc', 'In brackets its header',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.In stdio.h\n')
+       equal(flat(r.doc.blocks[1].spans), '<stdio.h>')
+     })
+
+test('mdoc', 'Fl makes options and Fl Fl makes a long option',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fl a b\n.Op Fl Fl all\n')
+       equal(flat(r.doc.blocks[0].spans), '-a -b [--all]')
+     })
+
+test('mdoc', 'Op nests a macro call',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Op Fl e Ar file\n')
+       equal(flat(r.doc.blocks[0].spans), '[-e file]')
+     })
+
+test('mdoc', 'Dq quotes its nested content',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Dq Ar file\n')
+       equal(flat(r.doc.blocks[0].spans), '“file”')
+     })
+
+test('mdoc', 'Fn formats a function call',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fn foo "int a" "char b"\n')
+       equal(flat(r.doc.blocks[0].spans), 'foo(int a, char b)')
+     })
+
+test('mdoc', 'a tagged list keeps tags and bodies',
+     () => {
+       let r, list
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -tag -width x\n.It Fl a\nfirst\n.It Fl b\nsecond\n.El\n')
+       list = r.doc.blocks[0]
+       equal(list.kind, 'list')
+       equal(list.listType, 'tag')
+       equal(list.items.length, 2)
+       equal(flat(list.items[0].tag), '-a')
+       equal(flat(list.items[0].blocks[0].spans), 'first')
+     })
+
+test('mdoc', 'a nested list stays inside its item',
+     () => {
+       let r, outer, inner
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -tag -width x\n.It one\n.Bl -bullet\n.It inner\n.El\n.It two\nbody\n.El\n')
+       outer = r.doc.blocks[0]
+       inner = outer.items[0].blocks[0]
+       equal(inner.kind, 'list')
+       equal(outer.items[1].tag[0].text, 'two')
+     })
+
+test('mdoc', 'Bd -literal makes a literal block',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bd -literal\ncode line\n.Ed\n')
+       equal(r.doc.blocks[0].kind, 'pre')
+       equal(flat(r.doc.blocks[0].spans), 'code line')
+     })
+
+test('mdoc', 'Rs and Re collect a reference',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%A A. Author\n.%T A Title\n.%D 2020\n.Re\n')
+       equal(flat(r.doc.blocks[0].spans), 'A. Author, A Title, 2020')
+     })
+
+test('mdoc', 'Ns and Pf control spacing',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Pf $ Ar file\n')
+       equal(flat(r.doc.blocks[0].spans), '$file')
+     })
+
+test('mdoc', 'Ex expands to the standard exit text',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ex -std ls\n')
+       equal(flat(r.doc.blocks[0].spans), 'The ls utility exits 0 on success, and >0 if an error occurs.')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

@@ -4,6 +4,7 @@ You and I are improving the Bred editor.
 
 See Specification.md for a general overview.
 See Files.md for an overview of the source files.
+See doc/Man.md for the manual page viewer and parser, and its current scoreboard.
 
 ## Context
 

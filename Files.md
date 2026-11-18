@@ -830,7 +830,8 @@ Language Server Protocol client
 
 ### js/man.mjs
 
-Manual page viewer. Finds a page with `man -w`, reads the roff source, parses
+Manual page viewer. Design notes and the current scoreboard: `doc/Man.md`.
+Finds a page with `man -w`, reads the roff source, parses
 it, and draws it in a div buffer; a page that cannot be parsed is refused with
 the offending constructs rather than shown badly. References such as `ls(1)`
 set `data-topic`, so clicks follow them; `g` reloads the page.

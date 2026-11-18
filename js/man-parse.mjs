@@ -11,7 +11,7 @@
 import * as Char from './man-char.mjs'
 import * as Roff from './man-roff.mjs'
 
-let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocInlineNames
+let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocInlineNames, mdocNoArg, mdocEncloseNames
 
 fonts = { B: 'bold',
           BI: 'bold',
@@ -210,8 +210,14 @@ function unquote
 
   first = text[0]
   last = text[text.length - 1]
-  if ((first == last) && ("'\"[]|".includes(first)))
-    return text.slice(1, -1)
+  if ((first == last) && ("'\"[]|".includes(first))) {
+    let inner
+
+    inner = text.slice(1, -1)
+    if (first == '"')
+      inner = inner.replace(/""/g, '"')
+    return inner
+  }
   return text
 }
 
@@ -261,7 +267,25 @@ function skipSize
     return skipArg(text, i)
   if ((open == '+') || (open == '-'))
     i++
+  while ((i < text.length) && /[0-9]/.test(text[i]))
+    i++
+  return i
+}
+
+function skipMotion
+(text, i) {
+  let open
+
+  if (i >= text.length)
+    return i
+  open = text[i]
+  if ((open == "'") || (open == '"') || (open == '[') || (open == '('))
+    return skipArg(text, i)
+  if ((text[i] == '+') || (text[i] == '-'))
+    i++
   while ((i < text.length) && /[0-9.]/.test(text[i]))
+    i++
+  while ((i < text.length) && /[a-zA-Z]/.test(text[i]))
     i++
   return i
 }
@@ -482,7 +506,18 @@ function expand
         at = end
         continue
       }
-      if ((ch == 'h') || (ch == 'v') || (ch == 'm') || (ch == 'F') ||
+      if (ch == 'h') {
+        let end, inner, motion
+
+        end = skipMotion(text, at)
+        inner = unquote(text.slice(at, end))
+        motion = Number.parseFloat(inner)
+        if (inner.startsWith('|') || (motion > 0))
+          pushSpan(spans, { text: ' ', style: cur })
+        at = end
+        continue
+      }
+      if ((ch == 'v') || (ch == 'm') || (ch == 'F') ||
           (ch == 'M') || (ch == 'S') || (ch == 'k')) {
         at = skipArg(text, at)
         continue
@@ -697,6 +732,11 @@ function splitArgs
       }
       if (quote) {
         if (text[i] == '"') {
+          if (text[i + 1] == '"') {
+            arg += '"'
+            i += 2
+            continue
+          }
           i++
           break
         }
@@ -743,6 +783,23 @@ function valueAfter
   return after
 }
 
+// A line ending in an odd number of backslashes continues on the next line:
+// the backslash and the newline are both removed. This happens before macro
+// detection, so a continued macro argument can start with a dot.
+function continues
+(text) {
+  let n
+
+  n = 0
+  // `\{\` opens a block here and the trailing backslash is not a
+  // continuation: the block body starts on the next line.
+  if (text.endsWith('\\{\\'))
+    return 0
+  while ((n < text.length) && (text[text.length - 1 - n] == '\\'))
+    n++
+  return (n % 2) ? 1 : 0
+}
+
 function nextInput
 (c) {
   while (c.frames.length) {
@@ -754,6 +811,10 @@ function nextInput
 
       text = f.lines[f.at]
       f.at++
+      while (continues(text) && (f.at < f.lines.length)) {
+        text = text.slice(0, -1) + f.lines[f.at]
+        f.at++
+      }
       return { text, line: f.line + f.at - 1 }
     }
     if (c.frames.length == 1)
@@ -1490,6 +1551,8 @@ function mdocState
            lists: [],
            item: 0,
            pre: 0,
+           preLine: 0,
+           fresh: 0,
            tagMode: 0,
            section: '',
            name: '',
@@ -1507,24 +1570,38 @@ function mdocAppend
 
   if (c.mdoc.pre) {
     if (c.mdoc.pre.started)
-      pushSpan(c.mdoc.pre.spans, { text: '\n' })
+      if (c.mdoc.preLine) {
+        if ((c.mdoc.noSpace == 0) && (c.mdoc.fresh || c.mdoc.sm))
+          pushSpan(c.mdoc.pre.spans, { text: ' ' })
+      }
+      else
+        pushSpan(c.mdoc.pre.spans, { text: '\n' })
     pushSpans(c.mdoc.pre.spans, spans)
     c.mdoc.pre.started = 1
+    c.mdoc.noSpace = 0
+    c.mdoc.fresh = 0
     return
   }
   if (c.lineTarget) {
-    pushSpans(c.lineTarget, spans)
+    mdocPush(c, c.lineTarget, spans)
     return
   }
   if (c.mdoc.tagMode && c.mdoc.item) {
-    pushSpans(c.mdoc.item.tag, spans)
+    mdocPush(c, c.mdoc.item.tag, spans)
     return
   }
   para = paraOf(c).spans
-  if ((para.length > 0) && (c.mdoc.noSpace == 0) && c.mdoc.sm)
-    pushSpan(para, { text: ' ' })
-  pushSpans(para, spans)
+  mdocPush(c, para, spans)
+}
+
+function mdocPush
+(c, target, spans) {
+  if ((target.length > 0) && (c.mdoc.noSpace == 0) &&
+      (c.mdoc.fresh || c.mdoc.sm))
+    pushSpan(target, { text: ' ' })
+  pushSpans(target, spans)
   c.mdoc.noSpace = 0
+  c.mdoc.fresh = 0
 }
 
 function mdocAttach
@@ -1533,29 +1610,47 @@ function mdocAttach
 
   if (c.mdoc.pre) {
     pushSpans(c.mdoc.pre.spans, spans)
+    c.mdoc.noSpace = 0
+    c.mdoc.fresh = 0
     return
   }
   if (c.lineTarget) {
     pushSpans(c.lineTarget, spans)
+    c.mdoc.noSpace = 0
+    c.mdoc.fresh = 0
     return
   }
   if (c.mdoc.tagMode && c.mdoc.item) {
     pushSpans(c.mdoc.item.tag, spans)
+    c.mdoc.noSpace = 0
+    c.mdoc.fresh = 0
     return
   }
   para = paraOf(c).spans
   pushSpans(para, spans)
   c.mdoc.noSpace = 0
+  c.mdoc.fresh = 0
+}
+
+function mdocExpand
+(c, text, style) {
+  let saved, spans
+
+  saved = c.font
+  spans = expand(c, text, style || c.font, c.lineNo).spans
+  if (style)
+    c.font = saved
+  return spans
 }
 
 function mdocText
 (c, text, style) {
-  mdocAppend(c, expand(c, text, style || c.font, c.lineNo).spans)
+  mdocAppend(c, mdocExpand(c, text, style))
 }
 
 function mdocAttachText
 (c, text, style) {
-  mdocAttach(c, expand(c, text, style || c.font, c.lineNo).spans)
+  mdocAttach(c, mdocExpand(c, text, style))
 }
 
 mdocInlineNames = { Ap: 1,
@@ -1625,9 +1720,43 @@ mdocInlineNames = { Ap: 1,
                     Xr: 1,
                     Aq: 1 }
 
+mdocNoArg = { Ns: 1, Ap: 1, Oc: 1, Pc: 1, Dc: 1, Ac: 1, Bc: 1, Sc: 1, Ta: 1 }
+
+// Macros that enclose everything to the end of the current argument list:
+// `.Op Fl e Ar file` is one group, and a nested call afterwards belongs
+// inside it.
+mdocEncloseNames = { Op: 1, Dq: 1, Qq: 1, Sq: 1, Ql: 1, Pq: 1, Bq: 1, Brq: 1, Aq: 1 }
+
 function mdocPunct
 (arg) {
-  return /^[,.;:!?)\]}]+$/.test(arg) ? 1 : 0
+  return ((arg.length == 1) && '.,;:!?)]'.includes(arg)) ? 1 : 0
+}
+
+function mdocSplitPunct
+(args) {
+  let at, punct
+
+  at = args.length
+  punct = []
+  while ((at > 0) && mdocPunct(args[at - 1])) {
+    at--
+    punct.unshift(args[at])
+  }
+  return { words: args.slice(0, at), punct }
+}
+
+function mdocBar
+(c, arg) {
+  if (arg == '|')
+    return 1
+  if (arg.includes('\\') && (expandText(c, arg, c.lineNo) == '|'))
+    return 1
+  return 0
+}
+
+function mdocOpenPunct
+(arg) {
+  return ((arg.length == 1) && '(['.includes(arg)) ? 1 : 0
 }
 
 function mdocWords
@@ -1637,6 +1766,10 @@ function mdocWords
                    return
                  if (mdocPunct(arg))
                    mdocAttachText(c, arg, 'roman')
+                 else if (mdocOpenPunct(arg)) {
+                   mdocText(c, arg, 'roman')
+                   c.mdoc.noSpace = 1
+                 }
                  else
                    mdocText(c, arg, style)
                })
@@ -1645,6 +1778,21 @@ function mdocWords
 // mdoc parses a macro's arguments itself: a callable macro name ends the
 // previous macro's arguments and starts a nested call. That is why
 // `.Op Fl e Ar file` is "[-e file]" and not "[-e -Ar file]".
+function mdocArgEnd
+(c, args, at) {
+  let end
+
+  end = at + 1
+  while ((end < args.length) && (mdocBar(c, args[end]) == 0) && (mdocPunct(args[end]) == 0))
+    if (mdocInlineNames[args[end]] == undefined)
+      end++
+    else if ((args[end] == args[at]) && (end == at + 1))
+      end++
+    else
+      break
+  return end
+}
+
 function mdocInline
 (c, args) {
   let at
@@ -1654,21 +1802,23 @@ function mdocInline
     if (mdocInlineNames[args[at]]) {
       let end
 
-      end = at + 1
-      while ((end < args.length) && ((mdocInlineNames[args[end]] == undefined) ||
-                                     (args[end] == args[at])))
-        end++
+      end = mdocArgEnd(c, args, at)
+      if (mdocNoArg[args[at]])
+        end = at + 1
+      else if (mdocEncloseNames[args[at]])
+        end = args.length
       mdocInlineMacro(c, args[at], args.slice(at + 1, end))
       at = end
       continue
     }
     {
-      let end
+      let end, group
 
       end = at
       while ((end < args.length) && (mdocInlineNames[args[end]] == undefined))
         end++
-      mdocText(c, args.slice(at, end).join(' '), c.font)
+      group = args.slice(at, end)
+      mdocWords(c, group, c.font)
       at = end
     }
   }
@@ -1676,11 +1826,16 @@ function mdocInline
 
 function mdocEnclose
 (c, args, open, close) {
+  let split
+
+  split = mdocSplitPunct(args)
   mdocAppend(c, [ { text: open } ])
   c.mdoc.noSpace = 1
-  if (args.length)
-    mdocInline(c, args)
+  if (split.words.length)
+    mdocInline(c, split.words)
   mdocAttach(c, [ { text: close } ])
+  if (split.punct.length)
+    mdocAttachText(c, split.punct.join(''), 'roman')
 }
 
 function mdocHeading
@@ -1709,6 +1864,7 @@ function mdocListStart
   }
   closeParas(c)
   c.mdoc.list = addBlock(c, { kind: 'list', listType: type, items: [] })
+  c.mdoc.list.depth = c.boxes.length
   c.mdoc.lists.push(c.mdoc.list)
 }
 
@@ -1746,16 +1902,8 @@ function mdocItemStart
 function mdocListEnd
 (c) {
   closeParas(c)
-  while (c.boxes.length > 1) {
-    let last
-
-    last = c.boxes[c.boxes.length - 1]
-    if (last.kind == 'item') {
-      c.boxes.pop()
-      continue
-    }
-    break
-  }
+  while (c.boxes.length > (c.mdoc.list ? c.mdoc.list.depth : 1))
+    c.boxes.pop()
   c.mdoc.lists.pop()
   c.mdoc.list = c.mdoc.lists[c.mdoc.lists.length - 1] || 0
   c.mdoc.item = 0
@@ -1801,10 +1949,17 @@ function mdocDisplayOne
 (c, args, literal) {
   closeParas(c)
   if (literal) {
-    let pre
+    let pre, saved
 
     pre = addBlock(c, { kind: 'pre', spans: [], mono: 1, started: 0 })
-    pushSpans(pre.spans, expand(c, args.join(' '), c.font, c.lineNo).spans)
+    saved = c.mdoc.preLine
+    c.mdoc.pre = pre
+    c.mdoc.preLine = 1
+    mdocInline(c, args)
+    c.mdoc.preLine = saved
+    c.mdoc.pre = 0
+    if (pre.spans.length == 0)
+      pre.spans.push({ text: '', style: 'roman' })
     return
   }
   mdocInline(c, args)
@@ -1822,7 +1977,7 @@ function mdocStandard
 (token) {
   let names
 
-  names = { '-ansiC': 'ANSI C',
+  names = { '-ansiC': 'ANSI X3.159-1989 (“ANSI C89”)',
             '-isoC': 'ISO C',
             '-isoC99': 'ISO C99',
             '-posix': 'POSIX.1',
@@ -1839,15 +1994,18 @@ function mdocInlineMacro
 (c, name, args) {
   switch (name) {
   case 'Nm': {
-    let shown
+    let shown, split
 
-    if (args.length == 0)
+    split = mdocSplitPunct(args)
+    if (split.words.length == 0)
       shown = (c.mdoc.name == '') ? [] : [ c.mdoc.name ]
     else {
-      c.mdoc.name = args[0]
-      shown = args
+      c.mdoc.name = split.words[0]
+      shown = split.words
     }
     shown.forEach(arg => mdocText(c, arg, (c.mdoc.section == 'SYNOPSIS') ? 'bold' : c.font))
+    if (split.punct.length)
+      mdocAttachText(c, split.punct.join(''), 'roman')
     return 1
   }
   case 'Nd':
@@ -1859,7 +2017,7 @@ function mdocInlineMacro
 
     topic = args[0] || ''
     section = (args[1] && /^[0-9]/.test(args[1])) ? args[1] : ''
-    trailing = (section == '') ? (args[1] || '') : (args[2] || '')
+    trailing = args.slice(section ? 2 : 1).join('')
     mdocAppend(c, [ { text: topic + (section ? '(' + section + ')' : ''),
                       style: c.font,
                       href: 'man:' + topic + (section ? '(' + section + ')' : '') } ])
@@ -1867,17 +2025,29 @@ function mdocInlineMacro
       mdocAttachText(c, trailing, 'roman')
     return 1
   }
-  case 'In':
-    mdocAppend(c, [ { text: '<' + args.join(' ') + '>', style: 'roman' } ])
+  case 'In': {
+    let split
+
+    split = mdocSplitPunct(args)
+    mdocAppend(c, [ { text: '<' + split.words.join(' ') + '>', style: 'roman' } ])
+    if (split.punct.length)
+      mdocAttachText(c, split.punct.join(''), 'roman')
     return 1
-  case 'Fl':
-    if (args.length == 0)
+  }
+  case 'Fl': {
+    let split
+
+    split = mdocSplitPunct(args)
+    if (split.words.length == 0)
       mdocText(c, '-', 'bold')
-    else if (args[0] == 'Fl')
-      mdocText(c, '--' + args.slice(1).join('-'), 'bold')
+    else if (split.words[0] == 'Fl')
+      mdocText(c, '--' + split.words.slice(1).join('-'), 'bold')
     else
-      args.forEach(arg => mdocText(c, '-' + arg, 'bold'))
+      split.words.forEach(arg => mdocText(c, '-' + arg, 'bold'))
+    if (split.punct.length)
+      mdocAttachText(c, split.punct.join(''), 'roman')
     return 1
+  }
   case 'Ar':
     if (args.length == 0)
       mdocText(c, 'file ...', 'italic')
@@ -1921,6 +2091,7 @@ function mdocInlineMacro
   }
   case 'Ap':
     mdocAttach(c, [ { text: "'" } ])
+    c.mdoc.noSpace = 1
     return 1
   case 'Lk': {
     let url, text
@@ -1946,7 +2117,7 @@ function mdocInlineMacro
     fn = args[0] || ''
     mdocAppend(c, [ { text: fn, style: 'bold' }, { text: '(', style: 'roman' } ])
     if (args.length > 1)
-      mdocAttach(c, expand(c, args.slice(1).join(', '), 'italic', c.lineNo).spans)
+      mdocAttach(c, mdocExpand(c, args.slice(1).join(', '), 'italic'))
     mdocAttach(c, [ { text: ')', style: 'roman' } ])
     return 1
   }
@@ -2014,18 +2185,27 @@ function mdocInlineMacro
     mdocEnclose(c, args, '[', ']')
     return 1
   case 'Dq':
-  case 'Qq':
     mdocEnclose(c, args, '“', '”')
+    return 1
+  case 'Qq':
+    mdocEnclose(c, args, '"', '"')
     return 1
   case 'Sq':
     mdocEnclose(c, args, '‘', '’')
     return 1
-  case 'Ql':
+  case 'Ql': {
+    let split
+
+    split = mdocSplitPunct(args)
     mdocAppend(c, [ { text: '‘' } ])
-    if (args.length)
-      mdocWords(c, args, 'mono')
+    c.mdoc.noSpace = 1
+    if (split.words.length)
+      mdocWords(c, split.words, 'mono')
     mdocAttach(c, [ { text: '’' } ])
+    if (split.punct.length)
+      mdocAttachText(c, split.punct.join(''), 'roman')
     return 1
+  }
   case 'Pq':
     mdocEnclose(c, args, '(', ')')
     return 1
@@ -2041,6 +2221,7 @@ function mdocInlineMacro
   case 'Oo':
     c.mdoc.opens.push(']')
     mdocAppend(c, [ { text: '[' } ])
+    c.mdoc.noSpace = 1
     if (args.length)
       mdocInline(c, args)
     return 1
@@ -2050,6 +2231,7 @@ function mdocInlineMacro
   case 'Po':
     c.mdoc.opens.push(')')
     mdocAppend(c, [ { text: '(' } ])
+    c.mdoc.noSpace = 1
     if (args.length)
       mdocInline(c, args)
     return 1
@@ -2059,6 +2241,7 @@ function mdocInlineMacro
   case 'Do':
     c.mdoc.opens.push('”')
     mdocAppend(c, [ { text: '“' } ])
+    c.mdoc.noSpace = 1
     if (args.length)
       mdocInline(c, args)
     return 1
@@ -2068,6 +2251,7 @@ function mdocInlineMacro
   case 'Ao':
     c.mdoc.opens.push('⟩')
     mdocAppend(c, [ { text: '⟨' } ])
+    c.mdoc.noSpace = 1
     if (args.length)
       mdocInline(c, args)
     return 1
@@ -2077,6 +2261,7 @@ function mdocInlineMacro
   case 'Bo':
     c.mdoc.opens.push(']')
     mdocAppend(c, [ { text: '[' } ])
+    c.mdoc.noSpace = 1
     if (args.length)
       mdocInline(c, args)
     return 1
@@ -2086,6 +2271,7 @@ function mdocInlineMacro
   case 'So':
     c.mdoc.opens.push('’')
     mdocAppend(c, [ { text: '‘' } ])
+    c.mdoc.noSpace = 1
     if (args.length)
       mdocInline(c, args)
     return 1
@@ -2194,8 +2380,20 @@ function mdocLine
     c.font = c.mdoc.bfPrev || 'roman'
     return 1
   default:
-    if (mdocInlineMacro(c, name, args))
+    if (mdocEncloseNames[name]) {
+      mdocInlineMacro(c, name, args)
       return 1
+    }
+    if (mdocNoArg[name]) {
+      mdocInlineMacro(c, name, [])
+      if (args.length)
+        mdocInline(c, args)
+      return 1
+    }
+    if (mdocInlineNames[name]) {
+      mdocInline(c, [ name, ...args ])
+      return 1
+    }
     return 0
   }
 }
@@ -2205,9 +2403,6 @@ function handleLine
   let name, rest, args
 
   name = control.name
-  if (c.mode == 'mdoc')
-    if (mdocLine(c, control))
-      return
   if (c.mode == 'mdoc')
     if (mdocLine(c, control))
       return
@@ -2712,6 +2907,8 @@ function parse
       continue
     }
     if (control && control.name) {
+      if (c.mode == 'mdoc')
+        c.mdoc.fresh = 1
       handleLine(c, control, style)
       c.lineTarget = 0
       continue
@@ -2726,8 +2923,10 @@ function parse
 
       expanded = expand(c, input.text, style, input.line)
       c.atLineStart = 0
-      if (c.mode == 'mdoc')
+      if (c.mode == 'mdoc') {
+        c.mdoc.fresh = 1
         mdocAppend(c, expanded.spans)
+      }
       else
         addTextLine(c, expanded.spans, expanded.join)
       c.lineTarget = 0
@@ -2765,9 +2964,11 @@ function toText
     else if (b.kind == 'group')
       b.blocks.forEach(block)
     else if (b.kind == 'list')
-      b.items.forEach(item => {
+      b.items.forEach((item, i) => {
                         if (item.tag.length)
                           out += textOf(item.tag) + '\n'
+                        else if (b.listType == 'enum')
+                          out += (i + 1) + '.\n'
                         item.blocks.forEach(block)
                       })
   }

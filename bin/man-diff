@@ -115,6 +115,14 @@ function isHeader
   return /\w+\([0-9][A-Za-z]*\)/.test(line) ? 1 : 0
 }
 
+// BSD-style footers have no name(section) in them: "BSD ... October 26, 2022
+// ... BSD". Only the last line of the output is tested, and a page's final
+// content line does not normally end in a bare date.
+function isFooter
+(line) {
+  return /(19|20)[0-9][0-9]/.test(line) && (line.trim().length < 120) ? 1 : 0
+}
+
 // groff hyphenates at line ends with U+2010; join those back together so the
 // comparison is about content, not line breaking. An ASCII hyphen also breaks
 // a line inside a compound ("git-" + "config(1)"), but only when it is glued
@@ -151,11 +159,15 @@ function referenceText
   text = execFileSync('man', [ '-Tutf8', file ], { encoding: 'utf8',
                                                    stdio: [ 'ignore', 'pipe', 'ignore' ] })
   lines = text.split('\n')
+  while (lines.length && (lines[0].trim() == ''))
+    lines.shift()
   if (lines.length && isHeader(lines[0]))
     lines.shift()
   while (lines.length && lines[lines.length - 1].trim() == '')
     lines.pop()
   if (lines.length && isHeader(lines[lines.length - 1]))
+    lines.pop()
+  else if (lines.length && isFooter(lines[lines.length - 1]))
     lines.pop()
   out = joinHyphens(lines).join('\n')
   return normal(out)

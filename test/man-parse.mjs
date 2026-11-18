@@ -253,6 +253,16 @@ test('conditions', 'a brace block is skipped when false',
        equal(asText('.TH T 1\n.if t \\{\\\nhidden\n.\\}\nshown\n'), 'shown\n')
      })
 
+test('conditions', 'a brace block keeps its first line when true',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.ie n \\{\\\n. ftr V B\n.\\}\n\\f[V]text\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'text')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+     })
+
 test('conditions', 'registers are tested and expanded',
      () => {
        let r
@@ -493,6 +503,140 @@ test('mdoc', 'Dq quotes its nested content',
        equal(flat(r.doc.blocks[0].spans), '“file”')
      })
 
+test('mdoc', 'Qq uses straight double quotes',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Qq Ar file\n')
+       equal(flat(r.doc.blocks[0].spans), '"file"')
+     })
+
+test('mdoc', 'trailing punctuation follows the closing delimiter',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Dq Ar file .\n.Pq Ar file ,\n.Ql file .\n.In sys/stat.h .\n')
+       equal(flat(r.doc.blocks[0].spans), '“file”. (file), ‘file’. <sys/stat.h>.')
+     })
+
+test('mdoc', 'an ellipsis is text, not punctuation',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Op Ar argument ...\n')
+       equal(flat(r.doc.blocks[0].spans), '[argument ...]')
+     })
+
+test('mdoc', 'tag mode spaces consecutive macros',
+     () => {
+       let r, list
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -tag -width x\n.It Fl a Em allexport\nfirst\n.El\n')
+       list = r.doc.blocks[0]
+       equal(flat(list.items[0].tag), '-a allexport')
+     })
+
+test('mdoc', 'Ns suppresses the space before punctuation in a tag',
+     () => {
+       let r, list
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -tag -width x\n.It Fl a Ns , description\nfirst\n.El\n')
+       list = r.doc.blocks[0]
+       equal(flat(list.items[0].tag), '-a, description')
+     })
+
+test('mdoc', 'punctuation ends a macro so the next call is separate',
+     () => {
+       let r, list
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -tag -width x\n.It Fl b , Fl Fl brief\nfirst\n.El\n')
+       list = r.doc.blocks[0]
+       equal(flat(list.items[0].tag), '-b, --brief')
+     })
+
+test('mdoc', 'a closing macro keeps text after it',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Po\n.Dq backquoted\nversion\n.Pc :\n')
+       equal(flat(r.doc.blocks[0].spans), '(“backquoted” version):')
+     })
+
+test('mdoc', 'Oo and Oc nest an optional group',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Op Ar command_file Oo Ar argument ... Oc\n')
+       equal(flat(r.doc.blocks[0].spans), '[command_file [argument ...]]')
+     })
+
+test('mdoc', 'St expands known standards',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\ndefined in\n.St -ansiC .\n')
+       equal(flat(r.doc.blocks[0].spans), 'defined in ANSI X3.159-1989 (“ANSI C89”).')
+     })
+
+test('mdoc', 'Xr keeps all trailing punctuation',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Xr ksh 1 ) .\n')
+       equal(flat(r.doc.blocks[0].spans), 'ksh(1)).')
+     })
+
+test('mdoc', 'Nm with only punctuation keeps the stored name',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh NAME\n.Nm file\n.Nd x\n.Sh D\ntext\n.Nm .\n')
+       equal(flat(r.doc.blocks.filter(b => b.kind == 'para').at(-1).spans), 'text file.')
+     })
+
+test('mdoc', 'Dl attaches trailing punctuation',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Dl $ \\*[Lt]newline\\*[Gt] .\n')
+       equal(flat(r.doc.blocks[0].spans), '$ <newline>.')
+     })
+
+test('mdoc', 'Sm off removes spacing between Dl arguments',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sm off\n.Dl \\*q abc \\*q \\  \\*q def\\ ghi \\*q\n.Sm on\n')
+       equal(flat(r.doc.blocks[0].spans), '"abc" "def ghi"')
+     })
+
+test('mdoc', 'an opening delimiter attaches the next word',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Pa ( https://example.com )\n.Dl [!] command1 [ | command2 ...]\n.Dl { list; }\n')
+       equal(flat(r.doc.blocks[0].spans), '(https://example.com)')
+       equal(flat(r.doc.blocks[1].spans), '[!] command1 [| command2 ...]')
+       equal(flat(r.doc.blocks[2].spans), '{ list; }')
+     })
+
+test('mdoc', 'a bar separates macro calls',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Op Fl H | Fl S\n.Pp\n.Op Fl a \\*(Ba Fl b\n')
+       equal(flat(r.doc.blocks[0].spans), '[-H | -S]')
+       equal(flat(r.doc.blocks[1].spans), '[-a | -b]')
+     })
+
+test('mdoc', 'Sm off does not join separate input lines',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sm off\nfrom a string\n.Pf ( Cm b\n.Sm on\n')
+       equal(flat(r.doc.blocks[0].spans), 'from a string (b')
+     })
+
 test('mdoc', 'Fn formats a function call',
      () => {
        let r
@@ -514,6 +658,15 @@ test('mdoc', 'a tagged list keeps tags and bodies',
        equal(flat(list.items[0].blocks[0].spans), 'first')
      })
 
+test('mdoc', 'an enum list numbers its items in text',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -enum\n.It\nfirst\n.It\nsecond\n.El\n')
+       equal(ManParse.toText(r.doc.blocks).includes('1.'), true)
+       equal(ManParse.toText(r.doc.blocks).includes('2.'), true)
+     })
+
 test('mdoc', 'a nested list stays inside its item',
      () => {
        let r, outer, inner
@@ -523,6 +676,16 @@ test('mdoc', 'a nested list stays inside its item',
        inner = outer.items[0].blocks[0]
        equal(inner.kind, 'list')
        equal(outer.items[1].tag[0].text, 'two')
+     })
+
+test('mdoc', 'text after a nested list stays in the outer item',
+     () => {
+       let r, text
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -tag -width x\n.It echo\nPrint.\n' +
+                  '.Bl -tag -width y\n.It Li a\nAAA\n.El\n.Pp\nAfter.\n.It eval\nConcatenate.\n.El\n')
+       text = ManParse.toText(r.doc.blocks)
+       equal(text.indexOf('After.') < text.indexOf('eval'), true)
      })
 
 test('mdoc', 'Bd -literal makes a literal block',
@@ -637,6 +800,58 @@ test('escapes', 'groff symbol names pl and mi',
      () => {
        equal(flat(parsed('.TH T 1\na \\(pl b \\(mi c\n').doc.blocks[0].spans),
              'a + b − c')
+     })
+
+test('escapes', 'a size escape leaves a following dot alone',
+     () => {
+       equal(flat(parsed('.TH T 1\na \\s-1CPAN\\s0.pm b\n').doc.blocks[0].spans),
+             'a CPAN.pm b')
+     })
+
+test('escapes', 'ha is a caret',
+     () => {
+       equal(flat(parsed('.TH T 1\na \\[ha] b\n').doc.blocks[0].spans), 'a ^ b')
+     })
+
+test('escapes', 'a positive horizontal motion separates words',
+     () => {
+       equal(flat(parsed('.TH T 1\n1.\\h\'+01\'a\n').doc.blocks[0].spans), '1. a')
+     })
+
+test('escapes', 'a negative horizontal motion adds nothing',
+     () => {
+       equal(flat(parsed('.TH T 1\n\\h\'-04\'1.\n').doc.blocks[0].spans), '1.')
+     })
+
+test('escapes', 'an absolute horizontal motion separates words',
+     () => {
+       equal(flat(parsed('.TH T 1\na\\h\'|1u\'b\n').doc.blocks[0].spans), 'a b')
+     })
+
+test('escapes', 'a trailing backslash joins the next line before parsing',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TP\ntag \\\n... continued\nbody\n')
+       equal(flat(r.doc.blocks[0].tag), 'tag ... continued')
+       equal(flat(r.doc.blocks[0].blocks.filter(b => b.kind == 'para')[0].spans), 'body')
+     })
+
+test('fonts', 'a doubled quote inside an argument is literal',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.ie n .IP """auto""" 4\n.el .IP "\\f(CWauto\\fR" 4\nbody\n')
+       r = r.doc.blocks.find(b => b.kind == 'tag')
+       equal(flat(r.tag), '"auto"')
+     })
+
+test('headings', 'a doubled quote inside a heading is literal',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.SS "Unknown Specials and ""TEX_HUSH"" configuration"\n')
+       equal(flat(r.doc.blocks[0].spans), 'Unknown Specials and "TEX_HUSH" configuration')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

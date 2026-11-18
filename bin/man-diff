@@ -112,11 +112,13 @@ function normal
 
 function isHeader
 (line) {
-  return /\w+\([0-9][a-z]*\)/.test(line) ? 1 : 0
+  return /\w+\([0-9][A-Za-z]*\)/.test(line) ? 1 : 0
 }
 
 // groff hyphenates at line ends with U+2010; join those back together so the
-// comparison is about content, not line breaking.
+// comparison is about content, not line breaking. An ASCII hyphen also breaks
+// a line inside a compound ("git-" + "config(1)"), but only when it is glued
+// to a word; a standalone minus ("Note -") is real text and stays separate.
 function joinHyphens
 (lines) {
   let out
@@ -125,14 +127,17 @@ function joinHyphens
   lines.forEach(line => {
                 let last
 
+                line = normal(line)
                 last = out[out.length - 1]
-                if ((last != undefined) && /[\u2010\u2011]$/.test(last)) {
-                  out[out.length - 1] = last.slice(0, -1) + line.replace(/^ +/, '')
-                  return
-                }
-                if ((last != undefined) && /-$/.test(last)) {
-                  out[out.length - 1] = last + line.replace(/^ +/, '')
-                  return
+                if (last != undefined) {
+                  if (/[\u2010\u2011]$/.test(last)) {
+                    out[out.length - 1] = last.slice(0, -1) + line
+                    return
+                  }
+                  if (/[A-Za-z0-9]-$/.test(last)) {
+                    out[out.length - 1] = last + line
+                    return
+                  }
                 }
                 out.push(line)
               })

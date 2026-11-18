@@ -131,8 +131,8 @@ escapeChars = { '\\': '\\',
                 '`': '`',
                 ' ': ' ',
                 '~': ' ',
-                '|': ' ',
-                '^': ' ',
+                '|': '',
+                '^': '',
                 '%': '',
                 ':': '',
                 ',': '',
@@ -619,6 +619,10 @@ function appendInline
     target = c.link.spans
   else
     target = paraOf(c).spans
+  if ((c.mode == 'man') && c.atLineStart && (c.lineTarget == 0) &&
+      (target.length > 0) && (spans[0] && (spans[0].br == undefined)))
+    pushSpan(target, { text: ' ', style: c.font })
+  c.atLineStart = 0
   pushSpans(target, spans)
 }
 
@@ -1180,8 +1184,6 @@ function synopsisStart
     pushSpan(p.spans, { text: args[0], style: 'bold' })
     if (args[1])
       pushSpan(p.spans, { text: args[1], style: 'bold' })
-    else
-      pushSpan(p.spans, { text: ' ', style: 'roman' })
   }
 }
 
@@ -2655,6 +2657,7 @@ function parse
         lineTarget: 0,
         nextTarget: 0,
         nextStyle: 0,
+        atLineStart: 0,
         nextHeading: 0,
         joinNext: 0,
         nextSkip: 0,
@@ -2670,6 +2673,7 @@ function parse
     let control, style
 
     c.lineNo = input.line
+    c.atLineStart = 1
     if (c.nextSkip) {
       c.nextSkip = 0
       continue
@@ -2714,6 +2718,7 @@ function parse
       let expanded
 
       expanded = expand(c, input.text, style, input.line)
+      c.atLineStart = 0
       if (c.mode == 'mdoc')
         mdocAppend(c, expanded.spans)
       else

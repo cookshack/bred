@@ -603,6 +603,22 @@ test('links', 'other macro packages fail the page',
        equal(r.fails[0].what, 'mso strange.tmac')
      })
 
+test('spacing', 'a thin space does not make a word gap',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.RI [ OPTION .\\|.\\|.]\n')
+       equal(flat(r.doc.blocks[0].spans), '[OPTION...]')
+     })
+
+test('spacing', 'a macro on its own line is a new word',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.B one\n.I two\n')
+       equal(flat(r.doc.blocks[0].spans), 'one two')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

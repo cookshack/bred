@@ -49,9 +49,8 @@ function sessionMetadata
   let workspace
 
   workspace = buf.vars('code').workspaceID
-  if (!workspace)
-    return undefined
-  return { bred: { workspace } }
+  if (workspace)
+    return { bred: { workspace } }
 }
 
 function codeInit

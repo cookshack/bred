@@ -123,7 +123,15 @@
   border-bottom: 1px solid var(--clr-fill);
 }
 
-.manpage-w .man-table.man-box td {
+.manpage-w .man-table.man-box {
+  border: 1px solid var(--clr-fill);
+}
+
+.manpage-w .man-table.man-allbox {
+  border: 1px solid var(--clr-fill);
+}
+
+.manpage-w .man-table.man-allbox td {
   border: 1px solid var(--clr-fill);
 }
 

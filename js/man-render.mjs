@@ -130,7 +130,7 @@ function tableNode
 
   el = globalThis.document.createElement('table')
   el.className = 'man-table' + (block.options.box ? ' man-box' : '') +
-                 (block.options.allbox ? ' man-box' : '')
+                 (block.options.allbox ? ' man-allbox' : '')
   body = globalThis.document.createElement('tbody')
   el.appendChild(body)
   block.rows.forEach(row => {

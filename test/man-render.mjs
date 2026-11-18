@@ -102,6 +102,17 @@ test('tables', 'cells carry alignment classes and colspans',
        equal(cells[1].className.includes('man-right'), true)
      })
 
+test('tables', 'box and allbox are distinct classes',
+     () => {
+       let out
+
+       out = draw('.TH T 1\n.TS\nbox;\nl l.\na\tb\n.TE\n')
+       equal(out.el.querySelector('table').className.includes('man-box'), true)
+       equal(out.el.querySelector('table').className.includes('man-allbox'), false)
+       out = draw('.TH T 1\n.TS\nallbox;\nl l.\na\tb\n.TE\n')
+       equal(out.el.querySelector('table').className.includes('man-allbox'), true)
+     })
+
 test('refusal', 'refused pages have no document to draw',
      () => {
        let res

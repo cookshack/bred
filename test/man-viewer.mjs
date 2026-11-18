@@ -190,6 +190,27 @@ test('viewer', 'a redirect page follows to its target',
        equal(textOf(b).includes('the shell'), true)
      })
 
+test('viewer', 'a mid-page include is gathered before parsing',
+     async () => {
+       let b
+
+       setup({ builtins: '.TH B 1\n.SH NAME\nbefore text\n.so man1/bash.1\n',
+               bash: '.TH BASH 1\n.SH NAME\nbash \\- the shell\n' })
+       b = await opened('builtins')
+       equal(textOf(b).includes('before text'), true)
+       equal(textOf(b).includes('the shell'), true)
+     })
+
+test('viewer', 'an unresolved include is refused',
+     async () => {
+       let b
+
+       setup({ lost: '.TH L 1\n.SH NAME\n.so man1/nope.1\n' })
+       b = await opened('lost')
+       equal(viewOf(b).ele.querySelector('.manpage-err-item').textContent,
+             'include man1/nope.1 (line 3)')
+     })
+
 test('viewer', 'a reference link opens the target topic',
      async () => {
        let b, a, ev

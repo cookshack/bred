@@ -18,13 +18,11 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
 1. `man -w topic` gives the installed source path (respects `MANPATH`, locale).
 2. Read it with `zcat` (fall back to `cat`).
 3. `.so`-only redirect pages are followed as topics (up to depth 3).
-4. `ManParse.parse(source)` → block model.
-5. `ManRender.render(doc)` → DOM; the view's content element is replaced.
-
-Mid-page `.so` includes are refused by the viewer: the parser accepts an
-include loader, but the viewer is synchronous at that point and cannot read
-files. Fixing that means pre-fetching includes or resolving them in the main
-process.
+4. Mid-page `.so` targets are resolved first: `gatherIncludes` turns each
+   target into a topic, reads it with `man -w`, and recurses (up to depth 5).
+   The collected text is passed to the parser as its include loader.
+5. `ManParse.parse(source)` → block model.
+6. `ManRender.render(doc)` → DOM; the view's content element is replaced.
 
 ## Modules
 
@@ -34,7 +32,7 @@ process.
 | `js/man-char.mjs` | closed table for `\(xx` / `\[name]`; unknown names fail |
 | `js/man-parse.mjs` | interpreter for man(7), mdoc(7) and tbl; conditions, macros, strings, registers; block model; implicit `name(section)` linkification |
 | `js/man-render.mjs` | block model → DOM (headings, paragraphs, tags, insets, lists, tables, pre, links) |
-| `js/man.mjs` | viewer mode/commands: fetch, buffer per topic, reload, click-to-follow, TOC |
+| `js/man.mjs` | viewer mode/commands: fetch, include prefetch, buffer per topic, reload, click-to-follow, TOC |
 | `bin/man-audit` | corpus report; `--parse` runs the interpreter |
 | `bin/man-diff` | content diff against `man -Tutf8` |
 | `css/manpage.css` | page styles (reflow, no fixed width) |
@@ -89,17 +87,14 @@ Tests: 140 (inventory, interpreter, renderer, viewer).
 
 ## Known gaps, in order
 
-1. Mid-page `.so` includes (3 pages: `rbash.1`, `bash-builtins.7`,
-   `builtins.7`) — the parser takes an include loader, but the viewer has no
-   read path to pass one.
-2. Topic completion in the prompt (`Prompt.ask` has a `suggest` hook); the
+1. Topic completion in the prompt (`Prompt.ask` has a `suggest` hook); the
    prompt only uses the word at point as a placeholder today.
-3. Table styling: `box` should be an outer frame while `allbox` borders every
+2. Table styling: `box` should be an outer frame while `allbox` borders every
    cell; both currently use the same CSS.
-4. `man -w` fallback for systems where `man` is mandoc (`man --path`).
-5. Div buffers are not searchable with isearch; that is a general limitation of
+3. `man -w` fallback for systems where `man` is mandoc (`man --path`).
+4. Div buffers are not searchable with isearch; that is a general limitation of
    div views, not specific to man pages.
-6. mdoc `Ex`/`Rv` expand to canned sentences; they are approximations of the
+5. mdoc `Ex`/`Rv` expand to canned sentences; they are approximations of the
    real macro text.
 
 ## Changing it

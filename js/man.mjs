@@ -209,10 +209,10 @@ function init
   }
 
   function parseInto
-  (st, text) {
+  (st, text, includes) {
     let res
 
-    res = ManParse.parse(text)
+    res = ManParse.parse(text, { include: target => includes[target] || 0 })
     st.ok = res.ok
     st.doc = res.doc
     st.fails = res.fails
@@ -220,16 +220,68 @@ function init
       Mess.yell('man: cannot render ' + st.topic + ' (' + res.fails.length + ' construct(s))')
   }
 
+  // A mid-page .so needs its target before parse() runs, because the parser is
+  // synchronous. Collect the chain first and hand the parser a lookup table.
+  function includeTargets
+  (text) {
+    let out
+
+    out = []
+    text.split('\n').forEach(line => {
+                               let m
+
+                               m = /^[ \t]*\.so[ \t]+(\S+)/.exec(line)
+                               if (m && (out.includes(m[1]) == 0))
+                                 out.push(m[1])
+                             })
+    return out
+  }
+
+  function gatherIncludes
+  (dir, text, depth, includes, cb) {
+    let targets
+
+    function next
+    (at) {
+      if (at >= targets.length) {
+        cb()
+        return
+      }
+      fetchPage(dir, manPathTopic(targets[at]), 0, (err, text2) => {
+                                                     if (err == 0) {
+                                                       includes[targets[at]] = text2
+                                                       gatherIncludes(dir, text2, depth + 1, includes, () => next(at + 1))
+                                                     }
+                                                     else
+                                                       next(at + 1)
+                                                   })
+    }
+    targets = includeTargets(text).filter(target => includes[target] == undefined)
+    if ((depth > 4) || (targets.length == 0)) {
+      cb()
+      return
+    }
+    next(0)
+  }
+
   function loadInto
-  (st, err, text, path) {
-    st.loading = 0
+  (dir, st, err, text, path, cb) {
+    let includes
+
     st.path = path || ''
     if (err) {
       st.error = err
+      st.loading = 0
       Mess.yell('man: ' + err)
+      cb()
+      return
     }
-    else
-      parseInto(st, text)
+    includes = {}
+    gatherIncludes(dir, text, 0, includes, () => {
+                                             parseInto(st, text, includes)
+                                             st.loading = 0
+                                             cb()
+                                           })
   }
 
   function reload
@@ -243,8 +295,7 @@ function init
     st.fails = []
     b.views.forEach(render)
     fetchPage(dir, st.topic, 0, (err, text, path) => {
-                                  loadInto(st, err, text, path)
-                                  b.views.forEach(render)
+                                  loadInto(dir, st, err, text, path, () => b.views.forEach(render))
                                 })
   }
 

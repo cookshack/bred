@@ -1046,6 +1046,9 @@ function condition
     return negate ? 1 : 0
   if ((rest == '') && (cond == 'v'))
     return negate ? 1 : 0
+  if ((rest == '') && (cond == 'c'))
+    // compatibility mode is off by default
+    return negate ? 1 : 0
   if (cond[0] == 'd') {
     let name
 
@@ -2401,6 +2404,10 @@ function handleLine
     appendInline(c, spans)
     break
   }
+  case 'pc':
+  case 'cp':
+    // page character and compatibility mode: presentation only
+    break
   case 'PD':
   case 'DT':
   case 'UC':

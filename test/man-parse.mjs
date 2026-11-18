@@ -619,6 +619,26 @@ test('spacing', 'a macro on its own line is a new word',
        equal(flat(r.doc.blocks[0].spans), 'one two')
      })
 
+test('groff requests', 'pc and cp are presentation only',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.pc\n.cp 1\nvisible\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'visible')
+     })
+
+test('conditions', 'if c is false by default',
+     () => {
+       equal(asText('.TH T 1\n.if c hidden\nshown\n'), 'shown\n')
+     })
+
+test('escapes', 'groff symbol names pl and mi',
+     () => {
+       equal(flat(parsed('.TH T 1\na \\(pl b \\(mi c\n').doc.blocks[0].spans),
+             'a + b − c')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

@@ -74,6 +74,12 @@ Per repo you edit, once per session:
    `git -C <repo> worktree add "${BRED_WORKTREE_ROOT:-/tmp/opencode}/<repo>" agent/<repo>-<session>`
    (or start a fresh task branch from the target if it is checked out elsewhere).
 
+Stay in the session's own directory: the session's location stays the project
+dir and the worktree work happens by absolute path (`git -C <worktree> …`,
+`edit`/`write` with the full path). Never relocate the session — `session_move`
+is disabled, because the session's directory is what the Code Sessions list,
+the session store and a restart are all keyed on.
+
 Per task:
 
 1. Re-read the repo's current branch as the target branch.

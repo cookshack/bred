@@ -27,7 +27,8 @@ COPY skills /home/matt/.config/opencode/skills
 # Global rules so every session knows the agent cannot push
 COPY global-AGENTS.md /home/matt/.config/opencode/AGENTS.md
 
-# Global plugin: no background shell commands (keeps blocking calls visible)
+# Global plugins: no background shell commands (keeps blocking calls visible),
+# no session relocation (worktrees are worked in by absolute path)
 COPY plugin /home/matt/.config/opencode/plugin
 
 RUN mkdir -p /home/matt/.local/share/opencode && chown -R matt:matt /home/matt/.local /home/matt/tools /home/matt/.config

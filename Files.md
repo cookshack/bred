@@ -1088,4 +1088,8 @@ Contains executable scripts and utilities:
 - `man-audit` - Reports which installed man pages cannot be rendered, and why.
   `--parse` runs the interpreter; otherwise it reports the static inventory.
   Also takes `--root`, `--list` and `--json`
+- `man-diff` - Compares the parser's text with `man -Tutf8` over an installed
+  corpus and reports reference words missing from our output. `--page FILE`
+  shows one page in detail; also `--root`, `--section`, `--max`, `--min`,
+  `--all` and `--list`
 

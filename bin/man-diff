@@ -1,0 +1,287 @@
+#!/usr/bin/env node
+
+// Compare what js/man-parse.mjs renders with what man(1) prints, over an
+// installed corpus. This is a content check, not a layout check: it reports
+// reference words that are missing from our text, worst pages first.
+//
+//   bin/man-diff [--root DIR] [--section N] [--max N] [--min N] [--list]
+//   bin/man-diff --page /usr/share/man/man1/ls.1.gz
+//
+// Exit status is 1 when the report is empty of problems? No: this is a
+// diagnostic, so it exits 0 unless it could not run.
+
+import { execFileSync } from 'node:child_process'
+import Fs from 'node:fs'
+import Path from 'node:path'
+import Zlib from 'node:zlib'
+
+import * as ManParse from '../js/man-parse.mjs'
+
+let opts, stats
+
+function usage
+() {
+  console.log('usage: man-diff [--root DIR] [--section N] [--max N] [--min N] [--all] [--list] [--page FILE]')
+}
+
+function parseArgs
+(argv) {
+  let out
+
+  out = { root: '/usr/share/man', section: '', max: 0, min: 20, list: 0, page: '', all: 0 }
+  for (let i = 0; i < argv.length; i++) {
+    let arg
+
+    arg = argv[i]
+    if (arg == '--root') {
+      i++
+      out.root = argv[i]
+    }
+    else if (arg == '--section') {
+      i++
+      out.section = argv[i]
+    }
+    else if (arg == '--max') {
+      i++
+      out.max = Number(argv[i]) || 0
+    }
+    else if (arg == '--min') {
+      i++
+      out.min = Number(argv[i]) || 0
+    }
+    else if (arg == '--list')
+      out.list = 1
+    else if (arg == '--all')
+      out.all = 1
+    else if (arg == '--page') {
+      i++
+      out.page = argv[i]
+    }
+    else {
+      console.error('unknown argument: ' + arg)
+      usage()
+      process.exit(2)
+    }
+  }
+  return out
+}
+
+function walk
+(dir, out, seen) {
+  let entries
+
+  if (seen[dir])
+    return
+  seen[dir] = 1
+  try {
+    entries = Fs.readdirSync(dir, { withFileTypes: true })
+  }
+  catch (err) {
+    return
+  }
+  entries.forEach(entry => {
+                    let full
+
+                    full = Path.join(dir, entry.name)
+                    if (entry.isDirectory())
+                      walk(full, out, seen)
+                    else if (/^man[1-9]/.test(Path.basename(dir)))
+                      out.push(full)
+                  })
+}
+
+function readPage
+(file) {
+  let buf
+
+  buf = Fs.readFileSync(file)
+  if (file.endsWith('.gz'))
+    buf = Zlib.gunzipSync(buf)
+  return buf.toString('utf8')
+}
+
+// Strip backspace overstrikes (bold/underline) and collapse whitespace.
+function normal
+(text) {
+  return text.replace(/.\x08/g, '').replace(/\x1b\[[0-9;]*m/g, '').replace(/\s+/g, ' ').trim()
+}
+
+function isHeader
+(line) {
+  return /\w+\([0-9][a-z]*\)/.test(line) ? 1 : 0
+}
+
+// groff hyphenates at line ends with U+2010; join those back together so the
+// comparison is about content, not line breaking.
+function joinHyphens
+(lines) {
+  let out
+
+  out = []
+  lines.forEach(line => {
+                let last
+
+                last = out[out.length - 1]
+                if ((last != undefined) && /[\u2010\u2011]$/.test(last)) {
+                  out[out.length - 1] = last.slice(0, -1) + line.replace(/^ +/, '')
+                  return
+                }
+                out.push(line)
+              })
+  return out
+}
+
+function referenceText
+(file) {
+  let text, lines, out
+
+  text = execFileSync('man', [ '-Tutf8', file ], { encoding: 'utf8',
+                                                   stdio: [ 'ignore', 'pipe', 'ignore' ] })
+  lines = text.split('\n')
+  if (lines.length && isHeader(lines[0]))
+    lines.shift()
+  while (lines.length && lines[lines.length - 1].trim() == '')
+    lines.pop()
+  if (lines.length && isHeader(lines[lines.length - 1]))
+    lines.pop()
+  out = joinHyphens(lines).join('\n')
+  return normal(out)
+}
+
+function wordsOf
+(text) {
+  return text.split(' ').filter(word => word.length)
+}
+
+function missingWords
+(refWords, ourWords) {
+  let counts, missing, sample
+
+  counts = new Map()
+  ourWords.forEach(word => {
+                     counts.set(word, (counts.get(word) || 0) + 1)
+                   })
+  missing = 0
+  sample = []
+  refWords.forEach(word => {
+                     let left
+
+                     left = counts.get(word) || 0
+                     if (left > 0)
+                       counts.set(word, left - 1)
+                     else {
+                       missing++
+                       if ((sample.length < 8) && (sample.includes(word) == 0))
+                         sample.push(word)
+                     }
+                   })
+  return { missing, sample }
+}
+
+function diffPage
+(file) {
+  let src, res, ref, ours
+
+  src = readPage(file)
+  res = ManParse.parse(src)
+  if (res.ok == 0)
+    return { file, refused: 1, fails: res.fails }
+  ref = wordsOf(referenceText(file))
+  ours = wordsOf(normal(ManParse.toText(res.doc.blocks)))
+  if (ref.length < opts.min)
+    return { file, small: 1, refWords: ref.length }
+  return { file,
+           refWords: ref.length,
+           ourWords: ours.length,
+           ...missingWords(ref, ours) }
+}
+
+function detail
+(file) {
+  let src, res, ref, ours, a, b, at
+
+  src = readPage(file)
+  res = ManParse.parse(src)
+  console.log('file  ' + file)
+  console.log('ok    ' + res.ok)
+  if (res.ok == 0) {
+    console.log('fails ' + res.fails.map(item => item.what + '@' + item.line).join(', '))
+    return
+  }
+  ref = wordsOf(referenceText(file))
+  ours = wordsOf(normal(ManParse.toText(res.doc.blocks)))
+  at = 0
+  while ((at < ref.length) && (at < ours.length) && (ref[at] == ours[at]))
+    at++
+  console.log('words ' + ours.length + ' ours / ' + ref.length + ' man')
+  console.log('at    ' + at)
+  console.log('ours  ' + JSON.stringify(ours.slice(Math.max(0, at - 3), at + 8)))
+  console.log('man   ' + JSON.stringify(ref.slice(Math.max(0, at - 3), at + 8)))
+  console.log('lost  ' + JSON.stringify(missingWords(ref, ours).sample))
+}
+
+opts = parseArgs(process.argv.slice(2))
+
+if (opts.page) {
+  detail(opts.page)
+  process.exit(0)
+}
+
+stats = { pages: 0, compared: 0, refused: 0, small: 0, noisy: 0, missing: 0, worst: [] }
+
+{
+  let files
+
+  files = []
+  walk(opts.root, files, {})
+  if (opts.all == 0)
+    files = files.filter(file => Path.dirname(Path.dirname(file)) == opts.root)
+  if (opts.section)
+    files = files.filter(file => Path.basename(Path.dirname(file)) == ('man' + opts.section))
+  if (opts.max)
+    files = files.slice(0, opts.max)
+  files.forEach(file => {
+                   let out
+
+                   stats.pages++
+                   try {
+                     out = diffPage(file)
+                   }
+                   catch (err) {
+                     stats.refused++
+                     return
+                   }
+                   if (out.refused) {
+                     stats.refused++
+                     return
+                   }
+                   if (out.small) {
+                     stats.small++
+                     return
+                   }
+                   stats.compared++
+                   if (out.missing == 0)
+                     return
+                   stats.noisy++
+                   stats.missing += out.missing
+                   stats.worst.push(out)
+                 })
+}
+
+stats.worst.sort((a, b) => b.missing - a.missing)
+console.log('man-diff')
+console.log('')
+console.log('  pages     ' + stats.pages)
+console.log('  compared  ' + stats.compared + '  (refused ' + stats.refused +
+            ', too small ' + stats.small + ')')
+console.log('  pages with missing words  ' + stats.noisy +
+            '  (' + stats.missing + ' words total)')
+if (stats.worst.length) {
+  console.log('')
+  console.log('worst:')
+  stats.worst.slice(0, opts.list ? 500 : 20).forEach(out => {
+                                                      console.log('  ' + String(out.missing).padStart(5) +
+                                                                  '  ' + out.file.replace(opts.root, '') +
+                                                                  '  ' + JSON.stringify(out.sample))
+                                                    })
+}

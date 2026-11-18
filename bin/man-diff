@@ -103,7 +103,11 @@ function readPage
 // Strip backspace overstrikes (bold/underline) and collapse whitespace.
 function normal
 (text) {
-  return text.replace(/.\x08/g, '').replace(/\x1b\[[0-9;]*m/g, '').replace(/\s+/g, ' ').trim()
+  return text.replace(/.\x08/g, '')
+             .replace(/\x1b\[[0-9;]*m/g, '')
+             .replace(/[\u2500-\u257f•]/g, ' ')
+             .replace(/\s+/g, ' ')
+             .trim()
 }
 
 function isHeader
@@ -124,6 +128,10 @@ function joinHyphens
                 last = out[out.length - 1]
                 if ((last != undefined) && /[\u2010\u2011]$/.test(last)) {
                   out[out.length - 1] = last.slice(0, -1) + line.replace(/^ +/, '')
+                  return
+                }
+                if ((last != undefined) && /-$/.test(last)) {
+                  out[out.length - 1] = last + line.replace(/^ +/, '')
                   return
                 }
                 out.push(line)

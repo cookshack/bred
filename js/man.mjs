@@ -14,6 +14,14 @@ import * as Shell from './shell.mjs'
 import * as View from './view.mjs'
 //import { d } from './mess.mjs'
 
+let openImpl
+
+export
+function open
+(text) {
+  openImpl(text)
+}
+
 export
 function init
 () {
@@ -94,7 +102,7 @@ function init
       return
     if (a.dataset.topic) {
       we.preventDefault()
-      runMan(a.dataset.topic)
+      openPage(a.dataset.topic)
       return
     }
     if ((a.getAttribute('href') || '').startsWith('#')) {
@@ -240,7 +248,7 @@ function init
                                 })
   }
 
-  function runMan
+  function openPage
   (text) {
     let topic, p, b, st
 
@@ -287,13 +295,15 @@ function init
                  hist,
                  placeholder: word },
                prompt => {
-                 runMan(prompt || word)
+                 openPage(prompt || word)
                })
   }
 
   hist = Hist.ensure('man')
 
   mode = Mode.add('Manpage', { viewInit })
+
+  openImpl = openPage
 
   Cmd.add('man', () => man())
   Cmd.add('man refresh', () => {

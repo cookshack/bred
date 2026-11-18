@@ -62,16 +62,18 @@ Per repo you edit, once per session:
 1. `cd <repo>`; record its current branch — `git -C <repo> branch --show-current`
    — as the target branch.
 2. Create one persistent worktree for this session:
-   `git -C <repo> worktree add -b agent/<repo>-<session> "${BRED_WORKTREE_ROOT:-/tmp/opencode}/<repo>" <target>`
+   `git -C <repo> worktree add -b agent/<repo>-${BRED_WORKSPACE:0:8} "${BRED_WORKTREE_ROOT:-/tmp/opencode}/<repo>" <target>`
    `$BRED_WORKTREE_ROOT` is a host directory mounted into the container at the
    same absolute path, so the user can browse the worktree live from the host
-   while you work. When it is unset (a non-docker run), fall back to
-   `/tmp/opencode`.
+   while you work. It is keyed by `$BRED_WORKSPACE`, which is stable for the
+   session, so a restart resumes in the same root — not a new one. When either
+   is unset (a non-docker run), fall back to `/tmp/opencode`.
 
-   Worktrees and their branches persist on the host, so a resumed session can
-   already have `agent/<repo>-<session>`. If `worktree add -b` says the branch
-   exists, attach it without `-b`:
-   `git -C <repo> worktree add "${BRED_WORKTREE_ROOT:-/tmp/opencode}/<repo>" agent/<repo>-<session>`
+   Worktrees and their branches persist on the host, so a resumed session
+   already has `agent/<repo>-${BRED_WORKSPACE:0:8}` and the same worktree
+   directory. If `worktree add -b` says the branch exists, attach it without
+   `-b`:
+   `git -C <repo> worktree add "${BRED_WORKTREE_ROOT:-/tmp/opencode}/<repo>" agent/<repo>-${BRED_WORKSPACE:0:8}`
    (or start a fresh task branch from the target if it is checked out elsewhere).
 
 Stay in the session's own directory: the session's location stays the project
@@ -94,7 +96,7 @@ Per task:
    `cd <repo> && git merge --ff-only agent/<repo>-<task>`.
 6. Reset the worktree back onto the session branch (the task branch is checked out
    in it, so the canonical dir cannot delete it yet), then delete the task branch:
-   `git -C <worktree> checkout agent/<repo>-<session>` then
+   `git -C <worktree> checkout agent/<repo>-${BRED_WORKSPACE:0:8}` then
    `git -C <repo> branch -D agent/<repo>-<task>`.
 
 A task touching multiple repos gets **one worktree per repo**, each merged into its

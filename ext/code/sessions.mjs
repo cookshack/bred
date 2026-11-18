@@ -21,6 +21,23 @@ import * as Prompt from './prompt.mjs'
 import * as Ui from './ui.mjs'
 import * as Util from './util.mjs'
 
+// The bred workspace id stamped into a session's metadata, when it has one.
+// The list provides metadata as an object; the search query as JSON text.
+function workspaceOf
+(s) {
+  let md
+
+  md = s.metadata
+  if (typeof md == 'string')
+    try {
+      md = JSON.parse(md)
+    }
+    catch {
+      md = undefined
+    }
+  return md?.bred?.workspace || ''
+}
+
 function toolText
 (state) {
   let i, out
@@ -379,6 +396,7 @@ function init
                                                { 'data-run': 'open code session',
                                                  'data-session-id': s.id,
                                                  'data-session-dir': view.buf.dir,
+                                                 'data-session-workspace': workspaceOf(s),
                                                  'data-session-agent': s.agent || '',
                                                  'data-session-time': s.time?.created }),
                                          sessionTitle(s.parentID, s.agent, (s.title || ('New session - ' + new Date(s.time?.created || Date.now()).toISOString())).split('\n')[0], r.depth) ]
@@ -488,6 +506,7 @@ function init
                                                  { 'data-run': 'open code session',
                                                    'data-session-id': s.id,
                                                    'data-session-dir': s.directory,
+                                                   'data-session-workspace': workspaceOf(s),
                                                    'data-session-agent': s.agent || '',
                                                    'data-session-time': s.time_created }),
                                            sessionTitle(s.parent_id, s.agent, (s.title || '').split('\n')[0]) ]
@@ -500,6 +519,7 @@ function init
                                                { 'data-run': 'open code session',
                                                  'data-session-id': s.id,
                                                  'data-session-dir': s.directory,
+                                                 'data-session-workspace': workspaceOf(s),
                                                  'data-session-agent': s.agent || '',
                                                  'data-session-time': s.time_created }),
                                          sessionTitle(s.parent_id, s.agent, (s.title || '').split('\n')[0]),
@@ -510,7 +530,7 @@ function init
 
   function openCodeSession
   (u, we) {
-    let sessionID, sessionDir, sessionAgent, ts, pane, name, existing
+    let sessionID, sessionDir, sessionWorkspace, sessionAgent, ts, pane, name, existing
 
     function open
     (mounts) {
@@ -546,6 +566,8 @@ function init
       buf.vars('code').model = model
       buf.vars('code').variant = variant
       buf.vars('code').sessionID = sessionID
+      // Reuse this session's worktree root, so its checkouts survive restarts.
+      buf.vars('code').workspaceID = sessionWorkspace
       buf.vars('code').mounts = mounts
       if (ts)
         buf.vars('code').sessionStart = ts
@@ -629,6 +651,7 @@ function init
 
     sessionID = we.e.target.dataset.sessionId
     sessionDir = we.e.target.dataset.sessionDir
+    sessionWorkspace = we.e.target.dataset.sessionWorkspace
     sessionAgent = we.e.target.dataset.sessionAgent
     ts = we.e.target.dataset.sessionTime
     if (ts)

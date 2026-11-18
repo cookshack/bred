@@ -3,6 +3,7 @@ import * as Config from './main-code-config.mjs'
 import * as Mounts from './main-code-mounts.mjs'
 import Database from 'better-sqlite3'
 import Path from 'node:path'
+import { randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import { d } from './main-log.mjs'
 import { resolveDataDir } from './main-oc-data.mjs'
@@ -26,16 +27,21 @@ function basicAuth
 export
 async function onSpawn
 (e, ch, args) {
-  let [ bufferID, workingDir, statusCh, mounts ] = args
+  let [ bufferID, workingDir, statusCh, mounts, workspaceID ] = args
   let external, name
 
   external = process.env.BRED_OC_SERVER_URL
   name = external ? '' : Server.containerName(bufferID)
+  // Stable for the session's life (reopening passes the one stored in its
+  // metadata), so the agent's worktrees survive a restart instead of moving to
+  // a new root keyed by the app pid and buffer id.
+  workspaceID = workspaceID || randomUUID()
 
-  d('CODE spawn ' + bufferID + ' in ' + workingDir)
+  d('CODE spawn ' + bufferID + ' in ' + workingDir + ' workspace ' + workspaceID)
 
   e.sender.send(statusCh, { containerName: name,
-                            worktreeRoot: name ? Mounts.worktreeRoot(process.env.HOME, name) : '' })
+                            workspaceID,
+                            worktreeRoot: name ? Mounts.worktreeRoot(process.env.HOME, workspaceID) : '' })
 
   try {
     let server
@@ -44,6 +50,7 @@ async function onSpawn
     server = await Server.create({ hostname: '127.0.0.1',
                                    bufferID,
                                    workingDir,
+                                   workspaceID,
                                    mounts,
                                    send: msg => e.sender.send(statusCh, msg),
                                    config: Config.build(mounts, workingDir) })
@@ -52,6 +59,7 @@ async function onSpawn
     e.sender.send(ch, { url: server.url,
                         containerName: server.containerName || name,
                         containerID: server.containerID,
+                        workspaceID: server.workspaceID || workspaceID,
                         worktreeRoot: server.worktreeRoot || '',
                         auth: server.password ? basicAuth(server.password) : process.env.BRED_OC_SERVER_AUTH })
   }
@@ -96,7 +104,7 @@ function onSearchSessions
   }
 
   rows = db.prepare(`
-    SELECT s.id, s.title, s.directory, s.time_created, s.parent_id, s.agent,
+    SELECT s.id, s.title, s.directory, s.time_created, s.parent_id, s.agent, s.metadata,
            (SELECT m2.data FROM session_message m2
             WHERE m2.session_id = s.id AND m2.data LIKE ?
             LIMIT 1) as snippet_source

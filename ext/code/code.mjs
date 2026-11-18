@@ -42,6 +42,18 @@ function getSubagentCallIds
   return buf.vars('code').subagentCallIds || (buf.vars('code').subagentCallIds = new Map())
 }
 
+// The bred-side id for this session's workspaces. It keys the worktree root and
+// is stamped into the session so a restart can find the same root again.
+function sessionMetadata
+(buf) {
+  let workspace
+
+  workspace = buf.vars('code').workspaceID
+  if (!workspace)
+    return undefined
+  return { bred: { workspace } }
+}
+
 function codeInit
 () {
   let pane, dir, name, provider, model, existingBuf, buf
@@ -85,6 +97,7 @@ function codeInit
                                 c.session.create({ location: { directory: Util.apiDir(buf) },
                                                    title: '/init',
                                                    agent: 'build',
+                                                   metadata: sessionMetadata(buf),
                                                    model: { id: model, providerID: provider } })
                                   .then(res => {
                                           buf.vars('code').sessionID = res.id
@@ -1410,7 +1423,8 @@ function send
                                 if (sessionID == null) {
                                   Ui.appendMsg(buf, 0, 'Creating session...')
                                   res = await startupStep(buf, c, 'session', signal => c.session.create({ location: { directory: Util.apiDir(buf) },
-                                                                                                          title: text || ('New session - ' + new Date().toISOString()) },
+                                                                                                          title: text || ('New session - ' + new Date().toISOString()),
+                                                                                                          metadata: sessionMetadata(buf) },
                                                                                                         { signal }))
                                   sessionID = res.id
                                   buf.vars('code').sessionID = sessionID

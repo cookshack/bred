@@ -251,7 +251,7 @@ async function seedCredentials
 
 async function spawnDocker
 (spec) {
-  let name, workingDir, config, dockerTimeout, healthTimeout, authPath, args, dataDir, password, worktreeDir
+  let name, workingDir, config, dockerTimeout, healthTimeout, authPath, args, dataDir, password, worktreeDir, workspaceID
 
   spec = spec || {}
   name = containerName(spec.bufferID)
@@ -267,13 +267,16 @@ async function spawnDocker
 
   // The agent writes into this dir; because it is a host path mounted at the
   // same location, the user can browse the worktrees live while the agent works.
-  worktreeDir = spec.worktreeDir || Mounts.worktreeRoot(process.env.HOME, name)
+  // The workspace id keys the root, not the container: it is stable for the
+  // session's life, so a restart lands the agent back in the same worktrees.
+  workspaceID = spec.workspaceID || name
+  worktreeDir = spec.worktreeDir || Mounts.worktreeRoot(process.env.HOME, workspaceID)
   fs.mkdirSync(worktreeDir, { recursive: true })
 
   await removeContainer(name)
 
   args = []
-  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...Mounts.argList(workingDir, dataDir, authPath, spec.mounts, undefined, undefined, worktreeDir), '-e', 'BRED_WORKTREE_ROOT=' + worktreeDir, '-e', 'EXA_API_KEY', '-e', 'OPENCODE_WEBSEARCH_PROVIDER=' + (process.env.OPENCODE_WEBSEARCH_PROVIDER || 'exa'), '-e', 'OPENCODE_ENABLE_EXA=' + (process.env.OPENCODE_ENABLE_EXA || 'true'), '-e', 'OPENCODE_LOG_LEVEL=' + (process.env.OPENCODE_LOG_LEVEL || 'DEBUG'), '-e', 'OPENCODE_PASSWORD=' + password, '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
+  args.push('run', '-d', '--rm', '--name', name, '-p', '4096', ...Mounts.argList(workingDir, dataDir, authPath, spec.mounts, undefined, undefined, worktreeDir), '-e', 'BRED_WORKTREE_ROOT=' + worktreeDir, '-e', 'BRED_WORKSPACE=' + workspaceID, '-e', 'EXA_API_KEY', '-e', 'OPENCODE_WEBSEARCH_PROVIDER=' + (process.env.OPENCODE_WEBSEARCH_PROVIDER || 'exa'), '-e', 'OPENCODE_ENABLE_EXA=' + (process.env.OPENCODE_ENABLE_EXA || 'true'), '-e', 'OPENCODE_LOG_LEVEL=' + (process.env.OPENCODE_LOG_LEVEL || 'DEBUG'), '-e', 'OPENCODE_PASSWORD=' + password, '-e', 'OPENCODE_CONFIG_CONTENT=' + JSON.stringify(config), 'opencode-bred', 'serve', '--hostname=0.0.0.0', '--port=4096')
   d('CODE SERVER docker: ' + args.join(' '))
 
   return new Promise((resolve, reject) => {
@@ -373,6 +376,7 @@ async function spawnDocker
                                                               containerName: name,
                                                               containerID,
                                                               password,
+                                                              workspaceID,
                                                               worktreeRoot: worktreeDir,
                                                               close: stop })
                                                   })
@@ -440,6 +444,7 @@ async function create
              containerName: '',
              containerID: '',
              password,
+             workspaceID: spec?.workspaceID || '',
              worktreeRoot: process.env.BRED_WORKTREE_ROOT || '',
              close: () => {} }
   }

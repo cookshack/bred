@@ -1,9 +1,11 @@
-import { append, divCl } from './dom.mjs'
+import { append, divCl, img } from './dom.mjs'
 
 import * as Buf from './Buf.mjs'
 import * as Cmd from './cmd.mjs'
+import * as Css from './css.mjs'
 import * as Em from './Em.mjs'
 import * as Hist from './hist.mjs'
+import * as Icon from './icon.mjs'
 import * as ManParse from './man-parse.mjs'
 import * as ManRender from './man-render.mjs'
 import * as Mess from './mess.mjs'
@@ -14,7 +16,42 @@ import * as Shell from './shell.mjs'
 import * as View from './view.mjs'
 //import { d } from './mess.mjs'
 
-let openImpl
+let openImpl, sugSeq, topicCache
+
+sugSeq = 0
+topicCache = {}
+
+function topicsFrom
+(out) {
+  let names
+
+  names = []
+  out.split('\n').forEach(line => {
+                            let m
+
+                            m = /^(\S+) \(([^)]+)\)/.exec(line)
+                            if (m) {
+                              let topic
+
+                              topic = m[1] + '(' + m[2] + ')'
+                              if (names.includes(topic) == 0)
+                                names.push(topic)
+                            }
+                          })
+  return names.slice(0, 20)
+}
+
+// Topic completion: man -k takes a regular expression and prints one
+// "name (section) - description" line per hit.
+export
+function topics
+(prefix, cb) {
+  let dir, escaped
+
+  dir = Pane.current()?.dir || '/'
+  escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  Shell.runToString(dir, 'man', [ '-k', '^' + escaped ], 0, out => cb(topicsFrom(out)))
+}
 
 export
 function open
@@ -331,6 +368,47 @@ function init
                     })
   }
 
+  function suggestions
+  (under, prefix, list) {
+    let frag
+
+    frag = new globalThis.DocumentFragment()
+    append(frag, divCl('bred-prompt-sug0',
+                       [ divCl('bred-prompt-sug0-type',
+                               img(Icon.path('manpage'), 'Man', 'filter-clr-text')),
+                         divCl('bred-prompt-sug0-text', prefix) ]))
+    list.forEach(topic => append(frag,
+                                 divCl('bred-prompt-sug', topic,
+                                       { 'data-run': 'close demand',
+                                         'data-after': 'man suggestion',
+                                         'data-topic': topic })))
+    under.innerHTML = ''
+    append(under, frag)
+    Css.enable(under)
+  }
+
+  function suggest
+  (under, text) {
+    let prefix, seq
+
+    prefix = (text || '').trim()
+    if (prefix.length == 0) {
+      under.innerHTML = ''
+      return
+    }
+    if (topicCache[prefix]) {
+      suggestions(under, prefix, topicCache[prefix])
+      return
+    }
+    seq = ++sugSeq
+    topics(prefix, list => {
+                     if (seq == sugSeq) {
+                       topicCache[prefix] = list
+                       suggestions(under, prefix, list)
+                     }
+                   })
+  }
+
   function man
   () {
     let word
@@ -344,7 +422,8 @@ function init
     }
     Prompt.ask({ text: 'Man Page',
                  hist,
-                 placeholder: word },
+                 placeholder: word,
+                 suggest },
                prompt => {
                  openPage(prompt || word)
                })
@@ -356,6 +435,13 @@ function init
 
   openImpl = openPage
 
+  Cmd.add('man suggestion', (ua, we) => {
+                              let topic
+
+                              topic = we?.e?.target?.dataset?.topic
+                              if (topic)
+                                openPage(topic)
+                            })
   Cmd.add('man', () => man())
   Cmd.add('man refresh', () => {
                            let b

@@ -44,6 +44,8 @@ function installShell
         errMsg = 'No manual entry'
       }
 
+    else if ((sc == 'man') && (sargs[0] == '-k'))
+      out = 'ls (1) - list directory contents\nlsblk (8) - list block devices\n'
     else if ((sc == 'zcat') || (sc == 'cat')) {
       out = read(sargs[0] || '')
       if (out == '')
@@ -230,6 +232,20 @@ test('viewer', 'a reference link opens the target topic',
                              (cur.vars('Manpage').loading == 0)
                      })
        equal(Pane.current().buf.name, 'Man: ls(1)')
+     })
+
+test('viewer', 'topic completion asks man -k',
+     async () => {
+       let list
+
+       setup({})
+       list = 0
+       Man.topics('ls', topics => {
+                          list = topics
+                        })
+       await waitFor(() => list)
+       equal(list.includes('ls(1)'), true)
+       equal(list.includes('lsblk(8)'), true)
      })
 
 test('viewer', 'the man command and mode are registered',

@@ -24,6 +24,9 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
 5. `ManParse.parse(source)` → block model.
 6. `ManRender.render(doc)` → DOM; the view's content element is replaced.
 
+`M-x man` completes topics with `man -k '^prefix'` (cached per prefix); a
+suggestion closes the prompt and opens the page.
+
 ## Modules
 
 | file | role |
@@ -83,18 +86,14 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 140 (inventory, interpreter, renderer, viewer).
+Tests: 144 (inventory, interpreter, renderer, viewer).
 
 ## Known gaps, in order
 
-1. Topic completion in the prompt (`Prompt.ask` has a `suggest` hook); the
-   prompt only uses the word at point as a placeholder today.
-2. Table styling: `box` should be an outer frame while `allbox` borders every
-   cell; both currently use the same CSS.
-3. `man -w` fallback for systems where `man` is mandoc (`man --path`).
-4. Div buffers are not searchable with isearch; that is a general limitation of
+1. `man -w` fallback for systems where `man` is mandoc (`man --path`).
+2. Div buffers are not searchable with isearch; that is a general limitation of
    div views, not specific to man pages.
-5. mdoc `Ex`/`Rv` expand to canned sentences; they are approximations of the
+3. mdoc `Ex`/`Rv` expand to canned sentences; they are approximations of the
    real macro text.
 
 ## Changing it

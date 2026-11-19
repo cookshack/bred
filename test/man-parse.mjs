@@ -457,6 +457,18 @@ test('text', 'toText walks the block model',
              '\nNAME\nls\n-a\nall\n')
      })
 
+test('tables', 'a T} opens the next multiline cell on the same line',
+     () => {
+       let r, rows
+
+       r = parsed('.TH T 1\n.TS\nl l.\n_\nT{\nfirst\nT}\tT{\nsecond\nT}\n_\n')
+       equal(r.ok, 1)
+       rows = r.doc.blocks[0].rows
+       equal(rows[1].cells.length, 2)
+       equal(flat(rows[1].cells[0].spans), 'first')
+       equal(flat(rows[1].cells[1].spans), 'second')
+     })
+
 test('tables', 'a simple table keeps rows and cells',
      () => {
        let r, table

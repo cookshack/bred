@@ -64,7 +64,6 @@ function view
                   elePoint: spec.elePoint,
                   lineNum: spec.lineNum },
                 whenReady)
-  console.log('buf.views.length: ' + buf.views.length + ' (' + (buf.name ? buf.name.slice(0, 20) : '') + ')')
   return v
 }
 

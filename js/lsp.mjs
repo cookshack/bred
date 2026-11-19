@@ -78,7 +78,7 @@ function callers
                     }
                     else
                       Tron.cmd('files.lines', r2.result, (err, r4) => {
-                                                           console.log({ r4 })
+                                                           d({ r4 })
                                                            if (err) {
                                                              console.warn('LSP files.lines: ' + err.message)
                                                              cb({ callers: r2.result, def: result })

@@ -1484,6 +1484,7 @@ test('viewer', 'completion of printf (3) queries the name, not the section',
        v = Pane.current().buf.views[0]
        v.ed.dispatch({ changes: { from: 0, insert: 'printf (3)' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(calls.filter(c => (c[0] == 'man') && (c[1] == '-k')).length, 1)
        equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') &&
                             (c[2] == '^printf')), true)
        equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') &&
@@ -1491,6 +1492,13 @@ test('viewer', 'completion of printf (3) queries the name, not the section',
        topics = Array.from(v.ele.querySelectorAll('.bred-prompt-sug'))
          .map(el => el.dataset.topic)
        equal(topics.join(','), 'printf(3)')
+       // A section prefix with the same name is the same query: no second man -k.
+       v.ed.dispatch({ changes: { from: 0, to: 10, insert: '3 printf (3)' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(calls.filter(c => (c[0] == 'man') && (c[1] == '-k')).length, 1)
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') &&
+                            (c[2] == '^3')), false)
+       equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'printf(3)')
      })
 
 test('viewer', 'refresh re-reads a path page without asking man',
@@ -1723,6 +1731,20 @@ test('viewer', 'a file URL is refused instead of resolved as a path',
        setup({})
        throws(() => Man.open('file:///tmp/ls.1.gz'), /File URLs are not supported/)
        throws(() => Man.open('FILE:///tmp/ls.1.gz'), /File URLs are not supported/)
+     })
+
+test('viewer', 'a ~user path is refused but a ~user name is a topic',
+     async () => {
+       let b
+
+       setup({})
+       throws(() => Man.open('~user/foo.1'), /Please use full path instead of ~user/)
+       equal(calls.length, 0)
+       b = await opened('~user')
+       equal(textOf(b).includes('No manual entry for ~user'), true)
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-w') &&
+                            (c[2] == '~user')), true)
+       equal(calls.some(c => c[0] == 'zcat'), false)
      })
 
 test('viewer', 'a token with sentence punctuation opens its reference',

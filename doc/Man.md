@@ -56,7 +56,8 @@ section (`(1)`) are refused before `man` runs. A path is read directly instead
 of going through `man -w`: an absolute path, `./foo.1`, `../foo.1`, `~/foo.1`,
 or a bare source name such as `foo.1` in the pane's directory. A path is a
 plain filename, so spaces and colons in it are kept (only `~` and `~/` are
-expanded; a `~user` form is left as a topic). A bare name is ambiguous, so one
+expanded; a `~user/foo.1` path is refused with a message, while a bare `~user`
+is not path-like and is looked up as a topic). A bare name is ambiguous, so one
 `file.stat` decides it: a missing name goes straight to a topic lookup without
 trying `zcat`/`cat`, an existing directory reports `Cannot read ...: Is a
 directory`, a file with no read bits reports `Permission denied`, and a regular
@@ -114,7 +115,7 @@ it is unit-testable and could feed another renderer.
 
 ```
 npm run check                          # style + layering
-npx mocha test/man-roff.mjs test/man-parse.mjs test/man-render.mjs test/man-viewer.mjs
+npx mocha test/man-roff.mjs test/man-parse.mjs test/man-render.mjs test/man-viewer.mjs test/man-pty.mjs
 ./bin/man-audit --parse                # pages parsed vs refused
 ./bin/man-audit --parse --list         # with the reason for each refusal
 ./bin/man-diff --section 1 --max 120   # content diff against man(1)
@@ -153,16 +154,20 @@ parenthesised suffix such as `printf (3)`, a section prefix and suffix together,
 suggestion clicks, C-n/C-p navigation starting at either end and Enter on the
 highlighted item, `That's all` with no matches, a throwing `tokenAt`, tokens
 with sentence punctuation or a `man:` prefix, a close with suggestions before
-the attract timer), prompt history replay, a refused `file:` URL, bare path
-stat checks (missing, directory, unreadable), error paths (unreadable, empty
-and blank pages, non-gzip fallback, a missing `man` and a spawn failure), man -w
+the attract timer), prompt history replay, a refused `file:` URL and `~user`
+path, bare path stat checks (missing, directory, unreadable), error paths
+(unreadable, empty and blank pages, non-gzip fallback, a missing `man` and a
+spawn failure), man -w
 diagnostics mixed with paths, refresh (failing, repeated while loading, and
 path pages re-read from their path), absolute `.so` includes, the 40-item
 failure cap and its "show all" command, following a link to a page that is
 refused and retrying it after another click, trailing punctuation and no-text
-man links, and buffer reuse and shared refresh across panes. The renderer tests
-also draw compact and large pages, empty tables and lists, combined table
-options, colspans and links with no text.
+man links, and buffer reuse and shared refresh across panes. `test/man-pty.mjs`
+covers the real reader path: it writes a gzip page to a temporary file, runs
+`zcat` through node-pty (the same main-side path the viewer uses), checks the
+CRLF that comes back, and parses and renders it. It skips when node-pty is not
+available. The renderer tests also draw compact and large pages, empty tables
+and lists, combined table options, colspans and links with no text.
 
 ## Current state
 
@@ -184,8 +189,9 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 255 (inventory, interpreter, renderer, viewer); `test-corpus` also
-parses and renders every page in the corpus. Coverage of the man modules is
+Tests: 257 (inventory, interpreter, renderer, viewer, real pty);
+`test-corpus` also parses and renders every page in the corpus. Coverage of the
+man modules is
 98.5% of `man.mjs` lines (89% of branches) and 100% of `man-render.mjs` lines
 and branches.
 

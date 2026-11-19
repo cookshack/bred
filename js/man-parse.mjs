@@ -2046,13 +2046,56 @@ function mdocDisplayOne
 }
 
 function mdocRefField
-(c, args) {
+(c, key, args) {
   if (Array.isArray(c.mdoc.ref)) {
     if (args.length)
-      c.mdoc.ref.push(expandText(c, args.join(' '), c.lineNo))
+      c.mdoc.ref.push({ key, text: expandText(c, args.join(' '), c.lineNo) })
   }
   else
     mdocText(c, args.join(' '), c.font)
+}
+
+// mdoc prints the fields in its own order rather than the source order,
+// joins authors with "and", quotes the title and finishes a reference with a
+// period; the rest are comma separated.
+function mdocRefText
+(fields) {
+  let authors, parts, refOrder, text
+
+  refOrder = [ '%A', '%T', '%B', '%I', '%J', '%R', '%N', '%V', '%U',
+               '%Q', '%C', '%D', '%O', '%P' ]
+  authors = fields.filter(field => (field.key == '%A')).map(field => field.text)
+  parts = []
+  for (let i = 0; i < refOrder.length; i++) {
+    let key
+
+    key = refOrder[i]
+    if (key == '%A')
+      continue
+    for (let j = 0; j < fields.length; j++)
+      if (fields[j].key == key)
+        if (key == '%T')
+          parts.push('“' + fields[j].text + '”')
+        else
+          parts.push(fields[j].text)
+  }
+  // A field mdoc(7) does not order keeps its place at the end.
+  for (let j = 0; j < fields.length; j++) {
+    let field
+
+    field = fields[j]
+    if ((field.key == '%A') || refOrder.includes(field.key))
+      continue
+    parts.push(field.text)
+  }
+  if (authors.length == 1)
+    parts.unshift(authors[0])
+  else if (authors.length > 1)
+    parts.unshift(authors.slice(0, -1).join(', ') + ' and ' + authors[authors.length - 1])
+  text = parts.join(', ')
+  if (text.length && ('.,;:!?'.includes(text[text.length - 1]) == 0))
+    text = text + '.'
+  return text
 }
 
 function mdocStandard
@@ -2484,7 +2527,7 @@ function mdocLine
     return 1
   case 'Re':
     if (c.mdoc.ref && c.mdoc.ref.length)
-      mdocText(c, c.mdoc.ref.join(', '), c.font)
+      mdocText(c, mdocRefText(c.mdoc.ref), c.font)
     c.mdoc.ref = 0
     return 1
   case '%A':
@@ -2501,7 +2544,7 @@ function mdocLine
   case '%T':
   case '%U':
   case '%V':
-    mdocRefField(c, args)
+    mdocRefField(c, name, args)
     return 1
   case 'Tg':
     return 1

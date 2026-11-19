@@ -849,7 +849,17 @@ test('mdoc', 'Rs and Re collect a reference',
        let r
 
        r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%A A. Author\n.%T A Title\n.%D 2020\n.Re\n')
-       equal(flat(r.doc.blocks[0].spans), 'A. Author, A Title, 2020')
+       equal(flat(r.doc.blocks[0].spans), 'A. Author, “A Title”, 2020.')
+     })
+
+test('mdoc', 'a reference joins authors and orders its fields',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%U https://u\n.%D 1999\n' +
+                  '.%T The Title\n.%A First\n.%A Second\n.Re\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'First and Second, “The Title”, https://u, 1999.')
      })
 
 test('mdoc', 'Ns and Pf control spacing',

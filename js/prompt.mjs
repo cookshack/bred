@@ -490,7 +490,9 @@ function initPrompt2
 
           index = sug0.dataset.index
           if (index == null)
-            index = 0
+            // Starting fresh: C-n goes to the first suggestion, C-p to the
+            // last, so either direction reaches the near end first.
+            index = nth < 0 ? 0 : sugs.length - 1
           else if (nth < 0)
             index++
           else

@@ -8,7 +8,8 @@ A page either renders faithfully or is refused. There is no fallback to
 `man -Tutf8`/`-Thtml` output and no partial page: `parse()` returns `ok: 0` and
 a list of `{ what, line }` failures, and the viewer shows those instead. The
 point is that a broken render is visible and gets fixed, not hidden. At most 40
-failures are listed, followed by `... N more`; the state still holds every
+failures are listed, followed by `... N more (show all)`; clicking it (or
+`M-x man show all failures`) lists them all. The state still holds every
 failure, so nothing is lost when the list is long.
 
 Because of that, two things must stay in sync when the corpus needs more:
@@ -55,15 +56,19 @@ section (`(1)`) are refused before `man` runs. A path is read directly instead
 of going through `man -w`: an absolute path, `./foo.1`, `../foo.1`, `~/foo.1`,
 or a bare source name such as `foo.1` in the pane's directory. A path is a
 plain filename, so spaces and colons in it are kept (only `~` and `~/` are
-expanded; a `~user` form is left as a topic). A bare name is ambiguous, so if the file does
-not read it falls back to a topic lookup; explicit paths report
-`Cannot read ...` and do not guess. A directory named like a page fails its
-read and is never parsed.
+expanded; a `~user` form is left as a topic). A bare name is ambiguous, so one
+`file.stat` decides it: a missing name goes straight to a topic lookup without
+trying `zcat`/`cat`, an existing directory reports `Cannot read ...: Is a
+directory`, a file with no read bits reports `Permission denied`, and a regular
+file is read. Explicit paths never fall back, so their read error is shown and
+a directory is never parsed. A `file:` URL is refused with a message rather
+than resolved into the pane directory.
 
 Links to `http:`, `https:`, `mailto:` and `ftp:` open in the desktop browser
 through `shell.open` and never navigate the window. Any other scheme is
 refused with a message; `#...` links scroll within the page and `man:...`
-links open another topic.
+links open another topic. A link with no text shows its topic (`man:foo(1)`
+shows `foo(1)`) or its URL.
 
 Refresh bumps a per-buffer load generation; a response or include prefetch from
 an older generation is ignored, so refreshing while loading (or twice) keeps
@@ -71,13 +76,18 @@ the newest result. A path page is re-read from its path, not looked up again
 with `man -w`. A failed refresh shows its error and the buffer stays usable;
 reopening a refused or failed page retries it.
 
-`M-x man` completes topics with `man -k '^prefix'` (cached per prefix); a
-section prefix or suffix is stripped for the query and results are filtered to
-that section, so `3 pr` and `printf (3)` suggest `printf(3)` rather than asking
-for `^3 pr` or `^printf (3)`. A suggestion closes the prompt and opens the
-page. C-n and C-p move through the suggestions (saying `That's all` when there
-are none) and Enter opens the highlighted one; a prompt submission is kept in
-history and replaying one reopens or refreshes its page.
+`M-x man` completes topics with `man -k '^prefix'` (cached by the normalised
+query, name plus optional section); a section prefix or suffix is stripped for
+the query and results are filtered to that section, so `3 pr` and `printf (3)`
+suggest `printf(3)` rather than asking for `^3 pr` or `^printf (3)`, and
+`3 printf (3)` asks for `^printf` once. `3 pr` and `pr (3)` share that cache
+entry while `pr` (no section) has its own. The token at point is trimmed for
+the prompt: trailing sentence punctuation is dropped from `ls(1).` and a
+`man:` prefix is removed. A suggestion closes the prompt and opens the page.
+C-n and C-p move through the suggestions (saying `That's all` when there are
+none); C-p starts at the last one and C-n at the first, and Enter opens the
+highlighted one. A prompt submission is kept in history and replaying one
+reopens or refreshes its page.
 
 ## Modules
 
@@ -138,18 +148,21 @@ path and reader fallbacks, redirects (chains, cycles, sections, missing
 targets), includes (including cycles), TOC and reference clicks, external and
 unknown-scheme links, section/topic normalisation and path input (including
 spaces, colons and home expansion), the prompt with its completion (regex
-escaping, caching, a section prefix such as `3 pr`, a parenthesised suffix such
-as `printf (3)`, suggestion clicks, C-n/C-p navigation and Enter on the
-highlighted item, `That's all` with no matches, a throwing `tokenAt`, a close
-with suggestions before the attract timer), prompt history replay,
-error paths (unreadable, empty and blank pages, non-gzip fallback, a missing
-`man` and a spawn failure), man -w diagnostics mixed with paths, refresh
-(failing, repeated while loading, and path pages re-read from their path),
-absolute `.so` includes, the 40-item failure cap, following a link to a page
-that is refused and retrying it after another click, and buffer reuse and
-shared refresh across panes. The renderer tests also draw compact and large
-pages, empty tables and lists, combined table options, colspans and links with
-no text.
+escaping, a shared normalised cache key, a section prefix such as `3 pr`, a
+parenthesised suffix such as `printf (3)`, a section prefix and suffix together,
+suggestion clicks, C-n/C-p navigation starting at either end and Enter on the
+highlighted item, `That's all` with no matches, a throwing `tokenAt`, tokens
+with sentence punctuation or a `man:` prefix, a close with suggestions before
+the attract timer), prompt history replay, a refused `file:` URL, bare path
+stat checks (missing, directory, unreadable), error paths (unreadable, empty
+and blank pages, non-gzip fallback, a missing `man` and a spawn failure), man -w
+diagnostics mixed with paths, refresh (failing, repeated while loading, and
+path pages re-read from their path), absolute `.so` includes, the 40-item
+failure cap and its "show all" command, following a link to a page that is
+refused and retrying it after another click, trailing punctuation and no-text
+man links, and buffer reuse and shared refresh across panes. The renderer tests
+also draw compact and large pages, empty tables and lists, combined table
+options, colspans and links with no text.
 
 ## Current state
 
@@ -171,9 +184,9 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 243 (inventory, interpreter, renderer, viewer); `test-corpus` also
+Tests: 255 (inventory, interpreter, renderer, viewer); `test-corpus` also
 parses and renders every page in the corpus. Coverage of the man modules is
-99.7% of `man.mjs` lines (90% of branches) and 100% of `man-render.mjs` lines
+98.5% of `man.mjs` lines (89% of branches) and 100% of `man-render.mjs` lines
 and branches.
 
 ## Known gaps, in order
@@ -185,12 +198,10 @@ and branches.
 3. A colon in a path is still a separator when the text before it looks like a
    man source (for example `/x/a.1:/b.1`): `man -w` output has no unambiguous
    quoting, so this heuristic favours the common colon-separated list.
-4. A bare `foo.1` is tried as a path before a topic; if it exists but cannot be
-   read (a directory named `foo.1`, a permission error), the topic fallback can
-   hide the read error. Avoiding that needs a `stat` (or an extra process per
-   open) before the read; the viewer only has `zcat`/`cat`, so it tries both
-   and then `man -w`. Explicit paths do not fall back, so the read error is
-   shown and a directory is never parsed.
+4. The bare-name check reads the mode bits from one `stat`; an ACL grant or
+   root reading a mode-000 file is reported as `Permission denied` even though
+   `zcat` might succeed. The alternative was an extra read process per open,
+   and the stat saves two processes when the name is not a file at all.
 5. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
    are refused rather than handed to the desktop.
 

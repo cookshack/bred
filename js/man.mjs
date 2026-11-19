@@ -99,13 +99,20 @@ function init
       append(el, divCl('manpage-err-path', st.path))
     // A pathological page can have hundreds of failures: show enough to
     // diagnose it, but keep the refusal list from becoming the whole buffer.
-    st.fails.slice(0, 40).forEach(failItem)
-    if (st.fails.length > 40) {
-      let more
+    // The rest stay in the state, and "show all" expands them on demand.
+    st.fails.slice(0, st.showAll ? st.fails.length : 40).forEach(failItem)
+    if (st.fails.length > 40)
+      if (st.showAll)
+        append(el, divCl('manpage-err-more',
+                         'Showing all ' + st.fails.length + ' failures'))
+      else {
+        let more
 
-      more = st.fails.length - 40
-      append(el, divCl('manpage-err-more', '... ' + more + ' more'))
-    }
+        more = st.fails.length - 40
+        append(el, divCl('manpage-err-more manpage-action',
+                         '... ' + more + ' more (show all)',
+                         { 'data-run': 'man show all failures' }))
+      }
     append(el, divCl('manpage-err-note',
                      'The page is refused rather than shown badly.'))
     return el
@@ -165,10 +172,18 @@ function init
 
   function onClick
   (we, view) {
-    let a, href, scheme
+    let a, act, href, scheme
 
     if (we.target.closest == undefined)
       return
+    // An element inside the page can name a command, so a failure list can
+    // offer "show all" without becoming a whole buffer of links.
+    act = we.target.closest('[data-run]')
+    if (act) {
+      we.preventDefault()
+      Cmd.run(act.dataset.run, view.buf)
+      return
+    }
     a = we.target.closest('a')
     if (a == undefined)
       return
@@ -592,6 +607,64 @@ function init
                                            })
   }
 
+  // A bare "foo.1" is a path when the directory has it and a topic
+  // otherwise. One stat decides that, so a missing name goes straight to the
+  // topic lookup and an existing directory or unreadable file reports its own
+  // error instead of hiding it behind zcat/cat/man -w and a topic fallback.
+  function readPath
+  (dir, st, done) {
+    function read
+    () {
+      readSource(dir, st.file, (err, text, path) => {
+                                 if (err && st.lookup) {
+                                   st.file = ''
+                                   fetchPage(dir, st.lookup, 0, done)
+                                   return
+                                 }
+                                 done(err, text, path)
+                               })
+    }
+
+    function statted
+    (err, data) {
+      let fileMode
+
+      if (err) {
+        if (err.code == 'ENOENT') {
+          st.file = ''
+          fetchPage(dir, st.lookup, 0, done)
+        }
+        else
+          done('Cannot read ' + st.file + ': ' + err.message)
+        return
+      }
+      fileMode = data?.data?.mode
+      if (fileMode == undefined) {
+        // An unexpected stat reply: let the reader decide as before.
+        read()
+        return
+      }
+      if ((fileMode & 0o170000) == 0o040000) {
+        done('Cannot read ' + st.file + ': Is a directory')
+        return
+      }
+      if ((fileMode & 0o170000) == 0o100000)
+        if ((fileMode & 0o444) == 0) {
+          done('Cannot read ' + st.file + ': Permission denied')
+          return
+        }
+      read()
+    }
+
+    if (st.lookup == '') {
+      // An absolute or explicit path: there is no topic to fall back to, so
+      // the read error is what the user asked for.
+      read()
+      return
+    }
+    Tron.cmd('file.stat', st.file, statted)
+  }
+
   function reload
   (b, p) {
     let st, dir, seq
@@ -609,20 +682,10 @@ function init
     st.loading = 1
     st.error = ''
     st.fails = []
+    st.showAll = 0
     b.views.forEach(render)
     if (st.file)
-      readSource(dir, st.file, (err, text, path) => {
-                                 // A bare "foo.1" is a path when the directory
-                                 // has it and a topic otherwise. Absolute and
-                                 // explicit ./ or ~/ paths have no fallback:
-                                 // their error is what the user asked for.
-                                 if (err && st.lookup) {
-                                   st.file = ''
-                                   fetchPage(dir, st.lookup, 0, done)
-                                   return
-                                 }
-                                 done(err, text, path)
-                               })
+      readPath(dir, st, done)
     else
       fetchPage(dir, st.lookup || st.topic, 0, done)
   }
@@ -636,6 +699,11 @@ function init
       Mess.toss('Topic missing')
       return
     }
+    // Loc.expand would take "file:" for a URL scheme and refuse it, and a path
+    // read here is a plain filename, so refuse the URL explicitly instead of
+    // resolving it into the pane directory.
+    if (/^file:/i.test(topic))
+      Mess.toss('File URLs are not supported: type the path instead')
     p = Pane.current()
     file = ''
     lookup = ''
@@ -671,6 +739,7 @@ function init
     st.fails = []
     st.path = ''
     st.ok = 0
+    st.showAll = 0
     p.setBuf(b, {}, () => {
                       hist.add(topic)
                       reload(b, p)
@@ -696,22 +765,39 @@ function init
     Css.enable(under)
   }
 
+  // A prefix is cached by the normalised query, name plus section, so "3 pr"
+  // and "pr (3)" share one man -k while "pr" (no section) does not.
+  function suggestKey
+  (q) {
+    return q.name + (q.section ? '(' + q.section + ')' : '')
+  }
+
   // Completion works on the name, not the typed form: "3 pr" is looked up as
   // "pr" and the results keep section 3. man -k would treat "^3 pr" as a
   // regex that never matches a "name (section)" line.
   function suggestQuery
   (text) {
-    let m
+    let s, m, name, section
 
-    m = /^([1-9][a-z]*)\s+(\S.*)$/.exec(text)
-    if (m)
-      return { name: m[2].trim(), section: m[1] }
+    s = (text || '').trim()
+    section = ''
+    m = /^([1-9][a-z]*)\s+(\S.*)$/.exec(s)
+    if (m) {
+      section = m[1]
+      s = m[2].trim()
+    }
     // "printf (3)" and "printf(3)" name printf, not a regex containing a
-    // section; man -k would never match the typed text as a name prefix.
-    m = /^(\S+)\s*\(([1-9][a-z]*)\)$/.exec(text)
-    if (m)
-      return { name: m[1], section: m[2] }
-    return { name: text, section: '' }
+    // section; man -k would never match the typed text as a name prefix. A
+    // section may already have come from a prefix ("3 printf (3)"), which
+    // wins if the two disagree.
+    m = /^(\S+)\s*\(([1-9][a-z]*)\)$/.exec(s)
+    if (m) {
+      if (section.length == 0)
+        section = m[2]
+      s = m[1]
+    }
+    name = s
+    return { name, section }
   }
 
   function suggest
@@ -723,22 +809,40 @@ function init
       under.innerHTML = ''
       return
     }
-    if (topicCache[key]) {
-      suggestions(under, key, topicCache[key])
-      return
-    }
     q = suggestQuery(key)
     if (q.name.length == 0)
       return
+    key = suggestKey(q)
+    if (topicCache[key]) {
+      suggestions(under, text.trim(), topicCache[key])
+      return
+    }
     seq = ++sugSeq
     topics(q.name, list => {
                      if (q.section)
                        list = list.filter(topic => topic.endsWith('(' + q.section + ')'))
                      if (seq == sugSeq) {
                        topicCache[key] = list
-                       suggestions(under, key, list)
+                       suggestions(under, text.trim(), list)
                      }
                    })
+  }
+
+  // The token at point can carry sentence punctuation ("ls(1).") or a URL
+  // when the point sits inside a link. Only the reference part is a topic.
+  function promptWord
+  (token) {
+    let s, m
+
+    s = (token || '').trim()
+    if (/^man:/i.test(s))
+      s = s.slice(4)
+    else if (/^[a-z][a-z0-9+.-]*:\/\//i.test(s))
+      return ''
+    m = /^(.+?)\s*\(([^)]*)\)[.,;:!?]*$/.exec(s)
+    if (m)
+      return m[1] + '(' + m[2] + ')'
+    return s.replace(/[.,;:!?]+$/, '')
   }
 
   function man
@@ -747,7 +851,7 @@ function init
 
     word = ''
     try {
-      word = View.current()?.tokenAt?.() || ''
+      word = promptWord(View.current()?.tokenAt?.() || '')
     }
     catch {
       word = ''
@@ -775,6 +879,18 @@ function init
                                 openPage(topic)
                             })
   Cmd.add('man', () => man())
+  Cmd.add('man show all failures', () => {
+                                     let b, st
+
+                                     b = Pane.current().buf
+                                     st = b?.vars('Manpage')
+                                     if (st?.fails?.length) {
+                                       st.showAll = 1
+                                       b.views.forEach(render)
+                                     }
+                                     else
+                                       Mess.say('No failures to show')
+                                   }, mode)
   Cmd.add('man refresh', () => {
                            let b
 

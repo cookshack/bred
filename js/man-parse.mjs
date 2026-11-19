@@ -1238,7 +1238,12 @@ function linkEnd
   spans = link.spans
   text = textOf(spans)
   if (text == '')
-    spans = [ { text: '<' + link.href + '>', style: c.font, href: link.href } ]
+    // A link with no text would be invisible. A man reference shows its topic
+    // (the renderer does the same for a bare span), everything else its URL.
+    if (link.href.startsWith('man:'))
+      spans = [ { text: link.href.slice(4), style: c.font, href: link.href } ]
+    else
+      spans = [ { text: '<' + link.href + '>', style: c.font, href: link.href } ]
   else
     spans.forEach(span => {
                     if (span.br == undefined)

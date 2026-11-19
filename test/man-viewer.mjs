@@ -10,7 +10,7 @@ import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail
+let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths
 
 function test
 (group, name, cb) {
@@ -38,6 +38,8 @@ function lookup
 // does not depend on the installed corpus.
 function installShell
 (panes, pages, manw) {
+  let baseReceive
+
   function read
   (spec) {
     let base
@@ -141,9 +143,35 @@ function installShell
                             setTimeout(() => deliver(ch, response(args[2], args[3] || [])), 0)
                             return ch
                           }
+                          if (name == 'file.stat')
+                            return 'file-stat:' + args
                           calls.push([ name, ...(args || []) ])
                           return { err: 0, ch: 0 }
                         }
+  baseReceive = globalThis.tron.receive
+  globalThis.tron.receive = (ch, cb) => {
+                              let path
+
+                              path = String(ch)
+                              if (path.startsWith('file-stat:')) {
+                                let base
+
+                                path = path.slice('file-stat:'.length)
+                                base = path.split('/').pop()
+                                calls.push([ 'file.stat', path ])
+                                if (dirPaths[path])
+                                  cb({ err: 0, data: { mode: 0o040755 } })
+                                else if (unreadablePaths[path])
+                                  cb({ err: 0, data: { mode: 0o100000 } })
+                                else if (base in pages)
+                                  cb({ err: 0, data: { mode: 0o100644 } })
+                                else
+                                  cb({ err: { message: 'ENOENT: no such file or directory, stat ' + path,
+                                              code: 'ENOENT' } })
+                              }
+                              else
+                                baseReceive(ch, cb)
+                            }
 }
 
 function setup
@@ -166,6 +194,8 @@ function setup
   hold = 0
   held = []
   manwFail = 0
+  dirPaths = {}
+  unreadablePaths = {}
   installShell(panes, pages, manw)
   return panes
 }
@@ -441,7 +471,7 @@ test('viewer', 'a page with many failures caps the visible list',
        equal(items.length, 40)
        equal(items[39].textContent, 'macro frobnicate39 (line 41)')
        equal(viewOf(b).ele.querySelector('.manpage-err-more').textContent,
-             '... 460 more')
+             '... 460 more (show all)')
        equal(textOf(b).includes('refused rather than shown badly'), true)
      })
 
@@ -1556,6 +1586,257 @@ test('viewer', 'a topic from the prompt history reopens its buffer',
        equal(Pane.current().buf, b)
        equal(Buf.shared().buffers.filter(x => x.vars('Manpage').topic == 'printf(3)').length,
              1)
+     })
+
+test('viewer', 'normalised completion keys share one man -k per section',
+     async () => {
+       let v
+
+       function keys
+       () {
+         return calls.filter(c => (c[0] == 'man') && (c[1] == '-k'))
+       }
+
+       function type
+       (text) {
+         v.ed.dispatch({ changes: { from: 0, to: v.ed.state.doc.length, insert: text } })
+       }
+
+       setup({})
+       mankOut = 'pqr (1) - print\npqrt (8) - other\npqr (3) - print\n'
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       type('3 pqr')
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(keys().length, 1)
+       equal(keys()[0][2], '^pqr')
+       equal(v.ele.querySelectorAll('.bred-prompt-sug').length, 1)
+       equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'pqr(3)')
+       // The same query spelled with a suffix reuses the cache.
+       type('pqr (3)')
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(keys().length, 1)
+       equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'pqr(3)')
+       // A query with no section is a different key and filters differently.
+       type('pqr')
+       await waitFor(() => v.ele.querySelectorAll('.bred-prompt-sug').length == 3)
+       equal(keys().length, 2)
+       equal(v.ele.querySelectorAll('.bred-prompt-sug').length, 3)
+     })
+
+test('viewer', 'a section prefix and suffix normalise into one query',
+     async () => {
+       let v
+
+       function type
+       (text) {
+         v.ed.dispatch({ changes: { from: 0, to: v.ed.state.doc.length, insert: text } })
+       }
+
+       setup({})
+       mankOut = 'zzq (1) - one\nzzq (3) - three\n'
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       type('3 zzq (3)')
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(calls.filter(c => (c[0] == 'man') && (c[1] == '-k')).length, 1)
+       equal(calls.filter(c => (c[1] == '-k'))[0][2], '^zzq')
+       equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'zzq(3)')
+     })
+
+test('viewer', 'C-p before any suggestion starts at the last one',
+     async () => {
+       let v, sugs
+
+       setup({ 'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n',
+               'lsblk(8)': '.TH LSB 8\n.SH NAME\nlsblk \\- x\n' })
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       sugs = v.ele.querySelectorAll('.bred-prompt-sug')
+       equal(sugs.length, 2)
+       Cmd.run('previous suggestion', Pane.current().buf)
+       equal(sugs[1].classList.contains('bred-prompt-candidate'), true)
+       equal(sugs[0].classList.contains('bred-prompt-candidate'), false)
+       equal(v.ele.querySelector('.bred-prompt-sug0').dataset.href, 'lsblk(8)')
+       Cmd.run('previous suggestion', Pane.current().buf)
+       equal(sugs[0].classList.contains('bred-prompt-candidate'), true)
+       equal(v.ele.querySelector('.bred-prompt-sug0').dataset.href, 'ls(1)')
+     })
+
+test('viewer', 'a bare source that is a directory reports it without falling back',
+     async () => {
+       let b
+
+       setup({})
+       dirPaths['/tmp/bare.1'] = 1
+       b = await openedVia('bare.1', '/tmp/bare.1')
+       equal(textOf(b).includes('Cannot read /tmp/bare.1: Is a directory'), true)
+       equal(calls.some(c => c[0] == 'man'), false)
+       equal(calls.some(c => (c[0] == 'zcat') || (c[0] == 'cat')), false)
+     })
+
+test('viewer', 'a bare source that is unreadable reports permission denied',
+     async () => {
+       let b
+
+       setup({})
+       unreadablePaths['/tmp/secret.1'] = 1
+       b = await openedVia('secret.1', '/tmp/secret.1')
+       equal(textOf(b).includes('Cannot read /tmp/secret.1: Permission denied'), true)
+       equal(calls.some(c => c[0] == 'man'), false)
+       equal(calls.some(c => (c[0] == 'zcat') || (c[0] == 'cat')), false)
+     })
+
+test('viewer', 'a missing bare source goes straight to the topic lookup',
+     async () => {
+       let b
+
+       setup({})
+       b = await openedVia('gone.1', '/tmp/gone.1')
+       equal(textOf(b).includes('No manual entry for gone.1'), true)
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-w') && (c[2] == 'gone.1')), true)
+       equal(calls.some(c => (c[0] == 'zcat') || (c[0] == 'cat')), false)
+     })
+
+test('viewer', 'a file URL is refused instead of resolved as a path',
+     () => {
+       setup({})
+       throws(() => Man.open('file:///tmp/ls.1.gz'), /File URLs are not supported/)
+       throws(() => Man.open('FILE:///tmp/ls.1.gz'), /File URLs are not supported/)
+     })
+
+test('viewer', 'a token with sentence punctuation opens its reference',
+     async () => {
+       let m, b, panes
+
+       panes = setup({ 'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       m = Mode.add('token ref', {})
+       m.tokenAt = () => 'ls(1).'
+       b = Buf.add('tok', 'token ref', globalThis.document.createElement('div'), '/tmp')
+       panes.pA.focus()
+       await setBuf(panes.pA, b)
+       Cmd.run('man')
+       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
+       equal(Pane.current().buf.placeholder, 'ls(1)')
+       Cmd.run('ok', Pane.current().buf)
+       await waitFor(() => {
+                       let cur
+
+                       cur = Pane.current().buf
+                       return (cur?.name == 'Man: ls(1)') && (cur.vars('Manpage').loading == 0)
+                     })
+       equal(textOf(Pane.current().buf).includes('ls - x'), true)
+     })
+
+test('viewer', 'a token that is a man link uses its topic',
+     async () => {
+       let m, b, panes
+
+       panes = setup({ 'printf(3)': '.TH PRINTF 3\n.SH NAME\nprintf \\- x\n' })
+       m = Mode.add('token link', {})
+       m.tokenAt = () => 'man:printf(3)'
+       b = Buf.add('tok2', 'token link', globalThis.document.createElement('div'), '/tmp')
+       panes.pA.focus()
+       await setBuf(panes.pA, b)
+       Cmd.run('man')
+       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
+       equal(Pane.current().buf.placeholder, 'printf(3)')
+       Cmd.run('ok', Pane.current().buf)
+       await waitFor(() => {
+                       let cur
+
+                       cur = Pane.current().buf
+                       return (cur?.name == 'Man: printf(3)') &&
+                             (cur.vars('Manpage').loading == 0)
+                     })
+       equal(textOf(Pane.current().buf).includes('printf - x'), true)
+     })
+
+test('viewer', 'a reference with trailing punctuation links only the reference',
+     async () => {
+       let b, a
+
+       setup({ links: '.TH LINKS 1\n.SH NAME\nsee ls(1).\n',
+               'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       b = await opened('links')
+       a = viewOf(b).ele.querySelector('a[data-topic]')
+       equal(a.dataset.topic, 'ls(1)')
+       equal(a.textContent, 'ls(1)')
+       a.dispatchEvent(new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 }))
+       await waitFor(() => {
+                       let cur
+
+                       cur = Pane.current().buf
+                       return (cur.name == 'Man: ls(1)') &&
+                             (cur.vars('Manpage').loading == 0)
+                     })
+       equal(Pane.current().buf.name, 'Man: ls(1)')
+     })
+
+test('viewer', 'a man link with no text shows and opens its topic',
+     async () => {
+       let b, a
+
+       setup({ links: '.TH LINKS 1\n.SH NAME\n.UR man:ls(1)\n.UE\n',
+               'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       b = await opened('links')
+       a = viewOf(b).ele.querySelector('a[data-topic]')
+       equal(a.dataset.topic, 'ls(1)')
+       equal(a.textContent, 'ls(1)')
+       a.dispatchEvent(new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 }))
+       await waitFor(() => {
+                       let cur
+
+                       cur = Pane.current().buf
+                       return (cur.name == 'Man: ls(1)') &&
+                             (cur.vars('Manpage').loading == 0)
+                     })
+       equal(Pane.current().buf.name, 'Man: ls(1)')
+     })
+
+test('viewer', 'show all failures expands the capped list',
+     async () => {
+       let b, st, items, more, src
+
+       src = '.TH BAD 1\n'
+       for (let i = 0; i < 45; i++)
+         src = src + '.frobnicate' + i + '\n'
+       setup({ many: src })
+       b = await opened('many')
+       st = b.vars('Manpage')
+       more = viewOf(b).ele.querySelector('.manpage-err-more')
+       equal(more.textContent, '... 5 more (show all)')
+       equal(more.dataset.run, 'man show all failures')
+       more.dispatchEvent(new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 }))
+       await waitFor(() => (viewOf(b).ele.querySelectorAll('.manpage-err-item').length == 45))
+       items = viewOf(b).ele.querySelectorAll('.manpage-err-item')
+       equal(items.length, 45)
+       equal(items[44].textContent, 'macro frobnicate44 (line 46)')
+       equal(viewOf(b).ele.querySelector('.manpage-err-more').textContent,
+             'Showing all 45 failures')
+       equal(st.fails.length, 45)
+       Cmd.run('man show all failures', b)
+       equal(viewOf(b).ele.querySelectorAll('.manpage-err-item').length, 45)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

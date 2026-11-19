@@ -1442,13 +1442,16 @@ function tableOptions
 (text) {
   let opts
 
+  function takeTab
+  (all, tab) {
+    opts.tab = tab || '\t'
+    return ' '
+  }
+
   opts = { tab: '\t', box: 0, allbox: 0, center: 0, expand: 0 }
   // Options are separated by spaces, commas or semicolons, and tab(...) may
   // itself contain a space or a semicolon, so take it out before splitting.
-  text = text.replace(/tab\s*\(([^)]*)\)/g, (all, tab) => {
-                                           opts.tab = tab || '\t'
-                                           return ' '
-                                         })
+  text = text.replace(/tab\s*\(([^)]*)\)/g, takeTab)
   text.split(/[\s,;]+/).forEach(piece => {
                                   if ((piece == 'box') || (piece == 'frame') || (piece == 'doublebox'))
                                     opts.box = 1

@@ -455,6 +455,12 @@ function make
   function whenReady1
   () {
     readyTimeout = 0
+    // The ready timeout can outlive its window (a closed window, or a test
+    // that swapped the DOM globals), and there is nothing to attach to then.
+    if (globalThis.document?.createElement == undefined) {
+      d('VIEW ready1: no document')
+      return
+    }
     attachScrollbar()
     ready = 1
     d('VIEW ready1 whenReady')

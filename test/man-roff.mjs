@@ -171,6 +171,14 @@ test('scan', 'unknown escape fails',
        equal(failNames(scan).join(','), 'escape q')
      })
 
+test('scan', 'a dropped backslash keeps the character',
+     () => {
+       let scan
+
+       scan = Roff.scan('.TH LS 1\n.SH NAME\nfile \\] a\n')
+       equal(scan.ok, 1)
+     })
+
 test('scan', 'non-ascii after a backslash is literal',
      () => {
        let scan

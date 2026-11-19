@@ -72,6 +72,9 @@ escapes = Object.assign({},
                         table('unsupported', '!'))
 escapes[' '] = 'render'
 escapes['\t'] = 'render'
+// groff drops the backslash from an unrecognised escape, so `\]` prints `]`.
+// manconv(1) in the Spanish translation relies on that pass-through.
+escapes[']'] = 'render'
 
 // Strings and registers groff or the man macros provide. Pages that use these
 // without defining them are still renderable; anything else undefined is

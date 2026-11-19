@@ -305,6 +305,20 @@ test('escapes', 'special characters and dashes',
              'a — b • c - d')
      })
 
+test('escapes', 'final sigma has its own name',
+     () => {
+       equal(asText('.TH T 1\na \\(ts b\n'), 'a ς b\n')
+     })
+
+test('escapes', 'unrecognised escape keeps its character',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\nfile \\] a\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'file ] a')
+     })
+
 test('escapes', 'continue joins lines without a space',
      () => {
        equal(flat(parsed('.TH T 1\njoin\\c\ned\n').doc.blocks[0].spans), 'joined')

@@ -191,17 +191,18 @@ and lists, combined table options, colspans and links with no text.
 
 ## Current state
 
-Corpus: 4152 installed pages (English + translations) on Debian trixie.
+Corpus: 4150 installed pages (English + translations) on Debian trixie.
 
 ```
-parsed   4124   (99.3%)
-refused    28
+parsed   4123   (99.3%)
+refused    27
 ```
 
 The refusals are page bugs, not dialect gaps: undefined `\*(AQ` in 7
-translations, malformed `\f\fI` in 6 Korean pages, `\fGDBM` in 2 gdbm pages,
-ms macros (1), eqn (1), a `.p` typo, `It` without `Bl` (2), strace's undefined
-`.IX`, and a few odd groff symbols (`Su`, `ts`, `R`, `\]`).
+translations, a broken `\f\f` in 6 Korean pages, an undefined `\fG` font in 2
+gdbm pages, `It` without `Bl` (2), the `Su`/`R` strings that only eqn defines
+(4), ms `DS`/`DE` (1), eqn `EQ`/`EN` (1), `mso pic.tmac` (1), strace's
+undefined `.IX`, a `.p` typo and one undefined Cyrillic string.
 
 `man-diff --section 1 --max 400` leaves 25 pages with 82 missing words. Those
 are measurement artifacts, not content loss: `.UR`/`.MT`/`.MTO` targets live in
@@ -209,7 +210,7 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 274 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 277 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Coverage of the
 man modules is
 98.5% of `man.mjs` lines (89% of branches) and 100% of `man-render.mjs` lines
@@ -239,6 +240,10 @@ and branches.
   add a test, rerun `man-audit --parse`.
 - New request/escape: same, and prefer failing over "best effort" unless the
   construct is purely presentational (classify it `metric`/`ignore`).
+- A character name is added to `js/man-char.mjs` only when groff really has it:
+  `\(ts` is the final sigma, and `\]` keeps its `]` because groff drops the
+  backslash from an escape it does not know. Both were added after seeing them
+  in the corpus.
 - Keep `man-parse.mjs` DOM-free and `man-render.mjs` model-only.
 - `.mso` is accepted only for `www.tmac` and `an-ext.tmac`, whose macros
   (`URL`, `MTO`, `UR/UE`, `MT/ME`) are implemented directly.

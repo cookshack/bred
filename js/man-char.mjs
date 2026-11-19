@@ -139,7 +139,8 @@ symbols = { 'aq': "'",
             'mi': '−',
             'tmu': '™' }
 
-greek = { '*a': 'α',
+greek = { 'ts': 'ς', // teliko sigma, the final form of `*s`
+          '*a': 'α',
           '*b': 'β',
           '*g': 'γ',
           '*d': 'δ',

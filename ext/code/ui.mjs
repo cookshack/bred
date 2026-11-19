@@ -256,8 +256,9 @@ function updateOut
                         })
 }
 
-// Show the main transcript, or one subagent's tab. Each tab keeps its own
-// scroll position in the one scroller.
+// Show the main transcript, or one subagent's tab. A tab that was left at the
+// end comes back at the end: the transcript keeps growing while it is hidden,
+// so the old pixel position would land in the middle of it.
 export
 function setTab
 (buf, view, sessionID) {
@@ -267,7 +268,7 @@ function setTab
   w = view.eleOrReserved?.querySelector('.code-w')
   if (w) {
     state.tabScroll = state.tabScroll || {}
-    state.tabScroll[state.tab || 'main'] = w.scrollTop
+    state.tabScroll[state.tab || 'main'] = { top: w.scrollTop, pinned: atEnd(w) }
   }
   state.tab = sessionID || 0
   sub = state.tab && buf.vars('code').subagents?.get(state.tab)
@@ -275,14 +276,15 @@ function setTab
     sub.unread = 0
   applyTab(view)
   if (w) {
-    let top
+    let saved
 
-    top = state.tabScroll[state.tab || 'main']
-    if (top == null)
+    saved = state.tabScroll[state.tab || 'main']
+    if (saved)
+      w.scrollTop = saved.pinned ? w.scrollHeight : saved.top
+    else
       // A subagent still running is followed from the end; a finished one is
       // read from the top.
-      top = (sub?.status == 'running') ? w.scrollHeight : 0
-    w.scrollTop = top
+      w.scrollTop = (sub?.status == 'running') ? w.scrollHeight : 0
   }
 }
 

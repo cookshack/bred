@@ -1093,6 +1093,34 @@ test('subagent', 'reopened session replays child output into its tab',
              'the parent transcript is still in main')
      })
 
+test('scroll', 'a tab left at the end comes back at the end',
+     async () => {
+       let buf, client, height, panes, w
+
+       ({ panes, buf } = await setup())
+       height = 1000
+       client = 200
+       w = panes.pB.view.ele.querySelector('.code-w')
+       // happy-dom has no layout, so give the scroller the metrics a browser
+       // would report
+       Object.defineProperty(w, 'scrollHeight', { get: () => height, configurable: 1 })
+       Object.defineProperty(w, 'clientHeight', { get: () => client, configurable: 1 })
+       w.scrollTop = 800
+
+       Ui.setTab(buf, panes.pB.view, 'ses-child')
+       // the main transcript grew while its tab was hidden
+       height = 1500
+       Ui.setTab(buf, panes.pB.view, 0)
+       equal(w.scrollTop, 1500, 'a tab that was at the end is still at the end')
+
+       // a tab left part way through comes back where it was
+       w.scrollTop = 300
+       Ui.setTab(buf, panes.pB.view, 'ses-child')
+       height = 2000
+       Ui.setTab(buf, panes.pB.view, 0)
+       equal(w.scrollTop, 300, 'a tab left part way through keeps its place')
+     })
+
 test('middle click', 'a middle click in the message log is blocked',
      async () => {
        let buf, content, event, panes, text

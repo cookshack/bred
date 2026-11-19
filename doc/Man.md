@@ -25,6 +25,8 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
    a path with a colon cannot inject a bogus path or hide the real one. A
    missing binary (exit 126/127, `command not found`, ENOENT) or a spawn
    failure is reported as `Cannot run man: ...`, not as `No manual entry`.
+   The BSD/mandoc `man` implements `-w` as well (listing the search path when
+   given no name), so no `man --path` fallback is needed.
 2. Read it with `zcat`, falling back to `cat` only when `zcat` fails. An empty
    file is a valid page, not a read error, and is never sent to `cat` (which
    would print gzip bytes).
@@ -36,7 +38,8 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
    `man -w` lookup, so a missing target reports both ends, for example
    `Redirect from a to b.8: No manual entry for b.8`.
 4. Mid-page `.so` targets are resolved first: `gatherIncludes` turns each
-   target into a topic, reads it with `man -w`, and recurses (up to depth 5).
+   relative target into a topic, reads it with `man -w`, and recurses (up to
+   depth 5); a target that starts with `/` is a file and is read directly.
    The collected text is passed to the parser as its include loader. A `.so`
    that revisits a target already open is refused as an `include cycle`, so a
    page that includes itself (directly or through another page) cannot loop.
@@ -48,9 +51,12 @@ The prompt takes the ways people actually type a page: `printf(3)`,
 A leading number that is not a valid section (`0 ls`, `33 ls`) and a bare
 section (`(1)`) are refused before `man` runs. A path is read directly instead
 of going through `man -w`: an absolute path, `./foo.1`, `../foo.1`, `~/foo.1`,
-or a bare source name such as `foo.1` in the pane's directory. A bare name is
-ambiguous, so if the file does not read it falls back to a topic lookup;
-explicit paths report `Cannot read ...` and do not guess.
+or a bare source name such as `foo.1` in the pane's directory. A path is a
+plain filename, so spaces and colons in it are kept (only `~` and `~/` are
+expanded; `~user` is refused). A bare name is ambiguous, so if the file does
+not read it falls back to a topic lookup; explicit paths report
+`Cannot read ...` and do not guess. A directory named like a page fails its
+read and is never parsed.
 
 Links to `http:`, `https:`, `mailto:` and `ftp:` open in the desktop browser
 through `shell.open` and never navigate the window. Any other scheme is
@@ -59,10 +65,15 @@ links open another topic.
 
 Refresh bumps a per-buffer load generation; a response or include prefetch from
 an older generation is ignored, so refreshing while loading (or twice) keeps
-the newest result. A failed refresh shows its error and the buffer stays usable.
+the newest result. A path page is re-read from its path, not looked up again
+with `man -w`. A failed refresh shows its error and the buffer stays usable;
+reopening a refused or failed page retries it.
 
 `M-x man` completes topics with `man -k '^prefix'` (cached per prefix); a
-suggestion closes the prompt and opens the page.
+section prefix is stripped for the query and results are filtered to that
+section, so `3 pr` suggests `printf(3)` rather than asking for `^3 pr`. A
+suggestion closes the prompt and opens the page; a prompt submission is kept
+in history and replaying one reopens or refreshes its page.
 
 ## Modules
 
@@ -120,14 +131,16 @@ text. `test/man-viewer.mjs` drives `Man.open` with fake `man -w`/`zcat`
 responses, so the viewer is tested without the installed corpus. It covers the
 path and reader fallbacks, redirects (chains, cycles, sections, missing
 targets), includes (including cycles), TOC and reference clicks, external and
-unknown-scheme links, section/topic normalisation and path input, the prompt
-with its completion (regex escaping, caching, suggestion clicks, a throwing
-`tokenAt`, a close before the attract timer), error paths (unreadable, empty
-and blank pages, non-gzip fallback, a missing `man` and a spawn failure),
-man -w diagnostics mixed with paths, refresh (failing, repeated while
-loading), and buffer reuse and shared refresh across panes. The renderer tests
-also draw compact and large pages, empty tables and lists, combined table
-options, colspans and links with no text.
+unknown-scheme links, section/topic normalisation and path input (including
+spaces, colons and home expansion), the prompt with its completion (regex
+escaping, caching, a section prefix such as `3 pr`, suggestion clicks, a
+throwing `tokenAt`, a close before the attract timer), prompt history replay,
+error paths (unreadable, empty and blank pages, non-gzip fallback, a missing
+`man` and a spawn failure), man -w diagnostics mixed with paths, refresh
+(failing, repeated while loading, and path pages re-read from their path),
+absolute `.so` includes, and buffer reuse and shared refresh across panes. The
+renderer tests also draw compact and large pages, empty tables and lists,
+combined table options, colspans and links with no text.
 
 ## Current state
 
@@ -149,25 +162,27 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 230 (inventory, interpreter, renderer, viewer); `test-corpus` also
+Tests: 237 (inventory, interpreter, renderer, viewer); `test-corpus` also
 parses and renders every page in the corpus. Coverage of the man modules is
 99.7% of `man.mjs` lines (90% of branches) and 100% of `man-render.mjs` lines
 and branches.
 
 ## Known gaps, in order
 
-1. `man -w` fallback for systems where `man` is mandoc (`man --path`).
-2. Div buffers are not searchable with isearch; that is a general limitation of
+1. Div buffers are not searchable with isearch; that is a general limitation of
    div views, not specific to man pages.
-3. mdoc `Ex`/`Rv` expand to canned sentences; they are approximations of the
+2. mdoc `Ex`/`Rv` expand to canned sentences; they are approximations of the
    real macro text.
-4. A colon in a path is still a separator when the text before it looks like a
+3. A colon in a path is still a separator when the text before it looks like a
    man source (for example `/x/a.1:/b.1`): `man -w` output has no unambiguous
    quoting, so this heuristic favours the common colon-separated list.
-5. A bare `foo.1` is tried as a path before a topic; if it exists but cannot be
-   read, the topic fallback can hide the read error. Explicit paths do not
-   fall back.
-6. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
+4. A bare `foo.1` is tried as a path before a topic; if it exists but cannot be
+   read (a directory named `foo.1`, a permission error), the topic fallback can
+   hide the read error. Avoiding that needs a `stat` (or an extra process per
+   open) before the read; the viewer only has `zcat`/`cat`, so it tries both
+   and then `man -w`. Explicit paths do not fall back, so the read error is
+   shown and a directory is never parsed.
+5. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
    are refused rather than handed to the desktop.
 
 ## Changing it

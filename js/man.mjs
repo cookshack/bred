@@ -217,13 +217,23 @@ function init
     return isPath(text)
   }
 
+  // Expand only the home prefix. A man path is a plain filename, so a colon
+  // in it must not be taken for a URL scheme (Loc.expand would refuse it).
+  function expandPath
+  (path) {
+    if ((path == '~') || path.startsWith('~/'))
+      return Loc.home() + path.slice(1).replace(/^\//, '')
+    if (path.startsWith('~'))
+      Mess.toss('Please use full path instead of ~user')
+    return path
+  }
+
   function resolvePath
   (dir, path) {
-    let loc, p
+    let p
 
-    loc = Loc.make(path)
-    p = loc.expand()
-    if (loc.relative) {
+    p = expandPath(path)
+    if (p.startsWith('/') == 0) {
       if (dir.endsWith('/') == 0)
         dir = dir + '/'
       p = dir + p
@@ -499,6 +509,17 @@ function init
     return out
   }
 
+  // An include target that starts with / names a file, not a topic: read it
+  // directly. A relative target stays a topic so man -w applies its search
+  // path (man1/foo.1 and foo.1 both work there).
+  function includeSource
+  (dir, target, cb) {
+    if (target.startsWith('/'))
+      readSource(dir, Loc.make(target).normalize(), cb)
+    else
+      fetchPage(dir, manSourceTopic(target), 0, cb)
+  }
+
   function gatherIncludes
   (dir, text, depth, includes, cb) {
     let targets
@@ -509,14 +530,14 @@ function init
         cb()
         return
       }
-      fetchPage(dir, manSourceTopic(targets[at]), 0, (err, text2) => {
-                                                       if (err == 0) {
-                                                         includes[targets[at]] = text2
-                                                         gatherIncludes(dir, text2, depth + 1, includes, () => next(at + 1))
-                                                       }
-                                                       else
-                                                         next(at + 1)
-                                                     })
+      includeSource(dir, targets[at], (err, text2) => {
+                                        if (err == 0) {
+                                          includes[targets[at]] = text2
+                                          gatherIncludes(dir, text2, depth + 1, includes, () => next(at + 1))
+                                        }
+                                        else
+                                          next(at + 1)
+                                      })
     }
     targets = includeTargets(text).filter(target => includes[target] == undefined)
     if ((depth > 4) || (targets.length == 0)) {
@@ -662,24 +683,42 @@ function init
     Css.enable(under)
   }
 
+  // Completion works on the name, not the typed form: "3 pr" is looked up as
+  // "pr" and the results keep section 3. man -k would treat "^3 pr" as a
+  // regex that never matches a "name (section)" line.
+  function suggestQuery
+  (text) {
+    let m
+
+    m = /^([1-9][a-z]*)\s+(\S.*)$/.exec(text)
+    if (m)
+      return { name: m[2].trim(), section: m[1] }
+    return { name: text, section: '' }
+  }
+
   function suggest
   (under, text) {
-    let prefix, seq
+    let key, q, seq
 
-    prefix = (text || '').trim()
-    if (prefix.length == 0) {
+    key = (text || '').trim()
+    if (key.length == 0) {
       under.innerHTML = ''
       return
     }
-    if (topicCache[prefix]) {
-      suggestions(under, prefix, topicCache[prefix])
+    if (topicCache[key]) {
+      suggestions(under, key, topicCache[key])
       return
     }
+    q = suggestQuery(key)
+    if (q.name.length == 0)
+      return
     seq = ++sugSeq
-    topics(prefix, list => {
+    topics(q.name, list => {
+                     if (q.section)
+                       list = list.filter(topic => topic.endsWith('(' + q.section + ')'))
                      if (seq == sugSeq) {
-                       topicCache[prefix] = list
-                       suggestions(under, prefix, list)
+                       topicCache[key] = list
+                       suggestions(under, key, list)
                      }
                    })
   }

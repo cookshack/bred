@@ -1,6 +1,7 @@
 import { equal, throws } from 'node:assert/strict'
 import * as Buf from '../js/Buf.mjs'
 import * as Cmd from '../js/cmd.mjs'
+import * as Hist from '../js/hist.mjs'
 import * as Loc from '../js/loc.mjs'
 import * as Man from '../js/man.mjs'
 import * as Mess from '../js/mess.mjs'
@@ -1266,6 +1267,126 @@ test('viewer', 'completion caches a prefix and clears on empty input',
        await waitFor(() => v.ele.querySelector('.bred-prompt-under').innerHTML == '')
        under = v.ele.querySelector('.bred-prompt-under')
        equal(under.innerHTML, '')
+     })
+
+test('viewer', 'completion of a section prefix queries the name and keeps the section',
+     async () => {
+       let v, topics
+
+       setup({ 'printf(3)': '.TH PRINTF 3\n.SH NAME\nprintf \\- format\n' })
+       mankOut = 'printf (3) - format output\n' +
+                 'printf (1) - format (user command)\n' +
+                 'printenv (1) - print environment\n'
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: '3 pr' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') && (c[2] == '^pr')), true)
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') && (c[2] == '^3 pr')), false)
+       topics = Array.from(v.ele.querySelectorAll('.bred-prompt-sug'))
+         .map(el => el.dataset.topic)
+       equal(topics.join(','), 'printf(3)')
+     })
+
+test('viewer', 'refresh re-reads a path page without asking man',
+     async () => {
+       let b, pages
+
+       pages = { 'pp.1': '.TH P 1\n.SH NAME\nfirst path text\n' }
+       setup(pages)
+       b = await openedVia('/tmp/pp.1', '/tmp/pp.1')
+       equal(textOf(b).includes('first path text'), true)
+       pages['pp.1'] = '.TH P 1\n.SH NAME\nsecond path text\n'
+       Cmd.run('man refresh', b)
+       await waitFor(() => textOf(b).includes('second path text'))
+       equal(calls.some(c => c[0] == 'man'), false)
+     })
+
+test('viewer', 'a failing path refresh shows the read error and reopens',
+     async () => {
+       let b, pages
+
+       pages = { 'gone.1': '.TH G 1\n.SH NAME\ngone text\n' }
+       setup(pages)
+       b = await openedVia('/tmp/gone.1', '/tmp/gone.1')
+       delete pages['gone.1']
+       Cmd.run('man refresh', b)
+       await waitFor(() => {
+                       let st
+
+                       st = b.vars('Manpage')
+                       return (st.loading == 0) && st.error
+                     })
+       equal(textOf(b).includes('Cannot read /tmp/gone.1'), true)
+       equal(calls.some(c => c[0] == 'man'), false)
+       pages['gone.1'] = '.TH G 1\n.SH NAME\nback again\n'
+       Man.open('/tmp/gone.1')
+       await waitFor(() => textOf(b).includes('back again'))
+       equal(b.vars('Manpage').error, '')
+     })
+
+test('viewer', 'an absolute .so target is read directly, not looked up as a topic',
+     async () => {
+       let b
+
+       setup({ 'page.1': '.TH P 1\n.SH NAME\nbefore include\n.so /fake/abs/incl.1\n',
+               'incl.1': '.TH I 1\n.SH NAME\nabsolute include text\n' })
+       b = await openedVia('page.1', '/tmp/page.1')
+       equal(textOf(b).includes('absolute include text'), true)
+       equal(calls.some(c => (c[0] == 'zcat') && (c[1] == '/fake/abs/incl.1')), true)
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-w') &&
+                            (String(c[2]).includes('incl'))), false)
+     })
+
+test('viewer', 'a path containing a colon is not taken for a URL scheme',
+     async () => {
+       let b
+
+       setup({ 'a:b.1': '.TH AB 1\n.SH NAME\ncolon path text\n' })
+       b = await openedVia('/tmp/a:b.1', '/tmp/a:b.1')
+       equal(textOf(b).includes('colon path text'), true)
+       equal(calls.some(c => c[0] == 'man'), false)
+     })
+
+test('viewer', 'a path with a space is kept as one argument',
+     async () => {
+       let b
+
+       setup({ 'a b.1': '.TH AB 1\n.SH NAME\nspaced path text\n' })
+       b = await openedVia('/tmp/a b.1', '/tmp/a b.1')
+       equal(textOf(b).includes('spaced path text'), true)
+       equal(calls.some(c => (c[0] == 'zcat') && (c[1] == '/tmp/a b.1')), true)
+     })
+
+test('viewer', 'a topic from the prompt history reopens its buffer',
+     async () => {
+       let b, hist
+
+       setup({ 'printf(3)': '.TH PRINTF 3\n.SH NAME\nprintf \\- format\n' })
+       b = await openedVia('3 printf', 'printf(3)')
+       equal(textOf(b).includes('format'), true)
+       hist = Hist.ensure('man')
+       equal(hist.at(0), '3 printf')
+       Cmd.run('man')
+       await waitFor(() => {
+                       let cur
+
+                       cur = Pane.current().buf
+                       return cur?.vars('prompt')?.run && cur.views[0]?.ed
+                     })
+       Cmd.run('previous history item', Pane.current().buf)
+       await waitFor(() => Pane.current().buf.text() == '3 printf')
+       Cmd.run('ok', Pane.current().buf)
+       await waitFor(() => Pane.current().buf == b)
+       equal(Pane.current().buf, b)
+       equal(Buf.shared().buffers.filter(x => x.vars('Manpage').topic == 'printf(3)').length,
+             1)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

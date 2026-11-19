@@ -785,6 +785,16 @@ test('mdoc', 'an enum list numbers its items in text',
        equal(ManParse.toText(r.doc.blocks).includes('2.'), true)
      })
 
+test('mdoc', 'an enum list keeps its type when options follow',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n' +
+                  '.Bl -enum -offset indent -compact\n.It\nfirst\n.It\nsecond\n.El\n')
+       equal(r.doc.blocks[0].listType, 'enum')
+       equal(ManParse.toText(r.doc.blocks).includes('1.'), true)
+     })
+
 test('mdoc', 'a nested list stays inside its item',
      () => {
        let r, outer, inner

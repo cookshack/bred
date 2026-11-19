@@ -1910,8 +1910,23 @@ function mdocHeading
 
 function mdocListStart
 (c, args) {
-  let type
+  let type, types
 
+  // Only these name a list layout: `-offset`, `-compact` and friends are
+  // options, so seeing one must not replace the type. `ssh_config(5)` writes
+  // `.Bl -enum -offset indent -compact`, which used to end up a "compact"
+  // list with no numbers.
+  types = { bullet: 1,
+            dash: 1,
+            hyphen: 1,
+            item: 1,
+            enum: 1,
+            tag: 1,
+            diag: 1,
+            hang: 1,
+            ohang: 1,
+            inset: 1,
+            column: 1 }
   type = 'item'
   for (let i = 0; i < args.length; i++) {
     let arg
@@ -1919,8 +1934,11 @@ function mdocListStart
     arg = args[i]
     if ((arg == '-width') || (arg == '-offset'))
       i++
-    else if (arg.startsWith('-'))
-      type = arg.slice(1)
+    else if (arg.startsWith('-')) {
+      arg = arg.slice(1)
+      if (types[arg])
+        type = arg
+    }
   }
   closeParas(c)
   c.mdoc.list = addBlock(c, { kind: 'list', listType: type, items: [] })

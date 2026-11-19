@@ -195,9 +195,11 @@ function init
       cb('Cannot read ' + path)
   }
 
+  // zcat exits zero on a valid but empty page, which must not be mistaken for
+  // a failure and sent to cat (cat would print the gzip bytes).
   function onZcat
   (dir, path, text, code, cb) {
-    if ((code == 0) && text)
+    if (code == 0)
       cb(0, text, path)
     else
       Shell.runToString(dir, 'cat', [ path ], 0, (text2, code2) => onCat(path, text2, code2, cb))
@@ -209,35 +211,47 @@ function init
   }
 
   function onSource
-  (dir, topic, depth, path, err, text, cb) {
+  (dir, topic, depth, path, err, text, cb, chain) {
     if (err)
       cb(err)
-    else if (isRedirect(text) && (depth < 3))
-      fetchPage(dir, redirectTopic(text), depth + 1, cb)
+    else if (isRedirect(text)) {
+      let target
+
+      target = redirectTopic(text)
+      if (chain.includes(target))
+        cb('Redirect cycle: ' + chain.concat(target).join(' -> '))
+      else if (depth >= 3)
+        cb('Redirect chain too deep: ' + chain.concat(target).join(' -> '))
+      else
+        fetchPage(dir, target, depth + 1, cb, chain.concat(target))
+    }
     else
       cb(0, text, path)
   }
 
   // man -w can print more than one candidate path (alternatives, or a
-  // colon-separated list); only one of them has to be readable.
+  // colon-separated list); only one of them has to be readable. Split at a
+  // colon only when another path follows, so a path containing a colon (or a
+  // space) stays whole.
   function manPaths
   (out) {
     let paths
 
+    function add
+    (path) {
+      path = path.trim()
+      if (path.startsWith('/') && (paths.includes(path) == 0))
+        paths.push(path)
+    }
+
     paths = []
     out = out || ''
-    out.split(/[\n:]/).forEach(line => {
-                                 let path
-
-                                 path = line.trim()
-                                 if (path.startsWith('/') && (paths.includes(path) == 0))
-                                   paths.push(path)
-                               })
+    out.split('\n').forEach(line => line.split(/:(?=\/)/).forEach(add))
     return paths
   }
 
   function onManW
-  (dir, topic, depth, out, code, cb) {
+  (dir, topic, depth, out, code, cb, chain) {
     let paths
 
     function tryPath
@@ -250,7 +264,7 @@ function init
                                    if (err)
                                      tryPath(at + 1, err)
                                    else
-                                     onSource(dir, topic, depth, full || paths[at], 0, text, cb)
+                                     onSource(dir, topic, depth, full || paths[at], 0, text, cb, chain)
                                  })
     }
 
@@ -263,8 +277,9 @@ function init
   }
 
   function fetchPage
-  (dir, topic, depth, cb) {
-    Shell.runToString(dir, 'man', [ '-w', topic ], 0, (out, code) => onManW(dir, topic, depth, out, code, cb))
+  (dir, topic, depth, cb, chain) {
+    chain = chain || [ topic ]
+    Shell.runToString(dir, 'man', [ '-w', topic ], 0, (out, code) => onManW(dir, topic, depth, out, code, cb, chain))
   }
 
   function findBuf

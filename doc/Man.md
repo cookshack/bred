@@ -1,6 +1,6 @@
 # Man page viewer
 
-Status: 2026-11-18. `C-h u` / `M-x man` opens a manual page in a div buffer.
+Status: 2026-11-19. `C-h u` / `M-x man` opens a manual page in a div buffer.
 
 ## Policy
 
@@ -16,10 +16,16 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
 ## Pipeline
 
 1. `man -w topic` gives the installed source path (respects `MANPATH`, locale).
-   It may print more than one candidate; each is tried in order until one
-   reads.
-2. Read it with `zcat` (fall back to `cat`).
-3. `.so`-only redirect pages are followed as topics (up to depth 3).
+   It may print more than one candidate, one per line or as a colon-separated
+   list, possibly mixed with diagnostics; paths are deduplicated and each is
+   tried in order until one reads. A colon inside a path (like a space) does
+   not split it.
+2. Read it with `zcat`, falling back to `cat` only when `zcat` fails. An empty
+   file is a valid page, not a read error, and is never sent to `cat` (which
+   would print gzip bytes).
+3. `.so`-only redirect pages are followed as topics (up to depth 3). A
+   redirect that revisits a page is refused as `Redirect cycle: a -> b -> a`,
+   and a longer chain as `Redirect chain too deep: ...`.
 4. Mid-page `.so` targets are resolved first: `gatherIncludes` turns each
    target into a topic, reads it with `man -w`, and recurses (up to depth 5).
    The collected text is passed to the parser as its include loader. A `.so`
@@ -85,8 +91,11 @@ hyphenation (U+2010), compound hyphens broken at a line end, box-drawing
 characters and bullet markers, then reports reference words missing from our
 text. `test/man-viewer.mjs` drives `Man.open` with fake `man -w`/`zcat`
 responses, so the viewer is tested without the installed corpus. It covers the
-path and reader fallbacks, includes (including cycles), TOC and reference
-clicks, the prompt with its completion, and buffer reuse across panes.
+path and reader fallbacks, redirects (chains and cycles), includes (including
+cycles), TOC and reference clicks, the prompt with its completion (regex
+escaping, suggestion clicks, a throwing `tokenAt`), error paths (unreadable,
+empty and blank pages, non-gzip fallback), and buffer reuse and shared refresh
+across panes.
 
 ## Current state
 
@@ -108,7 +117,7 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 178 (inventory, interpreter, renderer, viewer); `test-corpus` also
+Tests: 195 (inventory, interpreter, renderer, viewer); `test-corpus` also
 parses and renders every page in the corpus.
 
 ## Known gaps, in order

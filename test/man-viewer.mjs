@@ -6,9 +6,9 @@ import * as Mess from '../js/mess.mjs'
 import * as Mode from '../js/mode.mjs'
 import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
-import { setupPanes, waitFor } from './pane-helpers.mjs'
+import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, savedTron, calls, zcatFails, mankFails
+let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths
 
 function test
 (group, name, cb) {
@@ -30,6 +30,18 @@ function installShell
     return pages[base] || ''
   }
 
+  function zcatResult
+  (path) {
+    let text
+
+    if (emptyPaths[path])
+      return { out: '', code: 0 }
+    text = zcatFails[path] ? '' : read(path)
+    if (text == '')
+      return { out: '', code: 1 }
+    return { out: text, code: 0 }
+  }
+
   function response
   (sc, sargs) {
     let out, code, errMsg
@@ -42,7 +54,7 @@ function installShell
       let list
 
       list = (manw && manw[sargs[1]]) ||
-             (pages[sargs[1]] ? [ '/fake/man1/' + sargs[1] + '.1.gz' ] : [])
+             ((sargs[1] in pages) ? [ '/fake/man1/' + sargs[1] + '.1.gz' ] : [])
       if (list.length)
         out = list.join('\n') + '\n'
       else {
@@ -51,7 +63,10 @@ function installShell
       }
     }
     else if ((sc == 'man') && (sargs[0] == '-k')) {
-      out = 'ls (1) - list directory contents\nlsblk (8) - list block devices\n'
+      if (mankOut == undefined)
+        out = 'ls (1) - list directory contents\nlsblk (8) - list block devices\n'
+      else
+        out = mankOut
       if (mankFails) {
         out = ''
         code = 1
@@ -59,9 +74,11 @@ function installShell
       }
     }
     else if (sc == 'zcat') {
-      out = zcatFails[sargs[0]] ? '' : read(sargs[0] || '')
-      if (out == '')
-        code = 1
+      let r
+
+      r = zcatResult(sargs[0] || '')
+      out = r.out
+      code = r.code
     }
     else if (sc == 'cat') {
       out = read(sargs[0] || '')
@@ -107,6 +124,8 @@ function setup
   calls = []
   zcatFails = {}
   mankFails = 0
+  mankOut = undefined
+  emptyPaths = {}
   installShell(panes, pages, manw)
   return panes
 }
@@ -585,6 +604,270 @@ test('viewer', 'the man command and mode are registered',
        setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' })
        equal(Cmd.get('man').name, 'Man')
        equal(Mode.get('manpage').key, 'manpage')
+     })
+
+test('viewer', 'a throwing tokenAt leaves the prompt empty',
+     async () => {
+       let m, b, panes
+
+       function noToken
+       () {
+         throw new Error('no token here')
+       }
+
+       panes = setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       m = Mode.add('token throw', {})
+       m.tokenAt = noToken
+       b = Buf.add('tok', 'token throw', globalThis.document.createElement('div'), '/tmp')
+       panes.pA.focus()
+       await setBuf(panes.pA, b)
+       Cmd.run('man')
+       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
+       equal(Pane.current().buf.placeholder, '')
+     })
+
+test('viewer', 'an empty prompt submits the token at point',
+     async () => {
+       let m, b, panes
+
+       panes = setup({ rm: '.TH RM 1\n.SH NAME\nrm \\- remove files\n' })
+       m = Mode.add('token word', {})
+       m.tokenAt = () => 'rm'
+       b = Buf.add('tok', 'token word', globalThis.document.createElement('div'), '/tmp')
+       panes.pA.focus()
+       await setBuf(panes.pA, b)
+       Cmd.run('man')
+       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
+       equal(Pane.current().buf.placeholder, 'rm')
+       Cmd.run('ok', Pane.current().buf)
+       await waitFor(() => {
+                       let cur
+
+                       cur = Pane.current().buf
+                       return (cur?.name == 'Man: rm') && (cur.vars('Manpage').loading == 0)
+                     })
+       equal(textOf(Pane.current().buf).includes('remove files'), true)
+     })
+
+test('viewer', 'a redirect chain follows to the final page',
+     async () => {
+       let b
+
+       setup({ a: '.so man1/b.1\n',
+               b: '.so man1/c.1\n',
+               c: '.TH C 1\n.SH NAME\nfinal text\n' })
+       b = await opened('a')
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(textOf(b).includes('final text'), true)
+     })
+
+test('viewer', 'a redirect cycle is refused, not followed forever',
+     async () => {
+       let b, fetches
+
+       setup({ aa: '.so man1/bb.1\n',
+               bb: '.so man1/aa.1\n' })
+       b = await opened('aa')
+       equal(textOf(b).includes('Redirect cycle: aa -> bb -> aa'), true)
+       equal(textOf(b).includes('No manual entry'), false)
+       fetches = calls.filter(c => (c[0] == 'man') && (c[1] == '-w')).length
+       equal(fetches <= 4, true)
+     })
+
+test('viewer', 'a redirect chain that is too deep is refused',
+     async () => {
+       let b
+
+       setup({ a: '.so man1/b.1\n',
+               b: '.so man1/c.1\n',
+               c: '.so man1/d.1\n',
+               d: '.so man1/e.1\n',
+               e: '.TH E 1\n.SH NAME\nend\n' })
+       b = await opened('a')
+       equal(textOf(b).includes('Redirect chain too deep: a -> b -> c -> d -> e'), true)
+     })
+
+test('viewer', 'a mid-page include may point at a redirect page',
+     async () => {
+       let b
+
+       setup({ page: '.TH P 1\n.SH NAME\nbefore\n.so man1/rbash.1\n',
+               rbash: '.so man1/bash.1\n',
+               bash: '.TH B 1\n.SH NAME\nbash text\n' })
+       b = await opened('page')
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(textOf(b).includes('before'), true)
+       equal(textOf(b).includes('bash text'), true)
+     })
+
+test('viewer', 'man -w output mixes colon and newline lists',
+     async () => {
+       let b
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' },
+             { ls: [ '/fake/man1/nope.1.gz:/fake/man2/lost.1.gz\n' +
+                     '/fake/man3/ls.1.gz\n' +
+                     'man: warning: ignoring a bogus path\n' ] })
+       b = await opened('ls')
+       equal(viewOf(b).ele.querySelector('.man-h1').textContent, 'NAME')
+       equal(calls.some(c => (c[0] == 'zcat') && (c[1] == '/fake/man1/nope.1.gz')), true)
+       equal(calls.some(c => (c[0] == 'zcat') && (c[1] == '/fake/man3/ls.1.gz')), true)
+       equal(calls.some(c => c[1] == undefined), false)
+     })
+
+test('viewer', 'a repeated man -w path is read once',
+     async () => {
+       let b, reads
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' },
+             { ls: [ '/fake/man1/ls.1.gz\n/fake/man1/ls.1.gz  \n' ] })
+       b = await opened('ls')
+       reads = calls.filter(c => (c[0] == 'zcat') && (c[1] == '/fake/man1/ls.1.gz')).length
+       equal(reads, 1)
+       equal(viewOf(b).ele.querySelector('.man-h1').textContent, 'NAME')
+     })
+
+test('viewer', 'a man -w path with spaces and a colon stays whole',
+     async () => {
+       let b
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' },
+             { ls: [ '/fake/man pages:archive/ls.1.gz\n' ] })
+       b = await opened('ls')
+       equal(calls.some(c => (c[0] == 'zcat') &&
+                             (c[1] == '/fake/man pages:archive/ls.1.gz')), true)
+       equal(viewOf(b).ele.querySelector('.man-h1').textContent, 'NAME')
+     })
+
+test('viewer', 'man -k output that matches nothing yields no topics',
+     async () => {
+       let list, done
+
+       function got
+       (topics) {
+         list = topics
+         done = 1
+       }
+
+       setup({})
+       mankOut = 'not a whatis line\n\n(1)\n'
+       list = null
+       done = 0
+       Man.topics('zz', got)
+       await waitFor(() => done)
+       equal(list.length, 0)
+     })
+
+test('viewer', 'completion escapes plus and parenthesis',
+     async () => {
+       let done
+
+       function got
+       () {
+         done = 1
+       }
+
+       setup({})
+       done = 0
+       Man.topics('c++', got)
+       await waitFor(() => done)
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') && (c[2] == '^c\\+\\+')), true)
+       done = 0
+       Man.topics('x(1)', got)
+       await waitFor(() => done)
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') && (c[2] == '^x\\(1\\)')), true)
+     })
+
+test('viewer', 'a suggestion click opens its topic from the prompt',
+     async () => {
+       let v, el, we
+
+       setup({ 'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       el = v.ele.querySelector('.bred-prompt-sug')
+       // let the prompt's attract timer fire before the click closes it
+       await wait(400)
+       // the item runs "close demand" then, via data-after, "man suggestion"
+       we = { mouse: 1, e: { button: 0, target: el } }
+       Cmd.run(el.dataset.run, Pane.current().buf, 1, we)
+       Cmd.run(el.dataset.after, Pane.current().buf, 1, we)
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return (b?.name == 'Man: ls(1)') && (b.vars('Manpage').loading == 0)
+                     })
+       equal(Pane.current().buf.views[0].ele.querySelector('.man-h1').textContent, 'NAME')
+     })
+
+test('viewer', 'an empty page renders instead of falling back to cat',
+     async () => {
+       let b
+
+       setup({ empty: '' })
+       emptyPaths['/fake/man1/empty.1.gz'] = 1
+       b = await opened('empty')
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(textOf(b), '')
+       equal(calls.some(c => c[0] == 'cat'), false)
+     })
+
+test('viewer', 'a page of only blank lines renders',
+     async () => {
+       let b
+
+       setup({ blanks: '\n   \n\t\n\n' })
+       b = await opened('blanks')
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(viewOf(b).ele.querySelector('.man-doc') == null, false)
+     })
+
+test('viewer', 'a non-gzip file is read with cat',
+     async () => {
+       let b
+
+       setup({ plain: '.TH PLAIN 1\n.SH NAME\nplain text\n' })
+       zcatFails['/fake/man1/plain.1.gz'] = 1
+       b = await opened('plain')
+       equal(textOf(b).includes('plain text'), true)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/fake/man1/plain.1.gz')), true)
+     })
+
+test('viewer', 'a refresh updates every view of a shared page',
+     async () => {
+       let panes, pages, b
+
+       pages = { ls: '.TH LS 1\n.SH NAME\nfirst text\n' }
+       panes = setup(pages)
+       panes.pA.focus()
+       b = await opened('ls')
+       panes.pB.focus()
+       Man.open('ls')
+       await waitFor(() => Pane.current().buf == b)
+       equal(b.views.length, 2)
+       pages.ls = '.TH LS 1\n.SH NAME\nsecond text\n'
+       Cmd.run('man refresh', b)
+       await waitFor(() => b.views.every(v => v.ele.textContent.includes('second text')))
+       equal(b.views.some(v => v.ele.textContent.includes('first text')), false)
+     })
+
+test('viewer', 'an unreadable page names the last path it tried',
+     async () => {
+       let b
+
+       setup({}, { ls: [ '/fake/man1/one.1.gz', '/fake/man1/two.1.gz' ] })
+       b = await opened('ls')
+       equal(viewOf(b).ele.querySelector('.manpage-msg').textContent,
+             'Cannot read /fake/man1/two.1.gz')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

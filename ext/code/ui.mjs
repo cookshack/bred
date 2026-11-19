@@ -49,6 +49,7 @@ function divW
                                  divCl('code-nav', [ navUp, navDown ]) ]) ]),
                  divCl('code-w bred-scroller',
                        [ divCl('code-session-title'),
+                         divCl('code-out code-out-main code-out-shown'),
                          divCl('code-under-w',
                                [ divCl('code-under code-under-status'),
                                  divCl('code-under code-under-model'),
@@ -119,6 +120,14 @@ function withScroll
 export
 function appendX
 (w, el) {
+  appendOut({ w, box: mainBox(w) || w }, el)
+}
+
+// Permission and question blocks stay outside the tabs: they block the turn, so
+// they have to be visible whichever tab is showing.
+export
+function appendAlways
+(w, el) {
   withScroll(w, underW => {
                   if (underW) {
                     let prev
@@ -133,6 +142,163 @@ function appendX
                   else
                     append(w, el)
                 })
+}
+
+function mainBox
+(w) {
+  return w?.querySelector('.code-out-main')
+}
+
+export
+function appendOut
+(out, el) {
+  withScroll(out.w, () => {
+                      if (out.box)
+                        out.box.appendChild(el)
+                    })
+}
+
+// Move the transcript to the main view, or to one subagent's tab. The boxes are
+// siblings in the one scroller, so only the shown one takes up layout.
+export
+function applyTab
+(view) {
+  let state, tab, w
+
+  state = view.vars('code')
+  tab = state.tab
+  w = view.eleOrReserved?.querySelector('.code-w')
+  w?.querySelectorAll('.code-out').forEach(box => {
+                                             let shown
+
+                                             shown = tab ? (box.dataset.sessionid == tab)
+                                                            : Css.has(box, 'code-out-main')
+                                             if (shown)
+                                               Css.add(box, 'code-out-shown')
+                                             else
+                                               Css.remove(box, 'code-out-shown')
+                                           })
+}
+
+// Create the tab a subagent's output goes to. Called for every view of the buf,
+// and again for views opened later.
+export
+function addOut
+(view, sub) {
+  let box, w
+
+  w = view.eleOrReserved?.querySelector('.code-w')
+  if (w == null)
+    return
+  if (w.querySelector('.code-out[data-sessionid="' + sub.sessionID + '"]'))
+    return
+  box = divCl('code-out', divCl('code-out-head', sub.head), { 'data-sessionid': sub.sessionID })
+  {
+    let underW
+
+    underW = w.querySelector('.code-under-w')
+    if (underW)
+      underW.before(box)
+    else
+      append(w, box)
+  }
+  applyTab(view)
+}
+
+export
+function syncOuts
+(buf) {
+  let subs
+
+  subs = buf.vars('code').subagents
+  if (subs)
+    buf.views.forEach(view => subs.forEach(sub => addOut(view, sub)))
+}
+
+export
+function updateOutHead
+(buf, sessionID) {
+  let subs
+
+  subs = buf.vars('code').subagents
+  if (subs?.get(sessionID))
+    Util.eachCodeW(buf, (view, w) => {
+                          let el
+
+                          el = w.querySelector('.code-out[data-sessionid="' + sessionID + '"] .code-out-head')
+                          if (el)
+                            el.innerText = subs.get(sessionID).head
+                        })
+}
+
+// Show the main transcript, or one subagent's tab. Each tab keeps its own
+// scroll position in the one scroller.
+export
+function setTab
+(buf, view, sessionID) {
+  let state, sub, w
+
+  state = view.vars('code')
+  w = view.eleOrReserved?.querySelector('.code-w')
+  if (w) {
+    state.tabScroll = state.tabScroll || {}
+    state.tabScroll[state.tab || 'main'] = w.scrollTop
+  }
+  state.tab = sessionID || 0
+  sub = state.tab && buf.vars('code').subagents?.get(state.tab)
+  if (sub)
+    sub.unread = 0
+  applyTab(view)
+  if (w) {
+    let top
+
+    top = state.tabScroll[state.tab || 'main']
+    if (top == null)
+      // A subagent still running is followed from the end; a finished one is
+      // read from the top.
+      top = (sub?.status == 'running') ? w.scrollHeight : 0
+    w.scrollTop = top
+  }
+}
+
+function subagentRow
+(view, spec, current) {
+  let parts
+
+  parts = []
+  if (spec.name)
+    parts.push(span(spec.name, 'assist-subagent-name'))
+  else {
+    parts.push(span('@' + (spec.agent || 'subagent'), 'assist-subagent-name'))
+    if (spec.desc)
+      parts.push(span(spec.desc, 'assist-subagent-desc'))
+    parts.push(span(spec.status == 'done' ? '✔' : (spec.status == 'error' ? '✘' : '◌'),
+                    'assist-subagent-state'))
+    if (spec.unread)
+      parts.push(span('•', 'assist-subagent-unread'))
+  }
+  return divCl('assist-subagent' + (current ? ' assist-subagent-current' : ''),
+               parts,
+               { 'data-run': 'code subagent',
+                 'data-bufid': view.buf.id,
+                 'data-viewid': view.vid,
+                 'data-sessionid': spec.sessionID || '' })
+}
+
+// The Assist sidebar's tab controls: Main, then one row per subagent.
+export
+function subagentsList
+(view) {
+  let frag, state
+
+  state = view.buf.vars('code')
+  frag = new globalThis.DocumentFragment()
+  append(frag, subagentRow(view, { name: 'Main' }, (state.tab || 0) == 0))
+  state.subagents?.forEach(sub => append(frag,
+                                         subagentRow(view,
+                                                     sub,
+                                                     state.tab == sub.sessionID)))
+  return frag
 }
 
 function makePatchEd
@@ -370,6 +536,8 @@ function clearMsgs
   buf.vars('code').partTexts = {}
   buf.vars('code').curMessageID = 0
   buf.vars('code').callLabels = {}
+  buf.vars('code').callSessions = {}
+  buf.vars('code').subagents = new Map()
   for (let view of buf.views) {
     let w
 
@@ -377,12 +545,18 @@ function clearMsgs
     view.vars('code').eds = []
     view.vars('code').partEds = {}
     view.vars('code').partEls = new Map()
+    view.vars('code').tab = 0
+    view.vars('code').tabScroll = {}
     w = view.eleOrReserved?.querySelector('.code-w')
-    if (w)
+    if (w) {
+      w.querySelectorAll('.code-out[data-sessionid]').forEach(el => el.remove())
+      w.querySelector('.code-out-main')?.replaceChildren()
       for (let el of [ ...w.children ])
-        // the header and footer of the message area stay
-        if ([ 'code-session-title', 'code-under-w' ].includes(el.classList[0]) == 0)
+        // the header, footer and main transcript of the message area stay
+        if ([ 'code-session-title', 'code-under-w', 'code-out' ].includes(el.classList[0]) == 0)
           el.remove()
+      applyTab(view)
+    }
   }
 }
 
@@ -400,101 +574,110 @@ function msgFoot
 export
 function appendMsg
 (buf, role, text, partID, at, spec) {
-  Util.eachCodeW(buf, (view, w) => {
-                        let contentEl, mdResult, messageID, tsText
+  if (spec?.sessionID) {
+    let sub
 
-                        messageID = spec?.messageID ?? buf.vars('code').curMessageID
+    // The last full text a child sent, used to avoid repeating its result when
+    // the call completes.
+    sub = buf.vars('code').subagents?.get(spec.sessionID)
+    if (sub)
+      sub.lastText = text || ''
+  }
+  Util.eachOut(buf, spec?.sessionID, (view, w, box) => {
+                                       let contentEl, mdResult, messageID, tsText
 
-                        if (role == 'user') {
-                        }
-                        else {
-                          let el
+                                       messageID = spec?.messageID ?? buf.vars('code').curMessageID
 
-                          el = w.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
-                          if (el) {
-                            let ed
+                                       if (role == 'user') {
+                                       }
+                                       else {
+                                         let el
 
-                            ed = view.vars('code').partEds?.[partID]
-                            if (ed) {
-                              buf.vars('code').partTexts = buf.vars('code').partTexts || {}
-                              buf.vars('code').partTexts[partID] = text
-                            }
-                            else {
-                              let oldMdEl
+                                         el = box.querySelector('.code-msg-assistant[data-partid="' + partID + '"]')
+                                         if (el) {
+                                           let ed
 
-                              oldMdEl = el.querySelector('.code-markdown-ed')
-                              if (oldMdEl) {
-                                let mdEd
+                                           ed = view.vars('code').partEds?.[partID]
+                                           if (ed) {
+                                             buf.vars('code').partTexts = buf.vars('code').partTexts || {}
+                                             buf.vars('code').partTexts[partID] = text
+                                           }
+                                           else {
+                                             let oldMdEl
 
-                                mdEd = makeMarkdownEd(text, 1)
-                                withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
-                                view.vars('code').eds = view.vars('code').eds || []
-                                view.vars('code').eds.push(mdEd.ed)
-                                buf.vars('code').partTexts = buf.vars('code').partTexts || {}
-                                buf.vars('code').partTexts[partID] = text
-                                view.vars('code').partEds = view.vars('code').partEds || {}
-                                view.vars('code').partEds[partID] = mdEd.ed
-                              }
-                            }
-                            return
-                          }
-                        }
+                                             oldMdEl = el.querySelector('.code-markdown-ed')
+                                             if (oldMdEl) {
+                                               let mdEd
 
-                        // A part knows when it was sent; anything else (eg an
-                        // errored out turn) has no time to show.
-                        tsText = at ? ts(at) : ''
+                                               mdEd = makeMarkdownEd(text, 1)
+                                               withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
+                                               view.vars('code').eds = view.vars('code').eds || []
+                                               view.vars('code').eds.push(mdEd.ed)
+                                               buf.vars('code').partTexts = buf.vars('code').partTexts || {}
+                                               buf.vars('code').partTexts[partID] = text
+                                               view.vars('code').partEds = view.vars('code').partEds || {}
+                                               view.vars('code').partEds[partID] = mdEd.ed
+                                             }
+                                           }
+                                           return
+                                         }
+                                       }
 
-                        if (role == 'user')
-                          contentEl = divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
-                        else if (spec?.log || spec?.stopped)
-                          contentEl = divCl('code-msg-text', text || '')
-                        else {
-                          mdResult = makeMarkdownEd(text || '', 1)
-                          contentEl = mdResult.el
-                        }
-                        if (role == 'user') {
-                          let agentEl
+                                       // A part knows when it was sent; anything else (eg an
+                                       // errored out turn) has no time to show.
+                                       tsText = at ? ts(at) : ''
 
-                          appendX(w,
-                                  divCl('code-msg code-msg-user',
-                                        [ contentEl ],
-                                        { 'data-partid': partID || 0,
-                                          'data-messageid': messageID || '' }))
-                          agentEl = spec?.agent ? span(Util.iconAgent() + spec.agent, 'code-msg-agent') : 0
-                          appendX(w,
-                                  divCl('code-msg-ts code-msg-ts-user',
-                                        [ agentEl,
-                                          span(tsText || ts(),
-                                               'code-msg-timestamp',
-                                               { 'data-hover': fullDate(at) }),
-                                          span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ],
-                                        { 'data-messageid': messageID || '' }))
-                        }
-                        else
-                          appendX(w,
-                                  divCl('code-msg code-msg-assistant'
+                                       if (role == 'user')
+                                         contentEl = divCl('code-msg-text' + (text ? '' : ' code-msg-hidden'), text)
+                                       else if (spec?.log || spec?.stopped)
+                                         contentEl = divCl('code-msg-text', text || '')
+                                       else {
+                                         mdResult = makeMarkdownEd(text || '', 1)
+                                         contentEl = mdResult.el
+                                       }
+                                       if (role == 'user') {
+                                         let agentEl
+
+                                         appendOut({ w, box },
+                                                   divCl('code-msg code-msg-user',
+                                                         [ contentEl ],
+                                                         { 'data-partid': partID || 0,
+                                                           'data-messageid': messageID || '' }))
+                                         agentEl = spec?.agent ? span(Util.iconAgent() + spec.agent, 'code-msg-agent') : 0
+                                         appendOut({ w, box },
+                                                   divCl('code-msg-ts code-msg-ts-user',
+                                                         [ agentEl,
+                                                           span(tsText || ts(),
+                                                                'code-msg-timestamp',
+                                                                { 'data-hover': fullDate(at) }),
+                                                           span('⋯', 'code-msg-menu', { 'data-run': 'message menu' }) ],
+                                                         { 'data-messageid': messageID || '' }))
+                                       }
+                                       else
+                                         appendOut({ w, box },
+                                                   divCl('code-msg code-msg-assistant'
                                         + (spec?.log ? ' code-msg-log' : '')
                                         + (spec?.subagent ? ' code-msg-subagent' : '')
                                         + (spec?.stopped ? ' code-msg-stopped' : ''),
-                                        [ contentEl,
+                                                         [ contentEl,
                                           spec?.log ? 0 : msgFoot(at) ],
-                                        { 'data-partid': partID || 0,
-                                          'data-messageid': messageID || '' }))
-                        if (mdResult) {
-                          view.vars('code').eds = view.vars('code').eds || []
-                          view.vars('code').eds.push(mdResult.ed)
-                          buf.vars('code').partTexts = buf.vars('code').partTexts || {}
-                          buf.vars('code').partTexts[partID] = text || ''
-                          view.vars('code').partEds = view.vars('code').partEds || {}
-                          view.vars('code').partEds[partID] = mdResult.ed
-                        }
-                        if (role == 'user') {
-                          let underW
+                                                         { 'data-partid': partID || 0,
+                                                           'data-messageid': messageID || '' }))
+                                       if (mdResult) {
+                                         view.vars('code').eds = view.vars('code').eds || []
+                                         view.vars('code').eds.push(mdResult.ed)
+                                         buf.vars('code').partTexts = buf.vars('code').partTexts || {}
+                                         buf.vars('code').partTexts[partID] = text || ''
+                                         view.vars('code').partEds = view.vars('code').partEds || {}
+                                         view.vars('code').partEds[partID] = mdResult.ed
+                                       }
+                                       if (role == 'user') {
+                                         let underW
 
-                          underW = w.querySelector('.code-under-w')
-                          scroll(underW)
-                        }
-                      })
+                                         underW = w.querySelector('.code-under-w')
+                                         scroll(underW)
+                                       }
+                                     })
 }
 
 // Server/spawn log lines are useful but can pile up over a long-lived buffer,
@@ -534,72 +717,77 @@ function subagentLabel
 
 export
 function appendThinking
-(buf, text, partId, at) {
-  let codeW
+(buf, text, partId, at, sessionID) {
+  let out
 
-  codeW = buf.anyView(1)?.eleOrReserved?.querySelector('.code-w')
-  if (codeW?.querySelector('.code-msg-thinking[data-partid="' + partId + '"]')) {
+  out = Util.outBox(buf, buf.anyView(1), sessionID)
+  if (out?.box.querySelector('.code-msg-thinking[data-partid="' + partId + '"]')) {
     chunkThink(buf, partId, text)
     return
   }
 
-  Util.eachCodeW(buf, (view, w) => {
-                        appendX(w,
-                                divCl('code-msg code-msg-thinking',
-                                      [ divCl('code-msg-text', text),
-                                        msgFoot(at) ],
-                                      { 'data-partid': partId || 0,
-                                        'data-messageid': buf.vars('code').curMessageID || '' }))
-                      })
+  Util.eachOut(buf, sessionID, (view, w, box) => {
+                                 appendOut({ w, box },
+                                           divCl('code-msg code-msg-thinking',
+                                                 [ divCl('code-msg-text', text),
+                                                   msgFoot(at) ],
+                                                 { 'data-partid': partId || 0,
+                                                   'data-messageid': buf.vars('code').curMessageID || '' }))
+                               })
 }
 
 export
 function appendToolMsg
 (buf, callID, label, under, spec) {
+  let sessionID
+
   spec = spec || {}
   if (callID) {
     buf.vars('code').callLabels = buf.vars('code').callLabels || {}
     buf.vars('code').callLabels[callID] = label
   }
-  Util.eachCodeW(buf, (view, w) => {
-                        let els, underEl, alwaysEl, resultEl
+  // Every tool call belongs to the session that made it; the Task line that
+  // starts a subagent belongs to the parent, so it stays in the main tab.
+  sessionID = spec.sessionID ?? buf.vars('code').callSessions?.[callID]
+  Util.eachOut(buf, sessionID, (view, w, box) => {
+                                 let els, underEl, alwaysEl, resultEl
 
-                        els = w.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
-                        els?.forEach(el => el.remove())
-                        if (spec.always)
-                          alwaysEl = divCl('code-msg-text code-msg-prompt', spec.always)
-                        if (under && (spec.format == 'code')) {
-                          let codeResult
+                                 els = box.querySelectorAll('.code-msg-tool[data-callid="' + callID + '"]')
+                                 els?.forEach(el => el.remove())
+                                 if (spec.always)
+                                   alwaysEl = divCl('code-msg-text code-msg-prompt', spec.always)
+                                 if (under && (spec.format == 'code')) {
+                                   let codeResult
 
-                          codeResult = makeCodeEd(spec.path, under)
-                          underEl = codeResult.el
-                          view.vars('code').eds = view.vars('code').eds || []
-                          view.vars('code').eds.push(codeResult.ed)
-                        }
-                        else if (under && (spec.format == 'patch')) {
-                          let patchResult
+                                   codeResult = makeCodeEd(spec.path, under)
+                                   underEl = codeResult.el
+                                   view.vars('code').eds = view.vars('code').eds || []
+                                   view.vars('code').eds.push(codeResult.ed)
+                                 }
+                                 else if (under && (spec.format == 'patch')) {
+                                   let patchResult
 
-                          patchResult = makePatchEd(under)
-                          underEl = patchResult.el
-                          view.vars('code').eds = view.vars('code').eds || []
-                          view.vars('code').eds.push(patchResult.ed)
-                        }
-                        else if (under)
-                          underEl = divCl('code-msg-text code-msg-under', under)
-                        if (spec.result)
-                          resultEl = divCl('code-msg-text code-msg-under code-msg-result', spec.result)
-                        appendX(w,
-                                divCl('code-msg code-msg-tool',
-                                      [ divCl('code-msg-text',
-                                              [ ((underEl || resultEl) ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : Util.iconRightArrow()),
-                                                ' ',
-                                                span(label, 'code-msg-label') ]),
-                                        alwaysEl,
-                                        underEl,
-                                        resultEl ],
-                                      { 'data-callid': callID,
-                                        'data-messageid': (spec.messageID ?? buf.vars('code').curMessageID) || '' }))
-                      })
+                                   patchResult = makePatchEd(under)
+                                   underEl = patchResult.el
+                                   view.vars('code').eds = view.vars('code').eds || []
+                                   view.vars('code').eds.push(patchResult.ed)
+                                 }
+                                 else if (under)
+                                   underEl = divCl('code-msg-text code-msg-under', under)
+                                 if (spec.result)
+                                   resultEl = divCl('code-msg-text code-msg-under code-msg-result', spec.result)
+                                 appendOut({ w, box },
+                                           divCl('code-msg code-msg-tool',
+                                                 [ divCl('code-msg-text',
+                                                         [ ((underEl || resultEl) ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : Util.iconRightArrow()),
+                                                           ' ',
+                                                           span(label, 'code-msg-label') ]),
+                                                   alwaysEl,
+                                                   underEl,
+                                                   resultEl ],
+                                                 { 'data-callid': callID,
+                                                   'data-messageid': (spec.messageID ?? buf.vars('code').curMessageID) || '' }))
+                               })
   if (callID && label)
     Util.eachCodeW(buf, (view, w) => {
                           let permEl

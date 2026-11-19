@@ -234,6 +234,8 @@ function init
     function setExtra
     (extra, end) {
       if (end == extra.end) {
+        if (extra.skip?.(view))
+          return
         if (extra.head)
           append(body, divCl('assist-extra-h assist-mode-' + extra.key + '-h', extra.head()))
         if (extra.co)

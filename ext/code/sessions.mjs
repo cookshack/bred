@@ -18,6 +18,7 @@ import { d } from '../../js/mess.mjs'
 import * as Comm from './comm.mjs'
 import * as Ev from './event.mjs'
 import * as Prompt from './prompt.mjs'
+import * as Subagent from './subagent.mjs'
 import * as Ui from './ui.mjs'
 import * as Util from './util.mjs'
 
@@ -237,11 +238,18 @@ function renderHistory
         // message stay separate (live parts get their own id from the server).
         for (let [ i, content ] of (msg.content || []).entries())
           if (content.type == 'reasoning' && content.text)
-            Ui.appendThinking(buf, content.text, msg.id + ':' + i)
-          else if (content.type == 'text' && content.text)
-            Ui.appendMsg(buf, 0, content.text, msg.id + ':' + i, 0, { subagent: 1 })
-          else if (content.type == 'tool')
+            Ui.appendThinking(buf, content.text, msg.id + ':' + i, 0, childID)
+          else if (content.type == 'text' && content.text) {
+            Subagent.noteText(buf, childID, content.text)
+            Ui.appendMsg(buf, 0, content.text, msg.id + ':' + i, 0, { sessionID: childID })
+          }
+          else if (content.type == 'tool') {
+            // Child tool calls are routed to the tab by the session that made
+            // them, which the stored part no longer carries.
+            buf.vars('code').callSessions = buf.vars('code').callSessions || {}
+            buf.vars('code').callSessions[content.id] = childID
             renderTool(content)
+          }
       }
     buf.vars('code').curMessageID = cur
   }
@@ -249,11 +257,16 @@ function renderHistory
   function renderTool
   (content) {
     if ((content.name == 'subagent') || (content.name == 'task')) {
+      let childID
+
+      childID = Util.subagentChildId(content)
+      Subagent.ensure(buf, childID, content)
       Ui.appendToolMsg(buf, content.id,
                        Ui.subagentLabel(content),
-                       Util.subagentResult(content),
+                       0,
                        { always: Util.subagentPrompt(content) })
-      renderChild(Util.subagentChildId(content))
+      renderChild(childID)
+      Subagent.finish(buf, content, content.state?.status == 'error' ? 'error' : 'done')
       return
     }
     Ui.appendToolMsg(buf, content.id, toolLabel(buf, content), toolText(content.state))

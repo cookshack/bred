@@ -885,7 +885,7 @@ test('execute', 'shows the code and nested call count',
        }
      })
 
-test('subagent', 'task prompt is always shown, result follows it',
+test('subagent', 'task prompt stays in main, child output goes to its tab',
      async () => {
        let created, fake, orig, panes, prompt
 
@@ -908,7 +908,7 @@ test('subagent', 'task prompt is always shown, result follows it',
                          }
 
        try {
-         let el, input, order, w
+         let box, el, input, main, w
 
          Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
          await waitFor(() => created?.views[0]?.ele)
@@ -924,7 +924,9 @@ test('subagent', 'task prompt is always shown, result follows it',
                                                        input }))
          await waitFor(() => created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-sub"] .code-msg-prompt'))
          w = created.views[0].ele.querySelector('.code-w')
+         main = w.querySelector('.code-out-main')
          el = w.querySelector('.code-msg-tool[data-callid="call-sub"]')
+         equal(el.closest('.code-out') == main, true, 'the task line stays in the main transcript')
          equal(el.querySelector('.code-msg-prompt').textContent, prompt,
                'prompt is visible without expanding')
          equal(el.querySelector('.code-msg-subagent-task').textContent, 'Task',
@@ -932,14 +934,19 @@ test('subagent', 'task prompt is always shown, result follows it',
          equal(el.querySelector('.code-msg-under'), null,
                'no result while the subagent runs')
 
-         // the child session's output is marked so it can be styled apart
+         box = w.querySelector('.code-out[data-sessionid="ses-child"]')
+         equal(Boolean(box), true, 'the child session gets its own tab')
+         equal(Css.has(box, 'code-out-shown'), false, 'the tab is hidden while main is shown')
+         equal(box.querySelectorAll('.code-msg-assistant').length, 0, 'the tab starts empty')
+
+         // the child session's output goes to its own tab
          fake.push(Fake.event('session.step.started', { sessionID: 'ses-child', assistantMessageID: 'c1', agent: 'explore', model: { id: 'test-model', providerID: 'goat' } }))
          fake.push(Fake.event('session.text.started', { sessionID: 'ses-child', assistantMessageID: 'c1', ordinal: 0 }))
-         await waitFor(() => w.querySelector('.code-msg-assistant.code-msg-subagent'))
-         equal(w.querySelectorAll('.code-msg-assistant.code-msg-subagent').length, 1,
-               'child output gets the subagent class')
-         equal(w.querySelector('.code-msg-assistant.code-msg-subagent').dataset.messageid, 'c1',
-               'the marked message belongs to the child session')
+         await waitFor(() => box.querySelector('.code-msg-assistant'))
+         equal(main.querySelectorAll('.code-msg-assistant.code-msg-subagent').length, 0,
+               'none of the child output reaches the main transcript')
+         equal(box.querySelector('.code-msg-assistant').dataset.messageid, 'c1',
+               'the message belongs to the child session')
 
          fake.push(Fake.event('session.tool.success', { id: 'call-sub',
                                                         sessionID: 'ses-sub',
@@ -947,25 +954,97 @@ test('subagent', 'task prompt is always shown, result follows it',
                                                         name: 'subagent',
                                                         metadata: {},
                                                         content: [ { type: 'text', text: 'found it' } ] }))
-         await waitFor(() => w.querySelector('.code-msg-tool[data-callid="call-sub"] .code-msg-under'))
+         await waitFor(() => box.textContent.includes('found it'))
          el = w.querySelector('.code-msg-tool[data-callid="call-sub"]')
          equal(el.querySelector('.code-msg-prompt').textContent, prompt,
                'prompt stays after completion')
-         equal(el.querySelector('.code-msg-under').textContent.includes('found it'), true,
-               'result goes in the details')
-         order = [ ...el.querySelectorAll('.code-msg-prompt, .code-msg-under') ]
-           .map(e => Css.has(e, 'code-msg-prompt') ? 'prompt' : 'result')
-           .join(',')
-         equal(order, 'prompt,result', 'prompt comes before the result')
+         equal(el.querySelector('.code-msg-under'), null,
+               'the result is not repeated under the task line')
+         equal(box.textContent.includes('found it'), true, 'the result goes into the tab')
+         equal(box.querySelector('.code-out-head').textContent.includes('✔️'), true,
+               'the tab marks completion')
        }
        finally {
          panes.pB.setBuf = orig
        }
      })
 
-test('subagent', 'reopened session replays child output',
+test('subagent', 'the sidebar switches which transcript is shown',
      async () => {
-       let buf, children, el, messages, order, panes, prompt
+       let created, fake, orig, panes
+
+       function rowFor
+       (sessionID) {
+         let el
+
+         el = globalThis.document.createElement('div')
+         el.className = 'assist-subagent'
+         el.dataset.run = 'code subagent'
+         el.dataset.bufid = created.id
+         el.dataset.viewid = created.views[0].vid
+         el.dataset.sessionid = sessionID
+         globalThis.document.body.appendChild(el)
+         return el
+       }
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-sub', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let box, main, row
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await waitFor(() => created.vars('code').sessionID)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-sub' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-sub', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.tool.called', { id: 'call-sub',
+                                                       sessionID: 'ses-sub',
+                                                       assistantMessageID: 'm1',
+                                                       name: 'subagent',
+                                                       metadata: { sessionID: 'ses-child' },
+                                                       input: { description: 'Explore', agent: 'explore', prompt: 'go' } }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-out[data-sessionid="ses-child"]'))
+         box = created.views[0].ele.querySelector('.code-out[data-sessionid="ses-child"]')
+         main = created.views[0].ele.querySelector('.code-out-main')
+         equal(Boolean(main), true, 'main transcript exists')
+
+         equal(Ui.subagentsList(created.views[0]).querySelectorAll('.assist-subagent').length,
+               2,
+               'the sidebar lists main and the subagent')
+
+         row = rowFor('ses-child')
+         Cmd.run('code subagent', created, 0, { e: { target: row } })
+         equal(Css.has(box, 'code-out-shown'), true, 'selecting the tab shows it')
+         equal(Css.has(main, 'code-out-shown'), false, 'main is hidden while a tab is up')
+         equal(Css.has(row, 'assist-subagent-current'), true, 'the sidebar marks the current tab')
+
+         row = rowFor('')
+         Cmd.run('code subagent', created, 0, { e: { target: row } })
+         equal(Css.has(main, 'code-out-shown'), true, 'main can be selected again')
+         equal(Css.has(box, 'code-out-shown'), false, 'the subagent tab is hidden again')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
+test('subagent', 'reopened session replays child output into its tab',
+     async () => {
+       let box, buf, children, el, main, messages, panes, prompt, w
 
        ({ panes, buf } = await setup())
        prompt = 'Find the thing'
@@ -989,24 +1068,27 @@ test('subagent', 'reopened session replays child output',
 
        Sessions.renderHistory(buf, messages, children)
 
-       await waitFor(() => panes.pB.view.ele.querySelector('.code-msg-assistant.code-msg-subagent'))
-       el = panes.pB.view.ele.querySelector('.code-msg-tool[data-callid="call1"]')
-       equal(Boolean(el), true, 'stored task call renders as a tool message')
+       await waitFor(() => panes.pB.view.ele.querySelector('.code-out[data-sessionid="kid1"] .code-msg-assistant'))
+       w = panes.pB.view.ele.querySelector('.code-w')
+       main = w.querySelector('.code-out-main')
+       box = w.querySelector('.code-out[data-sessionid="kid1"]')
+       el = w.querySelector('.code-msg-tool[data-callid="call1"]')
+       equal(el.closest('.code-out') == main, true, 'the stored task call stays in main')
        equal(el.querySelector('.code-msg-text').textContent.includes('Task: Explore map (explore agent) ✔️'),
              true,
              'label uses the task description and agent')
-       equal(el.querySelector('.code-msg-subagent-task').textContent, 'Task',
-             'the Task marker is tinted for subagents')
        equal(el.querySelector('.code-msg-prompt').textContent, prompt,
              'the prompt is restored without expanding')
-       equal(el.querySelector('.code-msg-under').textContent.includes('found it'), true,
-             'the result is restored too')
-       equal(el.parentNode.querySelector('.code-msg-assistant.code-msg-subagent').dataset.messageid, 'c1',
-             'child output is marked as subagent')
-       order = [ ...el.parentNode.querySelectorAll('.code-msg-tool[data-callid="call1"], .code-msg-assistant.code-msg-subagent') ]
-         .map(e => Css.has(e, 'code-msg-tool') ? 'task' : 'child')
-         .join(',')
-       equal(order, 'task,child', 'child output follows the task line')
+       equal(el.querySelector('.code-msg-under'), null,
+             'the result is not under the task line')
+       equal(box.textContent.includes('child says hi'), true,
+             'child output is replayed in its tab')
+       equal(box.textContent.includes('found it'), true,
+             'the result is replayed in the tab')
+       equal(Css.has(box, 'code-out-shown'), false,
+             'the session opens on the main transcript')
+       equal(main.textContent.includes('parent after'), true,
+             'the parent transcript is still in main')
      })
 
 test('middle click', 'a middle click in the message log is blocked',

@@ -111,18 +111,64 @@ function isSessionMatch
   return (id == buf.vars('code')?.sessionID) || isSubagentId(buf, id)
 }
 
+// Whether a part belongs to a subagent session rather than this buf's own.
+export
+function isChildSession
+(buf, sessionID) {
+  let main
+
+  main = buf.vars('code')?.sessionID
+  return Boolean(main) && Boolean(sessionID) && ((sessionID == main) == 0)
+}
+
+// Where a session's output goes in a view: the main transcript, or the tab of
+// the subagent that started it. A missing tab falls back to main so output is
+// never dropped just because it arrived before its tab existed.
+export
+function outBox
+(buf, view, sessionID) {
+  let box, w
+
+  w = view?.eleOrReserved?.querySelector('.code-w')
+  if (w == null)
+    return
+  // Only a child session has a tab; everything else is the main transcript.
+  if (sessionID)
+    box = w.querySelector('.code-out[data-sessionid="' + sessionID + '"]')
+  if (box == null)
+    box = w.querySelector('.code-out-main') || w
+  if (box.dataset.sessionid && (box.classList.contains('code-out-shown') == 0))
+    // Live output on a tab the user is not looking at is unread, so the
+    // sidebar can say so on its next repaint. A replayed transcript is not
+    // unread: the session was loaded, not streamed.
+    if (buf.vars('code').subagentIds?.has(sessionID)) {
+      let sub
+
+      sub = buf.vars('code').subagents?.get(sessionID)
+      if (sub)
+        sub.unread = 1
+    }
+  return { w, box }
+}
+
+// fn(view, w, box) for each view, where w is the scroller and box the transcript
+// that this session's messages belong to.
+export
+function eachOut
+(buf, sessionID, fn) {
+  buf.views.forEach(view => {
+                      let out
+
+                      out = outBox(buf, view, sessionID)
+                      if (out)
+                        fn(view, out.w, out.box)
+                    })
+}
+
 export
 function eachCodeW
 (buf, fn) {
-  buf.views.forEach(view => {
-                      if (view.eleOrReserved) {
-                        let w
-
-                        w = view.eleOrReserved.querySelector('.code-w')
-                        if (w)
-                          fn(view, w)
-                      }
-                    })
+  eachOut(buf, 0, (view, w) => fn(view, w))
 }
 
 export

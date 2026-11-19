@@ -23,6 +23,7 @@ import * as Ev from './event.mjs'
 import * as PartCache from './part-cache.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Stop from './stop.mjs'
+import * as Subagent from './subagent.mjs'
 import * as Ui from './ui.mjs'
 import * as Util from './util.mjs'
 import * as Sessions from './sessions.mjs'
@@ -353,16 +354,16 @@ function appendPermission
                         let w
 
                         w = view.eleOrReserved.querySelector('.code-w')
-                        Ui.appendX(w,
-                                   divCl('code-msg code-msg-permission',
-                                         [ divCl('code-msg-text',
-                                                 [ '▣ Allow?',
-                                                   button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
-                                                   button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
-                                           label && divCl('code-msg-label', label),
-                                           divCl('code-msg-pattern', pattern()) ],
-                                         { 'data-permissionid': id,
-                                           'data-permission-callid': callID || '??' }))
+                        Ui.appendAlways(w,
+                                        divCl('code-msg code-msg-permission',
+                                              [ divCl('code-msg-text',
+                                                      [ '▣ Allow?',
+                                                        button([ span('y', 'key'), 'es' ], 'onfill', { 'data-run': 'yes' }),
+                                                        button([ span('n', 'key'), 'o' ], 'onfill', { 'data-run': 'no' }) ]),
+                                                label && divCl('code-msg-label', label),
+                                                divCl('code-msg-pattern', pattern()) ],
+                                              { 'data-permissionid': id,
+                                                'data-permission-callid': callID || '??' }))
                       }
                     })
 }
@@ -710,28 +711,28 @@ function appendQuestion
   Util.eachCodeW(buf, (view, w) => {
                         if (w.querySelector('.code-msg-question[data-requestid="' + req.id + '"]'))
                           return
-                        Ui.appendX(w,
-                                   divCl('code-msg code-msg-question',
-                                         [ divCl('code-msg-text', [ '▣ Questions' ]),
-                                           ...req.questions.map((q, qi) => divCl('code-question-item',
-                                                                                 [ divCl('code-question-header', q.header),
-                                                                                   divCl('code-question-text', q.question),
-                                                                                   ...(q.options || []).map(opt => divCl('code-question-option',
-                                                                                                                         [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
-                                                                                                                         { 'data-run': 'toggle question option',
-                                                                                                                           'data-qid': req.id,
-                                                                                                                           'data-qi': qi,
-                                                                                                                           'data-opt': opt.value ?? opt.label })),
-                                                                                   q.custom && create('input', [],
-                                                                                                      'code-question-custom',
-                                                                                                      { 'data-qid': req.id,
-                                                                                                        'data-qi': qi,
-                                                                                                        placeholder: 'Your answer...' }) ],
-                                                                                 { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
-                                           divCl('code-msg-text',
-                                                 [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
-                                                   button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
-                                         { 'data-requestid': req.id }))
+                        Ui.appendAlways(w,
+                                        divCl('code-msg code-msg-question',
+                                              [ divCl('code-msg-text', [ '▣ Questions' ]),
+                                                ...req.questions.map((q, qi) => divCl('code-question-item',
+                                                                                      [ divCl('code-question-header', q.header),
+                                                                                        divCl('code-question-text', q.question),
+                                                                                        ...(q.options || []).map(opt => divCl('code-question-option',
+                                                                                                                              [ span(opt.label + ':', 'code-option-label'), ' ', span(opt.description) ],
+                                                                                                                              { 'data-run': 'toggle question option',
+                                                                                                                                'data-qid': req.id,
+                                                                                                                                'data-qi': qi,
+                                                                                                                                'data-opt': opt.value ?? opt.label })),
+                                                                                        q.custom && create('input', [],
+                                                                                                           'code-question-custom',
+                                                                                                           { 'data-qid': req.id,
+                                                                                                             'data-qi': qi,
+                                                                                                             placeholder: 'Your answer...' }) ],
+                                                                                      { 'data-multiple': (q.multiple || q.multiSelect) ? '1' : '0' })),
+                                                divCl('code-msg-text',
+                                                      [ button([ span('a', 'key'), 'nswer' ], 'onfill', { 'data-run': 'answer question' }),
+                                                        button([ span('s', 'key'), 'kip' ], 'onfill', { 'data-run': 'skip question' }) ]) ],
+                                              { 'data-requestid': req.id }))
                       })
 }
 
@@ -1056,7 +1057,13 @@ function handleToolPart
 (buf, part) {
   let status, h
 
-  if (part.messageID)
+  if (part.callID) {
+    // Every part of a tool call, including the Task line that starts a
+    // subagent, is routed by the session that made the call.
+    buf.vars('code').callSessions = buf.vars('code').callSessions || {}
+    buf.vars('code').callSessions[part.callID] = part.sessionID
+  }
+  if (part.messageID && Util.isChildSession(buf, part.sessionID) == 0)
     buf.vars('code').curMessageID = part.messageID
   status = part.state?.status
 
@@ -1085,8 +1092,13 @@ function handlePart
 
   part = event.properties.part
 
-  if (part.messageID)
+  if (part.messageID && Util.isChildSession(buf, part.sessionID) == 0)
     buf.vars('code').curMessageID = part.messageID
+
+  // A child's output goes to the tab of its subagent call, so the tab has to
+  // exist before the first part lands. The Task part usually came first.
+  if (Util.isChildSession(buf, part.sessionID))
+    Subagent.ensure(buf, part.sessionID)
 
   // Subagent steps have their own (smaller) usage; only the main session's
   // steps drive the context percentage.
@@ -1118,7 +1130,7 @@ function handlePart
   else if (part.type == 'text') {
     buf.vars('code').gotContent = 1
     if (buf.vars('code').stepActiveSessions?.size)
-      Ui.appendMsg(buf, 0, part.text, part.id, part.time, { subagent: Util.isSubagentId(buf, part.sessionID) })
+      Ui.appendMsg(buf, 0, part.text, part.id, part.time, { sessionID: part.sessionID, messageID: part.messageID })
   }
   else if (part.type == 'reasoning') {
     let buffered
@@ -1126,7 +1138,7 @@ function handlePart
     buffered = (event.properties.delta || '')
     if (buffered) {
       buf.vars('code').gotContent = 1
-      Ui.appendThinking(buf, buffered, part.id, part.time)
+      Ui.appendThinking(buf, buffered, part.id, part.time, part.sessionID)
     }
   }
   else if (part.type == 'tool') {
@@ -1149,47 +1161,53 @@ function partCache
 
 function handlePartDelta
 (buf, event) {
-  let delta, field, partID
+  let delta, field, partID, sessionID
 
   delta = event.properties.delta
   field = event.properties.field
   partID = event.properties.partID
+  sessionID = event.properties.sessionID
+
+  // message.part.delta only carries text, so a child's streamed text is what
+  // its result is compared against when the call completes.
+  if ((field == 'text') && delta && Util.isChildSession(buf, sessionID))
+    Subagent.noteDelta(buf, sessionID, delta)
 
   if (field == 'text' && delta) {
-    let view, w
+    let out, view
 
     view = buf.anyView(1)
-    w = view?.eleOrReserved?.querySelector('.code-w')
-    if (w && PartCache.find(partCache(view), w, partID, 'code-msg-thinking', 'think')) {
+    out = Util.outBox(buf, view, sessionID)
+    if (out && PartCache.find(partCache(view), out.box, partID, 'code-msg-thinking', 'think')) {
       Ui.chunkThink(buf, partID, delta)
       return
     }
   }
 
-  Util.eachCodeW(buf, (view, w) => {
-                        let cache, msgEl, textEl, thinkEl
+  Util.eachOut(buf, sessionID, (view, w, box) => {
+                                 let cache, msgEl, textEl, thinkEl
 
-                        cache = partCache(view)
-                        msgEl = PartCache.find(cache, w, partID, 'code-msg-assistant', 'msg')
-                        if (msgEl) {
-                          textEl = msgEl.querySelector('.code-msg-text')
-                          if (textEl && field == 'text')
-                            Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
-                          else if (field == 'text' && msgEl.querySelector('.code-markdown-ed'))
-                            Ui.chunkText(buf, partID, delta)
-                        }
-                        thinkEl = PartCache.find(cache, w, partID, 'code-msg-thinking', 'think')
-                        if (thinkEl && field == 'text') {
-                          textEl = thinkEl.querySelector('.code-msg-text')
-                          if (textEl)
-                            Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
-                        }
-                        else if (field == 'text' && msgEl == null)
-                          Ui.appendX(w,
-                                     divCl('code-msg code-msg-thinking',
-                                           [ divCl('code-msg-text', delta) ],
-                                           { 'data-partid': partID || 0 }))
-                      })
+                                 cache = partCache(view)
+                                 msgEl = PartCache.find(cache, box, partID, 'code-msg-assistant', 'msg')
+                                 if (msgEl) {
+                                   textEl = msgEl.querySelector('.code-msg-text')
+                                   if (textEl && field == 'text')
+                                     Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
+                                   else if (field == 'text' && msgEl.querySelector('.code-markdown-ed'))
+                                     Ui.chunkText(buf, partID, delta)
+                                 }
+                                 thinkEl = PartCache.find(cache, box, partID, 'code-msg-thinking', 'think')
+                                 if (thinkEl && field == 'text') {
+                                   textEl = thinkEl.querySelector('.code-msg-text')
+                                   if (textEl)
+                                     Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
+                                 }
+                                 else if (field == 'text' && msgEl == null)
+                                   Ui.appendOut({ w, box },
+                                                divCl('code-msg code-msg-thinking',
+                                                      [ divCl('code-msg-text', delta) ],
+                                                      { 'data-partid': partID || 0 }))
+                               })
 }
 
 function handleSubagentIdle
@@ -1413,6 +1431,8 @@ function send
   buf.vars('code').gotContent = 0
   updateNav(buf)
   showBusy(buf)
+  // A prompt is about the main conversation, so stop watching a subagent.
+  buf.views.forEach(view => Ui.setTab(buf, view, 0))
 
   provider = provider || Util.getProvider(buf)
   model = model || Util.getModel(buf)
@@ -1582,6 +1602,7 @@ async function reloadTranscript
   let children, messages
 
   Ui.clearMsgs(buf)
+  Subagent.repaint()
   Ui.updateStatus(buf, '🔃 Loading session...', '', '', '')
   messages = (await Sessions.fetchMessages(c, buf.vars('code').sessionID)).data
   children = await Sessions.fetchSubagentMessages(c, messages)
@@ -1758,6 +1779,27 @@ function stopWithCaution
     }
   else
     Mess.yell('missing sessionID')
+}
+
+// The Assist sidebar lists the tabs; a click there switches the code view the
+// sidebar is describing.
+function selectSubagent
+(u, we) {
+  let buf, row, view
+
+  row = we?.e?.target?.closest?.('[data-run="code subagent"]')
+  if (row == null)
+    return
+  buf = Buf.find(b => b.id == +row.dataset.bufid)
+  view = buf?.views.find(v => v.vid == +row.dataset.viewid)
+  if (view == null) {
+    Mess.yell('That code buffer is no longer shown')
+    return
+  }
+  Ui.setTab(buf, view, row.dataset.sessionid)
+  row.parentNode?.querySelectorAll('.assist-subagent').forEach(r => Css.remove(r, 'assist-subagent-current'))
+  Css.add(row, 'assist-subagent-current')
+  row.querySelector('.assist-subagent-unread')?.remove()
 }
 
 function toggleThinking
@@ -2140,6 +2182,8 @@ function viewInit
     w.onmouseup = blockPaste
   }
   applyNav(view)
+  Ui.syncOuts(view.buf)
+  Ui.applyTab(view)
   refreshGoatUsage(view.buf)
   if (view.buf?.vars('code')?.thinkingHidden) {
     w = view.ele?.querySelector?.('.code-w')
@@ -2238,8 +2282,25 @@ function viewCopy
                                        return
                                      if (Css.has(child, 'code-under-w'))
                                        return
+                                     if (Css.has(child, 'code-out'))
+                                       return
                                      toW.insertBefore(child.cloneNode(1), toUnderW)
                                    })
+    // The transcript is boxes now: the main one, plus one per subagent.
+    fromW.querySelectorAll('.code-out').forEach(box => {
+                                                  let toBox
+
+                                                  toBox = box.dataset.sessionid
+                                                                 ? toW.querySelector('.code-out[data-sessionid="' + box.dataset.sessionid + '"]')
+                                                                 : toW.querySelector('.code-out-main')
+                                                  if (toBox == null) {
+                                                    toBox = box.cloneNode(0)
+                                                    toW.insertBefore(toBox, toUnderW)
+                                                  }
+                                                  toBox.innerHTML = box.innerHTML
+                                                })
+    to.vars('code').tab = from.vars('code').tab
+    Ui.applyTab(to)
     {
       let toH
 
@@ -2882,6 +2943,7 @@ function init
                       if (sessionId) {
                         getSubagentIds(buf).set(sessionId, 1)
                         getSubagentCallIds(buf).set(sessionId, part.callID)
+                        Subagent.ensure(buf, sessionId, part)
                       }
                       Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0, { always: Util.subagentPrompt(part) })
                     },
@@ -2890,28 +2952,22 @@ function init
                       let sessionId
 
                       sessionId = Util.subagentChildId(part)
-                      if (sessionId) {
-                        let ids
-
-                        ids = buf.vars('code').subagentIds
-                        if (ids)
-                          ids.delete(sessionId)
-                      }
-                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), Util.subagentResult(part), { always: Util.subagentPrompt(part) })
+                      if (sessionId)
+                        buf.vars('code').subagentIds?.delete(sessionId)
+                      // The subagent's own transcript is its tab, so the main
+                      // transcript only says the call started and finished.
+                      Subagent.finish(buf, part, 'done')
+                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0, { always: Util.subagentPrompt(part) })
                     },
                         onErr
                         (buf, part) {
                       let sessionId
 
                       sessionId = Util.subagentChildId(part)
-                      if (sessionId) {
-                        let ids
-
-                        ids = buf.vars('code').subagentIds
-                        if (ids)
-                          ids.delete(sessionId)
-                      }
-                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), Util.subagentResult(part), { always: Util.subagentPrompt(part) })
+                      if (sessionId)
+                        buf.vars('code').subagentIds?.delete(sessionId)
+                      Subagent.finish(buf, part, 'error')
+                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0, { always: Util.subagentPrompt(part) })
                     } } }
 
   events = { 'session.idle': { onArrive
@@ -2950,15 +3006,19 @@ function init
                                      } },
              'session.error': { onArrive
                                 (buf, event) {
-                                  if (event.properties?.sessionID == buf.vars('code').sessionID) {
-                                    let error
+                                  let error, sessionID, text
 
-                                    error = event.properties.error
-                                    d({ error })
-                                    if (error)
-                                      Ui.appendMsg(buf, 'assistant', 'Error: ' + (error.message || error.data?.message || error.type || error.name || '??'))
-                                    else
-                                      Ui.appendMsg(buf, 'assistant', 'Error: session error - details missing')
+                                  sessionID = event.properties?.sessionID
+                                  error = event.properties?.error
+                                  d({ error })
+                                  text = 'Error: ' + (error?.message || error?.data?.message || error?.type || error?.name || 'session error - details missing')
+                                  if (Util.isChildSession(buf, sessionID)) {
+                                    Subagent.ensure(buf, sessionID)
+                                    Ui.appendMsg(buf, 'assistant', text, undefined, undefined, { sessionID })
+                                    return
+                                  }
+                                  if (sessionID == buf.vars('code').sessionID) {
+                                    Ui.appendMsg(buf, 'assistant', text)
                                     // An interrupted turn can leave a question that
                                     // the server already dropped.
                                     reconcileQuestions(buf)
@@ -3039,6 +3099,19 @@ function init
 
                                           ts = view.buf.vars('code')?.sessionStart
                                           return 'Started: ' + (ts ? Util.fmtSessionStart(ts) : '?')
+                                        } },
+                                      { key: 'subagents',
+                                        skip
+                                        (view) {
+                                          return view.buf.vars('code').subagents?.size ? 0 : 1
+                                        },
+                                        head
+                                        () {
+                                          return 'Subagents'
+                                        },
+                                        co
+                                        (view) {
+                                          return Ui.subagentsList(view)
                                         } } ] },
                   onRemove
                   (buf) {
@@ -3077,6 +3150,10 @@ function init
                                    }
                                    Mess.yell('Not a code buffer')
                                  }, mo)
+
+  // The Assist sidebar dispatches against its own buffer, so this has to be
+  // global rather than part of the code mode.
+  Cmd.add('code subagent', (u, we) => selectSubagent(u, we))
 
   Cmd.add('respond', () => next(), mo)
 

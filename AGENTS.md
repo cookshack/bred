@@ -146,9 +146,13 @@ Uses opencode v2 via `@opencode/client` (copied into `ext/code/lib/opencode/` by
 - `ext/code/comm.mjs` — client creation (`OpenCode.make`)
 - `ext/code/event.mjs` — v2 event subscription + translation to legacy events
 - `ext/code/stop.mjs` — `session.interrupt`
+- `ext/code/subagent.mjs` — subagent state and the tabs their output goes to
 
 ### Conventions
 - Match events by `sessionID` from `buf.vars('code')`
+- Subagent output is split into its own tab, not the main transcript. Route a
+  part by its `sessionID` with `Util.outBox` / `Util.eachOut`; the tabs are
+  created and listed by `subagent.mjs`.
 - `event.mjs` translates v2 events (`{ type, data, location }`) into the legacy
   `{ type, properties }` shapes the handlers in `code.mjs` consume. Prefer adding
   a translation there over changing every handler.

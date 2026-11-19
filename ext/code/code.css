@@ -68,6 +68,26 @@ div.code-thought:hover {
   overflow-y: auto;
 }
 
+/* The transcript is split into boxes: the main one, plus one per subagent. The
+   Assist sidebar lists them and switches which one is shown. */
+.code-out {
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.code-out.code-out-shown {
+  display: flex;
+}
+
+/* Which subagent a tab belongs to. Only its own tab is ever shown. */
+.code-out-head {
+  font-family: var(--font-monospace);
+  color: var(--clr-syntax0);
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--clr-fill);
+}
+
 .code-msg {
   display: flex;
   flex-direction: column;

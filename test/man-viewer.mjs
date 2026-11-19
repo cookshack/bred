@@ -192,6 +192,28 @@ test('viewer', 'refresh fetches the page again',
        equal(textOf(b).includes('first text'), false)
      })
 
+test('viewer', 'a page with a conditional prologue renders',
+     async () => {
+       let b
+
+       setup({ ls: '.ie \\n(.g .ds Aq \\(aq\n' +
+                    '.el .ds Aq \'\n' +
+                    '.TH LS 1 "2026-09-03"\n' +
+                    '.SH NAME\n' +
+                    'ls \\- List directory contents.\n' +
+                    '.SH OPTIONS\n' +
+                    '.TP\n' +
+                    '\\fB\\-\\-help\\fR\n' +
+                    'Print help information.\n' +
+                    '.RE\n' +
+                    '.PP\n' +
+                    'More text.\n' })
+       b = await opened('ls')
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(viewOf(b).ele.querySelector('.man-h1').textContent, 'NAME')
+       equal(textOf(b).includes('Print help information.'), true)
+     })
+
 test('viewer', 'a refused page lists the constructs',
      async () => {
        let b

@@ -712,14 +712,15 @@ function appendInline
   else
     target = paraOf(c).spans
   if ((c.mode == 'man') && c.atLineStart && (c.lineTarget == 0) &&
-      (target.length > 0) && (spans[0] && (spans[0].br == undefined)))
+      (c.joinPrev == 0) && (target.length > 0) &&
+      (spans[0] && (spans[0].br == undefined)))
     pushSpan(target, { text: ' ', style: c.font })
   c.atLineStart = 0
   pushSpans(target, spans)
 }
 
 function addTextLine
-(c, spans, join) {
+(c, spans, join, joining) {
   let target
 
   if (c.pre) {
@@ -735,7 +736,7 @@ function addTextLine
     target = c.link.spans
   else {
     target = paraOf(c).spans
-    if ((target.length > 0) && (join == 0) && (c.joinNext == 0))
+    if ((target.length > 0) && (join == 0) && (joining == 0))
       pushSpan(target, { text: ' ', style: c.font })
   }
   c.joinNext = join
@@ -2906,7 +2907,7 @@ function handleLine
       let expanded
 
       expanded = expand(c, rest, style, c.lineNo)
-      addTextLine(c, expanded.spans, expanded.join)
+      addTextLine(c, expanded.spans, expanded.join, 0)
     }
     break
   }
@@ -3014,7 +3015,7 @@ function handleLine
       let expanded
 
       expanded = expand(c, rest, style, c.lineNo)
-      addTextLine(c, expanded.spans, expanded.join)
+      addTextLine(c, expanded.spans, expanded.join, 0)
     }
     break
   }
@@ -3141,6 +3142,7 @@ function parse
         atLineStart: 0,
         nextHeading: 0,
         joinNext: 0,
+        joinPrev: 0,
         nextSkip: 0,
         lastIf: 0,
         fill: 1,
@@ -3186,10 +3188,12 @@ function parse
       continue
     }
     if (control && control.name) {
-      // A macro line ends any `\c` continuation from the line before it, but
-      // the macro's own last argument may start a new one.
+      // A `\c` on the line before this one suppresses the leading space; the
+      // macro's own last argument may start a new continuation.
+      c.joinPrev = c.joinNext
       c.joinNext = 0
       handleLine(c, control, style)
+      c.joinPrev = 0
       c.lineTarget = 0
       continue
     }
@@ -3211,7 +3215,7 @@ function parse
         c.mdoc.spaceNext = 1
       }
       else
-        addTextLine(c, expanded.spans, expanded.join)
+        addTextLine(c, expanded.spans, expanded.join, c.joinNext)
       c.lineTarget = 0
     }
   }

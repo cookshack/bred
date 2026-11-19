@@ -315,6 +315,11 @@ test('escapes', 'a nested bracket argument does not leak a bracket',
        equal(asText('.TH T 1\nx \\F[\\n[.fam]] y\n'), 'x  y\n')
      })
 
+test('escapes', 'a continued line glues to the macro after it',
+     () => {
+       equal(asText('.TH T 1\n.I file\\c\n.RB [ .dvi ]\n'), 'file[.dvi]\n')
+     })
+
 test('escapes', 'a font argument ending in c continues the next line',
      () => {
        equal(asText('.TH T 1\n.B x\\c\nand y\n'), 'xand y\n')

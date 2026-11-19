@@ -2117,6 +2117,18 @@ function mdocRefText
   return text
 }
 
+// "a", "a and b", "a, b, and c": the joining the Ex/Rv sentences use.
+function mdocJoin
+(names) {
+  if (names.length == 0)
+    return ''
+  if (names.length == 1)
+    return names[0]
+  if (names.length == 2)
+    return names[0] + ' and ' + names[1]
+  return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1]
+}
+
 function mdocStandard
 (token) {
   let names
@@ -2331,19 +2343,38 @@ function mdocInlineMacro
   case 'St':
     mdocText(c, mdocStandard(args[0] || ''), c.font)
     return 1
+  // The canned sentences mdoc(7) emits. With no names `Ex` falls back to the
+  // document's `Nm`, and both join names the way mdoc does.
   case 'Ex': {
-    let cmd
+    let names, subject, verb
 
-    cmd = args.filter(arg => (arg[0] == '-') ? 0 : 1)[0] || ''
-    mdocText(c, 'The ' + (cmd ? cmd + ' utility' : 'utility') +
-             ' exits 0 on success, and >0 if an error occurs.', c.font)
+    names = args.filter(arg => (arg[0] == '-') ? 0 : 1)
+    if ((names.length == 0) && c.mdoc.name)
+      names = [ c.mdoc.name ]
+    subject = mdocJoin(names)
+    if (subject.length == 0)
+      subject = 'utility'
+    else
+      subject = subject + ((names.length > 1) ? ' utilities' : ' utility')
+    verb = (names.length > 1) ? 'exit' : 'exits'
+    mdocText(c, 'The ' + subject + ' ' + verb +
+             ' 0 on success, and >0 if an error occurs.', c.font)
     return 1
   }
   case 'Rv': {
-    let fn
+    let names
 
-    fn = args.filter(arg => (arg[0] == '-') ? 0 : 1)[0] || 'function'
-    mdocText(c, 'The ' + fn + '() function returns 0 on success; otherwise, it returns -1 and sets errno.', c.font)
+    names = args.filter(arg => (arg[0] == '-') ? 0 : 1)
+    if (names.length == 0)
+      mdocText(c, 'Upon successful completion, the value 0 is returned; ' +
+                  'otherwise the value -1 is returned and the global ' +
+                  'variable errno is set to indicate the error.', c.font)
+    else
+      mdocText(c, 'The ' + mdocJoin(names.map(fn => fn + '()')) +
+               ((names.length > 1) ? ' functions return' : ' function returns') +
+               ' the value 0 if successful; otherwise the value -1 is ' +
+               'returned and the global variable errno is set to indicate ' +
+               'the error.', c.font)
     return 1
   }
   case 'Op':

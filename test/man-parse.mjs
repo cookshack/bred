@@ -1202,7 +1202,22 @@ test('mdoc inline', 'Ex and Rv name a missing utility and function',
        r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ex\n.Pp\n.Rv\n')
        equal(flat(r.doc.blocks[0].spans), 'The utility exits 0 on success, and >0 if an error occurs.')
        equal(flat(r.doc.blocks[1].spans),
-             'The function() function returns 0 on success; otherwise, it returns -1 and sets errno.')
+             'Upon successful completion, the value 0 is returned; otherwise the ' +
+             'value -1 is returned and the global variable errno is set to ' +
+             'indicate the error.')
+     })
+
+test('mdoc inline', 'Ex and Rv join the names they are given',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ex -std a b c\n.Pp\n.Rv -std x y\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'The a, b, and c utilities exit 0 on success, and >0 if an error occurs.')
+       equal(flat(r.doc.blocks[1].spans),
+             'The x() and y() functions return the value 0 if successful; ' +
+             'otherwise the value -1 is returned and the global variable errno ' +
+             'is set to indicate the error.')
      })
 
 test('mdoc inline', 'Sq, Bq, Brq and Aq enclose their words',

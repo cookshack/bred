@@ -237,8 +237,9 @@ is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
 
 1. Div buffers are not searchable with isearch; that is a general limitation of
    div views, not specific to man pages.
-2. mdoc `Ex`/`Rv` expand to canned sentences; they are approximations of the
-   real macro text.
+2. mdoc `Ex`/`Rv` match mdoc(7)'s sentences (names joined with `and`, the
+   plural verbs, and the `Nm` fallback) but not every `-std` family variant:
+   the `-exit`/`-nop` flags are accepted and ignored.
 3. A colon in a path is still a separator when the text before it looks like a
    man source (for example `/x/a.1:/b.1`): `man -w` output has no unambiguous
    quoting, so this heuristic favours the common colon-separated list.

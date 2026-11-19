@@ -1535,6 +1535,267 @@ test('text', 'toText walks literal and group blocks',
        equal(asText('.TH T 1\n.nf\npre\n.fi\n.RS\ngrouped\n.RE\n'), 'pre\ngrouped\n')
      })
 
+test('fonts', 'the alternating font macros use their styles',
+     () => {
+       let r, spans
+
+       r = parsed('.TH T 1\n.SM small\n.SB strong\n.BI bi\n.IB ib\n.IR ir\n.RB rb\n')
+       spans = r.doc.blocks[0].spans
+       equal(spans[0].style, 'small')
+       equal(spans.find(s => s.text == 'strong').style, 'bold')
+       equal(spans.find(s => s.text == 'bi').style, 'bold')
+       equal(spans.find(s => s.text == 'ib').style, 'italic')
+       equal(spans.find(s => s.text == 'ir').style, 'italic')
+       equal(flat(spans), 'small strong bi ib ir rb')
+     })
+
+test('fonts', 'a font macro with no argument sets the next line',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.B\nbold\n')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+     })
+
+test('tags', 'IP with a mark but no indent still makes a tag',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.IP mark\ntext\n')
+       equal(r.doc.blocks[0].kind, 'tag')
+       equal(flat(r.doc.blocks[0].tag), 'mark')
+       equal(r.doc.blocks[0].indent, 1)
+     })
+
+test('paragraphs', 'HP, br and sp break the paragraph',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\none\n.br\ntwo\n.sp\nthree\n')
+       equal(flat(r.doc.blocks[0].spans), 'one\n two')
+       equal(r.doc.blocks[1].kind, 'space')
+       equal(flat(r.doc.blocks[2].spans), 'three')
+     })
+
+test('macros', 'an empty macro body produces nothing',
+     () => {
+       equal(asText('.TH T 1\n.de M\n..\n.M\nafter\n'), 'after\n')
+     })
+
+test('groff requests', 'nr with no value or a bad value gives zero',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.nr X\n.nr Y abc\nX=\\nX Y=\\nY\n')
+       equal(flat(r.doc.blocks[0].spans), 'X=0 Y=0')
+     })
+
+test('strings', 'ds and as with no name are ignored',
+     () => {
+       equal(asText('.TH T 1\n.ds\n.as\nvisible\n'), 'visible\n')
+     })
+
+test('strings', 'as starts an undefined string',
+     () => {
+       equal(asText('.TH T 1\n.as NEW one\n.as NEW two\n\\*[NEW]\n'), 'onetwo\n')
+     })
+
+test('macros', 'rn renames a string too',
+     () => {
+       equal(asText('.TH T 1\n.ds S x\n.rn S T\n\\*T\n'), 'x\n')
+     })
+
+test('groff requests', 'metric and ignored requests are dropped',
+     () => {
+       equal(asText('.TH T 1\n.ad 1\n.tm note\nvisible\n'), 'visible\n')
+     })
+
+test('groff requests', 'a stray TE and an empty mso are handled',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TE\n.mso an-ext.tmac\nvisible\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'visible')
+     })
+
+test('paragraphs', 'the blank control line adds a space block',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.\nvisible\n')
+       equal(r.doc.blocks[0].kind, 'space')
+       equal(flat(r.doc.blocks[1].spans), 'visible')
+     })
+
+test('literal', 'a blank line inside a literal block is kept',
+     () => {
+       equal(asText('.TH T 1\n.nf\n\n.fi\n'), '\n')
+     })
+
+test('links', 'UR with a man topic and no text shows the topic',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.UR man:ls\n.UE\n')
+       equal(flat(r.doc.blocks[0].spans), 'ls')
+       equal(r.doc.blocks[0].spans[0].href, 'man:ls')
+     })
+
+test('mdoc inline', 'macros with no arguments use their defaults',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Xr\n.Lk\n.Mt\n.St\n')
+       equal(r.ok, 1)
+       equal(ManParse.toText(r.doc.blocks), '\n')
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fn\n.Fo\n.Fc\n')
+       equal(flat(r.doc.blocks[0].spans), '() ()')
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.OP\n.UR\n.UE\n.MT\n.ME\n')
+       equal(flat(r.doc.blocks[0].spans), '[]<><mailto:>')
+     })
+
+test('mdoc inline', 'a closing enclosure without an opener uses its default',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Dc\n.Pc\n.Ac\n.Bc\n.Brc\n.Qc\n.Sc\n.Oc\n.Ec\n')
+       equal(flat(r.doc.blocks[0].spans), '”)⟩]}”’]')
+     })
+
+test('mdoc inline', 'an opening enclosure takes inline arguments',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Do Ar a Dc\n.Qo Ar b Qc\n.Ao Ar c Ac\n' +
+                  '.Bo Ar d Bc\n.So Ar e Sc\n.Bro Ar f Brc\n')
+       equal(flat(r.doc.blocks[0].spans), '“a” “b” ⟨c⟩ [d] ‘e’ {f}')
+     })
+
+test('mdoc', 'Dt with no arguments leaves the header empty',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt\n.Os\n')
+       equal(r.doc.title, '')
+       equal(r.doc.section, '')
+     })
+
+test('mdoc', 'El and Ef without their openers are harmless',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.El\n.Ef\nvisible\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'visible')
+     })
+
+test('mdoc', 'Bd -literal with no lines makes an empty pre block',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bd -literal\n.Ed\n')
+       equal(r.doc.blocks[0].kind, 'pre')
+       equal(flat(r.doc.blocks[0].spans), '')
+     })
+
+test('conditions', 'dividing or taking a remainder by zero gives zero',
+     () => {
+       equal(asText('.TH T 1\n.if 1/0==0 div\n.if 1%0==0 mod\n'), 'div mod\n')
+     })
+
+test('conditions', 'unary plus is accepted',
+     () => {
+       equal(asText('.TH T 1\n.if +1==1 yes\n'), 'yes\n')
+     })
+
+test('conditions', 'comparisons have their false arms too',
+     () => {
+       equal(asText('.TH T 1\n.if 5<=4 no\n.if 5<4 no\n.if 5>=6 no\n' +
+                    '.if 5>6 no\n.if 5=6 no\nvisible\n'),
+             'visible\n')
+     })
+
+test('conditions', 'and and or can be false',
+     () => {
+       equal(asText('.TH T 1\n.if 1&0 no\n.if 0:0 no\nvisible\n'), 'visible\n')
+     })
+
+test('conditions', 't and c are false when negated',
+     () => {
+       equal(asText('.TH T 1\n.ie !t yes\n.el no\n.ie !c yes\n.el no\n'), 'yes yes\n')
+     })
+
+test('conditions', 'd and r find macros, strings and predefined registers',
+     () => {
+       equal(asText('.TH T 1\n.de M\n..\n.ds S x\n.nr R 1\n.if dM m\n.if dS s\n' +
+                    '.if rR r\n.if r% p\n.ie !dS no\n.el yes\n.ie !rR no\n' +
+                    '.el yes\n'),
+             'm s r p yes yes\n')
+     })
+
+test('conditions', 'an empty expansion is a false condition',
+     () => {
+       equal(asText('.TH T 1\n.ds E\n.if \\*E hidden\nshown\n'), 'shown\n')
+     })
+
+test('conditions', 'unequal strings are false and a negated match is true',
+     () => {
+       equal(asText('.TH T 1\n.ie \'a\'b\' no\n.el yes\n.ie !\'a\'a\' no\n' +
+                    '.el yes\n'),
+             'yes yes\n')
+     })
+
+test('conditions', 'a zero expression is false',
+     () => {
+       equal(asText('.TH T 1\n.if 0 no\nvisible\n'), 'visible\n')
+     })
+
+test('tables', 'allbox, center and expand are recorded',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nallbox center expand;\nl l.\na\tb\n.TE\n')
+       equal(r.doc.blocks[0].options.allbox, 1)
+       equal(r.doc.blocks[0].options.center, 1)
+       equal(r.doc.blocks[0].options.expand, 1)
+     })
+
+test('tables', 'tab with no argument restores the default separator',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\ntab();\nl l.\na\tb\n.TE\n')
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), 'b')
+     })
+
+test('tables', 'an unknown column token is skipped and uppercase I is italic',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nl x lI.\na\tb\tc\n.TE\n')
+       equal(r.doc.blocks[0].cols.length, 2)
+       equal(r.doc.blocks[0].cols[1].italic, 1)
+     })
+
+test('tables', 'a blank line before the layout is skipped',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\n\nl l.\na\tb\n.TE\n')
+       equal(r.doc.blocks[0].cols.length, 2)
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), 'b')
+     })
+
+test('tables', 'a row with fewer cells than columns is padded',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nl l l.\na\tb\n.TE\n')
+       equal(r.doc.blocks[0].rows[0].cells.length, 3)
+       equal(flat(r.doc.blocks[0].rows[0].cells[2].spans), '')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

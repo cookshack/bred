@@ -1683,6 +1683,8 @@ mdocInlineNames = { Ap: 1,
                     Bq: 1,
                     Bx: 1,
                     Brq: 1,
+                    Bro: 1,
+                    Brc: 1,
                     Ad: 1,
                     Bsx: 1,
                     Cd: 1,
@@ -1693,6 +1695,8 @@ mdocInlineNames = { Ap: 1,
                     Dq: 1,
                     Dv: 1,
                     Dx: 1,
+                    Ec: 1,
+                    Eo: 1,
                     Em: 1,
                     Er: 1,
                     Ev: 1,
@@ -1726,6 +1730,8 @@ mdocInlineNames = { Ap: 1,
                     Pq: 1,
                     Ql: 1,
                     Qq: 1,
+                    Qo: 1,
+                    Qc: 1,
                     Rv: 1,
                     Sc: 1,
                     So: 1,
@@ -1743,7 +1749,7 @@ mdocInlineNames = { Ap: 1,
                     Xr: 1,
                     Aq: 1 }
 
-mdocNoArg = { Ns: 1, Ap: 1, Oc: 1, Pc: 1, Dc: 1, Ac: 1, Bc: 1, Sc: 1, Ta: 1 }
+mdocNoArg = { Ns: 1, Ap: 1, Oc: 1, Pc: 1, Dc: 1, Ac: 1, Bc: 1, Sc: 1, Qc: 1, Brc: 1, Ta: 1 }
 
 // Macros that enclose everything to the end of the current argument list:
 // `.Op Fl e Ar file` is one group, and a nested call afterwards belongs
@@ -2097,7 +2103,14 @@ function mdocInlineMacro
   case 'Pa':
   case 'Va':
   case 'Vt':
+    mdocWords(c, args, 'italic')
+    return 1
   case 'Fa':
+    if (c.mdoc.fn) {
+      if (c.mdoc.fn > 1)
+        mdocAttach(c, [ { text: ',', style: 'roman' } ])
+      c.mdoc.fn++
+    }
     mdocWords(c, args, 'italic')
     return 1
   case 'Sy':
@@ -2158,6 +2171,7 @@ function mdocInlineMacro
   }
   case 'Fo':
     mdocAppend(c, [ { text: args[0] || '', style: 'bold' }, { text: '(', style: 'roman' } ])
+    c.mdoc.noSpace = 1
     c.mdoc.fn = 1
     return 1
   case 'Fc':
@@ -2303,6 +2317,45 @@ function mdocInlineMacro
   case 'Bc':
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || ']' } ])
     return 1
+  case 'Bro':
+    c.mdoc.opens.push('}')
+    mdocAppend(c, [ { text: '{' } ])
+    c.mdoc.noSpace = 1
+    if (args.length)
+      mdocInline(c, args)
+    return 1
+  case 'Brc':
+    mdocAttach(c, [ { text: c.mdoc.opens.pop() || '}' } ])
+    return 1
+  case 'Qo':
+    c.mdoc.opens.push('”')
+    mdocAppend(c, [ { text: '“' } ])
+    c.mdoc.noSpace = 1
+    if (args.length)
+      mdocInline(c, args)
+    return 1
+  case 'Qc':
+    mdocAttach(c, [ { text: c.mdoc.opens.pop() || '”' } ])
+    return 1
+  case 'Eo': {
+    let open
+
+    open = args[0] || ''
+    c.mdoc.opens.push('')
+    if (open.length)
+      mdocAppend(c, mdocExpand(c, open, c.font))
+    c.mdoc.noSpace = 1
+    if (args.length > 1)
+      mdocInline(c, args.slice(1))
+    return 1
+  }
+  case 'Ec': {
+    let close
+
+    close = c.mdoc.opens.pop() || ''
+    mdocAttach(c, [ { text: args[0] || close } ])
+    return 1
+  }
   case 'So':
     c.mdoc.opens.push('’')
     mdocAppend(c, [ { text: '‘' } ])

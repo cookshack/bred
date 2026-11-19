@@ -79,6 +79,14 @@ function bump
   entry.count++
 }
 
+function isPage
+(file) {
+  let name
+
+  name = Path.basename(file).replace(/\.gz$/, '')
+  return /\.[0-9][a-z]*$/.test(name) ? 1 : 0
+}
+
 function walk
 (dir, out, seen) {
   let entries
@@ -98,7 +106,7 @@ function walk
                     full = Path.join(dir, entry.name)
                     if (entry.isDirectory())
                       walk(full, out, seen)
-                    else if (/^man[1-9]/.test(Path.basename(dir)))
+                    else if (/^man[0-9]/.test(Path.basename(dir)) && isPage(full))
                       out.push(full)
                   })
 }

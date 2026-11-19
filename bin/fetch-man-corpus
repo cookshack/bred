@@ -1,0 +1,190 @@
+#!/usr/bin/env node
+
+// Fetch a few large man page corpora for bin/man-audit and test-corpus.
+//
+//   bin/fetch-man-corpus [--dir DIR] [--only NAME,NAME] [--list]
+//
+// The pages are not part of the repository. Defaults are the Linux man-pages,
+// OpenBSD, FreeBSD and NetBSD trees; `--list` shows the others. The BSD trees
+// are sparse git clones, so only their man directories are checked out.
+
+import { execFileSync } from 'node:child_process'
+import Fs from 'node:fs'
+import Path from 'node:path'
+
+let opts, sources
+
+sources = { linux: { kind: 'tar',
+                     url: 'https://mirrors.edge.kernel.org/pub/linux/docs/man-pages/man-pages-6.20.tar.xz',
+                     file: 'man-pages-6.20.tar.xz',
+                     member: 'man-pages-6.20/man',
+                     strip: 2 },
+            groff: { kind: 'tar',
+                     url: 'https://ftp.gnu.org/gnu/groff/groff-1.25.0.tar.gz',
+                     file: 'groff-1.25.0.tar.gz',
+                     member: 'groff-1.25.0/man',
+                     strip: 2,
+                     sections: 1,
+                     extra: [ 'groff-1.25.0/tmac/groff_man.7.man.in' ] },
+            openbsd: { kind: 'git',
+                       url: 'https://github.com/openbsd/src',
+                       sparse: 'share/man' },
+            freebsd: { kind: 'git',
+                       url: 'https://github.com/freebsd/freebsd-src',
+                       sparse: 'share/man' },
+            netbsd: { kind: 'git',
+                      url: 'https://github.com/NetBSD/src',
+                      sparse: 'share/man' },
+            dragonfly: { kind: 'git',
+                         url: 'https://github.com/DragonFlyBSD/DragonFlyBSD',
+                         sparse: 'share/man' },
+            illumos: { kind: 'git',
+                       url: 'https://github.com/illumos/illumos-gate',
+                       sparse: 'usr/src/man' } }
+
+function usage
+() {
+  console.log('usage: fetch-man-corpus [--dir DIR] [--only NAME,NAME] [--list]')
+}
+
+function parseArgs
+(argv) {
+  let out
+
+  out = { dir: '.corpus', only: 'linux,groff,openbsd,freebsd,netbsd', list: 0 }
+  for (let i = 0; i < argv.length; i++) {
+    let arg
+
+    arg = argv[i]
+    if (arg == '--dir') {
+      i++
+      out.dir = argv[i]
+    }
+    else if (arg == '--only') {
+      i++
+      out.only = argv[i]
+    }
+    else if (arg == '--list')
+      out.list = 1
+    else if ((arg == '--help') || (arg == '-h')) {
+      usage()
+      process.exit(0)
+    }
+    else {
+      console.error('unknown argument: ' + arg)
+      usage()
+      process.exit(2)
+    }
+  }
+  return out
+}
+
+function run
+(cmd, args, cwd) {
+  execFileSync(cmd, args, { stdio: 'inherit', cwd })
+}
+
+// Groff keeps its sources as name.section.man in one directory; make the
+// manN/name.section layout the other corpora already use.
+function flattenSections
+(dir) {
+  let entries
+
+  entries = Fs.readdirSync(dir, { withFileTypes: true })
+  entries.forEach(entry => {
+                    let m
+
+                    if (entry.isFile() == 0)
+                      return
+                    m = /^(.+)\.([0-9])\.man(\.in)?$/.exec(entry.name)
+                    if (m == undefined)
+                      return
+                    Fs.mkdirSync(Path.join(dir, 'man' + m[2]), { recursive: true })
+                    Fs.copyFileSync(Path.join(dir, entry.name),
+                                    Path.join(dir, 'man' + m[2], m[1] + '.' + m[2]))
+                  })
+}
+
+function fetchTar
+(name, spec, dir) {
+  let archive, out
+
+  archive = Path.join(dir, spec.file)
+  out = Path.join(dir, name)
+  if (Fs.existsSync(archive) == 0)
+    run('curl', [ '-L', '--fail', '--retry', '2', '-o', archive, spec.url ])
+  Fs.mkdirSync(out, { recursive: true })
+  if (spec.member)
+    run('tar', [ '-xf', archive, '-C', out, '--strip-components=' + spec.strip, spec.member ])
+  else
+    run('tar', [ '-xf', archive, '-C', out ])
+  if (spec.extra)
+    spec.extra.forEach(member => run('tar', [ '-xf', archive, '-C', out,
+                                              '--strip-components=' + spec.strip, member ]))
+  if (spec.sections)
+    flattenSections(out)
+  return out
+}
+
+function fetchGit
+(name, spec, dir) {
+  let out
+
+  out = Path.join(dir, name)
+  if (Fs.existsSync(Path.join(out, '.git')))
+    run('git', [ '-C', out, 'pull', '--ff-only' ])
+  else
+    run('git', [ 'clone', '--depth', '1', '--filter=blob:none', '--sparse',
+                 spec.url, out ])
+  run('git', [ '-C', out, 'sparse-checkout', 'set', spec.sparse ])
+  return Path.join(out, spec.sparse)
+}
+
+function rootFor
+(name, spec, dir) {
+  if (spec.kind == 'tar')
+    return Path.join(dir, name)
+  return Path.join(dir, name, spec.sparse)
+}
+
+opts = parseArgs(process.argv.slice(2))
+
+if (opts.list) {
+  Object.keys(sources).forEach(name => {
+                             let spec
+
+                             spec = sources[name]
+                             console.log('  ' + name + '  ' + spec.url +
+                                         (spec.sparse ? '  (' + spec.sparse + ')' : ''))
+                           })
+  process.exit(0)
+}
+
+{
+  let wanted, dir, roots
+
+  wanted = opts.only.split(',').map(name => name.trim()).filter(name => name)
+  dir = Path.resolve(opts.dir)
+  Fs.mkdirSync(dir, { recursive: true })
+  roots = []
+  wanted.forEach(name => {
+                   let spec
+
+                   spec = sources[name]
+                   if (spec == undefined) {
+                     console.error('unknown corpus: ' + name)
+                     process.exit(2)
+                   }
+                   console.log('fetching ' + name + '...')
+                   if (spec.kind == 'tar')
+                     fetchTar(name, spec, dir)
+                   else
+                     fetchGit(name, spec, dir)
+                   roots.push(rootFor(name, spec, dir))
+                 })
+  console.log('')
+  console.log('corpus roots:')
+  roots.forEach(root => console.log('  ' + root))
+  console.log('')
+  console.log('MAN_CORPUS_ROOTS=' + roots.join(':') + ' npm run test-corpus')
+}

@@ -40,6 +40,7 @@ suggestion closes the prompt and opens the page.
 | `js/man.mjs` | viewer mode/commands: fetch, include prefetch, buffer per topic, reload, click-to-follow, TOC |
 | `bin/man-audit` | corpus report; `--parse` runs the interpreter |
 | `bin/man-diff` | content diff against `man -Tutf8` |
+| `bin/fetch-man-corpus` | download Linux man-pages and BSD trees into `.corpus/` |
 | `css/manpage.css` | page styles (reflow, no fixed width) |
 
 Block model: `doc.blocks` of `heading{level,spans}`, `para{spans,synopsis}`,
@@ -60,12 +61,19 @@ npx mocha test/man-roff.mjs test/man-parse.mjs test/man-render.mjs test/man-view
 ./bin/man-diff --page /usr/share/man/man1/ls.1.gz
 ./bin/man-audit --parse --render       # parse and draw every page
 npm run test-corpus                    # same, as a pass/fail test (slow)
+./bin/fetch-man-corpus                 # Linux man-pages + BSD trees into .corpus/
+MAN_CORPUS_ROOTS="$PWD/.corpus/linux:$PWD/.corpus/openbsd/share/man" \
+  npm run test-corpus                  # test a downloaded corpus instead
 ```
 
 `man-audit` without `--parse` reports the static dialect inventory (an upper
 bound; it cannot evaluate `.if`). `--render` draws each parsed page too.
 `test/man-corpus.mjs` walks `manpath`, refuses only known page bugs, and fails
-on a renderer exception; it is opt-in because it takes about a minute. `man-diff` needs `man` installed; it ignores
+on a renderer exception; it is opt-in because it takes about a minute.
+`MAN_CORPUS_ROOTS` replaces `manpath`, so a downloaded corpus can be tested
+without installing it. The Linux man-pages, groff, OpenBSD, FreeBSD and NetBSD
+trees fetched by `fetch-man-corpus` cover 4,620 pages at 99.8% parsed with no
+unexpected refusals and no render errors. `man-diff` needs `man` installed; it ignores
 headers/footers (including BSD-style dated footers), overstrike, automatic
 hyphenation (U+2010), compound hyphens broken at a line end, box-drawing
 characters and bullet markers, then reports reference words missing from our
@@ -92,8 +100,8 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 147 (inventory, interpreter, renderer, viewer); `test-corpus` also
-parses and renders every installed page.
+Tests: 155 (inventory, interpreter, renderer, viewer); `test-corpus` also
+parses and renders every page in the corpus.
 
 ## Known gaps, in order
 

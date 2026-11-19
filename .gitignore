@@ -24,6 +24,7 @@ lib/*
 !lib/ev.pegjs
 !lib/codemirror-patches
 node_modules/
+.corpus/
 coverage/
 opencode-src
 openspec/

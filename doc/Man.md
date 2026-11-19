@@ -60,7 +60,7 @@ npx mocha test/man-roff.mjs test/man-parse.mjs test/man-render.mjs test/man-view
 ./bin/man-diff --section 1 --max 120   # content diff against man(1)
 ./bin/man-diff --page /usr/share/man/man1/ls.1.gz
 ./bin/man-audit --parse --render       # parse and draw every page
-npm run test-corpus                    # same, as a pass/fail test (slow)
+npm run test-corpus                    # same, as a pass/fail test (slow, writes man-corpus.log)
 ./bin/fetch-man-corpus                 # Linux man-pages, groff, OpenBSD into .corpus/
 MAN_CORPUS_ROOTS="$PWD/.corpus/linux:$PWD/.corpus/openbsd/share/man" \
   npm run test-corpus                  # test a downloaded corpus instead
@@ -70,6 +70,8 @@ MAN_CORPUS_ROOTS="$PWD/.corpus/linux:$PWD/.corpus/openbsd/share/man" \
 bound; it cannot evaluate `.if`). `--render` draws each parsed page too.
 `test/man-corpus.mjs` walks `manpath`, refuses only known page bugs, and fails
 on a renderer exception; it is opt-in because it takes about a minute.
+`npm run test-corpus` writes its output to `man-corpus.log` as well as the
+terminal.
 `MAN_CORPUS_ROOTS` replaces `manpath`, so a downloaded corpus can be tested
 without installing it. The Linux man-pages, groff, OpenBSD, FreeBSD and NetBSD
 trees fetched by `fetch-man-corpus` cover 4,620 pages at 99.8% parsed with no

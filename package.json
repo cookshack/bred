@@ -8,7 +8,7 @@
     "test": "mocha --exit",
     "test-fast": "mocha --exit --ignore 'test/*e2e*.mjs'",
     "test-e2e": "mocha --exit test/*e2e*.mjs",
-    "test-corpus": "MAN_CORPUS=1 mocha --exit --timeout 600000 test/man-corpus.mjs",
+    "test-corpus": "bash -o pipefail -c 'MAN_CORPUS=1 mocha --exit --timeout 600000 test/man-corpus.mjs 2>&1 | tee man-corpus.log'",
     "verify": "./bin/pre-push-check --full",
     "test-indent": "mocha test/indent.mjs",
     "coverage": "c8 --include='js/**' --include='ext/**' --reporter=text --reporter=html mocha --exit",

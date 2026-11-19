@@ -334,6 +334,15 @@ test('include', 'so without a loader fails',
        equal(r.fails[0].what, 'include other.1')
      })
 
+test('refusal', 'a recursive string is refused instead of crashing',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.ds A \\*A\ntext \\*A\n')
+       equal(r.ok, 0)
+       equal(r.fails.some(f => f.what == 'expansion recursion'), true)
+     })
+
 test('refusal', 'an unknown macro fails the page with its line',
      () => {
        let r
@@ -485,6 +494,42 @@ test('mdoc', 'Fl makes options and Fl Fl makes a long option',
 
        r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fl a b\n.Op Fl Fl all\n')
        equal(flat(r.doc.blocks[0].spans), '-a -b [--all]')
+     })
+
+test('mdoc', 'Cd is a bold configuration declaration',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Cd "pseudo-device mtrr 1"\n')
+       equal(flat(r.doc.blocks[0].spans), 'pseudo-device mtrr 1')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+     })
+
+test('mdoc', 'Fd, Ad and Bsx format their arguments',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fd #include <stdio.h>\n.Ad 0x1234\n.Bsx 3.0 .\n')
+       equal(flat(r.doc.blocks[0].spans), '#include <stdio.h> 0x1234 BSD/OS 3.0.')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+       equal(r.doc.blocks[0].spans.find(s => s.text == '0x1234').style, 'italic')
+     })
+
+test('mdoc', 'Tg produces no output',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\nBefore\n.Tg examine\nAfter\n')
+       equal(flat(r.doc.blocks[0].spans), 'Before After')
+     })
+
+test('mdoc', 'a reference field outside a reference is text',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.%T "A Title"\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'A Title')
      })
 
 test('mdoc', 'Op nests a macro call',
@@ -794,6 +839,23 @@ test('groff requests', 'pc and cp are presentation only',
 test('conditions', 'if c is false by default',
      () => {
        equal(asText('.TH T 1\n.if c hidden\nshown\n'), 'shown\n')
+     })
+
+test('escapes', 'double star, ba and sc characters',
+     () => {
+       equal(flat(parsed('.TH T 1\na \\(** b \\(ba c \\(sc d\n').doc.blocks[0].spans),
+             'a ∗ b | c § d')
+     })
+
+test('escapes', 'escaped underscore is an underscore',
+     () => {
+       equal(flat(parsed('.TH T 1\na\\_b\n').doc.blocks[0].spans), 'a_b')
+     })
+
+test('escapes', 'bracket and brace character names',
+     () => {
+       equal(flat(parsed('.TH T 1\na \\[lB]b\\[rB] \\[lC]c\\[rC]\n').doc.blocks[0].spans),
+             'a [b] {c}')
      })
 
 test('escapes', 'groff symbol names pl and mi',

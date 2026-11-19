@@ -12,6 +12,7 @@ import * as Char from './man-char.mjs'
 import * as Roff from './man-roff.mjs'
 
 let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocInlineNames, mdocNoArg, mdocEncloseNames
+let expandDepth
 
 fonts = { B: 'bold',
           BI: 'bold',
@@ -123,6 +124,7 @@ predefinedRegisters = { '.g': 1,
                         'rst2man-indent2': 3 }
 
 escapeChars = { '\\': '\\',
+                '_': '_',
                 '-': '-',
                 '&': '',
                 'e': '\\',
@@ -345,9 +347,18 @@ function lookupString
 
 // Expand one input line into styled runs. Mutates the current font, as roff
 // does. Returns join=1 when the line ends with \c.
+expandDepth = 0
+
 function expand
 (c, text, style, lineNo) {
   let spans, at, cur, join
+
+  expandDepth++
+  if (expandDepth > 100) {
+    expandDepth--
+    fail(c, lineNo, 'expansion recursion')
+    return { spans: [], join: 0 }
+  }
 
   spans = []
   cur = style || c.font
@@ -540,6 +551,7 @@ function expand
   }
 
   c.font = cur
+  expandDepth--
   return { spans, join }
 }
 
@@ -1664,7 +1676,11 @@ mdocInlineNames = { Ap: 1,
                     Bq: 1,
                     Bx: 1,
                     Brq: 1,
+                    Ad: 1,
+                    Bsx: 1,
+                    Cd: 1,
                     Cm: 1,
+                    Fd: 1,
                     Dc: 1,
                     Do: 1,
                     Dq: 1,
@@ -1967,10 +1983,12 @@ function mdocDisplayOne
 
 function mdocRefField
 (c, args) {
-  if (c.mdoc.ref == undefined)
+  if (Array.isArray(c.mdoc.ref)) {
+    if (args.length)
+      c.mdoc.ref.push(expandText(c, args.join(' '), c.lineNo))
+  }
+  else
     mdocText(c, args.join(' '), c.font)
-  else if (args.length)
-    c.mdoc.ref.push(expandText(c, args.join(' '), c.lineNo))
 }
 
 function mdocStandard
@@ -2056,7 +2074,17 @@ function mdocInlineMacro
     return 1
   case 'Cm':
   case 'Ic':
+  case 'Cd':
+  case 'Fd':
     mdocWords(c, args, 'bold')
+    return 1
+  case 'Ad':
+    mdocWords(c, args, 'italic')
+    return 1
+  case 'Bsx':
+    mdocText(c, 'BSD/OS', c.font)
+    if (args.length)
+      mdocWords(c, args, c.font)
     return 1
   case 'Em':
   case 'Pa':
@@ -2363,6 +2391,8 @@ function mdocLine
   case '%U':
   case '%V':
     mdocRefField(c, args)
+    return 1
+  case 'Tg':
     return 1
   case 'Sm':
     c.mdoc.sm = ((args[0] == 'off') ? 0 : 1)

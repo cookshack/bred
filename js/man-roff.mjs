@@ -54,18 +54,18 @@ names = Object.assign({},
                             'Ex Fa Fc Fd Fl Fn Fo Fr Ft Fx Hf Ic In Lb Li Lk Lp Ms Mt Nd Nm ' +
                             'No Ns Nx Oc Oo Op Ot Ox Pa Pc Pf Po Pq Qc Ql Qo Qq Re Rs Rv Sc ' +
                             'Sm So Sq St Sx Sy Ta Tn Ud Ux Va Vt Xc Xo Xr At Bf Bk Ek ' +
-                            'Ao Ac Aq Ef ' +
+                            'Ao Ac Aq Ef Cd Fd Ad Bsx ' +
                             '%A %B %C %D %I %J %N %O %P %Q %R %T %U %V %a %b %c %d %e ' +
                             '%i %j %k %n %o %p %q %r %s %t %u %v ' +
                             'de am de1 ds as nr if ie el ig rm rn als rr so do tr ta ft ' +
                             'ce in ti nf fi br sp nop ul ev TS TE T&'),
-                      table('ignore', 'tm hw lf cc c2 eo ec'),
+                      table('ignore', 'tm hw lf cc c2 eo ec Tg'),
                       table('metric', 'ad na nh hy ne ns rs ll po pl ps vs ss fam ftr ' +
                             'bd mc mk rt bp it'),
                       table('unsupported', 'EQ EN mso di da tl char rchar'))
 
 escapes = Object.assign({},
-                        table('render', '- f ( [ * n $ c e z o N t p . { } " \' ` + S ' +
+                        table('render', '- _ f ( [ * n $ c e z o N t p . { } " \' ` + S ' +
                               '\\ | ^ w'),
                         table('ignore', '& T'),
                         table('metric', '0 % k : , / s h v u d m F M'),

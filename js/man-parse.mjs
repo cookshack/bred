@@ -2107,15 +2107,6 @@ function mdocRefText
         else
           parts.push(fields[j].text)
   }
-  // A field mdoc(7) does not order keeps its place at the end.
-  for (let j = 0; j < fields.length; j++) {
-    let field
-
-    field = fields[j]
-    if ((field.key == '%A') || refOrder.includes(field.key))
-      continue
-    parts.push(field.text)
-  }
   if (authors.length == 1)
     parts.unshift(authors[0])
   else if (authors.length > 1)

@@ -473,6 +473,9 @@ test('tables', 'a T} opens the next multiline cell on the same line',
        equal(rows[1].cells.length, 2)
        equal(flat(rows[1].cells[0].spans), 'first')
        equal(flat(rows[1].cells[1].spans), 'second')
+       // A closing T} can follow the last line of the cell.
+       r = parsed('.TH T 1\n.TS\nl.\nT{\nfirst\nlast text T}\n')
+       equal(flat(r.doc.blocks[0].rows[0].cells[0].spans), 'first\nlast text')
      })
 
 test('tables', 'a simple table keeps rows and cells',
@@ -1868,6 +1871,22 @@ test('tables', 'a row with fewer cells than columns is padded',
        r = parsed('.TH T 1\n.TS\nl l l.\na\tb\n.TE\n')
        equal(r.doc.blocks[0].rows[0].cells.length, 3)
        equal(flat(r.doc.blocks[0].rows[0].cells[2].spans), '')
+     })
+
+test('macros', 'HP starts a fresh paragraph',
+     () => {
+       equal(asText('.TH T 1\n.HP 4\nhanging text\n'), 'hanging text\n')
+     })
+
+test('macros', 'nop passes plain text through',
+     () => {
+       equal(asText('.TH T 1\n.nop hello\n'), 'hello\n')
+       equal(asText('.TH T 1\n.nop\n'), '')
+     })
+
+test('macros', 'a stray block marker is ignored',
+     () => {
+       equal(asText('.TH T 1\n.\\{\n.\\}\n'), '')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

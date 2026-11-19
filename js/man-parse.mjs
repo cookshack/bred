@@ -1232,7 +1232,7 @@ function setRegister
 
 function handleFont
 (c, styles, rest, lineNo) {
-  let args, spans, saved, i
+  let args, spans, saved, join, out, i
 
   args = splitArgs(rest)
   if (args.length == 0) {
@@ -1241,13 +1241,23 @@ function handleFont
   }
   spans = []
   saved = c.font
-  if (styles.length == 1)
-    pushSpans(spans, expand(c, args.join(' '), styles[0], lineNo).spans)
+  join = 0
+  if (styles.length == 1) {
+    out = expand(c, args.join(' '), styles[0], lineNo)
+    pushSpans(spans, out.spans)
+    join = out.join
+  }
   else
-    for (i = 0; i < args.length; i++)
-      pushSpans(spans, expand(c, args[i], styles[i % styles.length], lineNo).spans)
+    for (i = 0; i < args.length; i++) {
+      out = expand(c, args[i], styles[i % styles.length], lineNo)
+      pushSpans(spans, out.spans)
+      join = out.join
+    }
   c.font = saved
   appendInline(c, spans)
+  // `\c` at the end of the last argument continues the line, so the next
+  // input line must not get a separating space (egrep(1)'s `\e n\c`).
+  c.joinNext = join
 }
 
 function startTag
@@ -3176,11 +3186,11 @@ function parse
       continue
     }
     if (control && control.name) {
+      // A macro line ends any `\c` continuation from the line before it, but
+      // the macro's own last argument may start a new one.
+      c.joinNext = 0
       handleLine(c, control, style)
       c.lineTarget = 0
-      // A macro line ends the `\c` continuation, so the next text line gets
-      // its own separating space again (lslocks(8) loses it otherwise).
-      c.joinNext = 0
       continue
     }
     if ((control == 0) && (input.text.trim() == '') && (c.pre == 0)) {

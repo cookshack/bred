@@ -315,6 +315,12 @@ test('escapes', 'a nested bracket argument does not leak a bracket',
        equal(asText('.TH T 1\nx \\F[\\n[.fam]] y\n'), 'x  y\n')
      })
 
+test('escapes', 'a font argument ending in c continues the next line',
+     () => {
+       equal(asText('.TH T 1\n.B x\\c\nand y\n'), 'xand y\n')
+       equal(asText('.TH T 1\n.BI \\e n\\c\n\\&, where\n'), '\\n, where\n')
+     })
+
 test('escapes', 'a size escape takes one signed digit or two plain ones',
      () => {
        equal(asText('.TH T 1\n.nf\nx\\s-133y\n.fi\n'), 'x33y\n')

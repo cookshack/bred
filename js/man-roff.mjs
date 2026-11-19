@@ -231,24 +231,6 @@ function macroClass
 }
 
 export
-function escapeClass
-(name) {
-  return escapes[name]
-}
-
-export
-function stringIsKnown
-(name) {
-  return predefinedStrings[name]
-}
-
-export
-function registerIsKnown
-(name) {
-  return predefinedRegisters[name]
-}
-
-export
 function scan
 (text) {
   let lines, defines, result, seenFail, seenTolerate, seenUnresolved, ig, kinds

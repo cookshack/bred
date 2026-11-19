@@ -322,6 +322,12 @@ test('escapes', 'a size escape takes one signed digit or two plain ones',
        equal(asText('.TH T 1\n.nf\nx\\s12y\n.fi\n'), 'xy\n')
      })
 
+test('escapes', 'a unicode and a decimal character name resolve',
+     () => {
+       equal(asText('.TH T 1\nx \\[u2014] \\[char65] y\n'), 'x — A y\n')
+       equal(parsed('.TH T 1\nx \\N\'0\' y\n').ok, 0)
+     })
+
 test('escapes', 'final sigma has its own name',
      () => {
        equal(asText('.TH T 1\na \\(ts b\n'), 'a ς b\n')

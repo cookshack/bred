@@ -238,6 +238,37 @@ test('scan', 'include with a body is a normal page',
        equal(scan.kind, 'man')
      })
 
+test('scan', 'an ig block before the prologue does not pick the dialect',
+     () => {
+       equal(Roff.scan('.ig\n.Dd t\n..\n.TH T 1\n').kind, 'man')
+       equal(Roff.scan('.ig END\n.Dd t\n.END\n.TH T 1\n').kind, 'man')
+     })
+
+test('scan', 'an unterminated name escape does not fail the page',
+     () => {
+       equal(Roff.scan('.TH T 1\n.SH A\nx \\*[name\n').ok, 1)
+     })
+
+test('scan', 'a page with no prologue is a man page',
+     () => {
+       equal(Roff.scan('just some text\n').kind, 'man')
+     })
+
+test('scan', 'a block marker is counted, not classified',
+     () => {
+       let scan
+
+       scan = Roff.scan('.TH T 1\n.\\{\n')
+       equal(scan.ok, 1)
+       equal(scan.counts.macros['\\{'], 1)
+     })
+
+test('inventory', 'the macro class is exposed',
+     () => {
+       equal(Roff.macroClass('TH'), 'render')
+       equal(Roff.macroClass('nope'), undefined)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

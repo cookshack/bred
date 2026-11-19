@@ -227,11 +227,11 @@ and rule rows and man(1) draws neither.
 Section 8 is almost entirely `.URL`/`.MTO` with an empty description: man(1)
 prints the bare target where we print `⟨target⟩`.
 
-Tests: 390 (inventory, interpreter, renderer, viewer, real pty);
-`test-corpus` also parses and renders every page in the corpus. Coverage of the
-man modules is 100% of `man.mjs` lines (91% of branches), 98% of
-`man-parse.mjs` lines (91% of branches), 94% of the `man-roff.mjs` scanner and
-100% of `man-render.mjs` lines and branches.
+Tests: 396 (inventory, interpreter, renderer, viewer, real pty);
+`test-corpus` also parses and renders every page in the corpus. Line coverage
+is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
+`man-render.mjs` (100%) and `man-roff.mjs` (96%), and 98% for
+`man-parse.mjs` (91% of branches).
 
 ## Known gaps, in order
 

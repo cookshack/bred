@@ -1,6 +1,7 @@
 import { equal, throws } from 'node:assert/strict'
 import * as Buf from '../js/Buf.mjs'
 import * as Cmd from '../js/cmd.mjs'
+import * as Loc from '../js/loc.mjs'
 import * as Man from '../js/man.mjs'
 import * as Mess from '../js/mess.mjs'
 import * as Mode from '../js/mode.mjs'
@@ -8,7 +9,7 @@ import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held
+let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail
 
 function test
 (group, name, cb) {
@@ -68,6 +69,14 @@ function installShell
     if ((sc == 'man') && (sargs[0] == '-w')) {
       let list
 
+      if (manwFail) {
+        if (manwFail.err)
+          return { err: manwFail.err }
+        out = manwFail.out || ''
+        code = manwFail.code ?? 0
+        errMsg = manwFail.errText || ''
+        return { out, code, errMsg }
+      }
       list = lookup(pages, manw, sargs[1])
       if (list.length)
         out = list.join('\n') + '\n'
@@ -108,7 +117,10 @@ function installShell
 
     handler = panes.shellChans[ch]
     if (handler)
-      handler({ stdout: r.out, stderr: r.errMsg, close: 1, code: r.code })
+      if (r.err)
+        handler({ err: r.err })
+      else
+        handler({ stdout: r.out, stderr: r.errMsg, close: 1, code: r.code })
   }
 
   function deliver
@@ -128,6 +140,7 @@ function installShell
                             setTimeout(() => deliver(ch, response(args[2], args[3] || [])), 0)
                             return ch
                           }
+                          calls.push([ name, ...(args || []) ])
                           return { err: 0, ch: 0 }
                         }
 }
@@ -151,6 +164,7 @@ function setup
   emptyPaths = {}
   hold = 0
   held = []
+  manwFail = 0
   installShell(panes, pages, manw)
   return panes
 }
@@ -173,6 +187,21 @@ async function opened
 
                   b = Pane.current().buf
                   return (b?.vars('Manpage').topic == topic) &&
+                        (b.vars('Manpage').loading == 0)
+                })
+  return Pane.current().buf
+}
+
+// The typed text and the page it resolves to differ when the prompt takes a
+// section number or a path.
+async function openedVia
+(text, key) {
+  Man.open(text)
+  await waitFor(() => {
+                  let b
+
+                  b = Pane.current().buf
+                  return (b?.vars('Manpage').topic == key) &&
                         (b.vars('Manpage').loading == 0)
                 })
   return Pane.current().buf
@@ -234,6 +263,68 @@ test('viewer', 'all unreadable paths report a read error',
        setup({}, { ls: [ '/fake/man1/one.1.gz', '/fake/man1/two.1.gz' ] })
        b = await opened('ls')
        equal(textOf(b).includes('Cannot read'), true)
+     })
+
+test('viewer', 'an absolute path is read without man -w',
+     async () => {
+       let b
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nabsolute path text\n' })
+       b = await opened('/usr/share/man/man1/ls.1.gz')
+       equal(textOf(b).includes('absolute path text'), true)
+       equal(b.vars('Manpage').file, '/usr/share/man/man1/ls.1.gz')
+       equal(calls.some(c => c[0] == 'man'), false)
+       equal(calls.some(c => (c[0] == 'zcat') &&
+                            (c[1] == '/usr/share/man/man1/ls.1.gz')), true)
+     })
+
+test('viewer', 'a relative path is read from the pane directory',
+     async () => {
+       let b
+
+       setup({ 'rel.1': '.TH REL 1\n.SH NAME\nrelative path text\n' })
+       b = await openedVia('./rel.1', '/tmp/rel.1')
+       equal(textOf(b).includes('relative path text'), true)
+       equal(calls.some(c => c[0] == 'man'), false)
+     })
+
+test('viewer', 'a bare source filename is read from the pane directory',
+     async () => {
+       let b
+
+       setup({ 'bare.1': '.TH BARE 1\n.SH NAME\nbare path text\n' })
+       b = await openedVia('bare.1', '/tmp/bare.1')
+       equal(textOf(b).includes('bare path text'), true)
+       equal(calls.some(c => c[0] == 'man'), false)
+     })
+
+test('viewer', 'a home relative path is expanded',
+     async () => {
+       let home
+
+       home = Loc.home()
+       Loc.homeSet('/fake/home')
+       try {
+         let b
+
+         setup({ 'home.1': '.TH HOME 1\n.SH NAME\nhome path text\n' })
+         b = await openedVia('~/home.1', '/fake/home/home.1')
+         equal(textOf(b).includes('home path text'), true)
+         equal(calls.some(c => c[0] == 'man'), false)
+       }
+       finally {
+         Loc.homeSet(home)
+       }
+     })
+
+test('viewer', 'a missing path reports a read error and does not run man',
+     async () => {
+       let b
+
+       setup({})
+       b = await opened('/tmp/no-such-page.1.gz')
+       equal(textOf(b).includes('Cannot read /tmp/no-such-page.1.gz'), true)
+       equal(calls.some(c => c[0] == 'man'), false)
      })
 
 test('viewer', 'opening the same topic again reuses the buffer',
@@ -489,7 +580,7 @@ test('viewer', 'clicking page text is a no-op',
        equal(ev.defaultPrevented, false)
      })
 
-test('viewer', 'an external link is left to the browser',
+test('viewer', 'an external link opens outside the window',
      async () => {
        let b, a, ev
 
@@ -500,7 +591,90 @@ test('viewer', 'an external link is left to the browser',
        equal(a.dataset.topic, undefined)
        ev = new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 })
        a.dispatchEvent(ev)
-       equal(ev.defaultPrevented, false)
+       equal(ev.defaultPrevented, true)
+       await waitFor(() => calls.some(c => (c[0] == 'shell.open') &&
+                                          (c[1] == 'https://example.com')))
+     })
+
+test('viewer', 'mailto and ftp links also open externally',
+     async () => {
+       let b, links
+
+       setup({ urls: '.TH URLS 1\n.SH LINKS\n.MT a@example.com\nmail\n.ME\n.UR ftp://example.com/x\n' +
+                        'file\n.UE\n' })
+       b = await opened('urls')
+       links = b.views[0].ele.querySelectorAll('a')
+       links.forEach(a => a.dispatchEvent(new globalThis.window.Event('click',
+                                                                      { bubbles: 1,
+                                                                        cancelable: 1 })))
+       await waitFor(() => calls.some(c => (c[0] == 'shell.open') &&
+                                          (c[1] == 'mailto:a@example.com')))
+       equal(calls.some(c => (c[0] == 'shell.open') &&
+                            (c[1] == 'ftp://example.com/x')), true)
+     })
+
+test('viewer', 'an unknown scheme is refused and does not navigate',
+     async () => {
+       let b, a, ev, msgs
+
+       setup({ urls: '.TH URLS 1\n.SH LINKS\n' +
+                        '.UR javascript:alert(1)\nbad\n.UE\n' })
+       b = await opened('urls')
+       a = b.views[0].ele.querySelector('a')
+       ev = new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 })
+       a.dispatchEvent(ev)
+       equal(ev.defaultPrevented, true)
+       equal(calls.some(c => (c[0] == 'shell.open')), false)
+       msgs = Mess.messages().filter(m => m.type == 'say')
+       equal(msgs[msgs.length - 1].text, 'Cannot open javascript link')
+     })
+
+test('viewer', 'a leading section number opens the sectioned topic',
+     async () => {
+       let b
+
+       setup({ 'printf(3)': '.TH PRINTF 3\n.SH NAME\nprintf \\- format\n',
+               'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       b = await openedVia('3 printf', 'printf(3)')
+       equal(b.name, 'Man: printf(3)')
+       equal(b.vars('Manpage').topic, 'printf(3)')
+       equal(textOf(b).includes('format'), true)
+     })
+
+test('viewer', 'shuffled whitespace and printf(3) still work',
+     async () => {
+       let b
+
+       setup({ 'printf(3)': '.TH PRINTF 3\n.SH NAME\nprintf \\- format\n' })
+       b = await openedVia('  printf(3)  ', 'printf(3)')
+       equal(b.name, 'Man: printf(3)')
+       equal(textOf(b).includes('format'), true)
+     })
+
+test('viewer', 'a trailing section in parentheses is normalised',
+     async () => {
+       let b
+
+       setup({ 'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       b = await openedVia('ls (1)', 'ls(1)')
+       equal(b.vars('Manpage').topic, 'ls(1)')
+       equal(Pane.current().buf == b, true)
+     })
+
+test('viewer', 'an invalid section is rejected before man runs',
+     () => {
+       setup({})
+       throws(() => Man.open('0 ls'), /Invalid man section/)
+       throws(() => Man.open('33 ls'), /Invalid man section/)
+       equal(calls.length, 0)
+     })
+
+test('viewer', 'a topic that is only a section is rejected',
+     () => {
+       setup({})
+       throws(() => Man.open('(1)'), /Topic missing/)
+       throws(() => Man.open('  ( 1 )  '), /Topic missing/)
+       equal(calls.length, 0)
      })
 
 test('viewer', 'a blank topic is rejected',
@@ -735,6 +909,68 @@ test('viewer', 'a mid-page include may point at a redirect page',
        equal(textOf(b).includes('bash text'), true)
      })
 
+test('viewer', 'a missing man binary is not a missing page',
+     async () => {
+       let b
+
+       setup({})
+       manwFail = { out: '', code: 127, errText: 'sh: 1: man: not found\n' }
+       b = await opened('ls')
+       equal(textOf(b).includes('Cannot run man'), true)
+       equal(textOf(b).includes('No manual entry'), false)
+     })
+
+test('viewer', 'a spawn failure is reported instead of left loading',
+     async () => {
+       let b
+
+       setup({})
+       manwFail = { err: new Error('spawn man ENOENT') }
+       b = await opened('ls')
+       equal(textOf(b).includes('Cannot run man: spawn man ENOENT'), true)
+       equal(b.vars('Manpage').loading, 0)
+     })
+
+test('viewer', 'an ENOENT diagnostic on stderr is a spawn failure',
+     async () => {
+       let b
+
+       setup({})
+       manwFail = { out: 'man: No such file or directory\n', code: 0, err: '' }
+       b = await opened('ls')
+       equal(textOf(b).includes('Cannot run man'), true)
+       equal(textOf(b).includes('No manual entry'), false)
+     })
+
+test('viewer', 'a warning with an embedded path cannot hide the real path',
+     async () => {
+       let b
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nwarning path text\n' },
+             { ls: [ 'man: warning: /fake/man1/trap.1.gz: unreadable\n' +
+                     '/fake/man1/ls.1.gz\n' ] })
+       b = await opened('ls')
+       equal(textOf(b).includes('warning path text'), true)
+       equal(calls.some(c => (c[0] == 'zcat') &&
+                            (c[1] == '/fake/man1/ls.1.gz')), true)
+       equal(calls.some(c => (c[0] == 'zcat') &&
+                            c[1].startsWith('/ ')), false)
+     })
+
+test('viewer', 'a warning with no path is reported instead of a bogus path',
+     async () => {
+       let b
+
+       setup({})
+       manwFail = { out: 'man: warning: /fake/man1/trap.1.gz: unreadable\n',
+                    code: 0,
+                    err: '' }
+       b = await opened('ls')
+       equal(textOf(b).includes('warning'), true)
+       equal(textOf(b).includes('Cannot read / '), false)
+       equal(calls.some(c => c[0] == 'zcat'), false)
+     })
+
 test('viewer', 'man -w output mixes colon and newline lists',
      async () => {
        let b
@@ -912,7 +1148,7 @@ test('viewer', 'a redirect to another section is not a cycle',
 
        setup({ foo: '.so man1/foo.8\n',
                'foo.8': '.TH FOO 8\n.SH NAME\nfoo in section eight\n' })
-       b = await opened('foo.1')
+       b = await openedVia('foo.1', '/tmp/foo.1')
        equal(viewOf(b).ele.querySelector('.manpage-err'), null)
        equal(textOf(b).includes('foo in section eight'), true)
        equal(textOf(b).includes('Redirect cycle'), false)

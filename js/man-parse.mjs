@@ -2562,9 +2562,17 @@ function handleLine
     break
   }
   case 'UR':
-  case 'MT':
     c.link = { href: expandText(c, args[0] || '', c.lineNo), spans: [] }
     break
+  case 'MT': {
+    let href
+
+    href = expandText(c, args[0] || '', c.lineNo)
+    // .MT takes a bare address; .UR takes a complete URL.
+    c.link = { href: /^[a-z][a-z0-9+.-]*:/i.test(href) ? href : 'mailto:' + href,
+               spans: [] }
+    break
+  }
   case 'UE':
   case 'ME':
     linkEnd(c, args[0] || '')

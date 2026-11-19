@@ -50,7 +50,7 @@ function nextCh
 
 export
 function runToString
-(dir, sc, args, runInShell, cb) { // (str, code)
+(dir, sc, args, runInShell, cb, onErr) { // (str, code), (err)
   let ch, str, handler, off
 
   ch = nextCh()
@@ -65,9 +65,14 @@ function runToString
               der = new TextDecoder()
 
               if (err) {
-                Mess.yell('Shell.runToString: ' + err.message)
-                // Clean up listener on error
+                // A process that could not be spawned never closes, so let
+                // the caller finish its operation instead of waiting.
                 off()
+                if (onErr) {
+                  onErr(err)
+                  return
+                }
+                Mess.yell('Shell.runToString: ' + err.message)
                 return
               }
 

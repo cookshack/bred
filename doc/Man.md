@@ -20,7 +20,11 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
    list, possibly mixed with diagnostics; paths are deduplicated and each is
    tried in order until one reads. A colon only separates paths when the part
    before it ends like a manual source (a section or a compression suffix), so
-   a colon inside a filename such as `/x/a:/b.1` does not split it.
+   a colon inside a filename such as `/x/a:/b.1` does not split it. Only a
+   line that starts with `/` is scanned for paths, so a warning that mentions
+   a path with a colon cannot inject a bogus path or hide the real one. A
+   missing binary (exit 126/127, `command not found`, ENOENT) or a spawn
+   failure is reported as `Cannot run man: ...`, not as `No manual entry`.
 2. Read it with `zcat`, falling back to `cat` only when `zcat` fails. An empty
    file is a valid page, not a read error, and is never sent to `cat` (which
    would print gzip bytes).
@@ -38,6 +42,20 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
    page that includes itself (directly or through another page) cannot loop.
 5. `ManParse.parse(source)` → block model.
 6. `ManRender.render(doc)` → DOM; the view's content element is replaced.
+
+The prompt takes the ways people actually type a page: `printf(3)`,
+`3 printf`, `printf (3)` and surrounding whitespace all open `printf(3)`.
+A leading number that is not a valid section (`0 ls`, `33 ls`) and a bare
+section (`(1)`) are refused before `man` runs. A path is read directly instead
+of going through `man -w`: an absolute path, `./foo.1`, `../foo.1`, `~/foo.1`,
+or a bare source name such as `foo.1` in the pane's directory. A bare name is
+ambiguous, so if the file does not read it falls back to a topic lookup;
+explicit paths report `Cannot read ...` and do not guess.
+
+Links to `http:`, `https:`, `mailto:` and `ftp:` open in the desktop browser
+through `shell.open` and never navigate the window. Any other scheme is
+refused with a message; `#...` links scroll within the page and `man:...`
+links open another topic.
 
 Refresh bumps a per-buffer load generation; a response or include prefetch from
 an older generation is ignored, so refreshing while loading (or twice) keeps
@@ -101,13 +119,15 @@ characters and bullet markers, then reports reference words missing from our
 text. `test/man-viewer.mjs` drives `Man.open` with fake `man -w`/`zcat`
 responses, so the viewer is tested without the installed corpus. It covers the
 path and reader fallbacks, redirects (chains, cycles, sections, missing
-targets), includes (including cycles), TOC and reference clicks, the prompt
+targets), includes (including cycles), TOC and reference clicks, external and
+unknown-scheme links, section/topic normalisation and path input, the prompt
 with its completion (regex escaping, caching, suggestion clicks, a throwing
 `tokenAt`, a close before the attract timer), error paths (unreadable, empty
-and blank pages, non-gzip fallback), refresh (failing, repeated while loading),
-and buffer reuse and shared refresh across panes. The renderer tests also draw
-compact and large pages, empty tables and lists, combined table options,
-colspans and links with no text.
+and blank pages, non-gzip fallback, a missing `man` and a spawn failure),
+man -w diagnostics mixed with paths, refresh (failing, repeated while
+loading), and buffer reuse and shared refresh across panes. The renderer tests
+also draw compact and large pages, empty tables and lists, combined table
+options, colspans and links with no text.
 
 ## Current state
 
@@ -129,10 +149,10 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 211 (inventory, interpreter, renderer, viewer); `test-corpus` also
+Tests: 230 (inventory, interpreter, renderer, viewer); `test-corpus` also
 parses and renders every page in the corpus. Coverage of the man modules is
-100% of `man.mjs` lines and 99.6% of `man-render.mjs` lines (about 93% and 87%
-of their branches).
+99.7% of `man.mjs` lines (90% of branches) and 100% of `man-render.mjs` lines
+and branches.
 
 ## Known gaps, in order
 
@@ -144,6 +164,11 @@ of their branches).
 4. A colon in a path is still a separator when the text before it looks like a
    man source (for example `/x/a.1:/b.1`): `man -w` output has no unambiguous
    quoting, so this heuristic favours the common colon-separated list.
+5. A bare `foo.1` is tried as a path before a topic; if it exists but cannot be
+   read, the topic fallback can hide the read error. Explicit paths do not
+   fall back.
+6. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
+   are refused rather than handed to the desktop.
 
 ## Changing it
 

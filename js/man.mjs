@@ -6,6 +6,7 @@ import * as Css from './css.mjs'
 import * as Em from './Em.mjs'
 import * as Hist from './hist.mjs'
 import * as Icon from './icon.mjs'
+import * as Loc from './loc.mjs'
 import * as ManParse from './man-parse.mjs'
 import * as ManRender from './man-render.mjs'
 import * as Mess from './mess.mjs'
@@ -13,6 +14,7 @@ import * as Mode from './mode.mjs'
 import * as Pane from './Pane.mjs'
 import * as Prompt from './prompt.mjs'
 import * as Shell from './shell.mjs'
+import * as Tron from './tron.mjs'
 import * as View from './view.mjs'
 //import { d } from './mess.mjs'
 
@@ -130,9 +132,27 @@ function init
     }
   }
 
+  function schemeOf
+  (href) {
+    let m
+
+    m = /^([a-z][a-z0-9+.-]*):/i.exec(href)
+    if (m)
+      return m[1].toLowerCase()
+    return ''
+  }
+
+  function openExternally
+  (url) {
+    Tron.cmd('shell.open', [ url ], err => {
+                                      if (err)
+                                        Mess.yell('shell.open: ' + err.message)
+                                    })
+  }
+
   function onClick
   (we, view) {
-    let a
+    let a, href, scheme
 
     if (we.target.closest == undefined)
       return
@@ -144,9 +164,21 @@ function init
       openPage(a.dataset.topic)
       return
     }
-    if ((a.getAttribute('href') || '').startsWith('#')) {
+    href = a.getAttribute('href') || ''
+    if (href.startsWith('#')) {
       we.preventDefault()
-      follow(a.getAttribute('href'), view)
+      follow(href, view)
+      return
+    }
+    // A page can link anywhere. Never let the window navigate away: known
+    // external schemes go to the desktop, unknown ones are refused.
+    scheme = schemeOf(href)
+    if (scheme) {
+      we.preventDefault()
+      if ([ 'http', 'https', 'mailto', 'ftp' ].includes(scheme))
+        openExternally(href)
+      else
+        Mess.say('Cannot open ' + scheme + ' link')
     }
   }
 
@@ -164,6 +196,65 @@ function init
     attach(view)
     if (cb)
       cb(view)
+  }
+
+  // A path can be typed at the prompt as well as a topic. It is read directly,
+  // without asking man -w: an absolute path, a ./ or ../ path, a ~/ path, or a
+  // bare filename that ends like a manual source (foo.1, foo.1.gz).
+  function isPath
+  (text) {
+    if (/^(?:\/|\.\.?\/|~\/)/.test(text))
+      return 1
+    if (/\s/.test(text))
+      return 0
+    return /\.(?:gz|bz2|xz|zst|lzma|[1-9][a-z]*)$/.test(text)
+  }
+
+  function isBareSource
+  (text) {
+    if (/[\/~]/.test(text))
+      return 0
+    return isPath(text)
+  }
+
+  function resolvePath
+  (dir, path) {
+    let loc, p
+
+    loc = Loc.make(path)
+    p = loc.expand()
+    if (loc.relative) {
+      if (dir.endsWith('/') == 0)
+        dir = dir + '/'
+      p = dir + p
+    }
+    return Loc.make(p).normalize()
+  }
+
+  // Accept the ways people actually type a section: "3 printf", "printf (3)"
+  // and "printf(3)". A leading number that is not a section is an error rather
+  // than a strange topic.
+  function normalizeTopic
+  (text) {
+    let s, m
+
+    s = text.trim().replace(/\s+/g, ' ')
+    if (s.length == 0)
+      Mess.toss('Topic missing')
+    if (/^\([^)]*\)$/.test(s))
+      Mess.toss('Topic missing before section: ' + s)
+    m = /^([1-9][a-z]*)\s+(\S.*)$/.exec(s)
+    if (m)
+      return m[2] + '(' + m[1] + ')'
+    m = /^(\S+)\s+\(([1-9][a-z]*)\)$/.exec(s)
+    if (m)
+      return m[1] + '(' + m[2] + ')'
+    m = /^(\d+)([a-z]*)\s+\S/.exec(s)
+    if (m)
+      Mess.toss('Invalid man section: ' + m[1] + m[2])
+    if (/\s/.test(s))
+      Mess.toss('Invalid man topic: ' + s)
+    return s
   }
 
   function manPathTopic
@@ -213,12 +304,16 @@ function init
     if (code == 0)
       cb(0, text, path)
     else
-      Shell.runToString(dir, 'cat', [ path ], 0, (text2, code2) => onCat(path, text2, code2, cb))
+      Shell.runToString(dir, 'cat', [ path ], 0,
+                        (text2, code2) => onCat(path, text2, code2, cb),
+                        err => cb('Cannot run cat: ' + err.message))
   }
 
   function readSource
   (dir, path, cb) {
-    Shell.runToString(dir, 'zcat', [ path ], 0, (text, code) => onZcat(dir, path, text, code, cb))
+    Shell.runToString(dir, 'zcat', [ path ], 0,
+                      (text, code) => onZcat(dir, path, text, code, cb),
+                      err => cb('Cannot run zcat: ' + err.message))
   }
 
   function onSource
@@ -286,8 +381,42 @@ function init
 
     paths = []
     out = out || ''
-    out.split('\n').forEach(line => splitPathLine(line).forEach(add))
+    out.split('\n').forEach(line => {
+                              // Only a line that starts with a path is a
+                              // candidate: a diagnostic that happens to
+                              // contain a path (and a colon) must not inject
+                              // bogus paths or hide the real one.
+                              line = line.trim()
+                              if (line.startsWith('/'))
+                                splitPathLine(line).forEach(add)
+                            })
     return paths
+  }
+
+  function diagnostics
+  (out) {
+    return (out || '').split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length && (line.startsWith('/') == 0))
+  }
+
+  // man -w merges its stderr into the same output as stdout here. A missing
+  // binary (exit 127, "command not found") is not a missing page, and a
+  // diagnostic alone is more useful than a bare "No manual entry".
+  function manError
+  (topic, out, code) {
+    let diag, text
+
+    diag = diagnostics(out)
+    text = diag.join(' ')
+    if (((code == 126) || (code == 127)) ||
+        /command not found|: not found|no such file or directory|enoent|permission denied/i.test(text))
+      return 'Cannot run man: ' + (diag[0] || 'command not found')
+    if ((code == 16) || /no manual entry/i.test(text))
+      return 'No manual entry for ' + topic
+    if (diag.length)
+      return 'man -w ' + topic + ': ' + diag[0]
+    return 'No manual entry for ' + topic
   }
 
   function onManW
@@ -297,7 +426,7 @@ function init
     function tryPath
     (at, lastErr) {
       if (at >= paths.length) {
-        cb(lastErr || ('No manual entry for ' + topic))
+        cb(lastErr || manError(topic, out, code))
         return
       }
       readSource(dir, paths[at], (err, text, full) => {
@@ -311,7 +440,7 @@ function init
 
     paths = (code == 0) ? manPaths(out) : []
     if (paths.length == 0) {
-      cb('No manual entry for ' + topic)
+      cb(manError(topic, out, code))
       return
     }
     tryPath(0)
@@ -321,19 +450,21 @@ function init
   (dir, topic, depth, cb, chain, seen) {
     chain = chain || [ topic ]
     seen = seen || []
-    Shell.runToString(dir, 'man', [ '-w', topic ], 0, (out, code) => onManW(dir, topic, depth,
-                                                                            out, code, cb,
-                                                                            chain, seen))
+    Shell.runToString(dir, 'man', [ '-w', topic ], 0,
+                      (out, code) => onManW(dir, topic, depth,
+                                            out, code, cb,
+                                            chain, seen),
+                      err => cb('Cannot run man: ' + (err.message || 'spawn failed')))
   }
 
   function findBuf
-  (topic) {
+  (key) {
     let found
 
     found = 0
     Buf.shared().buffers.forEach(b => {
                                    if (found == 0)
-                                     if (b.vars('Manpage').topic == topic)
+                                     if (b.vars('Manpage').topic == key)
                                        found = b
                                  })
     return found
@@ -431,6 +562,12 @@ function init
   (b, p) {
     let st, dir, seq
 
+    function done
+    (err, text, path) {
+      loadInto(dir, st, err, text, path, seq,
+               () => b.views.forEach(render))
+    }
+
     st = b.vars('Manpage')
     dir = (p || Pane.current()).dir
     st.seq = (st.seq || 0) + 1
@@ -439,15 +576,26 @@ function init
     st.error = ''
     st.fails = []
     b.views.forEach(render)
-    fetchPage(dir, st.topic, 0, (err, text, path) => {
-                                  loadInto(dir, st, err, text, path, seq,
-                                           () => b.views.forEach(render))
-                                })
+    if (st.file)
+      readSource(dir, st.file, (err, text, path) => {
+                                 // A bare "foo.1" is a path when the directory
+                                 // has it and a topic otherwise. Absolute and
+                                 // explicit ./ or ~/ paths have no fallback:
+                                 // their error is what the user asked for.
+                                 if (err && st.lookup) {
+                                   st.file = ''
+                                   fetchPage(dir, st.lookup, 0, done)
+                                   return
+                                 }
+                                 done(err, text, path)
+                               })
+    else
+      fetchPage(dir, st.lookup || st.topic, 0, done)
   }
 
   function openPage
   (text) {
-    let topic, p, b, st
+    let topic, key, file, lookup, p, b, st
 
     topic = (text || '').trim()
     if (topic.length == 0) {
@@ -455,7 +603,20 @@ function init
       return
     }
     p = Pane.current()
-    b = findBuf(topic)
+    file = ''
+    lookup = ''
+    key = topic
+    if (isPath(topic)) {
+      file = resolvePath(p.dir, topic)
+      key = file
+      if (isBareSource(topic))
+        lookup = topic
+    }
+    else {
+      key = normalizeTopic(topic)
+      lookup = key
+    }
+    b = findBuf(key)
     if (b) {
       p.setBuf(b)
       st = b.vars('Manpage')
@@ -463,11 +624,13 @@ function init
         reload(b, p)
       return
     }
-    b = Buf.add('Man: ' + topic, 'Manpage', divW(), p.dir)
+    b = Buf.add('Man: ' + key, 'Manpage', divW(), p.dir)
     b.icon = 'manpage'
     b.addMode('view')
     st = b.vars('Manpage')
-    st.topic = topic
+    st.topic = key
+    st.lookup = lookup
+    st.file = file
     st.loading = 1
     st.doc = 0
     st.error = ''

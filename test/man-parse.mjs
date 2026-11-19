@@ -843,6 +843,23 @@ test('links', 'MTO uses a mailto link',
        equal(r.doc.blocks[0].spans[0].text, 'A Person')
      })
 
+test('links', 'MT uses a mailto link',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.MT a@b\nA Person\n.ME\n')
+       equal(r.doc.blocks[0].spans[0].href, 'mailto:a@b')
+       equal(r.doc.blocks[0].spans[0].text, 'A Person')
+     })
+
+test('links', 'MT keeps an address that already has a scheme',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.MT mailto:a@b\nA Person\n.ME\n')
+       equal(r.doc.blocks[0].spans[0].href, 'mailto:a@b')
+     })
+
 test('links', 'the macro packages we implement are not loaded',
      () => {
        let r

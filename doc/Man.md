@@ -211,8 +211,8 @@ man(1)'s text:
 
 ```
 section  1    3    5    7    8
-pages   15    4   15    4   58
-words   32  248   34   14   88
+pages    4    4   12    4    8
+words   21  248   31   14   24
 ```
 
 Most of that is measurement, not loss: man(1) wraps a long word onto the next
@@ -224,10 +224,10 @@ as `TIFFTAG_BADFAXLINES` inside a narrow cell; the cells themselves now parse
 (`T{`/`T}` blocks, which used to leave the markers in the text). `man-diff`
 drops a bare `|` and `_` from both sides, since those are our table separators
 and rule rows and man(1) draws neither.
-Section 8 is almost entirely `.URL`/`.MTO` with an empty description: man(1)
-prints the bare target where we print `⟨target⟩`.
+Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
+hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 396 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 404 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
 `man-render.mjs` (100%) and `man-roff.mjs` (96%), and 98% for
@@ -251,9 +251,12 @@ is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
    contain no NUL or replacement character is still read as text.
 5. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
    are refused rather than handed to the desktop.
-6. `.URL`/`.MTO` with an empty description: man(1) prints the bare target,
-   while we print `⟨target⟩` (what groff's www.tmac does on an explicit
-   `groff -man` run). `.UR`/`.UE` always print `⟨target⟩`, which both agree on.
+6. `.URL`/`.MTO` follow the shape the util-linux pages produce: the bare
+   target when there is no description, otherwise the description and the
+   target in `<>`. A page that relies on an-ext's `⟨target⟩` inside `.URL`
+   (dvipos(1)) gets `<>` instead.
+7. A delimiter macro inside a `.Dl`/`.D1` line is printed with the inline
+   ASCII brackets, although mdoc(7) uses the Unicode forms there.
 
 ## Changing it
 

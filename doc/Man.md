@@ -206,19 +206,27 @@ gdbm pages, `It` without `Bl` (2), the `Su`/`R` strings that only eqn defines
 (4), ms `DS`/`DE` (1), eqn `EQ`/`EN` (1), `mso pic.tmac` (1), strace's
 undefined `.IX`, a `.p` typo and one undefined Cyrillic string.
 
-`man-diff --section 1 --max 400` leaves 24 pages with 46 missing words. Those
-are measurement artifacts, not content loss: `.UR`/`.MT`/`.MTO` targets live in
-the link href rather than the visible text, and man(1) sometimes fills a tag or
-a long word onto the following line, so the reference splits `[n]<&digit-`
-from `moves` where we keep one word. Enum labels are now part of `toText`.
-Section 5 is the same story at 18 pages and 41 words; what is left there is
-mdoc table cells that man splits at a hyphen and a few `.TH` headers whose
-text man repeats in the footer.
+A section sweep with `--max 400` leaves this many pages (and words) short of
+man(1)'s text:
 
-Tests: 385 (inventory, interpreter, renderer, viewer, real pty);
+```
+section  1    3    5    7    8
+pages   25    4   18    4   58
+words   48  248   41   14   91
+```
+
+Most of that is measurement, not loss: man(1) wraps a long word onto the next
+line (so it splits `[n]<&digit-` from `moves`), breaks a compound at a hyphen,
+and repeats a non-standard `.TH` in the footer; `man-diff` normalises those,
+but a split inside a word that is not hyphenated still counts. Section 3 is
+almost entirely the TIFF pages, whose option table has such long joined names.
+Section 8 is almost entirely `.URL`/`.MTO` with an empty description: man(1)
+prints the bare target where we print `⟨target⟩`.
+
+Tests: 387 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Coverage of the
 man modules is
-98.6% of `man.mjs` lines (91% of branches), 98.3% of `man-parse.mjs`
+99.1% of `man.mjs` lines (91% of branches), 98.3% of `man-parse.mjs`
 statements (91% of branches) and 100% of `man-render.mjs` lines and branches.
 
 ## Known gaps, in order
@@ -238,10 +246,9 @@ statements (91% of branches) and 100% of `man-render.mjs` lines and branches.
    contain no NUL or replacement character is still read as text.
 5. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
    are refused rather than handed to the desktop.
-6. mdoc `.Rs`/`.Re` joins its fields with `, ` and nothing else, so a citation
-   lacks man(1)'s `and` between authors, the quotes around `%T` and the
-   `<>` around `%U`. The words are all there; only the punctuation differs,
-   which is why `man-diff` reports them.
+6. `.URL`/`.MTO` with an empty description: man(1) prints the bare target,
+   while we print `⟨target⟩` (what groff's www.tmac does on an explicit
+   `groff -man` run). `.UR`/`.UE` always print `⟨target⟩`, which both agree on.
 
 ## Changing it
 

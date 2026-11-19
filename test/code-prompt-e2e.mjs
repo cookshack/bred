@@ -922,13 +922,13 @@ test('subagent', 'task prompt stays in main, child output goes to its tab',
                                                        name: 'subagent',
                                                        metadata: { sessionID: 'ses-child' },
                                                        input }))
-         await waitFor(() => created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-sub"] .code-msg-prompt'))
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-sub"]'))
          w = created.views[0].ele.querySelector('.code-w')
          main = w.querySelector('.code-out-main')
          el = w.querySelector('.code-msg-tool[data-callid="call-sub"]')
          equal(el.closest('.code-out') == main, true, 'the task line stays in the main transcript')
-         equal(el.querySelector('.code-msg-prompt').textContent, prompt,
-               'prompt is visible without expanding')
+         equal(el.querySelector('.code-msg-prompt'), null,
+               'the task prompt is not in the main transcript')
          equal(el.querySelector('.code-msg-subagent-task').textContent, 'Task',
                'the Task marker is tinted for subagents')
          equal(el.querySelector('.code-msg-under'), null,
@@ -936,6 +936,8 @@ test('subagent', 'task prompt stays in main, child output goes to its tab',
 
          box = w.querySelector('.code-out[data-sessionid="ses-child"]')
          equal(Boolean(box), true, 'the child session gets its own tab')
+         equal(box.querySelector('.code-out-prompt').textContent, prompt,
+               'the task prompt is in the tab')
          equal(Css.has(box, 'code-out-shown'), false, 'the tab is hidden while main is shown')
          equal(box.querySelectorAll('.code-msg-assistant').length, 0, 'the tab starts empty')
 
@@ -956,8 +958,8 @@ test('subagent', 'task prompt stays in main, child output goes to its tab',
                                                         content: [ { type: 'text', text: 'found it' } ] }))
          await waitFor(() => box.textContent.includes('found it'))
          el = w.querySelector('.code-msg-tool[data-callid="call-sub"]')
-         equal(el.querySelector('.code-msg-prompt').textContent, prompt,
-               'prompt stays after completion')
+         equal(box.querySelector('.code-out-prompt').textContent, prompt,
+               'the prompt stays in the tab after completion')
          equal(el.querySelector('.code-msg-under'), null,
                'the result is not repeated under the task line')
          equal(box.textContent.includes('found it'), true, 'the result goes into the tab')
@@ -1077,8 +1079,8 @@ test('subagent', 'reopened session replays child output into its tab',
        equal(el.querySelector('.code-msg-text').textContent.includes('Task: Explore map (explore agent) ✔️'),
              true,
              'label uses the task description and agent')
-       equal(el.querySelector('.code-msg-prompt').textContent, prompt,
-             'the prompt is restored without expanding')
+       equal(box.querySelector('.code-out-prompt').textContent, prompt,
+             'the prompt is restored in the tab')
        equal(el.querySelector('.code-msg-under'), null,
              'the result is not under the task line')
        equal(box.textContent.includes('child says hi'), true,

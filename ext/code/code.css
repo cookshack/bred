@@ -88,6 +88,22 @@ div.code-thought:hover {
   border-bottom: 1px solid var(--clr-fill);
 }
 
+/* The task prompt the subagent was started with. It is too long to repeat in
+   the main transcript, so it lives above the subagent's own output. */
+.code-out-prompt {
+  font-family: var(--font-monospace);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding-left: 0.75rem;
+  border-left: 0.25rem solid var(--clr-syntax0);
+  color: var(--clr-text);
+}
+
+/* Subagent output keeps the accent it had inline in the main transcript. */
+.code-out[data-sessionid] .code-msg-assistant {
+  border-left-color: var(--clr-syntax0);
+}
+
 .code-msg {
   display: flex;
   flex-direction: column;

@@ -34,7 +34,7 @@ function repaint
 export
 function ensure
 (buf, sessionID, part) {
-  let before, created, sub, subs
+  let before, beforePrompt, created, sub, subs
 
   if ((sessionID == null) || (sessionID == ''))
     return
@@ -46,15 +46,17 @@ function ensure
     created = 1
   }
   before = sub.head
+  beforePrompt = sub.prompt
   if (part) {
     sub.agent = Util.subagentAgent(part)
     sub.desc = part.state?.input?.description || ''
+    sub.prompt = Util.subagentPrompt(part) || sub.prompt
     sub.callID = part.callID
   }
   sub.head = head(sub)
-  if (created || ((before == sub.head) == 0)) {
+  if (created || ((before == sub.head) == 0) || ((beforePrompt == sub.prompt) == 0)) {
     buf.views.forEach(view => Ui.addOut(view, sub))
-    Ui.updateOutHead(buf, sessionID)
+    Ui.updateOut(buf, sessionID)
     repaint()
   }
   return sub
@@ -104,7 +106,7 @@ function finish
     return
   sub.status = status
   sub.head = head(sub)
-  Ui.updateOutHead(buf, sessionID)
+  Ui.updateOut(buf, sessionID)
   repaint()
   result = Util.subagentResult(part)
   if (result && ((sub.lastText || '').includes(result.trim()) == 0))

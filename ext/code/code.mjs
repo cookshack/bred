@@ -2945,7 +2945,7 @@ function init
                         getSubagentCallIds(buf).set(sessionId, part.callID)
                         Subagent.ensure(buf, sessionId, part)
                       }
-                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0, { always: Util.subagentPrompt(part) })
+                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0)
                     },
                         onComplete
                         (buf, part) {
@@ -2957,7 +2957,7 @@ function init
                       // The subagent's own transcript is its tab, so the main
                       // transcript only says the call started and finished.
                       Subagent.finish(buf, part, 'done')
-                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0, { always: Util.subagentPrompt(part) })
+                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0)
                     },
                         onErr
                         (buf, part) {
@@ -2967,7 +2967,7 @@ function init
                       if (sessionId)
                         buf.vars('code').subagentIds?.delete(sessionId)
                       Subagent.finish(buf, part, 'error')
-                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0, { always: Util.subagentPrompt(part) })
+                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0)
                     } } }
 
   events = { 'session.idle': { onArrive

@@ -261,10 +261,7 @@ function renderHistory
 
       childID = Util.subagentChildId(content)
       Subagent.ensure(buf, childID, content)
-      Ui.appendToolMsg(buf, content.id,
-                       Ui.subagentLabel(content),
-                       0,
-                       { always: Util.subagentPrompt(content) })
+      Ui.appendToolMsg(buf, content.id, Ui.subagentLabel(content), 0)
       renderChild(childID)
       Subagent.finish(buf, content, content.state?.status == 'error' ? 'error' : 'done')
       return

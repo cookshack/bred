@@ -192,7 +192,10 @@ function addOut
     return
   if (w.querySelector('.code-out[data-sessionid="' + sub.sessionID + '"]'))
     return
-  box = divCl('code-out', divCl('code-out-head', sub.head), { 'data-sessionid': sub.sessionID })
+  box = divCl('code-out',
+              [ divCl('code-out-head', sub.head),
+                sub.prompt ? divCl('code-out-prompt', sub.prompt) : 0 ],
+              { 'data-sessionid': sub.sessionID })
   {
     let underW
 
@@ -216,18 +219,40 @@ function syncOuts
 }
 
 export
-function updateOutHead
+function updateOutPrompt
+(box, sub) {
+  let el
+
+  if (box == null)
+    return
+  el = box.querySelector('.code-out-prompt')
+  if (sub.prompt) {
+    if (el == null) {
+      el = divCl('code-out-prompt')
+      box.querySelector('.code-out-head')?.after(el)
+    }
+    el.innerText = sub.prompt
+  }
+  else if (el)
+    el.remove()
+}
+
+export
+function updateOut
 (buf, sessionID) {
-  let subs
+  let sub, subs
 
   subs = buf.vars('code').subagents
-  if (subs?.get(sessionID))
+  sub = subs?.get(sessionID)
+  if (sub)
     Util.eachCodeW(buf, (view, w) => {
-                          let el
+                          let box, el
 
-                          el = w.querySelector('.code-out[data-sessionid="' + sessionID + '"] .code-out-head')
+                          box = w.querySelector('.code-out[data-sessionid="' + sessionID + '"]')
+                          el = box?.querySelector('.code-out-head')
                           if (el)
-                            el.innerText = subs.get(sessionID).head
+                            el.innerText = sub.head
+                          updateOutPrompt(box, sub)
                         })
 }
 

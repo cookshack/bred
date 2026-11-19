@@ -58,10 +58,14 @@ npx mocha test/man-roff.mjs test/man-parse.mjs test/man-render.mjs test/man-view
 ./bin/man-audit --parse --list         # with the reason for each refusal
 ./bin/man-diff --section 1 --max 120   # content diff against man(1)
 ./bin/man-diff --page /usr/share/man/man1/ls.1.gz
+./bin/man-audit --parse --render       # parse and draw every page
+npm run test-corpus                    # same, as a pass/fail test (slow)
 ```
 
 `man-audit` without `--parse` reports the static dialect inventory (an upper
-bound; it cannot evaluate `.if`). `man-diff` needs `man` installed; it ignores
+bound; it cannot evaluate `.if`). `--render` draws each parsed page too.
+`test/man-corpus.mjs` walks `manpath`, refuses only known page bugs, and fails
+on a renderer exception; it is opt-in because it takes about a minute. `man-diff` needs `man` installed; it ignores
 headers/footers (including BSD-style dated footers), overstrike, automatic
 hyphenation (U+2010), compound hyphens broken at a line end, box-drawing
 characters and bullet markers, then reports reference words missing from our
@@ -88,7 +92,8 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 144 (inventory, interpreter, renderer, viewer).
+Tests: 147 (inventory, interpreter, renderer, viewer); `test-corpus` also
+parses and renders every installed page.
 
 ## Known gaps, in order
 

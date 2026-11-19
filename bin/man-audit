@@ -4,33 +4,37 @@
 // supports, or against the interpreter. Pages either render or are refused,
 // so this reports refusals and the constructs responsible for them.
 //
-//   bin/man-audit [--root DIR] [--parse] [--list] [--json]
+//   bin/man-audit [--root DIR] [--parse] [--render] [--list] [--json]
 //
 // Without --parse it reports the static inventory (what the dialect covers,
 // upper bound). With --parse it runs the interpreter and reports what it
-// actually refuses.
+// actually refuses. --render also draws each parsed page, so a crash in the
+// renderer is visible.
 //
-// Exit status is 1 when any page would be refused.
+// Exit status is 1 when any page would be refused or fails to render.
 
 import Fs from 'node:fs'
 import Path from 'node:path'
 import Zlib from 'node:zlib'
 
+import { Window } from 'happy-dom'
+
 import * as ManParse from '../js/man-parse.mjs'
+import * as ManRender from '../js/man-render.mjs'
 import * as Roff from '../js/man-roff.mjs'
 
 let opts, stats
 
 function usage
 () {
-  console.log('usage: man-audit [--root DIR] [--parse] [--list] [--json]')
+  console.log('usage: man-audit [--root DIR] [--parse] [--render] [--list] [--json]')
 }
 
 function parseArgs
 (argv) {
   let out
 
-  out = { root: '/usr/share/man', list: 0, json: 0, parse: 0 }
+  out = { root: '/usr/share/man', list: 0, json: 0, parse: 0, render: 0 }
   for (let i = 0; i < argv.length; i++) {
     let arg
 
@@ -45,6 +49,10 @@ function parseArgs
       out.json = 1
     else if (arg == '--parse')
       out.parse = 1
+    else if (arg == '--render') {
+      out.parse = 1
+      out.render = 1
+    }
     else if ((arg == '--help') || (arg == '-h')) {
       usage()
       process.exit(0)
@@ -93,6 +101,37 @@ function walk
                     else if (/^man[1-9]/.test(Path.basename(dir)))
                       out.push(full)
                   })
+}
+
+function setupDom
+() {
+  let keys, window
+
+  window = new Window()
+  keys = 'document navigator Element HTMLElement HTMLDocument Node NodeFilter Text DocumentFragment Comment Event CustomEvent DOMRect getComputedStyle requestAnimationFrame cancelAnimationFrame ResizeObserver MutationObserver IntersectionObserver getSelection FileReader Blob URL'.split(' ')
+  keys.forEach(key => {
+                 try {
+                   globalThis[key] = window[key]
+                 }
+                 catch {
+                 }
+               })
+  globalThis.window = window
+  globalThis.document = window.document
+}
+
+function renderPage
+(file, doc) {
+  try {
+    let out
+
+    out = ManRender.render(doc)
+    if (out.el == undefined)
+      throw new Error('no element')
+  }
+  catch (err) {
+    stats.renderFails.push({ file, error: err.message })
+  }
 }
 
 function readPage
@@ -184,13 +223,19 @@ function reportParse
               '   (man ' + stats.man + ', mdoc ' + stats.mdoc + ', includes ' + stats.include + ')')
   console.log('  parsed   ' + (stats.pages - stats.refused) + '  (' + pct + '%)')
   console.log('  refused  ' + stats.refused)
+  if (opts.render) {
+    console.log('  rendered ' + (stats.pages - stats.refused - stats.renderFails.length) +
+                '  (render errors ' + stats.renderFails.length + ')')
+    stats.renderFails.forEach(fail => console.log('  ' + fail.file + ': ' + fail.error))
+  }
   printTable('refused by construct:', stats.fails)
   printRefused()
 }
 
 opts = parseArgs(process.argv.slice(2))
 stats = { pages: 0, man: 0, mdoc: 0, include: 0, refused: 0,
-          fails: {}, unresolved: {}, tolerated: {}, refusedPages: [] }
+          fails: {}, unresolved: {}, tolerated: {}, refusedPages: [],
+          renderFails: [] }
 
 {
   let files, include
@@ -198,6 +243,8 @@ stats = { pages: 0, man: 0, mdoc: 0, include: 0, refused: 0,
   files = []
   walk(opts.root, files, {})
   include = includeLoader(opts.root)
+  if (opts.render)
+    setupDom()
   files.forEach(file => {
                    let scan, result
 
@@ -221,8 +268,11 @@ stats = { pages: 0, man: 0, mdoc: 0, include: 0, refused: 0,
                      result.fails.forEach(item => {
                                             bump(stats.fails, item.what)
                                           })
-                     if (result.ok)
+                     if (result.ok) {
+                       if (opts.render)
+                         renderPage(file, result.doc)
                        return
+                     }
                      stats.refused++
                      if (opts.list)
                        stats.refusedPages.push({ file,
@@ -265,4 +315,4 @@ else if (opts.parse)
   reportParse()
 else
   reportScan()
-process.exit(stats.refused ? 1 : 0)
+process.exit((stats.refused || stats.renderFails.length) ? 1 : 0)

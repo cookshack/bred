@@ -16,6 +16,8 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
 ## Pipeline
 
 1. `man -w topic` gives the installed source path (respects `MANPATH`, locale).
+   It may print more than one candidate; each is tried in order until one
+   reads.
 2. Read it with `zcat` (fall back to `cat`).
 3. `.so`-only redirect pages are followed as topics (up to depth 3).
 4. Mid-page `.so` targets are resolved first: `gatherIncludes` turns each

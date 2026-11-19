@@ -19,7 +19,7 @@ function test
 // `man -w` and `zcat` from a fixed page map so the viewer is deterministic and
 // does not depend on the installed corpus.
 function installShell
-(panes, pages) {
+(panes, pages, manw) {
   function read
   (spec) {
     let base
@@ -36,14 +36,18 @@ function installShell
     out = ''
     code = 0
     errMsg = ''
-    if ((sc == 'man') && (sargs[0] == '-w'))
-      if (pages[sargs[1]])
-        out = '/fake/man1/' + sargs[1] + '.1.gz\n'
+    if ((sc == 'man') && (sargs[0] == '-w')) {
+      let list
+
+      list = (manw && manw[sargs[1]]) ||
+             (pages[sargs[1]] ? [ '/fake/man1/' + sargs[1] + '.1.gz' ] : [])
+      if (list.length)
+        out = list.join('\n') + '\n'
       else {
         code = 16
         errMsg = 'No manual entry'
       }
-
+    }
     else if ((sc == 'man') && (sargs[0] == '-k'))
       out = 'ls (1) - list directory contents\nlsblk (8) - list block devices\n'
     else if ((sc == 'zcat') || (sc == 'cat')) {
@@ -76,7 +80,7 @@ function installShell
 }
 
 function setup
-(pages) {
+(pages, manw) {
   let panes
 
   if (savedTron == undefined)
@@ -87,7 +91,7 @@ function setup
     Man.init()
     inited = 1
   }
-  installShell(panes, pages)
+  installShell(panes, pages, manw)
   return panes
 }
 
@@ -130,6 +134,36 @@ test('viewer', 'opening a topic renders a div buffer',
        equal(v.ed, undefined)
        equal(v.ele.querySelector('.man-h1').textContent, 'NAME')
        equal(textOf(b).includes('list directory contents'), true)
+     })
+
+test('viewer', 'a valid path before an unreadable path is used',
+     async () => {
+       let b
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- list directory contents\n' },
+             { ls: [ '/fake/man1/ls.1.gz', '/fake/man1/rust-ls.1.gz' ] })
+       b = await opened('ls')
+       equal(textOf(b).includes('list directory contents'), true)
+       equal(viewOf(b).ele.querySelector('.manpage-msg'), null)
+     })
+
+test('viewer', 'an unreadable path falls back to the next one',
+     async () => {
+       let b
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- list directory contents\n' },
+             { ls: [ '/fake/man1/rust-ls.1.gz', '/fake/man1/ls.1.gz' ] })
+       b = await opened('ls')
+       equal(textOf(b).includes('list directory contents'), true)
+     })
+
+test('viewer', 'all unreadable paths report a read error',
+     async () => {
+       let b
+
+       setup({}, { ls: [ '/fake/man1/one.1.gz', '/fake/man1/two.1.gz' ] })
+       b = await opened('ls')
+       equal(textOf(b).includes('Cannot read'), true)
      })
 
 test('viewer', 'opening the same topic again reuses the buffer',

@@ -216,15 +216,48 @@ function init
       cb(0, text, path)
   }
 
+  // man -w can print more than one candidate path (alternatives, or a
+  // colon-separated list); only one of them has to be readable.
+  function manPaths
+  (out) {
+    let paths
+
+    paths = []
+    out = out || ''
+    out.split(/[\n:]/).forEach(line => {
+                                 let path
+
+                                 path = line.trim()
+                                 if (path.startsWith('/') && (paths.includes(path) == 0))
+                                   paths.push(path)
+                               })
+    return paths
+  }
+
   function onManW
   (dir, topic, depth, out, code, cb) {
-    let path
+    let paths
 
-    path = (out || '').split('\n').filter(line => line.startsWith('/')).pop() || ''
-    if ((code == 0) && (path.length > 0))
-      readSource(dir, path, (err, text, full) => onSource(dir, topic, depth, full || path, err, text, cb))
-    else
+    function tryPath
+    (at, lastErr) {
+      if (at >= paths.length) {
+        cb(lastErr || ('No manual entry for ' + topic))
+        return
+      }
+      readSource(dir, paths[at], (err, text, full) => {
+                                   if (err)
+                                     tryPath(at + 1, err)
+                                   else
+                                     onSource(dir, topic, depth, full || paths[at], 0, text, cb)
+                                 })
+    }
+
+    paths = (code == 0) ? manPaths(out) : []
+    if (paths.length == 0) {
       cb('No manual entry for ' + topic)
+      return
+    }
+    tryPath(0)
   }
 
   function fetchPage

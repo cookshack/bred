@@ -1,13 +1,14 @@
-import { equal } from 'node:assert/strict'
+import { equal, throws } from 'node:assert/strict'
 import * as Buf from '../js/Buf.mjs'
 import * as Cmd from '../js/cmd.mjs'
 import * as Man from '../js/man.mjs'
+import * as Mess from '../js/mess.mjs'
 import * as Mode from '../js/mode.mjs'
 import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, savedTron
+let tests, inited, savedTron, calls, zcatFails, mankFails
 
 function test
 (group, name, cb) {
@@ -36,6 +37,7 @@ function installShell
     out = ''
     code = 0
     errMsg = ''
+    calls.push([ sc, ...sargs ])
     if ((sc == 'man') && (sargs[0] == '-w')) {
       let list
 
@@ -48,9 +50,20 @@ function installShell
         errMsg = 'No manual entry'
       }
     }
-    else if ((sc == 'man') && (sargs[0] == '-k'))
+    else if ((sc == 'man') && (sargs[0] == '-k')) {
       out = 'ls (1) - list directory contents\nlsblk (8) - list block devices\n'
-    else if ((sc == 'zcat') || (sc == 'cat')) {
+      if (mankFails) {
+        out = ''
+        code = 1
+        errMsg = 'man: whatis database missing'
+      }
+    }
+    else if (sc == 'zcat') {
+      out = zcatFails[sargs[0]] ? '' : read(sargs[0] || '')
+      if (out == '')
+        code = 1
+    }
+    else if (sc == 'cat') {
       out = read(sargs[0] || '')
       if (out == '')
         code = 1
@@ -91,6 +104,9 @@ function setup
     Man.init()
     inited = 1
   }
+  calls = []
+  zcatFails = {}
+  mankFails = 0
   installShell(panes, pages, manw)
   return panes
 }
@@ -339,6 +355,229 @@ test('viewer', 'topic completion asks man -k',
        await waitFor(() => list)
        equal(list.includes('ls(1)'), true)
        equal(list.includes('lsblk(8)'), true)
+     })
+
+test('viewer', 'the man suggestion command opens its topic',
+     async () => {
+       let el
+
+       setup({ 'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       el = globalThis.document.createElement('div')
+       el.dataset.topic = 'ls(1)'
+       Cmd.run('man suggestion', 0, 0, { e: { target: el } })
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return (b?.vars('Manpage').topic == 'ls(1)') &&
+                             (b.vars('Manpage').loading == 0)
+                     })
+       equal(Pane.current().buf.name, 'Man: ls(1)')
+     })
+
+test('viewer', 'refresh without a topic reports and does not crash',
+     async () => {
+       let b, other, msgs
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       b = await opened('ls')
+       other = Buf.add('scratch', 'div', globalThis.document.createElement('div'), '/tmp')
+       await new Promise(res => Pane.current().setBuf(other, {}, res))
+       Cmd.run('man refresh', other)
+       b.vars('Manpage').topic = ''
+       Cmd.run('man refresh', b)
+       msgs = Mess.messages().filter(m => m.type == 'say')
+       equal(msgs[msgs.length - 1].text, 'Not a man page')
+     })
+
+test('viewer', 'a toc entry scrolls the heading in its own page',
+     async () => {
+       let panes, b1, b2, a, id, target, trap, scrolled
+
+       function scroll1
+       () {
+         scrolled = 1
+       }
+
+       function scroll2
+       () {
+         scrolled = 2
+       }
+
+       panes = setup({ one: '.TH ONE 1\n.SH NAME\none\n.SH DESCRIPTION\nfirst\n',
+                       two: '.TH TWO 1\n.SH NAME\ntwo\n.SH DESCRIPTION\nsecond\n' })
+       panes.pA.focus()
+       b1 = await opened('one')
+       panes.pB.focus()
+       b2 = await opened('two')
+       equal(b1 == b2, false)
+       a = b2.views[0].ele.querySelector('.man-toc a[href^="#"]')
+       id = a.getAttribute('href').slice(1)
+       scrolled = 0
+       target = b2.views[0].ele.querySelector('[id="' + id + '"]')
+       target.scrollIntoView = scroll1
+       // both pages number their headings from one, so a lookup by id across
+       // the whole document finds the first buffer's heading instead
+       trap = b1.views[0].ele.querySelector('[id="' + id + '"]')
+       trap.scrollIntoView = scroll2
+       a.dispatchEvent(new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 }))
+       equal(scrolled, 1)
+     })
+
+test('viewer', 'clicking page text is a no-op',
+     async () => {
+       let b, ev
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       b = await opened('ls')
+       ev = new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 })
+       b.views[0].ele.querySelector('p').dispatchEvent(ev)
+       equal(ev.defaultPrevented, false)
+     })
+
+test('viewer', 'an external link is left to the browser',
+     async () => {
+       let b, a, ev
+
+       setup({ urls: '.TH URLS 1\n.SH LINKS\n.UR https://example.com\n' +
+                        'example\n.UE\n' })
+       b = await opened('urls')
+       a = b.views[0].ele.querySelector('a')
+       equal(a.dataset.topic, undefined)
+       ev = new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 })
+       a.dispatchEvent(ev)
+       equal(ev.defaultPrevented, false)
+     })
+
+test('viewer', 'a blank topic is rejected',
+     () => {
+       setup({})
+       throws(() => Man.open('   '), /Topic missing/)
+       throws(() => Man.open(''), /Topic missing/)
+     })
+
+test('viewer', 'zcat failure falls back to cat',
+     async () => {
+       let b
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- list directory contents\n' })
+       zcatFails['/fake/man1/ls.1.gz'] = 1
+       b = await opened('ls')
+       equal(textOf(b).includes('list directory contents'), true)
+       equal(calls.some(c => c[0] == 'cat' && c[1] == '/fake/man1/ls.1.gz'), true)
+     })
+
+test('viewer', 'the same topic in two panes shares one buffer',
+     async () => {
+       let panes, b, count
+
+       panes = setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       panes.pA.focus()
+       b = await opened('ls')
+       count = Buf.shared().buffers.length
+       panes.pB.focus()
+       Man.open('ls')
+       await waitFor(() => Pane.current().buf == b)
+       equal(Buf.shared().buffers.length, count)
+       equal(b.views.length, 2)
+     })
+
+test('viewer', 'a page with no headings renders without a toc',
+     async () => {
+       let b
+
+       setup({ bare: '.TH BARE 1\n' })
+       b = await opened('bare')
+       equal(b.views[0].ele.querySelector('.manpage-err'), null)
+       equal(b.views[0].ele.querySelector('.man-toc'), null)
+       equal(b.views[0].ele.querySelector('.man-doc') == null, false)
+     })
+
+test('viewer', 'a self-including page is refused, not looped',
+     async () => {
+       let b, text
+
+       setup({ self: '.TH SELF 1\n.SH NAME\nself text\n.so man1/self.1\n' })
+       b = await opened('self')
+       text = textOf(b)
+       equal(text.includes('include cycle man1/self.1'), true)
+       equal(text.includes('refused rather than shown badly'), true)
+     })
+
+test('viewer', 'mutually including pages are refused, not looped',
+     async () => {
+       let b, text
+
+       setup({ aa: '.TH AA 1\n.SH NAME\naa text\n.so man1/bb.1\n',
+               bb: '.TH BB 1\n.SH NAME\nbb text\n.so man1/aa.1\n' })
+       b = await opened('aa')
+       text = textOf(b)
+       equal(text.includes('include cycle'), true)
+       equal(text.includes('refused rather than shown badly'), true)
+     })
+
+test('viewer', 'completion escapes regex metacharacters',
+     async () => {
+       let list
+
+       function got
+       (topics) {
+         list = topics
+       }
+
+       setup({})
+       list = null
+       Man.topics('a.b', got)
+       await waitFor(() => list)
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') && (c[2] == '^a\\.b')), true)
+     })
+
+test('viewer', 'a failing man -k yields no topics',
+     async () => {
+       let list, done
+
+       function got
+       (topics) {
+         list = topics
+         done = 1
+       }
+
+       setup({})
+       mankFails = 1
+       list = null
+       done = 0
+       Man.topics('zz', got)
+       await waitFor(() => done)
+       equal(list.length, 0)
+     })
+
+test('viewer', 'the man command suggests and opens the typed topic',
+     async () => {
+       let v
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'ls(1)')
+       // a repeated prefix is served from the cache, without another man -k
+       v.ed.dispatch({ changes: { from: 0, to: 2, insert: '' } })
+       v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       Cmd.run('ok', Pane.current().buf)
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return (b?.name == 'Man: ls') && (b.vars('Manpage').loading == 0)
+                     })
      })
 
 test('viewer', 'the man command and mode are registered',

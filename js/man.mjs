@@ -118,18 +118,20 @@ function init
   }
 
   function follow
-  (href) {
+  (href, view) {
     if (href.startsWith('#')) {
       let el
 
-      el = globalThis.document.getElementById(href.slice(1))
+      // heading ids restart at one in every page, so resolve inside this
+      // view's content instead of the whole document
+      el = contentEl(view).querySelector('[id="' + href.slice(1) + '"]')
       if (el)
         el.scrollIntoView({ block: 'start' })
     }
   }
 
   function onClick
-  (we) {
+  (we, view) {
     let a
 
     if (we.target.closest == undefined)
@@ -144,7 +146,7 @@ function init
     }
     if ((a.getAttribute('href') || '').startsWith('#')) {
       we.preventDefault()
-      follow(a.getAttribute('href'))
+      follow(a.getAttribute('href'), view)
     }
   }
 
@@ -153,7 +155,7 @@ function init
     if (view.manClick)
       return
     view.manClick = 1
-    contentEl(view).addEventListener('click', onClick)
+    contentEl(view).addEventListener('click', we => onClick(we, view))
   }
 
   function viewInit

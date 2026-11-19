@@ -2725,9 +2725,18 @@ function handleLine
     let target, included
 
     target = expandText(c, args[0] || '', c.lineNo)
+    if (c.frames.some(f => f.include == target)) {
+      fail(c, c.lineNo, 'include cycle ' + target)
+      break
+    }
     included = c.spec.include ? c.spec.include(target) : 0
     if (typeof included == 'string')
-      c.frames.push({ lines: included.split('\n'), at: 0, line: 1, args: [], name: target })
+      c.frames.push({ lines: included.split('\n'),
+                      at: 0,
+                      line: 1,
+                      args: [],
+                      name: target,
+                      include: target })
     else
       fail(c, c.lineNo, 'include ' + target)
     break

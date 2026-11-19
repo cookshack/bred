@@ -22,7 +22,9 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
 3. `.so`-only redirect pages are followed as topics (up to depth 3).
 4. Mid-page `.so` targets are resolved first: `gatherIncludes` turns each
    target into a topic, reads it with `man -w`, and recurses (up to depth 5).
-   The collected text is passed to the parser as its include loader.
+   The collected text is passed to the parser as its include loader. A `.so`
+   that revisits a target already open is refused as an `include cycle`, so a
+   page that includes itself (directly or through another page) cannot loop.
 5. `ManParse.parse(source)` → block model.
 6. `ManRender.render(doc)` → DOM; the view's content element is replaced.
 
@@ -82,7 +84,9 @@ headers/footers (including BSD-style dated footers), overstrike, automatic
 hyphenation (U+2010), compound hyphens broken at a line end, box-drawing
 characters and bullet markers, then reports reference words missing from our
 text. `test/man-viewer.mjs` drives `Man.open` with fake `man -w`/`zcat`
-responses, so the viewer is tested without the installed corpus.
+responses, so the viewer is tested without the installed corpus. It covers the
+path and reader fallbacks, includes (including cycles), TOC and reference
+clicks, the prompt with its completion, and buffer reuse across panes.
 
 ## Current state
 
@@ -104,7 +108,7 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 161 (inventory, interpreter, renderer, viewer); `test-corpus` also
+Tests: 178 (inventory, interpreter, renderer, viewer); `test-corpus` also
 parses and renders every page in the corpus.
 
 ## Known gaps, in order

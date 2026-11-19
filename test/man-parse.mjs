@@ -352,6 +352,37 @@ test('include', 'so without a loader fails',
        equal(r.fails[0].what, 'include other.1')
      })
 
+test('include', 'a self-including page is refused instead of looping',
+     () => {
+       let r, src
+
+       src = '.TH T 1\n.SH NAME\ntext\n.so self.1\n'
+       r = parsed(src, { include: path => (path == 'self.1') ? src : 0 })
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'include cycle self.1')
+     })
+
+test('include', 'mutually including pages are refused instead of looping',
+     () => {
+       let a, b, r
+
+       a = '.TH A 1\n.so b.1\n'
+       b = '.TH B 1\n.so a.1\n'
+       r = parsed(a, { include: path => (path == 'a.1') ? a : ((path == 'b.1') ? b : 0) })
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'include cycle b.1')
+     })
+
+test('include', 'including the same page twice in sequence is allowed',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.so frag.1\n.so frag.1\n',
+                  { include: path => (path == 'frag.1') ? '.B twice\n' : 0 })
+       equal(r.ok, 1)
+       equal(ManParse.toText(r.doc.blocks).includes('twice'), true)
+     })
+
 test('refusal', 'a recursive string is refused instead of crashing',
      () => {
        let r

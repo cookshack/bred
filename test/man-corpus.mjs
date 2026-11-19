@@ -69,7 +69,8 @@ function walk
                     full = Path.join(dir, entry.name)
                     if (entry.isDirectory())
                       walk(full, out)
-                    else if (/^man[0-9]/.test(Path.basename(dir)) && isPage(full))
+                    else if (/^man[0-9]/.test(Path.basename(dir)) && isPage(full) &&
+                             Fs.existsSync(full))
                       out.push(full)
                   })
 }

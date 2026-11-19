@@ -241,13 +241,44 @@ function skipArg
     return i + 1
   }
   if (open == '[') {
+    let depth
+
+    depth = 1
     i++
     while (i < text.length) {
-      if (text[i] == ']')
-        break
+      if (text[i] == '\\') {
+        let j
+
+        // An escape's own bracket argument nests: `\F[\n[.fam]]` closes the
+        // register's `]` first, then the font's. Treating `\n` as a plain
+        // pair leaves that inner `]` behind as text.
+        j = i + 1
+        if (text[j] == '[') {
+          depth++
+          i = j + 1
+          continue
+        }
+        i = j + 1
+        if (text[i] == '[') {
+          depth++
+          i++
+          continue
+        }
+        if (text[i] == '(') {
+          i += 3
+          continue
+        }
+        i++
+        continue
+      }
+      if (text[i] == ']') {
+        depth--
+        if (depth == 0)
+          return i + 1
+      }
       i++
     }
-    return i + 1
+    return i
   }
   if (open == '(')
     return i + 3

@@ -305,6 +305,16 @@ test('escapes', 'special characters and dashes',
              'a — b • c - d')
      })
 
+test('escapes', 'a nested bracket argument does not leak a bracket',
+     () => {
+       // libsasl(5) defines `T>` as a font-family change built on a register.
+       equal(asText('.TH T 1\n' +
+                    '.ds T> \\F[\\n[.fam]]\n' +
+                    'x \\*(T>ls\\*(T> y\n'),
+             'x ls y\n')
+       equal(asText('.TH T 1\nx \\F[\\n[.fam]] y\n'), 'x  y\n')
+     })
+
 test('escapes', 'final sigma has its own name',
      () => {
        equal(asText('.TH T 1\na \\(ts b\n'), 'a ς b\n')

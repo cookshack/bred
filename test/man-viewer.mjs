@@ -425,6 +425,26 @@ test('viewer', 'a refused page lists the constructs',
        equal(textOf(b).includes('refused rather than shown badly'), true)
      })
 
+test('viewer', 'a page with many failures caps the visible list',
+     async () => {
+       let b, st, items, src
+
+       src = '.TH BAD 1\n'
+       for (let i = 0; i < 500; i++)
+         src = src + '.frobnicate' + i + '\n'
+       setup({ many: src })
+       b = await opened('many')
+       st = b.vars('Manpage')
+       items = viewOf(b).ele.querySelectorAll('.manpage-err-item')
+       equal(st.ok, 0)
+       equal(st.fails.length, 500)
+       equal(items.length, 40)
+       equal(items[39].textContent, 'macro frobnicate39 (line 41)')
+       equal(viewOf(b).ele.querySelector('.manpage-err-more').textContent,
+             '... 460 more')
+       equal(textOf(b).includes('refused rather than shown badly'), true)
+     })
+
 test('viewer', 'a missing topic reports no manual entry',
      async () => {
        let b
@@ -487,6 +507,41 @@ test('viewer', 'a reference link opens the target topic',
                              (cur.vars('Manpage').loading == 0)
                      })
        equal(Pane.current().buf.name, 'Man: ls(1)')
+     })
+
+test('viewer', 'a link to a refused page shows an error and retries later',
+     async () => {
+       let b, a, pages, cur, count
+
+       function click
+       () {
+         a.dispatchEvent(new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 }))
+       }
+
+       pages = { links: '.TH LINKS 1\n.SH SEE ALSO\n.BR foo (1) .\n' }
+       setup(pages)
+       b = await opened('links')
+       a = b.views[0].ele.querySelector('a[data-topic]')
+       equal(a.dataset.topic, 'foo(1)')
+       click()
+       await waitFor(() => {
+                       let b2
+
+                       b2 = Pane.current().buf
+                       return (b2.name == 'Man: foo(1)') &&
+                             (b2.vars('Manpage').loading == 0)
+                     })
+       cur = Pane.current().buf
+       equal(cur.name, 'Man: foo(1)')
+       equal(cur.vars('Manpage').error, 'No manual entry for foo(1)')
+       equal(textOf(cur), 'No manual entry for foo(1)')
+       count = Buf.shared().buffers.length
+       pages['foo(1)'] = '.TH FOO 1\n.SH NAME\nfoo text\n'
+       click()
+       await waitFor(() => textOf(cur).includes('foo text'))
+       equal(Pane.current().buf, cur)
+       equal(Buf.shared().buffers.length, count)
+       equal(cur.vars('Manpage').error, '')
      })
 
 test('viewer', 'topic completion asks man -k',
@@ -1082,6 +1137,94 @@ test('viewer', 'a suggestion click opens its topic from the prompt',
        equal(Pane.current().buf.views[0].ele.querySelector('.man-h1').textContent, 'NAME')
      })
 
+test('viewer', 'C-n and C-p move through man suggestions',
+     async () => {
+       let v, sugs, under
+
+       setup({ 'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n',
+               'lsblk(8)': '.TH LSB 8\n.SH NAME\nlsblk \\- x\n' })
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       sugs = v.ele.querySelectorAll('.bred-prompt-sug')
+       under = v.ele.querySelector('.bred-prompt-under')
+       equal(sugs.length, 2)
+       Cmd.run('next suggestion', Pane.current().buf)
+       equal(sugs[0].classList.contains('bred-prompt-candidate'), true)
+       equal(under.querySelector('.bred-prompt-sug0').dataset.href, 'ls(1)')
+       Cmd.run('next suggestion', Pane.current().buf)
+       equal(sugs[1].classList.contains('bred-prompt-candidate'), true)
+       equal(under.querySelector('.bred-prompt-sug0').dataset.href, 'lsblk(8)')
+       Cmd.run('previous suggestion', Pane.current().buf)
+       equal(sugs[0].classList.contains('bred-prompt-candidate'), true)
+       equal(sugs[1].classList.contains('bred-prompt-candidate'), false)
+       Cmd.run('next suggestion', Pane.current().buf)
+       Cmd.run('ok', Pane.current().buf)
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return (b?.name == 'Man: lsblk(8)') &&
+                             (b.vars('Manpage').loading == 0)
+                     })
+       equal(Pane.current().buf.name, 'Man: lsblk(8)')
+     })
+
+test('viewer', 'suggestion navigation with no matches says That is all',
+     async () => {
+       let v, msgs
+
+       setup({})
+       mankOut = ''
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: 'qzx' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug0'))
+       equal(v.ele.querySelector('.bred-prompt-sug'), null)
+       Cmd.run('next suggestion', Pane.current().buf)
+       msgs = Mess.messages().filter(m => m.type == 'say')
+       equal(msgs[msgs.length - 1].text, "That's all")
+       Cmd.run('previous suggestion', Pane.current().buf)
+       msgs = Mess.messages().filter(m => m.type == 'say')
+       equal(msgs[msgs.length - 1].text, "That's all")
+     })
+
+test('viewer', 'closing a man prompt with suggestions opens no page',
+     async () => {
+       let v, buf, count
+
+       setup({})
+       count = Buf.shared().buffers.length
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       buf = Pane.current().buf
+       Cmd.run('close demand', buf)
+       await wait(450)
+       equal(Buf.shared().buffers.some(b => b == buf), false)
+       equal(Buf.shared().buffers.length, count)
+     })
+
 test('viewer', 'an empty page renders instead of falling back to cat',
      async () => {
        let b
@@ -1289,6 +1432,32 @@ test('viewer', 'completion of a section prefix queries the name and keeps the se
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') && (c[2] == '^pr')), true)
        equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') && (c[2] == '^3 pr')), false)
+       topics = Array.from(v.ele.querySelectorAll('.bred-prompt-sug'))
+         .map(el => el.dataset.topic)
+       equal(topics.join(','), 'printf(3)')
+     })
+
+test('viewer', 'completion of printf (3) queries the name, not the section',
+     async () => {
+       let v, topics
+
+       setup({ 'printf(3)': '.TH PRINTF 3\n.SH NAME\nprintf \\- format\n' })
+       mankOut = 'printf (3) - format output\n' +
+                 'printf (1) - format (user command)\n'
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: 'printf (3)' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') &&
+                            (c[2] == '^printf')), true)
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') &&
+                            (c[2] == '^printf \\(3\\)')), false)
        topics = Array.from(v.ele.querySelectorAll('.bred-prompt-sug'))
          .map(el => el.dataset.topic)
        equal(topics.join(','), 'printf(3)')

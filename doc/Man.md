@@ -7,7 +7,9 @@ Status: 2026-11-19. `C-h u` / `M-x man` opens a manual page in a div buffer.
 A page either renders faithfully or is refused. There is no fallback to
 `man -Tutf8`/`-Thtml` output and no partial page: `parse()` returns `ok: 0` and
 a list of `{ what, line }` failures, and the viewer shows those instead. The
-point is that a broken render is visible and gets fixed, not hidden.
+point is that a broken render is visible and gets fixed, not hidden. At most 40
+failures are listed, followed by `... N more`; the state still holds every
+failure, so nothing is lost when the list is long.
 
 Because of that, two things must stay in sync when the corpus needs more:
 the dialect inventory (`js/man-roff.mjs`) and the interpreter
@@ -70,10 +72,12 @@ with `man -w`. A failed refresh shows its error and the buffer stays usable;
 reopening a refused or failed page retries it.
 
 `M-x man` completes topics with `man -k '^prefix'` (cached per prefix); a
-section prefix is stripped for the query and results are filtered to that
-section, so `3 pr` suggests `printf(3)` rather than asking for `^3 pr`. A
-suggestion closes the prompt and opens the page; a prompt submission is kept
-in history and replaying one reopens or refreshes its page.
+section prefix or suffix is stripped for the query and results are filtered to
+that section, so `3 pr` and `printf (3)` suggest `printf(3)` rather than asking
+for `^3 pr` or `^printf (3)`. A suggestion closes the prompt and opens the
+page. C-n and C-p move through the suggestions (saying `That's all` when there
+are none) and Enter opens the highlighted one; a prompt submission is kept in
+history and replaying one reopens or refreshes its page.
 
 ## Modules
 
@@ -133,14 +137,18 @@ path and reader fallbacks, redirects (chains, cycles, sections, missing
 targets), includes (including cycles), TOC and reference clicks, external and
 unknown-scheme links, section/topic normalisation and path input (including
 spaces, colons and home expansion), the prompt with its completion (regex
-escaping, caching, a section prefix such as `3 pr`, suggestion clicks, a
-throwing `tokenAt`, a close before the attract timer), prompt history replay,
+escaping, caching, a section prefix such as `3 pr`, a parenthesised suffix such
+as `printf (3)`, suggestion clicks, C-n/C-p navigation and Enter on the
+highlighted item, `That's all` with no matches, a throwing `tokenAt`, a close
+with suggestions before the attract timer), prompt history replay,
 error paths (unreadable, empty and blank pages, non-gzip fallback, a missing
 `man` and a spawn failure), man -w diagnostics mixed with paths, refresh
 (failing, repeated while loading, and path pages re-read from their path),
-absolute `.so` includes, and buffer reuse and shared refresh across panes. The
-renderer tests also draw compact and large pages, empty tables and lists,
-combined table options, colspans and links with no text.
+absolute `.so` includes, the 40-item failure cap, following a link to a page
+that is refused and retrying it after another click, and buffer reuse and
+shared refresh across panes. The renderer tests also draw compact and large
+pages, empty tables and lists, combined table options, colspans and links with
+no text.
 
 ## Current state
 
@@ -162,7 +170,7 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 237 (inventory, interpreter, renderer, viewer); `test-corpus` also
+Tests: 243 (inventory, interpreter, renderer, viewer); `test-corpus` also
 parses and renders every page in the corpus. Coverage of the man modules is
 99.7% of `man.mjs` lines (90% of branches) and 100% of `man-render.mjs` lines
 and branches.

@@ -85,14 +85,27 @@ function init
   (st) {
     let el
 
+    function failItem
+    (item) {
+      let what
+
+      what = item.what + ' (line ' + item.line + ')'
+      append(el, divCl('manpage-err-item', what))
+    }
+
     el = divCl('manpage-msg manpage-err')
     append(el, divCl('manpage-err-title', 'Cannot render man page: ' + st.topic))
     if (st.path)
       append(el, divCl('manpage-err-path', st.path))
-    st.fails.forEach(item => {
-                       append(el, divCl('manpage-err-item',
-                                        item.what + ' (line ' + item.line + ')'))
-                     })
+    // A pathological page can have hundreds of failures: show enough to
+    // diagnose it, but keep the refusal list from becoming the whole buffer.
+    st.fails.slice(0, 40).forEach(failItem)
+    if (st.fails.length > 40) {
+      let more
+
+      more = st.fails.length - 40
+      append(el, divCl('manpage-err-more', '... ' + more + ' more'))
+    }
     append(el, divCl('manpage-err-note',
                      'The page is refused rather than shown badly.'))
     return el
@@ -693,6 +706,11 @@ function init
     m = /^([1-9][a-z]*)\s+(\S.*)$/.exec(text)
     if (m)
       return { name: m[2].trim(), section: m[1] }
+    // "printf (3)" and "printf(3)" name printf, not a regex containing a
+    // section; man -k would never match the typed text as a name prefix.
+    m = /^(\S+)\s*\(([1-9][a-z]*)\)$/.exec(text)
+    if (m)
+      return { name: m[1], section: m[2] }
     return { name: text, section: '' }
   }
 

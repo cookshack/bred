@@ -459,6 +459,18 @@ function initPrompt2
 () {
   let mo
 
+  // A suggestion is more than a file path: man topics carry data-topic and
+  // other suggesters may carry only text. Fall back rather than assuming a
+  // path, which used to throw on a man suggestion.
+  function suggValue
+  (sug) {
+    if (sug.dataset.path)
+      return sug.dataset.path
+    if (sug.dataset.topic)
+      return sug.dataset.topic
+    return sug.textContent || ''
+  }
+
   function prevSugg
   (nth) {
     let p, under
@@ -489,7 +501,7 @@ function initPrompt2
             index = 0
           sug = sugs[index]
           el = sug0.firstElementChild.nextElementSibling
-          href = sug.dataset.path
+          href = suggValue(sug)
           sug0.dataset.index = index
           sug0.dataset.href = href
 
@@ -508,6 +520,8 @@ function initPrompt2
             elImg.src = Icon.path('arrow-right')
           }
         }
+        else
+          Mess.say("That's all")
       }
       else
         Mess.say("That's all")

@@ -2132,8 +2132,11 @@ function mdocStandard
   return names[token] || token.replace(/^-/, '')
 }
 
+// `ownLine` is set when the macro is the request itself: mdoc(7) prints the
+// delimiter macros with Unicode brackets there and ASCII ones when they are
+// an argument of another macro (`.An Name Aq address`).
 function mdocInlineMacro
-(c, name, args) {
+(c, name, args, ownLine) {
   switch (name) {
   case 'Nm': {
     let shown, split
@@ -2376,7 +2379,7 @@ function mdocInlineMacro
     mdocEnclose(c, args, '{', '}')
     return 1
   case 'Aq':
-    mdocEnclose(c, args, '⟨', '⟩')
+    mdocEnclose(c, args, ownLine ? '⟨' : '<', ownLine ? '⟩' : '>')
     return 1
   case 'Oo':
     c.mdoc.opens.push(']')
@@ -2409,8 +2412,8 @@ function mdocInlineMacro
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || '”' } ])
     return 1
   case 'Ao':
-    c.mdoc.opens.push('⟩')
-    mdocAppend(c, [ { text: '⟨' } ])
+    c.mdoc.opens.push(ownLine ? '⟩' : '>')
+    mdocAppend(c, [ { text: ownLine ? '⟨' : '<' } ])
     c.mdoc.noSpace = 1
     if (args.length)
       mdocInline(c, args)
@@ -2581,8 +2584,12 @@ function mdocLine
     c.font = c.mdoc.bfPrev || 'roman'
     return 1
   default:
+    if (name == 'Ao') {
+      mdocInlineMacro(c, name, args, 1)
+      return 1
+    }
     if (mdocEncloseNames[name]) {
-      mdocInlineMacro(c, name, args)
+      mdocInlineMacro(c, name, args, 1)
       return 1
     }
     if (mdocNoArg[name]) {

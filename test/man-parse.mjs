@@ -755,6 +755,25 @@ test('mdoc', 'Sm off does not join separate input lines',
        equal(flat(r.doc.blocks[0].spans), 'from a string (b')
      })
 
+test('mdoc', 'Sm off joins the macro calls that follow it',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sm off\n' +
+                  '.Ar a\n.Ar b\n.Sm on\n.Ar c\n')
+       equal(flat(r.doc.blocks[0].spans), 'ab c')
+     })
+
+test('mdoc', 'Sm off keeps the synopsis pieces joined',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Xo\n.Sm off\n' +
+                  '.Op Ar user No @\n.Ar host\n.Op : Ns Ar port\n' +
+                  '.Sm on\nor an ssh URI\n.Xc .\n')
+       equal(flat(r.doc.blocks[0].spans).startsWith('[user@]host[:port]'), true)
+     })
+
 test('mdoc', 'Fn formats a function call',
      () => {
        let r

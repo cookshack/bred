@@ -1602,7 +1602,7 @@ function mdocState
            item: 0,
            pre: 0,
            preLine: 0,
-           fresh: 0,
+           spaceNext: 0,
            tagMode: 0,
            section: '',
            name: '',
@@ -1621,7 +1621,7 @@ function mdocAppend
   if (c.mdoc.pre) {
     if (c.mdoc.pre.started)
       if (c.mdoc.preLine) {
-        if ((c.mdoc.noSpace == 0) && (c.mdoc.fresh || c.mdoc.sm))
+        if ((c.mdoc.noSpace == 0) && (c.mdoc.spaceNext || c.mdoc.sm))
           pushSpan(c.mdoc.pre.spans, { text: ' ' })
       }
       else
@@ -1629,7 +1629,7 @@ function mdocAppend
     pushSpans(c.mdoc.pre.spans, spans)
     c.mdoc.pre.started = 1
     c.mdoc.noSpace = 0
-    c.mdoc.fresh = 0
+    c.mdoc.spaceNext = 0
     return
   }
   if (c.lineTarget) {
@@ -1646,12 +1646,14 @@ function mdocAppend
 
 function mdocPush
 (c, target, spans) {
+  // `Sm off` drops the space between macro calls, but a line of ordinary
+  // text still separates what follows it (mdoc(7) `Sm`).
   if ((target.length > 0) && (c.mdoc.noSpace == 0) &&
-      (c.mdoc.fresh || c.mdoc.sm))
+      (c.mdoc.spaceNext || c.mdoc.sm))
     pushSpan(target, { text: ' ' })
   pushSpans(target, spans)
   c.mdoc.noSpace = 0
-  c.mdoc.fresh = 0
+  c.mdoc.spaceNext = 0
 }
 
 function mdocAttach
@@ -1661,25 +1663,25 @@ function mdocAttach
   if (c.mdoc.pre) {
     pushSpans(c.mdoc.pre.spans, spans)
     c.mdoc.noSpace = 0
-    c.mdoc.fresh = 0
+    c.mdoc.spaceNext = 0
     return
   }
   if (c.lineTarget) {
     pushSpans(c.lineTarget, spans)
     c.mdoc.noSpace = 0
-    c.mdoc.fresh = 0
+    c.mdoc.spaceNext = 0
     return
   }
   if (c.mdoc.tagMode && c.mdoc.item) {
     pushSpans(c.mdoc.item.tag, spans)
     c.mdoc.noSpace = 0
-    c.mdoc.fresh = 0
+    c.mdoc.spaceNext = 0
     return
   }
   para = paraOf(c).spans
   pushSpans(para, spans)
   c.mdoc.noSpace = 0
-  c.mdoc.fresh = 0
+  c.mdoc.spaceNext = 0
 }
 
 function mdocExpand
@@ -3063,8 +3065,6 @@ function parse
       continue
     }
     if (control && control.name) {
-      if (c.mode == 'mdoc')
-        c.mdoc.fresh = 1
       handleLine(c, control, style)
       c.lineTarget = 0
       continue
@@ -3080,8 +3080,11 @@ function parse
       expanded = expand(c, input.text, style, input.line)
       c.atLineStart = 0
       if (c.mode == 'mdoc') {
-        c.mdoc.fresh = 1
+        c.mdoc.spaceNext = 1
         mdocAppend(c, expanded.spans)
+        // A text line separates the macro call that follows it even when
+        // `Sm off` has suppressed spaces between macro calls.
+        c.mdoc.spaceNext = 1
       }
       else
         addTextLine(c, expanded.spans, expanded.join)

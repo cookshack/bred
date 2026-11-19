@@ -110,19 +110,23 @@ run('corpus',
                                 /^character \\\(ts\)$/ ]
                       setupDom()
                       roots = manRoots()
+                      console.log('corpus: roots ' + roots.join(':'))
                       pages = []
                       roots.forEach(root => walk(root, pages))
                       if (pages.length == 0)
                         this.skip()
+                      console.log('corpus: ' + pages.length + ' pages')
 
                       include = includeLoader(roots)
                       renderErrors = []
                       unknown = []
                       counts = { pages: pages.length, parsed: 0, refused: 0 }
 
-                      pages.forEach(file => {
+                      pages.forEach((file, index) => {
                                       let result
 
+                                      process.stdout.write('corpus: ' + (index + 1) + '/' +
+                                                           pages.length + ' ' + file + '\n')
                                       try {
                                         result = ManParse.parse(readPage(file), { include })
                                       }

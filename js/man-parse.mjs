@@ -1261,7 +1261,7 @@ function startHeading
 
 function linkEnd
 (c, trailing) {
-  let link, spans, text, tail
+  let link, shown, spans, text, tail
 
   link = c.link
   if (link == undefined)
@@ -1269,18 +1269,22 @@ function linkEnd
   c.link = 0
   spans = link.spans
   text = textOf(spans)
+  shown = link.shown || link.href
   if (text == '')
     // A link with no text would be invisible. A man reference shows its topic
     // (the renderer does the same for a bare span), everything else its URL.
     if (link.href.startsWith('man:'))
       spans = [ { text: link.href.slice(4), style: c.font, href: link.href } ]
     else
-      spans = [ { text: '<' + link.href + '>', style: c.font, href: link.href } ]
-  else
+      spans = [ { text: '⟨' + shown + '⟩', style: c.font, href: link.href } ]
+  else {
     spans.forEach(span => {
                     if (span.br == undefined)
                       span.href = link.href
                   })
+    // an-ext prints the target after the link text as well, in angle brackets.
+    spans.push({ text: ' ⟨' + shown + '⟩', style: c.font, href: link.href })
+  }
   tail = trailing ? expand(c, trailing, c.font, c.lineNo) : { spans: [] }
   appendInline(c, spans.concat(tail.spans))
 }
@@ -2714,15 +2718,20 @@ function handleLine
     appendInline(c, spans)
     break
   }
-  case 'UR':
-    c.link = { href: expandText(c, args[0] || '', c.lineNo), spans: [] }
+  case 'UR': {
+    let url
+
+    url = expandText(c, args[0] || '', c.lineNo)
+    c.link = { href: url, shown: url, spans: [] }
     break
+  }
   case 'MT': {
     let href
 
     href = expandText(c, args[0] || '', c.lineNo)
     // .MT takes a bare address; .UR takes a complete URL.
     c.link = { href: /^[a-z][a-z0-9+.-]*:/i.test(href) ? href : 'mailto:' + href,
+               shown: href,
                spans: [] }
     break
   }
@@ -2778,14 +2787,20 @@ function handleLine
     break
   case 'URL':
   case 'MTO': {
-    let href, text, trailing, spans
+    let href, target, text, trailing, spans
 
-    href = expandText(c, args[0] || '', c.lineNo)
-    text = expandText(c, args[1] || '', c.lineNo) || href
+    // Both www.tmac and the util-linux pages render the label and then the
+    // target in angle brackets, so the address stays visible in the text.
+    target = expandText(c, args[0] || '', c.lineNo)
+    href = ((name == 'MTO') ? 'mailto:' : '') + target
+    text = expandText(c, args[1] || '', c.lineNo)
     trailing = args.slice(2).join(' ')
-    spans = [ { text,
-                style: c.font,
-                href: ((name == 'MTO') ? 'mailto:' : '') + href } ]
+    spans = []
+    if (text.length)
+      pushSpan(spans, { text, style: c.font, href })
+    pushSpan(spans, { text: (text.length ? ' <' + target + '>' : '<' + target + '>'),
+                      style: c.font,
+                      href })
     if (trailing.length)
       pushSpan(spans, { text: trailing, style: 'roman' })
     appendInline(c, spans)

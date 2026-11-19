@@ -195,7 +195,7 @@ test('links', 'UR and UE make a link with trailing text',
        r = parsed('.TH T 1\n.UR https://example.com\nthe site\n.UE .\n')
        link = r.doc.blocks[0].spans.find(s => s.href)
        equal(link.href, 'https://example.com')
-       equal(link.text, 'the site')
+       equal(link.text, 'the site ⟨https://example.com⟩')
        equal(flat(r.doc.blocks[0].spans).endsWith('.') == 1, true)
      })
 
@@ -204,7 +204,7 @@ test('links', 'UR with no text shows the target',
        let r
 
        r = parsed('.TH T 1\n.UR https://example.com\n.UE\n')
-       equal(flat(r.doc.blocks[0].spans), '<https://example.com>')
+       equal(flat(r.doc.blocks[0].spans), '⟨https://example.com⟩')
      })
 
 test('synopsis', 'SY, OP and YS build a synopsis line',
@@ -884,9 +884,9 @@ test('links', 'URL and MTO make links with trailing punctuation',
 
        r = parsed('.TH T 1\n.URL https://example.com "The site" .\n')
        spans = r.doc.blocks[0].spans
-       equal(spans[0].text, 'The site')
+       equal(spans[0].text, 'The site <https://example.com>')
        equal(spans[0].href, 'https://example.com')
-       equal(flat(spans), 'The site.')
+       equal(flat(spans), 'The site <https://example.com>.')
      })
 
 test('links', 'URL with empty text shows the target',
@@ -894,7 +894,7 @@ test('links', 'URL with empty text shows the target',
        let r
 
        r = parsed('.TH T 1\n.URL https://example.com "" .\n')
-       equal(flat(r.doc.blocks[0].spans), 'https://example.com.')
+       equal(flat(r.doc.blocks[0].spans), '<https://example.com>.')
      })
 
 test('links', 'MTO uses a mailto link',
@@ -903,7 +903,7 @@ test('links', 'MTO uses a mailto link',
 
        r = parsed('.TH T 1\n.MTO a@b "A Person" ,\n')
        equal(r.doc.blocks[0].spans[0].href, 'mailto:a@b')
-       equal(r.doc.blocks[0].spans[0].text, 'A Person')
+       equal(r.doc.blocks[0].spans[0].text, 'A Person <a@b>')
      })
 
 test('links', 'MT uses a mailto link',
@@ -912,7 +912,7 @@ test('links', 'MT uses a mailto link',
 
        r = parsed('.TH T 1\n.MT a@b\nA Person\n.ME\n')
        equal(r.doc.blocks[0].spans[0].href, 'mailto:a@b')
-       equal(r.doc.blocks[0].spans[0].text, 'A Person')
+       equal(r.doc.blocks[0].spans[0].text, 'A Person ⟨a@b⟩')
      })
 
 test('links', 'MT keeps an address that already has a scheme',
@@ -1701,7 +1701,7 @@ test('mdoc inline', 'macros with no arguments use their defaults',
        r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fn\n.Fo\n.Fc\n')
        equal(flat(r.doc.blocks[0].spans), '() ()')
        r = parsed('.Dd t\n.Dt T 1\n.Os\n.OP\n.UR\n.UE\n.MT\n.ME\n')
-       equal(flat(r.doc.blocks[0].spans), '[]<><mailto:>')
+       equal(flat(r.doc.blocks[0].spans), '[]⟨⟩⟨mailto:⟩')
      })
 
 test('mdoc inline', 'a closing enclosure without an opener uses its default',

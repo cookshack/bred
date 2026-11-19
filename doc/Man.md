@@ -53,7 +53,7 @@ section (`(1)`) are refused before `man` runs. A path is read directly instead
 of going through `man -w`: an absolute path, `./foo.1`, `../foo.1`, `~/foo.1`,
 or a bare source name such as `foo.1` in the pane's directory. A path is a
 plain filename, so spaces and colons in it are kept (only `~` and `~/` are
-expanded; `~user` is refused). A bare name is ambiguous, so if the file does
+expanded; a `~user` form is left as a topic). A bare name is ambiguous, so if the file does
 not read it falls back to a topic lookup; explicit paths report
 `Cannot read ...` and do not guess. A directory named like a page fails its
 read and is never parsed.

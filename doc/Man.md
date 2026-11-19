@@ -72,7 +72,9 @@ Links to `http:`, `https:`, `mailto:` and `ftp:` open in the desktop browser
 through `shell.open` and never navigate the window. Any other scheme is
 refused with a message; `#...` links scroll within the page and `man:...`
 links open another topic. A link with no text shows its topic (`man:foo(1)`
-shows `foo(1)`) or its URL. A scheme-less relative link (for example `.UR foo.1`)
+shows `foo(1)`) or its URL. A page link keeps its target visible: `.UR`/`.UE`
+and `.URL` print `⟨target⟩` after the link text, and alone when the block has
+no text, which is what an-ext does. A scheme-less relative link (for example `.UR foo.1`)
 never navigates the window either: a target that names a manual source opens as
 a path page, and anything else is refused with `Cannot open ... link`.
 
@@ -204,14 +206,14 @@ gdbm pages, `It` without `Bl` (2), the `Su`/`R` strings that only eqn defines
 (4), ms `DS`/`DE` (1), eqn `EQ`/`EN` (1), `mso pic.tmac` (1), strace's
 undefined `.IX`, a `.p` typo and one undefined Cyrillic string.
 
-`man-diff --section 1 --max 400` leaves 25 pages with 82 missing words. Those
+`man-diff --section 1 --max 400` leaves 24 pages with 46 missing words. Those
 are measurement artifacts, not content loss: `.UR`/`.MT`/`.MTO` targets live in
 the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
-Section 5 is the same story at 20 pages and 58 words after the joined-synopsis
-fix; what is left there is `.Rs` citation punctuation and a hyphen split at a
-line end.
+Section 5 is the same story at 18 pages and 41 words; what is left there is
+mdoc table cells that man splits at a hyphen and a few `.TH` headers whose
+text man repeats in the footer.
 
 Tests: 385 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Coverage of the

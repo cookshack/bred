@@ -121,7 +121,9 @@ function normal
 
 function isHeader
 (line) {
-  return /\w+\([0-9][A-Za-z]*\)/.test(line) ? 1 : 0
+  // A page name may contain dots and the section may have two digits, as
+  // `UPDMAP.CFG(20)` does.
+  return /[\w.+-]+\([0-9][0-9A-Za-z]*\)/.test(line) ? 1 : 0
 }
 
 // BSD-style footers have no name(section) in them: "BSD ... October 26, 2022

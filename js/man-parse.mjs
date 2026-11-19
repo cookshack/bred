@@ -3145,6 +3145,9 @@ function parse
     if (control && control.name) {
       handleLine(c, control, style)
       c.lineTarget = 0
+      // A macro line ends the `\c` continuation, so the next text line gets
+      // its own separating space again (lslocks(8) loses it otherwise).
+      c.joinNext = 0
       continue
     }
     if ((control == 0) && (input.text.trim() == '') && (c.pre == 0)) {

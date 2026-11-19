@@ -209,12 +209,15 @@ are measurement artifacts, not content loss: `.UR`/`.MT`/`.MTO` targets live in
 the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
+Section 5 is the same story at 20 pages and 58 words after the joined-synopsis
+fix; what is left there is `.Rs` citation punctuation and a hyphen split at a
+line end.
 
-Tests: 277 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 385 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Coverage of the
 man modules is
-98.5% of `man.mjs` lines (89% of branches) and 100% of `man-render.mjs` lines
-and branches.
+98.6% of `man.mjs` lines (91% of branches), 98.3% of `man-parse.mjs`
+statements (91% of branches) and 100% of `man-render.mjs` lines and branches.
 
 ## Known gaps, in order
 
@@ -233,6 +236,10 @@ and branches.
    contain no NUL or replacement character is still read as text.
 5. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
    are refused rather than handed to the desktop.
+6. mdoc `.Rs`/`.Re` joins its fields with `, ` and nothing else, so a citation
+   lacks man(1)'s `and` between authors, the quotes around `%T` and the
+   `<>` around `%U`. The words are all there; only the punctuation differs,
+   which is why `man-diff` reports them.
 
 ## Changing it
 

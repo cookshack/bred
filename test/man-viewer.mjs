@@ -10,7 +10,7 @@ import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, statErrPaths, modeLessPaths
+let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, statErrPaths, modeLessPaths, readFailPaths
 
 function test
 (group, name, cb) {
@@ -126,7 +126,9 @@ function installShell
         code = 1
     }
     else if (sc == 'cat')
-      if (binaryPaths[sargs[0] || ''])
+      if (readFailPaths[sargs[0] || ''])
+        code = 1
+      else if (binaryPaths[sargs[0] || ''])
         out = 'BZh9\x00\xff\xfe'
       else {
         out = read(sargs[0] || '')
@@ -188,6 +190,8 @@ function installShell
                                 else if (statErrPaths[path])
                                   cb({ err: { message: 'EIO: i/o error, stat ' + path,
                                               code: 'EIO' } })
+                                else if (readFailPaths[path])
+                                  cb({ err: 0, data: { mode: 0o100644 } })
                                 else if (modeLessPaths[path])
                                   // An unexpected stat reply: no mode at all.
                                   cb({ err: 0, data: {} })
@@ -227,6 +231,7 @@ function setup
   binaryPaths = {}
   statErrPaths = {}
   modeLessPaths = {}
+  readFailPaths = {}
   installShell(panes, pages, manw)
   return panes
 }
@@ -1923,6 +1928,16 @@ test('viewer', 'a bare source that is unreadable reports permission denied',
        equal(textOf(b).includes('Cannot read /tmp/secret.1: Permission denied'), true)
        equal(calls.some(c => c[0] == 'man'), false)
        equal(calls.some(c => (c[0] == 'zcat') || (c[0] == 'cat')), false)
+     })
+
+test('viewer', 'a bare source that cannot be read falls back to its topic',
+     async () => {
+       let b
+
+       setup({ fallback: '.TH FALLBACK 1\n.SH NAME\nfallback \\- from the topic\n' })
+       readFailPaths['/tmp/fallback.1'] = 1
+       b = await openedVia('fallback.1', '/tmp/fallback.1')
+       equal(textOf(b).includes('from the topic'), true)
      })
 
 test('viewer', 'a missing bare source goes straight to the topic lookup',

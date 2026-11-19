@@ -265,6 +265,9 @@ function setTab
   let state, sub, w
 
   state = view.vars('code')
+  // Selecting the tab that is already showing must not touch the scroll.
+  if ((state.tab || 0) == (sessionID || 0))
+    return
   w = view.eleOrReserved?.querySelector('.code-w')
   if (w) {
     state.tabScroll = state.tabScroll || {}
@@ -281,10 +284,10 @@ function setTab
     saved = state.tabScroll[state.tab || 'main']
     if (saved)
       w.scrollTop = saved.pinned ? w.scrollHeight : saved.top
-    else
+    else if (sub)
       // A subagent still running is followed from the end; a finished one is
       // read from the top.
-      w.scrollTop = (sub?.status == 'running') ? w.scrollHeight : 0
+      w.scrollTop = (sub.status == 'running') ? w.scrollHeight : 0
   }
 }
 

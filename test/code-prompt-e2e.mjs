@@ -1119,6 +1119,11 @@ test('scroll', 'a tab left at the end comes back at the end',
        height = 2000
        Ui.setTab(buf, panes.pB.view, 0)
        equal(w.scrollTop, 300, 'a tab left part way through keeps its place')
+
+       // choosing the tab that is already showing leaves the scroll alone
+       w.scrollTop = 640
+       Ui.setTab(buf, panes.pB.view, 0)
+       equal(w.scrollTop, 640, 'the current tab is not moved by reselecting it')
      })
 
 test('middle click', 'a middle click in the message log is blocked',

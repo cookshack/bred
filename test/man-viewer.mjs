@@ -179,6 +179,20 @@ test('viewer', 'opening the same topic again reuses the buffer',
        equal(Pane.current().buf == b, true)
      })
 
+test('viewer', 'reopening a refused topic retries it',
+     async () => {
+       let b, pages
+
+       pages = { bad: '.TH BAD 1\n.SH X\n.frobnicate\n' }
+       setup(pages)
+       b = await opened('bad')
+       equal(viewOf(b).ele.querySelector('.manpage-err') == null, false)
+       pages.bad = '.TH BAD 1\n.SH NAME\nfixed text\n'
+       Man.open('bad')
+       await waitFor(() => textOf(b).includes('fixed text'))
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+     })
+
 test('viewer', 'refresh fetches the page again',
      async () => {
        let b, pages

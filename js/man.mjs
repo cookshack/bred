@@ -382,6 +382,9 @@ function init
     b = findBuf(topic)
     if (b) {
       p.setBuf(b)
+      st = b.vars('Manpage')
+      if ((st.loading == 0) && ((st.ok == 0) || st.error))
+        reload(b, p)
       return
     }
     b = Buf.add('Man: ' + topic, 'Manpage', divW(), p.dir)

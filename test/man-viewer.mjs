@@ -1596,7 +1596,7 @@ test('viewer', 'a topic from the prompt history reopens its buffer',
              1)
      })
 
-test('viewer', 'normalised completion keys share one man -k per section',
+test('viewer', 'normalised completion keys share one man -k',
      async () => {
        let v
 
@@ -1631,10 +1631,11 @@ test('viewer', 'normalised completion keys share one man -k per section',
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(keys().length, 1)
        equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'pqr(3)')
-       // A query with no section is a different key and filters differently.
+       // A query with no section filters the same cached answer differently,
+       // so it does not ask man again either.
        type('pqr')
        await waitFor(() => v.ele.querySelectorAll('.bred-prompt-sug').length == 3)
-       equal(keys().length, 2)
+       equal(keys().length, 1)
        equal(v.ele.querySelectorAll('.bred-prompt-sug').length, 3)
      })
 
@@ -1648,7 +1649,7 @@ test('viewer', 'a section prefix and suffix normalise into one query',
        }
 
        setup({})
-       mankOut = 'zzq (1) - one\nzzq (3) - three\n'
+       mankOut = 'yyq (1) - one\nyyq (3) - three\n'
        Cmd.run('man')
        await waitFor(() => {
                        let b
@@ -1657,11 +1658,11 @@ test('viewer', 'a section prefix and suffix normalise into one query',
                        return b?.vars('prompt')?.run && b.views[0]?.ed
                      })
        v = Pane.current().buf.views[0]
-       type('3 zzq (3)')
+       type('3 yyq (3)')
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(calls.filter(c => (c[0] == 'man') && (c[1] == '-k')).length, 1)
-       equal(calls.filter(c => (c[1] == '-k'))[0][2], '^zzq')
-       equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'zzq(3)')
+       equal(calls.filter(c => (c[1] == '-k'))[0][2], '^yyq')
+       equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'yyq(3)')
      })
 
 test('viewer', 'C-p before any suggestion starts at the last one',
@@ -1792,6 +1793,89 @@ test('viewer', 'a token that is a man link uses its topic',
                              (cur.vars('Manpage').loading == 0)
                      })
        equal(textOf(Pane.current().buf).includes('printf - x'), true)
+     })
+
+test('viewer', 'a URL token leaves the man prompt empty',
+     async () => {
+       let m, b, panes
+
+       panes = setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       m = Mode.add('token url', {})
+       m.tokenAt = () => 'https://example.com/ls.1'
+       b = Buf.add('tok3', 'token url', globalThis.document.createElement('div'), '/tmp')
+       panes.pA.focus()
+       await setBuf(panes.pA, b)
+       Cmd.run('man')
+       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
+       equal(Pane.current().buf.placeholder, '')
+     })
+
+test('viewer', 'the point inside a rendered reference supplies the prompt token',
+     async () => {
+       let b, v, a, node
+
+       setup({ refs: '.TH REFS 1\n.SH NAME\nsee ls(1) for files\n',
+               'ls(1)': '.TH LS 1\n.SH NAME\nls \\- list files\n' })
+       b = await opened('refs')
+       v = viewOf(b)
+       a = v.ele.querySelector('a[data-topic]')
+       node = a.firstChild
+       while (node.firstChild)
+         node = node.firstChild
+       v.point.put(node)
+       Cmd.run('man')
+       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
+       equal(Pane.current().buf.placeholder, 'ls(1)')
+       Cmd.run('ok', Pane.current().buf)
+       await waitFor(() => {
+                       let cur
+
+                       cur = Pane.current().buf
+                       return (cur?.name == 'Man: ls(1)') && (cur.vars('Manpage').loading == 0)
+                     })
+       equal(textOf(Pane.current().buf).includes('list files'), true)
+     })
+
+test('viewer', 'the point on the period after a reference still finds it',
+     async () => {
+       let b, v, a
+
+       setup({ refs: '.TH REFS 1\n.SH NAME\nsee ls(1).\n',
+               'ls(1)': '.TH LS 1\n.SH NAME\nls \\- list files\n' })
+       b = await opened('refs')
+       v = viewOf(b)
+       a = v.ele.querySelector('a[data-topic]')
+       v.point.put(a.nextSibling)
+       Cmd.run('man')
+       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
+       equal(Pane.current().buf.placeholder, 'ls(1)')
+     })
+
+test('viewer', 'the point in plain page text supplies the bare word',
+     async () => {
+       let b, v, p, node
+
+       setup({ words: '.TH WORDS 1\n.SH NAME\nprintf is nice\n',
+               'printf': '.TH PRINTF 1\n.SH NAME\nprintf \\- format\n' })
+       b = await opened('words')
+       v = viewOf(b)
+       p = v.ele.querySelector('p')
+       node = p.firstChild
+       while (node.firstChild)
+         node = node.firstChild
+       v.point.put(node)
+       Cmd.run('man')
+       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
+       equal(Pane.current().buf.placeholder, 'printf')
+       Cmd.run('ok', Pane.current().buf)
+       await waitFor(() => {
+                       let cur
+
+                       cur = Pane.current().buf
+                       return (cur?.name == 'Man: printf') &&
+                             (cur.vars('Manpage').loading == 0)
+                     })
+       equal(textOf(Pane.current().buf).includes('format'), true)
      })
 
 test('viewer', 'a reference with trailing punctuation links only the reference',

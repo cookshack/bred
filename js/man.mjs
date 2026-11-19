@@ -137,6 +137,10 @@ function init
       out = ManRender.render(st.doc)
       append(w, out.el)
     }
+    // A re-render replaces the page's text nodes, so a point left on one of
+    // them is stale; start again at the top instead of reading dead text.
+    if (view.point?.stale?.())
+      view.point.init()
   }
 
   function follow
@@ -765,11 +769,11 @@ function init
     Css.enable(under)
   }
 
-  // A prefix is cached by the normalised query, name plus section, so "3 pr"
-  // and "pr (3)" share one man -k while "pr" (no section) does not.
-  function suggestKey
-  (q) {
-    return q.name + (q.section ? '(' + q.section + ')' : '')
+  function sectionTopics
+  (list, section) {
+    if (section)
+      return list.filter(topic => topic.endsWith('(' + section + ')'))
+    return list
   }
 
   // Completion works on the name, not the typed form: "3 pr" is looked up as
@@ -800,6 +804,9 @@ function init
     return { name, section }
   }
 
+  // Cache the answer to the man -k query, which is the name alone: every
+  // spelling of the same name ("3 pr", "pr (3)", "pr") shares one result and
+  // only the section filter differs, so a new section never asks man again.
   function suggest
   (under, text) {
     let key, q, seq
@@ -812,18 +819,15 @@ function init
     q = suggestQuery(key)
     if (q.name.length == 0)
       return
-    key = suggestKey(q)
-    if (topicCache[key]) {
-      suggestions(under, text.trim(), topicCache[key])
+    if (topicCache[q.name]) {
+      suggestions(under, key, sectionTopics(topicCache[q.name], q.section))
       return
     }
     seq = ++sugSeq
     topics(q.name, list => {
-                     if (q.section)
-                       list = list.filter(topic => topic.endsWith('(' + q.section + ')'))
                      if (seq == sugSeq) {
-                       topicCache[key] = list
-                       suggestions(under, text.trim(), list)
+                       topicCache[q.name] = list
+                       suggestions(under, key, sectionTopics(list, q.section))
                      }
                    })
   }
@@ -837,12 +841,76 @@ function init
     s = (token || '').trim()
     if (/^man:/i.test(s))
       s = s.slice(4)
-    else if (/^[a-z][a-z0-9+.-]*:\/\//i.test(s))
+    else if (/^[a-z][a-z0-9+.-]*:/i.test(s))
       return ''
     m = /^(.+?)\s*\(([^)]*)\)[.,;:!?]*$/.exec(s)
     if (m)
       return m[1] + '(' + m[2] + ')'
     return s.replace(/[.,;:!?]+$/, '')
+  }
+
+  // The point in a rendered page sits in a text node. A link already knows
+  // its topic; other text names a reference ("ls(1).") or a bare word.
+  function wordAt
+  (text, at) {
+    let re, m, prev, prevEnd
+
+    re = /[A-Za-z_][\w.+-]*(?:\([1-9][a-z]*\))?/g
+    prev = ''
+    prevEnd = 0
+    at = Math.max(0, Math.min(at, text.length - 1))
+    while ((m = re.exec(text)))
+      if (m.index > at)
+        break
+      else if (at < (m.index + m[0].length))
+        return m[0]
+      else {
+        prev = m[0]
+        prevEnd = m.index + m[0].length
+      }
+    if (prev.length == 0)
+      return ''
+    // A point on the punctuation after a word still refers to that word, but
+    // not across a gap of other text.
+    if (/[A-Za-z0-9_]/.test(text.slice(prevEnd, at + 1)))
+      return ''
+    return prev
+  }
+
+  function tokenAt
+  (view) {
+    let bep, node, a, tok, prev
+
+    bep = view.point?.bep?.()
+    node = bep?.node
+    if (node == undefined)
+      return ''
+    a = node.parentElement?.closest?.('a')
+    if (a?.dataset?.topic)
+      return 'man:' + a.dataset.topic
+    if (a?.getAttribute('href'))
+      return a.getAttribute('href')
+    tok = wordAt(node.wholeText || '', bep.offset)
+    if (tok.length)
+      return tok
+    // The point can be on the period after a reference, which is its own node
+    // next to the link (possibly wrapped in a span), so climb to a node that
+    // has a previous sibling.
+    prev = node
+    while (prev && (prev.previousSibling == undefined))
+      prev = prev.parentElement
+    prev = prev?.previousSibling
+    if (prev == undefined)
+      return ''
+    a = prev.closest?.('a')
+    if (a?.dataset?.topic)
+      return 'man:' + a.dataset.topic
+    if (prev.nodeType == 3)
+      return wordAt(prev.wholeText || '', (prev.wholeText || '').length - 1)
+    if (prev.firstChild?.nodeType == 3)
+      return wordAt(prev.firstChild.wholeText || '',
+                    (prev.firstChild.wholeText || '').length - 1)
+    return ''
   }
 
   function man
@@ -868,6 +936,7 @@ function init
   hist = Hist.ensure('man')
 
   mode = Mode.add('Manpage', { viewInit })
+  mode.tokenAt = tokenAt
 
   openImpl = openPage
 

@@ -10,7 +10,7 @@ import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths
+let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths
 
 function test
 (group, name, cb) {
@@ -45,7 +45,12 @@ function installShell
     let base
 
     base = spec.split('/').pop()
-    base = base.replace(/\.1\.gz$/, '')
+    base = base.replace(/\.(?:gz|bz2|xz|zst|lzma)$/, '')
+    // Pages with a compressed source are keyed by their bare name; a plain
+    // source keeps its section ("pp.1").
+    if (base in pages)
+      return pages[base]
+    base = base.replace(/\.[1-9][a-z]*$/, '')
     return pages[base] || ''
   }
 
@@ -59,6 +64,13 @@ function installShell
     if (text == '')
       return { out: '', code: 1 }
     return { out: text, code: 0 }
+  }
+
+  // Each decompressor answers only for its own suffix, so a mislabelled path
+  // falls through to the next tool the way the real commands would.
+  function toolSuffix
+  (sc) {
+    return { zcat: 'gz', xzcat: 'xz', bzcat: 'bz2', zstdcat: 'zst', lzcat: 'lzma' }[sc]
   }
 
   function response
@@ -99,18 +111,28 @@ function installShell
         errMsg = 'man: whatis database missing'
       }
     }
-    else if (sc == 'zcat') {
-      let r
+    else if (toolSuffix(sc)) {
+      let path
 
-      r = zcatResult(sargs[0] || '')
-      out = r.out
-      code = r.code
-    }
-    else if (sc == 'cat') {
-      out = read(sargs[0] || '')
-      if (out == '')
+      path = sargs[0] || ''
+      if (path.endsWith('.' + toolSuffix(sc))) {
+        let r
+
+        r = zcatResult(path)
+        out = r.out
+        code = r.code
+      }
+      else
         code = 1
     }
+    else if (sc == 'cat')
+      if (binaryPaths[sargs[0] || ''])
+        out = 'BZh9\x00\xff\xfe'
+      else {
+        out = read(sargs[0] || '')
+        if (out == '')
+          code = 1
+      }
     return { out, code, errMsg }
   }
 
@@ -196,6 +218,7 @@ function setup
   manwFail = 0
   dirPaths = {}
   unreadablePaths = {}
+  binaryPaths = {}
   installShell(panes, pages, manw)
   return panes
 }
@@ -294,6 +317,76 @@ test('viewer', 'all unreadable paths report a read error',
        setup({}, { ls: [ '/fake/man1/one.1.gz', '/fake/man1/two.1.gz' ] })
        b = await opened('ls')
        equal(textOf(b).includes('Cannot read'), true)
+     })
+
+test('viewer', 'xz, bz2 and zst pages use their own decompressor',
+     async () => {
+       let cases
+
+       cases = [ [ 'xzpage', 'xz', 'xzcat' ],
+                 [ 'bzpage', 'bz2', 'bzcat' ],
+                 [ 'zstpage', 'zst', 'zstdcat' ] ]
+       for (let at = 0; at < cases.length; at++) {
+         let name, ext, tool, path, b
+
+         name = cases[at][0]
+         ext = cases[at][1]
+         tool = cases[at][2]
+         path = '/fake/man1/' + name + '.1.' + ext
+         setup({ [name]: '.TH PAGE 1\n.SH NAME\n' + name + ' text\n' },
+               { [name]: [ path ] })
+         b = await opened(name)
+         equal(textOf(b).includes(name + ' text'), true)
+         equal(calls.some(c => (c[0] == tool) && (c[1] == path)), true)
+       }
+     })
+
+test('viewer', 'a page with an unknown suffix is read with cat',
+     async () => {
+       let b
+
+       setup({ 'odd.page': '.TH ODD 1\n.SH NAME\nunknown suffix text\n' })
+       b = await opened('/tmp/odd.page')
+       equal(textOf(b).includes('unknown suffix text'), true)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/tmp/odd.page')), true)
+       equal(calls.some(c => c[0] == 'zcat'), false)
+     })
+
+test('viewer', 'an include with an unknown suffix is read with cat',
+     async () => {
+       let b
+
+       setup({ 'page.1': '.TH P 1\n.SH NAME\nbefore include\n.so /fake/abs/incl.page\n',
+               'incl.page': '.TH I 1\n.SH NAME\nunknown include text\n' })
+       b = await openedVia('page.1', '/tmp/page.1')
+       equal(textOf(b).includes('unknown include text'), true)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/fake/abs/incl.page')), true)
+     })
+
+test('viewer', 'a decompressor failure with binary cat output is a clear error',
+     async () => {
+       let b, path
+
+       path = '/fake/man1/broken.1.xz'
+       setup({}, { broken: [ path ] })
+       zcatFails[path] = 1
+       binaryPaths[path] = 1
+       b = await opened('broken')
+       equal(textOf(b).includes('Cannot read ' + path + ': cannot decompress .xz'), true)
+       equal(textOf(b).includes('BZh9'), false)
+     })
+
+test('viewer', 'a decompressor failure still falls back to a text cat',
+     async () => {
+       let b, path
+
+       path = '/fake/man1/texty.1.xz'
+       setup({ texty: '.TH TEXTY 1\n.SH NAME\ntext behind a bad suffix\n' },
+             { texty: [ path ] })
+       zcatFails[path] = 1
+       b = await opened('texty')
+       equal(textOf(b).includes('text behind a bad suffix'), true)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == path)), true)
      })
 
 test('viewer', 'an absolute path is read without man -w',
@@ -713,6 +806,52 @@ test('viewer', 'an unknown scheme is refused and does not navigate',
        equal(calls.some(c => (c[0] == 'shell.open')), false)
        msgs = Mess.messages().filter(m => m.type == 'say')
        equal(msgs[msgs.length - 1].text, 'Cannot open javascript link')
+     })
+
+test('viewer', 'a bare filename link opens its page instead of navigating',
+     async () => {
+       let b, a, ev
+
+       setup({ links: '.TH LINKS 1\n.SH LINKS\n.UR page.1\npage\n.UE\n',
+               'page.1': '.TH PAGE 1\n.SH NAME\nplain page text\n' })
+       b = await opened('links')
+       a = b.views[0].ele.querySelector('a')
+       equal(a.dataset.topic, undefined)
+       equal(a.getAttribute('href'), 'page.1')
+       ev = new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 })
+       a.dispatchEvent(ev)
+       equal(ev.defaultPrevented, true)
+       await waitFor(() => textOf(Pane.current().buf).includes('plain page text'))
+       equal(Pane.current().buf.name, 'Man: /tmp/page.1')
+       equal(calls.some(c => c[0] == 'shell.open'), false)
+     })
+
+test('viewer', 'a relative link that is not a page is refused, not followed',
+     async () => {
+       let b, a, ev, msgs
+
+       setup({ links: '.TH LINKS 1\n.SH LINKS\n.UR example.com/x\nsite\n.UE\n' })
+       b = await opened('links')
+       a = b.views[0].ele.querySelector('a')
+       ev = new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 })
+       a.dispatchEvent(ev)
+       equal(ev.defaultPrevented, true)
+       equal(calls.some(c => c[0] == 'shell.open'), false)
+       msgs = Mess.messages().filter(m => m.type == 'say')
+       equal(msgs[msgs.length - 1].text, 'Cannot open example.com/x link')
+     })
+
+test('viewer', 'a link with no href is inert',
+     async () => {
+       let b, a, ev
+
+       setup({ links: '.TH LINKS 1\n.SH LINKS\nplain text\n' })
+       b = await opened('links')
+       a = globalThis.document.createElement('a')
+       b.views[0].ele.querySelector('p').appendChild(a)
+       ev = new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 })
+       a.dispatchEvent(ev)
+       equal(ev.defaultPrevented, true)
      })
 
 test('viewer', 'a leading section number opens the sectioned topic',
@@ -1442,6 +1581,68 @@ test('viewer', 'completion caches a prefix and clears on empty input',
        equal(under.innerHTML, '')
      })
 
+test('viewer', 'completion cache evicts the oldest prefix',
+     async () => {
+       let v
+
+       function kn
+       (prefix) {
+         return calls.filter(c => (c[0] == 'man') && (c[1] == '-k') &&
+                                  (c[2] == '^' + prefix)).length
+       }
+
+       function type
+       (text) {
+         let cur
+
+         cur = v.ed.state.doc.toString()
+         v.ed.dispatch({ changes: { from: 0, to: cur.length, insert: text } })
+       }
+
+       setup({})
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       type('qq0')
+       await waitFor(() => kn('qq0') == 1)
+       for (let at = 1; at <= 100; at++) {
+         type('qq' + at)
+         await waitFor(() => kn('qq' + at) == 1)
+       }
+       // 101 names went through a 100-entry cache: the first is gone
+       type('qq0')
+       await waitFor(() => kn('qq0') == 2)
+       // a recent name is still served without asking man -k again
+       type('qq100')
+       await wait(80)
+       equal(kn('qq100'), 1)
+     })
+
+test('viewer', 'a name that collides with an object property completes safely',
+     async () => {
+       let v
+
+       setup({})
+       mankOut = 'constructor (3) - build an object\n'
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: 'constructor' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'constructor(3)')
+       equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k')), true)
+     })
+
 test('viewer', 'completion of a section prefix queries the name and keeps the section',
      async () => {
        let v, topics
@@ -1546,7 +1747,7 @@ test('viewer', 'an absolute .so target is read directly, not looked up as a topi
                'incl.1': '.TH I 1\n.SH NAME\nabsolute include text\n' })
        b = await openedVia('page.1', '/tmp/page.1')
        equal(textOf(b).includes('absolute include text'), true)
-       equal(calls.some(c => (c[0] == 'zcat') && (c[1] == '/fake/abs/incl.1')), true)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/fake/abs/incl.1')), true)
        equal(calls.some(c => (c[0] == 'man') && (c[1] == '-w') &&
                             (String(c[2]).includes('incl'))), false)
      })
@@ -1568,7 +1769,7 @@ test('viewer', 'a path with a space is kept as one argument',
        setup({ 'a b.1': '.TH AB 1\n.SH NAME\nspaced path text\n' })
        b = await openedVia('/tmp/a b.1', '/tmp/a b.1')
        equal(textOf(b).includes('spaced path text'), true)
-       equal(calls.some(c => (c[0] == 'zcat') && (c[1] == '/tmp/a b.1')), true)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/tmp/a b.1')), true)
      })
 
 test('viewer', 'a topic from the prompt history reopens its buffer',

@@ -30,9 +30,12 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
    failure is reported as `Cannot run man: ...`, not as `No manual entry`.
    The BSD/mandoc `man` implements `-w` as well (listing the search path when
    given no name), so no `man --path` fallback is needed.
-2. Read it with `zcat`, falling back to `cat` only when `zcat` fails. An empty
-   file is a valid page, not a read error, and is never sent to `cat` (which
-   would print gzip bytes).
+2. Read it with the decompressor its suffix names (`zcat` for `.gz`, `xzcat`,
+   `bzcat`, `zstdcat`, `lzcat`), trying the others next if that tool is missing
+   or refuses the file, and `cat` last when the suffix is plain or unknown. A
+   compressed page whose cat output looks binary (NUL or U+FFFD) is reported as
+   `Cannot read ...: cannot decompress .xz` instead of being rendered as
+   garbage. An empty file is a valid page, not a read error.
 3. `.so`-only redirect pages are followed as topics (up to depth 3), keeping
    the target's section so `foo.1` and `foo.8` stay different pages. A
    redirect that reads a file already seen is refused as
@@ -59,7 +62,7 @@ plain filename, so spaces and colons in it are kept (only `~` and `~/` are
 expanded; a `~user/foo.1` path is refused with a message, while a bare `~user`
 is not path-like and is looked up as a topic). A bare name is ambiguous, so one
 `file.stat` decides it: a missing name goes straight to a topic lookup without
-trying `zcat`/`cat`, an existing directory reports `Cannot read ...: Is a
+trying a decompressor or `cat`, an existing directory reports `Cannot read ...: Is a
 directory`, a file with no read bits reports `Permission denied`, and a regular
 file is read. Explicit paths never fall back, so their read error is shown and
 a directory is never parsed. A `file:` URL is refused with a message rather
@@ -69,7 +72,9 @@ Links to `http:`, `https:`, `mailto:` and `ftp:` open in the desktop browser
 through `shell.open` and never navigate the window. Any other scheme is
 refused with a message; `#...` links scroll within the page and `man:...`
 links open another topic. A link with no text shows its topic (`man:foo(1)`
-shows `foo(1)`) or its URL.
+shows `foo(1)`) or its URL. A scheme-less relative link (for example `.UR foo.1`)
+never navigates the window either: a target that names a manual source opens as
+a path page, and anything else is refused with `Cannot open ... link`.
 
 Refresh bumps a per-buffer load generation; a response or include prefetch from
 an older generation is ignored, so refreshing while loading (or twice) keeps
@@ -78,7 +83,10 @@ with `man -w`. A failed refresh shows its error and the buffer stays usable;
 reopening a refused or failed page retries it.
 
 `M-x man` completes topics with `man -k '^prefix'` (cached by the name alone,
-not by section); a section prefix or suffix is stripped for the query and
+not by section); the cache holds the 100 most recently used names and drops the
+oldest, so a long session cannot grow it without bound. A name that collides
+with an object property such as `constructor` is an ordinary miss, not an
+inherited function. A section prefix or suffix is stripped for the query and
 results are filtered to that section, so `3 pr` and `printf (3)` suggest
 `printf(3)` rather than asking for `^3 pr` or `^printf (3)`, and
 `3 printf (3)` asks for `^printf` once. `3 pr`, `pr (3)` and `pr` share that
@@ -163,14 +171,21 @@ path, bare path stat checks (missing, directory, unreadable), error paths
 (unreadable, empty and blank pages, non-gzip fallback, a missing `man` and a
 spawn failure), man -w
 diagnostics mixed with paths, refresh (failing, repeated while loading, and
-path pages re-read from their path), absolute `.so` includes, the 40-item
+path pages re-read from their path), absolute `.so` includes, unknown-suffix
+includes read with `cat`, xz/bz2/zst sources choosing their own tool, a failed
+decompressor whose cat fallback looks binary reporting a clear error instead of
+garbage, the capped completion cache evicting its oldest name while a recent
+prefix still hits, a `constructor` completion that used to crash, scheme-less
+relative links (a bare filename opens its page, anything else is refused), the 40-item
 failure cap and its "show all" command, following a link to a page that is
 refused and retrying it after another click, trailing punctuation and no-text
 man links, and buffer reuse and shared refresh across panes. `test/man-pty.mjs`
 covers the real reader path: it writes a gzip page to a temporary file, runs
 `zcat` through node-pty (the same main-side path the viewer uses), checks the
 CRLF that comes back, and parses and renders it, including no-argument macros
-(`.PP`, `.br`, `.nf`/`.fi`). It skips when node-pty is not
+(`.PP`, `.br`, `.nf`/`.fi`). It also packs a page with real `xz` and `bzip2`
+(and `zstd` when installed) and reads it back through the tool the suffix picks,
+skipping a tool the container does not have. It skips when node-pty is not
 available. The renderer tests also draw compact and large pages, empty tables
 and lists, combined table options, colspans and links with no text.
 
@@ -194,7 +209,7 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 257 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 274 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Coverage of the
 man modules is
 98.5% of `man.mjs` lines (89% of branches) and 100% of `man-render.mjs` lines
@@ -211,8 +226,10 @@ and branches.
    quoting, so this heuristic favours the common colon-separated list.
 4. The bare-name check reads the mode bits from one `stat`; an ACL grant or
    root reading a mode-000 file is reported as `Permission denied` even though
-   `zcat` might succeed. The alternative was an extra read process per open,
-   and the stat saves two processes when the name is not a file at all.
+   the decompressor might succeed. The alternative was an extra read process
+   per open, and the stat saves two processes when the name is not a file at
+   all. Relatedly, a mislabelled compressed file whose `cat` output happens to
+   contain no NUL or replacement character is still read as text.
 5. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
    are refused rather than handed to the desktop.
 

@@ -18,10 +18,18 @@ import * as Tron from './tron.mjs'
 import * as View from './view.mjs'
 //import { d } from './mess.mjs'
 
-let openImpl, sugSeq, topicCache
+let openImpl, sugSeq, topicCache, topicKeys, decompressors, cacheMax
 
 sugSeq = 0
-topicCache = {}
+// A fresh object, not {}, so a name like "constructor" or "toString" is a miss
+// rather than an inherited function. Completion of such a name would otherwise
+// hand a function to the renderer and crash.
+topicCache = Object.create(null)
+topicKeys = []
+// Debian packages pages as .gz, but other systems use .xz, .bz2 and .zst,
+// and man -w returns whichever the source uses.
+decompressors = { gz: 'zcat', xz: 'xzcat', bz2: 'bzcat', zst: 'zstdcat', lzma: 'lzcat' }
+cacheMax = 100
 
 function topicsFrom
 (out) {
@@ -41,6 +49,43 @@ function topicsFrom
                             }
                           })
   return names.slice(0, 20)
+}
+
+// A page's suffix names its decompressor; a plain page uses cat.
+function sourceSuffix
+(path) {
+  let m
+
+  m = /\.([A-Za-z0-9]+)$/.exec(path)
+  if (m)
+    return m[1].toLowerCase()
+  return ''
+}
+
+export
+function decompressorFor
+(path) {
+  return decompressors[sourceSuffix(path)] || 'cat'
+}
+
+// The completion cache is capped: a prefix that has not been asked recently is
+// dropped, so a long session cannot accumulate every name ever typed.
+function cacheGet
+(name) {
+  if (name in topicCache == 0)
+    return undefined
+  topicKeys.splice(topicKeys.indexOf(name), 1)
+  topicKeys.push(name)
+  return topicCache[name]
+}
+
+function cachePut
+(name, list) {
+  if (name in topicCache == 0)
+    topicKeys.push(name)
+  topicCache[name] = list
+  while (topicKeys.length > cacheMax)
+    delete topicCache[topicKeys.shift()]
 }
 
 // Topic completion: man -k takes a regular expression and prints one
@@ -211,7 +256,15 @@ function init
         openExternally(href)
       else
         Mess.say('Cannot open ' + scheme + ' link')
+      return
     }
+    // A scheme-less target is a relative link, not a URL: keep the window on
+    // the page. A bare filename that names a manual source still opens.
+    we.preventDefault()
+    if (isPath(href))
+      openPage(href)
+    else if (href.length)
+      Mess.say('Cannot open ' + href + ' link')
   }
 
   function attach
@@ -331,6 +384,16 @@ function init
     return base.replace(/\.(gz|bz2|xz|zst|lzma)$/, '')
   }
 
+  // Compressed bytes decoded as UTF-8 are full of replacement characters (and
+  // often NULs); real source is not. This keeps a cat fallback from rendering
+  // a page of garbage when every decompressor failed on a compressed file.
+  function looksText
+  (text) {
+    if (text.includes('\0') || text.includes('\uFFFD'))
+      return 0
+    return 1
+  }
+
   function onCat
   (path, text, code, cb) {
     if (code == 0)
@@ -339,23 +402,62 @@ function init
       cb('Cannot read ' + path)
   }
 
-  // zcat exits zero on a valid but empty page, which must not be mistaken for
-  // a failure and sent to cat (cat would print the gzip bytes).
-  function onZcat
-  (dir, path, text, code, cb) {
-    if (code == 0)
-      cb(0, text, path)
-    else
-      Shell.runToString(dir, 'cat', [ path ], 0,
-                        (text2, code2) => onCat(path, text2, code2, cb),
-                        err => cb('Cannot run cat: ' + err.message))
+  function readPlain
+  (dir, path, cb) {
+    Shell.runToString(dir, 'cat', [ path ], 0,
+                      (text, code) => onCat(path, text, code, cb),
+                      err => cb('Cannot run cat: ' + err.message))
+  }
+
+  // Try each decompressor in turn: the suffix picks the expected tool first,
+  // and the others follow so a mislabelled page still opens. cat is the last
+  // resort, and only its text-looking output is accepted.
+  function tryDecompress
+  (dir, path, suffix, tools, at, cb) {
+    if (at >= tools.length) {
+      readPlain(dir, path, (err, text) => {
+                             if (err) {
+                               cb(err)
+                               return
+                             }
+                             if (looksText(text))
+                               cb(0, text, path)
+                             else
+                               cb('Cannot read ' + path + ': cannot decompress .' + suffix)
+                           })
+      return
+    }
+    Shell.runToString(dir, tools[at], [ path ], 0,
+                      (text, code) => {
+                        if (code == 0)
+                          cb(0, text, path)
+                        else
+                          tryDecompress(dir, path, suffix, tools, at + 1, cb)
+                      },
+                      () => tryDecompress(dir, path, suffix, tools, at + 1, cb))
   }
 
   function readSource
   (dir, path, cb) {
-    Shell.runToString(dir, 'zcat', [ path ], 0,
-                      (text, code) => onZcat(dir, path, text, code, cb),
-                      err => cb('Cannot run zcat: ' + err.message))
+    let suffix, first, tools
+
+    suffix = sourceSuffix(path)
+    first = decompressors[suffix] || ''
+    // A plain source has nothing to decompress: cat reads it as it is.
+    if (first.length == 0) {
+      readPlain(dir, path, cb)
+      return
+    }
+    tools = [ first ]
+    Object.keys(decompressors).forEach(key => {
+                                         let tool
+
+                                         tool = decompressors[key]
+                                         if (tool == first)
+                                           return
+                                         tools.push(tool)
+                                       })
+    tryDecompress(dir, path, suffix, tools, 0, cb)
   }
 
   function onSource
@@ -601,7 +703,7 @@ function init
       cb()
       return
     }
-    includes = {}
+    includes = Object.create(null)
     gatherIncludes(dir, text, 0, includes, () => {
                                              if (stale(st, seq))
                                                return
@@ -809,7 +911,7 @@ function init
   // only the section filter differs, so a new section never asks man again.
   function suggest
   (under, text) {
-    let key, q, seq
+    let key, q, seq, list
 
     key = (text || '').trim()
     if (key.length == 0) {
@@ -819,15 +921,16 @@ function init
     q = suggestQuery(key)
     if (q.name.length == 0)
       return
-    if (topicCache[q.name]) {
-      suggestions(under, key, sectionTopics(topicCache[q.name], q.section))
+    list = cacheGet(q.name)
+    if (list) {
+      suggestions(under, key, sectionTopics(list, q.section))
       return
     }
     seq = ++sugSeq
-    topics(q.name, list => {
+    topics(q.name, list2 => {
                      if (seq == sugSeq) {
-                       topicCache[q.name] = list
-                       suggestions(under, key, sectionTopics(list, q.section))
+                       cachePut(q.name, list2)
+                       suggestions(under, key, sectionTopics(list2, q.section))
                      }
                    })
   }

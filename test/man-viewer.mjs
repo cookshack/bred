@@ -10,7 +10,7 @@ import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths
+let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, statErrPaths, modeLessPaths
 
 function test
 (group, name, cb) {
@@ -185,6 +185,12 @@ function installShell
                                   cb({ err: 0, data: { mode: 0o040755 } })
                                 else if (unreadablePaths[path])
                                   cb({ err: 0, data: { mode: 0o100000 } })
+                                else if (statErrPaths[path])
+                                  cb({ err: { message: 'EIO: i/o error, stat ' + path,
+                                              code: 'EIO' } })
+                                else if (modeLessPaths[path])
+                                  // An unexpected stat reply: no mode at all.
+                                  cb({ err: 0, data: {} })
                                 else if (base in pages)
                                   cb({ err: 0, data: { mode: 0o100644 } })
                                 else
@@ -219,6 +225,8 @@ function setup
   dirPaths = {}
   unreadablePaths = {}
   binaryPaths = {}
+  statErrPaths = {}
+  modeLessPaths = {}
   installShell(panes, pages, manw)
   return panes
 }
@@ -1926,6 +1934,48 @@ test('viewer', 'a missing bare source goes straight to the topic lookup',
        equal(textOf(b).includes('No manual entry for gone.1'), true)
        equal(calls.some(c => (c[0] == 'man') && (c[1] == '-w') && (c[2] == 'gone.1')), true)
        equal(calls.some(c => (c[0] == 'zcat') || (c[0] == 'cat')), false)
+     })
+
+test('viewer', 'a failed stat that is not ENOENT is reported as a read error',
+     async () => {
+       let b
+
+       setup({})
+       statErrPaths['/tmp/broken.1'] = 1
+       b = await openedVia('broken.1', '/tmp/broken.1')
+       equal(textOf(b).includes('Cannot read /tmp/broken.1: EIO: i/o error, stat /tmp/broken.1'),
+             true)
+       equal(calls.some(c => c[0] == 'man'), false)
+       equal(calls.some(c => (c[0] == 'zcat') || (c[0] == 'cat')), false)
+     })
+
+test('viewer', 'a stat reply with no mode still reads the page',
+     async () => {
+       let b
+
+       setup({ modeless: '.TH MODELESS 1\n.SH NAME\nmodeless \\- fallback\n' })
+       modeLessPaths['/tmp/modeless.1'] = 1
+       b = await openedVia('modeless.1', '/tmp/modeless.1')
+       equal(textOf(b).includes('modeless - fallback'), true)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/tmp/modeless.1')), true)
+     })
+
+test('viewer', 'an empty man -w with an unexpected exit code is a missing page',
+     async () => {
+       let b
+
+       setup({})
+       manwFail = { out: '', code: 1, err: '' }
+       b = await opened('ls')
+       equal(textOf(b).includes('No manual entry for ls'), true)
+       equal(b.vars('Manpage').loading, 0)
+     })
+
+test('source', 'an unknown suffix falls back to cat',
+     () => {
+       equal(Man.decompressorFor('/tmp/foo.1'), 'cat')
+       equal(Man.decompressorFor('/tmp/no-suffix'), 'cat')
+       equal(Man.decompressorFor('/tmp/foo.1.GZ'), 'zcat')
      })
 
 test('viewer', 'a file URL is refused instead of resolved as a path',

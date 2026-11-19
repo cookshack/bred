@@ -1978,6 +1978,36 @@ test('source', 'an unknown suffix falls back to cat',
        equal(Man.decompressorFor('/tmp/foo.1.GZ'), 'zcat')
      })
 
+test('viewer', 'the token after a plain word is the word before it',
+     () => {
+       let m, node
+
+       setup({})
+       m = Mode.get('manpage')
+       node = globalThis.document.createTextNode('printf is nice, then')
+       equal(m.tokenAt({ point: { bep: () => ({ node, offset: 14 }) } }), 'nice')
+     })
+
+test('viewer', 'a number after a word leaves the token empty',
+     () => {
+       let m, node
+
+       setup({})
+       m = Mode.get('manpage')
+       node = globalThis.document.createTextNode('ls 123')
+       equal(m.tokenAt({ point: { bep: () => ({ node, offset: 5 }) } }), '')
+     })
+
+test('viewer', 'a point on text with no word leaves the token empty',
+     () => {
+       let m, node
+
+       setup({})
+       m = Mode.get('manpage')
+       node = globalThis.document.createTextNode('123 456')
+       equal(m.tokenAt({ point: { bep: () => ({ node, offset: 0 }) } }), '')
+     })
+
 test('viewer', 'a file URL is refused instead of resolved as a path',
      () => {
        setup({})

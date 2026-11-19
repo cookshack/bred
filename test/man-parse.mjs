@@ -996,6 +996,545 @@ test('headings', 'a doubled quote inside a heading is literal',
        equal(flat(r.doc.blocks[0].spans), 'Unknown Specials and "TEX_HUSH" configuration')
      })
 
+test('mdoc inline', 'Sy, Em and Li style their words',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sy bold\n.Em note\n.Li code\n')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+       equal(r.doc.blocks[0].spans.find(s => s.text == 'note').style, 'italic')
+       equal(r.doc.blocks[0].spans.find(s => s.text == 'code').style, 'mono')
+     })
+
+test('mdoc inline', 'Dv is monospace and No, Ev, Er, Ft and Lb stay roman',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Dv PATH\n.No plain\n.Ev HOME\n.Er ENOENT\n.Ft int\n.Lb libc\n')
+       equal(r.doc.blocks[0].spans.find(s => s.text == 'PATH').style, 'mono')
+       equal(r.doc.blocks[0].spans.find(s => s.text == 'HOME').style, 'roman')
+       equal(flat(r.doc.blocks[0].spans), 'PATH plain HOME ENOENT int libc')
+     })
+
+test('mdoc inline', 'Tn uses the small style',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Tn ASCII\n')
+       equal(r.doc.blocks[0].spans[0].style, 'small')
+     })
+
+test('mdoc inline', 'An drops a leading option marker but keeps the name',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.An -split John Doe\n.An Jane Roe\n')
+       equal(flat(r.doc.blocks[0].spans), 'John Doe Jane Roe')
+     })
+
+test('mdoc inline', 'Ap attaches an apostrophe without a space',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ar file Ap s\n')
+       equal(flat(r.doc.blocks[0].spans), "file's")
+     })
+
+test('mdoc inline', 'Lk links its text or the url when there is no text',
+     () => {
+       let r, link
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Lk https://example.com "The site"\n.Lk https://example.com\n')
+       link = r.doc.blocks[0].spans[0]
+       equal(link.text, 'The site')
+       equal(link.href, 'https://example.com')
+       equal(r.doc.blocks[0].spans.at(-1).text, 'https://example.com')
+       equal(r.doc.blocks[0].spans.at(-1).href, 'https://example.com')
+     })
+
+test('mdoc inline', 'Mt makes a mailto link',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Mt a@b\n')
+       equal(r.doc.blocks[0].spans[0].href, 'mailto:a@b')
+       equal(r.doc.blocks[0].spans[0].text, 'a@b')
+     })
+
+test('mdoc inline', 'Sx is a bold section reference',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sx SEE ALSO\n')
+       equal(flat(r.doc.blocks[0].spans), 'SEE ALSO')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+     })
+
+test('mdoc inline', 'Fo, Fa and Fc delimit a function and separate its arguments',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fo foo\n.Fa "int a"\n.Fa "char b"\n.Fc\n')
+       equal(flat(r.doc.blocks[0].spans), 'foo(int a, char b)')
+     })
+
+test('mdoc inline', 'Fn without arguments has empty parentheses',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fn foo\n')
+       equal(flat(r.doc.blocks[0].spans), 'foo()')
+     })
+
+test('mdoc inline', 'Pf with no prefix only suppresses the next space',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Pf\n.Ar file\n')
+       equal(flat(r.doc.blocks[0].spans), 'file')
+     })
+
+test('mdoc inline', 'Ta emits a column separator',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\na\n.Ta\nb\n')
+       equal(flat(r.doc.blocks[0].spans), 'a   b')
+     })
+
+test('mdoc inline', 'Ux and the BSD names expand to their platforms',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ux\n.At\n.Bx\n.Fx\n.Nx\n.Ox\n.Dx\n')
+       equal(flat(r.doc.blocks[0].spans), 'UNIX AT&T UNIX BSD FreeBSD NetBSD OpenBSD DragonFly')
+     })
+
+test('mdoc inline', 'St strips the dash from an unknown token',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.St -foo\n')
+       equal(flat(r.doc.blocks[0].spans), 'foo')
+     })
+
+test('mdoc inline', 'Ex and Rv name a missing utility and function',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ex\n.Pp\n.Rv\n')
+       equal(flat(r.doc.blocks[0].spans), 'The utility exits 0 on success, and >0 if an error occurs.')
+       equal(flat(r.doc.blocks[1].spans),
+             'The function() function returns 0 on success; otherwise, it returns -1 and sets errno.')
+     })
+
+test('mdoc inline', 'Sq, Bq, Brq and Aq enclose their words',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sq a\n.Bq b\n.Brq c\n.Aq d\n')
+       equal(flat(r.doc.blocks[0].spans), '‘a’ [b] {c} ⟨d⟩')
+     })
+
+test('mdoc inline', 'Ql quotes a literal and keeps its punctuation',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ql file .\n.Ql\n')
+       equal(flat(r.doc.blocks[0].spans), '‘file’. ‘’')
+     })
+
+test('mdoc inline', 'the paired enclosure macros work across lines',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Do\n.Ar a\n.Dc\n.Qo\n.Ar b\n.Qc\n' +
+                  '.Ao\n.Ar c\n.Ac\n.Bo\n.Ar d\n.Bc\n.So\n.Ar e\n.Sc\n' +
+                  '.Bro\n.Ar f\n.Brc\n')
+       equal(flat(r.doc.blocks[0].spans), '“a” “b” ⟨c⟩ [d] ‘e’ {f}')
+     })
+
+test('mdoc inline', 'Eo and Ec take their delimiters from the arguments',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Eo <\n.Ar f\n.Ec >\n')
+       equal(flat(r.doc.blocks[0].spans), '<f>')
+     })
+
+test('mdoc inline', 'Oo and Oc may open and close on their own lines',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Oo\n.Ar f\n.Oc\n')
+       equal(flat(r.doc.blocks[0].spans), '[f]')
+     })
+
+test('mdoc inline', 'Nm in SYNOPSIS is bold',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.Nm ls\n')
+       equal(flat(r.doc.blocks[1].spans), 'ls')
+       equal(r.doc.blocks[1].spans[0].style, 'bold')
+     })
+
+test('mdoc inline', 'Nm with no stored name emits nothing',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Nm\n')
+       equal(r.ok, 1)
+       equal(ManParse.toText(r.doc.blocks), '')
+     })
+
+test('mdoc inline', 'Xr without a section and with trailing marks',
+     () => {
+       let r, plain, marks, word
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Xr ls\n')
+       plain = r.doc.blocks[0].spans[0]
+       equal(plain.text, 'ls')
+       equal(plain.href, 'man:ls')
+       marks = parsed('.Dd t\n.Dt T 1\n.Os\n.Xr cat 1 ) .\n')
+       equal(flat(marks.doc.blocks[0].spans), 'cat(1)).')
+       word = parsed('.Dd t\n.Dt T 1\n.Os\n.Xr ksh foo .\n')
+       equal(flat(word.doc.blocks[0].spans), 'kshfoo.')
+     })
+
+test('mdoc inline', 'Fl with no word is a lone dash and keeps punctuation',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fl\n.Pp\n.Fl a .\n')
+       equal(flat(r.doc.blocks[0].spans), '-')
+       equal(flat(r.doc.blocks[1].spans), '-a.')
+     })
+
+test('mdoc inline', 'Ar without arguments means a list of files',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ar\n')
+       equal(flat(r.doc.blocks[0].spans), 'file ...')
+       equal(r.doc.blocks[0].spans[0].style, 'italic')
+     })
+
+test('mdoc', 'It without Bl fails the page',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.It alone\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'It without Bl')
+     })
+
+test('mdoc', 'D1 displays a single line',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.D1 $ echo\n')
+       equal(r.doc.blocks[0].kind, 'para')
+       equal(flat(r.doc.blocks[0].spans), '$ echo')
+     })
+
+test('mdoc', 'Dl with no arguments makes an empty literal block',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Dl\n')
+       equal(r.doc.blocks[0].kind, 'pre')
+       equal(flat(r.doc.blocks[0].spans), '')
+     })
+
+test('mdoc', 'Bd without -literal makes an indented group',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bd -ragged\ninside\n.Ed\nafter\n')
+       equal(r.doc.blocks[0].kind, 'group')
+       equal(flat(r.doc.blocks[0].blocks[0].spans), 'inside')
+       equal(flat(r.doc.blocks[1].spans), 'after')
+     })
+
+test('mdoc', 'Bk, Ek and an empty reference produce no output',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bk -words\n.Ek\n.Rs\n.Re\nvisible\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'visible')
+     })
+
+test('mdoc', 'Bf sets a font until Ef',
+     () => {
+       let r, spans
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bf -literal\nmono\n.Ef\n.Bf -emphasis\nital\n.Ef\n' +
+                  '.Bf -symbolic\nsym\n.Ef\n.Bf\nplain\n.Ef\n')
+       spans = r.doc.blocks[0].spans
+       equal(spans[0].style, 'mono')
+       equal(spans.find(s => s.text == 'ital').style, 'italic')
+       equal(spans.find(s => s.text == 'sym').style, 'bold')
+       equal(spans.find(s => s.text == 'plain').style, 'roman')
+     })
+
+test('mdoc', 'an extended tag keeps taking words until Xc',
+     () => {
+       let r, list
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -tag -width x\n.It Xo\n.Fl a\n.Xc\nbody\n.El\n')
+       list = r.doc.blocks[0]
+       equal(flat(list.items[0].tag), '-a')
+       equal(flat(list.items[0].blocks[0].spans), 'body')
+     })
+
+test('escapes', 'a parenthesised font name has two characters',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na \\f(CWbold\\fR b\n')
+       equal(flat(r.doc.blocks[0].spans), 'a bold b')
+       equal(r.doc.blocks[0].spans.find(s => s.text == 'bold').style, 'mono')
+     })
+
+test('escapes', 'ftr defines a font alias used by ft and font escapes',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.ftr XX B\n.ft XX\nbold\n.ft\nplain\n')
+       equal(flat(r.doc.blocks[0].spans), 'bold plain')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+     })
+
+test('escapes', 'an unterminated character name fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na \\[oops\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'unterminated character escape')
+     })
+
+test('escapes', 'w measures its argument in units',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na \\w\'abcdef\' b\n')
+       equal(flat(r.doc.blocks[0].spans), 'a 144 b')
+     })
+
+test('escapes', 'o emits the first character of its argument',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na\\o\'xy\'b\n')
+       equal(flat(r.doc.blocks[0].spans), 'axb')
+     })
+
+test('escapes', 'N names a character by its numeric code',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na \\N\'65\' b\n')
+       equal(flat(r.doc.blocks[0].spans), 'a A b')
+     })
+
+test('escapes', 'vertical, device and mark escapes are skipped',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na\\v\'1\'b \\m[red]c \\F\'X\'d \\M[red]e \\S\'1\'f \\k(xg\n')
+       equal(flat(r.doc.blocks[0].spans), 'ab c d e f')
+     })
+
+test('escapes', 'dollar at and star expand all macro arguments',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.de M\n[\\$@]\n[\\$*]\n..\n.M a b c\n')
+       equal(flat(r.doc.blocks[0].spans), '[a b c] [a b c]')
+     })
+
+test('escapes', 'a raw high-bit character is kept as text',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\ncaf\u00e9\n')
+       equal(flat(r.doc.blocks[0].spans), 'caf\u00e9')
+     })
+
+test('escapes', 'an unknown escape fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na \\q b\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'escape \\q')
+     })
+
+test('conditions', 'arithmetic in conditions supports every operator',
+     () => {
+       equal(asText('.TH T 1\n.if 1+2*3==7 a\n.if 7-1==6 b\n.if 8/2==4 c\n.if 5%2==1 d\n' +
+                    '.if 2>=2 e\n.if 2<=3 f\n.if 2=2 g\n.if 1&1 h\n.if 0:1 i\n' +
+                    '.if (1+1)*2==4 j\n.if -1<0 k\n'),
+             'a b c d e f g h i j k\n')
+     })
+
+test('conditions', 'a negated condition inverts the test',
+     () => {
+       equal(asText('.TH T 1\n.ie !n no\n.el yes\n'), 'yes\n')
+     })
+
+test('conditions', 't is false and a negated v is true',
+     () => {
+       equal(asText('.TH T 1\n.if t no\n.if !v yes\n'), 'yes\n')
+     })
+
+test('conditions', 'd and r test the definition tables',
+     () => {
+       equal(asText('.TH T 1\n.ds S x\n.nr R 1\n.if dS d1\n.if dR d2\n.if rR r1\n' +
+                    '.if dZ dz\n.if rZ rz\n'),
+             'd1 d2 r1\n')
+     })
+
+test('conditions', 'an unterminated false block fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.if t \\{\\\nhidden\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'unterminated conditional block')
+     })
+
+test('conditions', 'an empty condition skips the next line',
+     () => {
+       equal(asText('.TH T 1\n.if t\nhidden\nshown\n'), 'shown\n')
+     })
+
+test('headings', 'SH with no arguments takes the next line as its heading',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.SH\nNAME\ntext\n')
+       equal(r.doc.blocks[0].kind, 'heading')
+       equal(flat(r.doc.blocks[0].spans), 'NAME')
+     })
+
+test('tables', 'a span column widens the cell before it',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nl s l.\na\tb\tc\n.TE\n')
+       equal(r.doc.blocks[0].rows[0].cells.length, 2)
+       equal(r.doc.blocks[0].rows[0].cells[0].colspan, 2)
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), 'b c')
+     })
+
+test('tables', 'an italic column modifier sets italic',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nli l.\na\tb\n.TE\n')
+       equal(r.doc.blocks[0].cols[0].italic, 1)
+     })
+
+test('tables', 'cells beyond the layout join the last column',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nl l l.\na\tb\tc\td\te\n.TE\n')
+       equal(r.doc.blocks[0].rows[0].cells.length, 3)
+       equal(flat(r.doc.blocks[0].rows[0].cells[2].spans), 'c d e')
+     })
+
+test('tables', 'a layout may continue on several lines',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nl\nl.\na\tb\n.TE\n')
+       equal(r.doc.blocks[0].cols.length, 2)
+     })
+
+test('groff requests', 'several requests are presentation only',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.PD 2\n.DT\n.UC\n.AT\n.in 1\n.ti 2\n.ll 3\n.ta 4\n.ev 5\n' +
+                  '.ul 1\n.ce 1\n.ss 2\n.fam X\n.bd 1\nvisible\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'visible')
+     })
+
+test('groff requests', 'do and nop invoke a control line',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.do .B bold\n.nop .I italic\n')
+       equal(r.doc.blocks[0].spans[0].style, 'bold')
+       equal(r.doc.blocks[0].spans.find(s => s.text == 'italic').style, 'italic')
+     })
+
+test('groff requests', 'rr removes a register',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.nr Q 1\n.rr Q\n\\nQ\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'register Q')
+     })
+
+test('groff requests', 'rn renames a macro',
+     () => {
+       equal(asText('.TH T 1\n.de M\nhi\n..\n.rn M N\n.N\n'), 'hi\n')
+     })
+
+test('groff requests', 'rm removes a macro',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.de M\nhi\n..\n.rm M\n.M\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'macro M')
+     })
+
+test('groff requests', 'als aliases a macro and can point at nothing',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.de M\nhi\n..\n.als A M\n.A\n.als Z NoSuch\n.Z\n')
+       equal(flat(r.doc.blocks[0].spans), 'hi')
+       equal(r.fails[0].what, 'macro Z')
+     })
+
+test('groff requests', 'a recursive macro is refused',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.de R\n.R\n..\n.R\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'macro recursion')
+     })
+
+test('groff requests', 'a definition with no terminator fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.de M\ncode\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'unterminated definition')
+     })
+
+test('translation', 'tr with one argument maps character pairs',
+     () => {
+       equal(asText('.TH T 1\n.tr abcd\nadcb\n'), 'bddb\n')
+     })
+
+test('text', 'toText walks literal and group blocks',
+     () => {
+       equal(asText('.TH T 1\n.nf\npre\n.fi\n.RS\ngrouped\n.RE\n'), 'pre\ngrouped\n')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

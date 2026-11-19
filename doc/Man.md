@@ -40,7 +40,7 @@ suggestion closes the prompt and opens the page.
 | `js/man.mjs` | viewer mode/commands: fetch, include prefetch, buffer per topic, reload, click-to-follow, TOC |
 | `bin/man-audit` | corpus report; `--parse` runs the interpreter |
 | `bin/man-diff` | content diff against `man -Tutf8` |
-| `bin/fetch-man-corpus` | download Linux man-pages and BSD trees into `.corpus/` |
+| `bin/fetch-man-corpus` | download Linux man-pages, groff and OpenBSD into `.corpus/` |
 | `css/manpage.css` | page styles (reflow, no fixed width) |
 
 Block model: `doc.blocks` of `heading{level,spans}`, `para{spans,synopsis}`,
@@ -61,7 +61,7 @@ npx mocha test/man-roff.mjs test/man-parse.mjs test/man-render.mjs test/man-view
 ./bin/man-diff --page /usr/share/man/man1/ls.1.gz
 ./bin/man-audit --parse --render       # parse and draw every page
 npm run test-corpus                    # same, as a pass/fail test (slow)
-./bin/fetch-man-corpus                 # Linux man-pages + BSD trees into .corpus/
+./bin/fetch-man-corpus                 # Linux man-pages, groff, OpenBSD into .corpus/
 MAN_CORPUS_ROOTS="$PWD/.corpus/linux:$PWD/.corpus/openbsd/share/man" \
   npm run test-corpus                  # test a downloaded corpus instead
 ```

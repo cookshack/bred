@@ -5,8 +5,9 @@
 //   bin/fetch-man-corpus [--dir DIR] [--only NAME,NAME] [--list]
 //
 // The pages are not part of the repository. Defaults are the Linux man-pages,
-// OpenBSD, FreeBSD and NetBSD trees; `--list` shows the others. The BSD trees
-// are sparse git clones, so only their man directories are checked out.
+// groff and OpenBSD; `--list` shows the larger BSD trees that `--only` can
+// add. The BSD trees are sparse git clones, so only their man directories are
+// checked out.
 
 import { execFileSync } from 'node:child_process'
 import Fs from 'node:fs'
@@ -51,7 +52,7 @@ function parseArgs
 (argv) {
   let out
 
-  out = { dir: '.corpus', only: 'linux,groff,openbsd,freebsd,netbsd', list: 0 }
+  out = { dir: '.corpus', only: 'linux,groff,openbsd', list: 0 }
   for (let i = 0; i < argv.length; i++) {
     let arg
 

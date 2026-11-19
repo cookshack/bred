@@ -1445,7 +1445,7 @@ function tableOptions
   opts = { tab: '\t', box: 0, allbox: 0, center: 0, expand: 0 }
   // Options are separated by spaces, commas or semicolons, and tab(...) may
   // itself contain a space or a semicolon, so take it out before splitting.
-  text = text.replace(/tab\(([^)]*)\)/g, (all, tab) => {
+  text = text.replace(/tab\s*\(([^)]*)\)/g, (all, tab) => {
                                            opts.tab = tab || '\t'
                                            return ' '
                                          })
@@ -2862,9 +2862,12 @@ function handleLine
     spans = []
     if (text.length)
       pushSpan(spans, { text, style: c.font, href })
-    pushSpan(spans, { text: (text.length ? ' <' + target + '>' : '<' + target + '>'),
-                      style: c.font,
-                      href })
+    // man(1) shows the bare target when the macro has no description, and
+    // the description followed by the target in angle brackets otherwise.
+    if (text.length)
+      pushSpan(spans, { text: ' <' + target + '>', style: c.font, href })
+    else if (target.length)
+      pushSpan(spans, { text: target, style: c.font, href })
     if (trailing.length)
       pushSpan(spans, { text: trailing, style: 'roman' })
     appendInline(c, spans)

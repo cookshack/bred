@@ -474,6 +474,16 @@ test('text', 'toText walks the block model',
              '\nNAME\nls\n-a\nall\n')
      })
 
+test('tables', 'a tab option separated by a space sets the separator',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\ntab (@);\nl l.\na@b\nc@d\n')
+       equal(flat(r.doc.blocks[0].rows[0].cells[0].spans), 'a')
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), 'b')
+       equal(flat(r.doc.blocks[0].rows[1].cells[1].spans), 'd')
+     })
+
 test('tables', 'a T} opens the next multiline cell on the same line',
      () => {
        let r, rows
@@ -933,7 +943,7 @@ test('links', 'URL with empty text shows the target',
        let r
 
        r = parsed('.TH T 1\n.URL https://example.com "" .\n')
-       equal(flat(r.doc.blocks[0].spans), '<https://example.com>.')
+       equal(flat(r.doc.blocks[0].spans), 'https://example.com.')
      })
 
 test('links', 'MTO uses a mailto link',

@@ -1156,6 +1156,27 @@ test('agent', 'the agent name is always nb3',
        equal(agent.matches(sel), true, 'the agent stays coloured with the prompt closed')
      })
 
+test('status', 'shows the wave as soon as a prompt is sent',
+     async () => {
+       let fake, panes, turn
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-wave', time: { created: 1 } },
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': { id: 'msg_wave' } } })
+       turn = startTurn(panes, fake, 0)
+       try {
+         await waitFor(() => turn.buf()?.views[0]?.ele?.querySelector('.code-under-status'))
+         equal(turn.buf().views[0].ele.querySelector('.code-under-status').innerText,
+               '🌊',
+               'the wave shows before the server reports busy')
+       }
+       finally {
+         panes.pB.setBuf = turn.orig
+       }
+     })
+
 // the pane Pane.split added: not one of the two the fixture started with
 function newPane
 (panes) {

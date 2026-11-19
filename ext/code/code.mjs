@@ -70,6 +70,7 @@ function codeInit
       return
     }
     existingBuf.vars('code').busy = 1
+    showBusy(existingBuf)
     pane.setBuf(existingBuf)
     existingBuf.vars('code').agentStopped = 0
     Ui.appendMsg(existingBuf, 'user', '/init', undefined, undefined, { agent: 'build' })
@@ -107,6 +108,7 @@ function codeInit
                                                                  buf.vars('code').firstPromptSent = 1
                                                                  buf.vars('code').busy = 1
                                                                  updateNav(buf)
+                                                                 showBusy(buf)
                                                                  Ui.appendMsg(buf, 'user', '/init', undefined, undefined, { agent: 'build' })
                                                                  updateBufAgent(buf, 'build')
                                                                  Ui.updateDocker(buf)
@@ -372,6 +374,9 @@ function ynRespond
   perm = buf.vars('code').permissions.find(p => p.id == id)
   sessionID = perm?.sessionID || buf.vars('code')?.sessionID
   response = yes ? 'once' : 'reject'
+  // Answering resumes the turn, so show that before the reply even leaves.
+  buf.vars('code').turnActive = 1
+  showBusy(buf)
 
   d('CO permission reply: ' + response)
   Comm.ensureClient(buf).then(async c => {
@@ -497,12 +502,20 @@ function updateIdle
   Mess.yell('')
 }
 
+// The wave is painted as soon as the work starts, not when the server gets
+// round to saying it is busy: the startup chain can take a while, and an idle
+// OK left on screen until then reads as a prompt that never went out.
+function showBusy
+(buf) {
+  Ui.updateStatus(buf, '🌊', Util.modelName(buf.vars('code').model, buf.vars('code').variant), Util.calculateTokenPercentage(buf), VopenCode.version)
+}
+
 function updateStatus
 (buf, req, tokenInfo) {
 
   if (req.status?.type == 'busy') {
     buf.vars('code').turnActive = 1
-    Ui.updateStatus(buf, '🌊', Util.modelName(buf.vars('code').model, buf.vars('code').variant), tokenInfo, VopenCode.version)
+    showBusy(buf)
   }
   else if (req.status?.type == 'idle')
     updateIdle(buf, tokenInfo)
@@ -788,6 +801,9 @@ function formGone
 function questionRespond
 (buf, requestID, answers) {
   d('CO question ' + (answers ? 'reply' : 'reject'))
+  // Answering resumes the turn, so show that before the reply even leaves.
+  buf.vars('code').turnActive = 1
+  showBusy(buf)
   Comm.ensureClient(buf).then(async c => {
                                 let req, sessionID
 
@@ -1396,6 +1412,7 @@ function send
   buf.vars('code').netHinted = 0
   buf.vars('code').gotContent = 0
   updateNav(buf)
+  showBusy(buf)
 
   provider = provider || Util.getProvider(buf)
   model = model || Util.getModel(buf)

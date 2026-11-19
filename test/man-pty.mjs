@@ -33,32 +33,32 @@ function fakeIpc
            removeListener: () => 0 }
 }
 
-function onPty
-(c, data) {
-  if (data.stdout)
-    c.out += data.stdout
-  if (data.err)
-    c.reject(data.err)
-  if (data.close == 1)
-    c.resolve({ text: c.out, code: data.code })
-}
-
 // Run zcat through the same main-side pty path the viewer uses.
 function zcatThroughPty
 (file) {
-  let c
+  let out, resolveOut, rejectOut
 
-  c = { out: '' }
-  return new Promise((resolve, reject) => {
-                       c.resolve = resolve
-                       c.reject = reject
-                       ShellRun.run({ pty: Pty,
-                                      ipcMain: fakeIpc(),
-                                      appPath: process.cwd() },
-                                    { sender: { send: (ch, data) => onPty(c, data) } },
-                                    'man-pty-test', Os.tmpdir(), 'zcat', [ file ], {},
-                                    { shell: '/bin/sh' })
-                     })
+  function onPtyData
+  (ch, data) {
+    if (data.stdout)
+      out += data.stdout
+    if (data.err)
+      rejectOut(data.err)
+    if (data.close == 1)
+      resolveOut({ text: out, code: data.code })
+  }
+
+  function start
+  (resolve, reject) {
+    resolveOut = resolve
+    rejectOut = reject
+    ShellRun.run({ pty: Pty, ipcMain: fakeIpc(), appPath: process.cwd() },
+                 { sender: { send: onPtyData } }, 'man-pty-test',
+                 Os.tmpdir(), 'zcat', [ file ], {}, { shell: '/bin/sh' })
+  }
+
+  out = ''
+  return new Promise(start)
 }
 
 tests = {}
@@ -66,24 +66,33 @@ tests = {}
 test('man-pty', 'zcat through a real pty yields CRLF that parses and renders',
      async function
      () {
-       let dir
+       let dir, page
 
        if (Pty == undefined)
          this.skip()
        dir = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-man-pty-'))
+       page = '.TH PROBE 1 "2026-11-19"\n' +
+              '.SH NAME\n' +
+              'probe \\- read a page through a pty\n' +
+              '.SH SYNOPSIS\n' +
+              '.B probe\n' +
+              '.RI [ file ]\n' +
+              '.PP\n' +
+              'first paragraph\n' +
+              '.br\n' +
+              'second line\n' +
+              '.nf\n' +
+              'literal one\n' +
+              'literal two\n' +
+              '.fi\n' +
+              '.TP\n' +
+              '.B \\-\\-help\n' +
+              'show help\n'
        try {
          let file, raw, res, out
 
          file = Path.join(dir, 'probe.1.gz')
-         Fs.writeFileSync(file, Zlib.gzipSync('.TH PROBE 1 "2026-11-19"\n' +
-                                             '.SH NAME\n' +
-                                             'probe \\- read a page through a pty\n' +
-                                             '.SH SYNOPSIS\n' +
-                                             '.B probe\n' +
-                                             '.RI [ file ]\n' +
-                                             '.TP\n' +
-                                             '.B \\-\\-help\n' +
-                                             'show help\n'))
+         Fs.writeFileSync(file, Zlib.gzipSync(page))
          raw = await zcatThroughPty(file)
          equal(raw.code, 0)
          // The regression: the reader sees CRLF, not just LF.
@@ -95,6 +104,11 @@ test('man-pty', 'zcat through a real pty yields CRLF that parses and renders',
          setupDom()
          out = ManRender.render(res.doc)
          equal(out.el.textContent.includes('read a page through a pty'), true)
+         equal(out.el.textContent.includes('first paragraph'), true)
+         equal(out.el.textContent.includes('second line'), true)
+         // No-argument macros (.PP, .br, .nf/.fi) must survive the line
+         // endings, not leave a \r on the line or swallow the body.
+         equal(out.el.querySelector('pre').textContent, 'literal one\nliteral two')
          equal(out.el.textContent.includes('show help'), true)
          equal(out.el.textContent.includes('\r'), false)
        }

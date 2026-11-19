@@ -70,7 +70,8 @@ MAN_CORPUS_ROOTS="$PWD/.corpus/linux:$PWD/.corpus/openbsd/share/man" \
 `man-audit` without `--parse` reports the static dialect inventory (an upper
 bound; it cannot evaluate `.if`). `--render` draws each parsed page too.
 `test/man-corpus.mjs` walks `manpath`, refuses only known page bugs, and fails
-on a renderer exception; it is opt-in because it takes about a minute.
+on a renderer exception; it is opt-in because it takes about a minute. It
+feeds each page with CRLF line endings, like the pty the viewer reads through.
 `npm run test-corpus` writes its output to `man-corpus.log` as well as the
 terminal.
 `MAN_CORPUS_ROOTS` replaces `manpath`, so a downloaded corpus can be tested
@@ -103,7 +104,7 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 155 (inventory, interpreter, renderer, viewer); `test-corpus` also
+Tests: 161 (inventory, interpreter, renderer, viewer); `test-corpus` also
 parses and renders every page in the corpus.
 
 ## Known gaps, in order

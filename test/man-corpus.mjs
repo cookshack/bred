@@ -12,6 +12,13 @@ import { setupDom } from './dom-help.mjs'
 // when asked: `npm run test-corpus` (or MAN_CORPUS=1 npx mocha ...).
 let run
 
+// The viewer reads through a pty, which turns every LF into CRLF. Feed the
+// parser the same bytes it would see in Bred.
+function viewerText
+(text) {
+  return text.replace(/\r?\n/g, '\r\n')
+}
+
 function readPage
 (file) {
   let buf
@@ -165,7 +172,7 @@ run('corpus',
                                       process.stdout.write('corpus: ' + (index + 1) + '/' +
                                                            pages.length + ' ' + file + '\n')
                                       try {
-                                        result = ManParse.parse(readPage(file), { include })
+                                        result = ManParse.parse(viewerText(readPage(file)), { include })
                                       }
                                       catch (err) {
                                         note('read error: ' + err.message, file, 0)

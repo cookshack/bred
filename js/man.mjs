@@ -301,8 +301,8 @@ function init
                                let m
 
                                m = /^[ \t]*\.so[ \t]+(\S+)/.exec(line)
-                               if (m && (out.includes(m[1]) == 0))
-                                 out.push(m[1])
+                               if (m && (out.includes(m[1].replace(/\r$/, '')) == 0))
+                                 out.push(m[1].replace(/\r$/, ''))
                              })
     return out
   }

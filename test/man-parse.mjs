@@ -57,6 +57,15 @@ test('paragraphs', 'text lines fill one paragraph',
        equal(flat(r.doc.blocks[1].spans), 'first line second line')
      })
 
+test('paragraphs', 'CRLF line continuation joins before parsing',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\r\n.TP\r\nfirst \\\r\nsecond\\\r\nthird\r\nbody\r\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].tag), 'first secondthird')
+     })
+
 test('paragraphs', 'CRLF input is treated as LF',
      () => {
        let r

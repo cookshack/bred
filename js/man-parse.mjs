@@ -824,7 +824,7 @@ function nextInput
       text = f.lines[f.at].replace(/\r$/, '')
       f.at++
       while (continues(text) && (f.at < f.lines.length)) {
-        text = text.slice(0, -1) + f.lines[f.at]
+        text = text.slice(0, -1) + f.lines[f.at].replace(/\r$/, '')
         f.at++
       }
       return { text, line: f.line + f.at - 1 }

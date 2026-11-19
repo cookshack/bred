@@ -240,6 +240,17 @@ test('viewer', 'a CRLF page from the pty renders',
        equal(textOf(b).includes('more'), true)
      })
 
+test('viewer', 'a CRLF mid-page include is gathered',
+     async () => {
+       let b
+
+       setup({ page: 'Before\r\n.so man1/bash.1\r\n',
+               bash: '.TH BASH 1\r\n.SH NAME\r\nbash \\- the shell\r\n' })
+       b = await opened('page')
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(textOf(b).includes('the shell'), true)
+     })
+
 test('viewer', 'a refused page lists the constructs',
      async () => {
        let b

@@ -77,14 +77,16 @@ the newest result. A path page is re-read from its path, not looked up again
 with `man -w`. A failed refresh shows its error and the buffer stays usable;
 reopening a refused or failed page retries it.
 
-`M-x man` completes topics with `man -k '^prefix'` (cached by the normalised
-query, name plus optional section); a section prefix or suffix is stripped for
-the query and results are filtered to that section, so `3 pr` and `printf (3)`
-suggest `printf(3)` rather than asking for `^3 pr` or `^printf (3)`, and
-`3 printf (3)` asks for `^printf` once. `3 pr` and `pr (3)` share that cache
-entry while `pr` (no section) has its own. The token at point is trimmed for
-the prompt: trailing sentence punctuation is dropped from `ls(1).` and a
-`man:` prefix is removed. A suggestion closes the prompt and opens the page.
+`M-x man` completes topics with `man -k '^prefix'` (cached by the name alone,
+not by section); a section prefix or suffix is stripped for the query and
+results are filtered to that section, so `3 pr` and `printf (3)` suggest
+`printf(3)` rather than asking for `^3 pr` or `^printf (3)`, and
+`3 printf (3)` asks for `^printf` once. `3 pr`, `pr (3)` and `pr` share that
+cache answer and only the section filter differs. The token at point prefills
+the prompt: a link or reference gives its topic (`ls(1)`), plain text gives
+the word under the point, trailing sentence punctuation is dropped from
+`ls(1).`, and a URL leaves the prompt empty. A suggestion closes the prompt
+and opens the page.
 C-n and C-p move through the suggestions (saying `That's all` when there are
 none); C-p starts at the last one and C-n at the first, and Enter opens the
 highlighted one. A prompt submission is kept in history and replaying one
@@ -153,7 +155,9 @@ escaping, a shared normalised cache key, a section prefix such as `3 pr`, a
 parenthesised suffix such as `printf (3)`, a section prefix and suffix together,
 suggestion clicks, C-n/C-p navigation starting at either end and Enter on the
 highlighted item, `That's all` with no matches, a throwing `tokenAt`, tokens
-with sentence punctuation or a `man:` prefix, a close with suggestions before
+with sentence punctuation or a `man:` prefix, a point inside a reference or
+plain page text seeding the prompt, a URL token leaving it empty, a close with
+suggestions before
 the attract timer), prompt history replay, a refused `file:` URL and `~user`
 path, bare path stat checks (missing, directory, unreadable), error paths
 (unreadable, empty and blank pages, non-gzip fallback, a missing `man` and a
@@ -165,7 +169,8 @@ refused and retrying it after another click, trailing punctuation and no-text
 man links, and buffer reuse and shared refresh across panes. `test/man-pty.mjs`
 covers the real reader path: it writes a gzip page to a temporary file, runs
 `zcat` through node-pty (the same main-side path the viewer uses), checks the
-CRLF that comes back, and parses and renders it. It skips when node-pty is not
+CRLF that comes back, and parses and renders it, including no-argument macros
+(`.PP`, `.br`, `.nf`/`.fi`). It skips when node-pty is not
 available. The renderer tests also draw compact and large pages, empty tables
 and lists, combined table options, colspans and links with no text.
 

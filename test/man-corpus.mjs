@@ -169,6 +169,10 @@ run('corpus',
                       pages.forEach((file, index) => {
                                       let result
 
+                                      // --expose-gc keeps the happy-dom trees from
+                                      // piling up across thousands of pages.
+                                      if (globalThis.gc && (index > 0) && ((index % 1000) == 0))
+                                        globalThis.gc()
                                       process.stdout.write('corpus: ' + (index + 1) + '/' +
                                                            pages.length + ' ' + file + '\n')
                                       try {

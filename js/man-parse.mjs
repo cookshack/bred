@@ -1507,21 +1507,32 @@ function tableRows
                   let parts
 
                   if (multiline) {
-                    if (line.trim().endsWith('T}')) {
+                    let cut
+
+                    cut = line.indexOf('T}')
+                    if (cut < 0) {
+                      if (line.length)
+                        buffer += (buffer.length ? '\n' : '') + line
+                      return
+                    }
+                    if (cut > 0) {
                       let tail
 
-                      tail = line.trim().slice(0, -2).trim()
+                      tail = line.slice(0, cut).trim()
                       if (tail.length)
                         buffer += (buffer.length ? '\n' : '') + tail
-                      cells.push(tableCell(c, buffer, lineNo))
+                    }
+                    cells.push(tableCell(c, buffer, lineNo))
+                    buffer = ''
+                    multiline = 0
+                    // `T}` can close a cell and `T{` open the next one on the
+                    // same tab-separated line, as the TIFF tables do.
+                    line = line.slice(cut + 2).replace(/^[ \t]+/, '')
+                    if (line.trim() == '') {
                       rows.push(cells)
                       cells = []
-                      buffer = ''
-                      multiline = 0
+                      return
                     }
-                    else if (line.length)
-                      buffer += (buffer.length ? '\n' : '') + line
-                    return
                   }
                   if (line.trim() == '')
                     return

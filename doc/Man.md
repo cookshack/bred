@@ -211,15 +211,19 @@ man(1)'s text:
 
 ```
 section  1    3    5    7    8
-pages   25    4   18    4   58
-words   48  248   41   14   91
+pages   25    4   16    4   58
+words   48  248   38   14   89
 ```
 
 Most of that is measurement, not loss: man(1) wraps a long word onto the next
 line (so it splits `[n]<&digit-` from `moves`), breaks a compound at a hyphen,
 and repeats a non-standard `.TH` in the footer; `man-diff` normalises those,
 but a split inside a word that is not hyphenated still counts. Section 3 is
-almost entirely the TIFF pages, whose option table has such long joined names.
+almost entirely the TIFF pages, whose option table hyphenates long names such
+as `TIFFTAG_BADFAXLINES` inside a narrow cell; the cells themselves now parse
+(`T{`/`T}` blocks, which used to leave the markers in the text). `man-diff`
+drops a bare `|` and `_` from both sides, since those are our table separators
+and rule rows and man(1) draws neither.
 Section 8 is almost entirely `.URL`/`.MTO` with an empty description: man(1)
 prints the bare target where we print `⟨target⟩`.
 

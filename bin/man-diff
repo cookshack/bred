@@ -187,6 +187,14 @@ function wordsOf
   return text.split(' ').filter(word => word.length)
 }
 
+// toText joins table cells with " | " and keeps a `_` rule row; man(1) draws
+// neither. Both sides drop those tokens so a real "|" in an example cannot
+// look like a table border on one side only.
+function ourWordsOf
+(text) {
+  return wordsOf(text).filter(word => (word != '|') && (word != '_'))
+}
+
 function missingWords
 (refWords, ourWords) {
   let counts, missing, sample
@@ -220,8 +228,8 @@ function diffPage
   res = ManParse.parse(src)
   if (res.ok == 0)
     return { file, refused: 1, fails: res.fails }
-  ref = wordsOf(referenceText(file))
-  ours = wordsOf(normal(ManParse.toText(res.doc.blocks)))
+  ref = ourWordsOf(referenceText(file))
+  ours = ourWordsOf(normal(ManParse.toText(res.doc.blocks)))
   if (ref.length < opts.min)
     return { file, small: 1, refWords: ref.length }
   return { file,
@@ -242,8 +250,8 @@ function detail
     console.log('fails ' + res.fails.map(item => item.what + '@' + item.line).join(', '))
     return
   }
-  ref = wordsOf(referenceText(file))
-  ours = wordsOf(normal(ManParse.toText(res.doc.blocks)))
+  ref = ourWordsOf(referenceText(file))
+  ours = ourWordsOf(normal(ManParse.toText(res.doc.blocks)))
   at = 0
   while ((at < ref.length) && (at < ours.length) && (ref[at] == ours[at]))
     at++

@@ -122,26 +122,52 @@ test('refusal', 'refused pages have no document to draw',
        equal(res.fails[0].what, 'macro wibble')
      })
 
-if (setupDom)
-  globalThis.before(() => {
-                      saved = {}
-                      globalKeys.forEach(k => {
-                                           saved[k] = globalThis[k]
-                                         })
-                      setupDom()
+function saveGlobals
+() {
+  saved = {}
+  globalKeys.forEach(k => {
+                       saved[k] = globalThis[k]
+                     })
+}
+
+function restoreGlobals
+() {
+  globalKeys.forEach(k => {
+                       try {
+                         globalThis[k] = saved[k]
+                       }
+                       catch {
+                       }
+                     })
+}
+
+// Set up the DOM per test rather than once for the run: other test files
+// replace globalThis.document, and a root `before` would be undone by them.
+function testIt
+(t) {
+  globalThis.it(t.name, t.cb)
+}
+
+function addGroup
+(group) {
+  globalThis.describe(group[0], () => group[1].forEach(testIt))
+}
+
+function addTests
+() {
+  Object.entries(tests).forEach(addGroup)
+}
+
+globalThis.describe('man-render',
+                    () => {
+                      if (setupDom)
+                        globalThis.beforeEach(() => {
+                                                saveGlobals()
+                                                setupDom()
+                                              })
+
+                      if (globalThis.afterEach)
+                        globalThis.afterEach(restoreGlobals)
+
+                      addTests()
                     })
-
-if (globalThis.after)
-  globalThis.after(() => {
-                     globalKeys.forEach(k => {
-                                          try {
-                                            globalThis[k] = saved[k]
-                                          }
-                                          catch {
-                                          }
-                                        })
-                   })
-
-Object.entries(tests).forEach(group => globalThis.describe(group[0],
-                                                           () => group[1].forEach(t => globalThis.it(t.name,
-                                                                                                     t.cb))))

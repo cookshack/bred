@@ -13,9 +13,9 @@ import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, statErrPaths, modeLessPaths, readFailPaths
 
 function test
-(group, name, cb) {
+(group, name, cb, ms) {
   tests[group] = tests[group] || []
-  tests[group].push({ name, cb })
+  tests[group].push({ name, cb, ms })
 }
 
 function lookup
@@ -1621,20 +1621,22 @@ test('viewer', 'completion cache evicts the oldest prefix',
                        return b?.vars('prompt')?.run && b.views[0]?.ed
                      })
        v = Pane.current().buf.views[0]
+       // This is 101 completion round trips, so each wait needs more than the
+       // default second when the rest of the suite is running.
        type('qq0')
-       await waitFor(() => kn('qq0') == 1)
+       await waitFor(() => kn('qq0') == 1, 5000)
        for (let at = 1; at <= 100; at++) {
          type('qq' + at)
-         await waitFor(() => kn('qq' + at) == 1)
+         await waitFor(() => kn('qq' + at) == 1, 5000)
        }
        // 101 names went through a 100-entry cache: the first is gone
        type('qq0')
-       await waitFor(() => kn('qq0') == 2)
+       await waitFor(() => kn('qq0') == 2, 5000)
        // a recent name is still served without asking man -k again
        type('qq100')
        await wait(80)
        equal(kn('qq100'), 1)
-     })
+     }, 10000)
 
 test('viewer', 'a name that collides with an object property completes safely',
      async () => {
@@ -2272,11 +2274,19 @@ test('viewer', 'show all failures expands the capped list',
        equal(viewOf(b).ele.querySelectorAll('.manpage-err-item').length, 45)
      })
 
+function withTimeout
+(t) {
+  let spec
+
+  spec = globalThis.it(t.name, t.cb)
+  if (t.ms)
+    spec.timeout(t.ms)
+}
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => {
                                                              globalThis.after(() => {
                                                                                 globalThis.tron = savedTron
                                                                               })
-                                                             group[1].forEach(t => globalThis.it(t.name,
-                                                                                                 t.cb))
+                                                             group[1].forEach(withTimeout)
                                                            }))

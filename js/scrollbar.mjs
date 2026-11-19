@@ -17,6 +17,11 @@ function scrollbarSize
 () {
   let root, s
 
+  // A view's ready timeout can fire after its window is gone (a closed
+  // window, or a test that restored the DOM globals), and there is no
+  // computed style to read then.
+  if ((globalThis.getComputedStyle == undefined) || (globalThis.document == undefined))
+    return fallbackSize
   root = globalThis.document.documentElement
   s = parseFloat(globalThis.getComputedStyle(root).getPropertyValue('--scrollbar-size'))
   if (Number.isFinite(s) && (s > 0))

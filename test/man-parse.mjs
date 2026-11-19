@@ -57,6 +57,15 @@ test('paragraphs', 'text lines fill one paragraph',
        equal(flat(r.doc.blocks[1].spans), 'first line second line')
      })
 
+test('paragraphs', 'CRLF input is treated as LF',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\r\n.SH NAME\r\ntext\r\n.TP\r\ntag\r\nbody\r\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'NAME')
+     })
+
 test('paragraphs', 'PP separates paragraphs',
      () => {
        let r

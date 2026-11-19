@@ -821,7 +821,7 @@ function nextInput
     if (f.at < f.lines.length) {
       let text
 
-      text = f.lines[f.at]
+      text = f.lines[f.at].replace(/\r$/, '')
       f.at++
       while (continues(text) && (f.at < f.lines.length)) {
         text = text.slice(0, -1) + f.lines[f.at]

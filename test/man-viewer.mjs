@@ -228,6 +228,18 @@ test('viewer', 'a page with a conditional prologue renders',
        equal(textOf(b).includes('Print help information.'), true)
      })
 
+test('viewer', 'a CRLF page from the pty renders',
+     async () => {
+       let b
+
+       setup({ ls: '.TH LS 1\r\n.SH NAME\r\nls \\- x\r\n.TP\r\nopt\r\ntext\r\n' +
+                    '.RE\r\n.PP\r\nmore\r\n' })
+       b = await opened('ls')
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(viewOf(b).ele.querySelector('.man-h1').textContent, 'NAME')
+       equal(textOf(b).includes('more'), true)
+     })
+
 test('viewer', 'a refused page lists the constructs',
      async () => {
        let b

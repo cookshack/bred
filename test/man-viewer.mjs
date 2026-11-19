@@ -2008,6 +2008,37 @@ test('viewer', 'a point on text with no word leaves the token empty',
        equal(m.tokenAt({ point: { bep: () => ({ node, offset: 0 }) } }), '')
      })
 
+test('viewer', 'a point on punctuation climbs to the reference before it',
+     () => {
+       let m, div, node
+
+       setup({})
+       m = Mode.get('manpage')
+       div = globalThis.document.createElement('div')
+       div.innerHTML = '<a data-topic="ls(1)">ls(1)</a><span>,</span>'
+       node = div.querySelector('span').firstChild
+       equal(m.tokenAt({ point: { bep: () => ({ node, offset: 0 }) } }), 'man:ls(1)')
+       div.innerHTML = 'words <span>,</span>'
+       node = div.querySelector('span').firstChild
+       equal(m.tokenAt({ point: { bep: () => ({ node, offset: 0 }) } }), 'words')
+       div.innerHTML = '<span>inner</span><span>,</span>'
+       node = div.querySelectorAll('span')[1].firstChild
+       equal(m.tokenAt({ point: { bep: () => ({ node, offset: 0 }) } }), 'inner')
+       div.innerHTML = '<div></div><span>,</span>'
+       node = div.querySelector('span').firstChild
+       equal(m.tokenAt({ point: { bep: () => ({ node, offset: 0 }) } }), '')
+     })
+
+test('viewer', 'show all failures on a page with none is harmless',
+     async () => {
+       let b
+
+       setup({ good: '.TH GOOD 1\n.SH NAME\ngood \\- fine\n' })
+       b = await opened('good')
+       Cmd.run('man show all failures', b)
+       equal(b.vars('Manpage').fails.length, 0)
+     })
+
 test('viewer', 'a file URL is refused instead of resolved as a path',
      () => {
        setup({})

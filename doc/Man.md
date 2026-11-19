@@ -123,7 +123,8 @@ bound; it cannot evaluate `.if`). `--render` draws each parsed page too.
 on a renderer exception; it is opt-in because it takes about a minute. It
 feeds each page with CRLF line endings, like the pty the viewer reads through.
 `npm run test-corpus` writes its output to `man-corpus.log` as well as the
-terminal.
+terminal, runs with a 512 MB V8 heap and collects every 250 pages, so a
+large corpus cannot starve the editor.
 `MAN_CORPUS_ROOTS` replaces `manpath`, so a downloaded corpus can be tested
 without installing it. The Linux man-pages, groff, OpenBSD, FreeBSD and NetBSD
 trees fetched by `fetch-man-corpus` cover 4,620 pages at 99.8% parsed with no

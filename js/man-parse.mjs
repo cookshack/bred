@@ -299,10 +299,23 @@ function skipSize
   open = text[i]
   if ((open == '(') || (open == '['))
     return skipArg(text, i)
-  if ((open == '+') || (open == '-'))
+  // `\s-1` takes one digit, so `\s-133` is a smaller "33"; without a sign
+  // two digits are the absolute size (`\s12`), and `\s123` leaves the "3".
+  if ((open == '+') || (open == '-')) {
     i++
-  while ((i < text.length) && /[0-9]/.test(text[i]))
-    i++
+    if ((i < text.length) && /[0-9]/.test(text[i]))
+      i++
+    return i
+  }
+  {
+    let n
+
+    n = 0
+    while ((i < text.length) && /[0-9]/.test(text[i]) && (n < 2)) {
+      i++
+      n++
+    }
+  }
   return i
 }
 

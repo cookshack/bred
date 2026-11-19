@@ -315,6 +315,13 @@ test('escapes', 'a nested bracket argument does not leak a bracket',
        equal(asText('.TH T 1\nx \\F[\\n[.fam]] y\n'), 'x  y\n')
      })
 
+test('escapes', 'a size escape takes one signed digit or two plain ones',
+     () => {
+       equal(asText('.TH T 1\n.nf\nx\\s-133y\n.fi\n'), 'x33y\n')
+       equal(asText('.TH T 1\n.nf\nx\\s123y\n.fi\n'), 'x3y\n')
+       equal(asText('.TH T 1\n.nf\nx\\s12y\n.fi\n'), 'xy\n')
+     })
+
 test('escapes', 'final sigma has its own name',
      () => {
        equal(asText('.TH T 1\na \\(ts b\n'), 'a ς b\n')

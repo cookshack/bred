@@ -36,6 +36,7 @@ sources = { linux: { kind: 'tar',
             netbsd: { kind: 'git',
                       url: 'https://github.com/NetBSD/src',
                       sparse: 'share/man' },
+            host: { kind: 'host' },
             dragonfly: { kind: 'git',
                          url: 'https://github.com/DragonFlyBSD/DragonFlyBSD',
                          sparse: 'share/man' },
@@ -127,6 +128,69 @@ function fetchTar
   return out
 }
 
+function isPage
+(file) {
+  let name
+
+  name = Path.basename(file).replace(/\.gz$/, '')
+  return /\.[0-9][a-z]*$/.test(name) ? 1 : 0
+}
+
+function manRoots
+() {
+  let roots
+
+  roots = []
+  try {
+    roots = execFileSync('manpath', { encoding: 'utf8',
+                                      stdio: [ 'ignore', 'pipe', 'ignore' ] })
+      .trim()
+      .split(':')
+  }
+  catch {
+    roots = [ '/usr/share/man' ]
+  }
+  return roots.filter(root => root && Fs.existsSync(root))
+}
+
+function copyHost
+(root, dest) {
+  let entries
+
+  entries = Fs.readdirSync(root, { withFileTypes: true })
+  entries.forEach(entry => {
+                    let full, next
+
+                    full = Path.join(root, entry.name)
+                    next = Path.join(dest, entry.name)
+                    if (entry.isDirectory()) {
+                      Fs.mkdirSync(next, { recursive: true })
+                      copyHost(full, next)
+                    }
+                    else if (isPage(full) && Fs.existsSync(full)) {
+                      Fs.mkdirSync(dest, { recursive: true })
+                      Fs.copyFileSync(full, next)
+                    }
+                  })
+}
+
+function fetchHost
+(name, dir) {
+  let roots
+
+  roots = []
+  manRoots().forEach((root, index) => {
+                       let dest
+
+                       dest = Path.join(dir, name + index)
+                       Fs.mkdirSync(dest, { recursive: true })
+                       console.log('copying ' + root + '...')
+                       copyHost(root, dest)
+                       roots.push(dest)
+                     })
+  return roots
+}
+
 function fetchGit
 (name, spec, dir) {
   let out
@@ -155,7 +219,8 @@ if (opts.list) {
                              let spec
 
                              spec = sources[name]
-                             console.log('  ' + name + '  ' + spec.url +
+                             console.log('  ' + name + '  ' +
+                                         (spec.url || 'copy the local manpath') +
                                          (spec.sparse ? '  (' + spec.sparse + ')' : ''))
                            })
   process.exit(0)
@@ -179,9 +244,12 @@ if (opts.list) {
                    console.log('fetching ' + name + '...')
                    if (spec.kind == 'tar')
                      fetchTar(name, spec, dir)
+                   else if (spec.kind == 'host')
+                     fetchHost(name, dir).forEach(root => roots.push(root))
                    else
                      fetchGit(name, spec, dir)
-                   roots.push(rootFor(name, spec, dir))
+                   if (spec.kind != 'host')
+                     roots.push(rootFor(name, spec, dir))
                  })
   console.log('')
   console.log('corpus roots:')

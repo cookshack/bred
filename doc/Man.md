@@ -62,6 +62,7 @@ npx mocha test/man-roff.mjs test/man-parse.mjs test/man-render.mjs test/man-view
 ./bin/man-audit --parse --render       # parse and draw every page
 npm run test-corpus                    # same, as a pass/fail test (slow, writes man-corpus.log)
 ./bin/fetch-man-corpus                 # Linux man-pages, groff, OpenBSD into .corpus/
+./bin/fetch-man-corpus --only host     # copy the local manpath into .corpus/host*
 MAN_CORPUS_ROOTS="$PWD/.corpus/linux:$PWD/.corpus/openbsd/share/man" \
   npm run test-corpus                  # test a downloaded corpus instead
 ```

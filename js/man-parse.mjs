@@ -1378,21 +1378,22 @@ function tableOptions
   let opts
 
   opts = { tab: '\t', box: 0, allbox: 0, center: 0, expand: 0 }
-  text.split(';').forEach(part => {
-                            let piece
-
-                            piece = part.trim()
-                            if (piece.startsWith('tab('))
-                              opts.tab = piece.slice(4, -1) || '\t'
-                            else if ((piece == 'box') || (piece == 'frame') || (piece == 'doublebox'))
-                              opts.box = 1
-                            else if (piece == 'allbox')
-                              opts.allbox = 1
-                            else if (piece == 'center')
-                              opts.center = 1
-                            else if (piece == 'expand')
-                              opts.expand = 1
-                          })
+  // Options are separated by spaces, commas or semicolons, and tab(...) may
+  // itself contain a space or a semicolon, so take it out before splitting.
+  text = text.replace(/tab\(([^)]*)\)/g, (all, tab) => {
+                                           opts.tab = tab || '\t'
+                                           return ' '
+                                         })
+  text.split(/[\s,;]+/).forEach(piece => {
+                                  if ((piece == 'box') || (piece == 'frame') || (piece == 'doublebox'))
+                                    opts.box = 1
+                                  else if (piece == 'allbox')
+                                    opts.allbox = 1
+                                  else if (piece == 'center')
+                                    opts.center = 1
+                                  else if (piece == 'expand')
+                                    opts.expand = 1
+                                })
   return opts
 }
 

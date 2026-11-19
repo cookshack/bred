@@ -18,14 +18,19 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
 1. `man -w topic` gives the installed source path (respects `MANPATH`, locale).
    It may print more than one candidate, one per line or as a colon-separated
    list, possibly mixed with diagnostics; paths are deduplicated and each is
-   tried in order until one reads. A colon inside a path (like a space) does
-   not split it.
+   tried in order until one reads. A colon only separates paths when the part
+   before it ends like a manual source (a section or a compression suffix), so
+   a colon inside a filename such as `/x/a:/b.1` does not split it.
 2. Read it with `zcat`, falling back to `cat` only when `zcat` fails. An empty
    file is a valid page, not a read error, and is never sent to `cat` (which
    would print gzip bytes).
-3. `.so`-only redirect pages are followed as topics (up to depth 3). A
-   redirect that revisits a page is refused as `Redirect cycle: a -> b -> a`,
-   and a longer chain as `Redirect chain too deep: ...`.
+3. `.so`-only redirect pages are followed as topics (up to depth 3), keeping
+   the target's section so `foo.1` and `foo.8` stay different pages. A
+   redirect that reads a file already seen is refused as
+   `Redirect cycle: a -> b -> a`, and a longer chain as
+   `Redirect chain too deep: ...`. Redirect targets are resolved with the same
+   `man -w` lookup, so a missing target reports both ends, for example
+   `Redirect from a to b.8: No manual entry for b.8`.
 4. Mid-page `.so` targets are resolved first: `gatherIncludes` turns each
    target into a topic, reads it with `man -w`, and recurses (up to depth 5).
    The collected text is passed to the parser as its include loader. A `.so`
@@ -33,6 +38,10 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
    page that includes itself (directly or through another page) cannot loop.
 5. `ManParse.parse(source)` → block model.
 6. `ManRender.render(doc)` → DOM; the view's content element is replaced.
+
+Refresh bumps a per-buffer load generation; a response or include prefetch from
+an older generation is ignored, so refreshing while loading (or twice) keeps
+the newest result. A failed refresh shows its error and the buffer stays usable.
 
 `M-x man` completes topics with `man -k '^prefix'` (cached per prefix); a
 suggestion closes the prompt and opens the page.
@@ -91,18 +100,21 @@ hyphenation (U+2010), compound hyphens broken at a line end, box-drawing
 characters and bullet markers, then reports reference words missing from our
 text. `test/man-viewer.mjs` drives `Man.open` with fake `man -w`/`zcat`
 responses, so the viewer is tested without the installed corpus. It covers the
-path and reader fallbacks, redirects (chains and cycles), includes (including
-cycles), TOC and reference clicks, the prompt with its completion (regex
-escaping, suggestion clicks, a throwing `tokenAt`), error paths (unreadable,
-empty and blank pages, non-gzip fallback), and buffer reuse and shared refresh
-across panes.
+path and reader fallbacks, redirects (chains, cycles, sections, missing
+targets), includes (including cycles), TOC and reference clicks, the prompt
+with its completion (regex escaping, caching, suggestion clicks, a throwing
+`tokenAt`, a close before the attract timer), error paths (unreadable, empty
+and blank pages, non-gzip fallback), refresh (failing, repeated while loading),
+and buffer reuse and shared refresh across panes. The renderer tests also draw
+compact and large pages, empty tables and lists, combined table options,
+colspans and links with no text.
 
 ## Current state
 
-Corpus: 4150 installed pages (English + translations) on Debian trixie.
+Corpus: 4152 installed pages (English + translations) on Debian trixie.
 
 ```
-parsed   4122   (99.3%)
+parsed   4124   (99.3%)
 refused    28
 ```
 
@@ -117,8 +129,10 @@ the link href rather than the visible text, and man(1) sometimes fills a tag or
 a long word onto the following line, so the reference splits `[n]<&digit-`
 from `moves` where we keep one word. Enum labels are now part of `toText`.
 
-Tests: 195 (inventory, interpreter, renderer, viewer); `test-corpus` also
-parses and renders every page in the corpus.
+Tests: 211 (inventory, interpreter, renderer, viewer); `test-corpus` also
+parses and renders every page in the corpus. Coverage of the man modules is
+100% of `man.mjs` lines and 99.6% of `man-render.mjs` lines (about 93% and 87%
+of their branches).
 
 ## Known gaps, in order
 
@@ -127,6 +141,9 @@ parses and renders every page in the corpus.
    div views, not specific to man pages.
 3. mdoc `Ex`/`Rv` expand to canned sentences; they are approximations of the
    real macro text.
+4. A colon in a path is still a separator when the text before it looks like a
+   man source (for example `/x/a.1:/b.1`): `man -w` output has no unambiguous
+   quoting, so this heuristic favours the common colon-separated list.
 
 ## Changing it
 

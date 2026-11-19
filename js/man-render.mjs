@@ -42,7 +42,14 @@ function spanNode
     a.setAttribute('href', span.href)
     if (span.href.startsWith('man:'))
       a.dataset.topic = span.href.slice(4)
-    append(a, el)
+    // A link with no text would be invisible: show its target instead, and
+    // for man references show the topic rather than the man: prefix.
+    if ((span.text || '').length)
+      append(a, el)
+    else if (span.href.startsWith('man:'))
+      append(a, span.href.slice(4))
+    else
+      append(a, span.href)
     el = a
   }
   return el

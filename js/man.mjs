@@ -184,7 +184,18 @@ function init
     let parts
 
     parts = text.trim().split(/\s+/)
-    return manPathTopic(parts[1] || '')
+    return manSourceTopic(parts[1] || '')
+  }
+
+  // A `.so man1/foo.8` target names a file, not just a topic: keep the
+  // section so foo.1 and foo.8 stay different pages. Only the compression
+  // suffix is dropped, because man -w takes a topic.
+  function manSourceTopic
+  (target) {
+    let base
+
+    base = target.split('/').pop()
+    return base.replace(/\.(gz|bz2|xz|zst|lzma)$/, '')
   }
 
   function onCat
@@ -211,28 +222,57 @@ function init
   }
 
   function onSource
-  (dir, topic, depth, path, err, text, cb, chain) {
+  (dir, topic, depth, path, err, text, cb, chain, seen) {
     if (err)
       cb(err)
+    else if (seen.includes(path))
+      // key the cycle on the resolved path: foo.1 and foo.8 can both be
+      // valid topics, but reading the same file twice is a loop
+      cb('Redirect cycle: ' + chain.join(' -> '))
     else if (isRedirect(text)) {
-      let target
+      let target, label
 
       target = redirectTopic(text)
-      if (chain.includes(target))
-        cb('Redirect cycle: ' + chain.concat(target).join(' -> '))
-      else if (depth >= 3)
-        cb('Redirect chain too deep: ' + chain.concat(target).join(' -> '))
+      label = manPathTopic(target)
+      if (depth >= 3)
+        cb('Redirect chain too deep: ' + chain.concat(label).join(' -> '))
       else
-        fetchPage(dir, target, depth + 1, cb, chain.concat(target))
+        fetchPage(dir, target, depth + 1, (err2, text2, path2) => {
+                                            if (err2)
+                                              cb('Redirect from ' + topic + ' to ' + target + ': ' + err2)
+                                            else
+                                              cb(0, text2, path2)
+                                          }, chain.concat(label), seen.concat(path))
     }
     else
       cb(0, text, path)
   }
 
   // man -w can print more than one candidate path (alternatives, or a
-  // colon-separated list); only one of them has to be readable. Split at a
-  // colon only when another path follows, so a path containing a colon (or a
-  // space) stays whole.
+  // colon-separated list); only one of them has to be readable. A colon is a
+  // separator only when the part before it names a manual source (a
+  // compression suffix or a section), so a colon followed by "/" inside a
+  // filename stays part of that path.
+  function splitPathLine
+  (line) {
+    let out, rest
+
+    out = []
+    rest = line
+    for (;;) {
+      let m
+
+      m = /^(.*?\.(?:gz|bz2|xz|zst|lzma|[1-9][a-z]*)):(\/.*)$/.exec(rest)
+      if (m == undefined) {
+        out.push(rest)
+        break
+      }
+      out.push(m[1])
+      rest = m[2]
+    }
+    return out
+  }
+
   function manPaths
   (out) {
     let paths
@@ -246,12 +286,12 @@ function init
 
     paths = []
     out = out || ''
-    out.split('\n').forEach(line => line.split(/:(?=\/)/).forEach(add))
+    out.split('\n').forEach(line => splitPathLine(line).forEach(add))
     return paths
   }
 
   function onManW
-  (dir, topic, depth, out, code, cb, chain) {
+  (dir, topic, depth, out, code, cb, chain, seen) {
     let paths
 
     function tryPath
@@ -264,7 +304,8 @@ function init
                                    if (err)
                                      tryPath(at + 1, err)
                                    else
-                                     onSource(dir, topic, depth, full || paths[at], 0, text, cb, chain)
+                                     onSource(dir, topic, depth, full || paths[at],
+                                              0, text, cb, chain, seen)
                                  })
     }
 
@@ -277,9 +318,12 @@ function init
   }
 
   function fetchPage
-  (dir, topic, depth, cb, chain) {
+  (dir, topic, depth, cb, chain, seen) {
     chain = chain || [ topic ]
-    Shell.runToString(dir, 'man', [ '-w', topic ], 0, (out, code) => onManW(dir, topic, depth, out, code, cb, chain))
+    seen = seen || []
+    Shell.runToString(dir, 'man', [ '-w', topic ], 0, (out, code) => onManW(dir, topic, depth,
+                                                                            out, code, cb,
+                                                                            chain, seen))
   }
 
   function findBuf
@@ -334,14 +378,14 @@ function init
         cb()
         return
       }
-      fetchPage(dir, manPathTopic(targets[at]), 0, (err, text2) => {
-                                                     if (err == 0) {
-                                                       includes[targets[at]] = text2
-                                                       gatherIncludes(dir, text2, depth + 1, includes, () => next(at + 1))
-                                                     }
-                                                     else
-                                                       next(at + 1)
-                                                   })
+      fetchPage(dir, manSourceTopic(targets[at]), 0, (err, text2) => {
+                                                       if (err == 0) {
+                                                         includes[targets[at]] = text2
+                                                         gatherIncludes(dir, text2, depth + 1, includes, () => next(at + 1))
+                                                       }
+                                                       else
+                                                         next(at + 1)
+                                                     })
     }
     targets = includeTargets(text).filter(target => includes[target] == undefined)
     if ((depth > 4) || (targets.length == 0)) {
@@ -351,10 +395,20 @@ function init
     next(0)
   }
 
+  function stale
+  (st, seq) {
+    if (seq == st.seq)
+      return 0
+    else
+      return 1
+  }
+
   function loadInto
-  (dir, st, err, text, path, cb) {
+  (dir, st, err, text, path, seq, cb) {
     let includes
 
+    if (stale(st, seq))
+      return
     st.path = path || ''
     if (err) {
       st.error = err
@@ -365,6 +419,8 @@ function init
     }
     includes = {}
     gatherIncludes(dir, text, 0, includes, () => {
+                                             if (stale(st, seq))
+                                               return
                                              parseInto(st, text, includes)
                                              st.loading = 0
                                              cb()
@@ -373,16 +429,19 @@ function init
 
   function reload
   (b, p) {
-    let st, dir
+    let st, dir, seq
 
     st = b.vars('Manpage')
     dir = (p || Pane.current()).dir
+    st.seq = (st.seq || 0) + 1
+    seq = st.seq
     st.loading = 1
     st.error = ''
     st.fails = []
     b.views.forEach(render)
     fetchPage(dir, st.topic, 0, (err, text, path) => {
-                                  loadInto(dir, st, err, text, path, () => b.views.forEach(render))
+                                  loadInto(dir, st, err, text, path, seq,
+                                           () => b.views.forEach(render))
                                 })
   }
 

@@ -8,12 +8,27 @@ import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths
+let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held
 
 function test
 (group, name, cb) {
   tests[group] = tests[group] || []
   tests[group].push({ name, cb })
+}
+
+function lookup
+(pages, manw, topic) {
+  let bare, list
+
+  list = (manw && manw[topic]) || ((topic in pages) ? [ '/fake/man1/' + topic + '.1.gz' ] : 0)
+  if (list)
+    return list
+  // A redirect target keeps its section (man1/foo.8 -> foo.8). Test pages
+  // without a section still answer for it.
+  bare = topic.replace(/\.[1-9][a-z]*$/, '')
+  if (bare == topic)
+    return []
+  return (manw && manw[bare]) || ((bare in pages) ? [ '/fake/man1/' + bare + '.1.gz' ] : [])
 }
 
 // The shell crosses to the main process as a channel plus commands. Answer
@@ -53,8 +68,7 @@ function installShell
     if ((sc == 'man') && (sargs[0] == '-w')) {
       let list
 
-      list = (manw && manw[sargs[1]]) ||
-             ((sargs[1] in pages) ? [ '/fake/man1/' + sargs[1] + '.1.gz' ] : [])
+      list = lookup(pages, manw, sargs[1])
       if (list.length)
         out = list.join('\n') + '\n'
       else {
@@ -97,12 +111,21 @@ function installShell
       handler({ stdout: r.out, stderr: r.errMsg, close: 1, code: r.code })
   }
 
+  function deliver
+  (ch, r) {
+    if (hold) {
+      held.push(() => emit(ch, r))
+      return
+    }
+    emit(ch, r)
+  }
+
   globalThis.tron.cmd = async (name, args) => {
                           if (name == 'shell') {
                             let ch
 
                             ch = args[0]
-                            setTimeout(() => emit(ch, response(args[2], args[3] || [])), 0)
+                            setTimeout(() => deliver(ch, response(args[2], args[3] || [])), 0)
                             return ch
                           }
                           return { err: 0, ch: 0 }
@@ -126,8 +149,20 @@ function setup
   mankFails = 0
   mankOut = undefined
   emptyPaths = {}
+  hold = 0
+  held = []
   installShell(panes, pages, manw)
   return panes
+}
+
+function flush
+() {
+  let todo
+
+  hold = 0
+  todo = held
+  held = []
+  todo.forEach(fn => fn())
 }
 
 async function opened
@@ -794,8 +829,8 @@ test('viewer', 'a suggestion click opens its topic from the prompt',
        v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        el = v.ele.querySelector('.bred-prompt-sug')
-       // let the prompt's attract timer fire before the click closes it
-       await wait(400)
+       // Click before the prompt's 350 ms attract timer fires: the page
+       // replaces the prompt buffer, so that timer's view is already gone.
        // the item runs "close demand" then, via data-after, "man suggestion"
        we = { mouse: 1, e: { button: 0, target: el } }
        Cmd.run(el.dataset.run, Pane.current().buf, 1, we)
@@ -806,6 +841,7 @@ test('viewer', 'a suggestion click opens its topic from the prompt',
                        b = Pane.current().buf
                        return (b?.name == 'Man: ls(1)') && (b.vars('Manpage').loading == 0)
                      })
+       await wait(450)
        equal(Pane.current().buf.views[0].ele.querySelector('.man-h1').textContent, 'NAME')
      })
 
@@ -868,6 +904,132 @@ test('viewer', 'an unreadable page names the last path it tried',
        b = await opened('ls')
        equal(viewOf(b).ele.querySelector('.manpage-msg').textContent,
              'Cannot read /fake/man1/two.1.gz')
+     })
+
+test('viewer', 'a redirect to another section is not a cycle',
+     async () => {
+       let b
+
+       setup({ foo: '.so man1/foo.8\n',
+               'foo.8': '.TH FOO 8\n.SH NAME\nfoo in section eight\n' })
+       b = await opened('foo.1')
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(textOf(b).includes('foo in section eight'), true)
+       equal(textOf(b).includes('Redirect cycle'), false)
+     })
+
+test('viewer', 'a redirect to a missing page names both ends',
+     async () => {
+       let b
+
+       setup({ lost: '.so man1/gone.8\n' })
+       b = await opened('lost')
+       equal(textOf(b).includes('Redirect from lost to gone.8'), true)
+       equal(textOf(b).includes('No manual entry'), true)
+     })
+
+test('viewer', 'a colon inside a source filename does not split the path',
+     async () => {
+       let b
+
+       setup({ b: '.TH B 1\n.SH NAME\ncolon path text\n' },
+             { ls: [ '/x/a:/b.1.gz\n' ] })
+       b = await opened('ls')
+       equal(calls.some(c => (c[0] == 'zcat') && (c[1] == '/x/a:/b.1.gz')), true)
+       equal(calls.some(c => (c[0] == 'zcat') && (c[1] == '/b.1.gz')), false)
+       equal(textOf(b).includes('colon path text'), true)
+     })
+
+test('viewer', 'a refresh whose fetch fails shows the error and can recover',
+     async () => {
+       let b, pages
+
+       pages = { ls: '.TH LS 1\n.SH NAME\nfirst text\n' }
+       setup(pages)
+       b = await opened('ls')
+       delete pages.ls
+       Cmd.run('man refresh', b)
+       await waitFor(() => {
+                       let st
+
+                       st = b.vars('Manpage')
+                       return (st.loading == 0) && st.error
+                     })
+       equal(textOf(b).includes('No manual entry for ls'), true)
+       pages.ls = '.TH LS 1\n.SH NAME\nrecovered text\n'
+       Cmd.run('man refresh', b)
+       await waitFor(() => textOf(b).includes('recovered text'))
+       equal(b.vars('Manpage').error, '')
+     })
+
+test('viewer', 'a refresh while loading leaves the newest result',
+     async () => {
+       let b, pages
+
+       pages = { ls: '.TH LS 1\n.SH NAME\none\n' }
+       setup(pages)
+       hold = 1
+       Man.open('ls')
+       await waitFor(() => (calls.length >= 1) && Pane.current().buf?.vars('Manpage'))
+       b = Pane.current().buf
+       Cmd.run('man refresh', b)
+       Cmd.run('man refresh', b)
+       await waitFor(() => calls.filter(c => (c[0] == 'man') && (c[1] == '-w')).length >= 3)
+       pages.ls = '.TH LS 1\n.SH NAME\nnewest\n'
+       flush()
+       await waitFor(() => {
+                       let st
+
+                       st = b.vars('Manpage')
+                       return (st.loading == 0) && textOf(b).includes('newest')
+                     })
+       equal(b.vars('Manpage').error, '')
+     })
+
+test('viewer', 'closing a prompt before its attract timer is safe',
+     async () => {
+       let buf
+
+       setup({})
+       Cmd.run('man')
+       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
+       buf = Pane.current().buf
+       Cmd.run('close demand', buf)
+       await wait(450)
+       equal(Buf.shared().buffers.some(b => b == buf), false)
+     })
+
+test('viewer', 'completion caches a prefix and clears on empty input',
+     async () => {
+       let v, under
+
+       function kn
+       (prefix) {
+         return calls.filter(c => (c[0] == 'man') && (c[1] == '-k') &&
+                                  (c[2] == '^' + prefix)).length
+       }
+
+       setup({})
+       Cmd.run('man')
+       await waitFor(() => {
+                       let b
+
+                       b = Pane.current().buf
+                       return b?.vars('prompt')?.run && b.views[0]?.ed
+                     })
+       v = Pane.current().buf.views[0]
+       v.ed.dispatch({ changes: { from: 0, insert: 'zzq' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
+       equal(kn('zzq'), 1)
+       v.ed.dispatch({ changes: { from: 3, insert: ' ' } })
+       await wait(80)
+       equal(kn('zzq'), 1)
+       v.ed.dispatch({ changes: { from: 0, to: 4, insert: 'zzr' } })
+       await waitFor(() => kn('zzr') == 1)
+       v.ed.dispatch({ changes: { from: 0, to: 3, insert: '' } })
+       await waitFor(() => v.ele.querySelector('.bred-prompt-under').innerHTML == '')
+       under = v.ele.querySelector('.bred-prompt-under')
+       equal(under.innerHTML, '')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

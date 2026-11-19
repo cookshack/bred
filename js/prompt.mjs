@@ -425,8 +425,10 @@ function ask
                       buffer.views.forEach(v => {
                         let w
 
-                        w = v.ele.querySelector('.bred-prompt-buf-ww')
-                        Css.remove(w, 'bred-prompt-attract')
+                        w = v.ele?.querySelector('.bred-prompt-buf-ww')
+                        // the prompt can be closed before the timer fires
+                        if (w)
+                          Css.remove(w, 'bred-prompt-attract')
                       })
                     },
                                0.35 * 1000)

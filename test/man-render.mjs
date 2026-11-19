@@ -113,6 +113,151 @@ test('tables', 'box and allbox are distinct classes',
        equal(out.el.querySelector('table').className.includes('man-allbox'), true)
      })
 
+test('tables', 'box and allbox together, with colspan and an empty row set',
+     () => {
+       let out, cells, table
+
+       out = draw('.TH T 1\n.TS\nbox allbox;\nl s\nl l.\na\tb\n.TE\n')
+       table = out.el.querySelector('table')
+       equal(table.className.includes('man-box'), true)
+       equal(table.className.includes('man-allbox'), true)
+       cells = table.querySelectorAll('td')
+       equal(cells.length, 3)
+       equal(cells[0].getAttribute('colspan'), '2')
+       equal(cells[0].textContent, 'a')
+       equal(cells[1].textContent, 'b')
+       out = draw('.TH T 1\n.TS\nl l.\n.TE\n')
+       equal(out.el.querySelectorAll('table tbody tr').length, 0)
+       equal(out.el.querySelector('table') == null, false)
+     })
+
+test('tables', 'options are separated by spaces as well as semicolons',
+     () => {
+       let out
+
+       out = draw('.TH T 1\n.TS\ntab(;) box allbox\nl l.\na;b\n.TE\n')
+       equal(out.el.querySelector('table').className.includes('man-box'), true)
+       equal(out.el.querySelector('table').className.includes('man-allbox'), true)
+       equal(out.el.querySelectorAll('td').length, 2)
+     })
+
+test('lists', 'an item with no tag or blocks still draws dt and dd',
+     () => {
+       let out
+
+       out = draw('.Dd t\n.Dt T 1\n.Os\n.Bl -tag -width x\n.It\n.El\n')
+       equal(out.el.querySelectorAll('dl dt').length, 1)
+       equal(out.el.querySelectorAll('dl dd').length, 1)
+       equal(out.el.querySelector('dl dt').textContent, '')
+     })
+
+test('blocks', 'a page with no blocks draws an empty document',
+     () => {
+       let out
+
+       out = ManRender.render({ blocks: [] })
+       equal(out.el.className, 'man-doc')
+       equal(out.el.childNodes.length, 0)
+       equal(out.toc.length, 0)
+       out = draw('')
+       equal(out.el.textContent, '')
+       equal(out.el.querySelector('.man-toc'), null)
+     })
+
+test('blocks', 'one heading has no toc, several headings have one',
+     () => {
+       let out
+
+       out = draw('.TH T 1\n.SH ONLY\n')
+       equal(out.el.querySelector('h2').textContent, 'ONLY')
+       equal(out.el.querySelector('.man-toc'), null)
+       equal(out.toc.length, 1)
+       out = draw('.TH T 1\n.SH ONE\na\n.SH TWO\nb\n.SH THREE\nc\n')
+       equal(out.el.querySelectorAll('.man-toc a').length, 3)
+       equal(out.el.querySelector('.man-toc a').getAttribute('href'), '#' + out.toc[0].id)
+     })
+
+test('links', 'a link with no text shows its target',
+     () => {
+       let out, a, blocks
+
+       blocks = []
+       blocks.push({ kind: 'para', spans: [ { text: '', style: 'roman', href: 'man:foo(1)' } ] })
+       blocks.push({ kind: 'para', spans: [ { text: '', style: 'roman', href: 'https://example.com' } ] })
+       out = ManRender.render({ blocks })
+       a = out.el.querySelectorAll('a')
+       equal(a.length, 2)
+       equal(a[0].textContent, 'foo(1)')
+       equal(a[0].dataset.topic, 'foo(1)')
+       equal(a[1].textContent, 'https://example.com')
+     })
+
+test('blocks', 'less common block and inline shapes draw',
+     () => {
+       let out, doc, blocks, table
+
+       blocks = []
+       blocks.push({ kind: 'heading', level: 2, spans: [ { text: 'Sub' } ] })
+       blocks.push({ kind: 'heading', level: 1, spans: [ { br: 1 } ] })
+       blocks.push({ kind: 'para', synopsis: 1, spans: [ { text: 'small', style: 'small' } ] })
+       blocks.push({ kind: 'pre', mono: 1, spans: [ { text: 'a' }, { br: 1 }, { text: 'b' } ] })
+       blocks.push({ kind: 'list', listType: 'enum', items: [ { blocks: [] } ] })
+       table = { kind: 'table' }
+       table.options = { box: 0, allbox: 0 }
+       table.cols = [ { align: 'center', italic: 1 } ]
+       table.rows = [ { cells: [ { spans: [ { text: 'c' } ] } ] } ]
+       blocks.push(table)
+       blocks.push({ kind: 'wibble' })
+       doc = { blocks }
+       out = ManRender.render(doc)
+       equal(out.el.querySelector('h3').textContent, 'Sub')
+       equal(out.el.querySelector('p.man-synopsis small').textContent, 'small')
+       equal(out.el.querySelector('pre.man-mono br') == null, false)
+       equal(out.el.querySelectorAll('ol li').length, 1)
+       equal(out.el.querySelector('td').className.includes('man-center'), true)
+       equal(out.el.querySelector('td').className.includes('man-italic'), true)
+       equal(out.el.querySelector('.man-unknown') == null, false)
+       equal(out.toc.length, 1)
+       equal(out.toc[0].text, '')
+     })
+
+test('blocks', 'a tag, the tagged list variants and a table without cols draw',
+     () => {
+       let out, blocks, table, i, types
+
+       types = [ 'tag', 'hang', 'diag', 'ohang', 'inset' ]
+       blocks = [ { kind: 'tag', tag: undefined, blocks: undefined } ]
+       types.forEach(type => {
+                       blocks.push({ kind: 'list', listType: type, items: [ { tag: undefined, blocks: undefined } ] })
+                     })
+       table = { kind: 'table' }
+       table.options = {}
+       table.cols = []
+       table.rows = [ { cells: [ { spans: [] } ] } ]
+       blocks.push(table)
+       out = ManRender.render({ blocks })
+       equal(out.el.querySelectorAll('.man-tag').length, 1)
+       equal(out.el.querySelectorAll('dl').length, 5)
+       equal(out.el.querySelectorAll('dl dd').length, 5)
+       equal(out.el.querySelector('td').className, 'man-left')
+       for (i = 0; i < 5; i++)
+         equal(out.el.querySelectorAll('dl dt')[i].textContent, '')
+     })
+
+test('blocks', 'a page with many sections and paragraphs renders completely',
+     () => {
+       let out, text, i
+
+       text = '.TH T 1\n'
+       for (i = 0; i < 400; i++)
+         text += '.SH H' + i + '\nparagraph ' + i + '\n'
+       out = draw(text)
+       equal(out.el.querySelectorAll('h2').length, 400)
+       equal(out.el.querySelectorAll('.man-toc a').length, 400)
+       equal(out.el.querySelectorAll('p').length, 400)
+       equal(out.el.querySelectorAll('p')[399].textContent, 'paragraph 399')
+     })
+
 test('refusal', 'refused pages have no document to draw',
      () => {
        let res

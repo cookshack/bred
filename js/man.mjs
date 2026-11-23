@@ -715,8 +715,13 @@ function init
 
   // A bare "foo.1" is a path when the directory has it and a topic
   // otherwise. One stat decides that, so a missing name goes straight to the
-  // topic lookup and an existing directory or unreadable file reports its own
-  // error instead of hiding it behind zcat/cat/man -w and a topic fallback.
+  // topic lookup and an existing directory reports its own error instead of
+  // hiding it behind zcat/cat/man -w and a topic fallback. A regular file
+  // with no read bits is not refused on the mode alone: an ACL grant or root
+  // can still read it, so the reader gets one try and its success wins. Only
+  // when that read fails does the mode become the answer, and then the name
+  // does not fall back to a topic, because the file is there and the problem
+  // is permission.
   function readPath
   (dir, st, done) {
     function read
@@ -728,6 +733,16 @@ function init
                                    return
                                  }
                                  done(err, text, path)
+                               })
+    }
+
+    function readAnyway
+    () {
+      readSource(dir, st.file, (err, text, path) => {
+                                 if (err)
+                                   done('Cannot read ' + st.file + ': Permission denied')
+                                 else
+                                   done(0, text, path)
                                })
     }
 
@@ -756,7 +771,7 @@ function init
       }
       if ((fileMode & 0o170000) == 0o100000)
         if ((fileMode & 0o444) == 0) {
-          done('Cannot read ' + st.file + ': Permission denied')
+          readAnyway()
           return
         }
       read()

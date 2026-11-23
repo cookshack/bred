@@ -1925,7 +1925,7 @@ test('viewer', 'a bare source that is a directory reports it without falling bac
        equal(calls.some(c => (c[0] == 'zcat') || (c[0] == 'cat')), false)
      })
 
-test('viewer', 'a bare source that is unreadable reports permission denied',
+test('viewer', 'a bare source that is unreadable is still tried, then refused',
      async () => {
        let b
 
@@ -1933,8 +1933,24 @@ test('viewer', 'a bare source that is unreadable reports permission denied',
        unreadablePaths['/tmp/secret.1'] = 1
        b = await openedVia('secret.1', '/tmp/secret.1')
        equal(textOf(b).includes('Cannot read /tmp/secret.1: Permission denied'), true)
+       // The mode has no read bits, but the stat is not the last word: the
+       // reader gets one try (an ACL or root may succeed), and only its
+       // failure produces Permission denied.
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/tmp/secret.1')), true)
+       // The file is there, so a failed read does not fall back to a topic.
        equal(calls.some(c => c[0] == 'man'), false)
-       equal(calls.some(c => (c[0] == 'zcat') || (c[0] == 'cat')), false)
+     })
+
+test('viewer', 'a mode-000 file the reader can read is rendered',
+     async () => {
+       let b
+
+       setup({ rootonly: '.TH ROOTONLY 1\n.SH NAME\nrootonly \\- readable anyway\n' })
+       unreadablePaths['/tmp/rootonly.1'] = 1
+       b = await openedVia('rootonly.1', '/tmp/rootonly.1')
+       equal(textOf(b).includes('rootonly - readable anyway'), true)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/tmp/rootonly.1')), true)
+       equal(calls.some(c => c[0] == 'man'), false)
      })
 
 test('viewer', 'a bare source that cannot be read falls back to its topic',

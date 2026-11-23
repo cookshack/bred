@@ -62,11 +62,14 @@ plain filename, so spaces and colons in it are kept (only `~` and `~/` are
 expanded; a `~user/foo.1` path is refused with a message, while a bare `~user`
 is not path-like and is looked up as a topic). A bare name is ambiguous, so one
 `file.stat` decides it: a missing name goes straight to a topic lookup without
-trying a decompressor or `cat`, an existing directory reports `Cannot read ...: Is a
-directory`, a file with no read bits reports `Permission denied`, and a regular
-file is read. Explicit paths never fall back, so their read error is shown and
-a directory is never parsed. A `file:` URL is refused with a message rather
-than resolved into the pane directory.
+trying a decompressor or `cat`, an existing directory reports `Cannot read ...:
+Is a directory`, and a regular file is read. A regular file with no read bits
+is read anyway, since an ACL grant or root can still read it; if that read
+fails the page reports `Permission denied` rather than falling back to a topic,
+because the file is there and the problem is permission. Explicit paths never
+fall back, so their read error is shown and a directory is never parsed. A
+`file:` URL is refused with a message rather than resolved into the pane
+directory.
 
 Links to `http:`, `https:`, `mailto:` and `ftp:` open in the desktop browser
 through `shell.open` and never navigate the window. Any other scheme is
@@ -177,7 +180,8 @@ with sentence punctuation or a `man:` prefix, a point inside a reference or
 plain page text seeding the prompt, a URL token leaving it empty, a close with
 suggestions before
 the attract timer), prompt history replay, a refused `file:` URL and `~user`
-path, bare path stat checks (missing, directory, unreadable), error paths
+path, bare path stat checks (missing, directory, a mode-000 file both when the
+reader can and cannot read it), error paths
 (unreadable, empty and blank pages, non-gzip fallback, a missing `man` and a
 spawn failure), man -w
 diagnostics mixed with paths, refresh (failing, repeated while loading, and
@@ -237,7 +241,7 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 419 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 420 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
 `man-render.mjs` (100%), `man-roff.mjs` (96%) and `man-parse.mjs` (94% of
@@ -253,12 +257,13 @@ branches).
 3. A colon in a path is still a separator when the text before it looks like a
    man source (for example `/x/a.1:/b.1`): `man -w` output has no unambiguous
    quoting, so this heuristic favours the common colon-separated list.
-4. The bare-name check reads the mode bits from one `stat`; an ACL grant or
-   root reading a mode-000 file is reported as `Permission denied` even though
-   the decompressor might succeed. The alternative was an extra read process
-   per open, and the stat saves two processes when the name is not a file at
-   all. Relatedly, a mislabelled compressed file whose `cat` output happens to
-   contain no NUL or replacement character is still read as text.
+4. The bare-name stat still decides a directory and drives the topic lookup,
+   but it is no longer the last word on readability: a regular file with no
+   read bits is read anyway, because an ACL grant or root can read it (so root
+   reading a mode-000 file now works), and `Permission denied` is reported only
+   when that read fails. Relatedly, a mislabelled compressed file whose `cat`
+   output happens to contain no NUL or replacement character is still read as
+   text.
 5. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
    are refused rather than handed to the desktop.
 

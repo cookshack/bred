@@ -1456,37 +1456,46 @@ function tableOptions
   return opts
 }
 
+// The key characters are case-insensitive: tbl's `L` is `l`, `C` is `c`, `R`
+// is `r`, `N` is `n`, `A` is `a` and `S` is `s`. Specifiers may follow a key
+// character (or a whole group of them): `b`/`i` pick a font, `x` expands the
+// column, `w(...)`/`v(...)`/`p(...)` set widths and a bare number sets the
+// column separation. Only alignment, font and span change the text model; the
+// rest is metric. Linux man-pages writes `L1 Lx` for a two-column table, whose
+// `1` and `x` are a separation and an expansion, and syscalls(2) writes
+// `Lb Lb Lb` over `Lw(26n)2 L Lx`.
 function tableColumns
 (text) {
-  let cols
+  let cols, tokens
 
   cols = []
-  text.replace(/\|/g, ' ').split(/[ \t]+/).forEach(token => {
-                                                     let align, bold, italic, i
+  tokens = text.replace(/\|/g, ' ').split(/[ \t]+/)
+  for (let i = 0; i < tokens.length; i++) {
+    let token, align, bold, italic, at
 
-                                                     token = token.trim()
-                                                     if ((token == '') || /^[-_=]+$/.test(token))
-                                                       return
-                                                     if (token[0] == 's') {
-                                                       cols.push({ span: 1 })
-                                                       return
-                                                     }
-                                                     if ('lrcna'.includes(token[0]) == 0)
-                                                       return
-                                                     align = 'left'
-                                                     bold = 0
-                                                     italic = 0
-                                                     if ((token[0] == 'r') || (token[0] == 'n'))
-                                                       align = 'right'
-                                                     else if (token[0] == 'c')
-                                                       align = 'center'
-                                                     for (i = 1; i < token.length; i++)
-                                                       if ((token[i] == 'b') || (token[i] == 'B'))
-                                                         bold = 1
-                                                       else if ((token[i] == 'i') || (token[i] == 'I'))
-                                                         italic = 1
-                                                     cols.push({ align, bold, italic })
-                                                   })
+    token = tokens[i].trim()
+    if ((token == '') || /^[-_=]+$/.test(token))
+      continue
+    if ('sS'.includes(token[0])) {
+      cols.push({ span: 1 })
+      continue
+    }
+    if ('lLcCrRnNaA'.includes(token[0]) == 0)
+      continue
+    align = 'left'
+    bold = 0
+    italic = 0
+    if ('rRnN'.includes(token[0]))
+      align = 'right'
+    else if ('cC'.includes(token[0]))
+      align = 'center'
+    for (at = 1; at < token.length; at++)
+      if ((token[at] == 'b') || (token[at] == 'B'))
+        bold = 1
+      else if ((token[at] == 'i') || (token[at] == 'I'))
+        italic = 1
+    cols.push({ align, bold, italic })
+  }
   return cols
 }
 

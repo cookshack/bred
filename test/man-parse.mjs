@@ -1323,6 +1323,79 @@ test('mdoc inline', 'Ux and the BSD names expand to their platforms',
        equal(flat(r.doc.blocks[0].spans), 'UNIX AT&T UNIX BSD FreeBSD NetBSD OpenBSD DragonFly')
      })
 
+test('mdoc inline', 'Ux prints its trailing words',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ux\n.Ux 5\n')
+       equal(flat(r.doc.blocks[0].spans), 'UNIX UNIX 5')
+     })
+
+test('mdoc inline', 'Ox keeps its version',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ox\n.Ox 3.2\n')
+       equal(flat(r.doc.blocks[0].spans), 'OpenBSD OpenBSD 3.2')
+     })
+
+test('mdoc inline', 'Ox 3.2 keeps a sentence\'s spacing and punctuation',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\nThe\n.Ox 3.2\noperating system.\n')
+       equal(flat(r.doc.blocks[0].spans), 'The OpenBSD 3.2 operating system.')
+     })
+
+test('mdoc inline', 'Fx keeps its version',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fx\n.Fx 12.0\n')
+       equal(flat(r.doc.blocks[0].spans), 'FreeBSD FreeBSD 12.0')
+     })
+
+test('mdoc inline', 'Nx keeps its version',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Nx\n.Nx 9.3\n')
+       equal(flat(r.doc.blocks[0].spans), 'NetBSD NetBSD 9.3')
+     })
+
+test('mdoc inline', 'Dx keeps its version',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Dx\n.Dx 6.0\n')
+       equal(flat(r.doc.blocks[0].spans), 'DragonFly DragonFly 6.0')
+     })
+
+test('mdoc inline', 'Bsx keeps its version',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bsx\n.Bsx 1.0\n')
+       equal(flat(r.doc.blocks[0].spans), 'BSD/OS BSD/OS 1.0')
+     })
+
+test('mdoc inline', 'At prints a known version and passes an unknown one through',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.At\n.At v7\n.At v9\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'AT&T UNIX Version 7 AT&T UNIX AT&T UNIX v9')
+     })
+
+test('mdoc inline', 'Bx prepends its version to the name',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bx\n.Bx 4.4 .\n')
+       equal(flat(r.doc.blocks[0].spans), 'BSD 4.4BSD.')
+     })
+
 test('mdoc inline', 'St strips the dash from an unknown token',
      () => {
        let r

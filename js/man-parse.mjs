@@ -11,7 +11,7 @@
 import * as Char from './man-char.mjs'
 import * as Roff from './man-roff.mjs'
 
-let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocInlineNames, mdocNoArg, mdocEncloseNames
+let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocAtNames, mdocInlineNames, mdocNoArg, mdocEncloseNames
 let expandDepth
 
 fonts = { B: 'bold',
@@ -2151,6 +2151,33 @@ function mdocStandard
   return names[token] || token.replace(/^-/, '')
 }
 
+// `At`'s known versions, as groff -Tutf8 -mdoc prints them. An unknown
+// version keeps its own text after the platform name: `.At v9` is
+// "AT&T UNIX v9", and `.At` alone is "AT&T UNIX".
+mdocAtNames = { v1: 'Version 1 AT&T UNIX',
+                v2: 'Version 2 AT&T UNIX',
+                v3: 'Version 3 AT&T UNIX',
+                v4: 'Version 4 AT&T UNIX',
+                v5: 'Version 5 AT&T UNIX',
+                v6: 'Version 6 AT&T UNIX',
+                v7: 'Version 7 AT&T UNIX',
+                '32v': 'Version 32V AT&T UNIX',
+                III: 'AT&T System III UNIX',
+                V: 'AT&T System V UNIX',
+                'V.1': 'AT&T System V Release 1 UNIX',
+                'V.2': 'AT&T System V Release 2 UNIX',
+                'V.3': 'AT&T System V Release 3 UNIX',
+                'V.4': 'AT&T System V Release 4 UNIX' }
+
+// The platform macros print their name and then, in the same font, any
+// version or further words: `.Ox 3.2` is "OpenBSD 3.2" and `.Ox 3.2 .` is
+// "OpenBSD 3.2.".
+function mdocOsName
+(c, name, args) {
+  mdocText(c, name, c.font)
+  mdocWords(c, args, c.font)
+}
+
 // `ownLine` is set when the macro is the request itself, or a `.Dl`/`.D1`
 // line (mdoc treats their arguments as a line of their own): mdoc(7) prints
 // the delimiter macros with Unicode brackets there and ASCII ones when they
@@ -2326,25 +2353,44 @@ function mdocInlineMacro
     mdocAppend(c, [ { text: ' ' } ])
     return 1
   case 'Ux':
-    mdocText(c, 'UNIX', c.font)
+    mdocOsName(c, 'UNIX', args)
     return 1
-  case 'At':
-    mdocText(c, 'AT&T UNIX', c.font)
+  case 'At': {
+    let known
+
+    known = mdocAtNames[args[0]]
+    if (known) {
+      mdocText(c, known, c.font)
+      mdocWords(c, args.slice(1), c.font)
+    }
+    else
+      mdocOsName(c, 'AT&T UNIX', args)
     return 1
-  case 'Bx':
-    mdocText(c, 'BSD', c.font)
+  }
+  case 'Bx': {
+    let split
+
+    split = mdocSplitPunct(args)
+    if (split.words.length)
+      mdocText(c, split.words[0] + 'BSD', c.font)
+    else
+      mdocText(c, 'BSD', c.font)
+    mdocWords(c, split.words.slice(1), c.font)
+    if (split.punct.length)
+      mdocAttachText(c, split.punct.join(''), 'roman')
     return 1
+  }
   case 'Fx':
-    mdocText(c, 'FreeBSD', c.font)
+    mdocOsName(c, 'FreeBSD', args)
     return 1
   case 'Nx':
-    mdocText(c, 'NetBSD', c.font)
+    mdocOsName(c, 'NetBSD', args)
     return 1
   case 'Ox':
-    mdocText(c, 'OpenBSD', c.font)
+    mdocOsName(c, 'OpenBSD', args)
     return 1
   case 'Dx':
-    mdocText(c, 'DragonFly', c.font)
+    mdocOsName(c, 'DragonFly', args)
     return 1
   case 'St':
     mdocText(c, mdocStandard(args[0] || ''), c.font)

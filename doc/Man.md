@@ -285,11 +285,22 @@ almost entirely the TIFF pages, whose option table hyphenates long names such
 as `TIFFTAG_BADFAXLINES` inside a narrow cell; the cells themselves now parse
 (`T{`/`T}` blocks, which used to leave the markers in the text). `man-diff`
 drops a bare `|` and `_` from both sides, since those are our table separators
-and rule rows and man(1) draws neither.
+and rule rows and man(1) draws neither, and it compares words on a key that
+ignores trailing sentence punctuation, because man(1) can wrap the final `.`
+of a sentence onto a line of its own.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 450 (inventory, interpreter, renderer, viewer, real pty);
+Eight of the pages still reported hide a real loss rather than a layout one,
+and are the next work: `bash(1)` is missing the last sentence of RESTRICTED
+SHELL; `ssh_config(5)` renders `ssh` and `sftp` where the page says
+`ssh_config`; `init-d-script(5)` keeps `start\-stop\-daemon(8)` unexpanded;
+`editrc(5)` renders one `.Nm` as `editline`; `mount(8)` leaks a raw `\fP`
+after a URL and prints literal `.sp`; `ssh-keysign(8)`,
+`ssh-pkcs11-helper(8)` and `ssh-sk-helper(8)` drop the version from
+`OpenBSD 3.2.`, `4.7.` and `6.7.`.
+
+Tests: 453 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (100%),
 `man-render.mjs` (100%), `man-roff.mjs` (97%) and `man-parse.mjs` (95% of

@@ -1,4 +1,4 @@
-import { equal } from 'node:assert/strict'
+import { equal, ok } from 'node:assert/strict'
 import * as ManParse from '../js/man-parse.mjs'
 
 let tests
@@ -1519,6 +1519,28 @@ test('escapes', 'an unterminated character name fails the page',
        equal(r.fails[0].what, 'unterminated character escape')
      })
 
+test('escapes', 'an unterminated font escape does not rewind and hang',
+     () => {
+       let r
+
+       r = parsed('"\\f[ \\h < \\-')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'unterminated font escape')
+       equal(ManParse.toText(r.doc.blocks), '"\n')
+     })
+
+test('escapes', 'an unterminated bracket string or register name does not hang',
+     () => {
+       let r
+
+       r = parsed('\\*[')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'string ')
+       r = parsed('\\n[')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'register ')
+     })
+
 test('escapes', 'w measures its argument in units',
      () => {
        let r
@@ -2049,6 +2071,89 @@ test('macros', 'nop passes plain text through',
 test('macros', 'a stray block marker is ignored',
      () => {
        equal(asText('.TH T 1\n.\\{\n.\\}\n'), '')
+     })
+
+// Deterministic LCG, so a failing source can be reproduced from its seed.
+let fuzzSeed
+
+function fuzzRandom
+(seed) {
+  fuzzSeed = seed >>> 0
+}
+
+function fuzzNext
+() {
+  fuzzSeed = ((fuzzSeed * 1664525) + 1013904223) >>> 0
+  return fuzzSeed / 4294967296
+}
+
+function fuzzDocument
+(rand) {
+  let tokens, parts, count, i
+
+  tokens = [ '.TH FZ 1', '.SH NAME', '.SH', '.SS', '.PP', '.br',
+             '.nf', '.fi', '.TP', '.HP', '.bl', '.de XX',
+             '.de XX \\', '.ds XX value', '.ds', '.rm XX',
+             '.if n 1 .PP', '.ie n .PP \\', '.el .PP', '.ig',
+             '.TS', '.TE', '.T&', '.so other.1', '.Xo', '.Xc',
+             '.Bl -tag -width foo', '.It', '.El', '.nr R 1',
+             '.\\" a comment', 'T{', 'T}', '.', '..', '\\"',
+             '\\fB', '\\f[', '\\f[roman]', '\\(', '\\[', '\\*[',
+             '\\n[', '\\s', '\\s-1', '\\h', '\\h\'1\'', '\\.',
+             '\\\\', '\\(ts', '\\-', '\\&', '\\c', '\\{', '\\}',
+             '(', ')', '[', ']', '{', '}', '"', "'", '<<', '>>',
+             '<', '>', '@', 'plain text', 'name(section)',
+             'foo bar baz', 'a\tb', 'x' ]
+  parts = []
+  if (rand() < 0.8)
+    parts.push('.TH FZ 1\n')
+  count = 6 + Math.floor(rand() * 30)
+  for (i = 0; i < count; i++) {
+    let token
+
+    if (rand() < 0.2) {
+      let name, letters
+
+      name = ''
+      letters = 1 + Math.floor(rand() * 4)
+      while (name.length < letters)
+        name += String.fromCharCode(97 + Math.floor(rand() * 26))
+      token = '.' + name + ((rand() < 0.5) ? ' arg' : '')
+    }
+    else if (rand() < 0.3)
+      token = '"' + tokens[ Math.floor(rand() * tokens.length) ]
+    else
+      token = tokens[ Math.floor(rand() * tokens.length) ]
+    parts.push(token + ((rand() < 0.55) ? '\n' : ' '))
+  }
+  return parts.join('')
+}
+
+test('fuzz', '300 malformed pages parse and render without throwing or hanging',
+     () => {
+       let started, elapsed, i
+
+       fuzzRandom(0x5EED)
+       started = Date.now()
+       for (i = 0; i < 300; i++) {
+         let src, res, text
+
+         src = fuzzDocument(fuzzNext)
+         try {
+           res = ManParse.parse(src)
+           text = ManParse.toText(res.doc.blocks)
+         }
+         catch (e) {
+           throw new Error('fuzz doc ' + i + ' ' + JSON.stringify(src) + ': ' + e.message)
+         }
+         ok((res.ok == 0) || (res.ok == 1), 'fuzz doc ' + i + ' ok ' + res.ok)
+         res.fails.forEach(f => ok((typeof f.what == 'string') && (f.what.length > 0),
+                                   'fuzz doc ' + i + ' fail without what'))
+         ok(typeof text == 'string', 'fuzz doc ' + i + ' toText')
+         ok(typeof JSON.stringify(res.doc) == 'string', 'fuzz doc ' + i + ' doc is cyclic')
+       }
+       elapsed = Date.now() - started
+       ok(elapsed < 2000, 'fuzz took ' + elapsed + 'ms')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

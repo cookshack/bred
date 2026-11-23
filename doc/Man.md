@@ -229,6 +229,12 @@ CRLF that comes back, and parses and renders it, including no-argument macros
 skipping a tool the container does not have. It skips when node-pty is not
 available. The renderer tests also draw compact and large pages, empty tables
 and lists, combined table options, colspans and links with no text.
+`test/man-parse.mjs` ends with a seeded fuzz test: 300 short roff documents
+built from control lines, escapes, unclosed brackets and quotes, `T{`/`T}`
+cells and random macro names. Each must parse and convert with `toText` without
+throwing, return `ok` 0 or 1, give every failure a `what`, and serialise as
+JSON; the whole run must take under two seconds, so a parser hang fails it.
+The seed is fixed, so a failure can be replayed.
 
 ## Current state
 
@@ -266,10 +272,10 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 434 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 437 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
-is 100% for `man.mjs` (92% of branches), `man-char.mjs` (93%),
-`man-render.mjs` (100%), `man-roff.mjs` (96%) and `man-parse.mjs` (94% of
+is 100% for `man.mjs` (92% of branches), `man-char.mjs` (100%),
+`man-render.mjs` (100%), `man-roff.mjs` (97%) and `man-parse.mjs` (95% of
 branches).
 
 ## Known gaps, in order
@@ -314,6 +320,11 @@ branches).
   `\(ts` is the final sigma, and `\]` keeps its `]` because groff drops the
   backslash from an escape it does not know. Both were added after seeing them
   in the corpus.
+- An escape whose bracket never closes consumes the rest of the line: `\f[`
+  fails as `unterminated font escape`, and `\*[`/`\n[` take the rest as the
+  string or register name. Never set the scan position from a negative
+  `indexOf` result — the old `end + 1` became `0` and rescanned the line
+  forever.
 - Keep `man-parse.mjs` DOM-free and `man-render.mjs` model-only.
 - `.mso` is accepted only for `www.tmac` and `an-ext.tmac`, whose macros
   (`URL`, `MTO`, `UR/UE`, `MT/ME`) are implemented directly; `.LINKSTYLE`'s

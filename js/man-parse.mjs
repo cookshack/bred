@@ -338,6 +338,8 @@ function stringNameOf
     let end
 
     end = text.indexOf(']', j)
+    if (end < 0)
+      return { name: text.slice(j + 1), at: text.length }
     return { name: text.slice(j + 1, end), at: end + 1 }
   }
   return { name: text[j] || '', at: j + 1 }
@@ -435,6 +437,10 @@ function expand
           let end
 
           end = text.indexOf(']', at)
+          if (end < 0) {
+            fail(c, lineNo, 'unterminated font escape')
+            break
+          }
           name = text.slice(at + 1, end)
           at = end + 1
         }

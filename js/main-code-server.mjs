@@ -28,20 +28,48 @@ function removeContainer
                      })
 }
 
-function containerRunning
-(name) {
-  return new Promise(resolve => {
-                       let proc, output, timedOut, timer
+let inspectTimeout
 
-                       timedOut = 0
-                       proc = spawn('docker', [ 'inspect', '--format={{.State.Status}}', name ])
+inspectTimeout = 5000
+
+// Docker inspect can hang (a wedged daemon) but it must not stall the spawn, so
+// give up after inspectTimeout. Resolve with what was learned instead of a bare
+// boolean: a timeout, an exited container and a failed inspect all used to look
+// the same to the caller, which then blamed the container for exiting.
+export
+function containerRunning
+(name, spawnFn, timeout) {
+  return new Promise(resolve => {
+                       let proc, output, timer, settled
+
+                       function finish
+                       (result) {
+                         if (settled)
+                           return
+                         settled = 1
+                         clearTimeout(timer)
+                         resolve(result)
+                       }
+
+                       function lastWord
+                       () {
+                         return output.trim() || 'no output'
+                       }
+
+                       settled = 0
+                       spawnFn = spawnFn || spawn
+                       timeout = timeout || inspectTimeout
                        output = ''
 
+                       proc = spawnFn('docker', [ 'inspect', '--format={{.State.Status}}', name ])
+
                        timer = setTimeout(() => {
-                                            timedOut = 1
-                                            spawn('docker', [ 'stop', name ])
-                                            resolve(0)
-                                          }, 5000)
+                                            spawnFn('docker', [ 'stop', name ])
+                                            finish({ timedOut: 1,
+                                                     running: 0,
+                                                     state: '',
+                                                     error: lastWord() })
+                                          }, timeout)
 
                        proc.stdout.on('data', chunk => {
                                                 output += chunk.toString()
@@ -50,20 +78,36 @@ function containerRunning
                                                 output += chunk.toString()
                                               })
                        proc.on('close', code => {
-                                          clearTimeout(timer)
-                                          if (timedOut)
-                                            return
                                           if (code) {
-                                            resolve(0)
+                                            finish({ timedOut: 0,
+                                                     running: 0,
+                                                     state: '',
+                                                     error: lastWord() })
                                             return
                                           }
-                                          resolve(output.trim() == 'running')
+                                          finish({ timedOut: 0,
+                                                   running: output.trim() == 'running' ? 1 : 0,
+                                                   state: output.trim(),
+                                                   error: '' })
                                         })
-                       proc.on('error', () => {
-                                          clearTimeout(timer)
-                                          resolve(0)
+                       proc.on('error', err => {
+                                          finish({ timedOut: 0,
+                                                   running: 0,
+                                                   state: '',
+                                                   error: err.message })
                                         })
                      })
+}
+
+export
+function containerFailure
+(info, timeout) {
+  timeout = timeout || inspectTimeout
+  if (info.timedOut)
+    return 'docker inspect did not answer within ' + timeout + 'ms (last: ' + info.error + ')'
+  if (info.state)
+    return 'docker container not running during health check (state: ' + info.state + ')'
+  return 'docker inspect failed during health check: ' + info.error
 }
 
 function containerPort
@@ -144,11 +188,11 @@ function healthCheck
                          }
 
                          if (cName && attempts % 10 == 0) {
-                           let running
+                           let info
 
-                           running = await containerRunning(cName)
-                           if (running == 0) {
-                             reject(new Error('docker container exited during health check'))
+                           info = await containerRunning(cName)
+                           if (info.running == 0) {
+                             reject(new Error(containerFailure(info, inspectTimeout)))
                              return
                            }
                          }

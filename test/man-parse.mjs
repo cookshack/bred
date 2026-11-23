@@ -282,6 +282,55 @@ test('conditions', 'a brace block keeps its first line when true',
        equal(r.doc.blocks[0].spans[0].style, 'bold')
      })
 
+test('conditions', 'one-line text after an opened brace block is kept',
+     () => {
+       // groff prints "x chosen"; the untaken `.el \{ other` block is dropped.
+       equal(asText('.TH T 1\n.SH A\nx\n.ie 1 chosen\n.el \\{ other\nmore\n\\}\n'),
+             '\nA\nx chosen\n')
+       // With the `.ie` false, groff prints "x other more".
+       equal(asText('.TH T 1\n.SH A\nx\n.ie 0 chosen\n.el \\{ other\nmore\n\\}\n'),
+             '\nA\nx other more\n')
+     })
+
+test('conditions', 'the bash(1) restricted shell sentence survives',
+     () => {
+       let text
+
+       // bash.1's RESTRICTED SHELL: the taken `.el \{` branch carries the
+       // sentence on the same line as the block opener.
+       text = asText('.TH T 1\n' +
+                     '.ie \\n(zY=1 When a command that is found to be a shell script is executed,\n' +
+                     '.el \\{ When a command that is found to be a shell script is executed\n' +
+                     '(see\n' +
+                     '.SM\n' +
+                     '.B "COMMAND EXECUTION"\n' +
+                     'above),\n' +
+                     '\\}\n' +
+                     '.B rbash\n' +
+                     'turns off any restrictions in the shell spawned to execute the\n' +
+                     'script.\n')
+       ok(text.includes('When a command that is found to be a shell script is executed'))
+       ok(text.includes('(see COMMAND EXECUTION above),'))
+     })
+
+test('conditions', 'an undefined register in a condition is 0',
+     () => {
+       let r
+
+       // groff reads an undefined register as 0 and does not warn (bash(1)
+       // guards `zY` for the rbash(1) copy, but groff does not require it).
+       r = parsed('.TH T 1\n.ie \\n(zz=1 yes\n.el no\n')
+       equal(r.ok, 1)
+       equal(r.fails.length, 0)
+       equal(ManParse.toText(r.doc.blocks), 'no\n')
+     })
+
+test('conditions', 'a defined register still picks both branches',
+     () => {
+       equal(asText('.TH T 1\n.nr Q 1\n.ie \\nQ=1 one\n.el no\n.ie \\nQ=2 no\n.el two\n'),
+             'one two\n')
+     })
+
 test('conditions', 'registers are tested and expanded',
      () => {
        let r

@@ -364,6 +364,11 @@ function registerValue
     return frame(c)?.args?.length || 0
   val = (c.reg[name] == undefined) ? predefinedRegisters[name] : c.reg[name]
   if (val == undefined) {
+    // groff reads an undefined register as 0. In a condition that is the
+    // whole answer, so do not refuse the page; man-audit's static inventory
+    // still lists the register as unresolved.
+    if (c.condDepth)
+      return 0
     fail(c, lineNo, 'register ' + name, 'unknown')
     return 0
   }
@@ -1194,7 +1199,9 @@ function condition
     }
   }
 
+  c.condDepth++
   expanded = stripComment(expandText(c, cond, lineNo)).trim()
+  c.condDepth--
   if (expanded == '')
     return negate ? 1 : 0
   m = expanded.match(/^'([^']*)'([^']*)'/)
@@ -3098,9 +3105,14 @@ function handleLine
         c.lastIf = take
     }
     if (rest.startsWith('\\{')) {
-      if (take == 0)
+      if (take == 0) {
         skipBlock(c, c.lineNo)
-      break
+        break
+      }
+      // groff treats the rest of a `\{` line as the block's first input
+      // line, so `.el \{ text` still prints `text` when the branch is taken
+      // (bash(1)'s RESTRICTED SHELL).
+      rest = rest.slice(2).trim()
     }
     if (rest.trim() == '') {
       c.nextSkip = take ? 0 : 1
@@ -3242,6 +3254,7 @@ function parse
         joinPrev: 0,
         nextSkip: 0,
         lastIf: 0,
+        condDepth: 0,
         fill: 1,
         lineNo: 0,
         spec,

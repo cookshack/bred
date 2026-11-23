@@ -1621,22 +1621,27 @@ test('viewer', 'completion cache evicts the oldest prefix',
                        return b?.vars('prompt')?.run && b.views[0]?.ed
                      })
        v = Pane.current().buf.views[0]
-       // This is 101 completion round trips, so each wait needs more than the
-       // default second when the rest of the suite is running.
+       // This is 101 completion round trips, so each wait needs much more than
+       // the default second when the rest of the suite is running. The tick
+       // after each query lets the answer arrive before the next keystroke
+       // supersedes it: a response that is overtaken is not cached, which is
+       // the point of the sequence number, and a human types no faster.
        type('qq0')
-       await waitFor(() => kn('qq0') == 1, 5000)
+       await waitFor(() => kn('qq0') == 1, 15000)
+       await wait(10)
        for (let at = 1; at <= 100; at++) {
          type('qq' + at)
-         await waitFor(() => kn('qq' + at) == 1, 5000)
+         await waitFor(() => kn('qq' + at) == 1, 15000)
+         await wait(10)
        }
        // 101 names went through a 100-entry cache: the first is gone
        type('qq0')
-       await waitFor(() => kn('qq0') == 2, 5000)
+       await waitFor(() => kn('qq0') == 2, 15000)
        // a recent name is still served without asking man -k again
        type('qq100')
        await wait(80)
        equal(kn('qq100'), 1)
-     }, 10000)
+     }, 60000)
 
 test('viewer', 'a name that collides with an object property completes safely',
      async () => {

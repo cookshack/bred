@@ -309,14 +309,14 @@ prepends it and `.At` gained groff's table); `init-d-script(5)`'s
 after a URL plus its literal `.sp` cells (the `.URL` tail is expanded, and a
 `.sp`/`.br`/`.nf`/`.fi` line in a table body is a request, not a cell). Also fixed: the bare `.Nm` in
 `ssh_config(5)` and `editrc(5)`, which prints the document name (the first
-`.Nm` with an argument, as groff's `doc-command-name`), not the last one. Still
-open: `bash(1)`'s RESTRICTED SHELL sentence, whose first clause is the text
-after `\{` on a taken `.el` line; that text is dropped, so the sentence starts
-at `(see COMMAND EXECUTION above)`. Bash defines its `zY`/`zZ` registers
-itself, so this is not the undefined-register case (a condition on an undefined
-register is still refused, not 0).
+`.Nm` with an argument, as groff's `doc-command-name`), not the last one. And
+`bash(1)`'s RESTRICTED SHELL sentence is back: the text after a `\{` on a
+taken `.ie`/`.el` branch is kept, and an undefined register in a condition now
+reads as 0 (groff's rule) instead of refusing the page. Bash defines its own
+`zY`/`zZ`, so that page never needed the second rule; the dropped text was the
+whole loss.
 
-Tests: 472 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
+Tests: 476 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 99.8% for `man.mjs` (91% of branches; the two misses are the binary `cat`

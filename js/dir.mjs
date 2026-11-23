@@ -818,10 +818,21 @@ function scrollEnd
 
   el = p.view.ele.querySelector('.bred-surface')
   if (el) {
+    let scroll
+
     el.scroll(0, (top ? 0 : el.scrollHeight))
-    // The scroll-driven redraw renders the rows for the new position on the
-    // next frame, so look up the first/last row after it.
-    setTimeout(() => (top ? topLine(p.view) : lastVisibleLine(p.view)))
+    // The rows on screen are drawn by the scroll-driven redraw, which runs a
+    // frame later. Draw them here from the new scroll position instead of
+    // waiting a tick and hoping: the tick can land before that frame, and then
+    // no row is visible, nothing is put, and the point silently stays on a row
+    // that is no longer shown.
+    scroll = p.view.vars('dir').scroll
+    if (scroll)
+      scroll.render()
+    if (top)
+      topLine(p.view)
+    else
+      lastVisibleLine(p.view)
   }
 }
 

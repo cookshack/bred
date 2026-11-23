@@ -154,10 +154,11 @@ test('lastVisibleLine', 'skips a row that is clearly clipped',
      })
 
 // A scrolling dir view. `dom` is what the last render left in the DOM:
-// scrolling does not change it, only a redraw does.
+// scrolling does not change it, only a render does. staleFirst starts with the
+// first page still in the DOM, as after a scroll that no render has followed.
 function fakeScrollView
-() {
-  let dom, pane, puts, surf, view
+(staleFirst) {
+  let dom, pane, puts, rows, scroll, surf, view
 
   dom = []
   puts = []
@@ -168,63 +169,69 @@ function fakeScrollView
            (x, y) {
              surf.scrollTop = y
            } }
+  rows = { first: visibleEl(surf, { top: 0, bottom: 20 }),
+           prev: visibleEl(surf, { top: 156, bottom: 180 }),
+           last: visibleEl(surf, { top: 180, bottom: 200 }) }
+  if (staleFirst)
+    dom = [ rows.first ]
+  // The scroll renderer draws the rows for the current scroll position, so the
+  // DOM only reflects the new position once render() has run.
+  scroll = { renders: 0,
+             render
+             () {
+               this.renders++
+               dom = (surf.scrollTop >= surf.scrollHeight)
+                     ? [ rows.prev, rows.last ]
+                     : [ rows.first ]
+             } }
   view = { ele: { querySelector: () => surf,
                   querySelectorAll: () => dom },
            buf: { vars: () => ({}) },
+           vars: () => ({ scroll }),
            point: { put: (el, skipScroll) => puts.push({ el, skipScroll }) } }
   pane = { view }
-  return { dom, pane, puts, surf, view }
+  return { pane, puts, rows, scroll, surf }
 }
 
-// buffer start/end must wait for the scroll-driven redraw, which renders the
-// rows for the new position, before looking up the row to put the point on.
-function runTimers
-(fn) {
-  let calls, realSetTimeout
-
-  calls = []
-  realSetTimeout = globalThis.setTimeout
-  globalThis.setTimeout = cb => calls.push(cb)
-  fn()
-  globalThis.setTimeout = realSetTimeout
-  return calls
-}
-
-test('buffer start', 'puts the point on the first row after the redraw',
+// buffer start/end draw the rows for the new scroll position themselves, so the
+// point lands on the first/last row at once. Waiting on a timer instead can
+// look up the rows before the scroll-driven redraw has run, find none, and
+// silently leave the point on a row that is no longer shown.
+test('buffer start', 'draws the first page and puts the point on its first row',
      () => {
-       let calls, fake, first
+       let fake
 
        fake = fakeScrollView()
-       first = visibleEl(fake.surf, { top: 0, bottom: 20 })
+       Dir.scrollEnd(fake.pane, 1)
 
-       calls = runTimers(() => Dir.scrollEnd(fake.pane, 1))
        equal(fake.surf.scrollTop, 0, 'scrolls to the top')
-       equal(fake.puts.length, 0, 'does not look up rows before the redraw')
-
-       fake.dom.push(first) // the redraw rendered the first page
-       calls.forEach(cb => cb())
-
-       equal(fake.puts.length, 1)
-       equal(fake.puts[0].el, first, 'puts the first row')
+       equal(fake.scroll.renders, 1, 'draws the rows for the new position')
+       equal(fake.puts.length, 1, 'places the point with no timer')
+       equal(fake.puts[0].el, fake.rows.first, 'puts the first row')
      })
 
-test('buffer end', 'puts the point on the last row after the redraw',
+test('buffer end', 'draws the last page and puts the point on its last row',
      () => {
-       let calls, fake, last, prev
+       let fake
 
        fake = fakeScrollView()
-       prev = visibleEl(fake.surf, { top: 156, bottom: 180 })
-       last = visibleEl(fake.surf, { top: 180, bottom: 200 })
+       Dir.scrollEnd(fake.pane)
 
-       calls = runTimers(() => Dir.scrollEnd(fake.pane))
        equal(fake.surf.scrollTop, fake.surf.scrollHeight, 'scrolls to the end')
-       equal(fake.puts.length, 0, 'does not look up rows before the redraw')
+       equal(fake.scroll.renders, 1, 'draws the rows for the new position')
+       equal(fake.puts.length, 1, 'places the point with no timer')
+       equal(fake.puts[0].el, fake.rows.last, 'puts the last row')
+     })
 
-       fake.dom.push(prev, last) // the redraw rendered the last page
-       calls.forEach(cb => cb())
+test('buffer end', 'does not put the point on a row left from an older scroll',
+     () => {
+       let fake
+
+       fake = fakeScrollView(1) // the DOM still shows the page from the top
+       Dir.scrollEnd(fake.pane)
 
        equal(fake.puts.length, 1)
-       equal(fake.puts[0].el, last, 'puts the last row')
+       equal(fake.puts[0].el, fake.rows.last, 'puts the row drawn for the end')
      })
 
 test('selectFile', 'moves point to the matching file',

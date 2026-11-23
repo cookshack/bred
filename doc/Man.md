@@ -297,13 +297,14 @@ and are the next work. Fixed so far: the ssh helper pages' `OpenBSD 3.2.`
 prepends it and `.At` gained groff's table); `init-d-script(5)`'s
 `start\-stop\-daemon(8)` (`.Xr` expands its name); and `mount(8)`'s raw `\fP`
 after a URL plus its literal `.sp` cells (the `.URL` tail is expanded, and a
-`.sp`/`.br`/`.nf`/`.fi` line in a table body is a request, not a cell). Still
+`.sp`/`.br`/`.nf`/`.fi` line in a table body is a request, not a cell). Also fixed: the bare `.Nm` in
+`ssh_config(5)` and `editrc(5)`, which prints the document name (the first
+`.Nm` with an argument, as groff's `doc-command-name`), not the last one. Still
 open: `bash(1)`'s RESTRICTED SHELL sentence, which needs `.ie`/`.el` text on
 the condition's line and an undefined register in a condition to be 0 rather
-than a refusal; and the bare `.Nm` in `ssh_config(5)` and `editrc(5)`, which
-must print the document name, not the last `.Nm`.
+than a refusal.
 
-Tests: 466 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 472 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (100%),
 `man-render.mjs` (100%), `man-roff.mjs` (97%) and `man-parse.mjs` (95% of

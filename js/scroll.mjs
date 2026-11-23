@@ -149,6 +149,9 @@ export function make
 
            destroy
            () {
+             if (rafId)
+               globalThis.cancelAnimationFrame(rafId)
+             rafId = 0
              surf.removeEventListener('scroll', onScroll)
            } }
 }

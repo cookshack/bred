@@ -37,6 +37,9 @@ function resetScroll
   Scroll.init()
 
   globalThis.requestAnimationFrame = cb => rafCbs.push(cb)
+  globalThis.cancelAnimationFrame = id => {
+                                      rafCbs[id - 1] = null
+                                    }
   globalThis.DocumentFragment = class {
     constructor
     () {
@@ -229,6 +232,21 @@ test('onScroll', 'throttled by rAF',
        equal(got, 1)
        surfListeners.scroll()
        equal(rafCbs.length, 2)
+     })
+
+test('destroy', 'cancels a pending scroll frame',
+     () => {
+       let got, sc, surf
+
+       surf = makeSurf(50)
+       sc = Scroll.make(surf, { itemCount: 5 })
+       got = 0
+       sc.onScroll = () => got += 1
+       surfListeners.scroll()
+       equal(rafCbs.length, 1)
+       sc.destroy()
+       rafCbs.forEach(cb => cb && cb())
+       equal(got, 0, 'a destroyed scroll must not redraw')
      })
 
 test('make', 'line height cached per surf',

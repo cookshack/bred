@@ -230,24 +230,47 @@ function vsetLang
 // Wait until this view has no unconfirmed peer updates, so that main has
 // acknowledged everything the current editor sent before we rebuild it.
 // Otherwise a push still in flight can land on main after a revert and be
-// replayed onto the new editor.
+// replayed onto the new editor.  What bounds the wait is the document's own
+// state and the push in flight, not the clock: on a big document or a busy
+// machine an ack can take longer than any fixed cap, and giving up at one
+// rebuilt the view with edits still unsent and nothing said.  So keep waiting
+// while the view is alive, say once through Mess what is outstanding, then
+// poll slowly so a long wait stays cheap.  Stop only if the view is closed,
+// since then there is no pane left to rebuild.
 async function flushPeer
 (view) {
-  let i
+  let began, slow
 
-  for (i = 0; i < 200; i++) {
+  function label
+  () {
+    return view.buf?.name || view.buf?.path || 'buffer'
+  }
+
+  began = Date.now()
+  slow = 0
+  for (;;) {
     let state
 
     state = view.ed?.state
     if (state)
       try {
-        if (CMCollab.sendableUpdates(state).length == 0)
+        if (CMCollab.sendableUpdates(state).length == 0) {
+          if (slow)
+            Mess.say('Wodemirror: ' + label() + ' synced edits after ' + Math.round((Date.now() - began) / 1000) + 's')
           return
+        }
       }
       catch {
         return
       }
-    await new Promise(r => setTimeout(r, 10))
+    else if (view.ele == null)
+      // View was closed while waiting, so there is nothing left to rebuild.
+      return
+    if (slow == 0 && ((Date.now() - began) >= 2000)) {
+      slow = 1
+      Mess.say('Wodemirror: still waiting for ' + label() + ' to sync edits with the peer')
+    }
+    await new Promise(r => setTimeout(r, slow ? 250 : 10))
   }
 }
 

@@ -17,7 +17,7 @@ import * as CMCollab from '../lib/@codemirror/collab.js'
 import * as CMView from '../lib/@codemirror/view.js'
 import { setupDom } from './dom-help.mjs'
 
-let buf, bufSeq, domWin, extraViews, fileGetArgs, fileGetDelay, fileGetErr, filePath, optsSet, peerPushDelay, readyView
+let buf, bufSeq, domWin, extraViews, fileGetArgs, fileGetDelay, fileGetErr, filePath, optsSet, peerPushDelay, peerPushHold, peerPushHolds, readyView
 let savedDocument, savedElement, savedHTMLDocument, savedOpt, savedTron, tests, tmp, view, watchCbs, _shared
 
 function sleep
@@ -166,6 +166,8 @@ function setup
   fileGetDelay = 0
   fileGetErr = 0
   peerPushDelay = 0
+  peerPushHold = 0
+  peerPushHolds = []
   watchCbs = new Map()
   extraViews = []
   optsSet = []
@@ -191,7 +193,13 @@ function setup
                                 if (name == 'peer.get')
                                   return MainPeer.onGet(fakeE(), args)
                                 if (name == 'peer.push') {
-                                  await sleep(peerPushDelay)
+                                  // peerPushHold keeps the ack pending until
+                                  // the test releases it, so the drain can be
+                                  // made to take longer than any wait allows.
+                                  if (peerPushHold)
+                                    await new Promise(r => peerPushHolds.push(r))
+                                  else
+                                    await sleep(peerPushDelay)
                                   return MainPeer.onPush({ sender: { send: (ch, data) => fireChannel(ch, data) } },
                                                          args)
                                 }
@@ -312,6 +320,13 @@ function peerFlushed
       return 1
     }
   return 1
+}
+
+// Let every peer push held by peerPushHold answer, so the pending drain can
+// finish.
+function releasePeerPushes
+() {
+  peerPushHolds.splice(0).forEach(r => r())
 }
 
 async function waitReady
@@ -591,6 +606,40 @@ test('revert', 'stale peer push during revert keeps content',
        await sleep(350)
        equal(view.ed.state.doc.toString(), 'v1')
      })
+
+test('revert', 'keeps waiting for an unacknowledged push and says so',
+     async () => {
+       let began, releasedAt, reverted, says
+
+       reverted = 0
+       says = watchSays()
+       await open()
+       // Hold the ack for the edit, so the drain never happens until the
+       // harness lets it.  The old wait gave up after two seconds and rebuilt
+       // the view with the push still in flight, saying nothing.
+       peerPushHold = 1
+       view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
+       await waitUntil(() => peerPushHolds.length, 'the held peer push')
+       began = Date.now()
+       WodeView.revertV(view, {}, () => reverted = 1)
+       // The wait must report what it is waiting for, by name, rather than
+       // vanishing.
+       await waitUntil(() => says.some(t => t.includes('still waiting') && t.includes(filePath)),
+                       'the peer-sync message',
+                       500)
+       equal(reverted, 0)
+       releasedAt = Date.now() - began
+       // Past the old two-second cap and still rebuilding nothing.
+       equal(releasedAt >= 2000 ? 1 : 0, 1)
+       equal(view.ed.state.doc.toString(), 'v1X')
+       // Once the harness acknowledges, the wait ends and the revert finishes.
+       peerPushHold = 0
+       releasePeerPushes()
+       await waitUntil(() => reverted, 'the revert callback after the drain', 500)
+       equal(view.ed.state.doc.toString(), 'v1')
+       equal(view.ready, 1)
+     },
+     15000)
 
 test('open', 'file.get error is ready not dead',
      async () => {

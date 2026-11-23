@@ -28,6 +28,25 @@ function press
            preventDefault: () => {} }
 }
 
+// Type through the handler a search installs on globalThis.onkeydown.
+function typing
+(text) {
+  [ ...text ].forEach(ch => globalThis.onkeydown(press(ch,
+                                                       (ch == ' ') ? 'Space' : 'Key' + ch.toUpperCase(),
+                                                       0,
+                                                       0)))
+}
+
+// Resolve a key in the buffer's keymaps and return the command name, so a
+// test can run it the way the app does.
+function look
+(b, key, code, ctrl) {
+  let to
+
+  Em.look([ { e: press(key, code, ctrl, 0), mouse: 0 } ], 0, b, (map, t) => to = t)
+  return to
+}
+
 function test
 (group, name, cb, ms) {
   tests[group] = tests[group] || []
@@ -315,6 +334,25 @@ function textOf
   return viewOf(b).ele.textContent
 }
 
+// Open a page in a div buffer and install the div search the app registers at
+// startup. The area goes into the document because the app keeps it there and
+// point.setAt refuses a node that is not connected, which is how a search
+// moves the point onto a match.
+async function divOpen
+(page) {
+  let panes, b, area
+
+  panes = setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' + page })
+  b = await opened('ls')
+  area = panes.frame.tab.area.el
+  globalThis.document.body.appendChild(area)
+  if (divSearch == 0) {
+    Bred.initDivSearch()
+    divSearch = 1
+  }
+  return b
+}
+
 tests = {}
 inited = 0
 divSearch = 0
@@ -339,24 +377,12 @@ test('viewer', 'opening a topic renders a div buffer',
 // moves onto the match. Drive the same key handler the search installs.
 test('viewer', 'C-s searches a div buffer from the keyboard',
      async () => {
-       let b, v, panes, echo, to, area, oldOnKeyDown
+       let b, v, echo, to, oldOnKeyDown
 
-       panes = setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' +
-                            '.SH DESCRIPTION\nalpha beta alpha gamma\n' })
-       b = await opened('ls')
+       b = await divOpen('.SH DESCRIPTION\nalpha beta alpha gamma\n')
        v = viewOf(b)
-       // The app keeps the area in the document, which is what lets the
-       // search move the point onto a match (point.setAt refuses a
-       // disconnected node).
-       area = panes.frame.tab.area.el
-       globalThis.document.body.appendChild(area)
-       if (divSearch == 0) {
-         Bred.initDivSearch()
-         divSearch = 1
-       }
-
        oldOnKeyDown = globalThis.onkeydown
-       Em.look([ { e: press('s', 'KeyS', 1, 0), mouse: 0 } ], 0, b, (map, t) => to = t)
+       to = look(b, 's', 'KeyS', 1)
        equal(to, 'search forward', 'C-s is bound to the div search')
        Cmd.run(to, b)
 
@@ -365,7 +391,7 @@ test('viewer', 'C-s searches a div buffer from the keyboard',
        try {
          let bep
 
-         [ 'a', 'l', 'p', 'h', 'a' ].forEach(ch => globalThis.onkeydown(press(ch, 'Key' + ch.toUpperCase(), 0, 0)))
+         typing('alpha')
          equal(echo.innerText, 'alpha', 'every typed character reaches the needle')
          equal(echo.classList.contains('mini-search-fail'), false, 'the needle found a match')
          bep = v.point.bep()
@@ -378,6 +404,69 @@ test('viewer', 'C-s searches a div buffer from the keyboard',
 
        equal(v.elPane.parentNode.querySelector('.bred-search-w'), null, 'the search bar is gone')
        equal(globalThis.onkeydown, oldOnKeyDown, 'the key handler is restored')
+     })
+
+// A man page bolds the term it is discussing, so a paragraph is several text
+// nodes. The reader sees one sentence, so C-s must find a phrase that crosses
+// the bold span, forwards and backwards.
+test('viewer', 'C-s finds a phrase across a styled span',
+     async () => {
+       let b, v, echo, bep
+
+       b = await divOpen('.SH DESCRIPTION\nalpha \\fBbeta\\fP gamma\n')
+       v = viewOf(b)
+
+       Cmd.run(look(b, 's', 'KeyS', 1), b)
+       echo = v.elPane.parentNode.querySelector('.mini-echo')
+       try {
+         typing('alpha beta')
+         equal(echo.innerText, 'alpha beta', 'the space is part of the needle')
+         equal(echo.classList.contains('mini-search-fail'), false,
+               'the phrase crosses the bold span')
+         bep = v.point.bep()
+         equal(bep.node.wholeText, 'beta', 'the point is in the bold node')
+         equal(bep.offset, 3, 'the point sits on the last character of the match')
+       }
+       finally {
+         Cmd.run('search done', b)
+       }
+
+       // The same phrase searched backwards, from the end of the match.
+       Cmd.run(look(b, 'r', 'KeyR', 1), b)
+       echo = v.elPane.parentNode.querySelector('.mini-echo')
+       try {
+         typing('alpha beta')
+         equal(echo.classList.contains('mini-search-fail'), false,
+               'the phrase is found backwards too')
+         bep = v.point.bep()
+         equal(bep.node.wholeText, 'alpha ', 'the point is at the start of the phrase')
+         equal(bep.offset, 0)
+       }
+       finally {
+         Cmd.run('search done', b)
+       }
+     })
+
+// The run stops at the paragraph, so a needle cannot stitch the end of one
+// paragraph to the start of the next.
+test('viewer', 'C-s does not search across a paragraph boundary',
+     async () => {
+       let b, v, echo
+
+       b = await divOpen('.SH DESCRIPTION\nalpha\n.PP\nbeta gamma\n')
+       v = viewOf(b)
+
+       Cmd.run(look(b, 's', 'KeyS', 1), b)
+       echo = v.elPane.parentNode.querySelector('.mini-echo')
+       try {
+         typing('alpha beta')
+         equal(echo.innerText, 'alpha beta')
+         equal(echo.classList.contains('mini-search-fail'), true,
+               'the phrase does not join two paragraphs')
+       }
+       finally {
+         Cmd.run('search done', b)
+       }
      })
 
 test('viewer', 'a valid path before an unreadable path is used',

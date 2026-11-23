@@ -1340,16 +1340,10 @@ function initDivSearch
    //   wrap,
    //   stayInPlace }
    spec) {
-    let range
-
     d('div vfind')
-    range = view.point.search(needle, spec)
-    if (range) {
-      range.startBep = { node: range.node, offset: range.start }
-      range.endBep = { node: range.node, offset: range.end }
-      range.text = range.node.wholeText.slice(range.start, range.end)
-    }
-    return range
+    // A div range carries a bep at each end, so a phrase that crosses an
+    // inline element has its two ends in different text nodes.
+    return view.point.search(needle, spec)
   }
 
   initSearch(vfind,

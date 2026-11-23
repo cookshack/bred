@@ -8,7 +8,7 @@ d = () => {}
 export
 function make
 (elePane, elePoint) {
-  let walker, pos
+  let walker, pos, blockTags
 
   function checkText
   (t) {
@@ -17,6 +17,75 @@ function make
       return globalThis.NodeFilter.FILTER_ACCEPT
     }
     return globalThis.NodeFilter.FILTER_SKIP
+  }
+
+  // The nearest block element a text node is rendered in, or 0 when the node
+  // is loose in the pane and is therefore its own run. Text is split into
+  // nodes wherever an inline element starts or ends, so a phrase that reads
+  // continuously (the usual bold word in a man page) can span several nodes;
+  // search a block's whole text instead and map a hit back to node offsets.
+  function blockOf
+  (node) {
+    let el
+
+    el = node.parentNode
+    while (el)
+      if (el == elePane)
+        return 0
+      else if (blockTags.includes(el.nodeName))
+        return el
+      else
+        el = el.parentNode
+    return 0
+  }
+
+  // A block's rendered text and the offset of each text node in it. A <br>
+  // is a line break, so a phrase cannot match through one.
+  function blockText
+  (el) {
+    let text, nodes, w, n
+
+    text = ''
+    nodes = []
+    w = globalThis.document.createTreeWalker(el,
+                                             globalThis.NodeFilter.SHOW_ELEMENT
+                                             | globalThis.NodeFilter.SHOW_TEXT,
+                                             { acceptNode: t => ((t.nodeName == '#text')
+                                                                 || (t.nodeName == 'BR'))
+                                               ? globalThis.NodeFilter.FILTER_ACCEPT
+                                               : globalThis.NodeFilter.FILTER_SKIP })
+    while ((n = w.nextNode()))
+      if (n.nodeName == 'BR')
+        text += '\n'
+      else {
+        nodes.push({ node: n, start: text.length })
+        text += n.wholeText
+      }
+    return { el, text, nodes }
+  }
+
+  // Where character i of a run's text is.
+  function bepAt
+  (nodes, i) {
+    let k
+
+    k = nodes.length - 1
+    while (k && (nodes[k].start > i))
+      k--
+    return { node: nodes[k].node, offset: i - nodes[k].start }
+  }
+
+  function startOf
+  (nodes, node) {
+    let i
+
+    i = nodes.length - 1
+    while (i)
+      if (nodes[i].node == node)
+        break
+      else
+        i--
+    return nodes[i].start
   }
 
   function ensureInView
@@ -394,6 +463,30 @@ function make
     return sc
   }
 
+  // A match is a range with a bep at each end, so its two ends may be in
+  // different nodes when the phrase crosses an inline element. Forward
+  // searches leave the point after the match, backward ones at its start,
+  // which is what the editor backend does.
+  function found
+  (run, i, len, backwards) {
+    let startBep, endBep, last
+
+    startBep = bepAt(run.nodes, i)
+    // the end is exclusive, but stays in the node of the last matched
+    // character so the point lands there
+    last = bepAt(run.nodes, i + (len ? len - 1 : 0))
+    endBep = { node: last.node,
+               offset: last.offset + (len ? 1 : 0) }
+    walker.currentNode = backwards ? startBep.node : endBep.node
+    pos = backwards ? startBep.offset : endBep.offset
+    if (pos >= walker.currentNode.wholeText.length)
+      pos = walker.currentNode.wholeText.length - 1
+    sync()
+    return { startBep,
+             endBep,
+             text: run.text.slice(i, i + len) }
+  }
+
   function search
   (str,
    // { backwards,
@@ -403,7 +496,7 @@ function make
    //   wrap,
    //   stayInPlace }
    spec) {
-    let startNode, startPos
+    let startNode, startPos, needle, block
 
     d('psr')
     spec = spec || {}
@@ -415,37 +508,53 @@ function make
     }
     startNode = walker.currentNode
     startPos = pos
+    needle = spec.caseSensitive ? str : str.toLowerCase()
+    block = 0
     while (walker.currentNode) {
-      let i, text
+      let i, run, base, hay
 
-      if (spec.caseSensitive)
-        text = walker.currentNode.wholeText
-      else {
-        text = walker.currentNode.wholeText.toLowerCase()
-        str = str.toLowerCase()
+      run = 0
+      if (str.length) {
+        let el
+
+        // Search the whole block the point is in, so a phrase can cross the
+        // nodes an inline element splits it into.
+        el = blockOf(walker.currentNode)
+        if (el) {
+          if (block?.el == el)
+            run = block
+          else {
+            block = blockText(el)
+            run = block
+          }
+          base = startOf(run.nodes, walker.currentNode)
+        }
       }
+      if (run == 0) {
+        // No block around the node: it is a run of its own.
+        run = { text: walker.currentNode.wholeText,
+                nodes: [ { node: walker.currentNode, start: 0 } ] }
+        base = 0
+      }
+      if (run.lower == undefined)
+        run.lower = run.text.toLowerCase()
+      hay = spec.caseSensitive ? run.text : run.lower
 
-      d('ST ' + str)
-      d('VS ' + text)
+      d('ST ' + needle)
+      d('VS ' + hay)
       d('pos ' + pos)
 
       if (spec.backwards)
-        i = (pos == 0) ? -1 : text.lastIndexOf(str, pos - 1)
+        i = (base + pos) ? hay.lastIndexOf(needle, base + pos - 1) : -1
       else
-        i = text.indexOf(str, pos)
+        i = hay.indexOf(needle, base + pos)
       if (i >= 0) {
-        if (spec.skipCurrent && (i == pos)) {
+        if (spec.skipCurrent && (i == (base + pos))) {
           // re-searching, past the current match
           pos = pos + 1
           continue
         }
-        pos = i + (spec.backwards ? 0 : str.length)
-        if (pos >= text.length)
-          pos = text.length - 1
-        sync()
-        return { node: walker.currentNode,
-                 start: i,
-                 end: i + str.length }
+        return found(run, i, needle.length, spec.backwards)
       }
       if (spec.backwards ? getPrevious() : getNext())
         continue
@@ -513,6 +622,14 @@ function make
     getNext()
     sync()
   }
+
+  // One rendered run for the reader: text inside any of these is a single
+  // block however many inline elements split the nodes (see blockOf).
+  blockTags = [ 'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'DD', 'DIV', 'DL',
+                'DT', 'FIELDSET', 'FIGCAPTION', 'FIGURE', 'FOOTER', 'FORM',
+                'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER', 'LI', 'MAIN',
+                'NAV', 'OL', 'P', 'PRE', 'SECTION', 'TABLE', 'TBODY', 'TD',
+                'TFOOT', 'TH', 'THEAD', 'TR', 'UL' ]
 
   return { get ele
            () {

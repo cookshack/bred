@@ -213,7 +213,9 @@ man links, the `.LINKSTYLE` glyph pair around a described `.URL` target (ASCII
 when the page asks for it, `⟨⟩` otherwise, and `.UR` unaffected), and buffer
 reuse and shared refresh across panes. A div-buffer search test feeds `C-s`
 through `Em.look` and the characters through the key handler the search
-installs, then checks the needle in the search bar and the point on the match.
+installs, then checks the needle in the search bar and the point on the match;
+another searches a phrase that crosses a bold span (forwards and backwards)
+and a third shows that two paragraphs do not join into one match.
 `test/man-pty.mjs`
 covers the real reader path: it writes a gzip page to a temporary file, runs
 `zcat` through node-pty (the same main-side path the viewer uses), checks the
@@ -260,7 +262,7 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 427 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 429 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (93%),
 `man-render.mjs` (100%), `man-roff.mjs` (96%) and `man-parse.mjs` (94% of
@@ -268,13 +270,14 @@ branches).
 
 ## Known gaps, in order
 
-1. Div-buffer search works: `C-s` installs the div search, the needle
-   accumulates in the search bar and the point moves onto the match. The match
-   is confined to one text node, though, so a phrase that crosses a span
-   boundary is not found even when it reads continuously on screen (in
-   `alpha \fBbeta\fP gamma`, `beta` is found but `alpha beta` is not). `C-w`
-   (`add word to search`) is also a no-op in a div buffer: `Point.search`
-   treats its regexp needle as plain text, so the literal
+1. Div-buffer search works: `C-s`/`C-r` install the div search, the needle
+   accumulates in the search bar and the point moves onto the match. A phrase
+   may cross a styled span, because `Point.search` searches a block's whole
+   text and returns a range with a bep at each end (in `alpha \fBbeta\fP
+   gamma`, `alpha beta` is found both ways), but the block bounds the match,
+   so two paragraphs do not join and a phrase cannot cross a `<br>`. `C-w`
+   (`add word to search`) is still a no-op in a div buffer: `Point.search`
+   ignores `spec.regExp` and treats its needle as plain text, so the literal
    `alpha[^a-zA-Z0-9]*[a-zA-Z0-9]+` never matches.
 2. mdoc `Ex`/`Rv` match mdoc(7)'s sentences (names joined with `and`, the
    plural verbs, and the `Nm` fallback) but not every `-std` family variant:

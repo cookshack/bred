@@ -15,7 +15,7 @@ import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, divSearch, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, statErrPaths, modeLessPaths, readFailPaths
+let tests, inited, divSearch, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, noMagicPaths, statErrPaths, modeLessPaths, readFailPaths
 
 // A key event, for Em.look (wrapped as { e }) and for the search map's
 // onkeydown handler (raw).
@@ -182,6 +182,10 @@ function installShell
         code = 1
       else if (binaryPaths[sargs[0] || ''])
         out = 'BZh9\x00\xff\xfe'
+      // Binary, but with no compression signature: the viewer can only say
+      // that the bytes are not text.
+      else if (noMagicPaths[sargs[0] || ''])
+        out = '\0\xff\xfe'
       else {
         out = read(sargs[0] || '')
         if (out == '')
@@ -283,6 +287,7 @@ function setup
   dirPaths = {}
   unreadablePaths = {}
   binaryPaths = {}
+  noMagicPaths = {}
   statErrPaths = {}
   modeLessPaths = {}
   readFailPaths = {}
@@ -738,6 +743,26 @@ test('viewer', 'a mislabelled compressed page names the format cat found',
        equal(textOf(b).includes('Cannot read ' + path +
                                 ': cannot decompress .xz (bzip2 data)'), true)
        equal(textOf(b).includes('still compressed'), false)
+     })
+
+test('viewer', 'binary cat output with no known magic is refused as bytes',
+     async () => {
+       let b, path, msg
+
+       // Every decompressor failed and cat handed back binary with no
+       // signature the viewer recognises (a NUL and two undecodable bytes).
+       // There is no format to name, but the page must still be refused
+       // rather than parsed and drawn as garbage.
+       path = '/fake/man1/junk.1.xz'
+       msg = 'Cannot read ' + path + ': cannot decompress .xz'
+       setup({}, { junk: [ path ] })
+       zcatFails[path] = 1
+       noMagicPaths[path] = 1
+       b = await opened('junk')
+       equal(textOf(b), msg, 'the whole page is the clear error')
+       equal(viewOf(b).ele.querySelector('.man-h1'), null,
+             'nothing was parsed and rendered')
+       equal(viewOf(b).ele.querySelector('.manpage-err').textContent, msg)
      })
 
 test('viewer', 'compressed-looking bytes later in a page still render',

@@ -839,6 +839,55 @@ test('viewer', 'an unknown scheme is refused and does not navigate',
        equal(msgs[msgs.length - 1].text, 'Cannot open javascript link')
      })
 
+test('viewer', 'the other schemes a reader expects also open externally',
+     async () => {
+       let b, links, hrefs, src, targets
+
+       targets = [ 'ftps://example.com/x',
+                   'git://example.com/repo.git',
+                   'gopher://example.com/1',
+                   'gophers://example.com/1',
+                   'irc://irc.example.com/chan',
+                   'ircs://irc.example.com/chan',
+                   'news:comp.example',
+                   'nntp://example.com/comp.example',
+                   'sftp://example.com/x',
+                   'ssh://example.com/x' ]
+       src = '.TH URLS 1\n.SH LINKS\n'
+       targets.forEach(href => src = src + '.UR ' + href + '\ntext\n.UE\n')
+       setup({ urls: src })
+       b = await opened('urls')
+       links = b.views[0].ele.querySelectorAll('a')
+       equal(links.length, targets.length)
+       hrefs = []
+       links.forEach(a => hrefs.push(a.getAttribute('href')))
+       links.forEach(a => a.dispatchEvent(new globalThis.window.Event('click',
+                                                                      { bubbles: 1,
+                                                                        cancelable: 1 })))
+       equal(hrefs.length, targets.length)
+       targets.forEach((href, i) => equal(hrefs[i], href))
+       await waitFor(() => calls.some(c => (c[0] == 'shell.open') &&
+                                          (c[1] == targets[targets.length - 1])))
+       targets.forEach(href => equal(calls.some(c => (c[0] == 'shell.open') &&
+                                                    (c[1] == href)), true))
+     })
+
+test('viewer', 'file: is still refused rather than opening a local path',
+     async () => {
+       let b, a, ev, msgs
+
+       setup({ urls: '.TH URLS 1\n.SH LINKS\n' +
+                      '.UR file:///etc/passwd\npasswd\n.UE\n' })
+       b = await opened('urls')
+       a = b.views[0].ele.querySelector('a')
+       ev = new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 })
+       a.dispatchEvent(ev)
+       equal(ev.defaultPrevented, true)
+       equal(calls.some(c => (c[0] == 'shell.open')), false)
+       msgs = Mess.messages().filter(m => m.type == 'say')
+       equal(msgs[msgs.length - 1].text, 'Cannot open file link')
+     })
+
 test('viewer', 'a bare filename link opens its page instead of navigating',
      async () => {
        let b, a, ev

@@ -74,9 +74,18 @@ fall back, so their read error is shown and a directory is never parsed. A
 `file:` URL is refused with a message rather than resolved into the pane
 directory.
 
-Links to `http:`, `https:`, `mailto:` and `ftp:` open in the desktop browser
-through `shell.open` and never navigate the window. Any other scheme is
-refused with a message; `#...` links scroll within the page and `man:...`
+Links to `http:`, `https:`, `mailto:`, `ftp:`, `ftps:`, `irc:`, `ircs:`, `news:`,
+`nntp:`, `gopher:`, `gophers:`, `ssh:`, `sftp:` and `git:` open in the desktop
+through `shell.open` and never navigate the window. That hands the URL to
+whichever application registered the scheme, which is a security decision taken
+per scheme rather than per link: a page can start an IRC client or an SSH
+handler, not only show a web document. The allow-list is therefore explicit: the
+installed corpus links `http`, `https`, `ftp` and `mailto` only (the fetched
+groff/OpenBSD trees add `file`), and the rest are the schemes a reader would
+expect a page to use. Any other scheme is refused
+with a message, `file:` among them: a page cannot make a click open a local
+path, which is why the prompt refuses a `file:` URL as well. `#...` links
+scroll within the page and `man:...`
 links open another topic. A link with no text shows its topic (`man:foo(1)`
 shows `foo(1)`) or its URL. A page link keeps its target visible: `.UR`/`.UE`
 print `⟨target⟩` after the link text, and alone when the block has no text,
@@ -173,7 +182,8 @@ text. `test/man-viewer.mjs` drives `Man.open` with fake `man -w`/`zcat`
 responses, so the viewer is tested without the installed corpus. It covers the
 path and reader fallbacks, redirects (chains, cycles, sections, missing
 targets), includes (including cycles), TOC and reference clicks, external and
-unknown-scheme links, section/topic normalisation and path input (including
+unknown-scheme links (every allowed scheme opens, `javascript:` and `file:` are
+refused), section/topic normalisation and path input (including
 spaces, colons and home expansion), the prompt with its completion (regex
 escaping, a shared normalised cache key, a section prefix such as `3 pr`, a
 parenthesised suffix such as `printf (3)`, a section prefix and suffix together,
@@ -247,7 +257,7 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 424 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 426 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (93%),
 `man-render.mjs` (100%), `man-roff.mjs` (96%) and `man-parse.mjs` (94% of
@@ -274,8 +284,6 @@ branches).
    when that read fails. Relatedly, a mislabelled compressed file whose `cat`
    output happens to contain no NUL or replacement character is still read as
    text.
-5. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
-   are refused rather than handed to the desktop.
 
 ## Changing it
 

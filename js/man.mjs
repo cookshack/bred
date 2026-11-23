@@ -18,7 +18,7 @@ import * as Tron from './tron.mjs'
 import * as View from './view.mjs'
 //import { d } from './mess.mjs'
 
-let openImpl, sugSeq, topicCache, topicKeys, decompressors, cacheMax
+let openImpl, sugSeq, topicCache, topicKeys, decompressors, cacheMax, externalSchemes
 
 sugSeq = 0
 // A fresh object, not {}, so a name like "constructor" or "toString" is a miss
@@ -30,6 +30,14 @@ topicKeys = []
 // and man -w returns whichever the source uses.
 decompressors = { gz: 'zcat', xz: 'xzcat', bz2: 'bzcat', zst: 'zstdcat', lzma: 'lzcat' }
 cacheMax = 100
+// Schemes a reader can expect a page to link to. Each one is handed to the
+// desktop, which starts whatever application registered it, so the list is a
+// deliberate allow-list rather than "anything with a colon". A man page is
+// trusted text, but a page installed for another reader is not, and the window
+// must never navigate. file: is left out on purpose: the prompt refuses it too,
+// since it names a local path rather than a document on the network.
+externalSchemes = [ 'ftp', 'ftps', 'git', 'gopher', 'gophers', 'http', 'https',
+                    'irc', 'ircs', 'mailto', 'news', 'nntp', 'sftp', 'ssh' ]
 
 function topicsFrom
 (out) {
@@ -252,7 +260,7 @@ function init
     scheme = schemeOf(href)
     if (scheme) {
       we.preventDefault()
-      if ([ 'http', 'https', 'mailto', 'ftp' ].includes(scheme))
+      if (externalSchemes.includes(scheme))
         openExternally(href)
       else
         Mess.say('Cannot open ' + scheme + ' link')

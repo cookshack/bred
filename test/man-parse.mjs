@@ -311,6 +311,30 @@ test('conditions', 'the bash(1) restricted shell sentence survives',
                      'script.\n')
        ok(text.includes('When a command that is found to be a shell script is executed'))
        ok(text.includes('(see COMMAND EXECUTION above),'))
+       // The bare `\}` line closes the block without adding a space, so the
+       // next inline macro does not leave two (round 7 left `above),  rbash`).
+       ok(text.includes('(see COMMAND EXECUTION above), rbash turns off'))
+     })
+
+test('conditions', 'a bare closing brace line contributes no text or space',
+     () => {
+       let text
+
+       // groff prints "x aaa bbb ccc": the `\}` line that closes the block
+       // opened by `.ie 1 \{` is neither text nor a separator, and the `.B`
+       // request after it still runs.
+       text = asText('.TH T 1\n.SH A\nx\n.ie 1 \\{ aaa\n' +
+                     'bbb\n' +
+                     '\\}\n' +
+                     '.B ccc\n')
+       equal(text, '\nA\nx aaa bbb ccc\n')
+     })
+
+test('conditions', 'a taken ie brace block still skips the el block',
+     () => {
+       // The untaken `.el \{` block owns `more` through its own `\}` line.
+       equal(asText('.TH T 1\n.SH A\nx\n.ie 1 \\{ taken\n.el \\{ other\nmore\n\\}\n.B after\n'),
+             '\nA\nx taken after\n')
      })
 
 test('conditions', 'an undefined register in a condition is 0',

@@ -3444,6 +3444,14 @@ function parse
       c.lineTarget = 0
       continue
     }
+    // A bare `\}` line closes the block an inline `.ie \{` opened. groff
+    // prints no text and no space for it, so its empty text line must not add
+    // a separator: the next inline macro adds its own (bash(1)'s
+    // `above),  rbash`).
+    if (input.text.trim() == '\\}') {
+      c.lineTarget = 0
+      continue
+    }
     if (control && control.name) {
       // A `\c` on the line before this one suppresses the leading space; the
       // macro's own last argument may start a new continuation.

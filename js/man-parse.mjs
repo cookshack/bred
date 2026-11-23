@@ -2342,10 +2342,14 @@ function mdocInlineMacro
   case 'St':
     mdocText(c, mdocStandard(args[0] || ''), c.font)
     return 1
-  // The canned sentences mdoc(7) emits. With no names `Ex` falls back to the
+  // The canned sentences mdoc(7) emits, but only with `-std`: without the
+  // flag the macro expands to nothing. With no names `Ex` falls back to the
   // document's `Nm`, and both join names the way mdoc does.
   case 'Ex': {
     let names, subject, verb
+
+    if (args.includes('-std') == 0)
+      return 1
 
     names = args.filter(arg => (arg[0] == '-') ? 0 : 1)
     if ((names.length == 0) && c.mdoc.name)
@@ -2363,6 +2367,8 @@ function mdocInlineMacro
   case 'Rv': {
     let names
 
+    if (args.includes('-std') == 0)
+      return 1
     names = args.filter(arg => (arg[0] == '-') ? 0 : 1)
     if (names.length == 0)
       mdocText(c, 'Upon successful completion, the value 0 is returned; ' +

@@ -1293,12 +1293,34 @@ test('mdoc inline', 'Ex and Rv name a missing utility and function',
      () => {
        let r
 
-       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ex\n.Pp\n.Rv\n')
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ex -std\n.Pp\n.Rv -std\n')
        equal(flat(r.doc.blocks[0].spans), 'The utility exits 0 on success, and >0 if an error occurs.')
        equal(flat(r.doc.blocks[1].spans),
              'Upon successful completion, the value 0 is returned; otherwise the ' +
              'value -1 is returned and the global variable errno is set to ' +
              'indicate the error.')
+     })
+
+test('mdoc inline', 'Ex and Rv emit nothing without -std',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\nA\n.Ex\nB\n.Pp\nC\n.Rv\nD\n')
+       equal(flat(r.doc.blocks[0].spans), 'A B')
+       equal(flat(r.doc.blocks[1].spans), 'C D')
+     })
+
+test('mdoc inline', '-std names the utility or function',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ex -std ls\n.Pp\n.Rv -std memcpy\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'The ls utility exits 0 on success, and >0 if an error occurs.')
+       equal(flat(r.doc.blocks[1].spans),
+             'The memcpy() function returns the value 0 if successful; ' +
+              'otherwise the value -1 is returned and the global variable errno ' +
+              'is set to indicate the error.')
      })
 
 test('mdoc inline', 'Ex and Rv join the names they are given',

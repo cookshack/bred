@@ -1,4 +1,7 @@
 import { equal, throws } from 'node:assert/strict'
+import Fs from 'node:fs'
+import Os from 'node:os'
+import Path from 'node:path'
 import * as Buf from '../js/Buf.mjs'
 import * as Cmd from '../js/cmd.mjs'
 import * as Hist from '../js/hist.mjs'
@@ -33,6 +36,15 @@ function lookup
   return (manw && manw[bare]) || ((bare in pages) ? [ '/fake/man1/' + bare + '.1.gz' ] : [])
 }
 
+// A colon in a man -w path cannot be quoted, so the viewer may have to try
+// the unsplit line as one path. Such a path is a real file with a colon in its
+// name: read and stat it from disk so that test exercises the real fallback.
+// Every other path stays fake.
+function realPath
+(path) {
+  return String(path).includes(':') && Fs.existsSync(path)
+}
+
 // The shell crosses to the main process as a channel plus commands. Answer
 // `man -w` and `zcat` from a fixed page map so the viewer is deterministic and
 // does not depend on the installed corpus.
@@ -51,7 +63,11 @@ function installShell
     if (base in pages)
       return pages[base]
     base = base.replace(/\.[1-9][a-z]*$/, '')
-    return pages[base] || ''
+    if (base in pages)
+      return pages[base]
+    if (realPath(spec))
+      return Fs.readFileSync(spec, 'utf8')
+    return ''
   }
 
   function zcatResult
@@ -195,6 +211,8 @@ function installShell
                                 else if (modeLessPaths[path])
                                   // An unexpected stat reply: no mode at all.
                                   cb({ err: 0, data: {} })
+                                else if (realPath(path))
+                                  cb({ err: 0, data: { mode: Fs.statSync(path).mode } })
                                 else if (base in pages)
                                   cb({ err: 0, data: { mode: 0o100644 } })
                                 else
@@ -1246,6 +1264,67 @@ test('viewer', 'a man -w path with spaces and a colon stays whole',
        equal(calls.some(c => (c[0] == 'zcat') &&
                              (c[1] == '/fake/man pages:archive/ls.1.gz')), true)
        equal(viewOf(b).ele.querySelector('.man-h1').textContent, 'NAME')
+     })
+
+// man -w cannot quote a colon, so a line that splits may really be one path.
+// Here the file lives in a directory named "a.1:", which makes the line split
+// into two paths that do not exist; the whole real file is the answer.
+test('viewer', 'an ambiguous man -w line falls back to the real whole path',
+     async () => {
+       let dir, whole
+
+       dir = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-man-colon-'))
+       Fs.mkdirSync(Path.join(dir, 'a.1:'))
+       whole = Path.join(dir, 'a.1:', 'bred-colon-page.1')
+       Fs.writeFileSync(whole, '.TH AB 1\n.SH NAME\ncolon whole path\n')
+       try {
+         let b
+
+         setup({}, { probe: [ whole ] })
+         b = await opened('probe')
+         equal(textOf(b).includes('colon whole path'), true)
+         equal(calls.some(c => (c[0] == 'file.stat') && (c[1] == whole)), true)
+         equal(calls.some(c => (c[0] == 'cat') && (c[1] == whole)), true)
+       }
+       finally {
+         Fs.rmSync(dir, { recursive: true, force: true })
+       }
+     })
+
+test('viewer', 'a colon-separated list that reads is never statted whole',
+     async () => {
+       let b
+
+       setup({ 'one.1': '.TH ONE 1\n.SH NAME\nfirst list page\n',
+               'two.1': '.TH TWO 1\n.SH NAME\nsecond list page\n' },
+             { probe: [ '/fake/man1/one.1:/fake/man1/two.1' ] })
+       b = await opened('probe')
+       equal(textOf(b).includes('first list page'), true)
+       equal(calls.some(c => c[0] == 'file.stat'), false)
+     })
+
+test('viewer', 'a whole path that is a directory keeps the split error',
+     async () => {
+       let b, whole
+
+       whole = '/fake/man1/a.1:/b.1'
+       setup({}, { probe: [ whole ] })
+       dirPaths[whole] = 1
+       b = await opened('probe')
+       equal(calls.some(c => (c[0] == 'file.stat') && (c[1] == whole)), true)
+       equal(textOf(b).includes('Cannot read /b.1'), true)
+     })
+
+test('viewer', 'a whole path that fails to stat keeps the split error',
+     async () => {
+       let b, whole
+
+       whole = '/fake/man1/a.1:/b.1'
+       setup({}, { probe: [ whole ] })
+       statErrPaths[whole] = 1
+       b = await opened('probe')
+       equal(calls.some(c => (c[0] == 'file.stat') && (c[1] == whole)), true)
+       equal(textOf(b).includes('Cannot read /b.1'), true)
      })
 
 test('viewer', 'man -k output that matches nothing yields no topics',

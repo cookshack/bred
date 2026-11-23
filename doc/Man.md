@@ -23,7 +23,10 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
    list, possibly mixed with diagnostics; paths are deduplicated and each is
    tried in order until one reads. A colon only separates paths when the part
    before it ends like a manual source (a section or a compression suffix), so
-   a colon inside a filename such as `/x/a:/b.1` does not split it. Only a
+   a colon inside a filename such as `/x/a:/b.1` does not split it. When a line
+   does split but none of its parts reads, the unsplit line is statted once and
+   read if it is a regular file, so `/x/a.1:/b.1` can be one real path; a list
+   with a readable part never pays for that stat. Only a
    line that starts with `/` is scanned for paths, so a warning that mentions
    a path with a colon cannot inject a bogus path or hide the real one. A
    missing binary (exit 126/127, `command not found`, ENOENT) or a spawn
@@ -184,7 +187,10 @@ path, bare path stat checks (missing, directory, a mode-000 file both when the
 reader can and cannot read it), error paths
 (unreadable, empty and blank pages, non-gzip fallback, a missing `man` and a
 spawn failure), man -w
-diagnostics mixed with paths, refresh (failing, repeated while loading, and
+diagnostics mixed with paths, a man -w line whose split paths do not read but
+whose whole line is one real file with a colon (and the common colon list that
+never stats its whole, plus a whole that is a directory or fails to stat
+keeping the split error), refresh (failing, repeated while loading, and
 path pages re-read from their path), absolute `.so` includes, unknown-suffix
 includes read with `cat`, xz/bz2/zst sources choosing their own tool, a failed
 decompressor whose cat fallback looks binary reporting a clear error instead of
@@ -241,9 +247,9 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 420 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 424 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
-is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
+is 100% for `man.mjs` (92% of branches), `man-char.mjs` (93%),
 `man-render.mjs` (100%), `man-roff.mjs` (96%) and `man-parse.mjs` (94% of
 branches).
 
@@ -255,8 +261,12 @@ branches).
    plural verbs, and the `Nm` fallback) but not every `-std` family variant:
    the `-exit`/`-nop` flags are accepted and ignored.
 3. A colon in a path is still a separator when the text before it looks like a
-   man source (for example `/x/a.1:/b.1`): `man -w` output has no unambiguous
-   quoting, so this heuristic favours the common colon-separated list.
+   man source (for example `/x/a.1:/b.1`). `man -w` output has no unambiguous
+   quoting, so the heuristic tries the split first, which favours the common
+   colon-separated list; the unsplit line is read when it stats as a real file
+   and no split part reads. A real colon path is therefore still shadowed when
+   one of its split prefixes exists and reads (for example `/x/a.1` next to
+   the file `/x/a.1:/b.1`).
 4. The bare-name stat still decides a directory and drives the topic lookup,
    but it is no longer the last word on readability: a regular file with no
    read bits is read anyway, because an ACL grant or root can read it (so root

@@ -491,7 +491,11 @@ function init
   // colon-separated list); only one of them has to be readable. A colon is a
   // separator only when the part before it names a manual source (a
   // compression suffix or a section), so a colon followed by "/" inside a
-  // filename stays part of that path.
+  // filename stays part of that path. man -w cannot quote a colon, though, so
+  // a line that split is ambiguous: the whole line may be one real path such
+  // as /x/a.1:/b.1. manPaths keeps both readings; onManW tries the whole only
+  // after every split candidate has failed, so the common colon-separated list
+  // never pays for the ambiguity.
   function splitPathLine
   (line) {
     let out, rest
@@ -514,16 +518,16 @@ function init
 
   function manPaths
   (out) {
-    let paths
+    let res
 
     function add
     (path) {
       path = path.trim()
-      if (path.startsWith('/') && (paths.includes(path) == 0))
-        paths.push(path)
+      if (path.startsWith('/') && (res.paths.includes(path) == 0))
+        res.paths.push(path)
     }
 
-    paths = []
+    res = { paths: [], wholes: [] }
     out = out || ''
     out.split('\n').forEach(line => {
                               // Only a line that starts with a path is a
@@ -531,10 +535,18 @@ function init
                               // contain a path (and a colon) must not inject
                               // bogus paths or hide the real one.
                               line = line.trim()
-                              if (line.startsWith('/'))
-                                splitPathLine(line).forEach(add)
+                              if (line.startsWith('/')) {
+                                let parts
+
+                                parts = splitPathLine(line)
+                                if ((parts.length > 1) &&
+                                    (res.wholes.includes(line) == 0) &&
+                                    (res.paths.includes(line) == 0))
+                                  res.wholes.push(line)
+                                parts.forEach(add)
+                              }
                             })
-    return paths
+    return res
   }
 
   function diagnostics
@@ -565,25 +577,67 @@ function init
 
   function onManW
   (dir, topic, depth, out, code, cb, chain, seen) {
-    let paths
+    let found
 
-    function tryPath
+    function readSome
+    (path, ok, fail) {
+      readSource(dir, path, (err, text, full) => {
+                              if (err)
+                                fail(err)
+                              else
+                                ok(full || path, text)
+                            })
+    }
+
+    function opened
+    (path, text) {
+      onSource(dir, topic, depth, path, 0, text, cb, chain, seen)
+    }
+
+    // The whole line of an ambiguous split is a fallback, not a first guess:
+    // it is reached only when no split candidate reads, and only a regular
+    // file is worth reading, so the common colon-separated list never pays for
+    // a stat. The split candidates' error stays the answer when the whole is
+    // not a file.
+    function wholeStatted
+    (whole, at, lastErr, err, data) {
+      let fileMode
+
+      fileMode = data?.data?.mode
+      if (err || (fileMode == undefined)) {
+        tryWhole(at + 1, lastErr)
+        return
+      }
+      if ((fileMode & 0o170000) == 0o100000)
+        readSome(whole, opened, () => tryWhole(at + 1, lastErr))
+      else
+        tryWhole(at + 1, lastErr)
+    }
+
+    function tryWhole
     (at, lastErr) {
-      if (at >= paths.length) {
+      let whole
+
+      if (at >= found.wholes.length) {
         cb(lastErr || manError(topic, out, code))
         return
       }
-      readSource(dir, paths[at], (err, text, full) => {
-                                   if (err)
-                                     tryPath(at + 1, err)
-                                   else
-                                     onSource(dir, topic, depth, full || paths[at],
-                                              0, text, cb, chain, seen)
-                                 })
+      whole = found.wholes[at]
+      Tron.cmd('file.stat', whole, (err, data) => wholeStatted(whole, at, lastErr,
+                                                               err, data))
     }
 
-    paths = (code == 0) ? manPaths(out) : []
-    if (paths.length == 0) {
+    function tryPath
+    (at, lastErr) {
+      if (at >= found.paths.length) {
+        tryWhole(0, lastErr)
+        return
+      }
+      readSome(found.paths[at], opened, err => tryPath(at + 1, err))
+    }
+
+    found = (code == 0) ? manPaths(out) : { paths: [], wholes: [] }
+    if (found.paths.length == 0) {
       cb(manError(topic, out, code))
       return
     }

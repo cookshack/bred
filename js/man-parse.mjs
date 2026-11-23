@@ -1584,7 +1584,7 @@ function tableFit
 
 function tableBuild
 (c, lines, lineNo) {
-  let opts, layout, at, cols, data
+  let opts, layout, at, cols, data, rows
 
   at = 0
   while ((at < lines.length) && (lines[at].trim() == ''))
@@ -1608,10 +1608,17 @@ function tableBuild
   }
   cols = tableColumns(layout)
   data = lines.slice(at)
+  rows = tableRows(c, data, opts.tab, lineNo)
+  // tbl refuses a table with no column tokens in its format section ("no
+  // format", "giving up on this table") and draws nothing, so there is no
+  // layout to fall back on. Refuse the page instead of letting tableFit()
+  // drop every cell; the words must not vanish from the model quietly.
+  if ((cols.length == 0) && rows.length)
+    fail(c, lineNo, (layout.trim() == '') ? 'table with no format' : 'table format without columns')
   return { kind: 'table',
            options: opts,
            cols,
-           rows: tableRows(c, data, opts.tab, lineNo).map(cells => ({ cells: tableFit(cells, cols) })) }
+           rows: rows.map(cells => ({ cells: tableFit(cells, cols) })) }
 }
 
 // ---- mdoc(7) ------------------------------------------------------------
@@ -2797,10 +2804,11 @@ function handleLine
     break
   case 'TS':
   case 'T&': {
-    let blocks, lines
+    let blocks, lines, tableLine
 
     blocks = []
     lines = []
+    tableLine = c.lineNo
     for (;;) {
       let next
 
@@ -2820,7 +2828,7 @@ function handleLine
     blocks.forEach(block => {
                      let table
 
-                     table = tableBuild(c, block, c.lineNo)
+                     table = tableBuild(c, block, tableLine)
                      closeTag(c)
                      addBlock(c, table)
                    })

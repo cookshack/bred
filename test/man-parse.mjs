@@ -563,6 +563,48 @@ test('tables', 'toText joins cells in a row',
        equal(asText('.TH T 1\n.TS\nl l.\na\tb\n.TE\n'), 'a | b\n')
      })
 
+test('tables', 'a table with no format is refused, not emptied',
+     () => {
+       let r, text
+
+       r = parsed('.TH T 1\n.TS\n.\na\tb\nc\td\n.TE\n')
+       equal(r.ok, 0)
+       equal(r.fails.length, 1)
+       equal(r.fails[0].what, 'table with no format')
+       // The .TS line, not the .TE line, so the report points at the table.
+       equal(r.fails[0].line, 2)
+       // tbl draws nothing for it, and neither do we: toText and the block
+       // model agree, so no half table leaks out.
+       equal(r.doc.blocks[0].kind, 'table')
+       equal(r.doc.blocks[0].rows.length, 2)
+       equal(r.doc.blocks[0].rows[0].cells.length, 0)
+       text = asText('.TH T 1\n.TS\n.\na\tb\nc\td\n.TE\n')
+       ok(text.indexOf('a') < 0)
+       ok(text.indexOf('b') < 0)
+     })
+
+test('tables', 'a table with an unrecognisable format is refused',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TS\nx x.\na\tb\n.TE\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'table format without columns')
+     })
+
+test('tables', 'a normal table next to a refused one keeps its cells',
+     () => {
+       let r, tables
+
+       r = parsed('.TH T 1\n.TS\n.\nlost\twords\n.TE\n.TS\nl l.\nkept\tcells\n.TE\n')
+       equal(r.ok, 0)
+       equal(r.fails.length, 1)
+       tables = r.doc.blocks.filter(b => b.kind == 'table')
+       equal(tables.length, 2)
+       equal(flat(tables[1].rows[0].cells[0].spans), 'kept')
+       equal(flat(tables[1].rows[0].cells[1].spans), 'cells')
+     })
+
 test('mdoc', 'the prologue fills the document header',
      () => {
        let r

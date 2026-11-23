@@ -1,5 +1,5 @@
 import { equal, ok } from 'node:assert/strict'
-import { fuzzDocs } from './man-fuzz.mjs'
+import { fuzzDocs, fuzzPages } from './man-fuzz.mjs'
 import * as ManParse from '../js/man-parse.mjs'
 
 let tests
@@ -2099,6 +2099,26 @@ test('fuzz', '300 malformed pages parse without throwing or hanging',
        }
        elapsed = Date.now() - started
        ok(elapsed < 2000, 'fuzz took ' + elapsed + 'ms')
+     })
+
+test('fuzz', '200 well-formed pages all parse',
+     () => {
+       let started, elapsed, docs, i
+
+       started = Date.now()
+       docs = fuzzPages(200)
+       for (i = 0; i < docs.length; i++) {
+         let src, res, fails
+
+         src = docs[i]
+         res = ManParse.parse(src)
+         fails = res.fails.map(f => f.what + ' at line ' + f.line).join(', ')
+         // A valid page is never refused. The source is in the message so a
+         // regression can be pasted straight into a named test.
+         equal(res.ok, 1, 'fuzz page ' + i + ' refused (' + fails + '):\n' + src)
+       }
+       elapsed = Date.now() - started
+       ok(elapsed < 2000, 'page fuzz took ' + elapsed + 'ms')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

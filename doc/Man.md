@@ -141,7 +141,8 @@ reopens or refreshes its page.
 
 Block model: `doc.blocks` of `heading{level,spans}`, `para{spans,synopsis}`,
 `tag{tag,blocks}`, `group{blocks}`, `pre{spans,mono}`, `list{listType,items[
-{tag,blocks}]}`, `table{options,cols,rows[{cells[{spans,colspan}]}]}`,
+{tag,blocks}]}`, `table{options,cols,rows[{cells[{spans,colspan}]}]}` (the column count is the
+longest tbl format line, and each row follows its own format line),
 `space`. Inline spans are `{ text, style, href }` plus `{ br: 1 }`; styles are
 `roman`, `bold`, `italic`, `mono`, `small`. The model has no DOM dependency so
 it is unit-testable and could feed another renderer.
@@ -318,7 +319,7 @@ reads as 0 (groff's rule) instead of refusing the page. Bash defines its own
 `zY`/`zZ`, so that page never needed the second rule; the dropped text was the
 whole loss.
 
-Tests: 486 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
+Tests: 493 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs`, `man-char.mjs`, `man-render.mjs`, `man-roff.mjs` and

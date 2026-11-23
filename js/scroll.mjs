@@ -1,7 +1,9 @@
 import * as Opt from './opt.mjs'
 //import { d } from './mess.mjs'
 
-let lineHeights
+let lineHeights, destroyEvent
+
+destroyEvent = 'scroll-mjs.destroy'
 
 function getLineHeightPx
 (surf) {
@@ -18,9 +20,9 @@ function getLineHeightPx
 
   lineHeights.set(surf, px)
 
-  surf.addEventListener('scroll-mjs.destroy', () => {
-                                                lineHeights.delete(surf)
-                                              })
+  surf.addEventListener(destroyEvent, () => {
+                                        lineHeights.delete(surf)
+                                      })
 
   return px
 }
@@ -153,6 +155,7 @@ export function make
                globalThis.cancelAnimationFrame(rafId)
              rafId = 0
              surf.removeEventListener('scroll', onScroll)
+             surf.dispatchEvent(new globalThis.CustomEvent(destroyEvent))
            } }
 }
 

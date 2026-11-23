@@ -85,6 +85,7 @@ function makeSurf
            getBoundingClientRect: () => ({ height }),
            addEventListener: (name, cb) => surfListeners[name] = cb,
            removeEventListener: name => delete surfListeners[name],
+           dispatchEvent: e => surfListeners[e.type]?.(e),
            innerHTML: '',
            append: frag => surf._frag = frag,
            querySelector: sel => {
@@ -270,10 +271,10 @@ test('make', 'destroy evicts line height cache',
        sc = Scroll.make(surf, { itemCount: 5 })
        sc.render()
        equal(computedCalls, 2)
-       surfListeners['scroll-mjs.destroy']()
+       sc.destroy()
        computedCalls = 0
        sc.render()
-       equal(computedCalls, 2)
+       equal(computedCalls, 2, 'a destroyed scroll must measure again, not reuse the cache')
      })
 
 test('init', 'fontSize change clears cache',

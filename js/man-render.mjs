@@ -141,16 +141,24 @@ function tableNode
   body = globalThis.document.createElement('tbody')
   el.appendChild(body)
   block.rows.forEach(row => {
-                       let tr
+                       let tr, at
 
                        tr = globalThis.document.createElement('tr')
-                       row.cells.forEach((cell, i) => {
-                                           let col, td
+                       // tableFit() gives a cell one column and folds an `s`
+                       // column into the cell on its left, so a cell is styled
+                       // by the columns it covers, starting at its own. Walking
+                       // by index would style every cell after a colspan with
+                       // the wrong column.
+                       at = 0
+                       row.cells.forEach(cell => {
+                                           let col, span, td
 
-                                           col = block.cols[i] || {}
+                                           span = (cell.colspan > 1) ? cell.colspan : 1
+                                           col = block.cols[at] || {}
+                                           at += span
                                            td = globalThis.document.createElement('td')
-                                           if (cell.colspan > 1)
-                                             td.setAttribute('colspan', String(cell.colspan))
+                                           if (span > 1)
+                                             td.setAttribute('colspan', String(span))
                                            td.className = 'man-' + (col.align || 'left') +
                                                            (col.bold ? ' man-bold' : '') +
                                                            (col.italic ? ' man-italic' : '')

@@ -142,6 +142,107 @@ test('tables', 'options are separated by spaces as well as semicolons',
        equal(out.el.querySelectorAll('td').length, 2)
      })
 
+test('tables', 'a colspan does not shift the styles of the cells after it',
+     () => {
+       let out, cells
+
+       // `lb s ri` is three columns where the second is an `s` span, so the
+       // second cell starts at the third column and is right-aligned italic.
+       out = draw('.TH T 1\n.TS\nlb s ri.\na\tb\n.TE\n')
+       cells = out.el.querySelectorAll('table.man-table td')
+       equal(cells.length, 2)
+       equal(cells[0].getAttribute('colspan'), '2')
+       equal(cells[0].className, 'man-left man-bold')
+       equal(cells[1].className, 'man-right man-italic')
+       // Two spans put the following cell two columns further on.
+       out = draw('.TH T 1\n.TS\nl s s ci.\na\tb\n.TE\n')
+       cells = out.el.querySelectorAll('table.man-table td')
+       equal(cells.length, 2)
+       equal(cells[0].getAttribute('colspan'), '3')
+       equal(cells[1].className, 'man-center man-italic')
+     })
+
+test('tables', 'the text form and the drawn row agree on the cell count',
+     () => {
+       let cases, i
+
+       // toText joins cells with " | " and never expands a colspan, so a
+       // spanning cell is one field on both sides. The count agrees by design
+       // even though the drawn row covers more columns than it has cells.
+       // (Splitting on "|" rather than " | " because an empty cell leaves the
+       // padded separators overlapping.)
+       cases = [ 'l l.\na\tb', 'l s l.\na\tb', 'l s s l.\na\tb', 'l l l.\na' ]
+       for (i = 0; i < cases.length; i++) {
+         let res, out, cells, fields
+
+         res = ManParse.parse('.TH T 1\n.TS\n' + cases[i] + '\n.TE\n')
+         out = ManRender.render(res.doc)
+         cells = out.el.querySelectorAll('table td')
+         fields = ManParse.toText(res.doc.blocks).trim().split('\n')[0].split('|')
+         equal(fields.length, cells.length, cases[i])
+       }
+     })
+
+test('tables', 'a colspan past the layout and rows with the wrong cell count draw',
+     () => {
+       let out, cells, table
+
+       // `\^` is a vertical motion escape, not a colspan, so this row has one
+       // cell where the layout declares two: the missing column is empty.
+       out = draw('.TH T 1\n.TS\nl l.\na\\^sb\\^sc\n.TE\n')
+       cells = out.el.querySelectorAll('table td')
+       equal(cells.length, 2)
+       equal(cells[0].getAttribute('colspan'), null)
+       equal(cells[0].textContent, 'asbsc')
+       equal(cells[1].textContent, '')
+       // More cells than columns: the extras join the last column.
+       out = draw('.TH T 1\n.TS\nl l.\na\tb\tc\td\n.TE\n')
+       cells = out.el.querySelectorAll('table td')
+       equal(cells.length, 2)
+       equal(cells[1].textContent, 'b c d')
+       // Fewer cells than columns: the missing ones are empty and still get a
+       // style from a real column, not an undefined one.
+       out = draw('.TH T 1\n.TS\nl l l.\na\n.TE\n')
+       cells = out.el.querySelectorAll('table td')
+       equal(cells.length, 3)
+       equal(cells[2].textContent, '')
+       equal(cells[2].className, 'man-left')
+       // A model whose colspan is wider than the layout still draws its cells.
+       table = { kind: 'table', options: {}, cols: [ { align: 'left' }, { align: 'right' } ] }
+       table.rows = [ { cells: [ { spans: [ { text: 'wide' } ], colspan: 5 },
+                                 { spans: [ { text: 'tail' } ] } ] } ]
+       out = ManRender.render({ blocks: [ table ] })
+       cells = out.el.querySelectorAll('td')
+       equal(cells.length, 2)
+       equal(cells[0].getAttribute('colspan'), '5')
+       equal(cells[1].textContent, 'tail')
+     })
+
+test('tables', 'an empty table and cells with no spans draw',
+     () => {
+       let out, cells, table
+
+       out = draw('.TH T 1\n.TS\nl l.\n.TE\n')
+       equal(out.el.querySelectorAll('table').length, 1)
+       equal(out.el.querySelectorAll('tr').length, 0)
+       // A trailing empty field parses as a cell with no spans.
+       out = draw('.TH T 1\n.TS\nl l.\na\t\n.TE\n')
+       cells = out.el.querySelectorAll('td')
+       equal(cells.length, 2)
+       equal(cells[0].textContent, 'a')
+       equal(cells[1].textContent, '')
+       equal(cells[1].childNodes.length, 0)
+       // A spanning cell with no spans keeps its colspan.
+       table = { kind: 'table', options: {}, cols: [ { align: 'center' }, { span: 1 } ] }
+       table.rows = [ { cells: [ { spans: [], colspan: 2 } ] } ]
+       out = ManRender.render({ blocks: [ table ] })
+       cells = out.el.querySelectorAll('td')
+       equal(cells.length, 1)
+       equal(cells[0].getAttribute('colspan'), '2')
+       equal(cells[0].textContent, '')
+       equal(cells[0].className, 'man-center')
+     })
+
 test('lists', 'an item with no tag or blocks still draws dt and dd',
      () => {
        let out

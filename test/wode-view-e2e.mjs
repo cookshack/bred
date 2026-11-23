@@ -124,6 +124,21 @@ async function waitDoc
   throw new Error('doc did not reach ' + text)
 }
 
+// Poll until pred() is true.  Used where a test asserts on a callback instead
+// of on the view, because a fixed sleep races with slow timers: the revert is
+// reported only after the pending init, the peer flush and the file read have
+// all finished, and that chain can outlast any sleep that is short enough to
+// keep a green suite fast.
+async function waitUntil
+(pred, what) {
+  for (let i = 0; i < 300; i++) {
+    if (pred())
+      return
+    await new Promise(r => setTimeout(r, 10))
+  }
+  throw new Error('timed out waiting for ' + what)
+}
+
 function setup
 () {
 
@@ -248,12 +263,17 @@ async function revert
   await new Promise(r => setTimeout(r, 20))
 }
 
-async function openSeeded
+function seedPeer
 () {
   MainPeer.get(buf.id)
   MainPeer.onPush(fakeE(), [ buf.id, 1, [ { clientID: 'seed',
                                             changes: CMState.ChangeSet.of({ from: 0, to: 0, insert: 'v1' }, 0).toJSON() } ] ])
   MainPeer.get(buf.id)
+}
+
+async function openSeeded
+() {
+  seedPeer()
   readyView = 0
   await WodeView.init(view, {}, v => readyView = v)
   await waitReady()
@@ -392,20 +412,52 @@ test('revert', 'file.get error keeps previous content',
 
 test('revert', 'init then revert before ready does not throw',
      async () => {
-       let caught, readyEd, readyReady
+       let caught, readyEd, readyReady, reverted
 
        caught = 0
+       reverted = 0
        WodeView.init(view, {}, () => {})
        try {
          WodeView.revertV(view, {}, v => {
                                       readyEd = v.ed ? 1 : 0
                                       readyReady = v.ready
+                                      reverted = 1
                                     })
        }
        catch (err) {
          caught = err
        }
-       await sleep(150)
+       await waitUntil(() => reverted, 'the revert callback')
+       equal(caught, 0, caught?.message)
+       equal(view.ed.state.doc.toString(), 'v1')
+       equal(readyEd, 1)
+       equal(readyReady, 1)
+     })
+
+test('revert', 'slow file read still readies the view after revert',
+     async () => {
+       let caught, readyEd, readyReady, reverted
+
+       caught = 0
+       reverted = 0
+       // The peer already holds the text, as it does after a real open, so the
+       // revert builds its editor from the peer while the file read is still
+       // pending: the content is right but the callback has not come yet.  A
+       // fixed sleep asserts in that window and sees no callback at all.
+       seedPeer()
+       fileGetDelay = 300
+       WodeView.init(view, {}, () => {})
+       try {
+         WodeView.revertV(view, {}, v => {
+                                      readyEd = v.ed ? 1 : 0
+                                      readyReady = v.ready
+                                      reverted = 1
+                                    })
+       }
+       catch (err) {
+         caught = err
+       }
+       await waitUntil(() => reverted, 'the revert callback')
        equal(caught, 0, caught?.message)
        equal(view.ed.state.doc.toString(), 'v1')
        equal(readyEd, 1)

@@ -487,6 +487,27 @@ function make
              text: run.text.slice(i, i + len) }
   }
 
+  // The last regexp match that starts before `before`, because the engine
+  // only scans forwards. A zero-length match leaves lastIndex alone, so step
+  // past it by hand.
+  function lastMatch
+  (re, text, before) {
+    let i, len, m
+
+    i = -1
+    len = 0
+    re.lastIndex = 0
+    while ((m = re.exec(text))) {
+      if (m.index >= before)
+        break
+      i = m.index
+      len = m[0].length
+      if (m[0].length == 0)
+        re.lastIndex = m.index + 1
+    }
+    return { i, len }
+  }
+
   function search
   (str,
    // { backwards,
@@ -496,7 +517,7 @@ function make
    //   wrap,
    //   stayInPlace }
    spec) {
-    let startNode, startPos, needle, block
+    let startNode, startPos, needle, block, re
 
     d('psr')
     spec = spec || {}
@@ -509,9 +530,21 @@ function make
     startNode = walker.currentNode
     startPos = pos
     needle = spec.caseSensitive ? str : str.toLowerCase()
+    re = 0
+    if (spec.regExp && str.length)
+      try {
+        // `i` does the case folding the literal path does with toLowerCase
+        re = new RegExp(str, spec.caseSensitive ? 'g' : 'gi')
+      }
+      catch {
+        // An invalid pattern is a miss, not an exception through Cmd.run.
+        walker.currentNode = startNode
+        pos = startPos
+        return 0
+      }
     block = 0
     while (walker.currentNode) {
-      let i, run, base, hay
+      let i, len, run, base, hay
 
       run = 0
       if (str.length) {
@@ -539,12 +572,28 @@ function make
       if (run.lower == undefined)
         run.lower = run.text.toLowerCase()
       hay = spec.caseSensitive ? run.text : run.lower
+      len = needle.length
 
       d('ST ' + needle)
       d('VS ' + hay)
       d('pos ' + pos)
 
-      if (spec.backwards)
+      if (re) {
+        // A regexp needle (C-w's word search) is matched by the engine, and
+        // the `i` flag folds case, so match the run's real text.
+        hay = run.text
+        if (spec.backwards)
+          ({ i, len } = lastMatch(re, hay, base + pos))
+        else {
+          let m
+
+          re.lastIndex = base + pos
+          m = re.exec(hay)
+          i = m ? m.index : -1
+          len = m ? m[0].length : 0
+        }
+      }
+      else if (spec.backwards)
         i = (base + pos) ? hay.lastIndexOf(needle, base + pos - 1) : -1
       else
         i = hay.indexOf(needle, base + pos)
@@ -554,7 +603,7 @@ function make
           pos = pos + 1
           continue
         }
-        return found(run, i, needle.length, spec.backwards)
+        return found(run, i, len, spec.backwards)
       }
       if (spec.backwards ? getPrevious() : getNext())
         continue

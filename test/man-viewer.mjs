@@ -334,6 +334,18 @@ function textOf
   return viewOf(b).ele.textContent
 }
 
+// The last text node under an element: a paragraph's text may be wrapped in a
+// span, and the point only takes text nodes.
+function lastTextNode
+(el) {
+  let w, n, last
+
+  w = globalThis.document.createTreeWalker(el, globalThis.NodeFilter.SHOW_TEXT)
+  while ((n = w.nextNode()))
+    last = n
+  return last
+}
+
 // Open a page in a div buffer and install the div search the app registers at
 // startup. The area goes into the document because the app keeps it there and
 // point.setAt refuses a node that is not connected, which is how a search
@@ -467,6 +479,130 @@ test('viewer', 'C-s does not search across a paragraph boundary',
        finally {
          Cmd.run('search done', b)
        }
+     })
+
+// C-w turns the needle into a word pattern (the escaped needle, then the rest
+// of the word). Only a regexp search can match that; the literal path would
+// look for the pattern's own characters and find nothing.
+test('viewer', 'C-w searches its word pattern as a regexp',
+     async () => {
+       let b, v, echo
+
+       b = await divOpen('.SH DESCRIPTION\nalpha beta alpha gamma\n')
+       v = viewOf(b)
+
+       Cmd.run(look(b, 's', 'KeyS', 1), b)
+       echo = v.elPane.parentNode.querySelector('.mini-echo')
+       try {
+         let bep
+
+         typing('alpha')
+         equal(echo.innerText, 'alpha')
+         globalThis.onkeydown(press('w', 'KeyW', 1, 0))
+         equal(echo.innerText, 'alpha beta',
+               'the word pattern matched the following word')
+         equal(echo.classList.contains('mini-search-fail'), false,
+               'the regexp needle found a match')
+         bep = v.point.bep()
+         equal(bep.node.wholeText, 'alpha beta alpha gamma')
+         equal(bep.offset, 10, 'the point sits after the matched word')
+       }
+       finally {
+         Cmd.run('search done', b)
+       }
+     })
+
+// The search state passes caseSensitive: 0, so the regexp is built with `i`
+// and an upper-case word pattern still matches the page's lower-case text.
+test('viewer', 'C-w folds case when the search does not',
+     async () => {
+       let b, v, echo
+
+       b = await divOpen('.SH DESCRIPTION\nalpha beta alpha gamma\n')
+       v = viewOf(b)
+
+       Cmd.run(look(b, 's', 'KeyS', 1), b)
+       echo = v.elPane.parentNode.querySelector('.mini-echo')
+       try {
+         typing('ALPHA')
+         equal(echo.innerText, 'ALPHA', 'the typed needle keeps its case')
+         globalThis.onkeydown(press('w', 'KeyW', 1, 0))
+         equal(echo.innerText, 'alpha beta', 'the regexp carries the i flag')
+         equal(echo.classList.contains('mini-search-fail'), false)
+       }
+       finally {
+         Cmd.run('search done', b)
+       }
+     })
+
+// The regexp path scans forwards, so a backwards search walks the matches and
+// keeps the last one before the point. At the very start of a block there is
+// nothing before the point in that block, so the search moves to the previous
+// block rather than matching at the block's first character.
+test('viewer', 'a regexp search works backwards',
+     async () => {
+       let b, v, r, bep, ps, node
+
+       b = await divOpen('.SH DESCRIPTION\nalpha beta alpha gamma\n')
+       v = viewOf(b)
+       ps = v.ele.querySelectorAll('p')
+       node = lastTextNode(ps[ps.length - 1])
+       v.point.setAt({ node, offset: node.wholeText.length - 1 })
+       r = v.point.search('alpha[^a-zA-Z0-9]*[a-zA-Z0-9]+',
+                          { backwards: 1,
+                            regExp: 1,
+                            caseSensitive: 0 })
+       equal(r.text, 'alpha gamma', 'the last match before the point wins')
+       bep = v.point.bep()
+       equal(bep.node.wholeText, 'alpha beta alpha gamma')
+       equal(bep.offset, 11, 'the point is at the start of the match')
+
+       b = await divOpen('.SH DESCRIPTION\nalpha beta\n.PP\nbeta gamma\n')
+       v = viewOf(b)
+       ps = v.ele.querySelectorAll('p')
+       node = lastTextNode(ps[ps.length - 1])
+       v.point.setAt({ node, offset: 0 })
+       r = v.point.search('alpha[^a-zA-Z0-9]*[a-zA-Z0-9]+',
+                          { backwards: 1, regExp: 1 })
+       equal(r.text, 'alpha beta', 'a block start continues into the previous block')
+       bep = v.point.bep()
+       equal(bep.node.wholeText, 'alpha beta')
+       equal(bep.offset, 0)
+
+       // The same block start with no earlier text has no match at all.
+       v.point.setAt({ node: lastTextNode(ps[1]), offset: 0 })
+       equal(v.point.search('alpha', { backwards: 1, regExp: 1 }), 0,
+             'the current block is not searched before its first character')
+     })
+
+// A pattern the engine refuses is a miss: the point stays put and nothing
+// throws, so Cmd.run never sees an exception.
+test('viewer', 'an invalid regexp is a miss, not an exception',
+     async () => {
+       let b, v, before, after
+
+       b = await divOpen('.SH DESCRIPTION\nalpha beta\n')
+       v = viewOf(b)
+       v.point.bufStart()
+       before = v.point.bep()
+       equal(v.point.search('alpha[', { regExp: 1 }), 0)
+       after = v.point.bep()
+       equal(after.node == before.node, true, 'the point does not move')
+       equal(after.offset, before.offset)
+     })
+
+// An empty match is a valid range with no text; skipping it must still walk
+// forwards instead of looping on the same position.
+test('viewer', 'a zero-length regexp match does not hang',
+     async () => {
+       let b, v, r
+
+       b = await divOpen('.SH DESCRIPTION\nalpha beta\n')
+       v = viewOf(b)
+       r = v.point.search('x*', { regExp: 1 })
+       equal(r.text, '', 'an empty match is a range with no text')
+       equal(v.point.search('x*', { regExp: 1, skipCurrent: 1 }), 0,
+             'skipping every empty match reaches the end of the buffer')
      })
 
 test('viewer', 'a valid path before an unreadable path is used',

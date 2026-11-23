@@ -26,9 +26,10 @@ function sleep
 }
 
 function test
-(group, name, cb) {
+(group, name, cb, timeout) {
   tests[group] = tests[group] || []
   tests[group].push({ name,
+                      timeout,
                       cb: async () => {
                         setup()
                         try {
@@ -130,13 +131,28 @@ async function waitDoc
 // all finished, and that chain can outlast any sleep that is short enough to
 // keep a green suite fast.
 async function waitUntil
-(pred, what) {
-  for (let i = 0; i < 300; i++) {
+(pred, what, tries) {
+  for (let i = 0; i < (tries || 300); i++) {
     if (pred())
       return
     await new Promise(r => setTimeout(r, 10))
   }
   throw new Error('timed out waiting for ' + what)
+}
+
+// Collect the text of Mess.say messages emitted from now on.  Mess.messages()
+// is capped at 10000 entries and the whole suite fills it, so read the
+// Mess.push event instead of the stored list.
+function watchSays
+() {
+  let says
+
+  says = []
+  globalThis.document.addEventListener('Mess.push', ev => {
+                                                      if (ev.detail?.type == 'say')
+                                                        says.push(ev.detail.text)
+                                                    })
+  return says
 }
 
 function setup
@@ -462,6 +478,56 @@ test('revert', 'slow file read still readies the view after revert',
        equal(view.ed.state.doc.toString(), 'v1')
        equal(readyEd, 1)
        equal(readyReady, 1)
+     })
+
+test('revert', 'a read slower than two seconds still reverts and says so',
+     async () => {
+       let caught, readyEd, readyReady, reverted, says
+
+       caught = 0
+       reverted = 0
+       says = watchSays()
+       // Read longer than the two seconds the wait used to allow: the view
+       // cannot be ready before it lands, and the old code gave up silently
+       // there, leaving the pane inert with nothing said.
+       fileGetDelay = 3000
+       WodeView.init(view, {}, () => {})
+       try {
+         WodeView.revertV(view, {}, v => {
+                                      readyEd = v.ed ? 1 : 0
+                                      readyReady = v.ready
+                                      reverted = 1
+                                    })
+       }
+       catch (err) {
+         caught = err
+       }
+       // The wait says what it is waiting for instead of vanishing, and names
+       // the buffer so the message is actionable.
+       await waitUntil(() => says.some(t => t.includes('still waiting') && t.includes(filePath)),
+                       'the slow-load message',
+                       500)
+       equal(reverted, 0)
+       equal(view.ready, 0)
+       // The revert's own read does not need to be slow as well.
+       fileGetDelay = 0
+       await waitUntil(() => reverted, 'the revert callback after the slow read',
+                       500)
+       equal(caught, 0, caught?.message)
+       equal(view.ed.state.doc.toString(), 'v1')
+       equal(readyEd, 1)
+       equal(readyReady, 1)
+     },
+     10000)
+
+test('revert', 'a fast load says nothing about waiting',
+     async () => {
+       let says, waiting
+
+       says = watchSays()
+       await open()
+       waiting = says.some(t => t.includes('still waiting'))
+       equal(waiting ? 1 : 0, 0)
      })
 
 test('revert', 'edit then revert restores disk content',
@@ -1011,5 +1077,10 @@ test('langs', 'c language loads for highlighting',
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
-                                                           () => group[1].forEach(t => globalThis.it(t.name,
-                                                                                                     t.cb))))
+                                                           () => group[1].forEach(t => {
+                                                                                    let it
+
+                                                                                    it = globalThis.it(t.name, t.cb)
+                                                                                    if (t.timeout)
+                                                                                      it.timeout(t.timeout)
+                                                                                  })))

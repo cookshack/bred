@@ -860,19 +860,42 @@ function copy
                 whenReady)
 }
 
+// Wait until the view has an editor and has finished loading, then run cb.
+// What bounds this is the file read and the peer sync before it, not the clock:
+// on a large file or a network filesystem they can easily outlast the two
+// seconds this used to allow, and dropping the wait there left the pane inert
+// with nothing said.  Keep waiting instead, say once through Mess that it is
+// taking a while, then poll slowly so a long wait stays cheap.  Stop only if
+// the view is closed: then no pane is left to revert.
 function whenViewReady
 (view, cb) { // (view)
-  let tries
+  let began, slow
+
+  function label
+  () {
+    return view.buf?.name || view.buf?.path || 'buffer'
+  }
 
   function check
   () {
-    if (view.ed && view.ready)
+    if (view.ed && view.ready) {
+      if (slow)
+        Mess.say('Wodemirror: ' + label() + ' loaded after ' + Math.round((Date.now() - began) / 1000) + 's')
       cb(view)
-    else if (++tries < 200)
-      setTimeout(check, 10)
+    }
+    else if (view.ele) {
+      if (slow == 0 && ((Date.now() - began) >= 2000)) {
+        slow = 1
+        Mess.say('Wodemirror: still waiting for ' + label() + ' to load')
+      }
+      setTimeout(check, slow ? 250 : 10)
+    }
+    else
+      d('WODE whenViewReady: view closed while waiting')
   }
 
-  tries = 0
+  began = Date.now()
+  slow = 0
   check()
 }
 

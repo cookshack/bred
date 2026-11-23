@@ -1294,6 +1294,45 @@ test('status', 'shows the wave as soon as a prompt is sent',
        }
      })
 
+// The suite swaps the DOM globals out from under deferred callbacks (the
+// view ready tick is a setTimeout). Posting an event with no document must
+// not throw out of that timer: it used to fail as an uncaught error in the
+// afterEach hook, reported against whatever test had just finished.
+test('teardown', 'a late message is dropped, not thrown, once the document is gone',
+     () => {
+       let doc, seen
+
+       seen = 0
+       doc = globalThis.document
+       globalThis.document = undefined
+       try {
+         Mess.d('after teardown')
+         seen = Mess.messages().filter(m => m.text == 'after teardown').length
+       }
+       finally {
+         globalThis.document = doc
+       }
+       // the log still keeps it; there was just nothing to dispatch to
+       equal(seen, 1, 'the message is kept in the log')
+     })
+
+test('teardown', 'a deferred view ready that lands after the DOM is gone is dropped',
+     async () => {
+       let doc, panes
+
+       doc = globalThis.document
+       panes = setupPanes()
+       // the boot views schedule their ready tick; lose the DOM before it runs
+       globalThis.document = undefined
+       try {
+         await wait(100)
+         equal(panes.pB.view?.ready || 0, 0, 'no view reports ready without a document')
+       }
+       finally {
+         globalThis.document = doc
+       }
+     })
+
 // the pane Pane.split added: not one of the two the fixture started with
 function newPane
 (panes) {

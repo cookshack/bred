@@ -1,4 +1,5 @@
 import { equal, ok } from 'node:assert/strict'
+import { fuzzDocs } from './man-fuzz.mjs'
 import * as ManParse from '../js/man-parse.mjs'
 
 let tests
@@ -2073,72 +2074,16 @@ test('macros', 'a stray block marker is ignored',
        equal(asText('.TH T 1\n.\\{\n.\\}\n'), '')
      })
 
-// Deterministic LCG, so a failing source can be reproduced from its seed.
-let fuzzSeed
-
-function fuzzRandom
-(seed) {
-  fuzzSeed = seed >>> 0
-}
-
-function fuzzNext
-() {
-  fuzzSeed = ((fuzzSeed * 1664525) + 1013904223) >>> 0
-  return fuzzSeed / 4294967296
-}
-
-function fuzzDocument
-(rand) {
-  let tokens, parts, count, i
-
-  tokens = [ '.TH FZ 1', '.SH NAME', '.SH', '.SS', '.PP', '.br',
-             '.nf', '.fi', '.TP', '.HP', '.bl', '.de XX',
-             '.de XX \\', '.ds XX value', '.ds', '.rm XX',
-             '.if n 1 .PP', '.ie n .PP \\', '.el .PP', '.ig',
-             '.TS', '.TE', '.T&', '.so other.1', '.Xo', '.Xc',
-             '.Bl -tag -width foo', '.It', '.El', '.nr R 1',
-             '.\\" a comment', 'T{', 'T}', '.', '..', '\\"',
-             '\\fB', '\\f[', '\\f[roman]', '\\(', '\\[', '\\*[',
-             '\\n[', '\\s', '\\s-1', '\\h', '\\h\'1\'', '\\.',
-             '\\\\', '\\(ts', '\\-', '\\&', '\\c', '\\{', '\\}',
-             '(', ')', '[', ']', '{', '}', '"', "'", '<<', '>>',
-             '<', '>', '@', 'plain text', 'name(section)',
-             'foo bar baz', 'a\tb', 'x' ]
-  parts = []
-  if (rand() < 0.8)
-    parts.push('.TH FZ 1\n')
-  count = 6 + Math.floor(rand() * 30)
-  for (i = 0; i < count; i++) {
-    let token
-
-    if (rand() < 0.2) {
-      let name, letters
-
-      name = ''
-      letters = 1 + Math.floor(rand() * 4)
-      while (name.length < letters)
-        name += String.fromCharCode(97 + Math.floor(rand() * 26))
-      token = '.' + name + ((rand() < 0.5) ? ' arg' : '')
-    }
-    else if (rand() < 0.3)
-      token = '"' + tokens[ Math.floor(rand() * tokens.length) ]
-    else
-      token = tokens[ Math.floor(rand() * tokens.length) ]
-    parts.push(token + ((rand() < 0.55) ? '\n' : ' '))
-  }
-  return parts.join('')
-}
-
-test('fuzz', '300 malformed pages parse and render without throwing or hanging',
+test('fuzz', '300 malformed pages parse without throwing or hanging',
      () => {
-       let started, elapsed, i
+       let started, elapsed, docs, i
 
-       fuzzRandom(0x5EED)
        started = Date.now()
-       for (i = 0; i < 300; i++) {
+       docs = fuzzDocs(300)
+       for (i = 0; i < docs.length; i++) {
          let src, res, text
 
-         src = fuzzDocument(fuzzNext)
+         src = docs[i]
          try {
            res = ManParse.parse(src)
            text = ManParse.toText(res.doc.blocks)

@@ -231,10 +231,16 @@ available. The renderer tests also draw compact and large pages, empty tables
 and lists, combined table options, colspans and links with no text.
 `test/man-parse.mjs` ends with a seeded fuzz test: 300 short roff documents
 built from control lines, escapes, unclosed brackets and quotes, `T{`/`T}`
-cells and random macro names. Each must parse and convert with `toText` without
+cells and random macro names, from a generator shared with the renderer test in
+`test/man-fuzz.mjs`. Each must parse and convert with `toText` without
 throwing, return `ok` 0 or 1, give every failure a `what`, and serialise as
 JSON; the whole run must take under two seconds, so a parser hang fails it.
-The seed is fixed, so a failure can be replayed.
+`test/man-render.mjs` draws the same 300 sources with the same seed: every one
+that parses (10 of the 300, since most are deliberately refused) is rendered,
+must not throw, must return an `el` with child nodes for a document that has
+blocks, must have a string `textContent` and a `toc` array, and the loop must
+finish in under two seconds, so a renderer hang fails it. The seed is fixed, so
+a failure can be replayed.
 
 ## Current state
 
@@ -272,7 +278,7 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 437 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 438 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (100%),
 `man-render.mjs` (100%), `man-roff.mjs` (97%) and `man-parse.mjs` (95% of

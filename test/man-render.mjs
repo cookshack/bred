@@ -1,4 +1,5 @@
-import { equal } from 'node:assert/strict'
+import { equal, ok } from 'node:assert/strict'
+import { fuzzDocs } from './man-fuzz.mjs'
 import * as ManParse from '../js/man-parse.mjs'
 import * as ManRender from '../js/man-render.mjs'
 import { setupDom } from './dom-help.mjs'
@@ -256,6 +257,39 @@ test('blocks', 'a page with many sections and paragraphs renders completely',
        equal(out.el.querySelectorAll('.man-toc a').length, 400)
        equal(out.el.querySelectorAll('p').length, 400)
        equal(out.el.querySelectorAll('p')[399].textContent, 'paragraph 399')
+     })
+
+test('fuzz', '300 malformed pages render without throwing or hanging',
+     () => {
+       let started, elapsed, docs, drawn, i
+
+       started = Date.now()
+       docs = fuzzDocs(300)
+       drawn = 0
+       for (i = 0; i < docs.length; i++) {
+         let src, res, out
+
+         src = docs[i]
+         try {
+           res = ManParse.parse(src)
+           if (res.ok == 0)
+             continue
+           out = ManRender.render(res.doc)
+         }
+         catch (e) {
+           throw new Error('fuzz doc ' + i + ' ' + JSON.stringify(src) + ': ' + e.message)
+         }
+         drawn++
+         ok(out.el, 'fuzz doc ' + i + ' has no el')
+         ok(typeof out.el.childNodes.length == 'number', 'fuzz doc ' + i + ' el has no children')
+         if (res.doc.blocks.length)
+           ok(out.el.childNodes.length > 0, 'fuzz doc ' + i + ' drew nothing')
+         ok(typeof out.el.textContent == 'string', 'fuzz doc ' + i + ' textContent')
+         ok(Array.isArray(out.toc), 'fuzz doc ' + i + ' toc')
+       }
+       ok(drawn > 0, 'no fuzz document parsed, the renderer was not exercised')
+       elapsed = Date.now() - started
+       ok(elapsed < 2000, 'render fuzz took ' + elapsed + 'ms')
      })
 
 test('refusal', 'refused pages have no document to draw',

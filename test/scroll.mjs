@@ -2,7 +2,7 @@ import { equal } from 'node:assert/strict'
 import * as Opt from '../js/opt.mjs'
 import * as Scroll from '../js/scroll.mjs'
 
-let computedCalls, els, rafCbs, styleMap, surfListeners, tests
+let computedCalls, els, rafCbs, styleMap, surfAdds, surfListeners, tests
 
 function test
 (group, name, cb) {
@@ -22,6 +22,7 @@ function resetScroll
   els = []
   rafCbs = []
   styleMap = new Map()
+  surfAdds = {}
   surfListeners = {}
 
   _shared = { opt: { values: {},
@@ -83,7 +84,10 @@ function makeSurf
 
   surf = { scrollTop: 0,
            getBoundingClientRect: () => ({ height }),
-           addEventListener: (name, cb) => surfListeners[name] = cb,
+           addEventListener: (name, cb) => {
+                                         surfAdds[name] = (surfAdds[name] || 0) + 1
+                                         surfListeners[name] = cb
+                                       },
            removeEventListener: name => delete surfListeners[name],
            dispatchEvent: e => surfListeners[e.type]?.(e),
            innerHTML: '',
@@ -275,6 +279,24 @@ test('make', 'destroy evicts line height cache',
        computedCalls = 0
        sc.render()
        equal(computedCalls, 2, 'a destroyed scroll must measure again, not reuse the cache')
+     })
+
+test('make', 'registers one destroy listener per surf',
+     () => {
+       let sc, surf
+
+       surf = makeSurf(40)
+       sc = Scroll.make(surf, { itemCount: 5 })
+       sc.render()
+       Opt.set('core.fontSize', 18)
+       computedCalls = 0
+       sc.render()
+       equal(computedCalls, 2, 'a font size change must force a fresh measurement')
+       equal(surfAdds['scroll-mjs.destroy'], 1, 'a second measurement must not add a second destroy listener')
+       sc.destroy()
+       computedCalls = 0
+       sc.render()
+       equal(computedCalls, 2, 'destroy must still evict the cache')
      })
 
 test('init', 'fontSize change clears cache',

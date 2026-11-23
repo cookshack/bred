@@ -1,7 +1,7 @@
 import * as Opt from './opt.mjs'
 //import { d } from './mess.mjs'
 
-let lineHeights, destroyEvent
+let lineHeights, destroyEvent, destroyWatched
 
 destroyEvent = 'scroll-mjs.destroy'
 
@@ -20,9 +20,14 @@ function getLineHeightPx
 
   lineHeights.set(surf, px)
 
-  surf.addEventListener(destroyEvent, () => {
-                                        lineHeights.delete(surf)
-                                      })
+  // One eviction listener per surface: a lost cache entry must not
+  // accumulate another listener every time it is measured again.
+  if (destroyWatched.has(surf) == 0) {
+    destroyWatched.add(surf)
+    surf.addEventListener(destroyEvent, () => {
+                                          lineHeights.delete(surf)
+                                        })
+  }
 
   return px
 }
@@ -162,6 +167,7 @@ export function make
 export function init
 () {
   lineHeights = new Map()
+  destroyWatched = new WeakSet()
 
   Opt.onSet('core.fontSize', () => {
                                lineHeights.clear()

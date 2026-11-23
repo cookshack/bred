@@ -12,7 +12,7 @@ import * as Char from './man-char.mjs'
 import * as Roff from './man-roff.mjs'
 
 let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocAtNames, mdocInlineNames, mdocNoArg, mdocEncloseNames
-let tableRequests, expandDepth
+let tableRequests, tableKeyChars, tableRuleChars, tableSpecifiers, expandDepth
 
 fonts = { B: 'bold',
           BI: 'bold',
@@ -1456,47 +1456,145 @@ function tableOptions
   return opts
 }
 
-// The key characters are case-insensitive: tbl's `L` is `l`, `C` is `c`, `R`
-// is `r`, `N` is `n`, `A` is `a` and `S` is `s`. Specifiers may follow a key
-// character (or a whole group of them): `b`/`i` pick a font, `x` expands the
-// column, `w(...)`/`v(...)`/`p(...)` set widths and a bare number sets the
-// column separation. Only alignment, font and span change the text model; the
-// rest is metric. Linux man-pages writes `L1 Lx` for a two-column table, whose
-// `1` and `x` are a separation and an expansion, and syscalls(2) writes
-// `Lb Lb Lb` over `Lw(26n)2 L Lx`.
-function tableColumns
-(text) {
-  let cols, tokens
+// tbl reads a format line character by character: a key character starts a
+// column and the characters after it are that column's specifiers. Key
+// characters and specifier letters never collide, so a page may glue them
+// together. find(1) writes `ll` for two left columns and `llw(2i)` for two
+// where the second has a width; syscalls(2) writes `Lw(26n)2 L Lx`. Each key
+// character is one entry, so the `___` row xkeyboard-config.7 uses as a rule is
+// three entries, not one. Only alignment, font, span and the rule marker change
+// the text model; the rest of the specifiers are metric.
+tableKeyChars = 'lcrnas'
+tableRuleChars = '^_-='
+tableSpecifiers = 'bdefimptuvwxz'
 
-  cols = []
-  tokens = text.replace(/\|/g, ' ').split(/[ \t]+/)
-  for (let i = 0; i < tokens.length; i++) {
-    let token, align, bold, italic, at
+function tableParen
+(text, at) {
+  let depth
 
-    token = tokens[i].trim()
-    if ((token == '') || /^[-_=]+$/.test(token))
-      continue
-    if ('sS'.includes(token[0])) {
-      cols.push({ span: 1 })
+  depth = 1
+  at++
+  while (at < text.length) {
+    if (text[at] == '(')
+      depth++
+    else if (text[at] == ')') {
+      depth--
+      if (depth == 0)
+        return at + 1
+    }
+    at++
+  }
+  return at
+}
+
+function tableNumber
+(text, at) {
+  if ((text[at] == '+') || (text[at] == '-'))
+    at++
+  while ((at < text.length) && /[0-9.]/.test(text[at]))
+    at++
+  return at
+}
+
+function tableSpecify
+(text, at, col) {
+  while (at < text.length) {
+    let ch
+
+    ch = text[at].toLowerCase()
+    if (/[0-9]/.test(text[at])) {
+      at++
       continue
     }
-    if ('lLcCrRnNaA'.includes(token[0]) == 0)
+    if (text[at] == '(') {
+      at = tableParen(text, at)
       continue
-    align = 'left'
-    bold = 0
-    italic = 0
-    if ('rRnN'.includes(token[0]))
-      align = 'right'
-    else if ('cC'.includes(token[0]))
-      align = 'center'
-    for (at = 1; at < token.length; at++)
-      if ((token[at] == 'b') || (token[at] == 'B'))
-        bold = 1
-      else if ((token[at] == 'i') || (token[at] == 'I'))
-        italic = 1
-    cols.push({ align, bold, italic })
+    }
+    if (tableSpecifiers.includes(ch) == 0)
+      break
+    at++
+    if ((ch == 'b') && col)
+      col.bold = 1
+    else if ((ch == 'i') && col)
+      col.italic = 1
+    // A font or macro name is one or two letters, or a parenthesised name.
+    else if (((ch == 'f') || (ch == 'm')) && (text[at] == '('))
+      at = tableParen(text, at)
+    else if (((ch == 'f') || (ch == 'm')) && (at < text.length))
+      at++
+    else if ((ch == 'w') && (text[at] == '('))
+      at = tableParen(text, at)
+    else if (ch == 'w')
+      while ((at < text.length) && /[0-9]/.test(text[at]))
+        at++
+    else if ((ch == 'p') || (ch == 'v'))
+      at = tableNumber(text, at)
+  }
+  return at
+}
+
+function tableColumns
+(text) {
+  let cols, at
+
+  cols = []
+  at = 0
+  while (at < text.length) {
+    let ch, col
+
+    ch = text[at].toLowerCase()
+    if (/[ \t,]/.test(text[at]) || (text[at] == '|')) {
+      at++
+      continue
+    }
+    if (text[at] == '\\') {
+      // A format line holds only keys and specifiers, but skip a whole escape
+      // or junk word rather than reading its letters as columns.
+      while ((at < text.length) && (/[ \t]/.test(text[at]) == 0))
+        at++
+      continue
+    }
+    if (ch == 's') {
+      col = { span: 1, rule: 0 }
+      at = tableSpecify(text, at + 1, 0)
+    }
+    else if (tableKeyChars.includes(ch)) {
+      col = { align: 'left', bold: 0, italic: 0, rule: 0 }
+      if ('rn'.includes(ch))
+        col.align = 'right'
+      else if (ch == 'c')
+        col.align = 'center'
+      at = tableSpecify(text, at + 1, col)
+    }
+    else if (tableRuleChars.includes(ch)) {
+      col = { rule: 0 }
+      if (ch == '^')
+        col.spanDown = 1
+      else
+        col.rule = 1
+      at++
+    }
+    else {
+      at++
+      continue
+    }
+    cols.push(col)
   }
   return cols
+}
+
+// tbl's rule row: every entry is a horizontal rule and no data row belongs to
+// it (xkeyboard-config.7 writes `lB lB` over `___` over `lB l.`).
+function tableRuleRow
+(cols) {
+  let i
+
+  if (cols.length == 0)
+    return 0
+  for (i = 0; i < cols.length; i++)
+    if (cols[i].rule == 0)
+      return 0
+  return 1
 }
 
 function tableCell
@@ -1623,9 +1721,45 @@ function tableFit
   return out
 }
 
+// The format section is one layout per table line, not one table. Each line is
+// a row layout, the last one repeats for the remaining rows, and a line that is
+// only rules draws a rule and owns no data row. A page may also run several
+// layouts together on one line, separated by commas (tbl(1) writes `ln,an.`).
+function tableLayouts
+(lines, at) {
+  let layouts
+
+  layouts = []
+  while (at < lines.length) {
+    let line
+
+    line = lines[at]
+    at++
+    if (line.trim().endsWith('.')) {
+      layouts.push(...line.trim().slice(0, -1).split(','))
+      break
+    }
+    layouts.push(...line.trim().split(','))
+  }
+  return { layouts, at }
+}
+
+// tbl applies the last format line to all remaining rows and assumes `l` for
+// the descriptors missing at the end of a line, so a short row format still
+// reaches every column of the table.
+function tableRowCols
+(body, row, ncols) {
+  let cols
+
+  cols = body.length ? body[(row < body.length) ? row : body.length - 1] : []
+  while (cols.length < ncols)
+    cols.push({ align: 'left', bold: 0, italic: 0, rule: 0 })
+  return cols
+}
+
 function tableBuild
 (c, lines, lineNo) {
-  let opts, layout, at, cols, data, rows
+  let opts, parsed, ncols, body, cols, rows, at
 
   at = 0
   while ((at < lines.length) && (lines[at].trim() == ''))
@@ -1635,31 +1769,35 @@ function tableBuild
     opts = tableOptions(lines[at])
     at++
   }
-  layout = ''
-  while (at < lines.length) {
-    let line
+  parsed = tableLayouts(lines, at)
+  ncols = 0
+  body = []
+  parsed.layouts.forEach(text => {
+                           let layout
 
-    line = lines[at]
-    at++
-    if (line.trim().endsWith('.')) {
-      layout += ' ' + line.trim().slice(0, -1)
-      break
-    }
-    layout += ' ' + line.trim()
-  }
-  cols = tableColumns(layout)
-  data = lines.slice(at)
-  rows = tableRows(c, data, opts.tab, lineNo)
+                           layout = tableColumns(text)
+                           if (layout.length > ncols)
+                             ncols = layout.length
+                           if (tableRuleRow(layout) == 0)
+                             body.push(layout)
+                         })
+  // One cell is drawn per column, so a single row format has to stand in for
+  // all of them: the last line is the one tbl repeats for the body, while the
+  // early lines only shape a header.
+  cols = body.length ? body[body.length - 1] : []
+  while (cols.length < ncols)
+    cols.push({ align: 'left', bold: 0, italic: 0, rule: 0 })
+  rows = tableRows(c, lines.slice(parsed.at), opts.tab, lineNo)
   // tbl refuses a table with no column tokens in its format section ("no
   // format", "giving up on this table") and draws nothing, so there is no
   // layout to fall back on. Refuse the page instead of letting tableFit()
   // drop every cell; the words must not vanish from the model quietly.
-  if ((cols.length == 0) && rows.length)
-    fail(c, lineNo, (layout.trim() == '') ? 'table with no format' : 'table format without columns')
+  if ((ncols == 0) && rows.length)
+    fail(c, lineNo, (parsed.layouts.join(' ').trim() == '') ? 'table with no format' : 'table format without columns')
   return { kind: 'table',
            options: opts,
            cols,
-           rows: rows.map(cells => ({ cells: tableFit(cells, cols) })) }
+           rows: rows.map((cells, i) => ({ cells: tableFit(cells, tableRowCols(body, i, ncols)) })) }
 }
 
 // ---- mdoc(7) ------------------------------------------------------------

@@ -2038,12 +2038,108 @@ test('tables', 'cells beyond the layout join the last column',
        equal(flat(r.doc.blocks[0].rows[0].cells[2].spans), 'c d e')
      })
 
-test('tables', 'a layout may continue on several lines',
+test('tables', 'each layout line is a row layout, not another column',
      () => {
-       let r
+       let r, table
 
-       r = parsed('.TH T 1\n.TS\nl\nl.\na\tb\n.TE\n')
-       equal(r.doc.blocks[0].cols.length, 2)
+       // tbl(1): "Each such format line describes one line of the table
+       // itself, except that the last format line (which you must end with a
+       // period) describes all remaining lines." So a second line does not
+       // widen the table: groff draws one column here and discards the excess
+       // `b`. The model keeps the words by folding them into the last cell.
+       r = parsed('.TH T 1\n.TS\nl\nl.\na\tb\nc\td\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.cols.length, 1)
+       equal(table.rows.length, 2)
+       equal(flat(table.rows[0].cells[0].spans), 'a b')
+       equal(flat(table.rows[1].cells[0].spans), 'c d')
+     })
+
+test('tables', 'the longest format line sets the column count',
+     () => {
+       let r, table
+
+       // find(1) repeats `ll` for its lines: five format lines, two columns.
+       // `llw(2i)` is two columns too, the second one widened. The old
+       // concatenation made one column per token and drew five.
+       r = parsed('.TH T 1\n.TS\nll\nll\nll\nll\nllw(2i).\n' +
+                  'a\taccess time\nB\tbirth time\nc\tstatus time\n' +
+                  'm\tmodification time\nt\ttime\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.cols.length, 2)
+       equal(table.rows.length, 5)
+       table.rows.forEach(row => equal(row.cells.length, 2))
+       equal(flat(table.rows[4].cells[0].spans), 't')
+       equal(flat(table.rows[4].cells[1].spans), 'time')
+     })
+
+test('tables', 'a header format and a body format are separate rows',
+     () => {
+       let r, table
+
+       // captoinfo(1): two centred header lines over a left-justified body,
+       // four columns in all. Concatenating the format made twelve columns.
+       r = parsed('.TH T 1\n.TS H\nc c c c\nc c c c\nl l l l.\n' +
+                  'Nonstd\tStd\tFrom\tTerminfo\n' +
+                  'name\tname\t\tcapability\n' +
+                  'BO\tmr\tAT&T\tenter_reverse_mode\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.cols.length, 4)
+       equal(table.rows.length, 3)
+       table.rows.forEach(row => equal(row.cells.length, 4))
+       equal(flat(table.rows[0].cells[0].spans), 'Nonstd')
+       equal(flat(table.rows[2].cells[3].spans), 'enter_reverse_mode')
+       // The drawn table styles one row format for all columns, and the last
+       // line is the body tbl repeats, so its left alignment wins.
+       equal(table.cols[0].align, 'left')
+     })
+
+test('tables', 'a span in an early format line still spans the row',
+     () => {
+       let r, table
+
+       // tbl(1)'s own title table: `c s s` over `l c n.`.
+       r = parsed('.TH T 1\n.TS\ntab(;);\nc s s\nl c n.\nTitle\n' +
+                  'left;centers;123\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.cols.length, 3)
+       equal(table.rows[0].cells.length, 1)
+       equal(table.rows[0].cells[0].colspan, 3)
+       equal(flat(table.rows[0].cells[0].spans), 'Title')
+       equal(table.rows[1].cells.length, 3)
+       equal(flat(table.rows[1].cells[2].spans), '123')
+     })
+
+test('tables', 'a format line of rules draws a rule and owns no data row',
+     () => {
+       let r, table
+
+       // xkeyboard-config.7: `lB lB` over `___` over `lB l.`. The three
+       // underscores are three rule entries, so the longest line makes three
+       // columns; the rule takes no data row, so the body format still lines
+       // up with the second data row.
+       r = parsed('.TH T 1\n.TS\nbox;\nlB lB\n___\nlB l.\n' +
+                  'Model\tDescription\npc86\tGeneric 86-key PC\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.cols.length, 3)
+       equal(table.rows.length, 2)
+       equal(table.rows[0].cells.length, 3)
+       equal(flat(table.rows[0].cells[0].spans), 'Model')
+       equal(flat(table.rows[1].cells[0].spans), 'pc86')
+       equal(flat(table.rows[1].cells[1].spans), 'Generic 86-key PC')
+     })
+
+test('tables', 'layouts may share a line, separated by commas',
+     () => {
+       let r, table
+
+       // tbl(1) documents `ln,an.` as two layouts on one line.
+       r = parsed('.TH T 1\n.TS\ntab(;);\nln,an.\nitem one;1\nitem two;22\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.cols.length, 2)
+       equal(table.rows.length, 2)
+       equal(flat(table.rows[1].cells[0].spans), 'item two')
+       equal(flat(table.rows[1].cells[1].spans), '22')
      })
 
 test('groff requests', 'several requests are presentation only',

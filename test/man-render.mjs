@@ -118,18 +118,37 @@ test('tables', 'box and allbox together, with colspan and an empty row set',
      () => {
        let out, cells, table
 
-       out = draw('.TH T 1\n.TS\nbox allbox;\nl s\nl l.\na\tb\n.TE\n')
+       // `c s` is a header layout over the body layout `l l`, so the header is
+       // one cell across both columns and the body row keeps its two.
+       out = draw('.TH T 1\n.TS\nbox allbox;\nc s\nl l.\nHeader\na\tb\n.TE\n')
        table = out.el.querySelector('table')
        equal(table.className.includes('man-box'), true)
        equal(table.className.includes('man-allbox'), true)
        cells = table.querySelectorAll('td')
        equal(cells.length, 3)
        equal(cells[0].getAttribute('colspan'), '2')
-       equal(cells[0].textContent, 'a')
-       equal(cells[1].textContent, 'b')
+       equal(cells[0].textContent, 'Header')
+       equal(cells[1].textContent, 'a')
+       equal(cells[2].textContent, 'b')
        out = draw('.TH T 1\n.TS\nl l.\n.TE\n')
        equal(out.el.querySelectorAll('table tbody tr').length, 0)
        equal(out.el.querySelector('table') == null, false)
+     })
+
+test('tables', 'a multi-line format draws one cell per column, not per line',
+     () => {
+       let out, rows
+
+       // The captoinfo(1) shape: two centred header layouts and a left body
+       // layout, four columns each. Concatenating the three made twelve cells
+       // per row.
+       out = draw('.TH T 1\n.TS\nc c c c\nc c c c\nl l l l.\n' +
+                  'a\tb\tc\td\ne\tf\tg\th\n.TE\n')
+       rows = out.el.querySelectorAll('table tbody tr')
+       equal(rows.length, 2)
+       equal(rows[0].querySelectorAll('td').length, 4)
+       equal(rows[1].querySelectorAll('td').length, 4)
+       equal(rows[1].querySelector('td').className, 'man-left')
      })
 
 test('tables', 'options are separated by spaces as well as semicolons',

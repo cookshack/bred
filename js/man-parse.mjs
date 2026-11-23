@@ -1663,7 +1663,7 @@ function mdocState
            spaceNext: 0,
            tagMode: 0,
            section: '',
-           name: '',
+           docName: '',
            noSpace: 0,
            fn: 0,
            ref: 0,
@@ -2213,11 +2213,16 @@ function mdocInlineMacro
   case 'Nm': {
     let shown, split
 
+    // A bare `.Nm` prints the document name: the first `.Nm` that has an
+    // argument, which mdoc calls `doc-command-name` and never overwrites
+    // (doc.tmac sets it only while it is empty). A later `.Nm` with an
+    // argument prints that argument but leaves the document name alone.
     split = mdocSplitPunct(args)
     if (split.words.length == 0)
-      shown = (c.mdoc.name == '') ? [] : [ c.mdoc.name ]
+      shown = (c.mdoc.docName == '') ? [] : [ c.mdoc.docName ]
     else {
-      c.mdoc.name = split.words[0]
+      if (c.mdoc.docName == '')
+        c.mdoc.docName = split.words[0]
       shown = split.words
     }
     shown.forEach(arg => mdocText(c, arg, (c.mdoc.section == 'SYNOPSIS') ? 'bold' : c.font))
@@ -2424,7 +2429,8 @@ function mdocInlineMacro
     return 1
   // The canned sentences mdoc(7) emits, but only with `-std`: without the
   // flag the macro expands to nothing. With no names `Ex` falls back to the
-  // document's `Nm`, and both join names the way mdoc does.
+  // document name, not the most recent `.Nm` (groff: `.Nm first` ... `.Nm
+  // second` ... `.Ex -std` says "The first utility ...").
   case 'Ex': {
     let names, subject, verb
 
@@ -2432,8 +2438,8 @@ function mdocInlineMacro
       return 1
 
     names = args.filter(arg => (arg[0] == '-') ? 0 : 1)
-    if ((names.length == 0) && c.mdoc.name)
-      names = [ c.mdoc.name ]
+    if ((names.length == 0) && c.mdoc.docName)
+      names = [ c.mdoc.docName ]
     subject = mdocJoin(names)
     if (subject.length == 0)
       subject = 'utility'

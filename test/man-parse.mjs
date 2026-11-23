@@ -862,6 +862,70 @@ test('mdoc', 'Nm with only punctuation keeps the stored name',
        equal(flat(r.doc.blocks.filter(b => b.kind == 'para').at(-1).spans), 'text file.')
      })
 
+test('mdoc', 'a bare Nm prints the document name',
+     () => {
+       let r, paras
+
+       // groff keeps the first `.Nm` that has an argument as the document
+       // name (`doc-command-name`) and a bare `.Nm` prints that, even after
+       // a later named `.Nm`.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh NAME\n.Nm first\n.Nd a thing\n' +
+                  '.Sh DESCRIPTION\n.Nm second\nis another.\n.Pp\n.Nm\n' +
+                  'is the document name.\n')
+       paras = r.doc.blocks.filter(b => b.kind == 'para')
+       equal(flat(paras[0].spans), 'first — a thing')
+       equal(flat(paras[1].spans), 'second is another.')
+       equal(flat(paras[2].spans), 'first is the document name.')
+     })
+
+test('mdoc', 'Nm with an argument prints that argument',
+     () => {
+       let r
+
+       // Only the bare form uses the document name; a named `.Nm` still
+       // prints its own word.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh NAME\n.Nm first\n.Nd a thing\n' +
+                  '.Sh DESCRIPTION\n.Nm second\nis another.\n')
+       equal(flat(r.doc.blocks[1].spans), 'first — a thing')
+       equal(flat(r.doc.blocks[3].spans), 'second is another.')
+     })
+
+test('mdoc', 'a bare Nm before any named Nm prints nothing',
+     () => {
+       let r
+
+       // groff warns "Usage: .Nm name ..." there and prints nothing; a later
+       // named `.Nm` does not fill in the earlier bare one.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh DESCRIPTION\n.Nm\nis bare.\n.Nm later\nmore.\n')
+       equal(flat(r.doc.blocks[1].spans), 'is bare. later more.')
+     })
+
+test('mdoc', 'the ssh_config system-wide Nm is the document name',
+     () => {
+       let r
+
+       // ssh_config(5), after `.Nm sftp`: groff prints "system-wide
+       // ssh_config files).", not "sftp".
+       r = parsed('.Dd t\n.Dt SSH_CONFIG 5\n.Os\n.Sh NAME\n.Nm ssh_config\n.Nd x\n' +
+                  '.Sh DESCRIPTION\n.Nm sftp\nsome text\n' +
+                  '(this keyword may be useful in system-wide\n.Nm\nfiles).\n')
+       equal(flat(r.doc.blocks[3].spans),
+             'sftp some text (this keyword may be useful in system-wide ssh_config files).')
+     })
+
+test('mdoc', 'the editrc setty Nm is the document name',
+     () => {
+       let r
+
+       // editrc(5) prints "Control which tty modes that editrc won't allow
+       // the user to change." after an earlier `.Nm editline`.
+       r = parsed('.Dd t\n.Dt EDITRC 5\n.Os\n.Sh NAME\n.Nm editrc\n.Nd x\n' +
+                  '.Sh DESCRIPTION\n.Nm editline\ntext\n.Pp\n' +
+                  'Control which tty modes that\n.Nm\nwon\'t allow the user to change.\n')
+       equal(flat(r.doc.blocks[4].spans),
+             'Control which tty modes that editrc won\'t allow the user to change.')
+     })
+
 test('mdoc', 'Dl attaches trailing punctuation',
      () => {
        let r
@@ -1480,6 +1544,18 @@ test('mdoc inline', 'Ex and Rv name a missing utility and function',
              'Upon successful completion, the value 0 is returned; otherwise the ' +
              'value -1 is returned and the global variable errno is set to ' +
              'indicate the error.')
+     })
+
+test('mdoc inline', 'Ex falls back to the document name',
+     () => {
+       let r
+
+       // groff: after `.Nm first` and a later `.Nm second`, `.Ex -std` still
+       // says "The first utility ...", like a bare `.Nm`.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh NAME\n.Nm first\n.Nd x\n.Sh D\n' +
+                  '.Nm second\ntext.\n.Ex -std\n')
+       equal(flat(r.doc.blocks[3].spans),
+             'second text. The first utility exits 0 on success, and >0 if an error occurs.')
      })
 
 test('mdoc inline', 'Ex and Rv emit nothing without -std',

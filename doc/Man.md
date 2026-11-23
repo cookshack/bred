@@ -291,18 +291,19 @@ of a sentence onto a line of its own.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Eight of the pages still reported hide a real loss rather than a layout one,
-and are the next work: `bash(1)` is missing the last sentence of RESTRICTED
-SHELL; `ssh_config(5)` renders `ssh` and `sftp` where the page says
-`ssh_config`; `init-d-script(5)` keeps `start\-stop\-daemon(8)` unexpanded;
-`editrc(5)` renders one `.Nm` as `editline`; `mount(8)` leaks a raw `\fP`
-after a URL and prints literal `.sp`; `ssh-keysign(8)`,
-`ssh-pkcs11-helper(8)` and `ssh-sk-helper(8)` dropped the version from
-`OpenBSD 3.2.`, `4.7.` and `6.7.` — fixed: the OS macros (`.Ox`, `.Fx`,
-`.Nx`, `.Dx`, `.Ux`) now print their version argument, and `.Bx` prepends it
-(`.Bx 4.4` is `4.4BSD`), while `.At` gained the version table groff uses.
+Some of the pages still reported hide a real loss rather than a layout one,
+and are the next work. Fixed so far: the ssh helper pages' `OpenBSD 3.2.`
+(the OS macros `.Ox`, `.Fx`, `.Nx`, `.Dx`, `.Ux` now print their version, `.Bx`
+prepends it and `.At` gained groff's table); `init-d-script(5)`'s
+`start\-stop\-daemon(8)` (`.Xr` expands its name); and `mount(8)`'s raw `\fP`
+after a URL plus its literal `.sp` cells (the `.URL` tail is expanded, and a
+`.sp`/`.br`/`.nf`/`.fi` line in a table body is a request, not a cell). Still
+open: `bash(1)`'s RESTRICTED SHELL sentence, which needs `.ie`/`.el` text on
+the condition's line and an undefined register in a condition to be 0 rather
+than a refusal; and the bare `.Nm` in `ssh_config(5)` and `editrc(5)`, which
+must print the document name, not the last `.Nm`.
 
-Tests: 462 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 466 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (100%),
 `man-render.mjs` (100%), `man-roff.mjs` (97%) and `man-parse.mjs` (95% of

@@ -297,10 +297,12 @@ SHELL; `ssh_config(5)` renders `ssh` and `sftp` where the page says
 `ssh_config`; `init-d-script(5)` keeps `start\-stop\-daemon(8)` unexpanded;
 `editrc(5)` renders one `.Nm` as `editline`; `mount(8)` leaks a raw `\fP`
 after a URL and prints literal `.sp`; `ssh-keysign(8)`,
-`ssh-pkcs11-helper(8)` and `ssh-sk-helper(8)` drop the version from
-`OpenBSD 3.2.`, `4.7.` and `6.7.`.
+`ssh-pkcs11-helper(8)` and `ssh-sk-helper(8)` dropped the version from
+`OpenBSD 3.2.`, `4.7.` and `6.7.` — fixed: the OS macros (`.Ox`, `.Fx`,
+`.Nx`, `.Dx`, `.Ux`) now print their version argument, and `.Bx` prepends it
+(`.Bx 4.4` is `4.4BSD`), while `.At` gained the version table groff uses.
 
-Tests: 453 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 462 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (100%),
 `man-render.mjs` (100%), `man-roff.mjs` (97%) and `man-parse.mjs` (95% of

@@ -2,8 +2,10 @@ import { equal, throws } from 'node:assert/strict'
 import Fs from 'node:fs'
 import Os from 'node:os'
 import Path from 'node:path'
+import * as Bred from '../js/bred.mjs'
 import * as Buf from '../js/Buf.mjs'
 import * as Cmd from '../js/cmd.mjs'
+import * as Em from '../js/Em.mjs'
 import * as Hist from '../js/hist.mjs'
 import * as Loc from '../js/loc.mjs'
 import * as Man from '../js/man.mjs'
@@ -13,7 +15,18 @@ import * as Pane from '../js/Pane.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, statErrPaths, modeLessPaths, readFailPaths
+let tests, inited, divSearch, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, statErrPaths, modeLessPaths, readFailPaths
+
+// A key event, for Em.look (wrapped as { e }) and for the search map's
+// onkeydown handler (raw).
+function press
+(key, code, ctrl, alt) {
+  return { key,
+           code,
+           ctrlKey: ctrl,
+           altKey: alt,
+           preventDefault: () => {} }
+}
 
 function test
 (group, name, cb, ms) {
@@ -304,6 +317,7 @@ function textOf
 
 tests = {}
 inited = 0
+divSearch = 0
 
 test('viewer', 'opening a topic renders a div buffer',
      async () => {
@@ -318,6 +332,52 @@ test('viewer', 'opening a topic renders a div buffer',
        equal(v.ed, undefined)
        equal(v.ele.querySelector('.man-h1').textContent, 'NAME')
        equal(textOf(b).includes('list directory contents'), true)
+     })
+
+// A div buffer has no editor, so C-s goes through the div search installed by
+// Bred.initDivSearch: the needle accumulates in the search bar and the point
+// moves onto the match. Drive the same key handler the search installs.
+test('viewer', 'C-s searches a div buffer from the keyboard',
+     async () => {
+       let b, v, panes, echo, to, area, oldOnKeyDown
+
+       panes = setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' +
+                            '.SH DESCRIPTION\nalpha beta alpha gamma\n' })
+       b = await opened('ls')
+       v = viewOf(b)
+       // The app keeps the area in the document, which is what lets the
+       // search move the point onto a match (point.setAt refuses a
+       // disconnected node).
+       area = panes.frame.tab.area.el
+       globalThis.document.body.appendChild(area)
+       if (divSearch == 0) {
+         Bred.initDivSearch()
+         divSearch = 1
+       }
+
+       oldOnKeyDown = globalThis.onkeydown
+       Em.look([ { e: press('s', 'KeyS', 1, 0), mouse: 0 } ], 0, b, (map, t) => to = t)
+       equal(to, 'search forward', 'C-s is bound to the div search')
+       Cmd.run(to, b)
+
+       echo = v.elPane.parentNode.querySelector('.mini-echo')
+       equal(echo.innerText, '', 'the search bar starts with an empty needle')
+       try {
+         let bep
+
+         [ 'a', 'l', 'p', 'h', 'a' ].forEach(ch => globalThis.onkeydown(press(ch, 'Key' + ch.toUpperCase(), 0, 0)))
+         equal(echo.innerText, 'alpha', 'every typed character reaches the needle')
+         equal(echo.classList.contains('mini-search-fail'), false, 'the needle found a match')
+         bep = v.point.bep()
+         equal(bep.node.wholeText, 'alpha beta alpha gamma')
+         equal(bep.offset, 5, 'the point sits at the end of the first match')
+       }
+       finally {
+         Cmd.run('search done', b)
+       }
+
+       equal(v.elPane.parentNode.querySelector('.bred-search-w'), null, 'the search bar is gone')
+       equal(globalThis.onkeydown, oldOnKeyDown, 'the key handler is restored')
      })
 
 test('viewer', 'a valid path before an unreadable path is used',

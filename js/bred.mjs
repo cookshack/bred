@@ -1328,6 +1328,7 @@ function initSearch
   return s
 }
 
+export
 function initDivSearch
 () {
   function vfind

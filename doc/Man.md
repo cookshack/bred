@@ -211,7 +211,10 @@ failure cap and its "show all" command, following a link to a page that is
 refused and retrying it after another click, trailing punctuation and no-text
 man links, the `.LINKSTYLE` glyph pair around a described `.URL` target (ASCII
 when the page asks for it, `⟨⟩` otherwise, and `.UR` unaffected), and buffer
-reuse and shared refresh across panes. `test/man-pty.mjs`
+reuse and shared refresh across panes. A div-buffer search test feeds `C-s`
+through `Em.look` and the characters through the key handler the search
+installs, then checks the needle in the search bar and the point on the match.
+`test/man-pty.mjs`
 covers the real reader path: it writes a gzip page to a temporary file, runs
 `zcat` through node-pty (the same main-side path the viewer uses), checks the
 CRLF that comes back, and parses and renders it, including no-argument macros
@@ -257,7 +260,7 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 426 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 427 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (93%),
 `man-render.mjs` (100%), `man-roff.mjs` (96%) and `man-parse.mjs` (94% of
@@ -265,8 +268,14 @@ branches).
 
 ## Known gaps, in order
 
-1. Div buffers are not searchable with isearch; that is a general limitation of
-   div views, not specific to man pages.
+1. Div-buffer search works: `C-s` installs the div search, the needle
+   accumulates in the search bar and the point moves onto the match. The match
+   is confined to one text node, though, so a phrase that crosses a span
+   boundary is not found even when it reads continuously on screen (in
+   `alpha \fBbeta\fP gamma`, `beta` is found but `alpha beta` is not). `C-w`
+   (`add word to search`) is also a no-op in a div buffer: `Point.search`
+   treats its regexp needle as plain text, so the literal
+   `alpha[^a-zA-Z0-9]*[a-zA-Z0-9]+` never matches.
 2. mdoc `Ex`/`Rv` match mdoc(7)'s sentences (names joined with `and`, the
    plural verbs, and the `Nm` fallback) but not every `-std` family variant:
    the `-exit`/`-nop` flags are accepted and ignored.

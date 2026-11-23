@@ -247,28 +247,16 @@ function skipArg
     i++
     while (i < text.length) {
       if (text[i] == '\\') {
-        let j
-
         // An escape's own bracket argument nests: `\F[\n[.fam]]` closes the
         // register's `]` first, then the font's. Treating `\n` as a plain
-        // pair leaves that inner `]` behind as text.
-        j = i + 1
-        if (text[j] == '[') {
-          depth++
-          i = j + 1
-          continue
-        }
-        i = j + 1
+        // pair leaves that inner `]` behind as text. A `\(` name and any
+        // other escape have no brackets of their own, so skipping the pair
+        // is enough.
+        i += 2
         if (text[i] == '[') {
           depth++
           i++
-          continue
         }
-        if (text[i] == '(') {
-          i += 3
-          continue
-        }
-        i++
         continue
       }
       if (text[i] == ']') {
@@ -860,7 +848,7 @@ function continues
 
 function nextInput
 (c) {
-  while (c.frames.length) {
+  for (;;) {
     let f
 
     f = frame(c)
@@ -879,7 +867,6 @@ function nextInput
       return 0
     c.frames.pop()
   }
-  return 0
 }
 
 // A definition ends at a control line whose name is the end name: `..`,
@@ -1413,19 +1400,10 @@ function splitCond
       let next
 
       next = text[i + 1]
-      if (next == '(') {
-        i += 3
-        continue
-      }
-      if (next == '[') {
-        let end
-
-        end = text.indexOf(']', i)
-        i = (end < 0) ? text.length : (end + 1)
-        continue
-      }
       if ((next == '{') || (next == '}'))
         break
+      // A named character (`\[..]`, `\(..`) has no space in its name, so
+      // skipping the two-character escape leaves the condition intact.
       i += 2
       continue
     }
@@ -2536,8 +2514,6 @@ function mdocInlineMacro
   case 'Xc':
     c.mdoc.tagMode = 0
     return 1
-  default:
-    return 0
   }
 }
 
@@ -3041,9 +3017,6 @@ function handleLine
     }
     break
   }
-  case '\\{':
-  case '\\}':
-    break
   default:
     if (c.macros[name] || c.aliases[name])
       callMacro(c, name, args, c.lineNo)

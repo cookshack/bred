@@ -237,11 +237,11 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 408 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 419 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
-`man-render.mjs` (100%) and `man-roff.mjs` (96%), and 98% for
-`man-parse.mjs` (91% of branches).
+`man-render.mjs` (100%), `man-roff.mjs` (96%) and `man-parse.mjs` (94% of
+branches).
 
 ## Known gaps, in order
 

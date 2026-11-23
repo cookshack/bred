@@ -703,6 +703,16 @@ test('mdoc', 'tag mode spaces consecutive macros',
        equal(flat(list.items[0].tag), '-a allexport')
      })
 
+test('mdoc', 'a delimiter inside an open tag stays in the tag',
+     () => {
+       let r, list
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -tag -width x\n.It Xo\n.Op opt\n.Xc\nbody\n.El\n')
+       list = r.doc.blocks[0]
+       equal(flat(list.items[0].tag), '[opt]')
+       equal(flat(list.items[0].blocks[0].spans), 'body')
+     })
+
 test('mdoc', 'Ns suppresses the space before punctuation in a tag',
      () => {
        let r, list
@@ -912,6 +922,14 @@ test('mdoc', 'Bd -literal makes a literal block',
        equal(flat(r.doc.blocks[0].spans), 'code line')
      })
 
+test('mdoc', 'a second Bd -literal line starts a new pre line',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bd -literal\none\ntwo\n.Ed\n')
+       equal(flat(r.doc.blocks[0].spans), 'one\ntwo')
+     })
+
 test('mdoc', 'Rs and Re collect a reference',
      () => {
        let r
@@ -1112,6 +1130,11 @@ test('escapes', 'an absolute horizontal motion separates words',
        equal(flat(parsed('.TH T 1\na\\h\'|1u\'b\n').doc.blocks[0].spans), 'a b')
      })
 
+test('escapes', 'a horizontal motion without a delimiter is accepted',
+     () => {
+       equal(flat(parsed('.TH T 1\n1.\\h+01\n').doc.blocks[0].spans), '1.')
+     })
+
 test('escapes', 'a trailing backslash joins the next line before parsing',
      () => {
        let r
@@ -1119,6 +1142,11 @@ test('escapes', 'a trailing backslash joins the next line before parsing',
        r = parsed('.TH T 1\n.TP\ntag \\\n... continued\nbody\n')
        equal(flat(r.doc.blocks[0].tag), 'tag ... continued')
        equal(flat(r.doc.blocks[0].blocks.filter(b => b.kind == 'para')[0].spans), 'body')
+     })
+
+test('escapes', 'a backslash at the end of the input is dropped',
+     () => {
+       equal(asText('.TH T 1\nabc \\'), 'abc\n')
      })
 
 test('fonts', 'a doubled quote inside an argument is literal',
@@ -1464,6 +1492,24 @@ test('escapes', 'ftr defines a font alias used by ft and font escapes',
        equal(r.doc.blocks[0].spans[0].style, 'bold')
      })
 
+test('escapes', 'an undefined font fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n\\f[G]gdbm\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'font G')
+     })
+
+test('escapes', 'a font alias naming an undefined font fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.ftr ZF Q\n\\f[ZF]text\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'font ZF')
+     })
+
 test('escapes', 'an unterminated character name fails the page',
      () => {
        let r
@@ -1479,6 +1525,16 @@ test('escapes', 'w measures its argument in units',
 
        r = parsed('.TH T 1\na \\w\'abcdef\' b\n')
        equal(flat(r.doc.blocks[0].spans), 'a 144 b')
+     })
+
+test('escapes', 'w takes a delimiter other than a quote',
+     () => {
+       equal(flat(parsed('.TH T 1\na \\w|abcdef| b\n').doc.blocks[0].spans), 'a 144 b')
+     })
+
+test('escapes', 'an unterminated bracket argument ends the line',
+     () => {
+       equal(asText('.TH T 1\nx \\F[ y\n'), 'x\n')
      })
 
 test('escapes', 'o emits the first character of its argument',
@@ -1513,12 +1569,38 @@ test('escapes', 'dollar at and star expand all macro arguments',
        equal(flat(r.doc.blocks[0].spans), '[a b c] [a b c]')
      })
 
+test('escapes', 'a two-digit argument number expands that argument',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.de M\n\\$1-\\$(12\n..\n.M a b c d e f g h i j k l\n')
+       equal(flat(r.doc.blocks[0].spans), 'a-l')
+     })
+
 test('escapes', 'a raw high-bit character is kept as text',
      () => {
        let r
 
        r = parsed('.TH T 1\ncaf\u00e9\n')
        equal(flat(r.doc.blocks[0].spans), 'caf\u00e9')
+     })
+
+test('escapes', 'an unknown escape before a high-bit character keeps it',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na \\\u80fd b\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'a \u80fd b')
+     })
+
+test('escapes', 'an undefined string fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\nx \\*(AQ y\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'string AQ')
      })
 
 test('escapes', 'an unknown escape fails the page',

@@ -197,8 +197,11 @@ function push
     Ev.post('Mess.push', m)
   }
 
+  // Drop the oldest, in a batch: shifting a 10k array on every push once the
+  // log is full costs microseconds each time, so leaving slack amortises it.
+  // The log stays a plain array because messages() is a live view of it.
   if ($messages.length > 10000)
-    $messages.pop()
+    $messages.splice(0, $messages.length - 10000 + 500)
 }
 
 export

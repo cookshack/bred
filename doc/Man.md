@@ -1,6 +1,6 @@
 # Man page viewer
 
-Status: 2026-11-19. `C-h u` / `M-x man` opens a manual page in a div buffer.
+Status: 2026-11-23. `C-h u` / `M-x man` opens a manual page in a div buffer.
 
 ## Policy
 
@@ -165,16 +165,25 @@ MAN_CORPUS_ROOTS="$PWD/.corpus/linux:$PWD/.corpus/openbsd/share/man" \
 
 `man-audit` without `--parse` reports the static dialect inventory (an upper
 bound; it cannot evaluate `.if`). `--render` draws each parsed page too.
-`test/man-corpus.mjs` walks `manpath`, refuses only known page bugs, and fails
-on a renderer exception; it is opt-in because it takes about a minute. It
-feeds each page with CRLF line endings, like the pty the viewer reads through.
+`test/man-corpus.mjs` walks `manpath` and fails on a renderer exception; it is
+opt-in because it takes about a minute. It feeds each page with CRLF line
+endings, like the pty the viewer reads through. Its known-bug filter reports an
+unexpected refusal only on `mandoc_char.7` today: the character exception is
+ANDed into the page test, so a failure on any other page is never noticed and
+the test passes while real refusals remain.
 `npm run test-corpus` writes its output to `man-corpus.log` as well as the
 terminal, runs with a 512 MB V8 heap and collects every 250 pages, so a
 large corpus cannot starve the editor.
 `MAN_CORPUS_ROOTS` replaces `manpath`, so a downloaded corpus can be tested
-without installing it. The Linux man-pages, groff, OpenBSD, FreeBSD and NetBSD
-trees fetched by `fetch-man-corpus` cover 4,620 pages at 99.8% parsed with no
-unexpected refusals and no render errors. `man-diff` needs `man` installed; it ignores
+without installing it. The default Linux man-pages, groff and OpenBSD trees are
+4,631 pages: with all three as `MAN_CORPUS_ROOTS`, 4,618 parse (99.7%), 13 are
+refused and there are no render errors. Three are Linux pages whose tbl format
+(`Lb`, `Lx`) yields no column we understand, plus `man.7`, which includes the
+raw `groff_man.7`; eight are the raw `name.section.man` sources in the groff
+tree, which expect groff's own build preprocessing; the last is
+`mandoc_char.7`, the page the filter names. FreeBSD and NetBSD can be fetched
+with `--only` but were not measured here. `man-diff` needs `man` installed; it
+ignores
 headers/footers (including BSD-style dated footers), overstrike, automatic
 hyphenation (U+2010), compound hyphens broken at a line end, box-drawing
 characters and bullet markers, then reports reference words missing from our
@@ -209,9 +218,10 @@ prefix still hits, a `constructor` completion that used to crash, scheme-less
 relative links (a bare filename opens its page, anything else is refused), the 40-item
 failure cap and its "show all" command, following a link to a page that is
 refused and retrying it after another click, trailing punctuation and no-text
-man links, the `.LINKSTYLE` glyph pair around a described `.URL` target (ASCII
-when the page asks for it, `⟨⟩` otherwise, and `.UR` unaffected), and buffer
-reuse and shared refresh across panes. A div-buffer search test feeds `C-s`
+man links, and buffer reuse and shared refresh across panes. The parser tests
+cover the `.LINKSTYLE` glyph pair around a described `.URL` target (ASCII when
+the page asks for it, `⟨⟩` otherwise, and `.UR` unaffected). A div-buffer
+search test feeds `C-s`
 through `Em.look` and the characters through the key handler the search
 installs, then checks the needle in the search bar and the point on the match;
 another searches a phrase that crosses a bold span (forwards and backwards) and
@@ -227,12 +237,12 @@ CRLF that comes back, and parses and renders it, including no-argument macros
 (`.PP`, `.br`, `.nf`/`.fi`). It also packs a page with real `xz` and `bzip2`
 (and `zstd` when installed) and reads it back through the tool the suffix picks,
 skipping a tool the container does not have. It skips when node-pty is not
-available. The renderer tests also draw compact and large pages, empty tables
-and lists, combined table options, colspans and links with no text; a
-colspanned row styles every later cell by the column it starts at, and a row
-with too many or too few cells draws without an undefined cell. The viewer
-tests also refuse a compressed page whose `cat` fallback starts with a known
-magic, naming the format when it disagrees with the suffix.
+available. The renderer tests also draw a page with no blocks, a 400-section
+page, empty tables and lists, combined table options, colspans and links with
+no text; a colspanned row styles every later cell by the column it starts at,
+and a row with too many or too few cells draws without an undefined cell. The
+viewer tests also refuse a compressed page whose `cat` fallback starts with a
+known magic, naming the format when it disagrees with the suffix.
 `test/man-parse.mjs` ends with a seeded fuzz test: 300 short roff documents
 built from control lines, escapes, unclosed brackets and quotes, `T{`/`T}`
 cells and random macro names, from a generator shared with the renderer test in
@@ -240,7 +250,7 @@ cells and random macro names, from a generator shared with the renderer test in
 throwing, return `ok` 0 or 1, give every failure a `what`, and serialise as
 JSON; the whole run must take under two seconds, so a parser hang fails it.
 `test/man-render.mjs` draws the same 300 sources with the same seed: every one
-that parses (10 of the 300, since most are deliberately refused) is rendered,
+that parses (9 of the 300, since most are deliberately refused) is rendered,
 must not throw, must return an `el` with child nodes for a document that has
 blocks, must have a string `textContent` and a `toc` array, and the loop must
 finish in under two seconds, so a renderer hang fails it. The seed is fixed, so
@@ -255,7 +265,7 @@ with the hostile stream's invariants.
 
 ## Current state
 
-Corpus: 4150 installed pages (English + translations) on Debian trixie.
+Corpus: 4150 installed pages (English + translations) on Debian bookworm.
 
 ```
 parsed   4123   (99.3%)
@@ -273,8 +283,8 @@ man(1)'s text:
 
 ```
 section  1    3    5    7    8
-pages    2    4   12    4    8
-words   18  248   31   14   24
+pages    2    4    9    4    5
+words   18  248   18   14   18
 ```
 
 Most of that is measurement, not loss: man(1) wraps a long word onto the next
@@ -300,15 +310,19 @@ after a URL plus its literal `.sp` cells (the `.URL` tail is expanded, and a
 `.sp`/`.br`/`.nf`/`.fi` line in a table body is a request, not a cell). Also fixed: the bare `.Nm` in
 `ssh_config(5)` and `editrc(5)`, which prints the document name (the first
 `.Nm` with an argument, as groff's `doc-command-name`), not the last one. Still
-open: `bash(1)`'s RESTRICTED SHELL sentence, which needs `.ie`/`.el` text on
-the condition's line and an undefined register in a condition to be 0 rather
-than a refusal.
+open: `bash(1)`'s RESTRICTED SHELL sentence, whose first clause is the text
+after `\{` on a taken `.el` line; that text is dropped, so the sentence starts
+at `(see COMMAND EXECUTION above)`. Bash defines its `zY`/`zZ` registers
+itself, so this is not the undefined-register case (a condition on an undefined
+register is still refused, not 0).
 
-Tests: 472 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 472 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
+test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
-is 100% for `man.mjs` (92% of branches), `man-char.mjs` (100%),
-`man-render.mjs` (100%), `man-roff.mjs` (97%) and `man-parse.mjs` (95% of
-branches).
+is 99.8% for `man.mjs` (91% of branches; the two misses are the binary `cat`
+fallback that matches no known magic) and 100% for `man-char.mjs`,
+`man-render.mjs`, `man-roff.mjs` and `man-parse.mjs`, whose branch coverage is
+100%, 100%, 97% and 95%.
 
 ## Known gaps, in order
 

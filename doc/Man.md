@@ -167,22 +167,24 @@ MAN_CORPUS_ROOTS="$PWD/.corpus/linux:$PWD/.corpus/openbsd/share/man" \
 bound; it cannot evaluate `.if`). `--render` draws each parsed page too.
 `test/man-corpus.mjs` walks `manpath` and fails on a renderer exception; it is
 opt-in because it takes about a minute. It feeds each page with CRLF line
-endings, like the pty the viewer reads through. Its known-bug filter reports an
-unexpected refusal only on `mandoc_char.7` today: the character exception is
-ANDed into the page test, so a failure on any other page is never noticed and
-the test passes while real refusals remain.
+endings, like the pty the viewer reads through. Every refusal that is not a
+known page bug is reported with its page and line, and the suite fails with
+them; the only exception is a `character` failure on `mandoc_char.7`, the page
+that exists to exhaust the character table.
 `npm run test-corpus` writes its output to `man-corpus.log` as well as the
 terminal, runs with a 512 MB V8 heap and collects every 250 pages, so a
 large corpus cannot starve the editor.
 `MAN_CORPUS_ROOTS` replaces `manpath`, so a downloaded corpus can be tested
 without installing it. The default Linux man-pages, groff and OpenBSD trees are
-4,631 pages: with all three as `MAN_CORPUS_ROOTS`, 4,618 parse (99.7%), 13 are
-refused and there are no render errors. Three are Linux pages whose tbl format
-(`Lb`, `Lx`) yields no column we understand, plus `man.7`, which includes the
-raw `groff_man.7`; eight are the raw `name.section.man` sources in the groff
-tree, which expect groff's own build preprocessing; the last is
-`mandoc_char.7`, the page the filter names. FreeBSD and NetBSD can be fetched
-with `--only` but were not measured here. `man-diff` needs `man` installed; it
+4,631 pages: with all three as `MAN_CORPUS_ROOTS`, 4,621 parse (99.8%), one is
+refused and there are no render errors. The refusal is `mandoc_char.7`; nine
+more are groff's `name.section.man` sources, which still carry `@VERSION@`-style
+markers in their `.TH` until groff's build substitutes them, so they are
+counted and skipped rather than parsed (a `.so` alias into one is skipped too).
+Before the filter was fixed this run passed while 181 unexpected constructs in
+nine classes were suppressed; the same corpus with the fixed filter and the old
+parser fails, which is what proves the gate gates. FreeBSD and NetBSD can be
+fetched with `--only` but were not measured here. `man-diff` needs `man` installed; it
 ignores
 headers/footers (including BSD-style dated footers), overstrike, automatic
 hyphenation (U+2010), compound hyphens broken at a line end, box-drawing
@@ -316,13 +318,11 @@ reads as 0 (groff's rule) instead of refusing the page. Bash defines its own
 `zY`/`zZ`, so that page never needed the second rule; the dropped text was the
 whole loss.
 
-Tests: 476 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
+Tests: 486 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
-is 99.8% for `man.mjs` (91% of branches; the two misses are the binary `cat`
-fallback that matches no known magic) and 100% for `man-char.mjs`,
-`man-render.mjs`, `man-roff.mjs` and `man-parse.mjs`, whose branch coverage is
-100%, 100%, 97% and 95%.
+is 100% for `man.mjs`, `man-char.mjs`, `man-render.mjs`, `man-roff.mjs` and
+`man-parse.mjs`; their branch coverage is 92%, 100%, 100%, 97% and 95%.
 
 ## Known gaps, in order
 

@@ -106,9 +106,11 @@ function installShell
   (path) {
     let text
 
+    if (zcatFails[path])
+      return { out: '', code: 1 }
     if (emptyPaths[path])
       return { out: '', code: 0 }
-    text = zcatFails[path] ? '' : read(path)
+    text = read(path)
     if (text == '')
       return { out: '', code: 1 }
     return { out: text, code: 0 }
@@ -174,7 +176,9 @@ function installShell
         code = 1
     }
     else if (sc == 'cat')
-      if (readFailPaths[sargs[0] || ''])
+      if (emptyPaths[sargs[0] || ''])
+        out = ''
+      else if (readFailPaths[sargs[0] || ''])
         code = 1
       else if (binaryPaths[sargs[0] || ''])
         out = 'BZh9\x00\xff\xfe'
@@ -703,6 +707,64 @@ test('viewer', 'a decompressor failure still falls back to a text cat',
        b = await opened('texty')
        equal(textOf(b).includes('text behind a bad suffix'), true)
        equal(calls.some(c => (c[0] == 'cat') && (c[1] == path)), true)
+     })
+
+test('viewer', 'a cat fallback that still starts with gzip bytes is a clear error',
+     async () => {
+       let b, path
+
+       // A fake's cat output stands in for decoded bytes: 1f 8b is the gzip
+       // signature, and neither character is refused by looksText, so without
+       // a sniff the page would render as garbage.
+       path = '/fake/man1/gzstill.1.gz'
+       setup({ gzstill: '\u001f\u008b still compressed\n' }, { gzstill: [ path ] })
+       zcatFails[path] = 1
+       b = await opened('gzstill')
+       equal(textOf(b).includes('Cannot read ' + path + ': cannot decompress .gz'), true)
+       equal(textOf(b).includes('still compressed'), false)
+     })
+
+test('viewer', 'a mislabelled compressed page names the format cat found',
+     async () => {
+       let b, path
+
+       // bzip2 starts with plain ASCII ("BZh9"), the case looksText cannot see.
+       // The .xz suffix disagrees with the bytes, so the error says which
+       // format it actually found.
+       path = '/fake/man1/bzstill.1.xz'
+       setup({ bzstill: 'BZh9 still compressed\n' }, { bzstill: [ path ] })
+       zcatFails[path] = 1
+       b = await opened('bzstill')
+       equal(textOf(b).includes('Cannot read ' + path +
+                                ': cannot decompress .xz (bzip2 data)'), true)
+       equal(textOf(b).includes('still compressed'), false)
+     })
+
+test('viewer', 'compressed-looking bytes later in a page still render',
+     async () => {
+       let b, path
+
+       path = '/fake/man1/late.1.gz'
+       setup({ late: '.TH LATE 1\n.SH NAME\nlate\n' +
+                      'a line with \u001f\u008b bytes\n' },
+             { late: [ path ] })
+       zcatFails[path] = 1
+       b = await opened('late')
+       equal(textOf(b).includes('a line with'), true)
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+     })
+
+test('viewer', 'an empty cat fallback is still a valid page',
+     async () => {
+       let b, path
+
+       path = '/fake/man1/nil.1.gz'
+       setup({}, { nil: [ path ] })
+       zcatFails[path] = 1
+       emptyPaths[path] = 1
+       b = await opened('nil')
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(textOf(b), '')
      })
 
 test('viewer', 'an absolute path is read without man -w',

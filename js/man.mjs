@@ -18,7 +18,8 @@ import * as Tron from './tron.mjs'
 import * as View from './view.mjs'
 //import { d } from './mess.mjs'
 
-let openImpl, sugSeq, topicCache, topicKeys, decompressors, cacheMax, externalSchemes
+let openImpl, sugSeq, topicCache, topicKeys, decompressors, compressedMagics,
+    formatSuffixes, cacheMax, externalSchemes
 
 sugSeq = 0
 // A fresh object, not {}, so a name like "constructor" or "toString" is a miss
@@ -29,6 +30,18 @@ topicKeys = []
 // Debian packages pages as .gz, but other systems use .xz, .bz2 and .zst,
 // and man -w returns whichever the source uses.
 decompressors = { gz: 'zcat', xz: 'xzcat', bz2: 'bzcat', zst: 'zstdcat', lzma: 'lzcat' }
+// The signature of each format the viewer can decompress. cat hands back
+// decoded text, so each signature is compared as character codes; a byte that
+// UTF-8 cannot decode has already become U+FFFD and looksText refuses it.
+// lzma is left out: only its first byte is fixed (0x5d, "]", which is ordinary
+// text), so a short prefix proves nothing.
+compressedMagics = { gzip: [ 0x1f, 0x8b ],
+                     xz: [ 0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00 ],
+                     bzip2: [ 0x42, 0x5a, 0x68 ],
+                     zstd: [ 0x28, 0xb5, 0x2f, 0xfd ] }
+// The suffix a format is expected to arrive under, so the error can point out
+// a page whose suffix lies about what the bytes are.
+formatSuffixes = { gzip: 'gz', xz: 'xz', bzip2: 'bz2', zstd: 'zst' }
 cacheMax = 100
 // Schemes a reader can expect a page to link to. Each one is handed to the
 // desktop, which starts whatever application registered it, so the list is a
@@ -402,6 +415,49 @@ function init
     return 1
   }
 
+  // A compressed source starts with a signature, and a page whose suffix names
+  // a decompressor but whose cat output still has one is not text: rendering
+  // it shows garbage. Only the start of the output is checked, so a plain page
+  // that happens to contain such bytes further down still renders.
+  function startsWithCodes
+  (text, codes) {
+    return codes.every((code, at) => (text.charCodeAt(at) == code))
+  }
+
+  function compressedFormat
+  (text) {
+    let formats, at
+
+    formats = Object.keys(compressedMagics)
+    at = 0
+    while (at < formats.length) {
+      if (startsWithCodes(text, compressedMagics[formats[at]]))
+        return formats[at]
+      at++
+    }
+    return ''
+  }
+
+  function formatMatchesSuffix
+  (format, suffix) {
+    return formatSuffixes[format] == suffix
+  }
+
+  // Name the format only when the suffix disagrees with it: when they agree,
+  // the decompressor's refusal is the whole story, and the plain message is
+  // what a reader already knows how to act on.
+  function compressedError
+  (path, suffix, format) {
+    let msg
+
+    msg = 'Cannot read ' + path + ': cannot decompress .' + suffix
+    if (format.length == 0)
+      return msg
+    if (formatMatchesSuffix(format, suffix))
+      return msg
+    return msg + ' (' + format + ' data)'
+  }
+
   function onCat
   (path, text, code, cb) {
     if (code == 0)
@@ -424,14 +480,19 @@ function init
   (dir, path, suffix, tools, at, cb) {
     if (at >= tools.length) {
       readPlain(dir, path, (err, text) => {
+                             let format
+
                              if (err) {
                                cb(err)
                                return
                              }
-                             if (looksText(text))
+                             format = compressedFormat(text)
+                             if (format.length)
+                               cb(compressedError(path, suffix, format))
+                             else if (looksText(text))
                                cb(0, text, path)
                              else
-                               cb('Cannot read ' + path + ': cannot decompress .' + suffix)
+                               cb(compressedError(path, suffix, ''))
                            })
       return
     }

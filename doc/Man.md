@@ -284,7 +284,7 @@ man(1)'s text:
 ```
 section  1    3    5    7    8
 pages    2    4    9    4    5
-words   18  248   18   14   18
+words    5  248   18   14   18
 ```
 
 Most of that is measurement, not loss: man(1) wraps a long word onto the next

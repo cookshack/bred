@@ -563,6 +563,41 @@ test('tables', 'toText joins cells in a row',
        equal(asText('.TH T 1\n.TS\nl l.\na\tb\n.TE\n'), 'a | b\n')
      })
 
+test('tables', 'a request line in a table body is not a cell',
+     () => {
+       let r, table
+
+       // mount(8)'s filesystem table puts `.sp` at the top of every T{ cell;
+       // tbl passes the line to roff instead of reading it as data.
+       r = parsed('.TH T 1\n.TS\nallbox tab(:);\nlt lt.\n' +
+                  'T{\n.sp\n\\fBFilesystem(s)\\fP\nT}:T{\n.sp\n\\fBManual page\\fP\nT}\n' +
+                  'T{\n.sp\nbtrfs\nT}:T{\n.sp\nbtrfs(5)\nT}\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(flat(table.rows[0].cells[0].spans), 'Filesystem(s)')
+       equal(flat(table.rows[0].cells[1].spans), 'Manual page')
+       equal(flat(table.rows[1].cells[0].spans), 'btrfs')
+       equal(flat(table.rows[1].cells[1].spans), 'btrfs(5)')
+       // A body line that is a bare `.` or `.br` is a request too, and one
+       // such line must not split a row into cells of its own.
+       r = parsed('.TH T 1\n.TS\nl l.\na\tb\n.sp\nc\td\n.br\ne\tf\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.rows.length, 3)
+       equal(flat(table.rows[0].cells[0].spans), 'a')
+       equal(flat(table.rows[1].cells[0].spans), 'c')
+       equal(flat(table.rows[2].cells[1].spans), 'f')
+     })
+
+test('tables', 'a normal row still splits and a cell keeps its period',
+     () => {
+       let r, table
+
+       r = parsed('.TH T 1\n.TS\nl l.\n3.5\t.sp text\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.rows.length, 1)
+       equal(flat(table.rows[0].cells[0].spans), '3.5')
+       equal(flat(table.rows[0].cells[1].spans), '.sp text')
+     })
+
 test('tables', 'a table with no format is refused, not emptied',
      () => {
        let r, text
@@ -643,6 +678,19 @@ test('mdoc', 'Xr is a cross reference link',
        equal(link.text, 'ls(1)')
        equal(link.href, 'man:ls(1)')
        equal(flat(r.doc.blocks[1].spans), 'ls(1).')
+     })
+
+test('mdoc', 'Xr expands the name it links',
+     () => {
+       let r, link
+
+       // init-d-script(5): `.Xr start\-stop\-daemon 8 .` is
+       // "start-stop-daemon(8)." in groff -Tutf8 -man.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SEE ALSO\n.Xr start\\-stop\\-daemon 8 .\n')
+       link = r.doc.blocks[1].spans[0]
+       equal(link.text, 'start-stop-daemon(8)')
+       equal(link.href, 'man:start-stop-daemon(8)')
+       equal(flat(r.doc.blocks[1].spans), 'start-stop-daemon(8).')
      })
 
 test('mdoc', 'In brackets its header',
@@ -1041,6 +1089,24 @@ test('links', 'LINKSTYLE takes any glyph pair and leaves UR/UE alone',
        equal(flat(r.doc.blocks[0].spans), 'The site ⟨https://example.com⟩.')
        r = parsed('.TH T 1\n.LINKSTYLE blue R < >\n.UR https://example.com\nhere\n.UE .\n')
        equal(flat(r.doc.blocks[0].spans), 'here ⟨https://example.com⟩.')
+     })
+
+test('links', 'URL expands its trailing argument',
+     () => {
+       let r, spans
+
+       // mount(8) line 1804: `.URL "ftp://..." "" "\fP."`. The \fP is a font
+       // change, not text: groff prints "ftp://...." with the period after.
+       r = parsed('.TH T 1\n.URL "ftp://ftp.namesys.com/pub/reiserfsprogs" "" "\\fP."\n')
+       spans = r.doc.blocks[0].spans
+       equal(spans.length, 2)
+       equal(spans[0].text, 'ftp://ftp.namesys.com/pub/reiserfsprogs')
+       equal(spans[1].text, '.')
+       equal(flat(spans), 'ftp://ftp.namesys.com/pub/reiserfsprogs.')
+       // The font change persists for what follows, as roff's does.
+       r = parsed('.TH T 1\n\\fIplain \\c\n.URL https://example.com "site" "\\fP."\nafter\n')
+       equal(r.doc.blocks[0].spans.at(-1).text, '. after')
+       equal(r.doc.blocks[0].spans.at(-1).style, 'roman')
      })
 
 test('links', 'URL with empty text shows the target',

@@ -12,7 +12,7 @@ import * as Char from './man-char.mjs'
 import * as Roff from './man-roff.mjs'
 
 let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocAtNames, mdocInlineNames, mdocNoArg, mdocEncloseNames
-let expandDepth
+let tableRequests, expandDepth
 
 fonts = { B: 'bold',
           BI: 'bold',
@@ -1493,6 +1493,24 @@ function tableCell
   return { spans }
 }
 
+// tbl passes a control line in a table body through to roff instead of reading
+// it as data, so a request that draws nothing is not a cell. Only a line whose
+// first character is `.` is a request: groff prints an indented `  .sp` in the
+// cell as data. A request that produces text (`.B`, `.IP`) still needs roff to
+// run it, which this model does not do; the ones dropped here are the spacing
+// and fill requests, of which mount(8) writes `.sp` at the top of every T{
+// cell and ps(1) writes `.br` inside them.
+tableRequests = { sp: 1, br: 1, nf: 1, fi: 1 }
+
+function tableRequest
+(line) {
+  let name
+
+  name = (line[0] == '.') ? line.slice(1) : ''
+  name = name.replace(/^[ \t]+/, '').split(/[ \t\\]/)[0]
+  return tableRequests[name] ? 1 : 0
+}
+
 function tableRows
 (c, lines, tab, lineNo) {
   let rows, cells, multiline, buffer
@@ -1504,6 +1522,8 @@ function tableRows
   lines.forEach(line => {
                   let parts
 
+                  if (tableRequest(line))
+                    return
                   if (multiline) {
                     let cut
 
@@ -1526,6 +1546,11 @@ function tableRows
                     // `T}` can close a cell and `T{` open the next one on the
                     // same tab-separated line, as the TIFF tables do.
                     line = line.slice(cut + 2).replace(/^[ \t]+/, '')
+                    // The table's own separator between the two cells is not
+                    // an empty cell of its own: mount(8) writes `T}:T{` in a
+                    // tab(:) table, where the colon belongs to neither.
+                    if (line.startsWith(tab))
+                      line = line.slice(tab.length).replace(/^[ \t]+/, '')
                     if (line.trim() == '') {
                       rows.push(cells)
                       cells = []
@@ -2207,7 +2232,9 @@ function mdocInlineMacro
   case 'Xr': {
     let topic, section, trailing
 
-    topic = args[0] || ''
+    // The name is a word like any other: init-d-script(5) writes
+    // `.Xr start\-stop\-daemon 8 .`, and groff prints "start-stop-daemon(8)".
+    topic = expandText(c, args[0] || '', c.lineNo)
     section = (args[1] && /^[0-9]/.test(args[1])) ? args[1] : ''
     trailing = args.slice(section ? 2 : 1).join('')
     mdocAppend(c, [ { text: topic + (section ? '(' + section + ')' : ''),
@@ -2914,7 +2941,6 @@ function handleLine
     target = expandText(c, args[0] || '', c.lineNo)
     href = ((name == 'MTO') ? 'mailto:' : '') + target
     text = expandText(c, args[1] || '', c.lineNo)
-    trailing = args.slice(2).join(' ')
     spans = []
     if (text.length)
       pushSpan(spans, { text, style: c.font, href })
@@ -2929,8 +2955,11 @@ function handleLine
     }
     else if (target.length)
       pushSpan(spans, { text: target, style: c.font, href })
-    if (trailing.length)
-      pushSpan(spans, { text: trailing, style: 'roman' })
+    // The rest is roff like the other arguments: mount(8) writes
+    // `.URL "..." "" "\fP."`, so the `\fP` is a font change that also applies
+    // to what follows, and only the period belongs in the text.
+    trailing = expand(c, args.slice(2).join(' '), c.font, c.lineNo)
+    pushSpans(spans, trailing.spans)
     appendInline(c, spans)
     break
   }

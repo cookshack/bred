@@ -73,8 +73,11 @@ through `shell.open` and never navigate the window. Any other scheme is
 refused with a message; `#...` links scroll within the page and `man:...`
 links open another topic. A link with no text shows its topic (`man:foo(1)`
 shows `foo(1)`) or its URL. A page link keeps its target visible: `.UR`/`.UE`
-and `.URL` print `⟨target⟩` after the link text, and alone when the block has
-no text, which is what an-ext does. A scheme-less relative link (for example `.UR foo.1`)
+print `⟨target⟩` after the link text, and alone when the block has no text,
+which is what an-ext does. `.URL`/`.MTO` print the bare target when the macro
+has no description, otherwise the description and then the target between
+brackets: `⟨…⟩` as www.tmac defaults, `<…>` when the page calls `.LINKSTYLE`
+with ASCII glyphs, which is what the util-linux pages do (fstab(5)). A scheme-less relative link (for example `.UR foo.1`)
 never navigates the window either: a target that names a manual source opens as
 a path page, and anything else is refused with `Cannot open ... link`.
 
@@ -186,7 +189,9 @@ prefix still hits, a `constructor` completion that used to crash, scheme-less
 relative links (a bare filename opens its page, anything else is refused), the 40-item
 failure cap and its "show all" command, following a link to a page that is
 refused and retrying it after another click, trailing punctuation and no-text
-man links, and buffer reuse and shared refresh across panes. `test/man-pty.mjs`
+man links, the `.LINKSTYLE` glyph pair around a described `.URL` target (ASCII
+when the page asks for it, `⟨⟩` otherwise, and `.UR` unaffected), and buffer
+reuse and shared refresh across panes. `test/man-pty.mjs`
 covers the real reader path: it writes a gzip page to a temporary file, runs
 `zcat` through node-pty (the same main-side path the viewer uses), checks the
 CRLF that comes back, and parses and renders it, including no-argument macros
@@ -216,8 +221,8 @@ man(1)'s text:
 
 ```
 section  1    3    5    7    8
-pages    4    4   12    4    8
-words   21  248   31   14   24
+pages    2    4   12    4    8
+words   18  248   31   14   24
 ```
 
 Most of that is measurement, not loss: man(1) wraps a long word onto the next
@@ -232,7 +237,7 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 406 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 408 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
 `man-render.mjs` (100%) and `man-roff.mjs` (96%), and 98% for
@@ -256,10 +261,6 @@ is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
    contain no NUL or replacement character is still read as text.
 5. Only `http`, `https`, `mailto` and `ftp` links open externally; other schemes
    are refused rather than handed to the desktop.
-6. `.URL`/`.MTO` follow the shape the util-linux pages produce: the bare
-   target when there is no description, otherwise the description and the
-   target in `<>`. A page that relies on an-ext's `⟨target⟩` inside `.URL`
-   (dvipos(1)) gets `<>` instead.
 
 ## Changing it
 
@@ -273,6 +274,7 @@ is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
   in the corpus.
 - Keep `man-parse.mjs` DOM-free and `man-render.mjs` model-only.
 - `.mso` is accepted only for `www.tmac` and `an-ext.tmac`, whose macros
-  (`URL`, `MTO`, `UR/UE`, `MT/ME`) are implemented directly.
+  (`URL`, `MTO`, `UR/UE`, `MT/ME`) are implemented directly; `.LINKSTYLE`'s
+  glyph pair chooses the brackets `.URL`/`.MTO` use around a described target.
 - `name(section)` in text is linkified to `man:name(section)`; the renderer puts
   the topic on `data-topic` and `man.mjs` follows clicks.

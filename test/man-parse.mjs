@@ -952,9 +952,34 @@ test('links', 'URL and MTO make links with trailing punctuation',
 
        r = parsed('.TH T 1\n.URL https://example.com "The site" .\n')
        spans = r.doc.blocks[0].spans
-       equal(spans[0].text, 'The site <https://example.com>')
+       equal(spans[0].text, 'The site ⟨https://example.com⟩')
        equal(spans[0].href, 'https://example.com')
-       equal(flat(spans), 'The site <https://example.com>.')
+       equal(flat(spans), 'The site ⟨https://example.com⟩.')
+     })
+
+test('links', 'LINKSTYLE chooses the glyphs around a described URL target',
+     () => {
+       let r
+
+       // util-linux writes `.LINKSTYLE blue R < >`, so man(1) prints ASCII
+       // brackets; a page that only loads www.tmac keeps ⟨⟩.
+       r = parsed('.TH T 1\n.LINKSTYLE blue R < >\n.URL https://example.com "The site" .\n')
+       equal(flat(r.doc.blocks[0].spans), 'The site <https://example.com>.')
+       r = parsed('.TH T 1\n.mso www.tmac\n.URL https://example.com "The site" .\n')
+       equal(flat(r.doc.blocks[0].spans), 'The site ⟨https://example.com⟩.')
+     })
+
+test('links', 'LINKSTYLE takes any glyph pair and leaves UR/UE alone',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.LINKSTYLE blue R [ ]\n.URL https://example.com "The site" .\n')
+       equal(flat(r.doc.blocks[0].spans), 'The site [https://example.com].')
+       // colour and font alone keep www.tmac's default glyphs
+       r = parsed('.TH T 1\n.LINKSTYLE blue R\n.URL https://example.com "The site" .\n')
+       equal(flat(r.doc.blocks[0].spans), 'The site ⟨https://example.com⟩.')
+       r = parsed('.TH T 1\n.LINKSTYLE blue R < >\n.UR https://example.com\nhere\n.UE .\n')
+       equal(flat(r.doc.blocks[0].spans), 'here ⟨https://example.com⟩.')
      })
 
 test('links', 'URL with empty text shows the target',
@@ -971,7 +996,7 @@ test('links', 'MTO uses a mailto link',
 
        r = parsed('.TH T 1\n.MTO a@b "A Person" ,\n')
        equal(r.doc.blocks[0].spans[0].href, 'mailto:a@b')
-       equal(r.doc.blocks[0].spans[0].text, 'A Person <a@b>')
+       equal(r.doc.blocks[0].spans[0].text, 'A Person ⟨a@b⟩')
      })
 
 test('links', 'MT uses a mailto link',

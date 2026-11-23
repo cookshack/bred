@@ -2851,14 +2851,24 @@ function handleLine
     fail(c, c.lineNo, 'mso ' + target)
     break
   }
-  case 'LINKSTYLE':
+  case 'LINKSTYLE': {
+    let close, open
+
+    // LINKSTYLE colour [fontstyle [open close]] picks the glyphs an-ext puts
+    // around a target that has a description. www.tmac's own default is ⟨⟩;
+    // util-linux asks for ASCII brackets.
+    open = expandText(c, args[2] || '', c.lineNo)
+    close = expandText(c, args[3] || '', c.lineNo)
+    if (open.length && close.length)
+      c.linkGlyph = { open, close }
     break
+  }
   case 'URL':
   case 'MTO': {
     let href, target, text, trailing, spans
 
     // Both www.tmac and the util-linux pages render the label and then the
-    // target in angle brackets, so the address stays visible in the text.
+    // target between brackets, so the address stays visible in the text.
     target = expandText(c, args[0] || '', c.lineNo)
     href = ((name == 'MTO') ? 'mailto:' : '') + target
     text = expandText(c, args[1] || '', c.lineNo)
@@ -2867,9 +2877,14 @@ function handleLine
     if (text.length)
       pushSpan(spans, { text, style: c.font, href })
     // man(1) shows the bare target when the macro has no description, and
-    // the description followed by the target in angle brackets otherwise.
-    if (text.length)
-      pushSpan(spans, { text: ' <' + target + '>', style: c.font, href })
+    // the description followed by the target in the bracket glyphs LINKSTYLE
+    // chose (⟨⟩ by default, <> on the util-linux pages) otherwise.
+    if (text.length) {
+      let bracket
+
+      bracket = c.linkGlyph.open + target + c.linkGlyph.close
+      pushSpan(spans, { text: ' ' + bracket, style: c.font, href })
+    }
     else if (target.length)
       pushSpan(spans, { text: target, style: c.font, href })
     if (trailing.length)
@@ -3143,6 +3158,7 @@ function parse
         tag: 0,
         syn: 0,
         link: 0,
+        linkGlyph: { open: '⟨', close: '⟩' },
         lineTarget: 0,
         nextTarget: 0,
         nextStyle: 0,

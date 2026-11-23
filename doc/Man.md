@@ -228,7 +228,9 @@ CRLF that comes back, and parses and renders it, including no-argument macros
 (and `zstd` when installed) and reads it back through the tool the suffix picks,
 skipping a tool the container does not have. It skips when node-pty is not
 available. The renderer tests also draw compact and large pages, empty tables
-and lists, combined table options, colspans and links with no text.
+and lists, combined table options, colspans and links with no text; a
+colspanned row styles every later cell by the column it starts at, and a row
+with too many or too few cells draws without an undefined cell.
 `test/man-parse.mjs` ends with a seeded fuzz test: 300 short roff documents
 built from control lines, escapes, unclosed brackets and quotes, `T{`/`T}`
 cells and random macro names, from a generator shared with the renderer test in
@@ -241,6 +243,13 @@ must not throw, must return an `el` with child nodes for a document that has
 blocks, must have a string `textContent` and a `toc` array, and the loop must
 finish in under two seconds, so a renderer hang fails it. The seed is fixed, so
 a failure can be replayed.
+
+A second generator in the same helper, `fuzzPages`, composes *valid* pages
+instead: tagged items holding lists and whole tables, literal blocks inside
+list items, `T{`/`T}` cells, `.Rs` and inline macros, nested a few levels
+deep. Two hundred of those must every one parse (a valid page that is refused
+fails the test with its source printed) and the same two hundred are drawn,
+with the hostile stream's invariants.
 
 ## Current state
 
@@ -278,7 +287,7 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 438 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 444 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (100%),
 `man-render.mjs` (100%), `man-roff.mjs` (97%) and `man-parse.mjs` (95% of

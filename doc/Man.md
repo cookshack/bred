@@ -230,7 +230,9 @@ skipping a tool the container does not have. It skips when node-pty is not
 available. The renderer tests also draw compact and large pages, empty tables
 and lists, combined table options, colspans and links with no text; a
 colspanned row styles every later cell by the column it starts at, and a row
-with too many or too few cells draws without an undefined cell.
+with too many or too few cells draws without an undefined cell. The viewer
+tests also refuse a compressed page whose `cat` fallback starts with a known
+magic, naming the format when it disagrees with the suffix.
 `test/man-parse.mjs` ends with a seeded fuzz test: 300 short roff documents
 built from control lines, escapes, unclosed brackets and quotes, `T{`/`T}`
 cells and random macro names, from a generator shared with the renderer test in
@@ -287,7 +289,7 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 444 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 450 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (92% of branches), `man-char.mjs` (100%),
 `man-render.mjs` (100%), `man-roff.mjs` (97%) and `man-parse.mjs` (95% of
@@ -308,8 +310,8 @@ branches).
    beginning of a block skips that block, because nothing before the point
    exists to match there.
 2. mdoc `Ex`/`Rv` match mdoc(7)'s sentences (names joined with `and`, the
-   plural verbs, and the `Nm` fallback) but not every `-std` family variant:
-   the `-exit`/`-nop` flags are accepted and ignored.
+   plural verbs, the `Nm` fallback) and expand to nothing without `-std`, as
+   groff does. Their other flags (`-exit`, `-nop`) are accepted and ignored.
 3. A colon in a path is still a separator when the text before it looks like a
    man source (for example `/x/a.1:/b.1`). `man -w` output has no unambiguous
    quoting, so the heuristic tries the split first, which favours the common
@@ -321,9 +323,11 @@ branches).
    but it is no longer the last word on readability: a regular file with no
    read bits is read anyway, because an ACL grant or root can read it (so root
    reading a mode-000 file now works), and `Permission denied` is reported only
-   when that read fails. Relatedly, a mislabelled compressed file whose `cat`
-   output happens to contain no NUL or replacement character is still read as
-   text.
+   when that read fails. A mislabelled compressed file is caught by its magic
+   bytes (gzip, xz, bzip2, zstd) even when `cat`'s output contains no NUL or
+   replacement character, so it is reported as `cannot decompress` rather than
+   drawn as text; lzma alone is not sniffed, since only its first byte is
+   fixed and that byte is ordinary text.
 
 ## Changing it
 

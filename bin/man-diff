@@ -189,6 +189,19 @@ function wordsOf
   return text.split(' ').filter(word => word.length)
 }
 
+// man(1) lays text out in 78 columns, so a sentence that ends with a long URL
+// can push the final "." onto a line of its own. The reference then has the
+// word and a punctuation-only token where our text has one word with the
+// period attached, and neither side is more right: the period is the end of the
+// sentence, not content. Trailing sentence punctuation is therefore left out of
+// the word's key, so "foo." and "foo" compare equal, and a token that is only
+// punctuation has an empty key and drops out of both sides. The token keeps its
+// period in the report, and a bracket stays part of its word.
+function keyOf
+(word) {
+  return word.replace(/[.,;:!?]+$/, '')
+}
+
 // toText joins table cells with " | " and keeps a `_` rule row; man(1) draws
 // neither. Both sides drop those tokens so a real "|" in an example cannot
 // look like a table border on one side only.
@@ -203,16 +216,23 @@ function missingWords
 
   counts = new Map()
   ourWords.forEach(word => {
-                     counts.set(word, (counts.get(word) || 0) + 1)
+                     let key
+
+                     key = keyOf(word)
+                     if (key.length)
+                       counts.set(key, (counts.get(key) || 0) + 1)
                    })
   missing = 0
   sample = []
   refWords.forEach(word => {
-                     let left
+                     let key, left
 
-                     left = counts.get(word) || 0
+                     key = keyOf(word)
+                     if (key.length == 0)
+                       return
+                     left = counts.get(key) || 0
                      if (left > 0)
-                       counts.set(word, left - 1)
+                       counts.set(key, left - 1)
                      else {
                        missing++
                        if ((sample.length < 8) && (sample.includes(word) == 0))

@@ -16,11 +16,17 @@ function genericViewReopen
   d('================== generic viewReopen')
 
   if (view.ele)
-    // timeout so behaves like viewInit
-    setTimeout(() => {
-                 if (whenReady)
-                   whenReady(view)
-               })
+    // timeout so behaves like viewInit, owned by the view so close() cancels it
+    if (view.deferReady)
+      view.deferReady(() => {
+                        if (whenReady)
+                          whenReady(view)
+                      })
+    else
+      setTimeout(() => {
+                   if (whenReady)
+                     whenReady(view)
+                 })
   else
     // probably buf was switched out before init happened.
     mode.viewInit(view,

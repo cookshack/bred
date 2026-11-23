@@ -189,7 +189,7 @@ function make
       spec.mode.viewReopen(v, lineNum, whenReopenReady)
     else
       // timeout so behaves like viewReopen
-      setTimeout(() => {
+      deferReady(() => {
                    ready = 1
                    if (whenReopenReady)
                      whenReopenReady(v)
@@ -445,16 +445,31 @@ function make
     return point.bufEnd()
   }
 
+  // Deferred ready work belongs to the view: close() cancels it, so a view
+  // that is gone never reports ready and never repoints its pane.
+  function deferReady
+  (cb) {
+    if (readyTimeout)
+      clearTimeout(readyTimeout)
+    readyTimeout = setTimeout(() => {
+                                readyTimeout = 0
+                                if (v.active == 0) {
+                                  d('VIEW ' + b.id + '.' + spec.vid + ' deferred ready: closed')
+                                  return
+                                }
+                                cb()
+                              })
+  }
+
   function ready1
   () {
     // timeout so behaves like viewInit,viewCopy
     d('VIEW ready1 timeout')
-    readyTimeout = setTimeout(whenReady1)
+    deferReady(whenReady1)
   }
 
   function whenReady1
   () {
-    readyTimeout = 0
     // The ready timeout can outlive its window (a closed window, or a test
     // that swapped the DOM globals), and there is nothing to attach to then.
     if (globalThis.document?.createElement == undefined) {
@@ -640,6 +655,7 @@ function make
         reopen,
         tokenAt,
         close,
+        deferReady,
         sync,
         vars }
 

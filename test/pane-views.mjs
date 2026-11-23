@@ -1,6 +1,8 @@
 import { equal } from 'node:assert/strict'
+import * as Buf from '../js/Buf.mjs'
 import * as Hist from '../js/hist.mjs'
-import { fileBuf, setBuf, setupPanes, waitFor } from './pane-helpers.mjs'
+import * as Mode from '../js/mode.mjs'
+import { fileBuf, setBuf, setupPanes, wait, waitFor } from './pane-helpers.mjs'
 
 // A buf can be shown in more than one pane, and then it has one view (and one
 // editor) per pane. These cover the two things a command does with those
@@ -171,6 +173,65 @@ test('clear', 'clears every view',
 
        equal(f.views[0].ed.state.doc.toString(), '', 'first view is empty')
        equal(f.views[1].ed.state.doc.toString(), '', 'second view is empty')
+     })
+
+// A div-mode view is readied by a timeout. If the pane moves on before it
+// runs, the timeout must not report the view ready: the pane would repoint at
+// a view that is gone.
+test('ready', 'a view closed before its ready tick stays unready',
+     async () => {
+       let b, gone, opened, panes, v
+
+       panes = setupPanes()
+       await waitFor(() => panes.pA.view?.ready && panes.pB.view?.ready)
+       b = Buf.add('div.txt', 'div',
+                   globalThis.document.createElement('div'), '/tmp')
+       await setBuf(panes.pA, b)
+       await waitFor(() => b.views[0]?.ready)
+       v = b.views[0]
+
+       // showing another buf closes the div view but leaves it reusable
+       gone = fileBuf('gone.txt')
+       await setBuf(panes.pA, gone)
+       equal(v.active, 0, 'the div view is closed')
+
+       opened = 0
+       // reopening schedules the ready tick; the pane moves on before it runs
+       setBuf(panes.pA, b).then(() => opened = 1)
+       await setBuf(panes.pA, gone)
+       await wait(60)
+
+       equal(v.ready, 0, 'a closed view does not become ready')
+       equal(opened, 0, 'whenReady is not called after the view closed')
+     })
+
+// Reopening a view of a mode with viewInit goes through the mode's generic
+// viewReopen, which also readies on a timeout; close() must cancel that too.
+test('ready', 'a mode view closed before its ready tick stays unready',
+     async () => {
+       let b, gone, opened, panes, v
+
+       Mode.add('paneviewtest', { viewInit: (view, spec, cb) => cb(view),
+                                  viewCopy: (view, from, lineNum, cb) => cb(view) })
+       panes = setupPanes()
+       await waitFor(() => panes.pA.view?.ready && panes.pB.view?.ready)
+       b = Buf.add('mode.txt', 'paneviewtest',
+                   globalThis.document.createElement('div'), '/tmp')
+       await setBuf(panes.pA, b)
+       v = b.views[0]
+       equal(v?.buf == b, true, 'the div view was made')
+
+       gone = fileBuf('gone2.txt')
+       await setBuf(panes.pA, gone)
+       equal(v.active, 0, 'the mode view is closed')
+
+       opened = 0
+       // the mode's generic viewReopen schedules a ready tick; move on first
+       setBuf(panes.pA, b).then(() => opened = 1)
+       await setBuf(panes.pA, gone)
+       await wait(60)
+
+       equal(opened, 0, 'whenReady is not called after the view closed')
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

@@ -78,6 +78,11 @@ no text, which is what an-ext does. A scheme-less relative link (for example `.U
 never navigates the window either: a target that names a manual source opens as
 a path page, and anything else is refused with `Cannot open ... link`.
 
+A delimiter macro prints typographic brackets when it stands on a line of its
+own or inside `.Dl`/`.D1`, the way mdoc(7) treats a display line, and ASCII
+brackets when it is an argument of another macro: `.Dl lf foobar Aq return`
+gives `lf foobar ⟨return⟩`, while `.An foo Aq addr` gives `foo <addr>`.
+
 Refresh bumps a per-buffer load generation; a response or include prefetch from
 an older generation is ignored, so refreshing while loading (or twice) keeps
 the newest result. A path page is re-read from its path, not looked up again
@@ -227,7 +232,7 @@ and rule rows and man(1) draws neither.
 Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
 hyphenates, and the rest of the sweep is the same kind of line-break join.
 
-Tests: 404 (inventory, interpreter, renderer, viewer, real pty);
+Tests: 406 (inventory, interpreter, renderer, viewer, real pty);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
 `man-render.mjs` (100%) and `man-roff.mjs` (96%), and 98% for
@@ -255,8 +260,6 @@ is 100% for `man.mjs` (91% of branches), `man-char.mjs` (93%),
    target when there is no description, otherwise the description and the
    target in `<>`. A page that relies on an-ext's `⟨target⟩` inside `.URL`
    (dvipos(1)) gets `<>` instead.
-7. A delimiter macro inside a `.Dl`/`.D1` line is printed with the inline
-   ASCII brackets, although mdoc(7) uses the Unicode forms there.
 
 ## Changing it
 

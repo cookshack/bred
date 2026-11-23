@@ -769,6 +769,25 @@ test('mdoc', 'Dl attaches trailing punctuation',
        equal(flat(r.doc.blocks[0].spans), '$ <newline>.')
      })
 
+test('mdoc', 'a delimiter macro inside Dl and D1 uses the Unicode brackets',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Dl lf foobar Aq return\n' +
+                  '.D1 lf Aq return\n.Dl Op Aq x\n')
+       equal(flat(r.doc.blocks[0].spans), 'lf foobar ⟨return⟩')
+       equal(flat(r.doc.blocks[1].spans), 'lf ⟨return⟩')
+       equal(flat(r.doc.blocks[2].spans), '[⟨x⟩]')
+     })
+
+test('mdoc', 'a delimiter macro outside a display keeps the ASCII brackets',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.An foo Aq addr\n')
+       equal(flat(r.doc.blocks[0].spans), 'foo <addr>')
+     })
+
 test('mdoc', 'Sm off removes spacing between Dl arguments',
      () => {
        let r

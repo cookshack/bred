@@ -1898,7 +1898,7 @@ function mdocArgEnd
 }
 
 function mdocInline
-(c, args) {
+(c, args, ownLine) {
   let at
 
   at = 0
@@ -1911,7 +1911,7 @@ function mdocInline
         end = at + 1
       else if (mdocEncloseNames[args[at]])
         end = args.length
-      mdocInlineMacro(c, args[at], args.slice(at + 1, end))
+      mdocInlineMacro(c, args[at], args.slice(at + 1, end), ownLine)
       at = end
       continue
     }
@@ -1929,14 +1929,14 @@ function mdocInline
 }
 
 function mdocEnclose
-(c, args, open, close) {
+(c, args, open, close, ownLine) {
   let split
 
   split = mdocSplitPunct(args)
   mdocAppend(c, [ { text: open } ])
   c.mdoc.noSpace = 1
   if (split.words.length)
-    mdocInline(c, split.words)
+    mdocInline(c, split.words, ownLine)
   mdocAttach(c, [ { text: close } ])
   if (split.punct.length)
     mdocAttachText(c, split.punct.join(''), 'roman')
@@ -2077,14 +2077,14 @@ function mdocDisplayOne
     saved = c.mdoc.preLine
     c.mdoc.pre = pre
     c.mdoc.preLine = 1
-    mdocInline(c, args)
+    mdocInline(c, args, 1)
     c.mdoc.preLine = saved
     c.mdoc.pre = 0
     if (pre.spans.length == 0)
       pre.spans.push({ text: '', style: 'roman' })
     return
   }
-  mdocInline(c, args)
+  mdocInline(c, args, 1)
 }
 
 function mdocRefField
@@ -2160,9 +2160,10 @@ function mdocStandard
   return names[token] || token.replace(/^-/, '')
 }
 
-// `ownLine` is set when the macro is the request itself: mdoc(7) prints the
-// delimiter macros with Unicode brackets there and ASCII ones when they are
-// an argument of another macro (`.An Name Aq address`).
+// `ownLine` is set when the macro is the request itself, or a `.Dl`/`.D1`
+// line (mdoc treats their arguments as a line of their own): mdoc(7) prints
+// the delimiter macros with Unicode brackets there and ASCII ones when they
+// are an argument of another macro (`.An Name Aq address`).
 function mdocInlineMacro
 (c, name, args, ownLine) {
   switch (name) {
@@ -2325,7 +2326,7 @@ function mdocInlineMacro
       mdocAppend(c, expand(c, args[0], c.font, c.lineNo).spans)
     c.mdoc.noSpace = 1
     if (args.length > 1)
-      mdocInline(c, args.slice(1))
+      mdocInline(c, args.slice(1), ownLine)
     return 1
   case 'Ns':
     c.mdoc.noSpace = 1
@@ -2392,16 +2393,16 @@ function mdocInlineMacro
     return 1
   }
   case 'Op':
-    mdocEnclose(c, args, '[', ']')
+    mdocEnclose(c, args, '[', ']', ownLine)
     return 1
   case 'Dq':
-    mdocEnclose(c, args, '“', '”')
+    mdocEnclose(c, args, '“', '”', ownLine)
     return 1
   case 'Qq':
-    mdocEnclose(c, args, '"', '"')
+    mdocEnclose(c, args, '"', '"', ownLine)
     return 1
   case 'Sq':
-    mdocEnclose(c, args, '‘', '’')
+    mdocEnclose(c, args, '‘', '’', ownLine)
     return 1
   case 'Ql': {
     let split
@@ -2417,23 +2418,23 @@ function mdocInlineMacro
     return 1
   }
   case 'Pq':
-    mdocEnclose(c, args, '(', ')')
+    mdocEnclose(c, args, '(', ')', ownLine)
     return 1
   case 'Bq':
-    mdocEnclose(c, args, '[', ']')
+    mdocEnclose(c, args, '[', ']', ownLine)
     return 1
   case 'Brq':
-    mdocEnclose(c, args, '{', '}')
+    mdocEnclose(c, args, '{', '}', ownLine)
     return 1
   case 'Aq':
-    mdocEnclose(c, args, ownLine ? '⟨' : '<', ownLine ? '⟩' : '>')
+    mdocEnclose(c, args, ownLine ? '⟨' : '<', ownLine ? '⟩' : '>', ownLine)
     return 1
   case 'Oo':
     c.mdoc.opens.push(']')
     mdocAppend(c, [ { text: '[' } ])
     c.mdoc.noSpace = 1
     if (args.length)
-      mdocInline(c, args)
+      mdocInline(c, args, ownLine)
     return 1
   case 'Oc':
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || ']' } ])
@@ -2443,7 +2444,7 @@ function mdocInlineMacro
     mdocAppend(c, [ { text: '(' } ])
     c.mdoc.noSpace = 1
     if (args.length)
-      mdocInline(c, args)
+      mdocInline(c, args, ownLine)
     return 1
   case 'Pc':
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || ')' } ])
@@ -2453,7 +2454,7 @@ function mdocInlineMacro
     mdocAppend(c, [ { text: '“' } ])
     c.mdoc.noSpace = 1
     if (args.length)
-      mdocInline(c, args)
+      mdocInline(c, args, ownLine)
     return 1
   case 'Dc':
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || '”' } ])
@@ -2463,7 +2464,7 @@ function mdocInlineMacro
     mdocAppend(c, [ { text: ownLine ? '⟨' : '<' } ])
     c.mdoc.noSpace = 1
     if (args.length)
-      mdocInline(c, args)
+      mdocInline(c, args, ownLine)
     return 1
   case 'Ac':
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || '⟩' } ])
@@ -2473,7 +2474,7 @@ function mdocInlineMacro
     mdocAppend(c, [ { text: '[' } ])
     c.mdoc.noSpace = 1
     if (args.length)
-      mdocInline(c, args)
+      mdocInline(c, args, ownLine)
     return 1
   case 'Bc':
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || ']' } ])
@@ -2483,7 +2484,7 @@ function mdocInlineMacro
     mdocAppend(c, [ { text: '{' } ])
     c.mdoc.noSpace = 1
     if (args.length)
-      mdocInline(c, args)
+      mdocInline(c, args, ownLine)
     return 1
   case 'Brc':
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || '}' } ])
@@ -2493,7 +2494,7 @@ function mdocInlineMacro
     mdocAppend(c, [ { text: '“' } ])
     c.mdoc.noSpace = 1
     if (args.length)
-      mdocInline(c, args)
+      mdocInline(c, args, ownLine)
     return 1
   case 'Qc':
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || '”' } ])
@@ -2507,7 +2508,7 @@ function mdocInlineMacro
       mdocAppend(c, mdocExpand(c, open, c.font))
     c.mdoc.noSpace = 1
     if (args.length > 1)
-      mdocInline(c, args.slice(1))
+      mdocInline(c, args.slice(1), ownLine)
     return 1
   }
   case 'Ec': {
@@ -2522,7 +2523,7 @@ function mdocInlineMacro
     mdocAppend(c, [ { text: '‘' } ])
     c.mdoc.noSpace = 1
     if (args.length)
-      mdocInline(c, args)
+      mdocInline(c, args, ownLine)
     return 1
   case 'Sc':
     mdocAttach(c, [ { text: c.mdoc.opens.pop() || '’' } ])
@@ -2530,7 +2531,7 @@ function mdocInlineMacro
   case 'Xo':
     c.mdoc.tagMode = 1
     if (args.length)
-      mdocInline(c, args)
+      mdocInline(c, args, ownLine)
     return 1
   case 'Xc':
     c.mdoc.tagMode = 0

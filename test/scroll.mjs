@@ -297,6 +297,36 @@ test('make', 'registers one destroy listener per surf',
        computedCalls = 0
        sc.render()
        equal(computedCalls, 2, 'destroy must still evict the cache')
+       equal(surfAdds['scroll-mjs.destroy'], 1, 're-measuring after a destroy must not add another listener')
+     })
+
+test('make', 'init does not re-add destroy listeners to live surfs',
+     () => {
+       let sc, surf, surf2
+
+       surf = makeSurf(40)
+       sc = Scroll.make(surf, { itemCount: 5 })
+       sc.render()
+       equal(surfAdds['scroll-mjs.destroy'], 1)
+
+       Opt.set('core.fontSize', 18)
+       Scroll.init() // a font size change goes through init
+       computedCalls = 0
+       sc.render()
+       equal(computedCalls, 2, 'init must clear the cache, so the surf is measured again')
+       equal(surfAdds['scroll-mjs.destroy'], 1, 'init must not add a second destroy listener to a live surf')
+
+       // the listener registered before init must still evict from the new cache
+       sc.destroy()
+       computedCalls = 0
+       sc.render()
+       equal(computedCalls, 2, 'a listener from before init must still evict the cache')
+       equal(surfAdds['scroll-mjs.destroy'], 1, 'and must still be the only listener')
+
+       // init must still watch surfaces it has never seen
+       surf2 = makeSurf(40)
+       Scroll.make(surf2, { itemCount: 5 }).render()
+       equal(surfAdds['scroll-mjs.destroy'], 2, 'a new surf must still get its own destroy listener')
      })
 
 test('init', 'fontSize change clears cache',

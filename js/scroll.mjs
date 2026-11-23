@@ -5,6 +5,11 @@ let lineHeights, destroyEvent, destroyWatched
 
 destroyEvent = 'scroll-mjs.destroy'
 
+// Created once, like destroyEvent: init() runs again on a font size change,
+// but the surfaces live on and their listener is still attached, so the guard
+// must survive init() or every font change would add another listener.
+destroyWatched = new WeakSet()
+
 function getLineHeightPx
 (surf) {
   let base, mult, px
@@ -167,7 +172,8 @@ export function make
 export function init
 () {
   lineHeights = new Map()
-  destroyWatched = new WeakSet()
+
+  // do not recreate destroyWatched here, see above
 
   Opt.onSet('core.fontSize', () => {
                                lineHeights.clear()

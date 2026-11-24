@@ -2233,13 +2233,18 @@ function mdocEnclose
     mdocAttachText(c, split.punct.join(''), 'roman')
 }
 
+// `section` is the top-level `.Sh` heading, which is what mdoc's
+// doc-in-synopsis-section tracks: a `.Ss` subsection does not clear it, so a
+// declaration under `SYNOPSIS -> Ss` keeps its `;` (and a body `.Ss` titled
+// SYNOPSIS does not gain one).
 function mdocHeading
 (c, level, args) {
   let spans
 
   closeParas(c)
   spans = expand(c, args.join(' '), 'bold', c.lineNo).spans
-  c.mdoc.section = textOf(spans)
+  if (level == 1)
+    c.mdoc.section = textOf(spans)
   startHeading(c, level, spans)
 }
 

@@ -1733,6 +1733,29 @@ test('mdoc inline', 'Fn ends a SYNOPSIS declaration with a semicolon',
        equal(flat(r.doc.blocks[1].spans), 'foo();')
      })
 
+test('mdoc inline', 'Ss keeps the enclosing Sh section for the semicolon',
+     () => {
+       let r
+
+       // groff's doc-in-synopsis-section comes from the top-level .Sh, so a
+       // subsection inside SYNOPSIS still ends a declaration with `;`.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.Ss Sub\n.Fn d "int y"\n')
+       equal(r.doc.blocks[1].level, 2)
+       equal(flat(r.doc.blocks[1].spans), 'Sub')
+       equal(flat(r.doc.blocks[2].spans), 'd(int y);')
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.Ss Sub\n' +
+                  '.Fo foo\n.Fa "int a"\n.Fc\n')
+       equal(flat(r.doc.blocks[2].spans), 'foo(int a);')
+       // ...and a body section stays a body section, even when a subsection
+       // is titled SYNOPSIS.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh DESCRIPTION\n.Ss SYNOPSIS\n' +
+                  '.Fn d "int y"\n')
+       equal(flat(r.doc.blocks[2].spans), 'd(int y)')
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh DESCRIPTION\n.Ss SYNOPSIS\n' +
+                  '.Fo foo\n.Fa "int a"\n.Fc\n')
+       equal(flat(r.doc.blocks[2].spans), 'foo(int a)')
+     })
+
 test('mdoc inline', 'Fn without arguments has empty parentheses',
      () => {
        let r

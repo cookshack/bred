@@ -84,7 +84,7 @@
     {
       "id": "p44",
       "lane": "a1",
-      "status": "triage",
+      "status": "ready",
       "title": "`tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11`",
       "files": [
         "js/man-parse.mjs"
@@ -486,24 +486,26 @@
     {
       "id": "p70",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "strace-log-merge(1) prints strace\\-log\\-merge literally in the synopsis; synopsisStart pushes args[0] raw where handleFont/OP expand it",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "d8a351c"
     },
     {
       "id": "p71",
       "lane": "a3",
-      "status": "ready",
+      "status": "done",
       "title": "mendex(1) one \"lost\" word is a tab display difference (\"\" vs two quote tokens); decide whether man-diff should treat a tab as non-separating",
       "files": [
         "bin/man-diff",
         "test/man-diff.mjs"
       ],
-      "proof": "npx mocha --exit test/man-diff.mjs"
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "doneHash": "72e8ca4"
     },
     {
       "id": "p72",
@@ -546,6 +548,28 @@
       "lane": "a1",
       "status": "next",
       "title": ".IP \"\" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p76",
+      "lane": "a1",
+      "status": "next",
+      "title": "in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p77",
+      "lane": "a1",
+      "status": "next",
+      "title": "the parser maps the \\t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"

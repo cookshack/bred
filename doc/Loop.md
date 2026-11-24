@@ -24,31 +24,12 @@ value depends on them owning disjoint files.
 
 ## The prompt
 
-Hand this to a fresh agent (build mode, from the repository root):
-
-    You are continuing an ongoing effort on Bred. A previous run did fourteen
-    rounds of parallel-agent work and left everything committed and verified.
-    Do not redo any of it.
-
-    Read doc/Loop.md first: it is the protocol, the prompt, and the round
-    history. Then doc/Loop-queue.md (the queue), $LOOP/state (if it exists) and
-    $LOOP/rules.md.
-
-    Establish the baseline before changing anything:
-
-        git log --oneline -1        # this file's tip or later
-        git status --porcelain      # only ?? noise files is normal
-        npx mocha --exit            # expect the count in "Current state"
-        npm run check
-
-    If any of those differ, find out why before starting work.
-
-    Then work in rounds of up to three lanes, as doc/Loop.md describes: write a
-    lane brief, dispatch the agents, merge with $LOOP/round.sh, update
-    this file and doc/Loop-queue.md. Only the loop edits those two.
-
-    If the deadline in $LOOP/state has passed, stop and summarise the
-    rounds. A half-finished round is worse than a clean checkpoint.
+`doc/Loop-prompt.md` holds the prompt to hand a fresh agent (build mode, from
+the repository root). It is short on purpose: it points at this file for the
+protocol and at `doc/Loop-queue.md` for the work. The only thing it cannot
+carry is the deadline — `$LOOP/state` is per-session and a fresh session has
+none — so state the deadline when you hand it over, or the agent will choose
+its own.
 
 ## Where state lives
 

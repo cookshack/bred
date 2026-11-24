@@ -5,10 +5,10 @@ You and I are improving the Bred editor.
 See Specification.md for a general overview.
 See Files.md for an overview of the source files.
 See doc/Man.md for the manual page viewer and parser, and its current scoreboard.
-See doc/Loop.md for the unattended multi-agent loop: the prompt to hand a fresh
-agent, the lane protocol, and what each round changed. `doc/Loop-queue.md` is
-the queue; the rest of a run's state lives in `$BRED_WORKTREE_ROOT/bred-loop/`
-(untracked).
+See doc/Loop.md for the unattended multi-agent loop: the protocol, the lane
+rules and what each round changed. `doc/Loop-prompt.md` is the prompt to hand a
+fresh agent; `doc/Loop-queue.md` is the queue; the rest of a run's state lives
+in `$BRED_WORKTREE_ROOT/bred-loop/` (untracked).
 
 ## Context
 

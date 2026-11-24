@@ -1,8 +1,10 @@
 # Unattended agent loop
 
-Status: live, round 15, 2026-11-24 (deadline 18:56Z). Eleven earlier rounds of
-three parallel agents, then rounds 12-14 in a previous run; all merged serially.
-This file is the protocol; `doc/Loop-queue.md` is the durable queue;
+Status: stopped after round 17, 2026-11-24, at the user's request, to redesign
+the loop. Main is `9b8958c`, green (1915 tests, check clean). The next items
+are in `doc/Loop-queue.md`; the upgrade proposals are `doc/Loop-upgrade.md`
+(the loop's own) and `doc/loop/plan-2026-11-24.md` (a fresh agent's, written
+independently for comparison). This file is the protocol;
 `doc/loop/round-<n>.md` is the per-round record; `bred-loop/` in the session's
 worktree root holds the rest of a run's live state.
 
@@ -176,15 +178,17 @@ move to a different lane than its prefix suggests if its files are free.
 | 14 | references | `a18cd1b` | `.Rs` quotes `%T` only in a `%B`/`%J` reference; a `\c` tag line stays open across a macro; `man-diff` knows the truncated mdoc banner and `\:` after ":" and "@" |
 | 15 | moving main | `2c5b9df` | `.Nm` in a `T{` cell expands; `man-diff --page` prints the total and folds typographic hyphens; the flake hunt OOM'd, the two live lanes merged |
 | 16 | bytes + joins | `f3f1539` | `.hla`/`.hpf` accepted; `runToString` can keep bytes (renderer half only); quote fold and source-decided hyphen joins clear section 3 |
+| 17 | isolation | `9b8958c` | `.Fc` ends a SYNOPSIS declaration with `;`; the pty's bytes cross IPC; the merged suite was red (test isolation, a2 reverted) and stabilised |
 
 ## Current state
 
-Measured at `f3f1539` (round 16's tip), corpus `4150` pages:
+Measured at `9b8958c` (round 17's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
     whole sections after round 16: 1:16p/147w  3:0p/0w  5:0p/0w  7:2p/7w  8:2p/9w
-    552 man tests, 1911 total, 2 pending, 0 failing; check clean
+    (round 17 changed SYNOPSIS punctuation and IPC, not words; section 3 re-checked 0p/0w)
+    554 man tests, 1915 total, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech
@@ -225,6 +229,11 @@ man 2), section 7 is editline 5 + gittutorial-2 2, and section 8 is dmsetup 7
   for a command that had already passed. Every lane test ends in `--exit`, and
   the merge step puts a `timeout` around it, so a hang is a failure with a
   reason instead of a stalled round.
+- **Lane-green is not suite-green.** Round 17's three lanes each passed their
+  own tests and the merged suite still failed: a foreign test fake and two
+  under-waited assertions only show in the full suite's order. The tip is the
+  gate; a red tip is reverted (the commit stays on its branch) and the item
+  goes back to the queue, not recorded as merged.
 - **Red first.** Every behaviour change needs a test shown failing against the
   old code. A coverage-only test cannot fail, so prove it by mutating the code
   and say so.

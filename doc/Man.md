@@ -482,7 +482,15 @@ section 3, round 15:  3 pages / 14 words
 section 3, round 16:  0 pages /  0 words
 ```
 
-Tests: 552 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 17 closed the `.Fo`/`.Fc` declaration. `.Fc` ends a SYNOPSIS declaration
+with `;` (`int crypt_checksalt(const char *setting);`), and the same `.Fc` in
+a DESCRIPTION section prints no semicolon; `.Fn` in a SYNOPSIS gets one too,
+which we still do not print (queue p64). The pty's bytes now cross IPC as
+Buffers and `js/shell.mjs` decodes with one streaming `TextDecoder` per run, so
+a mislabelled compressed page names its format in the app, not only in the
+renderer.
+
+Tests: 554 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

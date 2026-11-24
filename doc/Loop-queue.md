@@ -6,15 +6,15 @@ session's worktree root does not lose the queue again.
 
 The loop owns this file. Lanes read it and never edit it.
 
-    run     live 2026-11-24T10:56Z, deadline 18:56Z
-    round   16 done at f3f1539; 17 is next
-    main    f3f1539      tip after round 16
+    run     stopped 2026-11-24T14:05Z, after round 17, for a loop redesign
+    round   17 done at 9b8958c; no round is scheduled
+    main    9b8958c      tip after round 17, green (1915 tests)
     state   $BRED_WORKTREE_ROOT/bred-loop/  briefs, claims, round logs (untracked)
     sweep   whole sections after round 16: 1:16p/147w  3:0p/0w  5:0p/0w
-            7:2p/7w  8:2p/9w
-    drift   resolved: the two Czech pages (`.do hla`/`.do hpf`) parse after
-            p58; corpus back to 4123 parsed / 27 refused of 4150
-    hot     none (the user's last man.mjs/Man.md touch was 11:00)
+            7:2p/7w  8:2p/9w  (section 3 re-checked after round 17: still 0)
+    plans   doc/Loop-upgrade.md (the loop's) and doc/loop/plan-2026-11-24.md
+            (a fresh agent's), written independently, for comparison
+    hot     none
 
 Statuses: `ready` (dispatchable), `next` (queued after a decision or another
 item), `triage` (needs evidence before it can be called a bug), `done:<hash>`
@@ -27,19 +27,21 @@ last two hours (not counting the loop's own commits, listed as `own` in
 `state`). An item whose files are busy is `next`, whatever its status was
 before.
 
-## Round 17 — planned lanes (file sets are disjoint)
+## Next run — ready items (file sets are disjoint)
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p61 | a1 | ready | the SYNOPSIS `Fo`/`Fc` path drops the trailing `;` (`*setting)` vs `*setting);`, found in p52's report) | js/man-parse.mjs, test/man-parse.mjs |
-| p50 | a2 | ready | `wode-view-e2e` "stale peer push during revert" flake **reproduced under c8** at f3f1539 (`'v1X' !== 'v1'`, test line 607); the patch that waits on the push instead of 350 ms is at `$LOOP/p50-crash/a2-wip.patch`; retry with a bounded load only | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
-| p63 | a3 | ready | p51 fixed the renderer, but `js/main-shell-run.mjs` builds `stdoutBuffer` as a string (`+= String(Buffer)` decodes UTF-8) and sends that over IPC, so the app still cannot see gzip/xz/zstd bytes; accumulate Buffers and send them | js/main-shell-run.mjs, js/main-shell.mjs, test/man-pty.mjs |
+| p50 | a2 | ready | the peer-push test is now **reverted from main** (`b0b0afd`): it waits on the push and the revert callback, but in the full suite the push has not reached main when it asserts (`'v1' !== 'v1X'`, both tests). The diagnosis and slow-revert variant are on `agent/bred-0b2c11a0-a2` (`fbdef92`) and `$LOOP/p50-crash/a2-wip.patch`; it needs a test isolated from the suite as well as green alone | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
+| p64 | a1 | ready | `.Fn` in a SYNOPSIS also ends with `;` in groff; we do not print it (found in p61's report) | js/man-parse.mjs, test/man-parse.mjs |
+| p65 | a3 | ready | no fake emits a typed-array chunk split mid-UTF-8, so `js/shell.mjs`'s streaming decoder is proven only by real-pty timing; add the fake and the test | js/shell.mjs, test/man-viewer.mjs, test/main-shell.mjs |
+| p66 | a2 | ready | `flushPeer`'s `catch { return }` treats a throwing `sendableUpdates` as already flushed, so a broken collab field skips the wait silently (found in p50's report) | js/wode-view.mjs, test/wode-view-e2e.mjs |
+| p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) | bin/man-diff |
+| p57 | a2 | next | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one | js/man.mjs, test/man-viewer.mjs |
 
 ## Backlog
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p57 | a2 | next | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one | js/man.mjs, test/man-viewer.mjs |
 | p44 | a1 | triage | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` | js/man-parse.mjs |
 | p53 | a1 | next | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) | js/man-parse.mjs |
 | p54 | a1 | next | a no-output request between a `\c` and the next line swallows the join (0 corpus occurrences) | js/man-parse.mjs |
@@ -99,3 +101,6 @@ before.
 | p60 | a3 | done:f3f1539 | `man-diff` folds typographic quotes; pcre2demo 12 → 0 (U+2018 folds to a backtick) |
 | p62 | a3 | done:f3f1539 | the hyphen join is decided from the page source and applied to both sides; section 3 14 → 0 |
 | p49 | a3 | done:f3f1539 | coverage re-measured over the whole suite: 100/99.97/100/100/98.88 line, branch 94.56/98.75/97.18/90.28 |
+| p61 | a1 | done:b601364 | `.Fc` ends a SYNOPSIS declaration with `;`, and only in SYNOPSIS |
+| p63 | a3 | done:ec7eedf | the pty's bytes cross IPC as Buffers; one streaming decoder per run; the real-pty test names gzip |
+| s17 | - | done:9b8958c | stabilisation after the red merge: `Opt.load` survives a payload-less response, the opt tests install their own fake; a2's peer-push test reverted (p50) |

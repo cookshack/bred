@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: live, round 20, 2026-11-24 (deadline 2026-11-25T05:35Z). Three rounds
+Status: live, round 21, 2026-11-24 (deadline 2026-11-25T05:35Z). Four rounds
 have used the tool's gate: red at base, green after the rebase, one suite at
 the integrated tip, the record on `loop/r<n>`, one fast-forward. Main is the
-round-20 record commit, green (1957 tests, check clean). The next items
+round-21 record commit, green (1964 tests, check clean). The next items
 are in `doc/loop/queue.json` (the view in `doc/Loop-queue.md` is generated);
 the upgrade designs are `doc/Loop-upgrade.md` (the loop's) and
 `doc/loop/plan-2026-11-24.md` (a fresh agent's). This file is the protocol;
@@ -185,15 +185,16 @@ move to a different lane than its prefix suggests if its files are free.
 | 18 | first tool round | `c1562d7` | `.Fn` ends a SYNOPSIS declaration with `;`; a colon list names the unreadable part; `flushPeer` reports instead of calling a throw flushed; the tool found two harness bugs on its first real round |
 | 19 | subsection state | `74ba52d` | a `.Ss` keeps the top-level section, so `.Fn`/`.Fc` keep the `;` (and `.Nm`/`.In` their synopsis forms); a failed read outranks a later miss |
 | 20 | breaks and cells | `8c684ac` | no separator space after `.br`; `man-diff` joins a wrapped cell at the left edge (`man(1)` 2 → 0) |
+| 21 | marked commas | `aae6139` | `.br` adds no blank line and consecutive breaks collapse; `man-diff` joins a comma-marked `\:` list break (ps(1) 103 → 95, dmsetup 7 → 5) |
 
 ## Current state
 
-Measured at `8c684acd` (round 20's tip), corpus `4150` pages:
+Measured at `aae61390` (round 21's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 20: 1:15p/145w  3:0p/0w  5:0p/0w  7:2p/7w  8:2p/9w
-    560 man tests, 1957 total, 2 pending, 0 failing; check clean
+    whole sections after round 21: 1:15p/137w  3:0p/0w  5:0p/0w  7:2p/7w  8:2p/7w
+    567 man tests, 1964 total, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

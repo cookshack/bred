@@ -515,7 +515,14 @@ whose continuation starts at the cell's left edge — `man(1)`'s `hy‐`/`phen`
 became `hyphen`, taking section 1 from 16p/147w to 15p/145w with no other page
 changed.
 
-Tests: 560 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 21 made `.br` behave: a break before text adds no blank line,
+consecutive breaks collapse, and a trailing break is dropped (p56's flush line
+stays). `man-diff` also joins a comma-marked `\:` break inside an option list
+when the source puts no whitespace after the comma — a rule narrow enough that
+only ps(1) and dmsetup(8) are touched. ps(1) 103 → 95, dmsetup 7 → 5, section
+1 145 → 137 words, and no page got worse.
+
+Tests: 567 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

@@ -162,7 +162,7 @@ greek = { 'ts': 'ς', // teliko sigma, the final form of `*s`
           '*s': 'σ',
           '*t': 'τ',
           '*u': 'υ',
-          '*f': 'φ',
+          '*f': 'ϕ', // groff prints GREEK PHI SYMBOL, not the letter phi
           '*x': 'χ',
           '*q': 'ψ',
           '*w': 'ω',

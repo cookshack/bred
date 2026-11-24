@@ -494,6 +494,16 @@ test('refusal', 'an unknown u name fails the page',
        equal(parsed('.TH T 1\na \\[uB] b\n').fails[0].what, 'character \\[uB]')
      })
 
+test('escapes', 'phi is the symbol, not the letter',
+     () => {
+       let r
+
+       // groff -Tutf8: \\(*f is U+03D5 GREEK PHI SYMBOL, not U+03C6.
+       r = asText('.TH T 1\na \\(*f b\n')
+       equal(r, 'a ϕ b\n')
+       equal(r.codePointAt(2), 0x3D5)
+     })
+
 test('escapes', 'final sigma has its own name',
      () => {
        equal(asText('.TH T 1\na \\(ts b\n'), 'a ς b\n')

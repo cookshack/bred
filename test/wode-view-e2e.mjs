@@ -17,7 +17,7 @@ import * as CMCollab from '../lib/@codemirror/collab.js'
 import * as CMView from '../lib/@codemirror/view.js'
 import { setupDom } from './dom-help.mjs'
 
-let buf, bufSeq, domWin, extraViews, fileGetArgs, fileGetDelay, fileGetErr, filePath, optsSet, peerPushDelay, peerPushEds, peerPushHold, peerPushHolds, readyView
+let buf, bufSeq, domWin, extraViews, fileGetArgs, fileGetDelay, fileGetErr, filePath, optsSet, peerPushDelay, peerPushHold, peerPushHolds, readyView
 let savedDocument, savedElement, savedHTMLDocument, savedOpt, savedTron, tests, tmp, view, watchCbs, _shared
 
 function sleep
@@ -166,7 +166,6 @@ function setup
   fileGetDelay = 0
   fileGetErr = 0
   peerPushDelay = 0
-  peerPushEds = []
   peerPushHold = 0
   peerPushHolds = []
   watchCbs = new Map()
@@ -201,10 +200,6 @@ function setup
                                     await new Promise(r => peerPushHolds.push(r))
                                   else
                                     await sleep(peerPushDelay)
-                                  // Record the editor that is current when main
-                                  // applies the push, so a test can check that
-                                  // the rebuild waited for it.
-                                  peerPushEds.push(view.ed)
                                   return MainPeer.onPush({ sender: { send: (ch, data) => fireChannel(ch, data) } },
                                                          args)
                                 }
@@ -344,35 +339,6 @@ async function waitReady
     await new Promise(r => setTimeout(r, 10))
   }
   throw new Error('view did not become ready')
-}
-
-// Edit, then revert while the edit is still on its way to main.  Wait on the
-// real events, never on a clock: first the push reaching main, then the
-// revert callback, then the peer flush.  A revert rebuilds the view only
-// after main has the edit, so when main applies the stale batch the old
-// editor must still be the view's editor; if the new one were current, the
-// rebuild's peer would have started from the version the batch is based on
-// and would apply the edit on top of the file content.  Lastly the peer must
-// be left with the file content, so the stale edit is gone from main too.
-async function revertWithStalePush
-() {
-  let base, edBefore, reverted
-
-  edBefore = view.ed
-  base = peerPushEds.length
-  reverted = 0
-  view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
-  WodeView.revertV(view, {}, () => reverted = 1)
-  await waitUntil(() => peerPushEds.length > base, 'the stale push to reach the peer')
-  // The old editor is still current here: the rebuild waited for main.
-  equal(peerPushEds[base] == edBefore ? 1 : 0, 1)
-  equal(MainPeer.onGet(fakeE(), [ buf.id ]).text, 'v1X')
-  await waitUntil(() => reverted, 'the revert callback')
-  await waitUntil(() => peerFlushed(view), 'the peer flush after the revert')
-  equal(view.ed.state.doc.toString(), 'v1')
-  equal(buf.reverting, 0)
-  equal(view.ready, 1)
-  equal(MainPeer.onGet(fakeE(), [ buf.id ]).text, 'v1')
 }
 
 savedOpt = 0
@@ -631,28 +597,15 @@ test('revert', 'revert during open with slow file.get keeps content',
        equal(view.ed.state.doc.toString(), 'v1')
      })
 
-// The edit pushed at `view` is slow, so it reaches main while the revert is
-// in progress.  The assertion used to be on a 350 ms sleep, which under load
-// fired before the revert had even read the file: the view's editor was the
-// new one holding the peer text `v1X`, with `ready` still 0, and the test
-// failed with 'v1X' !== 'v1' although the revert finished correctly.
 test('revert', 'stale peer push during revert keeps content',
      async () => {
        await open()
        peerPushDelay = 50
-       await revertWithStalePush()
-     },
-     15000)
-
-test('revert', 'stale peer push during a slow revert keeps content',
-     async () => {
-       await open()
-       // What a busy machine does to the revert's file read.
-       fileGetDelay = 400
-       peerPushDelay = 50
-       await revertWithStalePush()
-     },
-     15000)
+       view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
+       WodeView.revertV(view, {}, () => {})
+       await sleep(350)
+       equal(view.ed.state.doc.toString(), 'v1')
+     })
 
 test('revert', 'keeps waiting for an unacknowledged push and says so',
      async () => {

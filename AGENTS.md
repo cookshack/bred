@@ -5,6 +5,9 @@ You and I are improving the Bred editor.
 See Specification.md for a general overview.
 See Files.md for an overview of the source files.
 See doc/Man.md for the manual page viewer and parser, and its current scoreboard.
+See doc/Loop.md for the unattended multi-agent loop: the prompt to hand a fresh
+agent, the lane protocol, and what each round changed. `~/bred-loop` (untracked)
+holds a run's live state.
 
 ## Context
 

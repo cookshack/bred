@@ -531,14 +531,26 @@
     {
       "id": "p74",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "ps(1) loses 95 words because a macro line inside a T{ } tbl cell stays raw (.BR pcpu ). instead of pcpu).); every T{ } cell using a macro is affected; the ps(1) pin in test/man-diff.mjs must be updated with the fix",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs",
         "test/man-diff.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs test/man-diff.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs test/man-diff.mjs",
+      "doneHash": "00dc308"
+    },
+    {
+      "id": "p75",
+      "lane": "a1",
+      "status": "next",
+      "title": ".IP \"\" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     }
   ]
 }

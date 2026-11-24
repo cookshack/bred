@@ -7,6 +7,8 @@
 // Interface:
 //   load(file), save(file, queue)             schema 1, atomic write
 //   pick(queue, { n, dirty, hot })            -> { picked, skipped }
+//   ready(queue)                              -> [ item ]
+//   report(queue)                             -> markdown tables
 //   finish(queue, id, hash), mark(queue, id, status)
 //   check(queue)                              -> [ problem ]
 //   rows(queue)                               -> { ready, next, triage, done }
@@ -175,4 +177,47 @@ function rows
                         out[item.status].push(item)
                       })
   return out
+}
+
+export
+function ready
+(queue) {
+  return queue.items.filter(item => item.status == 'ready')
+}
+
+function escapeCell
+(text) {
+  return String(text).replace(/\|/g, '\\|')
+}
+
+// The markdown view of the queue, generated so the table and the json cannot
+// disagree. Done rows print their hash, which is the cross-check against git.
+export
+function report
+(queue) {
+  let groups, out
+
+  groups = [ [ 'ready', 'Ready' ], [ 'in-round', 'In round' ], [ 'next', 'Backlog' ],
+             [ 'triage', 'Triage' ], [ 'done', 'Done' ] ]
+  out = []
+  groups.forEach(group => {
+                   let items
+
+                   items = queue.items.filter(item => item.status == group[0])
+                   if (items.length == 0)
+                     return
+                   out.push('## ' + group[1])
+                   out.push('')
+                   out.push('| id | lane | status | title | files |')
+                   out.push('|----|------|--------|-------|-------|')
+                   items.forEach(item => {
+                                   let status
+
+                                   status = item.status == 'done' && item.doneHash ? 'done:' + item.doneHash : item.status
+                                   out.push('| ' + [ item.id, item.lane, status, item.title,
+                                                     (item.files || []).join(', ') ].map(escapeCell).join(' | ') + ' |')
+                                 })
+                   out.push('')
+                 })
+  return out.join('\n').trimEnd() + '\n'
 }

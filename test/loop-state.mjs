@@ -164,6 +164,31 @@ test('queue', 'check names the stale-queue mistakes',
                              'p4: absolute file /abs.mjs' ])
      })
 
+test('queue', 'ready lists ready items only',
+     () => {
+       let queue, out
+
+       queue = Queue.empty()
+       queue.items = [ item('p1', [ 'a.mjs' ]), item('p2', [ 'b.mjs' ], { status: 'next' }),
+                       item('p3', [ 'c.mjs' ], { status: 'done', doneHash: 'abc' }) ]
+       out = Queue.ready(queue)
+       deepEqual(out.map(entry => entry.id), [ 'p1' ])
+     })
+
+test('queue', 'report renders a table that matches the json',
+     () => {
+       let queue, text, again
+
+       queue = Queue.empty()
+       queue.items = [ item('p1', [ 'a.mjs' ], { title: 'one | two' }),
+                       item('p2', [ 'b.mjs' ], { status: 'done', doneHash: 'deadbee' }) ]
+       text = Queue.report(queue)
+       equal(text.includes('| p1 | a1 | ready | one \\| two | a.mjs |'), true)
+       equal(text.includes('| p2 | a1 | done:deadbee | p2 | b.mjs |'), true)
+       again = Queue.report(queue)
+       equal(text, again)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

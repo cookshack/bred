@@ -120,11 +120,12 @@ inherited function. A section prefix or suffix is stripped for the query and
 results are filtered to that section, so `3 pr` and `printf (3)` suggest
 `printf(3)` rather than asking for `^3 pr` or `^printf (3)`, and
 `3 printf (3)` asks for `^printf` once. `3 pr`, `pr (3)` and `pr` share that
-cache answer and only the section filter differs. The token at point prefills
-the prompt: a link or reference gives its topic (`ls(1)`), plain text gives
-the word under the point, trailing sentence punctuation is dropped from
-`ls(1).`, and a URL leaves the prompt empty. A suggestion closes the prompt
-and opens the page.
+cache answer and only the section filter differs. The prompt is nested in the
+pane it was opened from. The token at point prefills it: a link or reference
+gives its topic (`ls(1)`), plain text gives the word under the point, and
+trailing sentence punctuation is dropped from `ls(1).`. A URL contributes no
+token, so the last history item is the placeholder, as in other prompts. A
+suggestion closes the prompt and opens the page.
 C-n and C-p move through the suggestions (saying `That's all` when there are
 none); C-p starts at the last one and C-n at the first, and Enter opens the
 highlighted one. A prompt submission is kept in history and replaying one

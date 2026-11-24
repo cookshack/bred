@@ -1377,8 +1377,9 @@ function init
       word = ''
     }
     Prompt.ask({ text: 'Man Page',
+                 nest: 1,
                  hist,
-                 placeholder: word,
+                 placeholder: word || hist.nth(0)?.toString(),
                  suggest },
                prompt => {
                  openPage(prompt || word)

@@ -159,7 +159,19 @@ function demandBuf
 export
 function close
 () {
-  let win
+  let win, p, b, vars
+
+  p = Pane.current()
+  b = p?.buf
+  if (b?.vars('prompt')?.parent)
+    b = b.vars('prompt').parent
+  vars = b?.vars('prompt')
+  if (vars?.nest && nestedActive(b)) {
+    retractNest(b)
+    clearSuggest(b, vars)
+    p?.focus()
+    return
+  }
 
   win = Win.current()
   Area.hide(win, 'bred-float')
@@ -175,6 +187,9 @@ function ensurePromptBuf
   if (vars.nest?.promptBuf) {
     let seen
 
+    // The prompt buffer is reused, so each prompt gets its own placeholder
+    // (the last history item) and the suggestion list starts empty.
+    vars.nest.promptBuf.placeholder = placeholder
     seen = 0
     parent.views.forEach(view => {
                            if (view.ele.querySelector('.bred-prompt-ask-nest-w'))
@@ -194,7 +209,8 @@ function ensurePromptBuf
                    modeKey: 'nested prompt',
                    content: Ed.divW(parent.dir,
                                     0,
-                                    { ml: divCl('ml edMl', co) }),
+                                    { ml: divCl('ml edMl', co),
+                                      extraCo: divCl('bred-prompt-under') }),
                    dir: parent.dir,
                    placeholder })
   buf.vars('ed').fillParent = 0
@@ -230,6 +246,8 @@ function ensurePromptBuf
 // label, and focus it
 function showNest
 (p, parent, vars, text, icon) {
+  let shown
+
   parent.views.forEach(view => {
                          let container
 
@@ -255,10 +273,13 @@ function showNest
                                else
                                  Css.retract(mlIcon)
                            }
-                           if (view == p.view && nestedView?.ele)
+                           if ((view == p.view) && nestedView?.ele) {
+                             shown = nestedView
                              p.focusViewAt(nestedView.ele)
+                           }
                          }
                        })
+  return shown
 }
 
 function retractNest
@@ -276,6 +297,42 @@ function retractNest
                              Css.remove(nestedPane, 'current')
                          }
                        })
+}
+
+function nestedActive
+(parent) {
+  return parent.views.some(view => {
+                             let w
+
+                             w = view.ele?.querySelector('.bred-prompt-ask-nest-w')
+                             return w && (Css.has(w, 'retracted') == 0)
+                           })
+}
+
+function clearSuggest
+(parent, vars) {
+  if (vars.nest?.onChange) {
+    vars.nest.promptBuf.off('change', vars.nest.onChange)
+    vars.nest.onChange = 0
+  }
+  parent.views.forEach(view => {
+                         let under
+
+                         under = view.ele.querySelector('.bred-prompt-under')
+                         if (under)
+                           under.innerHTML = ''
+                       })
+}
+
+// The highlighted suggestion, set by next/previous suggestion, is what Enter
+// opens. An untouched list leaves the typed text in charge.
+function pickedSuggestion
+(p) {
+  let under, sug0
+
+  under = p.view.ele.querySelector('.bred-prompt-under')
+  sug0 = under?.querySelector('.bred-prompt-sug0')
+  return sug0?.dataset.href
 }
 
 // a yes/no confirm shown as a row inside the pane (no text entry) instead of
@@ -315,10 +372,10 @@ function ask
   let win, p, buffer, area, tab, ml, under, placeholder
 
   function refresh
-  () {
+  (text) {
     if (spec.suggest) {
       Css.disable(under)
-      spec.suggest(under, buffer.text(), placeholder)
+      spec.suggest(under, (text == undefined) ? buffer.text() : text, placeholder)
     }
   }
 
@@ -329,7 +386,7 @@ function ask
 
   function nest
   () {
-    let parent, vars, ph
+    let parent, vars, ph, nestedView, setup, seq
 
     p = Pane.current()
     parent = p.buf
@@ -343,8 +400,41 @@ function ask
 
     vars.nest.cb = cb
     vars.nest.hist = spec.hist
+    vars.nest.seq = (vars.nest.seq || 0) + 1
+    seq = vars.nest.seq
 
-    showNest(p, parent, vars, spec.text || '', spec.icon)
+    nestedView = showNest(p, parent, vars, spec.text || '', spec.icon)
+
+    buffer = vars.nest.promptBuf
+    placeholder = ph
+
+    setup = () => {
+              if (vars.nest.seq == seq) {
+                let w
+
+                w = p.view.ele.querySelector('.bred-prompt-ask-nest-w')
+                if ((w == undefined) || (Css.has(w, 'retracted') == 0)) {
+                  vars.nest.promptBuf.off('change', vars.nest.onChange)
+                  vars.nest.onChange = 0
+                  under = p.view.ele.querySelector('.bred-prompt-under')
+                  if (spec.suggest && under) {
+                    vars.nest.onChange = onChange
+                    vars.nest.promptBuf.on('change', onChange)
+                    refresh('')
+                  }
+                  else if (under)
+                    under.innerHTML = ''
+                }
+              }
+            }
+
+    // The nested editor may still be starting; its text needs a live view.
+    if (nestedView?.ready)
+      setup()
+    else if (nestedView?.deferReady)
+      nestedView.deferReady(setup)
+    else
+      setup()
 
     if (spec.onReady)
       spec.onReady(vars.nest.promptBuf)
@@ -455,80 +545,80 @@ function file
   open(spec)
 }
 
-function initPrompt2
-() {
-  let mo
+// A suggestion is more than a file path: man topics carry data-topic and
+// other suggesters may carry only text. Fall back rather than assuming a
+// path, which used to throw on a man suggestion.
+function suggValue
+(sug) {
+  if (sug.dataset.path)
+    return sug.dataset.path
+  if (sug.dataset.topic)
+    return sug.dataset.topic
+  return sug.textContent || ''
+}
 
-  // A suggestion is more than a file path: man topics carry data-topic and
-  // other suggesters may carry only text. Fall back rather than assuming a
-  // path, which used to throw on a man suggestion.
-  function suggValue
-  (sug) {
-    if (sug.dataset.path)
-      return sug.dataset.path
-    if (sug.dataset.topic)
-      return sug.dataset.topic
-    return sug.textContent || ''
-  }
+function prevSugg
+(nth) {
+  let p, under
 
-  function prevSugg
-  (nth) {
-    let p, under
+  p = Pane.current()
+  under = p.view.ele.querySelector('.bred-prompt-under')
+  if (under) {
+    let sug0
 
-    p = Pane.current()
-    under = p.view.ele.querySelector('.bred-prompt-under')
-    if (under) {
-      let sug0
+    sug0 = under.querySelector('.bred-prompt-sug0')
+    if (sug0) {
+      let sugs
 
-      sug0 = under.querySelector('.bred-prompt-sug0')
-      if (sug0) {
-        let sugs
+      sugs = under.querySelectorAll('.bred-prompt-sug')
+      if (sugs && sugs.length) {
+        let el, index, sug, elImg, href
 
-        sugs = under.querySelectorAll('.bred-prompt-sug')
-        if (sugs && sugs.length) {
-          let el, index, sug, elImg, href
-
-          index = sug0.dataset.index
-          if (index == null)
-            // Starting fresh: C-n goes to the first suggestion, C-p to the
-            // last, so either direction reaches the near end first.
-            index = nth < 0 ? 0 : sugs.length - 1
-          else if (nth < 0)
-            index++
-          else
-            index--
-          if (index >= sugs.length)
-            index = sugs.length - 1
-          if (index < 0)
-            index = 0
-          sug = sugs[index]
-          el = sug0.firstElementChild.nextElementSibling
-          href = suggValue(sug)
-          sug0.dataset.index = index
-          sug0.dataset.href = href
-
-          sugs.forEach(s => Css.remove(s, 'bred-prompt-candidate'))
-          Css.add(sug, 'bred-prompt-candidate')
-
-          elImg = sug0.firstElementChild.firstElementChild
-          if (href.startsWith('search://')) {
-            el.innerText = href.slice('search://'.length)
-            elImg.alt = '🔍'
-            elImg.src = Icon.path('search')
-          }
-          else {
-            el.innerText = href
-            elImg.alt = '→'
-            elImg.src = Icon.path('arrow-right')
-          }
-        }
+        index = sug0.dataset.index
+        if (index == null)
+          // Starting fresh: C-n goes to the first suggestion, C-p to the
+          // last, so either direction reaches the near end first.
+          index = nth < 0 ? 0 : sugs.length - 1
+        else if (nth < 0)
+          index++
         else
-          Mess.say("That's all")
+          index--
+        if (index >= sugs.length)
+          index = sugs.length - 1
+        if (index < 0)
+          index = 0
+        sug = sugs[index]
+        el = sug0.firstElementChild.nextElementSibling
+        href = suggValue(sug)
+        sug0.dataset.index = index
+        sug0.dataset.href = href
+
+        sugs.forEach(s => Css.remove(s, 'bred-prompt-candidate'))
+        Css.add(sug, 'bred-prompt-candidate')
+
+        elImg = sug0.firstElementChild.firstElementChild
+        if (href.startsWith('search://')) {
+          el.innerText = href.slice('search://'.length)
+          elImg.alt = '🔍'
+          elImg.src = Icon.path('search')
+        }
+        else {
+          el.innerText = href
+          elImg.alt = '→'
+          elImg.src = Icon.path('arrow-right')
+        }
       }
       else
         Mess.say("That's all")
     }
+    else
+      Mess.say("That's all")
   }
+}
+
+function initPrompt2
+() {
+  let mo
 
   function prevHist
   (nth) {
@@ -613,7 +703,7 @@ function initNest
     if (vars.nest == null)
       return
     promptBuf = vars.nest.promptBuf
-    text = promptBuf.text()
+    text = pickedSuggestion(p) || promptBuf.text()
     if (text.length)
       text = text.trim()
     else
@@ -622,6 +712,7 @@ function initNest
     vars.nest.hist?.add(text)
     promptBuf.clear()
 
+    clearSuggest(parent, vars)
     retractNest(parent)
 
     p.focus()
@@ -638,6 +729,7 @@ function initNest
     vars = parent.vars('prompt')
     if (vars.nest == null)
       return
+    clearSuggest(parent, vars)
     retractNest(parent)
     p.focus()
   }
@@ -699,12 +791,16 @@ function initNest
   Cmd.add('cancel', () => cancel(), mo)
   Cmd.add('next history item', () => nextHist(), mo)
   Cmd.add('previous history item', () => prevHist(), mo)
+  Cmd.add('next suggestion', () => prevSugg(-1), mo)
+  Cmd.add('previous suggestion', () => prevSugg(), mo)
 
   Em.on('Enter', 'submit', mo)
   Em.on('C-g', 'cancel', mo)
   Em.on('Escape', 'cancel', mo)
   Em.on('A-p', 'previous history item', mo)
   Em.on('A-n', 'next history item', mo)
+  Em.on('C-n', 'next suggestion', mo)
+  Em.on('C-p', 'previous suggestion', mo)
 
   moConfirm = Mode.add('Nested Confirm', { minor: 1 })
   Cmd.add('nested yes', () => answerConfirm('yes'), moConfirm)

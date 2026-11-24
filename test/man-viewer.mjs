@@ -12,6 +12,7 @@ import * as Man from '../js/man.mjs'
 import * as Mess from '../js/mess.mjs'
 import * as Mode from '../js/mode.mjs'
 import * as Pane from '../js/Pane.mjs'
+import * as Prompt from '../js/prompt.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
@@ -350,6 +351,47 @@ function layoutSections
                h.getBoundingClientRect = () => ({ top: (i * 100) - sc.scrollTop })
              })
   return sc
+}
+
+let mp
+
+// The man prompt is nested in the parent pane, not a float. The parent buffer
+// keeps the prompt vars; the prompt buffer is a nested view of its view.
+function promptNest
+() {
+  let b, nest, v, nv
+
+  b = Pane.current().buf
+  nest = b?.vars('prompt')?.nest
+  v = Pane.current().view
+  nv = nest ? v?.nestedViews?.find(n => n.buf == nest.promptBuf) : 0
+  return { b, nest, v, nv, pb: nest?.promptBuf, under: v?.ele.querySelector('.bred-prompt-under') }
+}
+
+async function openManPrompt
+() {
+  let old, w
+
+  // A test may leave its prompt open; close it so the next prompt starts with
+  // its own placeholder rather than the previous one.
+  old = promptNest()
+  w = old.v?.ele.querySelector('.bred-prompt-ask-nest-w')
+  if (old.nest && old.nv && w && (w.classList.contains('retracted') == false)) {
+    Cmd.run('cancel', old.pb)
+    await wait(0)
+  }
+
+  Cmd.run('man')
+  await waitFor(() => {
+                  let p, w2
+
+                  p = promptNest()
+                  w2 = p.v?.ele.querySelector('.bred-prompt-ask-nest-w')
+                  return p.nest?.cb && p.nv?.ed && w2 &&
+                        (w2.classList.contains('retracted') == false)
+                })
+  mp = promptNest()
+  return mp
 }
 
 function textOf
@@ -1549,17 +1591,11 @@ test('viewer', 'a failing man -k yields no topics',
 
 test('viewer', 'the man command suggests and opens the typed topic',
      async () => {
-       let v
+       let v, p
 
        setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' })
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       p = await openManPrompt()
+       v = p.nv
        v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'ls(1)')
@@ -1567,7 +1603,7 @@ test('viewer', 'the man command suggests and opens the typed topic',
        v.ed.dispatch({ changes: { from: 0, to: 2, insert: '' } })
        v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
-       Cmd.run('ok', Pane.current().buf)
+       Cmd.run('submit', p.pb)
        await waitFor(() => {
                        let b
 
@@ -1585,7 +1621,7 @@ test('viewer', 'the man command and mode are registered',
 
 test('viewer', 'a throwing tokenAt leaves the prompt empty',
      async () => {
-       let m, b, panes
+       let m, b, p, panes
 
        function noToken
        () {
@@ -1598,14 +1634,14 @@ test('viewer', 'a throwing tokenAt leaves the prompt empty',
        b = Buf.add('tok', 'token throw', globalThis.document.createElement('div'), '/tmp')
        panes.pA.focus()
        await setBuf(panes.pA, b)
-       Cmd.run('man')
-       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
-       equal(Pane.current().buf.placeholder, '')
+       Hist.ensure('man').items = []
+       p = await openManPrompt()
+       equal(p.pb.placeholder || '', '')
      })
 
 test('viewer', 'an empty prompt submits the token at point',
      async () => {
-       let m, b, panes
+       let m, b, p, panes
 
        panes = setup({ rm: '.TH RM 1\n.SH NAME\nrm \\- remove files\n' })
        m = Mode.add('token word', {})
@@ -1613,10 +1649,9 @@ test('viewer', 'an empty prompt submits the token at point',
        b = Buf.add('tok', 'token word', globalThis.document.createElement('div'), '/tmp')
        panes.pA.focus()
        await setBuf(panes.pA, b)
-       Cmd.run('man')
-       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
-       equal(Pane.current().buf.placeholder, 'rm')
-       Cmd.run('ok', Pane.current().buf)
+       p = await openManPrompt()
+       equal(p.pb.placeholder, 'rm')
+       Cmd.run('submit', p.pb)
        await waitFor(() => {
                        let cur
 
@@ -1624,6 +1659,27 @@ test('viewer', 'an empty prompt submits the token at point',
                        return (cur?.name == 'Man: rm') && (cur.vars('Manpage').loading == 0)
                      })
        equal(textOf(Pane.current().buf).includes('remove files'), true)
+     })
+
+test('viewer', 'the last history item is the nested prompt placeholder',
+     async () => {
+       let m, b, panes, hist
+
+       panes = setup({})
+       m = Mode.add('no token', {})
+       m.tokenAt = () => ''
+       b = Buf.add('no token', 'no token', globalThis.document.createElement('div'), '/tmp')
+       panes.pA.focus()
+       await setBuf(panes.pA, b)
+       hist = Hist.ensure('man')
+       hist.items = [ '3 printf', 'ls' ]
+       await openManPrompt()
+       equal(mp.pb.placeholder, '3 printf')
+       Prompt.close()
+       await wait(0)
+       hist.items = [ 'ls' ]
+       await openManPrompt()
+       equal(mp.pb.placeholder, 'ls')
      })
 
 test('viewer', 'a redirect chain follows to the final page',
@@ -2026,14 +2082,8 @@ test('viewer', 'a suggestion click opens its topic from the prompt',
        let v, el, we
 
        setup({ 'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n' })
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        el = v.ele.querySelector('.bred-prompt-sug')
@@ -2059,30 +2109,24 @@ test('viewer', 'C-n and C-p move through man suggestions',
 
        setup({ 'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n',
                'lsblk(8)': '.TH LSB 8\n.SH NAME\nlsblk \\- x\n' })
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        sugs = v.ele.querySelectorAll('.bred-prompt-sug')
        under = v.ele.querySelector('.bred-prompt-under')
        equal(sugs.length, 2)
-       Cmd.run('next suggestion', Pane.current().buf)
+       Cmd.run('next suggestion', mp.pb)
        equal(sugs[0].classList.contains('bred-prompt-candidate'), true)
        equal(under.querySelector('.bred-prompt-sug0').dataset.href, 'ls(1)')
-       Cmd.run('next suggestion', Pane.current().buf)
+       Cmd.run('next suggestion', mp.pb)
        equal(sugs[1].classList.contains('bred-prompt-candidate'), true)
        equal(under.querySelector('.bred-prompt-sug0').dataset.href, 'lsblk(8)')
-       Cmd.run('previous suggestion', Pane.current().buf)
+       Cmd.run('previous suggestion', mp.pb)
        equal(sugs[0].classList.contains('bred-prompt-candidate'), true)
        equal(sugs[1].classList.contains('bred-prompt-candidate'), false)
-       Cmd.run('next suggestion', Pane.current().buf)
-       Cmd.run('ok', Pane.current().buf)
+       Cmd.run('next suggestion', mp.pb)
+       Cmd.run('submit', mp.pb)
        await waitFor(() => {
                        let b
 
@@ -2099,46 +2143,35 @@ test('viewer', 'suggestion navigation with no matches says That is all',
 
        setup({})
        mankOut = ''
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        v.ed.dispatch({ changes: { from: 0, insert: 'qzx' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug0'))
        equal(v.ele.querySelector('.bred-prompt-sug'), null)
-       Cmd.run('next suggestion', Pane.current().buf)
+       Cmd.run('next suggestion', mp.pb)
        msgs = Mess.messages().filter(m => m.type == 'say')
        equal(msgs[msgs.length - 1].text, "That's all")
-       Cmd.run('previous suggestion', Pane.current().buf)
+       Cmd.run('previous suggestion', mp.pb)
        msgs = Mess.messages().filter(m => m.type == 'say')
        equal(msgs[msgs.length - 1].text, "That's all")
      })
 
 test('viewer', 'closing a man prompt with suggestions opens no page',
      async () => {
-       let v, buf, count
+       let v, w, manCount
 
        setup({})
-       count = Buf.shared().buffers.length
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       manCount = Buf.shared().buffers.filter(b => b.mode.key == 'manpage').length
+       await openManPrompt()
+       v = mp.nv
        v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
-       buf = Pane.current().buf
-       Cmd.run('close demand', buf)
+       Prompt.close()
        await wait(450)
-       equal(Buf.shared().buffers.some(b => b == buf), false)
-       equal(Buf.shared().buffers.length, count)
+       w = mp.v.ele.querySelector('.bred-prompt-ask-nest-w')
+       equal(w.classList.contains('retracted'), true)
+       equal(Buf.shared().buffers.filter(b => b.mode.key == 'manpage').length,
+             manCount)
      })
 
 test('viewer', 'an empty page renders instead of falling back to cat',
@@ -2282,17 +2315,16 @@ test('viewer', 'a refresh while loading leaves the newest result',
        equal(b.vars('Manpage').error, '')
      })
 
-test('viewer', 'closing a prompt before its attract timer is safe',
+test('viewer', 'closing a prompt before its suggestions arrive is safe',
      async () => {
-       let buf
+       let w
 
        setup({})
-       Cmd.run('man')
-       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
-       buf = Pane.current().buf
-       Cmd.run('close demand', buf)
+       await openManPrompt()
+       Prompt.close()
        await wait(450)
-       equal(Buf.shared().buffers.some(b => b == buf), false)
+       w = mp.v.ele.querySelector('.bred-prompt-ask-nest-w')
+       equal(w.classList.contains('retracted'), true)
      })
 
 test('viewer', 'completion caches a prefix and clears on empty input',
@@ -2306,14 +2338,8 @@ test('viewer', 'completion caches a prefix and clears on empty input',
        }
 
        setup({})
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        v.ed.dispatch({ changes: { from: 0, insert: 'zzq' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(kn('zzq'), 1)
@@ -2347,14 +2373,8 @@ test('viewer', 'completion cache evicts the oldest prefix',
        }
 
        setup({})
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        // This is 101 completion round trips, so each wait needs much more than
        // the default second when the rest of the suite is running. The tick
        // after each query lets the answer arrive before the next keystroke
@@ -2383,14 +2403,8 @@ test('viewer', 'a name that collides with an object property completes safely',
 
        setup({})
        mankOut = 'constructor (3) - build an object\n'
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        v.ed.dispatch({ changes: { from: 0, insert: 'constructor' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(v.ele.querySelector('.bred-prompt-sug').dataset.topic, 'constructor(3)')
@@ -2405,14 +2419,8 @@ test('viewer', 'completion of a section prefix queries the name and keeps the se
        mankOut = 'printf (3) - format output\n' +
                  'printf (1) - format (user command)\n' +
                  'printenv (1) - print environment\n'
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        v.ed.dispatch({ changes: { from: 0, insert: '3 pr' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(calls.some(c => (c[0] == 'man') && (c[1] == '-k') && (c[2] == '^pr')), true)
@@ -2429,14 +2437,8 @@ test('viewer', 'completion of printf (3) queries the name, not the section',
        setup({ 'printf(3)': '.TH PRINTF 3\n.SH NAME\nprintf \\- format\n' })
        mankOut = 'printf (3) - format output\n' +
                  'printf (1) - format (user command)\n'
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        v.ed.dispatch({ changes: { from: 0, insert: 'printf (3)' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(calls.filter(c => (c[0] == 'man') && (c[1] == '-k')).length, 1)
@@ -2535,16 +2537,10 @@ test('viewer', 'a topic from the prompt history reopens its buffer',
        equal(textOf(b).includes('format'), true)
        hist = Hist.ensure('man')
        equal(hist.at(0), '3 printf')
-       Cmd.run('man')
-       await waitFor(() => {
-                       let cur
-
-                       cur = Pane.current().buf
-                       return cur?.vars('prompt')?.run && cur.views[0]?.ed
-                     })
-       Cmd.run('previous history item', Pane.current().buf)
-       await waitFor(() => Pane.current().buf.text() == '3 printf')
-       Cmd.run('ok', Pane.current().buf)
+       await openManPrompt()
+       Cmd.run('previous history item', mp.pb)
+       await waitFor(() => mp.pb.text() == '3 printf')
+       Cmd.run('submit', mp.pb)
        await waitFor(() => Pane.current().buf == b)
        equal(Pane.current().buf, b)
        equal(Buf.shared().buffers.filter(x => x.vars('Manpage').topic == 'printf(3)').length,
@@ -2567,14 +2563,8 @@ test('viewer', 'normalised completion keys share one man -k',
 
        setup({})
        mankOut = 'pqr (1) - print\npqrt (8) - other\npqr (3) - print\n'
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        type('3 pqr')
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(keys().length, 1)
@@ -2605,14 +2595,8 @@ test('viewer', 'a section prefix and suffix normalise into one query',
 
        setup({})
        mankOut = 'yyq (1) - one\nyyq (3) - three\n'
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        type('3 yyq (3)')
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        equal(calls.filter(c => (c[0] == 'man') && (c[1] == '-k')).length, 1)
@@ -2626,23 +2610,17 @@ test('viewer', 'C-p before any suggestion starts at the last one',
 
        setup({ 'ls(1)': '.TH LS 1\n.SH NAME\nls \\- x\n',
                'lsblk(8)': '.TH LSB 8\n.SH NAME\nlsblk \\- x\n' })
-       Cmd.run('man')
-       await waitFor(() => {
-                       let b
-
-                       b = Pane.current().buf
-                       return b?.vars('prompt')?.run && b.views[0]?.ed
-                     })
-       v = Pane.current().buf.views[0]
+       await openManPrompt()
+       v = mp.nv
        v.ed.dispatch({ changes: { from: 0, insert: 'ls' } })
        await waitFor(() => v.ele.querySelector('.bred-prompt-sug'))
        sugs = v.ele.querySelectorAll('.bred-prompt-sug')
        equal(sugs.length, 2)
-       Cmd.run('previous suggestion', Pane.current().buf)
+       Cmd.run('previous suggestion', mp.pb)
        equal(sugs[1].classList.contains('bred-prompt-candidate'), true)
        equal(sugs[0].classList.contains('bred-prompt-candidate'), false)
        equal(v.ele.querySelector('.bred-prompt-sug0').dataset.href, 'lsblk(8)')
-       Cmd.run('previous suggestion', Pane.current().buf)
+       Cmd.run('previous suggestion', mp.pb)
        equal(sugs[0].classList.contains('bred-prompt-candidate'), true)
        equal(v.ele.querySelector('.bred-prompt-sug0').dataset.href, 'ls(1)')
      })
@@ -2842,10 +2820,9 @@ test('viewer', 'a token with sentence punctuation opens its reference',
        b = Buf.add('tok', 'token ref', globalThis.document.createElement('div'), '/tmp')
        panes.pA.focus()
        await setBuf(panes.pA, b)
-       Cmd.run('man')
-       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
-       equal(Pane.current().buf.placeholder, 'ls(1)')
-       Cmd.run('ok', Pane.current().buf)
+       await openManPrompt()
+       equal(mp.pb.placeholder, 'ls(1)')
+       Cmd.run('submit', mp.pb)
        await waitFor(() => {
                        let cur
 
@@ -2865,10 +2842,9 @@ test('viewer', 'a token that is a man link uses its topic',
        b = Buf.add('tok2', 'token link', globalThis.document.createElement('div'), '/tmp')
        panes.pA.focus()
        await setBuf(panes.pA, b)
-       Cmd.run('man')
-       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
-       equal(Pane.current().buf.placeholder, 'printf(3)')
-       Cmd.run('ok', Pane.current().buf)
+       await openManPrompt()
+       equal(mp.pb.placeholder, 'printf(3)')
+       Cmd.run('submit', mp.pb)
        await waitFor(() => {
                        let cur
 
@@ -2889,9 +2865,9 @@ test('viewer', 'a URL token leaves the man prompt empty',
        b = Buf.add('tok3', 'token url', globalThis.document.createElement('div'), '/tmp')
        panes.pA.focus()
        await setBuf(panes.pA, b)
-       Cmd.run('man')
-       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
-       equal(Pane.current().buf.placeholder, '')
+       Hist.ensure('man').items = []
+       await openManPrompt()
+       equal(mp.pb.placeholder || '', '')
      })
 
 test('viewer', 'the point inside a rendered reference supplies the prompt token',
@@ -2907,10 +2883,9 @@ test('viewer', 'the point inside a rendered reference supplies the prompt token'
        while (node.firstChild)
          node = node.firstChild
        v.point.put(node)
-       Cmd.run('man')
-       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
-       equal(Pane.current().buf.placeholder, 'ls(1)')
-       Cmd.run('ok', Pane.current().buf)
+       await openManPrompt()
+       equal(mp.pb.placeholder, 'ls(1)')
+       Cmd.run('submit', mp.pb)
        await waitFor(() => {
                        let cur
 
@@ -2930,9 +2905,8 @@ test('viewer', 'the point on the period after a reference still finds it',
        v = viewOf(b)
        a = v.ele.querySelector('a[data-topic]')
        v.point.put(a.nextSibling)
-       Cmd.run('man')
-       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
-       equal(Pane.current().buf.placeholder, 'ls(1)')
+       await openManPrompt()
+       equal(mp.pb.placeholder, 'ls(1)')
      })
 
 test('viewer', 'the point in plain page text supplies the bare word',
@@ -2948,10 +2922,9 @@ test('viewer', 'the point in plain page text supplies the bare word',
        while (node.firstChild)
          node = node.firstChild
        v.point.put(node)
-       Cmd.run('man')
-       await waitFor(() => Pane.current().buf?.vars('prompt')?.run)
-       equal(Pane.current().buf.placeholder, 'printf')
-       Cmd.run('ok', Pane.current().buf)
+       await openManPrompt()
+       equal(mp.pb.placeholder, 'printf')
+       Cmd.run('submit', mp.pb)
        await waitFor(() => {
                        let cur
 

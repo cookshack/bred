@@ -87,7 +87,8 @@
       "status": "ready",
       "title": "`tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11`",
       "files": [
-        "js/man-parse.mjs"
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs"
     },

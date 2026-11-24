@@ -34,7 +34,7 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p44 | a1 | ready | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` | js/man-parse.mjs |
+| p44 | a1 | ready | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Backlog
 

@@ -1705,6 +1705,33 @@ function commentRegion
     exec(CMComm.lineComment)
 }
 
+// CodeMirror parses only the first 3000 characters when a state is created, and
+// less when its 20 ms budget runs out. indentRange reads the tree per line and
+// leaves every line beyond it alone, so finish the parse before indenting.
+// The whole document has to be parsed, not just up to the range: a tree cut at
+// the last line leaves that line's enclosing nodes unfinished, and indentation
+// read from them comes out wrong (2 spaces instead of 8 in the object case).
+// Returns 1 when the tree reaches the end of the document, or when there is no
+// language at all.
+function ensureIndentParse
+(view) {
+  let to
+
+  to = view.ed.state.doc.length
+  if (CMLang.syntaxTreeAvailable(view.ed.state, to))
+    return 1
+
+  if (view.ed.state.field(CMLang.Language.state, false)) {
+    if (CMLang.forceParsing(view.ed, to, 10000))
+      return 1
+    Mess.say('indent: could not parse the whole document, nothing changed')
+    return 0
+  }
+
+  // no language: there is no parse tree to wait for
+  return 1
+}
+
 export
 function indentLine
 () {
@@ -1741,7 +1768,10 @@ function indentLine
     // something went wrong
     oldTextOff = 0
 
-  changes = CMLang.indentRange(view.ed.state, l.from, l.to)
+  if (ensureIndentParse(view))
+    changes = CMLang.indentRange(view.ed.state, l.from, l.to)
+  else
+    return
   if (changes.empty) {
     if (oldTextOff == 0)
       // may have been inside leading whitespace, move to start of text
@@ -1770,7 +1800,7 @@ function indentRegion
 
   view = View.current()
   if (view.markActive) {
-    let to, from, lto, changes
+    let to, from, lto
 
     from = view.ed.state.selection.main.from
     to = view.ed.state.selection.main.to
@@ -1786,9 +1816,13 @@ function indentRegion
       // happens when region empty and at start of line
       to = from
 
-    changes = CMLang.indentRange(view.ed.state, from, to)
-    changes.empty || view.ed.dispatch({ changes })
-    clearSelection(view)
+    if (ensureIndentParse(view)) {
+      let changes
+
+      changes = CMLang.indentRange(view.ed.state, from, to)
+      changes.empty || view.ed.dispatch({ changes })
+      clearSelection(view)
+    }
   }
   else
     indentLine()
@@ -1800,7 +1834,8 @@ function indentBuffer
   let view
 
   view = View.current()
-  view.ed.dispatch({ changes: CMLang.indentRange(view.ed.state, 0, view.ed.state.doc.length) })
+  if (ensureIndentParse(view))
+    view.ed.dispatch({ changes: CMLang.indentRange(view.ed.state, 0, view.ed.state.doc.length) })
 }
 
 export

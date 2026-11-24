@@ -3,13 +3,28 @@ import { EditorState } from '../lib/@codemirror/state.js'
 import { indentRange, indentNodeProp, delimitedIndent, syntaxTree, ensureSyntaxTree } from '../lib/@codemirror/language.js'
 import { javascriptLanguage } from '../lib/@codemirror/lang-javascript.js'
 import { makeJsIndents } from '../js/wode-lang-js.mjs'
+import * as Wode from '../js/wode.mjs'
 
-let tests, customIndent, customProps, lang
+let tests, customIndent, customProps, lang, longCode, longCodeIndented
 
 function test
 (group, name, cb) {
   tests[group] = tests[group] || []
-  tests[group].push({ name, cb })
+  tests[group].push({ name,
+                      cb: () => {
+                        let saved
+
+                        // Mess.isElement needs these; there is no DOM in this file
+                        saved = [ globalThis.bredWin, globalThis.Element, globalThis.HTMLDocument ]
+                        globalThis.Element = globalThis.Element || class {}
+                        globalThis.HTMLDocument = globalThis.HTMLDocument || class {}
+                        try {
+                          cb()
+                        }
+                        finally {
+                          [ globalThis.bredWin, globalThis.Element, globalThis.HTMLDocument ] = saved
+                        }
+                      } })
 }
 
 // EditorState.create parses with a 20ms wall clock budget and keeps whatever
@@ -55,11 +70,37 @@ function pass
                    expected))
 }
 
+// A view good enough for the indent entry points: they read and dispatch editor
+// state through view.ed, and View.current() finds it through the stub window.
+// The initial state's tree is a prefix, as it is in the editor.
+function fakeView
+(state) {
+  let ed, hasCurrent, view
+
+  hasCurrent = { classList: { contains: () => 1 } }
+  ed = { state }
+  ed.dispatch = spec => ed.state = ed.state.update(spec).state
+  view = { ed, markActive: 0 }
+  globalThis.bredWin = { currentArea: { tabs: [ { el: hasCurrent,
+                                                  elBar: hasCurrent,
+                                                  frames: [ { el: hasCurrent,
+                                                              panes: [ { w: hasCurrent,
+                                                                         view } ] } ] } ] } }
+  return view
+}
+
 tests = {}
 
 customIndent = makeJsIndents({ delimitedIndent, flatIndent: delimitedIndent })
 customProps = indentNodeProp.add(customIndent)
 lang = javascriptLanguage.configure({ props: [ customProps ] })
+
+longCode = 'y = { f() {\n// this\n},\n' +
+           'f() {\n// that\n},\n'.repeat(200) +
+           'h() {\n// that\n} }'
+longCodeIndented = 'y = { f() {\n        // this\n      },\n' +
+                   '      f() {\n        // that\n      },\n'.repeat(200) +
+                   '      h() {\n        // that\n      } }'
 
 pass('object methods same indent',
      `
@@ -104,12 +145,55 @@ y = { f() {
 // came back unindented. The state created under load can be cut short the same
 // way, which is what made 'object methods same indent' fail.
 pass('object methods same indent past the parse viewport',
-     'y = { f() {\n// this\n},\n' +
-     'f() {\n// that\n},\n'.repeat(200) +
-     'h() {\n// that\n} }',
-     'y = { f() {\n        // this\n      },\n' +
-     '      f() {\n        // that\n      },\n'.repeat(200) +
-     '      h() {\n        // that\n      } }')
+     longCode, longCodeIndented)
+
+// The commands themselves used to call indentRange on the live state, whose
+// parse stops at the initial viewport, so 'indent buffer' on a file over 3000
+// characters silently left every line past 3001 as written.
+test('indent', 'indentBuffer indents past the initial parse viewport',
+     () => {
+       let view
+
+       view = fakeView(EditorState.create({ doc: longCode,
+                                            extensions: [ lang ] }))
+       equal(syntaxTree(view.ed.state).length < view.ed.state.doc.length, true)
+       Wode.indentBuffer()
+       equal(view.ed.state.doc.toString(), longCodeIndented)
+     })
+
+test('indent', 'indentRegion indents past the initial parse viewport',
+     () => {
+       let view
+
+       view = fakeView(EditorState.create({ doc: longCode,
+                                            extensions: [ lang ],
+                                            selection: { anchor: 0,
+                                                         head: longCode.length } }))
+       equal(syntaxTree(view.ed.state).length < view.ed.state.doc.length, true)
+       view.markActive = 1
+       Wode.indentRegion()
+       equal(view.ed.state.doc.toString(), longCodeIndented)
+     })
+
+// The last body line of longCode, which sits past the initial parse viewport.
+// Every other line keeps its indentation, so the right result for this one is
+// the same 8 spaces the whole-document indent gives it.
+test('indent', 'indentLine indents a line past the initial parse viewport',
+     () => {
+       let view, doc, line
+
+       doc = longCodeIndented.split('\n')
+       doc[604] = '// that'
+       view = fakeView(EditorState.create({ doc: doc.join('\n'),
+                                            extensions: [ lang ] }))
+       line = view.ed.state.doc.line(605)
+       equal(line.from > 3000, true)
+       equal(syntaxTree(view.ed.state).length < view.ed.state.doc.length, true)
+       view.ed.state = view.ed.state.update({ selection: { anchor: line.from } }).state
+       Wode.indentLine()
+       equal(view.ed.state.doc.line(605).text, '        // that')
+       equal(view.ed.state.selection.main.head, line.from + 8)
+     })
 
 pass('struct',
      `

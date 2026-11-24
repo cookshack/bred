@@ -14,6 +14,10 @@ on a moving main") instead of expecting a quiet tree.
 
     LOOP=$BRED_WORKTREE_ROOT/bred-loop
 
+An upgrade proposal (machine-checkable queue, leases, measurement history, a
+durable driver, a pipeline cadence) is in `doc/Loop-upgrade.md`; it is not
+implemented.
+
 The queue is tracked because the previous run's `$LOOP` was keyed to a session
 that ended, and its queue went with it. Briefs, claims and round logs stay
 untracked; the work, the round tips and this file survive anything.

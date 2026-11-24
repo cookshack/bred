@@ -30,6 +30,13 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | lane | status | title | files |
+|----|------|--------|-------|-------|
+| p69 | a1 | ready | a .br before any text emits an extra blank line, and two consecutive .br are not collapsed (groff keeps one break) | js/man-parse.mjs, test/man-parse.mjs |
+| p72 | a3 | ready | ps(1) is 103 of section 1's words: man(1) wraps a comma-separated option list, and man-diff does not join a line that ends at a comma in that list; find a rule that joins it without joining prose commas | bin/man-diff, test/man-diff.mjs |
+
 ## Backlog
 
 | id | lane | status | title | files |
@@ -43,7 +50,6 @@ before.
 | p33 | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) | js/man-parse.mjs |
 | p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
 | p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |
-| p69 | a1 | next | a .br before any text emits an extra blank line, and two consecutive .br are not collapsed (groff keeps one break) | js/man-parse.mjs, test/man-parse.mjs |
 | p70 | a1 | next | strace-log-merge(1) prints strace\-log\-merge literally in the synopsis; synopsisStart pushes args[0] raw where handleFont/OP expand it | js/man-parse.mjs, test/man-parse.mjs |
 | p71 | a3 | next | mendex(1) one "lost" word is a tab display difference ("" vs two quote tokens); decide whether man-diff should treat a tab as non-separating | bin/man-diff, test/man-diff.mjs |
 

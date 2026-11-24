@@ -969,6 +969,18 @@ test('mdoc', 'punctuation ends a macro so the next call is separate',
        equal(flat(list.items[0].tag), '-b, --brief')
      })
 
+test('mdoc', 'a break before any text adds no blank line',
+     () => {
+       equal(asText('.Dd t\n.Dt T 1\n.Os\n.Sh NAME\n.br\ntwo\n'),
+             '\nNAME\ntwo\n')
+     })
+
+test('mdoc', 'consecutive breaks collapse to one',
+     () => {
+       equal(asText('.Dd t\n.Dt T 1\n.Os\n.Sh NAME\none\n.br\n.br\ntwo\n'),
+             '\nNAME\none\ntwo\n')
+     })
+
 test('mdoc', 'a closing macro keeps text after it',
      () => {
        let r
@@ -2657,6 +2669,26 @@ test('paragraphs', 'a break leaves the next macro line flush too',
        // groff prints the bold `bold` at column 0 after `.br`.
        equal(flat(parsed('.TH T 1\none\n.br\n.B bold\n').doc.blocks[0].spans),
              'one\nbold')
+     })
+
+test('paragraphs', 'a break before any text adds no blank line',
+     () => {
+       // groff has nothing to break there: the heading is followed straight
+       // by `two`, not by an empty line.
+       equal(asText('.TH T 1\n.SH NAME\n.br\ntwo\n'), '\nNAME\ntwo\n')
+     })
+
+test('paragraphs', 'consecutive breaks collapse to one',
+     () => {
+       // groff ends the line once: `one$` then `two$`, with no blank between.
+       equal(asText('.TH T 1\n.SH NAME\none\n.br\n.br\ntwo\n'),
+             '\nNAME\none\ntwo\n')
+     })
+
+test('paragraphs', 'a break at the end of a paragraph adds no blank line',
+     () => {
+       // The paragraph already ends the line; groff prints `one` and nothing.
+       equal(asText('.TH T 1\n.SH NAME\none\n.br\n'), '\nNAME\none\n')
      })
 
 test('macros', 'an empty macro body produces nothing',

@@ -153,7 +153,12 @@ function pushSpan
   let last
 
   if (span.br) {
-    spans.push({ br: 1 })
+    last = spans[spans.length - 1]
+    // A break only ends a line that has text on it: at the start of a target,
+    // or straight after another break, there is nothing to end, and groff
+    // prints no empty line for it.
+    if (last && (last.br == undefined))
+      spans.push({ br: 1 })
     return
   }
   if (span.text == '')
@@ -724,6 +729,10 @@ function trimSpans
     if (last.text == '')
       spans.pop()
   }
+  // A break at the very end of a paragraph has no line left to end: the
+  // paragraph already ends there, and groff prints no empty line for it.
+  else if (last && (last.br == 1))
+    spans.pop()
 }
 
 function closeParas
@@ -795,6 +804,25 @@ function appendInline
     pushSpan(target, { text: ' ', style: c.font })
   c.atLineStart = 0
   pushSpans(target, spans)
+}
+
+// A `.br` ends the current output line. With no paragraph open there is no
+// line yet, so it prints nothing at all rather than opening an empty one; a
+// repeat straight after another break collapses in `pushSpan`.
+function breakLine
+(c) {
+  let target
+
+  if (c.lineTarget)
+    target = c.lineTarget
+  else if (c.link)
+    target = c.link.spans
+  else if (c.para)
+    target = c.para.spans
+  else
+    return
+  c.textOut = 1
+  pushSpan(target, { br: 1 })
 }
 
 function addTextLine
@@ -1990,7 +2018,7 @@ function mdocPush
   // `.Sm off` keeps its separator too: groff renders `.Cm a` / `.Sm off` /
   // `.Ar b` / `.Ar c` as "a bc", so the suppression starts with the second
   // call (`smPending`).
-  if ((target.length > 0) && (c.mdoc.noSpace == 0) &&
+  if ((target.length > 0) && (c.mdoc.noSpace == 0) && (afterBreak(target) == 0) &&
       (c.mdoc.spaceNext || c.mdoc.sm || c.mdoc.smPending))
     pushSpan(target, { text: ' ' })
   pushSpans(target, spans)
@@ -3227,7 +3255,7 @@ function handleLine
     endPre(c)
     break
   case 'br':
-    appendInline(c, [ { br: 1 } ])
+    breakLine(c)
     break
   case 'sp':
     addBlock(c, { kind: 'space' })

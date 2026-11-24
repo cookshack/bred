@@ -501,7 +501,15 @@ harness bugs surfaced on the first real round and are fixed in the tool, not in
 the parser: a symlinked `ext/*/lib` loaded a second CodeMirror, and
 `spawnSync`'s 1 MB buffer killed the suite with ENOBUFS.
 
-Tests: 556 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 19 kept the top-level `.Sh` section across a `.Ss` subsection. The
+parser was overwriting its section state with every heading, so a `.Ss` inside
+SYNOPSIS made `.Fn`/`.Fc` drop their `;` (and `.Nm` lose bold, `.In` lose
+`#include`); only a level-1 `.Sh` updates it now. The same round taught the
+colon-list reporter a third rank: a failed read of an existing regular file
+outranks a later missing part, so the reader sees the read failure and its
+path; permission on an existing file still ranks above both.
+
+Tests: 558 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

@@ -531,14 +531,14 @@
     {
       "id": "p74",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "ps(1) loses 95 words because a macro line inside a T{ } tbl cell stays raw (.BR pcpu ). instead of pcpu).); every T{ } cell using a macro is affected; the ps(1) pin in test/man-diff.mjs must be updated with the fix",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs",
         "test/man-diff.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs test/man-diff.mjs"
     }
   ]
 }

@@ -38,7 +38,7 @@ test('measure', 'parses the audit summary',
 
 test('measure', 'parses one section report',
      () => {
-       deepEqual(Measure.parseDiff(diffText), { pages: 959, words: 14 })
+       deepEqual(Measure.parseDiff(diffText), { pages: 959, bad: 3, words: 14 })
      })
 
 test('measure', 'run asks for the given sections and keeps the tip',
@@ -57,7 +57,7 @@ test('measure', 'run asks for the given sections and keeps the tip',
        record = Measure.run('/repo', { exec, sections: [ '3' ] })
        equal(record.tip, 'abc123')
        deepEqual(record.corpus, { pages: 4150, parsed: 4123, refused: 27 })
-       deepEqual(record.sweep, { '3': { pages: 959, words: 14 } })
+       deepEqual(record.sweep, { '3': { pages: 959, bad: 3, words: 14 } })
        deepEqual(calls.map(call => call.args[0]), [ 'rev-parse', '--parse', '--section' ])
      })
 
@@ -67,13 +67,13 @@ test('measure', 'append is idempotent per tip and replaces a changed record',
 
        root = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-loop-measure-'))
        file = Path.join(root, 'history.jsonl')
-       record = { ts: '2026-11-24T00:00:00Z', tip: 'abc123', corpus: { pages: 1, parsed: 1, refused: 0 }, sweep: { '3': { pages: 1, words: 0 } } }
+       record = { ts: '2026-11-24T00:00:00Z', tip: 'abc123', corpus: { pages: 1, parsed: 1, refused: 0 }, sweep: { '3': { pages: 1, bad: 1, words: 0 } } }
        equal(Measure.append(file, record), 1)
        equal(Measure.append(file, record), 0)
-       changed = { ts: '2026-11-24T00:01:00Z', tip: 'abc123', corpus: { pages: 1, parsed: 1, refused: 0 }, sweep: { '3': { pages: 1, words: 2 } } }
+       changed = { ts: '2026-11-24T00:01:00Z', tip: 'abc123', corpus: { pages: 1, parsed: 1, refused: 0 }, sweep: { '3': { pages: 1, bad: 1, words: 2 } } }
        equal(Measure.append(file, changed), 1)
        equal(Measure.load(file).length, 1)
-       deepEqual(Measure.load(file)[0].sweep['3'], { pages: 1, words: 2 })
+       deepEqual(Measure.load(file)[0].sweep['3'], { pages: 1, bad: 1, words: 2 })
        Fs.rmSync(root, { recursive: true, force: true })
      })
 
@@ -81,7 +81,7 @@ test('measure', 'format names the tip, the population and each section',
      () => {
        let text
 
-       text = Measure.format({ tip: 'abc123', corpus: { pages: 4150, parsed: 4123, refused: 27 }, sweep: { '1': { pages: 16, words: 147 }, '3': { pages: 0, words: 0 } } })
+       text = Measure.format({ tip: 'abc123', corpus: { pages: 4150, parsed: 4123, refused: 27 }, sweep: { '1': { pages: 1189, bad: 16, words: 147 }, '3': { pages: 959, bad: 0, words: 0 } } })
        equal(text.includes('`abc123`'), true)
        equal(text.includes('4123 parsed, 27 refused of 4150 installed pages'), true)
        equal(text.includes('1:16p/147w'), true)

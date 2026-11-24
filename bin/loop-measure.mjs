@@ -5,7 +5,7 @@
 //
 // Interface:
 //   parseAudit(text) -> { pages, parsed, refused }
-//   parseDiff(text)  -> { pages, words }        one section's report
+//   parseDiff(text)  -> { pages, bad, words }   pages total, pages short, words
 //   run(repo, { sections, exec, tip }) -> record
 //   load(file), append(file, record)            doc/loop/history.jsonl
 //   format(record) -> the "Current state" block
@@ -42,6 +42,7 @@ export
 function parseDiff
 (text) {
   return { pages: number(text, /^\s*pages\s+(\d+)/m),
+           bad: number(text, /^\s*pages with missing words\s+(\d+)/m),
            words: number(text, /^\s*pages with missing words\s+\d+\s+\((\d+) words total\)/m) }
 }
 
@@ -117,7 +118,7 @@ function append
 
 function summary
 (section) {
-  return section.pages + 'p/' + section.words + 'w'
+  return section.bad + 'p/' + section.words + 'w'
 }
 
 export

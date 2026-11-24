@@ -138,6 +138,12 @@ function usage
   return 2
 }
 
+// A bare flag: `--no-suite`, not `--n 3`.
+function flag
+(name) {
+  return args.includes(name) ? 1 : 0
+}
+
 function option
 (name) {
   let i
@@ -690,13 +696,14 @@ function roundCmd
     return 1
   }
 
-  opts = { work: 'loop/r' + n,
+  opts = { lanes,
+           work: 'loop/r' + n,
            base: 'main',
            laneRoot: laneRoot(),
            logDir: loopDir,
            round: n,
-           allowNoProof: option('--allow-no-proof') ? 1 : 0,
-           suite: option('--no-suite') ? 0 : 'npx mocha --exit',
+           allowNoProof: flag('--allow-no-proof'),
+           suite: flag('--no-suite') ? 0 : 'npx mocha --exit',
            check: 'npm run check' }
 
   res = Merge.mergeRound(root, opts)

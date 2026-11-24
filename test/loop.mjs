@@ -296,6 +296,48 @@ function landRefuses
 
 test('land', 'refuses when main has moved off the integration branch', withRepo(landRefuses))
 
+// The one test that runs the CLI the way the loop does, because the two bugs
+// the scratch run found were wiring, not logic: `round` never passed its lanes
+// to the merge, and a bare `--no-suite` was read as missing its argument.
+function cliRound
+(dir) {
+  let q, wt, out, tip, rec
+
+  Fs.mkdirSync(Path.join(dir, 'doc', 'loop'), { recursive: true })
+  Fs.writeFileSync(Path.join(dir, '.gitignore'), 'node_modules\next/*/lib\n')
+  q = { schema: 1, run: {}, items: [] }
+  q.items.push({ id: 'p1', lane: 'a1', status: 'ready', title: 'smoke', files: [ 'allowed.js', 'test/allowed.mjs' ], proof: 'test -f allowed.js' })
+  Fs.writeFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), JSON.stringify(q))
+  git(dir, [ 'add', '-A' ])
+  git(dir, [ 'commit', '-qm', 'queue' ])
+
+  loop(dir, [ 'lanes-up' ])
+  wt = Path.join(dir, 'wt', 'bred-a1')
+  Fs.mkdirSync(Path.join(wt, 'test'), { recursive: true })
+  Fs.writeFileSync(Path.join(wt, 'allowed.js'), 'x\n')
+  Fs.writeFileSync(Path.join(wt, 'test', 'allowed.mjs'), 'x\n')
+  git(wt, [ 'add', '-A' ])
+  git(wt, [ 'commit', '-qm', 'lane work' ])
+
+  out = loop(dir, [ 'round', '1', '--items', 'p1', '--no-suite' ])
+  equal(out.includes('merged   p1'), true)
+  tip = git(dir, [ 'rev-parse', 'loop/r1' ])
+  equal(tip, git(dir, [ 'rev-parse', 'agent/bred-test1234-a1' ]))
+
+  rec = Path.join(dir, 'rec')
+  git(dir, [ 'worktree', 'add', '-q', rec, 'loop/r1' ])
+  Fs.writeFileSync(Path.join(rec, 'round-1.md'), '# smoke\n')
+  git(rec, [ 'add', '-A' ])
+  git(rec, [ 'commit', '-qm', 'doc: round 1\n\nLoop-round: 1\nLoop-verify: ' + tip ])
+  git(dir, [ 'worktree', 'remove', rec ])
+
+  out = loop(dir, [ 'land', '1' ])
+  equal(out.includes('landed'), true)
+  equal(git(dir, [ 'rev-parse', 'main' ]), git(dir, [ 'rev-parse', 'loop/r1' ]))
+}
+
+test('round', 'merges, gates, records and lands one item through the CLI', withRepo(cliRound))
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

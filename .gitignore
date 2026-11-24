@@ -17,13 +17,13 @@ TAGS.js
 TAGS.json
 TAGS.mjs
 /etc/server*
-ext/*/lib/
+ext/*/lib
 ext/*/package-lock.json
 lib/*
 !lib/codemirror.js
 !lib/ev.pegjs
 !lib/codemirror-patches
-node_modules/
+node_modules
 .corpus/
 man-*.log
 coverage/

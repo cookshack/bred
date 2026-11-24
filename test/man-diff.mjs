@@ -128,6 +128,21 @@ test('man-diff', 'a hyphenated .nf word compares whole on both sides',
        equal(lost, 0)
      })
 
+// man(1)'s character table wraps "continuation hyphen" inside an unbordered
+// tbl cell whose first column already holds "continuation", so the
+// continuation "phen" starts at the cell's left edge, before the hyphenated
+// token's column. man(1) is the page that owns the case.
+test('man-diff', 'a wrapped word in an unbordered table cell compares whole',
+     function
+     () {
+       let lost
+
+       lost = lostOn('/usr/share/man/man1/man.1.gz')
+       if (lost == undefined)
+         return this.skip()
+       equal(lost, 0)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

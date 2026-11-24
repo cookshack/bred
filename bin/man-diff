@@ -317,9 +317,21 @@ function breakOf
 // joinHyphens only sees a U+2010 at the end of a *line*, so it would keep the
 // halves apart and report both missing. Reassemble the cell first, on the raw
 // lines where the columns still line up. Only U+2010 may join: an ASCII "-"
-// is real text and a space follows it. The continuation must start at or after
-// the hyphenated token's column and stay inside the same cell, or it belongs
-// to a different column; if there is none the line is left alone.
+// is real text and a space follows it. The continuation must stay inside the
+// same cell, or it belongs to a different column; if there is none the line is
+// left alone.
+//
+// A cell can hold more than one word, so the hyphenated token is not always
+// the cell's first: man(1)'s character table wraps "continuation hyphen" as
+//
+//     continuation hy‐    255      ‐        -
+//     phen
+//
+// where the cell starts at "continuation". tbl wraps a cell's content to the
+// cell's own left edge, so a cell with a word before the hyphenated token
+// continues with the first token of the next line inside the cell, wherever
+// that token sits; a cell whose content starts at the hyphenated token
+// continues at or after that token's column.
 function cellEnd
 (line, at) {
   let i
@@ -350,8 +362,13 @@ function cellStart
   return 0
 }
 
+// A cell with a word before the hyphenated token has its content start at the
+// cell's left edge, so with `lead` set the continuation is the first token of
+// the next line inside the cell even when it starts left of the hyphenated
+// token. A prose line also ends in U+2010, but its cell runs to the end of the
+// line and joinCells leaves it to joinHyphens.
 function cellToken
-(line, at, end) {
+(line, at, end, lead) {
   let re, m, from, stop
 
   from = cellStart(line, at)
@@ -362,7 +379,7 @@ function cellToken
       continue
     if (m.index >= stop)
       return undefined
-    if (m.index < at)
+    if (m.index < (lead ? from : at))
       return undefined
     return { start: m.index, text: m[0] }
   }
@@ -420,7 +437,7 @@ function joinCells
     joins = []
     re = /[^\s│|]+/g
     while ((m = re.exec(out[i])) != undefined) {
-      let start, token, end, next, text, j, bordered
+      let start, token, end, next, text, j, bordered, lead
 
       start = m.index
       token = m[0]
@@ -429,12 +446,6 @@ function joinCells
       end = cellEnd(out[i], start + token.length)
       bordered = ((out[i][end] == '│') || (out[i][end] == '|')) ? 1 : 0
       if (bordered == 0) {
-        // A prose line also ends in U+2010, but its first token is not the
-        // hyphenated one; only a cell whose content starts here continues on
-        // the next line. Checking for text before the token keeps the next
-        // line's sentence-spacing gap from looking like a cell boundary.
-        if (out[i].slice(cellStart(out[i], start), start).trim().length)
-          continue
         // A hyphenated token whose cell runs to the end of the line is prose
         // broken at the right margin, not a table cell: a table row still has
         // the rest of the row (another column or a border) after the cell.
@@ -446,11 +457,12 @@ function joinCells
       }
       if (out[i].slice(start + token.length, end).trim().length)
         continue
+      lead = out[i].slice(cellStart(out[i], start), start).trim().length
       next = undefined
       if (bordered)
         next = borderToken(out[i], out[i + 1], start, end)
       else
-        next = cellToken(out[i + 1], start, end)
+        next = cellToken(out[i + 1], start, end, lead)
       if (next == undefined)
         continue
       text = next.text
@@ -462,7 +474,7 @@ function joinCells
         if (bordered)
           next = borderToken(out[j], out[j + 1], start, end)
         else
-          next = cellToken(out[j + 1], start, end)
+          next = cellToken(out[j + 1], start, end, lead)
         if (next == undefined)
           break
         text = text.slice(0, -1) + next.text

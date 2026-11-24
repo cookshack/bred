@@ -740,9 +740,16 @@ function appendServerLog
 // The Task label for a subagent call, with the marker tinted so it reads as
 // "green means subagent output".
 export
+// `mark` replaces the call's own ✔️ with something else, which a background
+// call needs: it finished starting the lane, not the lane.
 function subagentLabel
-(part) {
-  return [ span('Task', 'code-msg-subagent-task'), Util.subagentLabel(part).slice(4) ]
+(part, mark) {
+  let text
+
+  text = Util.subagentLabel(part)
+  if (mark)
+    text = text.replace(/ ✔️$/, '') + ' ' + mark
+  return [ span('Task', 'code-msg-subagent-task'), text.slice(4) ]
 }
 
 export

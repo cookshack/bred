@@ -2949,15 +2949,20 @@ function init
                     },
                         onComplete
                         (buf, part) {
-                      let sessionId
+                      let label, sessionId, sub
 
                       sessionId = Util.subagentChildId(part)
-                      if (sessionId)
+                      // A background lane is still running when its call returns,
+                      // so its output keeps going to its tab until the child's own
+                      // status ends it.
+                      sub = Subagent.finish(buf, part, 'done')
+                      if (sessionId && (sub?.background == 0))
                         buf.vars('code').subagentIds?.delete(sessionId)
                       // The subagent's own transcript is its tab, so the main
-                      // transcript only says the call started and finished.
-                      Subagent.finish(buf, part, 'done')
-                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0)
+                      // transcript only says the call started and finished. A
+                      // background call has finished *starting* the lane.
+                      label = Ui.subagentLabel(part, ((sub?.background && ((sub.status == 'done') == 0))) ? '⏳' : '')
+                      Ui.appendToolMsg(buf, part.callID, label, 0)
                     },
                         onErr
                         (buf, part) {
@@ -2980,9 +2985,16 @@ function init
                                } },
              'session.status': { onArrive
                                  (buf, event) {
-                                   if (Util.isSessionMatch(buf, event.properties.sessionID)
-                                       && event.properties.sessionID == buf.vars('code').sessionID)
-                                     updateStatus(buf, event.properties, Util.calculateTokenPercentage(buf))
+                                   let props
+
+                                   props = event.properties
+                                   // A background lane's call returned at launch, so
+                                   // its own status is the end (see Subagent.ended).
+                                   if (Util.isSessionMatch(buf, props.sessionID))
+                                     if (props.sessionID == buf.vars('code').sessionID)
+                                       updateStatus(buf, props, Util.calculateTokenPercentage(buf))
+                                     else if (Subagent.childStatus(buf, props.sessionID, props.status?.type))
+                                       buf.vars('code').subagentIds?.delete(props.sessionID)
                                  } },
              'permission.asked': { onArrive
                                    (buf, event) {

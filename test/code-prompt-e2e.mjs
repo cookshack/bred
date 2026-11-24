@@ -971,6 +971,78 @@ test('subagent', 'task prompt stays in main, child output goes to its tab',
        }
      })
 
+test('subagent', 'a background call launches the lane; its own status ends it',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-sub', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let before, box, el, head, main
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await waitFor(() => created.vars('code').sessionID)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-sub' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-sub', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.tool.called', { id: 'call-bg',
+                                                       sessionID: 'ses-sub',
+                                                       assistantMessageID: 'm1',
+                                                       name: 'subagent',
+                                                       metadata: { sessionID: 'ses-bg' },
+                                                       input: { description: 'Lane', agent: 'general', prompt: 'work', background: 1 } }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-out[data-sessionid="ses-bg"]'))
+         box = created.views[0].ele.querySelector('.code-out[data-sessionid="ses-bg"]')
+         main = created.views[0].ele.querySelector('.code-out-main')
+
+         // The call returns the moment the lane is launched: that is not the end.
+         before = main.querySelector('.code-msg-tool[data-callid="call-bg"]').textContent
+         fake.push(Fake.event('session.tool.success', { id: 'call-bg',
+                                                        sessionID: 'ses-sub',
+                                                        assistantMessageID: 'm1',
+                                                        name: 'subagent',
+                                                        metadata: { sessionID: 'ses-bg' },
+                                                        content: [ { type: 'text', text: 'The subagent is working in the background' } ] }))
+         // The call line is rewritten in the same handler; wait for that, then
+         // read the tab, which is what says whether the lane has ended.
+         await waitFor(() => (main.querySelector('.code-msg-tool[data-callid="call-bg"]')?.textContent == before) ? 0 : 1)
+         head = box.querySelector('.code-out-head').textContent
+         equal(head.includes('✔️'), false, 'a launched lane is not a finished lane')
+         equal(head.includes('◌'), true, 'a launched lane is still running')
+
+         // The lane keeps working, and its output still belongs to its own tab.
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-bg' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-bg', assistantMessageID: 'b1', agent: 'general', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.text.started', { sessionID: 'ses-bg', assistantMessageID: 'b1', ordinal: 0 }))
+         await waitFor(() => box.querySelector('.code-msg-assistant'))
+         el = main.querySelector('.code-msg-assistant[data-messageid="b1"]')
+         equal(el, null, 'the lane output does not fall into the main transcript')
+
+         // The child session ends: now, and only now, the lane is done.
+         fake.push(Fake.event('session.execution.succeeded', { sessionID: 'ses-bg' }))
+         await waitFor(() => box.querySelector('.code-out-head').textContent.includes('✔️'))
+         equal(box.querySelector('.code-out-head').textContent.includes('✔️'), true,
+               'the lane ends when its own session does')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
 test('subagent', 'the sidebar switches which transcript is shown',
      async () => {
        let created, fake, orig, panes

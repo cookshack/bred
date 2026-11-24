@@ -13,11 +13,13 @@ function all
   return buf.vars('code').subagents || (buf.vars('code').subagents = new Map())
 }
 
+// The mark says what the lane is doing: a background lane is only *launched*
+// when its call returns, so "running" is the truth until the child session ends.
 function head
 (sub) {
   return (sub.desc ? 'Task: ' + sub.desc : 'Task')
     + ' (' + (sub.agent || 'subagent') + ' agent)'
-    + (sub.status == 'done' ? ' ✔️' : (sub.status == 'error' ? ' ✘' : ''))
+    + (sub.status == 'done' ? ' ✔️' : (sub.status == 'error' ? ' ✘' : ' ◌'))
 }
 
 // The sidebar repaints on focus and cursor moves, so nudge it when a subagent
@@ -52,6 +54,9 @@ function ensure
     sub.desc = part.state?.input?.description || ''
     sub.prompt = Util.subagentPrompt(part) || sub.prompt
     sub.callID = part.callID
+    // A background call returns as soon as the lane starts, so the call's
+    // completion is not the lane's completion (see `ended`).
+    sub.background = part.state?.input?.background ? 1 : sub.background
   }
   sub.head = head(sub)
   if (created || ((before == sub.head) == 0) || ((beforePrompt == sub.prompt) == 0)) {
@@ -85,7 +90,8 @@ function noteDelta
 }
 
 // A subagent call finished: mark the tab and, when the child's stream did not
-// already end with it, show the result there.
+// already end with it, show the result there. For a background lane the call
+// only launched it, so nothing is shown and the lane stays running.
 export
 function finish
 (buf, part, status) {
@@ -104,6 +110,16 @@ function finish
   sub = all(buf).get(sessionID)
   if (sub == null)
     return
+  if (sub.background && (status == 'done')) {
+    // The call means "started". A lane that was already idle when the call
+    // returned is done; otherwise the child's own status says when it ends.
+    sub.callDone = 1
+    sub.status = sub.idle ? 'done' : 'running'
+    sub.head = head(sub)
+    Ui.updateOut(buf, sessionID)
+    repaint()
+    return sub
+  }
   sub.status = status
   sub.head = head(sub)
   Ui.updateOut(buf, sessionID)
@@ -111,4 +127,38 @@ function finish
   result = Util.subagentResult(part)
   if (result && ((sub.lastText || '').includes(result.trim()) == 0))
     Ui.appendMsg(buf, 0, result, 'result:' + sessionID, 0, { sessionID })
+  return sub
+}
+
+// A background lane has ended when its child session has gone idle since the
+// call returned. `session.status`'s idle comes from the execution ending, so a
+// lane that is sitting on a permission or a question has not ended.
+export
+function ended
+(sub) {
+  return (sub.background && sub.callDone && sub.idle) ? 1 : 0
+}
+
+// The child session's own status: the only end a background lane has. Returns 1
+// when this status ended the lane, so the caller can stop routing its output.
+export
+function childStatus
+(buf, sessionID, type) {
+  let sub
+
+  sub = all(buf).get(sessionID)
+  if (sub == null)
+    return 0
+  if (type == 'busy')
+    sub.busy = 1
+  else if (type == 'idle')
+    sub.idle = 1
+  if (ended(sub) && ((sub.status == 'done') == 0)) {
+    sub.status = 'done'
+    sub.head = head(sub)
+    Ui.updateOut(buf, sessionID)
+    repaint()
+    return 1
+  }
+  return 0
 }

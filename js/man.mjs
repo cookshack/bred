@@ -881,9 +881,10 @@ function init
 
     // The list reports the failure that matters, not whichever candidate
     // failed last: a part that exists with no read bits is a permission
-    // problem the reader can act on, so it outranks a part that is merely
-    // missing. Equal ranks keep the later reason, which is what the list's
-    // fallthrough gives anyway.
+    // problem the reader can act on, so it outranks a part that exists and
+    // fails to read, which in turn outranks a part that is merely missing.
+    // Equal ranks keep the later reason, which is what the list's fallthrough
+    // gives anyway.
     function note
     (err, rank) {
       if ((lastErr == undefined) || (rank >= lastRank)) {
@@ -926,19 +927,22 @@ function init
     // own ("read failed"). One stat, only after that failure, names a part
     // that is there as a regular file but has no read bits: the file exists
     // and the problem is permission, the same reading wholeFailed gives a
-    // whole line that statted as a file. The list still falls through to its
-    // next part, but the permission reason outranks a later miss, so the page
-    // ends with the failure the reader can act on.
+    // whole line that statted as a file. A regular file that does have read
+    // bits still exists and cannot be opened, so its read failure outranks a
+    // later miss even though it is not a permission problem. The list still
+    // falls through to its next part, but the strongest reason is what the
+    // page ends with.
     function partFailed
     (path, readErr, next) {
       Tron.cmd('file.stat', path, (err, data) => {
                                     let fileMode
 
                                     fileMode = data?.data?.mode
-                                    if ((err == 0) &&
-                                        ((fileMode & 0o170000) == 0o100000) &&
-                                        ((fileMode & 0o444) == 0))
-                                      note(cannotRead(path, 'Permission denied'), 2)
+                                    if ((err == 0) && ((fileMode & 0o170000) == 0o100000))
+                                      if ((fileMode & 0o444) == 0)
+                                        note(cannotRead(path, 'Permission denied'), 3)
+                                      else
+                                        note(readErr, 2)
                                     else
                                       note(readErr, 1)
                                     next()

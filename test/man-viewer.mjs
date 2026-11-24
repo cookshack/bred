@@ -2050,6 +2050,24 @@ test('viewer', 'a colon list names an unreadable part before a later missing one
        equal(textOf(b).includes(gone), false)
      })
 
+// p68: a part with read bits is not a miss. Its read still fails, and the page
+// exists but cannot be opened, which is a stronger failure than a later part
+// with no manual entry at all. The reason names the first path and its failed
+// read; the later miss does not replace it.
+test('viewer', 'a colon list names a part that fails to read before a later missing one',
+     async () => {
+       let b, broken, gone, whole
+
+       broken = '/fake/man1/broken.1'
+       gone = '/fake/man1/gone.1'
+       whole = broken + ':' + gone
+       setup({}, { probe: [ whole ] })
+       readFailPaths[broken] = 1
+       b = await opened('probe')
+       equal(textOf(b).includes('Cannot read ' + broken + ': read failed'), true)
+       equal(textOf(b).includes(gone), false)
+     })
+
 test('viewer', 'a whole path that is a directory keeps the split error',
      async () => {
        let b, whole

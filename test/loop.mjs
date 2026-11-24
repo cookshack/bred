@@ -1,4 +1,6 @@
 import { equal } from 'node:assert/strict'
+
+import { land, matches, mergeOne } from '../bin/loop-merge.mjs'
 import { spawnSync } from 'node:child_process'
 import Fs from 'node:fs'
 import Os from 'node:os'
@@ -62,7 +64,7 @@ function repo
   git(dir, [ 'config', 'user.name', 'loop test' ])
   git(dir, [ 'config', 'commit.gpgsign', 'false' ])
   Fs.mkdirSync(Path.join(dir, 'bin'))
-  names = [ 'loop.mjs', 'loop-queue.mjs', 'loop-claims.mjs' ]
+  names = [ 'loop.mjs', 'loop-queue.mjs', 'loop-claims.mjs', 'loop-merge.mjs', 'loop-measure.mjs' ]
   i = 0
 
   while (i < names.length) {
@@ -179,6 +181,120 @@ function countsSince
 }
 
 test('status', 'counts the commits since the last Loop-verify trailer', withRepo(countsSince))
+
+function matchGlobs
+() {
+  equal(matches('js/wode*.mjs', 'js/wode-view.mjs'), true)
+  equal(matches('js/wode*.mjs', 'js/wode.mjs'), true)
+  equal(matches('js/wode*.mjs', 'js/view.mjs'), false)
+  equal(matches('js/man.mjs', 'js/man.mjs'), true)
+  equal(matches('js/man.mjs', 'js/man-parse.mjs'), false)
+}
+
+test('merge', 'a file-set pattern is a glob, not a prefix', matchGlobs)
+
+function laneSetup
+(dir, name, files) {
+  let wt, branch, i
+
+  branch = 'agent/bred-test1234-' + name
+  wt = Path.join(dir, 'wt', 'bred-' + name)
+  git(dir, [ 'worktree', 'add', '-b', branch, wt, 'main' ])
+  i = 0
+
+  while (i < files.length) {
+    Fs.mkdirSync(Path.dirname(Path.join(wt, files[ i ])), { recursive: true })
+    Fs.writeFileSync(Path.join(wt, files[ i ]), 'x\n')
+    i += 1
+  }
+
+  git(wt, [ 'add' ].concat(files))
+  git(wt, [ 'commit', '-qm', 'lane work' ])
+  return { id: 'p1', lane: name, branch, files, proof: 'test -f allowed.js' }
+}
+
+function mergeOpts
+(dir) {
+  return { laneRoot: Path.join(dir, 'wt'), logDir: Path.join(dir, 'lo'), round: 1, timeoutMs: 30000 }
+}
+
+function mergesClean
+(dir) {
+  let row, res
+
+  git(dir, [ 'branch', 'work', 'main' ])
+  row = laneSetup(dir, 'a1', [ 'allowed.js', 'test/allowed.mjs' ])
+  res = mergeOne(dir, row, 'work', mergeOpts(dir))
+
+  equal(res.ok, 1, res.problems.join('; '))
+  equal(git(dir, [ 'rev-parse', 'work' ]), git(dir, [ 'rev-parse', row.branch ]))
+  equal(res.notes.includes('red: red'), true)
+}
+
+test('merge', 'a lane that is red at base and green after the rebase merges', withRepo(mergesClean))
+
+function parksOutside
+(dir) {
+  let row, res, problems
+
+  git(dir, [ 'branch', 'work', 'main' ])
+  row = laneSetup(dir, 'a1', [ 'allowed.js', 'other.js' ])
+  row.files = [ 'allowed.js' ]
+  res = mergeOne(dir, row, 'work', mergeOpts(dir))
+  problems = res.problems.join('; ')
+
+  equal(res.parked, 1)
+  equal(problems.includes('outside its file set: other.js'), true)
+  equal(problems.includes('aborted'), true)
+  equal(Fs.existsSync(Path.join(dir, 'lo', 'p1.patch')), true)
+  equal(git(dir, [ 'rev-parse', 'work' ]), git(dir, [ 'rev-parse', 'main' ]))
+}
+
+test('merge', 'a file outside the queue row parks the lane and keeps a patch', withRepo(parksOutside))
+
+function parksNotRed
+(dir) {
+  let row, res
+
+  git(dir, [ 'branch', 'work', 'main' ])
+  row = laneSetup(dir, 'a1', [ 'allowed.js', 'test/allowed.mjs' ])
+  row.proof = 'true'
+  res = mergeOne(dir, row, 'work', mergeOpts(dir))
+
+  equal(res.parked, 1)
+  equal(res.problems.join('; ').includes('not red'), true)
+}
+
+test('merge', 'a proof that passes at base is not a red and parks', withRepo(parksNotRed))
+
+function landsWork
+(dir) {
+  let row, res, tip
+
+  row = laneSetup(dir, 'a2', [ 'b.js' ])
+  tip = git(dir, [ 'rev-parse', row.branch ])
+  git(dir, [ 'branch', 'work', tip ])
+  res = land(dir, { work: 'work' })
+
+  equal(res.ok, 1, res.why)
+  equal(git(dir, [ 'rev-parse', 'main' ]), tip)
+}
+
+test('land', 'fast-forwards main to the integration branch', withRepo(landsWork))
+
+function landRefuses
+(dir) {
+  let res
+
+  git(dir, [ 'branch', 'work', 'main' ])
+  commit(dir, 'main moves', 'm.txt')
+  res = land(dir, { work: 'work' })
+
+  equal(res.ok, 0)
+  equal(res.why.includes('not an ancestor'), true)
+}
+
+test('land', 'refuses when main has moved off the integration branch', withRepo(landRefuses))
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,

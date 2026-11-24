@@ -28,6 +28,8 @@ import Path from 'node:path'
 import Url from 'node:url'
 
 import * as Claims from './loop-claims.mjs'
+import * as Measure from './loop-measure.mjs'
+import * as Merge from './loop-merge.mjs'
 import * as Queue from './loop-queue.mjs'
 
 let root
@@ -113,6 +115,12 @@ function main
     return reapCmd()
   case 'check':
     return checkCmd()
+  case 'round':
+    return roundCmd()
+  case 'land':
+    return landCmd()
+  case 'measure':
+    return measureCmd()
   case undefined:
   case 'help':
   case '--help':
@@ -126,7 +134,7 @@ function main
 
 function usage
 () {
-  console.log('usage: bin/loop.mjs [status|lanes-up|pick|claim|release|reap|check|help]')
+  console.log('usage: bin/loop.mjs [status|lanes-up|pick|claim|release|reap|check|round|land|measure|help]')
   return 2
 }
 
@@ -154,12 +162,17 @@ function help
   console.log('  claim <id>  take an item (a lease with a pid, not a bare mkdir)')
   console.log('  release <id>, reap   give one back; reap the dead ones')
   console.log('  check       the queue against git: schema, ids, done hashes, trailers')
+  console.log('  round <n>   merge picked lanes onto loop/r<n>, gate each, run the suite')
+  console.log('              (--items p1,p2, --no-suite, --allow-no-proof)')
+  console.log('  land <n>    fast-forward main to loop/r<n>, only once its tip carries')
+  console.log('              the round record (`Loop-verify:`); never a force')
+  console.log('  measure     the corpus counts and every section at --tip (default main),')
+  console.log('              appended to doc/loop/history.jsonl and printed as a block')
   console.log('')
   console.log('Lane worktrees live at $BRED_WORKTREE_ROOT/bred-a<n> on')
   console.log('agent/bred-<ws8>-a<n>. The run\'s scratch state is')
   console.log('$BRED_WORKTREE_ROOT/bred-loop.')
   console.log('')
-  console.log('Not yet implemented: round (the merge), measure.')
   return 0
 }
 
@@ -169,6 +182,24 @@ function workspace
 
   ws = process.env.BRED_WORKSPACE || ''
   return ws.slice(0, 8) || 'local'
+}
+
+// `round` builds main's integration branch and runs the suite beside it, so it
+// belongs in the canonical checkout, not in a lane worktree.
+function canonical
+() {
+  return git(root, 'rev-parse', '--git-dir') == git(root, 'rev-parse', '--git-common-dir') ? 1 : 0
+}
+
+function laneOf
+(item) {
+  if (item == undefined)
+    return 0
+  return { id: item.id,
+           lane: item.lane,
+           branch: 'agent/bred-' + workspace() + '-' + item.lane,
+           files: item.files,
+           proof: item.proof }
 }
 
 function laneRoot
@@ -475,14 +506,13 @@ function hotInfo
   return { files, ours, total: blocks.length }
 }
 
-function pickCmd
-() {
-  let q, res, n, minutes, info, hot
+// One place decides what is dispatchable, so `pick` and `round` cannot
+// disagree about it.
+function choose
+(n, minutes) {
+  let info, hot
 
-  q = loadQueue()
-  n = Number(option('--n') || 3)
-  minutes = option('--hot')
-  minutes = minutes == undefined ? 120 : Number(minutes)
+  minutes = minutes == undefined ? 120 : minutes
   info = hotInfo(minutes)
   hot = info.files
 
@@ -494,7 +524,17 @@ function pickCmd
     console.log('hot: no loop trailers in the last ' + minutes + ' minutes, not filtering')
   }
 
-  res = Queue.pick(q, { n, dirty: dirtyPaths(), hot })
+  return Queue.pick(loadQueue(), { n, dirty: dirtyPaths(), hot })
+}
+
+function pickCmd
+() {
+  let res, n, minutes, q
+
+  n = Number(option('--n') || 3)
+  minutes = option('--hot')
+  q = loadQueue()
+  res = choose(n, minutes == undefined ? 120 : Number(minutes))
 
   res.picked.forEach(item => console.log(item.id + '  ' + item.lane + '  ' + item.title.slice(0, 90)))
   if (res.picked.length == 0)
@@ -605,6 +645,115 @@ function checkCmd
   problems.forEach(p => console.log('problem  ' + p))
   console.log(problems.length + ' problem(s); ' + q.items.length + ' item(s)')
   return problems.length > 0 ? 1 : 0
+}
+
+function measureCmd
+() {
+  let res, file, sections
+
+  sections = option('--sections')
+  res = Measure.run(root, { tip: option('--tip') || git(root, 'rev-parse', 'main'),
+                            sections: sections ? sections.split(',') : undefined })
+
+  file = Path.join(root, 'doc', 'loop', 'history.jsonl')
+  Measure.append(file, res)
+  console.log(Measure.format(res))
+  console.log('')
+  console.log('written  ' + file + '  at ' + res.tip.slice(0, 8))
+  return 0
+}
+
+function roundCmd
+() {
+  let n, q, lanes, ids, res, opts
+
+  n = Number(args[ 1 ])
+  if (n == 0)
+    return usage()
+  if (canonical() == 0) {
+    console.error('loop: round runs from the main checkout; the lanes have their own worktrees')
+    return 1
+  }
+
+  q = loadQueue()
+  ids = option('--items')
+  lanes = []
+
+  if (ids)
+    ids.split(',').forEach(id => lanes.push(laneOf(q.items.filter(x => x.id == id)[ 0 ])))
+  else
+    choose(3).picked.forEach(item => lanes.push(laneOf(item)))
+
+  lanes = lanes.filter(l => l)
+  if (lanes.length == 0) {
+    console.error('loop: no lanes to merge (--items, or a pick of the queue)')
+    return 1
+  }
+
+  opts = { work: 'loop/r' + n,
+           base: 'main',
+           laneRoot: laneRoot(),
+           logDir: loopDir,
+           round: n,
+           allowNoProof: option('--allow-no-proof') ? 1 : 0,
+           suite: option('--no-suite') ? 0 : 'npx mocha --exit',
+           check: 'npm run check' }
+
+  res = Merge.mergeRound(root, opts)
+
+  console.log('round ' + n + '  ' + opts.work + ' from ' + res.base.slice(0, 8))
+  res.merged.forEach(id => console.log('merged   ' + id))
+  res.parked.forEach(id => console.log('parked   ' + id))
+  ;(res.notes || []).forEach(note => console.log('note     ' + note))
+  res.problems.forEach(p => console.log('problem  ' + p))
+  if (res.suite)
+    console.log('suite    ' + (res.suite.ok ? 'ok' : 'FAILED') + ' at ' + res.suite.tip.slice(0, 8) +
+                '  (suite ' + res.suite.suite + ', check ' + res.suite.check + ')')
+  if (res.ok == 0) {
+    console.error('loop: ' + opts.work + ' is not ready to land (' + res.tip.slice(0, 8) + ')')
+    return 1
+  }
+
+  console.log('')
+  console.log('next: measure at ' + res.tip.slice(0, 8) + ', write doc/loop/round-' + n + '.md on ' +
+              opts.work + ',')
+  console.log('      commit it with Loop-round: ' + n + ' and Loop-verify: ' + res.tip.slice(0, 8) + ',')
+  console.log('      then: bin/loop.mjs land ' + n)
+  return 0
+}
+
+function landCmd
+() {
+  let n, work, tip, res, trailer
+
+  n = Number(args[ 1 ])
+  if (n == 0)
+    return usage()
+  work = 'loop/r' + n
+  tip = revParse(root, work)
+
+  if (tip == 0) {
+    console.error('loop: no ' + work)
+    return 1
+  }
+
+  trailer = git(root, 'log', '-1', '--format=%B', work).match(/^Loop-verify: [0-9a-f]+$/m)
+  if (trailer == undefined) {
+    console.error('loop: ' + work + ' has no Loop-verify trailer.')
+    console.error('      Write doc/loop/round-' + n + '.md on it and commit with')
+    console.error('      Loop-round: ' + n + ' and Loop-verify: <the tip the suite passed>.')
+    return 1
+  }
+
+  res = Merge.land(root, { work })
+  if (res.ok == 0) {
+    console.error('loop: land refused: ' + res.why)
+    return 1
+  }
+
+  console.log('landed   main -> ' + res.tip.slice(0, 8) + '  (' + res.why + ')')
+  console.log('next: mark each merged item done in doc/loop/queue.json with its lane hash')
+  return 0
 }
 
 process.exit(main())

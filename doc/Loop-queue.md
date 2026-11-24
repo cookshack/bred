@@ -7,46 +7,53 @@ session's worktree root does not lose the queue again.
 The loop owns this file. Lanes read it and never edit it.
 
     run     live 2026-11-24T10:56Z, deadline 18:56Z
-    round   15 in progress (started on a5229a8, 11:06Z)
-    main    a5229a8      tip when round 15 was dispatched
+    round   15 in progress (dispatched on 9c25cfa, 11:20Z)
+    main    9c25cfa      base for round 15
     state   $BRED_WORKTREE_ROOT/bred-loop/  briefs, claims, round logs (untracked)
     sweep   1:20p/154w  3:5p/71w  5:6p/6w  7:3p/8w  8:2p/9w  (whole sections, after round 14)
     drift   corpus now 4121 parsed / 29 refused: cs/passwd.5 and cs/shadow.5 added
             `.do hla` and `.do hpf` (groff hyphenation requests, p58)
+    hot     css/manpage.css, js/man.mjs, test/man-viewer.mjs, doc/Man.md (11:00)
+            — a2 and viewer items wait until these go cold
 
 Statuses: `ready` (dispatchable), `next` (queued after a decision or another
 item), `triage` (needs evidence before it can be called a bug), `done:<hash>`
 (merged on `main`). An item that turned out to be a measurement error is `done`
 too, with the verdict in its title.
 
-## Round 15 — suggested lanes (file sets are disjoint)
+`files` is the item's file set, and it is authoritative: the loop checks it for
+two lanes overlapping, and against the dirty tree and the files touched in the
+last two hours. An item whose files are busy is `next`, whatever its status
+was before.
 
-| id | lane | status | title |
-|----|------|--------|-------|
-| p52 | a1 | in-round | a bare `.Nm` inside a `T{`/`T}` cell is printed literally (crypt_checksalt(3), crypt_preferred_method(3)) |
-| p51 | a2 | in-round | the compressed magics never fire in the app: pty output is UTF-8-decoded, so every byte ≥ 0x80 is U+FFFD and only bzip2's `BZh` survives (tests pass because they bypass the decode) |
-| p30 | a3 | in-round | verdict: not an mdoc rule — pcre2demo(3) has no `.TH`, so groff loads no macro package and its default utf8 hyphen is U+2010; fold typographic hyphens in `man-diff` word keys |
-| p48 | a3 | in-round | `man-diff --page` has no missing-word total, only the deduped sample (needed to measure p30) |
-| p49 | a3 | next | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 11; the loop takes it after the round |
-| p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) |
+## Round 15 — dispatched lanes (file sets are disjoint, none hot)
+
+| id | lane | status | title | files |
+|----|------|--------|-------|-------|
+| p52 | a1 | in-round | a bare `.Nm` inside a `T{`/`T}` cell is printed literally (crypt_checksalt(3), crypt_preferred_method(3)) | js/man-parse.mjs, test/man-parse.mjs |
+| p50 | a2 | in-round | `wode-view-e2e` "stale peer push during revert" failed once in a post-merge verify, passed twice alone (round 13); reproduce under load or clear it | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
+| p48 | a3 | in-round | `man-diff --page` has no missing-word total, only the deduped sample | bin/man-diff, test/man-diff.mjs |
+| p30 | a3 | in-round | verdict: not an mdoc rule — pcre2demo(3) has no `.TH`, so groff loads no macro package and its default utf8 hyphen is U+2010; fold typographic hyphens in `man-diff` word keys | bin/man-diff |
+| p51 | a2 | next | the compressed magics never fire in the app: pty output is UTF-8-decoded, so every byte ≥ 0x80 is U+FFFD and only bzip2's `BZh` survives (tests pass because they bypass the decode) | js/shell.mjs, js/man.mjs, test/man-viewer.mjs |
+| p49 | a3 | next | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 11; the loop takes it after the round | doc/Man.md |
+| p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) | bin/man-diff |
 
 ## Backlog
 
-| id | lane | status | title |
-|----|------|--------|-------|
-| p44 | a1 | triage | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` |
-| p53 | a1 | next | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) |
-| p54 | a1 | next | a no-output request between a `\c` and the next line swallows the join (0 corpus occurrences) |
-| p55 | a1 | next | a `\c` followed by a blank line: groff joins to the next text line, we make a paragraph break |
-| p56 | a1 | next | a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none |
-| p19 | a1 | next | `.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2) |
-| p33 | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) |
-| p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) |
-| p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) |
-| p58 | a1 | next | `.hla`/`.hpf` are groff hyphenation requests; `.do hla cs` refuses cs/passwd.5 and cs/shadow.5 (2 pages) |
-| p59 | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? |
-| p57 | a2 | next | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one |
-| p50 | a2 | triage | `wode-view-e2e` "stale peer push during revert" failed once in a post-merge verify, passed twice alone (round 13) |
+| id | lane | status | title | files |
+|----|------|--------|-------|-------|
+| p44 | a1 | triage | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` | js/man-parse.mjs |
+| p53 | a1 | next | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) | js/man-parse.mjs |
+| p54 | a1 | next | a no-output request between a `\c` and the next line swallows the join (0 corpus occurrences) | js/man-parse.mjs |
+| p55 | a1 | next | a `\c` followed by a blank line: groff joins to the next text line, we make a paragraph break | js/man-parse.mjs |
+| p56 | a1 | next | a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none | js/man-parse.mjs, test/man-parse.mjs |
+| p19 | a1 | next | `.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2) | js/man-parse.mjs |
+| p33 | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) | js/man-parse.mjs |
+| p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
+| p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |
+| p58 | a1 | next | `.hla`/`.hpf` are groff hyphenation requests; `.do hla cs` refuses cs/passwd.5 and cs/shadow.5 (2 pages) | js/man-parse.mjs, js/man-roff.mjs |
+| p59 | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
+| p57 | a2 | next | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one | js/man.mjs, test/man-viewer.mjs |
 
 ## Done
 

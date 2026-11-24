@@ -128,6 +128,39 @@ test('man-diff', 'a hyphenated .nf word compares whole on both sides',
        equal(lost, 0)
      })
 
+// ps(1) writes its option lists with `\:` after every comma, so man(1) may
+// break `-o pid,format,tname,` at the comma and print `time,cmd,` on the next
+// line. The comma is inside the argument, not prose punctuation: the source
+// has no space after the escape, and our text keeps the argument as one word.
+// The 95 left over are `.BR pcpu ).` cells in the format-specifier table,
+// where our text keeps the macro line instead of "pcpu)."; that is a parse
+// defect of its own, not a comma join, and this number should fall when it is
+// fixed.
+test('man-diff', 'a comma-marked break inside an option list compares whole',
+     function
+     () {
+       let lost
+
+       lost = lostOn('/usr/share/man/man1/ps.1.gz')
+       if (lost == undefined)
+         return this.skip()
+       equal(lost, 95)
+     })
+
+// dmsetup(8) marks the commas of a syntax line the same way
+// (<name>,<uuid>,\:<minor>,...), so it is the second page the rule reaches.
+// Its remaining losses are table and justification noise, not commas.
+test('man-diff', 'a comma-marked syntax line joins without stealing prose words',
+     function
+     () {
+       let lost
+
+       lost = lostOn('/usr/share/man/man8/dmsetup.8.gz')
+       if (lost == undefined)
+         return this.skip()
+       equal(lost, 5)
+     })
+
 // man(1)'s character table wraps "continuation hyphen" inside an unbordered
 // tbl cell whose first column already holds "continuation", so the
 // continuation "phen" starts at the cell's left edge, before the hyphenated

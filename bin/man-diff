@@ -240,9 +240,19 @@ function spacedHyphens
 // on hg(1) alone). What separates them is the character the break follows: a
 // path or address separator, `/`, `:` or `@`. bash(1) breaks its PATH list
 // after ":" and troff(1) an address after "@".
+//
+// ps(1) marks the commas inside a comma-separated option list the same way,
+// `-o pid,\:format,\:tname,\:time,\:cmd`, so man(1) can break the argument
+// after a comma and print `pid,format,tname,` at one line end, `time,cmd,` at
+// the next. A comma is also plain prose punctuation, so the comma alone cannot
+// be the marker: a prose comma is followed by whitespace in the source, while
+// a list's comma escapes straight into the next field with none. Only a `\:`
+// immediately after a comma and immediately before more text is joined, and
+// only when the whole rendered token matches the source run, so "word, next"
+// stays two words.
 function breakTokens
 (src) {
-  let out, re, m, at, run, text
+  let out, re, m, at, run, text, after
 
   out = new Set()
   src = src.split('\n').filter(line => /^\.\\"/.test(line) == 0).join('\n')
@@ -259,6 +269,11 @@ function breakTokens
     text = text.trim().split(' ').pop()
     if (/[/:@]$/.test(text))
       out.add(text)
+    else if (/,$/.test(text)) {
+      after = src[m.index + 2]
+      if ((after != undefined) && (/\s/.test(after) == 0))
+        out.add(text)
+    }
   }
   return out
 }

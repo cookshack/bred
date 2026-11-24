@@ -32,22 +32,32 @@ will choose its own.
     page count moved, not the parser), or a real regression. Only the last one
     blocks work; do not spend the round explaining the first three.
 
-    The run's state directory is per-session and may not exist: create
-    $LOOP=$BRED_WORKTREE_ROOT/bred-loop with state, rules.md, claims/ and
-    round.sh, as "Where state lives" and "How a round works" in doc/Loop.md
-    describe. Lane worktrees are $BRED_WORKTREE_ROOT/bred-a1..a3 on branches
-    agent/bred-<ws8>-a1..a3; run $LOOP/lanes-up.sh to bring them to main.
+    The tool is tracked: bin/loop.mjs status is the re-entry point (tip,
+    last verified tip, lane tips, queue counts, claims, parked branches).
+    Read status, then arrange the session state in
+    $LOOP=$BRED_WORKTREE_ROOT/bred-loop (claims, briefs, suite logs); the
+    queue is doc/loop/queue.json, not a markdown table, so never hand-edit
+    doc/Loop-queue.md (it is generated, and check will say so).
 
-    Then work in rounds of up to three lanes whose file sets are disjoint: pick
-    from the `files` column in doc/Loop-queue.md, and leave out any item whose
-    files are dirty or were touched in the last two hours (another agent is on
-    them). Write $LOOP/lane-<id>.md and $LOOP/lane-a<lane>.test for each, claim
-    with mkdir, dispatch in background telling each lane to read rules.md and
-    its brief and to commit once, then merge with $LOOP/round.sh. After the
-    merge take the round's one measurement at the tip round.sh reports, and
-    record the numbers and the item statuses in doc/loop/round-<n>.md,
-    doc/Man.md and doc/Loop-queue.md. Only the loop edits doc/Loop.md and
-    doc/Loop-queue.md.
+    Work in rounds of up to three lanes whose file sets are disjoint: pick
+    with bin/loop.mjs pick (it skips dirty, hot and overlapping items), mark
+    the chosen rows in-round, write a brief per item in $LOOP, run
+    bin/loop.mjs lanes-up, and dispatch each lane with background. Tell every
+    lane to read doc/loop/rules.md and its brief, work only in its worktree
+    and files, commit once with a Loop-item: <id> trailer, and never merge,
+    rebase or push.
+
+    Then bin/loop.mjs round <n> --items ... gates and integrates onto
+    loop/r<n> and runs the suite once at that tip (the suite log is in $LOOP).
+    bin/loop.mjs measure --tip <tip> measures the tip's own tools into
+    doc/loop/history.jsonl. Write doc/loop/round-<n>.md on loop/r<n> and
+    commit it there with Loop-round: <n> and Loop-verify: <tip>; bin/loop.mjs
+    land <n> makes the one fast-forward. Then mark the merged items done with
+    their lane hashes in queue.json and run bin/loop.mjs report --write.
+
+    Only the loop edits doc/Loop.md, doc/loop/queue.json and doc/Loop-queue.md.
+    A red suite is not landed: fix the harness or park the lane, record the
+    fact, and keep main green.
 
     Stop starting a new round 45 minutes before the deadline, commit the docs
     and summarise. A half-finished round is worse than a clean checkpoint.

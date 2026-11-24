@@ -63,15 +63,16 @@ wiped mid-run once), and `~` is container-local too — only `src/bred`,
   `mkdir` so two lanes cannot take the same item.
 - `rules.md` — the contract every lane agent reads.
 - `lane-<id>.md` — one brief per item, kept as the record of what was asked.
-- `lane-a<lane>.test` — the one command that proves that lane, re-run by
-  `round.sh` after every rebase.
+- `doc/loop/queue.json` — the queue and each item's proof; the markdown view
+  is generated from it by `bin/loop.mjs report --write`.
 - `round-N.log` — the merge, suite and check output for round N.
 - `round-N.md` — a short summary of round N (also tracked, as
   `doc/loop/round-N.md`).
-- `round.sh` — the serial merge step (rebase, re-test, park, fast-forward,
-  then suite and check at a pinned tip).
-- `lanes-up.sh` — bring the lane worktrees to `main` before dispatch; never
-  resets a branch with unmerged commits.
+- `bin/loop.mjs` — the tool: status, pick, claim/release/reap, lanes-up,
+  round, measure, land, report, check.
+- `bin/loop-merge.mjs`, `bin/loop-queue.mjs`, `bin/loop-claims.mjs`,
+  `bin/loop-measure.mjs` — its four halves, imported through documented
+  interfaces.
 - `verify-<n>/` — a throwaway worktree at the round's tip, where the suite
   runs, so the user's checkout is untouched.
 
@@ -81,26 +82,27 @@ source of truth.
 
 ## How a round works
 
-1. Record `base` (`git rev-parse main`) in `state`, and the dirty paths and
-   hot files from `git status` and `git log --since='2 hours ago'`. Pick up to
-   three items from `doc/Loop-queue.md` whose **file sets are disjoint**, and
-   whose files are neither dirty nor hot; mark them `in-round`, and write
-   `$LOOP/lane-<id>.md` for each: the worktree, the item, exactly which files
-   it owns, and how to prove the fix (a test that fails before it). Write the
-   proof command, one line, to `$LOOP/lane-a<lane>.test`.
-2. Run `$LOOP/lanes-up.sh`, then dispatch the lanes with `background`, each
-   told to read `rules.md` and its lane file, claim with `mkdir
-   $LOOP/claims/<id>`, work only in its own worktree, commit once, and never
-   merge, rebase or push.
-3. `$LOOP/round.sh <n>` merges: it rebases each lane onto the current `main`,
-   re-runs `lane-a<lane>.test`, fast-forwards one at a time, parks a lane that
-   conflicts or fails its re-test on `<branch>-r<n>-aborted` instead of
-   forcing or resetting it away, then runs the suite and `npm run check` once
-   in `$LOOP/verify-<n>` at the merged tip.
-4. The loop — not a lane — updates this file from the numbers the agents report,
-   writes `doc/loop/round-<n>.md`, and bumps `state` and `doc/Loop-queue.md`.
-   Every number names the tip it was measured on.
-5. Check the clock in `state`; stop if the deadline has passed.
+1. `bin/loop.mjs status` is the re-entry point: tip, last verified tip, lane
+   tips, queue counts, claims, parked branches, dirty paths. `pick` returns
+   the ready items whose files are disjoint and neither dirty nor hot.
+2. Mark the chosen items `in-round` in `doc/loop/queue.json` (then
+   `report --write`), and write `$LOOP/lane-<id>.md` for each: the worktree,
+   the item, the files it owns and the proof already in its queue row. Run
+   `bin/loop.mjs lanes-up`, then dispatch with `background`; each lane reads
+   `rules.md`, works only in its worktree and files, commits once with a
+   `Loop-item: <id>` trailer, and never merges, rebases or pushes.
+3. `bin/loop.mjs round <n> --items ...` builds `loop/r<n>` from main, rebases
+   each lane onto it, and gates it: files inside the queue row, proof red at
+   base with the lane's test files, proof green after the rebase. A failing
+   lane is parked with its patch; the suite and `npm run check` run once at
+   the integrated tip (`$LOOP/round-<n>-suite.log`).
+4. `bin/loop.mjs measure --tip <tip>` measures the tip's own tools and appends
+   `doc/loop/history.jsonl`. Write `doc/loop/round-<n>.md` on `loop/r<n>` and
+   commit it there with `Loop-round: <n>` and `Loop-verify: <tip>`.
+5. `bin/loop.mjs land <n>` fast-forwards main once, refusing unless the
+   recorded tip is on the branch and only docs follow it. Then mark the merged
+   items `done` with their lane hashes in `queue.json` and `report --write`.
+6. Check the clock in `state`; stop starting rounds at `stopnew`.
 
 ## Working on a moving main
 
@@ -110,20 +112,20 @@ it merges onto.
 
 - **Pin the base, and re-test after the rebase.** A clean rebase proves the
   text did not clash, not that the code still agrees: two agents can rewrite
-  the same function in different hunks. Each lane therefore ships one command
-  in `lane-a<lane>.test`, and `round.sh` runs it after rebasing. A lane whose
-  re-test fails is parked, not merged.
-- **Park, never reset, unmerged work.** `round.sh` renames a lane branch that
-  could not merge to `<branch>-r<n>-aborted` and cuts a fresh lane branch from
-  `main`. The commit stays reachable and is listed in the round record. A
-  `reset --hard main` is only safe once the branch is an ancestor of `main`,
-  and `lanes-up.sh` checks that.
-- **The suite runs at a pinned tip in its own worktree.** `round.sh` records
-  `TIP=$(git rev-parse main)`, adds a detached `verify-<n>` worktree at it
-  (with `node_modules` symlinked), and runs mocha and `npm run check` there.
-  The user's checkout can be dirty, mid-edit or mid-checkout without
-  affecting the round. If `main` moved during the run, the log says so and the
-  numbers stay attributed to `TIP`.
+  the same function in different hunks. Each item ships one proof command in
+  `queue.json`, and `round` runs it at the base (it must fail) and after the
+  rebase (it must pass). A lane that fails either is parked, not merged.
+- **Park, never reset, unmerged work.** `round` renames a lane branch that
+  could not merge to `<branch>-r<n>-aborted`, writes its patch under `$LOOP`,
+  and cuts a fresh branch from the integration tip. The commit stays reachable
+  and is listed in the round record. A lane is reset only when its branch is
+  an ancestor of `main` and its tree is clean; `lanes-up` checks that.
+- **The suite runs at the integrated tip in its own worktree.** `round` builds
+  `loop/r<n>`, adds a detached verify worktree at its tip, provisions
+  `node_modules`, `lib/` and `ext/*/lib`, and runs mocha and `npm run check`
+  there (`$LOOP/round-<n>-suite.log`). The user's checkout can be dirty,
+  mid-edit or mid-checkout without affecting the round. If `main` moved,
+  `land` refuses and the round is re-gated on the new base.
 - **A failing suite is attributed, not accepted.** When the suite fails at
   `TIP`, run it at `base`; if `base` is green, merge the round's lane branches
   one at a time in a scratch worktree, running the suite after each, to name
@@ -135,9 +137,8 @@ it merges onto.
   round). An item whose files intersect the outside set is `next`, not
   `ready`, even if its lane is free. The `files` column in the queue makes
   this mechanical.
-- **A locked index is "main busy".** `round.sh` waits for
-  `.git/index.lock` and retries the fast-forward once. Only a real merge
-  conflict parks a lane.
+- **A locked index is "main busy".** The tool retries the fast-forward and a
+  rebase once after the lock is gone. Only a real conflict parks a lane.
 - **The record names its tip.** `doc/loop/round-<n>.md`, the measurement and
   the `Current state` block all say which commit and which page population
   they describe. A package update (the corpus page count moving) is a

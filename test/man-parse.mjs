@@ -401,6 +401,15 @@ test('escapes', 'special characters and dashes',
              'a — b • c - d')
      })
 
+test('escapes', 'hy is a typographic hyphen',
+     () => {
+       // groff -Tutf8 -mdoc: \[hy] is U+2010, while a bare - and \- are
+       // ASCII. Only the named character changes.
+       equal(asText('.TH T 1\nx \\[hy] y\n'), 'x \u2010 y\n')
+       equal(asText('.TH T 1\nx - y\n'), 'x - y\n')
+       equal(asText('.TH T 1\nx \\- y\n'), 'x - y\n')
+     })
+
 test('escapes', 'a nested bracket argument does not leak a bracket',
      () => {
        // libsasl(5) defines `T>` as a font-family change built on a register.

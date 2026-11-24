@@ -84,7 +84,7 @@ symbols = { 'aq': "'",
             '**': '∗',
             'em': '—',
             'en': '–',
-            'hy': '-',
+            'hy': '\u2010', // typographic hyphen; a bare - and \- stay ASCII
             'ha': '^',
             'ti': '~',
             'sl': '/',

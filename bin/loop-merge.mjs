@@ -119,6 +119,20 @@ function fail
   return res
 }
 
+// The main checkout, even when `repo` is a linked worktree.
+function primary
+(repo) {
+  let common
+
+  try {
+    common = git(repo, 'rev-parse', '--path-format=absolute', '--git-common-dir')
+  }
+  catch {
+    return repo
+  }
+  return Path.dirname(common)
+}
+
 function exists
 (p) {
   try {
@@ -148,19 +162,23 @@ function link
 export
 function provision
 (repo, dir) {
-  let nodeModules, lib, ext, names, i
+  let nodeModules, lib, ext, names, i, source
 
   if (exists(dir) == 0)
     return
+  // The generated files live in the primary checkout, not in whichever
+  // worktree this was called from: `npm run check` and the suite can be run
+  // from a lane, and a lane has no lib/ev-parser.mjs of its own.
+  source = primary(repo)
   nodeModules = Path.join(dir, 'node_modules')
   if (exists(nodeModules) == 0)
-    link(Path.join(repo, 'node_modules'), nodeModules)
+    link(Path.join(source, 'node_modules'), nodeModules)
 
-  lib = Path.join(repo, 'lib')
+  lib = Path.join(source, 'lib')
   if (Fs.existsSync(lib))
     copyMissing(lib, Path.join(dir, 'lib'))
 
-  ext = Path.join(repo, 'ext')
+  ext = Path.join(source, 'ext')
   if (Fs.existsSync(ext) == 0)
     return
 

@@ -121,6 +121,10 @@ function main
     return landCmd()
   case 'measure':
     return measureCmd()
+  case 'report':
+    return reportCmd()
+  case 'mark':
+    return markCmd()
   case undefined:
   case 'help':
   case '--help':
@@ -134,7 +138,7 @@ function main
 
 function usage
 () {
-  console.log('usage: bin/loop.mjs [status|lanes-up|pick|claim|release|reap|check|round|land|measure|help]')
+  console.log('usage: bin/loop.mjs [status|lanes-up|pick|claim|release|reap|check|round|land|measure|mark|report|help]')
   return 2
 }
 
@@ -173,7 +177,10 @@ function help
   console.log('  land <n>    fast-forward main to loop/r<n>, only once its tip carries')
   console.log('              the round record (`Loop-verify:`); never a force')
   console.log('  measure     the corpus counts and every section at --tip (default main),')
-  console.log('              appended to doc/loop/history.jsonl and printed as a block')
+  console.log('              in a worktree of that tip, appended to history.jsonl')
+  console.log('  mark p1=abc,d2=def  set queue rows done, for the record commit')
+  console.log('  report [--write]    the queue tables from queue.json (--write regen-)')
+  console.log('                      erates the block in doc/Loop-queue.md')
   console.log('')
   console.log('Lane worktrees live at $BRED_WORKTREE_ROOT/bred-a<n> on')
   console.log('agent/bred-<ws8>-a<n>. The run\'s scratch state is')
@@ -609,14 +616,17 @@ function overlapNote
 
 function claimCmd
 () {
-  let id, lane, branch, res
+  let id, lane, branch, res, ttl, expires
 
   id = args[ 1 ]
   if (id == undefined)
     return usage()
   lane = option('--lane') || 'a1'
   branch = option('--branch') || ('agent/bred-' + workspace() + '-' + lane)
-  res = Claims.claim(loopDir, id, { lane, branch, pid: process.pid, host: Os.hostname() })
+  ttl = option('--ttl')
+  ttl = ttl == undefined ? 120 : Number(ttl)
+  expires = ttl > 0 ? new Date(Date.now() + (ttl * 60000)).toISOString() : undefined
+  res = Claims.claim(loopDir, id, { lane, branch, pid: process.pid, host: Os.hostname(), expires })
 
   if (res.ok == 0) {
     console.error('loop: cannot claim ' + id + ': ' + res.err)
@@ -653,28 +663,29 @@ function reapCmd
 // and is on main, then whether a trailer names an item the queue still calls
 // open. A pre-trailer round has no `Loop-item:`, so that is not a problem.
 function checkHash
-(item, problems) {
+(item, problems, ref) {
   if (ok(root, 'cat-file', '-e', item.doneHash) == 0)
     return problems.push(item.id + ': done:' + item.doneHash + ' does not exist')
-  if (ok(root, 'merge-base', '--is-ancestor', item.doneHash, 'main') == 0)
-    return problems.push(item.id + ': done:' + item.doneHash + ' is not on main')
+  if (ok(root, 'merge-base', '--is-ancestor', item.doneHash, ref) == 0)
+    return problems.push(item.id + ': done:' + item.doneHash + ' is not on ' + ref)
 }
 
 function checkCmd
 () {
-  let q, problems, t, i
+  let q, problems, t, i, ref
 
   q = loadQueue()
   problems = Queue.check(q)
   t = trailers()
   i = 0
+  ref = option('--ref') || 'main'
 
   while (i < q.items.length) {
     let item
 
     item = q.items[ i ]
     if (item.status == 'done' && item.doneHash)
-      checkHash(item, problems)
+      checkHash(item, problems, ref)
     else if (t.items.includes(item.id))
       problems.push(item.id + ': a Loop-item trailer exists but the queue says ' + item.status)
     i += 1
@@ -685,13 +696,59 @@ function checkCmd
   return problems.length > 0 ? 1 : 0
 }
 
+function reportCmd
+() {
+  let q, block, file, text
+
+  q = loadQueue()
+  block = Queue.report(q)
+
+  if (flag('--write') == 0) {
+    console.log(block)
+    return 0
+  }
+
+  file = Path.join(root, 'doc', 'Loop-queue.md')
+  text = Fs.readFileSync(file, 'utf8')
+  text = replaceBlock(text, block)
+  Fs.writeFileSync(file, text)
+  console.log('wrote    ' + file)
+  return 0
+}
+
+function replaceBlock
+(text, block) {
+  let start, end, close
+
+  close = '<!-- /loop:queue -->'
+  start = text.indexOf('<!-- loop:queue -->')
+  end = text.indexOf(close)
+  if ((start < 0) || (end < 0)) {
+    console.error('loop: no <!-- loop:queue --> markers in the file')
+    return text
+  }
+  return text.slice(0, start) + '<!-- loop:queue -->\n' + block + '\n' + close + text.slice(end + close.length)
+}
+
 function measureCmd
 () {
-  let res, file, sections
+  let res, file, sections, tip, dir
 
   sections = option('--sections')
-  res = Measure.run(root, { tip: option('--tip') || git(root, 'rev-parse', 'main'),
-                            sections: sections ? sections.split(',') : undefined })
+  tip = option('--tip') || git(root, 'rev-parse', 'main')
+  dir = Path.join(loopDir, 'measure-' + tip.slice(0, 8))
+
+  // The tools are part of what a round changes, so they have to come from the
+  // tip, not from the checkout somebody happens to be measuring in.
+  if (Fs.existsSync(dir) == 0)
+    git(root, 'worktree', 'add', '--detach', dir, tip)
+  else {
+    git(dir, 'checkout', '--detach', tip)
+    git(dir, 'reset', '--hard', '--quiet', tip)
+  }
+  Merge.provision(root, dir)
+
+  res = Measure.run(dir, { tip, sections: sections ? sections.split(',') : undefined })
 
   file = Path.join(root, 'doc', 'loop', 'history.jsonl')
   Measure.append(file, res)
@@ -827,6 +884,40 @@ function runRound
               opts.work + ',')
   console.log('      commit it with Loop-round: ' + n + ' and Loop-verify: ' + res.tip.slice(0, 8) + ',')
   console.log('      then: bin/loop.mjs land ' + n)
+  return 0
+}
+
+function markCmd
+() {
+  let q, file, i, pairs
+
+  q = loadQueue()
+  file = queueFile()
+  pairs = args.slice(1)
+
+  if (pairs.length == 0) {
+    console.error('loop: usage: bin/loop.mjs mark <id>=<hash> [<id>=<hash> ...]')
+    return 2
+  }
+
+  i = 0
+
+  while (i < pairs.length) {
+    let parts, pair
+
+    parts = pairs[ i ].split('=')
+    pair = (parts.length == 2) && (parts[ 1 ].length > 6)
+    if (pair == 0) {
+      console.error('loop: mark wants <id>=<hash>, got ' + pairs[ i ])
+      return 1
+    }
+    Queue.finish(q, parts[ 0 ], parts[ 1 ])
+    i += 1
+  }
+
+  Queue.save(file, q)
+  console.log('marked   ' + i + ' item(s) done in ' + file)
+  console.log('next: commit it on the round branch with the record, then: bin/loop.mjs land <n>')
   return 0
 }
 

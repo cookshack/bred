@@ -4,7 +4,7 @@
 // Imported by bin/loop.mjs (the CLI) and test/loop-state.mjs.
 //
 // Interface:
-//   claim(root, id, { lane, branch, pid, host }) -> { ok, err, claim }
+//   claim(root, id, { lane, branch, pid, host, expires }) -> { ok, err, claim }
 //   release(root, id)
 //   list(root)
 //   reap(root, { maxAgeMs })                     -> { removed, kept }
@@ -66,6 +66,10 @@ function live
   maxAge = opts.maxAgeMs == undefined ? defaultMaxAge : opts.maxAgeMs
   if (record == undefined)
     return 0
+  // An explicit expiry outranks the pid: a claim made by a command that exits
+  // immediately would otherwise look dead the moment it was written.
+  if (record.expires)
+    return Date.parse(record.expires) > Date.now() ? 1 : 0
   if (record.host == Os.hostname())
     return alive(record.pid)
   started = record.started ? Date.parse(record.started) : 0
@@ -85,7 +89,8 @@ function claim
              branch: spec.branch,
              pid: spec.pid == undefined ? process.pid : spec.pid,
              host: spec.host || Os.hostname(),
-             started: new Date().toISOString() }
+             started: new Date().toISOString(),
+             expires: spec.expires }
   try {
     Fs.writeFileSync(claimFile(root, id), JSON.stringify(record, null, 2) + '\n',
                      { flag: 'wx' })

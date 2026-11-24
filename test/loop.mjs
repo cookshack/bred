@@ -1,5 +1,6 @@
 import { equal } from 'node:assert/strict'
 
+import * as Claims from '../bin/loop-claims.mjs'
 import { land, matches, mergeOne, mergeRound, provision } from '../bin/loop-merge.mjs'
 import { spawnSync } from 'node:child_process'
 import Fs from 'node:fs'
@@ -422,6 +423,31 @@ function provisionsLib
 }
 
 test('provision', 'copies the generated lib a fresh worktree lacks', withRepo(provisionsLib))
+
+// A claim written by a command that exits at once would be reaped immediately,
+// so an explicit expiry outranks the pid.
+function leaseTtl
+() {
+  let dir
+
+  dir = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-lease-'))
+  try {
+    let past, future
+
+    past = new Date(Date.now() - 60000).toISOString()
+    future = new Date(Date.now() + 3600000).toISOString()
+    Claims.claim(dir, 'p1', { lane: 'a1', expires: past })
+    equal(Claims.reap(dir, {}).removed.length, 1)
+    Claims.claim(dir, 'p2', { lane: 'a1', expires: future })
+    equal(Claims.reap(dir, {}).removed.length, 0)
+    equal(Claims.list(dir).length, 1)
+  }
+  finally {
+    Fs.rmSync(dir, { recursive: true, force: true })
+  }
+}
+
+test('claim', 'an explicit expiry outranks a pid that has already exited', leaseTtl)
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,

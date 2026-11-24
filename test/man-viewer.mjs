@@ -2030,6 +2030,26 @@ test('viewer', 'a readable part wins after a mode-000 part',
        equal(calls.some(c => (c[0] == 'cat') && (c[1] == live)), true)
      })
 
+// p57: the list's reason is the failure that matters, not whichever candidate
+// happened to fail last. A mode-000 part exists and cannot be read, which is a
+// permission problem the reader can act on; a later missing part is an ordinary
+// miss. The permission failure names its own path, and the miss does not
+// replace it.
+test('viewer', 'a colon list names an unreadable part before a later missing one',
+     async () => {
+       let b, gone, secret, whole
+
+       gone = '/fake/man1/gone.1'
+       secret = '/fake/man1/secret.1'
+       whole = secret + ':' + gone
+       setup({}, { probe: [ whole ] })
+       unreadablePaths[secret] = 1
+       readFailPaths[secret] = 1
+       b = await opened('probe')
+       equal(textOf(b).includes('Cannot read ' + secret + ': Permission denied'), true)
+       equal(textOf(b).includes(gone), false)
+     })
+
 test('viewer', 'a whole path that is a directory keeps the split error',
      async () => {
        let b, whole

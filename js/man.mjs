@@ -862,7 +862,7 @@ function init
 
   function onManW
   (dir, topic, depth, out, code, cb, chain, seen) {
-    let found
+    let found, lastErr, lastRank
 
     function readSome
     (path, ok, fail) {
@@ -879,6 +879,19 @@ function init
       onSource(dir, topic, depth, path, 0, text, cb, chain, seen)
     }
 
+    // The list reports the failure that matters, not whichever candidate
+    // failed last: a part that exists with no read bits is a permission
+    // problem the reader can act on, so it outranks a part that is merely
+    // missing. Equal ranks keep the later reason, which is what the list's
+    // fallthrough gives anyway.
+    function note
+    (err, rank) {
+      if ((lastErr == undefined) || (rank >= lastRank)) {
+        lastErr = err
+        lastRank = rank
+      }
+    }
+
     // A line that split is statted whole before its parts: one stat, and a
     // readable regular file is the page the user asked for, even when a part
     // before the colon also reads. When the whole is not a file (the common
@@ -887,16 +900,16 @@ function init
     // failure is reported instead of being hidden behind a split prefix, the
     // same rule readPath applies to a bare path.
     function wholeStatted
-    (whole, at, lastErr, err, data) {
+    (whole, at, err, data) {
       let fileMode
 
       fileMode = data?.data?.mode
       if (err || (fileMode == undefined))
-        tryCand(at + 1, lastErr)
+        tryCand(at + 1)
       else if ((fileMode & 0o170000) == 0o100000)
         readSome(whole, opened, readErr => wholeFailed(whole, fileMode, readErr))
       else
-        tryCand(at + 1, lastErr)
+        tryCand(at + 1)
     }
 
     // The reader still gets one try on a file with no read bits (an ACL or root
@@ -914,7 +927,8 @@ function init
     // that is there as a regular file but has no read bits: the file exists
     // and the problem is permission, the same reading wholeFailed gives a
     // whole line that statted as a file. The list still falls through to its
-    // next part; that part's own reason is what the page ends with.
+    // next part, but the permission reason outranks a later miss, so the page
+    // ends with the failure the reader can act on.
     function partFailed
     (path, readErr, next) {
       Tron.cmd('file.stat', path, (err, data) => {
@@ -924,14 +938,15 @@ function init
                                     if ((err == 0) &&
                                         ((fileMode & 0o170000) == 0o100000) &&
                                         ((fileMode & 0o444) == 0))
-                                      next(cannotRead(path, 'Permission denied'))
+                                      note(cannotRead(path, 'Permission denied'), 2)
                                     else
-                                      next(readErr)
+                                      note(readErr, 1)
+                                    next()
                                   })
     }
 
     function tryCand
-    (at, lastErr) {
+    (at) {
       let cand
 
       if (at >= found.cands.length) {
@@ -940,11 +955,9 @@ function init
       }
       cand = found.cands[at]
       if (cand.whole)
-        Tron.cmd('file.stat', cand.path, (err, data) => wholeStatted(cand.path, at, lastErr,
-                                                                     err, data))
+        Tron.cmd('file.stat', cand.path, (err, data) => wholeStatted(cand.path, at, err, data))
       else
-        readSome(cand.path, opened, err => partFailed(cand.path, err,
-                                                      err2 => tryCand(at + 1, err2)))
+        readSome(cand.path, opened, err => partFailed(cand.path, err, () => tryCand(at + 1)))
     }
 
     found = (code == 0) ? manPaths(out) : { cands: [] }

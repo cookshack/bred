@@ -196,7 +196,9 @@ parser fails, which is what proves the gate gates. FreeBSD and NetBSD can be
 fetched with `--only` but were not measured here. `man-diff` needs `man` installed; it
 ignores
 headers/footers (including BSD-style dated footers), overstrike, automatic
-hyphenation (U+2010), compound hyphens broken at a line end, box-drawing
+hyphenation (U+2010), compound hyphens broken at a line end, a word
+hyphenated inside a table cell (the U+2010 halves are reassembled before the
+line ends are joined), box-drawing
 characters and bullet markers, then reports reference words missing from our
 text. `--max N` reads the first N pages in sorted path order and says so
 (`pages 120 of 1189  (sample; --max 0 for all)`); only `--max 0` measures a
@@ -308,7 +310,9 @@ and repeats a non-standard `.TH` in the footer; `man-diff` normalises those,
 but a split inside a word that is not hyphenated still counts. Section 3 is
 almost entirely the TIFF pages, whose option table hyphenates long names such
 as `TIFFTAG_BADFAXLINES` inside a narrow cell; the cells themselves now parse
-(`T{`/`T}` blocks, which used to leave the markers in the text). `man-diff`
+(`T{`/`T}` blocks, which used to leave the markers in the text), and `man-diff`
+now reassembles the U+2010 halves inside the cell, so those names no longer
+count as two missing words. `man-diff`
 drops a bare `|` and `_` from both sides, since those are our table separators
 and rule rows and man(1) draws neither, and it compares words on a key that
 ignores trailing sentence punctuation, because man(1) can wrap the final `.`

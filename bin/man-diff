@@ -167,6 +167,120 @@ function joinHyphens
   return out
 }
 
+// groff hyphenates a long word inside a narrow tbl cell with U+2010 and
+// continues it on the next line of the same cell, with the rest of the row
+// still on the first line:
+//
+//     │TIFFTAG_BADFAX‐  │ 1       │ uint32_t*        │
+//     │LINES            │         │                  │
+//
+// joinHyphens only sees a U+2010 at the end of a *line*, so it would keep the
+// halves apart and report both missing. Reassemble the cell first, on the raw
+// lines where the columns still line up. Only U+2010 may join: an ASCII "-"
+// is real text and a space follows it. The continuation must start at or after
+// the hyphenated token's column and stay inside the same cell, or it belongs
+// to a different column; if there is none the line is left alone.
+function cellEnd
+(line, at) {
+  let i
+
+  i = at
+  while (i < line.length) {
+    if ((line[i] == '│') || (line[i] == '|'))
+      return i
+    if ((line[i] == ' ') && (line.slice(i, i + 3) == '   '))
+      return i
+    i++
+  }
+  return line.length
+}
+
+function cellStart
+(line, at) {
+  let i
+
+  i = at - 1
+  while (i >= 0) {
+    if ((line[i] == '│') || (line[i] == '|'))
+      return i + 1
+    if ((i >= 2) && (line.slice(i - 2, i + 1) == '   '))
+      return i + 1
+    i--
+  }
+  return 0
+}
+
+function cellToken
+(line, at, end) {
+  let re, m, from, stop
+
+  from = cellStart(line, at)
+  stop = Math.min(end, cellEnd(line, at))
+  re = /[^\s│|]+/g
+  while ((m = re.exec(line)) != undefined) {
+    if (m.index < from)
+      continue
+    if (m.index >= stop)
+      return undefined
+    if (m.index < at)
+      return undefined
+    return { start: m.index, text: m[0] }
+  }
+  return undefined
+}
+
+function joinCells
+(lines) {
+  let out
+
+  out = lines.map(line => line.replace(/.\x08/g, '').replace(/\x1b\[[0-9;]*m/g, ''))
+  for (let i = 0; i + 1 < out.length; i++) {
+    let re, m, joins
+
+    joins = []
+    re = /[^\s│|]+/g
+    while ((m = re.exec(out[i])) != undefined) {
+      let start, token, end, next, text, j
+
+      start = m.index
+      token = m[0]
+      if (/[\u2010]$/.test(token) == 0)
+        continue
+      // A prose line also ends in U+2010, but its first token is not the
+      // hyphenated one; only a cell whose content starts here continues on the
+      // next line. Checking for text before the token keeps the next line's
+      // sentence-spacing gap from looking like a cell boundary.
+      if (out[i].slice(cellStart(out[i], start), start).trim().length)
+        continue
+      end = cellEnd(out[i], start + token.length)
+      if (out[i].slice(start + token.length, end).trim().length)
+        continue
+      next = cellToken(out[i + 1], start, end)
+      if (next == undefined)
+        continue
+      text = next.text
+      j = i + 1
+      out[j] = out[j].slice(0, next.start) + ' '.repeat(text.length) +
+               out[j].slice(next.start + text.length)
+      while (/[\u2010]$/.test(text)) {
+        next = cellToken(out[j + 1], start, end)
+        if (next == undefined)
+          break
+        text = text.slice(0, -1) + next.text
+        j++
+        out[j] = out[j].slice(0, next.start) + ' '.repeat(next.text.length) +
+                 out[j].slice(next.start + next.text.length)
+      }
+      joins.push({ start, token, text })
+    }
+    joins.reverse().forEach(join => {
+                            out[i] = out[i].slice(0, join.start) + join.token.slice(0, -1) +
+                                     join.text + out[i].slice(join.start + join.token.length)
+                          })
+  }
+  return out
+}
+
 function referenceText
 (file) {
   let text, lines, out
@@ -184,7 +298,7 @@ function referenceText
     lines.pop()
   else if (lines.length && isFooter(lines[lines.length - 1]))
     lines.pop()
-  out = joinHyphens(lines).join('\n')
+  out = joinHyphens(joinCells(lines)).join('\n')
   return normal(out)
 }
 

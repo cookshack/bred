@@ -1639,6 +1639,16 @@ test('escapes', 'greek capitals follow the groff names',
              'θ ψ η')
      })
 
+test('escapes', 'greek capital gamma is a name, and *J and *V are not',
+     () => {
+       equal(flat(parsed('.TH T 1\n\\[*A] \\[*G] \\[*S] \\[*W]\n').doc.blocks[0].spans),
+             'Α Γ Σ Ω')
+       equal(flat(parsed('.TH T 1\n\\(*G\n').doc.blocks[0].spans), 'Γ')
+       equal(parsed('.TH T 1\n\\[*G]\n').ok, 1)
+       equal(parsed('.TH T 1\n\\[*J]\n').ok, 0)
+       equal(parsed('.TH T 1\n\\[*V]\n').ok, 0)
+     })
+
 test('escapes', 'groff symbol names pl and mi',
      () => {
        equal(flat(parsed('.TH T 1\na \\(pl b \\(mi c\n').doc.blocks[0].spans),

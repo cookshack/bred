@@ -173,6 +173,7 @@ greek = { 'ts': 'ς', // teliko sigma, the final form of `*s`
           '*P': 'Π',
           '*S': 'Σ',
           '*F': 'Φ',
+          '*G': 'Γ',
           '*Y': 'Η',
           '*W': 'Ω',
           '*A': 'Α',

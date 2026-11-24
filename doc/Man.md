@@ -490,7 +490,18 @@ Buffers and `js/shell.mjs` decodes with one streaming `TextDecoder` per run, so
 a mislabelled compressed page names its format in the app, not only in the
 renderer.
 
-Tests: 554 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 18 ran on the new `bin/loop.mjs` and closed the `.Fn` half of the
+declaration pair: a `.Fn` in a SYNOPSIS now ends with `;`
+(`other(char *y, int z);`) and a body-section `.Fn` does not. The same round
+made a spent colon list name the failure that matters (a part with no read
+bits, not a later missing part), and made `flushPeer` report an unreadable
+collab field instead of treating the throw as "already flushed" — the revert
+now aborts visibly rather than rebuilding over an unacknowledged push. Two
+harness bugs surfaced on the first real round and are fixed in the tool, not in
+the parser: a symlinked `ext/*/lib` loaded a second CodeMirror, and
+`spawnSync`'s 1 MB buffer killed the suite with ENOBUFS.
+
+Tests: 556 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

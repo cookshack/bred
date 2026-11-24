@@ -467,10 +467,29 @@ test('escapes', 'a unicode and a decimal character name resolve',
        equal(parsed('.TH T 1\nx \\N\'0\' y\n').ok, 0)
      })
 
+test('refusal', 'a char name is decimal only',
+     () => {
+       // groff -Tutf8: char0x41 is not found; char65 is A.
+       equal(parsed('.TH T 1\na \\[char0x41] b\n').ok, 0)
+       equal(asText('.TH T 1\na \\[char65] b\n'), 'a A b\n')
+     })
+
 test('escapes', 'the arrow names are not read as code points',
      () => {
        // groff -Tutf8: \[uA] is U+21D1 and \[dA] is U+21D3, not hex.
        equal(asText('.TH T 1\nx \\[uA] \\[dA] y\n'), 'x ⇑ ⇓ y\n')
+     })
+
+test('escapes', 'a vertical arrow and a horizontal line have names',
+     () => {
+       let r
+
+       // groff -Tutf8: va is U+2195, vA is U+21D5, an is U+23AF.
+       r = asText('.TH T 1\na \\[va] \\[vA] \\[an] b\n')
+       equal(r, 'a ↕ ⇕ ⎯ b\n')
+       equal(r.codePointAt(2), 0x2195)
+       equal(r.codePointAt(4), 0x21D5)
+       equal(r.codePointAt(6), 0x23AF)
      })
 
 test('escapes', 'a unicode name is the canonical hex spelling only',
@@ -629,6 +648,17 @@ test('refusal', 'an unknown character fails the page',
        r = parsed('.TH T 1\na \\(zz b\n')
        equal(r.ok, 0)
        equal(r.fails[0].what, 'character \\(zz)')
+     })
+
+test('refusal', 'the two-dot name is not a character',
+     () => {
+       let r
+
+       // groff -Tutf8: can't find special character '..'; it is not U+2025.
+       r = parsed('.TH T 1\na \\[..] b\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'character \\[..]')
+       equal(parsed('.TH T 1\na \\(.. b\n').fails[0].what, 'character \\(..)')
      })
 
 test('refusal', 'an unparsed condition fails the page',

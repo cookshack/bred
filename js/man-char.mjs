@@ -92,7 +92,7 @@ symbols = { 'aq': "'",
             'or': '|',
             'br': '│',
             'bv': '⎪',
-            '..': '‥',
+            'an': '⎯',
             'at': '@',
             'co': '©',
             'rg': '®',
@@ -113,6 +113,8 @@ symbols = { 'aq': "'",
             'uA': '⇑',
             'da': '↓',
             'dA': '⇓',
+            'va': '↕',
+            'vA': '⇕',
             '>=': '≥',
             '<=': '≤',
             '!=': '≠',
@@ -232,6 +234,18 @@ function unicodeCode
   return charByNumber('0x' + digits)
 }
 
+// A `char` name is a code point in canonical decimal. groff takes `charNNN`
+// and refuses `char0x41`, `char+65`, `char065` and `char1e2`.
+function charDecimal
+(name) {
+  let digits
+
+  digits = name.slice(4)
+  if (/^(0|[1-9][0-9]*)$/.test(digits))
+    return charByNumber(digits)
+  return 0
+}
+
 export
 function charOfBracket
 (name) {
@@ -243,6 +257,6 @@ function charOfBracket
   if (name.startsWith('u'))
     ch = unicodeCode(name)
   else if (name.startsWith('char'))
-    ch = charByNumber(name.slice(4))
+    ch = charDecimal(name)
   return ch || 0
 }

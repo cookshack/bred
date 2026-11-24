@@ -1,0 +1,428 @@
+{
+  "schema": 1,
+  "run": {
+    "start": "2026-11-24T10:56Z",
+    "deadline": "2026-11-24T18:56Z",
+    "stopNew": "2026-11-24T18:11Z",
+    "state": "stopped",
+    "main": "a352b4e"
+  },
+  "items": [
+    {
+      "id": "p50",
+      "lane": "a2",
+      "status": "ready",
+      "title": "the peer-push test is now **reverted from main** (`b0b0afd`): it waits on the push and the revert callback, but in the full suite the push has not reached main when it asserts (`'v1' !== 'v1X'`, both tests). The diagnosis and slow-revert variant are on `agent/bred-0b2c11a0-a2` (`fbdef92`) and `$LOOP/p50-crash/a2-wip.patch`; it needs a test isolated from the suite as well as green alone",
+      "files": [
+        "test/wode-view-e2e.mjs",
+        "js/wode*.mjs",
+        "js/view.mjs"
+      ]
+    },
+    {
+      "id": "p64",
+      "lane": "a1",
+      "status": "ready",
+      "title": "`.Fn` in a SYNOPSIS also ends with `;` in groff; we do not print it (found in p61's report)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p65",
+      "lane": "a3",
+      "status": "ready",
+      "title": "no fake emits a typed-array chunk split mid-UTF-8, so `js/shell.mjs`'s streaming decoder is proven only by real-pty timing; add the fake and the test",
+      "files": [
+        "js/shell.mjs",
+        "test/man-viewer.mjs",
+        "test/main-shell.mjs"
+      ]
+    },
+    {
+      "id": "p66",
+      "lane": "a2",
+      "status": "ready",
+      "title": "`flushPeer`'s `catch { return }` treats a throwing `sendableUpdates` as already flushed, so a broken collab field skips the wait silently (found in p50's report)",
+      "files": [
+        "js/wode-view.mjs",
+        "test/wode-view-e2e.mjs"
+      ]
+    },
+    {
+      "id": "p47",
+      "lane": "a3",
+      "status": "triage",
+      "title": "`strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each)",
+      "files": [
+        "bin/man-diff"
+      ]
+    },
+    {
+      "id": "p57",
+      "lane": "a2",
+      "status": "next",
+      "title": "a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one",
+      "files": [
+        "js/man.mjs",
+        "test/man-viewer.mjs"
+      ]
+    },
+    {
+      "id": "p44",
+      "lane": "a1",
+      "status": "triage",
+      "title": "`tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11`",
+      "files": [
+        "js/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p53",
+      "lane": "a1",
+      "status": "next",
+      "title": "an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence)",
+      "files": [
+        "js/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p54",
+      "lane": "a1",
+      "status": "next",
+      "title": "a no-output request between a `\\c` and the next line swallows the join (0 corpus occurrences)",
+      "files": [
+        "js/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p55",
+      "lane": "a1",
+      "status": "next",
+      "title": "a `\\c` followed by a blank line: groff joins to the next text line, we make a paragraph break",
+      "files": [
+        "js/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p56",
+      "lane": "a1",
+      "status": "next",
+      "title": "a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p19",
+      "lane": "a1",
+      "status": "next",
+      "title": "`.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2)",
+      "files": [
+        "js/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p33",
+      "lane": "a1",
+      "status": "next",
+      "title": "after a macro under `.Sm off`, a text line still gets a space (groff joins it)",
+      "files": [
+        "js/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p34",
+      "lane": "a1",
+      "status": "next",
+      "title": "`\\v(`-delimited arguments are read as a 2-char name (no corpus use found)",
+      "files": [
+        "js/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p45",
+      "lane": "a1",
+      "status": "next",
+      "title": "`.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27)",
+      "files": [
+        "js/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p59",
+      "lane": "a1",
+      "status": "triage",
+      "title": "a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic?",
+      "files": [
+        "js/man-parse.mjs"
+      ]
+    },
+    {
+      "id": "p12",
+      "lane": "a1",
+      "status": "done",
+      "title": "`\\c` joins forward only (ext2/3/4.5 `trackingfile`)",
+      "files": [],
+      "doneHash": "3eb439b"
+    },
+    {
+      "id": "p13",
+      "lane": "a1",
+      "status": "done",
+      "title": "`\\F` and `\\m \\M \\k \\S \\v` take their own forms (kernel-install `THE TION`, git-subtree, mflua)",
+      "files": [],
+      "doneHash": "3eb439b"
+    },
+    {
+      "id": "p14",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.Sm off` starts suppressing at the second call (ssh_config `PermitRemoteOpen host:port`)",
+      "files": [],
+      "doneHash": "3eb439b"
+    },
+    {
+      "id": "p16",
+      "lane": "a1",
+      "status": "done",
+      "title": "ssh(1) synopsis `-D [bind_address:]port`: fixed by p14",
+      "files": [],
+      "doneHash": "3eb439b"
+    },
+    {
+      "id": "p20",
+      "lane": "a2",
+      "status": "done",
+      "title": "a readable whole `man -w` line wins over its split parts (Man.md gap 3)",
+      "files": [],
+      "doneHash": "546bfee"
+    },
+    {
+      "id": "p23",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.Lb` maps through groff's table (9 libcrypt pages)",
+      "files": [],
+      "doneHash": "8edfd43"
+    },
+    {
+      "id": "p24",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.In` prints `#include <...>` in SYNOPSIS (47 pages)",
+      "files": [],
+      "doneHash": "8edfd43"
+    },
+    {
+      "id": "p26",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.do` runs its remainder instead of printing it (11 pages)",
+      "files": [],
+      "doneHash": "8edfd43"
+    },
+    {
+      "id": "p27",
+      "lane": "a1",
+      "status": "done",
+      "title": "`\\n+[reg]` steps then reads (sensible-editor 1-5, zlib 1-3)",
+      "files": [],
+      "doneHash": "8edfd43"
+    },
+    {
+      "id": "p35",
+      "lane": "a2",
+      "status": "done",
+      "title": "a whole `man -w` line that stats as a file is settled by its read",
+      "files": [],
+      "doneHash": "d59ccf7"
+    },
+    {
+      "id": "p36",
+      "lane": "a2",
+      "status": "done",
+      "title": "one `Cannot read <path>: <reason>` shape",
+      "files": [],
+      "doneHash": "d59ccf7"
+    },
+    {
+      "id": "p28",
+      "lane": "a3",
+      "status": "done",
+      "title": "`man-diff` joins at a `\\:` the page marks, not at every \"/\"",
+      "files": [],
+      "doneHash": "244c425"
+    },
+    {
+      "id": "p31",
+      "lane": "a3",
+      "status": "done",
+      "title": "a justified paragraph is not a table (hgrc `forthe`)",
+      "files": [],
+      "doneHash": "244c425"
+    },
+    {
+      "id": "p37",
+      "lane": "a3",
+      "status": "done",
+      "title": "a bordered cell's continuation at the left edge (TIFFGetField 6 → 0)",
+      "files": [],
+      "doneHash": "244c425"
+    },
+    {
+      "id": "p39",
+      "lane": "-",
+      "status": "done",
+      "title": "a background subagent is launched, not finished (tick, routing, ⏳)",
+      "files": [],
+      "doneHash": "7ce2ecf"
+    },
+    {
+      "id": "p25",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.Rs` quotes `%T` only in a `%B`/`%J` reference, and takes groff's serial comma (14 ssh references)",
+      "files": [],
+      "doneHash": "d5042d1"
+    },
+    {
+      "id": "p40",
+      "lane": "a1",
+      "status": "done",
+      "title": "a `\\c` tag line stays open across a macro (paperconfig `--paperpapername`, 5 dmstats tags)",
+      "files": [],
+      "doneHash": "d5042d1"
+    },
+    {
+      "id": "p46",
+      "lane": "a2",
+      "status": "done",
+      "title": "a colon-list part with no read bits says `Permission denied`",
+      "files": [],
+      "doneHash": "2261231"
+    },
+    {
+      "id": "p21",
+      "lane": "a2",
+      "status": "done",
+      "title": "lzma verdict: the header bytes are destroyed by the UTF-8 decode, so no safe sniff; `lzcat` already last",
+      "files": [],
+      "doneHash": "2261231"
+    },
+    {
+      "id": "p41",
+      "lane": "a3",
+      "status": "done",
+      "title": "the truncated mdoc banner is a header (5 pages, 31 → 1 words)",
+      "files": [],
+      "doneHash": "a18cd1b"
+    },
+    {
+      "id": "p42",
+      "lane": "a3",
+      "status": "done",
+      "title": "the `\\:` join accepts \":\" (`bash(1)` 4 → 2)",
+      "files": [],
+      "doneHash": "a18cd1b"
+    },
+    {
+      "id": "p43",
+      "lane": "a3",
+      "status": "done",
+      "title": "the `\\:` join accepts \"@\" (`troff(1)` 2 → 0)",
+      "files": [],
+      "doneHash": "a18cd1b"
+    },
+    {
+      "id": "p52",
+      "lane": "a1",
+      "status": "done",
+      "title": "a bare `.Nm` in a `T{`/`T}` cell prints the document name (both crypt pages 0)",
+      "files": [],
+      "doneHash": "d9906f4"
+    },
+    {
+      "id": "p48",
+      "lane": "a3",
+      "status": "done",
+      "title": "`man-diff --page` prints `lost <n>` before the sample",
+      "files": [],
+      "doneHash": "2c5b9df"
+    },
+    {
+      "id": "p30",
+      "lane": "a3",
+      "status": "done",
+      "title": "verdict: no mdoc U+2010 rule; `man-diff` folds U+2010/U+2011/U+2212 (pcre2demo 67 → 12)",
+      "files": [],
+      "doneHash": "2c5b9df"
+    },
+    {
+      "id": "p58",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.hla`/`.hpf` are no-output requests; both Czech pages parse (corpus back to 4123/27)",
+      "files": [],
+      "doneHash": "9ba3175"
+    },
+    {
+      "id": "p51",
+      "lane": "a2",
+      "status": "done",
+      "title": "the `cat` fallback keeps its bytes, so the renderer names a mislabelled page's format (the app half is p63)",
+      "files": [],
+      "doneHash": "c2b32ec"
+    },
+    {
+      "id": "p60",
+      "lane": "a3",
+      "status": "done",
+      "title": "`man-diff` folds typographic quotes; pcre2demo 12 → 0 (U+2018 folds to a backtick)",
+      "files": [],
+      "doneHash": "f3f1539"
+    },
+    {
+      "id": "p62",
+      "lane": "a3",
+      "status": "done",
+      "title": "the hyphen join is decided from the page source and applied to both sides; section 3 14 → 0",
+      "files": [],
+      "doneHash": "f3f1539"
+    },
+    {
+      "id": "p49",
+      "lane": "a3",
+      "status": "done",
+      "title": "coverage re-measured over the whole suite: 100/99.97/100/100/98.88 line, branch 94.56/98.75/97.18/90.28",
+      "files": [],
+      "doneHash": "f3f1539"
+    },
+    {
+      "id": "p61",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.Fc` ends a SYNOPSIS declaration with `;`, and only in SYNOPSIS",
+      "files": [],
+      "doneHash": "b601364"
+    },
+    {
+      "id": "p63",
+      "lane": "a3",
+      "status": "done",
+      "title": "the pty's bytes cross IPC as Buffers; one streaming decoder per run; the real-pty test names gzip",
+      "files": [],
+      "doneHash": "ec7eedf"
+    },
+    {
+      "id": "s17",
+      "lane": "-",
+      "status": "done",
+      "title": "stabilisation after the red merge: `Opt.load` survives a payload-less response, the opt tests install their own fake; a2's peer-push test reverted (p50)",
+      "files": [],
+      "doneHash": "9b8958c"
+    }
+  ]
+}

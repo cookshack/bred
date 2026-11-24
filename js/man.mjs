@@ -875,6 +875,27 @@ function init
         cb(readErr)
     }
 
+    // A part is read without a stat, so a failed read has no reason of its
+    // own ("read failed"). One stat, only after that failure, names a part
+    // that is there as a regular file but has no read bits: the file exists
+    // and the problem is permission, the same reading wholeFailed gives a
+    // whole line that statted as a file. The list still falls through to its
+    // next part; that part's own reason is what the page ends with.
+    function partFailed
+    (path, readErr, next) {
+      Tron.cmd('file.stat', path, (err, data) => {
+                                    let fileMode
+
+                                    fileMode = data?.data?.mode
+                                    if ((err == 0) &&
+                                        ((fileMode & 0o170000) == 0o100000) &&
+                                        ((fileMode & 0o444) == 0))
+                                      next(cannotRead(path, 'Permission denied'))
+                                    else
+                                      next(readErr)
+                                  })
+    }
+
     function tryCand
     (at, lastErr) {
       let cand
@@ -888,7 +909,8 @@ function init
         Tron.cmd('file.stat', cand.path, (err, data) => wholeStatted(cand.path, at, lastErr,
                                                                      err, data))
       else
-        readSome(cand.path, opened, err => tryCand(at + 1, err))
+        readSome(cand.path, opened, err => partFailed(cand.path, err,
+                                                      err2 => tryCand(at + 1, err2)))
     }
 
     found = (code == 0) ? manPaths(out) : { cands: [] }

@@ -437,8 +437,10 @@ column spec, which no installed page has). Branch coverage is 92%, 100%, 100%,
    when that read fails. A mislabelled compressed file is caught by its magic
    bytes (gzip, xz, bzip2, zstd) even when `cat`'s output contains no NUL or
    replacement character, so it is reported as `cannot decompress` rather than
-   drawn as text; lzma alone is not sniffed, since only its first byte is
-   fixed and that byte is ordinary text.
+   drawn as text; lzma is not sniffed, because its header arrives UTF-8-decoded
+   (the dictionary size's `0x80` and xz's eight `0xff` size bytes are already
+   `U+FFFD`), so a test could only guess at the bytes that decide its shape,
+   and `lzcat` is already tried for every compressed suffix.
 
 ## Changing it
 

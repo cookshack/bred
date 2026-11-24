@@ -1864,6 +1864,49 @@ test('viewer', 'a colon-separated list whose whole line is no file reads its par
        }
      })
 
+// p46: a part of a genuine colon list is read without a stat, so a failed
+// read had no reason of its own and said "read failed". A part that exists
+// with no read bits is a permission problem, not a missing file. The reason
+// shown is the last candidate's, because that is the error the list ends
+// with; the readable part before it still wins, so the list policy does not
+// change.
+test('viewer', 'an unreadable part of a colon list says Permission denied',
+     async () => {
+       let b, gone, secret, whole
+
+       gone = '/fake/man1/gone.1'
+       secret = '/fake/man1/secret.1'
+       whole = gone + ':' + secret
+       setup({}, { probe: [ whole ] })
+       unreadablePaths[secret] = 1
+       readFailPaths[secret] = 1
+       b = await opened('probe')
+       equal(textOf(b).includes('Cannot read ' + secret + ': Permission denied'), true)
+       equal(textOf(b).includes('read failed'), false)
+       equal(calls.some(c => (c[0] == 'file.stat') && (c[1] == secret)), true)
+     })
+
+// The mode-000 part is not a veto: a colon list only needs one readable
+// candidate, so a later part still opens the page. This is why p46 names the
+// failing part rather than refusing the list.
+test('viewer', 'a readable part wins after a mode-000 part',
+     async () => {
+       let b, secret, live, whole
+
+       secret = '/fake/man1/secret.1'
+       live = '/fake/man1/livepage.1'
+       whole = secret + ':' + live
+       setup({ livepage: '.TH LIVE 1\n.SH NAME\nreadable candidate\n' },
+             { probe: [ whole ] })
+       unreadablePaths[secret] = 1
+       readFailPaths[secret] = 1
+       b = await opened('probe')
+       equal(textOf(b).includes('readable candidate'), true)
+       equal(textOf(b).includes('Cannot read'), false)
+       equal(calls.some(c => (c[0] == 'file.stat') && (c[1] == secret)), true)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == live)), true)
+     })
+
 test('viewer', 'a whole path that is a directory keeps the split error',
      async () => {
        let b, whole

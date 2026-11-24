@@ -509,7 +509,13 @@ colon-list reporter a third rank: a failed read of an existing regular file
 outranks a later missing part, so the reader sees the read failure and its
 path; permission on an existing file still ranks above both.
 
-Tests: 558 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 20 made the text after `.br` flush (the old test enshrined a separator
+space) and taught `man-diff` to join a wrapped word in an unbordered table cell
+whose continuation starts at the cell's left edge — `man(1)`'s `hy‐`/`phen`
+became `hyphen`, taking section 1 from 16p/147w to 15p/145w with no other page
+changed.
+
+Tests: 560 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

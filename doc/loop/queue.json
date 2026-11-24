@@ -46,7 +46,7 @@
     },
     {
       "id": "p66",
-      "lane": "a2",
+      "lane": "a3",
       "status": "in-round",
       "title": "`flushPeer`'s `catch { return }` treats a throwing `sendableUpdates` as already flushed, so a broken collab field skips the wait silently (found in p50's report)",
       "files": [

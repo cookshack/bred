@@ -604,13 +604,14 @@
     {
       "id": "p80",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "hy prints ASCII - ; groff prints U+2010: page-visible, measurement-neutral because man-diff folds it",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "cbbe080"
     },
     {
       "id": "p81",
@@ -686,7 +687,7 @@
     {
       "id": "p87",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "\\[u0041]/\\[u0065] (ASCII code points) are refused by groff but resolve here; unicodeCode should not accept U+0000-U+007F",
       "files": [
         "js/man-char.mjs",
@@ -710,6 +711,17 @@
       "lane": "a1",
       "status": "next",
       "title": "\\[char0] is accepted by groff (a NUL byte) but refused here",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p90",
+      "lane": "a1",
+      "status": "next",
+      "title": "groff -Tutf8 -man renders \\- as U+2212 MINUS SIGN while -mdoc prints ASCII; bred prints ASCII. p30's note was mdoc-only; needs evidence and a decision",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"

@@ -6,11 +6,13 @@ session's worktree root does not lose the queue again.
 
 The loop owns this file. Lanes read it and never edit it.
 
-    run     paused 2026-11-24T09:40Z after round 14 (deadline was 16:05Z)
-    round   14 done; 15 is the next start
-    main    a18cd1b      tip after round 14
+    run     live 2026-11-24T10:56Z, deadline 18:56Z
+    round   15 in progress (started on a5229a8, 11:06Z)
+    main    a5229a8      tip when round 15 was dispatched
     state   $BRED_WORKTREE_ROOT/bred-loop/  briefs, claims, round logs (untracked)
     sweep   1:20p/154w  3:5p/71w  5:6p/6w  7:3p/8w  8:2p/9w  (whole sections, after round 14)
+    drift   corpus now 4121 parsed / 29 refused: cs/passwd.5 and cs/shadow.5 added
+            `.do hla` and `.do hpf` (groff hyphenation requests, p58)
 
 Statuses: `ready` (dispatchable), `next` (queued after a decision or another
 item), `triage` (needs evidence before it can be called a bug), `done:<hash>`
@@ -21,10 +23,11 @@ too, with the verdict in its title.
 
 | id | lane | status | title |
 |----|------|--------|-------|
-| p30 | a1 | ready | an mdoc bare `-` is U+2010 (and `\-` is U+2212); we emit ASCII `-` (pcre2demo(3), 67 words) |
-| p52 | a1 | ready | a bare `.Nm` inside a `T{`/`T}` cell is printed literally (crypt_checksalt(3), crypt_preferred_method(3)) |
-| p51 | a2 | ready | the compressed magics never fire in the app: pty output is UTF-8-decoded, so every byte ≥ 0x80 is U+FFFD and only bzip2's `BZh` survives (tests pass because they bypass the decode) |
-| p49 | a3 | ready | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 11, before three rounds of parser code |
+| p52 | a1 | in-round | a bare `.Nm` inside a `T{`/`T}` cell is printed literally (crypt_checksalt(3), crypt_preferred_method(3)) |
+| p51 | a2 | in-round | the compressed magics never fire in the app: pty output is UTF-8-decoded, so every byte ≥ 0x80 is U+FFFD and only bzip2's `BZh` survives (tests pass because they bypass the decode) |
+| p30 | a3 | in-round | verdict: not an mdoc rule — pcre2demo(3) has no `.TH`, so groff loads no macro package and its default utf8 hyphen is U+2010; fold typographic hyphens in `man-diff` word keys |
+| p48 | a3 | in-round | `man-diff --page` has no missing-word total, only the deduped sample (needed to measure p30) |
+| p49 | a3 | next | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 11; the loop takes it after the round |
 | p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) |
 
 ## Backlog
@@ -40,9 +43,10 @@ too, with the verdict in its title.
 | p33 | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) |
 | p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) |
 | p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) |
+| p58 | a1 | next | `.hla`/`.hpf` are groff hyphenation requests; `.do hla cs` refuses cs/passwd.5 and cs/shadow.5 (2 pages) |
+| p59 | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? |
 | p57 | a2 | next | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one |
 | p50 | a2 | triage | `wode-view-e2e` "stale peer push during revert" failed once in a post-merge verify, passed twice alone (round 13) |
-| p48 | a3 | next | `man-diff --page` has no missing-word total, only the deduped sample |
 
 ## Done
 

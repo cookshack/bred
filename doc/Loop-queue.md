@@ -30,6 +30,13 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | lane | status | title | files |
+|----|------|--------|-------|-------|
+| p47 | a3 | ready | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) | bin/man-diff, test/man-diff.mjs |
+| p56 | a1 | ready | a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none | js/man-parse.mjs, test/man-parse.mjs |
+
 ## Backlog
 
 | id | lane | status | title | files |
@@ -39,7 +46,6 @@ before.
 | p53 | a1 | next | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) | js/man-parse.mjs |
 | p54 | a1 | next | a no-output request between a `\c` and the next line swallows the join (0 corpus occurrences) | js/man-parse.mjs |
 | p55 | a1 | next | a `\c` followed by a blank line: groff joins to the next text line, we make a paragraph break | js/man-parse.mjs |
-| p56 | a1 | next | a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none | js/man-parse.mjs, test/man-parse.mjs |
 | p19 | a1 | next | `.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2) | js/man-parse.mjs |
 | p33 | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) | js/man-parse.mjs |
 | p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
@@ -49,7 +55,6 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) | bin/man-diff |
 | p44 | a1 | triage | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` | js/man-parse.mjs |
 | p59 | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
 

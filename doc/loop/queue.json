@@ -60,11 +60,13 @@
     {
       "id": "p47",
       "lane": "a3",
-      "status": "triage",
+      "status": "ready",
       "title": "`strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each)",
       "files": [
-        "bin/man-diff"
-      ]
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs"
     },
     {
       "id": "p57",
@@ -121,7 +123,7 @@
     {
       "id": "p56",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none",
       "files": [
         "js/man-parse.mjs",

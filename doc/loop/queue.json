@@ -446,24 +446,26 @@
     {
       "id": "p67",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "a .Ss subsection inside SYNOPSIS resets the section state, so .Fn and .Fc lose the ; (groff keeps doc-in-synopsis-section across .Ss; no installed page hits it)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "ba79104"
     },
     {
       "id": "p68",
       "lane": "a2",
-      "status": "ready",
+      "status": "done",
       "title": "a colon-list part with read bits whose read fails ranks with a missing part, so a later miss can still shadow it; no test covers that ordering",
       "files": [
         "js/man.mjs",
         "test/man-viewer.mjs"
       ],
-      "proof": "npx mocha --exit test/man-viewer.mjs"
+      "proof": "npx mocha --exit test/man-viewer.mjs",
+      "doneHash": "74ba52d"
     }
   ]
 }

@@ -30,13 +30,6 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
-## Ready
-
-| id | lane | status | title | files |
-|----|------|--------|-------|-------|
-| p67 | a1 | ready | a .Ss subsection inside SYNOPSIS resets the section state, so .Fn and .Fc lose the ; (groff keeps doc-in-synopsis-section across .Ss; no installed page hits it) | js/man-parse.mjs, test/man-parse.mjs |
-| p68 | a2 | ready | a colon-list part with read bits whose read fails ranks with a missing part, so a later miss can still shadow it; no test covers that ordering | js/man.mjs, test/man-viewer.mjs |
-
 ## Backlog
 
 | id | lane | status | title | files |
@@ -100,5 +93,7 @@ before.
 | p61 | a1 | done:b601364 | `.Fc` ends a SYNOPSIS declaration with `;`, and only in SYNOPSIS |  |
 | p63 | a3 | done:ec7eedf | the pty's bytes cross IPC as Buffers; one streaming decoder per run; the real-pty test names gzip |  |
 | s17 | - | done:9b8958c | stabilisation after the red merge: `Opt.load` survives a payload-less response, the opt tests install their own fake; a2's peer-push test reverted (p50) |  |
+| p67 | a1 | done:ba79104 | a .Ss subsection inside SYNOPSIS resets the section state, so .Fn and .Fc lose the ; (groff keeps doc-in-synopsis-section across .Ss; no installed page hits it) | js/man-parse.mjs, test/man-parse.mjs |
+| p68 | a2 | done:74ba52d | a colon-list part with read bits whose read fails ranks with a missing part, so a later miss can still shadow it; no test covers that ordering | js/man.mjs, test/man-viewer.mjs |
 
 <!-- /loop:queue -->

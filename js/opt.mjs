@@ -40,7 +40,11 @@ function load
                                       console.warn('Error loading options: ' + err.message)
                                       console.warn('Error loading options: (continuing anyway)')
                                     }
-                                    load1('', data.data)
+                                    // A response can arrive without a payload (a
+                                    // foreign fake on the same channel, or a
+                                    // failed read); no options is not an error.
+                                    if (data && data.data)
+                                      load1('', data.data)
                                     cb()
                                   })
   Timing.stop('opt.load')

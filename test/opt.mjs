@@ -23,9 +23,17 @@ _shared.opt = { values: {},
                 onSetBufAlls: [] }
 globalThis.bred = { _shared: () => _shared }
 rxData = { err: 0 }
-globalThis.tron = { cmd: async () => ({ err: 0, ch: 0 }),
-                    receive: (ch, cb2) => cb2(rxData),
-                    acmd: async () => ({}) }
+// The fake must be installed per test, not only at import: another test file
+// imported later may leave its own tron in place, and Opt.load reads
+// globalThis.tron at call time.
+function fakeTron
+() {
+  globalThis.tron = { cmd: async () => ({ err: 0, ch: 0 }),
+                      receive: (ch, cb2) => cb2(rxData),
+                      acmd: async () => ({}) }
+}
+
+fakeTron()
 
 Timing.init()
 
@@ -206,6 +214,7 @@ test('load', 'flattens nested data',
      async () => {
        let done
 
+       fakeTron()
        rxData = { err: 0,
                   data: { 'core.complete.enabled': 0 } }
        done = 0
@@ -219,6 +228,7 @@ test('load', 'nested object recurses',
      async () => {
        let done
 
+       fakeTron()
        rxData = { err: 0,
                   data: { 'core': { 'nested.opt': 5 } } }
        done = 0
@@ -232,7 +242,20 @@ test('load', 'error path still calls back',
      async () => {
        let done
 
+       fakeTron()
        rxData = { err: 1, message: 'x', data: {} }
+       done = 0
+       Opt.load(() => done = 1)
+       await new Promise(r => setTimeout(r, 10))
+       equal(done, 1)
+     })
+
+test('load', 'a response without data calls back',
+     async () => {
+       let done
+
+       fakeTron()
+       rxData = { err: 0 }
        done = 0
        Opt.load(() => done = 1)
        await new Promise(r => setTimeout(r, 10))

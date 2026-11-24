@@ -54,7 +54,7 @@ function loop
 // A repository with the tool committed, one config per test.
 function repo
 () {
-  let dir
+  let dir, names, i
 
   dir = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-loop-'))
   git(dir, [ 'init', '-q', '-b', 'main' ])
@@ -62,7 +62,14 @@ function repo
   git(dir, [ 'config', 'user.name', 'loop test' ])
   git(dir, [ 'config', 'commit.gpgsign', 'false' ])
   Fs.mkdirSync(Path.join(dir, 'bin'))
-  Fs.copyFileSync(loopPath, Path.join(dir, 'bin', 'loop.mjs'))
+  names = [ 'loop.mjs', 'loop-queue.mjs', 'loop-claims.mjs' ]
+  i = 0
+
+  while (i < names.length) {
+    Fs.copyFileSync(Path.join(dirname(loopPath), names[ i ]), Path.join(dir, 'bin', names[ i ]))
+    i += 1
+  }
+
   commit(dir, 'init', 'a.txt')
 
   return dir

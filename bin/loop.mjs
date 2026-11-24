@@ -23,14 +23,18 @@
 
 import { execFileSync } from 'node:child_process'
 import Fs from 'node:fs'
+import Os from 'node:os'
 import Path from 'node:path'
 import Url from 'node:url'
+
+import * as Claims from './loop-claims.mjs'
+import * as Queue from './loop-queue.mjs'
 
 let root
 
 root = git(Path.dirname(Url.fileURLToPath(import.meta.url)), 'rev-parse', '--show-toplevel')
 
-let loopDir
+let loopDir, args
 
 loopDir = Path.join(process.env.BRED_WORKTREE_ROOT || Path.join(root, '..'), 'bred-loop')
 
@@ -92,8 +96,6 @@ function lines
 
 function main
 () {
-  let args
-
   args = process.argv.slice(2)
 
   switch (args[ 0 ]) {
@@ -101,6 +103,16 @@ function main
     return status()
   case 'lanes-up':
     return lanesUp()
+  case 'pick':
+    return pickCmd()
+  case 'claim':
+    return claimCmd()
+  case 'release':
+    return releaseCmd()
+  case 'reap':
+    return reapCmd()
+  case 'check':
+    return checkCmd()
   case undefined:
   case 'help':
   case '--help':
@@ -114,8 +126,18 @@ function main
 
 function usage
 () {
-  console.log('usage: bin/loop.mjs [status|lanes-up|help]')
+  console.log('usage: bin/loop.mjs [status|lanes-up|pick|claim|release|reap|check|help]')
   return 2
+}
+
+function option
+(name) {
+  let i
+
+  i = args.indexOf(name)
+  if (i < 0)
+    return undefined
+  return args[ i + 1 ]
 }
 
 function help
@@ -127,13 +149,17 @@ function help
   console.log('              branches, the lane worktrees, and the dirty paths')
   console.log('  lanes-up    bring bred-a1..a3 to main; never resets a branch with')
   console.log('              unmerged commits; provisions node_modules and ext/*/lib')
+  console.log('  pick        three disjoint items from doc/loop/queue.json, skipping')
+  console.log('              dirty paths, hot files and overlaps; --n 2, --hot 0')
+  console.log('  claim <id>  take an item (a lease with a pid, not a bare mkdir)')
+  console.log('  release <id>, reap   give one back; reap the dead ones')
+  console.log('  check       the queue against git: schema, ids, done hashes, trailers')
   console.log('')
   console.log('Lane worktrees live at $BRED_WORKTREE_ROOT/bred-a<n> on')
   console.log('agent/bred-<ws8>-a<n>. The run\'s scratch state is')
   console.log('$BRED_WORKTREE_ROOT/bred-loop.')
   console.log('')
-  console.log('Not yet implemented (they need loop-queue.mjs and loop-claims.mjs):')
-  console.log('claim, release, reap, pick, round, measure.')
+  console.log('Not yet implemented: round (the merge), measure.')
   return 0
 }
 
@@ -240,6 +266,8 @@ function status
   console.log('lanes      ' + (lanes.length > 0 ? '' : 'none'))
   lanes.forEach(p => console.log('           ' + p + '  ' + tryGit(p, 'log', '-1', '--format=%h %s')))
   console.log('stale      ' + stale.length + ' prunable registration(s)')
+  console.log('queue      ' + queueSummary())
+  console.log('claims     ' + Claims.list(loopDir).length)
   console.log('parked     ' + (parked.length > 0 ? '' : 'none'))
   parked.forEach(b => console.log('           ' + b))
   if (t.items.length > 0)
@@ -362,6 +390,176 @@ function link
   catch (e) {
     console.error('loop: ' + dst + ': cannot link: ' + e.message)
   }
+}
+
+function queueFile
+() {
+  return Path.join(root, 'doc', 'loop', 'queue.json')
+}
+
+function loadQueue
+() {
+  return Queue.load(queueFile())
+}
+
+function queueSummary
+() {
+  let q, counts, i
+
+  try {
+    q = loadQueue()
+  }
+  catch {
+    return 'missing ' + queueFile()
+  }
+
+  counts = {}
+  i = 0
+
+  while (i < q.items.length) {
+    counts[ q.items[ i ].status ] = (counts[ q.items[ i ].status ] || 0) + 1
+    i += 1
+  }
+
+  return 'ready ' + (counts.ready || 0) + ', next ' + (counts.next || 0) +
+         ', triage ' + (counts.triage || 0) + ', in-round ' + (counts[ 'in-round' ] || 0) +
+         ', done ' + (counts.done || 0)
+}
+
+function dirtyPaths
+() {
+  return lines(git(root, 'status', '--porcelain')).map(p => p.slice(3).split(' -> ').pop())
+}
+
+// A commit this loop made. Its files are not "hot": the rule exists for work
+// somebody else may be in the middle of.
+function isOurs
+(rev) {
+  return /^Loop-(item|round|verify): /m.test(git(root, 'log', '-1', '--format=%B', rev))
+}
+
+// `--hot 0` disables it. Until every lane commit carries a `Loop-item:`
+// trailer, this loop's own recent commits look like somebody else's work, so
+// the filter says everything is hot; the escape is honest about that.
+function hotPaths
+(minutes) {
+  let out, blocks, i, files
+
+  if (minutes <= 0)
+    return []
+  out = git(root, 'log', '--since=' + minutes + ' minutes ago', '--name-only', '--format=%x1e%h', 'main')
+  blocks = out.split('\x1e').filter(b => b.trim().length > 0)
+  files = []
+  i = 0
+
+  while (i < blocks.length) {
+    let rev, names
+
+    rev = lines(blocks[ i ])[ 0 ]
+    names = lines(blocks[ i ]).slice(1)
+    if (isOurs(rev) == 0)
+      files = files.concat(names)
+    i += 1
+  }
+
+  return files
+}
+
+function pickCmd
+() {
+  let res, n, minutes
+
+  n = Number(option('--n') || 3)
+  minutes = option('--hot')
+  minutes = minutes == undefined ? 120 : Number(minutes)
+  res = Queue.pick(loadQueue(), { n, dirty: dirtyPaths(), hot: hotPaths(minutes) })
+
+  res.picked.forEach(item => console.log(item.id + '  ' + item.lane + '  ' + item.title.slice(0, 90)))
+  if (res.picked.length == 0)
+    console.log('nothing dispatchable')
+  if (res.skipped.length == 0)
+    return 0
+  console.log('')
+  res.skipped.forEach(s => console.log('skip  ' + s.id + '  ' + s.why))
+  return 0
+}
+
+function claimCmd
+() {
+  let id, lane, branch, res
+
+  id = args[ 1 ]
+  if (id == undefined)
+    return usage()
+  lane = option('--lane') || 'a1'
+  branch = option('--branch') || ('agent/bred-' + workspace() + '-' + lane)
+  res = Claims.claim(loopDir, id, { lane, branch, pid: process.pid, host: Os.hostname() })
+
+  if (res.ok == 0) {
+    console.error('loop: cannot claim ' + id + ': ' + res.err)
+    return 1
+  }
+  console.log('claimed  ' + id + '  ' + branch)
+  return 0
+}
+
+function releaseCmd
+() {
+  let id
+
+  id = args[ 1 ]
+  if (id == undefined)
+    return usage()
+  Claims.release(loopDir, id)
+  console.log('released ' + id)
+  return 0
+}
+
+function reapCmd
+() {
+  let res, hours
+
+  hours = Number(option('--max-age') || 6)
+  res = Claims.reap(loopDir, { maxAgeMs: hours * 60 * 60 * 1000 })
+  res.removed.forEach(c => console.log('reaped   ' + c.id + '  ' + (c.lane || '?')))
+  console.log('reaped ' + res.removed.length + ', kept ' + res.kept.length)
+  return 0
+}
+
+// The queue against git: its own schema, then whether each done hash exists
+// and is on main, then whether a trailer names an item the queue still calls
+// open. A pre-trailer round has no `Loop-item:`, so that is not a problem.
+function checkHash
+(item, problems) {
+  if (ok(root, 'cat-file', '-e', item.doneHash) == 0)
+    return problems.push(item.id + ': done:' + item.doneHash + ' does not exist')
+  if (ok(root, 'merge-base', '--is-ancestor', item.doneHash, 'main') == 0)
+    return problems.push(item.id + ': done:' + item.doneHash + ' is not on main')
+}
+
+function checkCmd
+() {
+  let q, problems, t, i
+
+  q = loadQueue()
+  problems = Queue.check(q)
+  t = trailers()
+  i = 0
+
+  while (i < q.items.length) {
+    let item
+
+    item = q.items[ i ]
+    if (item.status == 'done' && item.doneHash)
+      checkHash(item, problems)
+    else if (t.items.includes(item.id))
+      problems.push(item.id + ': a Loop-item trailer exists but the queue says ' + item.status)
+    i += 1
+  }
+
+  problems.forEach(p => console.log('problem  ' + p))
+  console.log(problems.length + ' problem(s); ' + q.items.length + ' item(s)')
+  return problems.length > 0 ? 1 : 0
 }
 
 process.exit(main())

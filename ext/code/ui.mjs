@@ -381,6 +381,29 @@ function makeCodeEd
 }
 
 export
+function updateTokens
+(buf, tokenInfo) {
+  buf.views.forEach(view => {
+                      let tokenEl
+
+                      tokenEl = view.eleOrReserved?.querySelector('.code-under-tokens')
+                      if (tokenEl) {
+                        let i
+
+                        // the colon reads as a separator, not as the T: label
+                        i = (tokenInfo || '').indexOf(':')
+                        tokenEl.innerText = ''
+                        if (i > 0)
+                          append(tokenEl, [ tokenInfo.slice(0, i),
+                                            span(':', 'code-under-token-colon'),
+                                            tokenInfo.slice(i + 1) ])
+                        else if (tokenInfo)
+                          tokenEl.innerText = tokenInfo
+                      }
+                    })
+}
+
+export
 function updateStatus
 (buf, status, model, tokenInfo, versionInfo) {
   buf.views.forEach(view => {
@@ -389,12 +412,11 @@ function updateStatus
 
                         underW = view.eleOrReserved.querySelector('.code-under-w')
                         if (underW) {
-                          let statusEl, modelEl, versionEl, tokenEl
+                          let statusEl, modelEl, versionEl
 
                           statusEl = underW.querySelector('.code-under-status')
                           modelEl = underW.querySelector('.code-under-model')
                           versionEl = underW.querySelector('.code-under-version')
-                          tokenEl = underW.querySelector('.code-under-tokens')
                           if (statusEl)
                             statusEl.innerText = status
                           if (modelEl)
@@ -404,22 +426,10 @@ function updateStatus
                               versionEl.innerText = versionInfo
                             else
                               versionEl.innerText = ''
-                          if (tokenEl) {
-                            let i
-
-                            // the colon reads as a separator, not as the T: label
-                            i = (tokenInfo || '').indexOf(':')
-                            tokenEl.innerText = ''
-                            if (i > 0)
-                              append(tokenEl, [ tokenInfo.slice(0, i),
-                                                span(':', 'code-under-token-colon'),
-                                                tokenInfo.slice(i + 1) ])
-                            else if (tokenInfo)
-                              tokenEl.innerText = tokenInfo
-                          }
                         }
                       }
                     })
+  updateTokens(buf, tokenInfo)
 }
 
 // Goat quota windows (5h/weekly/monthly), shown as eg 12%/34%/56%. The hover

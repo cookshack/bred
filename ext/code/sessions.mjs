@@ -294,6 +294,13 @@ function renderHistory
             Ui.appendMsg(buf, 0, content.text, msg.id + ':' + j)
           else if (content.type == 'tool')
             renderTool(content)
+        if (msg.tokens) {
+          let total
+
+          total = Util.sumTokens(msg.tokens)
+          if (total > 0)
+            buf.vars('code').lastTokens = total
+        }
         pendingModel = { model: Util.modelName(msg.model?.modelID, msg.model?.variant),
                          cost: msg.cost,
                          at: msg.time?.created,
@@ -326,7 +333,7 @@ function renderHistory
 
 export
 function init
-(events) {
+(events, ctx) {
   let mo, searchHist
 
   function updateCount
@@ -552,7 +559,9 @@ function init
         () {
           Ev.startSub(buf, events)
           buf.vars('code').busy = 0
-          globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'OK', '', '', ''))
+          if (ctx?.contextLimit)
+            ctx.contextLimit(buf, provider, model)
+          globalThis.requestAnimationFrame(() => Ui.updateStatus(buf, 'OK', '', Util.calculateTokenPercentage(buf), ''))
         }
 
         function afterChildren

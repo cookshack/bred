@@ -219,6 +219,14 @@ test('calculateTokenPercentage', 'no limit just tokens',
        equal(CodeUtil.calculateTokenPercentage(buf), 'T:50')
      })
 
+test('calculateTokenPercentage', 'a known limit shows 0% before usage',
+     () => {
+       let buf
+
+       buf = bufFor({ code: { modelContextLimit: 100 } })
+       equal(CodeUtil.calculateTokenPercentage(buf), '0%')
+     })
+
 test('calculateTokenPercentage', 'no tokens empty',
      () => {
        let buf

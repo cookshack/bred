@@ -310,10 +310,12 @@ function calculateTokenPercentage
   ret = ''
   tokens = buf.vars('code').lastTokens
   modelLimit = buf.vars('code').modelContextLimit
-  if (tokens) {
+  if (tokens)
     ret += ('T:' + tokens)
-    if (modelLimit)
-      ret += (' ' + Math.round((tokens / modelLimit) * 100) + '%')
+  if (modelLimit) {
+    if (tokens)
+      ret += ' '
+    ret += (Math.round(((tokens || 0) / modelLimit) * 100) + '%')
   }
   return ret
 }

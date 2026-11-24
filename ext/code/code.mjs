@@ -658,6 +658,7 @@ function updateModelContextLimit
                                                                           if (model?.limit?.context) {
                                                                             d('CO modelContextLimit ' + model.limit.context)
                                                                             buf.vars('code').modelContextLimit = model.limit.context
+                                                                            Ui.updateTokens(buf, Util.calculateTokenPercentage(buf))
                                                                           }
                                                                           else
                                                                             d('CO modelContextLimit missing')
@@ -1041,8 +1042,10 @@ function handleMessageUpdated
     let total
 
     total = Util.sumTokens(info.tokens)
-    if (total > 0)
+    if (total > 0) {
       buf.vars('code').lastTokens = total
+      Ui.updateTokens(buf, Util.calculateTokenPercentage(buf))
+    }
   }
   if (info.cost && info.cost > 0)
     buf.vars('code').lastCost = info.cost
@@ -1106,8 +1109,10 @@ function handlePart
     let total
 
     total = Util.sumTokens(part.tokens)
-    if (total > 0)
+    if (total > 0) {
       buf.vars('code').lastTokens = total
+      Ui.updateTokens(buf, Util.calculateTokenPercentage(buf))
+    }
   }
 
   if (part.type == 'step-start') {
@@ -1591,7 +1596,7 @@ async function removeFromMessage
   }
   finally {
     buf.vars('code').busy = 0
-    Ui.updateStatus(buf, 'OK', '', '', '')
+    Ui.updateStatus(buf, 'OK', '', Util.calculateTokenPercentage(buf), '')
   }
 }
 
@@ -3240,7 +3245,7 @@ function init
   Em.on('A-p', 'previous history item', moCodePrompt)
   Em.on('A-n', 'next history item', moCodePrompt)
 
-  Sessions.init(events)
+  Sessions.init(events, { contextLimit: updateModelContextLimit })
 
   startNetWatch()
 }

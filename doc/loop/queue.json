@@ -23,13 +23,14 @@
     {
       "id": "p64",
       "lane": "a1",
-      "status": "in-round",
+      "status": "done",
       "title": "`.Fn` in a SYNOPSIS also ends with `;` in groff; we do not print it (found in p61's report)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "cc7042c"
     },
     {
       "id": "p65",
@@ -47,13 +48,14 @@
     {
       "id": "p66",
       "lane": "a3",
-      "status": "in-round",
+      "status": "done",
       "title": "`flushPeer`'s `catch { return }` treats a throwing `sendableUpdates` as already flushed, so a broken collab field skips the wait silently (found in p50's report)",
       "files": [
         "js/wode-view.mjs",
         "test/wode-view-e2e.mjs"
       ],
-      "proof": "npx mocha --exit test/wode-view-e2e.mjs"
+      "proof": "npx mocha --exit test/wode-view-e2e.mjs",
+      "doneHash": "c1562d7"
     },
     {
       "id": "p47",
@@ -67,13 +69,14 @@
     {
       "id": "p57",
       "lane": "a2",
-      "status": "in-round",
+      "status": "done",
       "title": "a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one",
       "files": [
         "js/man.mjs",
         "test/man-viewer.mjs"
       ],
-      "proof": "npx mocha --exit test/man-viewer.mjs"
+      "proof": "npx mocha --exit test/man-viewer.mjs",
+      "doneHash": "6e94402"
     },
     {
       "id": "p44",
@@ -439,6 +442,28 @@
       "title": "stabilisation after the red merge: `Opt.load` survives a payload-less response, the opt tests install their own fake; a2's peer-push test reverted (p50)",
       "files": [],
       "doneHash": "9b8958c"
+    },
+    {
+      "id": "p67",
+      "lane": "a1",
+      "status": "next",
+      "title": "a .Ss subsection inside SYNOPSIS resets the section state, so .Fn and .Fc lose the ; (groff keeps doc-in-synopsis-section across .Ss; no installed page hits it)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p68",
+      "lane": "a2",
+      "status": "next",
+      "title": "a colon-list part with read bits whose read fails ranks with a missing part, so a later miss can still shadow it; no test covers that ordering",
+      "files": [
+        "js/man.mjs",
+        "test/man-viewer.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-viewer.mjs"
     }
   ]
 }

@@ -14,7 +14,7 @@
 // same tip and hands it in. `run` shells out to bin/man-audit and
 // bin/man-diff in the given worktree; `exec` is injectable so the tests do not
 // read the corpus.
-import { execFileSync } from 'node:child_process'
+import { spawnSync } from 'node:child_process'
 import Fs from 'node:fs'
 import Path from 'node:path'
 
@@ -45,11 +45,19 @@ function parseDiff
            words: number(text, /^\s*pages with missing words\s+\d+\s+\((\d+) words total\)/m) }
 }
 
+// man-audit exits 1 when any page is refused, which is the normal state of an
+// installed corpus: the output is the report, not the exit code. So the runner
+// keeps stdout and lets the parser decide, instead of throwing on status.
 function runner
 (repo) {
-  return (cmd, args) => execFileSync(cmd, args, { cwd: repo,
-                                                  encoding: 'utf8',
-                                                  stdio: [ 'ignore', 'pipe', 'ignore' ] })
+  return (cmd, args) => {
+           let res
+
+           res = spawnSync(cmd, args, { cwd: repo, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 })
+           if (res.error)
+             throw res.error
+           return res.stdout || ''
+         }
 }
 
 export

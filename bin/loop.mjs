@@ -488,7 +488,58 @@ function choose
     console.log('hot: no loop trailers in the last ' + minutes + ' minutes, not filtering')
   }
 
-  return Queue.pick(loadQueue(), { n, dirty: dirtyPaths(), hot })
+  return dedupeLanes(Queue.pick(loadQueue(), { n, dirty: dirtyPaths(), hot }))
+}
+
+// One lane is one worktree and one branch. Two items on one lane would share
+// both, and `round` would treat the second branch as already merged and skip
+// its gate, so `pick` never proposes it.
+function dedupeLanes
+(res) {
+  let i, keep, lanes
+
+  keep = []
+  lanes = []
+  i = 0
+
+  while (i < res.picked.length) {
+    let item
+
+    item = res.picked[ i ]
+    if (lanes.includes(item.lane))
+      res.skipped.push({ id: item.id, why: 'lane ' + item.lane + ' already taken this round' })
+    else
+      takeLane(lanes, keep, item)
+    i += 1
+  }
+
+  res.picked = keep
+  return res
+}
+
+function takeLane
+(lanes, keep, item) {
+  lanes.push(item.lane)
+  keep.push(item)
+}
+
+// `--items` is the scheduler's choice, so it is checked rather than filtered:
+// a round that names one lane twice is a dispatch mistake, not a preference.
+function uniqueLanes
+(lanes) {
+  let i, seen
+
+  seen = []
+  i = 0
+
+  while (i < lanes.length) {
+    if (seen.includes(lanes[ i ].lane))
+      return 0
+    seen.push(lanes[ i ].lane)
+    i += 1
+  }
+
+  return 1
 }
 
 function pickCmd
@@ -651,6 +702,12 @@ function roundCmd
   lanes = lanes.filter(l => l)
   if (lanes.length == 0) {
     console.error('loop: no lanes to merge (--items, or a pick of the queue)')
+    return 1
+  }
+  if (uniqueLanes(lanes) == 0) {
+    console.error('loop: two items on one lane: one lane is one worktree and one branch')
+    lanes.forEach(l => console.error('       ' + l.id + '  ' + l.lane))
+    console.error('loop: move one item to a free lane in doc/loop/queue.json')
     return 1
   }
 

@@ -1,12 +1,17 @@
 # Unattended agent loop
 
-Status: last round, 2026-11-24. Eleven rounds of three parallel agents, merged
-serially, 88 commits. This file is the protocol; `bred-loop/` in the session's
-worktree root holds the live state of a run.
+Status: round 12 running, 2026-11-24. Eleven rounds of three parallel agents,
+merged serially, 88 commits. This file is the protocol; `doc/Loop-queue.md` is
+the durable queue; `bred-loop/` in the session's worktree root holds the rest of
+a run's live state.
 
 `$LOOP` below is that directory:
 
-    LOOP=/home/matt/worktrees/12ec105c-be5e-425b-8cbe-c3518e65e260/bred-loop
+    LOOP=$BRED_WORKTREE_ROOT/bred-loop
+
+The queue is tracked because the previous run's `$LOOP` was keyed to a session
+that ended, and its queue went with it. Briefs, claims and round logs stay
+untracked; the work, the round tips and this file survive anything.
 
 The loop is not a script. It is one agent acting as the scheduler: it writes a
 brief per lane, dispatches the lanes in parallel, merges their branches one at a
@@ -22,7 +27,8 @@ Hand this to a fresh agent (build mode, from the repository root):
     Do not redo any of it.
 
     Read doc/Loop.md first: it is the protocol, the prompt, and the round
-    history. Then $LOOP/state (if it exists), $LOOP/queue and $LOOP/rules.md.
+    history. Then doc/Loop-queue.md (the queue), $LOOP/state (if it exists) and
+    $LOOP/rules.md.
 
     Establish the baseline before changing anything:
 
@@ -35,7 +41,7 @@ Hand this to a fresh agent (build mode, from the repository root):
 
     Then work in rounds of up to three lanes, as doc/Loop.md describes: write a
     lane brief, dispatch the agents, merge with $LOOP/round.sh, update
-    this file and the queue. Only the loop edits this file.
+    this file and doc/Loop-queue.md. Only the loop edits those two.
 
     If the deadline in $LOOP/state has passed, stop and summarise the
     rounds. A half-finished round is worse than a clean checkpoint.
@@ -45,6 +51,8 @@ Hand this to a fresh agent (build mode, from the repository root):
 Tracked (the record, survives anything):
 
 - `doc/Loop.md` — this file: protocol, prompt, round history, current numbers.
+- `doc/Loop-queue.md` — the queue: every item, its status and its `done:<hash>`.
+  Losing the session costs the briefs, not the queue.
 - the commits themselves; every merged round is a fast-forward on `main`.
 
 Untracked, in `$LOOP` — the session's worktree root, which is a host bind mount
@@ -54,8 +62,6 @@ wiped mid-run once), and `~` is container-local too — only `src/bred`,
 `worktrees/<session>`, `sessions` and `fresh/main` are shared with the host.
 
 - `state` — start, deadline, round counter, the `main` commit after each round.
-- `queue` — items as `id | lane | status | title`, with `done:<hash>` for merged
-  work and `ready`/`next` for the backlog. This is the "do not redo" list.
 - `claims/<id>` — a directory per item an agent is working on, created with
   `mkdir` so two lanes cannot take the same item.
 - `rules.md` — the contract every lane agent reads.
@@ -64,14 +70,15 @@ wiped mid-run once), and `~` is container-local too — only `src/bred`,
 - `round-N.md` — a short summary of round N.
 - `round.sh` — the serial merge step (rebase, fast-forward, suite, check).
 
-Losing `$LOOP` costs the queue's hashes and the briefs, not the work: the
-commits, this file and the suite are the source of truth.
+Losing `$LOOP` costs the briefs and the claims, not the work or the queue: the
+commits, `doc/Loop-queue.md` and the suite are the source of truth.
 
 ## How a round works
 
-1. Pick up to three items from the queue whose **file sets are disjoint**, and
-   write `$LOOP/lane-<id>.md` for each: the worktree, the item, exactly
-   which files it owns, and how to prove the fix (a test that fails before it).
+1. Pick up to three items from `doc/Loop-queue.md` whose **file sets are
+   disjoint**, mark them `in-round`, and write `$LOOP/lane-<id>.md` for each:
+   the worktree, the item, exactly which files it owns, and how to prove the fix
+   (a test that fails before it).
 2. Dispatch the lanes with `background`, each told to read `rules.md` and its
    lane file, claim with `mkdir $LOOP/claims/<id>`, work only in its own
    worktree, commit once, and never merge, rebase or push.
@@ -79,7 +86,7 @@ commits, this file and the suite are the source of truth.
    fast-forwards one at a time, aborts a conflicting lane instead of forcing it,
    then runs the suite and `npm run check` once for the round.
 4. The loop — not a lane — updates this file from the numbers the agents report,
-   writes `round-<n>.md`, and bumps `state`/`queue`.
+   writes `round-<n>.md`, and bumps `state` and `doc/Loop-queue.md`.
 5. Check the clock in `state`; stop if the deadline has passed.
 
 ## Lanes
@@ -112,13 +119,18 @@ the loop owns it, which removes the one line every lane would otherwise touch.
 
 ## Current state
 
-    4125 parsed, 27 refused of 4150 installed pages
-    4621 parsed, 1 refused, 9 templates of 4631 downloaded pages
-    section sweep: 1:2p/5w  3:4p/248w  5:9p/18w  7:3p/8w  8:4p/17w
-    502 man tests, 1859 total, 0 failing; check clean
+    4123 parsed, 27 refused of 4150 installed pages
+    4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
+    505 man tests, 1862 total, 0 failing; check clean
 
-The 27 refusals are upstream page bugs or eqn; section 3 is TIFF hyphenation
-inside narrow cells. What is left in the sweep is line-break joining.
+The 27 refusals are upstream page bugs or eqn, not dialect gaps.
+
+The section-sweep numbers this file carried until round 12 were a **sample**,
+not a section: `bin/man-diff --max 400` slices readdir order, section 1 has 1189
+pages and section 3 has 959. Measured whole, section 1 is 34 pages / 403 words
+short of man(1), not 2 / 5. Round 12 makes the tool say what it sampled,
+records the real numbers, and separates the layout cases (wrapping, hyphenation
+inside a cell) from the losses.
 
 ## Rules that earned their place
 

@@ -6,8 +6,9 @@ See Specification.md for a general overview.
 See Files.md for an overview of the source files.
 See doc/Man.md for the manual page viewer and parser, and its current scoreboard.
 See doc/Loop.md for the unattended multi-agent loop: the prompt to hand a fresh
-agent, the lane protocol, and what each round changed. `~/bred-loop` (untracked)
-holds a run's live state.
+agent, the lane protocol, and what each round changed. `doc/Loop-queue.md` is
+the queue; the rest of a run's state lives in `$BRED_WORKTREE_ROOT/bred-loop/`
+(untracked).
 
 ## Context
 

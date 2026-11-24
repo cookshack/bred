@@ -286,8 +286,8 @@ man(1)'s text:
 
 ```
 section  1    3    5    7    8
-pages    2    4    9    4    5
-words    5  248   18   14   18
+pages    2    4    9    3    4
+words    5  248   18    8   17
 ```
 
 Most of that is measurement, not loss: man(1) wraps a long word onto the next
@@ -319,7 +319,7 @@ reads as 0 (groff's rule) instead of refusing the page. Bash defines its own
 `zY`/`zZ`, so that page never needed the second rule; the dropped text was the
 whole loss.
 
-Tests: 493 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
+Tests: 502 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs`, `man-char.mjs`, `man-render.mjs`, `man-roff.mjs` and

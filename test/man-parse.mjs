@@ -1602,6 +1602,16 @@ test('escapes', 'tmu is a multiplication sign and tm is a trade mark',
              'L×C/(N+1) ™ x')
      })
 
+test('escapes', 'greek capitals follow the groff names',
+     () => {
+       equal(flat(parsed('.TH T 1\n\\[*H] \\[*Q] \\[*Y]\n').doc.blocks[0].spans),
+             'Θ Ψ Η')
+       equal(flat(parsed('.TH T 1\n\\(*H\\(*Q\\(*Y\n').doc.blocks[0].spans),
+             'ΘΨΗ')
+       equal(flat(parsed('.TH T 1\n\\[*h] \\[*q] \\[*y]\n').doc.blocks[0].spans),
+             'θ ψ η')
+     })
+
 test('escapes', 'groff symbol names pl and mi',
      () => {
        equal(flat(parsed('.TH T 1\na \\(pl b \\(mi c\n').doc.blocks[0].spans),

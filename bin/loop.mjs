@@ -265,7 +265,7 @@ function status
   console.log('state      ' + (Fs.existsSync(loopDir) ? loopDir : loopDir + '  (missing)'))
   console.log('lanes      ' + (lanes.length > 0 ? '' : 'none'))
   lanes.forEach(p => console.log('           ' + p + '  ' + tryGit(p, 'log', '-1', '--format=%h %s')))
-  console.log('stale      ' + stale.length + ' prunable registration(s)')
+  console.log('stale      ' + stale.length + ' registration(s) not visible here')
   console.log('queue      ' + queueSummary())
   console.log('claims     ' + Claims.list(loopDir).length)
   console.log('parked     ' + (parked.length > 0 ? '' : 'none'))
@@ -293,21 +293,28 @@ function lanesUp
 () {
   let tip, n
 
-  git(root, 'worktree', 'prune')
   tip = git(root, 'rev-parse', 'main')
   n = 0
 
   while (n < 3) {
-    let wt, br, known
+    let wt, br, known, registered
 
     n += 1
     wt = Path.join(laneRoot(), 'bred-a' + n)
     br = 'agent/bred-' + workspace() + '-a' + n
     known = revParse(root, br)
+    registered = worktreePaths().includes(wt)
+
+    // A registration whose directory this container cannot see may be a live
+    // worktree in another namespace. Never prune it and never add over it.
+    if (registered && (exists(wt) == 0)) {
+      console.log('a' + n + '  skipped  ' + wt + '  (registered, not visible here)')
+      continue
+    }
 
     if (known == 0)
       git(root, 'worktree', 'add', '-b', br, wt, 'main')
-    else if (laneWorktrees().includes(wt) == 0)
+    else if (registered == 0)
       git(root, 'worktree', 'add', wt, br)
 
     bringUp(wt, br, known, n)
@@ -441,15 +448,16 @@ function isOurs
 // `--hot 0` disables it. Until every lane commit carries a `Loop-item:`
 // trailer, this loop's own recent commits look like somebody else's work, so
 // the filter says everything is hot; the escape is honest about that.
-function hotPaths
+function hotInfo
 (minutes) {
-  let out, blocks, i, files
+  let out, blocks, i, ours, files
 
   if (minutes <= 0)
-    return []
+    return { files: [], ours: 0, total: 0 }
   out = git(root, 'log', '--since=' + minutes + ' minutes ago', '--name-only', '--format=%x1e%h', 'main')
   blocks = out.split('\x1e').filter(b => b.trim().length > 0)
   files = []
+  ours = 0
   i = 0
 
   while (i < blocks.length) {
@@ -457,22 +465,36 @@ function hotPaths
 
     rev = lines(blocks[ i ])[ 0 ]
     names = lines(blocks[ i ]).slice(1)
-    if (isOurs(rev) == 0)
+    if (isOurs(rev))
+      ours += 1
+    else
       files = files.concat(names)
     i += 1
   }
 
-  return files
+  return { files, ours, total: blocks.length }
 }
 
 function pickCmd
 () {
-  let res, n, minutes
+  let q, res, n, minutes, info, hot
 
+  q = loadQueue()
   n = Number(option('--n') || 3)
   minutes = option('--hot')
   minutes = minutes == undefined ? 120 : Number(minutes)
-  res = Queue.pick(loadQueue(), { n, dirty: dirtyPaths(), hot: hotPaths(minutes) })
+  info = hotInfo(minutes)
+  hot = info.files
+
+  // Before the first lane commit carries a trailer, every recent commit looks
+  // like somebody else's work. Saying "nothing dispatchable" then would be a
+  // lie: say what is happening and filter nothing.
+  if ((info.total > 0) && (info.ours == 0)) {
+    hot = []
+    console.log('hot: no loop trailers in the last ' + minutes + ' minutes, not filtering')
+  }
+
+  res = Queue.pick(q, { n, dirty: dirtyPaths(), hot })
 
   res.picked.forEach(item => console.log(item.id + '  ' + item.lane + '  ' + item.title.slice(0, 90)))
   if (res.picked.length == 0)
@@ -480,8 +502,31 @@ function pickCmd
   if (res.skipped.length == 0)
     return 0
   console.log('')
-  res.skipped.forEach(s => console.log('skip  ' + s.id + '  ' + s.why))
+  res.skipped.forEach(s => console.log('skip  ' + s.id + '  ' + s.why + overlapNote(q, res.picked, s.id)))
   return 0
+}
+
+// Name the file, not just "overlap": the item's own set is what the reader
+// needs to decide whether the queue row is wrong or the pick was.
+function overlapNote
+(q, picked, id) {
+  let item, i
+
+  item = q.items.filter(x => x.id == id)[ 0 ]
+  if (item == undefined)
+    return ''
+  i = 0
+
+  while (i < picked.length) {
+    let hit
+
+    hit = picked[ i ].files.filter(f => item.files.includes(f))
+    if (hit.length > 0)
+      return ' (' + hit[ 0 ] + ' with ' + picked[ i ].id + ')'
+    i += 1
+  }
+
+  return ''
 }
 
 function claimCmd

@@ -109,7 +109,89 @@ function exec
 function fail
 (res, why) {
   res.problems.push(why)
+  res.fatal = 1
   return res
+}
+
+function exists
+(p) {
+  try {
+    Fs.lstatSync(p)
+    return 1
+  }
+  catch {
+    return 0
+  }
+}
+
+function link
+(src, dst) {
+  try {
+    Fs.symlinkSync(src, dst, 'dir')
+  }
+  catch (e) {
+    console.error('loop: ' + dst + ': cannot link: ' + e.message)
+  }
+}
+
+// A fresh worktree has neither node_modules nor the generated parts of lib/
+// (and ext/*/lib is generated whole). Without them `npx mocha` fails on module
+// resolution, which the red gate would read as "red" and the suite as a broken
+// round. lib/ is copied file by file, because its tracked sources are part of
+// the lane's tree; the ignored directories are linked.
+export
+function provision
+(repo, dir) {
+  let nodeModules, lib, ext, names, i
+
+  if (exists(dir) == 0)
+    return
+  nodeModules = Path.join(dir, 'node_modules')
+  if (exists(nodeModules) == 0)
+    link(Path.join(repo, 'node_modules'), nodeModules)
+
+  lib = Path.join(repo, 'lib')
+  if (Fs.existsSync(lib))
+    copyMissing(lib, Path.join(dir, 'lib'))
+
+  ext = Path.join(repo, 'ext')
+  if (Fs.existsSync(ext) == 0)
+    return
+
+  names = Fs.readdirSync(ext)
+
+  for (i = 0; i < names.length; i += 1) {
+    let src, dst
+
+    src = Path.join(ext, names[ i ], 'lib')
+    dst = Path.join(dir, 'ext', names[ i ], 'lib')
+    if (Fs.existsSync(src) && (exists(dst) == 0)) {
+      Fs.mkdirSync(Path.dirname(dst), { recursive: true })
+      link(src, dst)
+    }
+  }
+}
+
+// Copy only what the worktree lacks: its own tracked files must stay its own.
+function copyMissing
+(src, dst) {
+  let names, i
+
+  Fs.mkdirSync(dst, { recursive: true })
+  names = Fs.readdirSync(src)
+  i = 0
+
+  while (i < names.length) {
+    let from, to
+
+    from = Path.join(src, names[ i ])
+    to = Path.join(dst, names[ i ])
+    if (Fs.lstatSync(from).isDirectory())
+      copyMissing(from, to)
+    else if (exists(to) == 0)
+      Fs.copyFileSync(from, to)
+    i += 1
+  }
 }
 
 function laneWorktree
@@ -124,7 +206,7 @@ function park
   let wt, aborted, patch
 
   res.parked = 1
-  fail(res, why)
+  res.problems.push(why)
   wt = laneWorktree(opts, lane)
   patch = Path.join(opts.logDir || repo, lane.id + '.patch')
 
@@ -182,6 +264,10 @@ function mergeOne
     return fail(res, 'no worktree at ' + wt)
 
   rebase = exec(opts)('git rebase ' + work, wt, opts)
+  if (rebase.status && rebase.out.includes('index.lock')) {
+    exec(opts)('sleep 2', wt, opts)
+    rebase = exec(opts)('git rebase ' + work, wt, opts)
+  }
   if (rebase.status)
     return abortPark(repo, lane, work, wt, opts, res)
 
@@ -272,6 +358,7 @@ function redGate
       git(scratch, 'checkout', '--detach', work)
       git(scratch, 'reset', '--hard', '--quiet', work)
     }
+    provision(repo, scratch)
     for (let i = 0; i < tests.length; i += 1)
       git(scratch, 'checkout', lane.branch, '--', tests[ i ])
   }
@@ -311,7 +398,9 @@ function mergeRound
   }
 
   res.tip = revParse(repo, opts.work)
-  res.ok = (res.problems.length == 0) && (res.merged.length > 0)
+  // A park is recorded work, not a failed round: the lanes that merged can
+  // still be measured, recorded and landed, exactly as round 15 did with two.
+  res.ok = (res.merged.length > 0) && ((res.fatal || 0) == 0) ? 1 : 0
   return res
 }
 
@@ -320,6 +409,7 @@ function mergeLane
   let one
 
   one = mergeOne(repo, lane, opts.work, opts)
+  res.fatal = res.fatal || one.fatal
   res.problems = res.problems.concat(one.problems.map(p => one.id + ': ' + p))
   res.notes = res.notes.concat(one.notes.map(n => one.id + ': ' + n))
   if (one.ok)
@@ -346,8 +436,7 @@ function suiteAt
       git(dir, 'checkout', '--detach', tip)
       git(dir, 'reset', '--hard', '--quiet', tip)
     }
-    if (Fs.existsSync(Path.join(dir, 'node_modules')) == 0)
-      Fs.symlinkSync(Path.join(repo, 'node_modules'), Path.join(dir, 'node_modules'), 'dir')
+    provision(repo, dir)
     provisioned = 1
   }
   catch (e) {
@@ -368,6 +457,27 @@ function suiteAt
 // The one move that changes main. Refuses anything but a fast-forward, and
 // retries the lock once, because a user or another agent may be mid-command in
 // the same checkout.
+// The record lands after the tip it verified, so the commits between them must
+// be documentation only. Anything else is code that no suite passed.
+function docOnly
+(repo, range) {
+  let commits, i
+
+  commits = lines(git(repo, 'rev-list', range))
+  i = 0
+
+  while (i < commits.length) {
+    let files
+
+    files = lines(git(repo, 'show', '--name-only', '--format=', commits[ i ]))
+    if (files.some(f => f.startsWith('doc/') == 0))
+      return 0
+    i += 1
+  }
+
+  return 1
+}
+
 export
 function land
 (repo, opts) {
@@ -378,8 +488,10 @@ function land
 
   if (tip == 0)
     return { ok: 0, why: 'no branch ' + work, tip: 0 }
-  if (opts.verify && ((opts.verify == tip) == 0))
-    return { ok: 0, why: 'the verified tip is ' + opts.verify + ', not ' + tip, tip }
+  if (opts.verify && (ok(repo, 'merge-base', '--is-ancestor', opts.verify, tip) == 0))
+    return { ok: 0, why: 'the verified tip ' + opts.verify + ' is not an ancestor of ' + work, tip }
+  if (opts.verify && (docOnly(repo, opts.verify + '..' + tip) == 0))
+    return { ok: 0, why: 'commits after the verified tip change more than doc/', tip }
   if (ok(repo, 'merge-base', '--is-ancestor', 'main', tip) == 0)
     return { ok: 0, why: 'main is not an ancestor of ' + work + ': rebase and verify again', tip }
 

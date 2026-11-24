@@ -1,6 +1,6 @@
 import { equal } from 'node:assert/strict'
 
-import { land, matches, mergeOne } from '../bin/loop-merge.mjs'
+import { land, matches, mergeOne, mergeRound, provision } from '../bin/loop-merge.mjs'
 import { spawnSync } from 'node:child_process'
 import Fs from 'node:fs'
 import Os from 'node:os'
@@ -337,6 +337,72 @@ function cliRound
 }
 
 test('round', 'merges, gates, records and lands one item through the CLI', withRepo(cliRound))
+
+// The record lands after the tip it verified, so `land` must check both that
+// the tip is this branch's ancestor and that nothing but docs came after it.
+function landWrongTrailer
+(dir) {
+  let res, wt, other
+
+  git(dir, [ 'branch', 'work', 'main' ])
+  wt = Path.join(dir, 'wt', 'bred-a9')
+  git(dir, [ 'worktree', 'add', '-b', 'other', wt, 'main' ])
+  other = commit(wt, 'elsewhere', 'e.txt')
+  res = land(dir, { work: 'work', verify: other })
+
+  equal(res.ok, 0)
+  equal(res.why.includes('not an ancestor'), true)
+}
+
+test('land', 'refuses a trailer whose tip the branch does not descend from', withRepo(landWrongTrailer))
+
+function landCodeAfter
+(dir) {
+  let res, wt, verified
+
+  verified = git(dir, [ 'rev-parse', 'main' ])
+  wt = Path.join(dir, 'wt', 'bred-a8')
+  git(dir, [ 'worktree', 'add', '-b', 'work', wt, 'main' ])
+  commit(wt, 'code after the measurement', 'code.js')
+  res = land(dir, { work: 'work', verify: verified })
+
+  equal(res.ok, 0)
+  equal(res.why.includes('more than doc/'), true)
+}
+
+test('land', 'refuses when code was committed after the verified tip', withRepo(landCodeAfter))
+
+function roundWithPark
+(dir) {
+  let good, bad, res, opts
+
+  good = laneSetup(dir, 'a1', [ 'allowed.js', 'test/allowed.mjs' ])
+  bad = laneSetup(dir, 'a2', [ 'other.js' ])
+  bad.files = [ 'allowed.js' ]
+  opts = mergeOpts(dir)
+  opts.lanes = [ good, bad ]
+  opts.work = 'work'
+  opts.suite = 0
+  res = mergeRound(dir, opts)
+
+  equal(res.merged.length, 1)
+  equal(res.parked.length, 1)
+  equal(res.ok, 1, res.problems.join('; '))
+}
+
+test('round', 'one parked lane does not make the round unlandable', withRepo(roundWithPark))
+
+function provisionsLib
+(dir) {
+  Fs.mkdirSync(Path.join(dir, 'lib'), { recursive: true })
+  Fs.writeFileSync(Path.join(dir, 'lib', 'gen.mjs'), 'x\n')
+  Fs.mkdirSync(Path.join(dir, 'scratch'), { recursive: true })
+  provision(dir, Path.join(dir, 'scratch'))
+
+  equal(Fs.existsSync(Path.join(dir, 'scratch', 'lib', 'gen.mjs')), true)
+}
+
+test('provision', 'copies the generated lib a fresh worktree lacks', withRepo(provisionsLib))
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,

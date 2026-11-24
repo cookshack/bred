@@ -355,7 +355,7 @@ function lanesUp
       git(root, 'worktree', 'add', wt, br)
 
     bringUp(wt, br, known, n)
-    provision(wt)
+    Merge.provision(root, wt)
     console.log('a' + n + '  ' + tryGit(wt, 'log', '-1', '--format=%h %s'))
   }
 
@@ -392,48 +392,6 @@ function bringUp
   if (merged)
     return console.log('a' + lane + '  kept     ' + br + '  (dirty tree; not reset)')
   console.log('a' + lane + '  kept     ' + br + '  (unmerged commits; not reset)')
-}
-
-// A lane worktree has no node_modules and no generated ext/*/lib; the tests
-// cannot run without them. Link rather than copy, so a lane and the checkout
-// always agree.
-function provision
-(wt) {
-  let nodeModules, ext, names, i
-
-  nodeModules = Path.join(wt, 'node_modules')
-
-  if (exists(wt) == 0)
-    return
-  if (exists(nodeModules) == 0)
-    link(Path.join(root, 'node_modules'), nodeModules)
-
-  ext = Path.join(root, 'ext')
-  if (Fs.existsSync(ext) == 0)
-    return
-
-  names = Fs.readdirSync(ext)
-
-  for (i = 0; i < names.length; i += 1) {
-    let src, dst
-
-    src = Path.join(ext, names[ i ], 'lib')
-    dst = Path.join(wt, 'ext', names[ i ], 'lib')
-    if (Fs.existsSync(src) && exists(dst) == 0) {
-      Fs.mkdirSync(Path.dirname(dst), { recursive: true })
-      link(src, dst)
-    }
-  }
-}
-
-function link
-(src, dst) {
-  try {
-    Fs.symlinkSync(src, dst, 'dir')
-  }
-  catch (e) {
-    console.error('loop: ' + dst + ': cannot link: ' + e.message)
-  }
 }
 
 function queueFile
@@ -752,7 +710,7 @@ function landCmd
     return 1
   }
 
-  res = Merge.land(root, { work })
+  res = Merge.land(root, { work, verify: trailer[ 1 ] })
   if (res.ok == 0) {
     console.error('loop: land refused: ' + res.why)
     return 1

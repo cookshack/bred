@@ -699,6 +699,41 @@ test('tables', 'a request line in a table body is not a cell',
        equal(flat(table.rows[2].cells[1].spans), 'f')
      })
 
+test('tables', 'a bare Nm in a T{ cell prints the document name',
+     () => {
+       let r, table, page
+
+       // crypt_checksalt(3) writes the name as a bare `.Nm` in the ATTRIBUTES
+       // table. tbl hands the control line to roff, so mdoc runs it and prints
+       // the document name; it must not come out as the literal ".Nm".
+       page = '.Dd November 8, 2018\n.Dt CRYPT_CHECKSALT 3\n.Os\n' +
+              '.Sh NAME\n.Nm crypt_checksalt\n.Nd validate a setting\n' +
+              '.Sh ATTRIBUTES\n.TS\nallbox;\nlb lb lb\nl l l.\n' +
+              'Interface\tAttribute\tValue\n' +
+              'T{\n.Nm\nT}\tThread safety\tMT-Safe\n.TE\n'
+       r = parsed(page)
+       equal(r.ok, 1)
+       table = r.doc.blocks.filter(b => b.kind == 'table')[0]
+       equal(flat(table.rows[1].cells[0].spans), 'crypt_checksalt')
+       equal(flat(table.rows[1].cells[1].spans), 'Thread safety')
+       equal(flat(table.rows[1].cells[2].spans), 'MT-Safe')
+       ok(asText(page).includes('.Nm') == 0)
+     })
+
+test('tables', 'an Nm with an argument in a T{ cell prints the argument',
+     () => {
+       let r, table
+
+       r = parsed('.Dd November 8, 2018\n.Dt CRYPT_CHECKSALT 3\n.Os\n' +
+                  '.Sh NAME\n.Nm crypt_checksalt\n.Nd validate a setting\n' +
+                  '.Sh ATTRIBUTES\n.TS\nl l.\n' +
+                  'T{\n.Nm crypt\nT}\tThread safety\n.TE\n')
+       equal(r.ok, 1)
+       table = r.doc.blocks.filter(b => b.kind == 'table')[0]
+       equal(flat(table.rows[0].cells[0].spans), 'crypt')
+       equal(flat(table.rows[0].cells[1].spans), 'Thread safety')
+     })
+
 test('tables', 'a normal row still splits and a cell keeps its period',
      () => {
        let r, table

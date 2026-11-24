@@ -1679,12 +1679,37 @@ function tableRuleRow
   return 1
 }
 
+// A control line in a `T{ }` cell still goes through roff, so a `.Nm` there
+// prints the document name just as it does in a paragraph. Only `Nm` is run:
+// mdoc's other text macros need the inline interpreter, which a cell does not
+// have, and the requests `tableRequest` drops draw nothing.
+function tableCellNm
+(c, text) {
+  let line, match, args, split, shown
+
+  line = text.trim()
+  match = /^\.[ \t]*Nm(?:[ \t]+(.*))?$/.exec(line)
+  if (match == undefined)
+    return undefined
+  args = splitArgs(stripComment(match[1] || ''))
+  split = mdocSplitPunct(args)
+  if (split.words.length == 0)
+    shown = (c.mdoc.docName == '') ? '' : c.mdoc.docName
+  else {
+    if (c.mdoc.docName == '')
+      c.mdoc.docName = split.words[0]
+    shown = split.words.join(' ') + split.punct.join('')
+  }
+  return shown
+}
+
 function tableCell
 (c, text, lineNo) {
-  let saved, spans
+  let saved, spans, nm
 
   saved = c.font
-  spans = expand(c, text, saved, lineNo).spans
+  nm = (c.mode == 'mdoc') ? tableCellNm(c, text) : undefined
+  spans = expand(c, (nm == undefined) ? text : nm, saved, lineNo).spans
   c.font = saved
   return { spans }
 }

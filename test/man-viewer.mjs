@@ -1748,16 +1748,65 @@ test('viewer', 'an ambiguous man -w line falls back to the real whole path',
        }
      })
 
-test('viewer', 'a colon-separated list that reads is never statted whole',
+// The whole line is statted first, so a page whose path really contains a
+// colon wins even when the part before the colon also reads. This is the
+// repro man -w cannot express: /x/a.1 and /x/a.1:/b.1 both exist. The fixture
+// directory contains a colon so the fake reader serves these paths from disk.
+test('viewer', 'a readable whole colon path wins over a readable split prefix',
      async () => {
-       let b
+       let dir, whole, prefix
 
-       setup({ 'one.1': '.TH ONE 1\n.SH NAME\nfirst list page\n',
-               'two.1': '.TH TWO 1\n.SH NAME\nsecond list page\n' },
-             { probe: [ '/fake/man1/one.1:/fake/man1/two.1' ] })
-       b = await opened('probe')
-       equal(textOf(b).includes('first list page'), true)
-       equal(calls.some(c => c[0] == 'file.stat'), false)
+       dir = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-man-colon:'))
+       prefix = Path.join(dir, 'a.1')
+       Fs.writeFileSync(prefix, '.TH PFX 1\n.SH NAME\nsplit prefix page\n')
+       Fs.mkdirSync(prefix + ':')
+       whole = Path.join(prefix + ':', 'b.1')
+       Fs.writeFileSync(whole, '.TH AB 1\n.SH NAME\ncolon whole page\n')
+       try {
+         let b
+
+         setup({}, { probe: [ whole ] })
+         b = await opened('probe')
+         equal(textOf(b).includes('colon whole page'), true)
+         equal(textOf(b).includes('split prefix page'), false)
+         equal(calls.some(c => (c[0] == 'file.stat') && (c[1] == whole)), true)
+         equal(calls.some(c => (c[0] == 'cat') && (c[1] == whole)), true)
+         equal(calls.some(c => (c[0] == 'cat') && (c[1] == prefix)), false)
+       }
+       finally {
+         Fs.rmSync(dir, { recursive: true, force: true })
+       }
+     })
+
+// A genuine colon-separated list keeps working: the whole line is not a file,
+// so the parts are tried, and an unreadable part falls through to the next.
+test('viewer', 'a colon-separated list whose whole line is no file reads its parts',
+     async () => {
+       let dir, one, two, whole
+
+       dir = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-man-list:'))
+       one = Path.join(dir, 'one.1')
+       two = Path.join(dir, 'two.1')
+       Fs.writeFileSync(one, '.TH ONE 1\n.SH NAME\nfirst list page\n')
+       Fs.writeFileSync(two, '.TH TWO 1\n.SH NAME\nsecond list page\n')
+       whole = one + ':' + two
+       try {
+         let b
+
+         setup({}, { probe: [ whole ] })
+         b = await opened('probe')
+         equal(textOf(b).includes('first list page'), true)
+         equal(calls.some(c => (c[0] == 'file.stat') && (c[1] == whole)), true)
+         equal(calls.some(c => (c[0] == 'cat') && (c[1] == one)), true)
+
+         setup({}, { probe2: [ whole ] })
+         readFailPaths[one] = 1
+         b = await opened('probe2')
+         equal(textOf(b).includes('second list page'), true)
+       }
+       finally {
+         Fs.rmSync(dir, { recursive: true, force: true })
+       }
      })
 
 test('viewer', 'a whole path that is a directory keeps the split error',

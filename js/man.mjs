@@ -575,10 +575,10 @@ function init
   // separator only when the part before it names a manual source (a
   // compression suffix or a section), so a colon followed by "/" inside a
   // filename stays part of that path. man -w cannot quote a colon, though, so
-  // a line that split is ambiguous: the whole line may be one real path such
-  // as /x/a.1:/b.1. manPaths keeps both readings; onManW tries the whole only
-  // after every split candidate has failed, so the common colon-separated list
-  // never pays for the ambiguity.
+  // a line that splits is ambiguous: the whole line may be one real path such
+  // as /x/a.1:/b.1. manPaths keeps both readings, the whole before its parts:
+  // one stat settles it, and a readable whole wins, so a real colon path is
+  // not shadowed by a split prefix that also reads.
   function splitPathLine
   (line) {
     let out, rest
@@ -604,13 +604,16 @@ function init
     let res
 
     function add
-    (path) {
+    (path, whole) {
       path = path.trim()
-      if (path.startsWith('/') && (res.paths.includes(path) == 0))
-        res.paths.push(path)
+      if (path.startsWith('/') == 0)
+        return
+      if (res.cands.some(c => c.path == path))
+        return
+      res.cands.push({ path, whole })
     }
 
-    res = { paths: [], wholes: [] }
+    res = { cands: [] }
     out = out || ''
     out.split('\n').forEach(line => {
                               // Only a line that starts with a path is a
@@ -622,11 +625,9 @@ function init
                                 let parts
 
                                 parts = splitPathLine(line)
-                                if ((parts.length > 1) &&
-                                    (res.wholes.includes(line) == 0) &&
-                                    (res.paths.includes(line) == 0))
-                                  res.wholes.push(line)
-                                parts.forEach(add)
+                                if (parts.length > 1)
+                                  add(line, 1)
+                                parts.forEach(path => add(path, 0))
                               }
                             })
     return res
@@ -677,54 +678,45 @@ function init
       onSource(dir, topic, depth, path, 0, text, cb, chain, seen)
     }
 
-    // The whole line of an ambiguous split is a fallback, not a first guess:
-    // it is reached only when no split candidate reads, and only a regular
-    // file is worth reading, so the common colon-separated list never pays for
-    // a stat. The split candidates' error stays the answer when the whole is
-    // not a file.
+    // A line that split is statted whole before its parts: one stat, and a
+    // readable regular file is the page the user asked for, even when a part
+    // before the colon also reads. When the whole is not a file (the common
+    // colon-separated list) the parts are tried and their error is the answer.
     function wholeStatted
     (whole, at, lastErr, err, data) {
       let fileMode
 
       fileMode = data?.data?.mode
-      if (err || (fileMode == undefined)) {
-        tryWhole(at + 1, lastErr)
-        return
-      }
-      if ((fileMode & 0o170000) == 0o100000)
-        readSome(whole, opened, () => tryWhole(at + 1, lastErr))
+      if (err || (fileMode == undefined))
+        tryCand(at + 1, lastErr)
+      else if ((fileMode & 0o170000) == 0o100000)
+        readSome(whole, opened, () => tryCand(at + 1, lastErr))
       else
-        tryWhole(at + 1, lastErr)
+        tryCand(at + 1, lastErr)
     }
 
-    function tryWhole
+    function tryCand
     (at, lastErr) {
-      let whole
+      let cand
 
-      if (at >= found.wholes.length) {
+      if (at >= found.cands.length) {
         cb(lastErr || manError(topic, out, code))
         return
       }
-      whole = found.wholes[at]
-      Tron.cmd('file.stat', whole, (err, data) => wholeStatted(whole, at, lastErr,
-                                                               err, data))
+      cand = found.cands[at]
+      if (cand.whole)
+        Tron.cmd('file.stat', cand.path, (err, data) => wholeStatted(cand.path, at, lastErr,
+                                                                     err, data))
+      else
+        readSome(cand.path, opened, err => tryCand(at + 1, err))
     }
 
-    function tryPath
-    (at, lastErr) {
-      if (at >= found.paths.length) {
-        tryWhole(0, lastErr)
-        return
-      }
-      readSome(found.paths[at], opened, err => tryPath(at + 1, err))
-    }
-
-    found = (code == 0) ? manPaths(out) : { paths: [], wholes: [] }
-    if (found.paths.length == 0) {
+    found = (code == 0) ? manPaths(out) : { cands: [] }
+    if (found.cands.length == 0) {
       cb(manError(topic, out, code))
       return
     }
-    tryPath(0)
+    tryCand(0)
   }
 
   function fetchPage

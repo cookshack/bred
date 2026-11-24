@@ -30,11 +30,12 @@ topicKeys = []
 // Debian packages pages as .gz, but other systems use .xz, .bz2 and .zst,
 // and man -w returns whichever the source uses.
 decompressors = { gz: 'zcat', xz: 'xzcat', bz2: 'bzcat', zst: 'zstdcat', lzma: 'lzcat' }
-// The signature of each format the viewer can decompress. cat hands back
-// decoded text, so each signature is compared as character codes; a byte that
-// UTF-8 cannot decode has already become U+FFFD and looksText refuses it.
-// lzma is left out: only its first byte is fixed (0x5d, "]", which is ordinary
-// text), so a short prefix proves nothing.
+// The signature of each format the viewer can decompress. The plain read hands
+// back one character per byte, so each signature is compared with the real
+// bytes rather than with a UTF-8 decoding, which turns everything at or above
+// 0x80 into U+FFFD before the sniff could see it. lzma is left out: only its
+// first byte is fixed (0x5d, "]", which is ordinary text), so a short prefix
+// proves nothing.
 compressedMagics = { gzip: [ 0x1f, 0x8b ],
                      xz: [ 0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00 ],
                      bzip2: [ 0x42, 0x5a, 0x68 ],
@@ -589,6 +590,23 @@ function init
     return 1
   }
 
+  // The byte-preserving read hands back one character per byte, so a signature
+  // is compared with the bytes that really arrived. A page that is text is
+  // decoded from those bytes here; one that is not is refused by looksText.
+  function textFromBytes
+  (bytes) {
+    return new TextDecoder().decode(Uint8Array.from(bytes, ch => ch.charCodeAt(0)))
+  }
+
+  // A typed-array read is one char per byte and becomes text here. A string
+  // from a sender that already decoded it is text as it stands.
+  function asText
+  (bytes, raw) {
+    if (raw)
+      return textFromBytes(bytes)
+    return bytes
+  }
+
   // A compressed source starts with a signature, and a page whose suffix names
   // a decompressor but whose cat output still has one is not text: rendering
   // it shows garbage. Only the start of the output is checked, so a plain page
@@ -640,18 +658,31 @@ function init
   }
 
   function onCat
-  (path, text, code, cb) {
+  (path, bytes, code, raw, cb) {
     if (code == 0)
-      cb(0, text, path)
+      cb(0, bytes, raw, path)
     else
       cb(cannotRead(path, 'read failed'))
   }
 
-  function readPlain
+  // cat is read one char per byte so the decompressor fallback can compare the
+  // real signature. A plain page has no sniff: its bytes are text, decoded here.
+  function readBytes
   (dir, path, cb) {
     Shell.runToString(dir, 'cat', [ path ], 0,
-                      (text, code) => onCat(path, text, code, cb),
-                      err => cb('Cannot run cat: ' + err.message))
+                      (bytes, code, raw) => onCat(path, bytes, code, raw, cb),
+                      err => cb('Cannot run cat: ' + err.message),
+                      { bytes: 1 })
+  }
+
+  function readPlain
+  (dir, path, cb) {
+    readBytes(dir, path, (err, bytes, raw, full) => {
+                           if (err)
+                             cb(err)
+                           else
+                             cb(0, asText(bytes, raw), full)
+                         })
   }
 
   // Try each decompressor in turn: the suffix picks the expected tool first,
@@ -660,17 +691,20 @@ function init
   function tryDecompress
   (dir, path, suffix, tools, at, cb) {
     if (at >= tools.length) {
-      readPlain(dir, path, (err, text) => {
-                             let format
+      readBytes(dir, path, (err, bytes, raw) => {
+                             let format, text
 
                              if (err) {
                                cb(err)
                                return
                              }
-                             format = compressedFormat(text)
-                             if (format.length)
+                             format = compressedFormat(bytes)
+                             if (format.length) {
                                cb(compressedError(path, suffix, format))
-                             else if (looksText(text))
+                               return
+                             }
+                             text = asText(bytes, raw)
+                             if (looksText(text))
                                cb(0, text, path)
                              else
                                cb(compressedError(path, suffix, ''))

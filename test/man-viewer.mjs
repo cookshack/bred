@@ -16,7 +16,7 @@ import * as Prompt from '../js/prompt.mjs'
 import * as ViewMode from '../js/view-mode.mjs'
 import { setupPanes, setBuf, wait, waitFor } from './pane-helpers.mjs'
 
-let tests, inited, divSearch, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, noMagicPaths, statErrPaths, modeLessPaths, readFailPaths
+let tests, inited, divSearch, savedTron, calls, zcatFails, mankFails, mankOut, emptyPaths, hold, held, manwFail, dirPaths, unreadablePaths, binaryPaths, noMagicPaths, statErrPaths, modeLessPaths, readFailPaths, rawPaths
 
 // A key event, for Em.look (wrapped as { e }) and for the search map's
 // onkeydown handler (raw).
@@ -181,6 +181,10 @@ function installShell
         out = ''
       else if (readFailPaths[sargs[0] || ''])
         code = 1
+      // Real bytes on the wire, as a Buffer: the fake sends a typed array so
+      // the viewer's byte-preserving read is exercised, not a decoded string.
+      else if (rawPaths[sargs[0] || ''])
+        out = rawPaths[sargs[0] || '']
       else if (binaryPaths[sargs[0] || ''])
         out = 'BZh9\x00\xff\xfe'
       // Binary, but with no compression signature: the viewer can only say
@@ -292,6 +296,7 @@ function setup
   statErrPaths = {}
   modeLessPaths = {}
   readFailPaths = {}
+  rawPaths = {}
   installShell(panes, pages, manw)
   return panes
 }
@@ -837,6 +842,49 @@ test('viewer', 'a mislabelled compressed page names the format cat found',
        equal(textOf(b).includes('still compressed'), false)
      })
 
+test('viewer', 'a mislabelled gzip page names gzip from real bytes',
+     async () => {
+       let b, path
+
+       // The same mislabelling as the bzip2 case, but the signature is not
+       // ASCII: 1f 8b cannot survive a UTF-8 decode, so the fake sends these
+       // as the bytes a real cat would emit.
+       path = '/fake/man1/gzstill.1.xz'
+       setup({}, { gzstill: [ path ] })
+       zcatFails[path] = 1
+       rawPaths[path] = Buffer.from([ 0x1f, 0x8b, 0x08, 0x00, 0x42, 0x5a ])
+       b = await opened('gzstill')
+       equal(textOf(b).includes('Cannot read ' + path +
+                                ': cannot decompress .xz (gzip data)'), true)
+     })
+
+test('viewer', 'a plain page read as bytes is decoded as UTF-8 text',
+     async () => {
+       let b, path
+
+       // A path with no compression suffix takes the cat path with no sniff,
+       // and its bytes must still come back as the text they encode.
+       path = '/tmp/plain-utf8.1'
+       setup({})
+       rawPaths[path] = Buffer.from('.TH U 1\n.SH NAME\ncaf\u00e9 text\n', 'utf8')
+       b = await opened(path)
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(textOf(b).includes('caf\u00e9 text'), true)
+     })
+
+test('viewer', 'a plain page from a string sender keeps its text',
+     async () => {
+       let b, path
+
+       // A sender that already decoded its output hands back text, not bytes:
+       // the viewer must not decode it a second time.
+       path = '/tmp/plain-string.1'
+       setup({ 'plain-string.1': '.TH U 1\n.SH NAME\ncaf\u00e9 string text\n' })
+       b = await opened(path)
+       equal(viewOf(b).ele.querySelector('.manpage-err'), null)
+       equal(textOf(b).includes('caf\u00e9 string text'), true)
+     })
+
 test('viewer', 'binary cat output with no known magic is refused as bytes',
      async () => {
        let b, path, msg
@@ -861,11 +909,13 @@ test('viewer', 'compressed-looking bytes later in a page still render',
      async () => {
        let b, path
 
+       // The page's later bytes are a compressor's signature (BZh9), but the
+       // sniff only looks at the start, so real bytes must not refuse it.
        path = '/fake/man1/late.1.gz'
-       setup({ late: '.TH LATE 1\n.SH NAME\nlate\n' +
-                      'a line with \u001f\u008b bytes\n' },
-             { late: [ path ] })
+       setup({}, { late: [ path ] })
        zcatFails[path] = 1
+       rawPaths[path] = Buffer.from('.TH LATE 1\n.SH NAME\nlate\n' +
+                                    'a line with BZh9 bytes\n', 'utf8')
        b = await opened('late')
        equal(textOf(b).includes('a line with'), true)
        equal(viewOf(b).ele.querySelector('.manpage-err'), null)

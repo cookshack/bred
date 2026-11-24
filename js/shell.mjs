@@ -48,19 +48,51 @@ function nextCh
   return 'shellCh' + chInt++
 }
 
+// One character per byte, so a caller can compare a compressed signature with
+// the bytes that arrived instead of with their UTF-8 decoding (which turns
+// everything at or above 0x80 into U+FFFD). fromCharCode takes one argument
+// per byte, so a chunk is converted in pieces to stay inside that limit.
+function latin1
+(bytes) {
+  let out, at
+
+  out = ''
+  for (at = 0; at < bytes.length; at += 0x2000)
+    out += String.fromCharCode.apply(null, bytes.slice(at, at + 0x2000))
+  return out
+}
+
 export
 function runToString
-(dir, sc, args, runInShell, cb, onErr) { // (str, code), (err)
-  let ch, str, handler, off
+(dir, sc, args, runInShell, cb, onErr, spec) { // (str, code, raw), (err), { bytes }
+  let ch, str, handler, off, raw
 
   ch = nextCh()
   str = ''
+  raw = 0
   args = args || []
+  spec = spec || {}
   d("runToString '" + sc + ' ' + args.join(' ') + "' in " + dir)
 
   // Define the IPC handler so we can remove it later
   handler = (err, data) => {
               let der
+
+              // Track whether any chunk was a typed array kept one char per
+              // byte: the caller then knows `str` is not text yet.
+              function addChunk
+              (chunk) {
+                if (typeof chunk == 'string') {
+                  str += chunk
+                  return
+                }
+                if (spec.bytes) {
+                  str += latin1(chunk)
+                  raw = 1
+                  return
+                }
+                str += der.decode(chunk)
+              }
 
               der = new TextDecoder()
 
@@ -77,20 +109,15 @@ function runToString
               }
 
               if (data.stdout)
-                if (typeof data.stdout == 'string')
-                  str += data.stdout
-                else
-                  str += der.decode(data.stdout)
+                addChunk(data.stdout)
               if (data.stderr)
-                if (typeof data.stderr == 'string')
-                  str += data.stderr
-                else
-                  str += der.decode(data.stderr)
+                addChunk(data.stderr)
 
               if (U.isDefined(data.close)) {
                 if (cb) {
-                  // Invoke callback with final output and exit code
-                  cb(str, data.code)
+                  // Invoke callback with final output and exit code. raw is 1
+                  // when the output is one char per byte rather than text.
+                  cb(str, data.code, raw)
                   // Clean up listener after completion
                   off()
                 }

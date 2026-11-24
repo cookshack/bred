@@ -650,18 +650,19 @@
     {
       "id": "p84",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "*G is missing from the char table; groff prints Γ (U+0393), so a page using \\[*G] is refused today",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "5ea6105"
     },
     {
       "id": "p85",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "*f maps to φ (U+03C6); groff prints ϕ (U+03D5); *J/*j/*V/*v are absent from groff too, not gaps",
       "files": [
         "js/man-char.mjs",

@@ -23,7 +23,7 @@
     {
       "id": "p64",
       "lane": "a1",
-      "status": "ready",
+      "status": "in-round",
       "title": "`.Fn` in a SYNOPSIS also ends with `;` in groff; we do not print it (found in p61's report)",
       "files": [
         "js/man-parse.mjs",
@@ -34,19 +34,20 @@
     {
       "id": "p65",
       "lane": "a3",
-      "status": "ready",
+      "status": "next",
       "title": "no fake emits a typed-array chunk split mid-UTF-8, so `js/shell.mjs`'s streaming decoder is proven only by real-pty timing; add the fake and the test",
       "files": [
         "js/shell.mjs",
         "test/man-viewer.mjs",
         "test/main-shell.mjs"
       ],
-      "proof": "npx mocha --exit test/main-shell.mjs"
+      "proof": "npx mocha --exit test/main-shell.mjs",
+      "notes": "coverage-only: the streaming decoder is already correct, so its test passes at base and the red gate parks it. Give it a measure proof or a gate that accepts coverage, then dispatch."
     },
     {
       "id": "p66",
       "lane": "a2",
-      "status": "ready",
+      "status": "in-round",
       "title": "`flushPeer`'s `catch { return }` treats a throwing `sendableUpdates` as already flushed, so a broken collab field skips the wait silently (found in p50's report)",
       "files": [
         "js/wode-view.mjs",
@@ -66,7 +67,7 @@
     {
       "id": "p57",
       "lane": "a2",
-      "status": "next",
+      "status": "in-round",
       "title": "a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one",
       "files": [
         "js/man.mjs",

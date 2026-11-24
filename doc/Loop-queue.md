@@ -38,9 +38,9 @@ too, with the verdict in its title.
 | p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) |
 | p21 | a2 | next | lzma alone is not sniffed for a mislabelled compressed page (Man.md gap 3) |
 | p46 | a2 | next | a *part* of a genuine colon list that is mode 000 reports `read failed`, not `Permission denied` (found in p35) |
-| p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) |
-| p48 | a3 | next | `man-diff --page` has no missing-word total, only the deduped sample |
+| p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) || p48 | a3 | next | `man-diff --page` has no missing-word total, only the deduped sample |
 | p49 | a3 | next | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 11, before two rounds of parser code |
+| p50 | a2 | triage | `wode-view-e2e` "stale peer push during revert" failed once in a post-merge verify, passed twice alone (round 13); find the load dependency |
 
 ## Done
 

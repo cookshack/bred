@@ -124,7 +124,7 @@ the loop owns it, which removes the one line every lane would otherwise touch.
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
     section sweep, whole sections after round 13: 1:26p/220w  3:10p/109w  5:6p/6w  7:3p/8w  8:3p/15w
-    520 man tests, 1878 total, 0 failing; check clean
+    520 man tests, 1881 total, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps.
 

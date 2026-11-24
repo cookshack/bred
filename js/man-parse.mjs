@@ -2754,7 +2754,13 @@ function mdocInlineMacro
     c.mdoc.fn = 1
     return 1
   case 'Fc':
+    // `.Fc` closes the declaration and, in a SYNOPSIS, ends it with a
+    // semicolon: `.Fo crypt_checksalt` / `.Fa "const char *setting"` / `.Fc`
+    // prints `crypt_checksalt(const char *setting);`.  In a body groff prints
+    // the same declaration without the semicolon.
     mdocAttach(c, [ { text: ')', style: 'roman' } ])
+    if (c.mdoc.section == 'SYNOPSIS')
+      mdocAttach(c, [ { text: ';', style: 'roman' } ])
     c.mdoc.fn = 0
     return 1
   case 'Pf':

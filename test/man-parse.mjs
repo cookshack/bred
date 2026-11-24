@@ -1703,6 +1703,20 @@ test('mdoc inline', 'Fo, Fa and Fc delimit a function and separate its arguments
        equal(flat(r.doc.blocks[0].spans), 'foo(int a, char b)')
      })
 
+test('mdoc inline', 'Fc ends a SYNOPSIS declaration with a semicolon',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.Ft int\n' +
+                  '.Fo crypt_checksalt\n.Fa "const char *setting"\n.Fc\n')
+       equal(flat(r.doc.blocks[1].spans),
+             'int crypt_checksalt(const char *setting);')
+       // groff prints no semicolon outside a SYNOPSIS.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh DESCRIPTION\n' +
+                  '.Fo foo\n.Fa "int a"\n.Fc\n')
+       equal(flat(r.doc.blocks[1].spans), 'foo(int a)')
+     })
+
 test('mdoc inline', 'Fn without arguments has empty parentheses',
      () => {
        let r

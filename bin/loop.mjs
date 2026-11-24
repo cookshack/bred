@@ -281,10 +281,11 @@ function laneWorktrees
   return worktreePaths().filter(p => (/bred-a[0-9]+$/.test(p)) && Fs.existsSync(p))
 }
 
-// Commits since the record that touch anything but doc/. A queue-marking or
-// record commit is not an unrecorded round, and counting distance alone made
-// every clean finish look like one.
-function codeSince
+// The commits since the record that are lane work: they carry a `Loop-item:`
+// trailer. Tool, queue and record commits are not unrecorded rounds, and
+// counting distance — or any non-doc change — made every clean finish look like
+// one.
+function laneSince
 (record) {
   let commits, i, out
 
@@ -293,10 +294,7 @@ function codeSince
   i = 0
 
   while (i < commits.length) {
-    let files
-
-    files = lines(git(root, 'show', '--name-only', '--format=', commits[ i ]))
-    if (files.some(f => f.startsWith('doc/') == 0))
+    if (/^Loop-item: /m.test(git(root, 'log', '-1', '--format=%B', commits[ i ])))
       out.push(commits[ i ])
     i += 1
   }
@@ -310,7 +308,7 @@ function status
 
   t = trailers()
   commit = git(root, 'log', '-1', '--format=%h %s', 'main')
-  ahead = t.record ? codeSince(t.record).length : -1
+  ahead = t.record ? laneSince(t.record).length : -1
   parked = branches('*-r*-aborted')
   lanes = laneWorktrees()
   stale = staleWorktrees()
@@ -321,9 +319,9 @@ function status
   if (ahead == -1)
     console.log('verified   none  (no Loop-verify trailer in the last 80 commits)')
   else if (ahead == 0)
-    console.log('verified   ' + t.verified + '  (no code since the last record)')
+    console.log('verified   ' + t.verified + '  (no lane commits since the last record)')
   else
-    console.log('verified   ' + t.verified + '  (' + ahead + ' code commit(s) since the last record)')
+    console.log('verified   ' + t.verified + '  (' + ahead + ' lane commit(s) since the last record)')
   console.log('state      ' + (Fs.existsSync(loopDir) ? loopDir : loopDir + '  (missing)'))
   console.log('lanes      ' + (lanes.length > 0 ? '' : 'none'))
   lanes.forEach(p => console.log('           ' + p + '  ' + tryGit(p, 'log', '-1', '--format=%h %s')))

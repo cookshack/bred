@@ -163,13 +163,23 @@ function isFooter
 // comparison is about content, not line breaking. An ASCII hyphen also breaks
 // a line inside a compound ("git-" + "config(1)"), but only when it is glued
 // to a word; a standalone minus ("Note -") is real text and stays separate.
+//
+// A rendered ASCII-hyphen line end has two causes and only the source tells
+// them apart: a compound broken at the hyphen (`[n]<&digit-` + `moves`) and a
+// word that already ends in a hyphen, where man(1) broke the line at the space
+// after it ("byte\- and" renders as "byte-" at one line end and "and" at the
+// next). Joining the second invents "byte-and". spacedHyphens names the pairs
+// whose source writes the space, so the join can leave them alone. The pairs
+// actually joined are returned too: our text is not laid out, so glueWords can
+// make the same joins on our side.
 function joinHyphens
-(lines) {
-  let out
+(lines, spaced) {
+  let out, glued
 
   out = []
+  glued = new Set()
   lines.forEach(line => {
-                let last
+                let last, token, next
 
                 line = normal(line)
                 last = out[out.length - 1]
@@ -179,12 +189,44 @@ function joinHyphens
                     return
                   }
                   if (/[A-Za-z0-9]-$/.test(last)) {
-                    out[out.length - 1] = last + line
-                    return
+                    token = last.split(' ').pop()
+                    next = line.split(' ')[0]
+                    if (spaced.has(token + ' ' + next) == 0) {
+                      glued.add(token + ' ' + next)
+                      out[out.length - 1] = last + line
+                      return
+                    }
                   }
                 }
                 out.push(line)
               })
+  return { lines: out, glued }
+}
+
+// The page source is the only side that knows a hyphen is a word boundary:
+// `byte\- and` is two words that man(1) happened to break between, while
+// `paren-` at the end of a `.nf` line is one word broken for layout. Record
+// the "word- nextword" pairs whose source carries whitespace after the
+// hyphen. A hyphen at the end of a source line is not one: the newline is the
+// break, not a space. Font and other escapes are stripped first, both before
+// the hyphen (`\fBbyte\fP\- and`) and after it (`and\fP`), so the pair matches
+// what the rendered lines hold. `\-` is the ASCII hyphen; `\(hy` too.
+function spacedHyphens
+(src) {
+  let out, text, re, m, next
+
+  out = new Set()
+  text = src.split('\n').filter(line => /^\.\\"/.test(line) == 0).join('\n')
+  text = text.replace(/\\-/g, '-')
+             .replace(/\\\(hy/g, '-')
+             .replace(/\\f(\[[^]]*\]|.)/g, '')
+             .replace(/\\[:&%\/|]/g, '')
+  re = /([A-Za-z0-9]+)-[ \t]+/g
+  while ((m = re.exec(text)) != undefined) {
+    next = text.slice(m.index + m[0].length).split(/\s/)[0]
+    if (next.length)
+      out.add(m[1] + '- ' + next)
+  }
   return out
 }
 
@@ -440,7 +482,7 @@ function joinCells
 
 function referenceText
 (file, src) {
-  let text, lines, out, name
+  let text, lines, out, name, joined
 
   text = execFileSync('man', [ '-Tutf8', file ], { encoding: 'utf8',
                                                    stdio: [ 'ignore', 'pipe', 'ignore' ] })
@@ -456,8 +498,9 @@ function referenceText
     lines.pop()
   else if (lines.length && isFooter(lines[lines.length - 1]))
     lines.pop()
-  out = joinHyphens(joinBreaks(joinCells(lines), breakTokens(src))).join('\n')
-  return normal(out)
+  joined = joinHyphens(joinBreaks(joinCells(lines), breakTokens(src)), spacedHyphens(src))
+  out = normal(joined.lines.join('\n'))
+  return { text: out, glued: joined.glued }
 }
 
 function wordsOf
@@ -478,18 +521,55 @@ function wordsOf
 // the default utf8 mapping and prints U+2010; a source `\-` can likewise reach
 // us as U+2212. For a word comparison those are the ASCII hyphen, so fold them
 // in the key. The report keeps the character the reference printed.
+//
+// The same page's quotes go through the same default mapping: a backtick
+// prints as U+2018 and `'` as U+2019 (a doubled backtick stays two U+2018
+// rather than forming U+201C, which only the `\(lq`/`\(rq` glyphs do). Our
+// text carries the ASCII the source wrote, so fold the typographic quotes
+// back to it — U+2018 to the backtick it came from, not to an apostrophe. A
+// quote is not sentence punctuation, so the fold has to happen before the
+// strip: the apostrophe in "wasn't" is part of the word, not a trailing mark.
 export function keyOf
 (word) {
   return word.replace(/[\u2010\u2011\u2212]/g, '-')
+             .replace(/\u2018/g, '`')
+             .replace(/\u2019/g, "'")
+             .replace(/[\u201c\u201d]/g, '"')
              .replace(/[.,;:!?]+$/, '')
 }
 
 // toText joins table cells with " | " and keeps a `_` rule row; man(1) draws
 // neither. Both sides drop those tokens so a real "|" in an example cannot
 // look like a table border on one side only.
+//
+// Our text is also not laid out. A `.nf` cell that man(1) breaks at `paren-`
+// reaches us with the cell padding as a run of spaces, so the comparison sees
+// two words there while the reference rejoined them into one. The reference
+// is the side that knows where a line was broken, so joinHyphens reports the
+// pairs it joined and the same pairs are joined here: the two sides cannot
+// drift, and a hyphen that man(1) did not join ("byte- and") stays two words
+// on both.
+function glueWords
+(words, glued) {
+  let out, i, word
+
+  out = []
+  i = 0
+  while (i < words.length) {
+    word = words[i]
+    while ((i + 1 < words.length) && glued.has(word + ' ' + words[i + 1])) {
+      word = word + words[i + 1]
+      i++
+    }
+    out.push(word)
+    i++
+  }
+  return out
+}
+
 function ourWordsOf
-(text) {
-  return wordsOf(text).filter(word => (word != '|') && (word != '_'))
+(text, glued) {
+  return glueWords(wordsOf(text).filter(word => (word != '|') && (word != '_')), glued)
 }
 
 function missingWords
@@ -526,14 +606,15 @@ function missingWords
 
 function diffPage
 (file) {
-  let src, res, ref, ours
+  let src, res, head, ref, ours
 
   src = readPage(file)
   res = ManParse.parse(src)
   if (res.ok == 0)
     return { file, refused: 1, fails: res.fails }
-  ref = ourWordsOf(referenceText(file, src))
-  ours = ourWordsOf(normal(ManParse.toText(res.doc.blocks)))
+  head = referenceText(file, src)
+  ref = ourWordsOf(head.text, head.glued)
+  ours = ourWordsOf(normal(ManParse.toText(res.doc.blocks)), head.glued)
   if (ref.length < opts.min)
     return { file, small: 1, refWords: ref.length }
   return { file,
@@ -544,7 +625,7 @@ function diffPage
 
 function detail
 (file) {
-  let src, res, ref, ours, a, b, at, lost
+  let src, res, head, ref, ours, a, b, at, lost
 
   src = readPage(file)
   res = ManParse.parse(src)
@@ -554,8 +635,9 @@ function detail
     console.log('fails ' + res.fails.map(item => item.what + '@' + item.line).join(', '))
     return
   }
-  ref = ourWordsOf(referenceText(file, src))
-  ours = ourWordsOf(normal(ManParse.toText(res.doc.blocks)))
+  head = referenceText(file, src)
+  ref = ourWordsOf(head.text, head.glued)
+  ours = ourWordsOf(normal(ManParse.toText(res.doc.blocks)), head.glued)
   lost = missingWords(ref, ours)
   at = 0
   while ((at < ref.length) && (at < ours.length) && (ref[at] == ours[at]))

@@ -11,8 +11,8 @@
     {
       "id": "p50",
       "lane": "a2",
-      "status": "ready",
-      "title": "the peer-push test is now **reverted from main** (`b0b0afd`): it waits on the push and the revert callback, but in the full suite the push has not reached main when it asserts (`'v1' !== 'v1X'`, both tests). The diagnosis and slow-revert variant are on `agent/bred-0b2c11a0-a2` (`fbdef92`) and `$LOOP/p50-crash/a2-wip.patch`; it needs a test isolated from the suite as well as green alone",
+      "status": "next",
+      "title": "the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch",
       "files": [
         "test/wode-view-e2e.mjs",
         "js/wode*.mjs",

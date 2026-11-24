@@ -84,13 +84,14 @@
     {
       "id": "p44",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "`tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11`",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "3f79ddf"
     },
     {
       "id": "p53",
@@ -571,6 +572,28 @@
       "lane": "a1",
       "status": "next",
       "title": "the parser maps the \\t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p78",
+      "lane": "a1",
+      "status": "next",
+      "title": "L\\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p79",
+      "lane": "a1",
+      "status": "next",
+      "title": "on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"

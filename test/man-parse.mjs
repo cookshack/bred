@@ -1596,6 +1596,12 @@ test('escapes', 'bracket and brace character names',
              'a [b] {c}')
      })
 
+test('escapes', 'tmu is a multiplication sign and tm is a trade mark',
+     () => {
+       equal(flat(parsed('.TH T 1\nL\\[tmu]C/(N+1) \\[tm] x\n').doc.blocks[0].spans),
+             'L×C/(N+1) ™ x')
+     })
+
 test('escapes', 'groff symbol names pl and mi',
      () => {
        equal(flat(parsed('.TH T 1\na \\(pl b \\(mi c\n').doc.blocks[0].spans),

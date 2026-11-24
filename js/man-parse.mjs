@@ -2745,6 +2745,11 @@ function mdocInlineMacro
       mdocAttach(c, setRole(mdocExpand(c, args.slice(1).join(', '), 'italic'),
                             'fa'))
     mdocAttach(c, [ { text: ')', style: 'roman' } ])
+    // Like `.Fc`, a `.Fn` declaration in a SYNOPSIS ends with a semicolon:
+    // `.Ft int` / `.Fn other "char *y" "int z"` prints
+    // `int other(char *y, int z);`. A body section prints it without.
+    if (c.mdoc.section == 'SYNOPSIS')
+      mdocAttach(c, [ { text: ';', style: 'roman' } ])
     return 1
   }
   case 'Fo':

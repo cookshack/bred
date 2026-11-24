@@ -1717,6 +1717,22 @@ test('mdoc inline', 'Fc ends a SYNOPSIS declaration with a semicolon',
        equal(flat(r.doc.blocks[1].spans), 'foo(int a)')
      })
 
+test('mdoc inline', 'Fn ends a SYNOPSIS declaration with a semicolon',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.Ft int\n' +
+                  '.Fn other "char *y" "int z"\n')
+       equal(flat(r.doc.blocks[1].spans), 'int other(char *y, int z);')
+       // mdoc(7): groff prints no semicolon in a body section.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh DESCRIPTION\n' +
+                  '.Fn other "char *y" "int z"\n')
+       equal(flat(r.doc.blocks[1].spans), 'other(char *y, int z)')
+       // A declaration with no arguments still ends in `;` (groff: `foo();`).
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.Fn foo\n')
+       equal(flat(r.doc.blocks[1].spans), 'foo();')
+     })
+
 test('mdoc inline', 'Fn without arguments has empty parentheses',
      () => {
        let r

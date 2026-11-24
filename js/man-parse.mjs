@@ -1455,11 +1455,9 @@ function synopsisStart
   p = addBlock(c, { kind: 'para', synopsis: 1, spans: [] })
   c.syn = p
   c.para = p
-  if (args.length) {
-    pushSpan(p.spans, { text: args[0], style: 'bold' })
-    if (args[1])
-      pushSpan(p.spans, { text: args[1], style: 'bold' })
-  }
+  // an-ext.tmac passes only the first argument to .B, so later ones are
+  // dropped and the name's escapes expand like any other macro argument.
+  pushSpans(p.spans, expand(c, args[0] || '', 'bold', c.lineNo).spans)
 }
 
 function define

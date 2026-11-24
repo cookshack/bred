@@ -216,6 +216,28 @@ test('synopsis', 'SY, OP and YS build a synopsis line',
        equal(flat(r.doc.blocks[0].spans), 'ls [-a all]')
      })
 
+test('synopsis', 'SY expands escapes in the command name',
+     () => {
+       let r
+
+       // an-ext.tmac gives .SY to .B with the first argument only, so the
+       // escapes must expand exactly as they do under .B.
+       r = parsed('.TH T 1\n.SY strace\\-log\\-merge\n.YS\n')
+       equal(flat(r.doc.blocks[0].spans), 'strace-log-merge')
+     })
+
+test('synopsis', 'SY prints a quoted argument and drops extra arguments',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.SY "foo\\-bar baz"\n.YS\n')
+       equal(flat(r.doc.blocks[0].spans), 'foo-bar baz')
+       r = parsed('.TH T 1\n.SY foo\\-bar ignored\n.YS\n')
+       equal(flat(r.doc.blocks[0].spans), 'foo-bar')
+       r = parsed('.TH T 1\n.SY\n.YS\n')
+       equal(flat(r.doc.blocks[0].spans), '')
+     })
+
 test('strings', 'ds defines a string used by star',
      () => {
        let r

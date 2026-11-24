@@ -31,9 +31,12 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import Fs from 'node:fs'
 import Path from 'node:path'
 
-let defaultTimeout
+let defaultTimeout, defaultBuffer
 
 defaultTimeout = 15 * 60 * 1000
+// The suite writes ~30,000 lines of debug; spawnSync's 1 MB default kills it
+// with SIGTERM and reports ENOBUFS, which reads as a failing suite.
+defaultBuffer = 64 * 1024 * 1024
 
 function git
 (repo, ...argv) {
@@ -93,7 +96,10 @@ function run
   let res, spawnOpts
 
   opts = opts || {}
-  spawnOpts = { cwd, encoding: 'utf8', timeout: opts.timeoutMs || defaultTimeout }
+  spawnOpts = { cwd,
+                encoding: 'utf8',
+                timeout: opts.timeoutMs || defaultTimeout,
+                maxBuffer: opts.maxBuffer || defaultBuffer }
   res = spawnSync('bash', [ '-c', command ], spawnOpts)
   if (res.error && (res.error.code == 'ETIMEDOUT'))
     return { status: 124, out: 'timeout after ' + (opts.timeoutMs || defaultTimeout) + 'ms' }
@@ -342,8 +348,8 @@ function abortPark
 }
 
 function tail
-(text) {
-  return lines(text).slice(-3).join(' / ')
+(text, n) {
+  return lines(text).slice(-(n || 3)).join(' / ')
 }
 
 // The red half of "red first": the lane's test files, checked out onto the
@@ -430,7 +436,7 @@ function mergeLane
 // tip they were measured on.
 function suiteAt
 (repo, work, opts) {
-  let dir, tip, provisioned, suite, check
+  let dir, tip, provisioned, suite, check, log
 
   tip = revParse(repo, work)
   dir = Path.join(opts.logDir || repo, 'verify-round')
@@ -452,13 +458,23 @@ function suiteAt
 
   suite = exec(opts)(opts.suite, dir, opts)
   check = exec(opts)(opts.check || 'npm run check', dir, opts)
+  log = Path.join(opts.logDir || repo, 'round-' + (opts.round || 0) + '-suite.log')
+
+  try {
+    Fs.mkdirSync(Path.dirname(log), { recursive: true })
+    Fs.writeFileSync(log, 'suite ' + suite.status + '\n' + suite.out + '\n\ncheck ' + check.status + '\n' + check.out + '\n')
+  }
+  catch (e) {
+    log = 'could not write the suite log: ' + e.message
+  }
 
   return { ok: (suite.status == 0) && (check.status == 0) ? 1 : 0,
            tip,
            provisioned,
            suite: suite.status,
            check: check.status,
-           out: tail(suite.out) }
+           log,
+           out: tail(suite.out, 15) }
 }
 
 // The one move that changes main. Refuses anything but a fast-forward, and

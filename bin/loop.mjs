@@ -728,9 +728,13 @@ function roundCmd
   res.parked.forEach(id => console.log('parked   ' + id))
   ;(res.notes || []).forEach(note => console.log('note     ' + note))
   res.problems.forEach(p => console.log('problem  ' + p))
-  if (res.suite)
+  if (res.suite) {
     console.log('suite    ' + (res.suite.ok ? 'ok' : 'FAILED') + ' at ' + res.suite.tip.slice(0, 8) +
                 '  (suite ' + res.suite.suite + ', check ' + res.suite.check + ')')
+    console.log('log      ' + res.suite.log)
+    if (res.suite.ok == 0)
+      res.suite.out.split('\n').forEach(l => console.log('  | ' + l))
+  }
   if (res.ok == 0) {
     console.error('loop: ' + opts.work + ' is not ready to land (' + res.tip.slice(0, 8) + ')')
     return 1

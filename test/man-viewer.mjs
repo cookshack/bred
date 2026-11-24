@@ -393,6 +393,42 @@ test('viewer', 'opening a topic renders a div buffer',
        equal(textOf(b).includes('list directory contents'), true)
      })
 
+// The page scrolls inside .manpage-ww, not the pane the global scroll commands
+// use, so Manpage mode has its own commands for these keys.
+test('viewer', 'space, backspace and the page keys scroll the page',
+     async () => {
+       let b, v, sc, seen, to
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n.SH DESCRIPTION\n' +
+                    'line\n'.repeat(100) })
+       b = await opened('ls')
+       v = viewOf(b)
+       sc = v.ele.querySelector('.manpage-ww')
+       equal(sc == undefined, false, 'the page has a scroller')
+       seen = []
+       sc.scrollBy = spec => seen.push(spec)
+       Object.defineProperty(sc, 'clientHeight', { value: 500 })
+
+       to = look(b, ' ', 'Space', 0)
+       equal(to, 'scroll down', 'space scrolls down')
+       Cmd.run(to, b)
+       to = look(b, 'Backspace', 'Backspace', 0)
+       equal(to, 'scroll up', 'backspace scrolls up')
+       Cmd.run(to, b)
+       to = look(b, 'PageDown', 'PageDown', 0)
+       equal(to, 'scroll down', 'PageDown scrolls down')
+       Cmd.run(to, b)
+       to = look(b, 'PageUp', 'PageUp', 0)
+       equal(to, 'scroll up', 'PageUp scrolls up')
+       Cmd.run(to, b)
+
+       equal(seen.length, 4)
+       equal(seen[0].top, 450)
+       equal(seen[1].top, -450)
+       equal(seen[2].top, 450)
+       equal(seen[3].top, -450)
+     })
+
 // A div buffer has no editor, so C-s goes through the div search installed by
 // Bred.initDivSearch: the needle accumulates in the search bar and the point
 // moves onto the match. Drive the same key handler the search installs.

@@ -1,6 +1,8 @@
 # Man page viewer
 
 Status: 2026-11-23. `C-h u` / `M-x man` opens a manual page in a div buffer.
+`Space`, `PageDown` and `C-v` scroll down a screenful; `Backspace`, `PageUp`
+and `A-v` scroll up.
 
 ## Policy
 

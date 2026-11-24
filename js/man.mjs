@@ -222,6 +222,20 @@ function init
     }
   }
 
+  // The page is a div buffer: .manpage-ww is the element that scrolls, so the
+  // global scroll commands (which look for .bred-scroller or the pane) do not
+  // find it.
+  function scrollPage
+  (upward) {
+    let el
+
+    el = View.current()?.ele?.querySelector('.manpage-ww')
+    if (el)
+      el.scrollBy({ top: (el.clientHeight * 0.9) * (upward ? -1 : 1),
+                    left: 0,
+                    behavior: 'auto' })
+  }
+
   function schemeOf
   (href) {
     let m
@@ -1179,6 +1193,9 @@ function init
   mode = Mode.add('Manpage', { viewInit })
   mode.tokenAt = tokenAt
 
+  Cmd.add('scroll up', () => scrollPage(1), mode)
+  Cmd.add('scroll down', () => scrollPage(), mode)
+
   openImpl = openPage
 
   Cmd.add('man suggestion', (ua, we) => {
@@ -1211,4 +1228,8 @@ function init
                              Mess.say('Not a man page')
                          }, mode)
   Em.on('g', 'man refresh', mode)
+  Em.on('Backspace', 'scroll up', mode)
+  Em.on(' ', 'scroll down', mode)
+  Em.on('PageUp', 'scroll up', mode)
+  Em.on('PageDown', 'scroll down', mode)
 }

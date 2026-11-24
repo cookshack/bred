@@ -161,7 +161,8 @@ npm run check                          # style + layering
 npx mocha test/man-roff.mjs test/man-parse.mjs test/man-render.mjs test/man-viewer.mjs test/man-pty.mjs
 ./bin/man-audit --parse                # pages parsed vs refused
 ./bin/man-audit --parse --list         # with the reason for each refusal
-./bin/man-diff --section 1 --max 120   # content diff against man(1)
+./bin/man-diff --section 1 --max 0     # content diff against man(1), whole section
+./bin/man-diff --section 1 --max 120   # the same, as a repeatable sample
 ./bin/man-diff --page /usr/share/man/man1/ls.1.gz
 ./bin/man-audit --parse --render       # parse and draw every page
 npm run test-corpus                    # same, as a pass/fail test (slow, writes man-corpus.log)
@@ -197,7 +198,9 @@ ignores
 headers/footers (including BSD-style dated footers), overstrike, automatic
 hyphenation (U+2010), compound hyphens broken at a line end, box-drawing
 characters and bullet markers, then reports reference words missing from our
-text. `test/man-viewer.mjs` drives `Man.open` with fake `man -w`/`zcat`
+text. `--max N` reads the first N pages in sorted path order and says so
+(`pages 120 of 1189  (sample; --max 0 for all)`); only `--max 0` measures a
+whole section. `test/man-viewer.mjs` drives `Man.open` with fake `man -w`/`zcat`
 responses, so the viewer is tested without the installed corpus. It covers the
 path and reader fallbacks, redirects (chains, cycles, sections, missing
 targets), includes (including cycles), TOC and reference clicks, external and
@@ -288,8 +291,10 @@ gdbm pages, `It` without `Bl` (2), the `Su`/`R` strings that only eqn defines
 (4), ms `DS`/`DE` (1), eqn `EQ`/`EN` (1), `mso pic.tmac` (1), strace's
 undefined `.IX`, a `.p` typo and one undefined Cyrillic string.
 
-A section sweep with `--max 400` leaves this many pages (and words) short of
-man(1)'s text:
+A 400-page **sample** (`--max 400`, the first 400 pages in sorted path order)
+leaves this many pages (and words) short of man(1)'s text. It is not a section:
+section 1 has 1189 pages and section 3 has 959. `--max 0` measures a whole
+section, and `doc/Loop.md` carries the whole-section numbers.
 
 ```
 section  1    3    5    7    8
@@ -326,7 +331,7 @@ reads as 0 (groff's rule) instead of refusing the page. Bash defines its own
 `zY`/`zZ`, so that page never needed the second rule; the dropped text was the
 whole loss.
 
-Tests: 502 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
+Tests: 505 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 is 100% for `man.mjs`, `man-char.mjs`, `man-render.mjs` and `man-roff.mjs`, and

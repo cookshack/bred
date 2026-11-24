@@ -9,6 +9,10 @@
 //
 // Exit status is 1 when the report is empty of problems? No: this is a
 // diagnostic, so it exits 0 unless it could not run.
+//
+// --max N reads the first N pages in sorted path order, so a sample is the
+// same on every run and filesystem; the report says how much it read. --max 0
+// (the default) reads the whole filtered set.
 
 import { execFileSync } from 'node:child_process'
 import Fs from 'node:fs'
@@ -291,7 +295,7 @@ if (opts.page) {
   process.exit(0)
 }
 
-stats = { pages: 0, compared: 0, refused: 0, small: 0, noisy: 0, missing: 0, worst: [] }
+stats = { pages: 0, total: 0, compared: 0, refused: 0, small: 0, noisy: 0, missing: 0, worst: [] }
 
 {
   let files
@@ -302,6 +306,11 @@ stats = { pages: 0, compared: 0, refused: 0, small: 0, noisy: 0, missing: 0, wor
     files = files.filter(file => Path.dirname(Path.dirname(file)) == opts.root)
   if (opts.section)
     files = files.filter(file => Path.basename(Path.dirname(file)) == ('man' + opts.section))
+  // readdir order differs between runs and filesystems, so a --max sample has
+  // to be sorted to be repeatable. Keep the full count: the sample is not the
+  // section, and saying which part was read is the point of the report.
+  files.sort()
+  stats.total = files.length
   if (opts.max)
     files = files.slice(0, opts.max)
   files.forEach(file => {
@@ -335,7 +344,8 @@ stats = { pages: 0, compared: 0, refused: 0, small: 0, noisy: 0, missing: 0, wor
 stats.worst.sort((a, b) => b.missing - a.missing)
 console.log('man-diff')
 console.log('')
-console.log('  pages     ' + stats.pages)
+console.log('  pages     ' + stats.pages +
+            ((stats.pages < stats.total) ? (' of ' + stats.total + '  (sample; --max 0 for all)') : ''))
 console.log('  compared  ' + stats.compared + '  (refused ' + stats.refused +
             ', too small ' + stats.small + ')')
 console.log('  pages with missing words  ' + stats.noisy +

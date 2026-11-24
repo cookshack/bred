@@ -132,10 +132,9 @@ test('man-diff', 'a hyphenated .nf word compares whole on both sides',
 // break `-o pid,format,tname,` at the comma and print `time,cmd,` on the next
 // line. The comma is inside the argument, not prose punctuation: the source
 // has no space after the escape, and our text keeps the argument as one word.
-// The 95 left over are `.BR pcpu ).` cells in the format-specifier table,
-// where our text keeps the macro line instead of "pcpu)."; that is a parse
-// defect of its own, not a comma join, and this number should fall when it is
-// fixed.
+// The format-specifier table also ends cells with `.BR pcpu ).`, which used to
+// stay raw macro text; a cell now runs its text macros, so the page loses
+// nothing.
 test('man-diff', 'a comma-marked break inside an option list compares whole',
      function
      () {
@@ -144,7 +143,7 @@ test('man-diff', 'a comma-marked break inside an option list compares whole',
        lost = lostOn('/usr/share/man/man1/ps.1.gz')
        if (lost == undefined)
          return this.skip()
-       equal(lost, 95)
+       equal(lost, 0)
      })
 
 // dmsetup(8) marks the commas of a syntax line the same way

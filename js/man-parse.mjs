@@ -13,6 +13,7 @@ import * as Roff from './man-roff.mjs'
 
 let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocAtNames, mdocLbNames, mdocInlineNames, mdocNoArg, mdocEncloseNames
 let tableRequests, tableKeyChars, tableRuleChars, tableSpecifiers, expandDepth
+let manFontStyles, tableCellMacros
 
 fonts = { B: 'bold',
           BI: 'bold',
@@ -1351,14 +1352,17 @@ function setIncrement
   c.inc[name] = Number.isFinite(n) ? n : 0
 }
 
-function handleFont
+// A font macro's arguments as styled runs: `.BR a b` alternates bold and
+// roman, `.B a b` prints every argument bold. The caller decides where the
+// runs go, so a table cell can hold them without a paragraph.
+function fontSpans
 (c, styles, rest, lineNo) {
   let args, spans, saved, join, out, i
 
   args = splitArgs(rest)
   if (args.length == 0) {
     c.nextStyle = styles[0]
-    return
+    return undefined
   }
   spans = []
   saved = c.font
@@ -1375,10 +1379,20 @@ function handleFont
       join = out.join
     }
   c.font = saved
-  appendInline(c, spans)
+  return { spans, join }
+}
+
+function handleFont
+(c, styles, rest, lineNo) {
+  let out
+
+  out = fontSpans(c, styles, rest, lineNo)
+  if (out == undefined)
+    return
+  appendInline(c, out.spans)
   // `\c` at the end of the last argument continues the line, so the next
   // input line must not get a separating space (egrep(1)'s `\e n\c`).
-  c.joinNext = join
+  c.joinNext = out.join
 }
 
 function startTag
@@ -1717,37 +1731,146 @@ function tableRuleRow
   return 1
 }
 
-// A control line in a `T{ }` cell still goes through roff, so a `.Nm` there
-// prints the document name just as it does in a paragraph. Only `Nm` is run:
-// mdoc's other text macros need the inline interpreter, which a cell does not
-// have, and the requests `tableRequest` drops draw nothing.
-function tableCellNm
-(c, text) {
-  let line, match, args, split, shown
+// tbl passes a control line in a table body to roff, so a text macro inside a
+// `T{ }` cell still runs and prints its arguments: ps(1) ends its %cpu cell
+// with `.BR pcpu ).` and writes `.BR s ". (alias" \ s ).` in the state cell.
+// A cell has no paragraph to append to, so the macro expands into the spans
+// the cell holds. Only macros that print their arguments and nothing else are
+// run; a request that draws nothing is dropped before the cell is built
+// (tableRequest), and any other control line stays as the text it was rather
+// than half-running roff.
+manFontStyles = { B: [ 'bold' ],
+                  I: [ 'italic' ],
+                  SM: [ 'small' ],
+                  SB: [ 'bold' ],
+                  BI: [ 'bold', 'italic' ],
+                  BR: [ 'bold', 'roman' ],
+                  IB: [ 'italic', 'bold' ],
+                  IR: [ 'italic', 'roman' ],
+                  RB: [ 'roman', 'bold' ],
+                  RI: [ 'roman', 'italic' ] }
 
-  line = text.trim()
-  match = /^\.[ \t]*Nm(?:[ \t]+(.*))?$/.exec(line)
-  if (match == undefined)
+// mdoc's inline text macros print only their arguments, so a cell can hold
+// their expansion. A macro that opens a block, a link or a list is not here:
+// it needs a line of its own, which a cell does not have.
+tableCellMacros = { Nm: 1,
+                    Xr: 1,
+                    Fl: 1,
+                    Ar: 1,
+                    Cm: 1,
+                    Ic: 1,
+                    Cd: 1,
+                    Fd: 1,
+                    Ad: 1,
+                    Em: 1,
+                    Pa: 1,
+                    Va: 1,
+                    Vt: 1,
+                    Fa: 1,
+                    Sy: 1,
+                    Li: 1,
+                    Dv: 1,
+                    No: 1,
+                    Ev: 1,
+                    Er: 1,
+                    Ft: 1,
+                    Lb: 1,
+                    Tn: 1,
+                    An: 1,
+                    Sx: 1,
+                    Ux: 1,
+                    Bx: 1,
+                    Fx: 1,
+                    Nx: 1,
+                    Ox: 1,
+                    Dx: 1,
+                    Bsx: 1,
+                    At: 1,
+                    St: 1 }
+
+// The macro a cell line would run, with its arguments, if this model runs it
+// there. The name is matched without expanding anything, so the caller can
+// find a macro line before it decides how to build the cell.
+function tableCellControl
+(c, line) {
+  let text, name, known
+
+  if (line.startsWith('.') == 0)
     return undefined
-  args = splitArgs(stripComment(match[1] || ''))
-  split = mdocSplitPunct(args)
-  if (split.words.length == 0)
-    shown = (c.mdoc.docName == '') ? '' : c.mdoc.docName
-  else {
-    if (c.mdoc.docName == '')
-      c.mdoc.docName = split.words[0]
-    shown = split.words.join(' ') + split.punct.join('')
+  text = line.slice(1).replace(/^[ \t]+/, '')
+  name = text.split(/[ \t\\]/)[0]
+  known = (c.mode == 'man') ? manFontStyles[name] : tableCellMacros[name]
+  if (known == undefined)
+    return undefined
+  return { name,
+           rest: stripComment(text.slice(name.length).replace(/^[ \t]+/, '')) }
+}
+
+function tableCellMacro
+(c, line, lineNo) {
+  let control, out, saved
+
+  control = tableCellControl(c, line)
+  if (control == undefined)
+    return undefined
+  if (c.mode == 'man') {
+    let args
+
+    args = splitArgs(control.rest)
+    // A font macro with no argument sets the font for the lines that follow.
+    // A cell has no nextStyle step to carry that, so apply it to the cell.
+    if (args.length == 0) {
+      c.font = manFontStyles[control.name][0]
+      return []
+    }
+    return fontSpans(c, manFontStyles[control.name], control.rest, lineNo).spans
   }
-  return shown
+  out = []
+  saved = c.lineTarget
+  c.lineTarget = out
+  mdocInlineMacro(c, control.name, splitArgs(control.rest), 1)
+  c.lineTarget = saved
+  return out
 }
 
 function tableCell
 (c, text, lineNo) {
-  let saved, spans, nm
+  let saved, lines, spans, control, i
 
   saved = c.font
-  nm = (c.mode == 'mdoc') ? tableCellNm(c, text) : undefined
-  spans = expand(c, (nm == undefined) ? text : nm, saved, lineNo).spans
+  lines = text.split('\n')
+  control = 0
+  for (i = 0; i < lines.length; i++)
+    if (tableCellControl(c, lines[i]))
+      control = 1
+  if (control == 0)
+    spans = expand(c, text, saved, lineNo).spans
+  else {
+    let join
+
+    spans = []
+    join = 0
+    for (i = 0; i < lines.length; i++) {
+      let out
+
+      // A `\c` at the end of the previous line joins it to this one without
+      // taking the cell's newline.
+      if ((i > 0) && (join == 0))
+        pushSpan(spans, { text: '\n' })
+      out = tableCellMacro(c, lines[i], lineNo)
+      if (out == undefined) {
+        let expanded
+
+        expanded = expand(c, lines[i], c.font, lineNo)
+        pushSpans(spans, expanded.spans)
+        join = expanded.join
+      }
+      else {
+        pushSpans(spans, out)
+        join = 0
+      }
+    }
+  }
   c.font = saved
   return { spans }
 }

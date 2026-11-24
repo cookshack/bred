@@ -734,6 +734,61 @@ test('tables', 'an Nm with an argument in a T{ cell prints the argument',
        equal(flat(table.rows[0].cells[1].spans), 'Thread safety')
      })
 
+test('tables', 'a font macro inside a T{ cell prints its arguments',
+     () => {
+       let r, page
+
+       // ps(1)'s %cpu description ends with `.BR pcpu ).` inside the cell.
+       // tbl hands the control line to roff, so man runs the macro and prints
+       // "pcpu)." (the close paren attaches to the bold word); the macro line
+       // itself must not reach the text.
+       page = '.TH T 1\n.TS\nl l.\na\tT{\nlucky.  (alias\n.BR pcpu ).\nT}\n.TE\n'
+       r = parsed(page)
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), 'lucky.  (alias\npcpu).')
+       ok(asText(page).includes('.BR') == 0)
+     })
+
+test('tables', 'a quoted font-macro argument inside a T{ cell keeps its text',
+     () => {
+       let r
+
+       // ps(1)'s state field writes `.BR s ". (alias" \ s ).`: the quoted
+       // argument is `. (alias`, and the escaped spaces separate the rest.
+       r = parsed('.TH T 1\n.TS\nl l.\nstate\tT{\nsee\n' +
+                  '.BR s ". (alias" \\ s ).\nT}\n.TE\n')
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), 'see\ns. (alias s).')
+     })
+
+test('tables', 'an mdoc text macro inside a T{ cell prints its expansion',
+     () => {
+       let r, table, page
+
+       // A cell can hold any text macro, not only a bare `.Nm`: tbl hands the
+       // line to mdoc, so `.Xr ps 1 .` prints "ps(1)." and `.Fl a` prints
+       // "-a".
+       page = '.Dd November 8, 2018\n.Dt T 3\n.Os\n.Sh NAME\n.Nm t\n.Nd x\n' +
+              '.Sh SEE ALSO\n.TS\nl l.\n' +
+              'T{\nsee\n.Xr ps 1 .\nT}\tT{\nall\n.Fl a\nT}\n.TE\n'
+       r = parsed(page)
+       equal(r.ok, 1)
+       table = r.doc.blocks.filter(b => b.kind == 'table')[0]
+       equal(flat(table.rows[0].cells[0].spans), 'see\nps(1).')
+       equal(flat(table.rows[0].cells[1].spans), 'all\n-a')
+     })
+
+test('tables', 'a cell request outside the text macros is still not run',
+     () => {
+       let r
+
+       // tbl hands every control line to roff, but this model runs only the
+       // text macros. Anything else stays as the text it was, so a request is
+       // never half-applied.
+       r = parsed('.TH T 1\n.TS\nl l.\na\tT{\ntext\n.IP "" 2\nmore\nT}\n.TE\n')
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans),
+             'text\n.IP "" 2\nmore')
+     })
+
 test('tables', 'a normal row still splits and a cell keeps its period',
      () => {
        let r, table

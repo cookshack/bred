@@ -4,6 +4,7 @@ Status: 2026-11-23. `C-h u` / `M-x man` opens a manual page in a div buffer.
 `Space`, `PageDown` and `C-v` scroll down a screenful; `Backspace`, `PageUp`
 and `A-v` scroll up. Sections are listed in the Assist sidebar; `n`/`p` move
 to the next/previous section and `Tab`/`Shift-Tab` to the next/previous link.
+Section jumps count from the top of the pane and put the heading there.
 
 ## Policy
 

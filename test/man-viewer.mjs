@@ -338,6 +338,20 @@ function viewOf
   return b.views[0]
 }
 
+// happy-dom has no layout: put the headings at fixed document offsets and let
+// the scroller's scrollTop shift them the way a real viewport would.
+function layoutSections
+(view) {
+  let sc, hs
+
+  sc = view.ele.querySelector('.manpage-ww')
+  hs = [ ...view.ele.querySelectorAll('.man-h1') ]
+  hs.forEach((h, i) => {
+               h.getBoundingClientRect = () => ({ top: (i * 100) - sc.scrollTop })
+             })
+  return sc
+}
+
 function textOf
 (b) {
   return viewOf(b).ele.textContent
@@ -1169,32 +1183,44 @@ test('viewer', 'the assist sidebar offers the page sections',
 
 test('viewer', 'a section link in the assist sidebar jumps to the section',
      async () => {
-       let b, v, extra, el
+       let b, v, extra, el, sc
 
        b = await divOpen('.SH DESCRIPTION\nalpha\n.SH SEE ALSO\nbeta\n')
        v = viewOf(b)
+       sc = layoutSections(v)
        extra = Mode.get('manpage').assist.extras.find(e => e.key == 'man-sections')
        el = extra.co(v).querySelectorAll('.man-section')[1]
        Cmd.run('man goto section', b, 0, { e: { target: el } })
        equal(v.point.bep().node.parentElement.closest('.man-h1').textContent,
              'DESCRIPTION')
+       equal(sc.scrollTop, 100, 'the section header is at the top of the pane')
      })
 
-test('viewer', 'n and p move the point between sections',
+test('viewer', 'n and p count from the scroll position',
      async () => {
-       let b, v
+       let b, v, sc
 
        b = await divOpen('.SH DESCRIPTION\nalpha\n.SH SEE ALSO\nbeta\n')
        v = viewOf(b)
+       sc = layoutSections(v)
        v.point.init()
        equal(look(b, 'n', 'KeyN', 0), 'man next section')
        equal(look(b, 'p', 'KeyP', 0), 'man previous section')
        Cmd.run('man next section', b)
        equal(v.point.bep().node.parentElement.closest('.man-h1').textContent,
              'DESCRIPTION')
+       equal(sc.scrollTop, 100, 'the next section header is at the top')
+       // Reading below SEE ALSO, from a point still on DESCRIPTION: p goes to
+       // the section above the top of the pane, not the one above the point.
+       sc.scrollTop = 250
+       Cmd.run('man previous section', b)
+       equal(v.point.bep().node.parentElement.closest('.man-h1').textContent,
+             'DESCRIPTION')
+       equal(sc.scrollTop, 100)
        Cmd.run('man previous section', b)
        equal(v.point.bep().node.parentElement.closest('.man-h1').textContent,
              'NAME')
+       equal(sc.scrollTop, 0)
      })
 
 test('viewer', 'tab and shift-tab move the point between links',

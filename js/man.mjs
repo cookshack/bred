@@ -304,13 +304,61 @@ function init
     }
   }
 
+  function scrollerOf
+  (view) {
+    return view.ele?.querySelector('.manpage-ww')
+  }
+
+  function headingTop
+  (el, sc) {
+    return el.getBoundingClientRect().top -
+           sc.getBoundingClientRect().top +
+           sc.scrollTop
+  }
+
+  // The section being read is the last heading at or above the top of the
+  // pane, so n/p count from the scroll position, not a stale point.
+  function sectionAt
+  (view, els) {
+    let sc, at, top
+
+    sc = scrollerOf(view)
+    if (sc == undefined)
+      return -1
+    at = -1
+    top = sc.scrollTop
+    els.forEach((el, i) => {
+                  if (headingTop(el, sc) <= (top + 1))
+                    at = i
+                })
+    return at
+  }
+
+  function scrollHeadingToTop
+  (view, el) {
+    let sc
+
+    sc = scrollerOf(view)
+    if (sc)
+      sc.scrollTop = headingTop(el, sc)
+  }
+
   function jumpSections
   (delta) {
     let view
 
     view = View.current()
-    if (view)
-      jump(headingEls(view), delta)
+    if (view) {
+      let els, at
+
+      els = headingEls(view)
+      at = sectionAt(view, els) + delta
+      if ((at >= 0) && (at < els.length)) {
+        view.point?.put(els[at], 1)
+        scrollHeadingToTop(view, els[at])
+        view.point?.sync(1)
+      }
+    }
   }
 
   function jumpLinks
@@ -341,8 +389,11 @@ function init
     let el
 
     el = [ ...(view.ele?.querySelectorAll('.man-doc [id]') || []) ].find(e => e.id == id)
-    if (el)
-      view.point?.put(el)
+    if (el) {
+      view.point?.put(el, 1)
+      scrollHeadingToTop(view, el)
+      view.point?.sync(1)
+    }
   }
 
   function schemeOf

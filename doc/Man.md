@@ -145,9 +145,14 @@ Block model: `doc.blocks` of `heading{level,spans}`, `para{spans,synopsis}`,
 `tag{tag,blocks}`, `group{blocks}`, `pre{spans,mono}`, `list{listType,items[
 {tag,blocks}]}`, `table{options,cols,rows[{cells[{spans,colspan}]}]}` (the column count is the
 longest tbl format line, and each row follows its own format line),
-`space`. Inline spans are `{ text, style, href }` plus `{ br: 1 }`; styles are
-`roman`, `bold`, `italic`, `mono`, `small`. The model has no DOM dependency so
-it is unit-testable and could feed another renderer.
+`space`. Inline spans are `{ text, style, href, role }` plus `{ br: 1 }`;
+styles are `roman`, `bold`, `italic`, `mono`, `small`; `role` names what an
+mdoc macro says the run is (`fl`, `pa`, `ev`, ...), and is absent for the
+presentational man macros (`.B`, `.I`). The renderer puts the role on the
+element as a `man-r-<role>` class. Bold is emphasis colour (`--clr-emph`) with
+normal weight, as in the editor; the role classes colour paths, variables and
+literals. The model has no DOM dependency so it is unit-testable and could feed
+another renderer.
 
 ## Measuring
 

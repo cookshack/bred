@@ -159,10 +159,27 @@ function pushSpan
   if (span.text == '')
     return
   last = spans[spans.length - 1]
-  if (last && (last.br == undefined) && (last.style == span.style) && (last.href == span.href))
+  if (last && (last.br == undefined) && (last.style == span.style) &&
+      (last.href == span.href) && (last.role == span.role))
     last.text += span.text
   else
-    spans.push({ text: span.text, style: span.style, href: span.href })
+    spans.push({ text: span.text,
+                 style: span.style,
+                 href: span.href,
+                 role: span.role })
+}
+
+// An mdoc macro can say what a run means, not only how it looks: a flag, a
+// path, an environment variable. Carry that on the span so the renderer can
+// add a class for it, while the style stays the font the macro prints with.
+function setRole
+(spans, role) {
+  if (role)
+    spans.forEach(span => {
+                    if (span.br == undefined)
+                      span.role = role
+                  })
+  return spans
 }
 
 function pushSpans
@@ -1915,8 +1932,8 @@ function mdocExpand
 }
 
 function mdocText
-(c, text, style) {
-  mdocAppend(c, mdocExpand(c, text, style))
+(c, text, style, role) {
+  mdocAppend(c, setRole(mdocExpand(c, text, style), role))
 }
 
 function mdocAttachText
@@ -2041,7 +2058,7 @@ function mdocOpenPunct
 }
 
 function mdocWords
-(c, args, style) {
+(c, args, style, role) {
   args.forEach(arg => {
                  if (arg == '')
                    return
@@ -2052,7 +2069,7 @@ function mdocWords
                    c.mdoc.noSpace = 1
                  }
                  else
-                   mdocText(c, arg, style)
+                   mdocText(c, arg, style, role)
                })
 }
 
@@ -2372,7 +2389,7 @@ function mdocInlineMacro
 (c, name, args, ownLine) {
   switch (name) {
   case 'Nm': {
-    let shown, split
+    let shown, split, style
 
     // A bare `.Nm` prints the document name: the first `.Nm` that has an
     // argument, which mdoc calls `doc-command-name` and never overwrites
@@ -2386,7 +2403,8 @@ function mdocInlineMacro
         c.mdoc.docName = split.words[0]
       shown = split.words
     }
-    shown.forEach(arg => mdocText(c, arg, (c.mdoc.section == 'SYNOPSIS') ? 'bold' : c.font))
+    style = (c.mdoc.section == 'SYNOPSIS') ? 'bold' : c.font
+    shown.forEach(arg => mdocText(c, arg, style, 'nm'))
     if (split.punct.length)
       mdocAttachText(c, split.punct.join(''), 'roman')
     return 1
@@ -2405,7 +2423,8 @@ function mdocInlineMacro
     trailing = args.slice(section ? 2 : 1).join('')
     mdocAppend(c, [ { text: topic + (section ? '(' + section + ')' : ''),
                       style: c.font,
-                      href: 'man:' + topic + (section ? '(' + section + ')' : '') } ])
+                      href: 'man:' + topic + (section ? '(' + section + ')' : ''),
+                      role: 'xr' } ])
     if (trailing)
       mdocAttachText(c, trailing, 'roman')
     return 1
@@ -2414,7 +2433,9 @@ function mdocInlineMacro
     let split
 
     split = mdocSplitPunct(args)
-    mdocAppend(c, [ { text: '<' + split.words.join(' ') + '>', style: 'roman' } ])
+    mdocAppend(c, [ { text: '<' + split.words.join(' ') + '>',
+                      style: 'roman',
+                      role: 'in' } ])
     if (split.punct.length)
       mdocAttachText(c, split.punct.join(''), 'roman')
     return 1
@@ -2424,29 +2445,29 @@ function mdocInlineMacro
 
     split = mdocSplitPunct(args)
     if (split.words.length == 0)
-      mdocText(c, '-', 'bold')
+      mdocText(c, '-', 'bold', 'fl')
     else if (split.words[0] == 'Fl')
-      mdocText(c, '--' + split.words.slice(1).join('-'), 'bold')
+      mdocText(c, '--' + split.words.slice(1).join('-'), 'bold', 'fl')
     else
-      split.words.forEach(arg => mdocText(c, '-' + arg, 'bold'))
+      split.words.forEach(arg => mdocText(c, '-' + arg, 'bold', 'fl'))
     if (split.punct.length)
       mdocAttachText(c, split.punct.join(''), 'roman')
     return 1
   }
   case 'Ar':
     if (args.length == 0)
-      mdocText(c, 'file ...', 'italic')
+      mdocText(c, 'file ...', 'italic', 'ar')
     else
-      mdocWords(c, args, 'italic')
+      mdocWords(c, args, 'italic', 'ar')
     return 1
   case 'Cm':
   case 'Ic':
   case 'Cd':
   case 'Fd':
-    mdocWords(c, args, 'bold')
+    mdocWords(c, args, 'bold', name.toLowerCase())
     return 1
   case 'Ad':
-    mdocWords(c, args, 'italic')
+    mdocWords(c, args, 'italic', 'ad')
     return 1
   case 'Bsx':
     mdocText(c, 'BSD/OS', c.font)
@@ -2457,7 +2478,7 @@ function mdocInlineMacro
   case 'Pa':
   case 'Va':
   case 'Vt':
-    mdocWords(c, args, 'italic')
+    mdocWords(c, args, 'italic', name.toLowerCase())
     return 1
   case 'Fa':
     if (c.mdoc.fn) {
@@ -2465,30 +2486,30 @@ function mdocInlineMacro
         mdocAttach(c, [ { text: ',', style: 'roman' } ])
       c.mdoc.fn++
     }
-    mdocWords(c, args, 'italic')
+    mdocWords(c, args, 'italic', 'fa')
     return 1
   case 'Sy':
-    mdocWords(c, args, 'bold')
+    mdocWords(c, args, 'bold', 'sy')
     return 1
   case 'Li':
   case 'Dv':
-    mdocWords(c, args, 'mono')
+    mdocWords(c, args, 'mono', name.toLowerCase())
     return 1
   case 'No':
   case 'Ev':
   case 'Er':
   case 'Ft':
   case 'Lb':
-    mdocWords(c, args, c.font)
+    mdocWords(c, args, c.font, name.toLowerCase())
     return 1
   case 'Tn':
-    mdocWords(c, args, 'small')
+    mdocWords(c, args, 'small', 'tn')
     return 1
   case 'An': {
     let names
 
     names = args.filter(arg => (arg[0] == '-') ? 0 : 1)
-    mdocWords(c, names, c.font)
+    mdocWords(c, names, c.font, 'an')
     return 1
   }
   case 'Ap':
@@ -2500,31 +2521,37 @@ function mdocInlineMacro
 
     url = args[0] || ''
     text = args.slice(1).join(' ')
-    mdocAppend(c, [ { text: text || url, style: c.font, href: url } ])
+    mdocAppend(c, [ { text: text || url, style: c.font, href: url, role: 'lk' } ])
     return 1
   }
   case 'Mt': {
     let addr
 
     addr = args[0] || ''
-    mdocAppend(c, [ { text: addr, style: c.font, href: 'mailto:' + addr } ])
+    mdocAppend(c, [ { text: addr,
+                      style: c.font,
+                      href: 'mailto:' + addr,
+                      role: 'mt' } ])
     return 1
   }
   case 'Sx':
-    mdocWords(c, args, 'bold')
+    mdocWords(c, args, 'bold', 'sx')
     return 1
   case 'Fn': {
     let fn
 
     fn = args[0] || ''
-    mdocAppend(c, [ { text: fn, style: 'bold' }, { text: '(', style: 'roman' } ])
+    mdocAppend(c, [ { text: fn, style: 'bold', role: 'fn' },
+                    { text: '(', style: 'roman' } ])
     if (args.length > 1)
-      mdocAttach(c, mdocExpand(c, args.slice(1).join(', '), 'italic'))
+      mdocAttach(c, setRole(mdocExpand(c, args.slice(1).join(', '), 'italic'),
+                            'fa'))
     mdocAttach(c, [ { text: ')', style: 'roman' } ])
     return 1
   }
   case 'Fo':
-    mdocAppend(c, [ { text: args[0] || '', style: 'bold' }, { text: '(', style: 'roman' } ])
+    mdocAppend(c, [ { text: args[0] || '', style: 'bold', role: 'fn' },
+                    { text: '(', style: 'roman' } ])
     c.mdoc.noSpace = 1
     c.mdoc.fn = 1
     return 1
@@ -3308,7 +3335,10 @@ function pushChars
                     out.push({ br: 1 })
                     return
                   }
-                  pushSpan(out, { text: ch.ch, style: ch.style, href: ch.href })
+                  pushSpan(out, { text: ch.ch,
+                                  style: ch.style,
+                                  href: ch.href,
+                                  role: ch.role })
                 })
 }
 
@@ -3323,7 +3353,10 @@ function linkifySpans
                     return
                   }
                   for (let at2 = 0; at2 < span.text.length; at2++)
-                    chars.push({ ch: span.text[at2], style: span.style, href: span.href })
+                    chars.push({ ch: span.text[at2],
+                                 style: span.style,
+                                 href: span.href,
+                                 role: span.role })
                 })
   text = chars.map(ch => (ch.br ? '\n' : ch.ch)).join('')
   re = /([A-Za-z_][\w.+-]*)\(([1-9][a-z]*)\)/g
@@ -3340,6 +3373,7 @@ function linkifySpans
     for (i = 0; i < m[0].length; i++)
       chars[m.index + i] = { ch: chars[m.index + i].ch,
                              style: chars[m.index + i].style,
+                             role: chars[m.index + i].role,
                              href: 'man:' + m[1] + '(' + m[2] + ')' }
   }
   pushChars(out, chars)

@@ -1420,6 +1420,32 @@ test('mdoc inline', 'Sy, Em and Li style their words',
        equal(r.doc.blocks[0].spans[0].style, 'bold')
        equal(r.doc.blocks[0].spans.find(s => s.text == 'note').style, 'italic')
        equal(r.doc.blocks[0].spans.find(s => s.text == 'code').style, 'mono')
+       equal(r.doc.blocks[0].spans[0].role, 'sy')
+       equal(r.doc.blocks[0].spans.find(s => s.text == 'note').role, 'em')
+       equal(r.doc.blocks[0].spans.find(s => s.text == 'code').role, 'li')
+     })
+
+// roff man macros only say bold; mdoc says what the run means, so the parser
+// keeps that name for the renderer to class.
+test('mdoc inline', 'semantic macros carry a role, man font macros do not',
+     () => {
+       let r, spans
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Fl a\n.Ar file\n.Pa /tmp/x\n.Ev HOME\n' +
+                  '.Va var\n.Ft int\n.Fn foo "int a"\n.Sx SYNOPSIS\n.Xr ls 1\n')
+       spans = r.doc.blocks[0].spans
+       equal(spans.find(s => s.text == '-a').role, 'fl')
+       equal(spans.find(s => s.text == 'file').role, 'ar')
+       equal(spans.find(s => s.text == '/tmp/x').role, 'pa')
+       equal(spans.find(s => s.text == 'HOME').role, 'ev')
+       equal(spans.find(s => s.text == 'var').role, 'va')
+       equal(spans.find(s => s.text == 'int').role, 'ft')
+       equal(spans.find(s => s.text == 'foo').role, 'fn')
+       equal(spans.find(s => s.text == 'int a').role, 'fa')
+       equal(spans.find(s => s.text == 'SYNOPSIS').role, 'sx')
+       equal(spans.find(s => s.text == 'ls(1)').role, 'xr')
+       r = parsed('.TH T 1\n.B bold\n')
+       equal(r.doc.blocks[0].spans[0].role == undefined, true)
      })
 
 test('mdoc inline', 'Dv is monospace and No, Ev, Er, Ft and Lb stay roman',

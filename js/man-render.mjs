@@ -24,6 +24,10 @@ function styleNode
     el = globalThis.document.createElement('small')
   else
     el = globalThis.document.createElement('span')
+  // mdoc says what the run is (a flag, a path, a variable); man's .B does not.
+  // The class is a hook for styling, while the element still carries the font.
+  if (span.role)
+    el.classList.add('man-r-' + span.role)
   append(el, span.text || '')
   return el
 }

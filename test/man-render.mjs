@@ -46,6 +46,17 @@ test('inline', 'bold, italic and monospace runs become elements',
        equal(out.el.querySelector('p code').textContent, 'mono')
      })
 
+test('inline', 'mdoc roles become classes, man bold stays plain',
+     () => {
+       let out
+
+       out = draw('.Dd t\n.Dt T 1\n.Os\n.Fl a\n.Pa /tmp/x\n')
+       equal(out.el.querySelector('p b').className, 'man-r-fl')
+       equal(out.el.querySelector('p i').className, 'man-r-pa')
+       out = draw('.TH T 1\n.B bold\n')
+       equal(out.el.querySelector('p b').className, '')
+     })
+
 test('links', 'man references carry a topic for the viewer',
      () => {
        let out, a

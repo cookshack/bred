@@ -25,7 +25,7 @@ lib/*
 !lib/codemirror-patches
 node_modules/
 .corpus/
-man-corpus.log
+man-*.log
 coverage/
 opencode-src
 openspec/

@@ -162,9 +162,23 @@ function basicAuth
   return 'Basic ' + Buffer.from('opencode:' + password).toString('base64')
 }
 
+// The outer bound of the health check, as opposed to containerFailure which
+// reports a failed state check. Name what was waited on and for how long: the
+// old text said only "docker health check timed out", which does not say which
+// server, and blames docker even when the server was attached by URL and no
+// container is involved (cName is empty then).
+export
+function healthTimeoutMessage
+(url, timeout, cName) {
+  return 'health check timed out after ' + timeout + 'ms: ' +
+         (cName ? 'container ' + cName : 'external server') +
+         ' at ' + url + ' did not answer'
+}
+
+export
 function healthCheck
 (url, timeout, cName, send, password) {
-  let start, ms, attempts, headers
+  let start, ms, attempts, headers, lastErr
 
   start = Date.now()
   ms = 200
@@ -182,8 +196,16 @@ function healthCheck
                          attempts++
 
                          if (Date.now() - start > timeout) {
-                           d('CODE SERVER health check timed out')
-                           reject(new Error('docker health check timed out'))
+                           let msg
+
+                           msg = healthTimeoutMessage(url, timeout, cName)
+                           // The last connection error says more than "did not
+                           // answer": a refused port and a wedged server time
+                           // out the same way but send the reader elsewhere.
+                           if (lastErr)
+                             msg += ' (last error: ' + lastErr + ')'
+                           d('CODE SERVER ' + msg)
+                           reject(new Error(msg))
                            return
                          }
 
@@ -212,6 +234,7 @@ function healthCheck
                                                 setTimeout(check, ms)
                                               })
                          req.on('error', err => {
+                                           lastErr = err.message
                                            if (attempts == 1 || attempts % 50 == 0)
                                              d('CODE SERVER health check error: ' + err.message)
                                            setTimeout(check, ms)

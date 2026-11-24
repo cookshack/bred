@@ -134,6 +134,44 @@ test('containerRunning', 'a spawn failure is an inspect failure, not an exit',
        equal(Server.containerFailure(info), 'docker inspect failed during health check: spawn docker ENOENT')
      })
 
+// The outer health check bound said only "docker health check timed out": no
+// server, no wait, and "docker" even for a server attached by URL.
+test('healthTimeoutMessage', 'names the wait, the container and the url',
+     () => {
+       let msg
+
+       msg = Server.healthTimeoutMessage('http://127.0.0.1:32768', 5000, 'bred-code-1-2')
+       equal(msg, 'health check timed out after 5000ms: container bred-code-1-2 at http://127.0.0.1:32768 did not answer')
+     })
+
+test('healthTimeoutMessage', 'an external server is not called a container',
+     () => {
+       let msg
+
+       msg = Server.healthTimeoutMessage('http://127.0.0.1:4096', 5000, '')
+       equal(msg.includes('external server'), true)
+       equal(msg.includes('container'), false, 'there is no container')
+       equal(msg.includes('docker'), false, 'nothing docker was involved')
+     })
+
+test('healthCheck', 'a timeout rejects with what it waited on',
+     async () => {
+       let err
+
+       try {
+         // The first attempt is a second away, so the bound expires before any
+         // connection is made: this needs no server and no docker.
+         await Server.healthCheck('http://127.0.0.1:1', 50, 'box', () => {})
+       }
+       catch (e) {
+         err = e
+       }
+       equal(err?.message.includes('50ms'), true, 'names the bound that expired')
+       equal(err?.message.includes('http://127.0.0.1:1'), true, 'names the server that was waited on')
+       equal(err?.message.includes('box'), true, 'names the container')
+       equal(err?.message.includes('docker'), false, 'does not blame a docker inspect that never ran')
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

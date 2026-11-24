@@ -581,7 +581,7 @@
     {
       "id": "p78",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "L\\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl",
       "files": [
         "js/man-char.mjs",

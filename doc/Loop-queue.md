@@ -30,6 +30,12 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | lane | status | title | files |
+|----|------|--------|-------|-------|
+| p78 | a1 | ready | L\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl | js/man-char.mjs, test/man-parse.mjs |
+
 ## Backlog
 
 | id | lane | status | title | files |
@@ -47,7 +53,6 @@ before.
 | p75 | a1 | next | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
 | p76 | a1 | next | in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them | js/man-parse.mjs, test/man-parse.mjs |
 | p77 | a1 | next | the parser maps the \t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it | js/man-parse.mjs, test/man-parse.mjs |
-| p78 | a1 | next | L\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl | js/man-char.mjs, test/man-parse.mjs |
 | p79 | a1 | next | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Triage

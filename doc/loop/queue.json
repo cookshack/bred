@@ -604,7 +604,7 @@
     {
       "id": "p80",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "hy prints ASCII - ; groff prints U+2010: page-visible, measurement-neutral because man-diff folds it",
       "files": [
         "js/man-char.mjs",
@@ -674,8 +674,42 @@
     {
       "id": "p86",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": ".. maps to ‥ (U+2025) but groff refuses it; \\[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "6943a15"
+    },
+    {
+      "id": "p87",
+      "lane": "a1",
+      "status": "next",
+      "title": "\\[u0041]/\\[u0065] (ASCII code points) are refused by groff but resolve here; unicodeCode should not accept U+0000-U+007F",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p88",
+      "lane": "a1",
+      "status": "next",
+      "title": "\\N'0x41'/\\N'1e2'/\\N'0' are read with Number(), so hex and exponent forms become characters; groff reads digits only",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p89",
+      "lane": "a1",
+      "status": "next",
+      "title": "\\[char0] is accepted by groff (a NUL byte) but refused here",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"

@@ -237,6 +237,11 @@ function vsetLang
 // while the view is alive, say once through Mess what is outstanding, then
 // poll slowly so a long wait stays cheap.  Stop only if the view is closed,
 // since then there is no pane left to rebuild.
+//
+// Returns 0 once the view is flushed, or a message for the caller when the
+// pending updates cannot be read at all.  That case is not "nothing to
+// flush": we cannot prove no push is in flight, so the caller must not rebuild
+// on the strength of it.
 async function flushPeer
 (view) {
   let began, slow
@@ -252,20 +257,24 @@ async function flushPeer
     let state
 
     state = view.ed?.state
-    if (state)
+    if (state) {
+      let pending
+
       try {
-        if (CMCollab.sendableUpdates(state).length == 0) {
-          if (slow)
-            Mess.say('Wodemirror: ' + label() + ' synced edits after ' + Math.round((Date.now() - began) / 1000) + 's')
-          return
-        }
+        pending = CMCollab.sendableUpdates(state)
       }
-      catch {
-        return
+      catch (err) {
+        return 'Wodemirror: ' + label() + ': cannot read pending peer edits (' + err.message + '), not reverting'
       }
+      if (pending.length == 0) {
+        if (slow)
+          Mess.say('Wodemirror: ' + label() + ' synced edits after ' + Math.round((Date.now() - began) / 1000) + 's')
+        return 0
+      }
+    }
     else if (view.ele == null)
       // View was closed while waiting, so there is nothing left to rebuild.
-      return
+      return 0
     if (slow == 0 && ((Date.now() - began) >= 2000)) {
       slow = 1
       Mess.say('Wodemirror: still waiting for ' + label() + ' to sync edits with the peer')
@@ -292,8 +301,22 @@ async function init
   view.buf.modified = 0
   Ed.setIcon(view.buf, '.edMl-mod', 'blank')
   view.ready = 0
-  if (spec.revert)
-    await flushPeer(view)
+  if (spec.revert) {
+    let err
+
+    err = await flushPeer(view)
+    if (err) {
+      // No proof that nothing is in flight, so a rebuild here could replay a
+      // stale push onto the new editor.  Keep the editor we have, make it
+      // usable again and say why the revert did not happen.
+      Mess.yell(err)
+      if (view.ele)
+        Css.enable(view.ele)
+      view.ready = 1
+      view.buf.reverting = 0
+      return
+    }
+  }
   data = await Tron.acmd('peer.get', [ view.buf.id ])
   d('WODE peer.get ' + view.buf.id + ' ok (' + view.buf.name + ')')
   d({ data })

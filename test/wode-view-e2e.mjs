@@ -155,6 +155,19 @@ function watchSays
   return says
 }
 
+// Same, for the errors the revert reports when it cannot go ahead.
+function watchYells
+() {
+  let yells
+
+  yells = []
+  globalThis.document.addEventListener('Mess.push', ev => {
+                                                      if (ev.detail?.type == 'yell')
+                                                        yells.push(ev.detail.text)
+                                                    })
+  return yells
+}
+
 function setup
 () {
 
@@ -638,6 +651,44 @@ test('revert', 'keeps waiting for an unacknowledged push and says so',
        await waitUntil(() => reverted, 'the revert callback after the drain', 500)
        equal(view.ed.state.doc.toString(), 'v1')
        equal(view.ready, 1)
+     },
+     15000)
+
+test('revert', 'an unreadable collab field is reported, not read as flushed',
+     async () => {
+       let broken, errs, reverted
+
+       reverted = 0
+       errs = watchYells()
+       await open()
+       // An edit is still in flight, so nothing may claim the view is flushed.
+       peerPushHold = 1
+       view.ed.dispatch({ changes: { from: 2, insert: 'X' } })
+       await waitUntil(() => peerPushHolds.length, 'the held peer push')
+       // A state with no collab field makes sendableUpdates throw, which is
+       // what a broken collab field does.  The old wait read any throw as
+       // "nothing to flush", rebuilt the view and reported success while the
+       // held push could still land on the new editor.
+       broken = CMState.EditorState.create({ doc: view.ed.state.doc.toString() })
+       Object.defineProperty(view.ed, 'state', { configurable: 1, get: () => broken })
+       try {
+         WodeView.revertV(view, {}, () => reverted = 1)
+         await waitUntil(() => errs.length || reverted, 'the revert outcome')
+         // The revert must not be reported as done, and the stale editor must
+         // stay in place rather than be rebuilt from the peer.
+         equal(reverted, 0)
+         equal(errs.some(t => t.includes(filePath) && t.includes('not reverting')) ? 1 : 0, 1, errs.join('; '))
+         equal(view.ed.state.doc.toString(), 'v1X')
+         equal(buf.reverting, 0)
+         equal(view.ready, 1)
+         equal(view.ele.getAttribute('inert'), null)
+       }
+       finally {
+         delete view.ed.state
+         peerPushHold = 0
+         releasePeerPushes()
+         await waitUntil(() => peerFlushed(view), 'the released push to settle')
+       }
      },
      15000)
 

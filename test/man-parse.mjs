@@ -389,6 +389,38 @@ test('escapes', 'a nested bracket argument does not leak a bracket',
        equal(asText('.TH T 1\nx \\F[\\n[.fam]] y\n'), 'x  y\n')
      })
 
+test('escapes', 'a font family takes one character or a name',
+     () => {
+       let r
+
+       // kernel-install(8): the SH heading must keep the $BOOT arguments.
+       r = parsed('.TH T 1\n.SH "THE \\FI$BOOT\\FR PARTITION"\n')
+       equal(flat(r.doc.blocks[0].spans), 'THE $BOOT PARTITION')
+       // mflua(1): \FIRST-LINE is family I, then the text RST-LINE.
+       equal(asText('.TH T 1\nx \\FIRST-LINE y\n'), 'x RST-LINE y\n')
+       equal(asText('.TH T 1\nx \\F(BIcanary y\n'), 'x canary y\n')
+     })
+
+test('escapes', 'colour escapes take one character or a name',
+     () => {
+       equal(asText('.TH T 1\nx \\mIcanary y \\Miagain z\n'),
+             'x canary y again z\n')
+       equal(asText('.TH T 1\nx \\m[red]canary y\n'), 'x canary y\n')
+     })
+
+test('escapes', 'a horizontal mark takes one character',
+     () => {
+       // getconf(1) marks the position as \k: for the decimal separator.
+       equal(asText('.TH T 1\nx \\k:canary y\n'), 'x canary y\n')
+     })
+
+test('escapes', 'slant and vertical motion take one character undelimited',
+     () => {
+       equal(asText(".TH T 1\nx \\S'2'icanary y\n"), 'x icanary y\n')
+       equal(asText('.TH T 1\nx \\S2icanary y\n'), 'x icanary y\n')
+       equal(asText('.TH T 1\nx \\v2icanary y\n'), 'x icanary y\n')
+     })
+
 test('escapes', 'a continued line glues to the macro after it',
      () => {
        equal(asText('.TH T 1\n.I file\\c\n.RB [ .dvi ]\n'), 'file[.dvi]\n')
@@ -430,6 +462,13 @@ test('escapes', 'unrecognised escape keeps its character',
 test('escapes', 'continue joins lines without a space',
      () => {
        equal(flat(parsed('.TH T 1\njoin\\c\ned\n').doc.blocks[0].spans), 'joined')
+     })
+
+test('escapes', 'a line ending in c keeps the space before itself',
+     () => {
+       // ext2/3/4.5: "for tracking" then "file system" must not run together.
+       equal(asText('.TH T 1\naa\nbb multi-\\c\ncc dd.\n'),
+             'aa bb multi-cc dd.\n')
      })
 
 test('escapes', 'a break escape starts a new output line',
@@ -1078,6 +1117,32 @@ test('mdoc', 'Sm off keeps the synopsis pieces joined',
                   '.Op Ar user No @\n.Ar host\n.Op : Ns Ar port\n' +
                   '.Sm on\nor an ssh URI\n.Xc .\n')
        equal(flat(r.doc.blocks[0].spans).startsWith('[user@]host[:port]'), true)
+     })
+
+test('mdoc', 'Sm off keeps the space before the first macro it does not join',
+     () => {
+       let r, list
+
+       // ssh_config(5): the -item body is one line, "PermitRemoteOpen host:port".
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n' +
+                  '.Bl -item -offset indent -compact\n.It\n' +
+                  '.Cm PermitRemoteOpen\n.Sm off\n.Ar host : port\n.Sm on\n' +
+                  '.El\n')
+       list = r.doc.blocks[0]
+       equal(flat(list.items[0].blocks[0].spans), 'PermitRemoteOpen host:port')
+     })
+
+test('mdoc', 'Sm off still joins the arguments of the macro that follows',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Cm PermitRemoteOpen\n.Sm off\n' +
+                  '.Ar host : port\n.Sm on\n')
+       equal(flat(r.doc.blocks[0].spans), 'PermitRemoteOpen host:port')
+       // Repeating `.Sm off` must not hand back the space a second time.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Cm a\n.Sm off\n.Ar b\n.Ar c\n' +
+                  '.Sm off\n.Ar d\n.Sm on\n')
+       equal(flat(r.doc.blocks[0].spans), 'a bcd')
      })
 
 test('mdoc', 'Fn formats a function call',
@@ -1958,7 +2023,7 @@ test('escapes', 'vertical, device and mark escapes are skipped',
      () => {
        let r
 
-       r = parsed('.TH T 1\na\\v\'1\'b \\m[red]c \\F\'X\'d \\M[red]e \\S\'1\'f \\k(xg\n')
+       r = parsed('.TH T 1\na\\v\'1\'b \\m[red]c \\F[X]d \\M[red]e \\S\'1\'f \\k(xg\n')
        equal(flat(r.doc.blocks[0].spans), 'ab c d e f')
      })
 

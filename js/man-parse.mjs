@@ -342,6 +342,37 @@ function skipMotion
   return i
 }
 
+// \F, \m, \M and \k name a font family, a colour or a register. The argument
+// is a single character unless it is bracketed or parenthesised (`\FI`,
+// `\m[red]`, `\F[\n[.fam]]`), so tracking a pair would swallow the text after
+// it: `\FI$BOOT` is family I followed by `$BOOT`, not a delimited argument.
+function skipName
+(text, i) {
+  let open
+
+  if (i >= text.length)
+    return i
+  open = text[i]
+  if ((open == '[') || (open == '('))
+    return skipArg(text, i)
+  return i + 1
+}
+
+// \S and \v take a quoted or bracketed value (`\S'2'`, `\v[2m]`); an
+// undelimited one is a single character, which is also how groff recovers
+// from `\v2m` (it warns, then reads one character).
+function skipValue
+(text, i) {
+  let open
+
+  if (i >= text.length)
+    return i
+  open = text[i]
+  if ((open == "'") || (open == '"') || (open == '[') || (open == '('))
+    return skipArg(text, i)
+  return i + 1
+}
+
 function stringNameOf
 (text, i) { // i is the index of * or n
   let j
@@ -589,9 +620,12 @@ function expand
         at = end
         continue
       }
-      if ((ch == 'v') || (ch == 'm') || (ch == 'F') ||
-          (ch == 'M') || (ch == 'S') || (ch == 'k')) {
-        at = skipArg(text, at)
+      if ((ch == 'v') || (ch == 'S')) {
+        at = skipValue(text, at)
+        continue
+      }
+      if ((ch == 'F') || (ch == 'm') || (ch == 'M') || (ch == 'k')) {
+        at = skipName(text, at)
         continue
       }
       if ((ch == 'u') || (ch == 'd'))
@@ -752,7 +786,9 @@ function addTextLine
     target = c.link.spans
   else {
     target = paraOf(c).spans
-    if ((target.length > 0) && (join == 0) && (joining == 0))
+    // The separator before this line depends only on the previous line's `\c`
+    // (`joining`); this line's own trailing `\c` joins it to the next one.
+    if ((target.length > 0) && (joining == 0))
       pushSpan(target, { text: ' ', style: c.font })
   }
   c.joinNext = join
@@ -1846,6 +1882,7 @@ function mdocState
            fn: 0,
            ref: 0,
            sm: 1,
+           smPending: 0,
            opens: [],
            bfPrev: 0 }
 }
@@ -1857,7 +1894,8 @@ function mdocAppend
   if (c.mdoc.pre) {
     if (c.mdoc.pre.started)
       if (c.mdoc.preLine) {
-        if ((c.mdoc.noSpace == 0) && (c.mdoc.spaceNext || c.mdoc.sm))
+        if ((c.mdoc.noSpace == 0) &&
+            (c.mdoc.spaceNext || c.mdoc.sm || c.mdoc.smPending))
           pushSpan(c.mdoc.pre.spans, { text: ' ' })
       }
       else
@@ -1866,6 +1904,7 @@ function mdocAppend
     c.mdoc.pre.started = 1
     c.mdoc.noSpace = 0
     c.mdoc.spaceNext = 0
+    c.mdoc.smPending = 0
     return
   }
   if (c.lineTarget) {
@@ -1883,13 +1922,17 @@ function mdocAppend
 function mdocPush
 (c, target, spans) {
   // `Sm off` drops the space between macro calls, but a line of ordinary
-  // text still separates what follows it (mdoc(7) `Sm`).
+  // text still separates what follows it (mdoc(7) `Sm`). The first call after
+  // `.Sm off` keeps its separator too: groff renders `.Cm a` / `.Sm off` /
+  // `.Ar b` / `.Ar c` as "a bc", so the suppression starts with the second
+  // call (`smPending`).
   if ((target.length > 0) && (c.mdoc.noSpace == 0) &&
-      (c.mdoc.spaceNext || c.mdoc.sm))
+      (c.mdoc.spaceNext || c.mdoc.sm || c.mdoc.smPending))
     pushSpan(target, { text: ' ' })
   pushSpans(target, spans)
   c.mdoc.noSpace = 0
   c.mdoc.spaceNext = 0
+  c.mdoc.smPending = 0
 }
 
 function mdocAttach
@@ -2879,7 +2922,16 @@ function mdocLine
   case 'Tg':
     return 1
   case 'Sm':
-    c.mdoc.sm = ((args[0] == 'off') ? 0 : 1)
+    if (args[0] == 'off') {
+      // Only a transition hands the first following call its separator back;
+      // a repeated `.Sm off` must not.
+      c.mdoc.smPending = c.mdoc.sm
+      c.mdoc.sm = 0
+    }
+    else {
+      c.mdoc.sm = 1
+      c.mdoc.smPending = 0
+    }
     return 1
   case 'Bk':
   case 'Ek':

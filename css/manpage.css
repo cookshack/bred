@@ -13,26 +13,19 @@
   color: var(--clr-text);
 }
 
-/* roff bold is emphasis, which in this editor is a colour rather than a
-   heavier weight. mdoc roles add a class, but bold text is bold text. */
-.manpage-w b {
-  color: var(--clr-emph);
-  font-weight: inherit;
-}
-
 /* headings and table of contents */
 .manpage-w .man-h1 {
   font-size: 1.15rem;
   margin: 1.6em 0 0.4em;
   padding-bottom: 0.15em;
   border-bottom: 1px solid var(--clr-fill);
-  color: var(--clr-emph);
+  color: var(--clr-nb0);
 }
 
 .manpage-w .man-h2 {
   font-size: 1rem;
   margin: 1.1em 0 0.3em;
-  color: var(--clr-emph);
+  color: var(--clr-nb0);
 }
 
 .manpage-w .man-toc {
@@ -148,6 +141,8 @@
   text-align: center;
 }
 
+/* roff bold is emphasis, which in this editor is a colour rather than a
+   heavier weight. Inline runs are spans with these classes, never <b>/<i>. */
 .manpage-w .man-bold {
   color: var(--clr-emph);
 }
@@ -173,6 +168,10 @@
 
 .manpage-w .man-italic {
   font-style: italic;
+}
+
+.manpage-w .man-small {
+  font-size: 0.8em;
 }
 
 .manpage-w .man-space {

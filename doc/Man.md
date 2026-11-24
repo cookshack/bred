@@ -149,11 +149,14 @@ longest tbl format line, and each row follows its own format line),
 `space`. Inline spans are `{ text, style, href, role }` plus `{ br: 1 }`;
 styles are `roman`, `bold`, `italic`, `mono`, `small`; `role` names what an
 mdoc macro says the run is (`fl`, `pa`, `ev`, ...), and is absent for the
-presentational man macros (`.B`, `.I`). The renderer puts the role on the
-element as a `man-r-<role>` class. Bold is emphasis colour (`--clr-emph`) with
-normal weight, as in the editor; the role classes colour paths, variables and
-literals. The model has no DOM dependency so it is unit-testable and could feed
-another renderer.
+presentational man macros (`.B`, `.I`). The renderer draws every inline run as
+a `<span>` with a class (`man-bold`, `man-italic`, `man-mono`, `man-small`,
+plus `man-r-<role>`), never `<b>`/`<i>`: the theme styles classes, and a div is
+invalid inside a `<p>` or a heading. Bold is emphasis colour (`--clr-emph`)
+with normal weight, as in the editor; the role classes colour paths, variables
+and literals; headings use `--clr-nb0`, so they do not read as bold emphasis.
+The model has no DOM dependency so it is unit-testable and could feed another
+renderer.
 
 ## Measuring
 
@@ -390,6 +393,10 @@ column spec, which no installed page has). Branch coverage is 92%, 100%, 100%,
   add a test, rerun `man-audit --parse`.
 - New request/escape: same, and prefer failing over "best effort" unless the
   construct is purely presentational (classify it `metric`/`ignore`).
+- Inline styling is a class on a `<span>` (`man-bold`, `man-italic`,
+  `man-mono`, `man-small`, `man-r-<role>`), never `<b>`/`<i>`: headings use
+  `--clr-nb0` and bold uses `--clr-emph`, so a heading does not read as bold
+  link text.
 - A character name is added to `js/man-char.mjs` only when groff really has it:
   `\(ts` is the final sigma, and `\]` keeps its `]` because groff drops the
   backslash from an escape it does not know. Both were added after seeing them

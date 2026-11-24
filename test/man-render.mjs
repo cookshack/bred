@@ -36,14 +36,16 @@ test('blocks', 'headings, paragraphs and a toc',
              '#' + out.el.querySelector('h2').id)
      })
 
-test('inline', 'bold, italic and monospace runs become elements',
+test('inline', 'bold, italic and monospace runs become classed spans',
      () => {
        let out
 
        out = draw('.TH T 1\nplain \\fBbold\\fR \\fIitalic\\fR \\f(CWmono\\fR\n')
-       equal(out.el.querySelector('p b').textContent, 'bold')
-       equal(out.el.querySelector('p i').textContent, 'italic')
-       equal(out.el.querySelector('p code').textContent, 'mono')
+       equal(out.el.querySelector('p .man-bold').textContent, 'bold')
+       equal(out.el.querySelector('p .man-italic').textContent, 'italic')
+       equal(out.el.querySelector('p .man-mono').textContent, 'mono')
+       equal(out.el.querySelector('b, i, code, small') == null, true,
+             'inline runs are classed spans, not font elements')
      })
 
 test('inline', 'mdoc roles become classes, man bold stays plain',
@@ -51,10 +53,12 @@ test('inline', 'mdoc roles become classes, man bold stays plain',
        let out
 
        out = draw('.Dd t\n.Dt T 1\n.Os\n.Fl a\n.Pa /tmp/x\n')
-       equal(out.el.querySelector('p b').className, 'man-r-fl')
-       equal(out.el.querySelector('p i').className, 'man-r-pa')
+       equal(out.el.querySelector('p .man-bold').className,
+             'man-bold man-r-fl')
+       equal(out.el.querySelector('p .man-italic').className,
+             'man-italic man-r-pa')
        out = draw('.TH T 1\n.B bold\n')
-       equal(out.el.querySelector('p b').className, '')
+       equal(out.el.querySelector('p .man-bold').className, 'man-bold')
      })
 
 test('links', 'man references carry a topic for the viewer',
@@ -402,7 +406,7 @@ test('blocks', 'less common block and inline shapes draw',
        doc = { blocks }
        out = ManRender.render(doc)
        equal(out.el.querySelector('h3').textContent, 'Sub')
-       equal(out.el.querySelector('p.man-synopsis small').textContent, 'small')
+       equal(out.el.querySelector('p.man-synopsis .man-small').textContent, 'small')
        equal(out.el.querySelector('pre.man-mono br') == null, false)
        equal(out.el.querySelectorAll('ol li').length, 1)
        equal(out.el.querySelector('td').className.includes('man-center'), true)

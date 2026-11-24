@@ -12,20 +12,23 @@ headingCount = 0
 
 function styleNode
 (span) {
-  let el
+  let el, cls
 
+  // Inline runs are spans with classes, never <b>/<i>/<code>: the theme styles
+  // by class, and these sit inside <p> and headings where a div is invalid.
+  cls = ''
   if (span.style == 'bold')
-    el = globalThis.document.createElement('b')
+    cls = 'man-bold'
   else if (span.style == 'italic')
-    el = globalThis.document.createElement('i')
+    cls = 'man-italic'
   else if (span.style == 'mono')
-    el = globalThis.document.createElement('code')
+    cls = 'man-mono'
   else if (span.style == 'small')
-    el = globalThis.document.createElement('small')
-  else
-    el = globalThis.document.createElement('span')
+    cls = 'man-small'
+  el = globalThis.document.createElement('span')
+  if (cls)
+    el.className = cls
   // mdoc says what the run is (a flag, a path, a variable); man's .B does not.
-  // The class is a hook for styling, while the element still carries the font.
   if (span.role)
     el.classList.add('man-r-' + span.role)
   append(el, span.text || '')

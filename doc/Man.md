@@ -322,8 +322,10 @@ whole loss.
 Tests: 502 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
-is 100% for `man.mjs`, `man-char.mjs`, `man-render.mjs`, `man-roff.mjs` and
-`man-parse.mjs`; their branch coverage is 92%, 100%, 100%, 97% and 95%.
+is 100% for `man.mjs`, `man-char.mjs`, `man-render.mjs` and `man-roff.mjs`, and
+99.97% for `man-parse.mjs` (one line: the scan of an unterminated `(` in a tbl
+column spec, which no installed page has). Branch coverage is 92%, 100%, 100%,
+97% and 95% in the same order.
 
 ## Known gaps, in order
 

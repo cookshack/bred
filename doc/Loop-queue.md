@@ -30,6 +30,13 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | lane | status | title | files |
+|----|------|--------|-------|-------|
+| p67 | a1 | ready | a .Ss subsection inside SYNOPSIS resets the section state, so .Fn and .Fc lose the ; (groff keeps doc-in-synopsis-section across .Ss; no installed page hits it) | js/man-parse.mjs, test/man-parse.mjs |
+| p68 | a2 | ready | a colon-list part with read bits whose read fails ranks with a missing part, so a later miss can still shadow it; no test covers that ordering | js/man.mjs, test/man-viewer.mjs |
+
 ## Backlog
 
 | id | lane | status | title | files |
@@ -44,8 +51,6 @@ before.
 | p33 | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) | js/man-parse.mjs |
 | p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
 | p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |
-| p67 | a1 | next | a .Ss subsection inside SYNOPSIS resets the section state, so .Fn and .Fc lose the ; (groff keeps doc-in-synopsis-section across .Ss; no installed page hits it) | js/man-parse.mjs, test/man-parse.mjs |
-| p68 | a2 | next | a colon-list part with read bits whose read fails ranks with a missing part, so a later miss can still shadow it; no test covers that ordering | js/man.mjs, test/man-viewer.mjs |
 
 ## Triage
 

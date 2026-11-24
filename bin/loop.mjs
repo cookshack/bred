@@ -662,6 +662,28 @@ function reapCmd
 // The queue against git: its own schema, then whether each done hash exists
 // and is on main, then whether a trailer names an item the queue still calls
 // open. A pre-trailer round has no `Loop-item:`, so that is not a problem.
+// The tables are generated, so a difference between the file and the JSON means
+// somebody hand-edited the generated block or forgot to regenerate it.
+function queueDrift
+() {
+  let file, text, start, end, close, block
+
+  file = Path.join(root, 'doc', 'Loop-queue.md')
+  close = '<!-- /loop:queue -->'
+  try {
+    text = Fs.readFileSync(file, 'utf8')
+  }
+  catch {
+    return 0
+  }
+  start = text.indexOf('<!-- loop:queue -->')
+  end = text.indexOf(close)
+  if ((start < 0) || (end < 0))
+    return 0
+  block = text.slice(start + '<!-- loop:queue -->'.length, end).trim()
+  return block == Queue.report(loadQueue()).trim() ? 0 : 1
+}
+
 function checkHash
 (item, problems, ref) {
   if (ok(root, 'cat-file', '-e', item.doneHash) == 0)
@@ -690,6 +712,9 @@ function checkCmd
       problems.push(item.id + ': a Loop-item trailer exists but the queue says ' + item.status)
     i += 1
   }
+
+  if (queueDrift())
+    problems.push('doc/Loop-queue.md does not match queue.json: run bin/loop.mjs report --write')
 
   problems.forEach(p => console.log('problem  ' + p))
   console.log(problems.length + ' problem(s); ' + q.items.length + ' item(s)')

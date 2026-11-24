@@ -805,12 +805,12 @@ test('mdoc', 'Xr expands the name it links',
        equal(flat(r.doc.blocks[1].spans), 'start-stop-daemon(8).')
      })
 
-test('mdoc', 'In brackets its header',
+test('mdoc', 'In brackets its header and makes it a #include in SYNOPSIS',
      () => {
        let r
 
        r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.In stdio.h\n')
-       equal(flat(r.doc.blocks[1].spans), '<stdio.h>')
+       equal(flat(r.doc.blocks[1].spans), '#include <stdio.h>')
      })
 
 test('mdoc', 'Fl makes options and Fl Fl makes a long option',
@@ -1513,14 +1513,49 @@ test('mdoc inline', 'semantic macros carry a role, man font macros do not',
        equal(r.doc.blocks[0].spans[0].role == undefined, true)
      })
 
-test('mdoc inline', 'Dv is monospace and No, Ev, Er, Ft and Lb stay roman',
+test('mdoc inline', 'Dv is monospace and No, Ev, Er, Ft stay roman; Lb is a table',
      () => {
        let r
 
        r = parsed('.Dd t\n.Dt T 1\n.Os\n.Dv PATH\n.No plain\n.Ev HOME\n.Er ENOENT\n.Ft int\n.Lb libc\n')
        equal(r.doc.blocks[0].spans.find(s => s.text == 'PATH').style, 'mono')
        equal(r.doc.blocks[0].spans.find(s => s.text == 'HOME').style, 'roman')
-       equal(flat(r.doc.blocks[0].spans), 'PATH plain HOME ENOENT int libc')
+       equal(flat(r.doc.blocks[0].spans),
+             'PATH plain HOME ENOENT int Standard C Library (libc, -lc)')
+     })
+
+test('mdoc inline', 'Lb prints the library description, not its name',
+     () => {
+       let r
+
+       // crypt(3) and its siblings state their library this way; groff maps
+       // the name through its own table and never prints the bare argument.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh LIBRARY\n.Lb libcrypt\n')
+       equal(flat(r.doc.blocks[1].spans),
+             'Crypt Library (libcrypt, -lcrypt)')
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh LIBRARY\n.Lb libc\n')
+       equal(flat(r.doc.blocks[1].spans), 'Standard C Library (libc, -lc)')
+       // An unknown name is `library “name”`, groff's Lq/Rq fallback.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh LIBRARY\n.Lb libfoo\n')
+       equal(flat(r.doc.blocks[1].spans), 'library “libfoo”')
+       // Only the first argument is a library name; the rest print as words.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh LIBRARY\n.Lb libc libm\n')
+       equal(flat(r.doc.blocks[1].spans),
+             'Standard C Library (libc, -lc) libm')
+     })
+
+test('mdoc inline', 'In is a #include in SYNOPSIS and a header name elsewhere',
+     () => {
+       let r
+
+       // mdoc(7): SYNOPSIS prints `#include <header>` in bold; a body section
+       // prints `<header>` in italic.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.In crypt.h\n' +
+                  '.Sh DESCRIPTION\n.In crypt.h\n')
+       equal(flat(r.doc.blocks[1].spans), '#include <crypt.h>')
+       equal(r.doc.blocks[1].spans[0].style, 'bold')
+       equal(flat(r.doc.blocks[3].spans), '<crypt.h>')
+       equal(r.doc.blocks[3].spans[0].style, 'italic')
      })
 
 test('mdoc inline', 'Tn uses the small style',
@@ -2311,7 +2346,9 @@ test('groff requests', 'do and nop invoke a control line',
      () => {
        let r
 
-       r = parsed('.TH T 1\n.do .B bold\n.nop .I italic\n')
+       // `.do` takes a request name with no control character of its own;
+       // `.nop` takes a whole input line, so its request keeps the dot.
+       r = parsed('.TH T 1\n.do B bold\n.nop .I italic\n')
        equal(r.doc.blocks[0].spans[0].style, 'bold')
        equal(r.doc.blocks[0].spans.find(s => s.text == 'italic').style, 'italic')
      })
@@ -2323,6 +2360,23 @@ test('groff requests', 'rr removes a register',
        r = parsed('.TH T 1\n.nr Q 1\n.rr Q\n\\nQ\n')
        equal(r.ok, 0)
        equal(r.fails[0].what, 'register Q')
+     })
+
+test('groff requests', 'do dispatches the request instead of printing it',
+     () => {
+       let r
+
+       // tbl(1) and its siblings guard against being read twice with
+       // `.do nr tbl_C \n[.C]`; the line prints nothing.
+       r = parsed('.TH T 1\n.SH NAME\nt \\- x\n.do nr tbl_C \\n[.C]\n')
+       equal(flat(r.doc.blocks[1].spans), 't - x')
+       equal(r.ok, 1)
+       equal(asText('.TH T 1\n.do nr x 5\nx=\\n[x]\n'), 'x=5\n')
+       // An unsupported request must fail the page as the bare request does,
+       // not leak its arguments into the text.
+       r = parsed('.TH T 1\n.do XYZZY arg\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'macro XYZZY')
      })
 
 test('groff requests', 'rn renames a macro',
@@ -2429,6 +2483,24 @@ test('groff requests', 'nr with no value or a bad value gives zero',
 
        r = parsed('.TH T 1\n.nr X\n.nr Y abc\nX=\\nX Y=\\nY\n')
        equal(flat(r.doc.blocks[0].spans), 'X=0 Y=0')
+     })
+
+test('groff requests', 'auto-increment register escape steps and then reads',
+     () => {
+       let r
+
+       // sensible-editor(1) numbers its IP items this way: `\n+[step]` adds
+       // the increment and prints the new value. `.nr step 1 1` sets step 1.
+       r = parsed('.TH T 1\n.nr step 1 1\n.SH DESCRIPTION\n' +
+                  '.IP \\n[step]\nfirst\n.IP \\n+[step]\nsecond\n' +
+                  '.IP \\n+[step]\nthird\n')
+       equal(r.doc.blocks.slice(1).map(b => flat(b.tag)).join(','), '1,2,3')
+       // `-` steps down; a register with no increment does not move; and a
+       // `.nr` that omits the increment keeps the one already set.
+       equal(asText('.TH T 1\n.nr x 5 2\nA \\n+[x] B \\n-[x]\n'),
+             'A 7 B 5\n')
+       equal(asText('.TH T 1\n.nr y 7\nA \\n+[y] B \\n[y]\n'), 'A 7 B 7\n')
+       equal(asText('.TH T 1\n.nr x 5 2\n.nr x 10\nA \\n+[x]\n'), 'A 12\n')
      })
 
 test('strings', 'ds and as with no name are ignored',

@@ -11,7 +11,7 @@
 import * as Char from './man-char.mjs'
 import * as Roff from './man-roff.mjs'
 
-let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocAtNames, mdocInlineNames, mdocNoArg, mdocEncloseNames
+let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocAtNames, mdocLbNames, mdocInlineNames, mdocNoArg, mdocEncloseNames
 let tableRequests, tableKeyChars, tableRuleChars, tableSpecifiers, expandDepth
 
 fonts = { B: 'bold',
@@ -373,6 +373,23 @@ function skipValue
   return i + 1
 }
 
+// The name part of `\*` or `\n`: `x`, `(xx` or `[name]`. i is the first
+// character of the name.
+function nameAfter
+(text, i) {
+  if (text[i] == '(')
+    return { name: text.slice(i + 1, i + 3), at: i + 3 }
+  if (text[i] == '[') {
+    let end
+
+    end = text.indexOf(']', i)
+    if (end < 0)
+      return { name: text.slice(i + 1), at: text.length }
+    return { name: text.slice(i + 1, end), at: end + 1 }
+  }
+  return { name: text[i] || '', at: i + 1 }
+}
+
 function stringNameOf
 (text, i) { // i is the index of * or n
   let j
@@ -380,17 +397,7 @@ function stringNameOf
   j = i + 1
   if ((text[j] == '+') || (text[j] == '-'))
     j++
-  if (text[j] == '(')
-    return { name: text.slice(j + 1, j + 3), at: j + 3 }
-  if (text[j] == '[') {
-    let end
-
-    end = text.indexOf(']', j)
-    if (end < 0)
-      return { name: text.slice(j + 1), at: text.length }
-    return { name: text.slice(j + 1, end), at: end + 1 }
-  }
-  return { name: text[j] || '', at: j + 1 }
+  return nameAfter(text, j)
 }
 
 function fail
@@ -545,10 +552,20 @@ function expand
         continue
       }
       if (ch == 'n') {
-        let found, val
+        let sign, found, val
 
-        found = stringNameOf(text, at - 1)
+        // `\n+[name]` steps the register and then prints it; `\n-[name]`
+        // steps it down. A register with no increment does not move.
+        sign = 0
+        if ((text[at] == '+') || (text[at] == '-')) {
+          sign = (text[at] == '+') ? 1 : -1
+          at++
+        }
+        found = nameAfter(text, at)
         at = found.at
+        if (sign && (found.name in c.reg))
+          c.reg[found.name] = c.reg[found.name] +
+                              (sign * (c.inc[found.name] || 0))
         val = registerValue(c, found.name, lineNo)
         pushSpan(spans, { text: String(val), style: cur })
         continue
@@ -1282,6 +1299,16 @@ function setRegister
 
   n = parseFloat(value)
   c.reg[name] = Number.isFinite(n) ? n : 0
+}
+
+// The step `\n+`/`\n-` applies. `.nr name value` without a third argument
+// keeps the one already set (`.nr x 5 2` then `.nr x 10` steps by 2).
+function setIncrement
+(c, name, value) {
+  let n
+
+  n = parseFloat(value)
+  c.inc[name] = Number.isFinite(n) ? n : 0
 }
 
 function handleFont
@@ -2415,6 +2442,80 @@ mdocAtNames = { v1: 'Version 1 AT&T UNIX',
                 'V.3': 'AT&T System V Release 3 UNIX',
                 'V.4': 'AT&T System V Release 4 UNIX' }
 
+// `.Lb`'s table, from groff's doc-syms with its `\~`, `\-` and `\*[Px]`
+// expansions applied: man(1) prints the description, never the argument.
+// A name groff does not know is `library “name”` (doc-syms' Lq/Rq fallback).
+mdocLbNames = { libarchive: 'Reading and Writing Streaming Archives Library (libarchive, -larchive)',
+                libarm: 'ARM Architecture Library (libarm, -larm)',
+                libarm32: 'ARM32 Architecture Library (libarm32, -larm32)',
+                libbluetooth: 'Bluetooth Library (libbluetooth, -lbluetooth)',
+                libbsm: 'Basic Security Module Library (libbsm, -lbsm)',
+                libc: 'Standard C Library (libc, -lc)',
+                libc_r: 'Reentrant C Library (libc_r, -lc_r)',
+                libcalendar: 'Calendar Arithmetic Library (libcalendar, -lcalendar)',
+                libcam: 'Common Access Method User Library (libcam, -lcam)',
+                libcdk: 'Curses Development Kit Library (libcdk, -lcdk)',
+                libcipher: 'FreeSec Crypt Library (libcipher, -lcipher)',
+                libcompat: 'Compatibility Library (libcompat, -lcompat)',
+                libcrypt: 'Crypt Library (libcrypt, -lcrypt)',
+                libcurses: 'Curses Library (libcurses, -lcurses)',
+                libdevinfo: 'Device and Resource Information Utility Library (libdevinfo, -ldevinfo)',
+                libdevstat: 'Device Statistics Library (libdevstat, -ldevstat)',
+                libdisk: 'Interface to Slice and Partition Labels Library (libdisk, -ldisk)',
+                libdwarf: 'DWARF Access Library (libdwarf, -ldwarf)',
+                libedit: 'Command Line Editor Library (libedit, -ledit)',
+                libelf: 'ELF Access Library (libelf, -lelf)',
+                libevent: 'Event Notification Library (libevent, -levent)',
+                libfetch: 'File Transfer Library for URLs (libfetch, -lfetch)',
+                libform: 'Curses Form Library (libform, -lform)',
+                libgeom: 'Userland API Library for kernel GEOM subsystem (libgeom, -lgeom)',
+                libgpib: 'General-Purpose Instrument Bus (GPIB) library (libgpib, -lgpib)',
+                libi386: 'i386 Architecture Library (libi386, -li386)',
+                libintl: 'Internationalized Message Handling Library (libintl, -lintl)',
+                libipsec: 'IPsec Policy Control Library (libipsec, -lipsec)',
+                libipx: 'IPX Address Conversion Support Library (libipx, -lipx)',
+                libiscsi: 'iSCSI protocol library (libiscsi, -liscsi)',
+                libjail: 'Jail Library (libjail, -ljail)',
+                libkiconv: 'Kernel side iconv library (libkiconv, -lkiconv)',
+                libkse: 'N:M Threading Library (libkse, -lkse)',
+                libkvm: 'Kernel Data Access Library (libkvm, -lkvm)',
+                libm: 'Math Library (libm, -lm)',
+                libm68k: 'm68k Architecture Library (libm68k, -lm68k)',
+                libmagic: 'Magic Number Recognition Library (libmagic, -lmagic)',
+                libmd: 'Message Digest (MD4, MD5, etc.) Support Library (libmd, -lmd)',
+                libmemstat: 'Kernel Memory Allocator Statistics Library (libmemstat, -lmemstat)',
+                libmenu: 'Curses Menu Library (libmenu, -lmenu)',
+                libnetgraph: 'Netgraph User Library (libnetgraph, -lnetgraph)',
+                libnetpgp: 'Netpgp signing, verification, encryption and decryption (libnetpgp, -lnetpgp)',
+                libossaudio: 'OSS Audio Emulation Library (libossaudio, -lossaudio)',
+                libpam: 'Pluggable Authentication Module Library (libpam, -lpam)',
+                libpcap: 'Packet Capture Library (libpcap, -lpcap)',
+                libpci: 'PCI Bus Access Library (libpci, -lpci)',
+                libpmc: 'Performance Counters Library (libpmc, -lpmc)',
+                libposix: 'POSIX Compatibility Library (libposix, -lposix)',
+                libprop: 'Property Container Object Library (libprop, -lprop)',
+                libpthread: 'POSIX Threads Library (libpthread, -lpthread)',
+                libpuffs: 'puffs Convenience Library (libpuffs, -lpuffs)',
+                librefuse: 'File System in Userspace Convenience Library (librefuse, -lrefuse)',
+                libresolv: 'DNS Resolver Library (libresolv, -lresolv)',
+                librpcsec_gss: 'RPC GSS-API Authentication Library (librpcsec_gss, -lrpcsec_gss)',
+                librpcsvc: 'RPC Service Library (librpcsvc, -lrpcsvc)',
+                librt: 'POSIX Real-time Library (librt, -lrt)',
+                libsdp: 'Bluetooth Service Discovery Protocol User Library (libsdp, -lsdp)',
+                libssp: 'Buffer Overflow Protection Library (libssp, -lssp)',
+                libSystem: 'System Library (libSystem, -lSystem)',
+                libtermcap: 'Termcap Access Library (libtermcap, -ltermcap)',
+                libterminfo: 'Terminal Information Library (libterminfo, -lterminfo)',
+                libthr: '1:1 Threading Library (libthr, -lthr)',
+                libufs: 'UFS File System Access Library (libufs, -lufs)',
+                libugidfw: 'File System Firewall Interface Library (libugidfw, -lugidfw)',
+                libulog: 'User Login Record Library (libulog, -lulog)',
+                libusbhid: 'USB Human Interface Devices Library (libusbhid, -lusbhid)',
+                libutil: 'System Utilities Library (libutil, -lutil)',
+                libvgl: 'Video Graphics Library (libvgl, -lvgl)',
+                libx86_64: 'x86_64 Architecture Library (libx86_64, -lx86_64)',
+                libz: 'Compression Library (libz, -lz)' }
+
 // The platform macros print their name and then, in the same font, any
 // version or further words: `.Ox 3.2` is "OpenBSD 3.2" and `.Ox 3.2 .` is
 // "OpenBSD 3.2.".
@@ -2473,11 +2574,15 @@ function mdocInlineMacro
     return 1
   }
   case 'In': {
-    let split
+    let split, synopsis
 
+    // mdoc(7): the SYNOPSIS prints `#include <header>` in bold; a body
+    // section prints `<header>` in italic. The header text is verbatim.
+    synopsis = (c.mdoc.section == 'SYNOPSIS')
     split = mdocSplitPunct(args)
-    mdocAppend(c, [ { text: '<' + split.words.join(' ') + '>',
-                      style: 'roman',
+    mdocAppend(c, [ { text: (synopsis ? '#include ' : '') + '<' +
+                           split.words.join(' ') + '>',
+                      style: (synopsis ? 'bold' : 'italic'),
                       role: 'in' } ])
     if (split.punct.length)
       mdocAttachText(c, split.punct.join(''), 'roman')
@@ -2542,9 +2647,21 @@ function mdocInlineMacro
   case 'Ev':
   case 'Er':
   case 'Ft':
-  case 'Lb':
     mdocWords(c, args, c.font, name.toLowerCase())
     return 1
+  case 'Lb': {
+    let lib
+
+    lib = mdocLbNames[args[0]] ||
+          ((args[0] || '') ? 'library “' + args[0] + '”' : '')
+    if (lib.length)
+      mdocAppend(c, [ { text: lib, style: c.font, role: 'lb' } ])
+    // Only the first argument names a library: `.Lb libc libm` prints the
+    // libc description and then "libm" as a plain word.
+    if (args.length > 1)
+      mdocWords(c, args.slice(1), c.font, 'lb')
+    return 1
+  }
   case 'Tn':
     mdocWords(c, args, 'small', 'tn')
     return 1
@@ -3237,12 +3354,16 @@ function handleLine
     break
   case 'do':
   case 'nop': {
-    let sub
+    let sub, line
 
-    sub = rest ? controlOf(rest) : 0
+    // `.nop` runs its argument as an input line, text included. `.do` runs
+    // it as a request, which has no control character of its own:
+    // `.do nr tbl_C \n[.C]` is `.nr tbl_C \n[.C]`.
+    line = ((name == 'do') && rest) ? '.' + rest : rest
+    sub = line ? controlOf(line) : 0
     if (sub && sub.name)
       handleLine(c, sub, style)
-    else if (rest) {
+    else if ((name == 'nop') && rest) {
       let expanded
 
       expanded = expand(c, rest, style, c.lineNo)
@@ -3264,19 +3385,25 @@ function handleLine
     doString(c, args[0] || '', copyMode(valueAfter(rest, args[0] || '')), 1)
     break
   case 'nr':
-    if (args[0])
+    if (args[0]) {
       setRegister(c, args[0], (args[1] == undefined) ? (c.reg[args[0]] || 0) :
                   expandText(c, args[1], c.lineNo))
+      if (args[2])
+        setIncrement(c, args[0], expandText(c, args[2], c.lineNo))
+    }
     break
   case 'rr':
-    if (args[0])
+    if (args[0]) {
       delete c.reg[args[0]]
+      delete c.inc[args[0]]
+    }
     break
   case 'rm':
     if (args[0]) {
       delete c.macros[args[0]]
       delete c.str[args[0]]
       delete c.reg[args[0]]
+      delete c.inc[args[0]]
     }
     break
   case 'rn':
@@ -3471,6 +3598,7 @@ function parse
         aliases: {},
         str: {},
         reg: {},
+        inc: {},
         tr: {},
         ftr: {},
         font: 'roman',

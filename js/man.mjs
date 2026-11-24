@@ -472,12 +472,19 @@ function init
     return msg + ' (' + format + ' data)'
   }
 
+  // Every "Cannot read" names the path and then why, so a bare path's
+  // "Permission denied" and a man -w line's failed read read the same way.
+  function cannotRead
+  (path, why) {
+    return 'Cannot read ' + path + ': ' + why
+  }
+
   function onCat
   (path, text, code, cb) {
     if (code == 0)
       cb(0, text, path)
     else
-      cb('Cannot read ' + path)
+      cb(cannotRead(path, 'read failed'))
   }
 
   function readPlain
@@ -682,6 +689,9 @@ function init
     // readable regular file is the page the user asked for, even when a part
     // before the colon also reads. When the whole is not a file (the common
     // colon-separated list) the parts are tried and their error is the answer.
+    // A whole that has statted as a regular file is settled by its read too: a
+    // failure is reported instead of being hidden behind a split prefix, the
+    // same rule readPath applies to a bare path.
     function wholeStatted
     (whole, at, lastErr, err, data) {
       let fileMode
@@ -690,9 +700,19 @@ function init
       if (err || (fileMode == undefined))
         tryCand(at + 1, lastErr)
       else if ((fileMode & 0o170000) == 0o100000)
-        readSome(whole, opened, () => tryCand(at + 1, lastErr))
+        readSome(whole, opened, readErr => wholeFailed(whole, fileMode, readErr))
       else
         tryCand(at + 1, lastErr)
+    }
+
+    // The reader still gets one try on a file with no read bits (an ACL or root
+    // can read it); when that try fails, the mode is the reason.
+    function wholeFailed
+    (whole, fileMode, readErr) {
+      if ((fileMode & 0o444) == 0)
+        cb(cannotRead(whole, 'Permission denied'))
+      else
+        cb(readErr)
     }
 
     function tryCand
@@ -869,7 +889,7 @@ function init
     () {
       readSource(dir, st.file, (err, text, path) => {
                                  if (err)
-                                   done('Cannot read ' + st.file + ': Permission denied')
+                                   done(cannotRead(st.file, 'Permission denied'))
                                  else
                                    done(0, text, path)
                                })
@@ -885,7 +905,7 @@ function init
           fetchPage(dir, st.lookup, 0, done)
         }
         else
-          done('Cannot read ' + st.file + ': ' + err.message)
+          done(cannotRead(st.file, err.message))
         return
       }
       fileMode = data?.data?.mode
@@ -895,7 +915,7 @@ function init
         return
       }
       if ((fileMode & 0o170000) == 0o040000) {
-        done('Cannot read ' + st.file + ': Is a directory')
+        done(cannotRead(st.file, 'Is a directory'))
         return
       }
       if ((fileMode & 0o170000) == 0o100000)

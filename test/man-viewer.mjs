@@ -1833,6 +1833,57 @@ test('viewer', 'a whole path that fails to stat keeps the split error',
        equal(textOf(b).includes('Cannot read /b.1'), true)
      })
 
+// The stat settles that the whole line is a regular file, so its read is the
+// last word: a failure is the answer, the same way a bare path reports its own
+// error instead of falling back. Falling through to the parts would open a
+// page the user did not ask for.
+test('viewer', 'an unreadable whole colon path is refused, not split',
+     async () => {
+       let b, whole
+
+       whole = '/fake/man1/a.1:/b.1'
+       setup({ 'a.1': '.TH PFX 1\n.SH NAME\nsplit prefix page\n' },
+             { probe: [ whole ] })
+       // A regular file with no read bits: the reader still gets one try, and
+       // its failure is what the page says.
+       unreadablePaths[whole] = 1
+       b = await opened('probe')
+       equal(textOf(b).includes('Cannot read ' + whole + ': Permission denied'), true)
+       equal(textOf(b).includes('split prefix page'), false)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/fake/man1/a.1')), false)
+     })
+
+// p36: the reader's refusal carries its reason too, so a whole-line failure and
+// a bare path's failure read the same way.
+test('viewer', 'a whole colon path that the reader cannot read says so, and does not split',
+     async () => {
+       let b, whole
+
+       whole = '/fake/man1/a.1:/b.1'
+       setup({ 'a.1': '.TH PFX 1\n.SH NAME\nsplit prefix page\n' },
+             { probe: [ whole ] })
+       readFailPaths[whole] = 1
+       b = await opened('probe')
+       equal(textOf(b).includes('Cannot read ' + whole + ': read failed'), true)
+       equal(textOf(b).includes('split prefix page'), false)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == '/fake/man1/a.1')), false)
+     })
+
+test('viewer', 'a mode-000 whole colon path the reader can read is rendered',
+     async () => {
+       let b, whole
+
+       whole = '/fake/man1/a.1:/b.1'
+       setup({ 'a.1': '.TH PFX 1\n.SH NAME\nsplit prefix page\n',
+               'b.1': '.TH AB 1\n.SH NAME\ncolon whole page\n' },
+             { probe: [ whole ] })
+       unreadablePaths[whole] = 1
+       b = await opened('probe')
+       equal(textOf(b).includes('colon whole page'), true)
+       equal(textOf(b).includes('split prefix page'), false)
+       equal(calls.some(c => (c[0] == 'cat') && (c[1] == whole)), true)
+     })
+
 test('viewer', 'man -k output that matches nothing yields no topics',
      async () => {
        let list, done
@@ -2050,7 +2101,7 @@ test('viewer', 'an unreadable page names the last path it tried',
        setup({}, { ls: [ '/fake/man1/one.1.gz', '/fake/man1/two.1.gz' ] })
        b = await opened('ls')
        equal(viewOf(b).ele.querySelector('.manpage-msg').textContent,
-             'Cannot read /fake/man1/two.1.gz')
+             'Cannot read /fake/man1/two.1.gz: read failed')
      })
 
 test('viewer', 'a redirect to another section is not a cycle',

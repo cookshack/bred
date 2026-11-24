@@ -2025,14 +2025,17 @@ function tableRowCols
 }
 
 function tableBuild
-(c, lines, lineNo) {
+(c, lines, lineNo, inherited) {
   let opts, parsed, ncols, body, cols, rows, at
 
   at = 0
   while ((at < lines.length) && (lines[at].trim() == ''))
     at++
-  opts = tableOptions('')
-  if ((at < lines.length) && lines[at].includes(';')) {
+  // A `.T&` part holds format and data lines only, so it keeps the global
+  // options of the first table (tbl(1) LANGUAGE OVERVIEW: "no global
+  // options").
+  opts = inherited || tableOptions('')
+  if ((inherited == undefined) && (at < lines.length) && lines[at].includes(';')) {
     opts = tableOptions(lines[at])
     at++
   }
@@ -3453,7 +3456,7 @@ function handleLine
     break
   case 'TS':
   case 'T&': {
-    let blocks, lines, tableLine
+    let blocks, lines, tableLine, opts
 
     blocks = []
     lines = []
@@ -3477,7 +3480,8 @@ function handleLine
     blocks.forEach(block => {
                      let table
 
-                     table = tableBuild(c, block, tableLine)
+                     table = tableBuild(c, block, tableLine, opts)
+                     opts = table.options
                      closeTag(c)
                      addBlock(c, table)
                    })

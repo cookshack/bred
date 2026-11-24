@@ -692,6 +692,21 @@ test('tables', 'T& starts another table',
        equal(r.doc.blocks.filter(b => b.kind == 'table').length, 2)
      })
 
+test('tables', 'T& inherits the first table\'s global options',
+     () => {
+       let r, tables
+
+       // tbl(1)'s own example: a `.T&` part holds format and data lines but no
+       // global options, so `tab(;)` still separates its cells.
+       r = parsed('.TH T 1\n.TS\ntab(;);\nln,an.\nitem one;1\n.T&\nln,an.\n' +
+                  'item eleven;11\n.TE\n')
+       tables = r.doc.blocks.filter(b => b.kind == 'table')
+       equal(tables.length, 2)
+       equal(tables[1].rows[0].cells.length, 2)
+       equal(flat(tables[1].rows[0].cells[0].spans), 'item eleven')
+       equal(flat(tables[1].rows[0].cells[1].spans), '11')
+     })
+
 test('tables', 'toText joins cells in a row',
      () => {
        equal(asText('.TH T 1\n.TS\nl l.\na\tb\n.TE\n'), 'a | b\n')

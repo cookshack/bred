@@ -117,23 +117,25 @@ the loop owns it, which removes the one line every lane would otherwise touch.
 | 10 | flake | `8e30e7c` | the `indent` flake reproduced under load: CodeMirror's 20 ms parse budget |
 | 11 | finish | `afa6d6f` | per-row table styling; `indent buffer` parsed the whole document (was truncating at 3000 chars); health-check message |
 | 12 | verification | `5e531f0` | `\c` joins forward only; `\F`/`\m`/`\M`/`\k`/`\S`/`\v` take their own forms; `.Sm off` starts at the second call; `man -w` stats the whole line first; `man-diff` says what it sampled |
+| 13 | mdoc set | `244c425` | `.Lb` table, `.In` `#include`, `.do`, `\n+[reg]`; a background lane is launched, not finished; `man-diff` joins at a source `\:` and reads a cell as a cell |
 
 ## Current state
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    section sweep, whole sections after round 12: 1:31p/242w  3:54p/220w  5:7p/8w  7:3p/8w  8:3p/15w
-    513 man tests, 1870 total, 0 failing; check clean
+    section sweep, whole sections after round 13: 1:26p/220w  3:10p/109w  5:6p/6w  7:3p/8w  8:3p/15w
+    520 man tests, 1878 total, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps.
 
 The numbers above used to be a **sample**: `bin/man-diff --max 400` slices
 sorted order and prints it as `400 of 1189 (sample; --max 0 for all)`, section
-1 has 1189 pages and section 3 has 959. Measured whole, section 1 is 31 pages /
-242 words short of man(1), not 2 / 5. Round 12 fixed the tool, then fixed the
-three parser bugs the honest sweep exposed (`\c`, `\F`, `.Sm off`) and the
-colon-path shadowing in the viewer; the remaining families are in
-`doc/Man.md` and in `doc/Loop-queue.md` (`doc/Loop-queue.md` has the ids).
+1 has 1189 pages and section 3 has 959. Measured whole, section 1 was 34 pages
+/ 403 words short of man(1), not 2 / 5. Round 12 fixed the tool and the three
+parser bugs the honest sweep exposed (`\c`, `\F`, `.Sm off`) plus the
+colon-path shadowing in the viewer; round 13 took the mdoc set (`.Lb`, `.In`,
+`.do`, `\n+`) and two more `man-diff` joins. What is left is in `doc/Man.md`
+and, with ids, in `doc/Loop-queue.md`.
 
 ## Rules that earned their place
 

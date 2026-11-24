@@ -6,41 +6,43 @@ session's worktree root does not lose the queue again.
 
 The loop owns this file. Lanes read it and never edit it.
 
-    run     2026-11-24T08:05Z .. 2026-11-24T16:05Z
-    round   14
-    main    244c425      tip after round 13
+    run     paused 2026-11-24T09:40Z after round 14 (deadline was 16:05Z)
+    round   14 done; 15 is the next start
+    main    a18cd1b      tip after round 14
     state   $BRED_WORKTREE_ROOT/bred-loop/  briefs, claims, round logs (untracked)
+    sweep   1:20p/154w  3:5p/71w  5:6p/6w  7:3p/8w  8:2p/9w  (whole sections, after round 14)
 
 Statuses: `ready` (dispatchable), `next` (queued after a decision or another
 item), `triage` (needs evidence before it can be called a bug), `done:<hash>`
 (merged on `main`). An item that turned out to be a measurement error is `done`
 too, with the verdict in its title.
 
-## Round 14 — the `.Rs` set, and the measurement that still lies
+## Round 15 — suggested lanes (file sets are disjoint)
 
 | id | lane | status | title |
 |----|------|--------|-------|
-| p25 | a1 | ready | `.Rs` wraps `%T` in curly quotes; groff leaves it bare (ssh(1)/slogin(1), 56 words) |
-| p40 | a1 | ready | a `\c` before a macro call still gets a space (ttf2tfm(1)/ttf2pk(1), 15 words) |
-| p41 | a3 | ready | an mdoc header line groff truncated (`... BSD Library Functions Manual ...`) is not recognised as a header (crypt_preferred_method, rpc_gss_*, 30 words) |
-| p42 | a3 | ready | `bash(1)`'s PATH list breaks after a source `\:` ending in ":"; the join only knows "/" (4 → 2) |
-| p43 | a3 | ready | `.MT ...@\:web.de` breaks at "@": the same `\:` join, another character (troff(1), 2 words) |
+| p30 | a1 | ready | an mdoc bare `-` is U+2010 (and `\-` is U+2212); we emit ASCII `-` (pcre2demo(3), 67 words) |
+| p52 | a1 | ready | a bare `.Nm` inside a `T{`/`T}` cell is printed literally (crypt_checksalt(3), crypt_preferred_method(3)) |
+| p51 | a2 | ready | the compressed magics never fire in the app: pty output is UTF-8-decoded, so every byte ≥ 0x80 is U+FFFD and only bzip2's `BZh` survives (tests pass because they bypass the decode) |
+| p49 | a3 | ready | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 11, before three rounds of parser code |
+| p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) |
 
 ## Backlog
 
 | id | lane | status | title |
 |----|------|--------|-------|
 | p44 | a1 | triage | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` |
-| p30 | a1 | next | an mdoc bare `-` is U+2010 (and `\-` is U+2212); we emit ASCII `-` (pcre2demo(3), 67 words) |
+| p53 | a1 | next | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) |
+| p54 | a1 | next | a no-output request between a `\c` and the next line swallows the join (0 corpus occurrences) |
+| p55 | a1 | next | a `\c` followed by a blank line: groff joins to the next text line, we make a paragraph break |
+| p56 | a1 | next | a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none |
 | p19 | a1 | next | `.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2) |
 | p33 | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) |
 | p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) |
 | p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) |
-| p21 | a2 | next | lzma alone is not sniffed for a mislabelled compressed page (Man.md gap 3) |
-| p46 | a2 | next | a *part* of a genuine colon list that is mode 000 reports `read failed`, not `Permission denied` (found in p35) |
-| p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) || p48 | a3 | next | `man-diff --page` has no missing-word total, only the deduped sample |
-| p49 | a3 | next | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 11, before two rounds of parser code |
-| p50 | a2 | triage | `wode-view-e2e` "stale peer push during revert" failed once in a post-merge verify, passed twice alone (round 13); find the load dependency |
+| p57 | a2 | next | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one |
+| p50 | a2 | triage | `wode-view-e2e` "stale peer push during revert" failed once in a post-merge verify, passed twice alone (round 13) |
+| p48 | a3 | next | `man-diff --page` has no missing-word total, only the deduped sample |
 
 ## Done
 
@@ -75,3 +77,10 @@ too, with the verdict in its title.
 | p31 | a3 | done:244c425 | a justified paragraph is not a table (hgrc `forthe`) |
 | p37 | a3 | done:244c425 | a bordered cell's continuation at the left edge (TIFFGetField 6 → 0) |
 | p39 | - | done:7ce2ecf | a background subagent is launched, not finished (tick, routing, ⏳) |
+| p25 | a1 | done:d5042d1 | `.Rs` quotes `%T` only in a `%B`/`%J` reference, and takes groff's serial comma (14 ssh references) |
+| p40 | a1 | done:d5042d1 | a `\c` tag line stays open across a macro (paperconfig `--paperpapername`, 5 dmstats tags) |
+| p46 | a2 | done:2261231 | a colon-list part with no read bits says `Permission denied` |
+| p21 | a2 | done:2261231 | lzma verdict: the header bytes are destroyed by the UTF-8 decode, so no safe sniff; `lzcat` already last |
+| p41 | a3 | done:a18cd1b | the truncated mdoc banner is a header (5 pages, 31 → 1 words) |
+| p42 | a3 | done:a18cd1b | the `\:` join accepts ":" (`bash(1)` 4 → 2) |
+| p43 | a3 | done:a18cd1b | the `\:` join accepts "@" (`troff(1)` 2 → 0) |

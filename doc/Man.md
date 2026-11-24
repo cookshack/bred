@@ -300,15 +300,15 @@ gdbm pages, `It` without `Bl` (2), the `Su`/`R` strings that only eqn defines
 (4), ms `DS`/`DE` (1), eqn `EQ`/`EN` (1), `mso pic.tmac` (1), strace's
 undefined `.IX`, a `.p` typo and one undefined Cyrillic string.
 
-A whole-section sweep (`--max 0`) after round 12 leaves this many pages (and
+A whole-section sweep (`--max 0`) after round 14 leaves this many pages (and
 words) short of man(1)'s text. It is not a sample: `--max 400` prints
 `400 of 1189 (sample; --max 0 for all)`, and an earlier version of this table
 quoted such a sample as if it were the section.
 
 ```
 section  1    3    5    7    8
-pages   26   10    6    3    3
-words  220  109    6    8   15
+pages   20    5    6    3    2
+words  154   71    6    8    9
 ```
 
 Part of that is measurement, not loss: man(1) wraps a long word onto the next
@@ -365,18 +365,15 @@ whose next line is a macro call (the page's own `.C`, then `.ttc`). Groff keeps
 the backtick glued to `.ttc'.]`; we insert the space the page suppressed and
 split them. That is a parser question, not a measurement one.
 
-The rest of the sweep is real. Section 1 is almost entirely ssh(1)/slogin(1)
-references: `.Rs` puts a `%T` in curly quotes where groff leaves it bare. Then
-`tbl(1)`/`gtbl(1)`'s example table (we print `eleven;11` where man(1) prints
-`eleven 11`) and `ttf2tfm(1)`'s `\c` before a macro call, which is the parser's
-(see below). Section 3 is pcre2demo(3)'s bare hyphens — an mdoc `-` is U+2010
-and `\-` is U+2212, while we keep ASCII. It also held the mdoc header line
-(`CRYPT_PREFERRED_METHO... BSD Library Functions Manual ...`), which `man-diff`
-did not recognise as a header because groff truncated the name and dropped the
-`(3)`; round 14 removes it (below), so those five pages in the table above are
-measurement, not loss. Section 8's worst pages are a synopsis of long
-`[a|b|c]` alternatives that man(1) hyphenates, and the rest of the sweep is the
-same kind of line-break join.
+The rest of the sweep is real. Section 1 is mostly ps(1): 103 of its 154 words
+are one comma list man(1) wraps (`pid,format,tname,` / `time,cmd,`) plus the
+`-o` field names. Then `tbl(1)`/`gtbl(1)`'s example table (we print `eleven;11`
+where man(1) prints `eleven 11`) and `hg(1)`'s `incoming ) case-insensitive`.
+Section 3 is pcre2demo(3)'s bare hyphens — an mdoc `-` is U+2010 and `\-` is
+U+2212, while we keep ASCII — and a bare `.Nm` inside a `T{`/`T}` cell, printed
+literally on `crypt_checksalt(3)` and `crypt_preferred_method(3)`. Section 8's
+worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
+hyphenates, and the rest of the sweep is the same kind of line-break join.
 
 Some of the pages still reported hide a real loss rather than a layout one,
 and are the next work. Fixed so far: the ssh helper pages' `OpenBSD 3.2.`
@@ -426,13 +423,24 @@ clause removes no footer. The remaining word is real: a bare `.Nm` inside a
 `crypt_checksalt(3)` are each short one name (a parser question, not the
 diff).
 
-Tests: 520 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
+Round 14 took the last of the reference set and the tag continuation. `.Rs`
+quotes a `%T` only when the same reference also carries a `%B` or `%J` — the
+container that makes it an article title — and three or more authors take
+groff's serial comma; the 14 references in `ssh(1)` were the whole family. A
+`.TP` tag line ending in `\c` keeps the tag open across the next macro, so
+`paperconfig(8)` reads `-p, --paperpapername` again and five `dmstats(8)` tags
+are whole. `man-diff` now recognises groff's truncated mdoc banner
+(`CRYPT_PREFERRED_METHO... BSD Library Functions Manual ...`) as a header, and
+joins a `\:` break after ":" and "@" as well as "/".
+
+Tests: 533 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
-is 100% for `man.mjs`, `man-char.mjs`, `man-render.mjs` and `man-roff.mjs`, and
-99.97% for `man-parse.mjs` (one line: the scan of an unterminated `(` in a tbl
-column spec, which no installed page has). Branch coverage is 92%, 100%, 100%,
-97% and 95% in the same order.
+(measured after round 14) is 100% for `man-char.mjs`, `man-render.mjs` and
+`man-roff.mjs`, 99.97% for `man-parse.mjs` (one line: the scan of an
+unterminated `(` in a tbl column spec, which no installed page has) and 98.85%
+for `man.mjs`. Branch coverage is 100%, 98.8%, 97.1%, 94.6% and 89.9% in the
+same order.
 
 ## Known gaps, in order
 

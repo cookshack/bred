@@ -1,9 +1,13 @@
 # Unattended agent loop
 
-Status: round 12 running, 2026-11-24. Eleven rounds of three parallel agents,
-merged serially, 88 commits. This file is the protocol; `doc/Loop-queue.md` is
-the durable queue; `bred-loop/` in the session's worktree root holds the rest of
-a run's live state.
+Status: paused after round 14, 2026-11-24. Eleven earlier rounds of three
+parallel agents, then rounds 12-14 in this run, all merged serially. This file
+is the protocol; `doc/Loop-queue.md` is the durable queue; `bred-loop/` in the
+session's worktree root holds the rest of a run's live state.
+
+The run was stopped deliberately, not by the deadline: `doc/Loop-queue.md` has
+the next items (`ready`/`next`/`triage`) and the prompt below is how to resume
+in a fresh session. Nothing is half-merged; `main` is clean and green.
 
 `$LOOP` below is that directory:
 
@@ -22,7 +26,7 @@ value depends on them owning disjoint files.
 
 Hand this to a fresh agent (build mode, from the repository root):
 
-    You are continuing an ongoing effort on Bred. A previous run did eleven
+    You are continuing an ongoing effort on Bred. A previous run did fourteen
     rounds of parallel-agent work and left everything committed and verified.
     Do not redo any of it.
 
@@ -118,13 +122,14 @@ the loop owns it, which removes the one line every lane would otherwise touch.
 | 11 | finish | `afa6d6f` | per-row table styling; `indent buffer` parsed the whole document (was truncating at 3000 chars); health-check message |
 | 12 | verification | `5e531f0` | `\c` joins forward only; `\F`/`\m`/`\M`/`\k`/`\S`/`\v` take their own forms; `.Sm off` starts at the second call; `man -w` stats the whole line first; `man-diff` says what it sampled |
 | 13 | mdoc set | `244c425` | `.Lb` table, `.In` `#include`, `.do`, `\n+[reg]`; a background lane is launched, not finished; `man-diff` joins at a source `\:` and reads a cell as a cell |
+| 14 | references | `a18cd1b` | `.Rs` quotes `%T` only in a `%B`/`%J` reference; a `\c` tag line stays open across a macro; `man-diff` knows the truncated mdoc banner and `\:` after ":" and "@" |
 
 ## Current state
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    section sweep, whole sections after round 13: 1:26p/220w  3:10p/109w  5:6p/6w  7:3p/8w  8:3p/15w
-    520 man tests, 1881 total, 0 failing; check clean
+    section sweep, whole sections after round 14: 1:20p/154w  3:5p/71w  5:6p/6w  7:3p/8w  8:2p/9w
+    533 man tests, 1891 total, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps.
 
@@ -134,8 +139,10 @@ sorted order and prints it as `400 of 1189 (sample; --max 0 for all)`, section
 / 403 words short of man(1), not 2 / 5. Round 12 fixed the tool and the three
 parser bugs the honest sweep exposed (`\c`, `\F`, `.Sm off`) plus the
 colon-path shadowing in the viewer; round 13 took the mdoc set (`.Lb`, `.In`,
-`.do`, `\n+`) and two more `man-diff` joins. What is left is in `doc/Man.md`
-and, with ids, in `doc/Loop-queue.md`.
+`.do`, `\n+`); round 14 took the reference set and the tag continuation, and
+two more `man-diff` rules. The sweep is down to 36 pages / 248 words, and most
+of what is left is ps(1) (103 words) and pcre2demo(3) (67). What is left is in
+`doc/Man.md` and, with ids, in `doc/Loop-queue.md`.
 
 ## Rules that earned their place
 

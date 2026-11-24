@@ -310,13 +310,50 @@ words  242  220    8    8   15
 
 Part of that is measurement, not loss: man(1) wraps a long word onto the next
 line (so it splits `[n]<&digit-` from `moves`), breaks a compound at a hyphen,
-repeats a non-standard `.TH` in the footer, and breaks a long path after a `/`.
-`man-diff` normalises the hyphen and the sentence-period cases, but a split
-inside a word that is not hyphenated still counts. It also reassembles a
-U+2010-hyphenated table cell (section 3's TIFF names are no longer reported as
-two words each), drops a bare `|` and `_` from both sides since those are our
-table separators and rule rows and man(1) draws neither, and compares words on
-a key that ignores trailing sentence punctuation.
+repeats a non-standard `.TH` in the footer, and breaks a long path at a `\:`
+break point inside it. `man-diff` normalises the hyphen, the `\:` path and the
+sentence-period cases, but a split inside a word that is neither hyphenated nor
+marked in the source still counts. It also reassembles a U+2010-hyphenated
+table cell (section 3's TIFF names are no longer reported as two words each),
+drops a bare `|` and `_` from both sides since those are our table separators
+and rule rows and man(1) draws neither, and compares words on a key that
+ignores trailing sentence punctuation.
+
+Three joins in round 12's `man-diff` were still wrong. Each was the
+reference's fault, not our text's, and each is now a tool fix:
+
+- A path break is a `\:` in the page source, not a "/" at the line end.
+  `troff(1)` prints `/usr/` + `lib/groff/site-tmac,` because the source is
+  `.IR /usr/\:lib/\:groff/\:site\-tmac`; a test page with the same path and no
+  `\:` moved the whole `/usr/lib/groff/site-tmac,` to the next line. So the
+  join needs the source: `man-diff` joins a line-ending token only when the
+  page marks that exact token with `\:`, and only when it ends in "/" (a
+  finished URL, a regexp or `/usr/` at a sentence end also ends a line).
+  `troff(1)` 10 -> 2 words, `nroff(1)` 4 -> 0, `groff(1)` 2 -> 0; the 26
+  installed pages containing a `\:` are that join's whole blast radius, and
+  among them only those three changed. `bash(1)` stays at 4: its PATH list
+  breaks after a ":", the same `\:` mechanism, held for the next round so this
+  change stays inside the "/" evidence.
+- `joinCells` read a justified paragraph as a table. The gaps justification
+  inserts look like column boundaries, so a word hyphenated at the right margin
+  took the next line's token at the same column: `hgrc(5)`'s
+  `format.use-dirstate-tracked-hint=yes` came out as `for` + `the` +
+  `mat.use-...`. A cell that runs to the end of the line is prose, not a cell:
+  a table row has another column or a border after it. `hgrc(5)` is now 0.
+- The same code joins a *bordered* cell by its borders. `TIFFGetField(3)`
+  continues `BitsPer‐`/`Sample` and `ar‐`/`ray` from the cell's left edge,
+  before the token's column, which the old "at or after the column" rule
+  refused; borders make the cell unambiguous and prose has none. And because
+  `normal()` blanks a border, a row ending `BitsPer‐ │` used to reach
+  `joinHyphens` as a prose hyphen and be joined with the *previous* column's
+  `uint16_t**`; joining the cell first leaves no trailing U+2010.
+  `TIFFGetField(3)` is now 0, and `mysql_optionsv(3)` and
+  `mariadb_get_infov(3)` (`MARI` + `MARIADB_...`) were the same defect.
+
+Not a path break: `ttf2tfm(1)`'s 10 words are a `\c` at the end of a text line
+whose next line is a macro call (the page's own `.C`, then `.ttc`). Groff keeps
+the backtick glued to `.ttc'.]`; we insert the space the page suppressed and
+split them. That is a parser question, not a measurement one.
 
 The rest of the sweep is real. Section 1 is mostly ssh(1)/slogin(1) references
 (`.Rs` quotes a `%T` that groff leaves bare), `tbl(1)`'s `.do nr` request

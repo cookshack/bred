@@ -167,6 +167,79 @@ function joinHyphens
   return out
 }
 
+// A page asks groff for a break with no hyphen at `\:`, and the groff pages
+// use it inside long paths, so man(1) prints `/usr/` at one line end and
+// `lib/groff/site-tmac,` at the next. A line ending in "/" is not enough on
+// its own: a finished URL, a regexp or a `/usr/` word at a sentence end looks
+// the same. The source says which token the page allowed to break, so only a
+// token the source marks with `\:` is joined, and only when it ends in "/":
+// that is a path, not prose and not bash(1)'s `:/bin:` in a PATH list.
+function breakTokens
+(src) {
+  let out, re, m, at, run, text
+
+  out = new Set()
+  src = src.split('\n').filter(line => /^\.\\"/.test(line) == 0).join('\n')
+  re = /\\:/g
+  while ((m = re.exec(src)) != undefined) {
+    at = m.index
+    while ((at > 0) && (/\s/.test(src[at - 1]) == 0))
+      at--
+    run = src.slice(at, m.index)
+    text = run.replace(/\\[:&%\/|]/g, '')
+               .replace(/\\-/g, '-')
+               .replace(/\\f(\[[^]]*\]|.)/g, '')
+               .replace(/\\ /g, ' ')
+    text = text.trim().split(' ').pop()
+    if (/\/$/.test(text))
+      out.add(text)
+  }
+  return out
+}
+
+// A `\:` at the end of a paragraph never breaks, so the following rendered
+// line is a new paragraph, not the rest of the word: a blank line between the
+// two is the tell (hg(1)'s "http://pygments.org/" is followed by "There").
+function joinBreaks
+(lines, breaks) {
+  let out
+
+  out = []
+  lines.forEach(line => {
+                let last
+
+                line = normal(line)
+                last = out[out.length - 1]
+                if ((last != undefined) && line.length &&
+                    breakOf(last, breaks).length) {
+                  out[out.length - 1] = last + line
+                  return
+                }
+                out.push(line)
+              })
+  return out
+}
+
+// A macro like `.RI ( /usr/...` prints "(" glued to the path, so the rendered
+// token can carry a punctuation prefix the source break token does not have.
+// Strip leading punctuation only: a letter or digit before the break token
+// means the token is a word that merely ends the line.
+function breakOf
+(line, breaks) {
+  let token, at
+
+  token = line.split(' ').pop()
+  at = 0
+  while (at < token.length) {
+    if (breaks.has(token.slice(at)) && (/\/$/.test(token.slice(at))))
+      return token.slice(at)
+    if (/[A-Za-z0-9]/.test(token[at]))
+      return ''
+    at++
+  }
+  return ''
+}
+
 // groff hyphenates a long word inside a narrow tbl cell with U+2010 and
 // continues it on the next line of the same cell, with the rest of the row
 // still on the first line:
@@ -229,6 +302,46 @@ function cellToken
   return undefined
 }
 
+// A bordered last-column cell wraps at a U+2010 even when its continuation
+// starts left of the hyphenated token: TIFFGetField(3) continues
+//
+//     │ 1   <<  BitsPer‐ │
+//     │ Sample arrays    │
+//
+// from the cell's left edge, so cellToken's "at or after the token's column"
+// rule refuses it. With borders the cell is unambiguous: take the first token
+// of the next line between the same two border columns. Prose has no border,
+// so this cannot reach into a filled paragraph. Returns undefined when the
+// next line does not line up or has no token in the cell.
+function borderToken
+(line, next, at, end) {
+  let left, re, m, i
+
+  if ((line[end] != '│') && (line[end] != '|'))
+    return undefined
+  left = -1
+  for (i = at - 1; i >= 0; i--) {
+    if ((line[i] == '│') || (line[i] == '|')) {
+      left = i
+      break
+    }
+  }
+  if (left < 0)
+    return undefined
+  if ((next == undefined) || (next[left] != line[left]) ||
+      (next[end] != line[end]))
+    return undefined
+  re = /[^\s│|]+/g
+  while ((m = re.exec(next)) != undefined) {
+    if (m.index <= left)
+      continue
+    if (m.index >= end)
+      return undefined
+    return { start: m.index, text: m[0] }
+  }
+  return undefined
+}
+
 function joinCells
 (lines) {
   let out
@@ -240,22 +353,37 @@ function joinCells
     joins = []
     re = /[^\s│|]+/g
     while ((m = re.exec(out[i])) != undefined) {
-      let start, token, end, next, text, j
+      let start, token, end, next, text, j, bordered
 
       start = m.index
       token = m[0]
       if (/[\u2010]$/.test(token) == 0)
         continue
-      // A prose line also ends in U+2010, but its first token is not the
-      // hyphenated one; only a cell whose content starts here continues on the
-      // next line. Checking for text before the token keeps the next line's
-      // sentence-spacing gap from looking like a cell boundary.
-      if (out[i].slice(cellStart(out[i], start), start).trim().length)
-        continue
       end = cellEnd(out[i], start + token.length)
+      bordered = ((out[i][end] == '│') || (out[i][end] == '|')) ? 1 : 0
+      if (bordered == 0) {
+        // A prose line also ends in U+2010, but its first token is not the
+        // hyphenated one; only a cell whose content starts here continues on
+        // the next line. Checking for text before the token keeps the next
+        // line's sentence-spacing gap from looking like a cell boundary.
+        if (out[i].slice(cellStart(out[i], start), start).trim().length)
+          continue
+        // A hyphenated token whose cell runs to the end of the line is prose
+        // broken at the right margin, not a table cell: a table row still has
+        // the rest of the row (another column or a border) after the cell.
+        // Without this, the justification gaps of a filled paragraph read as
+        // cell boundaries and the join steals a word from the next line
+        // (hgrc(5)'s "format." became "for" + "the").
+        if (end == out[i].length)
+          continue
+      }
       if (out[i].slice(start + token.length, end).trim().length)
         continue
-      next = cellToken(out[i + 1], start, end)
+      next = undefined
+      if (bordered)
+        next = borderToken(out[i], out[i + 1], start, end)
+      else
+        next = cellToken(out[i + 1], start, end)
       if (next == undefined)
         continue
       text = next.text
@@ -263,7 +391,11 @@ function joinCells
       out[j] = out[j].slice(0, next.start) + ' '.repeat(text.length) +
                out[j].slice(next.start + text.length)
       while (/[\u2010]$/.test(text)) {
-        next = cellToken(out[j + 1], start, end)
+        next = undefined
+        if (bordered)
+          next = borderToken(out[j], out[j + 1], start, end)
+        else
+          next = cellToken(out[j + 1], start, end)
         if (next == undefined)
           break
         text = text.slice(0, -1) + next.text
@@ -282,7 +414,7 @@ function joinCells
 }
 
 function referenceText
-(file) {
+(file, src) {
   let text, lines, out
 
   text = execFileSync('man', [ '-Tutf8', file ], { encoding: 'utf8',
@@ -298,7 +430,7 @@ function referenceText
     lines.pop()
   else if (lines.length && isFooter(lines[lines.length - 1]))
     lines.pop()
-  out = joinHyphens(joinCells(lines)).join('\n')
+  out = joinHyphens(joinBreaks(joinCells(lines), breakTokens(src))).join('\n')
   return normal(out)
 }
 
@@ -368,7 +500,7 @@ function diffPage
   res = ManParse.parse(src)
   if (res.ok == 0)
     return { file, refused: 1, fails: res.fails }
-  ref = ourWordsOf(referenceText(file))
+  ref = ourWordsOf(referenceText(file, src))
   ours = ourWordsOf(normal(ManParse.toText(res.doc.blocks)))
   if (ref.length < opts.min)
     return { file, small: 1, refWords: ref.length }
@@ -390,7 +522,7 @@ function detail
     console.log('fails ' + res.fails.map(item => item.what + '@' + item.line).join(', '))
     return
   }
-  ref = ourWordsOf(referenceText(file))
+  ref = ourWordsOf(referenceText(file, src))
   ours = ourWordsOf(normal(ManParse.toText(res.doc.blocks)))
   at = 0
   while ((at < ref.length) && (at < ours.length) && (ref[at] == ours[at]))

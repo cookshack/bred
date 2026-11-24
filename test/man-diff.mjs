@@ -52,6 +52,15 @@ test('man-diff', 'a punctuation-only token has an empty key',
        equal(keyOf('...'), '')
      })
 
+// A token that is only double quotes is punctuation too: mendex(1)'s value
+// `"\t\t"` reaches the comparison as either `""` or `"` `"`, since groff's
+// zero-width `\t` collapses the pair while our text keeps the tabs as a break.
+test('man-diff', 'a quote-only token has an empty key',
+     () => {
+       equal(keyOf('"'), '')
+       equal(keyOf('""'), '')
+     })
+
 test('man-diff', 'a typographic hyphen folds to ASCII in the key',
      () => {
        equal(keyOf('8\u2010bit'), '8-bit')
@@ -97,6 +106,21 @@ test('man-diff', 'pcre2demo(3) has no typographic-quote loss',
        let lost
 
        lost = lostOn('/usr/share/man/man3/pcre2demo.3.gz')
+       if (lost == undefined)
+         return this.skip()
+       equal(lost, 0)
+     })
+
+// mendex(1) writes its `indent_space` default as `"\t\t"`. groff's `\t` is
+// zero width, so man(1) prints `""`; our text keeps the tabs, normal() makes
+// them a space, and the pair arrives as two `"` tokens. Quote-only tokens drop
+// from both sides, so the empty value loses nothing.
+test('man-diff', 'mendex(1) tab-only value compares as an empty quoted value',
+     function
+     () {
+       let lost
+
+       lost = lostOn('/usr/share/man/man1/mendex.1.gz')
        if (lost == undefined)
          return this.skip()
        equal(lost, 0)

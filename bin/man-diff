@@ -556,6 +556,15 @@ function wordsOf
 // back to it — U+2018 to the backtick it came from, not to an apostrophe. A
 // quote is not sentence punctuation, so the fold has to happen before the
 // strip: the apostrophe in "wasn't" is part of the word, not a trailing mark.
+//
+// mendex(1) gives a value as `"\t\t"`. groff's `\t` is zero width, so man(1)
+// prints `""`, while our text keeps the tabs and normal() turns the run into a
+// space, splitting the pair into two `"` tokens. Either way the tokens hold
+// nothing but double quotes, and a quote is punctuation: a token that is only
+// quote marks carries no content, so its key is empty and it drops out of both
+// sides, like `.` or `,`. That can only lower a report, never invent a word.
+// awk(1)'s escape table prints `"` and `"` around literal tabs the same way,
+// and both sides drop there too.
 export function keyOf
 (word) {
   return word.replace(/[\u2010\u2011\u2212]/g, '-')
@@ -563,6 +572,7 @@ export function keyOf
              .replace(/\u2019/g, "'")
              .replace(/[\u201c\u201d]/g, '"')
              .replace(/[.,;:!?]+$/, '')
+             .replace(/^"+$/, '')
 }
 
 // toText joins table cells with " | " and keeps a `_` rule row; man(1) draws

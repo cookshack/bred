@@ -17,6 +17,7 @@
 import { execFileSync } from 'node:child_process'
 import Fs from 'node:fs'
 import Path from 'node:path'
+import Url from 'node:url'
 import Zlib from 'node:zlib'
 
 import * as ManParse from '../js/man-parse.mjs'
@@ -472,9 +473,15 @@ function wordsOf
 // the word's key, so "foo." and "foo" compare equal, and a token that is only
 // punctuation has an empty key and drops out of both sides. The token keeps its
 // period in the report, and a bracket stays part of its word.
-function keyOf
+//
+// A no-.TH page gets no an-old.tmac from groff, so man(1) leaves a bare `-` to
+// the default utf8 mapping and prints U+2010; a source `\-` can likewise reach
+// us as U+2212. For a word comparison those are the ASCII hyphen, so fold them
+// in the key. The report keeps the character the reference printed.
+export function keyOf
 (word) {
-  return word.replace(/[.,;:!?]+$/, '')
+  return word.replace(/[\u2010\u2011\u2212]/g, '-')
+             .replace(/[.,;:!?]+$/, '')
 }
 
 // toText joins table cells with " | " and keeps a `_` rule row; man(1) draws
@@ -537,7 +544,7 @@ function diffPage
 
 function detail
 (file) {
-  let src, res, ref, ours, a, b, at
+  let src, res, ref, ours, a, b, at, lost
 
   src = readPage(file)
   res = ManParse.parse(src)
@@ -549,6 +556,7 @@ function detail
   }
   ref = ourWordsOf(referenceText(file, src))
   ours = ourWordsOf(normal(ManParse.toText(res.doc.blocks)))
+  lost = missingWords(ref, ours)
   at = 0
   while ((at < ref.length) && (at < ours.length) && (ref[at] == ours[at]))
     at++
@@ -556,77 +564,83 @@ function detail
   console.log('at    ' + at)
   console.log('ours  ' + JSON.stringify(ours.slice(Math.max(0, at - 3), at + 8)))
   console.log('man   ' + JSON.stringify(ref.slice(Math.max(0, at - 3), at + 8)))
-  console.log('lost  ' + JSON.stringify(missingWords(ref, ours).sample))
+  console.log('lost  ' + lost.missing + '  ' + JSON.stringify(lost.sample))
 }
 
-opts = parseArgs(process.argv.slice(2))
+function main
+() {
+  opts = parseArgs(process.argv.slice(2))
 
-if (opts.page) {
-  detail(opts.page)
-  process.exit(0)
-}
+  if (opts.page) {
+    detail(opts.page)
+    return
+  }
 
-stats = { pages: 0, total: 0, compared: 0, refused: 0, small: 0, noisy: 0, missing: 0, worst: [] }
+  stats = { pages: 0, total: 0, compared: 0, refused: 0, small: 0, noisy: 0, missing: 0, worst: [] }
 
-{
-  let files
+  {
+    let files
 
-  files = []
-  walk(opts.root, files, {})
-  if (opts.all == 0)
-    files = files.filter(file => Path.dirname(Path.dirname(file)) == opts.root)
-  if (opts.section)
-    files = files.filter(file => Path.basename(Path.dirname(file)) == ('man' + opts.section))
-  // readdir order differs between runs and filesystems, so a --max sample has
-  // to be sorted to be repeatable. Keep the full count: the sample is not the
-  // section, and saying which part was read is the point of the report.
-  files.sort()
-  stats.total = files.length
-  if (opts.max)
-    files = files.slice(0, opts.max)
-  files.forEach(file => {
-                   let out
+    files = []
+    walk(opts.root, files, {})
+    if (opts.all == 0)
+      files = files.filter(file => Path.dirname(Path.dirname(file)) == opts.root)
+    if (opts.section)
+      files = files.filter(file => Path.basename(Path.dirname(file)) == ('man' + opts.section))
+    // readdir order differs between runs and filesystems, so a --max sample has
+    // to be sorted to be repeatable. Keep the full count: the sample is not the
+    // section, and saying which part was read is the point of the report.
+    files.sort()
+    stats.total = files.length
+    if (opts.max)
+      files = files.slice(0, opts.max)
+    files.forEach(file => {
+                     let out
 
-                   stats.pages++
-                   try {
-                     out = diffPage(file)
-                   }
-                   catch (err) {
-                     stats.refused++
-                     return
-                   }
-                   if (out.refused) {
-                     stats.refused++
-                     return
-                   }
-                   if (out.small) {
-                     stats.small++
-                     return
-                   }
-                   stats.compared++
-                   if (out.missing == 0)
-                     return
-                   stats.noisy++
-                   stats.missing += out.missing
-                   stats.worst.push(out)
-                 })
-}
+                     stats.pages++
+                     try {
+                       out = diffPage(file)
+                     }
+                     catch (err) {
+                       stats.refused++
+                       return
+                     }
+                     if (out.refused) {
+                       stats.refused++
+                       return
+                     }
+                     if (out.small) {
+                       stats.small++
+                       return
+                     }
+                     stats.compared++
+                     if (out.missing == 0)
+                       return
+                     stats.noisy++
+                     stats.missing += out.missing
+                     stats.worst.push(out)
+                   })
+  }
 
-stats.worst.sort((a, b) => b.missing - a.missing)
-console.log('man-diff')
-console.log('')
-console.log('  pages     ' + stats.pages +
-            ((stats.pages < stats.total) ? (' of ' + stats.total + '  (sample; --max 0 for all)') : ''))
-console.log('  compared  ' + stats.compared + '  (refused ' + stats.refused +
-            ', too small ' + stats.small + ')')
-console.log('  pages with missing words  ' + stats.noisy +
-            '  (' + stats.missing + ' words total)')
-if (stats.worst.length) {
+  stats.worst.sort((a, b) => b.missing - a.missing)
+  console.log('man-diff')
   console.log('')
-  console.log('worst:')
-  stats.worst.slice(0, opts.list ? 500 : 20).forEach(out => {
-                                                      console.log('  ' + String(out.missing).padStart(5) +
-                                                                  '  ' + out.file.replace(opts.root, '') +
-                                                                  '  ' + JSON.stringify(out.sample))
-                                                    })
+  console.log('  pages     ' + stats.pages +
+              ((stats.pages < stats.total) ? (' of ' + stats.total + '  (sample; --max 0 for all)') : ''))
+  console.log('  compared  ' + stats.compared + '  (refused ' + stats.refused +
+              ', too small ' + stats.small + ')')
+  console.log('  pages with missing words  ' + stats.noisy +
+              '  (' + stats.missing + ' words total)')
+  if (stats.worst.length) {
+    console.log('')
+    console.log('worst:')
+    stats.worst.slice(0, opts.list ? 500 : 20).forEach(out => {
+                                                        console.log('  ' + String(out.missing).padStart(5) +
+                                                                    '  ' + out.file.replace(opts.root, '') +
+                                                                    '  ' + JSON.stringify(out.sample))
+                                                      })
+  }
 }
+
+if (process.argv[1] && (Path.resolve(process.argv[1]) == Url.fileURLToPath(import.meta.url)))
+  main()

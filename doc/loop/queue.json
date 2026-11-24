@@ -17,7 +17,8 @@
         "test/wode-view-e2e.mjs",
         "js/wode*.mjs",
         "js/view.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/wode-view-e2e.mjs"
     },
     {
       "id": "p64",
@@ -27,7 +28,8 @@
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p65",
@@ -38,7 +40,8 @@
         "js/shell.mjs",
         "test/man-viewer.mjs",
         "test/main-shell.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/main-shell.mjs"
     },
     {
       "id": "p66",
@@ -48,7 +51,8 @@
       "files": [
         "js/wode-view.mjs",
         "test/wode-view-e2e.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/wode-view-e2e.mjs"
     },
     {
       "id": "p47",
@@ -67,7 +71,8 @@
       "files": [
         "js/man.mjs",
         "test/man-viewer.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-viewer.mjs"
     },
     {
       "id": "p44",
@@ -76,7 +81,8 @@
       "title": "`tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11`",
       "files": [
         "js/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p53",
@@ -85,7 +91,8 @@
       "title": "an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence)",
       "files": [
         "js/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p54",
@@ -94,7 +101,8 @@
       "title": "a no-output request between a `\\c` and the next line swallows the join (0 corpus occurrences)",
       "files": [
         "js/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p55",
@@ -103,7 +111,8 @@
       "title": "a `\\c` followed by a blank line: groff joins to the next text line, we make a paragraph break",
       "files": [
         "js/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p56",
@@ -113,7 +122,8 @@
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p19",
@@ -122,7 +132,8 @@
       "title": "`.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2)",
       "files": [
         "js/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p33",
@@ -131,7 +142,8 @@
       "title": "after a macro under `.Sm off`, a text line still gets a space (groff joins it)",
       "files": [
         "js/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p34",
@@ -140,7 +152,8 @@
       "title": "`\\v(`-delimited arguments are read as a 2-char name (no corpus use found)",
       "files": [
         "js/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p45",
@@ -149,7 +162,8 @@
       "title": "`.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27)",
       "files": [
         "js/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p59",
@@ -158,7 +172,8 @@
       "title": "a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic?",
       "files": [
         "js/man-parse.mjs"
-      ]
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
       "id": "p12",

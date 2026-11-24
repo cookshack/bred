@@ -30,6 +30,13 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | lane | status | title | files |
+|----|------|--------|-------|-------|
+| p70 | a1 | ready | strace-log-merge(1) prints strace\-log\-merge literally in the synopsis; synopsisStart pushes args[0] raw where handleFont/OP expand it | js/man-parse.mjs, test/man-parse.mjs |
+| p71 | a3 | ready | mendex(1) one "lost" word is a tab display difference ("" vs two quote tokens); decide whether man-diff should treat a tab as non-separating | bin/man-diff, test/man-diff.mjs |
+
 ## Backlog
 
 | id | lane | status | title | files |
@@ -43,8 +50,6 @@ before.
 | p33 | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) | js/man-parse.mjs |
 | p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
 | p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |
-| p70 | a1 | next | strace-log-merge(1) prints strace\-log\-merge literally in the synopsis; synopsisStart pushes args[0] raw where handleFont/OP expand it | js/man-parse.mjs, test/man-parse.mjs |
-| p71 | a3 | next | mendex(1) one "lost" word is a tab display difference ("" vs two quote tokens); decide whether man-diff should treat a tab as non-separating | bin/man-diff, test/man-diff.mjs |
 | p73 | a1 | next | toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing | js/man-parse.mjs, test/man-parse.mjs |
 | p75 | a1 | next | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
 

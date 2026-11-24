@@ -1228,7 +1228,7 @@ test('mdoc', 'Rs and Re collect a reference',
        let r
 
        r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%A A. Author\n.%T A Title\n.%D 2020\n.Re\n')
-       equal(flat(r.doc.blocks[0].spans), 'A. Author, “A Title”, 2020.')
+       equal(flat(r.doc.blocks[0].spans), 'A. Author, A Title, 2020.')
      })
 
 test('mdoc', 'a reference joins authors and orders its fields',
@@ -1238,7 +1238,55 @@ test('mdoc', 'a reference joins authors and orders its fields',
        r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%U https://u\n.%D 1999\n' +
                   '.%T The Title\n.%A First\n.%A Second\n.Re\n')
        equal(flat(r.doc.blocks[0].spans),
-             'First and Second, “The Title”, https://u, 1999.')
+             'First and Second, The Title, https://u, 1999.')
+     })
+
+test('mdoc', 'a reference leaves %T bare without a journal or a book',
+     () => {
+       let r
+
+       // ssh(1): groff prints the RFC title unquoted.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%A S. Lehtinen\n' +
+                  '.%A C. Lonvick\n.%D January 2006\n.%R RFC 4250\n' +
+                  '.%T The Secure Shell (SSH) Protocol Assigned Numbers\n.Re\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'S. Lehtinen and C. Lonvick, ' +
+             'The Secure Shell (SSH) Protocol Assigned Numbers, ' +
+             'RFC 4250, January 2006.')
+     })
+
+test('mdoc', 'a reference quotes %T when it names a journal or a book',
+     () => {
+       let r
+
+       // crypt(5): %B and %J are what put the curly quotes around %T.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%A Niels Provos\n' +
+                  '.%A David Mazieres\n.%T A Future-Adaptable Password Scheme\n' +
+                  '.%B Proceedings of the 1999 USENIX Annual Technical Conference\n' +
+                  '.%D June 1999\n.Re\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'Niels Provos and David Mazieres, ' +
+             '“A Future-Adaptable Password Scheme”, ' +
+             'Proceedings of the 1999 USENIX Annual Technical Conference, ' +
+             'June 1999.')
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%A Robert Morris\n' +
+                  '.%A Ken Thompson\n.%T Password Security: A Case History\n' +
+                  '.%J Communications of the ACM\n.%D 1979\n.Re\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'Robert Morris and Ken Thompson, ' +
+             '“Password Security: A Case History”, ' +
+             'Communications of the ACM, 1979.')
+     })
+
+test('mdoc', 'three authors take a serial comma',
+     () => {
+       let r
+
+       // ssh(1) RFC 4344: groff writes "A, B, and C", not "A, B and C".
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%A M. Bellare\n.%A T. Kohno\n' +
+                  '.%A C. Namprempre\n.%T The Title\n.Re\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'M. Bellare, T. Kohno, and C. Namprempre, The Title.')
      })
 
 test('mdoc', 'Ns and Pf control spacing',
@@ -2470,6 +2518,49 @@ test('paragraphs', 'HP, br and sp break the paragraph',
        equal(flat(r.doc.blocks[0].spans), 'one\n two')
        equal(r.doc.blocks[1].kind, 'space')
        equal(flat(r.doc.blocks[2].spans), 'three')
+     })
+
+test('paragraphs', 'a continued tag line keeps the tag open for the next macro',
+     () => {
+       let r
+
+       // paperconfig(8) writes the tag as `.BR \-p ", " \-\-paper\c` and then
+       // `.I papername`; groff glues both into one tag line.
+       r = parsed('.TH T 1\n.SH OPTIONS\n.TP\n.BR \\-p ", " \\-\\-paper\\c\n' +
+                  '.I papername\nUse papername.\n')
+       equal(flat(r.doc.blocks[1].tag), '-p, --paperpapername')
+       equal(asText('.TH T 1\n.SH OPTIONS\n.TP\n' +
+                    '.BR \\-p ", " \\-\\-paper\\c\n.I papername\n' +
+                    'Use papername.\n'),
+             '\nOPTIONS\n-p, --paperpapername\nUse papername.\n')
+     })
+
+test('paragraphs', 'a continued tag text line keeps the tag open',
+     () => {
+       equal(asText('.TH T 1\n.TP\nfoo\\c\nbar\nbody\n'), 'foobar\nbody\n')
+     })
+
+test('paragraphs', 'a comment keeps a continued tag open and a blank ends it',
+     () => {
+       equal(asText('.TH T 1\n.TP\n.BR a\\c\n.\\" c\n.I b\nbody\n'),
+             'ab\nbody\n')
+       equal(asText('.TH T 1\n.TP\n.BR a\\c\n\n.I b\nbody\n'),
+             'a\nb body\n')
+     })
+
+test('paragraphs', 'a continued tag keeps a macro that only expands to input',
+     () => {
+       // dmstats(8) writes `.B \-\-areasize ...\c` then `.UNITS`, whose body
+       // prints the suffix list; groff keeps all of it in the tag.
+       equal(asText('.TH T 1\n.TP\n.BR a\\c\n.de M\n.BR b | \\c\n' +
+                    '.BR c ]\n..\n.M\nbody\n'),
+             'ab|c]\nbody\n')
+     })
+
+test('paragraphs', 'a continuation before a break does not glue what follows',
+     () => {
+       equal(flat(parsed('.TH T 1\naa\\c\n.br\nbb\n').doc.blocks[0].spans),
+             'aa\n bb')
      })
 
 test('macros', 'an empty macro body produces nothing',

@@ -772,6 +772,7 @@ function appendInline
 (c, spans) {
   let target
 
+  c.textOut = 1
   if (c.lineTarget)
     target = c.lineTarget
   else if (c.link)
@@ -790,6 +791,7 @@ function addTextLine
 (c, spans, join, joining) {
   let target
 
+  c.textOut = 1
   if (c.pre) {
     if (c.pre.started)
       pushSpan(c.pre.spans, { text: '\n', style: 'roman' })
@@ -2366,11 +2368,19 @@ function mdocRefField
 // period; the rest are comma separated.
 function mdocRefText
 (fields) {
-  let authors, parts, refOrder, text
+  let authors, parts, quoted, refOrder, text
 
   refOrder = [ '%A', '%T', '%B', '%I', '%J', '%R', '%N', '%V', '%U',
                '%Q', '%C', '%D', '%O', '%P' ]
   authors = fields.filter(field => (field.key == '%A')).map(field => field.text)
+  // Only an article title takes the curly quotes: §%T is the title of the
+  // piece inside a %B book or a %J journal, and mdoc quotes it only when one
+  // of those names the container. A bare RFC or manual title is left plain
+  // (ssh(1)'s references, rpc_soc(3t)'s guides).
+  quoted = 0
+  for (let i = 0; i < fields.length; i++)
+    if ((fields[i].key == '%B') || (fields[i].key == '%J'))
+      quoted = 1
   parts = []
   for (let i = 0; i < refOrder.length; i++) {
     let key
@@ -2380,15 +2390,18 @@ function mdocRefText
       continue
     for (let j = 0; j < fields.length; j++)
       if (fields[j].key == key)
-        if (key == '%T')
+        if ((key == '%T') && quoted)
           parts.push('“' + fields[j].text + '”')
         else
           parts.push(fields[j].text)
   }
   if (authors.length == 1)
     parts.unshift(authors[0])
-  else if (authors.length > 1)
-    parts.unshift(authors.slice(0, -1).join(', ') + ' and ' + authors[authors.length - 1])
+  else if (authors.length == 2)
+    parts.unshift(authors[0] + ' and ' + authors[1])
+  else if (authors.length > 2)
+    parts.unshift(authors.slice(0, -1).join(', ') + ', and ' +
+                 authors[authors.length - 1])
   text = parts.join(', ')
   if (text.length && ('.,;:!?'.includes(text[text.length - 1]) == 0))
     text = text + '.'
@@ -3620,6 +3633,8 @@ function parse
         nextHeading: 0,
         joinNext: 0,
         joinPrev: 0,
+        tagResume: 0,
+        textOut: 0,
         nextSkip: 0,
         lastIf: 0,
         condDepth: 0,
@@ -3631,7 +3646,7 @@ function parse
   c.frames.push({ lines: String(text).split('\n'), at: 0, line: 1, args: [], name: '' })
 
   while ((input = nextInput(c))) {
-    let control, style
+    let control, fromTrap, resumed, style
 
     c.lineNo = input.line
     c.atLineStart = 1
@@ -3641,8 +3656,15 @@ function parse
     }
     style = c.nextStyle || c.font
     c.nextStyle = 0
-    c.lineTarget = c.nextTarget
+    // A `.TP` trap makes the next line its tag. A `\c` at the end of a tag
+    // line keeps the tag open, so the line after it resumes the same target
+    // (paperconfig(8)'s `.BR \-p ", " \-\-paper\c` then `.I papername`).
+    resumed = c.tagResume
+    c.tagResume = 0
+    fromTrap = c.nextTarget
     c.nextTarget = 0
+    c.lineTarget = fromTrap || resumed
+    resumed = c.lineTarget
     if (c.nextHeading) {
       let level, heading
 
@@ -3652,10 +3674,15 @@ function parse
       heading = { kind: 'heading', level, spans: [] }
       box(c).blocks.push(heading)
       c.lineTarget = heading.spans
+      resumed = 0
     }
 
     control = controlOf(input.text)
     if (control && (control.comment || control.blank)) {
+      // A comment line is not an input line for a `\c`; a blank line is.
+      // The line a `.TP` only just trapped for survives either.
+      if (control.comment || fromTrap)
+        c.tagResume = resumed
       c.lineTarget = 0
       if (control.blank && (c.pre == 0))
         addBlock(c, { kind: 'space' })
@@ -3678,8 +3705,14 @@ function parse
       // macro's own last argument may start a new continuation.
       c.joinPrev = c.joinNext
       c.joinNext = 0
+      c.textOut = 0
       handleLine(c, control, style)
       c.joinPrev = 0
+      // A tag line ending in `\c` continues, and so does a macro call that
+      // only expanded to more input lines (dmstats(8)'s `.UNITS`); a macro
+      // that printed text ends the tag unless its own last argument `\c`d.
+      if (resumed && ((c.textOut == 0) || c.joinNext))
+        c.tagResume = resumed
       c.lineTarget = 0
       continue
     }
@@ -3702,6 +3735,8 @@ function parse
       }
       else
         addTextLine(c, expanded.spans, expanded.join, c.joinNext)
+      if (c.joinNext && resumed)
+        c.tagResume = resumed
       c.lineTarget = 0
     }
   }

@@ -1367,15 +1367,23 @@ function init
 
   function man
   () {
-    let word
+    let word, view, st
 
+    view = View.current()
     word = ''
     try {
-      word = promptWord(View.current()?.tokenAt?.() || '')
+      word = promptWord(view?.tokenAt?.() || '')
     }
     catch {
       word = ''
     }
+    // A page that is still loading (or refused) has only its status message
+    // under the point; do not take "Loading" from it as the prompt token, so
+    // the last history item stays visible.
+    st = (view?.buf?.mode?.key == 'manpage') ? view.buf.vars('Manpage') : 0
+    if (st && (st.loading || st.error || st.fails.length))
+      word = ''
+
     Prompt.ask({ text: 'Man Page',
                  nest: 1,
                  hist,

@@ -1682,6 +1682,23 @@ test('viewer', 'the last history item is the nested prompt placeholder',
        equal(mp.pb.placeholder, 'ls')
      })
 
+test('viewer', 'a loading page falls back to the history placeholder',
+     async () => {
+       let b, p
+
+       setup({ ls: '.TH LS 1\n.SH NAME\nls \\- x\n' })
+       hold = 1
+       Man.open('ls')
+       await waitFor(() => Pane.current().buf?.vars('Manpage').loading)
+       Hist.ensure('man').items = [ 'printf(3)' ]
+       p = await openManPrompt()
+       equal(p.pb.placeholder, 'printf(3)')
+       Prompt.close()
+       flush()
+       b = Pane.current().buf
+       await waitFor(() => b.vars('Manpage').loading == 0)
+     })
+
 test('viewer', 'a redirect chain follows to the final page',
      async () => {
        let b

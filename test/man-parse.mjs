@@ -2113,9 +2113,49 @@ test('tables', 'a header format and a body format are separate rows',
        table.rows.forEach(row => equal(row.cells.length, 4))
        equal(flat(table.rows[0].cells[0].spans), 'Nonstd')
        equal(flat(table.rows[2].cells[3].spans), 'enter_reverse_mode')
-       // The drawn table styles one row format for all columns, and the last
-       // line is the body tbl repeats, so its left alignment wins.
+       // The block's own layout is the last body format, which tbl repeats for
+       // the remaining rows, so it is left; each row records the layout it was
+       // laid out with, so the header rows stay centred.
        equal(table.cols[0].align, 'left')
+       equal(table.rows[0].cols[0].align, 'center')
+       equal(table.rows[1].cols[0].align, 'center')
+       equal(table.rows[2].cols[0].align, 'left')
+     })
+
+test('tables', 'a centred header row keeps its own alignment over a left body',
+     () => {
+       let r, table
+
+       r = parsed('.TH T 1\n.TS\nc c\nl l.\nHead\tTwo\na\tb\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.cols[0].align, 'left')
+       equal(table.rows[0].cols[0].align, 'center')
+       equal(table.rows[0].cols[1].align, 'center')
+     })
+
+test('tables', 'a bold header layout does not style the body',
+     () => {
+       let r, table
+
+       r = parsed('.TH T 1\n.TS\nlB lB\nl l.\nHead\tTwo\na\tb\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.rows[0].cols[0].bold, 1)
+       equal(table.rows[0].cols[1].bold, 1)
+       equal(table.cols[0].bold, 0)
+     })
+
+test('tables', 'every row records the layout it was laid out with',
+     () => {
+       let r, table
+
+       // find(1) repeats one `ll` layout and its last line widens the second
+       // column; the row still records the two descriptors it was drawn with.
+       r = parsed('.TH T 1\n.TS\nll\nllw(2i).\na\taccess time\nc\tstatus time\n.TE\n')
+       table = r.doc.blocks[0]
+       equal(table.cols[0].align, 'left')
+       table.rows.forEach(row => equal(row.cols.length, 2))
+       table.rows.forEach(row => equal(row.cols[1].align, 'left'))
+       equal(flat(table.rows[1].cells[1].spans), 'status time')
      })
 
 test('tables', 'a span in an early format line still spans the row',

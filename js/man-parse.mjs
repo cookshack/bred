@@ -1746,12 +1746,13 @@ function tableLayouts
 
 // tbl applies the last format line to all remaining rows and assumes `l` for
 // the descriptors missing at the end of a line, so a short row format still
-// reaches every column of the table.
+// reaches every column of the table. The copy matters: two rows may share a
+// layout, but each owns the list it was laid out with.
 function tableRowCols
 (body, row, ncols) {
   let cols
 
-  cols = body.length ? body[(row < body.length) ? row : body.length - 1] : []
+  cols = body.length ? body[(row < body.length) ? row : body.length - 1].slice() : []
   while (cols.length < ncols)
     cols.push({ align: 'left', bold: 0, italic: 0, rule: 0 })
   return cols
@@ -1781,9 +1782,8 @@ function tableBuild
                            if (tableRuleRow(layout) == 0)
                              body.push(layout)
                          })
-  // One cell is drawn per column, so a single row format has to stand in for
-  // all of them: the last line is the one tbl repeats for the body, while the
-  // early lines only shape a header.
+  // The block's own layout is the last body format, the one tbl repeats for the
+  // remaining rows. Each row also records the layout it was fitted with.
   cols = body.length ? body[body.length - 1] : []
   while (cols.length < ncols)
     cols.push({ align: 'left', bold: 0, italic: 0, rule: 0 })
@@ -1794,10 +1794,17 @@ function tableBuild
   // drop every cell; the words must not vanish from the model quietly.
   if ((ncols == 0) && rows.length)
     fail(c, lineNo, (parsed.layouts.join(' ').trim() == '') ? 'table with no format' : 'table format without columns')
+  // A row is drawn by the layout it was fitted with, so a centred or bold
+  // header holds that styling over a plain body.
   return { kind: 'table',
            options: opts,
            cols,
-           rows: rows.map((cells, i) => ({ cells: tableFit(cells, tableRowCols(body, i, ncols)) })) }
+           rows: rows.map((cells, i) => {
+                           let rowCols
+
+                           rowCols = tableRowCols(body, i, ncols)
+                           return { cells: tableFit(cells, rowCols), cols: rowCols }
+                         }) }
 }
 
 // ---- mdoc(7) ------------------------------------------------------------

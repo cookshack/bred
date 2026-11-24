@@ -141,8 +141,12 @@ function tableNode
   body = globalThis.document.createElement('tbody')
   el.appendChild(body)
   block.rows.forEach(row => {
-                       let tr, at
+                       let cols, tr, at
 
+                       // A header row can be laid out on its own (`c c` over
+                       // `l l`), so a row is styled by its own descriptors and
+                       // falls back to the block's when it carries none.
+                       cols = row.cols || block.cols || []
                        tr = globalThis.document.createElement('tr')
                        // tableFit() gives a cell one column and folds an `s`
                        // column into the cell on its left, so a cell is styled
@@ -154,7 +158,7 @@ function tableNode
                                            let col, span, td
 
                                            span = (cell.colspan > 1) ? cell.colspan : 1
-                                           col = block.cols[at] || {}
+                                           col = cols[at] || {}
                                            at += span
                                            td = globalThis.document.createElement('td')
                                            if (span > 1)

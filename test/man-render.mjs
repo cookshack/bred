@@ -141,14 +141,18 @@ test('tables', 'a multi-line format draws one cell per column, not per line',
 
        // The captoinfo(1) shape: two centred header layouts and a left body
        // layout, four columns each. Concatenating the three made twelve cells
-       // per row.
+       // per row. Each row is drawn with the layout it was given, so the two
+       // header rows are centred and the body row is not.
        out = draw('.TH T 1\n.TS\nc c c c\nc c c c\nl l l l.\n' +
-                  'a\tb\tc\td\ne\tf\tg\th\n.TE\n')
+                  'a\tb\tc\td\ne\tf\tg\th\ni\tj\tk\tl\n.TE\n')
        rows = out.el.querySelectorAll('table tbody tr')
-       equal(rows.length, 2)
+       equal(rows.length, 3)
        equal(rows[0].querySelectorAll('td').length, 4)
        equal(rows[1].querySelectorAll('td').length, 4)
-       equal(rows[1].querySelector('td').className, 'man-left')
+       equal(rows[2].querySelectorAll('td').length, 4)
+       equal(rows[0].querySelector('td').className, 'man-center')
+       equal(rows[1].querySelector('td').className, 'man-center')
+       equal(rows[2].querySelector('td').className, 'man-left')
      })
 
 test('tables', 'options are separated by spaces as well as semicolons',
@@ -260,6 +264,61 @@ test('tables', 'an empty table and cells with no spans draw',
        equal(cells[0].getAttribute('colspan'), '2')
        equal(cells[0].textContent, '')
        equal(cells[0].className, 'man-center')
+     })
+
+test('tables', 'a centred header row is drawn centred over a left body',
+     () => {
+       let out, rows
+
+       // The block's cols are the left body layout; the header layout is the
+       // row's own, so its cells must not inherit the body alignment.
+       out = draw('.TH T 1\n.TS\nc c\nl l.\nHead\tTwo\na\tb\n.TE\n')
+       rows = out.el.querySelectorAll('table tbody tr')
+       equal(rows[0].querySelectorAll('td')[0].className, 'man-center')
+       equal(rows[0].querySelectorAll('td')[1].className, 'man-center')
+       equal(rows[1].querySelectorAll('td')[0].className, 'man-left')
+       equal(rows[1].querySelectorAll('td')[1].className, 'man-left')
+     })
+
+test('tables', 'a bold and italic header layout stops at the header',
+     () => {
+       let out, rows
+
+       out = draw('.TH T 1\n.TS\nlB lI\nl l.\nHead\tTwo\na\tb\n.TE\n')
+       rows = out.el.querySelectorAll('table tbody tr')
+       equal(rows[0].querySelectorAll('td')[0].className, 'man-left man-bold')
+       equal(rows[0].querySelectorAll('td')[1].className, 'man-left man-italic')
+       equal(rows[1].querySelectorAll('td')[0].className, 'man-left')
+       equal(rows[1].querySelectorAll('td')[1].className, 'man-left')
+     })
+
+test('tables', 'a spanning header cell is styled by the column it starts in',
+     () => {
+       let out, cells
+
+       out = draw('.TH T 1\n.TS\nc s\nl l.\nHeader\na\tb\n.TE\n')
+       cells = out.el.querySelectorAll('table td')
+       equal(cells.length, 3)
+       equal(cells[0].getAttribute('colspan'), '2')
+       equal(cells[0].className, 'man-center')
+       equal(cells[1].className, 'man-left')
+     })
+
+test('tables', 'a row with no descriptors falls back to the block layout',
+     () => {
+       let table, out, cells
+
+       table = { kind: 'table', options: {}, cols: [ { align: 'center' } ] }
+       table.rows = [ { cells: [ { spans: [ { text: 'x' } ] } ] } ]
+       out = ManRender.render({ blocks: [ table ] })
+       cells = out.el.querySelectorAll('td')
+       equal(cells[0].className, 'man-center')
+       // A row that does carry its own descriptors uses them instead.
+       table.rows = [ { cells: [ { spans: [ { text: 'x' } ] } ],
+                        cols: [ { align: 'right', italic: 1 } ] } ]
+       out = ManRender.render({ blocks: [ table ] })
+       cells = out.el.querySelectorAll('td')
+       equal(cells[0].className, 'man-right man-italic')
      })
 
 test('lists', 'an item with no tag or blocks still draws dt and dd',

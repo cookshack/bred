@@ -512,6 +512,23 @@ test('escapes', 'a unicode name is the canonical hex spelling only',
        equal(parsed('.TH T 1\nx \\[u201d] y\n').ok, 0)
      })
 
+test('refusal', 'a u name in printable ASCII needs a special character',
+     () => {
+       let r
+
+       // groff -Tutf8: \[u0041] is the plain glyph A, which is no special
+       // character, so groff warns "can't find special character '\A'" and
+       // prints nothing. \[u0022] is \(dq and \[u0040] is \(at, so those do
+       // print; \[u00E9] and \[u1F600] are code points with no plain glyph.
+       r = parsed('.TH T 1\na \\[u0041] b\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'character \\[u0041]')
+       equal(parsed('.TH T 1\na \\[u0065] b\n').ok, 0)
+       equal(parsed('.TH T 1\na \\[u0030] b\n').ok, 0)
+       equal(asText('.TH T 1\na \\[u0022] \\[u0040] \\[u007E] b\n'), 'a " @ ~ b\n')
+       equal(asText('.TH T 1\na \\[u00E9] \\[u1F600] b\n'), 'a é 😀 b\n')
+     })
+
 test('refusal', 'an unknown u name fails the page',
      () => {
        let r

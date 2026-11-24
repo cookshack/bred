@@ -215,12 +215,28 @@ function charByNumber
   return 0
 }
 
+// groff refuses a printable ASCII `u` code point unless it has a special
+// character name: `\[u0041]` is the plain glyph `A` and warns "can't find
+// special character '\A'", while `\[u0040]` is \(at and prints. Digits,
+// letters and the punctuation below are plain glyphs; space, the control
+// range and DEL are synthesised from the code point itself and work.
+function plainGlyph
+(code) {
+  if ((code >= 0x30) && (code <= 0x39))
+    return 1
+  if ((code >= 0x41) && (code <= 0x5A))
+    return 1
+  if ((code >= 0x61) && (code <= 0x7A))
+    return 1
+  return '!%&()*,.:;<>?'.includes(String.fromCharCode(code)) ? 1 : 0
+}
+
 // A `u` name is a code point only in groff's own spelling: at least four
 // upper-case hex digits, with no padding beyond four. `\[uA]` is the named
 // arrow, not hex, and `\[uAB]` is a name groff cannot find.
 function unicodeCode
 (name) {
-  let digits
+  let digits, code
 
   digits = name.slice(1)
   if (digits.length < 4)
@@ -231,7 +247,10 @@ function unicodeCode
     return 0
   if ((digits.length > 4) && (digits[0] == '0'))
     return 0
-  return charByNumber('0x' + digits)
+  code = Number('0x' + digits)
+  if (plainGlyph(code))
+    return 0
+  return charByNumber(code)
 }
 
 // A `char` name is a code point in canonical decimal. groff takes `charNNN`

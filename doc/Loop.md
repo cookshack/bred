@@ -1,8 +1,12 @@
 # Unattended agent loop
 
 Status: last round, 2026-11-24. Eleven rounds of three parallel agents, merged
-serially, 87 commits. This file is the protocol; `~/bred-loop` holds the live
-state of a run.
+serially, 88 commits. This file is the protocol; `bred-loop/` in the session's
+worktree root holds the live state of a run.
+
+`$LOOP` below is that directory:
+
+    LOOP=/home/matt/worktrees/12ec105c-be5e-425b-8cbe-c3518e65e260/bred-loop
 
 The loop is not a script. It is one agent acting as the scheduler: it writes a
 brief per lane, dispatches the lanes in parallel, merges their branches one at a
@@ -18,8 +22,7 @@ Hand this to a fresh agent (build mode, from the repository root):
     Do not redo any of it.
 
     Read doc/Loop.md first: it is the protocol, the prompt, and the round
-    history. Then ~/bred-loop/state (if it exists), ~/bred-loop/queue and
-    ~/bred-loop/rules.md.
+    history. Then $LOOP/state (if it exists), $LOOP/queue and $LOOP/rules.md.
 
     Establish the baseline before changing anything:
 
@@ -31,10 +34,10 @@ Hand this to a fresh agent (build mode, from the repository root):
     If any of those differ, find out why before starting work.
 
     Then work in rounds of up to three lanes, as doc/Loop.md describes: write a
-    lane brief, dispatch the agents, merge with ~/bred-loop/round.sh, update
+    lane brief, dispatch the agents, merge with $LOOP/round.sh, update
     this file and the queue. Only the loop edits this file.
 
-    If the deadline in ~/bred-loop/state has passed, stop and summarise the
+    If the deadline in $LOOP/state has passed, stop and summarise the
     rounds. A half-finished round is worse than a clean checkpoint.
 
 ## Where state lives
@@ -44,8 +47,11 @@ Tracked (the record, survives anything):
 - `doc/Loop.md` — this file: protocol, prompt, round history, current numbers.
 - the commits themselves; every merged round is a fast-forward on `main`.
 
-Untracked, under `~/bred-loop` (the mounted home, so it outlives a container;
-`/tmp` does not — a `/tmp/opencode` state directory was wiped mid-run once):
+Untracked, in `$LOOP` — the session's worktree root, which is a host bind mount
+so it is visible on the host and outlives the container. Two places that do
+**not** work: `/tmp` is container-local (a `/tmp/opencode` state directory was
+wiped mid-run once), and `~` is container-local too — only `src/bred`,
+`worktrees/<session>`, `sessions` and `fresh/main` are shared with the host.
 
 - `state` — start, deadline, round counter, the `main` commit after each round.
 - `queue` — items as `id | lane | status | title`, with `done:<hash>` for merged
@@ -58,18 +64,18 @@ Untracked, under `~/bred-loop` (the mounted home, so it outlives a container;
 - `round-N.md` — a short summary of round N.
 - `round.sh` — the serial merge step (rebase, fast-forward, suite, check).
 
-Losing `~/bred-loop` costs the queue's hashes and the briefs, not the work: the
+Losing `$LOOP` costs the queue's hashes and the briefs, not the work: the
 commits, this file and the suite are the source of truth.
 
 ## How a round works
 
 1. Pick up to three items from the queue whose **file sets are disjoint**, and
-   write `~/bred-loop/lane-<id>.md` for each: the worktree, the item, exactly
+   write `$LOOP/lane-<id>.md` for each: the worktree, the item, exactly
    which files it owns, and how to prove the fix (a test that fails before it).
 2. Dispatch the lanes with `background`, each told to read `rules.md` and its
-   lane file, claim with `mkdir ~/bred-loop/claims/<id>`, work only in its own
+   lane file, claim with `mkdir $LOOP/claims/<id>`, work only in its own
    worktree, commit once, and never merge, rebase or push.
-3. `~/bred-loop/round.sh <n>` merges: it rebases each lane onto `main`,
+3. `$LOOP/round.sh <n>` merges: it rebases each lane onto `main`,
    fast-forwards one at a time, aborts a conflicting lane instead of forcing it,
    then runs the suite and `npm run check` once for the round.
 4. The loop — not a lane — updates this file from the numbers the agents report,
@@ -133,6 +139,6 @@ inside narrow cells. What is left in the sweep is line-break joining.
 
 ## Stopping
 
-The deadline is in `~/bred-loop/state`. When it passes, stop merging and write a
+The deadline is in `$LOOP/state`. When it passes, stop merging and write a
 summary from `round-*.md`: what changed, what was measured, what is left. Do not
 start a round that cannot be finished and verified.

@@ -34,7 +34,7 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p82 | a1 | ready | an unknown u-prefixed name (uA) falls through to a hex/bogus codepoint (U+000A) instead of groff's U+21D1 or a refusal | js/man-char.mjs, test/man-parse.mjs |
+| p84 | a1 | ready | *G is missing from the char table; groff prints Γ (U+0393), so a page using \[*G] is refused today | js/man-char.mjs, test/man-parse.mjs |
 
 ## Backlog
 
@@ -56,8 +56,8 @@ before.
 | p79 | a1 | next | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
 | p80 | a1 | next | hy prints ASCII - ; groff prints U+2010: page-visible, measurement-neutral because man-diff folds it | js/man-char.mjs, test/man-parse.mjs |
 | p83 | a1 | next | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
-| p84 | a1 | next | *G is missing from the char table; groff prints Γ (U+0393), so a page using \[*G] is refused today | js/man-char.mjs, test/man-parse.mjs |
 | p85 | a1 | next | *f maps to φ (U+03C6); groff prints ϕ (U+03D5); *J/*j/*V/*v are absent from groff too, not gaps | js/man-char.mjs, test/man-parse.mjs |
+| p86 | a1 | next | .. maps to ‥ (U+2025) but groff refuses it; \[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an | js/man-char.mjs, test/man-parse.mjs |
 
 ## Triage
 
@@ -117,5 +117,6 @@ before.
 | p74 | a1 | done:00dc308 | ps(1) loses 95 words because a macro line inside a T{ } tbl cell stays raw (.BR pcpu ). instead of pcpu).); every T{ } cell using a macro is affected; the ps(1) pin in test/man-diff.mjs must be updated with the fix | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
 | p78 | a1 | done:ee005d2 | L\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl | js/man-char.mjs, test/man-parse.mjs |
 | p81 | a1 | done:c3ff554 | Greek capitals are shifted one letter: *H is Η but should be Θ, *Q Θ should be Ψ, *Y Ψ should be Η; lowercase is correct | js/man-char.mjs, test/man-parse.mjs |
+| p82 | a1 | done:0385d60 | an unknown u-prefixed name (uA) falls through to a hex/bogus codepoint (U+000A) instead of groff's U+21D1 or a refusal | js/man-char.mjs, test/man-parse.mjs |
 
 <!-- /loop:queue -->

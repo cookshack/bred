@@ -177,8 +177,27 @@ function countsSince
   out = loop(dir, [ 'status' ])
 
   equal(out.includes(verified), true)
-  equal(out.includes('1 commit(s) since the last record'), true)
+  equal(out.includes('1 code commit(s) since the last record'), true)
 }
+
+// A queue or record commit is not an unrecorded round, which is what counting
+// distance rather than substance used to report.
+function docOnlyAfter
+(dir) {
+  let out, verified
+
+  verified = git(dir, [ 'rev-parse', 'main' ])
+  git(dir, [ 'commit', '-q', '--allow-empty', '-m', 'doc: round 1\n\nLoop-round: 1\nLoop-verify: ' + verified ])
+  Fs.mkdirSync(Path.join(dir, 'doc'), { recursive: true })
+  Fs.writeFileSync(Path.join(dir, 'doc', 'note.md'), 'x\n')
+  git(dir, [ 'add', 'doc/note.md' ])
+  git(dir, [ 'commit', '-qm', 'doc: a note' ])
+  out = loop(dir, [ 'status' ])
+
+  equal(out.includes('no code since the last record'), true)
+}
+
+test('status', 'a doc-only commit after the record is not an unrecorded round', withRepo(docOnlyAfter))
 
 test('status', 'counts the commits since the last Loop-verify trailer', withRepo(countsSince))
 

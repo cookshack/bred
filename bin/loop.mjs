@@ -169,7 +169,7 @@ function help
   console.log('  release <id>, reap   give one back; reap the dead ones')
   console.log('  check       the queue against git: schema, ids, done hashes, trailers')
   console.log('  round <n>   merge picked lanes onto loop/r<n>, gate each, run the suite')
-  console.log('              (--items p1,p2, --no-suite, --allow-no-proof)')
+  console.log('              (--items p1,p2, --no-suite, --allow-no-proof, --force)')
   console.log('  land <n>    fast-forward main to loop/r<n>, only once its tip carries')
   console.log('              the round record (`Loop-verify:`); never a force')
   console.log('  measure     the corpus counts and every section at --tip (default main),')
@@ -281,13 +281,36 @@ function laneWorktrees
   return worktreePaths().filter(p => (/bred-a[0-9]+$/.test(p)) && Fs.existsSync(p))
 }
 
+// Commits since the record that touch anything but doc/. A queue-marking or
+// record commit is not an unrecorded round, and counting distance alone made
+// every clean finish look like one.
+function codeSince
+(record) {
+  let commits, i, out
+
+  commits = lines(git(root, 'rev-list', record + '..main'))
+  out = []
+  i = 0
+
+  while (i < commits.length) {
+    let files
+
+    files = lines(git(root, 'show', '--name-only', '--format=', commits[ i ]))
+    if (files.some(f => f.startsWith('doc/') == 0))
+      out.push(commits[ i ])
+    i += 1
+  }
+
+  return out
+}
+
 function status
 () {
   let t, commit, ahead, parked, lanes, stale, dirty
 
   t = trailers()
   commit = git(root, 'log', '-1', '--format=%h %s', 'main')
-  ahead = t.record ? Number(git(root, 'rev-list', '--count', t.record + '..main')) : -1
+  ahead = t.record ? codeSince(t.record).length : -1
   parked = branches('*-r*-aborted')
   lanes = laneWorktrees()
   stale = staleWorktrees()
@@ -297,8 +320,10 @@ function status
   console.log('main       ' + commit)
   if (ahead == -1)
     console.log('verified   none  (no Loop-verify trailer in the last 80 commits)')
+  else if (ahead == 0)
+    console.log('verified   ' + t.verified + '  (no code since the last record)')
   else
-    console.log('verified   ' + t.verified + '  (' + ahead + ' commit(s) since the last record)')
+    console.log('verified   ' + t.verified + '  (' + ahead + ' code commit(s) since the last record)')
   console.log('state      ' + (Fs.existsSync(loopDir) ? loopDir : loopDir + '  (missing)'))
   console.log('lanes      ' + (lanes.length > 0 ? '' : 'none'))
   lanes.forEach(p => console.log('           ' + p + '  ' + tryGit(p, 'log', '-1', '--format=%h %s')))
@@ -678,9 +703,49 @@ function measureCmd
   return 0
 }
 
+function lockPath
+() {
+  return Path.join(loopDir, 'round.lock')
+}
+
+// Two rounds at once reset the integration branch under each other, which
+// reads as a passing round that then fails with no change in between.
+function acquireRound
+(n) {
+  let meta
+
+  meta = JSON.stringify({ pid: process.pid, host: Os.hostname(), round: n, started: new Date().toISOString() })
+  Fs.mkdirSync(loopDir, { recursive: true })
+
+  if (flag('--force')) {
+    Fs.writeFileSync(lockPath(), meta)
+    return 1
+  }
+
+  try {
+    Fs.writeFileSync(lockPath(), meta, { flag: 'wx' })
+    return 1
+  }
+  catch (e) {
+    if (e.code == 'EEXIST')
+      return 0
+    throw e
+  }
+}
+
+function lockHolder
+() {
+  try {
+    return JSON.parse(Fs.readFileSync(lockPath(), 'utf8'))
+  }
+  catch {
+    return {}
+  }
+}
+
 function roundCmd
 () {
-  let n, q, lanes, ids, res, opts
+  let n
 
   n = Number(args[ 1 ])
   if (n == 0)
@@ -689,6 +754,25 @@ function roundCmd
     console.error('loop: round runs from the main checkout; the lanes have their own worktrees')
     return 1
   }
+
+  if (acquireRound(n) == 0) {
+    console.error('loop: a round is already running: pid ' + lockHolder().pid + ' round ' +
+                  lockHolder().round + ' since ' + lockHolder().started)
+    console.error('      If that is dead, delete ' + lockPath() + ' or pass --force')
+    return 1
+  }
+
+  try {
+    return runRound(n)
+  }
+  finally {
+    Fs.rmSync(lockPath(), { force: true })
+  }
+}
+
+function runRound
+(n) {
+  let q, lanes, ids, res, opts
 
   q = loadQueue()
   ids = option('--items')

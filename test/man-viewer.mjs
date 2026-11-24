@@ -1153,38 +1153,67 @@ test('viewer', 'refresh without a topic reports and does not crash',
        equal(msgs[msgs.length - 1].text, 'Not a man page')
      })
 
-test('viewer', 'a toc entry scrolls the heading in its own page',
+test('viewer', 'the assist sidebar offers the page sections',
      async () => {
-       let panes, b1, b2, a, id, target, trap, scrolled
+       let b, v, extra, el
 
-       function scroll1
-       () {
-         scrolled = 1
-       }
+       b = await divOpen('.SH DESCRIPTION\nalpha\n.SH SEE ALSO\nbeta\n')
+       v = viewOf(b)
+       extra = Mode.get('manpage').assist.extras.find(e => e.key == 'man-sections')
+       equal(extra == undefined, false, 'the mode offers sections')
+       equal(extra.skip(v), false)
+       el = extra.co(v)
+       equal(el.querySelectorAll('.man-section').length, 3)
+       equal(el.querySelector('.man-section').textContent, 'NAME')
+     })
 
-       function scroll2
-       () {
-         scrolled = 2
-       }
+test('viewer', 'a section link in the assist sidebar jumps to the section',
+     async () => {
+       let b, v, extra, el
 
-       panes = setup({ one: '.TH ONE 1\n.SH NAME\none\n.SH DESCRIPTION\nfirst\n',
-                       two: '.TH TWO 1\n.SH NAME\ntwo\n.SH DESCRIPTION\nsecond\n' })
-       panes.pA.focus()
-       b1 = await opened('one')
-       panes.pB.focus()
-       b2 = await opened('two')
-       equal(b1 == b2, false)
-       a = b2.views[0].ele.querySelector('.man-toc a[href^="#"]')
-       id = a.getAttribute('href').slice(1)
-       scrolled = 0
-       target = b2.views[0].ele.querySelector('[id="' + id + '"]')
-       target.scrollIntoView = scroll1
-       // both pages number their headings from one, so a lookup by id across
-       // the whole document finds the first buffer's heading instead
-       trap = b1.views[0].ele.querySelector('[id="' + id + '"]')
-       trap.scrollIntoView = scroll2
-       a.dispatchEvent(new globalThis.window.Event('click', { bubbles: 1, cancelable: 1 }))
-       equal(scrolled, 1)
+       b = await divOpen('.SH DESCRIPTION\nalpha\n.SH SEE ALSO\nbeta\n')
+       v = viewOf(b)
+       extra = Mode.get('manpage').assist.extras.find(e => e.key == 'man-sections')
+       el = extra.co(v).querySelectorAll('.man-section')[1]
+       Cmd.run('man goto section', b, 0, { e: { target: el } })
+       equal(v.point.bep().node.parentElement.closest('.man-h1').textContent,
+             'DESCRIPTION')
+     })
+
+test('viewer', 'n and p move the point between sections',
+     async () => {
+       let b, v
+
+       b = await divOpen('.SH DESCRIPTION\nalpha\n.SH SEE ALSO\nbeta\n')
+       v = viewOf(b)
+       v.point.init()
+       equal(look(b, 'n', 'KeyN', 0), 'man next section')
+       equal(look(b, 'p', 'KeyP', 0), 'man previous section')
+       Cmd.run('man next section', b)
+       equal(v.point.bep().node.parentElement.closest('.man-h1').textContent,
+             'DESCRIPTION')
+       Cmd.run('man previous section', b)
+       equal(v.point.bep().node.parentElement.closest('.man-h1').textContent,
+             'NAME')
+     })
+
+test('viewer', 'tab and shift-tab move the point between links',
+     async () => {
+       let b, v, topic
+
+       b = await divOpen('.SH DESCRIPTION\nsee \\fBls\\fP(1) and \\fBcat\\fP(1).\n')
+       v = viewOf(b)
+       v.point.init()
+       equal(look(b, 'Tab', 'Tab', 0), 'man next link')
+       Cmd.run('man next link', b)
+       topic = v.point.bep().node.parentElement.closest('a').dataset.topic
+       equal(topic, 'ls(1)')
+       Cmd.run('man next link', b)
+       topic = v.point.bep().node.parentElement.closest('a').dataset.topic
+       equal(topic, 'cat(1)')
+       Cmd.run('man next link', b, 0, { e: { shiftKey: 1 } })
+       topic = v.point.bep().node.parentElement.closest('a').dataset.topic
+       equal(topic, 'ls(1)')
      })
 
 test('viewer', 'clicking page text is a no-op',
@@ -1423,14 +1452,14 @@ test('viewer', 'the same topic in two panes shares one buffer',
        equal(b.views.length, 2)
      })
 
-test('viewer', 'a page with no headings renders without a toc',
+test('viewer', 'a page with no headings has no sections',
      async () => {
        let b
 
        setup({ bare: '.TH BARE 1\n' })
        b = await opened('bare')
        equal(b.views[0].ele.querySelector('.manpage-err'), null)
-       equal(b.views[0].ele.querySelector('.man-toc'), null)
+       equal(b.vars('Manpage').toc.length, 0)
        equal(b.views[0].ele.querySelector('.man-doc') == null, false)
      })
 

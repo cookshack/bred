@@ -32,8 +32,8 @@ test('blocks', 'headings, paragraphs and a toc',
        equal(out.el.querySelectorAll('h2').length, 2)
        equal(out.el.querySelectorAll('h2')[0].textContent, 'NAME')
        equal(out.el.querySelectorAll('p')[0].textContent, 'ls')
-       equal(out.el.querySelector('.man-toc a').getAttribute('href'),
-             '#' + out.el.querySelector('h2').id)
+       equal(out.toc.length, 2)
+       equal(out.toc[0].id, out.el.querySelector('h2').id)
      })
 
 test('inline', 'bold, italic and monospace runs become classed spans',
@@ -359,7 +359,7 @@ test('blocks', 'a page with no blocks draws an empty document',
        equal(out.el.querySelector('.man-toc'), null)
      })
 
-test('blocks', 'one heading has no toc, several headings have one',
+test('blocks', 'the toc holds one entry per level 1 heading',
      () => {
        let out
 
@@ -368,8 +368,9 @@ test('blocks', 'one heading has no toc, several headings have one',
        equal(out.el.querySelector('.man-toc'), null)
        equal(out.toc.length, 1)
        out = draw('.TH T 1\n.SH ONE\na\n.SH TWO\nb\n.SH THREE\nc\n')
-       equal(out.el.querySelectorAll('.man-toc a').length, 3)
-       equal(out.el.querySelector('.man-toc a').getAttribute('href'), '#' + out.toc[0].id)
+       equal(out.toc.length, 3)
+       equal(out.el.querySelectorAll('.man-toc').length, 0)
+       equal(out.toc[0].id, out.el.querySelector('h2').id)
      })
 
 test('links', 'a link with no text shows its target',
@@ -448,7 +449,7 @@ test('blocks', 'a page with many sections and paragraphs renders completely',
          text += '.SH H' + i + '\nparagraph ' + i + '\n'
        out = draw(text)
        equal(out.el.querySelectorAll('h2').length, 400)
-       equal(out.el.querySelectorAll('.man-toc a').length, 400)
+       equal(out.toc.length, 400)
        equal(out.el.querySelectorAll('p').length, 400)
        equal(out.el.querySelectorAll('p')[399].textContent, 'paragraph 399')
      })

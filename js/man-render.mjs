@@ -236,19 +236,7 @@ function render
   toc = []
   el = divCl('man-doc')
   blocksInto(el, doc.blocks, toc)
-  if (toc.length > 1) {
-    let tocEl
-
-    tocEl = divCl('man-toc')
-    toc.forEach(entry => {
-                  let a
-
-                  a = globalThis.document.createElement('a')
-                  a.setAttribute('href', '#' + entry.id)
-                  append(a, entry.text)
-                  append(tocEl, a)
-                })
-    el.insertBefore(tocEl, el.firstChild)
-  }
+  // The viewer lists the toc in the Assist sidebar; the page itself starts
+  // with its first heading.
   return { el, toc }
 }

@@ -28,16 +28,6 @@
   color: var(--clr-nb0);
 }
 
-.manpage-w .man-toc {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.9rem;
-  margin-bottom: 1.2rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid var(--clr-fill);
-  font-size: 0.9em;
-}
-
 /* paragraphs and inline styles */
 .manpage-w p {
   margin: 0.5em 0;
@@ -176,6 +166,24 @@
 
 .manpage-w .man-space {
   height: 0.5em;
+}
+
+/* sections listed in the Assist sidebar */
+.man-sections {
+  display: flex;
+  flex-direction: column;
+}
+
+.man-section {
+  padding: 0.1rem 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.man-section:hover {
+  background-color: var(--clr-bg);
 }
 
 /* refusals */

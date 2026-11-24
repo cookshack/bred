@@ -2,7 +2,8 @@
 
 Status: 2026-11-23. `C-h u` / `M-x man` opens a manual page in a div buffer.
 `Space`, `PageDown` and `C-v` scroll down a screenful; `Backspace`, `PageUp`
-and `A-v` scroll up.
+and `A-v` scroll up. Sections are listed in the Assist sidebar; `n`/`p` move
+to the next/previous section and `Tab`/`Shift-Tab` to the next/previous link.
 
 ## Policy
 
@@ -136,7 +137,7 @@ reopens or refreshes its page.
 | `js/man-char.mjs` | closed table for `\(xx` / `\[name]`; unknown names fail |
 | `js/man-parse.mjs` | interpreter for man(7), mdoc(7) and tbl; conditions, macros, strings, registers; block model; implicit `name(section)` linkification |
 | `js/man-render.mjs` | block model → DOM (headings, paragraphs, tags, insets, lists, tables, pre, links) |
-| `js/man.mjs` | viewer mode/commands: fetch, include prefetch, buffer per topic, reload, click-to-follow, TOC |
+| `js/man.mjs` | viewer mode/commands: fetch, include prefetch, buffer per topic, reload, click-to-follow, Assist sections, section/link movement |
 | `bin/man-audit` | corpus report; `--parse` runs the interpreter |
 | `bin/man-diff` | content diff against `man -Tutf8` |
 | `bin/fetch-man-corpus` | download Linux man-pages, groff and OpenBSD into `.corpus/` |
@@ -209,7 +210,8 @@ text. `--max N` reads the first N pages in sorted path order and says so
 whole section. `test/man-viewer.mjs` drives `Man.open` with fake `man -w`/`zcat`
 responses, so the viewer is tested without the installed corpus. It covers the
 path and reader fallbacks, redirects (chains, cycles, sections, missing
-targets), includes (including cycles), TOC and reference clicks, external and
+targets), includes (including cycles), Assist sections, section/link movement
+and reference clicks, external and
 unknown-scheme links (every allowed scheme opens, `javascript:` and `file:` are
 refused), section/topic normalisation and path input (including
 spaces, colons and home expansion), the prompt with its completion (regex

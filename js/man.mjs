@@ -191,6 +191,7 @@ function init
     st = stateOf(view)
     w = contentEl(view)
     w.innerHTML = ''
+    st.toc = []
     if (st.loading)
       append(w, divCl('manpage-msg', 'Loading ' + st.topic + '...'))
     else if (st.error)
@@ -201,12 +202,22 @@ function init
       let out
 
       out = ManRender.render(st.doc)
+      st.toc = out.toc || []
       append(w, out.el)
     }
     // A re-render replaces the page's text nodes, so a point left on one of
     // them is stale; start again at the top instead of reading dead text.
     if (view.point?.stale?.())
       view.point.init()
+    updateAssist()
+  }
+
+  // The Assist sidebar lists the sections. It is an extension, so the command
+  // is absent when that extension is not loaded.
+  function updateAssist
+  () {
+    if (Cmd.get('update'))
+      Cmd.run('update')
   }
 
   function follow
@@ -234,6 +245,104 @@ function init
       el.scrollBy({ top: (el.clientHeight * 0.9) * (upward ? -1 : 1),
                     left: 0,
                     behavior: 'auto' })
+  }
+
+  function headingEls
+  (view) {
+    return [ ...(view.ele?.querySelectorAll('.man-doc .man-h1') || []) ]
+  }
+
+  // A man reference is often split across font changes, which draws as several
+  // adjacent anchors with the same href. Treat them as one link for Tab.
+  function linkEls
+  (view) {
+    let els, anchors
+
+    els = []
+    anchors = view.ele?.querySelectorAll('.man-doc a') || []
+    anchors.forEach(a => {
+                      let prev
+
+                      prev = a.previousSibling
+                      if ((prev?.nodeName == 'A') &&
+                          (prev.getAttribute('href') == a.getAttribute('href')))
+                        return
+                      els.push(a)
+                    })
+    return els
+  }
+
+  // The last item that starts at or before the point, so a point inside an
+  // item counts as that item.
+  function indexAt
+  (els, view) {
+    let node, at
+
+    node = view.point?.bep()?.node
+    if (node == undefined)
+      return -1
+    at = -1
+    els.forEach((el, i) => {
+                  if (el.compareDocumentPosition(node) &
+                      globalThis.Node.DOCUMENT_POSITION_FOLLOWING)
+                    at = i
+                })
+    return at
+  }
+
+  function jump
+  (els, delta) {
+    let view
+
+    view = View.current()
+    if (view) {
+      let at
+
+      at = indexAt(els, view) + delta
+      if ((at >= 0) && (at < els.length))
+        view.point?.put(els[at])
+    }
+  }
+
+  function jumpSections
+  (delta) {
+    let view
+
+    view = View.current()
+    if (view)
+      jump(headingEls(view), delta)
+  }
+
+  function jumpLinks
+  (backward) {
+    let view
+
+    view = View.current()
+    if (view)
+      jump(linkEls(view), backward ? -1 : 1)
+  }
+
+  function viewForAssist
+  (we,
+   bufId) {
+    let p, view, buf
+
+    p = Pane.holding(we?.e?.target)
+    view = p?.view?.win?.frame1?.pane?.view
+    if (view?.buf?.mode?.key == 'manpage')
+      return view
+    buf = Buf.find(b => String(b.id) == bufId)
+    view = buf?.views[0]
+    return (view?.buf?.mode?.key == 'manpage') ? view : 0
+  }
+
+  function gotoSection
+  (view, id) {
+    let el
+
+    el = [ ...(view.ele?.querySelectorAll('.man-doc [id]') || []) ].find(e => e.id == id)
+    if (el)
+      view.point?.put(el)
   }
 
   function schemeOf
@@ -952,6 +1061,7 @@ function init
     st.loading = 1
     st.error = ''
     st.fails = []
+    st.toc = []
     st.showAll = 0
     b.views.forEach(render)
     if (st.file)
@@ -999,6 +1109,7 @@ function init
     b = Buf.add('Man: ' + key, 'Manpage', divW(), p.dir)
     b.icon = 'manpage'
     b.addMode('view')
+    b.addMode('manpage keys')
     st = b.vars('Manpage')
     st.topic = key
     st.lookup = lookup
@@ -1007,6 +1118,7 @@ function init
     st.doc = 0
     st.error = ''
     st.fails = []
+    st.toc = []
     st.path = ''
     st.ok = 0
     st.showAll = 0
@@ -1202,11 +1314,60 @@ function init
 
   hist = Hist.ensure('man')
 
-  mode = Mode.add('Manpage', { viewInit })
+  {
+    let extras
+
+    extras = [ { key: 'man-sections',
+                 head
+                 () {
+                   return 'Sections'
+                 },
+                 skip
+                 (view) {
+                   return ((view.buf.vars('Manpage')?.toc?.length || 0) == 0)
+                 },
+                 co
+                 (view) {
+                   let st, el
+
+                   st = view.buf.vars('Manpage')
+                   el = divCl('man-sections')
+                   st?.toc?.forEach(entry => {
+                                      append(el,
+                                             divCl('man-section',
+                                                   entry.text,
+                                                   { 'data-run': 'man goto section',
+                                                     'data-buf-id': String(view.buf.id),
+                                                     'data-id': entry.id }))
+                                    })
+                   return el
+                 } } ]
+    mode = Mode.add('Manpage', { viewInit, assist: { extras } })
+  }
   mode.tokenAt = tokenAt
+
+  // View mode comes first on the buffer, so man's own n/p must be a later
+  // minor mode to get a say before View's line movement.
+  Mode.add('Manpage Keys', { minor: 1 })
 
   Cmd.add('scroll up', () => scrollPage(1), mode)
   Cmd.add('scroll down', () => scrollPage(), mode)
+  Cmd.add('man next section', () => jumpSections(1), mode)
+  Cmd.add('man previous section', () => jumpSections(-1), mode)
+  Cmd.add('man next link', (ua, we) => {
+                             let backward
+
+                             backward = we?.e?.shiftKey || (we?.e?.key == 'Backtab')
+                             jumpLinks(backward)
+                           }, mode)
+  Cmd.add('man goto section', (ua, we) => {
+                                let el, view
+
+                                el = we?.e?.target?.closest?.('[data-id]')
+                                view = viewForAssist(we, el?.dataset?.bufId)
+                                if (view && el?.dataset?.id)
+                                  gotoSection(view, el.dataset.id)
+                              })
 
   openImpl = openPage
 
@@ -1244,4 +1405,8 @@ function init
   Em.on(' ', 'scroll down', mode)
   Em.on('PageUp', 'scroll up', mode)
   Em.on('PageDown', 'scroll down', mode)
+  Em.on('n', 'man next section', 'Manpage Keys')
+  Em.on('p', 'man previous section', 'Manpage Keys')
+  Em.on('Tab', 'man next link', 'Manpage Keys')
+  Em.on('Backtab', 'man next link', 'Manpage Keys')
 }

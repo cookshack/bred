@@ -25,10 +25,11 @@ the dialect inventory (`js/man-roff.mjs`) and the interpreter
    list, possibly mixed with diagnostics; paths are deduplicated and each is
    tried in order until one reads. A colon only separates paths when the part
    before it ends like a manual source (a section or a compression suffix), so
-   a colon inside a filename such as `/x/a:/b.1` does not split it. When a line
-   does split but none of its parts reads, the unsplit line is statted once and
-   read if it is a regular file, so `/x/a.1:/b.1` can be one real path; a list
-   with a readable part never pays for that stat. Only a
+   a colon inside a filename such as `/x/a:/b.1` does not split it. `man -w`
+   cannot quote a colon, so a line that splits is ambiguous: the whole line is
+   statted first and read as one path when it is a regular file, which is how
+   `/x/a.1:/b.1` can be one real path even when `/x/a.1` also exists; only a
+   line that is not a regular file is split into its parts. Only a
    line that starts with `/` is scanned for paths, so a warning that mentions
    a path with a colon cannot inject a bogus path or hide the real one. A
    missing binary (exit 126/127, `command not found`, ENOENT) or a spawn
@@ -293,32 +294,34 @@ gdbm pages, `It` without `Bl` (2), the `Su`/`R` strings that only eqn defines
 (4), ms `DS`/`DE` (1), eqn `EQ`/`EN` (1), `mso pic.tmac` (1), strace's
 undefined `.IX`, a `.p` typo and one undefined Cyrillic string.
 
-A 400-page **sample** (`--max 400`, the first 400 pages in sorted path order)
-leaves this many pages (and words) short of man(1)'s text. It is not a section:
-section 1 has 1189 pages and section 3 has 959. `--max 0` measures a whole
-section, and `doc/Loop.md` carries the whole-section numbers.
+A whole-section sweep (`--max 0`) after round 12 leaves this many pages (and
+words) short of man(1)'s text. It is not a sample: `--max 400` prints
+`400 of 1189 (sample; --max 0 for all)`, and an earlier version of this table
+quoted such a sample as if it were the section.
 
 ```
 section  1    3    5    7    8
-pages    2    4    9    3    4
-words    5  248   18    8   17
+pages   31   54    7    3    3
+words  242  220    8    8   15
 ```
 
-Most of that is measurement, not loss: man(1) wraps a long word onto the next
+Part of that is measurement, not loss: man(1) wraps a long word onto the next
 line (so it splits `[n]<&digit-` from `moves`), breaks a compound at a hyphen,
-and repeats a non-standard `.TH` in the footer; `man-diff` normalises those,
-but a split inside a word that is not hyphenated still counts. Section 3 is
-almost entirely the TIFF pages, whose option table hyphenates long names such
-as `TIFFTAG_BADFAXLINES` inside a narrow cell; the cells themselves now parse
-(`T{`/`T}` blocks, which used to leave the markers in the text), and `man-diff`
-now reassembles the U+2010 halves inside the cell, so those names no longer
-count as two missing words. `man-diff`
-drops a bare `|` and `_` from both sides, since those are our table separators
-and rule rows and man(1) draws neither, and it compares words on a key that
-ignores trailing sentence punctuation, because man(1) can wrap the final `.`
-of a sentence onto a line of its own.
-Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
-hyphenates, and the rest of the sweep is the same kind of line-break join.
+repeats a non-standard `.TH` in the footer, and breaks a long path after a `/`.
+`man-diff` normalises the hyphen and the sentence-period cases, but a split
+inside a word that is not hyphenated still counts. It also reassembles a
+U+2010-hyphenated table cell (section 3's TIFF names are no longer reported as
+two words each), drops a bare `|` and `_` from both sides since those are our
+table separators and rule rows and man(1) draws neither, and compares words on
+a key that ignores trailing sentence punctuation.
+
+The rest of the sweep is real. Section 1 is mostly ssh(1)/slogin(1) references
+(`.Rs` quotes a `%T` that groff leaves bare), `tbl(1)`'s `.do nr` request
+printed as text, and sensible-editor(1)'s `\n+[step]` items numbered 1, 1, 1.
+Section 3 is libcrypt's `.Lb`/`.In` lines (`LIBRARY` prints the bare argument
+and `#include` is missing) and pcre2demo(3)'s ASCII hyphens. Section 8's worst
+pages are a synopsis of long `[a|b|c]` alternatives that man(1) hyphenates, and
+the rest of the sweep is the same kind of line-break join.
 
 Some of the pages still reported hide a real loss rather than a layout one,
 and are the next work. Fixed so far: the ssh helper pages' `OpenBSD 3.2.`
@@ -334,6 +337,17 @@ taken `.ie`/`.el` branch is kept, and an undefined register in a condition now
 reads as 0 (groff's rule) instead of refusing the page. Bash defines its own
 `zY`/`zZ`, so that page never needed the second rule; the dropped text was the
 whole loss.
+
+Round 12 fixed three more, each proven against `groff -Tutf8` first. A `\c` at
+the end of a line joins it to the *next* line only; it used to drop the space
+*before* the line too, so `ext4(5)` read `trackingfile`. `\F` takes one family
+character (or `\F[name]`), but the shared escape skipper treated a plain
+character as a delimiter and scanned for its pair, so `\FI$BOOT\FR PARTITION`
+in `kernel-install(8)` came out `THE TION` and `git-subtree(1)` lost nine words
+of its synopsis; `\m`, `\M`, `\k`, `\S` and `\v` shared the defect and now take
+their own forms. And `.Sm off` begins suppressing at the *second* macro call
+after it, not the first, so `ssh_config(5)`'s `PermitRemoteOpen` items no longer
+run their tag into `host:port`.
 
 Tests: 505 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);
@@ -360,14 +374,7 @@ column spec, which no installed page has). Branch coverage is 92%, 100%, 100%,
 2. mdoc `Ex`/`Rv` match mdoc(7)'s sentences (names joined with `and`, the
    plural verbs, the `Nm` fallback) and expand to nothing without `-std`, as
    groff does. Their other flags (`-exit`, `-nop`) are accepted and ignored.
-3. A colon in a path is still a separator when the text before it looks like a
-   man source (for example `/x/a.1:/b.1`). `man -w` output has no unambiguous
-   quoting, so the heuristic tries the split first, which favours the common
-   colon-separated list; the unsplit line is read when it stats as a real file
-   and no split part reads. A real colon path is therefore still shadowed when
-   one of its split prefixes exists and reads (for example `/x/a.1` next to
-   the file `/x/a.1:/b.1`).
-4. The bare-name stat still decides a directory and drives the topic lookup,
+3. The bare-name stat still decides a directory and drives the topic lookup,
    but it is no longer the last word on readability: a regular file with no
    read bits is read anyway, because an ACL grant or root can read it (so root
    reading a mode-000 file now works), and `Permission denied` is reported only

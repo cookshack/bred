@@ -116,21 +116,24 @@ the loop owns it, which removes the one line every lane would otherwise touch.
 | 9 | tables | `e597ab2` | one tbl format line per row (324 blocks, 72 pages had multiplied columns); the container check says why it gave up |
 | 10 | flake | `8e30e7c` | the `indent` flake reproduced under load: CodeMirror's 20 ms parse budget |
 | 11 | finish | `afa6d6f` | per-row table styling; `indent buffer` parsed the whole document (was truncating at 3000 chars); health-check message |
+| 12 | verification | `5e531f0` | `\c` joins forward only; `\F`/`\m`/`\M`/`\k`/`\S`/`\v` take their own forms; `.Sm off` starts at the second call; `man -w` stats the whole line first; `man-diff` says what it sampled |
 
 ## Current state
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    505 man tests, 1862 total, 0 failing; check clean
+    section sweep, whole sections after round 12: 1:31p/242w  3:54p/220w  5:7p/8w  7:3p/8w  8:3p/15w
+    513 man tests, 1870 total, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps.
 
-The section-sweep numbers this file carried until round 12 were a **sample**,
-not a section: `bin/man-diff --max 400` slices readdir order, section 1 has 1189
-pages and section 3 has 959. Measured whole, section 1 is 34 pages / 403 words
-short of man(1), not 2 / 5. Round 12 makes the tool say what it sampled,
-records the real numbers, and separates the layout cases (wrapping, hyphenation
-inside a cell) from the losses.
+The numbers above used to be a **sample**: `bin/man-diff --max 400` slices
+sorted order and prints it as `400 of 1189 (sample; --max 0 for all)`, section
+1 has 1189 pages and section 3 has 959. Measured whole, section 1 is 31 pages /
+242 words short of man(1), not 2 / 5. Round 12 fixed the tool, then fixed the
+three parser bugs the honest sweep exposed (`\c`, `\F`, `.Sm off`) and the
+colon-path shadowing in the viewer; the remaining families are in
+`doc/Man.md` and in `doc/Loop-queue.md` (`doc/Loop-queue.md` has the ids).
 
 ## Rules that earned their place
 
@@ -148,6 +151,13 @@ inside a cell) from the losses.
 - **One measurement per round.** `man-audit` and a section sweep are minutes of
   CPU and will make the timing-sensitive viewer tests flaky if lanes run them in
   parallel.
+- **A sample is not a measurement.** `man-diff --max 400` was quoted as a
+  section total for three rounds; section 1 was 80 times worse than the number
+  in this file. A tool that samples must print what it sampled, and a number
+  here must name its population.
+- **The record lives in the repo.** The queue was untracked and keyed to a
+  session, so it disappeared with that session. `doc/Loop-queue.md` is now the
+  durable half; the session keeps only the briefs.
 
 ## Stopping
 

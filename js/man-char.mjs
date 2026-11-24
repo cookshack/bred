@@ -110,7 +110,9 @@ symbols = { 'aq': "'",
             'rA': '⇒',
             'hA': '⇔',
             'ua': '↑',
+            'uA': '⇑',
             'da': '↓',
+            'dA': '⇓',
             '>=': '≥',
             '<=': '≤',
             '!=': '≠',
@@ -210,6 +212,25 @@ function charByNumber
   return 0
 }
 
+// A `u` name is a code point only in groff's own spelling: at least four
+// upper-case hex digits, with no padding beyond four. `\[uA]` is the named
+// arrow, not hex, and `\[uAB]` is a name groff cannot find.
+function unicodeCode
+(name) {
+  let digits
+
+  digits = name.slice(1)
+  if (digits.length < 4)
+    return 0
+  if (digits.length > 6)
+    return 0
+  if (/[^0-9A-F]/.test(digits))
+    return 0
+  if ((digits.length > 4) && (digits[0] == '0'))
+    return 0
+  return charByNumber('0x' + digits)
+}
+
 export
 function charOfBracket
 (name) {
@@ -219,7 +240,7 @@ function charOfBracket
   if (ch)
     return ch
   if (name.startsWith('u'))
-    ch = charByNumber('0x' + name.slice(1))
+    ch = unicodeCode(name)
   else if (name.startsWith('char'))
     ch = charByNumber(name.slice(4))
   return ch || 0

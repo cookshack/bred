@@ -467,6 +467,33 @@ test('escapes', 'a unicode and a decimal character name resolve',
        equal(parsed('.TH T 1\nx \\N\'0\' y\n').ok, 0)
      })
 
+test('escapes', 'the arrow names are not read as code points',
+     () => {
+       // groff -Tutf8: \[uA] is U+21D1 and \[dA] is U+21D3, not hex.
+       equal(asText('.TH T 1\nx \\[uA] \\[dA] y\n'), 'x ⇑ ⇓ y\n')
+     })
+
+test('escapes', 'a unicode name is the canonical hex spelling only',
+     () => {
+       // groff refuses \[uAB], \[u02014] and lowercase \[u201d]: a u-name is
+       // a code point only as its uppercase %04X spelling (or longer, with
+       // no padding beyond four digits).
+       equal(asText('.TH T 1\nx \\[u21D1] \\[u1F600] y\n'), 'x ⇑ 😀 y\n')
+       equal(parsed('.TH T 1\nx \\[uAB] y\n').ok, 0)
+       equal(parsed('.TH T 1\nx \\[u02014] y\n').ok, 0)
+       equal(parsed('.TH T 1\nx \\[u201d] y\n').ok, 0)
+     })
+
+test('refusal', 'an unknown u name fails the page',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\na \\[uF] b\n')
+       equal(r.ok, 0)
+       equal(r.fails[0].what, 'character \\[uF]')
+       equal(parsed('.TH T 1\na \\[uB] b\n').fails[0].what, 'character \\[uB]')
+     })
+
 test('escapes', 'final sigma has its own name',
      () => {
        equal(asText('.TH T 1\na \\(ts b\n'), 'a ς b\n')

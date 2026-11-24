@@ -30,13 +30,6 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
-## Ready
-
-| id | lane | status | title | files |
-|----|------|--------|-------|-------|
-| p69 | a1 | ready | a .br before any text emits an extra blank line, and two consecutive .br are not collapsed (groff keeps one break) | js/man-parse.mjs, test/man-parse.mjs |
-| p72 | a3 | ready | ps(1) is 103 of section 1's words: man(1) wraps a comma-separated option list, and man-diff does not join a line that ends at a comma in that list; find a rule that joins it without joining prose commas | bin/man-diff, test/man-diff.mjs |
-
 ## Backlog
 
 | id | lane | status | title | files |
@@ -52,6 +45,8 @@ before.
 | p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |
 | p70 | a1 | next | strace-log-merge(1) prints strace\-log\-merge literally in the synopsis; synopsisStart pushes args[0] raw where handleFont/OP expand it | js/man-parse.mjs, test/man-parse.mjs |
 | p71 | a3 | next | mendex(1) one "lost" word is a tab display difference ("" vs two quote tokens); decide whether man-diff should treat a tab as non-separating | bin/man-diff, test/man-diff.mjs |
+| p73 | a1 | next | toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing | js/man-parse.mjs, test/man-parse.mjs |
+| p74 | a1 | next | ps(1) loses 95 words because a macro line inside a T{ } tbl cell stays raw (.BR pcpu ). instead of pcpu).); every T{ } cell using a macro is affected; the ps(1) pin in test/man-diff.mjs must be updated with the fix | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
 
 ## Triage
 
@@ -104,5 +99,7 @@ before.
 | s17 | - | done:9b8958c | stabilisation after the red merge: `Opt.load` survives a payload-less response, the opt tests install their own fake; a2's peer-push test reverted (p50) |  |
 | p67 | a1 | done:ba79104 | a .Ss subsection inside SYNOPSIS resets the section state, so .Fn and .Fc lose the ; (groff keeps doc-in-synopsis-section across .Ss; no installed page hits it) | js/man-parse.mjs, test/man-parse.mjs |
 | p68 | a2 | done:74ba52d | a colon-list part with read bits whose read fails ranks with a missing part, so a later miss can still shadow it; no test covers that ordering | js/man.mjs, test/man-viewer.mjs |
+| p69 | a1 | done:2e66879 | a .br before any text emits an extra blank line, and two consecutive .br are not collapsed (groff keeps one break) | js/man-parse.mjs, test/man-parse.mjs |
+| p72 | a3 | done:aae6139 | ps(1) is 103 of section 1's words: man(1) wraps a comma-separated option list, and man-diff does not join a line that ends at a comma in that list; find a rule that joins it without joining prose commas | bin/man-diff, test/man-diff.mjs |
 
 <!-- /loop:queue -->

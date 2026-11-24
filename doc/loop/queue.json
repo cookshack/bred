@@ -474,13 +474,14 @@
     {
       "id": "p69",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "a .br before any text emits an extra blank line, and two consecutive .br are not collapsed (groff keeps one break)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "2e66879"
     },
     {
       "id": "p70",
@@ -507,13 +508,37 @@
     {
       "id": "p72",
       "lane": "a3",
-      "status": "ready",
+      "status": "done",
       "title": "ps(1) is 103 of section 1's words: man(1) wraps a comma-separated option list, and man-diff does not join a line that ends at a comma in that list; find a rule that joins it without joining prose commas",
       "files": [
         "bin/man-diff",
         "test/man-diff.mjs"
       ],
-      "proof": "npx mocha --exit test/man-diff.mjs"
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "doneHash": "aae6139"
+    },
+    {
+      "id": "p73",
+      "lane": "a1",
+      "status": "next",
+      "title": "toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p74",
+      "lane": "a1",
+      "status": "next",
+      "title": "ps(1) loses 95 words because a macro line inside a T{ } tbl cell stays raw (.BR pcpu ). instead of pcpu).); every T{ } cell using a macro is affected; the ps(1) pin in test/man-diff.mjs must be updated with the fix",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     }
   ]
 }

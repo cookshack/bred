@@ -7,14 +7,14 @@ session's worktree root does not lose the queue again.
 The loop owns this file. Lanes read it and never edit it.
 
     run     live 2026-11-24T10:56Z, deadline 18:56Z
-    round   15 done at 2c5b9df; 16 is next
-    main    2c5b9df      tip after round 15
+    round   16 done at f3f1539; 17 is next
+    main    f3f1539      tip after round 16
     state   $BRED_WORKTREE_ROOT/bred-loop/  briefs, claims, round logs (untracked)
-    sweep   section 3 after round 15: 3p/14w; 1/5/7/8 after round 14:
-            1:20p/154w  5:6p/6w  7:3p/8w  8:2p/9w
-    drift   corpus 4121 parsed / 29 refused: cs/passwd.5 and cs/shadow.5 added
-            `.do hla` and `.do hpf` (groff hyphenation requests, p58)
-    hot     js/man.mjs and test/man-viewer.mjs last touched 11:00; clear at 13:00
+    sweep   whole sections after round 16: 1:16p/147w  3:0p/0w  5:0p/0w
+            7:2p/7w  8:2p/9w
+    drift   resolved: the two Czech pages (`.do hla`/`.do hpf`) parse after
+            p58; corpus back to 4123 parsed / 27 refused of 4150
+    hot     none (the user's last man.mjs/Man.md touch was 11:00)
 
 Statuses: `ready` (dispatchable), `next` (queued after a decision or another
 item), `triage` (needs evidence before it can be called a bug), `done:<hash>`
@@ -23,25 +23,23 @@ too, with the verdict in its title.
 
 `files` is the item's file set, and it is authoritative: the loop checks it for
 two lanes overlapping, and against the dirty tree and the files touched in the
-last two hours. An item whose files are busy is `next`, whatever its status
-was before.
+last two hours (not counting the loop's own commits, listed as `own` in
+`state`). An item whose files are busy is `next`, whatever its status was
+before.
 
-## Round 16 — planned lanes (file sets are disjoint)
+## Round 17 — planned lanes (file sets are disjoint)
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p58 | a1 | ready | `.hla`/`.hpf` are groff hyphenation requests; `.do hla cs` refuses cs/passwd.5 and cs/shadow.5 (2 pages) | js/man-parse.mjs, js/man-roff.mjs, test/man-parse.mjs |
-| p51 | a2 | ready | the compressed magics never fire in the app: pty output is UTF-8-decoded, so every byte ≥ 0x80 is U+FFFD and only bzip2's `BZh` survives (tests pass because they bypass the decode) | js/shell.mjs, js/man.mjs, test/man-viewer.mjs |
-| p60 | a3 | ready | the last pcre2demo(3) words are typographic quotes (U+2018/U+2019 vs ASCII) from the same no-`.TH` default mapping; fold them in the `man-diff` word key as p30 folded hyphens | bin/man-diff, test/man-diff.mjs |
-| p62 | a3 | ready | `man-diff` joins an ASCII-hyphen line end on the reference side but not in our text (TIFFReadScanline(3tiff) `byte-`+`and`, pcre2_compile(3) `paren-`+`theses`) | bin/man-diff, test/man-diff.mjs |
-| p49 | a3 | next | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 14; the loop takes it after a round | doc/Man.md |
-| p50 | a2 | next | `wode-view-e2e` "stale peer push during revert" flake: the first hunt OOM'd; the test patch that waits on the push instead of 350 ms is preserved at `$LOOP/p50-crash/a2-wip.patch`, retry with a bounded load | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
-| p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) | bin/man-diff |
+| p61 | a1 | ready | the SYNOPSIS `Fo`/`Fc` path drops the trailing `;` (`*setting)` vs `*setting);`, found in p52's report) | js/man-parse.mjs, test/man-parse.mjs |
+| p50 | a2 | ready | `wode-view-e2e` "stale peer push during revert" flake **reproduced under c8** at f3f1539 (`'v1X' !== 'v1'`, test line 607); the patch that waits on the push instead of 350 ms is at `$LOOP/p50-crash/a2-wip.patch`; retry with a bounded load only | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
+| p63 | a3 | ready | p51 fixed the renderer, but `js/main-shell-run.mjs` builds `stdoutBuffer` as a string (`+= String(Buffer)` decodes UTF-8) and sends that over IPC, so the app still cannot see gzip/xz/zstd bytes; accumulate Buffers and send them | js/main-shell-run.mjs, js/main-shell.mjs, test/man-pty.mjs |
 
 ## Backlog
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
+| p57 | a2 | next | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one | js/man.mjs, test/man-viewer.mjs |
 | p44 | a1 | triage | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` | js/man-parse.mjs |
 | p53 | a1 | next | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) | js/man-parse.mjs |
 | p54 | a1 | next | a no-output request between a `\c` and the next line swallows the join (0 corpus occurrences) | js/man-parse.mjs |
@@ -52,8 +50,6 @@ was before.
 | p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
 | p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |
 | p59 | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
-| p61 | a1 | next | the SYNOPSIS `Fo`/`Fc` path drops the trailing `;` (`*setting)` vs `*setting);`, found in p52's report) | js/man-parse.mjs |
-| p57 | a2 | next | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one | js/man.mjs, test/man-viewer.mjs |
 
 ## Done
 
@@ -98,3 +94,8 @@ was before.
 | p52 | a1 | done:d9906f4 | a bare `.Nm` in a `T{`/`T}` cell prints the document name (both crypt pages 0) |
 | p48 | a3 | done:2c5b9df | `man-diff --page` prints `lost <n>` before the sample |
 | p30 | a3 | done:2c5b9df | verdict: no mdoc U+2010 rule; `man-diff` folds U+2010/U+2011/U+2212 (pcre2demo 67 → 12) |
+| p58 | a1 | done:9ba3175 | `.hla`/`.hpf` are no-output requests; both Czech pages parse (corpus back to 4123/27) |
+| p51 | a2 | done:c2b32ec | the `cat` fallback keeps its bytes, so the renderer names a mislabelled page's format (the app half is p63) |
+| p60 | a3 | done:f3f1539 | `man-diff` folds typographic quotes; pcre2demo 12 → 0 (U+2018 folds to a backtick) |
+| p62 | a3 | done:f3f1539 | the hyphen join is decided from the page source and applied to both sides; section 3 14 → 0 |
+| p49 | a3 | done:f3f1539 | coverage re-measured over the whole suite: 100/99.97/100/100/98.88 line, branch 94.56/98.75/97.18/90.28 |

@@ -171,21 +171,22 @@ move to a different lane than its prefix suggests if its files are free.
 | 13 | mdoc set | `244c425` | `.Lb` table, `.In` `#include`, `.do`, `\n+[reg]`; a background lane is launched, not finished; `man-diff` joins at a source `\:` and reads a cell as a cell |
 | 14 | references | `a18cd1b` | `.Rs` quotes `%T` only in a `%B`/`%J` reference; a `\c` tag line stays open across a macro; `man-diff` knows the truncated mdoc banner and `\:` after ":" and "@" |
 | 15 | moving main | `2c5b9df` | `.Nm` in a `T{` cell expands; `man-diff --page` prints the total and folds typographic hyphens; the flake hunt OOM'd, the two live lanes merged |
+| 16 | bytes + joins | `f3f1539` | `.hla`/`.hpf` accepted; `runToString` can keep bytes (renderer half only); quote fold and source-decided hyphen joins clear section 3 |
 
 ## Current state
 
-Measured at `2c5b9df` (round 15's tip), corpus `4150` pages:
+Measured at `f3f1539` (round 16's tip), corpus `4150` pages:
 
-    4121 parsed, 29 refused of 4150 installed pages
+    4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    section 3 after round 15: 3p/14w; sections 1/5/7/8 after round 14:
-      1:20p/154w  5:6p/6w  7:3p/8w  8:2p/9w
-    543 man tests, 1902 total, 2 pending, 0 failing; check clean
+    whole sections after round 16: 1:16p/147w  3:0p/0w  5:0p/0w  7:2p/7w  8:2p/9w
+    552 man tests, 1911 total, 2 pending, 0 failing; check clean
 
-The 29 refusals are upstream page bugs or eqn, not dialect gaps. Two more than
-round 14: the Czech `passwd(5)` and `shadow(5)` now carry `.do hla`/`.do hpf`
-(groff hyphenation requests, queue p58), a package update rather than a parser
-regression — the page count is the population check for exactly this.
+The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
+counted 29 because a package update added `.do hla`/`.do hpf` to the Czech
+`passwd(5)` and `shadow(5)`; round 16 accepted both requests, so the count is
+back to round 14's 27 and those two pages parse. The page count stayed 4150
+throughout — a number has to name its page set as well as its commit.
 
 The numbers above used to be a **sample**: `bin/man-diff --max 400` slices
 sorted order and prints it as `400 of 1189 (sample; --max 0 for all)`, section
@@ -194,10 +195,10 @@ sorted order and prints it as `400 of 1189 (sample; --max 0 for all)`, section
 parser bugs the honest sweep exposed (`\c`, `\F`, `.Sm off`) plus the
 colon-path shadowing in the viewer; round 13 took the mdoc set (`.Lb`, `.In`,
 `.do`, `\n+`); round 14 took the reference set and the tag continuation, and
-two more `man-diff` rules. Section 3 is down to 3 pages / 14 words after round
-15: pcre2demo(3) 12 (typographic quotes, p60) and one ASCII-hyphen line end each
-on TIFFReadScanline(3tiff) and pcre2_compile(3) (p62). Section 1's 154 words are
-mostly ps(1) (103). What is left is in `doc/Man.md` and, with ids, in
+two more `man-diff` rules. After round 16, sections 3 and 5 are clean, section
+1 is 147 words (ps(1) 103, ttf2tfm(1) 10, tbl/gtbl 7 each, ttf2pk 5, hg 2,
+man 2), section 7 is editline 5 + gittutorial-2 2, and section 8 is dmsetup 7
++ dmstats 2. What is left is in `doc/Man.md` and, with ids, in
 `doc/Loop-queue.md`.
 
 ## Rules that earned their place
@@ -215,6 +216,11 @@ mostly ps(1) (103). What is left is in `doc/Man.md` and, with ids, in
   server with it. Any load a lane starts is capped: `timeout`, at most
   `nproc-2` workers, no `while :` loops, and a reporter that says how many
   runs and how much load it used.
+- **A test command has to exit.** `npx mocha test/man-viewer.mjs` printed 158
+  passing and then hung on an open handle; the merge step waited 15 minutes
+  for a command that had already passed. Every lane test ends in `--exit`, and
+  the merge step puts a `timeout` around it, so a hang is a failure with a
+  reason instead of a stalled round.
 - **Red first.** Every behaviour change needs a test shown failing against the
   old code. A coverage-only test cannot fail, so prove it by mutating the code
   and say so.

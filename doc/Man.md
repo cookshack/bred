@@ -292,30 +292,31 @@ with the hostile stream's invariants.
 Corpus: 4150 installed pages (English + translations) on Debian bookworm.
 
 ```
-parsed   4121   (99.3%)
-refused    29
+parsed   4123   (99.3%)
+refused    27
 ```
 
 The refusals are page bugs, not dialect gaps: undefined `\*(AQ` in 7
 translations, a broken `\f\f` in 6 Korean pages, an undefined `\fG` font in 2
 gdbm pages, `It` without `Bl` (2), the `Su`/`R` strings that only eqn defines
 (4), ms `DS`/`DE` (1), eqn `EQ`/`EN` (1), `mso pic.tmac` (1), strace's
-undefined `.IX`, a `.p` typo, one undefined Cyrillic string, and two Czech
-pages whose `.do hla`/`.do hpf` are groff hyphenation requests (`passwd(5)`,
-`shadow(5)`; queue p58). The last two arrived with a package update: the page
-count is 4150 in both cases, but the refusal list is not the same one round 14
-measured — a number has to name its page set as well as its commit.
+undefined `.IX`, a `.p` typo and one undefined Cyrillic string. Round 16 fixed
+the two Czech pages whose `.do hla`/`.do hpf` are groff hyphenation requests
+(`passwd(5)`, `shadow(5)`); they had arrived with a package update and pushed
+the count to 29 for one round. The page count is 4150 in both cases, but the
+refusal list is not the same one round 14 measured — a number has to name its
+page set as well as its commit.
 
-A whole-section sweep (`--max 0`) after round 15 leaves this many pages (and
-words) short of man(1)'s text. Section 3 was re-measured this round; the others
-are still the round 14 measurement. It is not a sample: `--max 400` prints
-`400 of 1189 (sample; --max 0 for all)`, and an earlier version of this table
-quoted such a sample as if it were the section.
+A whole-section sweep (`--max 0`) after round 16 leaves this many pages (and
+words) short of man(1)'s text. All five sections were re-measured with the
+round-16 tool. It is not a sample: `--max 400` prints `400 of 1189 (sample;
+--max 0 for all)` for section 1, and an earlier version of this table quoted
+such a sample as if it were the section.
 
 ```
 section  1    3    5    7    8
-pages   20    3    6    3    2
-words  154   14    6    8    9
+pages   16    0    0    2    2
+words  147    0    0    7    9
 ```
 
 Part of that is measurement, not loss: man(1) wraps a long word onto the next
@@ -326,16 +327,16 @@ sentence-period cases, but a split inside a word that is neither hyphenated nor
 marked in the source still counts. It also reassembles a U+2010-hyphenated
 table cell (section 3's TIFF names are no longer reported as two words each),
 drops a bare `|` and `_` from both sides since those are our table separators
-and rule rows and man(1) draws neither, and compares words on a key that
-ignores trailing sentence punctuation and folds the typographic hyphens
-U+2010/U+2011/U+2212 to ASCII.
+and rule rows and man(1) draws neither, folds typographic hyphens
+(U+2010/U+2011/U+2212) and quotes (U+2018/U+2019/U+201C/U+201D) to ASCII in its
+word key, and decides a hyphen join from the page source: a line end is joined
+only when the source writes the hyphen with no space after it, and the same
+decision is applied to both sides.
 
-Section 3's 14 words are pcre2demo(3) (12, all typographic quotes: the page has
-no `.TH`, so groff loads no macro package and its default utf8 mapping prints
-U+2018/U+2019 where we print ASCII — queue p60) plus one ASCII-hyphen line end
-each on TIFFReadScanline(3tiff) and pcre2_compile(3) (`byte-` + `and`,
-`paren-` + `theses`, which `man-diff` joins on the reference side only; queue
-p62). Section 1's 154 words are mostly ps(1) (103).
+Sections 3 and 5 are clean. Section 1's 147 words are ps(1) 103, ttf2tfm(1)
+10, `tbl(1)`/`gtbl(1)` 7 each, ttf2pk(1) 5, `hg(1)` 2 and `man(1)` 2. Section
+7 is editline(7) 5 and gittutorial-2(7) 2; section 8 is dmsetup(8) 7 and
+dmstats(8) 2.
 
 Three joins in round 12's `man-diff` were still wrong. Each was the
 reference's fault, not our text's, and each is now a tool fix:
@@ -466,14 +467,29 @@ missing `.TH` means groff loads no macro package at all (queue p60). The claim
 that an mdoc `-` is U+2010 was tested and is false: `groff -Tutf8 -mdoc`
 prints ASCII.
 
-Tests: 543 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
-test is pending where `zstd` is not installed);
+Round 16 took the hyphenation requests and the rest of section 3. `.hla` and
+`.hpf` are accepted as no-output requests (they pick a hyphenation language and
+load patterns; our renderer does not hyphenate), so the two Czech pages parse
+and the corpus is back to 4123/27. The `cat` fallback can now keep the bytes it
+read, so a mislabelled compressed page names its real format — but only in the
+renderer: `js/main-shell-run.mjs` still stringifies the pty chunk before IPC,
+so the running app cannot see the bytes yet (queue p63). `man-diff` folds
+typographic quotes, and its hyphen join is now decided from the page source and
+applied to both sides, which clears pcre2demo(3) and section 3:
+
+```
+section 3, round 15:  3 pages / 14 words
+section 3, round 16:  0 pages /  0 words
+```
+
+Tests: 552 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
-(measured after round 14) is 100% for `man-char.mjs`, `man-render.mjs` and
-`man-roff.mjs`, 99.97% for `man-parse.mjs` (one line: the scan of an
-unterminated `(` in a tbl column spec, which no installed page has) and 98.85%
-for `man.mjs`. Branch coverage is 100%, 98.8%, 97.1%, 94.6% and 89.9% in the
-same order.
+(measured after round 16, over the whole suite) is 100% for `man-char.mjs` and
+`man-render.mjs`, 99.97% for `man-parse.mjs` (one line: the scan of an
+unterminated `(` in a tbl column spec, which no installed page has), 100% for
+`man-roff.mjs` and 98.88% for `man.mjs`. Branch coverage is 100%, 98.75%,
+97.18%, 94.56% and 90.28% in the same order.
 
 ## Known gaps, in order
 

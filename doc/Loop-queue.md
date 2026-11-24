@@ -7,14 +7,14 @@ session's worktree root does not lose the queue again.
 The loop owns this file. Lanes read it and never edit it.
 
     run     live 2026-11-24T10:56Z, deadline 18:56Z
-    round   15 in progress (dispatched on 9c25cfa, 11:20Z)
-    main    9c25cfa      base for round 15
+    round   15 done at 2c5b9df; 16 is next
+    main    2c5b9df      tip after round 15
     state   $BRED_WORKTREE_ROOT/bred-loop/  briefs, claims, round logs (untracked)
-    sweep   1:20p/154w  3:5p/71w  5:6p/6w  7:3p/8w  8:2p/9w  (whole sections, after round 14)
-    drift   corpus now 4121 parsed / 29 refused: cs/passwd.5 and cs/shadow.5 added
+    sweep   section 3 after round 15: 3p/14w; 1/5/7/8 after round 14:
+            1:20p/154w  5:6p/6w  7:3p/8w  8:2p/9w
+    drift   corpus 4121 parsed / 29 refused: cs/passwd.5 and cs/shadow.5 added
             `.do hla` and `.do hpf` (groff hyphenation requests, p58)
-    hot     css/manpage.css, js/man.mjs, test/man-viewer.mjs, doc/Man.md (11:00)
-            — a2 and viewer items wait until these go cold
+    hot     js/man.mjs and test/man-viewer.mjs last touched 11:00; clear at 13:00
 
 Statuses: `ready` (dispatchable), `next` (queued after a decision or another
 item), `triage` (needs evidence before it can be called a bug), `done:<hash>`
@@ -26,16 +26,16 @@ two lanes overlapping, and against the dirty tree and the files touched in the
 last two hours. An item whose files are busy is `next`, whatever its status
 was before.
 
-## Round 15 — dispatched lanes (file sets are disjoint, none hot)
+## Round 16 — planned lanes (file sets are disjoint)
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p52 | a1 | in-round | a bare `.Nm` inside a `T{`/`T}` cell is printed literally (crypt_checksalt(3), crypt_preferred_method(3)) | js/man-parse.mjs, test/man-parse.mjs |
-| p50 | a2 | in-round | `wode-view-e2e` "stale peer push during revert" failed once in a post-merge verify, passed twice alone (round 13); reproduce under load or clear it | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
-| p48 | a3 | in-round | `man-diff --page` has no missing-word total, only the deduped sample | bin/man-diff, test/man-diff.mjs |
-| p30 | a3 | in-round | verdict: not an mdoc rule — pcre2demo(3) has no `.TH`, so groff loads no macro package and its default utf8 hyphen is U+2010; fold typographic hyphens in `man-diff` word keys | bin/man-diff |
-| p51 | a2 | next | the compressed magics never fire in the app: pty output is UTF-8-decoded, so every byte ≥ 0x80 is U+FFFD and only bzip2's `BZh` survives (tests pass because they bypass the decode) | js/shell.mjs, js/man.mjs, test/man-viewer.mjs |
-| p49 | a3 | next | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 11; the loop takes it after the round | doc/Man.md |
+| p58 | a1 | ready | `.hla`/`.hpf` are groff hyphenation requests; `.do hla cs` refuses cs/passwd.5 and cs/shadow.5 (2 pages) | js/man-parse.mjs, js/man-roff.mjs, test/man-parse.mjs |
+| p51 | a2 | ready | the compressed magics never fire in the app: pty output is UTF-8-decoded, so every byte ≥ 0x80 is U+FFFD and only bzip2's `BZh` survives (tests pass because they bypass the decode) | js/shell.mjs, js/man.mjs, test/man-viewer.mjs |
+| p60 | a3 | ready | the last pcre2demo(3) words are typographic quotes (U+2018/U+2019 vs ASCII) from the same no-`.TH` default mapping; fold them in the `man-diff` word key as p30 folded hyphens | bin/man-diff, test/man-diff.mjs |
+| p62 | a3 | ready | `man-diff` joins an ASCII-hyphen line end on the reference side but not in our text (TIFFReadScanline(3tiff) `byte-`+`and`, pcre2_compile(3) `paren-`+`theses`) | bin/man-diff, test/man-diff.mjs |
+| p49 | a3 | next | re-measure coverage: `doc/Man.md` still claims 100%/99.97% from round 14; the loop takes it after a round | doc/Man.md |
+| p50 | a2 | next | `wode-view-e2e` "stale peer push during revert" flake: the first hunt OOM'd; the test patch that waits on the push instead of 350 ms is preserved at `$LOOP/p50-crash/a2-wip.patch`, retry with a bounded load | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
 | p47 | a3 | triage | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) | bin/man-diff |
 
 ## Backlog
@@ -51,8 +51,8 @@ was before.
 | p33 | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) | js/man-parse.mjs |
 | p34 | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
 | p45 | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |
-| p58 | a1 | next | `.hla`/`.hpf` are groff hyphenation requests; `.do hla cs` refuses cs/passwd.5 and cs/shadow.5 (2 pages) | js/man-parse.mjs, js/man-roff.mjs |
 | p59 | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
+| p61 | a1 | next | the SYNOPSIS `Fo`/`Fc` path drops the trailing `;` (`*setting)` vs `*setting);`, found in p52's report) | js/man-parse.mjs |
 | p57 | a2 | next | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one | js/man.mjs, test/man-viewer.mjs |
 
 ## Done
@@ -95,3 +95,6 @@ was before.
 | p41 | a3 | done:a18cd1b | the truncated mdoc banner is a header (5 pages, 31 → 1 words) |
 | p42 | a3 | done:a18cd1b | the `\:` join accepts ":" (`bash(1)` 4 → 2) |
 | p43 | a3 | done:a18cd1b | the `\:` join accepts "@" (`troff(1)` 2 → 0) |
+| p52 | a1 | done:d9906f4 | a bare `.Nm` in a `T{`/`T}` cell prints the document name (both crypt pages 0) |
+| p48 | a3 | done:2c5b9df | `man-diff --page` prints `lost <n>` before the sample |
+| p30 | a3 | done:2c5b9df | verdict: no mdoc U+2010 rule; `man-diff` folds U+2010/U+2011/U+2212 (pcre2demo 67 → 12) |

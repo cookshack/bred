@@ -22,7 +22,7 @@ will choose its own.
 
         git log --oneline -1        # the tip at dispatch: record it as base
         git status --porcelain      # dirty paths: these are outside claims
-        git log --since='2 hours ago' --name-only   # hot files: avoid them
+        git log --since='2 hours ago' --name-only   # hot files (not our own)
         npx mocha --exit            # compare with "Current state" in doc/Loop.md
         npm run check
         ./bin/man-audit --parse     # compare with "Current state" and the page count

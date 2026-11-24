@@ -292,25 +292,30 @@ with the hostile stream's invariants.
 Corpus: 4150 installed pages (English + translations) on Debian bookworm.
 
 ```
-parsed   4123   (99.3%)
-refused    27
+parsed   4121   (99.3%)
+refused    29
 ```
 
 The refusals are page bugs, not dialect gaps: undefined `\*(AQ` in 7
 translations, a broken `\f\f` in 6 Korean pages, an undefined `\fG` font in 2
 gdbm pages, `It` without `Bl` (2), the `Su`/`R` strings that only eqn defines
 (4), ms `DS`/`DE` (1), eqn `EQ`/`EN` (1), `mso pic.tmac` (1), strace's
-undefined `.IX`, a `.p` typo and one undefined Cyrillic string.
+undefined `.IX`, a `.p` typo, one undefined Cyrillic string, and two Czech
+pages whose `.do hla`/`.do hpf` are groff hyphenation requests (`passwd(5)`,
+`shadow(5)`; queue p58). The last two arrived with a package update: the page
+count is 4150 in both cases, but the refusal list is not the same one round 14
+measured — a number has to name its page set as well as its commit.
 
-A whole-section sweep (`--max 0`) after round 14 leaves this many pages (and
-words) short of man(1)'s text. It is not a sample: `--max 400` prints
+A whole-section sweep (`--max 0`) after round 15 leaves this many pages (and
+words) short of man(1)'s text. Section 3 was re-measured this round; the others
+are still the round 14 measurement. It is not a sample: `--max 400` prints
 `400 of 1189 (sample; --max 0 for all)`, and an earlier version of this table
 quoted such a sample as if it were the section.
 
 ```
 section  1    3    5    7    8
-pages   20    5    6    3    2
-words  154   71    6    8    9
+pages   20    3    6    3    2
+words  154   14    6    8    9
 ```
 
 Part of that is measurement, not loss: man(1) wraps a long word onto the next
@@ -322,7 +327,15 @@ marked in the source still counts. It also reassembles a U+2010-hyphenated
 table cell (section 3's TIFF names are no longer reported as two words each),
 drops a bare `|` and `_` from both sides since those are our table separators
 and rule rows and man(1) draws neither, and compares words on a key that
-ignores trailing sentence punctuation.
+ignores trailing sentence punctuation and folds the typographic hyphens
+U+2010/U+2011/U+2212 to ASCII.
+
+Section 3's 14 words are pcre2demo(3) (12, all typographic quotes: the page has
+no `.TH`, so groff loads no macro package and its default utf8 mapping prints
+U+2018/U+2019 where we print ASCII — queue p60) plus one ASCII-hyphen line end
+each on TIFFReadScanline(3tiff) and pcre2_compile(3) (`byte-` + `and`,
+`paren-` + `theses`, which `man-diff` joins on the reference side only; queue
+p62). Section 1's 154 words are mostly ps(1) (103).
 
 Three joins in round 12's `man-diff` were still wrong. Each was the
 reference's fault, not our text's, and each is now a tool fix:
@@ -371,11 +384,18 @@ The rest of the sweep is real. Section 1 is mostly ps(1): 103 of its 154 words
 are one comma list man(1) wraps (`pid,format,tname,` / `time,cmd,`) plus the
 `-o` field names. Then `tbl(1)`/`gtbl(1)`'s example table (we print `eleven;11`
 where man(1) prints `eleven 11`) and `hg(1)`'s `incoming ) case-insensitive`.
-Section 3 is pcre2demo(3)'s bare hyphens — an mdoc `-` is U+2010 and `\-` is
-U+2212, while we keep ASCII — and a bare `.Nm` inside a `T{`/`T}` cell, printed
-literally on `crypt_checksalt(3)` and `crypt_preferred_method(3)`. Section 8's
-worst pages are a synopsis of long `[a|b|c]` alternatives that man(1)
-hyphenates, and the rest of the sweep is the same kind of line-break join.
+Section 3 is down to 3 pages / 14 words after round 15. pcre2demo(3) keeps 12,
+all typographic quotes: the page has no `.TH`, so groff loads no macro package
+and its default utf8 mapping prints U+2018/U+2019 where we print ASCII. The
+round-14 note here said its hyphens were an mdoc rule (`-` is U+2010); round 15
+checked that and it is wrong — `groff -Tutf8 -mdoc` prints ASCII `-`, and the
+U+2010 comes only from the no-`.TH` page. The bare `.Nm` inside a `T{`/`T}`
+cell on `crypt_checksalt(3)` and `crypt_preferred_method(3)` is fixed: it now
+expands to the document name. The other two words are an ASCII-hyphen line end
+(`byte-` + `and`, `paren-` + `theses`) that the diff joins on the reference
+side only. Section 8's worst pages are a synopsis of long `[a|b|c]`
+alternatives that man(1) hyphenates, and the rest of the sweep is the same kind
+of line-break join.
 
 Some of the pages still reported hide a real loss rather than a layout one,
 and are the next work. Fixed so far: the ssh helper pages' `OpenBSD 3.2.`
@@ -435,7 +455,18 @@ are whole. `man-diff` now recognises groff's truncated mdoc banner
 (`CRYPT_PREFERRED_METHO... BSD Library Functions Manual ...`) as a header, and
 joins a `\:` break after ":" and "@" as well as "/".
 
-Tests: 533 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
+Round 15 fixed the table-cell name and the diff's hyphen keys. A bare `.Nm` on
+its own control line inside a `T{`/`T}` cell is run as `.Nm` (the document
+name) instead of being printed as data; `crypt_checksalt(3)` and
+`crypt_preferred_method(3)` are 0. `man-diff --page` now prints the total
+(`lost 67 [...]`) instead of only a sample, and its word key folds the
+typographic hyphens U+2010/U+2011/U+2212 to ASCII, which takes pcre2demo(3)
+from 67 to 12 — the rest are typographic quotes from the same page, whose
+missing `.TH` means groff loads no macro package at all (queue p60). The claim
+that an mdoc `-` is U+2010 was tested and is false: `groff -Tutf8 -mdoc`
+prints ASCII.
+
+Tests: 543 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 14) is 100% for `man-char.mjs`, `man-render.mjs` and

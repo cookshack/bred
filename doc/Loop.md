@@ -122,8 +122,11 @@ it merges onto.
   the lane. Only then write the round record.
 - **Hot and dirty files are outside claims.** Before dispatch, list the paths
   in `git status --porcelain` and the paths touched by `git log --since='2
-  hours ago'`. An item whose files intersect them is `next`, not `ready`, even
-  if its lane is free. The `files` column in the queue makes this mechanical.
+  hours ago'`, leaving out commits this loop made itself (recorded in `state`
+  as `own`, so its own round tips do not freeze their files for the next
+  round). An item whose files intersect the outside set is `next`, not
+  `ready`, even if its lane is free. The `files` column in the queue makes
+  this mechanical.
 - **A locked index is "main busy".** `round.sh` waits for
   `.git/index.lock` and retries the fast-forward once. Only a real merge
   conflict parks a lane.
@@ -167,15 +170,17 @@ move to a different lane than its prefix suggests if its files are free.
 | 12 | verification | `5e531f0` | `\c` joins forward only; `\F`/`\m`/`\M`/`\k`/`\S`/`\v` take their own forms; `.Sm off` starts at the second call; `man -w` stats the whole line first; `man-diff` says what it sampled |
 | 13 | mdoc set | `244c425` | `.Lb` table, `.In` `#include`, `.do`, `\n+[reg]`; a background lane is launched, not finished; `man-diff` joins at a source `\:` and reads a cell as a cell |
 | 14 | references | `a18cd1b` | `.Rs` quotes `%T` only in a `%B`/`%J` reference; a `\c` tag line stays open across a macro; `man-diff` knows the truncated mdoc banner and `\:` after ":" and "@" |
+| 15 | moving main | `2c5b9df` | `.Nm` in a `T{` cell expands; `man-diff --page` prints the total and folds typographic hyphens; the flake hunt OOM'd, the two live lanes merged |
 
 ## Current state
 
-Measured at `9c25cfa` (round 15's base), corpus `4150` pages:
+Measured at `2c5b9df` (round 15's tip), corpus `4150` pages:
 
     4121 parsed, 29 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    section sweep, whole sections after round 14: 1:20p/154w  3:5p/71w  5:6p/6w  7:3p/8w  8:2p/9w
-    1893 tests, 2 pending, 0 failing; check clean
+    section 3 after round 15: 3p/14w; sections 1/5/7/8 after round 14:
+      1:20p/154w  5:6p/6w  7:3p/8w  8:2p/9w
+    543 man tests, 1902 total, 2 pending, 0 failing; check clean
 
 The 29 refusals are upstream page bugs or eqn, not dialect gaps. Two more than
 round 14: the Czech `passwd(5)` and `shadow(5)` now carry `.do hla`/`.do hpf`
@@ -189,10 +194,10 @@ sorted order and prints it as `400 of 1189 (sample; --max 0 for all)`, section
 parser bugs the honest sweep exposed (`\c`, `\F`, `.Sm off`) plus the
 colon-path shadowing in the viewer; round 13 took the mdoc set (`.Lb`, `.In`,
 `.do`, `\n+`); round 14 took the reference set and the tag continuation, and
-two more `man-diff` rules. The sweep is down to 36 pages / 248 words, and most
-of what is left is ps(1) (103 words) and pcre2demo(3) (67, which round 15
-measured down to a measurement artifact: its page has no `.TH`, so man(1)
-prints typographic hyphens). What is left is in `doc/Man.md` and, with ids, in
+two more `man-diff` rules. Section 3 is down to 3 pages / 14 words after round
+15: pcre2demo(3) 12 (typographic quotes, p60) and one ASCII-hyphen line end each
+on TIFFReadScanline(3tiff) and pcre2_compile(3) (p62). Section 1's 154 words are
+mostly ps(1) (103). What is left is in `doc/Man.md` and, with ids, in
 `doc/Loop-queue.md`.
 
 ## Rules that earned their place
@@ -205,6 +210,11 @@ prints typographic hyphens). What is left is in `doc/Man.md` and, with ids, in
 - **Never widen a timeout silently.** Five separate bugs were deferred work
   bounded by a wall clock that gave up without saying so. Wait on the real state,
   or make the expiry observable — and say which.
+- **Bound the load you create.** The p50 flake hunt started unbounded CPU
+  workers and OOM-killed the container, taking the lane and the whole agent
+  server with it. Any load a lane starts is capped: `timeout`, at most
+  `nproc-2` workers, no `while :` loops, and a reporter that says how many
+  runs and how much load it used.
 - **Red first.** Every behaviour change needs a test shown failing against the
   old code. A coverage-only test cannot fail, so prove it by mutating the code
   and say so.

@@ -581,13 +581,14 @@
     {
       "id": "p78",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "L\\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "ee005d2"
     },
     {
       "id": "p79",
@@ -596,6 +597,50 @@
       "title": "on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span)",
       "files": [
         "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p80",
+      "lane": "a1",
+      "status": "next",
+      "title": "hy prints ASCII - ; groff prints U+2010: page-visible, measurement-neutral because man-diff folds it",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p81",
+      "lane": "a1",
+      "status": "ready",
+      "title": "Greek capitals are shifted one letter: *H is Η but should be Θ, *Q Θ should be Ψ, *Y Ψ should be Η; lowercase is correct",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p82",
+      "lane": "a1",
+      "status": "next",
+      "title": "an unknown u-prefixed name (uA) falls through to a hex/bogus codepoint (U+000A) instead of groff's U+21D1 or a refusal",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p83",
+      "lane": "a1",
+      "status": "next",
+      "title": "about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it",
+      "files": [
+        "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs"

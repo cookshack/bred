@@ -34,7 +34,7 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p78 | a1 | ready | L\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl | js/man-char.mjs, test/man-parse.mjs |
+| p81 | a1 | ready | Greek capitals are shifted one letter: *H is Η but should be Θ, *Q Θ should be Ψ, *Y Ψ should be Η; lowercase is correct | js/man-char.mjs, test/man-parse.mjs |
 
 ## Backlog
 
@@ -54,6 +54,9 @@ before.
 | p76 | a1 | next | in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them | js/man-parse.mjs, test/man-parse.mjs |
 | p77 | a1 | next | the parser maps the \t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it | js/man-parse.mjs, test/man-parse.mjs |
 | p79 | a1 | next | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
+| p80 | a1 | next | hy prints ASCII - ; groff prints U+2010: page-visible, measurement-neutral because man-diff folds it | js/man-char.mjs, test/man-parse.mjs |
+| p82 | a1 | next | an unknown u-prefixed name (uA) falls through to a hex/bogus codepoint (U+000A) instead of groff's U+21D1 or a refusal | js/man-char.mjs, test/man-parse.mjs |
+| p83 | a1 | next | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
 
 ## Triage
 
@@ -111,5 +114,6 @@ before.
 | p71 | a3 | done:72e8ca4 | mendex(1) one "lost" word is a tab display difference ("" vs two quote tokens); decide whether man-diff should treat a tab as non-separating | bin/man-diff, test/man-diff.mjs |
 | p72 | a3 | done:aae6139 | ps(1) is 103 of section 1's words: man(1) wraps a comma-separated option list, and man-diff does not join a line that ends at a comma in that list; find a rule that joins it without joining prose commas | bin/man-diff, test/man-diff.mjs |
 | p74 | a1 | done:00dc308 | ps(1) loses 95 words because a macro line inside a T{ } tbl cell stays raw (.BR pcpu ). instead of pcpu).); every T{ } cell using a macro is affected; the ps(1) pin in test/man-diff.mjs must be updated with the fix | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
+| p78 | a1 | done:ee005d2 | L\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl | js/man-char.mjs, test/man-parse.mjs |
 
 <!-- /loop:queue -->

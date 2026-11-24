@@ -662,18 +662,19 @@
     {
       "id": "p85",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "*f maps to φ (U+03C6); groff prints ϕ (U+03D5); *J/*j/*V/*v are absent from groff too, not gaps",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "29665b6"
     },
     {
       "id": "p86",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": ".. maps to ‥ (U+2025) but groff refuses it; \\[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an",
       "files": [
         "js/man-char.mjs",

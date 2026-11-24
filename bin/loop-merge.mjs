@@ -165,14 +165,21 @@ function provision
 
     src = Path.join(ext, names[ i ], 'lib')
     dst = Path.join(dir, 'ext', names[ i ], 'lib')
-    if (Fs.existsSync(src) && (exists(dst) == 0)) {
-      Fs.mkdirSync(Path.dirname(dst), { recursive: true })
-      link(src, dst)
+    if (Fs.existsSync(src)) {
+      // Copied, not linked: a linked ext/*/lib resolves its own relative
+      // imports (`../../../../lib/@codemirror/state.js`) outside the worktree,
+      // so the test and the extension get two copies of the module and
+      // `instanceof` fails. Refreshed rather than filled, because these are
+      // generated and a package update would otherwise leave them stale.
+      Fs.rmSync(dst, { recursive: true, force: true })
+      copyMissing(src, dst)
     }
   }
 }
 
 // Copy only what the worktree lacks: its own tracked files must stay its own.
+// Recursive; existing files win, so a worktree's own tracked sources are never
+// overwritten. Callers that own the whole directory remove it first.
 function copyMissing
 (src, dst) {
   let names, i

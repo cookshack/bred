@@ -20,13 +20,13 @@ function run
       d(ch + ' flush stdout ' + stdOutLen)
       sender.send(ch, { stdout: stdoutBuffer })
       d(ch + ' sent stdout to renderer')
-      stdoutBuffer = ''
+      stdoutBuffer = Buffer.alloc(0)
     }
     if (stdErrLen > 0) {
       d(ch + ' flush stderr ' + stdErrLen)
       sender.send(ch, { stderr: stderrBuffer })
       d(ch + ' sent stderr to renderer')
-      stderrBuffer = ''
+      stderrBuffer = Buffer.alloc(0)
     }
     lastFlushTime = Date.now()
   }
@@ -67,8 +67,8 @@ function run
   d(ch + ' run: cmd=' + sc + ' args=' + JSON.stringify(args))
   d(ch + ' run: dir=' + dir)
 
-  stdoutBuffer = ''
-  stderrBuffer = ''
+  stdoutBuffer = Buffer.alloc(0)
+  stderrBuffer = Buffer.alloc(0)
   lastFlushTime = Date.now()
   flushTimer = null
   sender = e.sender
@@ -248,7 +248,11 @@ function run
 
     proc.onData(data => {
                   d(ch + ' data: ' + data.length + ' bytes')
-                  stdoutBuffer += data
+                  // Keep the pty's bytes: a Buffer concatenation, not `+=`,
+                  // which would decode as UTF-8 and turn every byte at or
+                  // above 0x80 into U+FFFD before the renderer can sniff it.
+                  stdoutBuffer = Buffer.concat([ stdoutBuffer,
+                                                 Buffer.isBuffer(data) ? data : Buffer.from(data) ])
                   scheduleFlush()
                 })
 
@@ -270,7 +274,8 @@ function run
     if (0)
       proc.onError(err => {
                      d(ch + ': child process error: ' + err)
-                     stderrBuffer += ('Process error: ' + err.message + '\n')
+                     stderrBuffer = Buffer.concat([ stderrBuffer,
+                                                    Buffer.from('Process error: ' + err.message + '\n') ])
                      scheduleFlush()
                    })
 

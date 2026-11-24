@@ -8,8 +8,11 @@ import Zlib from 'node:zlib'
 import * as Man from '../js/man.mjs'
 import * as ManParse from '../js/man-parse.mjs'
 import * as ManRender from '../js/man-render.mjs'
+import * as Pane from '../js/Pane.mjs'
 import * as ShellRun from '../js/main-shell-run.mjs'
+import * as ViewMode from '../js/view-mode.mjs'
 import { setupDom } from './dom-help.mjs'
+import { setupPanes, waitFor } from './pane-helpers.mjs'
 
 // The viewer reads a page by running zcat in a pty. A pty turns every LF
 // into CRLF, so this reads a real gzip file through a real pty and parses the
@@ -35,20 +38,40 @@ function fakeIpc
            removeListener: () => 0 }
 }
 
+// One text decoding for the whole stream, so a UTF-8 character split across
+// two pty flushes is not turned into U+FFFD.
+function decodeChunks
+(chunks) {
+  let der
+
+  der = new TextDecoder()
+  return chunks.map(chunk => typeof chunk == 'string' ? chunk
+                                                      : der.decode(chunk, { stream: 1 })).join('')
+}
+
+function bufferOf
+(chunks) {
+  return Buffer.concat(chunks.map(chunk => Buffer.isBuffer(chunk) ? chunk
+                                                                  : Buffer.from(chunk)))
+}
+
 // Run the page's decompressor through the same main-side pty path the viewer
-// uses.
+// uses. The chunks are kept as bytes, because that is what crosses IPC; text is
+// decoded once here for the tests that read it as a string.
 function toolThroughPty
 (file, tool) {
-  let out, resolveOut, rejectOut
+  let chunks, resolveOut, rejectOut
 
   function onPtyData
   (ch, data) {
     if (data.stdout)
-      out += data.stdout
+      chunks.push(data.stdout)
     if (data.err)
       rejectOut(data.err)
     if (data.close == 1)
-      resolveOut({ text: out, code: data.code })
+      resolveOut({ text: decodeChunks(chunks),
+                   bytes: bufferOf(chunks),
+                   code: data.code })
   }
 
   function start
@@ -60,7 +83,7 @@ function toolThroughPty
                  Os.tmpdir(), tool, [ file ], {}, { shell: '/bin/sh' })
   }
 
-  out = ''
+  chunks = []
   return new Promise(start)
 }
 
@@ -190,6 +213,90 @@ test('man-pty', 'the suffix picks the decompressor',
 test('man-pty', 'an xz page reads through xzcat in a real pty', compressedPageTest('xz'))
 test('man-pty', 'a bz2 page reads through bzcat in a real pty', compressedPageTest('bz2'))
 test('man-pty', 'a zst page reads through zstdcat in a real pty', compressedPageTest('zst'))
+
+let viewerInited
+
+viewerInited = 0
+
+// Open pages through the real pty: the renderer's shell channels are wired to
+// ShellRun.run, so the bytes the viewer sniffs are the ones node-pty produced
+// and the main process sent, not a fake's typed array.
+function liveViewer
+() {
+  let panes, base
+
+  function deliver
+  (ch, data) {
+    if (panes.shellChans[ch])
+      panes.shellChans[ch](data)
+  }
+
+  function spawn
+  (ch, dir, sc, sargs, spec) {
+    ShellRun.run({ pty: Pty, ipcMain: fakeIpc(), appPath: process.cwd() },
+                 { sender: { send: deliver } },
+                 ch, dir, sc, sargs, spec, { shell: '/bin/sh' })
+    return ch
+  }
+
+  panes = setupPanes()
+  base = globalThis.tron
+  globalThis.tron = { cmd: async (name, args) => {
+                        if (name == 'shell.run')
+                          return spawn(args[0], args[1], args[2], args[3] || [], args[4] || {})
+                        // runToString asks for a plain channel, one command only.
+                        if (name == 'shell')
+                          return spawn(args[0], args[1], args[2], args[3] || [], {})
+                        return { err: 0, ch: 0 }
+                      },
+                      receive: base.receive,
+                      acmd: base.acmd,
+                      on: base.on,
+                      send: base.send }
+  if (viewerInited == 0) {
+    ViewMode.init()
+    Man.init()
+    viewerInited = 1
+  }
+  return panes
+}
+
+// The gzip header alone: every decompressor refuses it (xzcat sees another
+// format, zcat sees a truncated stream, bzcat and lzcat fail too, zstdcat is
+// not installed), so only cat reads the page. A reply that has already been
+// decoded as UTF-8 loses 0x1f 0x8b, so the viewer cannot name the format.
+test('man-pty', 'a mislabelled gzip page names gzip through the real pty',
+     async function
+     () {
+       let dir
+
+       if (Pty == undefined)
+         this.skip()
+       this.timeout(20000)
+       dir = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-man-pty-'))
+       try {
+         let b, file
+
+         file = Path.join(dir, 'broken.1.xz')
+         Fs.writeFileSync(file,
+                          Zlib.gzipSync('.TH BROKEN 1\n.SH NAME\nbroken \\- truncated\n').slice(0, 12))
+         liveViewer()
+         Man.open(file)
+         await waitFor(() => {
+                         let cur
+
+                         cur = Pane.current().buf
+                         return (cur?.vars('Manpage').topic == file) &&
+                               (cur.vars('Manpage').loading == 0)
+                       }, 15000)
+         b = Pane.current().buf
+         equal(b.vars('Manpage').error,
+               'Cannot read ' + file + ': cannot decompress .xz (gzip data)')
+       }
+       finally {
+         Fs.rmSync(dir, { recursive: true, force: true })
+       }
+     })
 
 function mochaIt
 (cb) {

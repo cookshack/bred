@@ -65,19 +65,21 @@ function latin1
 export
 function runToString
 (dir, sc, args, runInShell, cb, onErr, spec) { // (str, code, raw), (err), { bytes }
-  let ch, str, handler, off, raw
+  let ch, str, handler, off, raw, der
 
   ch = nextCh()
   str = ''
   raw = 0
   args = args || []
   spec = spec || {}
+  // One decoder for the whole run: a UTF-8 character split across two flushes
+  // must be completed by the next chunk, not turned into U+FFFD by a fresh
+  // decoder (or by decoding each chunk as if it stood alone).
+  der = new TextDecoder()
   d("runToString '" + sc + ' ' + args.join(' ') + "' in " + dir)
 
   // Define the IPC handler so we can remove it later
   handler = (err, data) => {
-              let der
-
               // Track whether any chunk was a typed array kept one char per
               // byte: the caller then knows `str` is not text yet.
               function addChunk
@@ -91,10 +93,8 @@ function runToString
                   raw = 1
                   return
                 }
-                str += der.decode(chunk)
+                str += der.decode(chunk, { stream: 1 })
               }
-
-              der = new TextDecoder()
 
               if (err) {
                 // A process that could not be spawned never closes, so let
@@ -115,6 +115,9 @@ function runToString
 
               if (U.isDefined(data.close)) {
                 if (cb) {
+                  // Emit anything the decoder held back from a split final
+                  // character. Bytes mode never fed the decoder, so this is ''.
+                  str += der.decode()
                   // Invoke callback with final output and exit code. raw is 1
                   // when the output is one char per byte rather than text.
                   cb(str, data.code, raw)
@@ -166,7 +169,7 @@ function run
  //   onClose // (buf, code)
  //   onErr } // (buf, err)
  spec) {
-  let ch, bep, b, handler, chOff
+  let ch, bep, b, handler, chOff, decoder
 
   function on
   () {
@@ -187,6 +190,7 @@ function run
   bep = b && (b.anyView()?.bep || 0)
 
   d("SHELL run '" + sc + "' [" + args + '] in ' + dir)
+  decoder = new TextDecoder()
 
   if (b) {
     markBusyAll(b)
@@ -215,18 +219,19 @@ function run
 
   // Define the IPC handler so we can remove it after the command finishes
   handler = (err, data) => {
-              let decoder
+              let out, errOut
 
               //d('SHELL ' + ch + ' received: ' + JSON.stringify(Object.keys(data)))
 
+              // One decoder per run: a UTF-8 character split across two flushes
+              // arrives whole instead of becoming U+FFFD twice.
               function decode
               (str) {
                 if (typeof str == 'string')
                   return str
-                return decoder.decode(str)
+                return decoder.decode(str, { stream: 1 })
               }
 
-              decoder = new TextDecoder()
               if (b)
                 if (b.vars('Shell').ch == ch)
                   0
@@ -250,29 +255,36 @@ function run
 
               //d({ data })
 
-              if (0 && data.stdout)
-                d('SHELL OUT: ' + decode(data.stdout))
-              if (0 && data.stderr)
-                d('SHELL ERR: ' + decode(data.stderr))
+              // Decode once: a stream decoder consumes its bytes, so a second
+              // call for the same chunk would return ''.
+              if (data.stdout)
+                out = decode(data.stdout)
+              if (data.stderr)
+                errOut = decode(data.stderr)
 
-              if (b && data.stdout) {
+              if (0 && out)
+                d('SHELL OUT: ' + out)
+              if (0 && errOut)
+                d('SHELL ERR: ' + errOut)
+
+              if (b && out) {
                 if (spec.end)
-                  b.append(decode(data.stdout), spec.afterEndPoint)
+                  b.append(out, spec.afterEndPoint)
                 else
-                  b.insert(decode(data.stdout), bep, spec.afterEndPoint)
+                  b.insert(out, bep, spec.afterEndPoint)
                 b.vars('Shell').lastLineText = b.line(-1)
                 //d('SHELL lastLineText: ' + b.vars('Shell').lastLineText)
                 spec.afterEndPoint = 0
               }
 
-              if (spec.onStdout && data.stdout)
-                spec.onStdout(decode(data.stdout))
+              if (spec.onStdout && out)
+                spec.onStdout(out)
 
-              if (b && data.stderr) {
+              if (b && errOut) {
                 if (spec.end)
-                  b.append(decode(data.stderr), spec.afterEndPoint)
+                  b.append(errOut, spec.afterEndPoint)
                 else
-                  b.insert(decode(data.stderr), bep, spec.afterEndPoint)
+                  b.insert(errOut, bep, spec.afterEndPoint)
                 spec.afterEndPoint = 0
               }
 
@@ -290,8 +302,8 @@ function run
                 off()
               }
 
-              if (spec.onStderr && data.stderr)
-                spec.onStderr(decode(data.stderr))
+              if (spec.onStderr && errOut)
+                spec.onStderr(errOut)
 
               if (data.err) {
                 if (b)

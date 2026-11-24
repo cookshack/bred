@@ -61,9 +61,30 @@ function waitFor
                      })
 }
 
+function decodeChunk
+(der, chunk) {
+  if (typeof chunk == 'string')
+    return chunk
+  return der.decode(chunk, { stream: 1 })
+}
+
 function stdout
 (run) {
-  return run.events.filter(ev => ev.data.stdout).map(ev => ev.data.stdout).join('')
+  let chunks, der
+
+  // Chunks cross IPC as bytes; decode the stream once, in order, so a UTF-8
+  // character split across two flushes still reads as one character.
+  der = new TextDecoder()
+  chunks = run.events.filter(ev => ev.data.stdout).map(ev => decodeChunk(der, ev.data.stdout))
+  return chunks.join('')
+}
+
+function stdoutBytes
+(run) {
+  let chunks
+
+  chunks = run.events.filter(ev => ev.data.stdout).map(ev => Buffer.isBuffer(ev.data.stdout) ? ev.data.stdout : Buffer.from(ev.data.stdout))
+  return Buffer.concat(chunks)
 }
 
 function closed
@@ -102,6 +123,19 @@ test('run', 'no trailing newline, stderr merged into pty',
        run = start('/bin/sh', [ '-c', 'printf x; printf err 1>&2' ])
        await waitFor(() => closed(run))
        equal(stdout(run), 'xerr')
+     })
+
+test('run', 'pty bytes reach the renderer unchanged',
+     async () => {
+       let chunks, run
+
+       run = start('/bin/sh', [ '-c', "printf '\\037\\213\\010\\000'" ])
+       await waitFor(() => closed(run))
+       chunks = run.events.filter(ev => ev.data.stdout).map(ev => ev.data.stdout)
+       // A gzip signature is not text: decoding it in the main process would
+       // make the renderer's byte sniff see U+FFFD instead of 1f 8b.
+       equal(chunks.every(chunk => Buffer.isBuffer(chunk)), true)
+       equal(stdoutBytes(run).subarray(0, 4).toString('hex'), '1f8b0800')
      })
 
 test('run', 'input is written to the process',

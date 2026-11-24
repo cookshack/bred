@@ -59,7 +59,10 @@ names = Object.assign({},
                             '%i %j %k %n %o %p %q %r %s %t %u %v ' +
                             'de am de1 ds as nr if ie el ig rm rn als rr so do tr ta ft ' +
                             'ce in ti nf fi br sp nop ul ev TS TE T&'),
-                      table('ignore', 'tm hw lf cc c2 eo ec Tg'),
+                      // `.hla` / `.hpf` choose a hyphenation language and load
+                      // patterns. They draw nothing, and our renderer does not
+                      // hyphenate, so they are dropped rather than implemented.
+                      table('ignore', 'tm hw lf cc c2 eo ec Tg hla hpf'),
                       table('metric', 'ad na nh hy ne ns rs ll po pl ps vs ss fam ftr ' +
                             'bd mc mk rt bp it'),
                       table('unsupported', 'EQ EN mso di da tl char rchar'))

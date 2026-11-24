@@ -2649,6 +2649,20 @@ test('groff requests', 'metric and ignored requests are dropped',
        equal(asText('.TH T 1\n.ad 1\n.tm note\nvisible\n'), 'visible\n')
      })
 
+test('groff requests', 'hla and hpf select hyphenation without output',
+     () => {
+       let r
+
+       // The Czech passwd(5) and shadow(5) open with `.do hla cs` and
+       // `.do hpf hyphen.cs`. Neither draws anything; our renderer does not
+       // hyphenate, so both are dropped like the other no-output requests.
+       r = parsed('.TH T 1\n.SH NAME\n.do hla cs\n.do hpf hyphen.cs\nvisible\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[1].spans), 'visible')
+       equal(r.fails.length, 0)
+       equal(asText('.TH T 1\n.hla cs\n.hpf hyphen.cs\nvisible\n'), 'visible\n')
+     })
+
 test('groff requests', 'a stray TE and an empty mso are handled',
      () => {
        let r

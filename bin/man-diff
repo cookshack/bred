@@ -123,11 +123,31 @@ function normal
              .trim()
 }
 
+// A long name is truncated in the running header to `NAME...` with no
+// `(section)` left on it (crypt_preferred_method(3), four rpc_gss_*(3)), so
+// the pattern alone would leave the banner in as content. The page's own name
+// is known from its path: both halves of the banner are that name truncated,
+// and the section volume title still says `Manual`. Requiring all three keeps
+// a content line from matching.
 function isHeader
-(line) {
+(line, name) {
+  let upper
+
   // A page name may contain dots, the section may have two digits
   // (`UPDMAP.CFG(20)`), and a page with no section still prints `()`.
-  return /[\w.+-]+\([0-9]*[0-9A-Za-z]*\)/.test(line) ? 1 : 0
+  if (/[\w.+-]+\([0-9]*[0-9A-Za-z]*\)/.test(line))
+    return 1
+  if ((name == undefined) || (/Manual/.test(line) == 0))
+    return 0
+  upper = name.toUpperCase()
+  return line.split(/\s+/).some(word => /\.\.\.$/.test(word) &&
+                                       (word.length > 3) &&
+                                       upper.startsWith(word.slice(0, -3).toUpperCase())) ? 1 : 0
+}
+
+function pageName
+(file) {
+  return Path.basename(file).replace(/\.gz$/, '').replace(/\.[0-9][A-Za-z]*$/, '')
 }
 
 // BSD-style footers have no name(section) in them: "BSD ... October 26, 2022
@@ -169,11 +189,14 @@ function joinHyphens
 
 // A page asks groff for a break with no hyphen at `\:`, and the groff pages
 // use it inside long paths, so man(1) prints `/usr/` at one line end and
-// `lib/groff/site-tmac,` at the next. A line ending in "/" is not enough on
-// its own: a finished URL, a regexp or a `/usr/` word at a sentence end looks
-// the same. The source says which token the page allowed to break, so only a
-// token the source marks with `\:` is joined, and only when it ends in "/":
-// that is a path, not prose and not bash(1)'s `:/bin:` in a PATH list.
+// `lib/groff/site-tmac,` at the next. The source says which token the page
+// allowed to break, so only a token the source marks with `\:` is joined.
+// The mark alone is not enough: hg(1) writes `\%\fBhg help urls\fP\:` in prose,
+// where the mark is a break opportunity inside a sentence and the token is an
+// ordinary word, and joining at those would destroy the comparison (367 words
+// on hg(1) alone). What separates them is the character the break follows: a
+// path or address separator, `/`, `:` or `@`. bash(1) breaks its PATH list
+// after ":" and troff(1) an address after "@".
 function breakTokens
 (src) {
   let out, re, m, at, run, text
@@ -191,7 +214,7 @@ function breakTokens
                .replace(/\\f(\[[^]]*\]|.)/g, '')
                .replace(/\\ /g, ' ')
     text = text.trim().split(' ').pop()
-    if (/\/$/.test(text))
+    if (/[/:@]$/.test(text))
       out.add(text)
   }
   return out
@@ -223,7 +246,8 @@ function joinBreaks
 // A macro like `.RI ( /usr/...` prints "(" glued to the path, so the rendered
 // token can carry a punctuation prefix the source break token does not have.
 // Strip leading punctuation only: a letter or digit before the break token
-// means the token is a word that merely ends the line.
+// means the token is a word that merely ends the line. breakTokens has already
+// kept only tokens that follow a path or address separator.
 function breakOf
 (line, breaks) {
   let token, at
@@ -231,7 +255,7 @@ function breakOf
   token = line.split(' ').pop()
   at = 0
   while (at < token.length) {
-    if (breaks.has(token.slice(at)) && (/\/$/.test(token.slice(at))))
+    if (breaks.has(token.slice(at)))
       return token.slice(at)
     if (/[A-Za-z0-9]/.test(token[at]))
       return ''
@@ -415,18 +439,19 @@ function joinCells
 
 function referenceText
 (file, src) {
-  let text, lines, out
+  let text, lines, out, name
 
   text = execFileSync('man', [ '-Tutf8', file ], { encoding: 'utf8',
                                                    stdio: [ 'ignore', 'pipe', 'ignore' ] })
   lines = text.split('\n')
+  name = pageName(file)
   while (lines.length && (lines[0].trim() == ''))
     lines.shift()
-  if (lines.length && isHeader(lines[0]))
+  if (lines.length && isHeader(lines[0], name))
     lines.shift()
   while (lines.length && lines[lines.length - 1].trim() == '')
     lines.pop()
-  if (lines.length && isHeader(lines[lines.length - 1]))
+  if (lines.length && isHeader(lines[lines.length - 1], name))
     lines.pop()
   else if (lines.length && isFooter(lines[lines.length - 1]))
     lines.pop()

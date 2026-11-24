@@ -334,9 +334,16 @@ reference's fault, not our text's, and each is now a tool fix:
   finished URL, a regexp or `/usr/` at a sentence end also ends a line).
   `troff(1)` 10 -> 2 words, `nroff(1)` 4 -> 0, `groff(1)` 2 -> 0; the 26
   installed pages containing a `\:` are that join's whole blast radius, and
-  among them only those three changed. `bash(1)` stays at 4: its PATH list
-  breaks after a ":", the same `\:` mechanism, held for the next round so this
-  change stays inside the "/" evidence.
+  among them only those three changed. Round 14 widened the end character to
+  the other separators the pages mark. Dropping the character test was
+  measured first and is wrong: `hg(1)` writes `\%\fBhg help urls\fP\:` in
+  prose, so a `\:` marks an ordinary word as breakable, and joining at those
+  took `hg(1)` from 3 to 367 words and `hgrc(5)` from 0 to 15. The break must
+  still follow a path or address separator, `/`, `:` or `@`: `bash(1)`'s PATH
+  list joins after ":" (4 -> 2) and `troff(1)`'s
+  `.MT groff\-bernd.warken\-72@\:web.de` after "@" (2 -> 0). Page by page over
+  the same 26, only those two changed, and the set went 120 -> 116 words on
+  6 -> 5 pages.
 - `joinCells` read a justified paragraph as a table. The gaps justification
   inserts look like column boundaries, so a word hyphenated at the right margin
   took the next line's token at the same column: `hgrc(5)`'s
@@ -363,12 +370,13 @@ references: `.Rs` puts a `%T` in curly quotes where groff leaves it bare. Then
 `tbl(1)`/`gtbl(1)`'s example table (we print `eleven;11` where man(1) prints
 `eleven 11`) and `ttf2tfm(1)`'s `\c` before a macro call, which is the parser's
 (see below). Section 3 is pcre2demo(3)'s bare hyphens — an mdoc `-` is U+2010
-and `\-` is U+2212, while we keep ASCII — and the mdoc header line
+and `\-` is U+2212, while we keep ASCII. It also held the mdoc header line
 (`CRYPT_PREFERRED_METHO... BSD Library Functions Manual ...`), which `man-diff`
-does not recognise as a header because groff truncated the name and dropped the
-`(3)`. Section 8's worst pages are a synopsis of long `[a|b|c]` alternatives
-that man(1) hyphenates, and the rest of the sweep is the same kind of
-line-break join.
+did not recognise as a header because groff truncated the name and dropped the
+`(3)`; round 14 removes it (below), so those five pages in the table above are
+measurement, not loss. Section 8's worst pages are a synopsis of long
+`[a|b|c]` alternatives that man(1) hyphenates, and the rest of the sweep is the
+same kind of line-break join.
 
 Some of the pages still reported hide a real loss rather than a layout one,
 and are the next work. Fixed so far: the ssh helper pages' `OpenBSD 3.2.`
@@ -404,6 +412,19 @@ rest of its line as a request instead of printing it (11 pages, all
 `.do nr X \n[.C]`), and `\n+[reg]`/`\n-[reg]` step the register before reading
 it, the way groff does, so `sensible-editor(1)`'s `.IP \n+[step]` items are
 1-5 again.
+
+Round 14 also fixed the last `man-diff` measurement bug. A page name too long
+for the running header is truncated to `NAME...` and loses its `(section)`, so
+`man-diff` read the whole mdoc banner as content. It now removes a first or
+last line that contains `Manual`, a `...`-truncated word, and a page name whose
+uppercase form starts with that word's prefix; over the corpus (4150 entries,
+symlinks included) that fires on exactly the five pages it was written for,
+`crypt_preferred_method(3)` and four `rpc_gss_*(3)`, which went
+7/6/6/6/6 -> 1/0/0/0/0 (31 -> 1). No other `.Dt` page's text changed, and the
+clause removes no footer. The remaining word is real: a bare `.Nm` inside a
+`T{`/`T}` cell prints as `.Nm`, so `crypt_preferred_method(3)` and
+`crypt_checksalt(3)` are each short one name (a parser question, not the
+diff).
 
 Tests: 520 (inventory, interpreter, renderer, viewer, real pty; the zstd pty
 test is pending where `zstd` is not installed);

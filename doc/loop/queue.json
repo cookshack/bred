@@ -446,7 +446,7 @@
     {
       "id": "p67",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "a .Ss subsection inside SYNOPSIS resets the section state, so .Fn and .Fc lose the ; (groff keeps doc-in-synopsis-section across .Ss; no installed page hits it)",
       "files": [
         "js/man-parse.mjs",
@@ -457,7 +457,7 @@
     {
       "id": "p68",
       "lane": "a2",
-      "status": "next",
+      "status": "ready",
       "title": "a colon-list part with read bits whose read fails ranks with a missing part, so a later miss can still shadow it; no test covers that ordering",
       "files": [
         "js/man.mjs",

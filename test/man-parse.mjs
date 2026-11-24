@@ -2602,8 +2602,9 @@ test('paragraphs', 'HP, br and sp break the paragraph',
      () => {
        let r
 
+       // groff starts the line after `.br` flush: `one$` then `two$`.
        r = parsed('.TH T 1\none\n.br\ntwo\n.sp\nthree\n')
-       equal(flat(r.doc.blocks[0].spans), 'one\n two')
+       equal(flat(r.doc.blocks[0].spans), 'one\ntwo')
        equal(r.doc.blocks[1].kind, 'space')
        equal(flat(r.doc.blocks[2].spans), 'three')
      })
@@ -2648,7 +2649,14 @@ test('paragraphs', 'a continued tag keeps a macro that only expands to input',
 test('paragraphs', 'a continuation before a break does not glue what follows',
      () => {
        equal(flat(parsed('.TH T 1\naa\\c\n.br\nbb\n').doc.blocks[0].spans),
-             'aa\n bb')
+             'aa\nbb')
+     })
+
+test('paragraphs', 'a break leaves the next macro line flush too',
+     () => {
+       // groff prints the bold `bold` at column 0 after `.br`.
+       equal(flat(parsed('.TH T 1\none\n.br\n.B bold\n').doc.blocks[0].spans),
+             'one\nbold')
      })
 
 test('macros', 'an empty macro body produces nothing',

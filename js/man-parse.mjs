@@ -768,6 +768,16 @@ function paraOf
   return p
 }
 
+// A `.br` leaves the output at the start of a fresh line, so the line after it
+// is flush; only a line that follows text takes the separator space.
+function afterBreak
+(spans) {
+  let last
+
+  last = spans[spans.length - 1]
+  return (last && (last.br == 1)) ? 1 : 0
+}
+
 function appendInline
 (c, spans) {
   let target
@@ -780,7 +790,7 @@ function appendInline
   else
     target = paraOf(c).spans
   if ((c.mode == 'man') && c.atLineStart && (c.lineTarget == 0) &&
-      (c.joinPrev == 0) && (target.length > 0) &&
+      (c.joinPrev == 0) && (target.length > 0) && (afterBreak(target) == 0) &&
       (spans[0] && (spans[0].br == undefined)))
     pushSpan(target, { text: ' ', style: c.font })
   c.atLineStart = 0
@@ -807,7 +817,7 @@ function addTextLine
     target = paraOf(c).spans
     // The separator before this line depends only on the previous line's `\c`
     // (`joining`); this line's own trailing `\c` joins it to the next one.
-    if ((target.length > 0) && (joining == 0))
+    if ((target.length > 0) && (joining == 0) && (afterBreak(target) == 0))
       pushSpan(target, { text: ' ', style: c.font })
   }
   c.joinNext = join

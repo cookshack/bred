@@ -948,7 +948,38 @@ function stripComment
 
 function copyMode
 (text) {
-  return text.replace(/\\\\/g, '\\').replace(/\\\./g, '.').replace(/\\ /g, ' ')
+  let i, out
+
+  out = ''
+  i = 0
+  while (i < text.length) {
+    if ((text[i] == '\\') && ((i + 1) < text.length)) {
+      let next
+
+      next = text[i + 1]
+      if (next == '\\') {
+        out += '\\'
+        i += 2
+        continue
+      }
+      if (next == '.') {
+        out += '.'
+        i += 2
+        continue
+      }
+      if (next == ' ') {
+        // An escaped space belongs inside the argument, not between two of
+        // them. Reducing it to a bare space turned `.IR a \ |` in a macro
+        // body into `a|` (dmstats(8)); the space has to stay escaped.
+        out += '\\ '
+        i += 2
+        continue
+      }
+    }
+    out += text[i]
+    i += 1
+  }
+  return out
 }
 
 // The man macros groff implements in tmac read each argument in copy mode

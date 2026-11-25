@@ -281,6 +281,21 @@ test('macros', 'an argument is reduced in copy mode and then interpreted',
        equal(flat(text.doc.blocks[0].spans), 'body c:\\\\fonts\\\\truetype')
      })
 
+test('copy mode', 'an escaped space in a macro body is not a separator',
+     () => {
+       let r, text
+
+       // dmstats(8) defines `.IR device_name \ |` inside .de CMD_COMMAND.
+       // Copy mode must leave the `\ ` escape alone: turning it into a bare
+       // space makes it an argument separator, so .IR glues the pipe to the
+       // word. `\\ ` is a literal backslash followed by the same escape.
+       r = parsed('.TH T 1\n.de X\n.IR a \\ |\n.IR b \\\\ |\n..\n.X\n')
+       text = ManParse.toText(r.doc.blocks)
+       equal(r.ok, 1)
+       equal(text.includes('a |'), true)
+       equal(text.includes('b |'), true)
+     })
+
 test('copy mode', 'a B argument is copied and then interpreted',
      () => {
        let r

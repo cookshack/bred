@@ -1276,7 +1276,7 @@
     {
       "id": "c1",
       "area": "code",
-      "lane": "a2",
+      "lane": "a1",
       "type": "triage",
       "status": "ready",
       "title": "session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage)",

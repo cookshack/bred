@@ -35,7 +35,7 @@ before.
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
 | p105 | man | a1 | ready | ssh-agent(1) loses 2 words: the synopsis -s] bracket | js/man-parse.mjs, test/man-parse.mjs |
-| c1 | code | a2 | ready | session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage) | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/* |
+| c1 | code | a1 | ready | session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage) | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/* |
 
 ## Backlog
 

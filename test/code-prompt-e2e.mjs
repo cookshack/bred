@@ -804,10 +804,11 @@ async function clearStartup
 }
 
 // A reconnect can drop a text part's started event, so the first thing seen
-// for it is a delta. Its part id is then 0, which no element owns, and the
-// ended part carries the whole text. Drawing the lost delta as a thinking
-// block leaves a stray block and, once the ended part lands, a second message.
-test('reconnect', 'a text delta with no started part draws no thinking block',
+// for it is a delta. The delta names its own part (assistantMessageID and
+// ordinal), so it streams into that part's assistant box; the ended part
+// carries the whole text and finishes the same message. Drawing the delta as a
+// thinking block instead would leave a stray block and a second message.
+test('reconnect', 'a text delta with no started part streams into its own message',
      async () => {
        let created, fake, orig, panes
 
@@ -829,7 +830,7 @@ test('reconnect', 'a text delta with no started part draws no thinking block',
                          }
 
        try {
-         let msgs
+         let msgs, partEl
 
          Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
          await waitFor(() => created?.views[0]?.ele)
@@ -838,19 +839,25 @@ test('reconnect', 'a text delta with no started part draws no thinking block',
          fake.push(Fake.event('session.step.started', { sessionID: 'ses-reconnect', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
          // the started event for this part is what the reconnect dropped
          fake.push(Fake.event('session.text.delta', { sessionID: 'ses-reconnect', assistantMessageID: 'm1', ordinal: 0, delta: 'the dropped start' }))
-         await wait(50)
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"]'))
+         partEl = created.views[0].ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"]')
          equal(created.views[0].ele.querySelectorAll('.code-msg-thinking').length,
                0,
-               'a text delta with no part to fill does not draw a thinking block')
+               'a text delta with no started event does not draw a thinking block')
+         equal(partEl.textContent.includes('the dropped start'),
+               true,
+               'the delta streams into the part its own id names')
 
          fake.push(Fake.event('session.text.ended', { sessionID: 'ses-reconnect', assistantMessageID: 'm1', ordinal: 0, text: 'the whole answer' }))
          await waitFor(() => [ ...created.views[0].ele.querySelectorAll('.code-msg-assistant') ].some(el => el.textContent.includes('the whole answer')) ? 1 : 0)
 
          msgs = [ ...created.views[0].ele.querySelectorAll('.code-msg-assistant') ]
-         equal(msgs.length, 1, 'the ended part is the only assistant message')
+         equal(msgs.length, 1, 'the ended part finishes the message the delta opened')
          equal(msgs[0].textContent.includes('the whole answer'),
                true,
                'the assistant message holds the whole answer')
+         equal(msgs[0].dataset.partid, 'm1:text:0',
+               'the delta and the ended part share the derived part id')
        }
        finally {
          panes.pB.setBuf = orig

@@ -337,6 +337,33 @@ test('translate', 'tool calls keep metadata, so subagents register early',
        equal(called[0].properties.part.state.metadata.sessionID, 'child1')
      })
 
+// A reconnect can drop the started event for a text or reasoning part, and
+// session.step.started resets the state ids the started case would have set.
+// The delta still names its own part (`assistantMessageID` and `ordinal` are on
+// the delta event), so it has to land on the id the started and ended cases
+// derive, not on the stale state id.
+test('reconnect', 'a delta after a dropped started keeps its part id',
+     () => {
+       let buf, ended, text, think
+
+       buf = makeBuf()
+       Ev.translate(buf, Fake.event('session.step.started', { sessionID: 's1', assistantMessageID: 'm1' }))
+       text = Ev.translate(buf, Fake.event('session.text.delta', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 2, delta: 'dropped' }))
+       equal(text[0].type, 'message.part.delta')
+       equal(text[0].properties.partID, 'm1:text:2',
+             'the delta part id is the message and ordinal, not the reset state id')
+       ended = Ev.translate(buf, Fake.event('session.text.ended', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 2, text: 'dropped' }))
+       equal(text[0].properties.partID, ended[0].properties.part.id,
+             'the delta and the ended part name the same part')
+
+       think = Ev.translate(buf, Fake.event('session.reasoning.delta', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 3, delta: 'lost' }))
+       equal(think[0].properties.part.id, 'm1:reason:3',
+             'thinking derives its part id the same way')
+       ended = Ev.translate(buf, Fake.event('session.reasoning.ended', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 3, text: 'lost' }))
+       equal(think[0].properties.part.id, ended[0].properties.part.id,
+             'the thinking delta and the ended part name the same part')
+     })
+
 test('pipeline', 'startSub dispatches translated events',
      async () => {
        let buf, events, fake, got, state

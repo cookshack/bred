@@ -137,8 +137,6 @@ function translate
     out.push(legacy('question.cancelled', { id: data.id, sessionID: data.sessionID }))
     break
   case 'session.step.started':
-    state.textID = 0
-    state.thinkID = 0
     out.push(legacy('message.part.updated', { part: { type: 'step-start', sessionID: data.sessionID } }))
     break
   case 'session.step.ended':
@@ -149,13 +147,17 @@ function translate
                                                       tokens: data.tokens } }))
     break
   case 'session.text.started':
-    state.textID = data.assistantMessageID + ':text:' + data.ordinal
+    // The part id is derived from the event everywhere (started, delta, ended),
+    // so a delta whose started event a reconnect dropped still lands on it.
     // time is when the part was sent, so each streamed update can show its own
     // timestamp instead of the turn's start time.
-    out.push(legacy('message.part.updated', { part: { id: state.textID, type: 'text', text: '', messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() } }))
+    out.push(legacy('message.part.updated', { part: { id: data.assistantMessageID + ':text:' + data.ordinal, type: 'text', text: '', messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() } }))
     break
   case 'session.text.delta':
-    out.push(legacy('message.part.delta', { sessionID: data.sessionID, partID: state.textID, field: 'text', delta: data.delta }))
+    // The delta names its own part (assistantMessageID and ordinal), so derive
+    // the id from the event rather than state.textID: a reconnect can drop the
+    // started event, and session.step.started resets the state id to 0.
+    out.push(legacy('message.part.delta', { sessionID: data.sessionID, partID: data.assistantMessageID + ':text:' + data.ordinal, field: 'text', delta: data.delta }))
     break
   case 'session.text.ended':
     // The ended part carries the complete text, replacing what the deltas
@@ -166,10 +168,12 @@ function translate
     out.push(legacy('message.part.updated', { part: { id: data.assistantMessageID + ':text:' + data.ordinal, type: 'text', text: data.text, messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() } }))
     break
   case 'session.reasoning.started':
-    state.thinkID = data.assistantMessageID + ':reason:' + data.ordinal
+    // No id needed: the delta and ended cases derive it from the event.
     break
   case 'session.reasoning.delta':
-    out.push(legacy('message.part.updated', { part: { id: state.thinkID, type: 'reasoning', messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() }, delta: data.delta }))
+    // Same as text.delta: derive the part id from the event, so a dropped
+    // started event (and the reset state id) does not lose the streamed text.
+    out.push(legacy('message.part.updated', { part: { id: data.assistantMessageID + ':reason:' + data.ordinal, type: 'reasoning', messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() }, delta: data.delta }))
     break
   case 'session.reasoning.ended':
     // Like the ended text part above, the ended reasoning carries the

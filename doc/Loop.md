@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: live, round 21, 2026-11-24 (deadline 2026-11-25T05:35Z). Four rounds
-have used the tool's gate: red at base, green after the rebase, one suite at
-the integrated tip, the record on `loop/r<n>`, one fast-forward. Main is the
-round-21 record commit, green (1964 tests, check clean). The next items
+Status: live, round 38, 2026-11-25 (deadline 2026-11-25T05:35Z). Twenty-one
+rounds have used the tool's gate: red at base, green after the rebase, one
+suite at the integrated tip, the record on `loop/r<n>`, one fast-forward. Main
+is the round-38 record commit, green (1995 tests, check clean). The next items
 are in `doc/loop/queue.json` (the view in `doc/Loop-queue.md` is generated);
 the upgrade designs are `doc/Loop-upgrade.md` (the loop's) and
 `doc/loop/plan-2026-11-24.md` (a fresh agent's). This file is the protocol;
@@ -186,15 +186,32 @@ move to a different lane than its prefix suggests if its files are free.
 | 19 | subsection state | `74ba52d` | a `.Ss` keeps the top-level section, so `.Fn`/`.Fc` keep the `;` (and `.Nm`/`.In` their synopsis forms); a failed read outranks a later miss |
 | 20 | breaks and cells | `8c684ac` | no separator space after `.br`; `man-diff` joins a wrapped cell at the left edge (`man(1)` 2 → 0) |
 | 21 | marked commas | `aae6139` | `.br` adds no blank line and consecutive breaks collapse; `man-diff` joins a comma-marked `\:` list break (ps(1) 103 → 95, dmsetup 7 → 5) |
+| 22 | cell macros | `00dc308` | a `T{ }` cell runs its text macros; ps(1) 95 → 0, section 1 137 → 42 words |
+| 23 | names and quotes | `72e8ca4` | `.SY` expands its name; a quote-only token has an empty key; section 1 42 → 39 words |
+| 24 | table options | `3f79ddf` | a `.T&` part inherits the table's global options (tbl/gtbl 7 → 1 each); the files gate parked the first attempt for a row that named one file too few |
+| 25 | char table | `ee005d2` | `\[tmu]` is `×` (was `™`); tbl/gtbl clean; the whole table was audited against groff_char(7) |
+| 26 | greek | `c3ff554` | `*H`/`*Q`/`*Y` follow groff; `*G` and `*f` queued |
+| 27 | unicode names | `0385d60` | `u` names are arrows or canonical hex; non-canonical and unknown names refused |
+| 28 | gamma | `5ea6105` | `*G` is `Γ`; the whole capital block matches groff (`*J`/`*V` are not groff names) |
+| 29 | phi | `29665b6` | `*f` is `ϕ` (U+03D5); the lowercase Greek block is otherwise correct |
+| 30 | strict names | `6943a15` | `..` refused, `char` decimal-only, `va`/`vA`/`an` added |
+| 31 | hy | `cbbe080` | `\[hy]` is U+2010; literal `-` and `\-` stay ASCII |
+| 32 | ascii u | `01f65ce` | a `u` name is refused only for a plain-glyph ASCII code point; special names resolve |
+| 33 | \N | `50a83a6` | `\N` takes decimal digits; hex/exponent forms refuse the page; the row was widened after the gate parked it |
+| 34 | \N[..] | `1219a56` | `\N[65]` reads as a bracket argument without widening `unquote()` |
+| 35 | surrogates | `e7b1a52` | surrogate code points are refused; the boundaries stay valid |
+| 36 | Ex/Rv | `1c115f6` | only a leading `-std` is a flag; the doc's `-exit`/`-nop` claim was wrong |
+| 37 | continued lines | `7183a0e` | a `\c` glues to a macro body's first printing line (ttf2tfm 10 → 2); section 1 25 → 16 words |
+| 38 | copy mode | `d21a9d5` | an argument is copied then interpreted (ttf2tfm 2 → 0); section 1 16 → 14 words |
 
 ## Current state
 
-Measured at `aae61390` (round 21's tip), corpus `4150` pages:
+Measured at `d21a9d5d` (round 38's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 21: 1:15p/137w  3:0p/0w  5:0p/0w  7:2p/7w  8:2p/7w
-    567 man tests, 1964 total, 2 pending, 0 failing; check clean
+    whole sections after round 38: 1:9p/14w  3:0p/0w  5:0p/0w  7:2p/7w  8:2p/7w
+    598 man tests, 1995 total, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

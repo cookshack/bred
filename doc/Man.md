@@ -522,7 +522,76 @@ when the source puts no whitespace after the comma — a rule narrow enough that
 only ps(1) and dmsetup(8) are touched. ps(1) 103 → 95, dmsetup 7 → 5, section
 1 145 → 137 words, and no page got worse.
 
-Tests: 567 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 22 made a `T{ }` tbl cell run its text macros: `.BR pcpu ).` renders
+`pcpu).`, `.Xr ps 1 .` renders `ps(1).`, and every cell that used a font or
+mdoc macro stops printing the macro name. ps(1)'s 95 lost words became 0 and
+section 1 dropped from 137 to 42 words.
+
+Round 23 fixed `.SY`: its command name now expands escapes the way `.B` does,
+and groff's rule that only the first argument is used is followed. `man-diff`
+also gives a quote-only token an empty key, so `mendex(1)`'s tab-collapsed
+`""` no longer counts as a lost word; the alternative (a tab rule) was measured
+and invented words on awk/mawk/nawk. Section 1 42 → 39 words.
+
+Round 24 made a `.T&` table continuation inherit the first part's global
+options: `tab(;)` applies to the second part, so `item eleven;11` is two cells
+again. tbl/gtbl lose one word each instead of seven. The first attempt was
+parked by the files gate for a queue row that named only the parser file while
+the lane also changed its test; the row was fixed and the round re-run.
+
+Round 25 corrected `\[tmu]`: it is U+00D7 (`×`), not the trade mark `™`
+(which is `\[tm]`). tbl(1) and gtbl(1) are now word-perfect, and the lane
+audited the whole character table against `groff_char(7)`: `hy` (ASCII vs
+U+2010), three shifted Greek capitals, and the `\[uA]` fallback are queued.
+
+Round 26 fixed the three shifted Greek capitals (`*H`, `*Q`, `*Y`); `*G` (Γ)
+is missing and `*f` is the phi symbol in groff, both queued.
+
+Round 27 made `u` character names canonical: `uA`/`dA` are the arrows,
+`u21D1` is accepted because it is groff's spelling, and `uAB`, `u02014` or a
+lower-case hex run are refused instead of decoded as one digit. `..`, `char0x`
+and three arrow names are queued from the neighbour audit.
+
+Round 28 added the missing `*G` (Γ) and confirmed the whole Greek capital
+block against groff; `*J`/`*V` are not groff names, so they stay refused.
+
+Round 29 made `*f` the phi symbol (U+03D5) and swept the lowercase Greek
+block; the rest matches groff.
+
+Round 30 made the character names strict: `..` is refused (groff has no such
+glyph), `char` takes decimal digits only, and the `va`, `vA` and `an` arrows
+and line were added. Three further strictness gaps (`u` ASCII, `\N` number
+forms, `char0`) are queued.
+
+Round 31 made `\[hy]` the typographic hyphen (U+2010) while a literal `-` and
+`\-` stay ASCII; no installed page uses the name. A future item should decide
+whether `\-` follows `-man` (U+2212) as well as `-mdoc` (ASCII).
+
+Round 32 refined the `u` rule: an ASCII code point is refused only when groff
+has a plain glyph for it, so `u0040` (`@`), `u007E` (`~`) and the controls
+still resolve. A future round decides `char0`/NUL.
+
+Round 33 fixed `\N`: the argument is decimal digits (with an optional `+`),
+not a JavaScript number, so `\N'0x41'` no longer becomes `A`; the odd forms
+refuse the page. `\N[65]` and unpaired surrogates are queued.
+
+Round 34 added the `\N[65]` bracket form (groff accepts `[`, `'` and `"`)
+without generalising `unquote()`, which must keep brackets literal for `\w`.
+
+Round 35 refuses surrogate code points (the boundaries U+D7FF/U+E000 still
+work). `\[charN]`'s glyph-table boundary is queued.
+
+Round 37 glued a continued line to the first line its macro body prints, which
+brought ttf2tfm's eight backtick/filename clusters back (10 → 2 lost, section 1
+25 → 16 words). Its last two words are a double-backslash reduction bug, queued.
+
+Round 38 made a macro argument go through copy mode at the call and the
+interpretation round in the body, so `c:\\\\fonts` prints one backslash as
+groff does; ttf2tfm reached 3591/3591 and section 1 is 14 words. Built-in man
+requests still get one round (p99), and `copyMode` over-reduces chained
+escapes (p100).
+
+Tests: 598 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and
@@ -547,7 +616,9 @@ unterminated `(` in a tbl column spec, which no installed page has), 100% for
    exists to match there.
 2. mdoc `Ex`/`Rv` match mdoc(7)'s sentences (names joined with `and`, the
    plural verbs, the `Nm` fallback) and expand to nothing without `-std`, as
-   groff does. Their other flags (`-exit`, `-nop`) are accepted and ignored.
+   groff does. There are no `-exit`/`-nop` flags: only a leading `-std` is a
+  flag, later arguments are names (dashes included), and a first argument that
+  is not `-std` prints nothing — round 36 corrected an earlier claim here.
 3. The bare-name stat still decides a directory and drives the topic lookup,
    but it is no longer the last word on readability: a regular file with no
    read bits is read anyway, because an ACL grant or root can read it (so root

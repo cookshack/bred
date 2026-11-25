@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 53,
-    "main": "673c8b77"
+    "round": 54,
+    "main": "07e195dd"
   },
   "items": [
     {
@@ -200,14 +200,15 @@
     {
       "id": "p45",
       "lane": "a1",
-      "status": "next",
+      "status": "done",
       "title": "`.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27)",
       "files": [
         "js/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "07e195dd"
     },
     {
       "id": "p59",
@@ -1396,13 +1397,14 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "next",
+      "status": "done",
       "title": "a valueless .nr X sets it to 0 here; groff leaves it undefined and reading \\nX creates it (two register divergences, no corpus effect)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "07e195dd"
     },
     {
       "id": "p121",
@@ -1563,7 +1565,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "done",
       "source": "lane",
       "title": "batch: the man tail's register claims (p45, p120)",
       "files": [
@@ -1571,7 +1573,8 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Absorbs p45 (.nr x +N/-N is relative) and p120 (.nr X with no value leaves it undefined). One commit, each item keeps its own test, both are marked done with this row's hash. The read-creates half of p120 stays refused: an unknown register outside a condition is a typo the policy refuses."
+      "notes": "Absorbs p45 (.nr x +N/-N is relative) and p120 (.nr X with no value leaves it undefined). One commit, each item keeps its own test, both are marked done with this row's hash. The read-creates half of p120 stays refused: an unknown register outside a condition is a typo the policy refuses.",
+      "doneHash": "07e195dd"
     }
   ],
   "measures": {

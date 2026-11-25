@@ -30,12 +30,6 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
-## Ready
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| b1 | man | a1 | ready | batch: the man tail's register claims (p45, p120) | js/man-parse.mjs, test/man-parse.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -47,7 +41,6 @@ before.
 | p55 | man | a1 | next | a `\c` followed by a blank line: groff joins to the next text line, we make a paragraph break | js/man-parse.mjs |
 | p33 | man | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) | js/man-parse.mjs |
 | p34 | man | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
-| p45 | man | a1 | next | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |
 | p73 | man | a1 | next | toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing | js/man-parse.mjs, test/man-parse.mjs |
 | p75 | man | a1 | next | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
 | p76 | man | a1 | next | in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them | js/man-parse.mjs, test/man-parse.mjs |
@@ -68,7 +61,6 @@ before.
 | c4 | code | a2 | next | provider.updated / model.updated are dropped (session-less); decide whether the UI needs them | ext/code/event.mjs, test/code-events.mjs |
 | c6 | code | a1 | next | a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs) | ext/code/code.mjs, ext/code/ui.mjs, test/code-* |
 | p119 | man | a1 | next | a bar ends the argument list of other multi-argument macros (Ar, Cm, Ic, Pa, …), so words after it lose the macro font; style only, each needs its own evidence | js/man-parse.mjs, test/man-parse.mjs |
-| p120 | man | a1 | next | a valueless .nr X sets it to 0 here; groff leaves it undefined and reading \nX creates it (two register divergences, no corpus effect) | js/man-parse.mjs, test/man-parse.mjs |
 | c9 | code | a2 | next | handlePartDelta also decides from one view: a thinking delta goes only to boxes that already hold the block, so a box that lacks it never gets it | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 
 ## Triage
@@ -92,6 +84,7 @@ before.
 | p44 | man | a1 | done:3f79ddf | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` | js/man-parse.mjs, test/man-parse.mjs |
 | p56 | man | a1 | done:889ce7c | a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none | js/man-parse.mjs, test/man-parse.mjs |
 | p19 | man | a1 | done:1c115f6 | verdict: .Rv/.Ex have no -exit/-nop flags; only a leading -std is a flag, later args are names (p19 corrected the doc) | js/man-parse.mjs, test/man-parse.mjs |
+| p45 | man | a1 | done:07e195dd | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |
 | p12 | man | a1 | done:3eb439b | `\c` joins forward only (ext2/3/4.5 `trackingfile`) |  |
 | p13 | man | a1 | done:3eb439b | `\F` and `\m \M \k \S \v` take their own forms (kernel-install `THE TION`, git-subtree, mflua) |  |
 | p14 | man | a1 | done:3eb439b | `.Sm off` starts suppressing at the second call (ssh_config `PermitRemoteOpen host:port`) |  |
@@ -164,11 +157,13 @@ before.
 | c3 | code | a3 | done:8618283a | session.retry.scheduled is dropped; a retry is visible to the user, so decide what legacy event it should be | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs |
 | c5 | code | a1 | done:f26a1d0 | session.reasoning.ended has the same authoritative text as text.ended and is still dropped; translate it the same way | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/* |
 | c7 | code | a2 | done:fd65122 | the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
+| p120 | man | a1 | done:07e195dd | a valueless .nr X sets it to 0 here; groff leaves it undefined and reading \nX creates it (two register divergences, no corpus effect) | js/man-parse.mjs, test/man-parse.mjs |
 | p121 | man | a1 | done:e7e0d671 | .if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it) | js/man-parse.mjs, test/man-parse.mjs |
 | c8 | code | a2 | done:e3e11414 | Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing) | ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | p123 | man | a3 | done:4dd8ef83 | a .Bl -dash list still renders as an HTML ul disc; groff draws "-" per item (the text model now agrees, the renderer does not) | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
 | c10 | code | a2 | done:ab988598 | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
 | p125 | man | a1 | done:eac2c89c | dmsetup(8) splits load\|reload into two words around a .BR line ending in \c | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
 | l1 | tooling | a3 | done:9e2a821f | the loop has no clock it can enforce: put start/deadline/stopNew in the tracked queue, print the budget in status, and refuse a round after stopNew | bin/loop-clock.mjs, bin/loop.mjs, test/loop-clock.mjs, test/loop.mjs, doc/Loop.md, doc/Loop-prompt.md |
+| b1 | man | a1 | done:07e195dd | batch: the man tail's register claims (p45, p120) | js/man-parse.mjs, test/man-parse.mjs |
 
 <!-- /loop:queue -->

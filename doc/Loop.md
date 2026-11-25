@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: handover after round 47, 2026-11-25. Twenty-eight rounds used the
+Status: handover after round 48, 2026-11-25. Twenty-nine rounds used the
 tool's gate: red at base, green after the rebase, one suite at the integrated
-tip, the record on `loop/r<n>`, one fast-forward. Main is the round-47 tip,
-green (2049 of 2051 tests passing, 2 pending, check clean). The agreed plan,
+tip, the record on `loop/r<n>`, one fast-forward. Main is the round-48 tip,
+green (2062 of 2064 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
 and area-aware picks are parked by the plan's own criterion. Man is 3 words on
 3 pages, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
@@ -256,16 +256,17 @@ lane, or to another area, if its files are free.
 | 45 | dash and retry | `8618283` | `.Bl -dash` marks each item in the text model (editline 5 → 0, section 7 clean); `session.retry.scheduled` becomes a retry status (code 19/1); `appendThinking` decides the block per transcript box; man 6 words on 5 pages |
 | 46 | copy mode and markers | `4dd8ef8` | copy mode keeps an escaped space (dmstats 2 → 0); a `-dash` list draws a hyphen; man 4 words on 4 pages |
 | 47 | device name | `c1f2f38` | a bare `\T` is the letter (tex2aspc 1 → 0); man 3 words on 3 pages |
+| 48 | the clock | `9e2a821` | the run clock moves into the tracked queue, `clock` prints the budget, `round` refuses after stopNew; 13 tests, man unchanged |
 
 ## Current state
 
-Measured at `c1f2f38a` (round 47's tip), corpus `4150` pages:
+Measured at `9e2a821f` (round 48's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 47: 1:2p/2w  3:0p/0w  5:0p/0w  7:0p/0w  8:1p/1w
-    code events after round 47: 20 (19 translated, 1 dropped, 0 malformed)
-    620 man tests, 2049 of 2051 passing, 2 pending, 0 failing; check clean
+    whole sections after round 48: 1:2p/2w  3:0p/0w  5:0p/0w  7:0p/0w  8:1p/1w
+    code events after round 48: 20 (19 translated, 1 dropped, 0 malformed)
+    620 man tests, 2062 of 2064 passing, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

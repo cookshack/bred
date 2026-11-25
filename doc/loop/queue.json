@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 47,
-    "main": "d0b43364"
+    "round": 48,
+    "main": "9e2a821f"
   },
   "items": [
     {
@@ -1538,7 +1538,7 @@
       "area": "tooling",
       "lane": "a3",
       "type": "infra",
-      "status": "ready",
+      "status": "done",
       "title": "the loop has no clock it can enforce: put start/deadline/stopNew in the tracked queue, print the budget in status, and refuse a round after stopNew",
       "files": [
         "bin/loop-clock.mjs",
@@ -1550,7 +1550,8 @@
       ],
       "proof": "npx mocha --exit test/loop-clock.mjs test/loop.mjs",
       "source": "triage",
-      "notes": "The 2026-11-25 11:51Z run stopped at 12:28 having set a 15:06 stopNew and never read the clock again: the stop condition lived in prose and in an untracked file nothing parsed. The clock moves to doc/loop/queue.json run (tracked, so a fresh session inherits it), bin/loop-clock.mjs holds the pure budget/canStart logic, status prints it, and round refuses after stopNew unless --force. lastRoundMs is recorded so the printed ETA uses a measured round, not a guess."
+      "notes": "The 2026-11-25 11:51Z run stopped at 12:28 having set a 15:06 stopNew and never read the clock again: the stop condition lived in prose and in an untracked file nothing parsed. The clock moves to doc/loop/queue.json run (tracked, so a fresh session inherits it), bin/loop-clock.mjs holds the pure budget/canStart logic, status prints it, and round refuses after stopNew unless --force. lastRoundMs is recorded so the printed ETA uses a measured round, not a guess.",
+      "doneHash": "9e2a821f"
     }
   ],
   "measures": {

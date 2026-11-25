@@ -176,8 +176,43 @@ items/hour, and the fixed cost, not the lane, sets the rate.
   the fixed cost once instead of three times.
 - **Measure what the round touched.** `--area all` every round is policy, not
   proof: a man round that also sweeps core and code learns nothing.
-- **Groom while the lanes run.** After dispatch, promote `next` rows to
-  `ready` with their proofs. Waiting on lanes is the only free time in a run.
+- **Groom while the lanes run.** Dispatch a groom helper (see "Helpers") after
+  the round's lanes: waiting on a lane is the only free time in a run.
+
+## Helpers
+
+The scheduler's context is the run's scarcest resource: every file it reads,
+every diff it prints and every log it keeps stays in the transcript, and the
+transcript is what fills. The reading that only produces a small decision
+belongs to a subagent.
+
+- **Groom helper** — when fewer than three rows are `ready`, it reads the code
+  and the page or fixture, proves the difference, writes a failing test, leaves
+  it uncommitted in its own worktree, and writes `$LOOP/proposal-<n>.json`.
+  Dispatch it after the round's lanes, so it works while they do.
+- **Brief helper** — when the next round is already stocked, it reads the
+  picked rows and writes `$LOOP/lane-<id>.md` for each, returning the paths and
+  one line each.
+
+A helper is a leaf: it does not dispatch, does not run `round`, `land` or
+`mark`, does not touch the clock, and does not edit `doc/loop/queue.json`. The
+scheduler applies its proposals with `bin/loop.mjs apply <file>` — validated,
+atomic, and it regenerates the view. The scheduler keeps the clock, the pick,
+the dispatch, the gate, the measurement, the land and `check`: those outputs are
+small, and they are the invariants that catch a mis-merged round.
+
+The scheduler does not read `js/`, `ext/` or `test/` to decide what to do. If
+it is reading source, it is doing a lane's or helper's job: write a brief or a
+proposal instead. Marks are audited with `check`, not by diffing commits.
+
+### A proposal
+
+One JSON file, `{ "items": [ ... ] }`, each item an id plus the fields to set:
+`status`, `type`, `title`, `files`, `proof`, `notes`, `lane`, `area`, `source`,
+`repro` or `exclusive`. A new row needs `"new": 1` and a free id. The tool
+refuses unknown fields and ids, a `done` row (use `mark`), a `ready` row
+without a proof, an absolute path and a missing lane, and writes nothing if any
+item in the batch fails.
 
 ## Working on a moving main
 

@@ -6,6 +6,7 @@
 //
 //   bin/loop.mjs status            what is running, what is next, from disk
 //   bin/loop.mjs lanes-up          bring the lane worktrees to main
+//   bin/loop.mjs apply <file>      merge a helper's row proposals into the queue
 //   bin/loop.mjs help
 //
 // Two halves are owned separately, and this file only calls them, so two
@@ -40,6 +41,13 @@ root = git(Path.dirname(Url.fileURLToPath(import.meta.url)), 'rev-parse', '--sho
 let loopDir, args
 
 loopDir = Path.join(process.env.BRED_WORKTREE_ROOT || Path.join(root, '..'), 'bred-loop')
+
+// The row fields a helper may propose. `id` is identity, `new` is a flag, and
+// `doneHash` belongs to `mark`: apply never closes a row.
+let applyFields
+
+applyFields = [ 'area', 'status', 'type', 'title', 'lane', 'files', 'proof', 'notes', 'source', 'repro',
+                'exclusive' ]
 
 function git
 (repo, ...argv) {
@@ -128,6 +136,8 @@ function main
     return reportCmd()
   case 'mark':
     return markCmd()
+  case 'apply':
+    return applyCmd()
   case undefined:
   case 'help':
   case '--help':
@@ -141,7 +151,7 @@ function main
 
 function usage
 () {
-  console.log('usage: bin/loop.mjs [status|lanes-up|pick|claim|release|reap|check|round|land|measure|mark|report|help]')
+  console.log('usage: bin/loop.mjs [status|lanes-up|pick|claim|release|reap|check|round|land|measure|mark|apply|report|help]')
   return 2
 }
 
@@ -185,6 +195,8 @@ function help
   console.log('  measure     --area man (default) or --area all, at --tip: each area in a')
   console.log('              worktree of that tip within its budget, appended to history')
   console.log('  mark p1=abc,d2=def  set queue rows done, for the record commit')
+  console.log('  apply <file>        merge a helper\'s row proposals (JSON { "items": [...] })')
+  console.log('                      into queue.json: validates, writes, regenerates the view')
   console.log('  report [--write]    the queue tables from queue.json (--write regen-)')
   console.log('                      erates the block in doc/Loop-queue.md')
   console.log('')
@@ -749,22 +761,41 @@ function checkCmd
 
 function reportCmd
 () {
-  let q, block, file, text
+  let q
 
   q = loadQueue()
-  block = Queue.report(q)
 
   if (flag('--write') == 0) {
-    console.log(block)
+    console.log(Queue.report(q))
     return 0
   }
+  if (writeQueueView(q) == 0) {
+    console.error('loop: no <!-- loop:queue --> markers in doc/Loop-queue.md')
+    return 1
+  }
+  return 0
+}
+
+// Regenerate the generated block in doc/Loop-queue.md. A missing file or missing
+// markers is a skipped view (a fresh checkout, a test fixture), not a failed
+// queue write.
+function writeQueueView
+(q) {
+  let block, file, text
 
   file = Path.join(root, 'doc', 'Loop-queue.md')
-  text = Fs.readFileSync(file, 'utf8')
-  text = replaceBlock(text, block)
-  Fs.writeFileSync(file, text)
+  try {
+    text = Fs.readFileSync(file, 'utf8')
+  }
+  catch {
+    return 0
+  }
+  if ((text.includes('<!-- loop:queue -->') == 0) || (text.includes('<!-- /loop:queue -->') == 0))
+    return 0
+  block = Queue.report(q)
+  Fs.writeFileSync(file, replaceBlock(text, block))
   console.log('wrote    ' + file)
-  return 0
+  return 1
 }
 
 function replaceBlock
@@ -779,6 +810,117 @@ function replaceBlock
     return text
   }
   return text.slice(0, start) + '<!-- loop:queue -->\n' + block + '\n' + close + text.slice(end + close.length)
+}
+
+// Apply a helper's row proposals. The helper reads the code and proves the
+// test; the scheduler is the queue's only writer, so it runs this rather than
+// editing the JSON. Existing rows are updated in place, a new row needs
+// "new": 1 with an id that is not taken, and `done` belongs to `mark`.
+function applyCmd
+() {
+  let file, text, batch, q, changes, problems, i
+
+  file = args[ 1 ]
+  if (file == undefined)
+    return applyUsage()
+  try {
+    text = Fs.readFileSync(file, 'utf8')
+  }
+  catch (e) {
+    console.error('loop: cannot read ' + file + ': ' + e.message)
+    return 1
+  }
+  try {
+    batch = JSON.parse(text)
+  }
+  catch (e) {
+    console.error('loop: ' + file + ' is not JSON: ' + e.message)
+    return 1
+  }
+  if (Array.isArray(batch.items) == 0) {
+    console.error('loop: ' + file + ' must be { "items": [ ... ] }')
+    return 1
+  }
+
+  q = loadQueue()
+  changes = []
+  problems = []
+  i = 0
+
+  while (i < batch.items.length) {
+    problems = problems.concat(applyRow(q, batch.items[ i ], changes))
+    i += 1
+  }
+
+  problems = problems.concat(Queue.check(q))
+  if (problems.length > 0) {
+    problems.forEach(p => console.error('loop: ' + p))
+    console.error('loop: nothing written (' + problems.length + ' problem(s))')
+    return 1
+  }
+
+  Queue.save(queueFile(), q)
+  writeQueueView(q)
+  changes.forEach(c => console.log('applied  ' + c))
+  return 0
+}
+
+// One proposal: validate its shape, find or create the row, apply the fields,
+// then the row's own rules. Returns problems; the caller writes nothing until
+// every proposal in the batch has passed.
+function applyRow
+(q, proposal, changes) {
+  let problems, keys, item
+
+  problems = []
+  if ((typeof proposal == 'object') == 0)
+    return [ 'a proposal is not an object' ]
+  if ((typeof proposal.id == 'string') == 0 || proposal.id.length == 0)
+    return [ 'a proposal has no id' ]
+
+  keys = Object.keys(proposal).filter(k => (k == 'id' || k == 'new' || applyFields.includes(k)) == 0)
+  keys.forEach(k => problems.push(proposal.id + ': unknown field ' + k))
+  if (problems.length > 0)
+    return problems
+
+  item = q.items.find(x => x.id == proposal.id)
+  if (item == undefined) {
+    if ((proposal.new == 1) == 0)
+      return [ proposal.id + ': no such row (add "new": 1 to create it)' ]
+    item = { id: proposal.id }
+    q.items.push(item)
+  }
+  else if (proposal.new == 1)
+    return [ proposal.id + ': row exists; drop "new"' ]
+  else if (item.status == 'done')
+    return [ proposal.id + ': done rows stay closed; file a new row' ]
+  else if (item.status == 'in-round')
+    return [ proposal.id + ': a round owns it; release it first' ]
+
+  applyFields.forEach(k => {
+                        if (proposal[ k ] == undefined)
+                          return
+                        item[ k ] = proposal[ k ]
+                      })
+
+  if ((item.lane || '').length == 0)
+    problems.push(item.id + ': no lane')
+  if (item.status == 'ready' && ((item.proof || '').length == 0))
+    problems.push(item.id + ': ready without a proof')
+  if (item.status == 'done')
+    problems.push(item.id + ': done belongs to mark')
+  if (item.status == 'in-round')
+    problems.push(item.id + ': in-round belongs to the dispatch')
+  if (problems.length == 0)
+    changes.push(item.id + '  ' + item.status)
+  return problems
+}
+
+function applyUsage
+() {
+  console.error('loop: usage: bin/loop.mjs apply <proposals.json>')
+  console.error('       the file is { "items": [ { "id": "p53", "status": "ready", ... } ] }')
+  return 2
 }
 
 function measures

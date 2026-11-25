@@ -677,6 +677,128 @@ test('clock', 'clock --can-start exits 1 after stopNew', withRepo(clockRefuses))
 test('clock', 'round refuses after stopNew instead of starting', withRepo(roundRefuses))
 test('clock', 'round refuses when the run has no clock', withRepo(missingRefuses))
 
+// `apply` is how a helper's proposals reach the queue: one validated write, so
+// the scheduler never edits the JSON and a bad proposal leaves the file alone.
+
+function writeRows
+(dir, items) {
+  let q
+
+  q = { schema: 1,
+        run: { start: '2020-01-01T00:00:00Z',
+               deadline: '2099-01-01T00:00:00Z',
+               stopNew: '2099-01-01T00:00:00Z',
+               state: 'active' },
+        items }
+  Fs.mkdirSync(Path.join(dir, 'doc', 'loop'), { recursive: true })
+  Fs.writeFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), JSON.stringify(q, null, 2) + '\n')
+}
+
+function queueRow
+(id, patch) {
+  let base
+
+  base = { id, area: 'man', lane: 'a1', type: 'fix', status: 'next', title: 't', files: [ 'js/man-parse.mjs' ] }
+  return Object.assign(base, patch)
+}
+
+function proposals
+(dir, items) {
+  Fs.writeFileSync(Path.join(dir, 'proposals.json'), JSON.stringify({ items }, null, 2) + '\n')
+  return 'proposals.json'
+}
+
+function queueOf
+(dir) {
+  return JSON.parse(Fs.readFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), 'utf8'))
+}
+
+function appliesReady
+(dir) {
+  let one, q, res
+
+  writeRows(dir, [ queueRow('p1') ])
+  one = { id: 'p1', status: 'ready', files: [ 'js/man-parse.mjs', 'test/man-parse.mjs' ], proof: 'npx mocha --exit test/man-parse.mjs', notes: 'evidence' }
+  res = loop(dir, [ 'apply', proposals(dir, [ one ]) ])
+  equal(res.includes('applied  p1  ready'), true)
+  q = queueOf(dir)
+  equal(q.items[ 0 ].status, 'ready')
+  equal(q.items[ 0 ].notes, 'evidence')
+  equal(q.items[ 0 ].files.length, 2)
+  equal(loop(dir, [ 'check' ]).includes('0 problem(s)'), true)
+}
+
+function applyRefusals
+(dir) {
+  let before, res
+
+  writeRows(dir, [ queueRow('p1'), queueRow('d1', { status: 'done', doneHash: '1234567' }) ])
+  before = Fs.readFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), 'utf8')
+
+  res = loopRaw(dir, [ 'apply', proposals(dir, [ { id: 'nope', status: 'ready', proof: 'x' } ]) ])
+  equal(res.status, 1)
+  equal(res.out.includes('no such row'), true)
+
+  res = loopRaw(dir, [ 'apply', proposals(dir, [ { id: 'd1', notes: 'x' } ]) ])
+  equal(res.status, 1)
+  equal(res.out.includes('done rows stay closed'), true)
+
+  res = loopRaw(dir, [ 'apply', proposals(dir, [ { id: 'p1', status: 'ready' } ]) ])
+  equal(res.status, 1)
+  equal(res.out.includes('ready without a proof'), true)
+
+  res = loopRaw(dir, [ 'apply', proposals(dir, [ { id: 'p1', files: [ '/abs' ] } ]) ])
+  equal(res.status, 1)
+  equal(res.out.includes('absolute file'), true)
+
+  // A batch with one bad proposal writes none of them.
+  res = loopRaw(dir, [ 'apply', proposals(dir, [ { id: 'p1', status: 'ready', proof: 'p' }, { id: 'p2', status: 'ready' } ]) ])
+  equal(res.status, 1)
+  equal(res.out.includes('nothing written'), true)
+
+  equal(Fs.readFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), 'utf8'), before)
+}
+
+function appliesNew
+(dir) {
+  let one, q, res
+
+  writeRows(dir, [])
+  one = { id: 'p9', new: 1, area: 'man', lane: 'a1', type: 'fix', status: 'ready', title: 'new', files: [ 'js/man-parse.mjs' ], proof: 'npx mocha --exit test/man-parse.mjs' }
+  res = loop(dir, [ 'apply', proposals(dir, [ one ]) ])
+  q = queueOf(dir)
+  equal(q.items.length, 1)
+  equal(q.items[ 0 ].id, 'p9')
+  equal(res.includes('applied  p9  ready'), true)
+
+  res = loopRaw(dir, [ 'apply', proposals(dir, [ { id: 'p9', new: 1, title: 'again' } ]) ])
+  equal(res.status, 1)
+  equal(res.out.includes('row exists'), true)
+
+  res = loopRaw(dir, [ 'apply', proposals(dir, [ { id: 'p10', title: 'no flag' } ]) ])
+  equal(res.status, 1)
+  equal(res.out.includes('no such row'), true)
+}
+
+function appliesView
+(dir) {
+  let file, one, text
+
+  writeRows(dir, [ queueRow('p1') ])
+  file = Path.join(dir, 'doc', 'Loop-queue.md')
+  Fs.writeFileSync(file, '# Queue\n\n<!-- loop:queue -->\nold\n<!-- /loop:queue -->\n')
+  one = { id: 'p1', status: 'ready', proof: 'npx mocha --exit test/man-parse.mjs' }
+  loop(dir, [ 'apply', proposals(dir, [ one ]) ])
+  text = Fs.readFileSync(file, 'utf8')
+  equal(text.includes('old'), false)
+  equal(text.includes('| p1 | man | a1 | ready |'), true)
+}
+
+test('apply', 'updates a row and keeps check clean', withRepo(appliesReady))
+test('apply', 'refuses a bad proposal and writes nothing', withRepo(applyRefusals))
+test('apply', 'creates a row only with new: 1 and a free id', withRepo(appliesNew))
+test('apply', 'regenerates the generated view', withRepo(appliesView))
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

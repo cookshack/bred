@@ -70,9 +70,14 @@ not a clock.
     call it, stop and report the tool and error instead of doing the lanes'
     work yourself. Tell every lane to read doc/loop/rules.md and its brief,
     work only in its worktree and files, commit once with a Loop-item: <id>
-    trailer, and never merge, rebase or push. While the lanes run, groom the
-    next round: promote `next` rows to `ready` with red-capable proofs.
-    Waiting on a lane is free time; use it.
+    trailer, and never merge, rebase or push. While the lanes run, dispatch a
+    groom helper: a subagent that reads the code and the page or fixture,
+    proves the difference, leaves a failing test in its own worktree, and
+    writes $LOOP/proposal-<n>.json. Apply it with bin/loop.mjs apply <file>;
+    the tool validates the rows and regenerates the view. When the next round
+    is already stocked, the helper writes the briefs instead. Do not read
+    js/, ext/ or test/ yourself to decide what to do: that reading belongs to
+    the helper or the lane, and every line of it stays in your context.
 
     Then bin/loop.mjs round <n> --items ... gates and integrates onto
     loop/r<n> and runs the suite once at that tip (the suite log is in $LOOP).
@@ -85,7 +90,8 @@ not a clock.
     Loop-round: <n> and Loop-verify: <tip> — the marks belong in the same
     commit, not after the land. bin/loop.mjs land <n> then makes the one
     fast-forward, and refuses while doc/ is dirty. Run bin/loop.mjs report
-    --write after any queue edit.
+    --write after any queue edit. After a land, bin/loop.mjs check is the
+    audit; do not re-derive the marks from git diffs.
 
     Only the loop edits doc/Loop.md, doc/loop/queue.json, doc/Loop-queue.md and
     the plan; a lane that needs a file outside its row stops and reports

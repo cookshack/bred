@@ -92,7 +92,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "source": "lane",
       "title": "batch: escapes and synopsis spacing (p102, p76, p77)",
       "files": [
@@ -865,7 +865,7 @@
     {
       "id": "p76",
       "lane": "a1",
-      "status": "ready",
+      "status": "in-round",
       "title": "in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them",
       "files": [
         "js/man-parse.mjs",
@@ -879,7 +879,7 @@
     {
       "id": "p77",
       "lane": "a1",
-      "status": "ready",
+      "status": "in-round",
       "title": "the parser maps the \\t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it",
       "files": [
         "js/man-parse.mjs",
@@ -1234,7 +1234,7 @@
     {
       "id": "p102",
       "lane": "a1",
-      "status": "ready",
+      "status": "in-round",
       "title": "an unknown escape (`\\Q`) is printed by groff as its letter and refused here",
       "files": [
         "js/man-parse.mjs",
@@ -1885,7 +1885,7 @@
     {
       "id": "p132",
       "area": "man",
-      "status": "ready",
+      "status": "in-round",
       "type": "fix",
       "title": "doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0",
       "lane": "a3",

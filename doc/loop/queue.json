@@ -10,6 +10,24 @@
   },
   "items": [
     {
+      "id": "c17",
+      "area": "core",
+      "lane": "a3",
+      "type": "fix",
+      "status": "in-round",
+      "source": "lane",
+      "title": "batch: Em.seq keeps a space key, and Cmd.get agrees with getAll (p141, p142)",
+      "files": [
+        "js/Em.mjs",
+        "js/cmd.mjs",
+        "test/em-seq-space.mjs",
+        "test/cmd-minors.mjs",
+        "test/ed.mjs"
+      ],
+      "proof": "npx mocha --exit test/em-seq-space.mjs test/cmd-minors.mjs test/ed.mjs",
+      "notes": "Round 68: the a3 lane carried p141 (c209cac5, 1457cde1) then p142 (e8ffce9e) in sequence, so the round takes them as one row owning the union. p141: Em.seq built its answer with `acc + cur + ' '` and then trimmed, so the space key's own separator was the whitespace the trim removed — a binding on ' ' decoded to '' and 'C- ' to 'C-' (which does not parse at all). seq now accumulates finished events and joins between them, so ' ', 'C- ', 'C-A- ', 'C-x C- ', 'a b', 'C--' and '-' all round-trip through lib/ev-parser.mjs. test/ed.mjs:141 asserted the old 'C-' and so enshrined the bug; the lane refused to widen its own file set, the row was widened, and the one-line flip is 1457cde1. p142: Cmd.get walked buf.minors forward and took the first hit while Cmd.getAll and Em.mainGetActive both put the last-added minor first, so the key that ran a command came from the newer minor and the command object from the older; get now walks the same way, and doc/Em.md's \"first match wins\" makes getAll the reference. Red: 'its answer for a space binding parses back to the space key' ('' !== ' '), 'its answer for a control space binding...' (peg$SyntaxError on 'C-'), and 'picks the same minor mode command that Cmd.getAll lists first' ('a' !== 'b')."
+    },
+    {
       "id": "c15",
       "area": "code",
       "lane": "a2",

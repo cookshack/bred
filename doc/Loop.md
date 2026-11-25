@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: handover after round 52, 2026-11-25. Thirty-three rounds used the
+Status: handover after round 53, 2026-11-25. Thirty-four rounds used the
 tool's gate: red at base, green after the rebase, one suite at the integrated
-tip, the record on `loop/r<n>`, one fast-forward. Main is the round-52 tip,
-green (2068 of 2070 tests passing, 2 pending, check clean). The agreed plan,
+tip, the record on `loop/r<n>`, one fast-forward. Main is the round-53 tip,
+green (2069 of 2071 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
 and area-aware picks are parked by the plan's own criterion. Man is 1 word on
 1 page, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
@@ -292,17 +292,18 @@ lane, or to another area, if its files are free.
 | 49 | link tails | `fc63c08` | `.UE`/`.ME` keep every trailing argument (tload 1 → 0); man 2 words on 2 pages |
 | 50 | join through | `eac2c89` | a `\c` survives a request that draws nothing (dmsetup 1 → 0, section 8 clean); man 1 word on 1 page |
 | 51 | compaction | `ab98859` | the four compaction events become a log line per phase; re-gated after an outside doc commit moved main mid-round |
+| 53 | link copy | `673c8b7` | `.UE`/`.ME` copy their tail once before expanding it; no corpus change |
 | 52 | conditions | `e7e0d67` | `.if r X` / `.if d XX` take their name from the next token; no corpus change, a latent tmac form |
 
 ## Current state
 
-Measured at `e7e0d671` (round 52's tip), corpus `4150` pages:
+Measured at `673c8b77` (round 53's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
     whole sections after round 50: 1:1p/1w  3:0p/0w  5:0p/0w  7:0p/0w  8:0p/0w
     code events after round 50: 20 (19 translated, 1 dropped, 0 malformed)
-    622 man tests, 2068 of 2070 passing, 2 pending, 0 failing; check clean
+    622 man tests, 2069 of 2071 passing, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

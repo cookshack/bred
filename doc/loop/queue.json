@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 52,
-    "main": "e7e0d671"
+    "round": 53,
+    "main": "673c8b77"
   },
   "items": [
     {
@@ -1220,7 +1220,7 @@
     {
       "id": "p116",
       "lane": "a1",
-      "status": "next",
+      "status": "done",
       "title": ".UE/.ME/.URL/.MTO trailing arguments lose a copy round: .UE a\\\\\\\\- prints a\\- in groff, a\\\\- here",
       "files": [
         "js/man-parse.mjs",
@@ -1228,7 +1228,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "673c8b77"
     },
     {
       "id": "p117",

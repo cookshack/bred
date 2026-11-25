@@ -56,7 +56,6 @@ before.
 | p101 | man | a1 | next | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
 | p102 | man | a1 | next | an unknown escape is printed by groff (\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts | js/man-parse.mjs, test/man-parse.mjs |
 | p111 | man | a1 | next | xargs(1) loses 1 word: --show-limits (a hyphen join) | js/man-parse.mjs, test/man-parse.mjs |
-| p116 | man | a1 | next | .UE/.ME/.URL/.MTO trailing arguments lose a copy round: .UE a\\\\- prints a\- in groff, a\\- here | js/man-parse.mjs, test/man-parse.mjs |
 | p117 | man | a1 | next | a zero-width escape (\b) is refused here and printed by groff (drops the backslash, prints the char); no corpus occurrence, latent | js/man-parse.mjs, test/man-parse.mjs |
 | p118 | man | a1 | next | a \c inside an interpolated macro argument must cut the rest of the outer body line; groff does, we keep emitting (pre `a tailnext) | js/man-parse.mjs, test/man-parse.mjs |
 | c2 | code | a2 | next | session.step.streamed is dropped (seen live); decide whether it must translate | ext/code/event.mjs, test/code-events.mjs |
@@ -153,6 +152,7 @@ before.
 | p112 | man | a1 | done:3d13d152 | editline(7) loses 5 words: a lone - in the text | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p113 | man | a3 | done:6b36716 | gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff) | bin/man-diff, test/man-diff.mjs |
 | p114 | man | a3 | done:3bf287c | dmsetup(8) loses 5 words: long [a\|b] alternatives wrapped by man(1); decide a diff join or parser rule | bin/man-diff, test/man-diff.mjs |
+| p116 | man | a1 | done:673c8b77 | .UE/.ME/.URL/.MTO trailing arguments lose a copy round: .UE a\\\\- prints a\- in groff, a\\- here | js/man-parse.mjs, test/man-parse.mjs |
 | g1 | code | a1 | done:f6ff0e7 | second area: a recorder of real v2 event streams and a conformance measure over translate() (translated / dropped / malformed), plus one committed fixture | bin/oc-record.mjs, bin/oc-conformance.mjs, test/code-conformance.mjs, test/fixtures/oc-events/*, ext/code/event.mjs |
 | c1 | code | a1 | done:c72362c | session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage) | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/* |
 | c3 | code | a3 | done:8618283a | session.retry.scheduled is dropped; a retry is visible to the user, so decide what legacy event it should be | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs |

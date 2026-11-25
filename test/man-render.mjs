@@ -1,4 +1,5 @@
 import { equal, ok } from 'node:assert/strict'
+import Fs from 'node:fs'
 import { fuzzDocs, fuzzPages } from './man-fuzz.mjs'
 import * as ManParse from '../js/man-parse.mjs'
 import * as ManRender from '../js/man-render.mjs'
@@ -105,6 +106,22 @@ test('lists', 'mdoc lists become dl and ul elements',
        equal(out.el.querySelectorAll('dl dt').length, 1)
        equal(out.el.querySelector('dl dt').textContent, '-a')
        equal(out.el.querySelectorAll('ul li').length, 1)
+     })
+
+test('lists', 'a dash or hyphen list is marked for its hyphen rule',
+     () => {
+       let css, out
+
+       // groff draws one `-` before each item of a -dash or -hyphen list; a
+       // plain <ul> draws a disc. The text model says `-` (p112), so the
+       // renderer names the list and the stylesheet supplies the marker.
+       out = draw('.Dd t\n.Dt T 1\n.Os\n.Bl -dash\n.It one\n.El\n')
+       equal(out.el.querySelector('ul').className.includes('man-dash'), true)
+       out = draw('.Dd t\n.Dt T 1\n.Os\n.Bl -hyphen\n.It one\n.El\n')
+       equal(out.el.querySelector('ul').className.includes('man-dash'), true)
+       css = Fs.readFileSync(new URL('../css/manpage.css', import.meta.url), 'utf8')
+       equal(css.includes('.man-ul.man-dash'), true)
+       equal(css.includes("list-style-type: '-'"), true)
      })
 
 test('tables', 'cells carry alignment classes and colspans',

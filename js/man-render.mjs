@@ -128,6 +128,10 @@ function listNode
   }
   el = globalThis.document.createElement((block.listType == 'enum') ? 'ol' : 'ul')
   el.className = 'man-list man-ul'
+  // groff prints a hyphen for both -dash and -hyphen; the stylesheet draws it
+  // in place of the disc.
+  if ((block.listType == 'dash') || (block.listType == 'hyphen'))
+    el.className += ' man-dash'
   block.items.forEach(item => {
                         let li
 

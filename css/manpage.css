@@ -103,6 +103,11 @@
   margin: 0.25em 0;
 }
 
+/* groff prints a hyphen before a -dash or -hyphen item, not a disc */
+.manpage-w .man-ul.man-dash {
+  list-style-type: '-';
+}
+
 /* tables */
 .manpage-w .man-table {
   border-collapse: collapse;

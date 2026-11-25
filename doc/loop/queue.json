@@ -1919,7 +1919,7 @@
     {
       "id": "p133",
       "area": "man",
-      "status": "ready",
+      "status": "in-round",
       "type": "fix",
       "title": "\\h( and \\l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \\v(, these two still drop their tail",
       "lane": "a1",
@@ -1997,7 +1997,7 @@
     {
       "id": "p142",
       "area": "core",
-      "status": "ready",
+      "status": "in-round",
       "type": "fix",
       "title": "Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree",
       "lane": "a3",

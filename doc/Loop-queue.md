@@ -34,8 +34,6 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
-| p133 | man | a1 | ready | \h( and \l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \v(, these two still drop their tail | js/man-parse.mjs, test/man-parse.mjs |
-| p142 | core | a3 | ready | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
 | p143 | core | a3 | ready | a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4 | js/em.mjs, test/em-otherwise.mjs |
 | p144 | core | a3 | ready | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
 | l3 | tooling | a3 | ready | Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand | bin/loop-claims.mjs, test/loop.mjs |
@@ -44,7 +42,9 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| p133 | man | a1 | in-round | \h( and \l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \v(, these two still drop their tail | js/man-parse.mjs, test/man-parse.mjs |
 | p141 | core | a3 | in-round | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs |
+| p142 | core | a3 | in-round | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
 
 ## Backlog
 

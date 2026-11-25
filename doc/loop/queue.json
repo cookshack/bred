@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 57,
-    "main": "1947f160"
+    "round": 58,
+    "main": "57c1d58f"
   },
   "items": [
     {
@@ -1526,7 +1526,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "done",
       "title": "session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description",
       "files": [
         "ext/code/event.mjs",
@@ -1534,7 +1534,8 @@
         "test/code-events.mjs"
       ],
       "proof": "npx mocha --exit test/code-events.mjs",
-      "notes": "Found by the same hunt. Reference: shared-events case \"session.synthetic\" inserts {type:\"synthetic\", text, description, metadata}. What bred should show is a decision (a code-msg-text note? a part type?), so this is a triage. Evidence command: grep -n \"session.synthetic\" -A 9 ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js. Decision (2026-11-25): a log line, like c10. translate() emits one legacy session.synthetic with text and description; the handler appends Ui.appendMsg(..., { log: 1 }) for the buffer's own session, flattened and capped at 200 chars. 2026-11-25: round 57 recorded this done while a peer grooming commit had moved the row to a3; the lane commit was on a2, nothing merged, and the record was wrong. Re-armed on a2 and re-run in round 58 with the merge line checked."
+      "notes": "Found by the same hunt. Reference: shared-events case \"session.synthetic\" inserts {type:\"synthetic\", text, description, metadata}. What bred should show is a decision (a code-msg-text note? a part type?), so this is a triage. Evidence command: grep -n \"session.synthetic\" -A 9 ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js. Decision (2026-11-25): a log line, like c10. translate() emits one legacy session.synthetic with text and description; the handler appends Ui.appendMsg(..., { log: 1 }) for the buffer's own session, flattened and capped at 200 chars. 2026-11-25: round 57 recorded this done while a peer grooming commit had moved the row to a3; the lane commit was on a2, nothing merged, and the record was wrong. Re-armed on a2 and re-run in round 58 with the merge line checked.",
+      "doneHash": "57c1d58f"
     },
     {
       "id": "c12",
@@ -1663,6 +1664,22 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Found while grooming p119 on 2026-11-25: `.Sh NAME` followed by a plain text line renders bold in mdoc mode; groff -Tutf8 -mdoc prints it roman. mdocHeading does not restore c.font. Needs a red test first: after parsing, the text span's style is roman."
+    },
+    {
+      "id": "l2",
+      "area": "tooling",
+      "lane": "a3",
+      "type": "infra",
+      "status": "next",
+      "source": "triage",
+      "title": "check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit",
+      "files": [
+        "bin/loop.mjs",
+        "bin/loop-queue.mjs",
+        "test/loop.mjs"
+      ],
+      "proof": "npx mocha --exit test/loop.mjs",
+      "notes": "Found 2026-11-25: round 57 marked c11 done with 1947f160, a peer grooming commit with no Loop-item trailer, while the fix was on a lane branch that never merged. check verified only that the hash is on main. A doneHash must be a commit whose body carries Loop-item: <id>, or a batch trailer naming the item; anything else is a problem. Test: a scratch repo with a done row pointing at an unrelated commit is refused."
     }
   ],
   "measures": {

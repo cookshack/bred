@@ -1,8 +1,8 @@
 # Unattended agent loop
 
-Status: handover after round 57, 2026-11-25. Thirty-eight rounds used the
+Status: handover after round 58, 2026-11-25. Thirty-nine rounds used the
 tool's gate: red at base, green after the rebase, one suite at the integrated
-tip, the record on `loop/r<n>`, one fast-forward. Main is the round-57 tip,
+tip, the record on `loop/r<n>`, one fast-forward. Main is the round-58 tip,
 green (2078 of 2080 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
 and area-aware picks are parked by the plan's own criterion. Man is 1 word on
@@ -292,7 +292,8 @@ lane, or to another area, if its files are free.
 | 49 | link tails | `fc63c08` | `.UE`/`.ME` keep every trailing argument (tload 1 → 0); man 2 words on 2 pages |
 | 50 | join through | `eac2c89` | a `\c` survives a request that draws nothing (dmsetup 1 → 0, section 8 clean); man 1 word on 1 page |
 | 51 | compaction | `ab98859` | the four compaction events become a log line per phase; re-gated after an outside doc commit moved main mid-round |
-| 57 | synthetic notes | `1947f16` | `session.synthetic` becomes a log line, like compaction |
+| 58 | synthetic notes, retried | `57c1d58` | `session.synthetic` becomes a log line; the merge line was checked this time |
+| 57 | synthetic notes | (none) | bad record: a peer grooming commit moved c11 to a3 between dispatch and gate, so nothing merged; the claim was corrected in round 58 |
 | 56 | joins and Sm (batch) | `7846c1d` | a `\c` survives an empty macro body, and `.Sm off` suppresses the space before a text line; p98/p33 batched |
 | 55 | character forms (batch) | `091f8e5` | `\[charN]` is a glyph lookup and `\N[ 65]` takes leading spaces; p94/p95 batched; p89 is a NUL verdict |
 | 54 | registers (batch) | `07e195d` | `.nr X +N`/`-N` are relative and `.nr X` alone leaves X undefined; p45 and p120 batched in one lane, measured man only |
@@ -301,7 +302,7 @@ lane, or to another area, if its files are free.
 
 ## Current state
 
-Measured at `1947f160` (round 57's tip), corpus `4150` pages:
+Measured at `57c1d58f` (round 58's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)

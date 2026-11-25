@@ -1738,7 +1738,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "title": "session.tool.input.delta is dropped: translate() emits no legacy delta while a tool's input streams, so the preview appears only when .ended has parsed the whole JSON",
       "files": [
         "ext/code/event.mjs",
@@ -1885,7 +1885,7 @@
     {
       "id": "p131",
       "area": "man",
-      "status": "next",
+      "status": "in-round",
       "type": "fix",
       "title": "a comment line at table-row level inside .TS/.TE is turned into a data row; tbl ignores it (ps(1) 9 of its surplus tokens, terminfo(5) 5)",
       "lane": "a1",
@@ -1962,7 +1962,7 @@
     {
       "id": "p140",
       "area": "core",
-      "status": "ready",
+      "status": "in-round",
       "type": "fix",
       "title": "Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key",
       "lane": "a3",

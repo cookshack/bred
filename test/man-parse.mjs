@@ -1268,11 +1268,52 @@ test('tables', 'a cell request outside the text macros is still not run',
        let r
 
        // tbl hands every control line to roff, but this model runs only the
-       // text macros. Anything else stays as the text it was, so a request is
-       // never half-applied.
-       r = parsed('.TH T 1\n.TS\nl l.\na\tT{\ntext\n.IP "" 2\nmore\nT}\n.TE\n')
+       // text macros. A request that prints text of its own stays as the text
+       // it was, so it is never half-applied: groff -Tutf8 -t -man on
+       // `text` / `.IP tag 2` / `more` prints a `tag` line and then the rest
+       // indented 2 ens, which no cell span can hold. Requests that draw *no*
+       // text are a different case and are dropped as cell text — `.br`/`.sp`
+       // already, and `.IP ""` in the test below.
+       r = parsed('.TH T 1\n.TS\nl l.\na\tT{\ntext\n.IP tag 2\nmore\nT}\n.TE\n')
        equal(flat(r.doc.blocks[0].rows[0].cells[1].spans),
-             'text\n.IP "" 2\nmore')
+             'text\n.IP tag 2\nmore')
+     })
+
+test('tables', 'an IP in a T{ cell prints no text',
+     () => {
+       let r, cell
+
+       // p75. ps(1) writes `.IP "" 2` inside its class/cls/policy cells,
+       // after `Field's possible values are:` and before the value list.
+       // groff -Tutf8 -t -man on the minimal cell `text` / `.IP "" 2` /
+       // `more` prints `text`, a blank line, then `more` indented 2 ens:
+       //
+       //     a   text
+       //
+       //                  more
+       //
+       // An `.IP` with an empty tag draws no text of its own, so the request
+       // line is never cell text. It breaks the cell's line like `.br`
+       // (which tableRequests already drops) instead of staying literal.
+       r = parsed('.TH T 1\n.TS\nl l.\na\tT{\ntext\n.IP "" 2\nmore\nT}\n.TE\n')
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), 'text\nmore')
+       // The ps(1) shape, with the `.br`s its value list uses: the only thing
+       // to lose is the `.IP "" 2` line. That is 9 of the surplus the sweep
+       // reports (three cells, `.IP` + `""` + `2` each: ps(1) goes 6710 to
+       // 6701 words), and no value-list text goes with it. The other 9 are a
+       // comment line at table-row level, a separate defect.
+       r = parsed('.TH T 1\n.TS\nl l l.\nclass\tCLS\tT{\n' +
+                  'scheduling class of the process.  (alias\n' +
+                  '.BR policy , \\ cls ).\n' +
+                  "Field's possible values are:\n" +
+                  '.IP "" 2\n' +
+                  '\\-\tnot reported\n' +
+                  '.br\n' +
+                  'TS\tSCHED_OTHER\n' +
+                  'T}\n.TE\n')
+       cell = flat(r.doc.blocks[0].rows[0].cells[2].spans)
+       equal(cell.indexOf('.IP'), -1)
+       equal(cell.indexOf('not reported') >= 0, true)
      })
 
 test('tables', 'a normal row still splits and a cell keeps its period',
@@ -3654,13 +3695,27 @@ test('groff requests', 'a stray TE and an empty mso are handled',
        equal(flat(r.doc.blocks[0].spans), 'visible')
      })
 
-test('paragraphs', 'the blank control line adds a space block',
+test('paragraphs', 'a truly blank line adds a space block',
      () => {
        let r
 
-       r = parsed('.TH T 1\n.\nvisible\n')
-       equal(r.doc.blocks[0].kind, 'space')
-       equal(flat(r.doc.blocks[1].spans), 'visible')
+       // groff -Tutf8 -man on `one`, a blank line, `two` prints `one`, a blank
+       // line, `two`. A `.`-only line is an empty request instead, and draws
+       // no gap at all (the test below): groff prints `one two`.
+       r = parsed('.TH T 1\none\n\ntwo\n')
+       equal(r.doc.blocks[1].kind, 'space')
+       equal(flat(r.doc.blocks[2].spans), 'two')
+     })
+
+test('paragraphs', 'a dot-only line draws no gap',
+     () => {
+       // p128. A `.`-only line is a request that prints nothing, and it does
+       // not flush the current line either: groff -Tutf8 -man on `one` / `.`
+       // / `two` prints `one two` on one line, with no blank line between.
+       // Only a pending `\c` was handled before this.
+       equal(asText('.TH T 1\none\n.\ntwo\n'), 'one two\n')
+       // The apostrophe form of the same empty request is the same.
+       equal(asText(".TH T 1\none\n'\ntwo\n"), 'one two\n')
      })
 
 test('literal', 'a blank line inside a literal block is kept',

@@ -2133,19 +2133,35 @@ function tableCell
 // tbl passes a control line in a table body through to roff instead of reading
 // it as data, so a request that draws nothing is not a cell. Only a line whose
 // first character is `.` is a request: groff prints an indented `  .sp` in the
-// cell as data. A request that produces text (`.B`, `.IP`) still needs roff to
-// run it, which this model does not do; the ones dropped here are the spacing
+// cell as data. A request that produces text (`.B`, `.IP tag`) still needs roff
+// to run it, which this model does not do; the ones dropped here are the spacing
 // and fill requests, of which mount(8) writes `.sp` at the top of every T{
-// cell and ps(1) writes `.br` inside them.
+// cell and ps(1) writes `.br` inside them. `.IP` with no tag draws no text
+// either, only the break and indent a cell span cannot hold, so it joins them.
 tableRequests = { sp: 1, br: 1, nf: 1, fi: 1 }
 
 function tableRequest
 (line) {
-  let name
+  if (line[0] == '.') {
+    let text, name
 
-  name = (line[0] == '.') ? line.slice(1) : ''
-  name = name.replace(/^[ \t]+/, '').split(/[ \t\\]/)[0]
-  return tableRequests[name] ? 1 : 0
+    text = line.slice(1).replace(/^[ \t]+/, '')
+    name = text.split(/[ \t\\]/)[0]
+    if (tableRequests[name])
+      return 1
+    // ps(1) writes `.IP "" 2` in its class/cls/policy cells, after
+    // `Field's possible values are:`. groff prints no tag for it, just a
+    // blank line and the values indented 2 ens. A tag does print, so
+    // `.IP tag` stays literal and is left to the no-run path.
+    if (name == 'IP') {
+      let arg
+
+      arg = splitArgs(stripComment(text.slice(name.length)))[0]
+      if ((arg == undefined) || (arg == ''))
+        return 1
+    }
+  }
+  return 0
 }
 
 function tableRows
@@ -4259,16 +4275,15 @@ function parse
 
     control = controlOf(input.text)
     if (control && (control.comment || control.blank)) {
-      // A comment line is not an input line for a `\c`; a blank line is.
+      // A comment line is not an input line for a `\c`; a `.`-only line is.
       // The line a `.TP` only just trapped for survives either.
       if (control.comment || fromTrap)
         c.tagResume = resumed
       c.lineTarget = 0
-      // A `.`-only line prints nothing, so it keeps a pending `\c` join and
-      // adds no gap: groff prints `load|reload` across it. A truly blank line
-      // below is different: it consumes the join and adds a separator space.
-      if (control.blank && (c.joinNext == 0) && (c.pre == 0))
-        addBlock(c, { kind: 'space' })
+      // A `.`-only line is an empty request: it prints nothing and adds no
+      // gap, and it keeps a pending `\c` join, so groff prints `one two` on
+      // one line and `load|reload` across it. A truly blank line is different
+      // and is handled below: it consumes the join and adds a separator space.
       continue
     }
     if (control && control.block) {

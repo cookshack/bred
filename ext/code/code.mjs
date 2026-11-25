@@ -1217,9 +1217,14 @@ function handlePartDelta
 
 function handleSubagentIdle
 (buf, event) {
-  let callId
+  let callId, sessionID
 
-  callId = buf.vars('code').subagentCallIds?.get(event.properties.sessionID)
+  sessionID = event.properties.sessionID
+  // A child's idle is the lane's end. The status stream is not guaranteed to
+  // deliver a separate idle, so the lane's own state has to be told here.
+  if (Subagent.childStatus(buf, sessionID, 'idle'))
+    buf.vars('code').subagentIds?.delete(sessionID)
+  callId = buf.vars('code').subagentCallIds?.get(sessionID)
   if (callId)
     Util.eachCodeW(buf, (view, w) => {
                           let els
@@ -1802,7 +1807,32 @@ function toggleSubagentFilter
     return
   state = buf.vars('code')
   state.subagentsActive = state.subagentsActive ? 0 : 1
+  if (state.subagentsActive)
+    reconcileIdleLanes(buf)
   Subagent.repaint()
+}
+
+// The call message carries ◉ once the child went idle (see handleSubagentIdle),
+// so a lane whose status event was missed can still be ended when the filter
+// is turned on. Without this, only events from now on would end such a lane.
+function reconcileIdleLanes
+(buf) {
+  buf.vars('code').subagents?.forEach(sub => {
+                                        if ((sub.status == 'running') && sub.callID) {
+                                          let idle
+
+                                          idle = 0
+                                          Util.eachCodeW(buf, (view, w) => {
+                                                                let el
+
+                                                                el = w.querySelector('.code-msg-tool[data-callid="' + sub.callID + '"]')
+                                                                if (el?.textContent?.includes('◉'))
+                                                                  idle = 1
+                                                              })
+                                          if (idle)
+                                            Subagent.end(buf, sub.sessionID)
+                                        }
+                                      })
 }
 
 function selectSubagent

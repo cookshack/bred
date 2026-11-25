@@ -136,9 +136,31 @@ function finish
 export
 function ended
 (sub) {
-  // Idle is the end. Waiting for the call's result as well leaves a lane that
-  // finished before (or without) its launch result stuck as running for ever.
-  return (sub.background && sub.idle) ? 1 : 0
+  // Idle is the end, for a background lane and a foreground one alike. Waiting
+  // for the call's result as well leaves a lane that finished before (or
+  // without) its result stuck as running for ever.
+  return sub.idle ? 1 : 0
+}
+
+// End a lane that is known to have gone idle, e.g. a lane whose call message
+// already carries the ◉ marker but whose status event was missed.
+export
+function end
+(buf, sessionID) {
+  let sub
+
+  sub = all(buf).get(sessionID)
+  if (sub == null)
+    return 0
+  sub.idle = 1
+  sub.busy = 0
+  if ((sub.status == 'done') == 0) {
+    sub.status = 'done'
+    sub.head = head(sub)
+    Ui.updateOut(buf, sessionID)
+    repaint()
+  }
+  return 1
 }
 
 // The child session's own status: the only end a background lane has. Returns 1

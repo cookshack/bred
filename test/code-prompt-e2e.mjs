@@ -1090,11 +1090,17 @@ test('subagent', 'the sidebar switches which transcript is shown',
                                                        assistantMessageID: 'm1',
                                                        name: 'subagent',
                                                        metadata: { sessionID: 'ses-child' },
-                                                       input: { description: 'Explore', agent: 'explore', prompt: 'go' } }))
+                                                       input: { description: 'Explore', agent: 'explore', prompt: 'go', background: 1 } }))
          await waitFor(() => created.views[0].ele.querySelector('.code-out[data-sessionid="ses-child"]'))
          box = created.views[0].ele.querySelector('.code-out[data-sessionid="ses-child"]')
          main = created.views[0].ele.querySelector('.code-out-main')
          equal(Boolean(main), true, 'main transcript exists')
+
+         // The child's own idle is the lane's end, even with no call result.
+         fake.push(Fake.event('session.idle', { sessionID: 'ses-child' }))
+         await waitFor(() => created.vars('code').subagents.get('ses-child')?.status == 'done')
+         equal(created.vars('code').subagents.get('ses-child').status, 'done',
+               'a child idle ends the lane')
 
          equal(Ui.subagentsList(created.views[0]).querySelectorAll('.assist-subagent:not(.assist-subagent-filter)').length,
                2,

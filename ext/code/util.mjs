@@ -262,7 +262,7 @@ function subagentsShown
   out = []
   if (subs)
     subs.forEach(sub => {
-                   if ((active == 0) || isSubagentActive(sub))
+                   if (active ? isSubagentActive(sub) : 1)
                      out.push(sub)
                  })
   return out

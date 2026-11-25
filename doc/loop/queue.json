@@ -92,7 +92,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "next",
+      "status": "ready",
       "source": "lane",
       "title": "batch: escapes and synopsis spacing (p102, p76, p77)",
       "files": [
@@ -100,7 +100,7 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Absorbs p102 (an unknown escape prints its own letter: `a \\Q b` is `a Q b` in groff, refused here; flip the existing green test `escapes :: an unknown escape fails the page`), p76 (in mdoc mode the man(7) `.SY`/`.OP` pair keeps its separator: `strace-log-merge [-a all]`) and p77 (a literal tab is a tab stop in `.nf` while the `\\t` escape is zero width: `a\\tb` is `a    b`, `c\\td` is `cd`). Each keeps its own red test.",
+      "notes": "Groomed 2026-11-25: three red tests and no code change at c5029a94 (380 passing, 3 failing). `escapes :: an unknown escape prints its own letter` — groff -Tutf8 -man on `a \\Q b` prints `a Q b` (with `-ww` it only warns \"escape character ignored before 'Q'\"), and `a \\y b` prints `a y b`; bred is red at `0 !== 1` (r.ok 0, fails `escape \\Q`). The fix must also FLIP the existing green test `escapes :: an unknown escape fails the page` (test/man-parse.mjs, asserts ok 0 / `escape \\q`): it enshrines the refusal and cannot stay green once an unknown escape prints its letter. `synopsis :: SY and OP keep their space in mdoc mode` — groff -Tutf8 -man on `.SY strace-log-merge` / `.OP \\-a all` prints `strace-log-merge [-a all]`, while bred in mdoc mode is red at `+ 'strace-log-merge[-a all]' / - 'strace-log-merge [-a all]'`; groff -Tutf8 -mdoc has no .SY/.OP at all (with `-ww`: \"macro 'SY' not defined\"), so the man(7) layout is the reference, and the bug is pre-existing and only reachable from an mdoc page that uses them. `escapes :: a literal tab is not the zero-width \\t escape` — groff -Tutf8 -man on `.nf` / `a<TAB>b` / `c\\td` / `.fi` prints `a    b` (literal tab to the tab stop) then `cd` (the `\\t` escape is zero width); in fill mode groff gives `a<TAB>b` as `a    b` and `c\\td` as `cd` (joined `a    b cd`), so the escape is zero width in both modes and a literal tab is never a space; bred is red at `+ 'a\\tb\\nc\\td\\n' / - 'a\\tb\\ncd\\n'`. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b6.patch. Found but not fixed: `escapes :: an unknown escape before a high-bit character keeps it` (test/man-parse.mjs:3023) already asserts the escape is dropped before a non-ASCII letter, so p102 extends the same rule to an ASCII letter rather than adding a special case; that existing test must keep passing through the same code path.",
       "batch": 1
     },
     {
@@ -1880,6 +1880,20 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Found by the b8 groom helper 2026-11-25 at 2e31d106. ps.1:940 has `.\"K<TAB>stime<TAB>system time (conflict, system vs. start time)` at table-row level inside .TS/.TE; tbl ignores a comment line, bred emits it as a row `[ \".\", \"stime\", \"system time (conflict, system vs. start time)\" ]` (9 non-blank tokens). Dropping the line takes ps(1) from 6701 to 6692, exactly man(1)'s count; the other 9 of the 18-word surplus were p75's `.IP \"\" 2` cells. terminfo(5) has the same in milder form (`.\\\".TH` at row level, 5 surplus tokens: `.` and four `|`). Fix: skip a comment line in a table body the way tableRequest already skips .br/.sp. No test written yet.",
+      "source": "lane"
+    },
+    {
+      "id": "p132",
+      "area": "man",
+      "status": "ready",
+      "type": "fix",
+      "title": "doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0",
+      "lane": "a3",
+      "files": [
+        "doc/Man.md"
+      ],
+      "proof": "sh -c '! grep -qE \"^(pages +16|words +147)\" doc/Man.md'",
+      "notes": "Found 2026-11-25 by the scheduler at 7f993835 while reading doc/Man.md for a man round. The file is the man area's tracked scoreboard and its protocol half (Policy, Pipeline, Modules, Changing it) is current, but the numbers are not. Measured at 9c9e1b12: sections 1, 3, 5, 7 and 8 all print `0 pages`/`0 words` from bin/man-diff --max 0; doc/Man.md:317-319 still prints `pages 16 0 0 2 2` / `words 147 0 0 7 9`, and :336-339 still names ps(1) 103, ttf2tfm(1) 10, tbl/gtbl 7, ttf2pk 5, hg 2, man 2, editline 5, dmsetup 7, dmstats 2. The round history also stops at round 50 (round 47's own paragraph still says section 1 is thumbpdf + tload). Rounds 51-64 closed the tail: p109 folded thumbpdf's mis-encoded byte, so section 1 reached 0 at round 64, and the ps(1) surplus is p75 (9 words, b8) + p131 (9 words, a table-row comment). A reader who trusts the table would re-chase work that is done. Fix: re-measure all five sections at the current tip, replace the table and the page/word enumeration with the measured result, and add the rounds 51-65 paragraphs in the same voice as the existing ones (short, one per round, the number that moved). Do not rewrite Policy/Pipeline/Changing it, and do not change the refusal list without re-running bin/man-audit --parse.",
       "source": "lane"
     }
   ],

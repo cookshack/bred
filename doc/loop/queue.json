@@ -1954,7 +1954,7 @@
     {
       "id": "p134",
       "area": "man",
-      "status": "ready",
+      "status": "in-round",
       "type": "fix",
       "title": "a vertical table span puts its text on the right row in the text model but js/man-render.mjs draws the cell above as a separate empty <td>, so the rendered borders differ from groff",
       "lane": "a2",
@@ -2035,7 +2035,7 @@
     {
       "id": "p143",
       "area": "core",
-      "status": "ready",
+      "status": "in-round",
       "type": "fix",
       "title": "a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4",
       "lane": "a3",

@@ -1807,7 +1807,8 @@ function toggleSubagentFilter
   if (buf == null)
     return
   state = buf.vars('code')
-  state.subagentsActive = state.subagentsActive ? 0 : 1
+  // Unset means the initial state: only the running lanes.
+  state.subagentsActive = (state.subagentsActive == undefined ? 1 : state.subagentsActive) ? 0 : 1
   if (state.subagentsActive)
     reconcileIdleLanes(buf)
   Assist.refreshFor(buf.views.find(v => View.current() == v) || buf.views[0])
@@ -3175,7 +3176,9 @@ function init
                                         (view) {
                                           let active
 
-                                          active = view?.buf?.vars('code')?.subagentsActive ? 1 : 0
+                                          active = view?.buf?.vars('code')?.subagentsActive == undefined
+                                                   ? 1
+                                                   : (view.buf.vars('code').subagentsActive ? 1 : 0)
                                           return [ 'Subagents ',
                                                    span(active ? '▽' : '≡',
                                                         'assist-mode-subagents-filter' + (active ? ' assist-mode-subagents-filter-on' : ''),

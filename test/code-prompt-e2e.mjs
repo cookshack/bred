@@ -1102,6 +1102,8 @@ test('subagent', 'the sidebar switches which transcript is shown',
          equal(created.vars('code').subagents.get('ses-child').status, 'done',
                'a child idle ends the lane')
 
+         // The initial state is running-only; show all to check the list.
+         created.vars('code').subagentsActive = 0
          equal(Ui.subagentsList(created.views[0]).querySelectorAll('.assist-subagent:not(.assist-subagent-filter)').length,
                2,
                'the sidebar lists main and the subagent')

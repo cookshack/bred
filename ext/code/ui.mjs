@@ -325,10 +325,11 @@ function subagentsList
   state = view.buf.vars('code')
   frag = new globalThis.DocumentFragment()
   append(frag, subagentRow(view, { name: 'Main' }, (state.tab || 0) == 0))
-  Util.subagentsShown(state.subagents, state.subagentsActive).forEach(sub => append(frag,
-                                                                                    subagentRow(view,
-                                                                                                sub,
-                                                                                                state.tab == sub.sessionID)))
+  Util.subagentsShown(state.subagents,
+                      state.subagentsActive == undefined ? 1 : state.subagentsActive).forEach(sub => append(frag,
+                                                                                                            subagentRow(view,
+                                                                                                                        sub,
+                                                                                                                        state.tab == sub.sessionID)))
   return frag
 }
 function makePatchEd

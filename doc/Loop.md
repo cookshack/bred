@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: handover after round 61, 2026-11-25. Forty-two rounds used the tool's
+Status: handover after round 63, 2026-11-25. Forty-two rounds used the tool's
 gate: red at base, green after the rebase, one suite at the integrated tip,
-the record on `loop/r<n>`, one fast-forward. Main is the round-61 tip, green
-(2081 of 2083 tests passing, 2 pending, check clean). The agreed plan,
+the record on `loop/r<n>`, one fast-forward. Main is the round-63 tip, green
+(2095 of 2097 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
 and area-aware picks are parked by the plan's own criterion. Man is 1 word on
 1 page, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
@@ -327,6 +327,8 @@ lane, or to another area, if its files are free.
 | 49 | link tails | `fc63c08` | `.UE`/`.ME` keep every trailing argument (tload 1 → 0); man 2 words on 2 pages |
 | 50 | join through | `eac2c89` | a `\c` survives a request that draws nothing (dmsetup 1 → 0, section 8 clean); man 1 word on 1 page |
 | 51 | compaction | `ab98859` | the four compaction events become a log line per phase; re-gated after an outside doc commit moved main mid-round |
+| 63 | macro arguments | `aa5130e6` | a single-backslash `\$1` expands at definition time, a `\c` inside an interpolated argument cuts the body line, a bar does not end an mdoc argument list; a reconnect text delta no longer draws a thinking block; man unchanged |
+| 62 | joins and a finished part | `596bc1a7` | a `\c` survives one blank line and a define-only request; `toText` draws space blocks; a finished text part re-renders even without its step (re-gated after the helper commit moved main) |
 | 61 | references | `49156f7` | an `%A`-only `.Rs` ends with a comma, as groff does |
 | 60 | done hashes, again | `ad68333` | the rule is the commit's diff, not its trailer: a done hash must touch a file the row owns |
 | 59 | done hashes | `6434838` | `check` requires a done hash to name the item, its absorbing item, or a batch; found by the round-57 mis-merge |
@@ -340,13 +342,13 @@ lane, or to another area, if its files are free.
 
 ## Current state
 
-Measured at `49156f7d` (round 61's tip), corpus `4150` pages:
+Measured at `aa5130e6` (round 63's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 50: 1:1p/1w  3:0p/0w  5:0p/0w  7:0p/0w  8:0p/0w
-    code events after round 50: 20 (19 translated, 1 dropped, 0 malformed)
-    631 man tests, 2081 of 2083 passing, 2 pending, 0 failing; check clean
+    whole sections after round 63: 1:1p/1w  3:0p/0w  5:0p/0w  7:0p/0w  8:0p/0w
+    code events after round 63: 20 (19 translated, 1 dropped, 0 malformed)
+    637 man tests, 2095 of 2097 passing, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

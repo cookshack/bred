@@ -1674,6 +1674,30 @@ test('mdoc', 'Ns and Pf control spacing',
        equal(flat(r.doc.blocks[0].spans), '$file')
      })
 
+test('mdoc', 'Ns at the end of a bracketed argument carries past the close',
+     () => {
+       let r
+
+       // ssh-copy-id(1): `.Op Ar user Ns @ Ns` / `.Ar hostname` prints
+       // "[user@]hostname", not "[user@] hostname". The close bracket is
+       // glued on anyway, so the `Ns` is still waiting for the next call.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.Nm ssh-copy-id\n' +
+                  '.Op Ar user Ns @ Ns\n.Ar hostname\n')
+       equal(flat(r.doc.blocks[1].spans), 'ssh-copy-id [user@]hostname')
+     })
+
+test('mdoc', 'a trailing punctuation argument still ends the Ns',
+     () => {
+       let r
+
+       // The closing bracket moves punctuation outside itself, and that
+       // punctuation is the thing the `Ns` glues: "Op Ar a Ns ," followed
+       // by ".Ar b" prints "[a], b", with the space before `b` back.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.Nm t\n' +
+                  '.Op Ar a Ns ,\n.Ar b\n')
+       equal(flat(r.doc.blocks[1].spans), 't [a], b')
+     })
+
 test('mdoc', 'Ex expands to the standard exit text',
      () => {
        let r

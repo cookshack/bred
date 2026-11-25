@@ -2445,16 +2445,30 @@ function mdocInline
   }
 }
 
+// `Ns` asks for no space before the next thing printed. The closing bracket
+// is glued on regardless, so groff's flag is still pending after it and the
+// call that follows the bracket attaches too: `.Op Ar user Ns @ Ns` then
+// `.Ar hostname` prints "[user@]hostname" (ssh-copy-id(1)), and `.Pq Ar a Ns`
+// then `.Ar b` prints "(a)b". Two things do end it. An explicitly opened
+// group (`.Oo`/`.Oc`, `.Bo`/`.Bc`) starts a macro call of its own and prints
+// "[a@] b" instead, so only the single-macro enclosures below are affected.
+// And a trailing punctuation argument is itself what the `Ns` glues — it is
+// printed outside the bracket — so `.Op Ar a Ns ,` then `.Ar b` prints
+// "[a], b" and the next call keeps its space.
 function mdocEnclose
 (c, args, open, close, ownLine) {
-  let split
+  let split, glue
 
   split = mdocSplitPunct(args)
   mdocAppend(c, [ { text: open } ])
   c.mdoc.noSpace = 1
   if (split.words.length)
     mdocInline(c, split.words, ownLine)
+  glue = ((split.punct.length == 0) &&
+          (split.words[split.words.length - 1] == 'Ns')) ? 1 : 0
   mdocAttach(c, [ { text: close } ])
+  if (glue)
+    c.mdoc.noSpace = 1
   if (split.punct.length)
     mdocAttachText(c, split.punct.join(''), 'roman')
 }

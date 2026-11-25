@@ -1524,9 +1524,9 @@
     {
       "id": "c11",
       "area": "code",
-      "lane": "a3",
+      "lane": "a2",
       "type": "fix",
-      "status": "done",
+      "status": "ready",
       "title": "session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description",
       "files": [
         "ext/code/event.mjs",
@@ -1534,8 +1534,7 @@
         "test/code-events.mjs"
       ],
       "proof": "npx mocha --exit test/code-events.mjs",
-      "notes": "Found by the same hunt. Reference: shared-events case \"session.synthetic\" inserts {type:\"synthetic\", text, description, metadata}. What bred should show is a decision (a code-msg-text note? a part type?), so this is a triage. Evidence command: grep -n \"session.synthetic\" -A 9 ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js. Decision (2026-11-25): a log line, like c10. translate() emits one legacy session.synthetic with text and description; the handler appends Ui.appendMsg(..., { log: 1 }) for the buffer's own session, flattened and capped at 200 chars.",
-      "doneHash": "1947f160"
+      "notes": "Found by the same hunt. Reference: shared-events case \"session.synthetic\" inserts {type:\"synthetic\", text, description, metadata}. What bred should show is a decision (a code-msg-text note? a part type?), so this is a triage. Evidence command: grep -n \"session.synthetic\" -A 9 ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js. Decision (2026-11-25): a log line, like c10. translate() emits one legacy session.synthetic with text and description; the handler appends Ui.appendMsg(..., { log: 1 }) for the buffer's own session, flattened and capped at 200 chars. 2026-11-25: round 57 recorded this done while a peer grooming commit had moved the row to a3; the lane commit was on a2, nothing merged, and the record was wrong. Re-armed on a2 and re-run in round 58 with the merge line checked."
     },
     {
       "id": "c12",

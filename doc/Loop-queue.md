@@ -47,6 +47,7 @@ before.
 | p118 | man | a1 | ready | a \c inside an interpolated macro argument must cut the rest of the outer body line; groff does, we keep emitting (pre `a tailnext) | js/man-parse.mjs, test/man-parse.mjs |
 | c6 | code | a2 | ready | a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs) | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | p119 | man | a1 | ready | a bar is a roman word inside a macro argument list; the words after it keep the macro font and role | js/man-parse.mjs, test/man-parse.mjs |
+| c11 | code | a2 | ready | session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
 | p126 | man | a1 | ready | a no-output request that defines or removes still swallows a pending \c join (p54 covered only .ft) | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Backlog
@@ -168,7 +169,6 @@ before.
 | c8 | code | a2 | done:e3e11414 | Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing) | ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | p123 | man | a3 | done:4dd8ef83 | a .Bl -dash list still renders as an HTML ul disc; groff draws "-" per item (the text model now agrees, the renderer does not) | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
 | c10 | code | a2 | done:ab988598 | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
-| c11 | code | a3 | done:1947f160 | session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
 | p125 | man | a1 | done:eac2c89c | dmsetup(8) splits load\|reload into two words around a .BR line ending in \c | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
 | l1 | tooling | a3 | done:9e2a821f | the loop has no clock it can enforce: put start/deadline/stopNew in the tracked queue, print the budget in status, and refuse a round after stopNew | bin/loop-clock.mjs, bin/loop.mjs, test/loop-clock.mjs, test/loop.mjs, doc/Loop.md, doc/Loop-prompt.md |
 | b1 | man | a1 | done:07e195dd | batch: the man tail's register claims (p45, p120) | js/man-parse.mjs, test/man-parse.mjs |

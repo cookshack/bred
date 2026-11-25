@@ -170,7 +170,8 @@ function remove
   m = get(key)
   if (m) {
     Cmd.remove(m.key + ' mode')
-    modes.delete(key)
+    // m.key is the lowercased key the map is stored under; the raw arg is not
+    modes.delete(m.key)
   }
 }
 

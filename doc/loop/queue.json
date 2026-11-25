@@ -138,7 +138,7 @@
     {
       "id": "p19",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "`.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2)",
       "files": [
         "js/man-parse.mjs"
@@ -747,24 +747,26 @@
     {
       "id": "p92",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "an unpaired surrogate code point (\\N'55296') is accepted as a JS string; groff emits invalid UTF-8; refuse surrogates as out of range",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "e7b1a52"
     },
     {
       "id": "p93",
       "lane": "a1",
-      "status": "next",
-      "title": "\\N expression forms (65+1, 2*3, 1.5, leading space) are refused by design; record the decision so it is not reopened",
+      "status": "done",
+      "title": "verdict: \\N expression forms (65+1, 2*3, 1.5, leading space) stay refused by design; p88 measured groff's NUL-plus-tail output and the corpus has only plain decimals",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "50a83a6"
     },
     {
       "id": "p94",
@@ -774,6 +776,17 @@
       "files": [
         "js/man-char.mjs",
         "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p95",
+      "lane": "a1",
+      "status": "next",
+      "title": "groff's \\[charN] is a glyph/table lookup, not a bare code point: char57344 warns and prints nothing, bred returns U+E000; char65/233/200 agree",
+      "files": [
+        "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs"

@@ -208,7 +208,7 @@ before.
 | p139 | core | a3 | done:9dbfaa9d | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
 | p140 | core | a3 | done:061e225c | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
 | p141 | core | a3 | done:448a374b | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs, test/ed.mjs |
-| p142 | core | a3 | done:448a374b | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
+| p142 | core | a3 | done:e4834309 | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
 | b9 | man | a1 | done:d62483ed | batch: the man tail's escapes, spans, cells and copy-mode tabs (b7: p79 p83 p34, b6: p102 p76 p77, p145) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | c16 | code | a2 | done:835b9b00 | a delta takes its part id from the event, not from state (c14) | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | p145 | man | a1 | done:949bf23c | `\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words | js/man-parse.mjs, test/man-parse.mjs |

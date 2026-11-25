@@ -1028,6 +1028,10 @@ function readBlockEnd
   return lines
 }
 
+// A macro call reads its arguments in copy mode, before the body runs, so an
+// argument loses one round of backslashes when it is collected and the body
+// line's own interpretation loses the second one. ttf2tfm(1) writes `.C
+// TTFONTS=c:\\\\fonts\\\\truetype!!` and groff prints a single backslash each.
 function callMacro
 (c, name, args, lineNo) {
   let body, real
@@ -1044,7 +1048,11 @@ function callMacro
     fail(c, lineNo, 'macro recursion')
     return
   }
-  c.frames.push({ lines: body, at: 0, line: lineNo, args, name })
+  c.frames.push({ lines: body,
+                  at: 0,
+                  line: lineNo,
+                  args: args.map(arg => copyMode(arg)),
+                  name })
 }
 
 function braceDelta

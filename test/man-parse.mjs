@@ -263,6 +263,24 @@ test('macros', 'de defines a macro with arguments',
        equal(r.doc.blocks[0].spans[0].style, 'bold')
      })
 
+test('macros', 'an argument is reduced in copy mode and then interpreted',
+     () => {
+       let r, text
+
+       // ttf2tfm(1) passes four backslashes through its own `.C` macro:
+       // `.C TTFONTS=c:\\\\fonts\\\\truetype!!`. The argument is copied
+       // (`\\\\` -> `\\`) when the macro is called and the body line is then
+       // interpreted (`\\` -> `\`), so groff prints a single backslash each
+       // way. The same four backslashes on a text line are interpreted once
+       // only, so they stay doubled there.
+       r = parsed('.TH T 1\n.de C\n\\fC\\\\$1\\fP\n..\n' +
+                  '.C TTFONTS=c:\\\\\\\\fonts\\\\\\\\truetype!!\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'TTFONTS=c:\\fonts\\truetype!!')
+       text = parsed('.TH T 1\nbody c:\\\\\\\\fonts\\\\\\\\truetype\n')
+       equal(flat(text.doc.blocks[0].spans), 'body c:\\\\fonts\\\\truetype')
+     })
+
 test('macros', 'am appends to a macro',
      () => {
        let r

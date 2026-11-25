@@ -19,6 +19,15 @@ The run is no longer the only thing moving `main`: other agents and the user
 commit to it while the loop works. The protocol now assumes that (see "Working
 on a moving main") instead of expecting a quiet tree.
 
+Run stopped, 2026-11-25: the run armed at 15:15Z for eight hours (stopNew
+22:30Z) was stopped on the human's instruction after round 63, at 15:48Z —
+6h42m before stopNew, with that round landed and `check` clean, not at a named
+failure. Nothing was left unlanded: both groom helpers' proposals are filed
+(c9 and p109 are `ready`, their red-test patches at `$LOOP/groom-c9-test.patch`
+and `$LOOP/groom-p109.patch`). A fresh session must re-arm the `run` block
+(`state: active` plus a fresh start/deadline/stopNew) before its first round,
+because the clock is now `stopped`.
+
 `$LOOP` below is that directory:
 
     LOOP=$BRED_WORKTREE_ROOT/bred-loop

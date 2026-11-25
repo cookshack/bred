@@ -4,7 +4,7 @@
     "start": "2026-11-25T15:15:49Z",
     "deadline": "2026-11-25T23:15:49Z",
     "stopNew": "2026-11-25T22:30:49Z",
-    "state": "active",
+    "state": "stopped",
     "round": 61,
     "main": "8f3eabee"
   },
@@ -66,7 +66,7 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Found in b5's lane report (2026-11-25): `.de M` body `[\\\\$@]`, called `.M a b c` — groff prints `[\"a\" \"b\" \"c\"]`; bred prints `[a b c]`. Red test `macros :: dollar at quotes each argument`, asText == '[\"a\" \"b\" \"c\"]\\n'. The existing green test that asserts the unquoted form must be updated with the fix."
+      "notes": "Found in b5's lane report (2026-11-25): `.de M` body `[\\\\$@]`, called `.M a b c` \u2014 groff prints `[\"a\" \"b\" \"c\"]`; bred prints `[a b c]`. Red test `macros :: dollar at quotes each argument`, asText == '[\"a\" \"b\" \"c\"]\\n'. The existing green test that asserts the unquoted form must be updated with the fix."
     },
     {
       "id": "b7",
@@ -146,7 +146,7 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Found in b4's lane report (2026-11-25): `one` / `.` / `two` — groff -Tutf8 -man prints `one two` (the `.` flushes the current line, no gap); bred emits a space block so toText gives `one\\n\\ntwo\\n`. b4 fixed the pending-`\\c` case only. Red test `paragraphs :: a dot-only line draws no gap` (asText == 'one two\\n')."
+      "notes": "Found in b4's lane report (2026-11-25): `one` / `.` / `two` \u2014 groff -Tutf8 -man prints `one two` (the `.` flushes the current line, no gap); bred emits a space block so toText gives `one\\n\\ntwo\\n`. b4 fixed the pending-`\\c` case only. Red test `paragraphs :: a dot-only line draws no gap` (asText == 'one two\\n')."
     },
     {
       "id": "c13",
@@ -184,7 +184,7 @@
       "id": "p50",
       "lane": "a2",
       "status": "next",
-      "title": "the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch",
+      "title": "the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order \u2014 until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch",
       "files": [
         "test/wode-view-e2e.mjs",
         "js/wode*.mjs",
@@ -216,7 +216,7 @@
       "title": "verdict: the streaming decoder is already correct and a typed-array fake would be coverage-only, which the red gate cannot merge",
       "files": [],
       "proof": "npx mocha --exit test/main-shell.mjs",
-      "notes": "coverage-only: the streaming decoder is already correct, so its test passes at base and the red gate parks it. Give it a measure proof or a gate that accepts coverage, then dispatch. Groomed 2026-11-25: coverage-only, not a fix. The decoder is already correct — js/shell.mjs uses one TextDecoder {stream:1} per run and flushes on close; a probe feeding `caf` + 0xc3 then 0xa9 + `\\n` returns `café\\n`. Close or re-label with a gate that accepts coverage. (The p50 brief once described this row; that was a mix-up.)",
+      "notes": "coverage-only: the streaming decoder is already correct, so its test passes at base and the red gate parks it. Give it a measure proof or a gate that accepts coverage, then dispatch. Groomed 2026-11-25: coverage-only, not a fix. The decoder is already correct \u2014 js/shell.mjs uses one TextDecoder {stream:1} per run and flushes on close; a probe feeding `caf` + 0xc3 then 0xa9 + `\\n` returns `caf\u00e9\\n`. Close or re-label with a gate that accepts coverage. (The p50 brief once described this row; that was a mix-up.)",
       "area": "man",
       "type": "fix",
       "doneHash": "8f3eabee"
@@ -394,7 +394,7 @@
       "id": "p59",
       "lane": "a1",
       "status": "triage",
-      "title": "a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic?",
+      "title": "a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) \u2014 refuse or mimic?",
       "files": [
         "js/man-parse.mjs"
       ],
@@ -536,7 +536,7 @@
       "id": "p37",
       "lane": "a3",
       "status": "done",
-      "title": "a bordered cell's continuation at the left edge (TIFFGetField 6 → 0)",
+      "title": "a bordered cell's continuation at the left edge (TIFFGetField 6 \u2192 0)",
       "files": [],
       "doneHash": "244c425",
       "area": "man",
@@ -546,7 +546,7 @@
       "id": "p39",
       "lane": "-",
       "status": "done",
-      "title": "a background subagent is launched, not finished (tick, routing, ⏳)",
+      "title": "a background subagent is launched, not finished (tick, routing, \u23f3)",
       "files": [],
       "doneHash": "7ce2ecf",
       "area": "man",
@@ -596,7 +596,7 @@
       "id": "p41",
       "lane": "a3",
       "status": "done",
-      "title": "the truncated mdoc banner is a header (5 pages, 31 → 1 words)",
+      "title": "the truncated mdoc banner is a header (5 pages, 31 \u2192 1 words)",
       "files": [],
       "doneHash": "a18cd1b",
       "area": "man",
@@ -606,7 +606,7 @@
       "id": "p42",
       "lane": "a3",
       "status": "done",
-      "title": "the `\\:` join accepts \":\" (`bash(1)` 4 → 2)",
+      "title": "the `\\:` join accepts \":\" (`bash(1)` 4 \u2192 2)",
       "files": [],
       "doneHash": "a18cd1b",
       "area": "man",
@@ -616,7 +616,7 @@
       "id": "p43",
       "lane": "a3",
       "status": "done",
-      "title": "the `\\:` join accepts \"@\" (`troff(1)` 2 → 0)",
+      "title": "the `\\:` join accepts \"@\" (`troff(1)` 2 \u2192 0)",
       "files": [],
       "doneHash": "a18cd1b",
       "area": "man",
@@ -646,7 +646,7 @@
       "id": "p30",
       "lane": "a3",
       "status": "done",
-      "title": "verdict: no mdoc U+2010 rule; `man-diff` folds U+2010/U+2011/U+2212 (pcre2demo 67 → 12)",
+      "title": "verdict: no mdoc U+2010 rule; `man-diff` folds U+2010/U+2011/U+2212 (pcre2demo 67 \u2192 12)",
       "files": [],
       "doneHash": "2c5b9df",
       "area": "man",
@@ -676,7 +676,7 @@
       "id": "p60",
       "lane": "a3",
       "status": "done",
-      "title": "`man-diff` folds typographic quotes; pcre2demo 12 → 0 (U+2018 folds to a backtick)",
+      "title": "`man-diff` folds typographic quotes; pcre2demo 12 \u2192 0 (U+2018 folds to a backtick)",
       "files": [],
       "doneHash": "f3f1539",
       "area": "man",
@@ -686,7 +686,7 @@
       "id": "p62",
       "lane": "a3",
       "status": "done",
-      "title": "the hyphen join is decided from the page source and applied to both sides; section 3 14 → 0",
+      "title": "the hyphen join is decided from the page source and applied to both sides; section 3 14 \u2192 0",
       "files": [],
       "doneHash": "f3f1539",
       "area": "man",
@@ -828,7 +828,7 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: `one`, `.sp`, `two` — groff prints a blank line between; bred's parser emits a `space` block but toText has no branch for it (`one\\ntwo`). Red test `paragraphs :: toText draws a blank line for a space block` (asText == 'one\\n\\ntwo\\n'). `.sp 2` still yields one block. Absorbed by b4 in round 62; marked done with b4's hash.",
+      "notes": "Groomed 2026-11-25: `one`, `.sp`, `two` \u2014 groff prints a blank line between; bred's parser emits a `space` block but toText has no branch for it (`one\\ntwo`). Red test `paragraphs :: toText draws a blank line for a space block` (asText == 'one\\n\\ntwo\\n'). `.sp 2` still yields one block. Absorbed by b4 in round 62; marked done with b4's hash.",
       "doneHash": "f6b63ada"
     },
     {
@@ -872,7 +872,7 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: `.SY strace-log-merge` / `.OP -a all` — the man(7) reference prints `strace-log-merge [-a all]`; bred in mdoc mode prints `strace-log-merge[-a all]` (mdoc spaceNext/Sm drops the separator; man mode keeps it). Red test `synopsis :: SY and OP keep their space in mdoc mode`. groff -mdoc has no .SY, so the man(7) layout is the reference."
+      "notes": "Groomed 2026-11-25: `.SY strace-log-merge` / `.OP -a all` \u2014 the man(7) reference prints `strace-log-merge [-a all]`; bred in mdoc mode prints `strace-log-merge[-a all]` (mdoc spaceNext/Sm drops the separator; man mode keeps it). Red test `synopsis :: SY and OP keep their space in mdoc mode`. groff -mdoc has no .SY, so the man(7) layout is the reference."
     },
     {
       "id": "p77",
@@ -892,7 +892,7 @@
       "id": "p78",
       "lane": "a1",
       "status": "done",
-      "title": "L\\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl",
+      "title": "L\\[tmu]C renders L\u2122C; groff prints L\u00d7C: js/man-char.mjs maps tmu to \u2122 instead of \u00d7, the last lost word on tbl/gtbl",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -914,7 +914,7 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: tbl(1)'s `l ld` / `r ^` table — groff puts `r` and `foo` on the bottom row (one line); bred's parser records neither `^` nor the `d` suffix, so the spanned cell stays on its first row and toText orders foo before r. Red test `tables :: a vertical span puts its text on the bottom row`. Model the span; the trailing `\\^;\\^` row is also unmodelled."
+      "notes": "Groomed 2026-11-25: tbl(1)'s `l ld` / `r ^` table \u2014 groff puts `r` and `foo` on the bottom row (one line); bred's parser records neither `^` nor the `d` suffix, so the spanned cell stays on its first row and toText orders foo before r. Red test `tables :: a vertical span puts its text on the bottom row`. Model the span; the trailing `\\^;\\^` row is also unmodelled."
     },
     {
       "id": "p80",
@@ -934,7 +934,7 @@
       "id": "p81",
       "lane": "a1",
       "status": "done",
-      "title": "Greek capitals are shifted one letter: *H is Η but should be Θ, *Q Θ should be Ψ, *Y Ψ should be Η; lowercase is correct",
+      "title": "Greek capitals are shifted one letter: *H is \u0397 but should be \u0398, *Q \u0398 should be \u03a8, *Y \u03a8 should be \u0397; lowercase is correct",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -970,13 +970,13 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: 21 named groff_char names are confirmed missing (md=⋅, c*=⊗, r!=¡, OK=✓, Eu=€, sq=□, box pieces lc..rt, 18/38/58/78); bred refuses the page rather than falling back. Red test `escapes :: common groff_char names outside the corpus are absent` (one batch, 21 cases). No installed page uses any of them (zgrep), so this is a common-neighbour gap, not corpus."
+      "notes": "Groomed 2026-11-25: 21 named groff_char names are confirmed missing (md=\u22c5, c*=\u2297, r!=\u00a1, OK=\u2713, Eu=\u20ac, sq=\u25a1, box pieces lc..rt, 18/38/58/78); bred refuses the page rather than falling back. Red test `escapes :: common groff_char names outside the corpus are absent` (one batch, 21 cases). No installed page uses any of them (zgrep), so this is a common-neighbour gap, not corpus."
     },
     {
       "id": "p84",
       "lane": "a1",
       "status": "done",
-      "title": "*G is missing from the char table; groff prints Γ (U+0393), so a page using \\[*G] is refused today",
+      "title": "*G is missing from the char table; groff prints \u0393 (U+0393), so a page using \\[*G] is refused today",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -990,7 +990,7 @@
       "id": "p85",
       "lane": "a1",
       "status": "done",
-      "title": "*f maps to φ (U+03C6); groff prints ϕ (U+03D5); *J/*j/*V/*v are absent from groff too, not gaps",
+      "title": "*f maps to \u03c6 (U+03C6); groff prints \u03d5 (U+03D5); *J/*j/*V/*v are absent from groff too, not gaps",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -1004,7 +1004,7 @@
       "id": "p86",
       "lane": "a1",
       "status": "done",
-      "title": ".. maps to ‥ (U+2025) but groff refuses it; \\[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an",
+      "title": ".. maps to \u2025 (U+2025) but groff refuses it; \\[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -1226,7 +1226,7 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: body `[\\$1]` — groff prints `[]` (copy mode expands `\\$` at definition time, where `.de M` has no $1), and `[\\\\$1]` prints `[hi]`; bred prints `[hi]` for both. Red test `macros :: a single-backslash argument is expanded when the macro is defined` (asText == '[]\\n'). The existing doubled-form test covers the call-time case only.",
+      "notes": "Groomed 2026-11-25: body `[\\$1]` \u2014 groff prints `[]` (copy mode expands `\\$` at definition time, where `.de M` has no $1), and `[\\\\$1]` prints `[hi]`; bred prints `[hi]` for both. Red test `macros :: a single-backslash argument is expanded when the macro is defined` (asText == '[]\\n'). The existing doubled-form test covers the call-time case only.",
       "doneHash": "30263abb"
     },
     {
@@ -1241,13 +1241,13 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: `a \\Q b` and `a \\y b` — groff prints `a Q b` / `a y b` with no warning; bred refuses the page (escape \\Q) and prints `a  b`. `\\Z` is a real escape taking a delimiter, so the old example was wrong. Red test `escapes :: an unknown escape prints its own letter`. The existing green test `escapes :: an unknown escape fails the page` asserts the current refusal and must be flipped with the fix."
+      "notes": "Groomed 2026-11-25: `a \\Q b` and `a \\y b` \u2014 groff prints `a Q b` / `a y b` with no warning; bred refuses the page (escape \\Q) and prints `a  b`. `\\Z` is a real escape taking a delimiter, so the old example was wrong. Red test `escapes :: an unknown escape prints its own letter`. The existing green test `escapes :: an unknown escape fails the page` asserts the current refusal and must be flipped with the fix."
     },
     {
       "id": "p103",
       "lane": "a1",
       "status": "done",
-      "title": "ttf2pk(1) loses 2 words: `.<resolution>pk' split on our side and `<namestem>@<sfd-filename>@') — quote/spacing placement, not a line join",
+      "title": "ttf2pk(1) loses 2 words: `.<resolution>pk' split on our side and `<namestem>@<sfd-filename>@') \u2014 quote/spacing placement, not a line join",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
@@ -1331,7 +1331,7 @@
       "id": "p109",
       "lane": "a3",
       "status": "ready",
-      "title": "thumbpdf(1) mis-encoded byte folds to ©: section 1 reaches 0 lost words",
+      "title": "thumbpdf(1) mis-encoded byte folds to \u00a9: section 1 reaches 0 lost words",
       "files": [
         "bin/man-diff",
         "test/man-diff.mjs"
@@ -1339,7 +1339,7 @@
       "proof": "npx mocha --exit test/man-diff.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Proved 2026-11-25 at 9978571c: thumbpdf.1's source line is `Copyright \\302\\[co] 1999` (bytes 43..74 20 c2 5c 5b 63 6f 5d), the corpus's only invalid UTF-8 page (3254 files scanned). groff's preconv reads the lone C2 byte as Latin-1 and prints `Â©` (c3 82 c2 a9), while our decode marks it U+FFFD and prints `�©` (ef bf bd c2 a9); no word is lost (303 ours / 303 man), only that token's first codepoint differs, so this is a comparison fold, not a parser fix. keyOf now drops U+FFFD and decodes a word of byte-sized Latin-1 characters as UTF-8 when that is valid, making both keys `©`; a pair that is not valid UTF-8 still reports. New tests `a mis-decoded byte folds to the content the bytes spell` and `thumbpdf(1) mis-encoded byte is not a lost word` failed at base (`'�©' !== '©'`, `1 !== 0`) and pass now, and `bin/man-diff --section 1 --max 0` goes from 1:1p/1w to 0:0p/0w. Patch: /home/matt/worktrees/0db3bcbf-6070-493e-b543-4680184becc5/bred-loop/groom-p109.patch.",
+      "notes": "Proved 2026-11-25 at 9978571c: thumbpdf.1's source line is `Copyright \\302\\[co] 1999` (bytes 43..74 20 c2 5c 5b 63 6f 5d), the corpus's only invalid UTF-8 page (3254 files scanned). groff's preconv reads the lone C2 byte as Latin-1 and prints `\u00c2\u00a9` (c3 82 c2 a9), while our decode marks it U+FFFD and prints `\ufffd\u00a9` (ef bf bd c2 a9); no word is lost (303 ours / 303 man), only that token's first codepoint differs, so this is a comparison fold, not a parser fix. keyOf now drops U+FFFD and decodes a word of byte-sized Latin-1 characters as UTF-8 when that is valid, making both keys `\u00a9`; a pair that is not valid UTF-8 still reports. New tests `a mis-decoded byte folds to the content the bytes spell` and `thumbpdf(1) mis-encoded byte is not a lost word` failed at base (`'\ufffd\u00a9' !== '\u00a9'`, `1 !== 0`) and pass now, and `bin/man-diff --section 1 --max 0` goes from 1:1p/1w to 0:0p/0w. Patch: /home/matt/worktrees/0db3bcbf-6070-493e-b543-4680184becc5/bred-loop/groom-p109.patch.",
       "source": "triage"
     },
     {
@@ -1392,7 +1392,7 @@
       "id": "p113",
       "lane": "a3",
       "status": "done",
-      "title": "gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff)",
+      "title": "gittutorial-2(7) loses 2 words: ways\u2014 and by (an em-dash join in man-diff)",
       "files": [
         "bin/man-diff",
         "test/man-diff.mjs"
@@ -1456,7 +1456,7 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Groomed 2026-11-25: `.de M` with `pre \\\\$1 tail`, called `.M \"a\\c\"`, then `next` — groff prints `pre anext`; bred prints `pre a tailnext`. The join propagates but the rest of the interpolated body line is still emitted. Red test `escapes :: a c inside a macro argument cuts the rest of the body line`. The `\\c` must end the body line at the interpolation point.",
+      "notes": "Groomed 2026-11-25: `.de M` with `pre \\\\$1 tail`, called `.M \"a\\c\"`, then `next` \u2014 groff prints `pre anext`; bred prints `pre a tailnext`. The join propagates but the rest of the interpolated body line is still emitted. Red test `escapes :: a c inside a macro argument cuts the rest of the body line`. The `\\c` must end the body line at the interpolation point.",
       "doneHash": "30263abb"
     },
     {
@@ -1482,7 +1482,7 @@
       "lane": "a1",
       "type": "triage",
       "status": "done",
-      "title": "session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage)",
+      "title": "session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused \u2014 decide whether it must produce a legacy event (triage)",
       "files": [
         "ext/code/event.mjs",
         "test/code-events.mjs",
@@ -1580,7 +1580,7 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Groomed 2026-11-25, title corrected: GROFF_SGR=1 -mdoc shows `.Ar foo | bar` italic for both words, `.Cm a | b` bold, with only the `|` roman — groff does not end the argument list at the bar. Bred's mdocArgEnd stops at the bar and reprints the tail with c.font, so the tail loses style and role. Red test `mdoc inline :: a bar is roman and does not end a macro argument list`. Keep `.Sh` out of the test: mdocHeading leaves c.font bold (row p127).",
+      "notes": "Groomed 2026-11-25, title corrected: GROFF_SGR=1 -mdoc shows `.Ar foo | bar` italic for both words, `.Cm a | b` bold, with only the `|` roman \u2014 groff does not end the argument list at the bar. Bred's mdocArgEnd stops at the bar and reprints the tail with c.font, so the tail loses style and role. Red test `mdoc inline :: a bar is roman and does not end a macro argument list`. Keep `.Sh` out of the test: mdocHeading leaves c.font bold (row p127).",
       "doneHash": "30263abb"
     },
     {
@@ -1832,7 +1832,7 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Groomed 2026-11-25, residual of p54: `.BR load | \\c` + `.ds X y` + `reload` — groff prints `load|reload`; bred prints `load| reload`. Also red for .nr and .rm (the same textOut==0 branch covers .rn/.rr/.als/.ev). Red test `macros :: a c join survives a request that only defines or removes`. Widen the restore of joinNext to any request that printed nothing and left the line unbroken; the .PP/.RS/.sp/.br cases must still break. Absorbed by b4 in round 62; marked done with b4's hash.",
+      "notes": "Groomed 2026-11-25, residual of p54: `.BR load | \\c` + `.ds X y` + `reload` \u2014 groff prints `load|reload`; bred prints `load| reload`. Also red for .nr and .rm (the same textOut==0 branch covers .rn/.rr/.als/.ev). Red test `macros :: a c join survives a request that only defines or removes`. Widen the restore of joinNext to any request that printed nothing and left the line unbroken; the .PP/.RS/.sp/.br cases must still break. Absorbed by b4 in round 62; marked done with b4's hash.",
       "doneHash": "f6b63ada"
     },
     {

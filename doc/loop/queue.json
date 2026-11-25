@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 55,
-    "main": "091f8e5b"
+    "round": 56,
+    "main": "7846c1d0"
   },
   "items": [
     {
@@ -179,14 +179,15 @@
     {
       "id": "p33",
       "lane": "a1",
-      "status": "next",
+      "status": "done",
       "title": "after a macro under `.Sm off`, a text line still gets a space (groff joins it)",
       "files": [
         "js/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "7846c1d0"
     },
     {
       "id": "p34",
@@ -989,7 +990,7 @@
     {
       "id": "p98",
       "lane": "a1",
-      "status": "next",
+      "status": "done",
       "title": "a \\c before a macro whose body prints nothing (or before .ft/.ll) is still lost; the broad fix also glues across .PP/.RS/.sp, which needs a multi-macro sweep before changing",
       "files": [
         "js/man-parse.mjs",
@@ -997,7 +998,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "7846c1d0"
     },
     {
       "id": "p99",
@@ -1604,7 +1606,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "done",
       "source": "lane",
       "title": "batch: a join through an empty macro, and Sm off before a text line (p98, p33)",
       "files": [
@@ -1612,7 +1614,8 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Absorbs p98 (a \\c before a macro with an empty body: the body now pushes a frame, so the carry works) and p33 (.Sm off also suppresses the space before a text line: groff prints -ab; our text branch forced spaceNext before appending). p98's .ft/.ll half was already fixed by p125, and the .PP/.RS/.sp warning is respected (a body line that breaks still drops the join)."
+      "notes": "Absorbs p98 (a \\c before a macro with an empty body: the body now pushes a frame, so the carry works) and p33 (.Sm off also suppresses the space before a text line: groff prints -ab; our text branch forced spaceNext before appending). p98's .ft/.ll half was already fixed by p125, and the .PP/.RS/.sp warning is respected (a body line that breaks still drops the join).",
+      "doneHash": "7846c1d0"
     }
   ],
   "measures": {

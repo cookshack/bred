@@ -17,8 +17,8 @@ Code and core were not re-measured.
 
 ## Correction
 
-Round 54's record said "2071 of 2073" and "624 man tests"; the measured counts
-were 2073 passing (2075 total with the two pending) and 624 man tests. This
-round's numbers are measured, not derived.
+Round 54's record said "2071 of 2073" and "624 man tests"; both were derived,
+not measured. This round quotes only counts it measured: 2075 passing and 628
+man tests, and the header's numbers come from them.
 
 Record on `loop/r55`, one fast-forward to main.

@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: handover after round 55, 2026-11-25. Thirty-six rounds used the
+Status: handover after round 56, 2026-11-25. Thirty-seven rounds used the
 tool's gate: red at base, green after the rebase, one suite at the integrated
-tip, the record on `loop/r<n>`, one fast-forward. Main is the round-55 tip,
-green (2075 of 2077 tests passing, 2 pending, check clean). The agreed plan,
+tip, the record on `loop/r<n>`, one fast-forward. Main is the round-56 tip,
+green (2077 of 2079 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
 and area-aware picks are parked by the plan's own criterion. Man is 1 word on
 1 page, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
@@ -292,6 +292,7 @@ lane, or to another area, if its files are free.
 | 49 | link tails | `fc63c08` | `.UE`/`.ME` keep every trailing argument (tload 1 → 0); man 2 words on 2 pages |
 | 50 | join through | `eac2c89` | a `\c` survives a request that draws nothing (dmsetup 1 → 0, section 8 clean); man 1 word on 1 page |
 | 51 | compaction | `ab98859` | the four compaction events become a log line per phase; re-gated after an outside doc commit moved main mid-round |
+| 56 | joins and Sm (batch) | `7846c1d` | a `\c` survives an empty macro body, and `.Sm off` suppresses the space before a text line; p98/p33 batched |
 | 55 | character forms (batch) | `091f8e5` | `\[charN]` is a glyph lookup and `\N[ 65]` takes leading spaces; p94/p95 batched; p89 is a NUL verdict |
 | 54 | registers (batch) | `07e195d` | `.nr X +N`/`-N` are relative and `.nr X` alone leaves X undefined; p45 and p120 batched in one lane, measured man only |
 | 53 | link copy | `673c8b7` | `.UE`/`.ME` copy their tail once before expanding it; no corpus change |
@@ -299,13 +300,13 @@ lane, or to another area, if its files are free.
 
 ## Current state
 
-Measured at `091f8e5b` (round 55's tip), corpus `4150` pages:
+Measured at `7846c1d0` (round 56's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
     whole sections after round 50: 1:1p/1w  3:0p/0w  5:0p/0w  7:0p/0w  8:0p/0w
     code events after round 50: 20 (19 translated, 1 dropped, 0 malformed)
-    628 man tests, 2075 of 2077 passing, 2 pending, 0 failing; check clean
+    630 man tests, 2077 of 2079 passing, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

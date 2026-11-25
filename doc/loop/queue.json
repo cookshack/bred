@@ -44,15 +44,15 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "next",
+      "status": "ready",
       "source": "lane",
-      "title": "batch: a cell request, a dot-only line, and quoted arguments (p75, p128, p130)",
+      "title": "batch: a cell request and a dot-only line (p75, p128)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Absorbs p75 (`.IP \"\" 2` inside a `T{` cell prints no text, only a break: the raw `.IP` line must not stay in the cell; the existing `a cell request outside the text macros is still not run` test is updated), p128 (a `.`-only line with no pending `\\c` draws no gap: `one`/`.`/`two` is `one two`) and p130 (`\\$@` quotes each argument). p75 is the 18-word ps(1) surplus, so the round should move the measured sweep. Each keeps its own red test.",
+      "notes": "Groomed 2026-11-25: TWO red tests and no code change (p130 is already done in a0e05f0b, so it is not in this batch; `escapes :: dollar at quotes each argument` passes at this base). `tables :: an IP in a T{ cell prints no text` — groff -Tutf8 -t -man on `a<TAB>T{` / `text` / `.IP \"\" 2` / `more` / `T}` prints `a   text`, then a blank line, then `more` indented 2 ens; bred keeps `.IP \"\" 2` as literal cell text, so flat(cell.spans) is 'text\\n.IP \"\" 2\\nmore' instead of 'text\\nmore'. Same for ps(1)'s class/cls/policy cells (ps.1 lines 1121/1145/1535). `paragraphs :: a dot-only line draws no gap` — groff -Tutf8 -man on `one` / `.` / `two` prints `one two` on one line; bred emits a space block so asText is 'one\\n\\ntwo\\n' instead of 'one two\\n' (the `'`-only form is identical in groff). The patch NARROWS the existing `tables :: a cell request outside the text macros is still not run` from `.IP \"\" 2` to `.IP tag 2`: an IP with a tag does print text (groff prints a `tag` line then the body indented), so keeping it literal is right, while `.IP \"\"` has no text and must join the no-op tableRequests. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b8.patch. WARNING for the round's man-diff number: the p75 notes say this is the whole 18-word ps(1) surplus, but it is only 9 of them (` .IP` x3 + `\"\"` x3 + `2` x3, confirmed by dropping the 3 `.IP \"\" 2` lines: ps(1) 6710 -> 6701 ours). The other 9 are a SEPARATE defect also visible on ps(1): the `.\\\"K<TAB>stime<TAB>system time (conflict, system vs. start time)` comment at ps.1:940 sits at table-row level inside `.TS`/`.TE`, tbl ignores it but bred turns it into a data row, giving `[ \".\", \"stime\", \"system time (conflict, system vs. start time)\" ]`; dropping that line takes 6701 -> 6692, matching man(1). Not fixed here and not tested: needs its own row (comment lines in a table body must be skipped like tableRequest already skips `.br`/`.sp`). terminfo(5) has the same bug in milder form (`.\\\".TH` at table-row level, 5 surplus tokens: `.` and four `|`). Also found in the groom (separate row needed): ps(1) has a .\\\" comment at table-ROW level (ps.1:940) which tbl ignores and bred turns into a data row (9 of the surplus tokens); terminfo(5) has the same in milder form. Comment lines in a table body must be skipped like tableRequest skips .br/.sp.",
       "batch": 1
     },
     {

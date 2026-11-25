@@ -34,6 +34,7 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| p104 | man | a1 | ready | hg(1) loses 2 words: man breaks at the \: between incoming and ), and man-diff's join whitelist does not accept ); our text is right, so the fix is the join | bin/man-diff, test/man-diff.mjs |
 | g1 | code | a1 | ready | second area: a recorder of real v2 event streams and a conformance measure over translate() (translated / dropped / malformed), plus one committed fixture | bin/oc-record.mjs, bin/oc-conformance.mjs, test/code-conformance.mjs, test/fixtures/oc-events/*, ext/code/event.mjs |
 
 ## Backlog
@@ -62,7 +63,6 @@ before.
 | p100 | man | a1 | next | copyMode() chains replacements and over-reduces \. and \  (groff copy mode leaves \. and an encoded space) | js/man-parse.mjs, test/man-parse.mjs |
 | p101 | man | a1 | next | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
 | p102 | man | a1 | next | an unknown escape is printed by groff (\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts | js/man-parse.mjs, test/man-parse.mjs |
-| p104 | man | a1 | next | hg(1) loses 2 words: incoming ) — spacing around a closing paren | js/man-parse.mjs, test/man-parse.mjs |
 | p105 | man | a1 | next | ssh-agent(1) loses 2 words: the synopsis -s] bracket | js/man-parse.mjs, test/man-parse.mjs |
 | p106 | man | a1 | next | rpcgen(1) loses 1 word: 0a | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
 | p107 | man | a1 | next | ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis | js/man-parse.mjs, test/man-parse.mjs |

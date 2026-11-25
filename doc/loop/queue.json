@@ -1060,13 +1060,13 @@
     {
       "id": "p104",
       "lane": "a1",
-      "status": "next",
-      "title": "hg(1) loses 2 words: incoming ) — spacing around a closing paren",
+      "status": "ready",
+      "title": "hg(1) loses 2 words: man breaks at the \\: between incoming and ), and man-diff's join whitelist does not accept ); our text is right, so the fix is the join",
       "files": [
-        "js/man-parse.mjs",
-        "test/man-parse.mjs"
+        "bin/man-diff",
+        "test/man-diff.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs",
+      "proof": "npx mocha --exit test/man-diff.mjs",
       "area": "man",
       "type": "fix"
     },

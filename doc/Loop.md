@@ -292,6 +292,7 @@ lane, or to another area, if its files are free.
 | 49 | link tails | `fc63c08` | `.UE`/`.ME` keep every trailing argument (tload 1 → 0); man 2 words on 2 pages |
 | 50 | join through | `eac2c89` | a `\c` survives a request that draws nothing (dmsetup 1 → 0, section 8 clean); man 1 word on 1 page |
 | 51 | compaction | `ab98859` | the four compaction events become a log line per phase; re-gated after an outside doc commit moved main mid-round |
+| 60 | done hashes, again | `ad68333` | the rule is the commit's diff, not its trailer: a done hash must touch a file the row owns |
 | 59 | done hashes | `6434838` | `check` requires a done hash to name the item, its absorbing item, or a batch; found by the round-57 mis-merge |
 | 58 | synthetic notes, retried | `57c1d58` | `session.synthetic` becomes a log line; the merge line was checked this time |
 | 57 | synthetic notes | (none) | bad record: a peer grooming commit moved c11 to a3 between dispatch and gate, so nothing merged; the claim was corrected in round 58 |
@@ -303,7 +304,7 @@ lane, or to another area, if its files are free.
 
 ## Current state
 
-Measured at `64348380` (round 59's tip), corpus `4150` pages:
+Measured at `ad68333e` (round 60's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)

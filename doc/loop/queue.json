@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 59,
-    "main": "64348380"
+    "round": 60,
+    "main": "ad68333e"
   },
   "items": [
     {
@@ -1674,7 +1674,7 @@
       "area": "tooling",
       "lane": "a3",
       "type": "infra",
-      "status": "ready",
+      "status": "done",
       "source": "triage",
       "title": "check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit",
       "files": [
@@ -1683,7 +1683,8 @@
         "test/loop.mjs"
       ],
       "proof": "npx mocha --exit test/loop.mjs",
-      "notes": "Found 2026-11-25: round 57 marked c11 done with 1947f160, a peer grooming commit with no Loop-item trailer, while the fix was on a lane branch that never merged. check verified only that the hash is on main. A doneHash must be a commit whose body carries Loop-item: <id>, or a batch trailer naming the item; anything else is a problem. Test: a scratch repo with a done row pointing at an unrelated commit is refused. Round 59 shipped the trailer rule; on main it reported 36 problems, all from rounds before the trailer convention (or legitimate absorbs), so round 60 replaces it with the commit-diff rule: the done hash must touch a file the row owns, and rows with no files are exempt. That rule reports 0 on main."
+      "notes": "Found 2026-11-25: round 57 marked c11 done with 1947f160, a peer grooming commit with no Loop-item trailer, while the fix was on a lane branch that never merged. check verified only that the hash is on main. A doneHash must be a commit whose body carries Loop-item: <id>, or a batch trailer naming the item; anything else is a problem. Test: a scratch repo with a done row pointing at an unrelated commit is refused. Round 59 shipped the trailer rule; on main it reported 36 problems, all from rounds before the trailer convention (or legitimate absorbs), so round 60 replaces it with the commit-diff rule: the done hash must touch a file the row owns, and rows with no files are exempt. That rule reports 0 on main.",
+      "doneHash": "ad68333e"
     }
   ],
   "measures": {

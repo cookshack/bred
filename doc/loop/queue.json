@@ -1,12 +1,12 @@
 {
   "schema": 1,
   "run": {
-    "start": "2026-11-25T11:51:55Z",
-    "deadline": "2026-11-25T15:06:55Z",
-    "stopNew": "2026-11-25T14:21:55Z",
-    "state": "stopped",
-    "main": "4f057efe",
-    "round": 46
+    "start": "2026-11-25T12:40:00Z",
+    "deadline": "2026-11-25T17:25:00Z",
+    "stopNew": "2026-11-25T16:40:00Z",
+    "state": "active",
+    "round": 47,
+    "main": "d0b43364"
   },
   "items": [
     {
@@ -1532,6 +1532,25 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "source": "measure",
       "notes": "Measured at c1f2f38a: man-diff --page /usr/share/man/man8/dmsetup.8.gz says 3222 ours / 3221 man, lost 1 [\"load|reload\"], with ours as \"load|\" + \"reload\". Source is `.BR load | \\c` followed by `.CMD_RELOAD` (a .de body whose only line is `.BR reload`), after `.BR compact \", \" inverted \", \" notrunc .` under .HP, and before `.br`. A minimal .BR load | \\c + .de CMD_RELOAD + .BR reload DOES join correctly in bred, so the trigger is context-dependent (the preceding .BR line, the .HP, or the macro body shape). Prove the trigger before fixing; p96 fixed the text-line variant and p98 the no-output-macro variant, so check both before changing the join state."
+    },
+    {
+      "id": "l1",
+      "area": "tooling",
+      "lane": "a3",
+      "type": "infra",
+      "status": "ready",
+      "title": "the loop has no clock it can enforce: put start/deadline/stopNew in the tracked queue, print the budget in status, and refuse a round after stopNew",
+      "files": [
+        "bin/loop-clock.mjs",
+        "bin/loop.mjs",
+        "test/loop-clock.mjs",
+        "test/loop.mjs",
+        "doc/Loop.md",
+        "doc/Loop-prompt.md"
+      ],
+      "proof": "npx mocha --exit test/loop-clock.mjs test/loop.mjs",
+      "source": "triage",
+      "notes": "The 2026-11-25 11:51Z run stopped at 12:28 having set a 15:06 stopNew and never read the clock again: the stop condition lived in prose and in an untracked file nothing parsed. The clock moves to doc/loop/queue.json run (tracked, so a fresh session inherits it), bin/loop-clock.mjs holds the pure budget/canStart logic, status prints it, and round refuses after stopNew unless --force. lastRoundMs is recorded so the printed ETA uses a measured round, not a guess."
     }
   ],
   "measures": {

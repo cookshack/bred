@@ -30,6 +30,12 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | area | lane | status | title | files |
+|----|------|------|--------|-------|-------|
+| l1 | tooling | a3 | ready | the loop has no clock it can enforce: put start/deadline/stopNew in the tracked queue, print the budget in status, and refuse a round after stopNew | bin/loop-clock.mjs, bin/loop.mjs, test/loop-clock.mjs, test/loop.mjs, doc/Loop.md, doc/Loop-prompt.md |
+
 ## Backlog
 
 | id | area | lane | status | title | files |

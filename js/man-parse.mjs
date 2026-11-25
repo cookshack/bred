@@ -3957,13 +3957,8 @@ function linkifyBlocks
 export
 function parse
 (text, spec) {
-  let c, input, joinThrough
+  let c, input
 
-  // Requests that neither print nor end the output line. A `\c` before one of
-  // them still joins the next text: dmstats(8) opens a macro body with `.ad l`
-  // and groff prints `load|reload` across it. `Roff.macroClass` covers the
-  // metric requests; these are the render-class cases that draw nothing.
-  joinThrough = { ft: 1, ftr: 1, in: 1, ti: 1, ta: 1, ce: 1 }
   spec = spec || {}
   c = { fails: [],
         seen: {},
@@ -4045,7 +4040,10 @@ function parse
       if (control.comment || fromTrap)
         c.tagResume = resumed
       c.lineTarget = 0
-      if (control.blank && (c.pre == 0))
+      // A `.`-only line prints nothing, so it keeps a pending `\c` join and
+      // adds no gap: groff prints `load|reload` across it. A truly blank line
+      // below is different: it consumes the join and adds a separator space.
+      if (control.blank && (c.joinNext == 0) && (c.pre == 0))
         addBlock(c, { kind: 'space' })
       continue
     }
@@ -4062,21 +4060,25 @@ function parse
       continue
     }
     if (control && control.name) {
-      let frames
+      let before
 
       // A `\c` on the line before this one suppresses the leading space; the
       // macro's own last argument may start a new continuation.
-      frames = c.frames.length
+      before = { para: c.para,
+                 box: box(c),
+                 blocks: box(c).blocks.length,
+                 boxes: c.boxes.length }
       c.joinPrev = c.joinNext
       c.joinNext = 0
       c.textOut = 0
       handleLine(c, control, style)
-      // A macro with a body runs its lines as input, so the `\c` belongs to
-      // the first of those lines that prints, not to the call line, which
-      // prints nothing (ttf2tfm(1)'s "extension `\c" then `.C \&.ttc '.]`).
-      if ((c.textOut == 0) && ((c.frames.length > frames) ||
-                               (Roff.macroClass(control.name) == 'metric') ||
-                               joinThrough[control.name]))
+      // A request that printed nothing and left the line unbroken does not
+      // end a pending join: groff prints `load|reload` across `.ds`, `.nr`,
+      // `.rm`, `.ad` and `.ft`. `.PP`, `.RS`, `.sp` and `.br` do break it,
+      // because they close the paragraph, add a block or set `textOut`.
+      if ((c.textOut == 0) && (box(c) == before.box) &&
+          (box(c).blocks.length == before.blocks) &&
+          (c.para == before.para) && (c.boxes.length == before.boxes))
         c.joinNext = c.joinPrev
       c.joinPrev = 0
       // A tag line ending in `\c` continues, and so does a macro call that
@@ -4089,7 +4091,12 @@ function parse
     }
     if ((control == 0) && (input.text.trim() == '') && (c.pre == 0)) {
       c.lineTarget = 0
-      addBlock(c, { kind: 'space' })
+      // As for a `.`-only blank line: one blank line after a `\c` continues
+      // the joined line, a second one breaks the paragraph.
+      if (c.joinNext)
+        c.joinNext = 0
+      else
+        addBlock(c, { kind: 'space' })
       continue
     }
     {
@@ -4125,11 +4132,17 @@ function toText
   let out
 
   function block
-  (b) {
+  (b, idx, all) {
     if (b.kind == 'heading')
       out += '\n' + textOf(b.spans) + '\n'
     else if (b.kind == 'para')
       out += textOf(b.spans) + '\n'
+    else if (b.kind == 'space') {
+      // A space block is one blank output line. The parser leaves a final one
+      // for the input's last newline, which only ends the last line.
+      if (idx < (all.length - 1))
+        out += '\n'
+    }
     else if (b.kind == 'tag') {
       out += textOf(b.tag) + '\n'
       b.blocks.forEach(block)

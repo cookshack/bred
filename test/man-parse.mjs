@@ -58,6 +58,19 @@ test('paragraphs', 'text lines fill one paragraph',
        equal(flat(r.doc.blocks[1].spans), 'first line second line')
      })
 
+test('paragraphs', 'toText draws a blank line for a space block',
+     () => {
+       let r
+
+       // p73: `groff -Tutf8 -man` on `one`, `.sp`, `two` prints a blank line
+       // between the two, and the parser already emits a `space` block.
+       equal(asText('.TH T 1\none\n.sp\ntwo\n'), 'one\n\ntwo\n')
+       // `.sp 2` is still one block, not two: a count is not tracked.
+       r = parsed('.TH T 1\none\n.sp 2\ntwo\n')
+       equal(r.doc.blocks[1].kind, 'space')
+       equal(r.doc.blocks[2].kind, 'para')
+     })
+
 test('paragraphs', 'CRLF line continuation joins before parsing',
      () => {
        let r
@@ -350,6 +363,40 @@ test('macros', 'a c join survives a request that prints nothing',
        equal(ManParse.toText(r.doc.blocks).includes('load|reload'), true)
        r = parsed('.TH T 1\n.BR load | \\c\n.ll 40\nreload\n')
        equal(ManParse.toText(r.doc.blocks).includes('load|reload'), true)
+     })
+
+test('macros', 'a c join survives a blank line',
+     () => {
+       let r
+
+       // p55: groff -Tutf8 -man on `.BR load | \c`, one blank line, `reload`
+       // prints `load| reload` on one line: a single blank line is not a
+       // paragraph break for a joined line. Two blank lines are.
+       r = parsed('.TH T 1\n.BR load | \\c\n\nreload\n')
+       equal(ManParse.toText(r.doc.blocks), 'load| reload\n')
+       r = parsed('.TH T 1\n.BR load | \\c\n\n\nreload\n')
+       equal(ManParse.toText(r.doc.blocks), 'load|\n\nreload\n')
+       // A `.`-only line is a request that prints nothing, so the join stays
+       // flush: groff prints `load|reload`.
+       r = parsed('.TH T 1\n.BR load | \\c\n.\nreload\n')
+       equal(ManParse.toText(r.doc.blocks), 'load|reload\n')
+     })
+
+test('macros', 'a c join survives a request that only defines or removes',
+     () => {
+       let r
+
+       // p126: groff -Tutf8 -man prints `load|reload` across requests that
+       // print nothing and leave the line unbroken: `.ds`, `.nr` and `.rm`.
+       r = parsed('.TH T 1\n.BR load | \\c\n.ds X y\nreload\n')
+       equal(ManParse.toText(r.doc.blocks), 'load|reload\n')
+       r = parsed('.TH T 1\n.BR load | \\c\n.nr X 1\nreload\n')
+       equal(ManParse.toText(r.doc.blocks), 'load|reload\n')
+       r = parsed('.TH T 1\n.BR load | \\c\n.rm X\nreload\n')
+       equal(ManParse.toText(r.doc.blocks), 'load|reload\n')
+       // `.sp` still breaks the join.
+       r = parsed('.TH T 1\n.BR load | \\c\n.sp\nreload\n')
+       equal(ManParse.toText(r.doc.blocks), 'load|\n\nreload\n')
      })
 
 test('copy mode', 'a B argument is copied and then interpreted',

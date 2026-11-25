@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 51,
-    "main": "ab988598"
+    "round": 52,
+    "main": "e7e0d671"
   },
   "items": [
     {
@@ -1408,13 +1408,14 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "next",
+      "status": "done",
       "title": ".if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "e7e0d671"
     },
     {
       "id": "c8",

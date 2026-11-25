@@ -64,7 +64,6 @@ before.
 | c6 | code | a1 | next | a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs) | ext/code/code.mjs, ext/code/ui.mjs, test/code-* |
 | p119 | man | a1 | next | a bar ends the argument list of other multi-argument macros (Ar, Cm, Ic, Pa, …), so words after it lose the macro font; style only, each needs its own evidence | js/man-parse.mjs, test/man-parse.mjs |
 | p120 | man | a1 | next | a valueless .nr X sets it to 0 here; groff leaves it undefined and reading \nX creates it (two register divergences, no corpus effect) | js/man-parse.mjs, test/man-parse.mjs |
-| p121 | man | a1 | next | .if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it) | js/man-parse.mjs, test/man-parse.mjs |
 | c9 | code | a2 | next | handlePartDelta also decides from one view: a thinking delta goes only to boxes that already hold the block, so a box that lacks it never gets it | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 
 ## Triage
@@ -159,6 +158,7 @@ before.
 | c3 | code | a3 | done:8618283a | session.retry.scheduled is dropped; a retry is visible to the user, so decide what legacy event it should be | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs |
 | c5 | code | a1 | done:f26a1d0 | session.reasoning.ended has the same authoritative text as text.ended and is still dropped; translate it the same way | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/* |
 | c7 | code | a2 | done:fd65122 | the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
+| p121 | man | a1 | done:e7e0d671 | .if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it) | js/man-parse.mjs, test/man-parse.mjs |
 | c8 | code | a2 | done:e3e11414 | Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing) | ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | p123 | man | a3 | done:4dd8ef83 | a .Bl -dash list still renders as an HTML ul disc; groff draws "-" per item (the text model now agrees, the renderer does not) | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
 | c10 | code | a2 | done:ab988598 | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |

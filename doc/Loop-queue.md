@@ -30,12 +30,6 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
-## Ready
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| c10 | code | a2 | ready | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -167,6 +161,7 @@ before.
 | c7 | code | a2 | done:fd65122 | the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | c8 | code | a2 | done:e3e11414 | Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing) | ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | p123 | man | a3 | done:4dd8ef83 | a .Bl -dash list still renders as an HTML ul disc; groff draws "-" per item (the text model now agrees, the renderer does not) | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
+| c10 | code | a2 | done:ab988598 | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
 | p125 | man | a1 | done:eac2c89c | dmsetup(8) splits load\|reload into two words around a .BR line ending in \c | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
 | l1 | tooling | a3 | done:9e2a821f | the loop has no clock it can enforce: put start/deadline/stopNew in the tracked queue, print the budget in status, and refuse a round after stopNew | bin/loop-clock.mjs, bin/loop.mjs, test/loop-clock.mjs, test/loop.mjs, doc/Loop.md, doc/Loop-prompt.md |
 

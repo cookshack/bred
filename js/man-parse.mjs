@@ -2140,6 +2140,26 @@ function tableCell
 // either, only the break and indent a cell span cannot hold, so it joins them.
 tableRequests = { sp: 1, br: 1, nf: 1, fi: 1 }
 
+// A `.`-led comment request is a control line tbl hands to roff, which reads
+// `\"` (or `\#`) to the end of the line and prints nothing, so the line owns no
+// row at all: ps(1) ends its OBSOLETE SORT KEYS table with
+// `.\"K<TAB>stime<TAB>system time (conflict, ...)`, and groff draws only the
+// rows around it. The whole line goes, cells and all, so this must be asked
+// before the line is split on the tab. Only `.' opens a control line here:
+// `'\" x;c;d` is cells (tbl has no `'` control character), and an indented
+// `  .\" x` is data too.
+function tableComment
+(line) {
+  if (line[0] == '.') {
+    let rest
+
+    rest = line.slice(1).replace(/^[ \t]+/, '')
+    if (rest.startsWith('\\"') || rest.startsWith('\\#'))
+      return 1
+  }
+  return 0
+}
+
 function tableRequest
 (line) {
   if (line[0] == '.') {
@@ -2175,6 +2195,8 @@ function tableRows
   lines.forEach(line => {
                   let parts
 
+                  if (tableComment(line))
+                    return
                   if (tableRequest(line))
                     return
                   if (multiline) {

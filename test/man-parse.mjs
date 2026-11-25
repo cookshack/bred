@@ -1185,6 +1185,49 @@ test('tables', 'a request line in a table body is not a cell',
        equal(flat(table.rows[2].cells[1].spans), 'f')
      })
 
+test('tables', 'a comment line in a table body is not a row',
+     () => {
+       let r, table, page
+
+       // ps(1) ends its OBSOLETE SORT KEYS table with
+       // `.\"K<TAB>stime<TAB>system time (conflict, system vs. start time)`.
+       // tbl hands a `.`-led control line to roff, which reads `\"` as a
+       // comment to end of line and prints nothing, so groff -t -Tutf8 -man
+       // draws no row for it and the table ends at `U uid user ID number`.
+       page = '.TH PS 1\n.SH "OBSOLETE SORT KEYS"\n.TS\nl l lw(3i).\n' +
+              'y\tpriority\tkernel scheduling priority\n' +
+              '.\\"K\tstime\tsystem time (conflict, system vs. start time)\n' +
+              'U\tuid\tuser ID number\n.TE\n'
+       r = parsed(page)
+       equal(r.ok, 1)
+       table = r.doc.blocks.filter(b => b.kind == 'table')[0]
+       equal(table.rows.length, 2)
+       equal(flat(table.rows[1].cells[0].spans), 'U')
+       equal(asText(page).includes('stime'), false)
+       // A line inside a T{ cell is a line of its own: a comment there prints
+       // nothing and the cell keeps the text above and below it. groff joins
+       // them into `one two`, but this model keeps a cell's line breaks (the
+       // ps(1) %cpu cell is `lucky.  (alias` then `pcpu).`).
+       r = parsed('.TH T 1\n.TS\nl l.\na\tT{\none\n.\\" x\ntwo\nT}\nc\td\n.TE\n')
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), 'one\ntwo')
+       // A comment in a cell that does NOT open the line is data: tbl reads
+       // that line as cells, so only the comment is cut and the `.` the line
+       // begins with is printed. groff draws `a | .`, so this must not be
+       // skipped as a control line.
+       r = parsed('.TH T 1\n.TS\ntab(;) allbox;\nll.\na;.\\" x\nc;d\n.TE\n')
+       equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), '.')
+       // `.` opens the line, so the whole line is a control line and the cells
+       // after the comment escape are discarded with it: groff draws no row at
+       // all, not a row whose first cell is `.`. The skip must therefore happen
+       // before the line is split on the tab.
+       r = parsed('.TH T 1\n.TS\ntab(;) allbox;\nll.\na;b\n.\\"\tc;d\ne;f\n.TE\n')
+       table = r.doc.blocks.filter(b => b.kind == 'table')[0]
+       equal(table.rows.length, 2)
+       equal(flat(table.rows[1].cells[0].spans), 'e')
+       equal(asText('.TH T 1\n.TS\ntab(;) allbox;\nll.\na;b\n.\\"\tc;d\n.TE\n').includes('c d'),
+             false)
+     })
+
 test('tables', 'a bare Nm in a T{ cell prints the document name',
      () => {
        let r, table, page

@@ -112,9 +112,13 @@ function run
                 maxBuffer: opts.maxBuffer || defaultBuffer }
   res = spawnSync('bash', [ '-c', command ], spawnOpts)
   if (res.error && (res.error.code == 'ETIMEDOUT'))
-    return { status: 124, out: 'timeout after ' + (opts.timeoutMs || defaultTimeout) + 'ms' }
+    return { status: 124, out: 'timeout after ' + (opts.timeoutMs || defaultTimeout) + 'ms', stdout: '', stderr: '' }
+  // stdout separately: a measure command prints its JSON record there, and the
+  // diagnostics it writes to stderr would otherwise poison the parse.
   return { status: res.status == undefined ? 1 : res.status,
-           out: (res.stdout || '') + (res.stderr || '') }
+           out: (res.stdout || '') + (res.stderr || ''),
+           stdout: res.stdout || '',
+           stderr: res.stderr || '' }
 }
 
 function exec

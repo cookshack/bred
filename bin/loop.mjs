@@ -803,7 +803,7 @@ function measureCmd
       return 1
     }
     try {
-      res = JSON.parse(out.out)
+      res = JSON.parse(out.stdout)
     }
     catch {
       console.error('loop: measure ' + area + ' printed no JSON record')
@@ -813,6 +813,7 @@ function measureCmd
 
   res.area = area
   res.tip = res.tip || tip
+  res.ts = res.ts || new Date().toISOString()
   file = Path.join(root, 'doc', 'loop', 'history.jsonl')
   Measure.append(file, res)
   if (block.kind == 'man')
@@ -842,6 +843,11 @@ function lastMeasure
     i += 1
   }
   return found
+}
+
+function timeOf
+(ts) {
+  return String(ts || '').slice(11, 16) || 'unknown time'
 }
 
 function areaSummary
@@ -875,7 +881,7 @@ function areaSummary
 
     open = q.items.filter(item => (item.area == areas[ i ]) && (item.status == 'done') == 0).length
     last = lastMeasure(areas[ i ])
-    out.push(areas[ i ] + ': ' + open + ' open, ' + (last ? 'measured ' + String(last.ts).slice(11, 16) +
+    out.push(areas[ i ] + ': ' + open + ' open, ' + (last ? 'measured ' + timeOf(last.ts) +
                                                        ' at ' + String(last.tip).slice(0, 8) : 'no measure yet'))
     i += 1
   }

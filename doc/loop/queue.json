@@ -29,7 +29,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "title": "text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0",
       "files": [
         "ext/code/event.mjs",
@@ -75,7 +75,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "source": "lane",
       "title": "batch: table spans, character names, and the \\v paren form (p79, p83, p34)",
       "files": [
@@ -1664,7 +1664,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "title": "handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view",
       "files": [
         "ext/code/code.mjs",
@@ -2016,6 +2016,69 @@
       "proof": "npx mocha --exit test/pane-holding.mjs",
       "notes": "Found by the core hunt 2026-11-25 at b3560073. Pane.holdingView is `Frame.find(frame => frame.panes.find(p => p.view == view))?.pane` (js/Pane.mjs:103-106). Frame.find returns the FRAME whose panes contain the view, and `.pane` on a frame is `Pane.current(f)` (js/frame.mjs:247), the focused pane -- so with two panes in one frame the answer for a background pane's view is the focused pane. Callers use it to aim work at the pane that owns the view: ext/core/lint.mjs:132 puts the lint marker on it and ext/code/code.mjs:2182 opens the code prompt in it, so in a split frame the marker/prompt lands on the wrong pane (the one the user is not looking at). Red test `holdingView :: returns the pane that shows the view, not the frame current`, using the pane-helpers frame with two panes and pA focused; `holdingView :: a view no pane holds gives nothing` is green at base. Failure: `AssertionError [ERR_ASSERTION]: the pane holding the view / false !== true`. Fix: return the pane matched by the inner find, e.g. find the pane across frames and return it rather than the frame's current pane. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/hunt-core1.patch",
       "source": "hunt"
+    },
+    {
+      "id": "b9",
+      "area": "man",
+      "status": "in-round",
+      "type": "fix",
+      "title": "batch: the man tail's escapes, spans and cells (b7: p79 p83 p34, b6: p102 p76 p77)",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Round 65's a1 lane carried two batches in sequence on one branch (b7 at 57a7e95b, then b6 at cab7cc0b), so the round takes them as one row owning the union and b6's proof. b7 absorbed p79 (a vertical table span puts its text on the bottom row: tbl(1)'s `l ld`/`r ^` example prints `|   r | foo    |`), p83 (21 groff_char(7) names: md, c*, r!, OK, Eu, sq, lf/rf/lc/rc, ul/uc/ur/ll/lr/cl/cr, 18/38/58/78) and p34 (`\\v(` has no paren form: groff warns and prints `x a2b y`). b6 absorbed p102 (an unknown escape prints its own letter; groff ignores exactly 27 printable characters and warns `escape character ignored before 'Q'`), p76 (`.SY`/`.OP` keep their space in mdoc mode; groff -mdoc has no SY/OP at all, so man(7)'s layout is the reference) and p77 (a literal tab is a tab stop, `\\t` is zero width in both fill and no-fill mode). Six red tests, all green at the merged tip, test/man-parse.mjs 386 passing.",
+      "source": "lane"
+    },
+    {
+      "id": "c16",
+      "area": "code",
+      "status": "in-round",
+      "type": "fix",
+      "title": "batch: a delta's part id comes from the event, and a thinking block is drawn in every box (c14, c9)",
+      "lane": "a2",
+      "files": [
+        "ext/code/code.mjs",
+        "ext/code/event.mjs",
+        "test/code-events.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs test/code-prompt-e2e.mjs",
+      "notes": "Round 65's a2 lane carried two items in sequence on one branch (c14 at 4da84e18, then c9), so the round takes them as one row owning the union. c14: `session.text.delta`/`session.reasoning.delta` took their part id from `state.textID`/`state.thinkID`, which `session.step.started` resets, so a reconnect that dropped the started event attributed every delta to part 0; both now derive the id from `data.assistantMessageID + ':text:'|':reason:' + data.ordinal`, as the ended cases already did, and the dead state is gone (the ordinal is on the event per the vendored types and live.jsonl:4). c9: `handlePartDelta` asked one view whether a delta is thinking text and returned before the per-box draw, so a second box never got the block; the reference client renders every part in every view.",
+      "source": "lane"
+    },
+    {
+      "id": "p135",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "js/man-roff.mjs still classifies the 27 escapes groff ignores as unknown and fails the static scan, so the inventory disagrees with the interpreter after b6",
+      "lane": "a1",
+      "files": [
+        "js/man-roff.mjs",
+        "test/man-roff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-roff.mjs",
+      "notes": "Found by b6's lane 2026-11-25 at cab7cc0b: the interpreter now prints an unknown escape's own letter (p102), and groff ignores exactly 27 printable characters (`123456789;<=>@GIJKPQTUWijqy`, verified character by character). `Roff.scan('a \\\\Q b')` still returns `fails: [{ kind: 'escape', name: 'Q', cls: 'unknown' }]` and test/man-roff.mjs:165 asserts `a\\\\qb` fails, so the static inventory refuses what the interpreter accepts. doc/Man.md is explicit that the inventory and the interpreter must stay in sync. Fix: classify the 27 as ignored in man-roff.mjs, flip the test, and assert both halves agree for every printable character. Needs the red test written before dispatch, so next.",
+      "source": "lane"
+    },
+    {
+      "id": "p136",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "a literal tab in filled text is not modelled: groff advances to the next tab stop per line, b6 pinned only the .nf form and the zero-width \\t",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found by b6's lane 2026-11-25 at cab7cc0b while fixing p77. b6 separated the two mappings (a literal tab is a tab stop, the `\\t` escape is zero width in both fill and no-fill mode) but only pinned `.nf` for the literal tab: `ABCDEFG<TAB>Y` is `ABCDEFG   Y` in groff (stops every 8 columns from the line's output position), and the filled case is unimplemented, so a fix that turned a literal tab into one space would still pass b6's tests. No corpus page was found to need it. Needs a red filled-mode test before dispatch, so next.",
+      "source": "lane"
     }
   ],
   "measures": {

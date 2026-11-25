@@ -34,12 +34,9 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
-| c14 | code | a2 | ready | text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0 | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | b8 | man | a1 | ready | batch: a cell request and a dot-only line (p75, p128) | js/man-parse.mjs, test/man-parse.mjs |
-| b7 | man | a1 | ready | batch: table spans, character names, and the \v paren form (p79, p83, p34) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | p128 | man | a1 | ready | a `.`-only line with no pending `\c` adds a space block; groff draws no gap | js/man-parse.mjs, test/man-parse.mjs |
 | p75 | man | a1 | ready | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
-| c9 | code | a2 | ready | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | p139 | core | a2 | ready | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
 | p140 | core | a2 | ready | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
 | p141 | core | a2 | ready | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs |
@@ -51,6 +48,8 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| c14 | code | a2 | in-round | text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0 | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
+| b7 | man | a1 | in-round | batch: table spans, character names, and the \v paren form (p79, p83, p34) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | b6 | man | a1 | in-round | batch: escapes and synopsis spacing (p102, p76, p77) | js/man-parse.mjs, test/man-parse.mjs |
 | p34 | man | a1 | in-round | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs, test/man-parse.mjs |
 | p76 | man | a1 | in-round | in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them | js/man-parse.mjs, test/man-parse.mjs |
@@ -58,7 +57,10 @@ before.
 | p79 | man | a1 | in-round | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
 | p83 | man | a1 | in-round | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
 | p102 | man | a1 | in-round | an unknown escape (`\Q`) is printed by groff as its letter and refused here | js/man-parse.mjs, test/man-parse.mjs |
+| c9 | code | a2 | in-round | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | p132 | man | a3 | in-round | doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0 | doc/Man.md |
+| b9 | man | a1 | in-round | batch: the man tail's escapes, spans and cells (b7: p79 p83 p34, b6: p102 p76 p77) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
+| c16 | code | a2 | in-round | batch: a delta's part id comes from the event, and a thinking block is drawn in every box (c14, c9) | ext/code/code.mjs, ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 
 ## Backlog
 
@@ -69,6 +71,8 @@ before.
 | p131 | man | a1 | next | a comment line at table-row level inside .TS/.TE is turned into a data row; tbl ignores it (ps(1) 9 of its surplus tokens, terminfo(5) 5) | js/man-parse.mjs, test/man-parse.mjs |
 | p133 | man | a1 | next | \h( and \l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \v(, these two still drop their tail | js/man-parse.mjs, test/man-parse.mjs |
 | p134 | man | a2 | next | a vertical table span puts its text on the right row in the text model but js/man-render.mjs draws the cell above as a separate empty <td>, so the rendered borders differ from groff | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
+| p135 | man | a1 | next | js/man-roff.mjs still classifies the 27 escapes groff ignores as unknown and fails the static scan, so the inventory disagrees with the interpreter after b6 | js/man-roff.mjs, test/man-roff.mjs |
+| p136 | man | a1 | next | a literal tab in filled text is not modelled: groff advances to the next tab stop per line, b6 pinned only the .nf form and the zero-width \t | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Triage
 

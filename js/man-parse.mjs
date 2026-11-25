@@ -11,7 +11,7 @@
 import * as Char from './man-char.mjs'
 import * as Roff from './man-roff.mjs'
 
-let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocAtNames, mdocLbNames, mdocInlineNames, mdocNoArg, mdocEncloseNames
+let fonts, predefinedStrings, predefinedRegisters, escapeChars, escapeIgnored, mdocAtNames, mdocLbNames, mdocInlineNames, mdocNoArg, mdocEncloseNames
 let tableRequests, tableKeyChars, tableRuleChars, tableSpecifiers, expandDepth
 let manFontStyles, manFontCopies, tableCellMacros
 
@@ -145,9 +145,48 @@ escapeChars = { '\\': '\\',
                 '+': '+',
                 '{': '',
                 '}': '',
+                // `\T` is not an escape, but troff ignores the backslash and
+                // prints the letter, so it lands here like `\]`.
                 'T': 'T',
+                // A backslash before a literal tab is likewise ignored, and
+                // the tab itself keeps its tab stop. `\t` is a different
+                // thing: it is a real escape that draws nothing (`c\td` is
+                // `cd`), so it must not become a tab.
                 '\t': '\t',
-                't': '\t' }
+                't': '' }
+
+// groff defines no escape for these characters. It warns "escape character
+// ignored before 'Q'" and prints the letter as ordinary text, so `a \Q b` is
+// `a Q b` and the page renders. A character groff does define stays out of
+// this set and is still refused (`\Z`, `\B`, ... take a delimiter and are not
+// implemented), because guessing one would silently mis-print the rest of the
+// line.
+escapeIgnored = { '1': 1,
+                  '2': 1,
+                  '3': 1,
+                  '4': 1,
+                  '5': 1,
+                  '6': 1,
+                  '7': 1,
+                  '8': 1,
+                  '9': 1,
+                  ';': 1,
+                  '<': 1,
+                  '=': 1,
+                  '>': 1,
+                  '@': 1,
+                  'G': 1,
+                  'I': 1,
+                  'J': 1,
+                  'K': 1,
+                  'P': 1,
+                  'Q': 1,
+                  'U': 1,
+                  'W': 1,
+                  'i': 1,
+                  'j': 1,
+                  'q': 1,
+                  'y': 1 }
 
 function pushSpan
 (spans, span) {
@@ -686,6 +725,13 @@ function expand
         continue
       if (ch in escapeChars) {
         pushSpan(spans, { text: trans(c, escapeChars[ch]), style: cur })
+        continue
+      }
+      // groff has no escape for this character: it drops the backslash and
+      // prints the character itself (with a warning that does not stop the
+      // page). p102's `a \Q b` is `a Q b`.
+      if (ch in escapeIgnored) {
+        pushSpan(spans, { text: trans(c, ch), style: cur })
         continue
       }
       if (ch.charCodeAt(0) > 127) {
@@ -1590,6 +1636,19 @@ function synopsisStart
   // dropped and the name is copied once by .SY and again by the .B call before
   // the body interprets it.
   pushSpans(p.spans, expand(c, copied(c, args[0] || '', 2), 'bold', c.lineNo).spans)
+}
+
+// .SY and .OP come from an-ext.tmac, so they keep the man(7) layout in both
+// modes: mdoc(7) defines neither, and the page is read as the man macros
+// would print it. In mdoc mode the separator comes from mdoc's own rule that
+// a macro call is separated from what precedes it, so `.SY foo` then
+// `.OP \-a all` is `foo [-a all]`; man mode gets it from appendInline.
+function synopsisAppend
+(c, spans) {
+  if (c.mode == 'mdoc')
+    mdocAppend(c, spans)
+  else
+    appendInline(c, spans)
 }
 
 function define
@@ -3732,7 +3791,7 @@ function handleLine
       pushSpans(spans, expand(c, copied(c, args[1], 3), 'italic', c.lineNo).spans)
     }
     pushSpan(spans, { text: ']', style: 'roman' })
-    appendInline(c, spans)
+    synopsisAppend(c, spans)
     break
   }
   case 'UR': {

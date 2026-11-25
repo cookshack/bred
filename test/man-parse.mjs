@@ -273,6 +273,19 @@ test('synopsis', 'SY prints a quoted argument and drops extra arguments',
        equal(flat(r.doc.blocks[0].spans), '')
      })
 
+test('synopsis', 'SY and OP keep their space in mdoc mode',
+     () => {
+       let r
+
+       // groff -Tutf8 -man on `.SY strace-log-merge` / `.OP \-a all` prints
+       // `strace-log-merge [-a all]`. mdoc(7) has no .SY or .OP of its own, so
+       // groff -Tutf8 -mdoc leaves the pair unrendered; the man(7) layout is
+       // the reference in both modes, and the separator belongs between the
+       // command name and the option group.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh SYNOPSIS\n.SY strace-log-merge\n.OP \\-a all\n')
+       equal(flat(r.doc.blocks[1].spans), 'strace-log-merge [-a all]')
+     })
+
 test('strings', 'ds defines a string used by star',
      () => {
        let r
@@ -3051,13 +3064,49 @@ test('escapes', 'an undefined string fails the page',
        equal(r.fails[0].what, 'string AQ')
      })
 
-test('escapes', 'an unknown escape fails the page',
+test('escapes', 'an escape outside the table fails the page',
      () => {
        let r
 
-       r = parsed('.TH T 1\na \\q b\n')
+       // `\q` is not unknown to groff - it prints `q` - so the refusal now
+       // belongs to a character groff really does define. `\Z` takes a
+       // delimiter and moves the text it encloses; we do not implement it, and
+       // guessing would mis-print the rest of the line.
+       r = parsed('.TH T 1\na \\Z b\n')
        equal(r.ok, 0)
-       equal(r.fails[0].what, 'escape \\q')
+       equal(r.fails[0].what, 'escape \\Z')
+     })
+
+test('escapes', 'an unknown escape prints its own letter',
+     () => {
+       let r
+
+       // groff -Tutf8 -man on `a \Q b` prints `a Q b` (with `-ww` it only
+       // warns "escape character ignored before 'Q'"); the escape is dropped
+       // and its letter is ordinary text. `\y` behaves the same way: `a y b`.
+       r = parsed('.TH T 1\na \\Q b\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'a Q b')
+       // groff -Tutf8 -mdoc prints `a Q b` too: the escape engine is shared.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\na \\y b\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'a y b')
+     })
+
+test('escapes', 'a literal tab is not the zero-width \\t escape',
+     () => {
+       // groff -Tutf8 -man on `.nf` / `a<TAB>b` / `c\t d` / `.fi` prints
+       // `a    b` (four spaces to the tab stop at column 5) then `cd`: the
+       // literal tab is a tab stop, the `\t` escape is zero width. Fill mode
+       // agrees - `a<TAB>b` is `a    b` and `c\td` is `cd`, joined as
+       // `a    b cd` - so groff never makes the escape a tab. The parser maps
+       // both to `\t`; the escape must become empty text and only a literal
+       // tab keep the tab.
+       equal(asText('.TH T 1\n.nf\na\tb\nc\\td\n.fi\n'), 'a\tb\ncd\n')
+       // Fill mode: the escape is zero width there too. The literal tab's
+       // filled form is groff's own column spacing, so only the escape is
+       // pinned here.
+       equal(asText('.TH T 1\nc\\td\n'), 'cd\n')
      })
 
 test('conditions', 'arithmetic in conditions supports every operator',

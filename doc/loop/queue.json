@@ -29,7 +29,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "title": "text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0",
       "files": [
         "ext/code/event.mjs",
@@ -75,7 +75,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "source": "lane",
       "title": "batch: table spans, character names, and the \\v paren form (p79, p83, p34)",
       "files": [
@@ -368,7 +368,7 @@
     {
       "id": "p34",
       "lane": "a1",
-      "status": "ready",
+      "status": "in-round",
       "title": "`\\v(`-delimited arguments are read as a 2-char name (no corpus use found)",
       "files": [
         "js/man-parse.mjs",
@@ -907,7 +907,7 @@
     {
       "id": "p79",
       "lane": "a1",
-      "status": "ready",
+      "status": "in-round",
       "title": "on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span)",
       "files": [
         "js/man-parse.mjs",
@@ -963,7 +963,7 @@
     {
       "id": "p83",
       "lane": "a1",
-      "status": "ready",
+      "status": "in-round",
       "title": "about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it",
       "files": [
         "js/man-char.mjs",

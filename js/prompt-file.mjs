@@ -359,6 +359,7 @@ function init
 
   mo = Mode.add('Open', { hidePoint: 1,
                           viewInit: Ed.viewInit,
+                          viewCopy: Ed.viewCopy,
                           initFns: Ed.initModeFns,
                           parentsForEm: 'ed' })
 

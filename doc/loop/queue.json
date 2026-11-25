@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T23:54:58Z",
     "stopNew": "2026-11-25T23:09:58Z",
     "state": "active",
-    "round": 64,
-    "main": "9c9e1b12"
+    "round": 65,
+    "main": "c0ac82ce"
   },
   "items": [
     {
@@ -29,7 +29,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "in-round",
+      "status": "done",
       "title": "text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0",
       "files": [
         "ext/code/event.mjs",
@@ -37,7 +37,8 @@
         "test/code-prompt-e2e.mjs"
       ],
       "proof": "npx mocha --exit test/code-events.mjs --grep reconnect",
-      "notes": "Found in c13's lane report (2026-11-25): session.text.delta uses partID: state.textID, but session.text.ended derives data.assistantMessageID + ':text:' + data.ordinal; a reconnect that dropped session.text.started leaves state.textID 0 (session.step.started resets it), so the delta can never be attributed. session.reasoning.delta has the same gap with state.thinkID (line 172 vs 179). Fix: derive both delta ids the way the ended case does. c13 stopped the misdraw but this is the root cause. Red test `reconnect :: a delta after a dropped started keeps its part id` in test/code-events.mjs, plus an e2e assertion that the delta streams into the same message."
+      "notes": "Found in c13's lane report (2026-11-25): session.text.delta uses partID: state.textID, but session.text.ended derives data.assistantMessageID + ':text:' + data.ordinal; a reconnect that dropped session.text.started leaves state.textID 0 (session.step.started resets it), so the delta can never be attributed. session.reasoning.delta has the same gap with state.thinkID (line 172 vs 179). Fix: derive both delta ids the way the ended case does. c13 stopped the misdraw but this is the root cause. Red test `reconnect :: a delta after a dropped started keeps its part id` in test/code-events.mjs, plus an e2e assertion that the delta streams into the same message. Absorbed by c16 in round 65 at 412e322a.",
+      "doneHash": "835b9b00"
     },
     {
       "id": "b8",
@@ -368,7 +369,7 @@
     {
       "id": "p34",
       "lane": "a1",
-      "status": "in-round",
+      "status": "done",
       "title": "`\\v(`-delimited arguments are read as a 2-char name (no corpus use found)",
       "files": [
         "js/man-parse.mjs",
@@ -377,7 +378,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: `\\v` has no paren delimiter in groff. `a\\v(2b` makes troff warn `cannot use character '(' as a starting delimiter` and print `a2b`; `a\\v(12b` prints `a12b`. bred reads `(` as a two-character name and drops the rest (`a`). Red test `escapes :: a v escape has no paren form and prints its text` (asText == 'a2b\\n'). The valid forms (`\\v'2'`, `\\v[2]`) are a separate, smaller difference (groff's terminal motion draws a break) and stay out of this row."
+      "notes": "Groomed 2026-11-25: `\\v` has no paren delimiter in groff. `a\\v(2b` makes troff warn `cannot use character '(' as a starting delimiter` and print `a2b`; `a\\v(12b` prints `a12b`. bred reads `(` as a two-character name and drops the rest (`a`). Red test `escapes :: a v escape has no paren form and prints its text` (asText == 'a2b\\n'). The valid forms (`\\v'2'`, `\\v[2]`) are a separate, smaller difference (groff's terminal motion draws a break) and stay out of this row. Absorbed by b9 in round 65 (04dce915..2002c14a).",
+      "doneHash": "d62483ed"
     },
     {
       "id": "p45",
@@ -865,7 +867,7 @@
     {
       "id": "p76",
       "lane": "a1",
-      "status": "in-round",
+      "status": "done",
       "title": "in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them",
       "files": [
         "js/man-parse.mjs",
@@ -874,12 +876,13 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: `.SY strace-log-merge` / `.OP -a all` — the man(7) reference prints `strace-log-merge [-a all]`; bred in mdoc mode prints `strace-log-merge[-a all]` (mdoc spaceNext/Sm drops the separator; man mode keeps it). Red test `synopsis :: SY and OP keep their space in mdoc mode`. groff -mdoc has no .SY, so the man(7) layout is the reference."
+      "notes": "Groomed 2026-11-25: `.SY strace-log-merge` / `.OP -a all` — the man(7) reference prints `strace-log-merge [-a all]`; bred in mdoc mode prints `strace-log-merge[-a all]` (mdoc spaceNext/Sm drops the separator; man mode keeps it). Red test `synopsis :: SY and OP keep their space in mdoc mode`. groff -mdoc has no .SY, so the man(7) layout is the reference. Absorbed by b9 in round 65 (04dce915..2002c14a).",
+      "doneHash": "d62483ed"
     },
     {
       "id": "p77",
       "lane": "a1",
-      "status": "in-round",
+      "status": "done",
       "title": "the parser maps the \\t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it",
       "files": [
         "js/man-parse.mjs",
@@ -888,7 +891,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: in `.nf`, a literal tab moves to the next tab stop (groff `a    b`) while `\\t` is zero width (`cd`); bred maps both to `\\t`. Red test `escapes :: a literal tab is not the zero-width \\t escape` (asText == 'a\\tb\\ncd\\n'). Map the escape to the empty string and keep the literal tab; man-diff's mendex note says the same."
+      "notes": "Groomed 2026-11-25: in `.nf`, a literal tab moves to the next tab stop (groff `a    b`) while `\\t` is zero width (`cd`); bred maps both to `\\t`. Red test `escapes :: a literal tab is not the zero-width \\t escape` (asText == 'a\\tb\\ncd\\n'). Map the escape to the empty string and keep the literal tab; man-diff's mendex note says the same. Absorbed by b9 in round 65 (04dce915..2002c14a).",
+      "doneHash": "d62483ed"
     },
     {
       "id": "p78",
@@ -907,7 +911,7 @@
     {
       "id": "p79",
       "lane": "a1",
-      "status": "in-round",
+      "status": "done",
       "title": "on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span)",
       "files": [
         "js/man-parse.mjs",
@@ -916,7 +920,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: tbl(1)'s `l ld` / `r ^` table — groff puts `r` and `foo` on the bottom row (one line); bred's parser records neither `^` nor the `d` suffix, so the spanned cell stays on its first row and toText orders foo before r. Red test `tables :: a vertical span puts its text on the bottom row`. Model the span; the trailing `\\^;\\^` row is also unmodelled."
+      "notes": "Groomed 2026-11-25: tbl(1)'s `l ld` / `r ^` table — groff puts `r` and `foo` on the bottom row (one line); bred's parser records neither `^` nor the `d` suffix, so the spanned cell stays on its first row and toText orders foo before r. Red test `tables :: a vertical span puts its text on the bottom row`. Model the span; the trailing `\\^;\\^` row is also unmodelled. Absorbed by b9 in round 65 (04dce915..2002c14a).",
+      "doneHash": "d62483ed"
     },
     {
       "id": "p80",
@@ -963,7 +968,7 @@
     {
       "id": "p83",
       "lane": "a1",
-      "status": "in-round",
+      "status": "done",
       "title": "about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it",
       "files": [
         "js/man-char.mjs",
@@ -972,7 +977,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: 21 named groff_char names are confirmed missing (md=⋅, c*=⊗, r!=¡, OK=✓, Eu=€, sq=□, box pieces lc..rt, 18/38/58/78); bred refuses the page rather than falling back. Red test `escapes :: common groff_char names outside the corpus are absent` (one batch, 21 cases). No installed page uses any of them (zgrep), so this is a common-neighbour gap, not corpus."
+      "notes": "Groomed 2026-11-25: 21 named groff_char names are confirmed missing (md=⋅, c*=⊗, r!=¡, OK=✓, Eu=€, sq=□, box pieces lc..rt, 18/38/58/78); bred refuses the page rather than falling back. Red test `escapes :: common groff_char names outside the corpus are absent` (one batch, 21 cases). No installed page uses any of them (zgrep), so this is a common-neighbour gap, not corpus. Absorbed by b9 in round 65 (04dce915..2002c14a).",
+      "doneHash": "d62483ed"
     },
     {
       "id": "p84",
@@ -1234,7 +1240,7 @@
     {
       "id": "p102",
       "lane": "a1",
-      "status": "in-round",
+      "status": "done",
       "title": "an unknown escape (`\\Q`) is printed by groff as its letter and refused here",
       "files": [
         "js/man-parse.mjs",
@@ -1243,7 +1249,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: `a \\Q b` and `a \\y b` — groff prints `a Q b` / `a y b` with no warning; bred refuses the page (escape \\Q) and prints `a  b`. `\\Z` is a real escape taking a delimiter, so the old example was wrong. Red test `escapes :: an unknown escape prints its own letter`. The existing green test `escapes :: an unknown escape fails the page` asserts the current refusal and must be flipped with the fix."
+      "notes": "Groomed 2026-11-25: `a \\Q b` and `a \\y b` — groff prints `a Q b` / `a y b` with no warning; bred refuses the page (escape \\Q) and prints `a  b`. `\\Z` is a real escape taking a delimiter, so the old example was wrong. Red test `escapes :: an unknown escape prints its own letter`. The existing green test `escapes :: an unknown escape fails the page` asserts the current refusal and must be flipped with the fix. Absorbed by b9 in round 65 (04dce915..2002c14a).",
+      "doneHash": "d62483ed"
     },
     {
       "id": "p103",
@@ -1887,7 +1894,7 @@
     {
       "id": "p132",
       "area": "man",
-      "status": "in-round",
+      "status": "done",
       "type": "fix",
       "title": "doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0",
       "lane": "a3",
@@ -1896,7 +1903,8 @@
       ],
       "proof": "sh -c '! grep -qE \"^(pages +16|words +147)\" doc/Man.md'",
       "notes": "Found 2026-11-25 by the scheduler at 7f993835 while reading doc/Man.md for a man round. The file is the man area's tracked scoreboard and its protocol half (Policy, Pipeline, Modules, Changing it) is current, but the numbers are not. Measured at 9c9e1b12: sections 1, 3, 5, 7 and 8 all print `0 pages`/`0 words` from bin/man-diff --max 0; doc/Man.md:317-319 still prints `pages 16 0 0 2 2` / `words 147 0 0 7 9`, and :336-339 still names ps(1) 103, ttf2tfm(1) 10, tbl/gtbl 7, ttf2pk 5, hg 2, man 2, editline 5, dmsetup 7, dmstats 2. The round history also stops at round 50 (round 47's own paragraph still says section 1 is thumbpdf + tload). Rounds 51-64 closed the tail: p109 folded thumbpdf's mis-encoded byte, so section 1 reached 0 at round 64, and the ps(1) surplus is p75 (9 words, b8) + p131 (9 words, a table-row comment). A reader who trusts the table would re-chase work that is done. Fix: re-measure all five sections at the current tip, replace the table and the page/word enumeration with the measured result, and add the rounds 51-65 paragraphs in the same voice as the existing ones (short, one per round, the number that moved). Do not rewrite Policy/Pipeline/Changing it, and do not change the refusal list without re-running bin/man-audit --parse.",
-      "source": "lane"
+      "source": "lane",
+      "doneHash": "c0ac82ce"
     },
     {
       "id": "p133",
@@ -2022,7 +2030,7 @@
     {
       "id": "b9",
       "area": "man",
-      "status": "in-round",
+      "status": "done",
       "type": "fix",
       "title": "batch: the man tail's escapes, spans, cells and copy-mode tabs (b7: p79 p83 p34, b6: p102 p76 p77, p145)",
       "lane": "a1",
@@ -2033,12 +2041,13 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Round 65's a1 lane carried two batches in sequence on one branch (b7 at 57a7e95b, then b6 at cab7cc0b), so the round takes them as one row owning the union and b6's proof. b7 absorbed p79 (a vertical table span puts its text on the bottom row: tbl(1)'s `l ld`/`r ^` example prints `|   r | foo    |`), p83 (21 groff_char(7) names: md, c*, r!, OK, Eu, sq, lf/rf/lc/rc, ul/uc/ur/ll/lr/cl/cr, 18/38/58/78) and p34 (`\\v(` has no paren form: groff warns and prints `x a2b y`). b6 absorbed p102 (an unknown escape prints its own letter; groff ignores exactly 27 printable characters and warns `escape character ignored before 'Q'`), p76 (`.SY`/`.OP` keep their space in mdoc mode; groff -mdoc has no SY/OP at all, so man(7)'s layout is the reference) and p77 (a literal tab is a tab stop, `\\t` is zero width in both fill and no-fill mode). Six red tests, all green at the merged tip, test/man-parse.mjs 386 passing. Then p145 (1cd86dea): b6's `\\t` rule was too broad, because copy mode reads `\\t` as a tab stop while a text line draws nothing; round 65's own measurement caught it as section 1 0p/0w -> 2p/78w (troff(1) 42, unzip(1) 36), and the fix in copyMode() takes both pages to lost 0 (1479/1479 and 7113/7113). Test `escapes :: copy mode reads \\t as a tab stop, unlike fill` pins all five halves.",
-      "source": "lane"
+      "source": "lane",
+      "doneHash": "d62483ed"
     },
     {
       "id": "c16",
       "area": "code",
-      "status": "in-round",
+      "status": "done",
       "type": "fix",
       "title": "a delta takes its part id from the event, not from state (c14)",
       "lane": "a2",
@@ -2049,7 +2058,8 @@
       ],
       "proof": "npx mocha --exit test/code-events.mjs test/code-prompt-e2e.mjs",
       "notes": "Round 65: c14 at 412e322a. `session.text.delta`/`session.reasoning.delta` took their part id from `state.textID`/`state.thinkID`, which `session.step.started` resets, so a reconnect that dropped the started event attributed every delta to part 0. Both now derive the id from `data.assistantMessageID + ':text:'|':reason:' + data.ordinal`, as the ended cases already did, and the dead state is gone; the ordinal is on the event per the vendored types and live.jsonl:4. Red tests `reconnect :: a delta after a dropped started keeps its part id` (`0 !== 'm1:text:2'`) and the e2e `reconnect :: a text delta with no started part streams into its own message`. NOTE: c9 was dispatched on the same lane and had not committed when the round merged, so this row is c14 only and c9 stays ready.",
-      "source": "lane"
+      "source": "lane",
+      "doneHash": "835b9b00"
     },
     {
       "id": "p135",
@@ -2095,7 +2105,7 @@
       "proof": "bin/man-diff --page /usr/share/man/man1/troff.1.gz",
       "notes": "Found by round 65's own measurement at 3c408273: section 1 went 0p/0w -> 2p/78w, and the worst pages are troff(1) 42 lost words and unzip(1) 36. Cause: b6 (cab7cc0b) made `\\t` draw nothing everywhere, which is right for a text line but wrong for copy mode. Proved with groff 1.22.4: `.TH T 1` + `textfill: a\\tb end.` prints `textfill: ab end.` (zero width), while the same text in a `.de` body prints `bodyfill: a    b end.` (a tab stop), and `.BR color \"\\t524288\"` prints `color     524288`. troff(1)'s source is `.BR color \"\\t524288\"` (warning-table rows) and unzip(1) lists versions the same way, so the corpus needs the copy-mode side. The fix belongs in copyMode(): it must leave `\\t` as a tab character, while expand() keeps drawing nothing for it in text. Red proof: `bin/man-diff --page /usr/share/man/man1/troff.1.gz` says `lost 42` at 3c408273 and `lost 0` after; unzip(1) 36 -> 0. A unit test must pin both halves (text line zero width, .de body and macro argument a tab) so a future pass cannot flip either one alone. Fixed in round 65 at 1cd86dea and absorbed by b9.",
       "source": "measure",
-      "doneHash": "1cd86dea"
+      "doneHash": "949bf23c"
     }
   ],
   "measures": {

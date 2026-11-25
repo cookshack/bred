@@ -2746,8 +2746,10 @@ function mdocRefText
     parts.unshift(authors.slice(0, -1).join(', ') + ', and ' +
                  authors[authors.length - 1])
   text = parts.join(', ')
+  // A reference with only authors is unfinished: groff ends it with a comma
+  // (`%A A. Author` alone prints `A. Author,`), not a period.
   if (text.length && ('.,;:!?'.includes(text[text.length - 1]) == 0))
-    text = text + '.'
+    text = text + (((authors.length > 0) && (parts.length == 1)) ? ',' : '.')
   return text
 }
 

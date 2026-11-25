@@ -1763,6 +1763,16 @@ test('mdoc', 'Rs and Re collect a reference',
        equal(flat(r.doc.blocks[0].spans), 'A. Author, A Title, 2020.')
      })
 
+test('mdoc', 'an A-only reference ends with a comma',
+     () => {
+       let r
+
+       // groff -Tutf8 -mdoc prints `A. Author,` for a reference with no other
+       // field: the comma says the reference is unfinished.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Rs\n.%A A. Author\n.Re\n')
+       equal(flat(r.doc.blocks[0].spans), 'A. Author,')
+     })
+
 test('mdoc', 'a reference joins authors and orders its fields',
      () => {
        let r

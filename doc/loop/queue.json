@@ -831,13 +831,14 @@
     {
       "id": "p99",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "built-in man requests (B, BR, SH, SS, SY, IP, OP) get one round here and two in groff, which implements them as tmac macros; .B a\\\\\\\\b is a\\\\b in groff and a\\\\b here",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "7032014"
     },
     {
       "id": "p100",
@@ -875,8 +876,8 @@
     {
       "id": "p103",
       "lane": "a1",
-      "status": "next",
-      "title": "ttf2pk(1) loses 4 words: `.<resolution>pk', files—, ttf2tfm, `<namestem>@<sfd-filename>@') (the ttf2tfm family)",
+      "status": "ready",
+      "title": "ttf2pk(1) loses 2 words: `.<resolution>pk' split on our side and `<namestem>@<sfd-filename>@') — quote/spacing placement, not a line join",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
@@ -986,18 +987,19 @@
     {
       "id": "p113",
       "lane": "a3",
-      "status": "ready",
+      "status": "done",
       "title": "gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff)",
       "files": [
         "bin/man-diff",
         "test/man-diff.mjs"
       ],
-      "proof": "npx mocha --exit test/man-diff.mjs"
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "doneHash": "6b36716"
     },
     {
       "id": "p114",
       "lane": "a3",
-      "status": "next",
+      "status": "ready",
       "title": "dmsetup(8) loses 5 words: long [a|b] alternatives wrapped by man(1); decide a diff join or parser rule",
       "files": [
         "bin/man-diff",
@@ -1010,6 +1012,28 @@
       "lane": "a1",
       "status": "next",
       "title": "dmstats(8) loses 2 words: minor and device_name in a table cell",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p116",
+      "lane": "a1",
+      "status": "next",
+      "title": ".UE/.ME/.URL/.MTO trailing arguments lose a copy round: .UE a\\\\\\\\- prints a\\- in groff, a\\\\- here",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p117",
+      "lane": "a1",
+      "status": "next",
+      "title": "a zero-width escape (\\b) is refused here and printed by groff (drops the backslash, prints the char); no corpus occurrence, latent",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"

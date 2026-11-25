@@ -34,8 +34,8 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p99 | a1 | ready | built-in man requests (B, BR, SH, SS, SY, IP, OP) get one round here and two in groff, which implements them as tmac macros; .B a\\\\b is a\\b in groff and a\\b here | js/man-parse.mjs, test/man-parse.mjs |
-| p113 | a3 | ready | gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff) | bin/man-diff, test/man-diff.mjs |
+| p103 | a1 | ready | ttf2pk(1) loses 2 words: `.<resolution>pk' split on our side and `<namestem>@<sfd-filename>@') — quote/spacing placement, not a line join | js/man-parse.mjs, test/man-parse.mjs |
+| p114 | a3 | ready | dmsetup(8) loses 5 words: long [a\|b] alternatives wrapped by man(1); decide a diff join or parser rule | bin/man-diff, test/man-diff.mjs |
 
 ## Backlog
 
@@ -63,7 +63,6 @@ before.
 | p100 | a1 | next | copyMode() chains replacements and over-reduces \. and \  (groff copy mode leaves \. and an encoded space) | js/man-parse.mjs, test/man-parse.mjs |
 | p101 | a1 | next | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
 | p102 | a1 | next | an unknown escape is printed by groff (\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts | js/man-parse.mjs, test/man-parse.mjs |
-| p103 | a1 | next | ttf2pk(1) loses 4 words: `.<resolution>pk', files—, ttf2tfm, `<namestem>@<sfd-filename>@') (the ttf2tfm family) | js/man-parse.mjs, test/man-parse.mjs |
 | p104 | a1 | next | hg(1) loses 2 words: incoming ) — spacing around a closing paren | js/man-parse.mjs, test/man-parse.mjs |
 | p105 | a1 | next | ssh-agent(1) loses 2 words: the synopsis -s] bracket | js/man-parse.mjs, test/man-parse.mjs |
 | p106 | a1 | next | rpcgen(1) loses 1 word: 0a | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
@@ -73,8 +72,9 @@ before.
 | p110 | a1 | next | tload(1) loses 1 word: and (a line join) | js/man-parse.mjs, test/man-parse.mjs |
 | p111 | a1 | next | xargs(1) loses 1 word: --show-limits (a hyphen join) | js/man-parse.mjs, test/man-parse.mjs |
 | p112 | a1 | next | editline(7) loses 5 words: a lone - in the text | js/man-parse.mjs, test/man-parse.mjs |
-| p114 | a3 | next | dmsetup(8) loses 5 words: long [a\|b] alternatives wrapped by man(1); decide a diff join or parser rule | bin/man-diff, test/man-diff.mjs |
 | p115 | a1 | next | dmstats(8) loses 2 words: minor and device_name in a table cell | js/man-parse.mjs, test/man-parse.mjs |
+| p116 | a1 | next | .UE/.ME/.URL/.MTO trailing arguments lose a copy round: .UE a\\\\- prints a\- in groff, a\\- here | js/man-parse.mjs, test/man-parse.mjs |
+| p117 | a1 | next | a zero-width escape (\b) is refused here and printed by groff (drops the backslash, prints the char); no corpus occurrence, latent | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Triage
 
@@ -147,5 +147,7 @@ before.
 | p93 | a1 | done:50a83a6 | verdict: \N expression forms (65+1, 2*3, 1.5, leading space) stay refused by design; p88 measured groff's NUL-plus-tail output and the corpus has only plain decimals | js/man-parse.mjs, test/man-parse.mjs |
 | p96 | a1 | done:7183a0e | ttf2tfm(1) loses 10 words: a \c at the end of a text line whose next line is a .C macro call keeps the backtick glued to the macro text; groff joins them and we insert a space | js/man-parse.mjs, test/man-parse.mjs |
 | p97 | a1 | done:d21a9d5 | four backslashes in a macro argument need two reduction rounds (copy mode then interpretation); we apply one, so c:\\fonts\\truetype keeps doubles: ttf2tfm's last two words | js/man-parse.mjs, test/man-parse.mjs |
+| p99 | a1 | done:7032014 | built-in man requests (B, BR, SH, SS, SY, IP, OP) get one round here and two in groff, which implements them as tmac macros; .B a\\\\b is a\\b in groff and a\\b here | js/man-parse.mjs, test/man-parse.mjs |
+| p113 | a3 | done:6b36716 | gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff) | bin/man-diff, test/man-diff.mjs |
 
 <!-- /loop:queue -->

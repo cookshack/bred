@@ -620,10 +620,14 @@ function expand
         continue
       }
       if (ch == 'N') {
-        let end, num, value
+        let end, arg, num, value
 
         end = skipArg(text, at)
-        num = unquote(text.slice(at, end))
+        arg = text.slice(at, end)
+        // `\N` takes a bracket, a quote or a bare delimiter: groff prints A for
+        // `\N[65]`, `\N'65'` and `\N"65"` alike. `unquote` strips a repeated
+        // delimiter, so the bracket pair is removed here first.
+        num = (arg[0] == '[') ? arg.slice(1, -1) : unquote(arg)
         value = Char.charNumber(num)
         if (value == 0)
           fail(c, lineNo, 'character \\N' + num + "'", 'unknown')

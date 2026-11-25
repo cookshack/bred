@@ -2419,6 +2419,32 @@ test('escapes', 'N names a character by its decimal code',
        equal(flat(r.doc.blocks[0].spans), 'a A b')
      })
 
+test('escapes', 'N takes its number in brackets',
+     () => {
+       let r
+
+       // groff -Tutf8: \N[65] is the plain glyph A, as \N'65' is.
+       r = parsed('.TH T 1\na \\N[65] b\n')
+       equal(flat(r.doc.blocks[0].spans), 'a A b')
+       // groff -Tutf8: \N[040] is char 40, the left paren.
+       r = parsed('.TH T 1\na \\N[040] b\n')
+       equal(flat(r.doc.blocks[0].spans), 'a ( b')
+       // groff -Tutf8: \N[+65] is A, the plus is part of the number.
+       r = parsed('.TH T 1\na \\N[+65] b\n')
+       equal(flat(r.doc.blocks[0].spans), 'a A b')
+     })
+
+test('refusal', 'a bracketed N argument is decimal digits only',
+     () => {
+       // groff -Tutf8: \N[0x41] is not hex, \N[1e2] is not a power of ten,
+       // \N[65x] is char 65 and then text, and \N[0] is NUL; none has a text
+       // form here, so the page is refused. The p88 rule still holds.
+       equal(parsed('.TH T 1\na \\N[0x41] b\n').ok, 0)
+       equal(parsed('.TH T 1\na \\N[1e2] b\n').ok, 0)
+       equal(parsed('.TH T 1\na \\N[65x] b\n').ok, 0)
+       equal(parsed('.TH T 1\na \\N[0] b\n').ok, 0)
+     })
+
 test('refusal', 'an N argument is not a JavaScript number',
      () => {
        // groff -Tutf8 reads \N'0x41' as char 0 plus the text "41'" and

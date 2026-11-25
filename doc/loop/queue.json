@@ -44,7 +44,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "in-round",
+      "status": "ready",
       "source": "lane",
       "title": "batch: a cell request and a dot-only line (p75, p128)",
       "files": [
@@ -141,7 +141,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "in-round",
+      "status": "ready",
       "title": "a `.`-only line with no pending `\\c` adds a space block; groff draws no gap",
       "files": [
         "js/man-parse.mjs",
@@ -851,7 +851,7 @@
     {
       "id": "p75",
       "lane": "a1",
-      "status": "in-round",
+      "status": "ready",
       "title": ".IP \"\" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost)",
       "files": [
         "js/man-parse.mjs",
@@ -1664,7 +1664,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "in-round",
+      "status": "ready",
       "title": "handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view",
       "files": [
         "ext/code/code.mjs",

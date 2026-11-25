@@ -34,7 +34,7 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
-| p50 | man | a2 | next | the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
+| p50 | core | a2 | next | the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
 | p65 | man | a3 | next | no fake emits a typed-array chunk split mid-UTF-8, so `js/shell.mjs`'s streaming decoder is proven only by real-pty timing; add the fake and the test | js/shell.mjs, test/man-viewer.mjs, test/main-shell.mjs |
 | p53 | man | a1 | next | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) | js/man-parse.mjs |
 | p54 | man | a1 | next | a no-output request between a `\c` and the next line swallows the join (0 corpus occurrences) | js/man-parse.mjs |

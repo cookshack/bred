@@ -19,7 +19,7 @@
         "js/view.mjs"
       ],
       "proof": "npx mocha --exit test/wode-view-e2e.mjs",
-      "area": "man",
+      "area": "core",
       "type": "fix",
       "notes": "reproduced under c8 in the core measure (test/wode-view-e2e.mjs fails under coverage overhead); the flake is real, but a proof that fails at base is still missing, so it stays next"
     },
@@ -1457,7 +1457,7 @@
     "code": {
       "command": "bin/oc-conformance.mjs test/fixtures/oc-events/minimal.jsonl test/fixtures/oc-events/live.jsonl --json",
       "budget": 120,
-      "population": "the recorded v2 event fixtures (10 + 9 events)"
+      "population": "the recorded v2 event fixtures (11 + 9 events, 20 total)"
     }
   }
 }

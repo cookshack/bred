@@ -774,7 +774,10 @@ function measureCmd
   let area, tip
 
   area = option('--area') || 'man'
-  tip = option('--tip') || git(root, 'rev-parse', 'main')
+  // A symbolic tip (`main`, `HEAD`, a branch) becomes the commit: records are
+  // keyed by tip string, so two runs at different commits must not both say
+  // `main` and replace each other.
+  tip = git(root, 'rev-parse', '--verify', (option('--tip') || 'main') + '^{commit}')
 
   if (area == 'all')
     return measureAll(tip)

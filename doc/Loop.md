@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: live, round 44, 2026-11-25 (deadline 2026-11-25T19:00Z). Twenty-seven
-rounds have used the tool's gate: red at base, green after the rebase, one
-suite at the integrated tip, the record on `loop/r<n>`, one fast-forward. Main
-is the round-44 record commit, green (2040 tests, check clean). The agreed plan,
+Status: handover after round 44, 2026-11-25. Twenty-seven rounds used the
+tool's gate: red at base, green after the rebase, one suite at the integrated
+tip, the record on `loop/r<n>`, one fast-forward. Main is the handover commit,
+green (2040 of 2042 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
 and area-aware picks are parked by the plan's own criterion. Man is 11 words on
 6 pages, code 18 of 20 translated. The next items are in `doc/loop/queue.json`
@@ -250,7 +250,7 @@ Measured at `a3607bd2` (round 44's tip), corpus `4150` pages:
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
     whole sections after round 44: 1:3p/3w  3:0p/0w  5:0p/0w  7:1p/5w  8:2p/3w
     code events after round 44: 20 (18 translated, 2 dropped, 0 malformed)
-    615 man tests, 2040 total, 2 pending, 0 failing; check clean
+    615 man tests, 2040 of 2042 passing, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

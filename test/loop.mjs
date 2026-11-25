@@ -561,6 +561,7 @@ function allAreas
   history = Fs.readFileSync(Path.join(dir, 'doc', 'loop', 'history.jsonl'), 'utf8').trim()
   equal(history.split('\n').length, 1)
   equal(JSON.parse(history).area, 'good')
+  equal(JSON.parse(history).tip, git(dir, [ 'rev-parse', 'HEAD' ]))
 }
 
 test('measure', 'every area runs, and one failing does not hide another', withRepo(allAreas))

@@ -198,7 +198,7 @@ is a check, not a reminder.
 **Results, P0–P6, 2026-11-25.** P0/P1 (`993e104`, `a3a0155`), P2
 (`f6ff0e7`, `bd4acc9`), P3 (`44b3726`, killed as the core's measure; the harness
 stays), P4 (`c8d7f21`, first record `0d90bfc`: 75.6% lines and 88.7% branches
-over eighteen modules, six flake runs at four workers with no failures), P5
+over seventeen modules (`js/save.mjs` is not loaded by the fast suite), six flake runs at four workers with no failures), P5
 (`787961e`, three structural goldens and a planted-class test), P6's cadence
 (`b2f0623`). Every phase is closed except P6's *scheduling* half — a lane pool
 and area-aware picks — which stays parked: one runner and two lanes per round

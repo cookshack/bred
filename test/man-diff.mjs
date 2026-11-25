@@ -172,7 +172,21 @@ test('man-diff', 'a comma-marked break inside an option list compares whole',
 
 // dmsetup(8) marks the commas of a syntax line the same way
 // (<name>,<uuid>,\:<minor>,...), so it is the second page the rule reaches.
-// Its remaining losses are table and justification noise, not commas.
+// It also puts a `\:` break after the `|` of an alternation and after the `]`
+// of a bracketed group. man(1) wraps one token at the pipe:
+//
+//     [--addnodeoncreate|
+//     --addnodeonresume]
+//
+// and another at the bracket:
+//
+//     <name>,<uuid>,<minor>,<flags>,<table>[,<table>+]
+//     [;<dev_name>,<uuid>,<minor>,<flags>,<table>[,<table>+]]
+//
+// The `|` is a macro argument of its own, so the source whitespace around it
+// is not printed and the break token has to carry the word before it. The
+// single remaining loss is `load|reload`, which the source glues with a bare
+// `|` and `\c` across two macro calls, not at a line break.
 test('man-diff', 'a comma-marked syntax line joins without stealing prose words',
      function
      () {
@@ -181,7 +195,7 @@ test('man-diff', 'a comma-marked syntax line joins without stealing prose words'
        lost = lostOn('/usr/share/man/man8/dmsetup.8.gz')
        if (lost == undefined)
          return this.skip()
-       equal(lost, 5)
+       equal(lost, 1)
      })
 
 // man(1)'s character table wraps "continuation hyphen" inside an unbordered

@@ -299,9 +299,20 @@ function spacedDashes
 // immediately after a comma and immediately before more text is joined, and
 // only when the whole rendered token matches the source run, so "word, next"
 // stays two words.
+//
+// dmsetup(8) marks two more inside-token breaks on its syntax lines. A `|`
+// separates the alternatives of a bracketed option, and a `]` closes a nested
+// group: `[--addnodeoncreate |\: --addnodeonresume]` and
+// `<table>\:[,<table>+]\:[;<dev_name>`. man(1) then prints the token across
+// two lines (`[--addnodeoncreate|` / `--addnodeonresume]`). The pipe is a
+// macro argument of its own in the source, so the whitespace before it is not
+// printed; the run has to be widened to the word before the pipe to match the
+// rendered token, and only a whole-token match in breakOf can use it. The `]`
+// is like the comma: a closing bracket followed by text is inside the token,
+// while one followed by whitespace ends an ordinary word.
 function breakTokens
 (src) {
-  let out, re, m, at, run, text, after
+  let out, re, m, at, run, text, after, from
 
   out = new Set()
   src = src.split('\n').filter(line => /^\.\\"/.test(line) == 0).join('\n')
@@ -316,8 +327,30 @@ function breakTokens
                .replace(/\\f(\[[^]]*\]|.)/g, '')
                .replace(/\\ /g, ' ')
     text = text.trim().split(' ').pop()
+    if ((text == '|') && (at > 0)) {
+      from = at - 1
+      while ((from > 0) && /\s/.test(src[from - 1]))
+        from--
+      while ((from > 0) && (/\s/.test(src[from - 1]) == 0))
+        from--
+      text = src.slice(from, at)
+                .replace(/\\[:&%\/|]/g, '')
+                .replace(/\\-/g, '-')
+                .replace(/\\f(\[[^]]*\]|.)/g, '')
+                .replace(/\\ /g, ' ')
+                .trim() + '|'
+    }
     if (/[/:@]$/.test(text))
       out.add(text)
+    else if (/\|$/.test(text)) {
+      if (text.length > 1)
+        out.add(text)
+    }
+    else if (/\]$/.test(text)) {
+      after = src[m.index + 2]
+      if ((text.length > 1) && (after != undefined) && (/\s/.test(after) == 0))
+        out.add(text)
+    }
     else if (/,$/.test(text)) {
       after = src[m.index + 2]
       if ((after != undefined) && (/\s/.test(after) == 0))

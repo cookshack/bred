@@ -3910,8 +3910,13 @@ function linkifyBlocks
 export
 function parse
 (text, spec) {
-  let c, input
+  let c, input, joinThrough
 
+  // Requests that neither print nor end the output line. A `\c` before one of
+  // them still joins the next text: dmstats(8) opens a macro body with `.ad l`
+  // and groff prints `load|reload` across it. `Roff.macroClass` covers the
+  // metric requests; these are the render-class cases that draw nothing.
+  joinThrough = { ft: 1, ftr: 1, in: 1, ti: 1, ta: 1, ce: 1 }
   spec = spec || {}
   c = { fails: [],
         seen: {},
@@ -4022,7 +4027,9 @@ function parse
       // A macro with a body runs its lines as input, so the `\c` belongs to
       // the first of those lines that prints, not to the call line, which
       // prints nothing (ttf2tfm(1)'s "extension `\c" then `.C \&.ttc '.]`).
-      if ((c.textOut == 0) && (c.frames.length > frames))
+      if ((c.textOut == 0) && ((c.frames.length > frames) ||
+                               (Roff.macroClass(control.name) == 'metric') ||
+                               joinThrough[control.name]))
         c.joinNext = c.joinPrev
       c.joinPrev = 0
       // A tag line ending in `\c` continues, and so does a macro call that

@@ -306,6 +306,21 @@ test('copy mode', 'an escaped space in a macro body is not a separator',
        equal(text.includes('b |'), true)
      })
 
+test('macros', 'a c join survives a request that prints nothing',
+     () => {
+       let r
+
+       // dmstats(8) opens its .de CMD_RELOAD body with `.ad l`, and the `\c`
+       // on `.BR load | \c` must still join the body's first printing line.
+       // .ft and .ll are the same shape and used to lose it too.
+       r = parsed('.TH T 1\n.de X\n.ad l\n.BR reload\n..\n.BR load | \\c\n.X\n')
+       equal(ManParse.toText(r.doc.blocks).includes('load|reload'), true)
+       r = parsed('.TH T 1\n.BR load | \\c\n.ft I\nreload\n')
+       equal(ManParse.toText(r.doc.blocks).includes('load|reload'), true)
+       r = parsed('.TH T 1\n.BR load | \\c\n.ll 40\nreload\n')
+       equal(ManParse.toText(r.doc.blocks).includes('load|reload'), true)
+     })
+
 test('copy mode', 'a B argument is copied and then interpreted',
      () => {
        let r

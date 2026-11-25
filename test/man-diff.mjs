@@ -196,7 +196,7 @@ test('man-diff', 'a comma-marked syntax line joins without stealing prose words'
        lost = lostOn('/usr/share/man/man8/dmsetup.8.gz')
        if (lost == undefined)
          return this.skip()
-       equal(lost, 1)
+       equal(lost, 0)
      })
 
 // man(1)'s character table wraps "continuation hyphen" inside an unbordered

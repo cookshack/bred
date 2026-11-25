@@ -40,14 +40,6 @@ before.
 | p144 | core | a3 | ready | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
 | l3 | tooling | a3 | ready | Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand | bin/loop-claims.mjs, test/loop.mjs |
 
-## In round
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| c12 | code | a2 | in-round | session.tool.input.delta is dropped: translate() emits no legacy delta while a tool's input streams, so the preview appears only when .ended has parsed the whole JSON | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/tool-input.jsonl |
-| p131 | man | a1 | in-round | a comment line at table-row level inside .TS/.TE is turned into a data row; tbl ignores it (ps(1) 9 of its surplus tokens, terminfo(5) 5) | js/man-parse.mjs, test/man-parse.mjs |
-| p140 | core | a3 | in-round | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -196,6 +188,7 @@ before.
 | c9 | code | a2 | done:067cfca9 | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | c10 | code | a2 | done:ab988598 | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
 | c11 | code | a2 | done:57c1d58f | session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
+| c12 | code | a2 | done:a79ec0a9 | session.tool.input.delta is dropped: translate() emits no legacy delta while a tool's input streams, so the preview appears only when .ended has parsed the whole JSON | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/tool-input.jsonl |
 | p125 | man | a1 | done:eac2c89c | dmsetup(8) splits load\|reload into two words around a .BR line ending in \c | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
 | l1 | tooling | a3 | done:9e2a821f | the loop has no clock it can enforce: put start/deadline/stopNew in the tracked queue, print the budget in status, and refuse a round after stopNew | bin/loop-clock.mjs, bin/loop.mjs, test/loop-clock.mjs, test/loop.mjs, doc/Loop.md, doc/Loop-prompt.md |
 | b1 | man | a1 | done:07e195dd | batch: the man tail's register claims (p45, p120) | js/man-parse.mjs, test/man-parse.mjs |
@@ -204,8 +197,10 @@ before.
 | p126 | man | a1 | done:f6b63ada | a no-output request that defines or removes still swallows a pending \c join (p54 covered only .ft) | js/man-parse.mjs, test/man-parse.mjs |
 | p127 | man | a1 | done:8f3eabee | verdict: mdoc body text after .Sh is already roman (mdocHeading does restore c.font); not reproducible at 8f3eabee |  |
 | l2 | tooling | a3 | done:ad68333e | check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit | bin/loop.mjs, bin/loop-queue.mjs, test/loop.mjs |
+| p131 | man | a1 | done:dad8d3bf | a comment line at table-row level inside .TS/.TE is turned into a data row; tbl ignores it (ps(1) 9 of its surplus tokens, terminfo(5) 5) | js/man-parse.mjs, test/man-parse.mjs |
 | p132 | man | a3 | done:c0ac82ce | doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0 | doc/Man.md |
 | p139 | core | a3 | done:9dbfaa9d | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
+| p140 | core | a3 | done:061e225c | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
 | b9 | man | a1 | done:d62483ed | batch: the man tail's escapes, spans, cells and copy-mode tabs (b7: p79 p83 p34, b6: p102 p76 p77, p145) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | c16 | code | a2 | done:835b9b00 | a delta takes its part id from the event, not from state (c14) | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | p145 | man | a1 | done:949bf23c | `\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words | js/man-parse.mjs, test/man-parse.mjs |

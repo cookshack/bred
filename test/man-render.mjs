@@ -336,6 +336,68 @@ test('tables', 'a spanning header cell is styled by the column it starts in',
        equal(cells[1].className, 'man-left')
      })
 
+test('tables', 'a bottom-anchored span draws one cell over both rows',
+     () => {
+       let css, out, rows, span
+
+       // tbl(1)'s own example: `l ld` starts a bottom-anchored span in the
+       // second column and the next format line's `^` continues it. groff
+       // draws one cell for the span, with `foo` on its bottom line and the
+       // rule between the two rows running under the left column only:
+       //
+       //   │1111 │        │
+       //   │2222 │        │
+       //   ├─────┤        │
+       //   │   r │ foo    │
+       //
+       // so the row above the text must not carry an empty cell of its own:
+       // the spanning cell covers both rows, anchored at the bottom.
+       out = draw('.TH T 1\n.TS\ntab(;) allbox;\nl l\nl ld\nr ^.\n' +
+                  '0000;foobar\nT{\n1111\n.br\n2222\nT};foo\nr;\n.TE\n')
+       rows = out.el.querySelectorAll('table tbody tr')
+       equal(rows.length, 3)
+       equal(rows[0].querySelectorAll('td').length, 2)
+       // Six cells would leave an empty one on the row above the text, where
+       // groff draws one bordered continuation cell. Five is that cell once.
+       equal(out.el.querySelectorAll('table td').length, 5,
+             'no empty cell where groff draws the continuation')
+       // groff draws the row rule under the left column only, so the spanned
+       // column is one cell covering both rows rather than an empty cell
+       // followed by the text. HTML anchors a rowspan at the top of the span,
+       // so the cell is emitted on the `1111` row and the `r` row loses it.
+       equal(rows[1].querySelectorAll('td').length, 2)
+       span = rows[1].querySelectorAll('td')[1]
+       equal(span.textContent, 'foo',
+             'the spanning cell carries the text where groff draws it')
+       equal(span.getAttribute('rowspan'), '2', 'the cell covers both rows')
+       equal(span.className.includes('man-bottom'), true,
+             'foo sits on the bottom line of the span, as groff draws it')
+       equal(rows[2].querySelectorAll('td').length, 1)
+       equal(rows[2].querySelector('td').textContent, 'r')
+       // groff draws `foo` on the span's bottom line, so the cell is anchored
+       // there rather than at the top the table's cells default to.
+       css = Fs.readFileSync(new URL('../css/manpage.css', import.meta.url), 'utf8')
+       equal(css.includes('.man-bottom'), true)
+       equal(css.includes('vertical-align: bottom'), true)
+       // A span in the first column is where dropping the empty cell would
+       // show: the next cell would slide left into the spanned column. groff
+       // keeps `x` in the second column beside the span:
+       //
+       //   │      │ x  │
+       //   │1111  ├────┤
+       //   │2222  │ y  │
+       out = draw('.TH T 1\n.TS\ntab(;) allbox;\nl l\nld l\n^ l.\n' +
+                  'Head;H2\nT{\n1111\n.br\n2222\nT};x\n\\^;y\n.TE\n')
+       rows = out.el.querySelectorAll('table tbody tr')
+       equal(rows.length, 3)
+       equal(rows[1].querySelectorAll('td').length, 2)
+       span = rows[1].querySelectorAll('td')[0]
+       equal(span.textContent, '1111\n2222')
+       equal(span.getAttribute('rowspan'), '2')
+       equal(rows[2].querySelectorAll('td').length, 1)
+       equal(rows[2].querySelector('td').textContent, 'y')
+     })
+
 test('tables', 'a row with no descriptors falls back to the block layout',
      () => {
        let table, out, cells

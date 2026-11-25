@@ -142,6 +142,81 @@ function listNode
   return el
 }
 
+// The cell of the row above that covers column `col`, walking colspans.
+function tableAbove
+(above, col) {
+  let i
+
+  for (i = 0; i < above.length; i++)
+    if ((above[i].at <= col) && (col < above[i].at + above[i].span))
+      return above[i].desc
+  return undefined
+}
+
+// Lay the rows out as HTML cells. A vertical span is one cell in HTML, but the
+// model marks the continuation on the lower row (a `^` column or a `\^` field
+// sets cont), so each continuation is paired with the cell above it in the same
+// column: that cell grows a rowspan and the lower row emits nothing for the
+// column. groff anchors a `d` span at its bottom, so the text of such a span is
+// written on the continuation and moves up into the spanning cell.
+function tablePlans
+(block) {
+  let plans, above
+
+  plans = []
+  above = []
+  block.rows.forEach(row => {
+                       let cols, plan, seen, at
+
+                       // A header row can be laid out on its own (`c c` over
+                       // `l l`), so a row is styled by its own descriptors and
+                       // falls back to the block's when it carries none.
+                       cols = row.cols || block.cols || []
+                       plan = []
+                       seen = []
+                       // tableFit() gives a cell one column and folds an `s`
+                       // column into the cell on its left, so a cell is styled
+                       // by the columns it covers, starting at its own. Walking
+                       // by index would style every cell after a colspan with
+                       // the wrong column.
+                       at = 0
+                       row.cells.forEach(cell => {
+                                           let span, col
+
+                                           span = (cell.colspan > 1) ? cell.colspan : 1
+                                           col = cols[at] || {}
+                                           if (cell.cont) {
+                                             let root
+
+                                             root = tableAbove(above, at)
+                                             // A short row can leave a
+                                             // continuation with no cell above
+                                             // it; groff draws nothing for it.
+                                             if (root) {
+                                               root.rowspan++
+                                               if (((root.spans || root.cell.spans || []).length == 0) &&
+                                                   (cell.spans || []).length) {
+                                                 root.spans = cell.spans
+                                                 root.bottom = col.bottom
+                                               }
+                                               seen.push({ at, span, desc: root })
+                                             }
+                                           }
+                                           else {
+                                             let desc
+
+                                             desc = { cell, col, span, rowspan: 1 }
+                                             plan.push(desc)
+                                             seen.push({ at, span, desc })
+                                           }
+                                           at += span
+                                         })
+                       plans.push(plan)
+                       above = seen
+                     })
+  return plans
+}
+
 function tableNode
 (block) {
   let el, body
@@ -151,37 +226,29 @@ function tableNode
                  (block.options.allbox ? ' man-allbox' : '')
   body = globalThis.document.createElement('tbody')
   el.appendChild(body)
-  block.rows.forEach(row => {
-                       let cols, tr, at
+  tablePlans(block).forEach(plan => {
+                              let tr
 
-                       // A header row can be laid out on its own (`c c` over
-                       // `l l`), so a row is styled by its own descriptors and
-                       // falls back to the block's when it carries none.
-                       cols = row.cols || block.cols || []
-                       tr = globalThis.document.createElement('tr')
-                       // tableFit() gives a cell one column and folds an `s`
-                       // column into the cell on its left, so a cell is styled
-                       // by the columns it covers, starting at its own. Walking
-                       // by index would style every cell after a colspan with
-                       // the wrong column.
-                       at = 0
-                       row.cells.forEach(cell => {
-                                           let col, span, td
+                              tr = globalThis.document.createElement('tr')
+                              plan.forEach(desc => {
+                                             let col, td
 
-                                           span = (cell.colspan > 1) ? cell.colspan : 1
-                                           col = cols[at] || {}
-                                           at += span
-                                           td = globalThis.document.createElement('td')
-                                           if (span > 1)
-                                             td.setAttribute('colspan', String(span))
-                                           td.className = 'man-' + (col.align || 'left') +
-                                                           (col.bold ? ' man-bold' : '') +
-                                                           (col.italic ? ' man-italic' : '')
-                                           append(td, spanNodes(cell.spans))
-                                           tr.appendChild(td)
-                                         })
-                       body.appendChild(tr)
-                     })
+                                             col = desc.col
+                                             td = globalThis.document.createElement('td')
+                                             if (desc.span > 1)
+                                               td.setAttribute('colspan', String(desc.span))
+                                             if (desc.rowspan > 1)
+                                               td.setAttribute('rowspan',
+                                                               String(desc.rowspan))
+                                             td.className = 'man-' + (col.align || 'left') +
+                                                                  (col.bold ? ' man-bold' : '') +
+                                                                  (col.italic ? ' man-italic' : '') +
+                                                                  (col.bottom ? ' man-bottom' : '')
+                                             append(td, spanNodes(desc.spans || desc.cell.spans))
+                                             tr.appendChild(td)
+                                           })
+                              body.appendChild(tr)
+                            })
   return el
 }
 

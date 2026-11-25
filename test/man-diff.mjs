@@ -3,12 +3,13 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import Fs from 'node:fs'
 import Url from 'node:url'
 
-import { keyOf } from '../bin/man-diff'
+import * as ManDiff from '../bin/man-diff'
 
 // keyOf is the comparison key man-diff uses, not the text it reports: a page's
 // own typography must not make two spellings of the same word differ.
-let tests
+let keyOf, tests
 
+keyOf = ManDiff.keyOf
 tests = {}
 
 function test
@@ -254,6 +255,31 @@ test('man-diff', 'a break point before a closing paren joins the word',
        if (lost == undefined)
          return this.skip()
        equal(lost, 0)
+     })
+
+// rpcgen(1) starts with a valueless `.nr X`, and the following
+// `.if \nX=0 .ds x} ...` reads that register as 0. an-p-footer then names the
+// page `\nX` followed by the page letter, and man(1) prints `0a`
+// right-aligned on the final line. It is the run's footer furniture, not a
+// word of the page.
+test('man-diff', 'a valueless .nr page string footer is not a lost word',
+     function
+     () {
+       let lost
+
+       lost = lostOn('/usr/share/man/man1/rpcgen.1.gz')
+       if (lost == undefined)
+         return this.skip()
+       equal(lost, 0)
+     })
+
+// The footer above is right-aligned in the third field of the footer title
+// line, so the token is flush with the layout's right margin. An indented line
+// of content that happens to end in digits and a letter is not it.
+test('man-diff', 'an indented content token is not a page-string footer',
+     () => {
+       equal(ManDiff.isFooter(' '.repeat(76) + '0a'), 1)
+       equal(ManDiff.isFooter('          10x'), 0)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

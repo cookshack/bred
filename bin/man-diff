@@ -154,9 +154,19 @@ function pageName
 // BSD-style footers have no name(section) in them: "BSD ... October 26, 2022
 // ... BSD". Only the last line of the output is tested, and a page's final
 // content line does not normally end in a bare date.
-function isFooter
+//
+// an-old.tmac's multi-page footer is a page string too. Its `an-p-footer`
+// names a page `\nX` followed by the page letter whenever the `X` register
+// exists, and rpcgen(1) writes a bare `.nr X` that `.if \nX=0` then reads as
+// 0, so man(1) ends the page with `0a`. `BT` prints it right-aligned in the
+// third field of the footer title line, flush with the 78-column right margin.
+// A token deeper in an indented content line therefore does not match, and the
+// rule can only drop a word from the end of a page, never invent one.
+export function isFooter
 (line) {
-  return /(19|20)[0-9][0-9]/.test(line) && (line.trim().length < 120) ? 1 : 0
+  if (/(19|20)[0-9][0-9]/.test(line) && (line.trim().length < 120))
+    return 1
+  return (/^\s{10,}[0-9]+[a-z]$/.test(line) && (line.length >= 70)) ? 1 : 0
 }
 
 // groff hyphenates at line ends with U+2010; join those back together so the

@@ -191,8 +191,18 @@ is a check, not a reminder.
 | P2 | `ext/code`: the recorder (`infra`), the translation measure, the first golden pins, the AGENTS.md known issues queued | 2–3 d | scheduler | deliberately breaking a translation moves the measure |
 | P3 | laws spike: runner, LCG, shrinker; suites for `Loc.make` and `computeRefine`; one bounded hunt | 1 d | reviewer | three minimised failures survive triage, or the spike is killed |
 | P4 | editor core: laws if P3 survives, otherwise coverage + flake rate | 2 d | both | a planted core bug is found and pinned |
-| P5 | rendering: structural goldens first, pixels for a short list | 2 d | either | a block/class regression is caught without pixels |
-| P6 | scheduling: lane pool, area-aware picks, per-area cadence | parked | — | two areas producing items in one round |
+| P5 | rendering: structural goldens first, pixels for a short list | 2 d | reviewer | done: `787961e` |
+| P6 | cadence: `measure --area all`, each area within its budget | 0.5 d | reviewer | done: `b2f0623` |
+| P6 | scheduling: lane pool, area-aware picks | parked | — | two areas producing items in one round |
+
+**Results, P0–P6, 2026-11-25.** P0/P1 (`993e104`, `a3a0155`), P2
+(`f6ff0e7`, `bd4acc9`), P3 (`44b3726`, killed as the core's measure; the harness
+stays), P4 (`c8d7f21`, first record `0d90bfc`: 75.6% lines and 88.7% branches
+over eighteen modules, six flake runs at four workers with no failures), P5
+(`787961e`, three structural goldens and a planted-class test), P6's cadence
+(`b2f0623`). Every phase is closed except P6's *scheduling* half — a lane pool
+and area-aware picks — which stays parked: one runner and two lanes per round
+have been enough, which is the plan's own criterion for not building it.
 
 P3's result (`44b3726`): the first hunt found nothing, so the criterion killed
 laws **as the core's measure**; the core takes coverage and flake rate at P4.

@@ -34,6 +34,7 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| p133 | man | a1 | ready | \h( and \l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \v(, these two still drop their tail | js/man-parse.mjs, test/man-parse.mjs |
 | p142 | core | a3 | ready | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
 | p143 | core | a3 | ready | a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4 | js/em.mjs, test/em-otherwise.mjs |
 | p144 | core | a3 | ready | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
@@ -51,7 +52,6 @@ before.
 |----|------|------|--------|-------|-------|
 | p129 | man | a1 | next | .sp N loses its count: one space block whatever N is, and man-render draws one gap | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p50 | core | a2 | next | the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
-| p133 | man | a1 | next | \h( and \l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \v(, these two still drop their tail | js/man-parse.mjs, test/man-parse.mjs |
 | p134 | man | a2 | next | a vertical table span puts its text on the right row in the text model but js/man-render.mjs draws the cell above as a separate empty <td>, so the rendered borders differ from groff | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
 | p135 | man | a1 | next | js/man-roff.mjs still classifies the 27 escapes groff ignores as unknown and fails the static scan, so the inventory disagrees with the interpreter after b6 | js/man-roff.mjs, test/man-roff.mjs |
 | p136 | man | a1 | next | a literal tab in filled text is not modelled: groff advances to the next tab stop per line, b6 pinned only the .nf form and the zero-width \t | js/man-parse.mjs, test/man-parse.mjs |

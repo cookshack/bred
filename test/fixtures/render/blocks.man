@@ -1,0 +1,11 @@
+.TH GOLDEN 1 "2026-11-25"
+.SH NAME
+golden \- a rendered structure
+.SH DESCRIPTION
+A paragraph with \fBbold\fP, \fIitalic\fP and \f(CWmono\fP runs.
+.PP
+A second paragraph, see
+.IR ls (1).
+.SH SEE ALSO
+.IR ls (1),
+.IR cp (1)

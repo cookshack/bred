@@ -1,0 +1,31 @@
+div.man-doc
+  h2.man-h1
+    span
+      "NAME"
+  p
+    span
+      "list - items and an inset"
+  h2.man-h1
+    span
+      "DESCRIPTION"
+  div.man-tag
+    div.man-tag-t
+      span
+        "•"
+    div.man-tag-b
+      p
+        span
+          "first item"
+  div.man-tag
+    div.man-tag-t
+      span
+        "•"
+    div.man-tag-b
+      p
+        span
+          "second item"
+  div.man-inset
+    p
+      span
+        "an inset paragraph"
+  div.man-space

@@ -1,0 +1,11 @@
+.TH LIST 1
+.SH NAME
+list \- items and an inset
+.SH DESCRIPTION
+.IP \(bu 2
+first item
+.IP \(bu 2
+second item
+.RS
+an inset paragraph
+.RE

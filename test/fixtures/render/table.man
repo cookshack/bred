@@ -1,0 +1,11 @@
+.TH TABLE 1
+.SH NAME
+table \- aligned cells and a span
+.SH DESCRIPTION
+.TS
+tab(;);
+l r l.
+name;count;note
+alpha;1;first
+beta;22;second
+.TE

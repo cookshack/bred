@@ -1,0 +1,55 @@
+div.man-doc
+  h2.man-h1
+    span
+      "NAME"
+  p
+    span
+      "golden - a rendered structure"
+  h2.man-h1
+    span
+      "DESCRIPTION"
+  p
+    span
+      "A paragraph with"
+    span.man-bold
+      "bold"
+    span
+      ","
+    span.man-italic
+      "italic"
+    span
+      "and"
+    span.man-mono
+      "mono"
+    span
+      "runs."
+  p
+    span
+      "A second paragraph, see"
+    a
+      span.man-italic
+        "ls"
+    a
+      span
+        "(1)"
+    span
+      "."
+  h2.man-h1
+    span
+      "SEE ALSO"
+  p
+    a
+      span.man-italic
+        "ls"
+    a
+      span
+        "(1)"
+    span
+      ","
+    a
+      span.man-italic
+        "cp"
+    a
+      span
+        "(1)"
+  div.man-space

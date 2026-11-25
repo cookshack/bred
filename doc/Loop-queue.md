@@ -30,14 +30,6 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
-## In round
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| l4 | tooling | a3 | in-round | batch: the pane that shows a view, and a dead lease reaped (p144, l3) | js/Pane.mjs, bin/loop-claims.mjs, test/pane-holding.mjs, test/loop.mjs |
-| p144 | core | a3 | in-round | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
-| l3 | tooling | a3 | in-round | Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand | bin/loop-claims.mjs, test/loop.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -73,6 +65,7 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| l4 | tooling | a3 | done:4c4740c5 | batch: the pane that shows a view, and a dead lease reaped (p144, l3) | js/Pane.mjs, bin/loop-claims.mjs, test/pane-holding.mjs, test/loop.mjs |
 | c17 | core | a3 | done:448a374b | batch: Em.seq keeps a space key, and Cmd.get agrees with getAll (p141, p142) | js/Em.mjs, js/cmd.mjs, test/em-seq-space.mjs, test/cmd-minors.mjs, test/ed.mjs |
 | c15 | code | a2 | done:2f97b214 | the `Creating session...` placeholder is never removed, so it stays above the first turn and can receive an orphan delta | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | c14 | code | a2 | done:835b9b00 | text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0 | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
@@ -211,8 +204,10 @@ before.
 | p141 | core | a3 | done:448a374b | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs, test/ed.mjs |
 | p142 | core | a3 | done:e4834309 | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
 | p143 | core | a3 | done:f3bdd882 | a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4 | js/em.mjs, test/em-otherwise.mjs |
+| p144 | core | a3 | done:4c4740c5 | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
 | b9 | man | a1 | done:d62483ed | batch: the man tail's escapes, spans, cells and copy-mode tabs (b7: p79 p83 p34, b6: p102 p76 p77, p145) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | c16 | code | a2 | done:835b9b00 | a delta takes its part id from the event, not from state (c14) | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | p145 | man | a1 | done:949bf23c | `\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words | js/man-parse.mjs, test/man-parse.mjs |
+| l3 | tooling | a3 | done:4c58d7d7 | Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand | bin/loop-claims.mjs, test/loop.mjs |
 
 <!-- /loop:queue -->

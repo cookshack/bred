@@ -42,16 +42,6 @@ before.
 | p144 | core | a3 | ready | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
 | l3 | tooling | a3 | ready | Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand | bin/loop-claims.mjs, test/loop.mjs |
 
-## In round
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| b8 | man | a1 | in-round | batch: a cell request and a dot-only line (p75, p128) | js/man-parse.mjs, test/man-parse.mjs |
-| p128 | man | a1 | in-round | a `.`-only line with no pending `\c` adds a space block; groff draws no gap | js/man-parse.mjs, test/man-parse.mjs |
-| p75 | man | a1 | in-round | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
-| c9 | code | a2 | in-round | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
-| p139 | core | a3 | in-round | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -84,10 +74,12 @@ before.
 |----|------|------|--------|-------|-------|
 | c15 | code | a2 | done:2f97b214 | the `Creating session...` placeholder is never removed, so it stays above the first turn and can receive an orphan delta | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | c14 | code | a2 | done:835b9b00 | text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0 | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
+| b8 | man | a1 | done:b8f0fabc | batch: a cell request and a dot-only line (p75, p128) | js/man-parse.mjs, test/man-parse.mjs |
 | p130 | man | a1 | done:a0e05f0b | `\$@` interpolation does not quote its arguments: groff prints `["a" "b" "c"]`, bred `[a b c]` | js/man-parse.mjs, test/man-parse.mjs |
 | b7 | man | a1 | done:d62483ed | batch: table spans, character names, and the \v paren form (p79, p83, p34) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | b6 | man | a1 | done:d62483ed | batch: escapes and synopsis spacing (p102, p76, p77) | js/man-parse.mjs, test/man-parse.mjs |
 | b5 | man | a1 | done:30263abb | batch: macro arguments, a bar, and a cut body line (p101, p118, p119) | js/man-parse.mjs, test/man-parse.mjs |
+| p128 | man | a1 | done:b8f0fabc | a `.`-only line with no pending `\c` adds a space block; groff draws no gap | js/man-parse.mjs, test/man-parse.mjs |
 | c13 | code | a2 | done:aa5130e6 | handlePartDelta draws a text delta as a thinking block when the assistant message element is missing (a reconnect that dropped session.text.started) | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | b4 | man | a1 | done:f6b63ada | batch: joins and space blocks (p55, p73, p126) | js/man-parse.mjs, test/man-parse.mjs |
 | p64 | man | a1 | done:cc7042c | `.Fn` in a SYNOPSIS also ends with `;` in groff; we do not print it (found in p61's report) | js/man-parse.mjs, test/man-parse.mjs |
@@ -145,6 +137,7 @@ before.
 | p72 | man | a3 | done:aae6139 | ps(1) is 103 of section 1's words: man(1) wraps a comma-separated option list, and man-diff does not join a line that ends at a comma in that list; find a rule that joins it without joining prose commas | bin/man-diff, test/man-diff.mjs |
 | p73 | man | a1 | done:f6b63ada | toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing | js/man-parse.mjs, test/man-parse.mjs |
 | p74 | man | a1 | done:00dc308 | ps(1) loses 95 words because a macro line inside a T{ } tbl cell stays raw (.BR pcpu ). instead of pcpu).); every T{ } cell using a macro is affected; the ps(1) pin in test/man-diff.mjs must be updated with the fix | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
+| p75 | man | a1 | done:b8f0fabc | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
 | p76 | man | a1 | done:d62483ed | in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them | js/man-parse.mjs, test/man-parse.mjs |
 | p77 | man | a1 | done:d62483ed | the parser maps the \t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it | js/man-parse.mjs, test/man-parse.mjs |
 | p78 | man | a1 | done:ee005d2 | L\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl | js/man-char.mjs, test/man-parse.mjs |
@@ -195,6 +188,7 @@ before.
 | p121 | man | a1 | done:e7e0d671 | .if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it) | js/man-parse.mjs, test/man-parse.mjs |
 | c8 | code | a2 | done:e3e11414 | Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing) | ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | p123 | man | a3 | done:4dd8ef83 | a .Bl -dash list still renders as an HTML ul disc; groff draws "-" per item (the text model now agrees, the renderer does not) | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
+| c9 | code | a2 | done:067cfca9 | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | c10 | code | a2 | done:ab988598 | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
 | c11 | code | a2 | done:57c1d58f | session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
 | p125 | man | a1 | done:eac2c89c | dmsetup(8) splits load\|reload into two words around a .BR line ending in \c | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
@@ -206,6 +200,7 @@ before.
 | p127 | man | a1 | done:8f3eabee | verdict: mdoc body text after .Sh is already roman (mdocHeading does restore c.font); not reproducible at 8f3eabee |  |
 | l2 | tooling | a3 | done:ad68333e | check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit | bin/loop.mjs, bin/loop-queue.mjs, test/loop.mjs |
 | p132 | man | a3 | done:c0ac82ce | doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0 | doc/Man.md |
+| p139 | core | a3 | done:9dbfaa9d | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
 | b9 | man | a1 | done:d62483ed | batch: the man tail's escapes, spans, cells and copy-mode tabs (b7: p79 p83 p34, b6: p102 p76 p77, p145) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | c16 | code | a2 | done:835b9b00 | a delta takes its part id from the event, not from state (c14) | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | p145 | man | a1 | done:949bf23c | `\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words | js/man-parse.mjs, test/man-parse.mjs |

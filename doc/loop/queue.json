@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T23:54:58Z",
     "stopNew": "2026-11-25T23:09:58Z",
     "state": "active",
-    "round": 65,
-    "main": "c0ac82ce"
+    "round": 66,
+    "main": "9dbfaa9d"
   },
   "items": [
     {
@@ -45,7 +45,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "in-round",
+      "status": "done",
       "source": "lane",
       "title": "batch: a cell request and a dot-only line (p75, p128)",
       "files": [
@@ -54,7 +54,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Groomed 2026-11-25: TWO red tests and no code change (p130 is already done in a0e05f0b, so it is not in this batch; `escapes :: dollar at quotes each argument` passes at this base). `tables :: an IP in a T{ cell prints no text` — groff -Tutf8 -t -man on `a<TAB>T{` / `text` / `.IP \"\" 2` / `more` / `T}` prints `a   text`, then a blank line, then `more` indented 2 ens; bred keeps `.IP \"\" 2` as literal cell text, so flat(cell.spans) is 'text\\n.IP \"\" 2\\nmore' instead of 'text\\nmore'. Same for ps(1)'s class/cls/policy cells (ps.1 lines 1121/1145/1535). `paragraphs :: a dot-only line draws no gap` — groff -Tutf8 -man on `one` / `.` / `two` prints `one two` on one line; bred emits a space block so asText is 'one\\n\\ntwo\\n' instead of 'one two\\n' (the `'`-only form is identical in groff). The patch NARROWS the existing `tables :: a cell request outside the text macros is still not run` from `.IP \"\" 2` to `.IP tag 2`: an IP with a tag does print text (groff prints a `tag` line then the body indented), so keeping it literal is right, while `.IP \"\"` has no text and must join the no-op tableRequests. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b8.patch. WARNING for the round's man-diff number: the p75 notes say this is the whole 18-word ps(1) surplus, but it is only 9 of them (` .IP` x3 + `\"\"` x3 + `2` x3, confirmed by dropping the 3 `.IP \"\" 2` lines: ps(1) 6710 -> 6701 ours). The other 9 are a SEPARATE defect also visible on ps(1): the `.\\\"K<TAB>stime<TAB>system time (conflict, system vs. start time)` comment at ps.1:940 sits at table-row level inside `.TS`/`.TE`, tbl ignores it but bred turns it into a data row, giving `[ \".\", \"stime\", \"system time (conflict, system vs. start time)\" ]`; dropping that line takes 6701 -> 6692, matching man(1). Not fixed here and not tested: needs its own row (comment lines in a table body must be skipped like tableRequest already skips `.br`/`.sp`). terminfo(5) has the same bug in milder form (`.\\\".TH` at table-row level, 5 surplus tokens: `.` and four `|`). Also found in the groom (separate row needed): ps(1) has a .\\\" comment at table-ROW level (ps.1:940) which tbl ignores and bred turns into a data row (9 of the surplus tokens); terminfo(5) has the same in milder form. Comment lines in a table body must be skipped like tableRequest skips .br/.sp.",
-      "batch": 1
+      "batch": 1,
+      "doneHash": "b8f0fabc"
     },
     {
       "id": "p130",
@@ -144,14 +145,15 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "in-round",
+      "status": "done",
       "title": "a `.`-only line with no pending `\\c` adds a space block; groff draws no gap",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Found in b4's lane report (2026-11-25): `one` / `.` / `two` — groff -Tutf8 -man prints `one two` (the `.` flushes the current line, no gap); bred emits a space block so toText gives `one\\n\\ntwo\\n`. b4 fixed the pending-`\\c` case only. Red test `paragraphs :: a dot-only line draws no gap` (asText == 'one two\\n')."
+      "notes": "Found in b4's lane report (2026-11-25): `one` / `.` / `two` — groff -Tutf8 -man prints `one two` (the `.` flushes the current line, no gap); bred emits a space block so toText gives `one\\n\\ntwo\\n`. b4 fixed the pending-`\\c` case only. Red test `paragraphs :: a dot-only line draws no gap` (asText == 'one two\\n'). Absorbed by b8 in round 66 at b8f0fabc.",
+      "doneHash": "b8f0fabc"
     },
     {
       "id": "c13",
@@ -855,7 +857,7 @@
     {
       "id": "p75",
       "lane": "a1",
-      "status": "in-round",
+      "status": "done",
       "title": ".IP \"\" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost)",
       "files": [
         "js/man-parse.mjs",
@@ -864,7 +866,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: in a `T{` cell, `.IP \"\" 2` prints no text (only a break); bred keeps the raw `.IP` line in the cell span. Red test `tables :: an IP in a T{ cell prints no text` (flat(cell.spans) == 'text\\nmore'). The existing test `a cell request outside the text macros is still not run` asserts the old literal behaviour and must be updated with the fix; `.br` in cells already runs."
+      "notes": "Groomed 2026-11-25: in a `T{` cell, `.IP \"\" 2` prints no text (only a break); bred keeps the raw `.IP` line in the cell span. Red test `tables :: an IP in a T{ cell prints no text` (flat(cell.spans) == 'text\\nmore'). The existing test `a cell request outside the text macros is still not run` asserts the old literal behaviour and must be updated with the fix; `.br` in cells already runs. Absorbed by b8 in round 66 at b8f0fabc.",
+      "doneHash": "b8f0fabc"
     },
     {
       "id": "p76",
@@ -1673,7 +1676,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "in-round",
+      "status": "done",
       "title": "handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view",
       "files": [
         "ext/code/code.mjs",
@@ -1681,7 +1684,8 @@
       ],
       "proof": "npx mocha --exit test/code-prompt-e2e.mjs --grep 'thinking box'",
       "notes": "Test 'a box that lacks the block gets it from the next delta' in the 'thinking box' group: a text part whose started update was dropped (a reconnect) makes the first delta draw a code-msg-thinking block in the one live view, then a second view of the same buf is built fresh the way a view in another window is (content is only copied within one window), so it starts empty. The next session.text.delta hits the early branch in handlePartDelta: anyView(1) holds the thinking block, so Ui.chunkThink buffers it and the handler returns before Util.eachOut, leaving the fresh view with 0 code-msg-thinking blocks where the delta path would have created 1 (the first view correctly reads 'firstsecond'). Expected one block carrying the delta, observed none; commenting out the early branch makes all four 'thinking' tests pass, so the red is exactly that one-view decision. Uncommitted test patch: /home/matt/worktrees/0db3bcbf-6070-493e-b543-4680184becc5/bred-loop/groom-c9-test.patch.",
-      "source": "triage"
+      "source": "triage",
+      "doneHash": "067cfca9"
     },
     {
       "id": "p124",
@@ -1942,7 +1946,7 @@
     {
       "id": "p139",
       "area": "core",
-      "status": "in-round",
+      "status": "done",
       "type": "fix",
       "title": "Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal",
       "lane": "a3",
@@ -1952,7 +1956,8 @@
       ],
       "proof": "npx mocha --exit test/mode-remove.mjs",
       "notes": "Found by the core hunt 2026-11-25 at b3560073. Mode.add lowercases the key before `modes.set` (js/mode.mjs:82, 92) and Mode.get lowercases before `modes.get` (js/mode.mjs:181), but Mode.remove does `m = get(key)` and then `modes.delete(key)` with the raw argument (js/mode.mjs:165-175), so the delete never matches for a name that is not already lowercase. Every Mode.remove caller passes a capitalised name (`Mode.remove('Rich')`, `Mode.remove('Clock')`, `Mode.remove('Search Lines')`, ... in ext/*), so an extension that unloads a mode leaves it registered: its `em` and `cmds` stay reachable from Em/Cmd and a later Mode.add of the same key finds the stale mode. Red tests `Mode.remove :: drops a mode registered with a mixed-case key` and `Mode.remove :: removes the toggle command for a mixed-case key`. Failure: `AssertionError [ERR_ASSERTION]: remove dropped the mode` / `+ actual { assist: {}, context: undefined, decorators: undefined, ... } - expected undefined`. The toggle command IS removed (Cmd.remove lowercases through canon), so only the map entry leaks. Fix: `modes.delete(m.key)` (or lowercase once at the top). Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/hunt-core1.patch",
-      "source": "hunt"
+      "source": "hunt",
+      "doneHash": "9dbfaa9d"
     },
     {
       "id": "p140",

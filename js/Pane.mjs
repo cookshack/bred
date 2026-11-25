@@ -102,7 +102,16 @@ function holding
 export
 function holdingView
 (view) {
-  return Frame.find(frame => frame.panes.find(p => p.view == view))?.pane
+  let pane
+
+  // find the pane itself, not the frame's current pane
+  Frame.find(frame => {
+               pane = frame.panes.find(p => p.view == view)
+               if (pane)
+                 return 1
+               return 0
+             })
+  return pane
 }
 
 export

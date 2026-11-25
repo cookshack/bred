@@ -257,13 +257,15 @@ function renderHistory
   function renderTool
   (content) {
     if ((content.name == 'subagent') || (content.name == 'task')) {
-      let childID
+      let childID, sub
 
       childID = Util.subagentChildId(content)
       Subagent.ensure(buf, childID, content)
-      Ui.appendToolMsg(buf, content.id, Ui.subagentLabel(content), 0)
+      sub = Subagent.finish(buf, content, content.state?.status == 'error' ? 'error' : 'done')
+      // The line is drawn after the lane's own state is known, so a stored lane
+      // shows its end mark rather than a running one.
+      Ui.appendToolMsg(buf, content.id, sub ? Ui.subagentLaneLabel(sub) : Ui.subagentLabel(content), 0)
       renderChild(childID)
-      Subagent.finish(buf, content, content.state?.status == 'error' ? 'error' : 'done')
       return
     }
     Ui.appendToolMsg(buf, content.id, toolLabel(buf, content), toolText(content.state))

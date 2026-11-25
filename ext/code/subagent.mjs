@@ -17,9 +17,35 @@ function all
 // when its call returns, so "running" is the truth until the child session ends.
 function head
 (sub) {
-  return (sub.desc ? 'Task: ' + sub.desc : 'Task')
-    + ' (' + (sub.agent || 'subagent') + ' agent)'
-    + (sub.status == 'done' ? ' ✔️' : (sub.status == 'error' ? ' ✘' : ' ◌'))
+  return Util.subagentTitle(sub.desc || '', sub.agent || 'subagent') + ' ' + Util.subagentMark(sub.status)
+}
+
+// A lane that reported an error ends as one, not as a tick, and stays that way.
+function endStatus
+(sub) {
+  return (sub.errored || (sub.status == 'error')) ? 'error' : 'done'
+}
+
+// Rewrite the call's Task line in the main transcript, so its mark follows the
+// lane instead of staying at whatever it said when the call returned. It is
+// updated in place: redrawing the call would move it to the end of the log.
+function redrawCall
+(buf, sub) {
+  if (sub.callID)
+    Ui.updateToolLabel(buf, sub.callID, Ui.subagentLaneLabel(sub))
+}
+
+// Set a lane's state, and redraw the two places it is shown: its tab head and
+// the Task line it left in the main transcript.
+function setStatus
+(buf, sub, status) {
+  if (sub.status == status)
+    return
+  sub.status = status
+  sub.head = head(sub)
+  Ui.updateOut(buf, sub.sessionID)
+  redrawCall(buf, sub)
+  repaint()
 }
 
 // The sidebar repaints on focus and cursor moves, so nudge it when a subagent
@@ -53,7 +79,8 @@ function ensure
     sub.agent = Util.subagentAgent(part)
     sub.desc = part.state?.input?.description || ''
     sub.prompt = Util.subagentPrompt(part) || sub.prompt
-    sub.callID = part.callID
+    // A live part names the call callID; a stored one only has id.
+    sub.callID = part.callID || part.id
     // A background call returns as soon as the lane starts, so the call's
     // completion is not the lane's completion (see `ended`).
     sub.background = part.state?.input?.background ? 1 : sub.background
@@ -114,16 +141,10 @@ function finish
     // The call means "started". A lane that was already idle when the call
     // returned is done; otherwise the child's own status says when it ends.
     sub.callDone = 1
-    sub.status = sub.idle ? 'done' : 'running'
-    sub.head = head(sub)
-    Ui.updateOut(buf, sessionID)
-    repaint()
+    setStatus(buf, sub, sub.idle ? endStatus(sub) : 'running')
     return sub
   }
-  sub.status = status
-  sub.head = head(sub)
-  Ui.updateOut(buf, sessionID)
-  repaint()
+  setStatus(buf, sub, status)
   result = Util.subagentResult(part)
   if (result && ((sub.lastText || '').includes(result.trim()) == 0))
     Ui.appendMsg(buf, 0, result, 'result:' + sessionID, 0, { sessionID })
@@ -143,7 +164,7 @@ function ended
 }
 
 // End a lane that is known to have gone idle, e.g. a lane whose call message
-// already carries the ◉ marker but whose status event was missed.
+// carries the idle flag but whose status event was missed.
 export
 function end
 (buf, sessionID) {
@@ -154,12 +175,7 @@ function end
     return 0
   sub.idle = 1
   sub.busy = 0
-  if ((sub.status == 'done') == 0) {
-    sub.status = 'done'
-    sub.head = head(sub)
-    Ui.updateOut(buf, sessionID)
-    repaint()
-  }
+  setStatus(buf, sub, endStatus(sub))
   return 1
 }
 
@@ -179,12 +195,25 @@ function childStatus
     sub.idle = 1
     sub.busy = 0
   }
-  if (ended(sub) && ((sub.status == 'done') == 0)) {
-    sub.status = 'done'
-    sub.head = head(sub)
-    Ui.updateOut(buf, sessionID)
-    repaint()
+  if (ended(sub) && ((sub.status == endStatus(sub)) == 0)) {
+    setStatus(buf, sub, endStatus(sub))
     return 1
   }
   return 0
+}
+
+// A child reported an error, so the lane ends as one rather than as a tick. The
+// child may have gone idle before the error arrived, hence the upgrade here.
+export
+function noteError
+(buf, sessionID) {
+  let sub
+
+  sub = all(buf).get(sessionID)
+  if (sub == null)
+    return 0
+  sub.errored = 1
+  if (sub.status == 'done')
+    setStatus(buf, sub, 'error')
+  return 1
 }

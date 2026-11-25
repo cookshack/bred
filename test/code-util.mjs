@@ -339,11 +339,19 @@ test('subagentLabel', 'task line with status marks',
        let part
 
        part = { state: { input: { description: 'Look around', subagent_type: 'explore' } } }
-       equal(CodeUtil.subagentLabel(part), 'Task: Look around (explore agent)')
+       equal(CodeUtil.subagentLabel(part), 'Task: Look around (explore agent) ◌')
        part.state.status = 'completed'
-       equal(CodeUtil.subagentLabel(part), 'Task: Look around (explore agent) ✔️')
+       equal(CodeUtil.subagentLabel(part), 'Task: Look around (explore agent) ✔')
        part.state.status = 'error'
        equal(CodeUtil.subagentLabel(part), 'Task: Look around (explore agent) ✘')
+     })
+
+test('subagentMark', 'one mono glyph per lane state',
+     () => {
+       equal(CodeUtil.subagentMark('running'), '◌')
+       equal(CodeUtil.subagentMark('done'), '✔')
+       equal(CodeUtil.subagentMark('completed'), '✔')
+       equal(CodeUtil.subagentMark('error'), '✘')
      })
 
 test('subagentChildId', 'both metadata spellings',

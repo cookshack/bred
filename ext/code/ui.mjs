@@ -302,8 +302,7 @@ function subagentRow
     parts.push(span('@' + (spec.agent || 'subagent'), 'assist-subagent-name'))
     if (spec.desc)
       parts.push(span(spec.desc, 'assist-subagent-desc'))
-    parts.push(span(spec.status == 'done' ? '✔' : (spec.status == 'error' ? '✘' : '◌'),
-                    'assist-subagent-state'))
+    parts.push(span(Util.subagentMark(spec.status), 'assist-subagent-state'))
     if (spec.unread)
       parts.push(span('•', 'assist-subagent-unread'))
   }
@@ -763,18 +762,47 @@ function appendServerLog
 }
 
 // The Task label for a subagent call, with the marker tinted so it reads as
-// "green means subagent output".
+// "green means subagent output". The mark gets its own span because the line is
+// italic, and a mono glyph drawn obliquely reads as slanted.
 export
-// `mark` replaces the call's own ✔️ with something else, which a background
-// call needs: it finished starting the lane, not the lane.
 function subagentLabel
-(part, mark) {
-  let text
+(part) {
+  return subagentLaneLabel(Util.subagentLane(part))
+}
 
-  text = Util.subagentLabel(part)
-  if (mark)
-    text = text.replace(/ ✔️$/, '') + ' ' + mark
-  return [ span('Task', 'code-msg-subagent-task'), text.slice(4) ]
+// The same label for a lane that is no longer a live part, so a lane that ends
+// later can rewrite the line it left in the main transcript.
+export
+function subagentLaneLabel
+(lane) {
+  let title
+
+  title = Util.subagentTitle(lane.desc, lane.agent)
+  return [ span('Task', 'code-msg-subagent-task'),
+           title.slice(4) + ' ',
+           span(Util.subagentMark(lane.status), 'code-msg-mark') ]
+}
+
+// A label is either text or a list of nodes. Each view needs its own nodes: a
+// node given to one view's transcript is moved out of the next one's.
+function cloneLabel
+(label) {
+  return Array.isArray(label) ? label.map(n => (typeof n == 'string' ? n : n.cloneNode(true))) : label
+}
+
+// The plain text of a label, for places that only remember what a call said
+// (the logger, a permission prompt) rather than drawing it.
+export
+function labelText
+(label) {
+  return Array.isArray(label) ? label.map(n => (typeof n == 'string' ? n : (n.textContent || ''))).join('') : label
+}
+
+// Replace an element's content with a label: text, or the label's own nodes.
+function setLabel
+(el, label) {
+  el.replaceChildren()
+  append(el, cloneLabel(label))
 }
 
 export
@@ -885,7 +913,7 @@ function appendToolMsg
                                                  [ divCl('code-msg-text',
                                                          [ ((underEl || resultEl) ? divCl('code-msg-arrow', '', { 'data-run': 'toggle details' }) : Util.iconRightArrow()),
                                                            ' ',
-                                                           span(label, 'code-msg-label') ]),
+                                                           span(cloneLabel(label), 'code-msg-label') ]),
                                                    alwaysEl,
                                                    underEl,
                                                    resultEl ],
@@ -902,12 +930,12 @@ function appendToolMsg
 
                             labelEl = permEl.querySelector('.code-msg-label')
                             if (labelEl)
-                              labelEl.innerText = label
+                              setLabel(labelEl, label)
                             else {
                               let patternEl
 
                               patternEl = permEl.querySelector('.code-msg-pattern')
-                              labelEl = divCl('code-msg-label', label)
+                              labelEl = divCl('code-msg-label', cloneLabel(label))
                               if (patternEl)
                                 patternEl.before(labelEl)
                               else
@@ -918,7 +946,8 @@ function appendToolMsg
 }
 
 // Update just the label of an existing tool message, leaving its details (and
-// their codemirror) alone. Used by execute, whose nested call count streams.
+// their codemirror) alone. Used by execute, whose nested call count streams, and
+// by a subagent lane, whose mark changes without the call being redrawn.
 export
 function updateToolLabel
 (buf, callID, label) {
@@ -927,7 +956,7 @@ function updateToolLabel
 
                         el = w.querySelector('.code-msg-tool[data-callid="' + callID + '"] .code-msg-label')
                         if (el)
-                          el.innerText = label
+                          setLabel(el, label)
                       })
 }
 

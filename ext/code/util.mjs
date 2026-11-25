@@ -280,16 +280,43 @@ function subagentAgent
 }
 
 export
-function subagentLabel
+function subagentTitle
+(desc, agent) {
+  return (desc ? 'Task: ' + desc : 'Task') + ' (' + agent + ' agent)'
+}
+
+// What a lane is doing, as one glyph: a lane still going, one that ended, and
+// one that ended badly. Mono glyphs from the same font as the transcript, so
+// the call line can draw them upright inside its italic text.
+export
+function subagentMark
+(status) {
+  return (status == 'done') || (status == 'completed') ? '✔'
+                                                       : (status == 'error' ? '✘' : '◌')
+}
+
+// The lane a tool part describes, in the shape the transcript draws. A part's
+// status names the call's end, which for a background call is only the launch.
+export
+function subagentLane
 (part) {
-  let input, desc, status
+  let desc, input, status
 
   input = part.state?.input || {}
   status = part.state?.status
   desc = input.description
-  return (desc ? 'Task: ' + desc : 'Task')
-    + ' (' + subagentAgent(part) + ' agent)'
-    + (status == 'completed' ? ' ✔️' : (status == 'error' ? ' ✘' : ''))
+  return { desc: desc || '',
+           agent: subagentAgent(part),
+           status: status == 'completed' ? 'done' : (status == 'error' ? 'error' : 'running') }
+}
+
+export
+function subagentLabel
+(part) {
+  let lane
+
+  lane = subagentLane(part)
+  return subagentTitle(lane.desc, lane.agent) + ' ' + subagentMark(lane.status)
 }
 
 // The child session a subagent call started. Live parts use sessionID, stored

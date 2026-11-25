@@ -349,7 +349,7 @@ function appendPermission
   id = perm.id
   callID = perm.req.callID || perm.req.tool?.callID
   if (callID)
-    label = buf.vars('code').callLabels?.[callID]
+    label = Ui.labelText(buf.vars('code').callLabels?.[callID])
   buf.views.forEach(view => {
                       if (view.eleOrReserved) {
                         let w
@@ -1242,19 +1242,13 @@ function handleSubagentIdle
   // deliver a separate idle, so the lane's own state has to be told here.
   if (Subagent.childStatus(buf, sessionID, 'idle'))
     buf.vars('code').subagentIds?.delete(sessionID)
+  // The line's own mark already says the lane has ended. The flag is on the
+  // call element, not in its text, so it survives the mark being redrawn and
+  // gives reconcileIdleLanes something to sweep.
   callId = buf.vars('code').subagentCallIds?.get(sessionID)
   if (callId)
     Util.eachCodeW(buf, (view, w) => {
-                          let els
-
-                          els = w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]')
-                          els?.forEach(el => {
-                                         let textEl
-
-                                         textEl = el.querySelector('.code-msg-text')
-                                         if (textEl && textEl.innerText.indexOf('◉') < 0)
-                                           textEl.innerText = textEl.innerText + ' ◉'
-                                       })
+                          w.querySelectorAll('.code-msg-tool[data-callid="' + callId + '"]').forEach(el => el.dataset.laneIdle = 1)
                         })
 }
 
@@ -1879,9 +1873,10 @@ function toggleSubagentFilter
   Subagent.repaint()
 }
 
-// The call message carries ◉ once the child went idle (see handleSubagentIdle),
-// so a lane whose status event was missed can still be ended when the filter
-// is turned on. Without this, only events from now on would end such a lane.
+// The call message carries an idle flag once the child went idle (see
+// handleSubagentIdle), so a lane whose status event was missed can still be
+// ended when the filter is turned on. Without this, only events from now on
+// would end such a lane.
 function reconcileIdleLanes
 (buf) {
   buf.vars('code').subagents?.forEach(sub => {
@@ -1893,7 +1888,7 @@ function reconcileIdleLanes
                                                                 let el
 
                                                                 el = w.querySelector('.code-msg-tool[data-callid="' + sub.callID + '"]')
-                                                                if (el?.textContent?.includes('◉'))
+                                                                if (el?.dataset.laneIdle)
                                                                   idle = 1
                                                               })
                                           if (idle)
@@ -3079,19 +3074,20 @@ function init
                         buf.vars('code').subagentIds?.delete(sessionId)
                       // The subagent's own transcript is its tab, so the main
                       // transcript only says the call started and finished. A
-                      // background call has finished *starting* the lane.
-                      label = Ui.subagentLabel(part, ((sub?.background && ((sub.status == 'done') == 0))) ? '⏳' : '')
+                      // background call has finished *starting* the lane, so its
+                      // line keeps saying the lane is still going.
+                      label = sub ? Ui.subagentLaneLabel(sub) : Ui.subagentLabel(part)
                       Ui.appendToolMsg(buf, part.callID, label, 0)
                     },
                         onErr
                         (buf, part) {
-                      let sessionId
+                      let sessionId, sub
 
                       sessionId = Util.subagentChildId(part)
                       if (sessionId)
                         buf.vars('code').subagentIds?.delete(sessionId)
-                      Subagent.finish(buf, part, 'error')
-                      Ui.appendToolMsg(buf, part.callID, Ui.subagentLabel(part), 0)
+                      sub = Subagent.finish(buf, part, 'error')
+                      Ui.appendToolMsg(buf, part.callID, sub ? Ui.subagentLaneLabel(sub) : Ui.subagentLabel(part), 0)
                     } } }
 
   events = { 'session.idle': { onArrive
@@ -3175,6 +3171,7 @@ function init
                                   text = 'Error: ' + (error?.message || error?.data?.message || error?.type || error?.name || 'session error - details missing')
                                   if (Util.isChildSession(buf, sessionID)) {
                                     Subagent.ensure(buf, sessionID)
+                                    Subagent.noteError(buf, sessionID)
                                     Ui.appendMsg(buf, 'assistant', text, undefined, undefined, { sessionID })
                                     return
                                   }

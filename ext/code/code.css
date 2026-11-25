@@ -382,6 +382,12 @@ div.code-thought:hover {
   font-style: normal;
 }
 
+/* The lane's state mark. The call line is italic, and an oblique mono glyph
+   (a slanted hourglass) looks broken, so the mark stands upright. */
+.code-msg-mark {
+  font-style: normal;
+}
+
 .code-msg-tool .code-msg-arrow {
   cursor: pointer;
   font-style: normal;

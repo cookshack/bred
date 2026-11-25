@@ -1369,7 +1369,7 @@ test('subagent', 'task prompt stays in main, child output goes to its tab',
          equal(el.querySelector('.code-msg-under'), null,
                'the result is not repeated under the task line')
          equal(box.textContent.includes('found it'), true, 'the result goes into the tab')
-         equal(box.querySelector('.code-out-head').textContent.includes('✔️'), true,
+         equal(box.querySelector('.code-out-head').textContent.includes('✔'), true,
                'the tab marks completion')
        }
        finally {
@@ -1398,7 +1398,7 @@ test('subagent', 'a background call launches the lane; its own status ends it',
                          }
 
        try {
-         let before, box, el, head, main
+         let box, el, head, line, main
 
          Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
          await waitFor(() => created?.views[0]?.ele)
@@ -1414,21 +1414,25 @@ test('subagent', 'a background call launches the lane; its own status ends it',
          await waitFor(() => created.views[0].ele.querySelector('.code-out[data-sessionid="ses-bg"]'))
          box = created.views[0].ele.querySelector('.code-out[data-sessionid="ses-bg"]')
          main = created.views[0].ele.querySelector('.code-out-main')
+         line = () => main.querySelector('.code-msg-tool[data-callid="call-bg"]')
+         equal(line().querySelector('.code-msg-mark').textContent, '◌',
+               'a running lane shows the running mark on its call line')
 
          // The call returns the moment the lane is launched: that is not the end.
-         before = main.querySelector('.code-msg-tool[data-callid="call-bg"]').textContent
          fake.push(Fake.event('session.tool.success', { id: 'call-bg',
                                                         sessionID: 'ses-sub',
                                                         assistantMessageID: 'm1',
                                                         name: 'subagent',
                                                         metadata: { sessionID: 'ses-bg' },
                                                         content: [ { type: 'text', text: 'The subagent is working in the background' } ] }))
-         // The call line is rewritten in the same handler; wait for that, then
-         // read the tab, which is what says whether the lane has ended.
-         await waitFor(() => (main.querySelector('.code-msg-tool[data-callid="call-bg"]')?.textContent == before) ? 0 : 1)
+         // The line keeps saying the lane is going, so the state is the signal
+         // that the call's completion has been handled.
+         await waitFor(() => created.vars('code').subagents.get('ses-bg')?.callDone)
          head = box.querySelector('.code-out-head').textContent
-         equal(head.includes('✔️'), false, 'a launched lane is not a finished lane')
+         equal(head.includes('✔'), false, 'a launched lane is not a finished lane')
          equal(head.includes('◌'), true, 'a launched lane is still running')
+         equal(line().querySelector('.code-msg-mark').textContent, '◌',
+               'the call line keeps saying the lane is still going')
 
          // The lane keeps working, and its output still belongs to its own tab.
          fake.push(Fake.event('session.execution.started', { sessionID: 'ses-bg' }))
@@ -1438,11 +1442,134 @@ test('subagent', 'a background call launches the lane; its own status ends it',
          el = main.querySelector('.code-msg-assistant[data-messageid="b1"]')
          equal(el, null, 'the lane output does not fall into the main transcript')
 
-         // The child session ends: now, and only now, the lane is done.
+         // The child session ends: now, and only now, the lane is done, and the
+         // line it left in the main transcript says so too.
          fake.push(Fake.event('session.execution.succeeded', { sessionID: 'ses-bg' }))
-         await waitFor(() => box.querySelector('.code-out-head').textContent.includes('✔️'))
-         equal(box.querySelector('.code-out-head').textContent.includes('✔️'), true,
+         await waitFor(() => box.querySelector('.code-out-head').textContent.includes('✔'))
+         equal(box.querySelector('.code-out-head').textContent.includes('✔'), true,
                'the lane ends when its own session does')
+         line = main.querySelector('.code-msg-tool[data-callid="call-bg"]')
+         equal(line.querySelector('.code-msg-mark').textContent, '✔',
+               'the call line ticks when the lane ends')
+         equal(line.textContent.includes('◉'), false, 'the ended lane adds no second mark')
+         equal(line.closest('.code-out') == main, true, 'the call line stays where it was')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
+test('subagent', 'a lane that errors ends with a cross, not a tick',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-sub', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let line, main
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await waitFor(() => created.vars('code').sessionID)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-sub' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-sub', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.tool.called', { id: 'call-err',
+                                                       sessionID: 'ses-sub',
+                                                       assistantMessageID: 'm1',
+                                                       name: 'subagent',
+                                                       metadata: { sessionID: 'ses-err' },
+                                                       input: { description: 'Lane', agent: 'general', prompt: 'work', background: 1 } }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-out[data-sessionid="ses-err"]'))
+         main = created.views[0].ele.querySelector('.code-out-main')
+
+         fake.push(Fake.event('session.tool.success', { id: 'call-err',
+                                                        sessionID: 'ses-sub',
+                                                        assistantMessageID: 'm1',
+                                                        name: 'subagent',
+                                                        metadata: { sessionID: 'ses-err' } }))
+         await waitFor(() => created.vars('code').subagents.get('ses-err')?.callDone)
+         line = main.querySelector('.code-msg-tool[data-callid="call-err"]')
+         equal(line.querySelector('.code-msg-mark').textContent, '◌', 'the launched lane is still going')
+
+         // The child reports an error, then goes idle: the lane ended badly.
+         fake.push(Fake.event('session.error', { sessionID: 'ses-err', error: { message: 'boom' } }))
+         fake.push(Fake.event('session.execution.failed', { sessionID: 'ses-err', error: { message: 'boom' } }))
+         await waitFor(() => (main.querySelector('.code-msg-tool[data-callid="call-err"] .code-msg-mark')?.textContent == '✘'))
+         line = main.querySelector('.code-msg-tool[data-callid="call-err"]')
+         equal(line.querySelector('.code-msg-mark').textContent, '✘',
+               'an errored lane ends with a cross')
+         equal(created.vars('code').subagents.get('ses-err').head.includes('✘'), true,
+               'the tab head agrees with the call line')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
+test('subagent', 'a foreground lane shows it is running, then ticks',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-sub', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let line, main
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await waitFor(() => created.vars('code').sessionID)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-sub' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-sub', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.tool.called', { id: 'call-fg',
+                                                       sessionID: 'ses-sub',
+                                                       assistantMessageID: 'm1',
+                                                       name: 'subagent',
+                                                       metadata: { sessionID: 'ses-fg' },
+                                                       input: { description: 'Lane', agent: 'general', prompt: 'work' } }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-out[data-sessionid="ses-fg"]'))
+         main = created.views[0].ele.querySelector('.code-out-main')
+         line = main.querySelector('.code-msg-tool[data-callid="call-fg"]')
+         equal(line.querySelector('.code-msg-mark').textContent, '◌',
+               'a foreground lane also says it is still going')
+
+         fake.push(Fake.event('session.tool.success', { id: 'call-fg',
+                                                        sessionID: 'ses-sub',
+                                                        assistantMessageID: 'm1',
+                                                        name: 'subagent',
+                                                        metadata: { sessionID: 'ses-fg' },
+                                                        content: [ { type: 'text', text: 'found it' } ] }))
+         await waitFor(() => (main.querySelector('.code-msg-tool[data-callid="call-fg"] .code-msg-mark')?.textContent == '✔'))
+         equal(main.querySelector('.code-msg-tool[data-callid="call-fg"] .code-msg-mark').textContent,
+               '✔',
+               'a foreground lane ticks when its call completes')
        }
        finally {
          panes.pB.setBuf = orig
@@ -1590,7 +1717,7 @@ test('subagent', 'reopened session replays child output into its tab',
        box = w.querySelector('.code-out[data-sessionid="kid1"]')
        el = w.querySelector('.code-msg-tool[data-callid="call1"]')
        equal(el.closest('.code-out') == main, true, 'the stored task call stays in main')
-       equal(el.querySelector('.code-msg-text').textContent.includes('Task: Explore map (explore agent) ✔️'),
+       equal(el.querySelector('.code-msg-text').textContent.includes('Task: Explore map (explore agent) ✔'),
              true,
              'label uses the task description and agent')
        equal(box.querySelector('.code-out-prompt').textContent, prompt,

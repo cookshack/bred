@@ -30,6 +30,12 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | area | lane | status | title | files |
+|----|------|------|--------|-------|-------|
+| p125 | man | a1 | ready | dmsetup(8) splits load\|reload into two words around a .BR line ending in \c | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
+
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -66,7 +72,6 @@ before.
 | p120 | man | a1 | next | a valueless .nr X sets it to 0 here; groff leaves it undefined and reading \nX creates it (two register divergences, no corpus effect) | js/man-parse.mjs, test/man-parse.mjs |
 | p121 | man | a1 | next | .if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it) | js/man-parse.mjs, test/man-parse.mjs |
 | c9 | code | a2 | next | handlePartDelta also decides from one view: a thinking delta goes only to boxes that already hold the block, so a box that lacks it never gets it | ext/code/code.mjs, test/code-prompt-e2e.mjs |
-| p125 | man | a1 | next | dmsetup(8) splits load\|reload into two words around a .BR line ending in \c | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Triage
 

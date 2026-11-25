@@ -453,6 +453,19 @@ test('mountPaths', 'skips unticked candidates',
              '/a')
      })
 
+test('subagent', 'the active filter keeps only running lanes',
+     () => {
+       let subs
+
+       subs = new Map([ [ 'a', { status: 'running' } ],
+                        [ 'b', { status: 'done' } ],
+                        [ 'c', { status: 'error' } ] ])
+       equal(CodeUtil.subagentsShown(subs, 0).length, 3)
+       equal(CodeUtil.subagentsShown(subs, 1).length, 1)
+       equal(CodeUtil.subagentsShown(subs, 1)[0].status, 'running')
+       equal(CodeUtil.subagentsShown(undefined, 1).length, 0)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

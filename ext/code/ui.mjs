@@ -315,7 +315,21 @@ function subagentRow
                  'data-sessionid': spec.sessionID || '' })
 }
 
-// The Assist sidebar's tab controls: Main, then one row per subagent.
+// The filter control: click to show only the lanes still running.
+function subagentFilterRow
+(view, state) {
+  let on
+
+  on = state.subagentsActive ? 1 : 0
+  return divCl('assist-subagent assist-subagent-filter' + (on ? ' assist-subagent-filter-on' : ''),
+               [ span(on ? 'Active only ✓' : 'Active only', 'assist-subagent-name') ],
+               { 'data-run': 'code subagents filter',
+                 'data-bufid': view.buf.id,
+                 'data-viewid': view.vid })
+}
+
+// The Assist sidebar's tab controls: the filter, Main, then one row per
+// subagent (only the running ones when the filter is on).
 export
 function subagentsList
 (view) {
@@ -323,11 +337,12 @@ function subagentsList
 
   state = view.buf.vars('code')
   frag = new globalThis.DocumentFragment()
+  append(frag, subagentFilterRow(view, state))
   append(frag, subagentRow(view, { name: 'Main' }, (state.tab || 0) == 0))
-  state.subagents?.forEach(sub => append(frag,
-                                         subagentRow(view,
-                                                     sub,
-                                                     state.tab == sub.sessionID)))
+  Util.subagentsShown(state.subagents, state.subagentsActive).forEach(sub => append(frag,
+                                                                                    subagentRow(view,
+                                                                                                sub,
+                                                                                                state.tab == sub.sessionID)))
   return frag
 }
 

@@ -149,6 +149,16 @@ div.assist-uri {
   color: var(--clr-emph);
 }
 
+.assist-subagent-filter {
+  color: var(--clr-text);
+  font-style: italic;
+}
+
+.assist-subagent-filter-on {
+  color: var(--clr-emph);
+  font-style: normal;
+}
+
 .assist-subagent-desc {
   overflow: hidden;
   text-overflow: ellipsis;

@@ -244,6 +244,22 @@ function subagentResult
   return out.join('\n')
 }
 
+// The subagents the Assist sidebar lists: all of them, or only the ones still
+// running (a done or failed lane is no longer active).
+export
+function subagentsShown
+(subs, active) {
+  let out
+
+  out = []
+  if (subs)
+    subs.forEach(sub => {
+                   if ((active == 0) || (sub.status == 'running'))
+                     out.push(sub)
+                 })
+  return out
+}
+
 // Which agent a subagent call used. Live parts say agent, stored ones say
 // subagent_type.
 export

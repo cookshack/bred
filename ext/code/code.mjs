@@ -1788,6 +1788,23 @@ function stopWithCaution
 
 // The Assist sidebar lists the tabs; a click there switches the code view the
 // sidebar is describing.
+// The sidebar's filter row: show all subagents, or only the lanes still
+// running. The click is dispatched through data-run like a subagent row.
+function toggleSubagentFilter
+(u, we) {
+  let buf, row, state
+
+  row = we?.e?.target?.closest?.('[data-run="code subagents filter"]')
+  if (row == null)
+    return
+  buf = Buf.find(b => b.id == +row.dataset.bufid)
+  if (buf == null)
+    return
+  state = buf.vars('code')
+  state.subagentsActive = state.subagentsActive ? 0 : 1
+  Subagent.repaint()
+}
+
 function selectSubagent
 (u, we) {
   let buf, row, view
@@ -3171,6 +3188,7 @@ function init
   // The Assist sidebar dispatches against its own buffer, so this has to be
   // global rather than part of the code mode.
   Cmd.add('code subagent', (u, we) => selectSubagent(u, we))
+  Cmd.add('code subagents filter', (u, we) => toggleSubagentFilter(u, we))
 
   Cmd.add('respond', () => next(), mo)
 

@@ -1096,9 +1096,18 @@ test('subagent', 'the sidebar switches which transcript is shown',
          main = created.views[0].ele.querySelector('.code-out-main')
          equal(Boolean(main), true, 'main transcript exists')
 
-         equal(Ui.subagentsList(created.views[0]).querySelectorAll('.assist-subagent').length,
+         equal(Ui.subagentsList(created.views[0]).querySelectorAll('.assist-subagent:not(.assist-subagent-filter)').length,
                2,
                'the sidebar lists main and the subagent')
+
+         // The filter row hides lanes that are no longer running.
+         created.vars('code').subagents.get('ses-child').status = 'done'
+         created.vars('code').subagentsActive = 1
+         equal(Ui.subagentsList(created.views[0]).querySelectorAll('.assist-subagent:not(.assist-subagent-filter)').length,
+               1,
+               'the active filter hides a finished lane')
+         created.vars('code').subagentsActive = 0
+         created.vars('code').subagents.get('ses-child').status = 'running'
 
          row = rowFor('ses-child')
          Cmd.run('code subagent', created, 0, { e: { target: row } })

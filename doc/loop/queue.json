@@ -1982,7 +1982,7 @@
     {
       "id": "p141",
       "area": "core",
-      "status": "ready",
+      "status": "in-round",
       "type": "fix",
       "title": "Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims",
       "lane": "a3",

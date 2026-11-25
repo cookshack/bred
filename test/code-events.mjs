@@ -207,6 +207,29 @@ test('translate', 'reasoning delta carries the text field',
        equal(typeof leg[0].properties.part.time, 'number', 'thinking knows when it was sent')
      })
 
+test('translate', 'reasoning ended sets the part to its complete text',
+     () => {
+       let buf, leg
+
+       // The part lands on the id session.reasoning.started uses for its
+       // deltas, so handlePart can reconcile the streamed thinking.
+       buf = makeBuf()
+       Ev.translate(buf, Fake.event('session.reasoning.started', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 0 }))
+       leg = Ev.translate(buf, Fake.event('session.reasoning.ended', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 0, text: 'think it through' }))
+       equal(leg.length, 1)
+       equal(leg[0].type, 'message.part.updated')
+       equal(leg[0].properties.part.type, 'reasoning')
+       equal(leg[0].properties.part.id, 'm1:reason:0')
+       equal(leg[0].properties.part.text, 'think it through')
+       equal(leg[0].properties.part.sessionID, 's1')
+
+       // A part whose started event a reconnect dropped can still land whole.
+       buf = makeBuf()
+       leg = Ev.translate(buf, Fake.event('session.reasoning.ended', { sessionID: 's2', assistantMessageID: 'm2', ordinal: 1, text: 'late' }))
+       equal(leg[0].properties.part.id, 'm2:reason:1')
+       equal(leg[0].properties.part.text, 'late')
+     })
+
 test('translate', 'tool lifecycle maps to states',
      () => {
        let buf, called, started, success

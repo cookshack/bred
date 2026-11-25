@@ -36,13 +36,13 @@ function boom
   throw new Error('boom')
 }
 
-test('measure', 'the minimal fixture translates nine inputs and drops one',
+test('measure', 'the minimal fixture translates ten inputs and drops one',
      () => {
        let record
 
        record = Conf.classify(fixture, translator())
-       equal(record.total, 10)
-       equal(record.translated, 9)
+       equal(record.total, 11)
+       equal(record.translated, 10)
        equal(record.dropped, 1)
        equal(record.malformed, 0)
        equal(record.types[ 'session.execution.started' ].translated, 1)
@@ -53,6 +53,7 @@ test('measure', 'the minimal fixture translates nine inputs and drops one',
        equal(record.types[ 'session.tool.success' ].translated, 1)
        equal(record.types[ 'session.idle' ].translated, 1)
        equal(record.types[ 'session.text.ended' ].translated, 1)
+       equal(record.types[ 'session.reasoning.ended' ].translated, 1)
        equal(record.types[ 'session.retry.scheduled' ].dropped, 1)
      })
 
@@ -65,6 +66,7 @@ test('measure', 'the fixture covers every event the measure must see',
                   'session.text.started',
                   'session.text.delta',
                   'session.text.ended',
+                  'session.reasoning.ended',
                   'session.tool.called',
                   'session.tool.success',
                   'session.idle',
@@ -89,7 +91,7 @@ test('measure', 'a legacy event without properties is malformed',
        let record
 
        record = Conf.classify(fixture, () => [ { type: 'message.part.updated' } ])
-       equal(record.malformed, 10)
+       equal(record.malformed, 11)
        equal(record.translated, 0)
      })
 
@@ -98,9 +100,9 @@ test('measure', 'a translator that throws or returns a non-array is malformed',
        let bad
 
        bad = Conf.classify(fixture, () => 'not an array')
-       equal(bad.malformed, 10)
+       equal(bad.malformed, 11)
        bad = Conf.classify(fixture, boom)
-       equal(bad.malformed, 10)
+       equal(bad.malformed, 11)
      })
 
 test('measure', 'format prints the totals and a line per input type',
@@ -108,7 +110,7 @@ test('measure', 'format prints the totals and a line per input type',
        let lines
 
        lines = Conf.format(Conf.classify(fixture, translator())).split('\n')
-       equal(lines[ 0 ], 'total 10  translated 9  dropped 1  malformed 0')
+       equal(lines[ 0 ], 'total 11  translated 10  dropped 1  malformed 0')
        equal(lines.some(line => line.startsWith('session.tool.success  total 1')), true)
      })
 

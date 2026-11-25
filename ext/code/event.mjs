@@ -146,6 +146,13 @@ function translate
   case 'session.reasoning.delta':
     out.push(legacy('message.part.updated', { part: { id: state.thinkID, type: 'reasoning', messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() }, delta: data.delta }))
     break
+  case 'session.reasoning.ended':
+    // Like the ended text part above, the ended reasoning carries the
+    // complete thinking text, replacing what the deltas streamed. The id is
+    // derived rather than read from thinkID so a part whose started event a
+    // reconnect dropped still lands whole.
+    out.push(legacy('message.part.updated', { part: { id: data.assistantMessageID + ':reason:' + data.ordinal, type: 'reasoning', text: data.text, messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() } }))
+    break
   case 'session.tool.input.started':
     state.toolNames = state.toolNames || {}
     state.toolNames[data.id] = data.name

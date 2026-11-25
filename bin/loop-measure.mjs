@@ -76,7 +76,7 @@ function run
                      sweep[section] = parseDiff(String(exec(Path.join(repo, 'bin', 'man-diff'),
                                                             [ '--section', section, '--max', '0' ])))
                    })
-  return { ts: new Date().toISOString(), tip, corpus, sweep }
+  return { ts: new Date().toISOString(), area: opts.area || 'man', tip, corpus, sweep }
 }
 
 export

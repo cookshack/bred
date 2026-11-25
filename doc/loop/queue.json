@@ -18,7 +18,9 @@
         "js/wode*.mjs",
         "js/view.mjs"
       ],
-      "proof": "npx mocha --exit test/wode-view-e2e.mjs"
+      "proof": "npx mocha --exit test/wode-view-e2e.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p64",
@@ -30,7 +32,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "cc7042c"
+      "doneHash": "cc7042c",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p65",
@@ -43,7 +47,9 @@
         "test/main-shell.mjs"
       ],
       "proof": "npx mocha --exit test/main-shell.mjs",
-      "notes": "coverage-only: the streaming decoder is already correct, so its test passes at base and the red gate parks it. Give it a measure proof or a gate that accepts coverage, then dispatch."
+      "notes": "coverage-only: the streaming decoder is already correct, so its test passes at base and the red gate parks it. Give it a measure proof or a gate that accepts coverage, then dispatch.",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p66",
@@ -55,7 +61,9 @@
         "test/wode-view-e2e.mjs"
       ],
       "proof": "npx mocha --exit test/wode-view-e2e.mjs",
-      "doneHash": "c1562d7"
+      "doneHash": "c1562d7",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p47",
@@ -67,7 +75,9 @@
         "test/man-diff.mjs"
       ],
       "proof": "npx mocha --exit test/man-diff.mjs",
-      "doneHash": "8c684ac"
+      "doneHash": "8c684ac",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p57",
@@ -79,7 +89,9 @@
         "test/man-viewer.mjs"
       ],
       "proof": "npx mocha --exit test/man-viewer.mjs",
-      "doneHash": "6e94402"
+      "doneHash": "6e94402",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p44",
@@ -91,7 +103,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "3f79ddf"
+      "doneHash": "3f79ddf",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p53",
@@ -101,7 +115,9 @@
       "files": [
         "js/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p54",
@@ -111,7 +127,9 @@
       "files": [
         "js/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p55",
@@ -121,7 +139,9 @@
       "files": [
         "js/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p56",
@@ -133,7 +153,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "889ce7c"
+      "doneHash": "889ce7c",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p19",
@@ -145,7 +167,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "1c115f6"
+      "doneHash": "1c115f6",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p33",
@@ -155,7 +179,9 @@
       "files": [
         "js/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p34",
@@ -165,7 +191,9 @@
       "files": [
         "js/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p45",
@@ -175,7 +203,9 @@
       "files": [
         "js/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p59",
@@ -185,7 +215,9 @@
       "files": [
         "js/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "triage"
     },
     {
       "id": "p12",
@@ -193,7 +225,9 @@
       "status": "done",
       "title": "`\\c` joins forward only (ext2/3/4.5 `trackingfile`)",
       "files": [],
-      "doneHash": "3eb439b"
+      "doneHash": "3eb439b",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p13",
@@ -201,7 +235,9 @@
       "status": "done",
       "title": "`\\F` and `\\m \\M \\k \\S \\v` take their own forms (kernel-install `THE TION`, git-subtree, mflua)",
       "files": [],
-      "doneHash": "3eb439b"
+      "doneHash": "3eb439b",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p14",
@@ -209,7 +245,9 @@
       "status": "done",
       "title": "`.Sm off` starts suppressing at the second call (ssh_config `PermitRemoteOpen host:port`)",
       "files": [],
-      "doneHash": "3eb439b"
+      "doneHash": "3eb439b",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p16",
@@ -217,7 +255,9 @@
       "status": "done",
       "title": "ssh(1) synopsis `-D [bind_address:]port`: fixed by p14",
       "files": [],
-      "doneHash": "3eb439b"
+      "doneHash": "3eb439b",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p20",
@@ -225,7 +265,9 @@
       "status": "done",
       "title": "a readable whole `man -w` line wins over its split parts (Man.md gap 3)",
       "files": [],
-      "doneHash": "546bfee"
+      "doneHash": "546bfee",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p23",
@@ -233,7 +275,9 @@
       "status": "done",
       "title": "`.Lb` maps through groff's table (9 libcrypt pages)",
       "files": [],
-      "doneHash": "8edfd43"
+      "doneHash": "8edfd43",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p24",
@@ -241,7 +285,9 @@
       "status": "done",
       "title": "`.In` prints `#include <...>` in SYNOPSIS (47 pages)",
       "files": [],
-      "doneHash": "8edfd43"
+      "doneHash": "8edfd43",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p26",
@@ -249,7 +295,9 @@
       "status": "done",
       "title": "`.do` runs its remainder instead of printing it (11 pages)",
       "files": [],
-      "doneHash": "8edfd43"
+      "doneHash": "8edfd43",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p27",
@@ -257,7 +305,9 @@
       "status": "done",
       "title": "`\\n+[reg]` steps then reads (sensible-editor 1-5, zlib 1-3)",
       "files": [],
-      "doneHash": "8edfd43"
+      "doneHash": "8edfd43",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p35",
@@ -265,7 +315,9 @@
       "status": "done",
       "title": "a whole `man -w` line that stats as a file is settled by its read",
       "files": [],
-      "doneHash": "d59ccf7"
+      "doneHash": "d59ccf7",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p36",
@@ -273,7 +325,9 @@
       "status": "done",
       "title": "one `Cannot read <path>: <reason>` shape",
       "files": [],
-      "doneHash": "d59ccf7"
+      "doneHash": "d59ccf7",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p28",
@@ -281,7 +335,9 @@
       "status": "done",
       "title": "`man-diff` joins at a `\\:` the page marks, not at every \"/\"",
       "files": [],
-      "doneHash": "244c425"
+      "doneHash": "244c425",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p31",
@@ -289,7 +345,9 @@
       "status": "done",
       "title": "a justified paragraph is not a table (hgrc `forthe`)",
       "files": [],
-      "doneHash": "244c425"
+      "doneHash": "244c425",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p37",
@@ -297,7 +355,9 @@
       "status": "done",
       "title": "a bordered cell's continuation at the left edge (TIFFGetField 6 → 0)",
       "files": [],
-      "doneHash": "244c425"
+      "doneHash": "244c425",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p39",
@@ -305,7 +365,9 @@
       "status": "done",
       "title": "a background subagent is launched, not finished (tick, routing, ⏳)",
       "files": [],
-      "doneHash": "7ce2ecf"
+      "doneHash": "7ce2ecf",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p25",
@@ -313,7 +375,9 @@
       "status": "done",
       "title": "`.Rs` quotes `%T` only in a `%B`/`%J` reference, and takes groff's serial comma (14 ssh references)",
       "files": [],
-      "doneHash": "d5042d1"
+      "doneHash": "d5042d1",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p40",
@@ -321,7 +385,9 @@
       "status": "done",
       "title": "a `\\c` tag line stays open across a macro (paperconfig `--paperpapername`, 5 dmstats tags)",
       "files": [],
-      "doneHash": "d5042d1"
+      "doneHash": "d5042d1",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p46",
@@ -329,7 +395,9 @@
       "status": "done",
       "title": "a colon-list part with no read bits says `Permission denied`",
       "files": [],
-      "doneHash": "2261231"
+      "doneHash": "2261231",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p21",
@@ -337,7 +405,9 @@
       "status": "done",
       "title": "lzma verdict: the header bytes are destroyed by the UTF-8 decode, so no safe sniff; `lzcat` already last",
       "files": [],
-      "doneHash": "2261231"
+      "doneHash": "2261231",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p41",
@@ -345,7 +415,9 @@
       "status": "done",
       "title": "the truncated mdoc banner is a header (5 pages, 31 → 1 words)",
       "files": [],
-      "doneHash": "a18cd1b"
+      "doneHash": "a18cd1b",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p42",
@@ -353,7 +425,9 @@
       "status": "done",
       "title": "the `\\:` join accepts \":\" (`bash(1)` 4 → 2)",
       "files": [],
-      "doneHash": "a18cd1b"
+      "doneHash": "a18cd1b",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p43",
@@ -361,7 +435,9 @@
       "status": "done",
       "title": "the `\\:` join accepts \"@\" (`troff(1)` 2 → 0)",
       "files": [],
-      "doneHash": "a18cd1b"
+      "doneHash": "a18cd1b",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p52",
@@ -369,7 +445,9 @@
       "status": "done",
       "title": "a bare `.Nm` in a `T{`/`T}` cell prints the document name (both crypt pages 0)",
       "files": [],
-      "doneHash": "d9906f4"
+      "doneHash": "d9906f4",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p48",
@@ -377,7 +455,9 @@
       "status": "done",
       "title": "`man-diff --page` prints `lost <n>` before the sample",
       "files": [],
-      "doneHash": "2c5b9df"
+      "doneHash": "2c5b9df",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p30",
@@ -385,7 +465,9 @@
       "status": "done",
       "title": "verdict: no mdoc U+2010 rule; `man-diff` folds U+2010/U+2011/U+2212 (pcre2demo 67 → 12)",
       "files": [],
-      "doneHash": "2c5b9df"
+      "doneHash": "2c5b9df",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p58",
@@ -393,7 +475,9 @@
       "status": "done",
       "title": "`.hla`/`.hpf` are no-output requests; both Czech pages parse (corpus back to 4123/27)",
       "files": [],
-      "doneHash": "9ba3175"
+      "doneHash": "9ba3175",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p51",
@@ -401,7 +485,9 @@
       "status": "done",
       "title": "the `cat` fallback keeps its bytes, so the renderer names a mislabelled page's format (the app half is p63)",
       "files": [],
-      "doneHash": "c2b32ec"
+      "doneHash": "c2b32ec",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p60",
@@ -409,7 +495,9 @@
       "status": "done",
       "title": "`man-diff` folds typographic quotes; pcre2demo 12 → 0 (U+2018 folds to a backtick)",
       "files": [],
-      "doneHash": "f3f1539"
+      "doneHash": "f3f1539",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p62",
@@ -417,7 +505,9 @@
       "status": "done",
       "title": "the hyphen join is decided from the page source and applied to both sides; section 3 14 → 0",
       "files": [],
-      "doneHash": "f3f1539"
+      "doneHash": "f3f1539",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p49",
@@ -425,7 +515,9 @@
       "status": "done",
       "title": "coverage re-measured over the whole suite: 100/99.97/100/100/98.88 line, branch 94.56/98.75/97.18/90.28",
       "files": [],
-      "doneHash": "f3f1539"
+      "doneHash": "f3f1539",
+      "area": "man",
+      "type": "measure"
     },
     {
       "id": "p61",
@@ -433,7 +525,9 @@
       "status": "done",
       "title": "`.Fc` ends a SYNOPSIS declaration with `;`, and only in SYNOPSIS",
       "files": [],
-      "doneHash": "b601364"
+      "doneHash": "b601364",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p63",
@@ -441,7 +535,9 @@
       "status": "done",
       "title": "the pty's bytes cross IPC as Buffers; one streaming decoder per run; the real-pty test names gzip",
       "files": [],
-      "doneHash": "ec7eedf"
+      "doneHash": "ec7eedf",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "s17",
@@ -449,7 +545,9 @@
       "status": "done",
       "title": "stabilisation after the red merge: `Opt.load` survives a payload-less response, the opt tests install their own fake; a2's peer-push test reverted (p50)",
       "files": [],
-      "doneHash": "9b8958c"
+      "doneHash": "9b8958c",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p67",
@@ -461,7 +559,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "ba79104"
+      "doneHash": "ba79104",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p68",
@@ -473,7 +573,9 @@
         "test/man-viewer.mjs"
       ],
       "proof": "npx mocha --exit test/man-viewer.mjs",
-      "doneHash": "74ba52d"
+      "doneHash": "74ba52d",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p69",
@@ -485,7 +587,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "2e66879"
+      "doneHash": "2e66879",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p70",
@@ -497,7 +601,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "d8a351c"
+      "doneHash": "d8a351c",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p71",
@@ -509,7 +615,9 @@
         "test/man-diff.mjs"
       ],
       "proof": "npx mocha --exit test/man-diff.mjs",
-      "doneHash": "72e8ca4"
+      "doneHash": "72e8ca4",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p72",
@@ -521,7 +629,9 @@
         "test/man-diff.mjs"
       ],
       "proof": "npx mocha --exit test/man-diff.mjs",
-      "doneHash": "aae6139"
+      "doneHash": "aae6139",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p73",
@@ -532,7 +642,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p74",
@@ -545,7 +657,9 @@
         "test/man-diff.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs test/man-diff.mjs",
-      "doneHash": "00dc308"
+      "doneHash": "00dc308",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p75",
@@ -556,7 +670,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p76",
@@ -567,7 +683,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p77",
@@ -578,7 +696,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p78",
@@ -590,7 +710,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "ee005d2"
+      "doneHash": "ee005d2",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p79",
@@ -601,7 +723,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p80",
@@ -613,7 +737,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "cbbe080"
+      "doneHash": "cbbe080",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p81",
@@ -625,7 +751,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "c3ff554"
+      "doneHash": "c3ff554",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p82",
@@ -637,7 +765,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "0385d60"
+      "doneHash": "0385d60",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p83",
@@ -648,7 +778,9 @@
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p84",
@@ -660,7 +792,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "5ea6105"
+      "doneHash": "5ea6105",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p85",
@@ -672,7 +806,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "29665b6"
+      "doneHash": "29665b6",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p86",
@@ -684,7 +820,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "6943a15"
+      "doneHash": "6943a15",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p87",
@@ -696,7 +834,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "01f65ce"
+      "doneHash": "01f65ce",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p88",
@@ -709,7 +849,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "50a83a6"
+      "doneHash": "50a83a6",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p89",
@@ -720,7 +862,9 @@
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p90",
@@ -731,7 +875,9 @@
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p91",
@@ -744,7 +890,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "1219a56"
+      "doneHash": "1219a56",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p92",
@@ -756,7 +904,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "e7b1a52"
+      "doneHash": "e7b1a52",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p93",
@@ -768,7 +918,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "50a83a6"
+      "doneHash": "50a83a6",
+      "area": "man",
+      "type": "verify"
     },
     {
       "id": "p94",
@@ -780,7 +932,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p95",
@@ -791,7 +945,9 @@
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p96",
@@ -803,7 +959,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "7183a0e"
+      "doneHash": "7183a0e",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p97",
@@ -815,7 +973,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "d21a9d5"
+      "doneHash": "d21a9d5",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p98",
@@ -826,7 +986,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p99",
@@ -838,7 +1000,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "doneHash": "7032014"
+      "doneHash": "7032014",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p100",
@@ -849,7 +1013,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p101",
@@ -860,7 +1026,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p102",
@@ -871,7 +1039,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p103",
@@ -882,7 +1052,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p104",
@@ -893,7 +1065,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p105",
@@ -904,7 +1078,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p106",
@@ -916,7 +1092,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p107",
@@ -927,7 +1105,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p108",
@@ -938,7 +1118,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p109",
@@ -949,7 +1131,9 @@
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p110",
@@ -960,7 +1144,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p111",
@@ -971,7 +1157,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p112",
@@ -982,7 +1170,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p113",
@@ -994,7 +1184,9 @@
         "test/man-diff.mjs"
       ],
       "proof": "npx mocha --exit test/man-diff.mjs",
-      "doneHash": "6b36716"
+      "doneHash": "6b36716",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p114",
@@ -1005,7 +1197,9 @@
         "bin/man-diff",
         "test/man-diff.mjs"
       ],
-      "proof": "npx mocha --exit test/man-diff.mjs"
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p115",
@@ -1016,7 +1210,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p116",
@@ -1027,7 +1223,9 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     },
     {
       "id": "p117",
@@ -1038,7 +1236,16 @@
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix"
     }
-  ]
+  ],
+  "measures": {
+    "man": {
+      "command": "bin/man-audit --parse; bin/man-diff --sections 1,3,5,7,8 --max 0",
+      "budget": "~8 min",
+      "population": "installed corpus, 4150 pages, at the recorded tip"
+    }
+  }
 }

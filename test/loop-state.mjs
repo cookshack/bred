@@ -25,7 +25,7 @@ function item
 (id, files, extra) {
   let out
 
-  out = { id, lane: 'a1', status: 'ready', title: id, files }
+  out = { id, area: 'man', lane: 'a1', status: 'ready', type: 'fix', title: id, files }
   Object.keys(extra || {}).forEach(key => out[key] = extra[key])
   return out
 }
@@ -183,10 +183,21 @@ test('queue', 'report renders a table that matches the json',
        queue.items = [ item('p1', [ 'a.mjs' ], { title: 'one | two' }),
                        item('p2', [ 'b.mjs' ], { status: 'done', doneHash: 'deadbee' }) ]
        text = Queue.report(queue)
-       equal(text.includes('| p1 | a1 | ready | one \\| two | a.mjs |'), true)
-       equal(text.includes('| p2 | a1 | done:deadbee | p2 | b.mjs |'), true)
+       equal(text.includes('| p1 | man | a1 | ready | one \\| two | a.mjs |'), true)
+       equal(text.includes('| p2 | man | a1 | done:deadbee | p2 | b.mjs |'), true)
        again = Queue.report(queue)
        equal(text, again)
+     })
+
+test('queue', 'check names a missing area, an unknown type and a bad source',
+     () => {
+       let queue, problems
+
+       queue = Queue.empty()
+       queue.items = [ { id: 'p1', lane: 'a1', status: 'ready', type: 'nope', source: 'made-up', files: [ 'a.mjs' ] } ]
+       problems = Queue.check(queue)
+       deepEqual(problems, [ 'p1: no area', 'p1: unknown type nope',
+                             'p1: unknown source made-up' ])
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

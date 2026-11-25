@@ -21,10 +21,12 @@
 import Fs from 'node:fs'
 import Path from 'node:path'
 
-let schema, statuses
+let schema, statuses, types, sources
 
 schema = 1
 statuses = [ 'ready', 'in-round', 'next', 'triage', 'done' ]
+types = [ 'fix', 'triage', 'verify', 'measure', 'hunt', 'infra' ]
+sources = [ 'measure', 'lane', 'triage', 'hunt' ]
 
 export
 function empty
@@ -78,18 +80,19 @@ function touches
 export
 function pick
 (queue, opts) {
-  let n, dirty, hot, picked, skipped, taken
+  let n, dirty, hot, area, picked, skipped, taken
 
   opts = opts || {}
   n = opts.n == undefined ? 3 : opts.n
   dirty = opts.dirty || []
   hot = opts.hot || []
+  area = opts.area
   picked = []
   skipped = []
   taken = []
 
   queue.items.forEach(item => {
-                        if (item.status == 'ready')
+                        if (item.status == 'ready' && (area == undefined || item.area == area))
                           if (item.files.length == 0)
                             skipped.push({ id: item.id, why: 'no files' })
                           else if (touches(item, dirty))
@@ -148,6 +151,14 @@ function check
                           ids.push(item.id)
                           if (statuses.includes(item.status) == 0)
                             problems.push(item.id + ': unknown status ' + item.status)
+                          if (item.area == undefined || String(item.area).length == 0)
+                            problems.push(item.id + ': no area')
+                          if (types.includes(item.type || 'fix') == 0)
+                            problems.push(item.id + ': unknown type ' + item.type)
+                          if (item.source && sources.includes(item.source) == 0)
+                            problems.push(item.id + ': unknown source ' + item.source)
+                          if (item.repro && (typeof item.repro == 'string') == 0)
+                            problems.push(item.id + ': repro is not a string')
                           if (item.status == 'done' && item.doneHash == undefined)
                             problems.push(item.id + ': done without a hash')
                           if (item.status == 'done')
@@ -208,13 +219,14 @@ function report
                      return
                    out.push('## ' + group[1])
                    out.push('')
-                   out.push('| id | lane | status | title | files |')
-                   out.push('|----|------|--------|-------|-------|')
+                   out.push('| id | area | lane | status | title | files |')
+                   out.push('|----|------|------|--------|-------|-------|')
                    items.forEach(item => {
                                    let status
 
                                    status = item.status == 'done' && item.doneHash ? 'done:' + item.doneHash : item.status
-                                   out.push('| ' + [ item.id, item.lane, status, item.title,
+                                   out.push('| ' + [ item.id, item.area || 'man', item.lane, status,
+                                                     item.title,
                                                      (item.files || []).join(', ') ].map(escapeCell).join(' | ') + ' |')
                                  })
                    out.push('')

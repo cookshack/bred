@@ -3555,7 +3555,9 @@ function handleLine
   }
   case 'UE':
   case 'ME':
-    linkEnd(c, args[0] || '')
+    // Every trailing argument belongs after the link text: tload(1) writes
+    // `.UE , and` and groff prints `, and`, not just the comma.
+    linkEnd(c, args.join(' '))
     break
   case 'TS':
   case 'T&': {

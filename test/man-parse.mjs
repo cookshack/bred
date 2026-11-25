@@ -200,6 +200,16 @@ test('links', 'UR and UE make a link with trailing text',
        equal(flat(r.doc.blocks[0].spans).endsWith('.') == 1, true)
      })
 
+test('links', 'UE keeps every trailing argument',
+     () => {
+       let r
+
+       // tload(1): `.UE , and` follows the author's link; groff prints
+       // `David ⟨david@x⟩, and`, and only the first argument used to survive.
+       r = parsed('.TH T 1\n.UR david@x\nDavid\n.UE , and\n')
+       equal(flat(r.doc.blocks[0].spans), 'David ⟨david@x⟩, and')
+     })
+
 test('links', 'UR with no text shows the target',
      () => {
        let r

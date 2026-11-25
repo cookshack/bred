@@ -172,6 +172,12 @@ function isFooter
 // whose source writes the space, so the join can leave them alone. The pairs
 // actually joined are returned too: our text is not laid out, so glueWords can
 // make the same joins on our side.
+//
+// An em dash is a break opportunity of its own, with no hyphen glyph: man(1)
+// prints gittutorial-2(7)'s `ways\(emby` as `ways—` at one line end and `by`
+// at the next. The same source check applies, since gitworkflows(7) writes
+// `basis \(em is` and there the printed line end is a dash token, not half of
+// a word. spacedDashes names the pairs whose source spaced the dash.
 function joinHyphens
 (lines, spaced) {
   let out, glued
@@ -189,6 +195,15 @@ function joinHyphens
                     return
                   }
                   if (/[A-Za-z0-9]-$/.test(last)) {
+                    token = last.split(' ').pop()
+                    next = line.split(' ')[0]
+                    if (spaced.has(token + ' ' + next) == 0) {
+                      glued.add(token + ' ' + next)
+                      out[out.length - 1] = last + line
+                      return
+                    }
+                  }
+                  if (/\u2014$/.test(last) && line.length) {
                     token = last.split(' ').pop()
                     next = line.split(' ')[0]
                     if (spaced.has(token + ' ' + next) == 0) {
@@ -226,6 +241,40 @@ function spacedHyphens
     next = text.slice(m.index + m[0].length).split(/\s/)[0]
     if (next.length)
       out.add(m[1] + '- ' + next)
+  }
+  return out
+}
+
+// An em dash is its own break opportunity: `\(em` needs no hyphen glyph and
+// groff may print it at a line end. The source still says whether the dash is
+// inside a word or stands between two: `ways\(emby` glues it to both sides,
+// while `basis \(em is` has whitespace around it and man(1) prints the dash as
+// a token at the line end. Only whitespace *after* the dash separates the two,
+// so record the rendered pair for every dash whose source carries it: the word
+// glued to the dash ("ways— by") or the bare dash ("— is") when a space comes
+// before it too. joinHyphens then leaves those line ends alone. A newline
+// after the dash counts as whitespace here, unlike the hyphen case: in filled
+// text a source newline is a space, so `console \(em` at a source line end
+// prints a spaced dash, not a word broken for layout.
+function spacedDashes
+(src) {
+  let out, text, re, m, next, before
+
+  out = new Set()
+  text = src.split('\n').filter(line => /^\.\\"/.test(line) == 0).join('\n')
+  text = text.replace(/\\\(em/g, '\u2014')
+             .replace(/\\f(\[[^]]*\]|.)/g, '')
+             .replace(/\\[:&%\/|]/g, '')
+  re = /\u2014\s+/g
+  while ((m = re.exec(text)) != undefined) {
+    next = text.slice(m.index + m[0].length).split(/\s/)[0]
+    if (next.length == 0)
+      continue
+    before = /[^\s]*$/.exec(text.slice(0, m.index))[0]
+    if (before.length)
+      out.add(before + '\u2014 ' + next)
+    else
+      out.add('\u2014 ' + next)
   }
   return out
 }
@@ -509,7 +558,7 @@ function joinCells
 
 function referenceText
 (file, src) {
-  let text, lines, out, name, joined
+  let text, lines, out, name, joined, spaced
 
   text = execFileSync('man', [ '-Tutf8', file ], { encoding: 'utf8',
                                                    stdio: [ 'ignore', 'pipe', 'ignore' ] })
@@ -525,7 +574,9 @@ function referenceText
     lines.pop()
   else if (lines.length && isFooter(lines[lines.length - 1]))
     lines.pop()
-  joined = joinHyphens(joinBreaks(joinCells(lines), breakTokens(src)), spacedHyphens(src))
+  spaced = spacedHyphens(src)
+  spacedDashes(src).forEach(pair => spaced.add(pair))
+  joined = joinHyphens(joinBreaks(joinCells(lines), breakTokens(src)), spaced)
   out = normal(joined.lines.join('\n'))
   return { text: out, glued: joined.glued }
 }

@@ -199,6 +199,35 @@ test('man-diff', 'a wrapped word in an unbordered table cell compares whole',
        equal(lost, 0)
      })
 
+// groff breaks a line after an em dash as readily as after a hyphen.
+// gittutorial-2(7) writes `ways\(emby`, a word glued to the dash, and man(1)
+// prints `ways—` at one line end and `by` at the next. The source has no
+// whitespace after the dash, so the two printed halves are one word.
+test('man-diff', 'an em dash at a line end joins a word the source glued',
+     function
+     () {
+       let lost
+
+       lost = lostOn('/usr/share/man/man7/gittutorial-2.7.gz')
+       if (lost == undefined)
+         return this.skip()
+       equal(lost, 0)
+     })
+
+// The guard for the rule above: gitworkflows(7) writes `basis \(em is` with
+// spaces around the dash, so man(1)'s line end `basis —` is the dash token
+// itself, not half of a word, and must stay separate on both sides.
+test('man-diff', 'a spaced em dash at a line end stays its own token',
+     function
+     () {
+       let lost
+
+       lost = lostOn('/usr/share/man/man7/gitworkflows.7.gz')
+       if (lost == undefined)
+         return this.skip()
+       equal(lost, 0)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

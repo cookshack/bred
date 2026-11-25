@@ -1,10 +1,10 @@
 # Unattended agent loop
 
-Status: live, round 41, 2026-11-25 (deadline 2026-11-25T19:00Z). Twenty-four
+Status: live, round 42, 2026-11-25 (deadline 2026-11-25T19:00Z). Twenty-five
 rounds have used the tool's gate: red at base, green after the rebase, one
 suite at the integrated tip, the record on `loop/r<n>`, one fast-forward. Main
-is the round-41 record commit, green (2024 tests, check clean). The first
-`ext/code` measure is in: a recorder and a v2→legacy conformance count. The next items
+is the round-42 record commit, green (2026 tests, check clean). Both areas have
+a measure: man is 13 words on 8 pages, code is 19 events with 2 dropped. The next items
 are in `doc/loop/queue.json` (the view in `doc/Loop-queue.md` is generated);
 the upgrade designs are `doc/Loop-upgrade.md` (the loop's) and
 `doc/loop/plan-2026-11-24.md` (a fresh agent's). This file is the protocol;
@@ -207,15 +207,17 @@ move to a different lane than its prefix suggests if its files are free.
 | 39 | copy rounds | `6b36716` | each tmac request gets its measured copy rounds (xargs fixed); `man-diff` joins a glued em dash (gittutorial 0, ttf2pk 4 → 2); totals 23 words on 11 pages |
 | 40 | arguments | `3bf287c` | a `\c` inside a macro argument continues its line (ttf2pk 0); `man-diff` joins a marked pipe/bracket break (dmsetup 5 → 1); totals 17 words on 10 pages |
 | 41 | second area | `f6ff0e7` | `ext/code` recorder + conformance measure (10-event fixture, 9-event live recording, 0 malformed); the reviewer's `)` join (hg 2 → 0); totals 15 words on 9 pages |
+| 42 | bars and parts | `c72362c` | a bar inside `.Op Fl` is another flag (ssh-agent 0); `session.text.ended` translates its authoritative text (code 17/2/0); man 13 words on 8 pages |
 
 ## Current state
 
-Measured at `f6ff0e79` (round 41's tip), corpus `4150` pages:
+Measured at `c72362c7` (round 42's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 41: 1:6p/7w  3:0p/0w  5:0p/0w  7:1p/5w  8:2p/3w
-    610 man tests, 2024 total, 2 pending, 0 failing; check clean
+    whole sections after round 42: 1:5p/5w  3:0p/0w  5:0p/0w  7:1p/5w  8:2p/3w
+    code events after round 42: 19 (17 translated, 2 dropped, 0 malformed)
+    611 man tests, 2026 total, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech
@@ -281,6 +283,10 @@ man 2), section 7 is editline 5 + gittutorial-2 2, and section 8 is dmsetup 7
   different hunks and git will merge both. Every lane ships its proof command
   and the merge step re-runs it after rebasing; a lane that fails is parked,
   not merged.
+- **A queue row's lane is where the work is.** Dispatch an item into the lane
+  its row names, or change the row first: two items that claim one lane are
+  caught by the tool and both are parked, and recovering them costs a round
+  (round 42).
 - **Never reset over unmerged work.** A `reset --hard main` on a lane branch
   that was parked for a conflict silently discards its commit. Reset only when
   the branch is an ancestor of `main`; otherwise park it and cut a fresh

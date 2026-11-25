@@ -477,17 +477,32 @@ function seq
     a = seqMode(cmdName, buf, buf.mode)
   else
     a = seqA(cmdName)
-  if (a)
-    return a.reduce((acc,cur) => {
-                      if (cur == 'Control')
-                        return acc + 'C-'
-                      if (cur == 'Alt')
-                        return acc + 'A-'
-                      if (cur == 'Meta')
-                        return acc + 'M-'
-                      if (cur == 'Shift')
-                        return acc + 'S-'
-                      return acc + cur + ' '
-                    }, '').trim()
+  if (a) {
+    let acc, keys
+
+    // A space separates events, but the space key is itself a space, so the
+    // separator goes BETWEEN finished events, never after the last one (a
+    // trailing separator is exactly what the old trim ate).
+    acc = ''
+    keys = []
+    for (let i = 0; i < a.length; i++) {
+      let cur
+
+      cur = a[i]
+      if (cur == 'Control')
+        acc += 'C-'
+      else if (cur == 'Alt')
+        acc += 'A-'
+      else if (cur == 'Meta')
+        acc += 'M-'
+      else if (cur == 'Shift')
+        acc += 'S-'
+      else {
+        keys.push(acc + cur)
+        acc = ''
+      }
+    }
+    return keys.join(' ')
+  }
   return 0
 }

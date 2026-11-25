@@ -1552,6 +1552,22 @@ test('mdoc', 'an enum list numbers its items in text',
        equal(ManParse.toText(r.doc.blocks).includes('2.'), true)
      })
 
+test('mdoc', 'a dash list marks each item with a dash',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -dash\n.It\nfirst\n.It\nsecond\n.El\n')
+       equal(ManParse.toText(r.doc.blocks), '-\nfirst\n-\nsecond\n')
+     })
+
+test('mdoc', 'a hyphen list marks each item with a dash too',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Bl -hyphen\n.It\nfirst\n.It\nsecond\n.El\n')
+       equal(ManParse.toText(r.doc.blocks), '-\nfirst\n-\nsecond\n')
+     })
+
 test('mdoc', 'an enum list keeps its type when options follow',
      () => {
        let r

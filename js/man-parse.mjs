@@ -4061,6 +4061,8 @@ function toText
                           out += textOf(item.tag) + '\n'
                         else if (b.listType == 'enum')
                           out += (i + 1) + '.\n'
+                        else if ((b.listType == 'dash') || (b.listType == 'hyphen'))
+                          out += '-\n'
                         item.blocks.forEach(block)
                       })
   }

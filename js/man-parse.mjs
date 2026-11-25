@@ -2995,17 +2995,20 @@ function mdocInlineMacro
   case 'St':
     mdocText(c, mdocStandard(args[0] || ''), c.font)
     return 1
-  // The canned sentences mdoc(7) emits, but only with `-std`: without the
-  // flag the macro expands to nothing. With no names `Ex` falls back to the
-  // document name, not the most recent `.Nm` (groff: `.Nm first` ... `.Nm
-  // second` ... `.Ex -std` says "The first utility ...").
+  // The canned sentences mdoc(7) emits, but only with a leading `-std`:
+  // without it the macro expands to nothing, and a later `-std` is a name.
+  // Every argument after `-std` is a function or utility name, even one that
+  // starts with a dash: groff prints `.Rv -std -exit` as "The -exit()
+  // function ...", so `-exit` and `-nop` are not flags. With no names `Ex`
+  // falls back to the document name, not the most recent `.Nm` (groff:
+  // `.Nm first` ... `.Nm second` ... `.Ex -std` says "The first utility ...").
   case 'Ex': {
     let names, subject, verb
 
-    if (args.includes('-std') == 0)
+    if (args[0] == '-std')
+      names = args.slice(1)
+    else
       return 1
-
-    names = args.filter(arg => (arg[0] == '-') ? 0 : 1)
     if ((names.length == 0) && c.mdoc.docName)
       names = [ c.mdoc.docName ]
     subject = mdocJoin(names)
@@ -3021,9 +3024,10 @@ function mdocInlineMacro
   case 'Rv': {
     let names
 
-    if (args.includes('-std') == 0)
+    if (args[0] == '-std')
+      names = args.slice(1)
+    else
       return 1
-    names = args.filter(arg => (arg[0] == '-') ? 0 : 1)
     if (names.length == 0)
       mdocText(c, 'Upon successful completion, the value 0 is returned; ' +
                   'otherwise the value -1 is returned and the global ' +

@@ -2151,6 +2151,67 @@ test('mdoc inline', 'Ex and Rv join the names they are given',
              'is set to indicate the error.')
      })
 
+test('mdoc inline', 'Rv prints -exit as a function name after -std',
+     () => {
+       let r
+
+       // groff 1.22.4: `.Rv -exit` expands to nothing, because only a first
+       // `-std` is a flag.  After it, `-exit` is an ordinary function name.
+       r = parsed('.Dd t\n.Dt T 2\n.Os\nA\n.Rv -exit\nB\n.Pp\n' +
+                  'C\n.Rv -std -exit\nD\n')
+       equal(flat(r.doc.blocks[0].spans), 'A B')
+       equal(flat(r.doc.blocks[1].spans),
+             'C The -exit() function returns the value 0 if successful; ' +
+             'otherwise the value -1 is returned and the global variable ' +
+             'errno is set to indicate the error. D')
+     })
+
+test('mdoc inline', 'Rv prints -nop as a function name after -std',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 2\n.Os\n.Rv -std -nop\n.Pp\n' +
+                  '.Rv -std -nop memcpy\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'The -nop() function returns the value 0 if successful; ' +
+             'otherwise the value -1 is returned and the global variable ' +
+             'errno is set to indicate the error.')
+       equal(flat(r.doc.blocks[1].spans),
+             'The -nop() and memcpy() functions return the value 0 if ' +
+             'successful; otherwise the value -1 is returned and the global ' +
+             'variable errno is set to indicate the error.')
+     })
+
+test('mdoc inline', 'Ex prints -exit and -nop as utility names after -std',
+     () => {
+       let r
+
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ex -std -exit ls\n.Pp\n' +
+                  '.Ex -std -nop\n.Pp\n.Ex -std -nop ls\n')
+       equal(flat(r.doc.blocks[0].spans),
+             'The -exit and ls utilities exit 0 on success, and >0 if an error occurs.')
+       equal(flat(r.doc.blocks[1].spans),
+             'The -nop utility exits 0 on success, and >0 if an error occurs.')
+       equal(flat(r.doc.blocks[2].spans),
+             'The -nop and ls utilities exit 0 on success, and >0 if an error occurs.')
+     })
+
+test('mdoc inline', 'Ex and Rv need -std as their first argument',
+     () => {
+       let r
+
+       // groff 1.22.4 expands `.Rv memcpy -std` and `.Ex ls -std` to
+       // nothing: the `-std` flag is only recognised in front.
+       r = parsed('.Dd t\n.Dt T 2\n.Os\nA\n.Rv memcpy -std\nB\n.Pp\n' +
+                  'C\n.Rv -nop\nD\n')
+       equal(flat(r.doc.blocks[0].spans), 'A B')
+       equal(flat(r.doc.blocks[1].spans), 'C D')
+       r = parsed('.Dd t\n.Dt T 1\n.Os\nA\n.Ex ls -std\nB\n.Pp\n' +
+                  'C\n.Ex -exit\nD\n')
+       equal(flat(r.doc.blocks[0].spans), 'A B')
+       equal(flat(r.doc.blocks[1].spans), 'C D')
+     })
+
 test('mdoc inline', 'Sq, Bq, Brq and Aq enclose their words',
      () => {
        let r

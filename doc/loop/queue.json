@@ -1664,7 +1664,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "in-round",
+      "status": "ready",
       "title": "handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view",
       "files": [
         "ext/code/code.mjs",
@@ -2040,16 +2040,15 @@
       "area": "code",
       "status": "in-round",
       "type": "fix",
-      "title": "batch: a delta's part id comes from the event, and a thinking block is drawn in every box (c14, c9)",
+      "title": "a delta takes its part id from the event, not from state (c14)",
       "lane": "a2",
       "files": [
-        "ext/code/code.mjs",
         "ext/code/event.mjs",
         "test/code-events.mjs",
         "test/code-prompt-e2e.mjs"
       ],
       "proof": "npx mocha --exit test/code-events.mjs test/code-prompt-e2e.mjs",
-      "notes": "Round 65's a2 lane carried two items in sequence on one branch (c14 at 4da84e18, then c9), so the round takes them as one row owning the union. c14: `session.text.delta`/`session.reasoning.delta` took their part id from `state.textID`/`state.thinkID`, which `session.step.started` resets, so a reconnect that dropped the started event attributed every delta to part 0; both now derive the id from `data.assistantMessageID + ':text:'|':reason:' + data.ordinal`, as the ended cases already did, and the dead state is gone (the ordinal is on the event per the vendored types and live.jsonl:4). c9: `handlePartDelta` asked one view whether a delta is thinking text and returned before the per-box draw, so a second box never got the block; the reference client renders every part in every view.",
+      "notes": "Round 65: c14 at 412e322a. `session.text.delta`/`session.reasoning.delta` took their part id from `state.textID`/`state.thinkID`, which `session.step.started` resets, so a reconnect that dropped the started event attributed every delta to part 0. Both now derive the id from `data.assistantMessageID + ':text:'|':reason:' + data.ordinal`, as the ended cases already did, and the dead state is gone; the ordinal is on the event per the vendored types and live.jsonl:4. Red tests `reconnect :: a delta after a dropped started keeps its part id` (`0 !== 'm1:text:2'`) and the e2e `reconnect :: a text delta with no started part streams into its own message`. NOTE: c9 was dispatched on the same lane and had not committed when the round merged, so this row is c14 only and c9 stays ready.",
       "source": "lane"
     },
     {

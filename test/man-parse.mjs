@@ -568,6 +568,23 @@ test('escapes', 'a continued line glues to the first line of a macro body',
              'aayy zz next\n')
      })
 
+test('escapes', 'a c inside a macro argument continues the macro line',
+     () => {
+       // ttf2pk(1): groff prints `.<resolution>pk'. and
+       // `<namestem>@<sfd-filename>@')`. The \c is the macro's second
+       // argument in the first case and sits inside the first argument in the
+       // second; either way it suppresses the break at the end of the body
+       // line, so the next line glues on with no space.
+       equal(asText('.TH T 1\n.de C\n\\fC\\\\$1\\fP\\\\$2\n..\n' +
+                    'Use only `\\c\n.C \\&. \\c\n' +
+                    ".RI < \\%resolution >\\c\n.C pk '.\n"),
+             "Use only `.<resolution>pk'.\n")
+       equal(asText('.TH T 1\n.de C\n\\fC\\\\$1\\fP\\\\$2\n..\n' +
+                    'form `\\c\n.I <namestem>\\c\n.C @\\c\n' +
+                    ".I <sfd-filename>\\c\n.C @ ')\n"),
+             "form `<namestem>@<sfd-filename>@')\n")
+     })
+
 test('escapes', 'a font argument ending in c continues the next line',
      () => {
        equal(asText('.TH T 1\n.B x\\c\nand y\n'), 'xand y\n')

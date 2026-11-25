@@ -577,7 +577,7 @@ function expand
         continue
       }
       if (ch == '$') {
-        let val
+        let val, sub
 
         if ((text[at] == '@') || (text[at] == '*')) {
           val = frame(c)?.args?.join(' ') || ''
@@ -591,7 +591,13 @@ function expand
           val = argOf(c, Number(text[at]))
           at++
         }
-        pushSpans(spans, expand(c, val, cur, lineNo).spans)
+        sub = expand(c, val, cur, lineNo)
+        pushSpans(spans, sub.spans)
+        // A `\c` inside an argument still suppresses the break at the end of
+        // the line the body writes: ttf2pk(1)'s `.C \&. \c` passes it as the
+        // second argument and `.C @\c` buries it in the first.
+        if (sub.join)
+          join = 1
         continue
       }
       if (ch == 's') {

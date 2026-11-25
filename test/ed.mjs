@@ -138,7 +138,7 @@ test('bindings', 'control keys',
        equal(Em.seq('quoted insert', { mode: mo }), 'C-q')
        equal(Em.seq('undo', { mode: mo }), 'C-z')
        equal(Em.seq('paste', { mode: mo }), 'C-y')
-       equal(Em.seq('mark set', { mode: mo }), 'C-')
+       equal(Em.seq('mark set', { mode: mo }), 'C- ')
        equal(Em.seq('cancel', { mode: mo }), 'Escape')
        equal(Em.seq('delete next char', { mode: mo }), 'Delete')
      })

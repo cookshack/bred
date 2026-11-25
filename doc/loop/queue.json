@@ -124,26 +124,29 @@
     {
       "id": "p54",
       "lane": "a1",
-      "status": "next",
+      "status": "done",
       "title": "a no-output request between a `\\c` and the next line swallows the join (0 corpus occurrences)",
       "files": [
         "js/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "eac2c89c",
+      "notes": "Absorbed by p125 (round 50): a no-output request between a \\c and the next line no longer swallows the join. Verified 2026-11-25: `.B x\\c` + `.ft R` + `y` prints `xy`, matching groff."
     },
     {
       "id": "p55",
       "lane": "a1",
-      "status": "next",
+      "status": "triage",
       "title": "a `\\c` followed by a blank line: groff joins to the next text line, we make a paragraph break",
       "files": [
         "js/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "triage",
+      "notes": "Verdict 2026-11-25: not a bug. groff -Tutf8 -man on `.B x\\c`, a blank line, then `y` prints `x` and `y` as separate paragraphs, and so do we (toText `x|y`). The row's claim that groff joins was wrong."
     },
     {
       "id": "p56",
@@ -1595,6 +1598,21 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Absorbs p94 (\\N[ 65] skips leading spaces inside the bracket) and p95 (\\[charN] is a glyph lookup: 0..255 exists, above it prints nothing instead of a Unicode code point). p89 (\\[char0]) is a triage, not part of this: groff prints a NUL byte, and the model refuses NUL by the decision rounds 33-35 pinned for \\N 0.",
       "doneHash": "091f8e5b"
+    },
+    {
+      "id": "b3",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "ready",
+      "source": "lane",
+      "title": "batch: a join through an empty macro, and Sm off before a text line (p98, p33)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Absorbs p98 (a \\c before a macro with an empty body: the body now pushes a frame, so the carry works) and p33 (.Sm off also suppresses the space before a text line: groff prints -ab; our text branch forced spaceNext before appending). p98's .ft/.ll half was already fixed by p125, and the .PP/.RS/.sp warning is respected (a body line that breaks still drops the join)."
     }
   ],
   "measures": {

@@ -30,6 +30,12 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | area | lane | status | title | files |
+|----|------|------|--------|-------|-------|
+| b3 | man | a1 | ready | batch: a join through an empty macro, and Sm off before a text line (p98, p33) | js/man-parse.mjs, test/man-parse.mjs |
+
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -37,8 +43,6 @@ before.
 | p50 | core | a2 | next | the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
 | p65 | man | a3 | next | no fake emits a typed-array chunk split mid-UTF-8, so `js/shell.mjs`'s streaming decoder is proven only by real-pty timing; add the fake and the test | js/shell.mjs, test/man-viewer.mjs, test/main-shell.mjs |
 | p53 | man | a1 | next | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) | js/man-parse.mjs |
-| p54 | man | a1 | next | a no-output request between a `\c` and the next line swallows the join (0 corpus occurrences) | js/man-parse.mjs |
-| p55 | man | a1 | next | a `\c` followed by a blank line: groff joins to the next text line, we make a paragraph break | js/man-parse.mjs |
 | p33 | man | a1 | next | after a macro under `.Sm off`, a text line still gets a space (groff joins it) | js/man-parse.mjs |
 | p34 | man | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
 | p73 | man | a1 | next | toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing | js/man-parse.mjs, test/man-parse.mjs |
@@ -64,6 +68,7 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| p55 | man | a1 | triage | a `\c` followed by a blank line: groff joins to the next text line, we make a paragraph break | js/man-parse.mjs |
 | p59 | man | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
 | p89 | man | a1 | triage | \[char0] is accepted by groff (a NUL byte) but refused here | js/man-char.mjs, test/man-parse.mjs |
 | p109 | man | a1 | triage | thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch) | js/man-char.mjs, test/man-parse.mjs |
@@ -80,6 +85,7 @@ before.
 | p47 | man | a3 | done:8c684ac | `strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each) | bin/man-diff, test/man-diff.mjs |
 | p57 | man | a2 | done:6e94402 | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one | js/man.mjs, test/man-viewer.mjs |
 | p44 | man | a1 | done:3f79ddf | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` | js/man-parse.mjs, test/man-parse.mjs |
+| p54 | man | a1 | done:eac2c89c | a no-output request between a `\c` and the next line swallows the join (0 corpus occurrences) | js/man-parse.mjs |
 | p56 | man | a1 | done:889ce7c | a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none | js/man-parse.mjs, test/man-parse.mjs |
 | p19 | man | a1 | done:1c115f6 | verdict: .Rv/.Ex have no -exit/-nop flags; only a leading -std is a flag, later args are names (p19 corrected the doc) | js/man-parse.mjs, test/man-parse.mjs |
 | p45 | man | a1 | done:07e195dd | `.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27) | js/man-parse.mjs |

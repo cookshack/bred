@@ -237,7 +237,7 @@ function init
         if (extra.skip?.(view))
           return
         if (extra.head)
-          append(body, divCl('assist-extra-h assist-mode-' + extra.key + '-h', extra.head()))
+          append(body, divCl('assist-extra-h assist-mode-' + extra.key + '-h', extra.head(view)))
         if (extra.co)
           append(body, divCl('assist-extra assist-mode-' + extra.key, extra.co(view)))
       }

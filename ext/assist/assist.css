@@ -149,14 +149,18 @@ div.assist-uri {
   color: var(--clr-emph);
 }
 
-.assist-subagent-filter {
-  color: var(--clr-text);
-  font-style: italic;
+.assist-mode-subagents-filter {
+  cursor: pointer;
+  opacity: 0.5;
 }
 
-.assist-subagent-filter-on {
+.assist-mode-subagents-filter:hover {
+  opacity: 1;
+}
+
+.assist-mode-subagents-filter-on {
   color: var(--clr-emph);
-  font-style: normal;
+  opacity: 1;
 }
 
 .assist-subagent-desc {

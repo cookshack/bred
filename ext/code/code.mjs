@@ -3140,8 +3140,18 @@ function init
                                           return view.buf.vars('code').subagents?.size ? 0 : 1
                                         },
                                         head
-                                        () {
-                                          return 'Subagents'
+                                        (view) {
+                                          let active
+
+                                          active = view?.buf?.vars('code')?.subagentsActive ? 1 : 0
+                                          return [ 'Subagents ',
+                                                   span(active ? '◌✓' : '◌',
+                                                        'assist-mode-subagents-filter' + (active ? ' assist-mode-subagents-filter-on' : ''),
+                                                        { 'data-run': 'code subagents filter',
+                                                          'data-bufid': view?.buf?.id,
+                                                          'data-viewid': view?.vid,
+                                                          title: active ? 'Showing only running subagents'
+                                                                        : 'Show only running subagents' }) ]
                                         },
                                         co
                                         (view) {

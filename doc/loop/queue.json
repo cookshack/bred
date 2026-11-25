@@ -20,7 +20,8 @@
       ],
       "proof": "npx mocha --exit test/wode-view-e2e.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "notes": "reproduced under c8 in the core measure (test/wode-view-e2e.mjs fails under coverage overhead); the flake is real, but a proof that fails at base is still missing, so it stays next"
     },
     {
       "id": "p64",
@@ -1087,11 +1088,10 @@
     },
     {
       "id": "p106",
-      "lane": "a1",
-      "status": "next",
+      "lane": "a2",
+      "status": "ready",
       "title": "rpcgen(1) loses 1 word: 0a",
       "files": [
-        "js/man-char.mjs",
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],

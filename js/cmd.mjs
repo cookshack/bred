@@ -91,8 +91,9 @@ function get
   //d(mo)
   if (mo) {
     //d(buf.minors)
+    // Last added minor first, like Em.mainGetActive's stack and Cmd.getAll
     if (buf.minors)
-      for (let mi = 0; mi < buf.minors.length; mi++)
+      for (let mi = buf.minors.length - 1; mi >= 0; mi--)
         if (buf.minors[mi].cmds && buf.minors[mi].cmds[name])
           return buf.minors[mi].cmds[name]
     //d(mo.cmds)

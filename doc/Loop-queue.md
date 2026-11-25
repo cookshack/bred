@@ -45,6 +45,7 @@ before.
 | p79 | man | a1 | ready | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
 | p83 | man | a1 | ready | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
 | p102 | man | a1 | ready | an unknown escape (`\Q`) is printed by groff as its letter and refused here | js/man-parse.mjs, test/man-parse.mjs |
+| p109 | man | a3 | ready | thumbpdf(1) mis-encoded byte folds to ©: section 1 reaches 0 lost words | bin/man-diff, test/man-diff.mjs |
 | c9 | code | a2 | ready | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 
 ## Backlog
@@ -64,7 +65,6 @@ before.
 | p59 | man | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
 | p89 | man | a1 | triage | \[char0] is accepted by groff (a NUL byte) but refused here | js/man-char.mjs, test/man-parse.mjs |
 | p90 | man | a1 | triage | groff -Tutf8 -man renders \- as U+2212 MINUS SIGN while -mdoc prints ASCII; bred prints ASCII. p30's note was mdoc-only; needs evidence and a decision | js/man-char.mjs, test/man-parse.mjs |
-| p109 | man | a1 | triage | thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch) | js/man-char.mjs, test/man-parse.mjs |
 | p117 | man | a1 | triage | a zero-width escape (\b) is refused here and printed by groff (drops the backslash, prints the char); no corpus occurrence, latent | js/man-parse.mjs, test/man-parse.mjs |
 | c2 | code | a2 | triage | session.step.streamed is dropped (seen live); decide whether it must translate | ext/code/event.mjs, test/code-events.mjs |
 | c4 | code | a2 | triage | provider.updated / model.updated are dropped (session-less); decide whether the UI needs them | ext/code/event.mjs, test/code-events.mjs |

@@ -1329,17 +1329,18 @@
     },
     {
       "id": "p109",
-      "lane": "a1",
-      "status": "triage",
-      "title": "thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch)",
+      "lane": "a3",
+      "status": "ready",
+      "title": "thumbpdf(1) mis-encoded byte folds to ©: section 1 reaches 0 lost words",
       "files": [
-        "js/man-char.mjs",
-        "test/man-parse.mjs"
+        "bin/man-diff",
+        "test/man-diff.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs",
+      "proof": "npx mocha --exit test/man-diff.mjs",
       "area": "man",
-      "type": "triage",
-      "notes": "Diagnosed 2026-11-25: the page has a raw 0xC2 byte before \\[co] (Copyright \\302\\[co] 1999), invalid UTF-8. Our decode gives U+FFFD + ©, groff reads the byte as U+00C2 and prints Â©. Decide: refuse a page whose decode contains U+FFFD (faithful-or-refuse), or map invalid bytes Latin-1 like groff. Either moves the 4123 parsed / 27 refused count, so it is a decision, not a lane fix."
+      "type": "fix",
+      "notes": "Proved 2026-11-25 at 9978571c: thumbpdf.1's source line is `Copyright \\302\\[co] 1999` (bytes 43..74 20 c2 5c 5b 63 6f 5d), the corpus's only invalid UTF-8 page (3254 files scanned). groff's preconv reads the lone C2 byte as Latin-1 and prints `Â©` (c3 82 c2 a9), while our decode marks it U+FFFD and prints `�©` (ef bf bd c2 a9); no word is lost (303 ours / 303 man), only that token's first codepoint differs, so this is a comparison fold, not a parser fix. keyOf now drops U+FFFD and decodes a word of byte-sized Latin-1 characters as UTF-8 when that is valid, making both keys `©`; a pair that is not valid UTF-8 still reports. New tests `a mis-decoded byte folds to the content the bytes spell` and `thumbpdf(1) mis-encoded byte is not a lost word` failed at base (`'�©' !== '©'`, `1 !== 0`) and pass now, and `bin/man-diff --section 1 --max 0` goes from 1:1p/1w to 0:0p/0w. Patch: /home/matt/worktrees/0db3bcbf-6070-493e-b543-4680184becc5/bred-loop/groom-p109.patch.",
+      "source": "triage"
     },
     {
       "id": "p110",

@@ -318,6 +318,25 @@ test('copy mode', 'an escaped space in a macro body is not a separator',
        equal(text.includes('b |'), true)
      })
 
+test('macros', 'a c join survives a macro with an empty body',
+     () => {
+       let r
+
+       // p98: \`.B x\c\` then an empty .de body then a text line prints \`xy\`.
+       r = parsed('.TH T 1\n.de E\n..\n.B x\\c\n.E\ny\n')
+       equal(ManParse.toText(r.doc.blocks).includes('xy'), true)
+     })
+
+test('mdoc', 'Sm off suppresses the space before a text line too',
+     () => {
+       let r
+
+       // groff -Tutf8 -mdoc: \`.Sm off\` then \`.Fl a\` then a text line \`b\`
+       // prints \`-ab\`; after \`.Sm on\` it prints \`-c d\`.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Sh S\n.Sm off\n.Fl a\nb\n.Sm on\n.Fl c\nd\n')
+       equal(ManParse.toText(r.doc.blocks).includes('-ab -c d'), true)
+     })
+
 test('macros', 'a c join survives a request that prints nothing',
      () => {
        let r

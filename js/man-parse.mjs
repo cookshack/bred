@@ -1101,8 +1101,9 @@ function callMacro
     fail(c, lineNo, 'macro ' + name, 'unknown')
     return
   }
-  if (body.length == 0)
-    return
+  // An empty body still pushes a frame: `nextInput` pops it at once, and the
+  // call line sees the frame grow, so a `\c` before an empty macro carries to
+  // the next printing line (p98).
   if (c.frames.length > 80) {
     fail(c, lineNo, 'macro recursion')
     return
@@ -4095,10 +4096,10 @@ function parse
       expanded = expand(c, input.text, style, input.line)
       c.atLineStart = 0
       if (c.mode == 'mdoc') {
-        c.mdoc.spaceNext = 1
         mdocAppend(c, expanded.spans)
-        // A text line separates the macro call that follows it even when
-        // `Sm off` has suppressed spaces between macro calls.
+        // A text line separates the macro that follows it even when `Sm off`
+        // has suppressed spaces between macro calls; it does not force a space
+        // before itself (groff's `-ab` under Sm off).
         c.mdoc.spaceNext = 1
       }
       else

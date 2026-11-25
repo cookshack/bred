@@ -34,7 +34,7 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p97 | a1 | ready | four backslashes in a macro argument need two reduction rounds (copy mode then interpretation); we apply one, so c:\\fonts\\truetype keeps doubles: ttf2tfm's last two words | js/man-parse.mjs, test/man-parse.mjs |
+| p99 | a1 | ready | built-in man requests (B, BR, SH, SS, SY, IP, OP) get one round here and two in groff, which implements them as tmac macros; .B a\\\\b is a\\b in groff and a\\b here | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Backlog
 
@@ -59,6 +59,9 @@ before.
 | p94 | a1 | next | groff accepts \N[ 65] with a leading space; bred refuses it under the decimal-only rule | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
 | p95 | a1 | next | groff's \[charN] is a glyph/table lookup, not a bare code point: char57344 warns and prints nothing, bred returns U+E000; char65/233/200 agree | js/man-char.mjs, test/man-parse.mjs |
 | p98 | a1 | next | a \c before a macro whose body prints nothing (or before .ft/.ll) is still lost; the broad fix also glues across .PP/.RS/.sp, which needs a multi-macro sweep before changing | js/man-parse.mjs, test/man-parse.mjs |
+| p100 | a1 | next | copyMode() chains replacements and over-reduces \. and \  (groff copy mode leaves \. and an encoded space) | js/man-parse.mjs, test/man-parse.mjs |
+| p101 | a1 | next | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
+| p102 | a1 | next | an unknown escape is printed by groff (\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Triage
 
@@ -130,5 +133,6 @@ before.
 | p92 | a1 | done:e7b1a52 | an unpaired surrogate code point (\N'55296') is accepted as a JS string; groff emits invalid UTF-8; refuse surrogates as out of range | js/man-char.mjs, test/man-parse.mjs |
 | p93 | a1 | done:50a83a6 | verdict: \N expression forms (65+1, 2*3, 1.5, leading space) stay refused by design; p88 measured groff's NUL-plus-tail output and the corpus has only plain decimals | js/man-parse.mjs, test/man-parse.mjs |
 | p96 | a1 | done:7183a0e | ttf2tfm(1) loses 10 words: a \c at the end of a text line whose next line is a .C macro call keeps the backtick glued to the macro text; groff joins them and we insert a space | js/man-parse.mjs, test/man-parse.mjs |
+| p97 | a1 | done:d21a9d5 | four backslashes in a macro argument need two reduction rounds (copy mode then interpretation); we apply one, so c:\\fonts\\truetype keeps doubles: ttf2tfm's last two words | js/man-parse.mjs, test/man-parse.mjs |
 
 <!-- /loop:queue -->

@@ -808,8 +808,20 @@
     {
       "id": "p97",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "four backslashes in a macro argument need two reduction rounds (copy mode then interpretation); we apply one, so c:\\\\fonts\\\\truetype keeps doubles: ttf2tfm's last two words",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "d21a9d5"
+    },
+    {
+      "id": "p98",
+      "lane": "a1",
+      "status": "next",
+      "title": "a \\c before a macro whose body prints nothing (or before .ft/.ll) is still lost; the broad fix also glues across .PP/.RS/.sp, which needs a multi-macro sweep before changing",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
@@ -817,10 +829,43 @@
       "proof": "npx mocha --exit test/man-parse.mjs"
     },
     {
-      "id": "p98",
+      "id": "p99",
+      "lane": "a1",
+      "status": "ready",
+      "title": "built-in man requests (B, BR, SH, SS, SY, IP, OP) get one round here and two in groff, which implements them as tmac macros; .B a\\\\\\\\b is a\\\\b in groff and a\\\\b here",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p100",
       "lane": "a1",
       "status": "next",
-      "title": "a \\c before a macro whose body prints nothing (or before .ft/.ll) is still lost; the broad fix also glues across .PP/.RS/.sp, which needs a multi-macro sweep before changing",
+      "title": "copyMode() chains replacements and over-reduces \\. and \\  (groff copy mode leaves \\. and an encoded space)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p101",
+      "lane": "a1",
+      "status": "next",
+      "title": "a single-backslash body (\\$1) is expanded at definition time in groff, not call time",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p102",
+      "lane": "a1",
+      "status": "next",
+      "title": "an unknown escape is printed by groff (\\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"

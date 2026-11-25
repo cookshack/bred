@@ -1424,10 +1424,70 @@ test('execute', 'shows the code and nested call count',
                                                         name: 'execute',
                                                         content: [ { type: 'text', text: '1' } ],
                                                         metadata: { toolCalls: [ { tool: 'read', status: 'completed' } ] } }))
-         await waitFor(() => label.innerText == 'Execute (1 call) ✔️')
+         await waitFor(() => label.innerText == 'Execute (1 call) ✔')
+         equal(el.querySelector('.code-msg-mark').textContent, '✔', 'the end mark is the mono tick')
          await waitFor(() => el.querySelector('.code-msg-result'))
          equal(el.querySelector('.code-msg-result').innerText, '1', 'the tool output is shown')
          equal(Boolean(el.querySelector('.code-code-ed')), true, 'the code is still shown')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
+test('execute', 'the end marks are mono ticks in their own upright span',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-mark', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let el, label
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await waitFor(() => created.vars('code').sessionID)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-mark' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-mark', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+
+         // A file read: no mark while it runs, the mono tick when it ends.
+         fake.push(Fake.event('session.tool.called', { id: 'call-read',
+                                                       sessionID: 'ses-mark',
+                                                       assistantMessageID: 'm1',
+                                                       name: 'read',
+                                                       input: { path: '/tmp/x.mjs' } }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-read"] .code-file'))
+         el = created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-read"]')
+         equal(Boolean(el.querySelector('.code-msg-mark')), false, 'a running read has no end mark')
+
+         fake.push(Fake.event('session.tool.success', { id: 'call-read',
+                                                        sessionID: 'ses-mark',
+                                                        assistantMessageID: 'm1',
+                                                        name: 'read',
+                                                        content: [ { type: 'text', text: 'contents' } ] }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-read"] .code-msg-mark'))
+         el = created.views[0].ele.querySelector('.code-msg-tool[data-callid="call-read"]')
+         label = el.querySelector('.code-msg-label')
+         equal(el.querySelector('.code-msg-mark').textContent, '✔', 'a finished read ticks')
+         equal(label.innerText.endsWith('✔'), true, 'the tick is at the end of the label')
+         equal(label.innerText.includes('✔️'), false, 'the emoji tick is gone')
+         equal(label.querySelector('.code-msg-mark').classList.contains('code-msg-mark'), true,
+               'the tick is in the upright mark span')
        }
        finally {
          panes.pB.setBuf = orig

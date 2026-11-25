@@ -783,11 +783,25 @@ function subagentLaneLabel
            span(Util.subagentMark(lane.status), 'code-msg-mark') ]
 }
 
-// A label is either text or a list of nodes. Each view needs its own nodes: a
-// node given to one view's transcript is moved out of the next one's.
+// A tool line's end mark, in its own upright span for the same reason the
+// Task line's is (see subagentLaneLabel). Empty when the call has not ended.
+export
+function toolMarkSpan
+(status) {
+  let mark
+
+  mark = Util.toolMark(status)
+  return mark ? [ ' ', span(mark, 'code-msg-mark') ] : ''
+}
+
+// A label is either text or a list (possibly nested) of nodes. Each view needs
+// its own nodes: a node given to one view's transcript is moved out of the
+// next one's.
 function cloneLabel
 (label) {
-  return Array.isArray(label) ? label.map(n => (typeof n == 'string' ? n : n.cloneNode(true))) : label
+  if (Array.isArray(label))
+    return label.map(cloneLabel)
+  return (typeof label == 'string') ? label : label.cloneNode(true)
 }
 
 // The plain text of a label, for places that only remember what a call said
@@ -795,7 +809,9 @@ function cloneLabel
 export
 function labelText
 (label) {
-  return Array.isArray(label) ? label.map(n => (typeof n == 'string' ? n : (n.textContent || ''))).join('') : label
+  if (Array.isArray(label))
+    return label.map(labelText).join('')
+  return (typeof label == 'string') ? label : (label.textContent || '')
 }
 
 // Replace an element's content with a label: text, or the label's own nodes.

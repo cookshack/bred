@@ -295,6 +295,15 @@ function subagentMark
                                                        : (status == 'error' ? '✘' : '◌')
 }
 
+// Whether a tool call is still going, which is most of them: only a call that
+// reached a finished state shows a mark. A tool with no status at all (a stored
+// part that never said) is left unmarked rather than guessed at.
+export
+function toolMark
+(status) {
+  return (status == 'completed') || (status == 'done') ? '✔' : (status == 'error' ? '✘' : '')
+}
+
 // The lane a tool part describes, in the shape the transcript draws. A part's
 // status names the call's end, which for a background call is only the launch.
 export

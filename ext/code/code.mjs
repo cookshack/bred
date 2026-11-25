@@ -328,7 +328,7 @@ function fileLabel
                  Util.makeRelative(buf, path),
                  { 'data-run': 'open link', 'data-runaux': 'open link in other pane', 'data-path': path }),
            bounds(),
-           status || '' ]
+           status ? Ui.toolMarkSpan(status) : '' ]
 }
 
 function appendPermission
@@ -2796,7 +2796,8 @@ function init
 
                          snippet = part.state?.input?.code
                          result = executeResult(part)
-                         label = executeLabel(part) + (part.state.metadata?.error ? ' ✘' : ' ✔️')
+                         label = [ executeLabel(part),
+                                   Ui.toolMarkSpan(part.state.metadata?.error ? 'error' : 'completed') ]
                          if (snippet && Ui.toolHasCode(buf, part.callID)) {
                            Ui.updateToolLabel(buf, part.callID, label)
                            if (result)
@@ -2811,7 +2812,7 @@ function init
 
                          snippet = part.state?.input?.code
                          result = executeResult(part)
-                         label = executeLabel(part) + ' ✘'
+                         label = [ executeLabel(part), Ui.toolMarkSpan('error') ]
                          if (snippet && Ui.toolHasCode(buf, part.callID)) {
                            Ui.updateToolLabel(buf, part.callID, label)
                            if (result)
@@ -2838,7 +2839,7 @@ function init
                       path = part.state.input.path
                       if (path) {
                         d('CO read file completed: ' + path)
-                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, ' ✔️',
+                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Read', path, 'completed',
                                                                      { input: part.state.input }))
                       }
                     } },
@@ -2931,7 +2932,7 @@ function init
                        path = part.state.input.path
                        if (path) {
                          d('CO write file: ' + path)
-                         Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, ' ✔️',
+                         Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Write', path, 'completed',
                                                                       { input: part.state.input }),
                                           part.state?.input?.content,
                                           { format: 'code', path })
@@ -2959,7 +2960,7 @@ function init
                         d('CO edit completed: ' + path)
                         under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
                         under = part.state?.metadata?.diff || buf.vars('code').patch || under
-                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✔️',
+                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, 'completed',
                                                                      { input: part.state.input }),
                                          under , { format: 'patch' })
                       }
@@ -2975,7 +2976,7 @@ function init
                         d('CO edit error: ' + path)
                         under = '- ' + part.state?.input?.oldString + '\n+ ' + part.state?.input?.newString
                         under = buf.vars('code').patch || under
-                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, ' ✘',
+                        Ui.appendToolMsg(buf, part.callID, fileLabel(buf, 'Edit', path, 'error',
                                                                      { input: part.state.input }),
                                          under)
                         Ui.appendMsg(buf, 0, part.state?.error, part.id)

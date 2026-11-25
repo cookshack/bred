@@ -354,6 +354,15 @@ test('subagentMark', 'one mono glyph per lane state',
        equal(CodeUtil.subagentMark('error'), '✘')
      })
 
+test('toolMark', 'a tool marks only an end',
+     () => {
+       equal(CodeUtil.toolMark('completed'), '✔')
+       equal(CodeUtil.toolMark('done'), '✔')
+       equal(CodeUtil.toolMark('error'), '✘')
+       equal(CodeUtil.toolMark('running'), '')
+       equal(CodeUtil.toolMark(undefined), '')
+     })
+
 test('subagentChildId', 'both metadata spellings',
      () => {
        equal(CodeUtil.subagentChildId({ state: { metadata: { sessionID: 'child1' } } }), 'child1')

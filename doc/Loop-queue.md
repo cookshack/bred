@@ -35,6 +35,8 @@ before.
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
 | p106 | man | a3 | ready | rpcgen(1)'s 0a is a footer page-string, not content: man-diff's isFooter must drop a right-aligned multi-page token (/^\s{10,}[0-9]+[a-z]$/) | bin/man-diff, test/man-diff.mjs |
+| p107 | man | a1 | ready | ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis | js/man-parse.mjs, test/man-parse.mjs |
+| c7 | code | a2 | ready | the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 
 ## Backlog
 
@@ -62,7 +64,6 @@ before.
 | p100 | man | a1 | next | copyMode() chains replacements and over-reduces \. and \  (groff copy mode leaves \. and an encoded space) | js/man-parse.mjs, test/man-parse.mjs |
 | p101 | man | a1 | next | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
 | p102 | man | a1 | next | an unknown escape is printed by groff (\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts | js/man-parse.mjs, test/man-parse.mjs |
-| p107 | man | a1 | next | ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis | js/man-parse.mjs, test/man-parse.mjs |
 | p108 | man | a1 | next | tex2aspc(1) loses 1 word: TransformNotes | js/man-parse.mjs, test/man-parse.mjs |
 | p109 | man | a1 | next | thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch) | js/man-char.mjs, test/man-parse.mjs |
 | p110 | man | a1 | next | tload(1) loses 1 word: and (a line join) | js/man-parse.mjs, test/man-parse.mjs |
@@ -77,7 +78,6 @@ before.
 | c4 | code | a2 | next | provider.updated / model.updated are dropped (session-less); decide whether the UI needs them | ext/code/event.mjs, test/code-events.mjs |
 | c6 | code | a1 | next | a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs) | ext/code/code.mjs, ext/code/ui.mjs, test/code-* |
 | p119 | man | a1 | next | a bar ends the argument list of other multi-argument macros (Ar, Cm, Ic, Pa, …), so words after it lose the macro font; style only, each needs its own evidence | js/man-parse.mjs, test/man-parse.mjs |
-| c7 | code | a2 | next | the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | p120 | man | a1 | next | a valueless .nr X sets it to 0 here; groff leaves it undefined and reading \nX creates it (two register divergences, no corpus effect) | js/man-parse.mjs, test/man-parse.mjs |
 | p121 | man | a1 | next | .if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it) | js/man-parse.mjs, test/man-parse.mjs |
 

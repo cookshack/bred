@@ -1102,7 +1102,7 @@
     {
       "id": "p107",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis",
       "files": [
         "js/man-parse.mjs",
@@ -1377,7 +1377,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "next",
+      "status": "ready",
       "title": "the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts",
       "files": [
         "ext/code/code.mjs",

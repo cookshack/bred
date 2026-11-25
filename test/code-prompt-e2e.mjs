@@ -302,6 +302,62 @@ test('startup', 'the startup report names the step and probes the server',
        equal(lines.includes('startup: session ok: readable'), true, 'the session is readable')
      })
 
+// The startup lines explain a wait before the session exists. They are not
+// parts of the turn, so a normal turn must not leave them above its first
+// message (where a part-id-0 delta could even be appended into the placeholder).
+function startupLines
+(buf) {
+  let w
+
+  w = buf?.views[0]?.ele?.querySelector('.code-w')
+  return [ ...(w?.querySelectorAll('.code-msg') || []) ]
+    .map(el => el.textContent.trim())
+    .filter(text => text.includes('Spawning docker') || text.includes('Creating session'))
+}
+
+// A prompt that stays in flight for a moment, so the startup lines it follows
+// can be seen before the turn is accepted.
+function heldPrompt
+(state) {
+  return () => new Promise(resolve => {
+                             setTimeout(() => {
+                                          state.prompted = 1
+                                          resolve({ id: 'msg_holder' })
+                                        }, 50)
+                           })
+}
+
+test('placeholder', 'the creating-session message is removed when the first turn starts',
+     async () => {
+       let fake, panes, state, turn
+
+       ({ panes } = await setupStart())
+       state = { prompted: 0 }
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-holder', time: { created: 1 } },
+                                       'session.get': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': heldPrompt(state) } })
+       turn = startTurn(panes, fake, 0)
+       try {
+         await waitFor(() => startupLines(turn.buf()).length)
+         equal(startupLines(turn.buf()).join('\n').includes('Creating session'),
+               true,
+               'the startup line shows while the session is created')
+
+         await waitFor(() => state.prompted)
+         equal(startupLines(turn.buf()).length,
+               0,
+               'no startup line is left once the turn starts')
+         equal(turn.buf().views[0].ele.querySelector('.code-msg-user') == null,
+               false,
+               'the user message stays')
+       }
+       finally {
+         panes.pB.setBuf = turn.orig
+       }
+     })
+
 test('mounts', 'clicking a mount toggles it without native checkbox state',
      async () => {
        let buf, el, inputs, panes
@@ -739,11 +795,11 @@ test('finished', 'a text part seen after its step ended still renders',
        }
      })
 
-// Drop the startup placeholder ('Creating session...') so the transcript holds
-// only the part under test; it is a startup line, not part of the turn.
+// Drop anything startup drew so the transcript holds only the part under test;
+// the send chain has finished its own drawing by the time the prompt is sent.
 async function clearStartup
 (created) {
-  await waitFor(() => created.views[0].ele.querySelector('.code-out-main')?.textContent.includes('Creating session') ? 1 : 0)
+  await waitFor(() => created.vars('code').promptSent)
   Ui.clearMsgs(created)
 }
 

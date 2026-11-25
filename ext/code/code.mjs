@@ -1439,6 +1439,43 @@ function sendStale
   return buf.vars('code').sendGen == gen ? 0 : 1
 }
 
+// The lines that explain a wait before the session exists (the docker spawn and
+// the session create) are not parts of the turn. They are drawn with ids no
+// part can claim, so they are found exactly and can be removed as a unit once
+// the turn they announced has started.
+let startupSpawnID, startupSessionID
+
+startupSpawnID = 'code-startup-spawn'
+startupSessionID = 'code-startup-session'
+
+function clearStartupMsgs
+(buf) {
+  for (let partID of [ startupSpawnID, startupSessionID ]) {
+    for (let view of buf.views) {
+      let ed, els, w
+
+      ed = view.vars('code').partEds?.[partID]
+      if (ed)
+        ed.destroy()
+      if (view.vars('code').partEds)
+        delete view.vars('code').partEds[partID]
+      if (ed && view.vars('code').eds) {
+        let i
+
+        i = view.vars('code').eds.indexOf(ed)
+        if (i >= 0)
+          view.vars('code').eds.splice(i, 1)
+      }
+      w = view.eleOrReserved?.querySelector('.code-w')
+      els = w?.querySelectorAll('.code-msg[data-partid="' + partID + '"]')
+      if (els)
+        els.forEach(el => el.remove())
+    }
+    if (buf.vars('code').partTexts)
+      delete buf.vars('code').partTexts[partID]
+  }
+}
+
 function send
 (buf, text, provider, model, variant) {
   let agent, tmpID, gen
@@ -1470,7 +1507,7 @@ function send
   tmpID = 'tmp_' + uuidv4()
 
   if (buf.vars('code').client == null)
-    Ui.appendMsg(buf, 0, 'Spawning docker...')
+    Ui.appendMsg(buf, 0, 'Spawning docker...', startupSpawnID)
   Ui.appendMsg(buf, 'user', text, undefined, undefined, { agent, messageID: tmpID })
 
   Comm.ensureClient(buf).then(async c => {
@@ -1485,7 +1522,7 @@ function send
                                 // the chosen mounts can still apply.
                                 sessionID = buf.vars('code').sessionID
                                 if (sessionID == null) {
-                                  Ui.appendMsg(buf, 0, 'Creating session...')
+                                  Ui.appendMsg(buf, 0, 'Creating session...', startupSessionID)
                                   res = await startupStep(buf, c, 'session', signal => c.session.create({ location: { directory: Util.apiDir(buf) },
                                                                                                           title: text || ('New session - ' + new Date().toISOString()),
                                                                                                           metadata: sessionMetadata(buf) },
@@ -1525,6 +1562,12 @@ function send
                                 buf.vars('code').promptSent = 1
                                 res = await c.session.prompt({ sessionID, text })
 
+                                // The server has accepted the turn, so the wait
+                                // the startup lines explained is over and they
+                                // must not stay above the first message.
+                                if (buf.vars('code').sendGen == gen)
+                                  clearStartupMsgs(buf)
+
                                 if (res?.id)
                                   Ui.setMessageID(buf, tmpID, res.id)
 
@@ -1541,6 +1584,10 @@ function send
                                          // chain only has to stop, not reset what a newer state owns.
                                          if (sendStale(buf, gen, err))
                                            return
+
+                                         // A failed startup must not leave a
+                                         // progress line for a wait that is over.
+                                         clearStartupMsgs(buf)
                                          // Probe the server before the teardown below takes it
                                          // away: the report is the only record of why the step
                                          // stalled. Each probe is bounded, so this cannot hang.

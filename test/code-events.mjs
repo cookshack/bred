@@ -174,6 +174,27 @@ test('translate', 'text started then delta',
        equal(leg[0].properties.field, 'text')
      })
 
+test('translate', 'text ended sets the part to its complete text',
+     () => {
+       let buf, leg, started
+
+       buf = makeBuf()
+       started = Ev.translate(buf, Fake.event('session.text.started', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 0 }))
+       leg = Ev.translate(buf, Fake.event('session.text.ended', { sessionID: 's1', assistantMessageID: 'm1', ordinal: 0, text: 'hi there' }))
+       equal(leg.length, 1)
+       equal(leg[0].type, 'message.part.updated')
+       equal(leg[0].properties.part.type, 'text')
+       equal(leg[0].properties.part.id, started[0].properties.part.id)
+       equal(leg[0].properties.part.text, 'hi there')
+       equal(leg[0].properties.part.sessionID, 's1')
+
+       // A part whose started event a reconnect dropped can still land whole.
+       buf = makeBuf()
+       leg = Ev.translate(buf, Fake.event('session.text.ended', { sessionID: 's2', assistantMessageID: 'm2', ordinal: 1, text: 'late' }))
+       equal(leg[0].properties.part.id, 'm2:text:1')
+       equal(leg[0].properties.part.text, 'late')
+     })
+
 test('translate', 'reasoning delta carries the text field',
      () => {
        let buf, leg

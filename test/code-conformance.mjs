@@ -36,14 +36,14 @@ function boom
   throw new Error('boom')
 }
 
-test('measure', 'the minimal fixture translates eight inputs and drops two',
+test('measure', 'the minimal fixture translates nine inputs and drops one',
      () => {
        let record
 
        record = Conf.classify(fixture, translator())
        equal(record.total, 10)
-       equal(record.translated, 8)
-       equal(record.dropped, 2)
+       equal(record.translated, 9)
+       equal(record.dropped, 1)
        equal(record.malformed, 0)
        equal(record.types[ 'session.execution.started' ].translated, 1)
        equal(record.types[ 'session.step.started' ].translated, 1)
@@ -52,7 +52,7 @@ test('measure', 'the minimal fixture translates eight inputs and drops two',
        equal(record.types[ 'session.tool.called' ].translated, 1)
        equal(record.types[ 'session.tool.success' ].translated, 1)
        equal(record.types[ 'session.idle' ].translated, 1)
-       equal(record.types[ 'session.text.ended' ].dropped, 1)
+       equal(record.types[ 'session.text.ended' ].translated, 1)
        equal(record.types[ 'session.retry.scheduled' ].dropped, 1)
      })
 
@@ -78,8 +78,8 @@ test('measure', 'a sanitized live recording classifies from the recorder shape',
 
        record = Conf.classify(live, translator())
        equal(record.total, 9)
-       equal(record.translated, 7)
-       equal(record.dropped, 2)
+       equal(record.translated, 8)
+       equal(record.dropped, 1)
        equal(record.malformed, 0)
        equal(record.types[ 'session.step.streamed' ].dropped, 1)
      })
@@ -108,7 +108,7 @@ test('measure', 'format prints the totals and a line per input type',
        let lines
 
        lines = Conf.format(Conf.classify(fixture, translator())).split('\n')
-       equal(lines[ 0 ], 'total 10  translated 8  dropped 2  malformed 0')
+       equal(lines[ 0 ], 'total 10  translated 9  dropped 1  malformed 0')
        equal(lines.some(line => line.startsWith('session.tool.success  total 1')), true)
      })
 

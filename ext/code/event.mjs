@@ -132,6 +132,14 @@ function translate
   case 'session.text.delta':
     out.push(legacy('message.part.delta', { sessionID: data.sessionID, partID: state.textID, field: 'text', delta: data.delta }))
     break
+  case 'session.text.ended':
+    // The ended part carries the complete text, replacing what the deltas
+    // streamed. handlePart records it as the part's text: it picks up a part
+    // whose started/deltas a reconnect dropped, and it is what copy and the
+    // deferred markdown finalize use when the provider's final text differs
+    // from the concatenated deltas.
+    out.push(legacy('message.part.updated', { part: { id: data.assistantMessageID + ':text:' + data.ordinal, type: 'text', text: data.text, messageID: data.assistantMessageID, sessionID: data.sessionID, time: ev.created || Date.now() } }))
+    break
   case 'session.reasoning.started':
     state.thinkID = data.assistantMessageID + ':reason:' + data.ordinal
     break

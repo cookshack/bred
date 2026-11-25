@@ -2163,6 +2163,51 @@
       "proof": "npx mocha --exit test/loop.mjs --grep 'dead pid'",
       "notes": "Found by c9's lane 2026-11-25 while working round 66: c9's round-65 lease (pid 118711, dead) was still live, and `bin/loop.mjs reap` kept it, so the claim failed and the lane had to `release` it by hand. bin/loop-claims.mjs:71-72 returns on `record.expires` before reading the pid, so a lease whose holder is gone stays live until its two-hour expiry. rules.md says 'the claim is a lease with a pid, so a dead lane's item is reaped rather than stuck', and that is what the tool must do. The fix is to check the pid first (`process.kill(pid, 0)` or the host-aware equivalent the file already uses) and treat a dead pid as reaped regardless of expires; a live pid keeps the lease to its expiry. Red test: a lease file with a pid that is not running and a fresh expires is reported dead by reap, and `claim` then succeeds. Proof is red at base because reap keeps it today. Do NOT re-read expires as the authority: the pid is the authority, expires only bounds a lease whose pid cannot be checked (another host).",
       "source": "lane"
+    },
+    {
+      "id": "p148",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "\\L( reads a 2-char name like \\l( did; the same paren class as p133, found while grooming it",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found by p133's groom helper 2026-11-25 at e219849d. groff -Tutf8 -man on `x a\\L(2b y` prints `x a2b y`; bred prints `x a(2b y` and refuses the page (`escape \\L`). Same shape as p133's `\\l`: the paren form consumes one character and draws nothing, while the delimited form (`\\L'2'`) draws a vertical line and must stay refused until drawing is modelled. p133's fix gives `\\l` its own branch; `\\L` needs the same branch. No installed page uses it (zgrep over /usr/share/man finds only TeX prose in detex/twill/weave). Needs the red test written with p133's shape before dispatch, so next.",
+      "source": "lane"
+    },
+    {
+      "id": "p149",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "\\o(2b is accepted and silently wrong: groff overstrikes `2` and `b`, bred prints `a( y` with ok 1 and no failure",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found by p133's groom helper 2026-11-25. This is worse than a refusal: `x a\\o(2b y` under groff -Tutf8 -man is `x a2\\bb\\by` (overstrike of 2 and b), while bred returns ok 1 and prints `x a( y` — a wrong page that no failure reports, which is the opposite of the project's policy (`a page either renders faithfully or is refused`). Either model the overstrike or refuse the escape; refusing is the smaller correct step and matches how the parser treats other unmodelled drawing requests. No installed page uses it. Needs a red test, so next.",
+      "source": "lane"
+    },
+    {
+      "id": "p150",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "\\Z(2b prints its text in groff and is refused here; \\b(2b and \\D(2b print or stop the line and are refused too",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found by p133's groom helper 2026-11-25; three escapes of the same paren class, so one row. groff -Tutf8 -man: `x a\\Z(2b y` prints `x a2b y` with no warning (the `(` is the ignored single-character argument, like `\\v(`/`\\S(`); `x a\\b(2b y` prints `x ab`; `x a\\D(2b y` prints just `x a` (the paren consumes the rest of the argument). bred refuses all three (`escape \\Z`/`\\b`/`\\D`). `\\D'...'` is a drawing command and must stay refused; the paren forms are not. Needs a red test per escape, so next.",
+      "source": "lane"
     }
   ],
   "measures": {

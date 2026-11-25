@@ -57,6 +57,9 @@ before.
 | p136 | man | a1 | next | a literal tab in filled text is not modelled: groff advances to the next tab stop per line, b6 pinned only the .nf form and the zero-width \t | js/man-parse.mjs, test/man-parse.mjs |
 | p146 | core | a3 | next | Mode.add accepts '' and stores it, but Mode.get/remove treat any falsy key as not-found, so the empty mode can be added and never removed | js/mode.mjs, test/mode.mjs |
 | p147 | man | a1 | next | b9 fixed copy-mode \t but for the wrong reason in one place: audit every escape whose copy-mode and text meanings differ, since b6/b9 proved the pair is not uniform | js/man-parse.mjs, test/man-parse.mjs |
+| p148 | man | a1 | next | \L( reads a 2-char name like \l( did; the same paren class as p133, found while grooming it | js/man-parse.mjs, test/man-parse.mjs |
+| p149 | man | a1 | next | \o(2b is accepted and silently wrong: groff overstrikes `2` and `b`, bred prints `a( y` with ok 1 and no failure | js/man-parse.mjs, test/man-parse.mjs |
+| p150 | man | a1 | next | \Z(2b prints its text in groff and is refused here; \b(2b and \D(2b print or stop the line and are refused too | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Triage
 

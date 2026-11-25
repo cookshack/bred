@@ -1060,7 +1060,7 @@
     {
       "id": "p104",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "hg(1) loses 2 words: man breaks at the \\: between incoming and ), and man-diff's join whitelist does not accept ); our text is right, so the fix is the join",
       "files": [
         "bin/man-diff",
@@ -1068,7 +1068,8 @@
       ],
       "proof": "npx mocha --exit test/man-diff.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "f6aceef"
     },
     {
       "id": "p105",
@@ -1260,7 +1261,7 @@
       "area": "code",
       "lane": "a1",
       "type": "infra",
-      "status": "ready",
+      "status": "done",
       "title": "second area: a recorder of real v2 event streams and a conformance measure over translate() (translated / dropped / malformed), plus one committed fixture",
       "files": [
         "bin/oc-record.mjs",
@@ -1269,7 +1270,60 @@
         "test/fixtures/oc-events/*",
         "ext/code/event.mjs"
       ],
-      "proof": "npx mocha --exit test/code-conformance.mjs"
+      "proof": "npx mocha --exit test/code-conformance.mjs",
+      "doneHash": "f6ff0e7"
+    },
+    {
+      "id": "c1",
+      "area": "code",
+      "lane": "a2",
+      "type": "triage",
+      "status": "next",
+      "title": "session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage)",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs"
+    },
+    {
+      "id": "c2",
+      "area": "code",
+      "lane": "a2",
+      "type": "triage",
+      "status": "next",
+      "title": "session.step.streamed is dropped (seen live); decide whether it must translate",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs"
+    },
+    {
+      "id": "c3",
+      "area": "code",
+      "lane": "a2",
+      "type": "triage",
+      "status": "next",
+      "title": "session.retry.scheduled is dropped; a retry is visible to the user, so decide what legacy event it should be",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs"
+    },
+    {
+      "id": "c4",
+      "area": "code",
+      "lane": "a2",
+      "type": "triage",
+      "status": "next",
+      "title": "provider.updated / model.updated are dropped (session-less); decide whether the UI needs them",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs"
     }
   ],
   "measures": {

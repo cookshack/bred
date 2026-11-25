@@ -3913,12 +3913,20 @@ function parse
       continue
     }
     if (control && control.name) {
+      let frames
+
       // A `\c` on the line before this one suppresses the leading space; the
       // macro's own last argument may start a new continuation.
+      frames = c.frames.length
       c.joinPrev = c.joinNext
       c.joinNext = 0
       c.textOut = 0
       handleLine(c, control, style)
+      // A macro with a body runs its lines as input, so the `\c` belongs to
+      // the first of those lines that prints, not to the call line, which
+      // prints nothing (ttf2tfm(1)'s "extension `\c" then `.C \&.ttc '.]`).
+      if ((c.textOut == 0) && (c.frames.length > frames))
+        c.joinNext = c.joinPrev
       c.joinPrev = 0
       // A tag line ending in `\c` continues, and so does a macro call that
       // only expanded to more input lines (dmstats(8)'s `.UNITS`); a macro

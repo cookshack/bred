@@ -457,6 +457,20 @@ test('escapes', 'a continued line glues to the macro after it',
        equal(asText('.TH T 1\n.I file\\c\n.RB [ .dvi ]\n'), 'file[.dvi]\n')
      })
 
+test('escapes', 'a continued line glues to the first line of a macro body',
+     () => {
+       // ttf2tfm(1) writes "the extension `\c" and then `.C \&.ttc '.]`;
+       // groff glues the backtick to the macro's own output, on one line.
+       equal(asText('.TH T 1\n.de C\n\\fC\\\\$1\\fP\\\\$2\\fC\\\\$3\\fP\\\\$4\n..\n' +
+                    'TrueType collections usually have the extension `\\c\n' +
+                    ".C \\&.ttc '.]\n" +
+                    'Will be ignored.\n'),
+             "TrueType collections usually have the extension `.ttc'.] Will be ignored.\n")
+       // Only the first body line continues; the next one starts a word.
+       equal(asText('.TH T 1\n.de M\nyy\nzz\n..\naa\\c\n.M\nnext\n'),
+             'aayy zz next\n')
+     })
+
 test('escapes', 'a font argument ending in c continues the next line',
      () => {
        equal(asText('.TH T 1\n.B x\\c\nand y\n'), 'xand y\n')

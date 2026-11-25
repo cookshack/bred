@@ -1406,10 +1406,18 @@ function condition
 
 function setRegister
 (c, name, value) {
-  let n
+  let n, text
 
-  n = parseFloat(value)
-  c.reg[name] = Number.isFinite(n) ? n : 0
+  text = String(value).trim()
+  n = parseFloat(text)
+  if (Number.isFinite(n) == 0)
+    n = 0
+  // `.nr X +2` is relative to the current value, and 0 when X is undefined.
+  if ((text[0] == '+') || (text[0] == '-')) {
+    c.reg[name] = ((c.reg[name] == undefined) ? 0 : c.reg[name]) + n
+    return
+  }
+  c.reg[name] = n
 }
 
 // The step `\n+`/`\n-` applies. `.nr name value` without a third argument
@@ -3740,9 +3748,11 @@ function handleLine
     doString(c, args[0] || '', copyMode(valueAfter(rest, args[0] || '')), 1)
     break
   case 'nr':
+    // `.nr X` with no value does not define X; groff leaves it undefined
+    // until something reads it. `.nr X +2` is a relative assignment.
     if (args[0]) {
-      setRegister(c, args[0], (args[1] == undefined) ? (c.reg[args[0]] || 0) :
-                  expandText(c, args[1], c.lineNo))
+      if (args.length > 1)
+        setRegister(c, args[0], expandText(c, args[1], c.lineNo))
       if (args[2])
         setIncrement(c, args[0], expandText(c, args[2], c.lineNo))
     }

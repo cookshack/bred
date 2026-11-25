@@ -433,6 +433,22 @@ test('conditions', 'if n is true and if t is false',
        equal(asText('.TH T 1\n.if n yes\n.if t no\n'), 'yes\n')
      })
 
+test('registers', 'nr adds and subtracts a leading sign',
+     () => {
+       equal(flat(parsed('.TH T 1\n.nr X 5\n.nr X +2\n\\nX\n').doc.blocks[0].spans), '7')
+       equal(flat(parsed('.TH T 1\n.nr Y 9\n.nr Y -3\n\\nY\n').doc.blocks[0].spans), '6')
+       equal(flat(parsed('.TH T 1\n.nr Z +4\n\\nZ\n').doc.blocks[0].spans), '4')
+     })
+
+test('registers', 'nr with no value leaves the register undefined',
+     () => {
+       let text
+
+       text = ManParse.toText(parsed('.TH T 1\n.nr Z\n.if r Z set\n.if !r Z unset\n').doc.blocks)
+       equal(text.includes('unset'), true)
+       equal(text.includes(' set'), false)
+     })
+
 test('conditions', 'if r and if d take their name after a space',
      () => {
        let r, text

@@ -62,6 +62,7 @@ before.
 | p150 | man | a1 | next | \Z(2b prints its text in groff and is refused here; \b(2b and \D(2b print or stop the line and are refused too | js/man-parse.mjs, test/man-parse.mjs |
 | p151 | man | a2 | next | a `\^`-only table row is a continuation of the row above but the model marks both its cells `cont` with the bar folded on, so a renderer that honours cont would draw a spare empty row | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p152 | man | a2 | next | tableFit builds a cell even when a row has fewer data cells than ncols, so rows can be short and tableCellAt can return undefined; a renderer that assumes a full grid throws | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
+| p153 | core | a3 | next | test/em.mjs assumes a pristine Em.root, so it fails after em-seq-*.mjs in one mocha process (base: 11 failing, each file alone green) | test/em.mjs |
 
 ## Triage
 

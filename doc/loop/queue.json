@@ -2243,6 +2243,20 @@
       "proof": "npx mocha --exit test/man-parse.mjs test/man-render.mjs",
       "notes": "Found by p134's groom helper 2026-11-25 at e219849d while simulating the rowspan plan. `tableFit()` (js/man-parse.mjs:2269) creates a cell with `{ spans, up }` even when a row supplies fewer data cells than `ncols`, so a row can be shorter than the column count and `tableCellAt()` can return `undefined`. p134's renderer tolerates it by matching on column offset and skipping unpaired continuations, but that is defensive coding around a ragged model, and the next consumer can reasonably assume a rectangle. Reproduce with `tab(;) allbox;` / `l l l.` / a single `a;` row and say what groff draws (it draws a table with empty trailing cells). Then either pad the row in the model or document the raggedness and make tableCellAt total. Needs a red test first, so next.",
       "source": "lane"
+    },
+    {
+      "id": "p153",
+      "area": "core",
+      "status": "next",
+      "type": "fix",
+      "title": "test/em.mjs assumes a pristine Em.root, so it fails after em-seq-*.mjs in one mocha process (base: 11 failing, each file alone green)",
+      "lane": "a3",
+      "files": [
+        "test/em.mjs"
+      ],
+      "proof": "npx mocha --exit test/em-seq-space.mjs test/em.mjs test/em-seq-minor.mjs",
+      "notes": "Found by p141's lane 2026-11-25 at c209cac5, as a pre-existing isolation defect it did not cause. `test/em.mjs` registers bindings on the shared `Em.root` and assumes it starts pristine, so running it after test/em-seq-minor.mjs / test/em-seq-space.mjs in one process fails its Em.seq/Em.look/Em.replace cases: base `test/em-seq-space.mjs test/em.mjs test/em-seq-minor.mjs` is 11 failing, at p141's tip 9 (p141 removed the two space ones). Each file alone is green, and `test/em-seq-minor.mjs test/em.mjs` is 60 passing. The whole suite is green today only because of file order; a reordering or a new em test file can surface it. Fix by giving em.mjs its own map (`Em.make()`) or by restoring Em.root between files, whichever the module already supports — do not change Em itself. Red proof is the three-file command above, so the row is ready.",
+      "source": "lane"
     }
   ],
   "measures": {

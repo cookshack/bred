@@ -1,6 +1,8 @@
 import { equal } from 'node:assert/strict'
 
 import * as Claims from '../bin/loop-claims.mjs'
+import * as Measure from '../bin/loop-measure.mjs'
+import * as Queue from '../bin/loop-queue.mjs'
 import { land, matches, mergeOne, mergeRound, provision } from '../bin/loop-merge.mjs'
 import { spawnSync } from 'node:child_process'
 import Fs from 'node:fs'
@@ -448,6 +450,71 @@ function leaseTtl
 }
 
 test('claim', 'an explicit expiry outranks a pid that has already exited', leaseTtl)
+
+// The aggregate docs belong in the record commit; a dirty doc tree is refused
+// rather than remembered. Seventeen rounds once sat uncommitted behind that.
+function landDirtyDocs
+(dir) {
+  let res
+
+  git(dir, [ 'branch', 'work', 'main' ])
+  Fs.mkdirSync(Path.join(dir, 'doc'), { recursive: true })
+  Fs.writeFileSync(Path.join(dir, 'doc', 'note.md'), 'x\n')
+  res = land(dir, { work: 'work' })
+
+  equal(res.ok, 0)
+  equal(res.why.includes('doc/ is dirty'), true)
+}
+
+test('land', 'refuses while doc/ is dirty', withRepo(landDirtyDocs))
+
+function checkFields
+() {
+  let q, problems
+
+  q = { schema: 1, measures: { man: { budget: 300 } }, items: [] }
+  q.items.push({ id: 'p1', status: 'ready', files: [ 'a' ], type: 'nonsense', area: 'man' })
+  problems = Queue.check(q).join('; ')
+
+  equal(problems.includes('unknown type nonsense'), true)
+  equal(problems.includes('needs a budget and a population'), true)
+}
+
+test('check', 'a bad type and a measure without a population are problems', checkFields)
+
+function checkNoArea
+() {
+  let q, problems
+
+  q = { schema: 1, items: [] }
+  q.items.push({ id: 'p1', status: 'ready', files: [ 'a' ] })
+  problems = Queue.check(q).join('; ')
+
+  equal(problems.includes('no area'), true)
+}
+
+test('check', 'an open item without an area is a problem', checkNoArea)
+
+function historyPerArea
+() {
+  let dir
+
+  dir = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-hist-'))
+  try {
+    let file
+
+    file = Path.join(dir, 'history.jsonl')
+    Measure.append(file, { area: 'man', tip: 'abc1234', corpus: { parsed: 1 } })
+    Measure.append(file, { area: 'core', tip: 'abc1234', laws: 3 })
+
+    equal(Measure.load(file).length, 2)
+  }
+  finally {
+    Fs.rmSync(dir, { recursive: true, force: true })
+  }
+}
+
+test('measure', 'one record per tip and area, not per tip', historyPerArea)
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,

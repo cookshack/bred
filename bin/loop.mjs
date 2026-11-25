@@ -176,7 +176,7 @@ function help
   console.log('              (--items p1,p2, --no-suite, --allow-no-proof, --force)')
   console.log('  land <n>    fast-forward main to loop/r<n>, only once its tip carries')
   console.log('              the round record (`Loop-verify:`); never a force')
-  console.log('  measure     the corpus counts and every section at --tip (default main),')
+  console.log('  measure     --area man (default) at --tip: the corpus and every section,')
   console.log('              in a worktree of that tip, appended to history.jsonl')
   console.log('  mark p1=abc,d2=def  set queue rows done, for the record commit')
   console.log('  report [--write]    the queue tables from queue.json (--write regen-)')
@@ -334,6 +334,8 @@ function status
   lanes.forEach(p => console.log('           ' + p + '  ' + tryGit(p, 'log', '-1', '--format=%h %s')))
   console.log('stale      ' + stale.length + ' registration(s) not visible here')
   console.log('queue      ' + queueSummary())
+  if (areaSummary())
+    console.log('areas      ' + areaSummary())
   console.log('claims     ' + Claims.list(loopDir).length)
   console.log('parked     ' + (parked.length > 0 ? '' : 'none'))
   parked.forEach(b => console.log('           ' + b))
@@ -504,7 +506,7 @@ function hotInfo
 // disagree about it.
 function choose
 (n, minutes) {
-  let info, hot
+  let info, hot, area
 
   minutes = minutes == undefined ? 120 : minutes
   info = hotInfo(minutes)
@@ -518,7 +520,8 @@ function choose
     console.log('hot: no loop trailers in the last ' + minutes + ' minutes, not filtering')
   }
 
-  return dedupeLanes(Queue.pick(loadQueue(), { n, dirty: dirtyPaths(), hot }))
+  area = option('--area')
+  return dedupeLanes(Queue.pick(loadQueue(), { n, area, dirty: dirtyPaths(), hot }))
 }
 
 // One lane is one worktree and one branch. Two items on one lane would share
@@ -755,13 +758,29 @@ function replaceBlock
   return text.slice(0, start) + '<!-- loop:queue -->\n' + block + '\n' + close + text.slice(end + close.length)
 }
 
+function measures
+() {
+  return loadQueue().measures || {}
+}
+
+// One interface, one implementation per kind: `man` is built in because its
+// tools are two programs and a section list; anything else names a command that
+// prints a JSON record. No per-area script under bin/.
 function measureCmd
 () {
-  let res, file, sections, tip, dir
+  let res, file, sections, tip, dir, area, block
+
+  area = option('--area') || 'man'
+  block = measures()[ area ]
+
+  if (block == undefined) {
+    console.error('loop: no measure for area "' + area + '" in ' + queueFile())
+    return 1
+  }
 
   sections = option('--sections')
   tip = option('--tip') || git(root, 'rev-parse', 'main')
-  dir = Path.join(loopDir, 'measure-' + tip.slice(0, 8))
+  dir = Path.join(loopDir, 'measure-' + area + '-' + tip.slice(0, 8))
 
   // The tools are part of what a round changes, so they have to come from the
   // tip, not from the checkout somebody happens to be measuring in.
@@ -773,14 +792,94 @@ function measureCmd
   }
   Merge.provision(root, dir)
 
-  res = Measure.run(dir, { tip, sections: sections ? sections.split(',') : undefined })
+  if (block.kind == 'man')
+    res = Measure.run(dir, { tip, sections: sections ? sections.split(',') : undefined })
+  else {
+    let out
 
+    out = Merge.run(block.command, dir, { timeoutMs: typeof block.budget == 'number' ? block.budget * 1000 : 600000 })
+    if (out.status) {
+      console.error('loop: measure ' + area + ' failed: ' + out.out.slice(0, 400))
+      return 1
+    }
+    try {
+      res = JSON.parse(out.out)
+    }
+    catch {
+      console.error('loop: measure ' + area + ' printed no JSON record')
+      return 1
+    }
+  }
+
+  res.area = area
+  res.tip = res.tip || tip
   file = Path.join(root, 'doc', 'loop', 'history.jsonl')
   Measure.append(file, res)
-  console.log(Measure.format(res))
+  if (block.kind == 'man')
+    console.log(Measure.format(res))
+  else
+    console.log(JSON.stringify(res))
   console.log('')
-  console.log('written  ' + file + '  at ' + res.tip.slice(0, 8))
+  console.log('written  ' + file + '  area ' + area + ' at ' + res.tip.slice(0, 8))
   return 0
+}
+
+function lastMeasure
+(area) {
+  let records, i, found
+
+  try {
+    records = Measure.load(Path.join(root, 'doc', 'loop', 'history.jsonl'))
+  }
+  catch {
+    return 0
+  }
+  found = 0
+  i = 0
+  while (i < records.length) {
+    if ((records[ i ].area || 'man') == area)
+      found = records[ i ]
+    i += 1
+  }
+  return found
+}
+
+function areaSummary
+() {
+  let q, areas, out, i
+
+  try {
+    q = loadQueue()
+  }
+  catch {
+    return ''
+  }
+
+  areas = Object.keys(q.measures || {})
+  i = 0
+
+  while (i < q.items.length) {
+    let item
+
+    item = q.items[ i ]
+    if ((item.status == 'done') == 0 && (areas.includes(item.area) == 0))
+      areas.push(item.area)
+    i += 1
+  }
+
+  out = []
+  i = 0
+
+  while (i < areas.length) {
+    let open, last
+
+    open = q.items.filter(item => (item.area == areas[ i ]) && (item.status == 'done') == 0).length
+    last = lastMeasure(areas[ i ])
+    out.push(areas[ i ] + ': ' + open + ' open, ' + (last ? 'measured ' + String(last.ts).slice(11, 16) +
+                                                       ' at ' + String(last.tip).slice(0, 8) : 'no measure yet'))
+    i += 1
+  }
+  return out.join('; ')
 }
 
 function lockPath

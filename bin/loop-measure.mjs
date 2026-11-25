@@ -96,18 +96,19 @@ function load
     .map(line => JSON.parse(line))
 }
 
-// One record per tip: a re-run replaces its tip's record, and an identical
-// re-run writes nothing, so `loop measure` twice is a no-op.
+// One record per tip and area: a re-run replaces its own record and an identical
+// re-run writes nothing, so `loop measure` twice is a no-op. The area is part of
+// the identity, or a core record at a tip would replace the man one.
 export
 function append
 (file, record) {
   let records, same, text
 
   records = load(file)
-  same = records.find(entry => entry.tip == record.tip)
+  same = records.find(entry => (entry.tip == record.tip) && ((entry.area || 'man') == (record.area || 'man')))
   if (same && JSON.stringify(same) == JSON.stringify(record))
     return 0
-  records = records.filter(entry => entry.tip == record.tip ? 0 : 1)
+  records = records.filter(entry => ((entry.tip == record.tip) && ((entry.area || 'man') == (record.area || 'man'))) ? 0 : 1)
   records.push(record)
   text = records.map(entry => JSON.stringify(entry)).join('\n') + '\n'
   Fs.mkdirSync(Path.dirname(file), { recursive: true })

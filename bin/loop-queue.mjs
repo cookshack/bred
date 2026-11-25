@@ -140,7 +140,7 @@ function mark
 export
 function check
 (queue) {
-  let problems, ids
+  let problems, ids, names, i
 
   problems = []
   ids = []
@@ -173,6 +173,22 @@ function check
 
   else
     problems.push('schema ' + queue.schema + ', expected ' + schema)
+
+  names = Object.keys(queue.measures || {})
+  i = 0
+
+  while (i < names.length) {
+    let area, measure
+
+    area = names[ i ]
+    measure = queue.measures[ area ]
+    if ((measure == undefined) || ((typeof measure == 'object') == 0))
+      problems.push('measure ' + area + ': not an object')
+    else if ((measure.budget == undefined) || (String(measure.population || '').length == 0))
+      problems.push('measure ' + area + ': needs a budget and a population')
+    i += 1
+  }
+
   return problems
 }
 

@@ -54,6 +54,16 @@ function ok
   }
 }
 
+function tryGit
+(repo, ...argv) {
+  try {
+    return git(repo, ...argv)
+  }
+  catch {
+    return ''
+  }
+}
+
 function revParse
 (repo, ref) {
   try {
@@ -522,13 +532,21 @@ function docOnly
 export
 function land
 (repo, opts) {
-  let work, tip, i, why
+  let work, tip, i, why, dirty
 
   work = opts.work
   tip = revParse(repo, work)
 
   if (tip == 0)
     return { ok: 0, why: 'no branch ' + work, tip: 0 }
+
+  // The aggregate docs belong in the round's record commit. Seventeen rounds
+  // of summary edits once sat uncommitted in the checkout because nothing
+  // checked; a dirty doc tree is now a refusal, not a reminder.
+  dirty = lines(tryGit(repo, 'status', '--porcelain', '--', 'doc/'))
+
+  if (dirty.length > 0)
+    return { ok: 0, why: 'doc/ is dirty, commit or discard it first: ' + dirty.join(', '), tip }
   if (opts.verify && (ok(repo, 'merge-base', '--is-ancestor', opts.verify, tip) == 0))
     return { ok: 0, why: 'the verified tip ' + opts.verify + ' is not an ancestor of ' + work, tip }
   if (opts.verify && (docOnly(repo, opts.verify + '..' + tip) == 0))

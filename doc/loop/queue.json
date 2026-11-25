@@ -12,7 +12,7 @@
       "id": "p50",
       "lane": "a2",
       "status": "next",
-      "title": "the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch",
+      "title": "the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order \u2014 until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch",
       "files": [
         "test/wode-view-e2e.mjs",
         "js/wode*.mjs",
@@ -211,7 +211,7 @@
       "id": "p59",
       "lane": "a1",
       "status": "triage",
-      "title": "a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic?",
+      "title": "a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) \u2014 refuse or mimic?",
       "files": [
         "js/man-parse.mjs"
       ],
@@ -353,7 +353,7 @@
       "id": "p37",
       "lane": "a3",
       "status": "done",
-      "title": "a bordered cell's continuation at the left edge (TIFFGetField 6 → 0)",
+      "title": "a bordered cell's continuation at the left edge (TIFFGetField 6 \u2192 0)",
       "files": [],
       "doneHash": "244c425",
       "area": "man",
@@ -363,7 +363,7 @@
       "id": "p39",
       "lane": "-",
       "status": "done",
-      "title": "a background subagent is launched, not finished (tick, routing, ⏳)",
+      "title": "a background subagent is launched, not finished (tick, routing, \u23f3)",
       "files": [],
       "doneHash": "7ce2ecf",
       "area": "man",
@@ -413,7 +413,7 @@
       "id": "p41",
       "lane": "a3",
       "status": "done",
-      "title": "the truncated mdoc banner is a header (5 pages, 31 → 1 words)",
+      "title": "the truncated mdoc banner is a header (5 pages, 31 \u2192 1 words)",
       "files": [],
       "doneHash": "a18cd1b",
       "area": "man",
@@ -423,7 +423,7 @@
       "id": "p42",
       "lane": "a3",
       "status": "done",
-      "title": "the `\\:` join accepts \":\" (`bash(1)` 4 → 2)",
+      "title": "the `\\:` join accepts \":\" (`bash(1)` 4 \u2192 2)",
       "files": [],
       "doneHash": "a18cd1b",
       "area": "man",
@@ -433,7 +433,7 @@
       "id": "p43",
       "lane": "a3",
       "status": "done",
-      "title": "the `\\:` join accepts \"@\" (`troff(1)` 2 → 0)",
+      "title": "the `\\:` join accepts \"@\" (`troff(1)` 2 \u2192 0)",
       "files": [],
       "doneHash": "a18cd1b",
       "area": "man",
@@ -463,7 +463,7 @@
       "id": "p30",
       "lane": "a3",
       "status": "done",
-      "title": "verdict: no mdoc U+2010 rule; `man-diff` folds U+2010/U+2011/U+2212 (pcre2demo 67 → 12)",
+      "title": "verdict: no mdoc U+2010 rule; `man-diff` folds U+2010/U+2011/U+2212 (pcre2demo 67 \u2192 12)",
       "files": [],
       "doneHash": "2c5b9df",
       "area": "man",
@@ -493,7 +493,7 @@
       "id": "p60",
       "lane": "a3",
       "status": "done",
-      "title": "`man-diff` folds typographic quotes; pcre2demo 12 → 0 (U+2018 folds to a backtick)",
+      "title": "`man-diff` folds typographic quotes; pcre2demo 12 \u2192 0 (U+2018 folds to a backtick)",
       "files": [],
       "doneHash": "f3f1539",
       "area": "man",
@@ -503,7 +503,7 @@
       "id": "p62",
       "lane": "a3",
       "status": "done",
-      "title": "the hyphen join is decided from the page source and applied to both sides; section 3 14 → 0",
+      "title": "the hyphen join is decided from the page source and applied to both sides; section 3 14 \u2192 0",
       "files": [],
       "doneHash": "f3f1539",
       "area": "man",
@@ -704,7 +704,7 @@
       "id": "p78",
       "lane": "a1",
       "status": "done",
-      "title": "L\\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl",
+      "title": "L\\[tmu]C renders L\u2122C; groff prints L\u00d7C: js/man-char.mjs maps tmu to \u2122 instead of \u00d7, the last lost word on tbl/gtbl",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -745,7 +745,7 @@
       "id": "p81",
       "lane": "a1",
       "status": "done",
-      "title": "Greek capitals are shifted one letter: *H is Η but should be Θ, *Q Θ should be Ψ, *Y Ψ should be Η; lowercase is correct",
+      "title": "Greek capitals are shifted one letter: *H is \u0397 but should be \u0398, *Q \u0398 should be \u03a8, *Y \u03a8 should be \u0397; lowercase is correct",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -786,7 +786,7 @@
       "id": "p84",
       "lane": "a1",
       "status": "done",
-      "title": "*G is missing from the char table; groff prints Γ (U+0393), so a page using \\[*G] is refused today",
+      "title": "*G is missing from the char table; groff prints \u0393 (U+0393), so a page using \\[*G] is refused today",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -800,7 +800,7 @@
       "id": "p85",
       "lane": "a1",
       "status": "done",
-      "title": "*f maps to φ (U+03C6); groff prints ϕ (U+03D5); *J/*j/*V/*v are absent from groff too, not gaps",
+      "title": "*f maps to \u03c6 (U+03C6); groff prints \u03d5 (U+03D5); *J/*j/*V/*v are absent from groff too, not gaps",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -814,7 +814,7 @@
       "id": "p86",
       "lane": "a1",
       "status": "done",
-      "title": ".. maps to ‥ (U+2025) but groff refuses it; \\[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an",
+      "title": ".. maps to \u2025 (U+2025) but groff refuses it; \\[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -1047,7 +1047,7 @@
       "id": "p103",
       "lane": "a1",
       "status": "ready",
-      "title": "ttf2pk(1) loses 2 words: `.<resolution>pk' split on our side and `<namestem>@<sfd-filename>@') — quote/spacing placement, not a line join",
+      "title": "ttf2pk(1) loses 2 words: `.<resolution>pk' split on our side and `<namestem>@<sfd-filename>@') \u2014 quote/spacing placement, not a line join",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
@@ -1060,7 +1060,7 @@
       "id": "p104",
       "lane": "a1",
       "status": "next",
-      "title": "hg(1) loses 2 words: incoming ) — spacing around a closing paren",
+      "title": "hg(1) loses 2 words: incoming ) \u2014 spacing around a closing paren",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
@@ -1126,7 +1126,7 @@
       "id": "p109",
       "lane": "a1",
       "status": "next",
-      "title": "thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch)",
+      "title": "thumbpdf(1) loses 1 word: \u00c2\u00a9 (a char/encoding mismatch)",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
@@ -1178,7 +1178,7 @@
       "id": "p113",
       "lane": "a3",
       "status": "done",
-      "title": "gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff)",
+      "title": "gittutorial-2(7) loses 2 words: ways\u2014 and by (an em-dash join in man-diff)",
       "files": [
         "bin/man-diff",
         "test/man-diff.mjs"
@@ -1243,9 +1243,10 @@
   ],
   "measures": {
     "man": {
-      "command": "bin/man-audit --parse; bin/man-diff --sections 1,3,5,7,8 --max 0",
-      "budget": "~8 min",
-      "population": "installed corpus, 4150 pages, at the recorded tip"
+      "kind": "man",
+      "budget": 480,
+      "population": "installed corpus, 4150 pages, at the recorded tip",
+      "command": "bin/man-audit --parse; for s in 1 3 5 7 8; do bin/man-diff --section $s --max 0; done"
     }
   }
 }

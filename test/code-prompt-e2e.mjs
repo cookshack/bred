@@ -647,6 +647,98 @@ test('reasoning', 'an ended update replaces a truncated thinking block',
        }
      })
 
+// The ended text part carries the whole part. A stopped turn draws its text
+// plain, with no markdown editor, so the ended update has to rewrite that node
+// instead of returning early because there is no editor to reconcile.
+test('finished', 'a finished part rewrites a plain text element',
+     async () => {
+       let created, fake, orig, panes, partID
+
+       ({ panes } = await setupStart())
+
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-plain', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       partID = 'm1:text:0'
+       try {
+         let textEl
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-plain' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-plain', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         // an interrupted turn draws its part plain: no markdown editor
+         Ui.appendMsg(created, 0, 'truncated', partID, 0, { stopped: 1 })
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-assistant[data-partid="' + partID + '"] .code-msg-text'))
+         textEl = created.views[0].ele.querySelector('.code-msg-assistant[data-partid="' + partID + '"] .code-msg-text')
+         equal(textEl.textContent, 'truncated', 'the plain node starts truncated')
+
+         fake.push(Fake.event('session.text.ended', { sessionID: 'ses-plain', assistantMessageID: 'm1', ordinal: 0, text: 'the whole answer' }))
+         await waitFor(() => (textEl.textContent == 'the whole answer') ? 1 : 0)
+         equal(textEl.textContent, 'the whole answer',
+               'the ended part rewrites the plain node')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
+// A step can end before its text part lands, eg step-finish and the ended part
+// arrive out of order on a reconnect. A delta still needs its step, but the
+// ended part has the authoritative text, so it has to render.
+test('finished', 'a text part seen after its step ended still renders',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-late', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let msgEl
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-late' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-late', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.step.ended', { sessionID: 'ses-late', assistantMessageID: 'm1', tokens: {} }))
+         fake.push(Fake.event('session.text.ended', { sessionID: 'ses-late', assistantMessageID: 'm1', ordinal: 0, text: 'a late answer' }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"]'))
+         msgEl = created.views[0].ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"]')
+         equal(msgEl.textContent.includes('a late answer'),
+               true,
+               'the finished part renders after its step ended')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
 test('thinking', 'a delta does not duplicate a block in the tab that has one',
      () => {
        let buf, dom, one, two

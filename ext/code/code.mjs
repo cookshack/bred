@@ -1135,7 +1135,10 @@ function handlePart
   }
   else if (part.type == 'text') {
     buf.vars('code').gotContent = 1
-    if (buf.vars('code').stepActiveSessions?.size)
+    // A delta needs its step, but a finished part carries the authoritative
+    // text, so it still renders when the step that would have drawn it is gone
+    // (eg step-finish and the ended part arrive out of order).
+    if (buf.vars('code').stepActiveSessions?.size || part.text)
       Ui.appendMsg(buf, 0, part.text, part.id, part.time, { sessionID: part.sessionID, messageID: part.messageID })
   }
   else if (part.type == 'reasoning') {

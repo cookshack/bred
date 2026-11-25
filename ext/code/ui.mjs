@@ -639,9 +639,16 @@ function appendMsg
                                            let ed
 
                                            ed = view.vars('code').partEds?.[partID]
+                                           buf.vars('code').partTexts = buf.vars('code').partTexts || {}
+                                           buf.vars('code').partTexts[partID] = text
                                            if (ed) {
-                                             buf.vars('code').partTexts = buf.vars('code').partTexts || {}
-                                             buf.vars('code').partTexts[partID] = text
+                                             // The part is complete, so drop a delta still queued
+                                             // and put the authoritative text through the markdown
+                                             // reconciliation now rather than waiting for the next
+                                             // finalize.
+                                             if (buf.vars('code').textChunks)
+                                               delete buf.vars('code').textChunks[partID]
+                                             finalizeText(buf)
                                            }
                                            else {
                                              let oldMdEl
@@ -654,10 +661,17 @@ function appendMsg
                                                withScroll(w, () => oldMdEl.replaceWith(mdEd.el))
                                                view.vars('code').eds = view.vars('code').eds || []
                                                view.vars('code').eds.push(mdEd.ed)
-                                               buf.vars('code').partTexts = buf.vars('code').partTexts || {}
-                                               buf.vars('code').partTexts[partID] = text
                                                view.vars('code').partEds = view.vars('code').partEds || {}
                                                view.vars('code').partEds[partID] = mdEd.ed
+                                             }
+                                             else {
+                                               let textEl
+
+                                               // A plain node (eg a stopped turn) has no editor to
+                                               // reconcile, so rewrite it in place.
+                                               textEl = el.querySelector('.code-msg-text')
+                                               if (textEl && (textEl.innerText == text) == 0)
+                                                 withScroll(w, () => textEl.innerText = text)
                                              }
                                            }
                                            return

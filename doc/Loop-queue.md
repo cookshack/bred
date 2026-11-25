@@ -34,17 +34,22 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
-| b8 | man | a1 | ready | batch: a cell request and a dot-only line (p75, p128) | js/man-parse.mjs, test/man-parse.mjs |
-| p128 | man | a1 | ready | a `.`-only line with no pending `\c` adds a space block; groff draws no gap | js/man-parse.mjs, test/man-parse.mjs |
-| p75 | man | a1 | ready | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
-| c9 | code | a2 | ready | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | c12 | code | a2 | ready | session.tool.input.delta is dropped: translate() emits no legacy delta while a tool's input streams, so the preview appears only when .ended has parsed the whole JSON | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
-| p139 | core | a2 | ready | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
-| p140 | core | a2 | ready | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
-| p141 | core | a2 | ready | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs |
-| p142 | core | a2 | ready | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
-| p143 | core | a2 | ready | a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4 | js/em.mjs, test/em-otherwise.mjs |
-| p144 | core | a2 | ready | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
+| p140 | core | a3 | ready | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
+| p141 | core | a3 | ready | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs |
+| p142 | core | a3 | ready | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
+| p143 | core | a3 | ready | a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4 | js/em.mjs, test/em-otherwise.mjs |
+| p144 | core | a3 | ready | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
+
+## In round
+
+| id | area | lane | status | title | files |
+|----|------|------|--------|-------|-------|
+| b8 | man | a1 | in-round | batch: a cell request and a dot-only line (p75, p128) | js/man-parse.mjs, test/man-parse.mjs |
+| p128 | man | a1 | in-round | a `.`-only line with no pending `\c` adds a space block; groff draws no gap | js/man-parse.mjs, test/man-parse.mjs |
+| p75 | man | a1 | in-round | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
+| c9 | code | a2 | in-round | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
+| p139 | core | a3 | in-round | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
 
 ## Backlog
 

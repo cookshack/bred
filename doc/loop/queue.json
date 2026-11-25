@@ -45,7 +45,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "source": "lane",
       "title": "batch: a cell request and a dot-only line (p75, p128)",
       "files": [
@@ -144,7 +144,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "title": "a `.`-only line with no pending `\\c` adds a space block; groff draws no gap",
       "files": [
         "js/man-parse.mjs",
@@ -855,7 +855,7 @@
     {
       "id": "p75",
       "lane": "a1",
-      "status": "ready",
+      "status": "in-round",
       "title": ".IP \"\" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost)",
       "files": [
         "js/man-parse.mjs",
@@ -1673,7 +1673,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "title": "handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view",
       "files": [
         "ext/code/code.mjs",
@@ -1942,10 +1942,10 @@
     {
       "id": "p139",
       "area": "core",
-      "status": "ready",
+      "status": "in-round",
       "type": "fix",
       "title": "Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal",
-      "lane": "a2",
+      "lane": "a3",
       "files": [
         "js/mode.mjs",
         "test/mode-remove.mjs"
@@ -1960,7 +1960,7 @@
       "status": "ready",
       "type": "fix",
       "title": "Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key",
-      "lane": "a2",
+      "lane": "a3",
       "files": [
         "js/Em.mjs",
         "test/em-seq-minor.mjs"
@@ -1975,7 +1975,7 @@
       "status": "ready",
       "type": "fix",
       "title": "Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims",
-      "lane": "a2",
+      "lane": "a3",
       "files": [
         "js/Em.mjs",
         "test/em-seq-space.mjs"
@@ -1990,7 +1990,7 @@
       "status": "ready",
       "type": "fix",
       "title": "Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree",
-      "lane": "a2",
+      "lane": "a3",
       "files": [
         "js/cmd.mjs",
         "test/cmd-minors.mjs"
@@ -2005,7 +2005,7 @@
       "status": "ready",
       "type": "fix",
       "title": "a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4",
-      "lane": "a2",
+      "lane": "a3",
       "files": [
         "js/em.mjs",
         "test/em-otherwise.mjs"
@@ -2020,7 +2020,7 @@
       "status": "ready",
       "type": "fix",
       "title": "Pane.holdingView returns the frame's current pane instead of the pane that shows the view",
-      "lane": "a2",
+      "lane": "a3",
       "files": [
         "js/Pane.mjs",
         "test/pane-holding.mjs"

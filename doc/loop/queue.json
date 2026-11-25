@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T15:06:55Z",
     "stopNew": "2026-11-25T14:21:55Z",
     "state": "active",
-    "main": "bc05d238",
-    "round": 45
+    "main": "4dd8ef83",
+    "round": 46
   },
   "items": [
     {
@@ -1009,7 +1009,7 @@
     {
       "id": "p100",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "copyMode() chains replacements and over-reduces \\. and \\  (groff copy mode leaves \\. and an encoded space)",
       "files": [
         "js/man-parse.mjs",
@@ -1018,7 +1018,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "dmstats(8) is the corpus instance, and its row (p115) is folded in here: the .de CMD_COMMAND body has `.  IR device_name \\ |`, and bred prints `device_name|` where groff prints `device_name |` (man-diff: lost 2, [device_name, minor]). The same .IR outside a macro body is correct, so the space is lost when the body is copied/stored, not when .IR renders. Test by defining `.de X` around the line and comparing with groff -Tutf8 -man. 2 words in section 8."
+      "notes": "dmstats(8) is the corpus instance, and its row (p115) is folded in here: the .de CMD_COMMAND body has `.  IR device_name \\ |`, and bred prints `device_name|` where groff prints `device_name |` (man-diff: lost 2, [device_name, minor]). The same .IR outside a macro body is correct, so the space is lost when the body is copied/stored, not when .IR renders. Test by defining `.de X` around the line and comparing with groff -Tutf8 -man. 2 words in section 8.",
+      "doneHash": "5b95c88e"
     },
     {
       "id": "p101",
@@ -1431,7 +1432,7 @@
       "area": "man",
       "lane": "a3",
       "type": "fix",
-      "status": "ready",
+      "status": "done",
       "title": "a .Bl -dash list still renders as an HTML ul disc; groff draws \"-\" per item (the text model now agrees, the renderer does not)",
       "files": [
         "js/man-render.mjs",
@@ -1439,7 +1440,8 @@
         "test/man-render.mjs"
       ],
       "proof": "npx mocha --exit test/man-render.mjs",
-      "notes": "p112 fixed only the text model: toText marks each item, so editline(7) measures clean. listNode still builds a <ul>, and css/manpage.css has no marker rule, so the page shows a disc where groff shows -. groff -Tutf8 -mdoc: -dash and -hyphen print \"-\", -bullet prints U+2022, -enum prints \"1.\". The measure cannot see the bullet (man-diff maps U+2022 and the box-drawing range to a space), so this is a display-only item."
+      "notes": "p112 fixed only the text model: toText marks each item, so editline(7) measures clean. listNode still builds a <ul>, and css/manpage.css has no marker rule, so the page shows a disc where groff shows -. groff -Tutf8 -mdoc: -dash and -hyphen print \"-\", -bullet prints U+2022, -enum prints \"1.\". The measure cannot see the bullet (man-diff maps U+2022 and the box-drawing range to a space), so this is a display-only item.",
+      "doneHash": "4dd8ef83"
     },
     {
       "id": "c9",
@@ -1454,6 +1456,20 @@
       ],
       "proof": "npx mocha --exit test/code-prompt-e2e.mjs",
       "notes": "Needs a decision before dispatch, not a fix: message.part.delta is produced only by session.text.delta, whose partID is assistantMessageID + \":text:\" + ordinal, so the think-element branch in handlePartDelta (a .code-msg-thinking with that partID) cannot be reached by any translated event. Either delete the branch or prove a path that reaches it (a synthetic legacy event would only test the dead code). No red proof until then."
+    },
+    {
+      "id": "p124",
+      "area": "man",
+      "lane": "a1",
+      "type": "triage",
+      "status": "triage",
+      "title": "copy mode still reduces \\. to \".\"; a body line starting with \\. becomes an unknown request and refuses the page where groff prints nothing",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "p100 fixed the escaped-space half of copyMode only. Evidence: a .de body containing `\\. e` makes groff -Tutf8 -man print nothing at all (no warning, the following text line still prints), while bred reduces the escape to \".\" and then refuses the page as `macro e`. No installed page hits it. Decide whether the refusal is the right policy or whether `\\.` should survive copy mode."
     }
   ],
   "measures": {

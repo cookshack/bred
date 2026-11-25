@@ -30,13 +30,6 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
-## Ready
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| p100 | man | a1 | ready | copyMode() chains replacements and over-reduces \. and \  (groff copy mode leaves \. and an encoded space) | js/man-parse.mjs, test/man-parse.mjs |
-| p123 | man | a3 | ready | a .Bl -dash list still renders as an HTML ul disc; groff draws "-" per item (the text model now agrees, the renderer does not) | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -82,6 +75,7 @@ before.
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
 | p59 | man | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
+| p124 | man | a1 | triage | copy mode still reduces \. to "."; a body line starting with \. becomes an unknown request and refuses the page where groff prints nothing | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Done
 
@@ -149,6 +143,7 @@ before.
 | p96 | man | a1 | done:7183a0e | ttf2tfm(1) loses 10 words: a \c at the end of a text line whose next line is a .C macro call keeps the backtick glued to the macro text; groff joins them and we insert a space | js/man-parse.mjs, test/man-parse.mjs |
 | p97 | man | a1 | done:d21a9d5 | four backslashes in a macro argument need two reduction rounds (copy mode then interpretation); we apply one, so c:\\fonts\\truetype keeps doubles: ttf2tfm's last two words | js/man-parse.mjs, test/man-parse.mjs |
 | p99 | man | a1 | done:7032014 | built-in man requests (B, BR, SH, SS, SY, IP, OP) get one round here and two in groff, which implements them as tmac macros; .B a\\\\b is a\\b in groff and a\\b here | js/man-parse.mjs, test/man-parse.mjs |
+| p100 | man | a1 | done:5b95c88e | copyMode() chains replacements and over-reduces \. and \  (groff copy mode leaves \. and an encoded space) | js/man-parse.mjs, test/man-parse.mjs |
 | p103 | man | a1 | done:66f38b3 | ttf2pk(1) loses 2 words: `.<resolution>pk' split on our side and `<namestem>@<sfd-filename>@') — quote/spacing placement, not a line join | js/man-parse.mjs, test/man-parse.mjs |
 | p104 | man | a1 | done:f6aceef | hg(1) loses 2 words: man breaks at the \: between incoming and ), and man-diff's join whitelist does not accept ); our text is right, so the fix is the join | bin/man-diff, test/man-diff.mjs |
 | p105 | man | a2 | done:de1718c | ssh-agent(1) loses 2 words: the synopsis -s] bracket | js/man-parse.mjs, test/man-parse.mjs |
@@ -163,5 +158,6 @@ before.
 | c5 | code | a1 | done:f26a1d0 | session.reasoning.ended has the same authoritative text as text.ended and is still dropped; translate it the same way | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/* |
 | c7 | code | a2 | done:fd65122 | the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | c8 | code | a2 | done:e3e11414 | Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing) | ext/code/ui.mjs, test/code-prompt-e2e.mjs |
+| p123 | man | a3 | done:4dd8ef83 | a .Bl -dash list still renders as an HTML ul disc; groff draws "-" per item (the text model now agrees, the renderer does not) | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
 
 <!-- /loop:queue -->

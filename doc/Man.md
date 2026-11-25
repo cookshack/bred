@@ -624,7 +624,15 @@ display fix is queued as p123 instead of being measured. What is left is
 section 1's three words on three pages (tex2aspc, thumbpdf, tload) and section
 8's three on two (dmstats 2, dmsetup 1).
 
-Tests: 617 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 46 fixed the copy-mode chain: `copyMode()` reduced `\\` first and then
+re-examined the backslash it produced with the `\ ` rule, so an escaped space
+became an argument separator and dmstats(8)'s `.de CMD_COMMAND` body printed
+`device_name|` for groff's `device_name |` (2 → 0). The same round named a
+`-dash`/`-hyphen` list `man-dash` and gave it a hyphen marker in the
+stylesheet (p123), so the page and the text model agree. Section 8 is now
+dmsetup(8)'s single `load|reload`; totals are 4 words on 4 pages.
+
+Tests: 619 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

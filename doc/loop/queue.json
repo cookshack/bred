@@ -1278,13 +1278,15 @@
       "area": "code",
       "lane": "a2",
       "type": "triage",
-      "status": "next",
+      "status": "ready",
       "title": "session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage)",
       "files": [
         "ext/code/event.mjs",
-        "test/code-events.mjs"
+        "test/code-events.mjs",
+        "test/code-conformance.mjs",
+        "test/fixtures/oc-events/*"
       ],
-      "proof": "npx mocha --exit test/code-events.mjs"
+      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs"
     },
     {
       "id": "c2",
@@ -1332,6 +1334,11 @@
       "budget": 480,
       "population": "installed corpus, 4150 pages, at the recorded tip",
       "command": "bin/man-audit --parse; for s in 1 3 5 7 8; do bin/man-diff --section $s --max 0; done"
+    },
+    "code": {
+      "command": "bin/oc-conformance.mjs test/fixtures/oc-events/minimal.jsonl test/fixtures/oc-events/live.jsonl --json",
+      "budget": 120,
+      "population": "the recorded v2 event fixtures (10 + 9 events)"
     }
   }
 }

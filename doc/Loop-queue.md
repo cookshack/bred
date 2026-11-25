@@ -73,6 +73,7 @@ before.
 | c2 | code | a2 | triage | session.step.streamed is dropped (seen live); decide whether it must translate | ext/code/event.mjs, test/code-events.mjs |
 | c4 | code | a2 | triage | provider.updated / model.updated are dropped (session-less); decide whether the UI needs them | ext/code/event.mjs, test/code-events.mjs |
 | p124 | man | a1 | triage | copy mode still reduces \. to "."; a body line starting with \. becomes an unknown request and refuses the page where groff prints nothing | js/man-parse.mjs, test/man-parse.mjs |
+| p155 | core | a3 | triage | whose `otherwise` applies after descending into a Control/Alt submap: the code uses the outer map's, doc/Em.md does not say, and js/ed.mjs gives emCtl/emAlt their own otherwise that is never read | js/em.mjs, js/ed.mjs, doc/Em.md, test/em-otherwise.mjs |
 
 ## Done
 

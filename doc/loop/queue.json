@@ -2294,6 +2294,23 @@
       "proof": "npx mocha --exit test/cmd.mjs",
       "notes": "Found by p142's lane 2026-11-25 at e8ffce9e. js/cmd.mjs:69-77 has the `parentsForEm` walk commented out in `getMo`, so a mode's commands are looked up only in its own map and never in its parent modes' maps; `runMo` therefore cannot reach a parent's command. Em's stack does walk parents (`parentEms`), so this is the same kind of split p142 fixed between get and getAll, one level up. Read doc/Em.md's `parentsForEm` contract and doc/Dependencies.md before deciding whether reinstating the walk is safe: the comment may record a reason (a cycle, or a duplicate-command shadowing problem) and that must be answered, not deleted. Needs a red test that binds a command only in a parent mode and looks it up through the child, so next.",
       "source": "lane"
+    },
+    {
+      "id": "p155",
+      "area": "core",
+      "status": "triage",
+      "type": "triage",
+      "title": "whose `otherwise` applies after descending into a Control/Alt submap: the code uses the outer map's, doc/Em.md does not say, and js/ed.mjs gives emCtl/emAlt their own otherwise that is never read",
+      "lane": "a3",
+      "files": [
+        "js/em.mjs",
+        "js/ed.mjs",
+        "doc/Em.md",
+        "test/em-otherwise.mjs"
+      ],
+      "proof": "npx mocha --exit test/em-otherwise.mjs",
+      "notes": "Found by p143's lane 2026-11-25 at 63f364b4. p143 made an unbound ctrl/alt key reach `otherwise` (doc/Em.md step 4 has no modifier exception, so the code was wrong). What the doc does NOT state is whose `otherwise` applies once lookup has descended into a `Control`/`Alt` submap: the implementation keeps using the outer map's, while js/ed.mjs:769-777 gives `emCtl`/`emAlt` their own `otherwise` that is therefore never read. That is a decision for the human, not a lane: either the innermost map's otherwise wins (and ed.mjs's becomes live, which changes query-replace behaviour and needs a test), or the outer map's wins (and ed.mjs's dead otherwise should be removed so it cannot mislead). No red test is possible until the rule is chosen, hence triage.",
+      "source": "lane"
     }
   ],
   "measures": {

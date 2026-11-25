@@ -3,11 +3,13 @@
 Status: live, round 44, 2026-11-25 (deadline 2026-11-25T19:00Z). Twenty-seven
 rounds have used the tool's gate: red at base, green after the rebase, one
 suite at the integrated tip, the record on `loop/r<n>`, one fast-forward. Main
-is the round-44 record commit, green (2040 tests, check clean). The plan is
-implemented through P4; man is 11 words on 6 pages, code 18 of 20 translated. The next items
-are in `doc/loop/queue.json` (the view in `doc/Loop-queue.md` is generated);
-the upgrade designs are `doc/Loop-upgrade.md` (the loop's) and
-`doc/loop/plan-2026-11-24.md` (a fresh agent's). This file is the protocol;
+is the round-44 record commit, green (2040 tests, check clean). The agreed plan,
+`doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
+and area-aware picks are parked by the plan's own criterion. Man is 11 words on
+6 pages, code 18 of 20 translated. The next items are in `doc/loop/queue.json`
+(the view in `doc/Loop-queue.md` is generated); the two designs it supersedes
+are `doc/Loop-upgrade.md` and `doc/loop/plan-2026-11-24.md`, kept for their
+reasoning. This file is the protocol;
 `doc/loop/round-<n>.md` is the per-round record; `bred-loop/` in the session's
 worktree root holds the rest of a run's live state.
 
@@ -19,9 +21,11 @@ on a moving main") instead of expecting a quiet tree.
 
     LOOP=$BRED_WORKTREE_ROOT/bred-loop
 
-An upgrade proposal (machine-checkable queue, leases, measurement history, a
-durable driver, a pipeline cadence) is in `doc/Loop-upgrade.md`; it is not
-implemented.
+The queue, the leases, the measurement history and the lease-aware `land` are
+implemented; the durable driver and the pipeline cadence from
+`doc/Loop-upgrade.md` are not, and the agreed plan parks the scheduling half
+(lane pool, area-aware picks) as well. Do not re-derive those from the proposals:
+read `doc/loop/plan-agreed.md` for what was dropped and why.
 
 The queue is tracked because the previous run's `$LOOP` was keyed to a session
 that ended, and its queue went with it. Briefs, claims and round logs stay
@@ -80,6 +84,32 @@ wiped mid-run once), and `~` is container-local too — only `src/bred`,
 Losing `$LOOP` costs the briefs and the claims, not the work or the queue: the
 commits, `doc/Loop-queue.md`, `doc/loop/round-<n>.md` and the suite are the
 source of truth.
+
+## Areas, measures and the queue
+
+An **area** is a named module set plus a queue namespace: `man`, `code` (the
+opencode UI in `ext/code`), `core` (the editor model) and `tooling`. Areas are
+columns in one queue, not separate loops.
+
+- `doc/loop/queue.json` is the source. `doc/Loop-queue.md` is generated from it
+  by `bin/loop.mjs report --write`, and `check` fails when the two drift.
+- Each area has a `measures` entry: `command`, `budget` in seconds and
+  `population`. `bin/loop.mjs measure --area <name>` runs it in a worktree of
+  the tip; `--area all` runs every area, each within its budget, and writes one
+  record per tip and area into `doc/loop/history.jsonl`. A failing area does not
+  hide the others: the run says `some areas failed` and keeps what it measured.
+- An item carries `area`, `type`, `proof`, `files`, `exclusive`, and optionally
+  `source` and `repro`. The `type`s are `fix`, `triage`, `verify`, `measure`,
+  `hunt` and `infra`; `hunt` (a bounded generator run that files items) and
+  `infra` (a harness whose proof is that it finds a planted failure) are
+  scheduled deliberately and never handed out by `pick`.
+- `source` records where an item came from — `measure`, `lane`, `triage`,
+  `hunt` — so the question "is the measure still producing work" is answerable.
+- Coverage is a floor and an alarm, not a target: an item filed on a coverage
+  gap alone is parked by the red gate. `doc/loop/laws.md` records the one
+  generator that was tried and found nothing, and why the harness is kept.
+- `land` refuses while `doc/` is dirty: the aggregate docs belong in the round's
+  record commit, and seventeen rounds once sat uncommitted behind their absence.
 
 ## How a round works
 
@@ -157,10 +187,11 @@ Never put two parser items in one round: `js/man-parse.mjs` is 3000 lines and tw
 correct patches can merge cleanly and still disagree. Lanes never edit this file;
 the loop owns it, which removes the one line every lane would otherwise touch.
 
-The lists above are the default owner; the `files` column in
-`doc/Loop-queue.md` is authoritative for an item and is what the loop checks
-for overlap with the other lanes, the dirty tree and the hot files. An item may
-move to a different lane than its prefix suggests if its files are free.
+The lists above are the man defaults. The lane labels are worktree names, not
+ownership: the authoritative ownership for an item is its `files` in
+`doc/loop/queue.json`, and that is what the merge gate diffs against — a commit
+outside the row parks, whichever lane made it. An item may move to a different
+lane, or to another area, if its files are free.
 
 ## Rounds so far
 

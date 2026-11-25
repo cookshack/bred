@@ -12,9 +12,11 @@ will choose its own.
 
     Continue the Bred unattended loop.
 
-    Read doc/Loop.md first: it is the protocol, the round history, and the
-    rules that earned their place. Then read doc/Loop-queue.md: it says whether
-    a run is live and which items are ready, next or triage.
+    Read doc/Loop.md first: the protocol, the round history, the rules that
+    earned their place, and the section on areas and measures. Then
+    doc/loop/queue.json, which is the queue itself, and doc/loop/plan-agreed.md,
+    which is the agreed plan and the reason the backlog looks the way it does
+    (its two predecessors are superseded; do not re-derive them).
 
     Establish the baseline by recording it, not by gating on it. Other agents
     and the user may commit to main while the loop runs, so drift is normal;
@@ -40,22 +42,31 @@ will choose its own.
     doc/Loop-queue.md (it is generated, and check will say so).
 
     Work in rounds of up to three lanes whose file sets are disjoint: pick
-    with bin/loop.mjs pick (it skips dirty, hot and overlapping items), mark
-    the chosen rows in-round, write a brief per item in $LOOP, run
-    bin/loop.mjs lanes-up, and dispatch each lane with background. Tell every
+    with bin/loop.mjs pick (it skips dirty, hot and overlapping items). pick
+    only returns rows whose status is `ready`, so if it returns nothing, groom
+    instead: promote a `next` row to `ready` once it has a red-capable `proof`
+    written on the row (a command that fails at base) and its files are free.
+    Write the proof before the brief — the merge gate reads the row, not the
+    brief. Then mark the chosen rows in-round, write a brief per item in
+    $LOOP, run bin/loop.mjs lanes-up, and dispatch each lane with background. Tell every
     lane to read doc/loop/rules.md and its brief, work only in its worktree
     and files, commit once with a Loop-item: <id> trailer, and never merge,
     rebase or push.
 
     Then bin/loop.mjs round <n> --items ... gates and integrates onto
     loop/r<n> and runs the suite once at that tip (the suite log is in $LOOP).
-    bin/loop.mjs measure --tip <tip> measures the tip's own tools into
-    doc/loop/history.jsonl. Write doc/loop/round-<n>.md on loop/r<n> and
-    commit it there with Loop-round: <n> and Loop-verify: <tip>; bin/loop.mjs
-    land <n> makes the one fast-forward. Then mark the merged items done with
-    their lane hashes in queue.json and run bin/loop.mjs report --write.
+    Measure the tip with bin/loop.mjs measure --area all --tip <tip>: every
+    area, each within its budget, into doc/loop/history.jsonl. Write
+    doc/loop/round-<n>.md on loop/r<n>, mark the merged items done there with
+    `bin/loop.mjs mark <id>=<hash> ...`, and commit both on the branch with
+    Loop-round: <n> and Loop-verify: <tip> — the marks belong in the same
+    commit, not after the land. bin/loop.mjs land <n> then makes the one
+    fast-forward, and refuses while doc/ is dirty. Run bin/loop.mjs report
+    --write after any queue edit.
 
-    Only the loop edits doc/Loop.md, doc/loop/queue.json and doc/Loop-queue.md.
+    Only the loop edits doc/Loop.md, doc/loop/queue.json, doc/Loop-queue.md and
+    the plan; a lane that needs a file outside its row stops and reports
+    instead of widening it.
     A red suite is not landed: fix the harness or park the lane, record the
     fact, and keep main green.
 

@@ -46,14 +46,6 @@ before.
 | p102 | man | a1 | ready | an unknown escape (`\Q`) is printed by groff as its letter and refused here | js/man-parse.mjs, test/man-parse.mjs |
 | c9 | code | a2 | ready | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 
-## In round
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| c15 | code | a2 | in-round | the `Creating session...` placeholder is never removed, so it stays above the first turn and can receive an orphan delta | ext/code/code.mjs, test/code-prompt-e2e.mjs |
-| p130 | man | a1 | in-round | `\$@` interpolation does not quote its arguments: groff prints `["a" "b" "c"]`, bred `[a b c]` | js/man-parse.mjs, test/man-parse.mjs |
-| p109 | man | a3 | in-round | thumbpdf(1) mis-encoded byte folds to ©: section 1 reaches 0 lost words | bin/man-diff, test/man-diff.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -80,6 +72,8 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| c15 | code | a2 | done:2f97b214 | the `Creating session...` placeholder is never removed, so it stays above the first turn and can receive an orphan delta | ext/code/code.mjs, test/code-prompt-e2e.mjs |
+| p130 | man | a1 | done:a0e05f0b | `\$@` interpolation does not quote its arguments: groff prints `["a" "b" "c"]`, bred `[a b c]` | js/man-parse.mjs, test/man-parse.mjs |
 | b5 | man | a1 | done:30263abb | batch: macro arguments, a bar, and a cut body line (p101, p118, p119) | js/man-parse.mjs, test/man-parse.mjs |
 | c13 | code | a2 | done:aa5130e6 | handlePartDelta draws a text delta as a thinking block when the assistant message element is missing (a reconnect that dropped session.text.started) | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | b4 | man | a1 | done:f6b63ada | batch: joins and space blocks (p55, p73, p126) | js/man-parse.mjs, test/man-parse.mjs |
@@ -163,6 +157,7 @@ before.
 | p106 | man | a3 | done:a3607bd | rpcgen(1)'s 0a is a footer page-string, not content: man-diff's isFooter must drop a right-aligned multi-page token (/^\s{10,}[0-9]+[a-z]$/) | bin/man-diff, test/man-diff.mjs |
 | p107 | man | a1 | done:9612e96 | ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis | js/man-parse.mjs, test/man-parse.mjs |
 | p108 | man | a1 | done:c1f2f38a | tex2aspc(1) loses 1 word: TransformNotes | js/man-parse.mjs, test/man-parse.mjs |
+| p109 | man | a3 | done:9c9e1b12 | thumbpdf(1) mis-encoded byte folds to ©: section 1 reaches 0 lost words | bin/man-diff, test/man-diff.mjs |
 | p110 | man | a1 | done:fc63c08c | tload(1) loses 1 word: and (a line join) | js/man-parse.mjs, test/man-parse.mjs |
 | p111 | man | a1 | done:7032014a | xargs(1) loses 1 word: --show-limits (a hyphen join) | js/man-parse.mjs, test/man-parse.mjs |
 | p112 | man | a1 | done:3d13d152 | editline(7) loses 5 words: a lone - in the text | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |

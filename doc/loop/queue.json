@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T23:54:58Z",
     "stopNew": "2026-11-25T23:09:58Z",
     "state": "active",
-    "round": 63,
-    "main": "3cf5b274"
+    "round": 64,
+    "main": "9c9e1b12"
   },
   "items": [
     {
@@ -14,14 +14,15 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "in-round",
+      "status": "done",
       "title": "the `Creating session...` placeholder is never removed, so it stays above the first turn and can receive an orphan delta",
       "files": [
         "ext/code/code.mjs",
         "test/code-prompt-e2e.mjs"
       ],
       "proof": "npx mocha --exit test/code-prompt-e2e.mjs --grep placeholder",
-      "notes": "Found in c13's lane report (2026-11-25): Ui.appendMsg(buf, 0, 'Creating session...') at ext/code/code.mjs:1488 is only cleared by Ui.clearMsgs from the revert path (code.mjs:1624). A normal turn leaves the placeholder in the transcript, and a part-id-0 delta used to be appended into it. Red test `placeholder :: the creating-session message is removed when the first turn starts` (assert no .code-msg element with that text after the turn)."
+      "notes": "Found in c13's lane report (2026-11-25): Ui.appendMsg(buf, 0, 'Creating session...') at ext/code/code.mjs:1488 is only cleared by Ui.clearMsgs from the revert path (code.mjs:1624). A normal turn leaves the placeholder in the transcript, and a part-id-0 delta used to be appended into it. Red test `placeholder :: the creating-session message is removed when the first turn starts` (assert no .code-msg element with that text after the turn). Round 64: lane a2 tip 2f97b214.",
+      "doneHash": "2f97b214"
     },
     {
       "id": "c14",
@@ -59,14 +60,15 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "in-round",
+      "status": "done",
       "title": "`\\$@` interpolation does not quote its arguments: groff prints `[\"a\" \"b\" \"c\"]`, bred `[a b c]`",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Found in b5's lane report (2026-11-25): `.de M` body `[\\\\$@]`, called `.M a b c` — groff prints `[\"a\" \"b\" \"c\"]`; bred prints `[a b c]`. Red test `macros :: dollar at quotes each argument`, asText == '[\"a\" \"b\" \"c\"]\\n'. The existing green test that asserts the unquoted form must be updated with the fix."
+      "notes": "Found in b5's lane report (2026-11-25): `.de M` body `[\\\\$@]`, called `.M a b c` — groff prints `[\"a\" \"b\" \"c\"]`; bred prints `[a b c]`. Red test `macros :: dollar at quotes each argument`, asText == '[\"a\" \"b\" \"c\"]\\n'. The existing green test that asserts the unquoted form must be updated with the fix. Round 64: lane a1 tip a0e05f0b.",
+      "doneHash": "a0e05f0b"
     },
     {
       "id": "b7",
@@ -1330,7 +1332,7 @@
     {
       "id": "p109",
       "lane": "a3",
-      "status": "in-round",
+      "status": "done",
       "title": "thumbpdf(1) mis-encoded byte folds to ©: section 1 reaches 0 lost words",
       "files": [
         "bin/man-diff",
@@ -1339,8 +1341,9 @@
       "proof": "npx mocha --exit test/man-diff.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Proved 2026-11-25 at 9978571c: thumbpdf.1's source line is `Copyright \\302\\[co] 1999` (bytes 43..74 20 c2 5c 5b 63 6f 5d), the corpus's only invalid UTF-8 page (3254 files scanned). groff's preconv reads the lone C2 byte as Latin-1 and prints `Â©` (c3 82 c2 a9), while our decode marks it U+FFFD and prints `�©` (ef bf bd c2 a9); no word is lost (303 ours / 303 man), only that token's first codepoint differs, so this is a comparison fold, not a parser fix. keyOf now drops U+FFFD and decodes a word of byte-sized Latin-1 characters as UTF-8 when that is valid, making both keys `©`; a pair that is not valid UTF-8 still reports. New tests `a mis-decoded byte folds to the content the bytes spell` and `thumbpdf(1) mis-encoded byte is not a lost word` failed at base (`'�©' !== '©'`, `1 !== 0`) and pass now, and `bin/man-diff --section 1 --max 0` goes from 1:1p/1w to 0:0p/0w. Patch: /home/matt/worktrees/0db3bcbf-6070-493e-b543-4680184becc5/bred-loop/groom-p109.patch.",
-      "source": "triage"
+      "notes": "Proved 2026-11-25 at 9978571c: thumbpdf.1's source line is `Copyright \\302\\[co] 1999` (bytes 43..74 20 c2 5c 5b 63 6f 5d), the corpus's only invalid UTF-8 page (3254 files scanned). groff's preconv reads the lone C2 byte as Latin-1 and prints `Â©` (c3 82 c2 a9), while our decode marks it U+FFFD and prints `�©` (ef bf bd c2 a9); no word is lost (303 ours / 303 man), only that token's first codepoint differs, so this is a comparison fold, not a parser fix. keyOf now drops U+FFFD and decodes a word of byte-sized Latin-1 characters as UTF-8 when that is valid, making both keys `©`; a pair that is not valid UTF-8 still reports. New tests `a mis-decoded byte folds to the content the bytes spell` and `thumbpdf(1) mis-encoded byte is not a lost word` failed at base (`'�©' !== '©'`, `1 !== 0`) and pass now, and `bin/man-diff --section 1 --max 0` goes from 1:1p/1w to 0:0p/0w. Patch: /home/matt/worktrees/0db3bcbf-6070-493e-b543-4680184becc5/bred-loop/groom-p109.patch. Round 64: lane a3 tip 9c9e1b12.",
+      "source": "triage",
+      "doneHash": "9c9e1b12"
     },
     {
       "id": "p110",

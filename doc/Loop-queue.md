@@ -44,7 +44,7 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
-| c12 | code | a2 | in-round | session.tool.input.delta is dropped: translate() emits no legacy delta while a tool's input streams, so the preview appears only when .ended has parsed the whole JSON | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
+| c12 | code | a2 | in-round | session.tool.input.delta is dropped: translate() emits no legacy delta while a tool's input streams, so the preview appears only when .ended has parsed the whole JSON | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/tool-input.jsonl |
 | p131 | man | a1 | in-round | a comment line at table-row level inside .TS/.TE is turned into a data row; tbl ignores it (ps(1) 9 of its surplus tokens, terminfo(5) 5) | js/man-parse.mjs, test/man-parse.mjs |
 | p140 | core | a3 | in-round | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
 

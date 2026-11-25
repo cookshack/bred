@@ -275,8 +275,11 @@ problems come from, not how they are merged.
 ## For Matt
 
 - The pivot point is now: of 37 open man items, ~14 have no red-capable proof
-  and the measured residue is 13 pages with pinned tests — two or three rounds
-  of decisions rather than discovery.
+  and the measured residue is **10 pages / 17 words** at round 40 (1:7p/9w,
+  7:1p/5w, 8:2p/3w) with pinned tests — one or two rounds of measurement, and
+  two or three of decisions for the tail. The figures here were 13/28 when the
+  plan was drafted; the area moved while it was being agreed, which is the
+  reason a measure names its tip.
 - Rounds 25–38 ran one lane because every ready item touched
   `js/man-parse.mjs`, not by choice; a three-lane round costs ~35 min against
   ~28 for one, so lanes are cheap and items are the bottleneck.

@@ -1146,6 +1146,12 @@ function handlePart
       buf.vars('code').gotContent = 1
       Ui.appendThinking(buf, buffered, part.id, part.time, part.sessionID)
     }
+    else if (part.text) {
+      // The ended part has the complete thinking text and no delta; replace
+      // what the deltas built, which a reconnect can have left short.
+      buf.vars('code').gotContent = 1
+      Ui.finalizeThinking(buf, part.text, part.id, part.time, part.sessionID)
+    }
   }
   else if (part.type == 'tool') {
     buf.vars('code').gotContent = 1

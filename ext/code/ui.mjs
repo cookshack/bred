@@ -784,6 +784,35 @@ function appendThinking
                                })
 }
 
+// The ended reasoning part carries the whole thinking text, so it replaces
+// what the deltas built: a reconnect can leave the block short. Drop any flush
+// still queued first, or it would append the old deltas on top of the full
+// text. The ended id is derived from the message, so this also creates the
+// block when the started event was the one the reconnect dropped.
+export
+function finalizeThinking
+(buf, text, partId, at, sessionID) {
+  let chunks, found
+
+  chunks = buf.vars('code').thinkChunks
+  if (chunks)
+    delete chunks[partId]
+  found = 0
+  Util.eachOut(buf, sessionID, (view, w, box) => {
+                                 let textEl
+
+                                 textEl = box.querySelector('.code-msg-thinking[data-partid="' + partId + '"] .code-msg-text')
+                                 if (textEl) {
+                                   found = 1
+                                   if (textEl.innerText == text)
+                                     return
+                                   withScroll(w, () => textEl.innerText = text)
+                                 }
+                               })
+  if (found == 0)
+    appendThinking(buf, text, partId, at, sessionID)
+}
+
 export
 function appendToolMsg
 (buf, callID, label, under, spec) {

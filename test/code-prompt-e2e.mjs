@@ -561,6 +561,54 @@ test('order', 'model line comes after the assistant response',
        }
      })
 
+// The ended reasoning part carries the complete thinking text. A reconnect can
+// drop the middle of the delta stream, so the block the deltas built is short;
+// the ended update has to replace it, the way the ended text part does.
+test('reasoning', 'an ended update replaces a truncated thinking block',
+     async () => {
+       let complete, created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-think', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       complete = 'The first half, the dropped middle, and the end.'
+       try {
+         let textEl
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-think' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-think', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.reasoning.started', { sessionID: 'ses-think', assistantMessageID: 'm1', ordinal: 0 }))
+         fake.push(Fake.event('session.reasoning.delta', { sessionID: 'ses-think', assistantMessageID: 'm1', ordinal: 0, delta: 'The first half,' }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-thinking .code-msg-text'))
+         textEl = created.views[0].ele.querySelector('.code-msg-thinking .code-msg-text')
+         equal(textEl.textContent, 'The first half,', 'a delta still appends to the block')
+
+         fake.push(Fake.event('session.reasoning.ended', { sessionID: 'ses-think', assistantMessageID: 'm1', ordinal: 0, text: complete }))
+         await waitFor(() => (textEl.textContent == complete) ? 1 : 0)
+         equal(textEl.textContent, complete,
+               'the ended update replaces the truncated thinking block')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
 test('order', 'stop marker comes before the model footer',
      async () => {
        let created, fake, orig, panes

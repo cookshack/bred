@@ -215,6 +215,19 @@ function charByNumber
   return 0
 }
 
+// `\N` takes a number, not a JavaScript one: groff reads an optional `+` and
+// decimal digits. `\N'0x41'` is char 0 followed by the text `x41'`, and
+// `\N'1e2'` is char 1 followed by `e2'`, so neither is hex nor a power of ten.
+// Leading zeros are decimal (`\N'040'` is char 40). A hex or exponent form
+// that `Number()` would read has no code point here, so it is not a number.
+export
+function charNumber
+(num) {
+  if (/^\+?[0-9]+$/.test(num) == 0)
+    return 0
+  return charByNumber(num)
+}
+
 // groff refuses a printable ASCII `u` code point unless it has a special
 // character name: `\[u0041]` is the plain glyph `A` and warns "can't find
 // special character '\A'", while `\[u0040]` is \(at and prints. Digits,

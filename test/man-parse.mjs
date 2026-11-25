@@ -2405,12 +2405,29 @@ test('escapes', 'o emits the first character of its argument',
        equal(flat(r.doc.blocks[0].spans), 'axb')
      })
 
-test('escapes', 'N names a character by its numeric code',
+test('escapes', 'N names a character by its decimal code',
      () => {
        let r
 
        r = parsed('.TH T 1\na \\N\'65\' b\n')
        equal(flat(r.doc.blocks[0].spans), 'a A b')
+       // groff -Tutf8: \N'040' is char 40, the left paren.
+       r = parsed('.TH T 1\na \\N\'040\' b\n')
+       equal(flat(r.doc.blocks[0].spans), 'a ( b')
+       // groff -Tutf8: a leading plus is part of the number, \N'+65' is A.
+       r = parsed('.TH T 1\na \\N\'+65\' b\n')
+       equal(flat(r.doc.blocks[0].spans), 'a A b')
+     })
+
+test('refusal', 'an N argument is not a JavaScript number',
+     () => {
+       // groff -Tutf8 reads \N'0x41' as char 0 plus the text "41'" and
+       // \N'1e2' as char 1 plus "2'"; neither is hex or scientific notation.
+       // Char 0 is NUL, which has no text form, so the page is refused.
+       equal(parsed('.TH T 1\na \\N\'0x41\' b\n').ok, 0)
+       equal(parsed('.TH T 1\na \\N\'1e2\' b\n').ok, 0)
+       // groff: \N'0' is NUL as well.
+       equal(parsed('.TH T 1\na \\N\'0\' b\n').ok, 0)
      })
 
 test('escapes', 'vertical, device and mark escapes are skipped',

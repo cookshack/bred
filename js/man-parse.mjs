@@ -624,7 +624,7 @@ function expand
 
         end = skipArg(text, at)
         num = unquote(text.slice(at, end))
-        value = Char.charByNumber(num)
+        value = Char.charNumber(num)
         if (value == 0)
           fail(c, lineNo, 'character \\N' + num + "'", 'unknown')
         else

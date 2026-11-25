@@ -34,7 +34,7 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p19 | a1 | ready | `.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2) | js/man-parse.mjs, test/man-parse.mjs |
+| p96 | a1 | ready | ttf2tfm(1) loses 10 words: a \c at the end of a text line whose next line is a .C macro call keeps the backtick glued to the macro text; groff joins them and we insert a space | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Backlog
 
@@ -75,6 +75,7 @@ before.
 | p57 | a2 | done:6e94402 | a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one | js/man.mjs, test/man-viewer.mjs |
 | p44 | a1 | done:3f79ddf | `tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11` | js/man-parse.mjs, test/man-parse.mjs |
 | p56 | a1 | done:889ce7c | a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none | js/man-parse.mjs, test/man-parse.mjs |
+| p19 | a1 | done:1c115f6 | verdict: .Rv/.Ex have no -exit/-nop flags; only a leading -std is a flag, later args are names (p19 corrected the doc) | js/man-parse.mjs, test/man-parse.mjs |
 | p12 | a1 | done:3eb439b | `\c` joins forward only (ext2/3/4.5 `trackingfile`) |  |
 | p13 | a1 | done:3eb439b | `\F` and `\m \M \k \S \v` take their own forms (kernel-install `THE TION`, git-subtree, mflua) |  |
 | p14 | a1 | done:3eb439b | `.Sm off` starts suppressing at the second call (ssh_config `PermitRemoteOpen host:port`) |  |

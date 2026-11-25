@@ -138,13 +138,14 @@
     {
       "id": "p19",
       "lane": "a1",
-      "status": "ready",
-      "title": "`.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2)",
+      "status": "done",
+      "title": "verdict: .Rv/.Ex have no -exit/-nop flags; only a leading -std is a flag, later args are names (p19 corrected the doc)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "1c115f6"
     },
     {
       "id": "p33",
@@ -788,6 +789,17 @@
       "title": "groff's \\[charN] is a glyph/table lookup, not a bare code point: char57344 warns and prints nothing, bred returns U+E000; char65/233/200 agree",
       "files": [
         "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p96",
+      "lane": "a1",
+      "status": "ready",
+      "title": "ttf2tfm(1) loses 10 words: a \\c at the end of a text line whose next line is a .C macro call keeps the backtick glued to the macro text; groff joins them and we insert a space",
+      "files": [
+        "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs"

@@ -48,6 +48,7 @@ before.
 | c6 | code | a2 | ready | a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs) | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | p119 | man | a1 | ready | a bar is a roman word inside a macro argument list; the words after it keep the macro font and role | js/man-parse.mjs, test/man-parse.mjs |
 | p126 | man | a1 | ready | a no-output request that defines or removes still swallows a pending \c join (p54 covered only .ft) | js/man-parse.mjs, test/man-parse.mjs |
+| l2 | tooling | a3 | ready | check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit | bin/loop.mjs, bin/loop-queue.mjs, test/loop.mjs |
 
 ## Backlog
 
@@ -174,6 +175,5 @@ before.
 | b1 | man | a1 | done:07e195dd | batch: the man tail's register claims (p45, p120) | js/man-parse.mjs, test/man-parse.mjs |
 | b2 | man | a1 | done:091f8e5b | batch: the character forms (p94, p95) | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
 | b3 | man | a1 | done:7846c1d0 | batch: a join through an empty macro, and Sm off before a text line (p98, p33) | js/man-parse.mjs, test/man-parse.mjs |
-| l2 | tooling | a3 | done:64348380 | check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit | bin/loop.mjs, bin/loop-queue.mjs, test/loop.mjs |
 
 <!-- /loop:queue -->

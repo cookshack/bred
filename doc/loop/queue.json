@@ -5,7 +5,7 @@
     "deadline": "2026-11-25T15:06:55Z",
     "stopNew": "2026-11-25T14:21:55Z",
     "state": "active",
-    "main": "8618283a",
+    "main": "bc05d238",
     "round": 45
   },
   "items": [
@@ -1009,7 +1009,7 @@
     {
       "id": "p100",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "copyMode() chains replacements and over-reduces \\. and \\  (groff copy mode leaves \\. and an encoded space)",
       "files": [
         "js/man-parse.mjs",
@@ -1017,7 +1017,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "notes": "dmstats(8) is the corpus instance, and its row (p115) is folded in here: the .de CMD_COMMAND body has `.  IR device_name \\ |`, and bred prints `device_name|` where groff prints `device_name |` (man-diff: lost 2, [device_name, minor]). The same .IR outside a macro body is correct, so the space is lost when the body is copied/stored, not when .IR renders. Test by defining `.de X` around the line and comparing with groff -Tutf8 -man. 2 words in section 8."
     },
     {
       "id": "p101",
@@ -1212,19 +1213,6 @@
       "area": "man",
       "type": "fix",
       "doneHash": "3bf287c"
-    },
-    {
-      "id": "p115",
-      "lane": "a1",
-      "status": "next",
-      "title": "dmstats(8) loses 2 words: minor and device_name in a table cell",
-      "files": [
-        "js/man-parse.mjs",
-        "test/man-parse.mjs"
-      ],
-      "proof": "npx mocha --exit test/man-parse.mjs",
-      "area": "man",
-      "type": "fix"
     },
     {
       "id": "p116",
@@ -1441,9 +1429,9 @@
     {
       "id": "p123",
       "area": "man",
-      "lane": "a1",
+      "lane": "a3",
       "type": "fix",
-      "status": "next",
+      "status": "ready",
       "title": "a .Bl -dash list still renders as an HTML ul disc; groff draws \"-\" per item (the text model now agrees, the renderer does not)",
       "files": [
         "js/man-render.mjs",
@@ -1457,7 +1445,7 @@
       "id": "c9",
       "area": "code",
       "lane": "a2",
-      "type": "fix",
+      "type": "triage",
       "status": "next",
       "title": "handlePartDelta also decides from one view: a thinking delta goes only to boxes that already hold the block, so a box that lacks it never gets it",
       "files": [
@@ -1465,7 +1453,7 @@
         "test/code-prompt-e2e.mjs"
       ],
       "proof": "npx mocha --exit test/code-prompt-e2e.mjs",
-      "notes": "Same shape as c8, in the message.part.delta path: view = buf.anyView(1), then if that one box has the thinking element it calls Ui.chunkThink and returns. flushThink fills only boxes that already have the element, so a second view that lacks the block stays empty. c8 fixed appendThinking; this path was left alone because code.mjs was outside its file set."
+      "notes": "Needs a decision before dispatch, not a fix: message.part.delta is produced only by session.text.delta, whose partID is assistantMessageID + \":text:\" + ordinal, so the think-element branch in handlePartDelta (a .code-msg-thinking with that partID) cannot be reached by any translated event. Either delete the branch or prove a path that reaches it (a synthetic legacy event would only test the dead code). No red proof until then."
     }
   ],
   "measures": {

@@ -698,29 +698,24 @@ function queueDrift
 
 // A done hash must be the commit that did the work, not any ancestor. Round 57
 // marked an item done with a peer's grooming commit while the lane never
-// merged; the hash was on main, so the old check was happy.
+// merged; the hash was on main, so an ancestry check was happy. A trailer check
+// is too strict for the rounds before the trailer convention, so the rule is
+// the commit's own diff: it must touch at least one file the row owns. A batch
+// commit touches its members' files, and an old absorbed row with no files is
+// exempt.
 function checkHash
-(q, item, problems, ref) {
-  let body, m, named, same
+(item, problems, ref) {
+  let files
 
   if (ok(root, 'cat-file', '-e', item.doneHash) == 0)
     return problems.push(item.id + ': done:' + item.doneHash + ' does not exist')
   if (ok(root, 'merge-base', '--is-ancestor', item.doneHash, ref) == 0)
     return problems.push(item.id + ': done:' + item.doneHash + ' is not on ' + ref)
-  body = tryGit(root, 'log', '-1', '--format=%B', item.doneHash)
-  m = body.match(/^Loop-item: (\S+)$/m)
-  if (m == undefined)
-    return problems.push(item.id + ': done:' + item.doneHash + ' carries no Loop-item trailer')
-  named = m[ 1 ]
-  same = (named == item.id) || (named == item.absorbedBy)
-  if (same || isBatch(q, named))
+  if (item.files.length == 0)
     return
-  problems.push(item.id + ': done:' + item.doneHash + ' names ' + named + ', not this item')
-}
-
-function isBatch
-(q, id) {
-  return q.items.some(item => (item.id == id) && item.batch) ? 1 : 0
+  files = lines(git(root, 'show', '--name-only', '--format=', item.doneHash))
+  if (files.some(f => item.files.includes(f)) == 0)
+    problems.push(item.id + ': done:' + item.doneHash + ' does not touch the item files')
 }
 
 function checkCmd
@@ -738,7 +733,7 @@ function checkCmd
 
     item = q.items[ i ]
     if (item.status == 'done' && item.doneHash)
-      checkHash(q, item, problems, ref)
+      checkHash(item, problems, ref)
     else if (t.items.includes(item.id))
       problems.push(item.id + ': a Loop-item trailer exists but the queue says ' + item.status)
     i += 1

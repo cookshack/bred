@@ -631,43 +631,47 @@ function missingRefuses
   equal(res.out.includes('no run clock'), true)
 }
 
-// l2: a done hash must be the commit that did the work. A peer's grooming
-// commit is on main and used to satisfy the check while the fix sat on a lane
-// branch that never merged (round 57).
+// l2: a done hash must be the commit that did the work. Round 57 used a peer's
+// grooming commit, which was on main while the fix sat on a lane branch that
+// never merged; ancestry alone was happy. The commit's own diff must touch a
+// file the row owns.
 function doneQueue
-(dir, trailer) {
-  let q, row
+(dir, touched) {
+  let hash, q, row
 
-  Fs.writeFileSync(Path.join(dir, 'work.txt'), 'x\n')
-  git(dir, [ 'add', 'work.txt' ])
-  git(dir, [ 'commit', '-qm', trailer ])
+  if (touched) {
+    Fs.writeFileSync(Path.join(dir, 'work.txt'), 'x\n')
+    git(dir, [ 'add', 'work.txt' ])
+    git(dir, [ 'commit', '-qm', 'work\n\nLoop-item: p1' ])
+  }
+  hash = touched ? git(dir, [ 'rev-parse', 'HEAD' ]) : git(dir, [ 'rev-list', '--max-parents=0', 'HEAD' ])
   writeRun(dir, pastRun())
-  row = { id: 'p1', area: 'man', lane: 'a1', type: 'fix', status: 'done', title: 'x', files: [ 'work.txt' ], proof: 'true', doneHash: git(dir, [ 'rev-parse', 'HEAD' ]) }
+  row = { id: 'p1', area: 'man', lane: 'a1', type: 'fix', status: 'done', title: 'x', files: [ 'work.txt' ], proof: 'true', doneHash: hash }
   q = { schema: 1, run: pastRun(), items: [ row ] }
   Fs.writeFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), JSON.stringify(q, null, 2) + '\n')
 }
 
-function doneNeedsTrailer
+function doneElsewhere
 (dir) {
   let res
 
-  doneQueue(dir, 'plain')
+  doneQueue(dir, 0)
   res = loopRaw(dir, [ 'check' ])
   equal(res.status, 1)
-  equal(res.out.includes('carries no Loop-item trailer'), true)
+  equal(res.out.includes('does not touch the item files'), true)
 }
 
-function doneAcceptsTrailer
+function doneTouches
 (dir) {
   let res
 
-  doneQueue(dir, 'work\n\nLoop-item: p1')
+  doneQueue(dir, 1)
   res = loopRaw(dir, [ 'check' ])
   equal(res.status, 0)
 }
 
-test('check', 'a done hash that carries no Loop-item trailer is a problem', withRepo(doneNeedsTrailer))
-test('check', 'a done hash that names its item is accepted', withRepo(doneAcceptsTrailer))
+test('check', 'a done hash that touches none of the item files is a problem', withRepo(doneElsewhere))
+test('check', 'a done hash that touches an item file is accepted', withRepo(doneTouches))
 
 test('clock', 'clock --can-start exits 1 after stopNew', withRepo(clockRefuses))
 test('clock', 'round refuses after stopNew instead of starting', withRepo(roundRefuses))

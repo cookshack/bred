@@ -30,14 +30,6 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
-## Ready
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| p112 | man | a1 | ready | editline(7) loses 5 words: a lone - in the text | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
-| c3 | code | a3 | ready | session.retry.scheduled is dropped; a retry is visible to the user, so decide what legacy event it should be | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs |
-| c8 | code | a2 | ready | Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing) | ext/code/ui.mjs, test/code-prompt-e2e.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -78,6 +70,8 @@ before.
 | p119 | man | a1 | next | a bar ends the argument list of other multi-argument macros (Ar, Cm, Ic, Pa, …), so words after it lose the macro font; style only, each needs its own evidence | js/man-parse.mjs, test/man-parse.mjs |
 | p120 | man | a1 | next | a valueless .nr X sets it to 0 here; groff leaves it undefined and reading \nX creates it (two register divergences, no corpus effect) | js/man-parse.mjs, test/man-parse.mjs |
 | p121 | man | a1 | next | .if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it) | js/man-parse.mjs, test/man-parse.mjs |
+| p123 | man | a1 | next | a .Bl -dash list still renders as an HTML ul disc; groff draws "-" per item (the text model now agrees, the renderer does not) | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
+| c9 | code | a2 | next | handlePartDelta also decides from one view: a thinking delta goes only to boxes that already hold the block, so a box that lacks it never gets it | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 
 ## Triage
 
@@ -156,11 +150,14 @@ before.
 | p105 | man | a2 | done:de1718c | ssh-agent(1) loses 2 words: the synopsis -s] bracket | js/man-parse.mjs, test/man-parse.mjs |
 | p106 | man | a3 | done:a3607bd | rpcgen(1)'s 0a is a footer page-string, not content: man-diff's isFooter must drop a right-aligned multi-page token (/^\s{10,}[0-9]+[a-z]$/) | bin/man-diff, test/man-diff.mjs |
 | p107 | man | a1 | done:9612e96 | ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis | js/man-parse.mjs, test/man-parse.mjs |
+| p112 | man | a1 | done:3d13d152 | editline(7) loses 5 words: a lone - in the text | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p113 | man | a3 | done:6b36716 | gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff) | bin/man-diff, test/man-diff.mjs |
 | p114 | man | a3 | done:3bf287c | dmsetup(8) loses 5 words: long [a\|b] alternatives wrapped by man(1); decide a diff join or parser rule | bin/man-diff, test/man-diff.mjs |
 | g1 | code | a1 | done:f6ff0e7 | second area: a recorder of real v2 event streams and a conformance measure over translate() (translated / dropped / malformed), plus one committed fixture | bin/oc-record.mjs, bin/oc-conformance.mjs, test/code-conformance.mjs, test/fixtures/oc-events/*, ext/code/event.mjs |
 | c1 | code | a1 | done:c72362c | session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage) | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/* |
+| c3 | code | a3 | done:8618283a | session.retry.scheduled is dropped; a retry is visible to the user, so decide what legacy event it should be | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs |
 | c5 | code | a1 | done:f26a1d0 | session.reasoning.ended has the same authoritative text as text.ended and is still dropped; translate it the same way | ext/code/event.mjs, test/code-events.mjs, test/code-conformance.mjs, test/fixtures/oc-events/* |
 | c7 | code | a2 | done:fd65122 | the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
+| c8 | code | a2 | done:e3e11414 | Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing) | ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 
 <!-- /loop:queue -->

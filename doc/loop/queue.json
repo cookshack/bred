@@ -5,7 +5,8 @@
     "deadline": "2026-11-25T15:06:55Z",
     "stopNew": "2026-11-25T14:21:55Z",
     "state": "active",
-    "main": "ff99f001"
+    "main": "8618283a",
+    "round": 45
   },
   "items": [
     {
@@ -1170,7 +1171,7 @@
     {
       "id": "p112",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "editline(7) loses 5 words: a lone - in the text",
       "files": [
         "js/man-parse.mjs",
@@ -1181,7 +1182,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs test/man-render.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "editline(7) has a .Bl -dash list; groff prints \"-\" before each item and toText emits nothing. Verified: groff -Tutf8 -mdoc on a 2-item -dash list prints \"-\"; -bullet prints U+2022, -hyphen prints \"-\", -enum prints \"1.\". The renderer draws a <ul> disc for both dash and bullet."
+      "notes": "editline(7) has a .Bl -dash list; groff prints \"-\" before each item and toText emits nothing. Verified: groff -Tutf8 -mdoc on a 2-item -dash list prints \"-\"; -bullet prints U+2022, -hyphen prints \"-\", -enum prints \"1.\". The renderer draws a <ul> disc for both dash and bullet.",
+      "doneHash": "3d13d152"
     },
     {
       "id": "p113",
@@ -1314,7 +1316,7 @@
       "area": "code",
       "lane": "a3",
       "type": "triage",
-      "status": "ready",
+      "status": "done",
       "title": "session.retry.scheduled is dropped; a retry is visible to the user, so decide what legacy event it should be",
       "files": [
         "ext/code/event.mjs",
@@ -1322,7 +1324,8 @@
         "test/code-conformance.mjs"
       ],
       "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs",
-      "notes": "code.mjs already consumes { type: \"retry\" } in updateStatus (line ~524) with an optional message, so the natural translation is session.status. The fixture pins retry.scheduled dropped=1 in test/code-conformance.mjs; that pin moves with the fix."
+      "notes": "code.mjs already consumes { type: \"retry\" } in updateStatus (line ~524) with an optional message, so the natural translation is session.status. The fixture pins retry.scheduled dropped=1 in test/code-conformance.mjs; that pin moves with the fix.",
+      "doneHash": "8618283a"
     },
     {
       "id": "c4",
@@ -1426,13 +1429,43 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "done",
       "title": "Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing)",
       "files": [
         "ext/code/ui.mjs",
         "test/code-prompt-e2e.mjs"
       ],
-      "proof": "npx mocha --exit test/code-prompt-e2e.mjs"
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs",
+      "doneHash": "e3e11414"
+    },
+    {
+      "id": "p123",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": "a .Bl -dash list still renders as an HTML ul disc; groff draws \"-\" per item (the text model now agrees, the renderer does not)",
+      "files": [
+        "js/man-render.mjs",
+        "css/manpage.css",
+        "test/man-render.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-render.mjs",
+      "notes": "p112 fixed only the text model: toText marks each item, so editline(7) measures clean. listNode still builds a <ul>, and css/manpage.css has no marker rule, so the page shows a disc where groff shows -. groff -Tutf8 -mdoc: -dash and -hyphen print \"-\", -bullet prints U+2022, -enum prints \"1.\". The measure cannot see the bullet (man-diff maps U+2022 and the box-drawing range to a space), so this is a display-only item."
+    },
+    {
+      "id": "c9",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "next",
+      "title": "handlePartDelta also decides from one view: a thinking delta goes only to boxes that already hold the block, so a box that lacks it never gets it",
+      "files": [
+        "ext/code/code.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs",
+      "notes": "Same shape as c8, in the message.part.delta path: view = buf.anyView(1), then if that one box has the thinking element it calls Ui.chunkThink and returns. flushThink fills only boxes that already have the element, so a second view that lacks the block stays empty. c8 fixed appendThinking; this path was left alone because code.mjs was outside its file set."
     }
   ],
   "measures": {

@@ -616,7 +616,15 @@ Round 44 made `Ns` survive a closing bracket (ssh-copy-id's
 multi-page page-string is a footer, not content (rpcgen's `0a`, 1 → 0).
 Section 1 is now 3 words on 3 pages: tex2aspc, thumbpdf, tload.
 
-Tests: 615 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 45 taught `toText` the `-dash`/`-hyphen` item marker: groff prints one
+`-` per item, and editline(7)'s five items were the whole of section 7's
+residue, so section 7 is clean. The renderer still draws a `<ul>` disc for a
+`-dash` list; `man-diff` cannot see that (it maps U+2022 to a space), so the
+display fix is queued as p123 instead of being measured. What is left is
+section 1's three words on three pages (tex2aspc, thumbpdf, tload) and section
+8's three on two (dmstats 2, dmsetup 1).
+
+Tests: 617 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

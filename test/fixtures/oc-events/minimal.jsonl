@@ -1,0 +1,10 @@
+{"id":"evt_fixture_1","created":1730000000000,"type":"session.execution.started","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture"}}
+{"id":"evt_fixture_2","created":1730000000001,"type":"session.step.started","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture","assistantMessageID":"msg_fixture_1","agent":"build","model":{"id":"deepseek/deepseek-v4.1-flash","providerID":"goat"},"started":1730000000001}}
+{"id":"evt_fixture_3","created":1730000000002,"type":"session.text.started","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture","assistantMessageID":"msg_fixture_1","ordinal":0}}
+{"id":"evt_fixture_4","created":1730000000003,"type":"session.text.delta","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture","assistantMessageID":"msg_fixture_1","ordinal":0,"delta":"ok"}}
+{"id":"evt_fixture_5","created":1730000000004,"type":"session.text.ended","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture","assistantMessageID":"msg_fixture_1","ordinal":0,"text":"ok"}}
+{"id":"evt_fixture_6","created":1730000000005,"type":"session.tool.input.started","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture","assistantMessageID":"msg_fixture_1","id":"call_fixture_1","name":"read"}}
+{"id":"evt_fixture_7","created":1730000000006,"type":"session.tool.called","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture","assistantMessageID":"msg_fixture_1","id":"call_fixture_1","input":{"filePath":"/tmp/a.txt"},"executed":true}}
+{"id":"evt_fixture_8","created":1730000000007,"type":"session.tool.success","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture","assistantMessageID":"msg_fixture_1","id":"call_fixture_1","content":[{"type":"text","text":"a"}],"executed":true}}
+{"id":"evt_fixture_9","created":1730000000008,"type":"session.idle","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture"}}
+{"id":"evt_fixture_10","created":1730000000009,"type":"session.retry.scheduled","location":{"directory":"/tmp"},"data":{"sessionID":"ses_fixture","assistantMessageID":"msg_fixture_1","attempt":1,"at":1730000000010,"error":{"type":"api","message":"retry"}}}

@@ -1,0 +1,9 @@
+{"ts":1795599500669,"type":"server.connected","data":{}}
+{"ts":1795599503071,"type":"session.step.started","data":{"sessionID":"ses_live","agent":"build","model":{"id":"deepseek/deepseek-v4.1-flash","providerID":"goat"},"assistantMessageID":"msg_live_1","started":1795599500662}}
+{"ts":1795599503072,"type":"session.text.started","data":{"sessionID":"ses_live","assistantMessageID":"msg_live_1","ordinal":0}}
+{"ts":1795599503072,"type":"session.text.delta","data":{"sessionID":"ses_live","assistantMessageID":"msg_live_1","ordinal":0,"delta":"ok"}}
+{"ts":1795599503073,"type":"session.text.ended","data":{"sessionID":"ses_live","assistantMessageID":"msg_live_1","ordinal":0,"text":"ok"}}
+{"ts":1795599503073,"type":"session.step.streamed","data":{"sessionID":"ses_live","assistantMessageID":"msg_live_1"}}
+{"ts":1795599503073,"type":"session.step.ended","data":{"sessionID":"ses_live","assistantMessageID":"msg_live_1","finish":"stop","rawFinish":"stop","cost":0,"tokens":{"input":6486,"output":2,"reasoning":0,"cache":{"read":1280,"write":0}}}}
+{"ts":1795599503074,"type":"session.usage.updated","data":{"sessionID":"ses_live","cost":0,"tokens":{"input":6486,"output":2,"reasoning":0,"cache":{"read":1280,"write":0}}}}
+{"ts":1795599503074,"type":"session.execution.succeeded","data":{"sessionID":"ses_live"}}

@@ -1926,6 +1926,96 @@
       "proof": "npx mocha --exit test/man-render.mjs",
       "notes": "Found by b7's lane 2026-11-25 at 57a7e95b. p79/b7 moved a bottom-anchored spanned cell's text to the last row (toText now matches groff, `tables :: a vertical span puts its text on the bottom row`). The renderer was outside that lane's file set, so it still emits a separate empty <td> on each row above the span instead of one cell spanning the rows: tbl(1)'s own example draws `1111`/`2222` in the left cell and the row rule only under both, while our HTML gives three rows with an empty right-hand cell each. Decide rowspan (a cell model change the renderer consumes) versus dropping an empty continuation cell; the text model already records which cell is a continuation. Needs a red renderer test before dispatch.",
       "source": "lane"
+    },
+    {
+      "id": "p139",
+      "area": "core",
+      "status": "ready",
+      "type": "fix",
+      "title": "Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal",
+      "lane": "a2",
+      "files": [
+        "js/mode.mjs",
+        "test/mode-remove.mjs"
+      ],
+      "proof": "npx mocha --exit test/mode-remove.mjs",
+      "notes": "Found by the core hunt 2026-11-25 at b3560073. Mode.add lowercases the key before `modes.set` (js/mode.mjs:82, 92) and Mode.get lowercases before `modes.get` (js/mode.mjs:181), but Mode.remove does `m = get(key)` and then `modes.delete(key)` with the raw argument (js/mode.mjs:165-175), so the delete never matches for a name that is not already lowercase. Every Mode.remove caller passes a capitalised name (`Mode.remove('Rich')`, `Mode.remove('Clock')`, `Mode.remove('Search Lines')`, ... in ext/*), so an extension that unloads a mode leaves it registered: its `em` and `cmds` stay reachable from Em/Cmd and a later Mode.add of the same key finds the stale mode. Red tests `Mode.remove :: drops a mode registered with a mixed-case key` and `Mode.remove :: removes the toggle command for a mixed-case key`. Failure: `AssertionError [ERR_ASSERTION]: remove dropped the mode` / `+ actual { assist: {}, context: undefined, decorators: undefined, ... } - expected undefined`. The toggle command IS removed (Cmd.remove lowercases through canon), so only the map entry leaks. Fix: `modes.delete(m.key)` (or lowercase once at the top). Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/hunt-core1.patch",
+      "source": "hunt"
+    },
+    {
+      "id": "p140",
+      "area": "core",
+      "status": "ready",
+      "type": "fix",
+      "title": "Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key",
+      "lane": "a2",
+      "files": [
+        "js/Em.mjs",
+        "test/em-seq-minor.mjs"
+      ],
+      "proof": "npx mocha --exit test/em-seq-minor.mjs",
+      "notes": "Found by the core hunt 2026-11-25 at b3560073. doc/Em.md gives the active stack as `[ targetEm?, minor1.em, ..., mode.em, parents..., root ]` and Em.mainGetActive builds exactly that (js/Em.mjs:145-172), but Em.seq's mode path is seqMode (js/Em.mjs:442-464), which walks `mode.em`, then `parentsForEm`, then root and never touches `buf.minors`. A command bound in a minor mode therefore resolves when pressed (look() sees the minor em first) but Em.seq returns 0. That is user visible: js/win.mjs:27 and js/menu.mjs:40 render `Em.seq(cmd, buf) || ''` as the key hint while using Cmd.get(cmd, buf) to decide the entry is enabled, so a minor-mode command shows enabled with a blank key (View mode's `scroll down` on ' ', Code Prompt's commands, man's minor keys, ...). Red tests `Em.seq :: finds a command bound only in a minor mode` and `Em.seq :: still finds the major mode binding beside a minor one`. Failure: `AssertionError [ERR_ASSERTION]: Expected values to be strictly equal: 0 !== 'C-c z'` (and `0 !== 'C-c n'`), i.e. seqA found nothing instead of the key. Fix: have seqMode search `buf.minors` in the same last-added-first order mainGetActive uses, before mode.em. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/hunt-core1.patch NOTE for the scheduler: p141 also owns js/Em.mjs (the seq reduce), so pick takes one of the two per round; different regions, a rebase is enough.",
+      "source": "hunt"
+    },
+    {
+      "id": "p141",
+      "area": "core",
+      "status": "ready",
+      "type": "fix",
+      "title": "Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims",
+      "lane": "a2",
+      "files": [
+        "js/Em.mjs",
+        "test/em-seq-space.mjs"
+      ],
+      "proof": "npx mocha --exit test/em-seq-space.mjs",
+      "notes": "Found by the core hunt 2026-11-25 at b3560073. Em.seq reduces the key path with `acc + cur + ' '` for every key except the modifier names and ends with `.trim()` (js/Em.mjs:465-486), so the space key contributes a space that the trim then eats: a binding on ' ' decodes to '' and 'C- ' to 'C-'. Neither parses back through lib/ev-parser.mjs to the key that was bound, and the answer is what js/win.mjs:27 and js/menu.mjs:40 print as the context-menu / menu-bar key hint, so six modules' `Em.on(' ', 'scroll down')` (js/vc.mjs x10, js/shell.mjs:718, js/apt.mjs:162, js/man.mjs via View mode, js/view-mode.mjs:20) show as an empty key. Tests assert the round trip `EvParser.parse(Em.seq(cmd, buf)).join('|')` so a fix cannot just special-case the display. Red tests `Em.seq :: its answer for a space binding parses back to the space key` and `Em.seq :: its answer for a control space binding parses back to C- space`; the two plain-key tests in the file are green at base and must stay green. Failure: `AssertionError [ERR_ASSERTION]: Expected values to be strictly equal: '' !== ' '` and `'C-' !== 'C- '`. Fix: join the keys with a separator that a space key cannot produce, or trim only the final separator. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/hunt-core1.patch NOTE for the scheduler: p140 also owns js/Em.mjs, so the two overlap and pick will take one per round; their regions are different (seqMode vs the seq reduce), so a rebase is enough.",
+      "source": "hunt"
+    },
+    {
+      "id": "p142",
+      "area": "core",
+      "status": "ready",
+      "type": "fix",
+      "title": "Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree",
+      "lane": "a2",
+      "files": [
+        "js/cmd.mjs",
+        "test/cmd-minors.mjs"
+      ],
+      "proof": "npx mocha --exit test/cmd-minors.mjs",
+      "notes": "Found by the core hunt 2026-11-25 at b3560073. Em.mainGetActive pushes minors in reverse (js/Em.mjs:151-153) so the most recently added minor wins a key it shares with an older one, and Cmd.getAll prepends each minor in turn so the last added minor's command is listed first (js/cmd.mjs:124-126). Cmd.get instead walks `buf.minors` from index 0 upward and returns the first name match (js/cmd.mjs:94-98), i.e. the OLDER minor's command. With two minors defining the same command name the command that runs is not the entry listed first, and the key hint Cmd/Em report does not describe the handler. Red test `Cmd.get :: picks the same minor mode command that Cmd.getAll lists first`; it asserts the stack order and Cmd.getAll's order first (both pass at base) and then that Cmd.get returns the same handler. Failure: `AssertionError [ERR_ASSERTION]: and the one Cmd.get must return` / `'a' !== 'b'`. No current mode pair happens to collide, so nothing user visible breaks today; the fix is to walk minors last-added-first in Cmd.get (and make Cmd.getAll's comment match). Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/hunt-core1.patch",
+      "source": "hunt"
+    },
+    {
+      "id": "p143",
+      "area": "core",
+      "status": "ready",
+      "type": "fix",
+      "title": "a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4",
+      "lane": "a2",
+      "files": [
+        "js/em.mjs",
+        "test/em-otherwise.mjs"
+      ],
+      "proof": "npx mocha --exit test/em-otherwise.mjs",
+      "notes": "Found by the core hunt 2026-11-25 at b3560073. doc/Em.md states the lookup as `4. If no match, try otherwise. 5. If still no match, return failure`, but look1 returns 0 straight out of the ctrl branch and the alt branch when there is no Control/Alt submap (js/em.mjs:56-83), before it ever reaches `kb = kb || otherwise` (js/em.mjs:92). So an otherwise fallback never applies to a modified key. js/ed.mjs:769-777 works around exactly this by building empty Control and Alt submaps whose own otherwise is 'close qr and pass through', which is the shape a fix should make unnecessary. Red tests `otherwise :: covers a control key with no control map` and `otherwise :: covers an alt key with no alt map`; the plain-key and no-such-key-in-a-submap tests in the file are green at base. Failure: `AssertionError [ERR_ASSERTION]: Expected values to be strictly equal: + actual undefined - expected 'fallback'`. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/hunt-core1.patch",
+      "source": "hunt"
+    },
+    {
+      "id": "p144",
+      "area": "core",
+      "status": "ready",
+      "type": "fix",
+      "title": "Pane.holdingView returns the frame's current pane instead of the pane that shows the view",
+      "lane": "a2",
+      "files": [
+        "js/Pane.mjs",
+        "test/pane-holding.mjs"
+      ],
+      "proof": "npx mocha --exit test/pane-holding.mjs",
+      "notes": "Found by the core hunt 2026-11-25 at b3560073. Pane.holdingView is `Frame.find(frame => frame.panes.find(p => p.view == view))?.pane` (js/Pane.mjs:103-106). Frame.find returns the FRAME whose panes contain the view, and `.pane` on a frame is `Pane.current(f)` (js/frame.mjs:247), the focused pane -- so with two panes in one frame the answer for a background pane's view is the focused pane. Callers use it to aim work at the pane that owns the view: ext/core/lint.mjs:132 puts the lint marker on it and ext/code/code.mjs:2182 opens the code prompt in it, so in a split frame the marker/prompt lands on the wrong pane (the one the user is not looking at). Red test `holdingView :: returns the pane that shows the view, not the frame current`, using the pane-helpers frame with two panes and pA focused; `holdingView :: a view no pane holds gives nothing` is green at base. Failure: `AssertionError [ERR_ASSERTION]: the pane holding the view / false !== true`. Fix: return the pane matched by the inner find, e.g. find the pane across frames and return it rather than the frame's current pane. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/hunt-core1.patch",
+      "source": "hunt"
     }
   ],
   "measures": {

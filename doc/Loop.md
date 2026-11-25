@@ -1,12 +1,12 @@
 # Unattended agent loop
 
-Status: handover after round 48, 2026-11-25. Twenty-nine rounds used the
-tool's gate: red at base, green after the rebase, one suite at the integrated
-tip, the record on `loop/r<n>`, one fast-forward. Main is the round-48 tip,
-green (2062 of 2064 tests passing, 2 pending, check clean). The agreed plan,
+Status: handover after round 49, 2026-11-25. Thirty rounds used the tool's
+gate: red at base, green after the rebase, one suite at the integrated tip,
+the record on `loop/r<n>`, one fast-forward. Main is the round-49 tip, green
+(2063 of 2065 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
-and area-aware picks are parked by the plan's own criterion. Man is 3 words on
-3 pages, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
+and area-aware picks are parked by the plan's own criterion. Man is 2 words on
+2 pages, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
 (the view in `doc/Loop-queue.md` is generated); a bounded event-union hunt
 after round 47 filed three code triages (c10–c12), recorded in
 `doc/loop/hunt-2026-11-25.md`. The two designs the queue supersedes
@@ -257,16 +257,17 @@ lane, or to another area, if its files are free.
 | 46 | copy mode and markers | `4dd8ef8` | copy mode keeps an escaped space (dmstats 2 → 0); a `-dash` list draws a hyphen; man 4 words on 4 pages |
 | 47 | device name | `c1f2f38` | a bare `\T` is the letter (tex2aspc 1 → 0); man 3 words on 3 pages |
 | 48 | the clock | `9e2a821` | the run clock moves into the tracked queue, `clock` prints the budget, `round` refuses after stopNew; 13 tests, man unchanged |
+| 49 | link tails | `fc63c08` | `.UE`/`.ME` keep every trailing argument (tload 1 → 0); man 2 words on 2 pages |
 
 ## Current state
 
-Measured at `9e2a821f` (round 48's tip), corpus `4150` pages:
+Measured at `fc63c08c` (round 49's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 48: 1:2p/2w  3:0p/0w  5:0p/0w  7:0p/0w  8:1p/1w
-    code events after round 48: 20 (19 translated, 1 dropped, 0 malformed)
-    620 man tests, 2062 of 2064 passing, 2 pending, 0 failing; check clean
+    whole sections after round 49: 1:1p/1w  3:0p/0w  5:0p/0w  7:0p/0w  8:1p/1w
+    code events after round 49: 20 (19 translated, 1 dropped, 0 malformed)
+    621 man tests, 2063 of 2065 passing, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

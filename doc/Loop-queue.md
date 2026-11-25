@@ -55,8 +55,6 @@ before.
 | p98 | man | a1 | next | a \c before a macro whose body prints nothing (or before .ft/.ll) is still lost; the broad fix also glues across .PP/.RS/.sp, which needs a multi-macro sweep before changing | js/man-parse.mjs, test/man-parse.mjs |
 | p101 | man | a1 | next | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
 | p102 | man | a1 | next | an unknown escape is printed by groff (\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts | js/man-parse.mjs, test/man-parse.mjs |
-| p109 | man | a1 | next | thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch) | js/man-char.mjs, test/man-parse.mjs |
-| p110 | man | a1 | next | tload(1) loses 1 word: and (a line join) | js/man-parse.mjs, test/man-parse.mjs |
 | p111 | man | a1 | next | xargs(1) loses 1 word: --show-limits (a hyphen join) | js/man-parse.mjs, test/man-parse.mjs |
 | p116 | man | a1 | next | .UE/.ME/.URL/.MTO trailing arguments lose a copy round: .UE a\\\\- prints a\- in groff, a\\- here | js/man-parse.mjs, test/man-parse.mjs |
 | p117 | man | a1 | next | a zero-width escape (\b) is refused here and printed by groff (drops the backslash, prints the char); no corpus occurrence, latent | js/man-parse.mjs, test/man-parse.mjs |
@@ -75,6 +73,7 @@ before.
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
 | p59 | man | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
+| p109 | man | a1 | triage | thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch) | js/man-char.mjs, test/man-parse.mjs |
 | p124 | man | a1 | triage | copy mode still reduces \. to "."; a body line starting with \. becomes an unknown request and refuses the page where groff prints nothing | js/man-parse.mjs, test/man-parse.mjs |
 | c10 | code | a2 | triage | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, ext/code/ui.mjs, test/code-events.mjs |
 | c11 | code | a3 | triage | session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
@@ -153,6 +152,7 @@ before.
 | p106 | man | a3 | done:a3607bd | rpcgen(1)'s 0a is a footer page-string, not content: man-diff's isFooter must drop a right-aligned multi-page token (/^\s{10,}[0-9]+[a-z]$/) | bin/man-diff, test/man-diff.mjs |
 | p107 | man | a1 | done:9612e96 | ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis | js/man-parse.mjs, test/man-parse.mjs |
 | p108 | man | a1 | done:c1f2f38a | tex2aspc(1) loses 1 word: TransformNotes | js/man-parse.mjs, test/man-parse.mjs |
+| p110 | man | a1 | done:fc63c08c | tload(1) loses 1 word: and (a line join) | js/man-parse.mjs, test/man-parse.mjs |
 | p112 | man | a1 | done:3d13d152 | editline(7) loses 5 words: a lone - in the text | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p113 | man | a3 | done:6b36716 | gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff) | bin/man-diff, test/man-diff.mjs |
 | p114 | man | a3 | done:3bf287c | dmsetup(8) loses 5 words: long [a\|b] alternatives wrapped by man(1); decide a diff join or parser rule | bin/man-diff, test/man-diff.mjs |

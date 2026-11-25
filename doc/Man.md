@@ -637,7 +637,11 @@ Round 47 stopped mapping `\T` to the output device name: tex2aspc(1) writes
 letter. Section 1 is thumbpdf(1)'s `Â©` and tload(1)'s `and`; totals are 3
 words on 3 pages (section 8's dmsetup line is the third).
 
-Tests: 620 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 49 let `.UE`/`.ME` keep every trailing argument: tload(1) writes
+`.UE , and`, and only the comma survived, so the page lost `and` (1 → 0).
+Section 1 is thumbpdf(1) alone; totals are 2 words on 2 pages.
+
+Tests: 621 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

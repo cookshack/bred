@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 48,
-    "main": "9e2a821f"
+    "round": 49,
+    "main": "fc63c08c"
   },
   "items": [
     {
@@ -1134,7 +1134,7 @@
     {
       "id": "p109",
       "lane": "a1",
-      "status": "next",
+      "status": "triage",
       "title": "thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch)",
       "files": [
         "js/man-char.mjs",
@@ -1142,13 +1142,13 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix",
-      "notes": "p122 was a duplicate of this row (same title and files); removed."
+      "type": "triage",
+      "notes": "Diagnosed 2026-11-25: the page has a raw 0xC2 byte before \\[co] (Copyright \\302\\[co] 1999), invalid UTF-8. Our decode gives U+FFFD + ©, groff reads the byte as U+00C2 and prints Â©. Decide: refuse a page whose decode contains U+FFFD (faithful-or-refuse), or map invalid bytes Latin-1 like groff. Either moves the 4123 parsed / 27 refused count, so it is a decision, not a lane fix."
     },
     {
       "id": "p110",
       "lane": "a1",
-      "status": "next",
+      "status": "done",
       "title": "tload(1) loses 1 word: and (a line join)",
       "files": [
         "js/man-parse.mjs",
@@ -1156,7 +1156,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "fc63c08c"
     },
     {
       "id": "p111",

@@ -289,7 +289,9 @@ with the hostile stream's invariants.
 
 ## Current state
 
-Corpus: 4150 installed pages (English + translations) on Debian bookworm.
+Measured at `c5029a94`, corpus 4150 installed pages (English + translations) on
+Debian bookworm. The commit that carries this paragraph changes only this file,
+so the numbers still hold at it.
 
 ```
 parsed   4123   (99.3%)
@@ -307,25 +309,43 @@ the count to 29 for one round. The page count is 4150 in both cases, but the
 refusal list is not the same one round 14 measured — a number has to name its
 page set as well as its commit.
 
-A whole-section sweep (`--max 0`) after round 16 leaves this many pages (and
-words) short of man(1)'s text. All five sections were re-measured with the
-round-16 tool. It is not a sample: `--max 400` prints `400 of 1189 (sample;
---max 0 for all)` for section 1, and an earlier version of this table quoted
-such a sample as if it were the section.
+A whole-section sweep (`--max 0`) at `c5029a94` prints `0 pages with missing
+words (0 words total)` for each of sections 1, 3, 5, 7 and 8. Each was measured
+whole with the round-64 tool over these populations, so these are the sections,
+not samples:
 
 ```
-section  1    3    5    7    8
-pages   16    0    0    2    2
-words  147    0    0    7    9
+section     1     3     5     7     8
+pages    1189   959   180   209   358
+compared 1176   955   178   207   358
 ```
 
-Part of that is measurement, not loss: man(1) wraps a long word onto the next
-line (so it splits `[n]<&digit-` from `moves`), breaks a compound at a hyphen,
-repeats a non-standard `.TH` in the footer, and breaks a long path at a `\:`
-break point inside it. `man-diff` normalises the hyphen, the `\:` path and the
+(The rest are refused pages, or pages too small for a comparison: 11 and 2 in
+section 1, 4 in section 3, 2 in section 5, 2 in section 7.) That output also
+prints the tool's own summary line, `pages with missing words 0 (0 words
+total)`, for every section.
+
+Sections 3 and 5 have been clean since round 16, section 7 since round 45 and
+section 8 since round 50; section 1's last word went with round 64. The
+distinction matters because `--max 400` prints `400 of 1189 (sample; --max 0 for
+all)` for section 1, and an earlier version of this table quoted such a sample
+as if it were the whole section.
+
+`man-diff` reports only words the reference has and we lack, so a page that
+prints *more* than man(1) reads as clean. ps(1) is one: the b8 groom helper
+measured at `2e31d106` that its text carried 9 extra tokens from a `.\"` comment
+line at table-row level, which tbl ignores and we drew as a data row (p131), and
+9 more from `.IP "" 2` inside a `T{` cell, which draws no text (p75, batch b8).
+Neither is a lost word, and neither is visible in the sweep above.
+
+What the sweep used to report is worth keeping, because most of it was the
+tool's, not the parser's: man(1) wraps a long word onto the next line (so it
+splits `[n]<&digit-` from `moves`), breaks a compound at a hyphen, repeats a
+non-standard `.TH` in the footer, and breaks a long path at a `\:` break point
+inside it. `man-diff` normalises the hyphen, the `\:` path and the
 sentence-period cases, but a split inside a word that is neither hyphenated nor
 marked in the source still counts. It also reassembles a U+2010-hyphenated
-table cell (section 3's TIFF names are no longer reported as two words each),
+table cell (section 3's TIFF names were once reported as two words each),
 drops a bare `|` and `_` from both sides since those are our table separators
 and rule rows and man(1) draws neither, folds typographic hyphens
 (U+2010/U+2011/U+2212) and quotes (U+2018/U+2019/U+201C/U+201D) to ASCII in its
@@ -333,10 +353,12 @@ word key, and decides a hyphen join from the page source: a line end is joined
 only when the source writes the hyphen with no space after it, and the same
 decision is applied to both sides.
 
-Sections 3 and 5 are clean. Section 1's 147 words are ps(1) 103, ttf2tfm(1)
-10, `tbl(1)`/`gtbl(1)` 7 each, ttf2pk(1) 5, `hg(1)` 2 and `man(1)` 2. Section
-7 is editline(7) 5 and gittutorial-2(7) 2; section 8 is dmsetup(8) 7 and
-dmstats(8) 2.
+Round 16 left section 1 at 147 words on 16 pages, and that list was ps(1) 103,
+ttf2tfm(1) 10, `tbl(1)`/`gtbl(1)` 7 each, ttf2pk(1) 5, `hg(1)` 2 and man(1) 2;
+section 7 was editline(7) 5 and gittutorial-2(7) 2, section 8 dmsetup(8) 7 and
+dmstats(8) 2. Sections 3 and 5 were already clean then. Rounds 20 to 50 closed
+that list page by page (the round paragraphs below say which mechanism each
+one was), and round 64 closed the last word, thumbpdf(1)'s mis-encoded byte.
 
 Three joins in round 12's `man-diff` were still wrong. Each was the
 reference's fault, not our text's, and each is now a tool fix:
@@ -376,36 +398,42 @@ reference's fault, not our text's, and each is now a tool fix:
   `TIFFGetField(3)` is now 0, and `mysql_optionsv(3)` and
   `mariadb_get_infov(3)` (`MARI` + `MARIADB_...`) were the same defect.
 
-Not a path break: `ttf2tfm(1)`'s 10 words are a `\c` at the end of a text line
-whose next line is a macro call (the page's own `.C`, then `.ttc`). Groff keeps
-the backtick glued to `.ttc'.]`; we insert the space the page suppressed and
-split them. That is a parser question, not a measurement one.
+Round 16 left `ttf2tfm(1)` at 10 words, and they were not a path break but a
+`\c` at the end of a text line whose next line is a macro call (the page's own
+`.C`, then `.ttc`). Groff keeps the backtick glued to `.ttc'.]`; we inserted the
+space the page suppressed and split them. Round 37 glued a continued line to the
+first line its macro body prints (10 -> 2) and round 38 gave a macro argument
+one copy round at the call and another in the body (2 -> 0).
 
-The rest of the sweep is real. Section 1 is mostly ps(1): 103 of its 154 words
-are one comma list man(1) wraps (`pid,format,tname,` / `time,cmd,`) plus the
-`-o` field names. Then `tbl(1)`/`gtbl(1)`'s example table (we print `eleven;11`
-where man(1) prints `eleven 11`) and `hg(1)`'s `incoming ) case-insensitive`.
-Section 3 is down to 3 pages / 14 words after round 15. pcre2demo(3) keeps 12,
-all typographic quotes: the page has no `.TH`, so groff loads no macro package
-and its default utf8 mapping prints U+2018/U+2019 where we print ASCII. The
-round-14 note here said its hyphens were an mdoc rule (`-` is U+2010); round 15
-checked that and it is wrong — `groff -Tutf8 -mdoc` prints ASCII `-`, and the
-U+2010 comes only from the no-`.TH` page. The bare `.Nm` inside a `T{`/`T}`
-cell on `crypt_checksalt(3)` and `crypt_preferred_method(3)` is fixed: it now
-expands to the document name. The other two words are an ASCII-hyphen line end
-(`byte-` + `and`, `paren-` + `theses`) that the diff joins on the reference
-side only. Section 8's worst pages are a synopsis of long `[a|b|c]`
-alternatives that man(1) hyphenates, and the rest of the sweep is the same kind
-of line-break join.
+Those words were the tail of the round-16 list, and each one had a mechanism
+rather than a layout excuse. Section 1 was mostly ps(1): 103 of that section's
+words were one comma list man(1) wraps (`pid,format,tname,` / `time,cmd,`) plus
+the `-o` field names, and rounds 21 and 22 joined the marked comma break and ran
+the cell's text macros. `tbl(1)`/`gtbl(1)`'s example table printed `eleven;11`
+where man(1) prints `eleven 11` until round 24 inherited a `.T&` part's
+options, and round 25 corrected `\[tmu]`. `hg(1)`'s `incoming )
+case-insensitive` was a source-marked `\:` break, joined in round 41. Section
+7's editline(7) items were the `-dash` marker teaching `toText` one `-` per
+item in round 45, and section 8's dmsetup(8) line was a `\c` eaten by a request
+that draws nothing in round 50. Section 3's pcre2demo(3) kept 12 typographic
+quotes because the page has no
+`.TH`, so groff loads no macro package and its default utf8 mapping prints
+U+2018/U+2019 where we print ASCII; the round-14 note here called its hyphens an
+mdoc rule (`-` is U+2010), and round 15 checked that and found it wrong —
+`groff -Tutf8 -mdoc` prints ASCII `-`, and the U+2010 came only from the
+no-`.TH` page. Round 16's quote fold and source-decided hyphen join cleared it.
+Section 8's long `[a|b|c]` synopsis alternatives and the rest were the same kind
+of line-break join, and they are gone with the rest.
 
-Some of the pages still reported hide a real loss rather than a layout one,
-and are the next work. Fixed so far: the ssh helper pages' `OpenBSD 3.2.`
-(the OS macros `.Ox`, `.Fx`, `.Nx`, `.Dx`, `.Ux` now print their version, `.Bx`
+Some of those pages hid a real loss rather than a layout one, and fixing them
+was the work of the early rounds. The ssh helper pages' `OpenBSD 3.2.` (the OS
+macros `.Ox`, `.Fx`, `.Nx`, `.Dx`, `.Ux` now print their version, `.Bx`
 prepends it and `.At` gained groff's table); `init-d-script(5)`'s
 `start\-stop\-daemon(8)` (`.Xr` expands its name); and `mount(8)`'s raw `\fP`
 after a URL plus its literal `.sp` cells (the `.URL` tail is expanded, and a
-`.sp`/`.br`/`.nf`/`.fi` line in a table body is a request, not a cell). Also fixed: the bare `.Nm` in
-`ssh_config(5)` and `editrc(5)`, which prints the document name (the first
+`.sp`/`.br`/`.nf`/`.fi` line in a table body is a request, not a cell). Also
+fixed: the bare `.Nm` in `ssh_config(5)` and `editrc(5)`, which prints the
+document name (the first
 `.Nm` with an argument, as groff's `doc-command-name`), not the last one. And
 `bash(1)`'s RESTRICTED SHELL sentence is back: the text after a `\{` on a
 taken `.ie`/`.el` branch is kept, and an undefined register in a condition now
@@ -614,41 +642,107 @@ only and queued per macro.
 Round 44 made `Ns` survive a closing bracket (ssh-copy-id's
 `[user@]hostname`, 1 → 0) and taught `man-diff` that a right-aligned
 multi-page page-string is a footer, not content (rpcgen's `0a`, 1 → 0).
-Section 1 is now 3 words on 3 pages: tex2aspc, thumbpdf, tload.
+Section 1 was then 3 words on 3 pages: tex2aspc, thumbpdf, tload.
 
 Round 45 taught `toText` the `-dash`/`-hyphen` item marker: groff prints one
 `-` per item, and editline(7)'s five items were the whole of section 7's
-residue, so section 7 is clean. The renderer still draws a `<ul>` disc for a
-`-dash` list; `man-diff` cannot see that (it maps U+2022 to a space), so the
-display fix is queued as p123 instead of being measured. What is left is
-section 1's three words on three pages (tex2aspc, thumbpdf, tload) and section
-8's three on two (dmstats 2, dmsetup 1).
+residue, so section 7 was clean from then on. The renderer still draws a `<ul>`
+disc for a `-dash` list; `man-diff` cannot see that (it maps U+2022 to a
+space), so the display fix is queued as p123 instead of being measured. After
+round 45 what was left was section 1's three words on three pages (tex2aspc,
+thumbpdf, tload) and section 8's three on two (dmstats 2, dmsetup 1).
 
 Round 46 fixed the copy-mode chain: `copyMode()` reduced `\\` first and then
 re-examined the backslash it produced with the `\ ` rule, so an escaped space
 became an argument separator and dmstats(8)'s `.de CMD_COMMAND` body printed
 `device_name|` for groff's `device_name |` (2 → 0). The same round named a
 `-dash`/`-hyphen` list `man-dash` and gave it a hyphen marker in the
-stylesheet (p123), so the page and the text model agree. Section 8 is now
-dmsetup(8)'s single `load|reload`; totals are 4 words on 4 pages.
+stylesheet (p123), so the page and the text model agree. Section 8 was then
+dmsetup(8)'s single `load|reload`; totals were 4 words on 4 pages.
 
 Round 47 stopped mapping `\T` to the output device name: tex2aspc(1) writes
 `\TransformNotes` and groff prints `TransformNotes`, so the bare escape is the
-letter. Section 1 is thumbpdf(1)'s `Â©` and tload(1)'s `and`; totals are 3
-words on 3 pages (section 8's dmsetup line is the third).
+letter. Section 1 was then thumbpdf(1)'s `Â©` and tload(1)'s `and`; totals
+were 3 words on 3 pages (section 8's dmsetup line was the third).
 
 Round 49 let `.UE`/`.ME` keep every trailing argument: tload(1) writes
 `.UE , and`, and only the comma survived, so the page lost `and` (1 → 0).
-Section 1 is thumbpdf(1) alone; totals are 2 words on 2 pages.
+Section 1 was then thumbpdf(1) alone; totals were 2 words on 2 pages.
 
 Round 50 let a `\c` survive a request that draws nothing: dmsetup(8)'s
 `.de CMD_RELOAD` opens with `.ad l`, which consumed the join, so the page
 printed `load| reload` for groff's `load|reload` (1 → 0). Sections 3, 5, 7 and
-8 are clean; the only measured word left is thumbpdf(1)'s mis-encoded byte,
-which is a triage (p109).
+8 were then clean; the only measured word left was thumbpdf(1)'s mis-encoded
+byte, which is a triage (p109).
 
-Tests: 622 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
-pty test is pending where `zstd` is not installed);
+Round 51 collapsed the `session.compaction` events into one legacy event with a
+phase, and the handler draws a log line per phase.
+
+Round 52 let `.if r X` and `.if d XX` take their name from the next token, so
+an-old.tmac's spaced form parses.
+
+Round 53 made a `.UE`/`.ME` tail take its copy round before expanding, so a
+backslash in a link tail prints what groff prints.
+
+Round 54 made `.nr X +N` and `.nr X -N` relative, and a valueless `.nr X` no
+longer defines the register; p45 and p120 came with it.
+
+Round 55 turned `\[charN]` into a glyph lookup (0..255 prints, above it
+nothing) and let `\N[ 65]` skip leading spaces.
+
+Round 56 kept a `\c` across an empty `.de` body and made `.Sm off` suppress the
+space before a text line.
+
+Round 57 tried to turn `session.synthetic` into one log line and merged
+nothing: a peer's grooming commit had moved the row to another lane between
+dispatch and gate, so the record pointed at a commit that was not the work.
+
+Round 58 re-armed the row and landed the line, checked the merge line this
+time, and filed l2 — the check accepted any hash on main, so a done item could
+point at unrelated work.
+
+Round 59 fixed l2 the way the round-58 record proposed: a done hash's
+`Loop-item:` trailer must name the item, an item it was absorbed by, or a batch
+row.
+
+Round 60 replaced it with the rule that stuck: the done hash's own diff must
+touch a file the row owns. The trailer rule reported 36 legitimate old rows.
+
+Round 61 gave an `.Rs` that carries only `%A` its trailing comma
+(`A. Author,`), which is p53 and another latent form.
+
+Round 62 kept a `\c` across one blank line, drew a blank line for a space block,
+carried a pending join through a define-only request, and made a finished text
+part re-render.
+
+Round 63 made a single-backslash `\$1` expand at definition time, let a `\c`
+inside an interpolated argument cut the rest of the body line, and made a bar
+roman instead of the end of an mdoc argument list.
+
+Rounds 51 to 63 left the sweep untouched, each for a stated reason: 51, 57 and
+58 were code or tooling, 52 to 56 and 61 are forms no installed page uses, and
+62 and 63's joins and macro arguments had no page left to move.
+
+Round 64 closed the last word. thumbpdf(1) writes `Copyright \302\[co] 1999`,
+whose lone `C2` byte is the corpus's only invalid UTF-8; `man-diff` now drops
+U+FFFD from a word key and re-reads a word of byte-sized Latin-1 characters as
+UTF-8 when that decode is valid, so the byte folds to `©` and sections 1, 3, 5,
+7 and 8 are all 0 pages / 0 words on the 4150 installed pages.
+
+Round 65 is the round that writes this paragraph. It takes a code item (c14:
+a text or reasoning delta takes its part id from the event that started it, not
+from `state`) and a man batch (b7: an `l ld`/`r ^` table span, about 110
+`groff_char(7)` names the corpus never uses, and the `\v(` form, which is p79,
+p83 and p34). No part of it should move the sweep: p79 reorders tbl(1)'s own
+example text, and `man-diff` compares word multisets, not order, while p83's
+names and p34's `\v(` are forms no installed page uses. The numbers above are
+this file's measurement at `c5029a94`, the round's base; the loop re-measures
+at the merged tip and that number is the one to trust.
+
+Tests: the last whole-suite count taken (round 63's record) is 637 man tests
+and 2095 of 2097 passing, 2 pending, check clean. Round 64 and round 65 added
+tests without re-counting, so 2095 is a floor at `c5029a94`, not a measurement
+of it.
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and
 `man-render.mjs`, 99.97% for `man-parse.mjs` (one line: the scan of an

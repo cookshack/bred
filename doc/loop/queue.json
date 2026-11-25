@@ -2138,6 +2138,21 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Found by the scheduler 2026-11-25 after round 65, from the b6 -> p145 regression. b6 made `\\t` zero-width and p145 had to put the tab stop back in copyMode(), because copy mode and text interpretation are two different passes over the same escape table (escapeChars is shared by expand() and copyMode()). That is a structural hazard: any escape whose meaning differs between the passes can be changed in one and silently break the other, and the round only caught it because man-diff happens to exercise troff(1)'s warning table. Ask for an audit, not a fix: enumerate every escape either pass rewrites (grep both for escapeChars/skipValue/skipArg use), and for each say whether groff's copy and interpretation meanings agree, with a groff probe quoted. Any that differ and are handled uniformly become a red test plus a fix; the rest are a note. No corpus change expected. Needs the audit before a red test exists, so next.",
       "source": "lane"
+    },
+    {
+      "id": "l3",
+      "area": "tooling",
+      "status": "ready",
+      "type": "infra",
+      "title": "Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand",
+      "lane": "a3",
+      "files": [
+        "bin/loop-claims.mjs",
+        "test/loop.mjs"
+      ],
+      "proof": "npx mocha --exit test/loop.mjs --grep 'dead pid'",
+      "notes": "Found by c9's lane 2026-11-25 while working round 66: c9's round-65 lease (pid 118711, dead) was still live, and `bin/loop.mjs reap` kept it, so the claim failed and the lane had to `release` it by hand. bin/loop-claims.mjs:71-72 returns on `record.expires` before reading the pid, so a lease whose holder is gone stays live until its two-hour expiry. rules.md says 'the claim is a lease with a pid, so a dead lane's item is reaped rather than stuck', and that is what the tool must do. The fix is to check the pid first (`process.kill(pid, 0)` or the host-aware equivalent the file already uses) and treat a dead pid as reaped regardless of expires; a live pid keeps the lease to its expiry. Red test: a lease file with a pid that is not running and a fresh expires is reported dead by reap, and `claim` then succeeds. Proof is red at base because reap keeps it today. Do NOT re-read expires as the authority: the pid is the authority, expires only bounds a lease whose pid cannot be checked (another host).",
+      "source": "lane"
     }
   ],
   "measures": {

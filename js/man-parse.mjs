@@ -3588,8 +3588,9 @@ function handleLine
   case 'UE':
   case 'ME':
     // Every trailing argument belongs after the link text: tload(1) writes
-    // `.UE , and` and groff prints `, and`, not just the comma.
-    linkEnd(c, args.join(' '))
+    // `.UE , and` and groff prints `, and`, not just the comma. an-ext's body
+    // reads the tail in copy mode before interpreting it.
+    linkEnd(c, copied(args.join(' '), 1))
     break
   case 'TS':
   case 'T&': {

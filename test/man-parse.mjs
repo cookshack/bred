@@ -210,6 +210,18 @@ test('links', 'UE keeps every trailing argument',
        equal(flat(r.doc.blocks[0].spans), 'David ⟨david@x⟩, and')
      })
 
+test('links', 'UE copies its trailing arguments once',
+     () => {
+       let r
+
+       // an-ext's .UE reads its tail in copy mode before the body interprets
+       // it: `a\\-` prints `a-` and `b\\\\-` prints `b\-`.
+       r = parsed('.TH T 1\n.UR x\nt\n.UE a\\\\-\n')
+       equal(flat(r.doc.blocks[0].spans), 't ⟨x⟩a-')
+       r = parsed('.TH T 1\n.UR y\nt\n.UE b\\\\\\\\-\n')
+       equal(flat(r.doc.blocks[0].spans), 't ⟨y⟩b\\-')
+     })
+
 test('links', 'UR with no text shows the target',
      () => {
        let r

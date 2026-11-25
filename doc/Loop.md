@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: live, round 38, 2026-11-25 (deadline 2026-11-25T05:35Z). Twenty-one
+Status: live, round 39, 2026-11-25 (deadline 2026-11-25T19:00Z). Twenty-two
 rounds have used the tool's gate: red at base, green after the rebase, one
 suite at the integrated tip, the record on `loop/r<n>`, one fast-forward. Main
-is the round-38 record commit, green (1995 tests, check clean). The next items
+is the round-39 record commit, green (2005 tests, check clean). The next items
 are in `doc/loop/queue.json` (the view in `doc/Loop-queue.md` is generated);
 the upgrade designs are `doc/Loop-upgrade.md` (the loop's) and
 `doc/loop/plan-2026-11-24.md` (a fresh agent's). This file is the protocol;
@@ -203,15 +203,16 @@ move to a different lane than its prefix suggests if its files are free.
 | 36 | Ex/Rv | `1c115f6` | only a leading `-std` is a flag; the doc's `-exit`/`-nop` claim was wrong |
 | 37 | continued lines | `7183a0e` | a `\c` glues to a macro body's first printing line (ttf2tfm 10 → 2); section 1 25 → 16 words |
 | 38 | copy mode | `d21a9d5` | an argument is copied then interpreted (ttf2tfm 2 → 0); section 1 16 → 14 words |
+| 39 | copy rounds | `6b36716` | each tmac request gets its measured copy rounds (xargs fixed); `man-diff` joins a glued em dash (gittutorial 0, ttf2pk 4 → 2); totals 23 words on 11 pages |
 
 ## Current state
 
-Measured at `d21a9d5d` (round 38's tip), corpus `4150` pages:
+Measured at `6b367161` (round 39's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 38: 1:9p/14w  3:0p/0w  5:0p/0w  7:2p/7w  8:2p/7w
-    598 man tests, 1995 total, 2 pending, 0 failing; check clean
+    whole sections after round 39: 1:8p/11w  3:0p/0w  5:0p/0w  7:1p/5w  8:2p/7w
+    608 man tests, 2005 total, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

@@ -591,7 +591,13 @@ groff does; ttf2tfm reached 3591/3591 and section 1 is 14 words. Built-in man
 requests still get one round (p99), and `copyMode` over-reduces chained
 escapes (p100).
 
-Tests: 598 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 39 gave every tmac-built request its measured number of copy rounds
+(`B`/`I`/`SH`/`SS`/`IP` one extra, the `BR` family two, `OP` three), which
+fixed xargs; and `man-diff` now joins a non-spaced `\(em` line break, which
+fixed gittutorial-2 and took two words off ttf2pk. Totals are 23 words on 11
+pages (section 1: 11, section 7: 5, section 8: 7).
+
+Tests: 608 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

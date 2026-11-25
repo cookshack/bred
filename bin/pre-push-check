@@ -1,6 +1,8 @@
 #!/bin/bash
 # The push gate: skip when this tree is already verified, else run the checks.
-# --full runs everything and stamps the tree; --quiet logs without the noise.
+# --full runs everything and stamps the tree; --quiet logs without the noise;
+# --stamp writes the stamp for a tree another gate already verified (a loop
+# land, whose round ran check and the full suite at the recorded tip).
 
 set +e
 
@@ -10,6 +12,7 @@ quiet=0
 for arg in "$@"; do
   case "$arg" in
     --full) mode=full ;;
+    --stamp) mode=stamp ;;
     --quiet) quiet=1 ;;
   esac
 done
@@ -56,6 +59,14 @@ if [ "$quiet" = 1 ]; then
 fi
 
 k=$(key)
+
+if [ "$mode" = stamp ]; then
+  printf '%s' "$k" > "$stampFull"
+  if [ "$quiet" = 1 ]; then
+    echo "verify: stamped (loop land)"
+  fi
+  exit 0
+fi
 
 if [ -f "$stampFull" ] && [ "$(cat "$stampFull")" = "$k" ]; then
   verified full

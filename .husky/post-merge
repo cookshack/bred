@@ -8,6 +8,17 @@ case "$msg" in
   "merge agent/"*)
     gate=$(git rev-parse --show-toplevel)/bin/pre-push-check
     if [ -x "$gate" ]; then
+      # A loop land already ran `check` and the full suite at the round's tip,
+      # and `land` proved that the tip is on this branch with only doc/ after
+      # it. Stamp that tree rather than pay for the same two commands twice;
+      # any doubt falls through to the full verify.
+      tip=$(git log -1 --format=%B | sed -n 's/^Loop-verify: \([0-9a-f][0-9a-f]*\)$/\1/p' | tail -1)
+      if [ -n "$tip" ] &&
+         git merge-base --is-ancestor "$tip" HEAD &&
+         [ -z "$(git diff --name-only "$tip"..HEAD | grep -v '^doc/')" ] &&
+         [ -z "$(git status --porcelain)" ]; then
+        exec "$gate" --stamp --quiet
+      fi
       exec "$gate" --full --quiet
     fi
     ;;

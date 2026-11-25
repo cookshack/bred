@@ -1629,7 +1629,39 @@ function splitCond
       break
     i++
   }
-  return { cond: text.slice(0, i), rest: text.slice(i).trim() }
+  // `.if r X` and `.if d XX` name their register or macro in the next token:
+  // an-old.tmac writes the spaced form, and `.if r` alone is not a condition.
+  if (nameOnly(text.slice(0, i))) {
+    i = condBlanks(text, i)
+    i = condToken(text, i)
+  }
+  return { cond: text.slice(0, i).trim(), rest: text.slice(i).trim() }
+}
+
+function nameOnly
+(cond) {
+  return ((cond == 'r') || (cond == 'd') || (cond == '!r') || (cond == '!d')) ? 1 : 0
+}
+
+function condBlanks
+(text, i) {
+  while ((i < text.length) && ((text[i] == ' ') || (text[i] == '\t')))
+    i++
+  return i
+}
+
+function condToken
+(text, i) {
+  while (i < text.length) {
+    if (text[i] == '\\') {
+      i += 2
+      continue
+    }
+    if ((text[i] == ' ') || (text[i] == '\t'))
+      break
+    i++
+  }
+  return i
 }
 
 // tbl(1): .TS, an optional options line ending in ';', a layout section ending

@@ -421,6 +421,23 @@ test('conditions', 'if n is true and if t is false',
        equal(asText('.TH T 1\n.if n yes\n.if t no\n'), 'yes\n')
      })
 
+test('conditions', 'if r and if d take their name after a space',
+     () => {
+       let r, text
+
+       // an-old.tmac writes `.if r X` with a space; groff takes the next token
+       // as the register or macro name.
+       r = parsed('.TH T 1\n.SH S\n.nr X 1\n.de M\n..\n' +
+                  '.if r X spaced-yes\n.if r Y spaced-no\n' +
+                  '.if !r Y negated-yes\n.if d M has-macro\n.if d Q no-macro\n')
+       text = ManParse.toText(r.doc.blocks)
+       equal(text.includes('spaced-yes'), true)
+       equal(text.includes('spaced-no'), false)
+       equal(text.includes('negated-yes'), true)
+       equal(text.includes('has-macro'), true)
+       equal(text.includes('no-macro'), false)
+     })
+
 test('conditions', 'ie and el pick one branch',
      () => {
        equal(asText('.TH T 1\n.ie n first\n.el second\n'), 'first\n')

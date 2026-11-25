@@ -2456,6 +2456,24 @@ test('refusal', 'an N argument is not a JavaScript number',
        equal(parsed('.TH T 1\na \\N\'0\' b\n').ok, 0)
      })
 
+test('refusal', 'a surrogate code point is not a character',
+     () => {
+       // groff -Tutf8 writes a surrogate as the raw bytes of its own encoding:
+       // \N'55296' is ed a0 80 and \N'57343' is ed bf bf, neither of which is
+       // valid UTF-8. A surrogate is not a Unicode scalar value, so it has no
+       // text form here and the page is refused.
+       equal(parsed('.TH T 1\na \\N\'55296\' b\n').ok, 0)
+       equal(parsed('.TH T 1\na \\N\'57343\' b\n').ok, 0)
+       // groff -Tutf8: \N'55295' is ed 9f bf, the last code point before the
+       // surrogate block, and \N'57344' is ee 80 80, the first one after it.
+       equal(asText('.TH T 1\na \\N\'55295\' b\n'), 'a \uD7FF b\n')
+       equal(asText('.TH T 1\na \\N\'57344\' b\n'), 'a \uE000 b\n')
+       // The same range through the named forms: groff warns "can't find
+       // special character 'uD800'" there, as it does for \N'55296' bytes.
+       equal(parsed('.TH T 1\na \\[uD800] b\n').ok, 0)
+       equal(asText('.TH T 1\na \\[uE000] b\n'), 'a \uE000 b\n')
+     })
+
 test('escapes', 'vertical, device and mark escapes are skipped',
      () => {
        let r

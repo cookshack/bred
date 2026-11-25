@@ -210,6 +210,10 @@ function charByNumber
   let code
 
   code = Number(num)
+  // groff writes \N'55296' as the raw bytes ed a0 80, which is not UTF-8. A
+  // surrogate is not a Unicode scalar value, so it has no text form here.
+  if ((code >= 0xD800) && (code <= 0xDFFF))
+    return 0
   if (Number.isFinite(code) && (code > 0) && (code < 0x110000))
     return String.fromCodePoint(code)
   return 0

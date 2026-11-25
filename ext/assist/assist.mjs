@@ -16,7 +16,7 @@ import * as View from '../../js/view.mjs'
 import * as Win from '../../js/win.mjs'
 import { d } from '../../js/mess.mjs'
 
-let onCursor, onFocus, onSetBuf, icon
+let onCursor, onFocus, onSetBuf, icon, refreshNow
 
 export
 function make
@@ -27,6 +27,7 @@ function make
           cb)
 }
 
+export
 function divW
 () {
   return divCl('assist-ww',
@@ -349,6 +350,8 @@ function init
     p.setBuf(found)
   }
 
+  refreshNow = refresh
+
   onCursor = Ed.onCursor((backend, view) => update(view))
   onSetBuf = Pane.onSetBuf(view => update(view))
   onFocus = View.onFocus(view => update(view))
@@ -370,6 +373,17 @@ function init
              'mini-icon onfill mini-em',
              { 'data-run': 'assist' })
   Panel.start('mini-panel', icon)
+}
+
+// Refresh the assist sidebars for a target view now, without the debounce.
+export
+function refreshFor
+(view) {
+  if (refreshNow)
+    Buf.forEach(b => {
+                  if (b.mode.key == 'assist')
+                    b.views.forEach(v => refreshNow(v, view))
+                })
 }
 
 export

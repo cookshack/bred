@@ -1122,6 +1122,18 @@ test('subagent', 'the sidebar switches which transcript is shown',
          created.vars('code').subagents.get('ses-child').idle = 0
          created.vars('code').subagentsActive = 0
 
+         // The heading icon's command flips the state; the click path is a
+         // data-run dispatch, so this is the command it reaches.
+         {
+           let target
+
+           target = { dataset: { bufid: String(created.id) }, closest: () => target }
+           Cmd.run('code subagents filter', created, 0, { e: { target } })
+           equal(created.vars('code').subagentsActive, 1, 'the filter command turns it on')
+           Cmd.run('code subagents filter', created, 0, { e: { target } })
+           equal(created.vars('code').subagentsActive, 0, 'the filter command turns it off')
+         }
+
          row = rowFor('ses-child')
          Cmd.run('code subagent', created, 0, { e: { target: row } })
          equal(Css.has(box, 'code-out-shown'), true, 'selecting the tab shows it')

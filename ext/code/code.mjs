@@ -1,5 +1,6 @@
 import { button, create, divCl, span } from '../../js/dom.mjs'
 
+import * as Assist from '../assist/assist.mjs'
 import * as Buf from '../../js/Buf.mjs'
 import * as Cmd from '../../js/cmd.mjs'
 import * as Css from '../../js/css.mjs'
@@ -1809,6 +1810,7 @@ function toggleSubagentFilter
   state.subagentsActive = state.subagentsActive ? 0 : 1
   if (state.subagentsActive)
     reconcileIdleLanes(buf)
+  Assist.refreshFor(buf.views.find(v => View.current() == v) || buf.views[0])
   Subagent.repaint()
 }
 

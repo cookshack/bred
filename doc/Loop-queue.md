@@ -34,7 +34,7 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p91 | a1 | ready | the \N[65] bracket form is unsupported (groff prints A); unquote only strips a matching first/last delimiter, so \N[65] refuses | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
+| p92 | a1 | ready | an unpaired surrogate code point (\N'55296') is accepted as a JS string; groff emits invalid UTF-8; refuse surrogates as out of range | js/man-char.mjs, test/man-parse.mjs |
 
 ## Backlog
 
@@ -57,8 +57,8 @@ before.
 | p83 | a1 | next | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
 | p89 | a1 | next | \[char0] is accepted by groff (a NUL byte) but refused here | js/man-char.mjs, test/man-parse.mjs |
 | p90 | a1 | next | groff -Tutf8 -man renders \- as U+2212 MINUS SIGN while -mdoc prints ASCII; bred prints ASCII. p30's note was mdoc-only; needs evidence and a decision | js/man-char.mjs, test/man-parse.mjs |
-| p92 | a1 | next | an unpaired surrogate code point (\N'55296') is accepted as a JS string; groff emits invalid UTF-8; refuse surrogates as out of range | js/man-char.mjs, test/man-parse.mjs |
 | p93 | a1 | next | \N expression forms (65+1, 2*3, 1.5, leading space) are refused by design; record the decision so it is not reopened | js/man-parse.mjs, test/man-parse.mjs |
+| p94 | a1 | next | groff accepts \N[ 65] with a leading space; bred refuses it under the decimal-only rule | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
 
 ## Triage
 
@@ -125,5 +125,6 @@ before.
 | p86 | a1 | done:6943a15 | .. maps to ‥ (U+2025) but groff refuses it; \[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an | js/man-char.mjs, test/man-parse.mjs |
 | p87 | a1 | done:01f65ce | an ASCII u name is refused only when groff has a plain glyph for it; u0040/u007E and controls still resolve (done: the blanket <0x80 wording was too broad) | js/man-char.mjs, test/man-parse.mjs |
 | p88 | a1 | done:50a83a6 | \N'0x41'/\N'1e2'/\N'0' are read with Number(), so hex and exponent forms become characters; groff reads digits only | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
+| p91 | a1 | done:1219a56 | the \N[65] bracket form is unsupported (groff prints A); unquote only strips a matching first/last delimiter, so \N[65] refuses | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
 
 <!-- /loop:queue -->

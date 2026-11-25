@@ -734,19 +734,20 @@
     {
       "id": "p91",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "the \\N[65] bracket form is unsupported (groff prints A); unquote only strips a matching first/last delimiter, so \\N[65] refuses",
       "files": [
         "js/man-char.mjs",
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "1219a56"
     },
     {
       "id": "p92",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "an unpaired surrogate code point (\\N'55296') is accepted as a JS string; groff emits invalid UTF-8; refuse surrogates as out of range",
       "files": [
         "js/man-char.mjs",
@@ -760,6 +761,18 @@
       "status": "next",
       "title": "\\N expression forms (65+1, 2*3, 1.5, leading space) are refused by design; record the decision so it is not reopened",
       "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p94",
+      "lane": "a1",
+      "status": "next",
+      "title": "groff accepts \\N[ 65] with a leading space; bred refuses it under the decimal-only rule",
+      "files": [
+        "js/man-char.mjs",
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],

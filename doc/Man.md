@@ -641,7 +641,13 @@ Round 49 let `.UE`/`.ME` keep every trailing argument: tload(1) writes
 `.UE , and`, and only the comma survived, so the page lost `and` (1 → 0).
 Section 1 is thumbpdf(1) alone; totals are 2 words on 2 pages.
 
-Tests: 621 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 50 let a `\c` survive a request that draws nothing: dmsetup(8)'s
+`.de CMD_RELOAD` opens with `.ad l`, which consumed the join, so the page
+printed `load| reload` for groff's `load|reload` (1 → 0). Sections 3, 5, 7 and
+8 are clean; the only measured word left is thumbpdf(1)'s mis-encoded byte,
+which is a triage (p109).
+
+Tests: 622 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

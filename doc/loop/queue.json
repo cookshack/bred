@@ -2079,6 +2079,21 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Found by b6's lane 2026-11-25 at cab7cc0b while fixing p77. b6 separated the two mappings (a literal tab is a tab stop, the `\\t` escape is zero width in both fill and no-fill mode) but only pinned `.nf` for the literal tab: `ABCDEFG<TAB>Y` is `ABCDEFG   Y` in groff (stops every 8 columns from the line's output position), and the filled case is unimplemented, so a fix that turned a literal tab into one space would still pass b6's tests. No corpus page was found to need it. Needs a red filled-mode test before dispatch, so next.",
       "source": "lane"
+    },
+    {
+      "id": "p145",
+      "area": "man",
+      "status": "in-round",
+      "type": "fix",
+      "title": "`\\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "bin/man-diff --page /usr/share/man/man1/troff.1.gz",
+      "notes": "Found by round 65's own measurement at 3c408273: section 1 went 0p/0w -> 2p/78w, and the worst pages are troff(1) 42 lost words and unzip(1) 36. Cause: b6 (cab7cc0b) made `\\t` draw nothing everywhere, which is right for a text line but wrong for copy mode. Proved with groff 1.22.4: `.TH T 1` + `textfill: a\\tb end.` prints `textfill: ab end.` (zero width), while the same text in a `.de` body prints `bodyfill: a    b end.` (a tab stop), and `.BR color \"\\t524288\"` prints `color     524288`. troff(1)'s source is `.BR color \"\\t524288\"` (warning-table rows) and unzip(1) lists versions the same way, so the corpus needs the copy-mode side. The fix belongs in copyMode(): it must leave `\\t` as a tab character, while expand() keeps drawing nothing for it in text. Red proof: `bin/man-diff --page /usr/share/man/man1/troff.1.gz` says `lost 42` at 3c408273 and `lost 0` after; unzip(1) 36 -> 0. A unit test must pin both halves (text line zero width, .de body and macro argument a tab) so a future pass cannot flip either one alone.",
+      "source": "measure"
     }
   ],
   "measures": {

@@ -2123,6 +2123,21 @@
       "proof": "npx mocha --exit test/mode.mjs",
       "notes": "Found by p139's lane 2026-11-25 at cb9eada7 while fixing the mixed-case key mismatch (a different bug, deliberately not widened into that fix). Mode.add('') lowercases to '' and stores it with m.name = '', so the mode is in the map; Mode.get('') and Mode.remove('') both test the key for falsiness and report not-found, so it is unreachable. Needs a decision before a test can pin it: either refuse an empty or non-string key in add() (and say so in the error), or allow '' and treat it as an ordinary key in get/remove. The first is the safer contract unless something in the tree relies on an empty mode name; grep for Mode.add call sites first. Red test then follows from the decision, so next.",
       "source": "lane"
+    },
+    {
+      "id": "p147",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "b9 fixed copy-mode \\t but for the wrong reason in one place: audit every escape whose copy-mode and text meanings differ, since b6/b9 proved the pair is not uniform",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found by the scheduler 2026-11-25 after round 65, from the b6 -> p145 regression. b6 made `\\t` zero-width and p145 had to put the tab stop back in copyMode(), because copy mode and text interpretation are two different passes over the same escape table (escapeChars is shared by expand() and copyMode()). That is a structural hazard: any escape whose meaning differs between the passes can be changed in one and silently break the other, and the round only caught it because man-diff happens to exercise troff(1)'s warning table. Ask for an audit, not a fix: enumerate every escape either pass rewrites (grep both for escapeChars/skipValue/skipArg use), and for each say whether groff's copy and interpretation meanings agree, with a groff probe quoted. Any that differ and are handled uniformly become a red test plus a fix; the rest are a note. No corpus change expected. Needs the audit before a red test exists, so next.",
+      "source": "lane"
     }
   ],
   "measures": {

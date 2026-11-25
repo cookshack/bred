@@ -63,6 +63,7 @@ before.
 | p135 | man | a1 | next | js/man-roff.mjs still classifies the 27 escapes groff ignores as unknown and fails the static scan, so the inventory disagrees with the interpreter after b6 | js/man-roff.mjs, test/man-roff.mjs |
 | p136 | man | a1 | next | a literal tab in filled text is not modelled: groff advances to the next tab stop per line, b6 pinned only the .nf form and the zero-width \t | js/man-parse.mjs, test/man-parse.mjs |
 | p146 | core | a3 | next | Mode.add accepts '' and stores it, but Mode.get/remove treat any falsy key as not-found, so the empty mode can be added and never removed | js/mode.mjs, test/mode.mjs |
+| p147 | man | a1 | next | b9 fixed copy-mode \t but for the wrong reason in one place: audit every escape whose copy-mode and text meanings differ, since b6/b9 proved the pair is not uniform | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Triage
 

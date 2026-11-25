@@ -9,10 +9,11 @@
 //   list(root)
 //   reap(root, { maxAgeMs })                     -> { removed, kept }
 //
-// A claim is live when its pid is alive on this host, or when it came from
-// another host and is younger than maxAgeMs (a pid from another host means
-// nothing here). A stale claim is never replaced silently: reap it, so the
-// reaper's report says who lost a lane.
+// A claim is live when its pid is alive on this host and its expiry (if any)
+// has not passed; a dead pid makes it dead at once, whatever the expiry says.
+// A pid from another host means nothing here, so it falls back to its expiry,
+// or maxAgeMs when it has none. A stale claim is never replaced silently: reap
+// it, so the reaper's report says who lost a lane.
 import Fs from 'node:fs'
 import Os from 'node:os'
 import Path from 'node:path'
@@ -57,24 +58,37 @@ function alive
   }
 }
 
+// A lease whose pid cannot be checked (another host) is bounded by its expiry,
+// or by maxAge when it has none.
+function bounded
+(record, maxAge) {
+  if (record.expires)
+    return Date.parse(record.expires) > Date.now() ? 1 : 0
+  return (Date.now() - (record.started ? Date.parse(record.started) : 0)) < maxAge ? 1 : 0
+}
+
 export
 function live
 (record, opts) {
-  let maxAge, age, started
+  let maxAge
 
   opts = opts || {}
   maxAge = opts.maxAgeMs == undefined ? defaultMaxAge : opts.maxAgeMs
   if (record == undefined)
     return 0
-  // An explicit expiry outranks the pid: a claim made by a command that exits
-  // immediately would otherwise look dead the moment it was written.
-  if (record.expires)
-    return Date.parse(record.expires) > Date.now() ? 1 : 0
-  if (record.host == Os.hostname())
-    return alive(record.pid)
-  started = record.started ? Date.parse(record.started) : 0
-  age = Date.now() - started
-  return age < maxAge ? 1 : 0
+  if (record.host == Os.hostname()) {
+    if (record.pid == undefined)
+      return bounded(record, maxAge)
+    // The pid is the authority on this host: a dead lane's lease is reaped even
+    // with a fresh expires, which used to block the item until a hand release.
+    if (alive(record.pid) == 0)
+      return 0
+    // A live pid still keeps the lease only to its expiry.
+    if (record.expires)
+      return Date.parse(record.expires) > Date.now() ? 1 : 0
+    return 1
+  }
+  return bounded(record, maxAge)
 }
 
 export

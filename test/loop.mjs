@@ -441,8 +441,8 @@ function provisionsLib
 
 test('provision', 'copies the generated lib a fresh worktree lacks', withRepo(provisionsLib))
 
-// A claim written by a command that exits at once would be reaped immediately,
-// so an explicit expiry outranks the pid.
+// An expiry past due kills a lease whose pid is still alive; a fresh one keeps
+// it. A dead pid is reaped regardless (see the dead-pid test below).
 function leaseTtl
 () {
   let dir
@@ -465,6 +465,35 @@ function leaseTtl
 }
 
 test('claim', 'an explicit expiry outranks a pid that has already exited', leaseTtl)
+
+// A dead lane's lease used to survive reap whenever its expiry was still in the
+// future, so the item stayed blocked until the lane released it by hand. The pid
+// is the authority on this host; only another host's pid cannot be checked.
+function deadPidReaped
+() {
+  let dir
+
+  dir = Fs.mkdtempSync(Path.join(Os.tmpdir(), 'bred-lease-'))
+  try {
+    let child, future, record
+
+    child = spawnSync('true')
+    future = new Date(Date.now() + 3600000).toISOString()
+    Claims.claim(dir, 'p1', { lane: 'a1',
+                              pid: child.pid,
+                              host: Os.hostname(),
+                              expires: future })
+    record = Claims.list(dir)[ 0 ]
+    equal(Claims.live(record), 0, 'a dead pid is not live')
+    equal(Claims.reap(dir, {}).removed.length, 1)
+    equal(Claims.list(dir).length, 0)
+  }
+  finally {
+    Fs.rmSync(dir, { recursive: true, force: true })
+  }
+}
+
+test('claim', 'a dead pid is reaped even with a fresh expiry', deadPidReaped)
 
 // The aggregate docs belong in the record commit; a dirty doc tree is refused
 // rather than remembered. Seventeen rounds once sat uncommitted behind that.

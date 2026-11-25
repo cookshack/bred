@@ -316,6 +316,16 @@ test('macros', 'an argument is reduced in copy mode and then interpreted',
        equal(flat(text.doc.blocks[0].spans), 'body c:\\\\fonts\\\\truetype')
      })
 
+test('macros', 'a single-backslash argument is expanded when the macro is defined',
+     () => {
+       // p101: groff -Tutf8 -man prints `[]` for a body of `[\$1]`. Copy mode
+       // expands `\$` while the definition is read, and `.de` has no argument
+       // then, so the `$1` is already gone. Only the doubled form survives to
+       // the call, where it is interpreted against the call's argument.
+       equal(asText('.TH T 1\n.de M\n[\\$1]\n..\n.M hi\n'), '[]\n')
+       equal(asText('.TH T 1\n.de M\n[\\\\$1]\n..\n.M hi\n'), '[hi]\n')
+     })
+
 test('copy mode', 'an escaped space in a macro body is not a separator',
      () => {
        let r, text
@@ -769,6 +779,16 @@ test('escapes', 'a c inside a macro argument continues the macro line',
                     'form `\\c\n.I <namestem>\\c\n.C @\\c\n' +
                     ".I <sfd-filename>\\c\n.C @ ')\n"),
              "form `<namestem>@<sfd-filename>@')\n")
+     })
+
+test('escapes', 'a c inside a macro argument cuts the rest of the body line',
+     () => {
+       // p118: groff -Tutf8 -man on `.de M` with `pre \\$1 tail`, called as
+       // `.M "a\c"` and followed by `next`, prints `pre anext`. The `\c` in
+       // the argument interrupts the body line where it is interpolated, so
+       // ` tail` is discarded rather than printed after the join.
+       equal(asText('.TH T 1\n.de M\npre \\\\$1 tail\n..\n.M "a\\c"\nnext\n'),
+             'pre anext\n')
      })
 
 test('escapes', 'a font argument ending in c continues the next line',
@@ -2177,6 +2197,29 @@ test('mdoc inline', 'Sy, Em and Li style their words',
        equal(r.doc.blocks[0].spans.find(s => s.text == 'code').role, 'li')
      })
 
+test('mdoc inline', 'a bar is roman and does not end a macro argument list',
+     () => {
+       let r, spans
+
+       // p119: GROFF_SGR=1 groff -Tutf8 -mdoc prints `.Ar foo | bar` with
+       // both words italic and only the bar roman, and `.Cm a | b` with both
+       // words bold. The bar is an argument like any other, so the words
+       // after it keep the macro's style and role.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Ar foo | bar\n.Cm a | b\n')
+       spans = r.doc.blocks[0].spans
+       equal(flat(spans), 'foo | bar a | b')
+       equal(spans.find(s => s.text == 'foo').style, 'italic')
+       equal(spans.find(s => s.text == 'foo').role, 'ar')
+       equal(spans.find(s => s.text == 'bar').style, 'italic')
+       equal(spans.find(s => s.text == 'bar').role, 'ar')
+       equal(spans.find(s => s.text == 'a').style, 'bold')
+       equal(spans.find(s => s.text == 'a').role, 'cm')
+       equal(spans.find(s => s.text == 'b').style, 'bold')
+       equal(spans.find(s => s.text == 'b').role, 'cm')
+       equal(spans.filter(s => s.text == '|').map(s => s.style).join(' '),
+             'roman roman')
+     })
+
 // roff man macros only say bold; mdoc says what the run means, so the parser
 // keeps that name for the renderer to class.
 test('mdoc inline', 'semantic macros carry a role, man font macros do not',
@@ -2928,7 +2971,9 @@ test('escapes', 'dollar at and star expand all macro arguments',
      () => {
        let r
 
-       r = parsed('.TH T 1\n.de M\n[\\$@]\n[\\$*]\n..\n.M a b c\n')
+       // The doubled backslash is what survives a definition: a single `\$`
+       // is expanded where the body is read, with no arguments (p101).
+       r = parsed('.TH T 1\n.de M\n[\\\\$@]\n[\\\\$*]\n..\n.M a b c\n')
        equal(flat(r.doc.blocks[0].spans), '[a b c] [a b c]')
      })
 
@@ -2936,7 +2981,7 @@ test('escapes', 'a two-digit argument number expands that argument',
      () => {
        let r
 
-       r = parsed('.TH T 1\n.de M\n\\$1-\\$(12\n..\n.M a b c d e f g h i j k l\n')
+       r = parsed('.TH T 1\n.de M\n\\\\$1-\\\\$(12\n..\n.M a b c d e f g h i j k l\n')
        equal(flat(r.doc.blocks[0].spans), 'a-l')
      })
 

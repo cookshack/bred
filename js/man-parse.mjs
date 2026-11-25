@@ -595,9 +595,14 @@ function expand
         pushSpans(spans, sub.spans)
         // A `\c` inside an argument still suppresses the break at the end of
         // the line the body writes: ttf2pk(1)'s `.C \&. \c` passes it as the
-        // second argument and `.C @\c` buries it in the first.
-        if (sub.join)
+        // second argument and `.C @\c` buries it in the first. It also ends
+        // the body line where it is interpolated, so what follows the
+        // argument is discarded (p118): groff prints `pre anext`, not `pre a
+        // tailnext`.
+        if (sub.join) {
           join = 1
+          break
+        }
         continue
       }
       if (ch == 's') {
@@ -948,7 +953,7 @@ function stripComment
 }
 
 function copyMode
-(text) {
+(c, text) {
   let i, out
 
   out = ''
@@ -976,6 +981,30 @@ function copyMode
         i += 2
         continue
       }
+      if (next == '$') {
+        // Copy mode also expands an argument reference. A definition is read
+        // where the enclosing macro (if any) is current, so `.de M` at top
+        // level copies `\$1` as the empty string; only `\\$1` survives to be
+        // interpreted at call time (p101).
+        let at, name
+
+        at = i + 2
+        if ((text[at] == '*') || (text[at] == '@')) {
+          out += frame(c)?.args?.join(' ') || ''
+          i = at + 1
+          continue
+        }
+        if (text[at] == '(') {
+          name = text.slice(at + 1, at + 3)
+          i = at + 3
+        }
+        else {
+          name = text[at] || ''
+          i = at + 1
+        }
+        out += argOf(c, Number(name))
+        continue
+      }
     }
     out += text[i]
     i += 1
@@ -990,18 +1019,18 @@ function copyMode
 // build the line through a string and copy twice (three rounds); `.OP` reaches
 // `.RB`/`.RI` and copies three times (four rounds).
 function copied
-(text, rounds) {
+(c, text, rounds) {
   let out, i
 
   out = text
   for (i = 0; i < rounds; i++)
-    out = copyMode(out)
+    out = copyMode(c, out)
   return out
 }
 
 function copiedArgs
-(args, rounds) {
-  return args.map(arg => copied(arg, rounds))
+(c, args, rounds) {
+  return args.map(arg => copied(c, arg, rounds))
 }
 
 function valueAfter
@@ -1111,7 +1140,7 @@ function callMacro
   c.frames.push({ lines: body,
                   at: 0,
                   line: lineNo,
-                  args: args.map(arg => copyMode(arg)),
+                  args: args.map(arg => copyMode(c, arg)),
                   name })
 }
 
@@ -1441,7 +1470,7 @@ function fontSpans
 
   args = splitArgs(rest)
   if (copies)
-    args = copiedArgs(args, copies)
+    args = copiedArgs(c, args, copies)
   if (args.length == 0) {
     c.nextStyle = styles[0]
     return undefined
@@ -1540,7 +1569,7 @@ function synopsisStart
   // an-ext.tmac's .SY hands only the first argument to .B, so later ones are
   // dropped and the name is copied once by .SY and again by the .B call before
   // the body interprets it.
-  pushSpans(p.spans, expand(c, copied(args[0] || '', 2), 'bold', c.lineNo).spans)
+  pushSpans(p.spans, expand(c, copied(c, args[0] || '', 2), 'bold', c.lineNo).spans)
 }
 
 function define
@@ -1553,7 +1582,7 @@ function define
     return
   end = args[1] || '..'
   body = readBlockEnd(c, end, c.lineNo)
-  body = body.map(line => copyMode(line))
+  body = body.map(line => copyMode(c, line))
   if (append && c.macros[name])
     c.macros[name] = c.macros[name].concat(body)
   else
@@ -2454,6 +2483,11 @@ function mdocWords
                    return
                  if (mdocPunct(arg))
                    mdocAttachText(c, arg, 'roman')
+                 else if (mdocBar(c, arg))
+                   // A bar is a word in the list, not its end: groff prints
+                   // `.Ar foo | bar` with both words italic and the bar roman
+                   // (p119).
+                   mdocText(c, arg, 'roman')
                  else if (mdocOpenPunct(arg)) {
                    mdocText(c, arg, 'roman')
                    c.mdoc.noSpace = 1
@@ -2465,19 +2499,19 @@ function mdocWords
 
 // mdoc parses a macro's arguments itself: a callable macro name ends the
 // previous macro's arguments and starts a nested call. That is why
-// `.Op Fl e Ar file` is "[-e file]" and not "[-e -Ar file]".
-//
-// `Fl` is the exception to the bar and punctuation stops: both are words in
-// its own list. groff prints `.Op Fl c | s` as "[-c | -s]" and
-// `.Op Fl a , b` as "[-a, -b]", so the flag after them keeps its dash.
+// `.Op Fl e Ar file` is "[-e file]" and not "[-e -Ar file]". A bar is an
+// ordinary argument of the macro, not a stop: `.Ar foo | bar` keeps both
+// words in Ar's list (p119). `Fl` is the exception to the punctuation stop:
+// punctuation is a word in its own list. groff prints `.Op Fl a , b` as
+// "[-a, -b]", so the flag after them keeps its dash.
 function mdocArgEnd
-(c, args, at) {
+(args, at) {
   let end, flags
 
   flags = (args[at] == 'Fl') ? 1 : 0
   end = at + 1
   while ((end < args.length) &&
-         (flags || ((mdocBar(c, args[end]) == 0) && (mdocPunct(args[end]) == 0))))
+         (flags || (mdocPunct(args[end]) == 0)))
     if (mdocInlineNames[args[end]] == undefined)
       end++
     else if ((args[end] == args[at]) && (end == at + 1))
@@ -2496,7 +2530,7 @@ function mdocInline
     if (mdocInlineNames[args[at]]) {
       let end
 
-      end = mdocArgEnd(c, args, at)
+      end = mdocArgEnd(args, at)
       if (mdocNoArg[args[at]])
         end = at + 1
       else if (mdocEncloseNames[args[at]])
@@ -3489,7 +3523,7 @@ function handleLine
       c.nextHeading = (name == 'SH') ? 1 : 2
     else
       startHeading(c, (name == 'SH') ? 1 : 2,
-                   expand(c, copiedArgs(args, 1).join(' '), style, c.lineNo).spans)
+                   expand(c, copiedArgs(c, args, 1).join(' '), style, c.lineNo).spans)
     break
   case 'PP':
   case 'LP':
@@ -3509,7 +3543,7 @@ function handleLine
     else {
       startTag(c, parseFloat(args[1]) || 1, 0)
       if (c.tag)
-        pushSpans(c.tag.tag, expand(c, copied(args[0], 1), style, c.lineNo).spans)
+        pushSpans(c.tag.tag, expand(c, copied(c, args[0], 1), style, c.lineNo).spans)
     }
     break
   }
@@ -3571,10 +3605,10 @@ function handleLine
     let spans
 
     spans = [ { text: '[', style: 'roman' } ]
-    pushSpans(spans, expand(c, copied(args[0] || '', 3), 'bold', c.lineNo).spans)
+    pushSpans(spans, expand(c, copied(c, args[0] || '', 3), 'bold', c.lineNo).spans)
     if ((args[1] || '').length) {
       pushSpan(spans, { text: ' ', style: 'roman' })
-      pushSpans(spans, expand(c, copied(args[1], 3), 'italic', c.lineNo).spans)
+      pushSpans(spans, expand(c, copied(c, args[1], 3), 'italic', c.lineNo).spans)
     }
     pushSpan(spans, { text: ']', style: 'roman' })
     appendInline(c, spans)
@@ -3602,7 +3636,7 @@ function handleLine
     // Every trailing argument belongs after the link text: tload(1) writes
     // `.UE , and` and groff prints `, and`, not just the comma. an-ext's body
     // reads the tail in copy mode before interpreting it.
-    linkEnd(c, copied(args.join(' '), 1))
+    linkEnd(c, copied(c, args.join(' '), 1))
     break
   case 'TS':
   case 'T&': {
@@ -3746,10 +3780,10 @@ function handleLine
     define(c, 1, rest)
     break
   case 'ds':
-    doString(c, args[0] || '', copyMode(valueAfter(rest, args[0] || '')), 0)
+    doString(c, args[0] || '', copyMode(c, valueAfter(rest, args[0] || '')), 0)
     break
   case 'as':
-    doString(c, args[0] || '', copyMode(valueAfter(rest, args[0] || '')), 1)
+    doString(c, args[0] || '', copyMode(c, valueAfter(rest, args[0] || '')), 1)
     break
   case 'nr':
     // `.nr X` with no value does not define X; groff leaves it undefined

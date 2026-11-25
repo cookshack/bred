@@ -1517,6 +1517,21 @@
       ],
       "proof": "npx mocha --exit test/code-events.mjs",
       "notes": "Found by the same hunt. Reference: shared-events case \"session.tool.input.delta\" appends data.delta to tool.state.input while the tool is streaming. translate handles .started and .ended (which parses the JSON) but not .delta, so bred shows a pending tool with no input until it is complete. Decide whether the text preview is worth a legacy event; the .ended text is authoritative, so this is display-only."
+    },
+    {
+      "id": "p125",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": "dmsetup(8) splits load|reload into two words around a .BR line ending in \\c",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "source": "measure",
+      "notes": "Measured at c1f2f38a: man-diff --page /usr/share/man/man8/dmsetup.8.gz says 3222 ours / 3221 man, lost 1 [\"load|reload\"], with ours as \"load|\" + \"reload\". Source is `.BR load | \\c` followed by `.CMD_RELOAD` (a .de body whose only line is `.BR reload`), after `.BR compact \", \" inverted \", \" notrunc .` under .HP, and before `.br`. A minimal .BR load | \\c + .de CMD_RELOAD + .BR reload DOES join correctly in bred, so the trigger is context-dependent (the preceding .BR line, the .HP, or the macro body shape). Prove the trigger before fixing; p96 fixed the text-line variant and p98 the no-output-macro variant, so check both before changing the join state."
     }
   ],
   "measures": {

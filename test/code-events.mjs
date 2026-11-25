@@ -106,6 +106,42 @@ test('translate', 'a scheduled retry with no error message has no message',
        equal(leg[0].properties.status.message, undefined)
      })
 
+test('translate', 'compaction is a log line with a phase',
+     () => {
+       let buf, leg
+
+       buf = makeBuf()
+       leg = Ev.translate(buf, Fake.event('session.compaction.started',
+                                          { sessionID: 's1', reason: 'auto', recent: '' }))
+       equal(leg.length, 1)
+       equal(leg[0].type, 'session.compaction')
+       equal(leg[0].properties.phase, 'started')
+       equal(leg[0].properties.reason, 'auto')
+     })
+
+test('translate', 'compaction end carries its summary and failure its error',
+     () => {
+       let buf, leg
+
+       buf = makeBuf()
+       leg = Ev.translate(buf, Fake.event('session.compaction.ended',
+                                          { sessionID: 's1', reason: 'manual', text: 'Summary.' }))
+       equal(leg[0].properties.phase, 'ended')
+       equal(leg[0].properties.text, 'Summary.')
+       leg = Ev.translate(buf, Fake.event('session.compaction.failed',
+                                          { sessionID: 's1', reason: 'auto', error: { message: 'boom' } }))
+       equal(leg[0].properties.phase, 'failed')
+       equal(leg[0].properties.error.message, 'boom')
+     })
+
+test('translate', 'compaction deltas are not drawn',
+     () => {
+       let leg
+
+       leg = Ev.translate(makeBuf(), Fake.event('session.compaction.delta', { sessionID: 's1', text: 'x' }))
+       equal(leg.length, 0)
+     })
+
 test('translate', 'session.model.selected maps ModelRef to modelID',
      () => {
        let buf, leg

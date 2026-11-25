@@ -84,6 +84,17 @@ function translate
   case 'session.step.failed':
     out.push(legacy('session.error', { sessionID: data.sessionID, error: data.error }))
     break
+  case 'session.compaction.started':
+  case 'session.compaction.ended':
+  case 'session.compaction.failed':
+    // One log line per phase. The ended event carries the whole summary, so
+    // the deltas are not drawn (and the handler caps what it shows).
+    out.push(legacy('session.compaction', { sessionID: data.sessionID,
+                                            phase: ev.type.slice('session.compaction.'.length),
+                                            reason: data.reason,
+                                            text: data.text,
+                                            error: data.error }))
+    break
   case 'session.retry.scheduled':
     // The server is waiting to try the turn again; updateStatus draws the
     // reason. The next execution event replaces it with busy or idle.

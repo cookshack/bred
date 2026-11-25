@@ -3057,6 +3057,23 @@ function init
                                      else if (Subagent.childStatus(buf, props.sessionID, props.status?.type))
                                        buf.vars('code').subagentIds?.delete(props.sessionID)
                                  } },
+             'session.compaction': { onArrive
+                                     (buf, event) {
+                                       let p, text
+
+                                       p = event.properties
+                                       if (p.sessionID == buf.vars('code').sessionID) {
+                                         if (p.phase == 'started')
+                                           text = '🗜️ compacting the context' + (p.reason ? ' (' + p.reason + ')' : '')
+                                         else if (p.phase == 'ended')
+                                           text = '🗜️ context compacted' +
+                                                  (p.text ? ': ' + String(p.text).replace(/\s+/g, ' ').slice(0, 200) : '')
+                                         else
+                                           text = '🗜️ context compaction failed' +
+                                                  (p.error?.message ? ': ' + p.error.message : '')
+                                         Ui.appendMsg(buf, 0, text, undefined, undefined, { log: 1 })
+                                       }
+                                     } },
              'permission.asked': { onArrive
                                    (buf, event) {
                                      if (Util.isSessionMatch(buf, event.properties.sessionID))

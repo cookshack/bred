@@ -37,6 +37,7 @@ before.
 | b8 | man | a1 | ready | batch: a cell request and a dot-only line (p75, p128) | js/man-parse.mjs, test/man-parse.mjs |
 | p128 | man | a1 | ready | a `.`-only line with no pending `\c` adds a space block; groff draws no gap | js/man-parse.mjs, test/man-parse.mjs |
 | p75 | man | a1 | ready | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
+| c12 | code | a2 | ready | session.tool.input.delta is dropped: translate() emits no legacy delta while a tool's input streams, so the preview appears only when .ended has parsed the whole JSON | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
 | p139 | core | a2 | ready | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
 | p140 | core | a2 | ready | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
 | p141 | core | a2 | ready | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs |
@@ -85,7 +86,6 @@ before.
 | c2 | code | a2 | triage | session.step.streamed is dropped (seen live); decide whether it must translate | ext/code/event.mjs, test/code-events.mjs |
 | c4 | code | a2 | triage | provider.updated / model.updated are dropped (session-less); decide whether the UI needs them | ext/code/event.mjs, test/code-events.mjs |
 | p124 | man | a1 | triage | copy mode still reduces \. to "."; a body line starting with \. becomes an unknown request and refuses the page where groff prints nothing | js/man-parse.mjs, test/man-parse.mjs |
-| c12 | code | a2 | triage | session.tool.input.delta is dropped; the tool preview only appears when the whole input has arrived | ext/code/event.mjs, test/code-events.mjs |
 
 ## Done
 

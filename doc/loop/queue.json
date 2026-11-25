@@ -871,6 +871,150 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p103",
+      "lane": "a1",
+      "status": "next",
+      "title": "ttf2pk(1) loses 4 words: `.<resolution>pk', files—, ttf2tfm, `<namestem>@<sfd-filename>@') (the ttf2tfm family)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p104",
+      "lane": "a1",
+      "status": "next",
+      "title": "hg(1) loses 2 words: incoming ) — spacing around a closing paren",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p105",
+      "lane": "a1",
+      "status": "next",
+      "title": "ssh-agent(1) loses 2 words: the synopsis -s] bracket",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p106",
+      "lane": "a1",
+      "status": "next",
+      "title": "rpcgen(1) loses 1 word: 0a",
+      "files": [
+        "js/man-char.mjs",
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p107",
+      "lane": "a1",
+      "status": "next",
+      "title": "ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p108",
+      "lane": "a1",
+      "status": "next",
+      "title": "tex2aspc(1) loses 1 word: TransformNotes",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p109",
+      "lane": "a1",
+      "status": "next",
+      "title": "thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch)",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p110",
+      "lane": "a1",
+      "status": "next",
+      "title": "tload(1) loses 1 word: and (a line join)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p111",
+      "lane": "a1",
+      "status": "next",
+      "title": "xargs(1) loses 1 word: --show-limits (a hyphen join)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p112",
+      "lane": "a1",
+      "status": "next",
+      "title": "editline(7) loses 5 words: a lone - in the text",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p113",
+      "lane": "a3",
+      "status": "ready",
+      "title": "gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff)",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs"
+    },
+    {
+      "id": "p114",
+      "lane": "a3",
+      "status": "next",
+      "title": "dmsetup(8) loses 5 words: long [a|b] alternatives wrapped by man(1); decide a diff join or parser rule",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs"
+    },
+    {
+      "id": "p115",
+      "lane": "a1",
+      "status": "next",
+      "title": "dmstats(8) loses 2 words: minor and device_name in a table cell",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     }
   ]
 }

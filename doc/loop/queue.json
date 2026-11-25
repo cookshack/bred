@@ -121,7 +121,7 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: an `%A`-only `.Rs` — groff -mdoc prints `Foo,` (two authors: `Foo and Bar,`), bred prints `Foo.`. Red test `mdoc :: a reference with only authors ends with a comma` (flat(spans) == 'Foo,'). No corpus page exercises it. Fix in mdocRefText: with only authors the prefix ends with a comma, not a period."
+      "notes": "Verified 2026-11-25: groff -Tutf8 -mdoc prints `A. Author,` for an .Rs with only .%A; ours printed `A. Author.`. The test file joins the row."
     },
     {
       "id": "p54",

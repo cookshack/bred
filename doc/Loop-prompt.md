@@ -41,6 +41,11 @@ will choose its own.
     queue is doc/loop/queue.json, not a markdown table, so never hand-edit
     doc/Loop-queue.md (it is generated, and check will say so).
 
+    status lists lane worktrees from earlier sessions too, because they are
+    registered in the same repository; your lanes are the three under your own
+    $BRED_WORKTREE_ROOT (named bred-a1..a3 and created by lanes-up), and the
+    others are left alone. The same goes for the stale registrations line.
+
     Work in rounds of up to three lanes whose file sets are disjoint: pick
     with bin/loop.mjs pick (it skips dirty, hot and overlapping items). pick
     only returns rows whose status is `ready`, so if it returns nothing, groom

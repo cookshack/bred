@@ -664,6 +664,30 @@ function wordsOf
   return text.split(' ').filter(word => word.length)
 }
 
+// thumbpdf(1) is the corpus's one page whose source is not valid UTF-8: it
+// writes a lone C2 byte (`\302` in groff's octal notation) before the copyright
+// glyph: `Copyright \302\[co] 1999`. groff's preconv reads that byte as Latin-1
+// and prints `Â©` (C3 82 C2 A9); our UTF-8 decode marks it U+FFFD and prints
+// `�©` (EF BF BD C2 A9). The bytes spell the single character `©`, so the key
+// folds both spellings to it: our replacement mark drops, and a word made only
+// of byte-sized characters is read back as the UTF-8 those bytes spell. Only a
+// valid sequence folds; a pair that is still not valid UTF-8 keeps its own key,
+// so a real difference is still reported.
+function foldBytes
+(word) {
+  let text
+
+  if (/^[\u0000-\u00ff]*$/.test(word) == 0)
+    return word
+  try {
+    text = new TextDecoder('utf-8', { fatal: 1 }).decode(Buffer.from(word, 'latin1'))
+  }
+  catch (err) {
+    return word
+  }
+  return text
+}
+
 // man(1) lays text out in 78 columns, so a sentence that ends with a long URL
 // can push the final "." onto a line of its own. The reference then has the
 // word and a punctuation-only token where our text has one word with the
@@ -696,7 +720,8 @@ function wordsOf
 // and both sides drop there too.
 export function keyOf
 (word) {
-  return word.replace(/[\u2010\u2011\u2212]/g, '-')
+  return foldBytes(word.replace(/\ufffd/g, ''))
+             .replace(/[\u2010\u2011\u2212]/g, '-')
              .replace(/\u2018/g, '`')
              .replace(/\u2019/g, "'")
              .replace(/[\u201c\u201d]/g, '"')

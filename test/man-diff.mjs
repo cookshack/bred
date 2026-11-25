@@ -101,12 +101,44 @@ test('man-diff', 'the quote fold happens before the punctuation strip',
        equal(keyOf('wasn\u2019t.'), "wasn't")
      })
 
+// thumbpdf(1) is the corpus's one page whose source is not valid UTF-8: it
+// writes a lone C2 byte before `\[co]` (`Copyright \302\[co] 1999`, bytes
+// `20 c2 5c 5b 63 6f 5d`). groff's preconv reads the byte as Latin-1 and prints
+// `Â©` (`c3 82 c2 a9`), while our UTF-8 decode marks it U+FFFD and prints
+// `�©` (`ef bf bd c2 a9`). The bytes spell `©`, so both spellings fold to it.
+test('man-diff', 'a mis-decoded byte folds to the content the bytes spell',
+     () => {
+       equal(keyOf('\u00c2\u00a9'), keyOf('\u00a9'))
+       equal(keyOf('\ufffd\u00a9'), keyOf('\u00a9'))
+     })
+
+// The fold is only allowed where the bytes are a valid UTF-8 sequence. Two
+// Latin-1 characters that do not decode keep their own key, so a page that
+// really spells them is still reported rather than folded away.
+test('man-diff', 'a byte pair that is not valid UTF-8 keeps its own key',
+     () => {
+       equal(keyOf('\u00c2\u00c2'), '\u00c2\u00c2')
+     })
+
 test('man-diff', 'pcre2demo(3) has no typographic-quote loss',
      function
      () {
        let lost
 
        lost = lostOn('/usr/share/man/man3/pcre2demo.3.gz')
+       if (lost == undefined)
+         return this.skip()
+       equal(lost, 0)
+     })
+
+// thumbpdf(1)'s only source violation is that lone byte, and no word of the page
+// is lost once its two spellings compare equal.
+test('man-diff', 'thumbpdf(1) mis-encoded byte is not a lost word',
+     function
+     () {
+       let lost
+
+       lost = lostOn('/usr/share/man/man1/thumbpdf.1.gz')
        if (lost == undefined)
          return this.skip()
        equal(lost, 0)

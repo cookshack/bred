@@ -39,15 +39,6 @@ before.
 | p144 | core | a3 | ready | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
 | l3 | tooling | a3 | ready | Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand | bin/loop-claims.mjs, test/loop.mjs |
 
-## In round
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| c17 | core | a3 | in-round | batch: Em.seq keeps a space key, and Cmd.get agrees with getAll (p141, p142) | js/Em.mjs, js/cmd.mjs, test/em-seq-space.mjs, test/cmd-minors.mjs, test/ed.mjs |
-| p133 | man | a1 | in-round | \h( and \l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \v(, these two still drop their tail | js/man-parse.mjs, test/man-parse.mjs |
-| p141 | core | a3 | in-round | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs, test/ed.mjs |
-| p142 | core | a3 | in-round | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -82,6 +73,7 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| c17 | core | a3 | done:448a374b | batch: Em.seq keeps a space key, and Cmd.get agrees with getAll (p141, p142) | js/Em.mjs, js/cmd.mjs, test/em-seq-space.mjs, test/cmd-minors.mjs, test/ed.mjs |
 | c15 | code | a2 | done:2f97b214 | the `Creating session...` placeholder is never removed, so it stays above the first turn and can receive an orphan delta | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | c14 | code | a2 | done:835b9b00 | text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0 | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | b8 | man | a1 | done:b8f0fabc | batch: a cell request and a dot-only line (p75, p128) | js/man-parse.mjs, test/man-parse.mjs |
@@ -212,8 +204,11 @@ before.
 | l2 | tooling | a3 | done:ad68333e | check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit | bin/loop.mjs, bin/loop-queue.mjs, test/loop.mjs |
 | p131 | man | a1 | done:dad8d3bf | a comment line at table-row level inside .TS/.TE is turned into a data row; tbl ignores it (ps(1) 9 of its surplus tokens, terminfo(5) 5) | js/man-parse.mjs, test/man-parse.mjs |
 | p132 | man | a3 | done:c0ac82ce | doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0 | doc/Man.md |
+| p133 | man | a1 | done:3fc48a88 | \h( and \l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \v(, these two still drop their tail | js/man-parse.mjs, test/man-parse.mjs |
 | p139 | core | a3 | done:9dbfaa9d | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
 | p140 | core | a3 | done:061e225c | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
+| p141 | core | a3 | done:448a374b | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs, test/ed.mjs |
+| p142 | core | a3 | done:448a374b | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
 | b9 | man | a1 | done:d62483ed | batch: the man tail's escapes, spans, cells and copy-mode tabs (b7: p79 p83 p34, b6: p102 p76 p77, p145) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | c16 | code | a2 | done:835b9b00 | a delta takes its part id from the event, not from state (c14) | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | p145 | man | a1 | done:949bf23c | `\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words | js/man-parse.mjs, test/man-parse.mjs |

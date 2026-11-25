@@ -7,7 +7,9 @@ green (2049 of 2051 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
 and area-aware picks are parked by the plan's own criterion. Man is 3 words on
 3 pages, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
-(the view in `doc/Loop-queue.md` is generated); the two designs it supersedes
+(the view in `doc/Loop-queue.md` is generated); a bounded event-union hunt
+after round 47 filed three code triages (c10–c12), recorded in
+`doc/loop/hunt-2026-11-25.md`. The two designs the queue supersedes
 are `doc/Loop-upgrade.md` and `doc/loop/plan-2026-11-24.md`, kept for their
 reasoning. This file is the protocol;
 `doc/loop/round-<n>.md` is the per-round record; `bred-loop/` in the session's

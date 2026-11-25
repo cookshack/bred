@@ -4,8 +4,8 @@
     "start": "2026-11-25T11:51:55Z",
     "deadline": "2026-11-25T15:06:55Z",
     "stopNew": "2026-11-25T14:21:55Z",
-    "state": "active",
-    "main": "4dd8ef83",
+    "state": "stopped",
+    "main": "4f057efe",
     "round": 46
   },
   "items": [
@@ -1299,7 +1299,8 @@
         "ext/code/event.mjs",
         "test/code-events.mjs"
       ],
-      "proof": "npx mocha --exit test/code-events.mjs"
+      "proof": "npx mocha --exit test/code-events.mjs",
+      "notes": "The reference client stores only assistant.time.streamed from this event (shared-events, case \"session.step.streamed\"); no visible text or status follows from it. That supports the verdict \"no legacy event needed\", but a triage row still needs a decision and the gate needs a red proof, so it stays next until someone either drops it with a recorded verdict or finds a consumer."
     },
     {
       "id": "c3",
@@ -1471,6 +1472,51 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "p100 fixed the escaped-space half of copyMode only. Evidence: a .de body containing `\\. e` makes groff -Tutf8 -man print nothing at all (no warning, the following text line still prints), while bred reduces the escape to \".\" and then refuses the page as `macro e`. No installed page hits it. Decide whether the refusal is the right policy or whether `\\.` should survive copy mode."
+    },
+    {
+      "id": "c10",
+      "area": "code",
+      "lane": "a2",
+      "type": "triage",
+      "status": "triage",
+      "title": "the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing",
+      "files": [
+        "ext/code/event.mjs",
+        "ext/code/code.mjs",
+        "ext/code/ui.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs",
+      "notes": "Found by the 2026-11-25 event-union hunt. Reference behaviour (ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js: session.compaction.started inserts {type:\"compaction\", status:\"running\", reason, summary, recent}, .delta appends summary, .ended marks it done, .failed records the error). bred has no compaction handling at all (grep compaction outside lib/opencode: only man-parse .Bl -compact). Decide the legacy shape (a message.part.updated part type, or a new event) before writing the red test; a long session compacts and the transcript currently jumps without saying so."
+    },
+    {
+      "id": "c11",
+      "area": "code",
+      "lane": "a3",
+      "type": "triage",
+      "status": "triage",
+      "title": "session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description",
+      "files": [
+        "ext/code/event.mjs",
+        "ext/code/code.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs",
+      "notes": "Found by the same hunt. Reference: shared-events case \"session.synthetic\" inserts {type:\"synthetic\", text, description, metadata}. What bred should show is a decision (a code-msg-text note? a part type?), so this is a triage. Evidence command: grep -n \"session.synthetic\" -A 9 ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js."
+    },
+    {
+      "id": "c12",
+      "area": "code",
+      "lane": "a2",
+      "type": "triage",
+      "status": "triage",
+      "title": "session.tool.input.delta is dropped; the tool preview only appears when the whole input has arrived",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs",
+      "notes": "Found by the same hunt. Reference: shared-events case \"session.tool.input.delta\" appends data.delta to tool.state.input while the tool is streaming. translate handles .started and .ended (which parses the JSON) but not .delta, so bred shows a pending tool with no input until it is complete. Decide whether the text preview is worth a legacy event; the .ended text is authoritative, so this is display-only."
     }
   ],
   "measures": {

@@ -1120,7 +1120,7 @@
     {
       "id": "p108",
       "lane": "a1",
-      "status": "next",
+      "status": "done",
       "title": "tex2aspc(1) loses 1 word: TransformNotes",
       "files": [
         "js/man-parse.mjs",
@@ -1128,7 +1128,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "c1f2f38a"
     },
     {
       "id": "p109",

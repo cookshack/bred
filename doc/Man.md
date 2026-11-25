@@ -632,7 +632,12 @@ became an argument separator and dmstats(8)'s `.de CMD_COMMAND` body printed
 stylesheet (p123), so the page and the text model agree. Section 8 is now
 dmsetup(8)'s single `load|reload`; totals are 4 words on 4 pages.
 
-Tests: 619 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 47 stopped mapping `\T` to the output device name: tex2aspc(1) writes
+`\TransformNotes` and groff prints `TransformNotes`, so the bare escape is the
+letter. Section 1 is thumbpdf(1)'s `Â©` and tload(1)'s `and`; totals are 3
+words on 3 pages (section 8's dmsetup line is the third).
+
+Tests: 620 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

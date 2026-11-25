@@ -55,7 +55,6 @@ before.
 | p98 | man | a1 | next | a \c before a macro whose body prints nothing (or before .ft/.ll) is still lost; the broad fix also glues across .PP/.RS/.sp, which needs a multi-macro sweep before changing | js/man-parse.mjs, test/man-parse.mjs |
 | p101 | man | a1 | next | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
 | p102 | man | a1 | next | an unknown escape is printed by groff (\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts | js/man-parse.mjs, test/man-parse.mjs |
-| p108 | man | a1 | next | tex2aspc(1) loses 1 word: TransformNotes | js/man-parse.mjs, test/man-parse.mjs |
 | p109 | man | a1 | next | thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch) | js/man-char.mjs, test/man-parse.mjs |
 | p110 | man | a1 | next | tload(1) loses 1 word: and (a line join) | js/man-parse.mjs, test/man-parse.mjs |
 | p111 | man | a1 | next | xargs(1) loses 1 word: --show-limits (a hyphen join) | js/man-parse.mjs, test/man-parse.mjs |
@@ -149,6 +148,7 @@ before.
 | p105 | man | a2 | done:de1718c | ssh-agent(1) loses 2 words: the synopsis -s] bracket | js/man-parse.mjs, test/man-parse.mjs |
 | p106 | man | a3 | done:a3607bd | rpcgen(1)'s 0a is a footer page-string, not content: man-diff's isFooter must drop a right-aligned multi-page token (/^\s{10,}[0-9]+[a-z]$/) | bin/man-diff, test/man-diff.mjs |
 | p107 | man | a1 | done:9612e96 | ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis | js/man-parse.mjs, test/man-parse.mjs |
+| p108 | man | a1 | done:c1f2f38a | tex2aspc(1) loses 1 word: TransformNotes | js/man-parse.mjs, test/man-parse.mjs |
 | p112 | man | a1 | done:3d13d152 | editline(7) loses 5 words: a lone - in the text | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p113 | man | a3 | done:6b36716 | gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff) | bin/man-diff, test/man-diff.mjs |
 | p114 | man | a3 | done:3bf287c | dmsetup(8) loses 5 words: long [a\|b] alternatives wrapped by man(1); decide a diff join or parser rule | bin/man-diff, test/man-diff.mjs |

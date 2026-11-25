@@ -1,12 +1,12 @@
 # Unattended agent loop
 
-Status: handover after round 46, 2026-11-25. Twenty-eight rounds used the
+Status: handover after round 47, 2026-11-25. Twenty-eight rounds used the
 tool's gate: red at base, green after the rebase, one suite at the integrated
-tip, the record on `loop/r<n>`, one fast-forward. Main is the round-46 tip,
-green (2048 of 2050 tests passing, 2 pending, check clean). The agreed plan,
+tip, the record on `loop/r<n>`, one fast-forward. Main is the round-47 tip,
+green (2049 of 2051 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
-and area-aware picks are parked by the plan's own criterion. Man is 4 words on
-4 pages, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
+and area-aware picks are parked by the plan's own criterion. Man is 3 words on
+3 pages, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
 (the view in `doc/Loop-queue.md` is generated); the two designs it supersedes
 are `doc/Loop-upgrade.md` and `doc/loop/plan-2026-11-24.md`, kept for their
 reasoning. This file is the protocol;
@@ -243,16 +243,17 @@ lane, or to another area, if its files are free.
 | 44 | brackets and footers | `a3607bd` | `Ns` survives the closing bracket (ssh-copy-id 0); a right-aligned page-string is a footer (rpcgen 0); a thinking block is repaired from the ended text; man 11 words on 6 pages |
 | 45 | dash and retry | `8618283` | `.Bl -dash` marks each item in the text model (editline 5 → 0, section 7 clean); `session.retry.scheduled` becomes a retry status (code 19/1); `appendThinking` decides the block per transcript box; man 6 words on 5 pages |
 | 46 | copy mode and markers | `4dd8ef8` | copy mode keeps an escaped space (dmstats 2 → 0); a `-dash` list draws a hyphen; man 4 words on 4 pages |
+| 47 | device name | `c1f2f38` | a bare `\T` is the letter (tex2aspc 1 → 0); man 3 words on 3 pages |
 
 ## Current state
 
-Measured at `4dd8ef83` (round 46's tip), corpus `4150` pages:
+Measured at `c1f2f38a` (round 47's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 46: 1:3p/3w  3:0p/0w  5:0p/0w  7:0p/0w  8:1p/1w
-    code events after round 46: 20 (19 translated, 1 dropped, 0 malformed)
-    619 man tests, 2048 of 2050 passing, 2 pending, 0 failing; check clean
+    whole sections after round 47: 1:2p/2w  3:0p/0w  5:0p/0w  7:0p/0w  8:1p/1w
+    code events after round 47: 20 (19 translated, 1 dropped, 0 malformed)
+    620 man tests, 2049 of 2051 passing, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

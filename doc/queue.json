@@ -1,0 +1,2012 @@
+{
+  "schema": 1,
+  "run": {
+    "start": "2026-11-25T15:54:58Z",
+    "deadline": "2026-11-25T23:54:58Z",
+    "stopNew": "2026-11-25T23:09:58Z",
+    "state": "active",
+    "round": 64,
+    "main": "9c9e1b12"
+  },
+  "items": [
+    {
+      "id": "c15",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "done",
+      "title": "the `Creating session...` placeholder is never removed, so it stays above the first turn and can receive an orphan delta",
+      "files": [
+        "ext/code/code.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs --grep placeholder",
+      "notes": "Found in c13's lane report (2026-11-25): Ui.appendMsg(buf, 0, 'Creating session...') at ext/code/code.mjs:1488 is only cleared by Ui.clearMsgs from the revert path (code.mjs:1624). A normal turn leaves the placeholder in the transcript, and a part-id-0 delta used to be appended into it. Red test `placeholder :: the creating-session message is removed when the first turn starts` (assert no .code-msg element with that text after the turn). Round 64: lane a2 tip 2f97b214.",
+      "doneHash": "2f97b214"
+    },
+    {
+      "id": "c14",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "ready",
+      "title": "text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs --grep reconnect",
+      "notes": "Found in c13's lane report (2026-11-25): session.text.delta uses partID: state.textID, but session.text.ended derives data.assistantMessageID + ':text:' + data.ordinal; a reconnect that dropped session.text.started leaves state.textID 0 (session.step.started resets it), so the delta can never be attributed. session.reasoning.delta has the same gap with state.thinkID (line 172 vs 179). Fix: derive both delta ids the way the ended case does. c13 stopped the misdraw but this is the root cause. Red test `reconnect :: a delta after a dropped started keeps its part id` in test/code-events.mjs, plus an e2e assertion that the delta streams into the same message."
+    },
+    {
+      "id": "b8",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "ready",
+      "source": "lane",
+      "title": "batch: a cell request and a dot-only line (p75, p128)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Groomed 2026-11-25: TWO red tests and no code change (p130 is already done in a0e05f0b, so it is not in this batch; `escapes :: dollar at quotes each argument` passes at this base). `tables :: an IP in a T{ cell prints no text` — groff -Tutf8 -t -man on `a<TAB>T{` / `text` / `.IP \"\" 2` / `more` / `T}` prints `a   text`, then a blank line, then `more` indented 2 ens; bred keeps `.IP \"\" 2` as literal cell text, so flat(cell.spans) is 'text\\n.IP \"\" 2\\nmore' instead of 'text\\nmore'. Same for ps(1)'s class/cls/policy cells (ps.1 lines 1121/1145/1535). `paragraphs :: a dot-only line draws no gap` — groff -Tutf8 -man on `one` / `.` / `two` prints `one two` on one line; bred emits a space block so asText is 'one\\n\\ntwo\\n' instead of 'one two\\n' (the `'`-only form is identical in groff). The patch NARROWS the existing `tables :: a cell request outside the text macros is still not run` from `.IP \"\" 2` to `.IP tag 2`: an IP with a tag does print text (groff prints a `tag` line then the body indented), so keeping it literal is right, while `.IP \"\"` has no text and must join the no-op tableRequests. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b8.patch. WARNING for the round's man-diff number: the p75 notes say this is the whole 18-word ps(1) surplus, but it is only 9 of them (` .IP` x3 + `\"\"` x3 + `2` x3, confirmed by dropping the 3 `.IP \"\" 2` lines: ps(1) 6710 -> 6701 ours). The other 9 are a SEPARATE defect also visible on ps(1): the `.\\\"K<TAB>stime<TAB>system time (conflict, system vs. start time)` comment at ps.1:940 sits at table-row level inside `.TS`/`.TE`, tbl ignores it but bred turns it into a data row, giving `[ \".\", \"stime\", \"system time (conflict, system vs. start time)\" ]`; dropping that line takes 6701 -> 6692, matching man(1). Not fixed here and not tested: needs its own row (comment lines in a table body must be skipped like tableRequest already skips `.br`/`.sp`). terminfo(5) has the same bug in milder form (`.\\\".TH` at table-row level, 5 surplus tokens: `.` and four `|`). Also found in the groom (separate row needed): ps(1) has a .\\\" comment at table-ROW level (ps.1:940) which tbl ignores and bred turns into a data row (9 of the surplus tokens); terminfo(5) has the same in milder form. Comment lines in a table body must be skipped like tableRequest skips .br/.sp.",
+      "batch": 1
+    },
+    {
+      "id": "p130",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "title": "`\\$@` interpolation does not quote its arguments: groff prints `[\"a\" \"b\" \"c\"]`, bred `[a b c]`",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found in b5's lane report (2026-11-25): `.de M` body `[\\\\$@]`, called `.M a b c` — groff prints `[\"a\" \"b\" \"c\"]`; bred prints `[a b c]`. Red test `macros :: dollar at quotes each argument`, asText == '[\"a\" \"b\" \"c\"]\\n'. The existing green test that asserts the unquoted form must be updated with the fix. Round 64: lane a1 tip a0e05f0b.",
+      "doneHash": "a0e05f0b"
+    },
+    {
+      "id": "b7",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "ready",
+      "source": "lane",
+      "title": "batch: table spans, character names, and the \\v paren form (p79, p83, p34)",
+      "files": [
+        "js/man-parse.mjs",
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Groomed 2026-11-25: three red tests and no code change. `escapes :: a v escape has no paren form and prints its text` — groff warns `cannot use character '(' as a starting delimiter` and prints `x a2b y` for `x a\\v(2b y` (and `x a12b y` for `\\v(12b`), while bred prints `x a y` / `x ab y`. `escapes :: common groff_char names outside the corpus are absent` — groff prints all 21 (md ⋅, c* ⊗, r! ¡, OK ✓, Eu €, sq □, lf/rf/lc/rc, ul/uc/ur/ll/lr/cl/cr, 18/38/58/78), while bred refuses the page (`ok` 0) for each; ul/uc/ur/ll/lr/cl/cr are drawn with vertical motion, so the test asserts only acceptance for those six. `tables :: a vertical span puts its text on the bottom row` — tbl(1)'s own `l ld` / `r ^` example prints `│   r │ foo    │` on the bottom row, while bred's toText puts foo on the row above r. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b7.patch. Also seen: \\S( goes through the same skipValue path, so `\\S(2` likely has the same 2-char-name bug; not tested here.",
+      "batch": 1
+    },
+    {
+      "id": "b6",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "in-round",
+      "source": "lane",
+      "title": "batch: escapes and synopsis spacing (p102, p76, p77)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Groomed 2026-11-25: three red tests and no code change at c5029a94 (380 passing, 3 failing). `escapes :: an unknown escape prints its own letter` — groff -Tutf8 -man on `a \\Q b` prints `a Q b` (with `-ww` it only warns \"escape character ignored before 'Q'\"), and `a \\y b` prints `a y b`; bred is red at `0 !== 1` (r.ok 0, fails `escape \\Q`). The fix must also FLIP the existing green test `escapes :: an unknown escape fails the page` (test/man-parse.mjs, asserts ok 0 / `escape \\q`): it enshrines the refusal and cannot stay green once an unknown escape prints its letter. `synopsis :: SY and OP keep their space in mdoc mode` — groff -Tutf8 -man on `.SY strace-log-merge` / `.OP \\-a all` prints `strace-log-merge [-a all]`, while bred in mdoc mode is red at `+ 'strace-log-merge[-a all]' / - 'strace-log-merge [-a all]'`; groff -Tutf8 -mdoc has no .SY/.OP at all (with `-ww`: \"macro 'SY' not defined\"), so the man(7) layout is the reference, and the bug is pre-existing and only reachable from an mdoc page that uses them. `escapes :: a literal tab is not the zero-width \\t escape` — groff -Tutf8 -man on `.nf` / `a<TAB>b` / `c\\td` / `.fi` prints `a    b` (literal tab to the tab stop) then `cd` (the `\\t` escape is zero width); in fill mode groff gives `a<TAB>b` as `a    b` and `c\\td` as `cd` (joined `a    b cd`), so the escape is zero width in both modes and a literal tab is never a space; bred is red at `+ 'a\\tb\\nc\\td\\n' / - 'a\\tb\\ncd\\n'`. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b6.patch. Found but not fixed: `escapes :: an unknown escape before a high-bit character keeps it` (test/man-parse.mjs:3023) already asserts the escape is dropped before a non-ASCII letter, so p102 extends the same rule to an ASCII letter rather than adding a special case; that existing test must keep passing through the same code path.",
+      "batch": 1
+    },
+    {
+      "id": "b5",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "source": "lane",
+      "title": "batch: macro arguments, a bar, and a cut body line (p101, p118, p119)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Absorbs p101 (a single-backslash `\\$1` in a macro body is expanded at definition time: body `[\\$1]` prints `[]`; only the doubled form is call-time), p118 (a `\\c` inside an interpolated macro argument cuts the rest of the outer body line: `pre ` + `a\\c` + ` tail` + `next` prints `pre anext`) and p119 (a bar inside a macro argument list is roman and does not end the list: `.Ar foo | bar` is italic for both words, `.Cm a | b` bold). One commit, each item keeps its own red test, all three marked done with this row's hash.",
+      "batch": 1,
+      "doneHash": "30263abb"
+    },
+    {
+      "id": "p129",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": ".sp N loses its count: one space block whatever N is, and man-render draws one gap",
+      "files": [
+        "js/man-parse.mjs",
+        "js/man-render.mjs",
+        "test/man-parse.mjs",
+        "test/man-render.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found in b4's lane report (2026-11-25): `.sp 2` is one block, so toText and man-render draw one gap where groff draws two. The block needs a count and both consumers need it. Measurement-neutral (man-diff collapses blanks) and no installed page depends on it yet, so it is next, not ready: the model change is shared with man-render."
+    },
+    {
+      "id": "p128",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "ready",
+      "title": "a `.`-only line with no pending `\\c` adds a space block; groff draws no gap",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found in b4's lane report (2026-11-25): `one` / `.` / `two` — groff -Tutf8 -man prints `one two` (the `.` flushes the current line, no gap); bred emits a space block so toText gives `one\\n\\ntwo\\n`. b4 fixed the pending-`\\c` case only. Red test `paragraphs :: a dot-only line draws no gap` (asText == 'one two\\n')."
+    },
+    {
+      "id": "c13",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "done",
+      "title": "handlePartDelta draws a text delta as a thinking block when the assistant message element is missing (a reconnect that dropped session.text.started)",
+      "files": [
+        "ext/code/code.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs --grep reconnect",
+      "notes": "Found in c6's lane report (2026-11-25): handlePartDelta (ext/code/code.mjs) takes the `field == 'text' && msgEl == null` branch and creates a plain .code-msg-thinking node, so a text part whose started event a reconnect dropped is drawn as thinking, and the later ended text appends a second assistant message. Needs a red test (same reconnect shape as c6's second test, but with a delta first) before it can be promoted to ready. Promoted 2026-11-25: the lane writes the red test itself, group `reconnect`, and the proof greps it. Test shape: a text delta for a part whose `session.text.started` the stream dropped, then the ended text; assert one assistant message with the full text, not a thinking block plus a second message.",
+      "doneHash": "aa5130e6"
+    },
+    {
+      "id": "b4",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "source": "lane",
+      "title": "batch: joins and space blocks (p55, p73, p126)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Absorbs p55 (a `\\c` followed by one blank line joins the next text line; two blank lines still break), p73 (toText draws a blank line for a space block, so asText and man-render agree) and p126 (a no-output request that only defines or removes keeps a pending `\\c` join; .PP/.RS/.sp/.br still break). One commit on js/man-parse.mjs; each item keeps its own red test and is marked done with this row's hash.",
+      "batch": 1,
+      "doneHash": "f6b63ada"
+    },
+    {
+      "id": "p50",
+      "lane": "a2",
+      "status": "next",
+      "title": "the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch",
+      "files": [
+        "test/wode-view-e2e.mjs",
+        "js/wode*.mjs",
+        "js/view.mjs"
+      ],
+      "proof": "npx mocha --exit test/wode-view-e2e.mjs",
+      "area": "core",
+      "type": "fix",
+      "notes": "reproduced under c8 in the core measure (test/wode-view-e2e.mjs fails under coverage overhead); the flake is real, but a proof that fails at base is still missing, so it stays next Groomed 2026-11-25: blocked as a red-gate fix. The 350ms event-driven test passes at base, and re-applying fbdef92a still passes (it only fails under coverage/load), so it cannot gate. Decision needed: accept the coverage-under-load measurement as the proof, or land the fix with the event-driven test as regression cover."
+    },
+    {
+      "id": "p64",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.Fn` in a SYNOPSIS also ends with `;` in groff; we do not print it (found in p61's report)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "cc7042c",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p65",
+      "lane": "a3",
+      "status": "done",
+      "title": "verdict: the streaming decoder is already correct and a typed-array fake would be coverage-only, which the red gate cannot merge",
+      "files": [],
+      "proof": "npx mocha --exit test/main-shell.mjs",
+      "notes": "coverage-only: the streaming decoder is already correct, so its test passes at base and the red gate parks it. Give it a measure proof or a gate that accepts coverage, then dispatch. Groomed 2026-11-25: coverage-only, not a fix. The decoder is already correct — js/shell.mjs uses one TextDecoder {stream:1} per run and flushes on close; a probe feeding `caf` + 0xc3 then 0xa9 + `\\n` returns `café\\n`. Close or re-label with a gate that accepts coverage. (The p50 brief once described this row; that was a mix-up.)",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "8f3eabee"
+    },
+    {
+      "id": "p66",
+      "lane": "a3",
+      "status": "done",
+      "title": "`flushPeer`'s `catch { return }` treats a throwing `sendableUpdates` as already flushed, so a broken collab field skips the wait silently (found in p50's report)",
+      "files": [
+        "js/wode-view.mjs",
+        "test/wode-view-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/wode-view-e2e.mjs",
+      "doneHash": "c1562d7",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p47",
+      "lane": "a3",
+      "status": "done",
+      "title": "`strace-log-merge(1)`, `mendex(1)`, `gpg(1)`, `man(1)` residuals (1-2 words each)",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "doneHash": "8c684ac",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p57",
+      "lane": "a2",
+      "status": "done",
+      "title": "a colon list reports the last failing candidate; with a mode-000 part before a missing one it names the missing one",
+      "files": [
+        "js/man.mjs",
+        "test/man-viewer.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-viewer.mjs",
+      "doneHash": "6e94402",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p44",
+      "lane": "a1",
+      "status": "done",
+      "title": "`tbl(1)`/`gtbl(1)`'s example table prints `eleven;11` where man prints `eleven 11`",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "3f79ddf",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p53",
+      "lane": "a1",
+      "status": "done",
+      "title": "an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Verified 2026-11-25: groff -Tutf8 -mdoc prints `A. Author,` for an .Rs with only .%A; ours printed `A. Author.`. The test file joins the row.",
+      "doneHash": "49156f7d"
+    },
+    {
+      "id": "p54",
+      "lane": "a1",
+      "status": "done",
+      "title": "a no-output request between a `\\c` and the next line swallows the join (0 corpus occurrences)",
+      "files": [
+        "js/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "eac2c89c",
+      "notes": "Absorbed by p125 (round 50): a no-output request between a \\c and the next line no longer swallows the join. Verified 2026-11-25: `.B x\\c` + `.ft R` + `y` prints `xy`, matching groff.",
+      "absorbedBy": "p125"
+    },
+    {
+      "id": "p55",
+      "lane": "a1",
+      "status": "done",
+      "title": "a `\\c` followed by a blank line: groff joins to the next text line, we make a paragraph break",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Re-opened 2026-11-25: groff -Tutf8 -man joins `.BR load | \\c`, one blank line, then `reload` as `load| reload`; bred breaks the paragraph (`load|\\nreload`). The earlier not-a-bug verdict probed `.B x\\c` + blank + `y`, which differs. Red test `macros :: a c join survives a blank line`, with a guard that two blank lines still break. control.blank must not drop a pending joinNext. Absorbed by b4 in round 62; marked done with b4's hash.",
+      "doneHash": "f6b63ada"
+    },
+    {
+      "id": "p56",
+      "lane": "a1",
+      "status": "done",
+      "title": "a text line after `.br` starts with a space (`test/man-parse.mjs:2470` enshrines it); groff has none",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "889ce7c",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p19",
+      "lane": "a1",
+      "status": "done",
+      "title": "verdict: .Rv/.Ex have no -exit/-nop flags; only a leading -std is a flag, later args are names (p19 corrected the doc)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "1c115f6",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p33",
+      "lane": "a1",
+      "status": "done",
+      "title": "after a macro under `.Sm off`, a text line still gets a space (groff joins it)",
+      "files": [
+        "js/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "7846c1d0"
+    },
+    {
+      "id": "p34",
+      "lane": "a1",
+      "status": "in-round",
+      "title": "`\\v(`-delimited arguments are read as a 2-char name (no corpus use found)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: `\\v` has no paren delimiter in groff. `a\\v(2b` makes troff warn `cannot use character '(' as a starting delimiter` and print `a2b`; `a\\v(12b` prints `a12b`. bred reads `(` as a two-character name and drops the rest (`a`). Red test `escapes :: a v escape has no paren form and prints its text` (asText == 'a2b\\n'). The valid forms (`\\v'2'`, `\\v[2]`) are a separate, smaller difference (groff's terminal motion draws a break) and stay out of this row."
+    },
+    {
+      "id": "p45",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.nr x +N` / `.nr x -N` set the register; groff adds/subtracts (found in p27)",
+      "files": [
+        "js/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "07e195dd"
+    },
+    {
+      "id": "p59",
+      "lane": "a1",
+      "status": "triage",
+      "title": "a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic?",
+      "files": [
+        "js/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "triage"
+    },
+    {
+      "id": "p12",
+      "lane": "a1",
+      "status": "done",
+      "title": "`\\c` joins forward only (ext2/3/4.5 `trackingfile`)",
+      "files": [],
+      "doneHash": "3eb439b",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p13",
+      "lane": "a1",
+      "status": "done",
+      "title": "`\\F` and `\\m \\M \\k \\S \\v` take their own forms (kernel-install `THE TION`, git-subtree, mflua)",
+      "files": [],
+      "doneHash": "3eb439b",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p14",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.Sm off` starts suppressing at the second call (ssh_config `PermitRemoteOpen host:port`)",
+      "files": [],
+      "doneHash": "3eb439b",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p16",
+      "lane": "a1",
+      "status": "done",
+      "title": "ssh(1) synopsis `-D [bind_address:]port`: fixed by p14",
+      "files": [],
+      "doneHash": "3eb439b",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p20",
+      "lane": "a2",
+      "status": "done",
+      "title": "a readable whole `man -w` line wins over its split parts (Man.md gap 3)",
+      "files": [],
+      "doneHash": "546bfee",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p23",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.Lb` maps through groff's table (9 libcrypt pages)",
+      "files": [],
+      "doneHash": "8edfd43",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p24",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.In` prints `#include <...>` in SYNOPSIS (47 pages)",
+      "files": [],
+      "doneHash": "8edfd43",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p26",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.do` runs its remainder instead of printing it (11 pages)",
+      "files": [],
+      "doneHash": "8edfd43",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p27",
+      "lane": "a1",
+      "status": "done",
+      "title": "`\\n+[reg]` steps then reads (sensible-editor 1-5, zlib 1-3)",
+      "files": [],
+      "doneHash": "8edfd43",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p35",
+      "lane": "a2",
+      "status": "done",
+      "title": "a whole `man -w` line that stats as a file is settled by its read",
+      "files": [],
+      "doneHash": "d59ccf7",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p36",
+      "lane": "a2",
+      "status": "done",
+      "title": "one `Cannot read <path>: <reason>` shape",
+      "files": [],
+      "doneHash": "d59ccf7",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p28",
+      "lane": "a3",
+      "status": "done",
+      "title": "`man-diff` joins at a `\\:` the page marks, not at every \"/\"",
+      "files": [],
+      "doneHash": "244c425",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p31",
+      "lane": "a3",
+      "status": "done",
+      "title": "a justified paragraph is not a table (hgrc `forthe`)",
+      "files": [],
+      "doneHash": "244c425",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p37",
+      "lane": "a3",
+      "status": "done",
+      "title": "a bordered cell's continuation at the left edge (TIFFGetField 6 → 0)",
+      "files": [],
+      "doneHash": "244c425",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p39",
+      "lane": "-",
+      "status": "done",
+      "title": "a background subagent is launched, not finished (tick, routing, ⏳)",
+      "files": [],
+      "doneHash": "7ce2ecf",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p25",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.Rs` quotes `%T` only in a `%B`/`%J` reference, and takes groff's serial comma (14 ssh references)",
+      "files": [],
+      "doneHash": "d5042d1",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p40",
+      "lane": "a1",
+      "status": "done",
+      "title": "a `\\c` tag line stays open across a macro (paperconfig `--paperpapername`, 5 dmstats tags)",
+      "files": [],
+      "doneHash": "d5042d1",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p46",
+      "lane": "a2",
+      "status": "done",
+      "title": "a colon-list part with no read bits says `Permission denied`",
+      "files": [],
+      "doneHash": "2261231",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p21",
+      "lane": "a2",
+      "status": "done",
+      "title": "lzma verdict: the header bytes are destroyed by the UTF-8 decode, so no safe sniff; `lzcat` already last",
+      "files": [],
+      "doneHash": "2261231",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p41",
+      "lane": "a3",
+      "status": "done",
+      "title": "the truncated mdoc banner is a header (5 pages, 31 → 1 words)",
+      "files": [],
+      "doneHash": "a18cd1b",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p42",
+      "lane": "a3",
+      "status": "done",
+      "title": "the `\\:` join accepts \":\" (`bash(1)` 4 → 2)",
+      "files": [],
+      "doneHash": "a18cd1b",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p43",
+      "lane": "a3",
+      "status": "done",
+      "title": "the `\\:` join accepts \"@\" (`troff(1)` 2 → 0)",
+      "files": [],
+      "doneHash": "a18cd1b",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p52",
+      "lane": "a1",
+      "status": "done",
+      "title": "a bare `.Nm` in a `T{`/`T}` cell prints the document name (both crypt pages 0)",
+      "files": [],
+      "doneHash": "d9906f4",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p48",
+      "lane": "a3",
+      "status": "done",
+      "title": "`man-diff --page` prints `lost <n>` before the sample",
+      "files": [],
+      "doneHash": "2c5b9df",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p30",
+      "lane": "a3",
+      "status": "done",
+      "title": "verdict: no mdoc U+2010 rule; `man-diff` folds U+2010/U+2011/U+2212 (pcre2demo 67 → 12)",
+      "files": [],
+      "doneHash": "2c5b9df",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p58",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.hla`/`.hpf` are no-output requests; both Czech pages parse (corpus back to 4123/27)",
+      "files": [],
+      "doneHash": "9ba3175",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p51",
+      "lane": "a2",
+      "status": "done",
+      "title": "the `cat` fallback keeps its bytes, so the renderer names a mislabelled page's format (the app half is p63)",
+      "files": [],
+      "doneHash": "c2b32ec",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p60",
+      "lane": "a3",
+      "status": "done",
+      "title": "`man-diff` folds typographic quotes; pcre2demo 12 → 0 (U+2018 folds to a backtick)",
+      "files": [],
+      "doneHash": "f3f1539",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p62",
+      "lane": "a3",
+      "status": "done",
+      "title": "the hyphen join is decided from the page source and applied to both sides; section 3 14 → 0",
+      "files": [],
+      "doneHash": "f3f1539",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p49",
+      "lane": "a3",
+      "status": "done",
+      "title": "coverage re-measured over the whole suite: 100/99.97/100/100/98.88 line, branch 94.56/98.75/97.18/90.28",
+      "files": [],
+      "doneHash": "f3f1539",
+      "area": "man",
+      "type": "measure"
+    },
+    {
+      "id": "p61",
+      "lane": "a1",
+      "status": "done",
+      "title": "`.Fc` ends a SYNOPSIS declaration with `;`, and only in SYNOPSIS",
+      "files": [],
+      "doneHash": "b601364",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p63",
+      "lane": "a3",
+      "status": "done",
+      "title": "the pty's bytes cross IPC as Buffers; one streaming decoder per run; the real-pty test names gzip",
+      "files": [],
+      "doneHash": "ec7eedf",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "s17",
+      "lane": "-",
+      "status": "done",
+      "title": "stabilisation after the red merge: `Opt.load` survives a payload-less response, the opt tests install their own fake; a2's peer-push test reverted (p50)",
+      "files": [],
+      "doneHash": "9b8958c",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p67",
+      "lane": "a1",
+      "status": "done",
+      "title": "a .Ss subsection inside SYNOPSIS resets the section state, so .Fn and .Fc lose the ; (groff keeps doc-in-synopsis-section across .Ss; no installed page hits it)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "ba79104",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p68",
+      "lane": "a2",
+      "status": "done",
+      "title": "a colon-list part with read bits whose read fails ranks with a missing part, so a later miss can still shadow it; no test covers that ordering",
+      "files": [
+        "js/man.mjs",
+        "test/man-viewer.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-viewer.mjs",
+      "doneHash": "74ba52d",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p69",
+      "lane": "a1",
+      "status": "done",
+      "title": "a .br before any text emits an extra blank line, and two consecutive .br are not collapsed (groff keeps one break)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "2e66879",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p70",
+      "lane": "a1",
+      "status": "done",
+      "title": "strace-log-merge(1) prints strace\\-log\\-merge literally in the synopsis; synopsisStart pushes args[0] raw where handleFont/OP expand it",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "d8a351c",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p71",
+      "lane": "a3",
+      "status": "done",
+      "title": "mendex(1) one \"lost\" word is a tab display difference (\"\" vs two quote tokens); decide whether man-diff should treat a tab as non-separating",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "doneHash": "72e8ca4",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p72",
+      "lane": "a3",
+      "status": "done",
+      "title": "ps(1) is 103 of section 1's words: man(1) wraps a comma-separated option list, and man-diff does not join a line that ends at a comma in that list; find a rule that joins it without joining prose commas",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "doneHash": "aae6139",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p73",
+      "lane": "a1",
+      "status": "done",
+      "title": "toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: `one`, `.sp`, `two` — groff prints a blank line between; bred's parser emits a `space` block but toText has no branch for it (`one\\ntwo`). Red test `paragraphs :: toText draws a blank line for a space block` (asText == 'one\\n\\ntwo\\n'). `.sp 2` still yields one block. Absorbed by b4 in round 62; marked done with b4's hash.",
+      "doneHash": "f6b63ada"
+    },
+    {
+      "id": "p74",
+      "lane": "a1",
+      "status": "done",
+      "title": "ps(1) loses 95 words because a macro line inside a T{ } tbl cell stays raw (.BR pcpu ). instead of pcpu).); every T{ } cell using a macro is affected; the ps(1) pin in test/man-diff.mjs must be updated with the fix",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs test/man-diff.mjs",
+      "doneHash": "00dc308",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p75",
+      "lane": "a1",
+      "status": "ready",
+      "title": ".IP \"\" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: in a `T{` cell, `.IP \"\" 2` prints no text (only a break); bred keeps the raw `.IP` line in the cell span. Red test `tables :: an IP in a T{ cell prints no text` (flat(cell.spans) == 'text\\nmore'). The existing test `a cell request outside the text macros is still not run` asserts the old literal behaviour and must be updated with the fix; `.br` in cells already runs."
+    },
+    {
+      "id": "p76",
+      "lane": "a1",
+      "status": "in-round",
+      "title": "in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: `.SY strace-log-merge` / `.OP -a all` — the man(7) reference prints `strace-log-merge [-a all]`; bred in mdoc mode prints `strace-log-merge[-a all]` (mdoc spaceNext/Sm drops the separator; man mode keeps it). Red test `synopsis :: SY and OP keep their space in mdoc mode`. groff -mdoc has no .SY, so the man(7) layout is the reference."
+    },
+    {
+      "id": "p77",
+      "lane": "a1",
+      "status": "in-round",
+      "title": "the parser maps the \\t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: in `.nf`, a literal tab moves to the next tab stop (groff `a    b`) while `\\t` is zero width (`cd`); bred maps both to `\\t`. Red test `escapes :: a literal tab is not the zero-width \\t escape` (asText == 'a\\tb\\ncd\\n'). Map the escape to the empty string and keep the literal tab; man-diff's mendex note says the same."
+    },
+    {
+      "id": "p78",
+      "lane": "a1",
+      "status": "done",
+      "title": "L\\[tmu]C renders L™C; groff prints L×C: js/man-char.mjs maps tmu to ™ instead of ×, the last lost word on tbl/gtbl",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "ee005d2",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p79",
+      "lane": "a1",
+      "status": "in-round",
+      "title": "on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: tbl(1)'s `l ld` / `r ^` table — groff puts `r` and `foo` on the bottom row (one line); bred's parser records neither `^` nor the `d` suffix, so the spanned cell stays on its first row and toText orders foo before r. Red test `tables :: a vertical span puts its text on the bottom row`. Model the span; the trailing `\\^;\\^` row is also unmodelled."
+    },
+    {
+      "id": "p80",
+      "lane": "a1",
+      "status": "done",
+      "title": "hy prints ASCII - ; groff prints U+2010: page-visible, measurement-neutral because man-diff folds it",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "cbbe080",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p81",
+      "lane": "a1",
+      "status": "done",
+      "title": "Greek capitals are shifted one letter: *H is Η but should be Θ, *Q Θ should be Ψ, *Y Ψ should be Η; lowercase is correct",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "c3ff554",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p82",
+      "lane": "a1",
+      "status": "done",
+      "title": "an unknown u-prefixed name (uA) falls through to a hex/bogus codepoint (U+000A) instead of groff's U+21D1 or a refusal",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "0385d60",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p83",
+      "lane": "a1",
+      "status": "in-round",
+      "title": "about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: 21 named groff_char names are confirmed missing (md=⋅, c*=⊗, r!=¡, OK=✓, Eu=€, sq=□, box pieces lc..rt, 18/38/58/78); bred refuses the page rather than falling back. Red test `escapes :: common groff_char names outside the corpus are absent` (one batch, 21 cases). No installed page uses any of them (zgrep), so this is a common-neighbour gap, not corpus."
+    },
+    {
+      "id": "p84",
+      "lane": "a1",
+      "status": "done",
+      "title": "*G is missing from the char table; groff prints Γ (U+0393), so a page using \\[*G] is refused today",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "5ea6105",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p85",
+      "lane": "a1",
+      "status": "done",
+      "title": "*f maps to φ (U+03C6); groff prints ϕ (U+03D5); *J/*j/*V/*v are absent from groff too, not gaps",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "29665b6",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p86",
+      "lane": "a1",
+      "status": "done",
+      "title": ".. maps to ‥ (U+2025) but groff refuses it; \\[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "6943a15",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p87",
+      "lane": "a1",
+      "status": "done",
+      "title": "an ASCII u name is refused only when groff has a plain glyph for it; u0040/u007E and controls still resolve (done: the blanket <0x80 wording was too broad)",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "01f65ce",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p88",
+      "lane": "a1",
+      "status": "done",
+      "title": "\\N'0x41'/\\N'1e2'/\\N'0' are read with Number(), so hex and exponent forms become characters; groff reads digits only",
+      "files": [
+        "js/man-char.mjs",
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "50a83a6",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p89",
+      "lane": "a1",
+      "status": "triage",
+      "title": "\\[char0] is accepted by groff (a NUL byte) but refused here",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "triage",
+      "notes": "Verdict 2026-11-25: not fixed. groff prints a NUL byte for \\[char0]; the text model has no NUL (the \\N 0 decision of rounds 33-35 refuses it, pinned by test/man-parse.mjs \"a bracketed N argument is decimal digits only\" and \"an N argument is not a JavaScript number\"). char0 stays refused for the same reason; char256 and above now print nothing like groff. Grooming 2026-11-25: groff prints `\\[char0]` as a NUL byte; bred refuses. A fix must let charByNumber accept 0 AND stop parse treating the resulting NUL as \"no value\" (js/man-parse.mjs). Two options: model NUL (against the `\\N 0` decision of rounds 33-35) or keep refusing. Groomer's red test: `escapes :: char0 is the NUL byte, not a failure sentinel` (ok 1, text 'a \\0b')."
+    },
+    {
+      "id": "p90",
+      "lane": "a1",
+      "status": "triage",
+      "title": "groff -Tutf8 -man renders \\- as U+2212 MINUS SIGN while -mdoc prints ASCII; bred prints ASCII. p30's note was mdoc-only; needs evidence and a decision",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "triage",
+      "notes": "Verdict 2026-11-25: premise not reproducible. Installed GNU groff 1.22.4 renders `\\-` as ASCII in both -man and -mdoc (od shows no U+2212); bred already matches (`x - - y`). Close, no change; re-open only with a newer groff's od evidence."
+    },
+    {
+      "id": "p91",
+      "lane": "a1",
+      "status": "done",
+      "title": "the \\N[65] bracket form is unsupported (groff prints A); unquote only strips a matching first/last delimiter, so \\N[65] refuses",
+      "files": [
+        "js/man-char.mjs",
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "1219a56",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p92",
+      "lane": "a1",
+      "status": "done",
+      "title": "an unpaired surrogate code point (\\N'55296') is accepted as a JS string; groff emits invalid UTF-8; refuse surrogates as out of range",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "e7b1a52",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p93",
+      "lane": "a1",
+      "status": "done",
+      "title": "verdict: \\N expression forms (65+1, 2*3, 1.5, leading space) stay refused by design; p88 measured groff's NUL-plus-tail output and the corpus has only plain decimals",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "50a83a6",
+      "area": "man",
+      "type": "verify"
+    },
+    {
+      "id": "p94",
+      "lane": "a1",
+      "status": "done",
+      "title": "groff accepts \\N[ 65] with a leading space; bred refuses it under the decimal-only rule",
+      "files": [
+        "js/man-char.mjs",
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "091f8e5b"
+    },
+    {
+      "id": "p95",
+      "lane": "a1",
+      "status": "done",
+      "title": "groff's \\[charN] is a glyph/table lookup, not a bare code point: char57344 warns and prints nothing, bred returns U+E000; char65/233/200 agree",
+      "files": [
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "091f8e5b"
+    },
+    {
+      "id": "p96",
+      "lane": "a1",
+      "status": "done",
+      "title": "ttf2tfm(1) loses 10 words: a \\c at the end of a text line whose next line is a .C macro call keeps the backtick glued to the macro text; groff joins them and we insert a space",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "7183a0e",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p97",
+      "lane": "a1",
+      "status": "done",
+      "title": "four backslashes in a macro argument need two reduction rounds (copy mode then interpretation); we apply one, so c:\\\\fonts\\\\truetype keeps doubles: ttf2tfm's last two words",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "d21a9d5",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p98",
+      "lane": "a1",
+      "status": "done",
+      "title": "a \\c before a macro whose body prints nothing (or before .ft/.ll) is still lost; the broad fix also glues across .PP/.RS/.sp, which needs a multi-macro sweep before changing",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "7846c1d0"
+    },
+    {
+      "id": "p99",
+      "lane": "a1",
+      "status": "done",
+      "title": "built-in man requests (B, BR, SH, SS, SY, IP, OP) get one round here and two in groff, which implements them as tmac macros; .B a\\\\\\\\b is a\\\\b in groff and a\\\\b here",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "7032014",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p100",
+      "lane": "a1",
+      "status": "done",
+      "title": "copyMode() chains replacements and over-reduces \\. and \\  (groff copy mode leaves \\. and an encoded space)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "dmstats(8) is the corpus instance, and its row (p115) is folded in here: the .de CMD_COMMAND body has `.  IR device_name \\ |`, and bred prints `device_name|` where groff prints `device_name |` (man-diff: lost 2, [device_name, minor]). The same .IR outside a macro body is correct, so the space is lost when the body is copied/stored, not when .IR renders. Test by defining `.de X` around the line and comparing with groff -Tutf8 -man. 2 words in section 8.",
+      "doneHash": "5b95c88e"
+    },
+    {
+      "id": "p101",
+      "lane": "a1",
+      "status": "done",
+      "title": "a single-backslash body (\\$1) is expanded at definition time in groff, not call time",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: body `[\\$1]` — groff prints `[]` (copy mode expands `\\$` at definition time, where `.de M` has no $1), and `[\\\\$1]` prints `[hi]`; bred prints `[hi]` for both. Red test `macros :: a single-backslash argument is expanded when the macro is defined` (asText == '[]\\n'). The existing doubled-form test covers the call-time case only.",
+      "doneHash": "30263abb"
+    },
+    {
+      "id": "p102",
+      "lane": "a1",
+      "status": "in-round",
+      "title": "an unknown escape (`\\Q`) is printed by groff as its letter and refused here",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: `a \\Q b` and `a \\y b` — groff prints `a Q b` / `a y b` with no warning; bred refuses the page (escape \\Q) and prints `a  b`. `\\Z` is a real escape taking a delimiter, so the old example was wrong. Red test `escapes :: an unknown escape prints its own letter`. The existing green test `escapes :: an unknown escape fails the page` asserts the current refusal and must be flipped with the fix."
+    },
+    {
+      "id": "p103",
+      "lane": "a1",
+      "status": "done",
+      "title": "ttf2pk(1) loses 2 words: `.<resolution>pk' split on our side and `<namestem>@<sfd-filename>@') — quote/spacing placement, not a line join",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "66f38b3"
+    },
+    {
+      "id": "p104",
+      "lane": "a1",
+      "status": "done",
+      "title": "hg(1) loses 2 words: man breaks at the \\: between incoming and ), and man-diff's join whitelist does not accept ); our text is right, so the fix is the join",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "f6aceef"
+    },
+    {
+      "id": "p105",
+      "lane": "a2",
+      "status": "done",
+      "title": "ssh-agent(1) loses 2 words: the synopsis -s] bracket",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "de1718c"
+    },
+    {
+      "id": "p106",
+      "lane": "a3",
+      "status": "done",
+      "title": "rpcgen(1)'s 0a is a footer page-string, not content: man-diff's isFooter must drop a right-aligned multi-page token (/^\\s{10,}[0-9]+[a-z]$/)",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "a3607bd"
+    },
+    {
+      "id": "p107",
+      "lane": "a1",
+      "status": "done",
+      "title": "ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "9612e96"
+    },
+    {
+      "id": "p108",
+      "lane": "a1",
+      "status": "done",
+      "title": "tex2aspc(1) loses 1 word: TransformNotes",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "c1f2f38a"
+    },
+    {
+      "id": "p109",
+      "lane": "a3",
+      "status": "done",
+      "title": "thumbpdf(1) mis-encoded byte folds to ©: section 1 reaches 0 lost words",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "Proved 2026-11-25 at 9978571c: thumbpdf.1's source line is `Copyright \\302\\[co] 1999` (bytes 43..74 20 c2 5c 5b 63 6f 5d), the corpus's only invalid UTF-8 page (3254 files scanned). groff's preconv reads the lone C2 byte as Latin-1 and prints `Â©` (c3 82 c2 a9), while our decode marks it U+FFFD and prints `�©` (ef bf bd c2 a9); no word is lost (303 ours / 303 man), only that token's first codepoint differs, so this is a comparison fold, not a parser fix. keyOf now drops U+FFFD and decodes a word of byte-sized Latin-1 characters as UTF-8 when that is valid, making both keys `©`; a pair that is not valid UTF-8 still reports. New tests `a mis-decoded byte folds to the content the bytes spell` and `thumbpdf(1) mis-encoded byte is not a lost word` failed at base (`'�©' !== '©'`, `1 !== 0`) and pass now, and `bin/man-diff --section 1 --max 0` goes from 1:1p/1w to 0:0p/0w. Patch: /home/matt/worktrees/0db3bcbf-6070-493e-b543-4680184becc5/bred-loop/groom-p109.patch. Round 64: lane a3 tip 9c9e1b12.",
+      "source": "triage",
+      "doneHash": "9c9e1b12"
+    },
+    {
+      "id": "p110",
+      "lane": "a1",
+      "status": "done",
+      "title": "tload(1) loses 1 word: and (a line join)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "fc63c08c"
+    },
+    {
+      "id": "p111",
+      "lane": "a1",
+      "status": "done",
+      "title": "xargs(1) loses 1 word: --show-limits (a hyphen join)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "7032014a",
+      "notes": "Stale: `./bin/man-diff --page \"$(man -w xargs)\"` at fec1eae8 loses 0 words (2130/2130) and `--show-limits` joins intact; fixed by 7032014a (round 39). Verified 2026-11-25 while grooming; no lane needed."
+    },
+    {
+      "id": "p112",
+      "lane": "a1",
+      "status": "done",
+      "title": "editline(7) loses 5 words: a lone - in the text",
+      "files": [
+        "js/man-parse.mjs",
+        "js/man-render.mjs",
+        "test/man-parse.mjs",
+        "test/man-render.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs test/man-render.mjs",
+      "area": "man",
+      "type": "fix",
+      "notes": "editline(7) has a .Bl -dash list; groff prints \"-\" before each item and toText emits nothing. Verified: groff -Tutf8 -mdoc on a 2-item -dash list prints \"-\"; -bullet prints U+2022, -hyphen prints \"-\", -enum prints \"1.\". The renderer draws a <ul> disc for both dash and bullet.",
+      "doneHash": "3d13d152"
+    },
+    {
+      "id": "p113",
+      "lane": "a3",
+      "status": "done",
+      "title": "gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff)",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "doneHash": "6b36716",
+      "area": "man",
+      "type": "fix"
+    },
+    {
+      "id": "p114",
+      "lane": "a3",
+      "status": "done",
+      "title": "dmsetup(8) loses 5 words: long [a|b] alternatives wrapped by man(1); decide a diff join or parser rule",
+      "files": [
+        "bin/man-diff",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-diff.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "3bf287c"
+    },
+    {
+      "id": "p116",
+      "lane": "a1",
+      "status": "done",
+      "title": ".UE/.ME/.URL/.MTO trailing arguments lose a copy round: .UE a\\\\\\\\- prints a\\- in groff, a\\\\- here",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "fix",
+      "doneHash": "673c8b77"
+    },
+    {
+      "id": "p117",
+      "lane": "a1",
+      "status": "triage",
+      "title": "a zero-width escape (\\b) is refused here and printed by groff (drops the backslash, prints the char); no corpus occurrence, latent",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "area": "man",
+      "type": "triage",
+      "notes": "Verdict 2026-11-25: not the described defect. `\\b` draws a box around the preceding text (`X\\b'abc'` draws a box; `one \\b'x' two` prints `one x two`), and the text model has no box. Refusing is consistent with \"report what cannot be represented\". Re-scope or drop; do not print the first box character."
+    },
+    {
+      "id": "p118",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "title": "a \\c inside an interpolated macro argument must cut the rest of the outer body line; groff does, we keep emitting (pre `a tailnext)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Groomed 2026-11-25: `.de M` with `pre \\\\$1 tail`, called `.M \"a\\c\"`, then `next` — groff prints `pre anext`; bred prints `pre a tailnext`. The join propagates but the rest of the interpolated body line is still emitted. Red test `escapes :: a c inside a macro argument cuts the rest of the body line`. The `\\c` must end the body line at the interpolation point.",
+      "doneHash": "30263abb"
+    },
+    {
+      "id": "g1",
+      "area": "code",
+      "lane": "a1",
+      "type": "infra",
+      "status": "done",
+      "title": "second area: a recorder of real v2 event streams and a conformance measure over translate() (translated / dropped / malformed), plus one committed fixture",
+      "files": [
+        "bin/oc-record.mjs",
+        "bin/oc-conformance.mjs",
+        "test/code-conformance.mjs",
+        "test/fixtures/oc-events/*",
+        "ext/code/event.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-conformance.mjs",
+      "doneHash": "f6ff0e7"
+    },
+    {
+      "id": "c1",
+      "area": "code",
+      "lane": "a1",
+      "type": "triage",
+      "status": "done",
+      "title": "session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage)",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs",
+        "test/code-conformance.mjs",
+        "test/fixtures/oc-events/*"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs",
+      "doneHash": "c72362c"
+    },
+    {
+      "id": "c2",
+      "area": "code",
+      "lane": "a2",
+      "type": "triage",
+      "status": "triage",
+      "title": "session.step.streamed is dropped (seen live); decide whether it must translate",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs",
+      "notes": "The reference client stores only assistant.time.streamed from this event (shared-events, case \"session.step.streamed\"); no visible text or status follows from it. That supports the verdict \"no legacy event needed\", but a triage row still needs a decision and the gate needs a red proof, so it stays next until someone either drops it with a recorded verdict or finds a consumer. Verdict 2026-11-25: do not translate. session.step.streamed carries only { sessionID, assistantMessageID }; the reference client sets assistant.time.streamed, and nothing in bred reads a first-token time. Bred's busy state comes from session.execution.* and text from text.delta. The conformance drop is intentional; close."
+    },
+    {
+      "id": "c3",
+      "area": "code",
+      "lane": "a3",
+      "type": "triage",
+      "status": "done",
+      "title": "session.retry.scheduled is dropped; a retry is visible to the user, so decide what legacy event it should be",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs",
+        "test/code-conformance.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs",
+      "notes": "code.mjs already consumes { type: \"retry\" } in updateStatus (line ~524) with an optional message, so the natural translation is session.status. The fixture pins retry.scheduled dropped=1 in test/code-conformance.mjs; that pin moves with the fix.",
+      "doneHash": "8618283a"
+    },
+    {
+      "id": "c4",
+      "area": "code",
+      "lane": "a2",
+      "type": "triage",
+      "status": "triage",
+      "title": "provider.updated / model.updated are dropped (session-less); decide whether the UI needs them",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs",
+      "notes": "Verdict 2026-11-25: do not translate. provider.updated/model.updated carry an empty data and only a location; the reference client invalidates a provider/model store that bred does not have (every consumer calls model.list fresh). No handler could consume a legacy event; close."
+    },
+    {
+      "id": "c5",
+      "area": "code",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "title": "session.reasoning.ended has the same authoritative text as text.ended and is still dropped; translate it the same way",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs",
+        "test/code-conformance.mjs",
+        "test/fixtures/oc-events/*"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs",
+      "doneHash": "f26a1d0"
+    },
+    {
+      "id": "c6",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "done",
+      "title": "a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs)",
+      "files": [
+        "ext/code/code.mjs",
+        "ext/code/ui.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs --grep finished",
+      "notes": "Groomed 2026-11-25, two red tests (base red confirmed, one e2e file only): `finished :: a finished part rewrites a plain text element` (Ui.appendMsg returns early for a plain .code-msg-text with no partEds or markdown ed) and `finished :: a text part seen after its step ended still renders` (handlePart gates text on stepActiveSessions). Fix both halves: re-render the ended text part (route the full text through finalizeText when an ed exists) and stop gating a finished text part on the active step.",
+      "doneHash": "596bc1a7"
+    },
+    {
+      "id": "p119",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "title": "a bar is a roman word inside a macro argument list; the words after it keep the macro font and role",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Groomed 2026-11-25, title corrected: GROFF_SGR=1 -mdoc shows `.Ar foo | bar` italic for both words, `.Cm a | b` bold, with only the `|` roman — groff does not end the argument list at the bar. Bred's mdocArgEnd stops at the bar and reprints the tail with c.font, so the tail loses style and role. Red test `mdoc inline :: a bar is roman and does not end a macro argument list`. Keep `.Sh` out of the test: mdocHeading leaves c.font bold (row p127).",
+      "doneHash": "30263abb"
+    },
+    {
+      "id": "c7",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "done",
+      "title": "the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts",
+      "files": [
+        "ext/code/code.mjs",
+        "ext/code/ui.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs",
+      "doneHash": "fd65122"
+    },
+    {
+      "id": "p120",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "title": "a valueless .nr X sets it to 0 here; groff leaves it undefined and reading \\nX creates it (two register divergences, no corpus effect)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "07e195dd"
+    },
+    {
+      "id": "p121",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "title": ".if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "e7e0d671"
+    },
+    {
+      "id": "c8",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "done",
+      "title": "Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing)",
+      "files": [
+        "ext/code/ui.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs",
+      "doneHash": "e3e11414"
+    },
+    {
+      "id": "p123",
+      "area": "man",
+      "lane": "a3",
+      "type": "fix",
+      "status": "done",
+      "title": "a .Bl -dash list still renders as an HTML ul disc; groff draws \"-\" per item (the text model now agrees, the renderer does not)",
+      "files": [
+        "js/man-render.mjs",
+        "css/manpage.css",
+        "test/man-render.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-render.mjs",
+      "notes": "p112 fixed only the text model: toText marks each item, so editline(7) measures clean. listNode still builds a <ul>, and css/manpage.css has no marker rule, so the page shows a disc where groff shows -. groff -Tutf8 -mdoc: -dash and -hyphen print \"-\", -bullet prints U+2022, -enum prints \"1.\". The measure cannot see the bullet (man-diff maps U+2022 and the box-drawing range to a space), so this is a display-only item.",
+      "doneHash": "4dd8ef83"
+    },
+    {
+      "id": "c9",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "ready",
+      "title": "handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view",
+      "files": [
+        "ext/code/code.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs --grep 'thinking box'",
+      "notes": "Test 'a box that lacks the block gets it from the next delta' in the 'thinking box' group: a text part whose started update was dropped (a reconnect) makes the first delta draw a code-msg-thinking block in the one live view, then a second view of the same buf is built fresh the way a view in another window is (content is only copied within one window), so it starts empty. The next session.text.delta hits the early branch in handlePartDelta: anyView(1) holds the thinking block, so Ui.chunkThink buffers it and the handler returns before Util.eachOut, leaving the fresh view with 0 code-msg-thinking blocks where the delta path would have created 1 (the first view correctly reads 'firstsecond'). Expected one block carrying the delta, observed none; commenting out the early branch makes all four 'thinking' tests pass, so the red is exactly that one-view decision. Uncommitted test patch: /home/matt/worktrees/0db3bcbf-6070-493e-b543-4680184becc5/bred-loop/groom-c9-test.patch.",
+      "source": "triage"
+    },
+    {
+      "id": "p124",
+      "area": "man",
+      "lane": "a1",
+      "type": "triage",
+      "status": "triage",
+      "title": "copy mode still reduces \\. to \".\"; a body line starting with \\. becomes an unknown request and refuses the page where groff prints nothing",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "p100 fixed the escaped-space half of copyMode only. Evidence: a .de body containing `\\. e` makes groff -Tutf8 -man print nothing at all (no warning, the following text line still prints), while bred reduces the escape to \".\" and then refuses the page as `macro e`. No installed page hits it. Decide whether the refusal is the right policy or whether `\\.` should survive copy mode."
+    },
+    {
+      "id": "c10",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "done",
+      "title": "the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing",
+      "files": [
+        "ext/code/event.mjs",
+        "ext/code/code.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs",
+      "notes": "Found by the 2026-11-25 event-union hunt. Reference behaviour (ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js: session.compaction.started inserts {type:\"compaction\", status:\"running\", reason, summary, recent}, .delta appends summary, .ended marks it done, .failed records the error). bred has no compaction handling at all (grep compaction outside lib/opencode: only man-parse .Bl -compact). Decide the legacy shape (a message.part.updated part type, or a new event) before writing the red test; a long session compacts and the transcript currently jumps without saying so. Decision (2026-11-25): a log line, not a transcript item. translate() emits one legacy session.compaction with phase started|ended|failed; the handler appends Ui.appendMsg(..., { log: 1 }) for the buffer's own session. The short summary from the ended event is flattened and capped at 200 chars; deltas are not drawn because the ended text is authoritative. A fixture with a compaction is still the missing measure input.",
+      "doneHash": "ab988598"
+    },
+    {
+      "id": "c11",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "done",
+      "title": "session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description",
+      "files": [
+        "ext/code/event.mjs",
+        "ext/code/code.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs",
+      "notes": "Found by the same hunt. Reference: shared-events case \"session.synthetic\" inserts {type:\"synthetic\", text, description, metadata}. What bred should show is a decision (a code-msg-text note? a part type?), so this is a triage. Evidence command: grep -n \"session.synthetic\" -A 9 ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js. Decision (2026-11-25): a log line, like c10. translate() emits one legacy session.synthetic with text and description; the handler appends Ui.appendMsg(..., { log: 1 }) for the buffer's own session, flattened and capped at 200 chars. 2026-11-25: round 57 recorded this done while a peer grooming commit had moved the row to a3; the lane commit was on a2, nothing merged, and the record was wrong. Re-armed on a2 and re-run in round 58 with the merge line checked.",
+      "doneHash": "57c1d58f"
+    },
+    {
+      "id": "c12",
+      "area": "code",
+      "lane": "a2",
+      "type": "triage",
+      "status": "triage",
+      "title": "session.tool.input.delta is dropped; the tool preview only appears when the whole input has arrived",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs",
+      "notes": "Found by the same hunt. Reference: shared-events case \"session.tool.input.delta\" appends data.delta to tool.state.input while the tool is streaming. translate handles .started and .ended (which parses the JSON) but not .delta, so bred shows a pending tool with no input until it is complete. Decide whether the text preview is worth a legacy event; the .ended text is authoritative, so this is display-only."
+    },
+    {
+      "id": "p125",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "title": "dmsetup(8) splits load|reload into two words around a .BR line ending in \\c",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs",
+        "test/man-diff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs test/man-diff.mjs",
+      "source": "measure",
+      "notes": "Measured at c1f2f38a: man-diff --page /usr/share/man/man8/dmsetup.8.gz says 3222 ours / 3221 man, lost 1 [\"load|reload\"], with ours as \"load|\" + \"reload\". Source is `.BR load | \\c` followed by `.CMD_RELOAD` (a .de body whose only line is `.BR reload`), after `.BR compact \", \" inverted \", \" notrunc .` under .HP, and before `.br`. A minimal .BR load | \\c + .de CMD_RELOAD + .BR reload DOES join correctly in bred, so the trigger is context-dependent (the preceding .BR line, the .HP, or the macro body shape). Prove the trigger before fixing; p96 fixed the text-line variant and p98 the no-output-macro variant, so check both before changing the join state. The fix moved the page pin in test/man-diff.mjs from 1 to 0, so that file joins the row.",
+      "doneHash": "eac2c89c"
+    },
+    {
+      "id": "l1",
+      "area": "tooling",
+      "lane": "a3",
+      "type": "infra",
+      "status": "done",
+      "title": "the loop has no clock it can enforce: put start/deadline/stopNew in the tracked queue, print the budget in status, and refuse a round after stopNew",
+      "files": [
+        "bin/loop-clock.mjs",
+        "bin/loop.mjs",
+        "test/loop-clock.mjs",
+        "test/loop.mjs",
+        "doc/Loop.md",
+        "doc/Loop-prompt.md"
+      ],
+      "proof": "npx mocha --exit test/loop-clock.mjs test/loop.mjs",
+      "source": "triage",
+      "notes": "The 2026-11-25 11:51Z run stopped at 12:28 having set a 15:06 stopNew and never read the clock again: the stop condition lived in prose and in an untracked file nothing parsed. The clock moves to doc/loop/queue.json run (tracked, so a fresh session inherits it), bin/loop-clock.mjs holds the pure budget/canStart logic, status prints it, and round refuses after stopNew unless --force. lastRoundMs is recorded so the printed ETA uses a measured round, not a guess.",
+      "doneHash": "9e2a821f"
+    },
+    {
+      "id": "b1",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "source": "lane",
+      "title": "batch: the man tail's register claims (p45, p120)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Absorbs p45 (.nr x +N/-N is relative) and p120 (.nr X with no value leaves it undefined). One commit, each item keeps its own test, both are marked done with this row's hash. The read-creates half of p120 stays refused: an unknown register outside a condition is a typo the policy refuses.",
+      "doneHash": "07e195dd",
+      "batch": 1
+    },
+    {
+      "id": "b2",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "source": "lane",
+      "title": "batch: the character forms (p94, p95)",
+      "files": [
+        "js/man-char.mjs",
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Absorbs p94 (\\N[ 65] skips leading spaces inside the bracket) and p95 (\\[charN] is a glyph lookup: 0..255 exists, above it prints nothing instead of a Unicode code point). p89 (\\[char0]) is a triage, not part of this: groff prints a NUL byte, and the model refuses NUL by the decision rounds 33-35 pinned for \\N 0.",
+      "doneHash": "091f8e5b",
+      "batch": 1
+    },
+    {
+      "id": "b3",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "source": "lane",
+      "title": "batch: a join through an empty macro, and Sm off before a text line (p98, p33)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Absorbs p98 (a \\c before a macro with an empty body: the body now pushes a frame, so the carry works) and p33 (.Sm off also suppresses the space before a text line: groff prints -ab; our text branch forced spaceNext before appending). p98's .ft/.ll half was already fixed by p125, and the .PP/.RS/.sp warning is respected (a body line that breaks still drops the join).",
+      "doneHash": "7846c1d0",
+      "batch": 1
+    },
+    {
+      "id": "p126",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "title": "a no-output request that defines or removes still swallows a pending \\c join (p54 covered only .ft)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Groomed 2026-11-25, residual of p54: `.BR load | \\c` + `.ds X y` + `reload` — groff prints `load|reload`; bred prints `load| reload`. Also red for .nr and .rm (the same textOut==0 branch covers .rn/.rr/.als/.ev). Red test `macros :: a c join survives a request that only defines or removes`. Widen the restore of joinNext to any request that printed nothing and left the line unbroken; the .PP/.RS/.sp/.br cases must still break. Absorbed by b4 in round 62; marked done with b4's hash.",
+      "doneHash": "f6b63ada"
+    },
+    {
+      "id": "p127",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "title": "verdict: mdoc body text after .Sh is already roman (mdocHeading does restore c.font); not reproducible at 8f3eabee",
+      "files": [],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found while grooming p119 on 2026-11-25: `.Sh NAME` followed by a plain text line renders bold in mdoc mode; groff -Tutf8 -mdoc prints it roman. mdocHeading does not restore c.font. Needs a red test first: after parsing, the text span's style is roman. RE-CHECKED 2026-11-25 at 8f3eabee: not reproducible. `.TH T 1` + `.Sh NAME` + `plain body text` parses to one roman span; groff -Tutf8 -mdoc prints the same text roman. Verdict queued for the next record commit, not a lane.",
+      "doneHash": "8f3eabee"
+    },
+    {
+      "id": "l2",
+      "area": "tooling",
+      "lane": "a3",
+      "type": "infra",
+      "status": "done",
+      "source": "triage",
+      "title": "check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit",
+      "files": [
+        "bin/loop.mjs",
+        "bin/loop-queue.mjs",
+        "test/loop.mjs"
+      ],
+      "proof": "npx mocha --exit test/loop.mjs",
+      "notes": "Found 2026-11-25: round 57 marked c11 done with 1947f160, a peer grooming commit with no Loop-item trailer, while the fix was on a lane branch that never merged. check verified only that the hash is on main. A doneHash must be a commit whose body carries Loop-item: <id>, or a batch trailer naming the item; anything else is a problem. Test: a scratch repo with a done row pointing at an unrelated commit is refused. Round 59 shipped the trailer rule; on main it reported 36 problems, all from rounds before the trailer convention (or legitimate absorbs), so round 60 replaces it with the commit-diff rule: the done hash must touch a file the row owns, and rows with no files are exempt. That rule reports 0 on main.",
+      "doneHash": "ad68333e"
+    },
+    {
+      "id": "p131",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "a comment line at table-row level inside .TS/.TE is turned into a data row; tbl ignores it (ps(1) 9 of its surplus tokens, terminfo(5) 5)",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found by the b8 groom helper 2026-11-25 at 2e31d106. ps.1:940 has `.\"K<TAB>stime<TAB>system time (conflict, system vs. start time)` at table-row level inside .TS/.TE; tbl ignores a comment line, bred emits it as a row `[ \".\", \"stime\", \"system time (conflict, system vs. start time)\" ]` (9 non-blank tokens). Dropping the line takes ps(1) from 6701 to 6692, exactly man(1)'s count; the other 9 of the 18-word surplus were p75's `.IP \"\" 2` cells. terminfo(5) has the same in milder form (`.\\\".TH` at row level, 5 surplus tokens: `.` and four `|`). Fix: skip a comment line in a table body the way tableRequest already skips .br/.sp. No test written yet.",
+      "source": "lane"
+    },
+    {
+      "id": "p132",
+      "area": "man",
+      "status": "in-round",
+      "type": "fix",
+      "title": "doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0",
+      "lane": "a3",
+      "files": [
+        "doc/Man.md"
+      ],
+      "proof": "sh -c '! grep -qE \"^(pages +16|words +147)\" doc/Man.md'",
+      "notes": "Found 2026-11-25 by the scheduler at 7f993835 while reading doc/Man.md for a man round. The file is the man area's tracked scoreboard and its protocol half (Policy, Pipeline, Modules, Changing it) is current, but the numbers are not. Measured at 9c9e1b12: sections 1, 3, 5, 7 and 8 all print `0 pages`/`0 words` from bin/man-diff --max 0; doc/Man.md:317-319 still prints `pages 16 0 0 2 2` / `words 147 0 0 7 9`, and :336-339 still names ps(1) 103, ttf2tfm(1) 10, tbl/gtbl 7, ttf2pk 5, hg 2, man 2, editline 5, dmsetup 7, dmstats 2. The round history also stops at round 50 (round 47's own paragraph still says section 1 is thumbpdf + tload). Rounds 51-64 closed the tail: p109 folded thumbpdf's mis-encoded byte, so section 1 reached 0 at round 64, and the ps(1) surplus is p75 (9 words, b8) + p131 (9 words, a table-row comment). A reader who trusts the table would re-chase work that is done. Fix: re-measure all five sections at the current tip, replace the table and the page/word enumeration with the measured result, and add the rounds 51-65 paragraphs in the same voice as the existing ones (short, one per round, the number that moved). Do not rewrite Policy/Pipeline/Changing it, and do not change the refusal list without re-running bin/man-audit --parse.",
+      "source": "lane"
+    },
+    {
+      "id": "p133",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "\\h( and \\l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \\v(, these two still drop their tail",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found by b7's lane 2026-11-25 at 57a7e95b, after \\v( was fixed (p34). groff -Tutf8 -man on `x a\\h(2b y` prints `x a2b y` and on `x a\\l(2b y` also `x a2b y` (with a warning that '(' cannot start a delimiter); bred prints `x a y` for the first and `x a(2b y` for the second — a different bug each: \\h drops the tail entirely, \\l keeps the paren. \\S( shares skipValue with \\v(, so it improved for free (\\S(2b now prints a2b) but has no test; add one so the fix cannot regress it. Needs a red test before dispatch: file as next, groom then promotes.",
+      "source": "lane"
+    },
+    {
+      "id": "p134",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "a vertical table span puts its text on the right row in the text model but js/man-render.mjs draws the cell above as a separate empty <td>, so the rendered borders differ from groff",
+      "lane": "a2",
+      "files": [
+        "js/man-render.mjs",
+        "css/manpage.css",
+        "test/man-render.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-render.mjs",
+      "notes": "Found by b7's lane 2026-11-25 at 57a7e95b. p79/b7 moved a bottom-anchored spanned cell's text to the last row (toText now matches groff, `tables :: a vertical span puts its text on the bottom row`). The renderer was outside that lane's file set, so it still emits a separate empty <td> on each row above the span instead of one cell spanning the rows: tbl(1)'s own example draws `1111`/`2222` in the left cell and the row rule only under both, while our HTML gives three rows with an empty right-hand cell each. Decide rowspan (a cell model change the renderer consumes) versus dropping an empty continuation cell; the text model already records which cell is a continuation. Needs a red renderer test before dispatch.",
+      "source": "lane"
+    },
+    {
+      "id": "b9",
+      "area": "man",
+      "status": "ready",
+      "type": "fix",
+      "title": "batch: the man tail's escapes, spans and cells (b7 -> p79 p83 p34, b6 -> p102 p76 p77)",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "js/man-char.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Round 65's a1 lane carried two batches in sequence on one branch (b7 at 57a7e95b, then b6 at cab7cc0b), so the round takes them as one row: b7+ b6's union of files and b6's narrower proof. b7 absorbed p79 (a vertical table span puts its text on the bottom row; tbl(1)'s `l ld`/`r ^` example prints `|   r | foo    |`), p83 (21 groff_char(7) names: md, c*, r!, OK, Eu, sq, lf/rf/lc/rc, ul/uc/ur/ll/lr/cl/cr, 18/38/58/78) and p34 (`\\v(` has no paren form: groff warns and prints `x a2b y`). b6 absorbed p102 (an unknown escape prints its own letter; groff ignores exactly 27 printable characters and warns `escape character ignored before 'Q'`), p76 (`.SY`/`.OP` keep their space in mdoc mode; groff -mdoc has no SY/OP at all, so the man(7) layout is the reference) and p77 (a literal tab is a tab stop, `\\t` is zero width in both fill and no-fill mode). Six red tests, all green at the merged tip, `test/man-parse.mjs` 386 passing.",
+      "source": "lane"
+    },
+    {
+      "id": "p135",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "js/man-roff.mjs still classifies the 27 escapes groff ignores as unknown and fails the static scan, so the inventory disagrees with the interpreter after b6",
+      "lane": "a1",
+      "files": [
+        "js/man-roff.mjs",
+        "test/man-roff.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-roff.mjs",
+      "notes": "Found by b6's lane 2026-11-25 at cab7cc0b: the interpreter now prints an unknown escape's own letter (p102), and groff ignores exactly 27 printable characters (`123456789;<=>@GIJKPQTUWijqy`, verified character by character). `Roff.scan('a \\\\Q b')` still returns `fails: [{ kind: 'escape', name: 'Q', cls: 'unknown' }]` and test/man-roff.mjs:165 asserts `a\\qb` fails, so the static inventory refuses what the interpreter accepts and `below the corpus gate` can disagree with the render. The inventory and the interpreter must agree (doc/Man.md: 'two things must stay in sync when the corpus needs more: the dialect inventory and the interpreter'). Fix: classify the 27 as an ignored/`metric` escape in man-roff.mjs, flip the test, and assert the two halves agree for every printable character. Needs the red test written before dispatch, so next.",
+      "source": "lane"
+    },
+    {
+      "id": "p136",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "a literal tab in filled text is not measured: groff advances to the next tab stop per line, b6 pinned only the .nf form and the zero-width \\t",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found by b6's lane 2026-11-25 at cab7cc0b while fixing p77. b6 separated the two mappings (a literal tab is a tab stop, the `\\t` escape is zero width in both fill and no-fill mode) but only pinned `.nf` for the literal tab: `ABCDEFG<TAB>Y` is `ABCDEFG   Y` in groff (tab stops every 8 columns from the current line's output position) and the filled case is unimplemented, so a fix that turns a literal tab into a single space would pass b6's tests. No corpus page was found to need it. Needs a red test in filled mode before dispatch, so next.",
+      "source": "lane"
+    },
+    {
+      "id": "c16",
+      "area": "code",
+      "status": "ready",
+      "type": "fix",
+      "title": "batch: a delta's part id comes from the event, and a thinking block is drawn in every box (c14, c9)",
+      "lane": "a2",
+      "files": [
+        "ext/code/code.mjs",
+        "ext/code/event.mjs",
+        "test/code-events.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs test/code-prompt-e2e.mjs",
+      "notes": "Round 65's a2 lane carried two items in sequence on one branch (c14 at 4da84e18, then c9), so the round takes them as one row owning the union. c14: `session.text.delta`/`session.reasoning.delta` took their part id from `state.textID`/`state.thinkID`, which `session.step.started` resets, so a reconnect that dropped the started event attributed every delta to part 0; both now derive the id from `data.assistantMessageID + ':text:'|':reason:' + data.ordinal`, as the ended cases already did, and the dead state is gone (the ordinal is on the event per the vendored types and live.jsonl:4). c9: `handlePartDelta` asked one view whether a delta is thinking text and returned before the per-box draw, so a second box never got the block; the reference client renders every part in every view.",
+      "source": "lane"
+    }
+  ],
+  "measures": {
+    "man": {
+      "kind": "man",
+      "budget": 480,
+      "population": "installed corpus, 4150 pages, at the recorded tip",
+      "command": "bin/man-audit --parse; for s in 1 3 5 7 8; do bin/man-diff --section $s --max 0; done"
+    },
+    "core": {
+      "command": "bin/core-measure.mjs --runs 3",
+      "budget": 900,
+      "population": "the fast suite under c8; the core modules' line and branch coverage; 3 runs each of the timing-sensitive e2e files"
+    },
+    "code": {
+      "command": "bin/oc-conformance.mjs test/fixtures/oc-events/minimal.jsonl test/fixtures/oc-events/live.jsonl --json",
+      "budget": 120,
+      "population": "the recorded v2 event fixtures (11 + 9 events, 20 total)"
+    }
+  }
+}

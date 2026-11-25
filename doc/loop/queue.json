@@ -1089,7 +1089,7 @@
     {
       "id": "p106",
       "lane": "a3",
-      "status": "ready",
+      "status": "done",
       "title": "rpcgen(1)'s 0a is a footer page-string, not content: man-diff's isFooter must drop a right-aligned multi-page token (/^\\s{10,}[0-9]+[a-z]$/)",
       "files": [
         "bin/man-diff",
@@ -1097,12 +1097,13 @@
       ],
       "proof": "npx mocha --exit test/man-diff.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "a3607bd"
     },
     {
       "id": "p107",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis",
       "files": [
         "js/man-parse.mjs",
@@ -1110,7 +1111,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "9612e96"
     },
     {
       "id": "p108",
@@ -1377,14 +1379,15 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "done",
       "title": "the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts",
       "files": [
         "ext/code/code.mjs",
         "ext/code/ui.mjs",
         "test/code-prompt-e2e.mjs"
       ],
-      "proof": "npx mocha --exit test/code-prompt-e2e.mjs"
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs",
+      "doneHash": "fd65122"
     },
     {
       "id": "p120",
@@ -1408,6 +1411,32 @@
       "title": ".if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it)",
       "files": [
         "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "c8",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "next",
+      "title": "Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing)",
+      "files": [
+        "ext/code/ui.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs"
+    },
+    {
+      "id": "p122",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": "thumbpdf(1) loses one word: Â© (a char/encoding mismatch)",
+      "files": [
+        "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs"

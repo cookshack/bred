@@ -52,7 +52,12 @@ not a clock.
     others are left alone. The same goes for the stale registrations line.
 
     Work in rounds of up to three lanes whose file sets are disjoint: pick
-    with bin/loop.mjs pick (it skips dirty, hot and overlapping items). pick
+    with bin/loop.mjs pick (it skips dirty, hot and overlapping items). One
+    lane is one file, so items on the same file (the man tail on
+    js/man-parse.mjs) are batched, not parallel: when two or three rows name
+    one lane with identical files and proof, add one batch row that owns the
+    union and that proof, dispatch the batch, and mark each absorbed row done
+    with the batch's hash and a note naming it. pick
     only returns rows whose status is `ready`, so if it returns nothing, groom
     instead: promote a `next` row to `ready` once it has a red-capable `proof`
     written on the row (a command that fails at base) and its files are free.
@@ -65,12 +70,16 @@ not a clock.
     call it, stop and report the tool and error instead of doing the lanes'
     work yourself. Tell every lane to read doc/loop/rules.md and its brief,
     work only in its worktree and files, commit once with a Loop-item: <id>
-    trailer, and never merge, rebase or push.
+    trailer, and never merge, rebase or push. While the lanes run, groom the
+    next round: promote `next` rows to `ready` with red-capable proofs.
+    Waiting on a lane is free time; use it.
 
     Then bin/loop.mjs round <n> --items ... gates and integrates onto
     loop/r<n> and runs the suite once at that tip (the suite log is in $LOOP).
-    Measure the tip with bin/loop.mjs measure --area all --tip <tip>: every
-    area, each within its budget, into doc/loop/history.jsonl. Write
+    Measure what the round touched with
+    bin/loop.mjs measure --area <area> --tip <tip> (each area within its
+    budget, into doc/loop/history.jsonl); run --area all at the final tip and
+    after a round that spans areas. Write
     doc/loop/round-<n>.md on loop/r<n>, mark the merged items done there with
     `bin/loop.mjs mark <id>=<hash> ...`, and commit both on the branch with
     Loop-round: <n> and Loop-verify: <tip> — the marks belong in the same

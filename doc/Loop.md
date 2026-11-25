@@ -145,13 +145,39 @@ columns in one queue, not separate loops.
    base with the lane's test files, proof green after the rebase. A failing
    lane is parked with its patch; the suite and `npm run check` run once at
    the integrated tip (`$LOOP/round-<n>-suite.log`).
-4. `bin/loop.mjs measure --tip <tip>` measures the tip's own tools and appends
-   `doc/loop/history.jsonl`. Write `doc/loop/round-<n>.md` on `loop/r<n>` and
+4. `bin/loop.mjs measure --area <area> --tip <tip>` measures the areas the
+   round touched and appends `doc/loop/history.jsonl`. Measure what the round
+   changed: a man round that also sweeps core and code spends most of its
+   fixed cost learning nothing. Run `--area all` at the final tip, and after
+   a round that spans areas. Write `doc/loop/round-<n>.md` on `loop/r<n>` and
    commit it there with `Loop-round: <n>` and `Loop-verify: <tip>`.
 5. `bin/loop.mjs land <n>` fast-forwards main once, refusing unless the
    recorded tip is on the branch and only docs follow it. Then mark the merged
    items `done` with their lane hashes in `queue.json` and `report --write`.
-6. Check the clock in `state`; stop starting rounds at `stopnew`.
+6. Check the clock with `bin/loop.mjs clock`; stop starting rounds at
+   `stopNew`.
+
+## Throughput
+
+One item per round spends about five minutes of machine time before any lane
+work. Measured on 2026-11-25 at rounds 51–52: `measure --area all` took 2m30
+from the gate to its last record (man about 1m40, core 49s, code under a
+second); the post-merge verify at `land` took 1m04 (check plus the full suite,
+in the canonical checkout); and the round's own suite and check are the same
+two commands again at the tip. The lane itself took 1–3 minutes. That is 8–9
+items/hour, and the fixed cost, not the lane, sets the rate.
+
+- **Batch one file's items.** `js/man-parse.mjs` is one lane, so the man tail
+  cannot be parallel; it can only be batched. Take items on one lane whose
+  `files` and `proof` are identical, add a queue row for the batch that owns
+  the union and that one proof, and let one lane fix two or three of them in
+  one commit. Each absorbed item keeps its own test and is marked `done` with
+  the batch's hash and a note naming the batch. Three items in one round pay
+  the fixed cost once instead of three times.
+- **Measure what the round touched.** `--area all` every round is policy, not
+  proof: a man round that also sweeps core and code learns nothing.
+- **Groom while the lanes run.** After dispatch, promote `next` rows to
+  `ready` with their proofs. Waiting on lanes is the only free time in a run.
 
 ## Working on a moving main
 

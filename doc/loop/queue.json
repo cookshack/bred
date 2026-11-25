@@ -703,6 +703,7 @@
       "title": "\\N'0x41'/\\N'1e2'/\\N'0' are read with Number(), so hex and exponent forms become characters; groff reads digits only",
       "files": [
         "js/man-char.mjs",
+        "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs"

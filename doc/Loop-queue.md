@@ -34,7 +34,7 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p88 | a1 | ready | \N'0x41'/\N'1e2'/\N'0' are read with Number(), so hex and exponent forms become characters; groff reads digits only | js/man-char.mjs, test/man-parse.mjs |
+| p88 | a1 | ready | \N'0x41'/\N'1e2'/\N'0' are read with Number(), so hex and exponent forms become characters; groff reads digits only | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
 
 ## Backlog
 

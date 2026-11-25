@@ -745,6 +745,15 @@ test('escapes', 'slant and vertical motion take one character undelimited',
        equal(asText('.TH T 1\nx \\v2icanary y\n'), 'x icanary y\n')
      })
 
+test('escapes', 'a v escape has no paren form and prints its text',
+     () => {
+       // groff warns "cannot use character '(' as a starting delimiter" and
+       // prints the text after it: `a\v(2b` is a2b, `a\v(12b` is a12b. A `(xx`
+       // is a two-character name for `\(`, not for the value escapes.
+       equal(asText('.TH T 1\nx a\\v(2b y\n'), 'x a2b y\n')
+       equal(asText('.TH T 1\nx a\\v(12b y\n'), 'x a12b y\n')
+     })
+
 test('escapes', 'a continued line glues to the macro after it',
      () => {
        equal(asText('.TH T 1\n.I file\\c\n.RB [ .dvi ]\n'), 'file[.dvi]\n')
@@ -2096,6 +2105,23 @@ test('escapes', 'tmu is a multiplication sign and tm is a trade mark',
              'L×C/(N+1) ™ x')
      })
 
+test('escapes', 'common groff_char names outside the corpus are absent',
+     () => {
+       let names, i, r
+
+       // groff_char(7) names with no installed page using them. groff prints
+       // each, so the closed table must know them rather than refuse the page.
+       names = [ 'md', 'c*', 'r!', 'OK', 'Eu', 'sq', 'lf', 'rf', 'lc', 'rc', 'ul', 'uc', 'ur', 'll', 'lr', 'cl', 'cr', '18', '38', '58', '78' ]
+       for (i = 0; i < names.length; i++)
+         equal(parsed('.TH T 1\nX\\[' + names[i] + ']Y\n').ok, 1, 'name ' + names[i])
+       r = parsed('.TH T 1\nX\\[md]\\[c*]\\[r!]\\[OK]\\[Eu]\\[sq]Y\n')
+       equal(flat(r.doc.blocks[0].spans), 'X⋅⊗¡✓€□Y')
+       r = parsed('.TH T 1\nX\\[lf]\\[rf]\\[lc]\\[rc]Y\n')
+       equal(flat(r.doc.blocks[0].spans), 'X⌊⌋⌈⌉Y')
+       r = parsed('.TH T 1\nX\\[18]\\[38]\\[58]\\[78]Y\n')
+       equal(flat(r.doc.blocks[0].spans), 'X⅛⅜⅝⅞Y')
+     })
+
 test('escapes', 'greek capitals follow the groff names',
      () => {
        equal(flat(parsed('.TH T 1\n\\[*H] \\[*Q] \\[*Y]\n').doc.blocks[0].spans),
@@ -3090,6 +3116,24 @@ test('tables', 'a span column widens the cell before it',
        equal(r.doc.blocks[0].rows[0].cells.length, 2)
        equal(r.doc.blocks[0].rows[0].cells[0].colspan, 2)
        equal(flat(r.doc.blocks[0].rows[0].cells[1].spans), 'b c')
+     })
+
+test('tables', 'a vertical span puts its text on the bottom row',
+     () => {
+       let r, text, rows, at
+
+       // tbl(1)'s own example: `l ld` starts a bottom-anchored span in the
+       // second column and the next format line's `^` continues it, so groff
+       // draws 1111/2222 and `r` above, then `foo` on the `r` line.
+       r = parsed('.TH T 1\n.TS\ntab(;) allbox;\nl l\nl ld\nr ^\nl rd.\n' +
+                  '0000;foobar\nT{\n1111\n.br\n2222\nT};foo\nr;\n' +
+                  'T{\n3333\n.br\n4444\nT};bar\n\\^;\\^\n.TE\n')
+       text = ManParse.toText(r.doc.blocks)
+       rows = text.split('\n')
+       at = rows.filter(line => /\br\b/.test(line))[0]
+       equal(rows.filter(line => /\bfoo\b/.test(line)).length, 1)
+       ok(at)
+       ok(/\bfoo\b/.test(at))
      })
 
 test('tables', 'an italic column modifier sets italic',

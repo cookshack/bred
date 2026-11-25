@@ -141,7 +141,32 @@ symbols = { 'aq': "'",
             'S3': '³',
             'pl': '+',
             'mi': '−',
-            'tmu': '×' }
+            'tmu': '×',
+            // groff_char(7) names that no installed page uses, so the corpus
+            // never proved them. groff prints the first group and refuses the
+            // last: it knows `uc`, `ur`, `ll`, `lr`, `cl` and `cr` but has no
+            // glyph for them in this encoding, so they are known with no text.
+            'md': '⋅',
+            'c*': '⊗',
+            'r!': '¡',
+            'OK': '✓',
+            'Eu': '€',
+            'sq': '□',
+            'lf': '⌊',
+            'rf': '⌋',
+            'lc': '⌈',
+            'rc': '⌉',
+            '18': '⅛',
+            '38': '⅜',
+            '58': '⅝',
+            '78': '⅞',
+            'ul': '_',
+            'uc': '',
+            'ur': '',
+            'll': '',
+            'lr': '',
+            'cl': '',
+            'cr': '' }
 
 greek = { 'ts': 'ς', // teliko sigma, the final form of `*s`
           '*a': 'α',

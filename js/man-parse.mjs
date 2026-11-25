@@ -375,7 +375,9 @@ function skipName
 
 // \S and \v take a quoted or bracketed value (`\S'2'`, `\v[2m]`); an
 // undelimited one is a single character, which is also how groff recovers
-// from `\v2m` (it warns, then reads one character).
+// from `\v2m` (it warns, then reads one character). There is no paren form:
+// `\v(2b` reads `(` as the single-character argument (groff warns "cannot use
+// character '(' as a starting delimiter") and prints `2b` as text.
 function skipValue
 (text, i) {
   let open
@@ -383,7 +385,7 @@ function skipValue
   if (i >= text.length)
     return i
   open = text[i]
-  if ((open == "'") || (open == '"') || (open == '[') || (open == '('))
+  if ((open == "'") || (open == '"') || (open == '['))
     return skipArg(text, i)
   return i + 1
 }
@@ -1811,6 +1813,10 @@ function tableSpecify
       col.bold = 1
     else if ((ch == 'i') && col)
       col.italic = 1
+    // `d` starts a vertical span at the bottom of its range instead of
+    // centring it (tbl(1) COLUMN SPECIFIERS); the text placement uses it.
+    else if ((ch == 'd') && col)
+      col.bottom = 1
     // A font or macro name is one or two letters, or a parenthesised name.
     else if (((ch == 'f') || (ch == 'm')) && (text[at] == '('))
       at = tableParen(text, at)
@@ -2011,9 +2017,13 @@ function tableCellMacro
 
 function tableCell
 (c, text, lineNo) {
-  let saved, lines, spans, control, i
+  let saved, lines, spans, control, i, up
 
   saved = c.font
+  // A cell that is only `\^` marks its column as a continuation of the field
+  // above (tbl(1): "A data item consisting only of \^ indicates that the field
+  // immediately above spans downward over this row"). It prints no text.
+  up = (text.trim() == '\\^') ? 1 : 0
   lines = text.split('\n')
   control = 0
   for (i = 0; i < lines.length; i++)
@@ -2048,7 +2058,7 @@ function tableCell
     }
   }
   c.font = saved
-  return { spans }
+  return up ? { spans, up } : { spans }
 }
 
 // tbl passes a control line in a table body through to roff instead of reading
@@ -2149,7 +2159,8 @@ function tableFit
                    out[out.length - 1].colspan = (out[out.length - 1].colspan || 1) + 1
                    return
                  }
-                 out.push({ spans: (cells[at] || { spans: [] }).spans })
+                 out.push({ spans: (cells[at] || { spans: [] }).spans,
+                            up: (cells[at] || {}).up })
                  at++
                })
   while (at < cells.length) {
@@ -2163,6 +2174,94 @@ function tableFit
     at++
   }
   return out
+}
+
+// The cell in a fitted row that starts at column `col`, walking colspans. A row
+// may hold fewer cells than the layout, so the answer may be undefined.
+function tableCellAt
+(row, col) {
+  let at
+
+  at = 0
+  for (let i = 0; i < row.cells.length; i++) {
+    let cell
+
+    cell = row.cells[i]
+    if (at == col)
+      return cell
+    at += (cell.colspan > 1) ? cell.colspan : 1
+  }
+  return undefined
+}
+
+// A fitted row's cells with the column each one starts at, walking colspans.
+function tableColumnsOf
+(row) {
+  let out, at
+
+  out = []
+  at = 0
+  for (let i = 0; i < row.cells.length; i++) {
+    let cell
+
+    cell = row.cells[i]
+    out.push({ cell, col: row.cols[at] || {}, at })
+    at += (cell.colspan > 1) ? cell.colspan : 1
+  }
+  return out
+}
+
+// The last row of the vertical span that starts at (row, col): the rows below
+// whose cell in that column is a continuation of the one above it.
+function tableSpanEnd
+(rows, row, col) {
+  let end
+
+  end = row
+  while (end + 1 < rows.length) {
+    let next
+
+    next = tableCellAt(rows[end + 1], col)
+    if ((next == undefined) || (next.cont == undefined))
+      break
+    end++
+  }
+  return end
+}
+
+// tbl keeps a vertically spanning field in one cell. A format `^` column, or a
+// data `\^` field under a repeated layout, says the field above spans down over
+// this row (tbl(1): "the field immediately above spans downward over this
+// row"), so the continuation owns no text: groff drops a data item written
+// under a `^` column. A `d` specifier anchors a span at the bottom of its range
+// rather than its top, so the text moves to the last row of the run.
+function tableSpans
+(rows) {
+  let i, j, entries, entry
+
+  for (i = 0; i < rows.length; i++) {
+    entries = tableColumnsOf(rows[i])
+    for (j = 0; j < entries.length; j++) {
+      entry = entries[j]
+      if (entry.col.spanDown || entry.cell.up) {
+        entry.cell.cont = 1
+        entry.cell.spans = []
+      }
+    }
+  }
+  for (i = 0; i < rows.length; i++) {
+    entries = tableColumnsOf(rows[i])
+    for (j = 0; j < entries.length; j++) {
+      let end
+
+      entry = entries[j]
+      end = tableSpanEnd(rows, i, entry.at)
+      if ((end > i) && (entry.cell.cont == undefined) && entry.col.bottom) {
+        pushSpans(tableCellAt(rows[end], entry.at).spans, entry.cell.spans)
+        entry.cell.spans = []
+      }
+    }
+  }
 }
 
 // The format section is one layout per table line, not one table. Each line is
@@ -2204,7 +2303,7 @@ function tableRowCols
 
 function tableBuild
 (c, lines, lineNo, inherited) {
-  let opts, parsed, ncols, body, cols, rows, at
+  let opts, parsed, ncols, body, cols, rows, fitted, at, i
 
   at = 0
   while ((at < lines.length) && (lines[at].trim() == ''))
@@ -2242,16 +2341,20 @@ function tableBuild
   if ((ncols == 0) && rows.length)
     fail(c, lineNo, (parsed.layouts.join(' ').trim() == '') ? 'table with no format' : 'table format without columns')
   // A row is drawn by the layout it was fitted with, so a centred or bold
-  // header holds that styling over a plain body.
+  // header holds that styling over a plain body. A vertically spanning cell is
+  // folded to the row its alignment puts the text on after the bytes are fitted.
+  fitted = []
+  for (i = 0; i < rows.length; i++) {
+    let rowCols
+
+    rowCols = tableRowCols(body, i, ncols)
+    fitted.push({ cells: tableFit(rows[i], rowCols), cols: rowCols })
+  }
+  tableSpans(fitted)
   return { kind: 'table',
            options: opts,
            cols,
-           rows: rows.map((cells, i) => {
-                           let rowCols
-
-                           rowCols = tableRowCols(body, i, ncols)
-                           return { cells: tableFit(cells, rowCols), cols: rowCols }
-                         }) }
+           rows: fitted }
 }
 
 // ---- mdoc(7) ------------------------------------------------------------

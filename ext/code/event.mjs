@@ -185,14 +185,35 @@ function translate
   case 'session.tool.input.started':
     state.toolNames = state.toolNames || {}
     state.toolNames[data.id] = data.name
+    // The reference marks the tool part streaming here, and only a streaming
+    // part accumulates a delta.
+    state.toolStreaming = state.toolStreaming || {}
+    state.toolStreaming[data.id] = 1
     out.push(legacy('message.part.updated', { part: toolPart('pending', {}) }))
     break
+  case 'session.tool.input.delta':
+    // A streaming tool's input arrives as raw JSON fragments: a fragment on its
+    // own does not parse (JSON.parse('{"path":"/tmp/a') throws), and the
+    // reference accumulates a string and parses only at .ended. So the fragment
+    // rides the same carrier text uses, keyed by the call id (which is the tool
+    // part's id), and the view appends it under the pending tool message. A
+    // delta whose .started a reconnect dropped has no part to draw under, so it
+    // stays dropped; the authoritative .ended text still lands whole.
+    if (state.toolStreaming?.[data.id])
+      // The name rides the delta so the preview can draw the pending line
+      // itself: a tool handler draws no line until its input has the key it
+      // reads, and while streaming the input is still a fragment.
+      out.push(legacy('message.part.delta', { sessionID: data.sessionID, partID: data.id, field: 'input', delta: data.delta, tool: state.toolNames?.[data.id] }))
+    break
   case 'session.tool.input.ended':
+    delete state.toolStreaming?.[data.id]
     state.toolInputs = state.toolInputs || {}
     state.toolInputs[data.id] = parseJson(data.text)
     out.push(legacy('message.part.updated', { part: toolPart('pending', state.toolInputs[data.id]) }))
     break
   case 'session.tool.called':
+    // The tool has its input now and is no longer streaming.
+    delete state.toolStreaming?.[data.id]
     state.toolInputs = state.toolInputs || {}
     state.toolInputs[data.id] = data.input
     out.push(legacy('message.part.updated', { part: toolPart('running', data.input, { metadata: data.metadata || {} }) }))

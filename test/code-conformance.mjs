@@ -4,7 +4,7 @@ import Fs from 'node:fs'
 import * as Conf from '../bin/oc-conformance.mjs'
 import * as Ev from '../ext/code/event.mjs'
 
-let tests, fixture, live
+let tests, fixture, live, toolInput
 
 tests = {}
 fixture = Conf.readEvents(Fs.readFileSync(new URL('./fixtures/oc-events/minimal.jsonl',
@@ -13,6 +13,9 @@ fixture = Conf.readEvents(Fs.readFileSync(new URL('./fixtures/oc-events/minimal.
 live = Conf.readEvents(Fs.readFileSync(new URL('./fixtures/oc-events/live.jsonl',
                                                import.meta.url),
                                        'utf8'))
+toolInput = Conf.readEvents(Fs.readFileSync(new URL('./fixtures/oc-events/tool-input.jsonl',
+                                                    import.meta.url),
+                                            'utf8'))
 
 function test
 (group, name, cb) {
@@ -72,6 +75,21 @@ test('measure', 'the fixture covers every event the measure must see',
                   'session.idle',
                   'session.retry.scheduled' ]
        wanted.forEach(name => equal(fixture.some(ev => ev.type == name), true, name))
+     })
+
+test('measure', 'the tool input fixture has a streaming delta the measure must see',
+     () => {
+       let record
+
+       record = Conf.classify(toolInput, translator())
+       equal(record.total, 4)
+       equal(record.translated, 4)
+       equal(record.dropped, 0)
+       equal(record.malformed, 0)
+       equal(record.types[ 'session.tool.input.started' ].translated, 1)
+       equal(record.types[ 'session.tool.input.delta' ].translated, 2,
+             'a streaming delta is not dropped by translate')
+       equal(record.types[ 'session.tool.input.ended' ].translated, 1)
      })
 
 test('measure', 'a sanitized live recording classifies from the recorder shape',

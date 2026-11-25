@@ -1174,6 +1174,41 @@ function partCache
   return cache
 }
 
+// A streaming tool's input arrives as raw JSON fragments, one delta at a time,
+// so it is not parsed into an object here. The tool message may not exist yet:
+// a tool handler draws its line only once its input has the key it reads, and
+// during streaming the input is still a string. So the first delta draws a
+// pending line (the tool name rides the delta for this) and each later one grows
+// a preview under it. code-msg-prompt is the one detail style a tool line shows
+// without expanding, so the growing JSON is visible while the call is still
+// streaming; the ended part carries the parsed input and re-renders the whole
+// message through appendToolMsg, which removes this element with it.
+function previewToolInput
+(buf, callID, delta, sessionID, tool) {
+  let exists
+
+  // A tool handler draws its line only once its input has the key it reads, so
+  // while the input is streaming nothing may be there. Draw the pending line
+  // first (appendToolMsg draws in every box, so it cannot go inside eachOut).
+  exists = buf.views.some(view => Boolean(view.eleOrReserved?.querySelector('.code-msg-tool[data-callid="' + callID + '"]')))
+  if (exists == 0)
+    Ui.appendToolMsg(buf, callID, 'Tool call: ' + (tool || '?') + ' (streaming)', 0, { sessionID })
+
+  Util.eachOut(buf, sessionID, (view, w, box) => {
+                                 let el, previewEl
+
+                                 el = box.querySelector('.code-msg-tool[data-callid="' + callID + '"]')
+                                 if (el == null)
+                                   return
+                                 previewEl = el.querySelector('.code-msg-input')
+                                 if (previewEl == null) {
+                                   previewEl = divCl('code-msg-text code-msg-prompt code-msg-input', '')
+                                   el.append(previewEl)
+                                 }
+                                 Ui.withScroll(w, () => previewEl.innerText = (previewEl.innerText || '') + delta)
+                               })
+}
+
 function handlePartDelta
 (buf, event) {
   let chunked, delta, field, opened, partID, sessionID
@@ -1183,8 +1218,16 @@ function handlePartDelta
   partID = event.properties.partID
   sessionID = event.properties.sessionID
 
-  // message.part.delta only carries text, so a child's streamed text is what
-  // its result is compared against when the call completes.
+  // A streaming tool's input is a JSON fragment, not assistant text, so it grows
+  // the pending tool line's preview instead of a message box.
+  if ((field == 'input') && delta) {
+    previewToolInput(buf, partID, delta, sessionID, event.properties.tool)
+    return
+  }
+
+  // A delta's text belongs to a child session when it is that child's streamed
+  // output, which is what its result is compared against when the call
+  // completes.
   if ((field == 'text') && delta && Util.isChildSession(buf, sessionID))
     Subagent.noteDelta(buf, sessionID, delta)
 

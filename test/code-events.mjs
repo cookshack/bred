@@ -323,6 +323,46 @@ test('translate', 'tool lifecycle maps to states',
        equal(success[0].properties.part.state.output, 'done')
      })
 
+test('translate', 'tool input deltas stream the preview before the whole input arrives',
+     () => {
+       let buf, ended, first, second, started
+
+       buf = makeBuf()
+       started = Ev.translate(buf, Fake.event('session.tool.input.started', { sessionID: 's1', assistantMessageID: 'm1', id: 't1', name: 'write' }))
+       equal(started[0].properties.part.state.input.path, undefined, 'nothing has streamed yet')
+
+       // The reference client keeps a streaming tool's input as a string and
+       // appends each delta to it (session.tool.input.delta, status
+       // "streaming"); the ended text replaces the string. A JSON fragment on
+       // its own does not parse, so the fragment must not be parsed here: it
+       // rides the same message.part.delta carrier text uses, keyed by the
+       // call id, and the view appends it.
+       first = Ev.translate(buf, Fake.event('session.tool.input.delta', { sessionID: 's1', assistantMessageID: 'm1', id: 't1', delta: '{"path":"/tmp/a' }))
+       equal(first.length, 1, 'a delta is not dropped')
+       equal(first[0].type, 'message.part.delta')
+       equal(first[0].properties.sessionID, 's1')
+       equal(first[0].properties.partID, 't1', 'the part is the tool call')
+       equal(first[0].properties.field, 'input')
+       equal(first[0].properties.delta, '{"path":"/tmp/a')
+
+       second = Ev.translate(buf, Fake.event('session.tool.input.delta', { sessionID: 's1', assistantMessageID: 'm1', id: 't1', delta: '.txt","content":"one' }))
+       equal(second[0].properties.partID, 't1')
+       equal(second[0].properties.delta, '.txt","content":"one', 'each legacy delta carries its fragment; the view accumulates')
+
+       // The ended text is authoritative: it parses, and the part re-renders
+       // whole, so a preview that a reconnect left short is replaced.
+       ended = Ev.translate(buf, Fake.event('session.tool.input.ended', { sessionID: 's1', assistantMessageID: 'm1', id: 't1', text: '{"path":"/tmp/a.txt","content":"one two"}' }))
+       equal(ended[0].type, 'message.part.updated')
+       equal(ended[0].properties.part.state.status, 'pending')
+       equal(ended[0].properties.part.state.input.path, '/tmp/a.txt')
+
+       // The reference applies a delta only while the tool is streaming; a
+       // delta whose started event a reconnect dropped has no part to draw
+       // under, and the ended text is authoritative, so it stays dropped.
+       buf = makeBuf()
+       equal(Ev.translate(buf, Fake.event('session.tool.input.delta', { sessionID: 's2', assistantMessageID: 'm2', id: 't9', delta: 'x' })).length, 0)
+     })
+
 test('translate', 'tool calls keep metadata, so subagents register early',
      () => {
        let buf, called

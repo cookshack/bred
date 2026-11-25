@@ -601,7 +601,12 @@ Round 40 kept a `\c` inside a macro argument joining its line (ttf2pk clean),
 and `man-diff` joins a source-marked `|`/`]` break (dmsetup 5 → 1). Totals are
 17 words on 10 pages.
 
-Tests: 611 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 41 joined a `\:` break the source marks before `)`; `man-diff` now
+reassembles hg(1)'s `incoming)` (2 → 0), and section 1 is 7 words on 6 pages.
+The key is the word the source glued, not the token alone — keying on the word
+made 53 words worse before the rule was narrowed.
+
+Tests: 610 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

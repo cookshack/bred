@@ -99,3 +99,10 @@ not a clock.
     Stopping earlier needs one of the named exceptions in doc/Loop.md
     "Stopping". A half-finished round is worse than a clean checkpoint; a
     summary written early is not a finished run.
+
+    A long transcript is not the clock: opencode compacts automatically at
+    about 90% of the model window and carries on. A high context reading is
+    not a stop, and neither is a session that cannot finish the run — land
+    what is in flight, leave the tracked clock for the next session, and say
+    the clock line you handed over on. The clock and the named exceptions are
+    the only stops.

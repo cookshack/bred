@@ -424,11 +424,14 @@ reason is written in the record:
   error; do not inline the lanes);
 - the human says stop.
 
-A thin queue is not a reason: grooming and a bounded hunt are the round's work.
-When `stopNew` passes, land or park what is in flight and write the summary
-from `doc/loop/round-*.md`: what changed, what was measured, what is left, and
-the clock line it stopped on. Do not start a round that cannot be finished and
-verified.
+A thin queue and a long transcript are not reasons: grooming and a bounded
+hunt are the round's work, and automatic compaction (about 90% of the model
+window, 10% kept free) carries a session past a full window. A session that
+cannot finish the run lands what is in flight and hands the tracked clock on;
+it does not declare the run done. When `stopNew` passes, land or park what is
+in flight and write the summary from `doc/loop/round-*.md`: what changed, what
+was measured, what is left, and the clock line it stopped on. Do not start a
+round that cannot be finished and verified.
 
 A summary written before `stopNew` must quote `bin/loop.mjs clock` and name the
 exception above. The 2026-11-25 run set stopNew for 14:21Z and summarised at

@@ -3177,13 +3177,13 @@ function init
 
                                           active = view?.buf?.vars('code')?.subagentsActive ? 1 : 0
                                           return [ 'Subagents ',
-                                                   span(active ? '◌✓' : '◌',
+                                                   span(active ? '▽' : '≡',
                                                         'assist-mode-subagents-filter' + (active ? ' assist-mode-subagents-filter-on' : ''),
                                                         { 'data-run': 'code subagents filter',
                                                           'data-bufid': view?.buf?.id,
                                                           'data-viewid': view?.vid,
-                                                          title: active ? 'Showing only running subagents'
-                                                                        : 'Show only running subagents' }) ]
+                                                          title: active ? 'Showing only running subagents (click for all)'
+                                                                        : 'Showing all subagents (click for running only)' }) ]
                                         },
                                         co
                                         (view) {

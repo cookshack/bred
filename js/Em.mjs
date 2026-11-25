@@ -443,7 +443,14 @@ function seqMode
 (cmdName, buf, mode) {
   let a
 
-  //if (buf.minors)
+  // stacked as [ minor1.em, ..., mode.em, ... ], last added minor first
+  if (buf?.minors)
+    for (let i = buf.minors.length - 1; i >= 0; i--)
+      if (buf.minors[i].em) {
+        a = seqA(cmdName, buf.minors[i].em)
+        if (a)
+          return a
+      }
   if (mode.em)
     a = seqA(cmdName, mode.em)
   if (a)

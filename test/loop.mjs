@@ -516,6 +516,55 @@ function historyPerArea
 
 test('measure', 'one record per tip and area, not per tip', historyPerArea)
 
+// The cadence: every area measured, and one area failing does not hide the
+// others. The commands are scripts committed at the tip, because the measure
+// runs in a worktree of that tip, not in the checkout.
+function loopRaw
+(dir, args) {
+  let res, env
+
+  env = { ...process.env, BRED_WORKTREE_ROOT: Path.join(dir, 'wt'), BRED_WORKSPACE: 'test1234' }
+  res = spawnSync('node', [ Path.join(dir, 'bin', 'loop.mjs') ].concat(args),
+                  { cwd: dir, encoding: 'utf8', env })
+  return { status: res.status, out: (res.stdout || '') + (res.stderr || '') }
+}
+
+function scriptFile
+(dir, name, body) {
+  Fs.writeFileSync(Path.join(dir, name), '#!/bin/sh\n' + body + '\n')
+  Fs.chmodSync(Path.join(dir, name), 0o755)
+}
+
+function queueWithMeasures
+(dir, measures) {
+  let q
+
+  Fs.mkdirSync(Path.join(dir, 'doc', 'loop'), { recursive: true })
+  q = { schema: 1, measures, items: [] }
+  Fs.writeFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), JSON.stringify(q, null, 2) + '\n')
+  scriptFile(dir, 'good.sh', 'echo \'{"n": 1}\'')
+  scriptFile(dir, 'slow.sh', 'sleep 5')
+  git(dir, [ 'add', '-A' ])
+  git(dir, [ 'commit', '-qm', 'measures' ])
+}
+
+function allAreas
+(dir) {
+  let out, history
+
+  queueWithMeasures(dir, { good: { budget: 60, command: './good.sh' },
+                           slow: { budget: 1, command: './slow.sh' } })
+  out = loopRaw(dir, [ 'measure', '--area', 'all', '--tip', 'main' ])
+
+  equal(out.status, 1)
+  equal(out.out.includes('some areas failed'), true)
+  history = Fs.readFileSync(Path.join(dir, 'doc', 'loop', 'history.jsonl'), 'utf8').trim()
+  equal(history.split('\n').length, 1)
+  equal(JSON.parse(history).area, 'good')
+}
+
+test('measure', 'every area runs, and one failing does not hide another', withRepo(allAreas))
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

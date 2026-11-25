@@ -176,8 +176,8 @@ function help
   console.log('              (--items p1,p2, --no-suite, --allow-no-proof, --force)')
   console.log('  land <n>    fast-forward main to loop/r<n>, only once its tip carries')
   console.log('              the round record (`Loop-verify:`); never a force')
-  console.log('  measure     --area man (default) at --tip: the corpus and every section,')
-  console.log('              in a worktree of that tip, appended to history.jsonl')
+  console.log('  measure     --area man (default) or --area all, at --tip: each area in a')
+  console.log('              worktree of that tip within its budget, appended to history')
   console.log('  mark p1=abc,d2=def  set queue rows done, for the record commit')
   console.log('  report [--write]    the queue tables from queue.json (--write regen-)')
   console.log('                      erates the block in doc/Loop-queue.md')
@@ -766,11 +766,49 @@ function measures
 // One interface, one implementation per kind: `man` is built in because its
 // tools are two programs and a section list; anything else names a command that
 // prints a JSON record. No per-area script under bin/.
+// `--area all` is the cadence: every area in the queue, each in its own tip
+// worktree, each within its own budget. One area failing does not stop the
+// others — a stale area is visible, a silently skipped one is not.
 function measureCmd
 () {
-  let res, file, sections, tip, dir, area, block
+  let area, tip
 
   area = option('--area') || 'man'
+  tip = option('--tip') || git(root, 'rev-parse', 'main')
+
+  if (area == 'all')
+    return measureAll(tip)
+
+  return measureArea(area, tip)
+}
+
+function measureAll
+(tip) {
+  let areas, failed, i
+
+  areas = Object.keys(measures())
+  failed = 0
+  i = 0
+
+  while (i < areas.length) {
+    let fine
+
+    console.log('== ' + areas[ i ] + ' at ' + tip.slice(0, 8))
+    fine = measureArea(areas[ i ], tip, 1)
+    if (fine)
+      failed = 1
+    i += 1
+  }
+
+  console.log('')
+  console.log((failed ? 'some areas failed' : 'all areas measured') + ' at ' + tip.slice(0, 8))
+  return failed
+}
+
+function measureArea
+(area, tip, quiet) {
+  let res, file, sections, dir, block
+
   block = measures()[ area ]
 
   if (block == undefined) {
@@ -779,7 +817,6 @@ function measureCmd
   }
 
   sections = option('--sections')
-  tip = option('--tip') || git(root, 'rev-parse', 'main')
   dir = Path.join(loopDir, 'measure-' + area + '-' + tip.slice(0, 8))
 
   // The tools are part of what a round changes, so they have to come from the
@@ -818,7 +855,7 @@ function measureCmd
   Measure.append(file, res)
   if (block.kind == 'man')
     console.log(Measure.format(res))
-  else
+  else if (quiet == 0)
     console.log(JSON.stringify(res))
   console.log('')
   console.log('written  ' + file + '  area ' + area + ' at ' + res.tip.slice(0, 8))

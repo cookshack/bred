@@ -597,7 +597,11 @@ fixed xargs; and `man-diff` now joins a non-spaced `\(em` line break, which
 fixed gittutorial-2 and took two words off ttf2pk. Totals are 23 words on 11
 pages (section 1: 11, section 7: 5, section 8: 7).
 
-Tests: 608 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 40 kept a `\c` inside a macro argument joining its line (ttf2pk clean),
+and `man-diff` joins a source-marked `|`/`]` break (dmsetup 5 → 1). Totals are
+17 words on 10 pages.
+
+Tests: 611 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

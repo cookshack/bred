@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: live, round 39, 2026-11-25 (deadline 2026-11-25T19:00Z). Twenty-two
+Status: live, round 40, 2026-11-25 (deadline 2026-11-25T19:00Z). Twenty-three
 rounds have used the tool's gate: red at base, green after the rebase, one
 suite at the integrated tip, the record on `loop/r<n>`, one fast-forward. Main
-is the round-39 record commit, green (2005 tests, check clean). The next items
+is the round-40 record commit, green (2011 tests, check clean). The next items
 are in `doc/loop/queue.json` (the view in `doc/Loop-queue.md` is generated);
 the upgrade designs are `doc/Loop-upgrade.md` (the loop's) and
 `doc/loop/plan-2026-11-24.md` (a fresh agent's). This file is the protocol;
@@ -204,15 +204,16 @@ move to a different lane than its prefix suggests if its files are free.
 | 37 | continued lines | `7183a0e` | a `\c` glues to a macro body's first printing line (ttf2tfm 10 → 2); section 1 25 → 16 words |
 | 38 | copy mode | `d21a9d5` | an argument is copied then interpreted (ttf2tfm 2 → 0); section 1 16 → 14 words |
 | 39 | copy rounds | `6b36716` | each tmac request gets its measured copy rounds (xargs fixed); `man-diff` joins a glued em dash (gittutorial 0, ttf2pk 4 → 2); totals 23 words on 11 pages |
+| 40 | arguments | `3bf287c` | a `\c` inside a macro argument continues its line (ttf2pk 0); `man-diff` joins a marked pipe/bracket break (dmsetup 5 → 1); totals 17 words on 10 pages |
 
 ## Current state
 
-Measured at `6b367161` (round 39's tip), corpus `4150` pages:
+Measured at `3bf287c4` (round 40's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 39: 1:8p/11w  3:0p/0w  5:0p/0w  7:1p/5w  8:2p/7w
-    608 man tests, 2005 total, 2 pending, 0 failing; check clean
+    whole sections after round 40: 1:7p/9w  3:0p/0w  5:0p/0w  7:1p/5w  8:2p/3w
+    611 man tests, 2011 total, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

@@ -1029,6 +1029,16 @@ function copyMode
         i += 2
         continue
       }
+      if (next == 't') {
+        // Copy mode reads `\t` as a tab node, and a tab node is a tab stop,
+        // while the same escape interpreted directly draws nothing (p145).
+        // troff(1)'s `.BR color "\t524288"` and unzip(1)'s version list both
+        // depend on the tab. A doubled `\\t` survives one round as `\t` and is
+        // still zero width when the body expands it.
+        out += '\t'
+        i += 2
+        continue
+      }
       if (next == '.') {
         out += '.'
         i += 2

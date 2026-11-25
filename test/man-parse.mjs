@@ -3109,6 +3109,29 @@ test('escapes', 'a literal tab is not the zero-width \\t escape',
        equal(asText('.TH T 1\nc\\td\n'), 'cd\n')
      })
 
+test('escapes', 'copy mode reads \\t as a tab stop, unlike fill',
+     () => {
+       // `\t` is zero width where troff interprets it, but copy mode turns it
+       // into a tab node, so a macro argument and a definition body keep a tab
+       // stop. groff -Tutf8 -man, each pair proved on its own:
+       //   textfill: a\tb end.         -> textfill: ab end.   (zero width)
+       //   .de M / bodyfill: a\tb end. -> bodyfill: a<TAB>b end.
+       //   .BR color "\t524288"        -> color<TAB>524288
+       // troff(1) writes its warning table exactly that way and unzip(1) lists
+       // versions the same way, so the corpus sees both halves.
+       equal(asText('.TH T 1\ntextfill: a\\tb end.\n'), 'textfill: ab end.\n')
+       equal(asText('.TH T 1\n.de M\nbodyfill: a\\tb end.\n..\n.M\n'),
+             'bodyfill: a\tb end.\n')
+       equal(asText('.TH T 1\n.BR color "\\t524288"\n'), 'color\t524288\n')
+       // A doubled backslash is a real escape after one copy round and stays
+       // zero width: groff prints `bodyfill: ab end.` for `a\\tb`.
+       equal(asText('.TH T 1\n.de M\nbodyfill: a\\\\tb end.\n..\n.M\n'),
+             'bodyfill: ab end.\n')
+       // The literal tab b6 pinned is a tab stop of its own and keeps it: a
+       // no-fill `a<TAB>b` is one tab, not the escape's empty string.
+       equal(asText('.TH T 1\n.nf\na\tb\n.fi\n'), 'a\tb\n')
+     })
+
 test('conditions', 'arithmetic in conditions supports every operator',
      () => {
        equal(asText('.TH T 1\n.if 1+2*3==7 a\n.if 7-1==6 b\n.if 8/2==4 c\n.if 5%2==1 d\n' +

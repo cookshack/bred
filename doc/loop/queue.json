@@ -10,6 +10,23 @@
   },
   "items": [
     {
+      "id": "l4",
+      "area": "tooling",
+      "lane": "a3",
+      "type": "infra",
+      "status": "in-round",
+      "source": "lane",
+      "title": "batch: the pane that shows a view, and a dead lease reaped (p144, l3)",
+      "files": [
+        "js/Pane.mjs",
+        "bin/loop-claims.mjs",
+        "test/pane-holding.mjs",
+        "test/loop.mjs"
+      ],
+      "proof": "npx mocha --exit test/pane-holding.mjs test/loop.mjs",
+      "notes": "Round 70: the a3 lane carried p144 (f6c03aec) then l3 (c126a3b1) in sequence, so the round takes them as one row owning the union. p144: Pane.holdingView went through Frame.find(...)?.pane and a frame's .pane accessor is Pane.current(f), so with two panes in one frame it answered with the focused pane whatever view was passed; it now returns the pane the inner find matched, and all four callers (ext/core/lint.mjs, ext/code/code.mjs, ext/assist/assist.mjs, js/wode-view.mjs) wanted the owning pane already. l3: Claims.live returned on record.expires before reading the pid, so a lane that died holding a two-hour lease kept its item blocked (round 66's c9 lane released by hand); on this host the pid is now the authority, a live pid still keeps the lease only to its expiry, and another host's lease stays bounded by expires with maxAgeMs as the fallback. Red: holdingView \"the pane holding the view\" (false !== true) and claim \"a dead pid is not live\" (1 !== 0)."
+    },
+    {
       "id": "c17",
       "area": "core",
       "lane": "a3",

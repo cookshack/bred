@@ -34,6 +34,7 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| l4 | tooling | a3 | in-round | batch: the pane that shows a view, and a dead lease reaped (p144, l3) | js/Pane.mjs, bin/loop-claims.mjs, test/pane-holding.mjs, test/loop.mjs |
 | p144 | core | a3 | in-round | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
 | l3 | tooling | a3 | in-round | Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand | bin/loop-claims.mjs, test/loop.mjs |
 

@@ -34,7 +34,21 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| p53 | man | a1 | ready | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) | js/man-parse.mjs, test/man-parse.mjs |
+| p55 | man | a1 | ready | a `\c` followed by a blank line: groff joins to the next text line, we make a paragraph break | js/man-parse.mjs, test/man-parse.mjs |
+| p73 | man | a1 | ready | toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing | js/man-parse.mjs, test/man-parse.mjs |
+| p75 | man | a1 | ready | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
+| p76 | man | a1 | ready | in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them | js/man-parse.mjs, test/man-parse.mjs |
+| p77 | man | a1 | ready | the parser maps the \t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it | js/man-parse.mjs, test/man-parse.mjs |
+| p79 | man | a1 | ready | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
+| p83 | man | a1 | ready | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
+| p101 | man | a1 | ready | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
+| p102 | man | a1 | ready | an unknown escape (`\Q`) is printed by groff as its letter and refused here | js/man-parse.mjs, test/man-parse.mjs |
+| p118 | man | a1 | ready | a \c inside an interpolated macro argument must cut the rest of the outer body line; groff does, we keep emitting (pre `a tailnext) | js/man-parse.mjs, test/man-parse.mjs |
+| c6 | code | a2 | ready | a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs) | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
+| p119 | man | a1 | ready | a bar is a roman word inside a macro argument list; the words after it keep the macro font and role | js/man-parse.mjs, test/man-parse.mjs |
 | c11 | code | a3 | ready | session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
+| p126 | man | a1 | ready | a no-output request that defines or removes still swallows a pending \c join (p54 covered only .ft) | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Backlog
 
@@ -42,34 +56,21 @@ before.
 |----|------|------|--------|-------|-------|
 | p50 | core | a2 | next | the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
 | p65 | man | a3 | next | no fake emits a typed-array chunk split mid-UTF-8, so `js/shell.mjs`'s streaming decoder is proven only by real-pty timing; add the fake and the test | js/shell.mjs, test/man-viewer.mjs, test/main-shell.mjs |
-| p53 | man | a1 | next | an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence) | js/man-parse.mjs |
 | p34 | man | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
-| p73 | man | a1 | next | toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing | js/man-parse.mjs, test/man-parse.mjs |
-| p75 | man | a1 | next | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
-| p76 | man | a1 | next | in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them | js/man-parse.mjs, test/man-parse.mjs |
-| p77 | man | a1 | next | the parser maps the \t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it | js/man-parse.mjs, test/man-parse.mjs |
-| p79 | man | a1 | next | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
-| p83 | man | a1 | next | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
-| p90 | man | a1 | next | groff -Tutf8 -man renders \- as U+2212 MINUS SIGN while -mdoc prints ASCII; bred prints ASCII. p30's note was mdoc-only; needs evidence and a decision | js/man-char.mjs, test/man-parse.mjs |
-| p101 | man | a1 | next | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
-| p102 | man | a1 | next | an unknown escape is printed by groff (\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts | js/man-parse.mjs, test/man-parse.mjs |
-| p111 | man | a1 | next | xargs(1) loses 1 word: --show-limits (a hyphen join) | js/man-parse.mjs, test/man-parse.mjs |
-| p117 | man | a1 | next | a zero-width escape (\b) is refused here and printed by groff (drops the backslash, prints the char); no corpus occurrence, latent | js/man-parse.mjs, test/man-parse.mjs |
-| p118 | man | a1 | next | a \c inside an interpolated macro argument must cut the rest of the outer body line; groff does, we keep emitting (pre `a tailnext) | js/man-parse.mjs, test/man-parse.mjs |
-| c2 | code | a2 | next | session.step.streamed is dropped (seen live); decide whether it must translate | ext/code/event.mjs, test/code-events.mjs |
-| c4 | code | a2 | next | provider.updated / model.updated are dropped (session-less); decide whether the UI needs them | ext/code/event.mjs, test/code-events.mjs |
-| c6 | code | a1 | next | a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs) | ext/code/code.mjs, ext/code/ui.mjs, test/code-* |
-| p119 | man | a1 | next | a bar ends the argument list of other multi-argument macros (Ar, Cm, Ic, Pa, …), so words after it lose the macro font; style only, each needs its own evidence | js/man-parse.mjs, test/man-parse.mjs |
-| c9 | code | a2 | next | handlePartDelta also decides from one view: a thinking delta goes only to boxes that already hold the block, so a box that lacks it never gets it | ext/code/code.mjs, test/code-prompt-e2e.mjs |
+| p127 | man | a1 | next | mdoc body text after .Sh is bold here and roman in groff (mdocHeading leaves c.font bold) | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Triage
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
-| p55 | man | a1 | triage | a `\c` followed by a blank line: groff joins to the next text line, we make a paragraph break | js/man-parse.mjs |
 | p59 | man | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
 | p89 | man | a1 | triage | \[char0] is accepted by groff (a NUL byte) but refused here | js/man-char.mjs, test/man-parse.mjs |
+| p90 | man | a1 | triage | groff -Tutf8 -man renders \- as U+2212 MINUS SIGN while -mdoc prints ASCII; bred prints ASCII. p30's note was mdoc-only; needs evidence and a decision | js/man-char.mjs, test/man-parse.mjs |
 | p109 | man | a1 | triage | thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch) | js/man-char.mjs, test/man-parse.mjs |
+| p117 | man | a1 | triage | a zero-width escape (\b) is refused here and printed by groff (drops the backslash, prints the char); no corpus occurrence, latent | js/man-parse.mjs, test/man-parse.mjs |
+| c2 | code | a2 | triage | session.step.streamed is dropped (seen live); decide whether it must translate | ext/code/event.mjs, test/code-events.mjs |
+| c4 | code | a2 | triage | provider.updated / model.updated are dropped (session-less); decide whether the UI needs them | ext/code/event.mjs, test/code-events.mjs |
+| c9 | code | a2 | triage | handlePartDelta also decides from one view: a thinking delta goes only to boxes that already hold the block, so a box that lacks it never gets it | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | p124 | man | a1 | triage | copy mode still reduces \. to "."; a body line starting with \. becomes an unknown request and refuses the page where groff prints nothing | js/man-parse.mjs, test/man-parse.mjs |
 | c12 | code | a2 | triage | session.tool.input.delta is dropped; the tool preview only appears when the whole input has arrived | ext/code/event.mjs, test/code-events.mjs |
 
@@ -153,6 +154,7 @@ before.
 | p107 | man | a1 | done:9612e96 | ssh-copy-id(1) loses 1 word: [user@]hostname in the synopsis | js/man-parse.mjs, test/man-parse.mjs |
 | p108 | man | a1 | done:c1f2f38a | tex2aspc(1) loses 1 word: TransformNotes | js/man-parse.mjs, test/man-parse.mjs |
 | p110 | man | a1 | done:fc63c08c | tload(1) loses 1 word: and (a line join) | js/man-parse.mjs, test/man-parse.mjs |
+| p111 | man | a1 | done:7032014a | xargs(1) loses 1 word: --show-limits (a hyphen join) | js/man-parse.mjs, test/man-parse.mjs |
 | p112 | man | a1 | done:3d13d152 | editline(7) loses 5 words: a lone - in the text | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p113 | man | a3 | done:6b36716 | gittutorial-2(7) loses 2 words: ways— and by (an em-dash join in man-diff) | bin/man-diff, test/man-diff.mjs |
 | p114 | man | a3 | done:3bf287c | dmsetup(8) loses 5 words: long [a\|b] alternatives wrapped by man(1); decide a diff join or parser rule | bin/man-diff, test/man-diff.mjs |

@@ -147,6 +147,44 @@ function agentColourSelector
   return rule ? rule.slice(0, rule.indexOf('{')).trim() : 0
 }
 
+// One view's transcript, so the create-vs-append decision can be checked
+// against two views that disagree about what they already hold.
+function fakeOut
+(dom, blockText) {
+  let box, w, wrapper
+
+  wrapper = dom.createElement('div')
+  w = dom.createElement('div')
+  w.className = 'code-w'
+  box = dom.createElement('div')
+  box.className = 'code-out code-out-main'
+  w.appendChild(box)
+  wrapper.appendChild(w)
+  if (blockText) {
+    let el, textEl
+
+    el = dom.createElement('div')
+    el.className = 'code-msg code-msg-thinking'
+    el.setAttribute('data-partid', 'p1')
+    textEl = dom.createElement('div')
+    textEl.className = 'code-msg-text'
+    textEl.textContent = blockText
+    el.appendChild(textEl)
+    box.appendChild(el)
+  }
+  return { w, box, view: { eleOrReserved: wrapper } }
+}
+
+function fakeThinkBuf
+(views) {
+  let state
+
+  state = { code: { curMessageID: 'm1' } }
+  return { views: views.map(v => v.view),
+           anyView: () => views[0].view,
+           vars: () => state }
+}
+
 tests = {}
 inited = 0
 
@@ -607,6 +645,46 @@ test('reasoning', 'an ended update replaces a truncated thinking block',
        finally {
          panes.pB.setBuf = orig
        }
+     })
+
+test('thinking', 'a delta does not duplicate a block in the tab that has one',
+     () => {
+       let buf, dom, one, two
+
+       setupPanes()
+       dom = globalThis.document
+       one = fakeOut(dom, 0)
+       two = fakeOut(dom, 'abc')
+       buf = fakeThinkBuf([ one, two ])
+       // The first view lacks the block; the second has it. Today the decision
+       // is made from the first view and applied to both, so the second gets a
+       // second block with the same part id.
+       Ui.appendThinking(buf, 'delta', 'p1', 0, 0)
+       Ui.flushThink(buf)
+       equal(two.box.querySelectorAll('.code-msg-thinking[data-partid="p1"]').length, 1)
+       equal(two.box.querySelector('.code-msg-thinking[data-partid="p1"] .code-msg-text').textContent,
+             'abcdelta')
+     })
+
+test('thinking', 'a delta creates the block in the tab that lacks one',
+     () => {
+       let buf, dom, one, two
+
+       setupPanes()
+       dom = globalThis.document
+       one = fakeOut(dom, 'x')
+       two = fakeOut(dom, 0)
+       buf = fakeThinkBuf([ one, two ])
+       // The first view has the block, so today the delta is only buffered and
+       // flushed into boxes that already have the element: the second view
+       // never gets the block at all.
+       Ui.appendThinking(buf, 'delta', 'p1', 0, 0)
+       Ui.flushThink(buf)
+       equal(two.box.querySelectorAll('.code-msg-thinking[data-partid="p1"]').length, 1)
+       equal(two.box.querySelector('.code-msg-thinking[data-partid="p1"] .code-msg-text').textContent,
+             'delta')
+       equal(one.box.querySelector('.code-msg-thinking[data-partid="p1"] .code-msg-text').textContent,
+             'xdelta')
      })
 
 test('order', 'stop marker comes before the model footer',

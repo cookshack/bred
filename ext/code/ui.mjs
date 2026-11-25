@@ -766,22 +766,35 @@ function subagentLabel
 export
 function appendThinking
 (buf, text, partId, at, sessionID) {
-  let out
+  let have, total
 
-  out = Util.outBox(buf, buf.anyView(1), sessionID)
-  if (out?.box.querySelector('.code-msg-thinking[data-partid="' + partId + '"]')) {
+  have = 0
+  total = 0
+  Util.eachOut(buf, sessionID, (view, w, box) => {
+                                 total += 1
+                                 if (box.querySelector('.code-msg-thinking[data-partid="' + partId + '"]'))
+                                   have += 1
+                               })
+  if (total == 0)
+    return
+  if (have == total) {
     chunkThink(buf, partId, text)
     return
   }
-
+  // A box without the block gets one; the boxes that had it take the text as
+  // a delta. One view's state must not decide what another view draws.
   Util.eachOut(buf, sessionID, (view, w, box) => {
+                                 if (box.querySelector('.code-msg-thinking[data-partid="' + partId + '"]'))
+                                   return
                                  appendOut({ w, box },
                                            divCl('code-msg code-msg-thinking',
-                                                 [ divCl('code-msg-text', text),
+                                                 [ divCl('code-msg-text', have == 0 ? text : ''),
                                                    msgFoot(at) ],
                                                  { 'data-partid': partId || 0,
                                                    'data-messageid': buf.vars('code').curMessageID || '' }))
                                })
+  if (have > 0)
+    chunkThink(buf, partId, text)
 }
 
 // The ended reasoning part carries the whole thinking text, so it replaces

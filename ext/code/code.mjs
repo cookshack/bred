@@ -1176,7 +1176,7 @@ function partCache
 
 function handlePartDelta
 (buf, event) {
-  let delta, field, partID, sessionID
+  let chunked, delta, field, opened, partID, sessionID
 
   delta = event.properties.delta
   field = event.properties.field
@@ -1195,40 +1195,64 @@ function handlePartDelta
   if (field == 'text' && (partID || 0) == 0)
     return
 
+  // A box that holds this part's thinking block makes the delta thinking text.
+  // Ask every box, not the one view anyView happens to return: appendThinking
+  // draws the block where it is missing and chunks the delta into the boxes
+  // that have it, so one view must not decide for another.
   if (field == 'text' && delta) {
-    let out, view
+    let think
 
-    view = buf.anyView(1)
-    out = Util.outBox(buf, view, sessionID)
-    if (out && PartCache.find(partCache(view), out.box, partID, 'code-msg-thinking', 'think')) {
-      Ui.chunkThink(buf, partID, delta)
+    think = 0
+    Util.eachOut(buf, sessionID, (view, w, box) => {
+                                   if (PartCache.find(partCache(view), box, partID, 'code-msg-thinking', 'think'))
+                                     think = 1
+                                 })
+    if (think) {
+      Ui.appendThinking(buf, delta, partID, 0, sessionID)
       return
     }
   }
 
+  // chunkText and appendMsg draw in every view at once, so each is called at
+  // most once however many boxes this delta reaches; calling either per box
+  // appends the same delta once per view.
+  chunked = 0
+  opened = 0
   Util.eachOut(buf, sessionID, (view, w, box) => {
-                                 let cache, msgEl, textEl, thinkEl
+                                 let cache, mdEl, msgEl, textEl
 
                                  cache = partCache(view)
                                  msgEl = PartCache.find(cache, box, partID, 'code-msg-assistant', 'msg')
-                                 if (msgEl) {
-                                   textEl = msgEl.querySelector('.code-msg-text')
-                                   if (textEl && field == 'text')
-                                     Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
-                                   else if (field == 'text' && msgEl.querySelector('.code-markdown-ed'))
+                                 textEl = msgEl?.querySelector('.code-msg-text')
+                                 mdEl = msgEl?.querySelector('.code-markdown-ed')
+                                 if (textEl && field == 'text')
+                                   Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
+                                 else if (mdEl && field == 'text' && view.vars('code').partEds?.[partID]) {
+                                   if (chunked == 0) {
+                                     chunked = 1
                                      Ui.chunkText(buf, partID, delta)
+                                   }
                                  }
-                                 else if (field == 'text')
-                                   // The element the part's started event would
-                                   // have drawn is gone (a re-render), so the
-                                   // delta opens the assistant text box itself;
-                                   // the ended part then finishes that message.
+                                 else if (mdEl && field == 'text') {
+                                   let contentEl
+
+                                   // A box whose content was copied (a split, or a view
+                                   // from another window) has the element but no editor
+                                   // in its own vars, so the delta goes into the rendered
+                                   // node and the ended part builds that view's editor.
+                                   contentEl = msgEl.querySelector('.cm-content')
+                                   if (contentEl)
+                                     Ui.withScroll(w, () => contentEl.innerText = (contentEl.innerText || '') + delta)
+                                 }
+                                 else if (field == 'text' && msgEl == null && opened == 0) {
+                                   // The element the part's started event would have
+                                   // drawn is gone (a re-render), so the delta opens
+                                   // the assistant text box itself; the ended part then
+                                   // finishes that message. It draws in every box and
+                                   // seeds the part's text, so no chunk follows.
+                                   opened = 1
+                                   chunked = 1
                                    Ui.appendMsg(buf, 0, delta, partID, 0, { sessionID })
-                                 thinkEl = PartCache.find(cache, box, partID, 'code-msg-thinking', 'think')
-                                 if (thinkEl && field == 'text') {
-                                   textEl = thinkEl.querySelector('.code-msg-text')
-                                   if (textEl)
-                                     Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
                                  }
                                })
 }

@@ -185,6 +185,39 @@ function fakeThinkBuf
            vars: () => state }
 }
 
+// A thinking block for `partID` in one live view's transcript, with no
+// assistant element to go with it: the shape a re-render leaves.
+function plantThinking
+(view, partID, text) {
+  let doc, el, textEl
+
+  doc = globalThis.document
+  el = doc.createElement('div')
+  el.className = 'code-msg code-msg-thinking'
+  el.setAttribute('data-partid', partID)
+  textEl = doc.createElement('div')
+  textEl.className = 'code-msg-text'
+  textEl.textContent = text
+  el.appendChild(textEl)
+  view.ele.querySelector('.code-out-main').appendChild(el)
+}
+
+// Put the buf in the other pane from a different window: a view there starts
+// empty, because content is only copied within one window.
+async function openElsewhere
+(panes, buf) {
+  let win
+
+  win = globalThis.bredWin
+  globalThis.bredWin = { other: 1 }
+  try {
+    await setBuf(panes.pA, buf)
+  }
+  finally {
+    globalThis.bredWin = win
+  }
+}
+
 tests = {}
 inited = 0
 
@@ -965,6 +998,116 @@ test('thinking', 'a delta creates the block in the tab that lacks one',
              'delta')
        equal(one.box.querySelector('.code-msg-thinking[data-partid="p1"] .code-msg-text').textContent,
              'xdelta')
+     })
+
+// A second view of the same buf starts empty when it is opened in another
+// window: content is only copied within one window. The delta has to reach
+// that box, but handlePartDelta asked the one view anyView returned and
+// returned before the per-box draw, so the box without the block never got it.
+test('thinking box', 'a box that lacks the block gets it from the next delta',
+     async () => {
+       let fake, panes, turn
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-thinkbox', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+       turn = startTurn(panes, fake, 0)
+       try {
+         let buf, v0, v1
+
+         await waitFor(() => turn.buf()?.views[0]?.ele)
+         buf = turn.buf()
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-thinkbox' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-thinkbox', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.text.started', { sessionID: 'ses-thinkbox', assistantMessageID: 'm1', ordinal: 0 }))
+         await waitFor(() => buf.views[0].ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"]'))
+
+         // a thinking block for the part in this view only
+         v0 = buf.views[0]
+         plantThinking(v0, 'm1:text:0', 'first')
+         v0.ele.querySelectorAll('.code-msg-assistant').forEach(el => el.remove())
+
+         // the second window's view holds none of the transcript
+         await openElsewhere(panes, buf)
+         v1 = buf.views[1]
+         equal(buf.views.length, 2, 'the buf has two views')
+         equal(v1.ele.querySelector('.code-msg-thinking[data-partid="m1:text:0"]') == null,
+               true,
+               'the second view starts without the block')
+
+         fake.push(Fake.event('session.text.delta', { sessionID: 'ses-thinkbox', assistantMessageID: 'm1', ordinal: 0, delta: 'second' }))
+         // the box that has the block takes the delta in both worlds, so it is
+         // the state to wait on; the other box is what the assertions judge
+         await waitFor(() => v0.ele.querySelector('.code-msg-thinking[data-partid="m1:text:0"] .code-msg-text')?.textContent == 'firstsecond', 2000)
+
+         equal(v0.ele.querySelector('.code-msg-thinking[data-partid="m1:text:0"] .code-msg-text').textContent,
+               'firstsecond',
+               'the view that held the block takes the delta')
+         equal(v1.ele.querySelectorAll('.code-msg-thinking[data-partid="m1:text:0"]').length,
+               1,
+               'the next delta creates the block in the view that lacks it')
+         equal(v1.ele.querySelector('.code-msg-thinking[data-partid="m1:text:0"] .code-msg-text')?.textContent,
+               'second',
+               'the box that lacked the block carries the delta')
+       }
+       finally {
+         panes.pB.setBuf = turn.orig
+       }
+     })
+
+// A split copies the transcript into the new view, but its editors belong to
+// the view that owns them. chunkText fans out to every view on the buffer, so
+// calling it once per box appended the delta once per view; the copied box had
+// no editor of its own, so it stayed empty.
+test('thinking box', 'a split view gets each delta once',
+     async () => {
+       let fake, panes, turn
+
+       ({ panes } = await setupStart())
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-splitbox', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+       turn = startTurn(panes, fake, 0)
+       try {
+         let buf, v0, v1
+
+         await waitFor(() => turn.buf()?.views[0]?.ele)
+         buf = turn.buf()
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-splitbox' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-splitbox', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.text.started', { sessionID: 'ses-splitbox', assistantMessageID: 'm1', ordinal: 0 }))
+         await waitFor(() => buf.views[0].ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"]'))
+
+         Pane.split()
+         await waitFor(() => buf.views.length == 2 && buf.views[1].ele)
+         await wait(100)
+         v0 = buf.views[0]
+         v1 = buf.views[1]
+         equal(Boolean(v0.vars('code').partEds?.['m1:text:0']), true, 'the first view owns the editor')
+         equal(Boolean(v1.vars('code').partEds?.['m1:text:0']), false, 'the copied view has no editor of its own')
+
+         fake.push(Fake.event('session.text.delta', { sessionID: 'ses-splitbox', assistantMessageID: 'm1', ordinal: 0, delta: 'ab' }))
+         // the view that owns the editor takes the delta in both worlds; the
+         // copied box is what the assertions judge
+         await waitFor(() => v0.ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"] .cm-content')?.textContent, 2000)
+         Ui.flushText(buf)
+         await wait(50)
+
+         equal(v0.ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"] .cm-content').textContent,
+               'ab',
+               'the view with the editor takes the delta once')
+         equal(v1.ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"] .cm-content').textContent,
+               'ab',
+               'the copied view shows the same text')
+       }
+       finally {
+         panes.pB.setBuf = turn.orig
+       }
      })
 
 test('order', 'stop marker comes before the model footer',

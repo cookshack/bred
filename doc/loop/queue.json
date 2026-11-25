@@ -2052,7 +2052,7 @@
     {
       "id": "p144",
       "area": "core",
-      "status": "ready",
+      "status": "in-round",
       "type": "fix",
       "title": "Pane.holdingView returns the frame's current pane instead of the pane that shows the view",
       "lane": "a3",
@@ -2177,7 +2177,7 @@
     {
       "id": "l3",
       "area": "tooling",
-      "status": "ready",
+      "status": "in-round",
       "type": "infra",
       "title": "Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand",
       "lane": "a3",

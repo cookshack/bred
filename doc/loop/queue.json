@@ -687,18 +687,19 @@
     {
       "id": "p87",
       "lane": "a1",
-      "status": "ready",
-      "title": "\\[u0041]/\\[u0065] (ASCII code points) are refused by groff but resolve here; unicodeCode should not accept U+0000-U+007F",
+      "status": "done",
+      "title": "an ASCII u name is refused only when groff has a plain glyph for it; u0040/u007E and controls still resolve (done: the blanket <0x80 wording was too broad)",
       "files": [
         "js/man-char.mjs",
         "test/man-parse.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "doneHash": "01f65ce"
     },
     {
       "id": "p88",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "\\N'0x41'/\\N'1e2'/\\N'0' are read with Number(), so hex and exponent forms become characters; groff reads digits only",
       "files": [
         "js/man-char.mjs",

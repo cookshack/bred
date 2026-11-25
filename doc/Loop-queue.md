@@ -34,7 +34,7 @@ before.
 
 | id | lane | status | title | files |
 |----|------|--------|-------|-------|
-| p87 | a1 | ready | \[u0041]/\[u0065] (ASCII code points) are refused by groff but resolve here; unicodeCode should not accept U+0000-U+007F | js/man-char.mjs, test/man-parse.mjs |
+| p88 | a1 | ready | \N'0x41'/\N'1e2'/\N'0' are read with Number(), so hex and exponent forms become characters; groff reads digits only | js/man-char.mjs, test/man-parse.mjs |
 
 ## Backlog
 
@@ -55,7 +55,6 @@ before.
 | p77 | a1 | next | the parser maps the \t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it | js/man-parse.mjs, test/man-parse.mjs |
 | p79 | a1 | next | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
 | p83 | a1 | next | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
-| p88 | a1 | next | \N'0x41'/\N'1e2'/\N'0' are read with Number(), so hex and exponent forms become characters; groff reads digits only | js/man-char.mjs, test/man-parse.mjs |
 | p89 | a1 | next | \[char0] is accepted by groff (a NUL byte) but refused here | js/man-char.mjs, test/man-parse.mjs |
 | p90 | a1 | next | groff -Tutf8 -man renders \- as U+2212 MINUS SIGN while -mdoc prints ASCII; bred prints ASCII. p30's note was mdoc-only; needs evidence and a decision | js/man-char.mjs, test/man-parse.mjs |
 
@@ -122,5 +121,6 @@ before.
 | p84 | a1 | done:5ea6105 | *G is missing from the char table; groff prints Γ (U+0393), so a page using \[*G] is refused today | js/man-char.mjs, test/man-parse.mjs |
 | p85 | a1 | done:29665b6 | *f maps to φ (U+03C6); groff prints ϕ (U+03D5); *J/*j/*V/*v are absent from groff too, not gaps | js/man-char.mjs, test/man-parse.mjs |
 | p86 | a1 | done:6943a15 | .. maps to ‥ (U+2025) but groff refuses it; \[char0x41] is accepted but groff takes decimal charNNN only; missing arrows/lines va/vA/an | js/man-char.mjs, test/man-parse.mjs |
+| p87 | a1 | done:01f65ce | an ASCII u name is refused only when groff has a plain glyph for it; u0040/u007E and controls still resolve (done: the blanket <0x80 wording was too broad) | js/man-char.mjs, test/man-parse.mjs |
 
 <!-- /loop:queue -->

@@ -54,6 +54,9 @@ Tracked (the record, survives anything):
 - `doc/Loop.md` — this file: protocol, prompt, round history, current numbers.
 - `doc/Loop-queue.md` — the queue: every item, its files, its status and its
   `done:<hash>`. Losing the session costs the briefs, not the queue.
+- `doc/loop/queue.json` `run` — the run's clock: `start`, `deadline`,
+  `stopNew`, `state`, and the round/main after each land. It is the one
+  source; nothing else is a clock.
 - `doc/loop/round-<n>.md` — one short record per round: lanes, tips, parked
   branches, the measurement and what it was measured on.
 - the commits themselves; every merged round is a fast-forward on `main`.
@@ -64,8 +67,10 @@ so it is visible on the host and outlives the container. Two places that do
 wiped mid-run once), and `~` is container-local too — only `src/bred`,
 `worktrees/<session>`, `sessions` and `fresh/main` are shared with the host.
 
-- `state` — start, deadline, round counter, the base and the `main` commit
-  after each round.
+- `state` — scratch only: `last-round.json` holds the round's start and its
+  measured duration, which is what the budget's ETA uses. The *clock* (start,
+  deadline, stopNew, state) is tracked in `queue.json` `run`, so a fresh
+  session inherits it and `bin/loop.mjs clock` can refuse a round.
 - `claims/<id>` — a directory per item an agent is working on, created with
   `mkdir` so two lanes cannot take the same item.
 - `rules.md` — the contract every lane agent reads.
@@ -115,6 +120,11 @@ columns in one queue, not separate loops.
 
 ## How a round works
 
+0. `bin/loop.mjs clock` first, every round. It prints the elapsed time, the
+   round budget and `can-start`. Start a round only when it says `can-start
+   1`; `round` refuses otherwise, and a run with no clock is a refusal too.
+   Finishing before `stopNew` with dispatchable work is a failed run, not a
+   short one.
 1. `bin/loop.mjs status` is the re-entry point: tip, last verified tip, lane
    tips, queue counts, claims, parked branches, dirty paths. `pick` returns
    the ready items whose files are disjoint and neither dirty nor hot.
@@ -333,6 +343,10 @@ man 2), section 7 is editline 5 + gittutorial-2 2, and section 8 is dmsetup 7
   a throwaway worktree at a pinned tip, never in the checkout the user is
   editing. If `main` moved during the run, the numbers stay attributed to the
   tip they were measured on.
+- **The clock is a command, not a feeling.** A run that set a stopNew and then
+  declared it reached four hours early lost three rounds of work. `clock` is
+  the only source, `round` enforces it, and the queue's `run` block carries it
+  so a fresh session inherits the deadline rather than inventing one.
 - **A number names its tip and its population.** A package update changes the
   corpus (4150 pages here) without touching the parser; a number without the
   commit and the page count cannot be compared with the last one.
@@ -343,6 +357,25 @@ man 2), section 7 is editline 5 + gittutorial-2 2, and section 8 is dmsetup 7
 
 ## Stopping
 
-The deadline is in `$LOOP/state`. When it passes, stop merging and write a
-summary from `doc/loop/round-*.md`: what changed, what was measured, what is
-left. Do not start a round that cannot be finished and verified.
+The clock is `bin/loop.mjs clock`; nothing else is a clock. Start a round only
+while it says `can-start 1`, and check it before every round. `round` refuses
+after `stopNew` and refuses a run with no clock, so the stop condition cannot
+be remembered wrong.
+
+Stopping early is a failure of the run unless one of these holds, and the
+reason is written in the record:
+
+- main is red and the fix is not in hand;
+- no lane is free (every worktree has unmerged or dirty work);
+- every open row is `triage` — a decision for the human, not a lane;
+- the human says stop.
+
+A thin queue is not a reason: grooming and a bounded hunt are the round's work.
+When `stopNew` passes, land or park what is in flight and write the summary
+from `doc/loop/round-*.md`: what changed, what was measured, what is left, and
+the clock line it stopped on. Do not start a round that cannot be finished and
+verified.
+
+A summary written before `stopNew` must quote `bin/loop.mjs clock` and name the
+exception above. The 2026-11-25 run set stopNew for 14:21Z and summarised at
+12:28Z with three of its four hours unspent; the record now says so.

@@ -5,10 +5,10 @@ It is deliberately short: the protocol, the rules and the round history are in
 `doc/Loop.md`, and the work is in `doc/Loop-queue.md`, so the prompt only has to
 say where to look and what to do.
 
-The one thing a file cannot carry is the deadline, because `$LOOP/state` is
-per-session and will not exist in a fresh one. State it in the message that
-hands this over ("deadline: eight hours from now", or a time), or the agent
-will choose its own.
+The deadline is tracked: `doc/loop/queue.json` `run` carries start, deadline
+and stopNew, so a fresh session inherits it. If `bin/loop.mjs clock` says the
+clock is missing, set it before doing anything else. A remembered duration is
+not a clock.
 
     Continue the Bred unattended loop.
 
@@ -33,6 +33,11 @@ will choose its own.
     outside commit (someone else moved main), a corpus or package change (the
     page count moved, not the parser), or a real regression. Only the last one
     blocks work; do not spend the round explaining the first three.
+
+    Before every round, run bin/loop.mjs clock. Start a round only while it
+    says can-start 1; round refuses when it does not, and a missing clock is a
+    refusal too. Finishing before stopNew with dispatchable work is a failed
+    run: groom or hunt, do not summarise.
 
     The tool is tracked: bin/loop.mjs status is the re-entry point (tip,
     last verified tip, lane tips, queue counts, claims, parked branches).
@@ -75,5 +80,9 @@ will choose its own.
     A red suite is not landed: fix the harness or park the lane, record the
     fact, and keep main green.
 
-    Stop starting a new round 45 minutes before the deadline, commit the docs
-    and summarise. A half-finished round is worse than a clean checkpoint.
+    Keep starting rounds until bin/loop.mjs clock says can-start 0 (stopNew
+    is 45 minutes before the deadline). Then land or park what is in flight,
+    commit the docs and write the summary with the clock line you stopped on.
+    Stopping earlier needs one of the named exceptions in doc/Loop.md
+    "Stopping". A half-finished round is worse than a clean checkpoint; a
+    summary written early is not a finished run.

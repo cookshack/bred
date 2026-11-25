@@ -67,7 +67,8 @@ function repo
   git(dir, [ 'config', 'user.name', 'loop test' ])
   git(dir, [ 'config', 'commit.gpgsign', 'false' ])
   Fs.mkdirSync(Path.join(dir, 'bin'))
-  names = [ 'loop.mjs', 'loop-queue.mjs', 'loop-claims.mjs', 'loop-merge.mjs', 'loop-measure.mjs' ]
+  names = [ 'loop.mjs', 'loop-clock.mjs', 'loop-queue.mjs', 'loop-claims.mjs', 'loop-merge.mjs',
+            'loop-measure.mjs' ]
   i = 0
 
   while (i < names.length) {
@@ -75,7 +76,16 @@ function repo
     i += 1
   }
 
+  Fs.mkdirSync(Path.join(dir, 'doc', 'loop'), { recursive: true })
+  Fs.writeFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'),
+                   JSON.stringify({ schema: 1,
+                                    run: { start: '2020-01-01T00:00:00Z',
+                                           deadline: '2099-01-01T00:00:00Z',
+                                           stopNew: '2099-01-01T00:00:00Z',
+                                           state: 'active' },
+                                    items: [] }, null, 2) + '\n')
   commit(dir, 'init', 'a.txt')
+  commit(dir, 'queue', 'doc/loop/queue.json')
 
   return dir
 }
@@ -327,7 +337,12 @@ function cliRound
 
   Fs.mkdirSync(Path.join(dir, 'doc', 'loop'), { recursive: true })
   Fs.writeFileSync(Path.join(dir, '.gitignore'), 'node_modules\next/*/lib\n')
-  q = { schema: 1, run: {}, items: [] }
+  q = { schema: 1,
+        run: { start: '2020-01-01T00:00:00Z',
+               deadline: '2099-01-01T00:00:00Z',
+               stopNew: '2099-01-01T00:00:00Z',
+               state: 'active' },
+        items: [] }
   q.items.push({ id: 'p1', lane: 'a1', status: 'ready', title: 'smoke', files: [ 'allowed.js', 'test/allowed.mjs' ], proof: 'test -f allowed.js' })
   Fs.writeFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), JSON.stringify(q))
   git(dir, [ 'add', '-A' ])
@@ -565,6 +580,60 @@ function allAreas
 }
 
 test('measure', 'every area runs, and one failing does not hide another', withRepo(allAreas))
+
+// The clock is not a reminder: a run that starts a round after stopNew is
+// lying about its deadline, and the 2026-11-25 run did exactly that.
+function writeRun
+(dir, run) {
+  let q
+
+  Fs.mkdirSync(Path.join(dir, 'doc', 'loop'), { recursive: true })
+  q = { schema: 1, run, items: [] }
+  Fs.writeFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), JSON.stringify(q, null, 2) + '\n')
+}
+
+function pastRun
+() {
+  return { start: '2020-01-01T00:00:00Z',
+           deadline: '2020-01-01T05:00:00Z',
+           stopNew: '2020-01-01T04:00:00Z',
+           state: 'active' }
+}
+
+function clockRefuses
+(dir) {
+  let res
+
+  writeRun(dir, pastRun())
+  res = loopRaw(dir, [ 'clock', '--can-start' ])
+  equal(res.status, 1)
+  equal(res.out.includes('can-start  0'), true)
+  equal(res.out.includes('stopNew passed'), true)
+}
+
+function roundRefuses
+(dir) {
+  let res
+
+  writeRun(dir, pastRun())
+  res = loopRaw(dir, [ 'round', '9' ])
+  equal(res.status, 1)
+  equal(res.out.includes('round not started'), true)
+}
+
+function missingRefuses
+(dir) {
+  let res
+
+  writeRun(dir, {})
+  res = loopRaw(dir, [ 'round', '9' ])
+  equal(res.status, 1)
+  equal(res.out.includes('no run clock'), true)
+}
+
+test('clock', 'clock --can-start exits 1 after stopNew', withRepo(clockRefuses))
+test('clock', 'round refuses after stopNew instead of starting', withRepo(roundRefuses))
+test('clock', 'round refuses when the run has no clock', withRepo(missingRefuses))
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,

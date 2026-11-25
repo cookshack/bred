@@ -28,6 +28,7 @@ import Path from 'node:path'
 import Url from 'node:url'
 
 import * as Claims from './loop-claims.mjs'
+import * as Clock from './loop-clock.mjs'
 import * as Measure from './loop-measure.mjs'
 import * as Merge from './loop-merge.mjs'
 import * as Queue from './loop-queue.mjs'
@@ -115,6 +116,8 @@ function main
     return reapCmd()
   case 'check':
     return checkCmd()
+  case 'clock':
+    return clockCmd()
   case 'round':
     return roundCmd()
   case 'land':
@@ -172,6 +175,9 @@ function help
   console.log('  claim <id>  take an item (a lease with a pid, not a bare mkdir)')
   console.log('  release <id>, reap   give one back; reap the dead ones')
   console.log('  check       the queue against git: schema, ids, done hashes, trailers')
+  console.log('  clock       now, start, stopNew, deadline, elapsed, the rounds that')
+  console.log('              still fit, and whether a round may start (--can-start:')
+  console.log('              exit 1 when it may not; `round` refuses the same way)')
   console.log('  round <n>   merge picked lanes onto loop/r<n>, gate each, run the suite')
   console.log('              (--items p1,p2, --no-suite, --allow-no-proof, --force)')
   console.log('  land <n>    fast-forward main to loop/r<n>, only once its tip carries')
@@ -311,7 +317,7 @@ function laneSince
 
 function status
 () {
-  let t, commit, ahead, parked, lanes, stale, dirty
+  let t, budget, commit, ahead, parked, lanes, stale, dirty
 
   t = trailers()
   commit = git(root, 'log', '-1', '--format=%h %s', 'main')
@@ -320,6 +326,7 @@ function status
   lanes = laneWorktrees()
   stale = staleWorktrees()
   dirty = git(root, 'status', '--porcelain')
+  budget = clockBudget()
 
   console.log('root       ' + root)
   console.log('main       ' + commit)
@@ -330,6 +337,8 @@ function status
   else
     console.log('verified   ' + t.verified + '  (' + ahead + ' lane commit(s) since the last record)')
   console.log('state      ' + (Fs.existsSync(loopDir) ? loopDir : loopDir + '  (missing)'))
+  console.log('clock      ' + (budget == 0 ? 'missing (add run.start, run.deadline and run.stopNew to queue.json)'
+                                           : Clock.summary(budget)))
   console.log('lanes      ' + (lanes.length > 0 ? '' : 'none'))
   lanes.forEach(p => console.log('           ' + p + '  ' + tryGit(p, 'log', '-1', '--format=%h %s')))
   console.log('stale      ' + stale.length + ' registration(s) not visible here')
@@ -933,6 +942,76 @@ function lockPath
   return Path.join(loopDir, 'round.lock')
 }
 
+// The round's own duration, so the printed budget fits a measured round rather
+// than a guessed one. `round` writes the start; `land` writes the duration.
+function lastRoundFile
+() {
+  return Path.join(loopDir, 'last-round.json')
+}
+
+function lastRoundMs
+() {
+  try {
+    return JSON.parse(Fs.readFileSync(lastRoundFile(), 'utf8')).durationMs || 0
+  }
+  catch {
+    return 0
+  }
+}
+
+function recordRoundDuration
+() {
+  let file, meta, ms, started
+
+  file = lastRoundFile()
+  try {
+    meta = JSON.parse(Fs.readFileSync(file, 'utf8'))
+  }
+  catch {
+    return 0
+  }
+  started = Date.parse(meta.started || '')
+  if (Number.isNaN(started))
+    return 0
+  ms = Date.now() - started
+  meta.durationMs = ms
+  Fs.writeFileSync(file, JSON.stringify(meta))
+  return ms
+}
+
+// The run's clock lives in the tracked queue, so a fresh session inherits it.
+// A missing clock is not an open-ended run: `round` refuses it.
+function clockBudget
+() {
+  let c, q
+
+  try {
+    q = loadQueue()
+  }
+  catch {
+    return 0
+  }
+  c = Clock.read(q)
+  if (c == 0)
+    return 0
+  return Clock.budget(c, Date.now(), lastRoundMs())
+}
+
+function clockCmd
+() {
+  let b
+
+  b = clockBudget()
+  if (b == 0) {
+    console.error('loop: no run clock; add run.start, run.deadline and run.stopNew to ' + queueFile())
+    return 1
+  }
+  console.log(Clock.format(b))
+  if (flag('--can-start'))
+    return (b.canStart == 1) ? 0 : 1
+  return 0
+}
+
 // Two rounds at once reset the integration branch under each other, which
 // reads as a passing round that then fails with no change in between.
 function acquireRound
@@ -970,13 +1049,27 @@ function lockHolder
 
 function roundCmd
 () {
-  let n
+  let n, b
 
   n = Number(args[ 1 ])
   if (n == 0)
     return usage()
   if (canonical() == 0) {
     console.error('loop: round runs from the main checkout; the lanes have their own worktrees')
+    return 1
+  }
+
+  // The stop condition is the tool's, not the scheduler's memory: a round that
+  // starts after stopNew is a run that lies about its deadline.
+  b = clockBudget()
+  if (b == 0) {
+    console.error('loop: no run clock; add run.start, run.deadline and run.stopNew to ' + queueFile())
+    if (flag('--force') == 0)
+      return 1
+  }
+  else if ((b.canStart == 0) && (flag('--force') == 0)) {
+    console.error('loop: round not started: ' + Clock.why(b))
+    console.error(Clock.format(b))
     return 1
   }
 
@@ -1029,6 +1122,10 @@ function runRound
            allowNoProof: flag('--allow-no-proof'),
            suite: flag('--no-suite') ? 0 : 'npx mocha --exit',
            check: 'npm run check' }
+
+  // The budget's ETA uses this round's own wall time once `land` records it.
+  Fs.mkdirSync(loopDir, { recursive: true })
+  Fs.writeFileSync(lastRoundFile(), JSON.stringify({ round: n, started: new Date().toISOString() }))
 
   res = Merge.mergeRound(root, opts)
 
@@ -1093,7 +1190,7 @@ function markCmd
 
 function landCmd
 () {
-  let n, work, tip, res, trailer
+  let n, work, tip, res, trailer, ms
 
   n = Number(args[ 1 ])
   if (n == 0)
@@ -1121,6 +1218,9 @@ function landCmd
   }
 
   console.log('landed   main -> ' + res.tip.slice(0, 8) + '  (' + res.why + ')')
+  ms = recordRoundDuration()
+  if (ms > 0)
+    console.log('round    ' + Clock.duration(ms) + ' from round start to land')
   console.log('next: mark each merged item done in doc/loop/queue.json with its lane hash')
   return 0
 }

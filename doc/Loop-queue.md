@@ -62,6 +62,7 @@ before.
 | p134 | man | a2 | next | a vertical table span puts its text on the right row in the text model but js/man-render.mjs draws the cell above as a separate empty <td>, so the rendered borders differ from groff | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
 | p135 | man | a1 | next | js/man-roff.mjs still classifies the 27 escapes groff ignores as unknown and fails the static scan, so the inventory disagrees with the interpreter after b6 | js/man-roff.mjs, test/man-roff.mjs |
 | p136 | man | a1 | next | a literal tab in filled text is not modelled: groff advances to the next tab stop per line, b6 pinned only the .nf form and the zero-width \t | js/man-parse.mjs, test/man-parse.mjs |
+| p146 | core | a3 | next | Mode.add accepts '' and stores it, but Mode.get/remove treat any falsy key as not-found, so the empty mode can be added and never removed | js/mode.mjs, test/mode.mjs |
 
 ## Triage
 

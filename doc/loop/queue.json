@@ -2108,6 +2108,21 @@
       "notes": "Found by round 65's own measurement at 3c408273: section 1 went 0p/0w -> 2p/78w, and the worst pages are troff(1) 42 lost words and unzip(1) 36. Cause: b6 (cab7cc0b) made `\\t` draw nothing everywhere, which is right for a text line but wrong for copy mode. Proved with groff 1.22.4: `.TH T 1` + `textfill: a\\tb end.` prints `textfill: ab end.` (zero width), while the same text in a `.de` body prints `bodyfill: a    b end.` (a tab stop), and `.BR color \"\\t524288\"` prints `color     524288`. troff(1)'s source is `.BR color \"\\t524288\"` (warning-table rows) and unzip(1) lists versions the same way, so the corpus needs the copy-mode side. The fix belongs in copyMode(): it must leave `\\t` as a tab character, while expand() keeps drawing nothing for it in text. Red proof: `bin/man-diff --page /usr/share/man/man1/troff.1.gz` says `lost 42` at 3c408273 and `lost 0` after; unzip(1) 36 -> 0. A unit test must pin both halves (text line zero width, .de body and macro argument a tab) so a future pass cannot flip either one alone. Fixed in round 65 at 1cd86dea and absorbed by b9.",
       "source": "measure",
       "doneHash": "949bf23c"
+    },
+    {
+      "id": "p146",
+      "area": "core",
+      "status": "next",
+      "type": "fix",
+      "title": "Mode.add accepts '' and stores it, but Mode.get/remove treat any falsy key as not-found, so the empty mode can be added and never removed",
+      "lane": "a3",
+      "files": [
+        "js/mode.mjs",
+        "test/mode.mjs"
+      ],
+      "proof": "npx mocha --exit test/mode.mjs",
+      "notes": "Found by p139's lane 2026-11-25 at cb9eada7 while fixing the mixed-case key mismatch (a different bug, deliberately not widened into that fix). Mode.add('') lowercases to '' and stores it with m.name = '', so the mode is in the map; Mode.get('') and Mode.remove('') both test the key for falsiness and report not-found, so it is unreachable. Needs a decision before a test can pin it: either refuse an empty or non-string key in add() (and say so in the error), or allow '' and treat it as an ordinary key in get/remove. The first is the safer contract unless something in the tree relies on an empty mode name; grep for Mode.add call sites first. Red test then follows from the decision, so next.",
+      "source": "lane"
     }
   ],
   "measures": {

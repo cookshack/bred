@@ -36,14 +36,14 @@ function boom
   throw new Error('boom')
 }
 
-test('measure', 'the minimal fixture translates ten inputs and drops one',
+test('measure', 'the minimal fixture translates every input',
      () => {
        let record
 
        record = Conf.classify(fixture, translator())
        equal(record.total, 11)
-       equal(record.translated, 10)
-       equal(record.dropped, 1)
+       equal(record.translated, 11)
+       equal(record.dropped, 0)
        equal(record.malformed, 0)
        equal(record.types[ 'session.execution.started' ].translated, 1)
        equal(record.types[ 'session.step.started' ].translated, 1)
@@ -54,7 +54,7 @@ test('measure', 'the minimal fixture translates ten inputs and drops one',
        equal(record.types[ 'session.idle' ].translated, 1)
        equal(record.types[ 'session.text.ended' ].translated, 1)
        equal(record.types[ 'session.reasoning.ended' ].translated, 1)
-       equal(record.types[ 'session.retry.scheduled' ].dropped, 1)
+       equal(record.types[ 'session.retry.scheduled' ].translated, 1)
      })
 
 test('measure', 'the fixture covers every event the measure must see',
@@ -110,7 +110,7 @@ test('measure', 'format prints the totals and a line per input type',
        let lines
 
        lines = Conf.format(Conf.classify(fixture, translator())).split('\n')
-       equal(lines[ 0 ], 'total 11  translated 10  dropped 1  malformed 0')
+       equal(lines[ 0 ], 'total 11  translated 11  dropped 0  malformed 0')
        equal(lines.some(line => line.startsWith('session.tool.success  total 1')), true)
      })
 

@@ -84,6 +84,12 @@ function translate
   case 'session.step.failed':
     out.push(legacy('session.error', { sessionID: data.sessionID, error: data.error }))
     break
+  case 'session.retry.scheduled':
+    // The server is waiting to try the turn again; updateStatus draws the
+    // reason. The next execution event replaces it with busy or idle.
+    out.push(legacy('session.status', { sessionID: data.sessionID,
+                                        status: { type: 'retry', message: data.error?.message } }))
+    break
   case 'session.renamed':
     out.push(legacy('session.updated', { info: { id: data.sessionID, title: data.title } }))
     break

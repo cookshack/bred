@@ -77,6 +77,35 @@ test('translate', 'session.idle and status map through',
        equal(leg[0].properties.status.type, 'busy')
      })
 
+test('translate', 'a scheduled retry is a retry status',
+     () => {
+       let buf, leg
+
+       buf = makeBuf()
+       leg = Ev.translate(buf, Fake.event('session.retry.scheduled',
+                                          { sessionID: 's1',
+                                            assistantMessageID: 'm1',
+                                            attempt: 1,
+                                            at: 1730000000011,
+                                            error: { type: 'api', message: 'rate limited' } }))
+       equal(leg.length, 1)
+       equal(leg[0].type, 'session.status')
+       equal(leg[0].properties.sessionID, 's1')
+       equal(leg[0].properties.status.type, 'retry')
+       equal(leg[0].properties.status.message, 'rate limited')
+     })
+
+test('translate', 'a scheduled retry with no error message has no message',
+     () => {
+       let leg
+
+       leg = Ev.translate(makeBuf(), Fake.event('session.retry.scheduled',
+                                                { sessionID: 's1', attempt: 2, at: 1 }))
+       equal(leg[0].type, 'session.status')
+       equal(leg[0].properties.status.type, 'retry')
+       equal(leg[0].properties.status.message, undefined)
+     })
+
 test('translate', 'session.model.selected maps ModelRef to modelID',
      () => {
        let buf, leg

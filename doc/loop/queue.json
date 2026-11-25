@@ -14,7 +14,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "title": "the `Creating session...` placeholder is never removed, so it stays above the first turn and can receive an orphan delta",
       "files": [
         "ext/code/code.mjs",
@@ -59,7 +59,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "in-round",
       "title": "`\\$@` interpolation does not quote its arguments: groff prints `[\"a\" \"b\" \"c\"]`, bred `[a b c]`",
       "files": [
         "js/man-parse.mjs",
@@ -1330,7 +1330,7 @@
     {
       "id": "p109",
       "lane": "a3",
-      "status": "ready",
+      "status": "in-round",
       "title": "thumbpdf(1) mis-encoded byte folds to ©: section 1 reaches 0 lost words",
       "files": [
         "bin/man-diff",

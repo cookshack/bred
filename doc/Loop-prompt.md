@@ -58,10 +58,14 @@ not a clock.
     written on the row (a command that fails at base) and its files are free.
     Write the proof before the brief — the merge gate reads the row, not the
     brief. Then mark the chosen rows in-round, write a brief per item in
-    $LOOP, run bin/loop.mjs lanes-up, and dispatch each lane with background. Tell every
-    lane to read doc/loop/rules.md and its brief, work only in its worktree
-    and files, commit once with a Loop-item: <id> trailer, and never merge,
-    rebase or push.
+    $LOOP, run bin/loop.mjs lanes-up, and dispatch each lane as a background
+    subagent: call the native `subagent` tool directly (agent general,
+    background), not through execute. It is a native harness tool, so the
+    execute catalog's "complete" note does not cover it; if a session cannot
+    call it, stop and report the tool and error instead of doing the lanes'
+    work yourself. Tell every lane to read doc/loop/rules.md and its brief,
+    work only in its worktree and files, commit once with a Loop-item: <id>
+    trailer, and never merge, rebase or push.
 
     Then bin/loop.mjs round <n> --items ... gates and integrates onto
     loop/r<n> and runs the suite once at that tip (the suite log is in $LOOP).

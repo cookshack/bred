@@ -131,9 +131,15 @@ columns in one queue, not separate loops.
 2. Mark the chosen items `in-round` in `doc/loop/queue.json` (then
    `report --write`), and write `$LOOP/lane-<id>.md` for each: the worktree,
    the item, the files it owns and the proof already in its queue row. Run
-   `bin/loop.mjs lanes-up`, then dispatch with `background`; each lane reads
-   `rules.md`, works only in its worktree and files, commits once with a
-   `Loop-item: <id>` trailer, and never merges, rebases or pushes.
+   `bin/loop.mjs lanes-up`, then dispatch each lane as a background subagent:
+   call the native `subagent` tool directly (agent `general`, `background`),
+   not through `execute`. `subagent` is a native harness tool, so the
+   `execute` catalog's "the catalog is complete" note says nothing about it.
+   Each lane reads `rules.md`, works only in its worktree and files, commits
+   once with a `Loop-item: <id>` trailer, and never merges, rebases or
+   pushes. If dispatch is genuinely impossible, stop and name the tool you
+   tried: doing the lanes' work in the scheduler's own context is a different
+   run, not a slower one.
 3. `bin/loop.mjs round <n> --items ...` builds `loop/r<n>` from main, rebases
    each lane onto it, and gates it: files inside the queue row, proof red at
    base with the lane's test files, proof green after the rebase. A failing
@@ -338,6 +344,12 @@ man 2), section 7 is editline 5 + gittutorial-2 2, and section 8 is dmsetup 7
   its row names, or change the row first: two items that claim one lane are
   caught by the tool and both are parked, and recovering them costs a round
   (round 42).
+- **A lane is a subagent, not a second hat.** Rounds 45–50 did every lane's
+  work in the scheduler's own context because the `execute` catalog was read
+  as the whole tool list; `subagent` was native and callable throughout. Serial
+  lane work is not a slower loop: it puts three lanes of code and tool output
+  into one context, so a compaction or a crash costs more than the dispatch it
+  was avoiding.
 - **Never reset over unmerged work.** A `reset --hard main` on a lane branch
   that was parked for a conflict silently discards its commit. Reset only when
   the branch is an ancestor of `main`; otherwise park it and cut a fresh
@@ -371,6 +383,8 @@ reason is written in the record:
 - main is red and the fix is not in hand;
 - no lane is free (every worktree has unmerged or dirty work);
 - every open row is `triage` — a decision for the human, not a lane;
+- the native `subagent` tool cannot be called (name the tool you tried and the
+  error; do not inline the lanes);
 - the human says stop.
 
 A thin queue is not a reason: grooming and a bounded hunt are the round's work.

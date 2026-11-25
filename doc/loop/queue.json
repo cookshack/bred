@@ -1074,7 +1074,7 @@
     {
       "id": "p105",
       "lane": "a2",
-      "status": "ready",
+      "status": "done",
       "title": "ssh-agent(1) loses 2 words: the synopsis -s] bracket",
       "files": [
         "js/man-parse.mjs",
@@ -1082,7 +1082,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "de1718c"
     },
     {
       "id": "p106",
@@ -1278,7 +1279,7 @@
       "area": "code",
       "lane": "a1",
       "type": "triage",
-      "status": "ready",
+      "status": "done",
       "title": "session.text.ended is dropped by translate; the deltas carry the text, but the finished part is unused — decide whether it must produce a legacy event (triage)",
       "files": [
         "ext/code/event.mjs",
@@ -1286,7 +1287,8 @@
         "test/code-conformance.mjs",
         "test/fixtures/oc-events/*"
       ],
-      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs"
+      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs",
+      "doneHash": "c72362c"
     },
     {
       "id": "c2",
@@ -1326,6 +1328,48 @@
         "test/code-events.mjs"
       ],
       "proof": "npx mocha --exit test/code-events.mjs"
+    },
+    {
+      "id": "c5",
+      "area": "code",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": "session.reasoning.ended has the same authoritative text as text.ended and is still dropped; translate it the same way",
+      "files": [
+        "ext/code/event.mjs",
+        "test/code-events.mjs",
+        "test/code-conformance.mjs",
+        "test/fixtures/oc-events/*"
+      ],
+      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs"
+    },
+    {
+      "id": "c6",
+      "area": "code",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": "a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs)",
+      "files": [
+        "ext/code/code.mjs",
+        "ext/code/ui.mjs",
+        "test/code-*"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs"
+    },
+    {
+      "id": "p119",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": "a bar ends the argument list of other multi-argument macros (Ar, Cm, Ic, Pa, …), so words after it lose the macro font; style only, each needs its own evidence",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
     }
   ],
   "measures": {

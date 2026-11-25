@@ -30,6 +30,12 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | area | lane | status | title | files |
+|----|------|------|--------|-------|-------|
+| c10 | code | a2 | ready | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
+
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -74,7 +80,6 @@ before.
 | p59 | man | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
 | p109 | man | a1 | triage | thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch) | js/man-char.mjs, test/man-parse.mjs |
 | p124 | man | a1 | triage | copy mode still reduces \. to "."; a body line starting with \. becomes an unknown request and refuses the page where groff prints nothing | js/man-parse.mjs, test/man-parse.mjs |
-| c10 | code | a2 | triage | the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing | ext/code/event.mjs, ext/code/code.mjs, ext/code/ui.mjs, test/code-events.mjs |
 | c11 | code | a3 | triage | session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |
 | c12 | code | a2 | triage | session.tool.input.delta is dropped; the tool preview only appears when the whole input has arrived | ext/code/event.mjs, test/code-events.mjs |
 

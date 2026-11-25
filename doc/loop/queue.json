@@ -1478,17 +1478,16 @@
       "id": "c10",
       "area": "code",
       "lane": "a2",
-      "type": "triage",
-      "status": "triage",
+      "type": "fix",
+      "status": "ready",
       "title": "the four session.compaction events are dropped; the reference client draws a compaction item with a running status and streams its summary, bred shows nothing",
       "files": [
         "ext/code/event.mjs",
         "ext/code/code.mjs",
-        "ext/code/ui.mjs",
         "test/code-events.mjs"
       ],
       "proof": "npx mocha --exit test/code-events.mjs",
-      "notes": "Found by the 2026-11-25 event-union hunt. Reference behaviour (ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js: session.compaction.started inserts {type:\"compaction\", status:\"running\", reason, summary, recent}, .delta appends summary, .ended marks it done, .failed records the error). bred has no compaction handling at all (grep compaction outside lib/opencode: only man-parse .Bl -compact). Decide the legacy shape (a message.part.updated part type, or a new event) before writing the red test; a long session compacts and the transcript currently jumps without saying so."
+      "notes": "Found by the 2026-11-25 event-union hunt. Reference behaviour (ext/code/lib/opencode/chunks/shared-events-m77rqa4a.js: session.compaction.started inserts {type:\"compaction\", status:\"running\", reason, summary, recent}, .delta appends summary, .ended marks it done, .failed records the error). bred has no compaction handling at all (grep compaction outside lib/opencode: only man-parse .Bl -compact). Decide the legacy shape (a message.part.updated part type, or a new event) before writing the red test; a long session compacts and the transcript currently jumps without saying so. Decision (2026-11-25): a log line, not a transcript item. translate() emits one legacy session.compaction with phase started|ended|failed; the handler appends Ui.appendMsg(..., { log: 1 }) for the buffer's own session. The short summary from the ended event is flattened and capped at 200 chars; deltas are not drawn because the ended text is authoritative. A fixture with a compaction is still the missing measure input."
     },
     {
       "id": "c11",

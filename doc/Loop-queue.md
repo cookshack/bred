@@ -59,9 +59,8 @@ before.
 | p102 | man | a1 | in-round | an unknown escape (`\Q`) is printed by groff as its letter and refused here | js/man-parse.mjs, test/man-parse.mjs |
 | c9 | code | a2 | in-round | handlePartDelta asks one view whether a delta is thinking text and returns before the per-box draw, so a view that lacks the block never gets it; appendThinking already draws per box and the reference client renders every part in every view | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | p132 | man | a3 | in-round | doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0 | doc/Man.md |
-| b9 | man | a1 | in-round | batch: the man tail's escapes, spans and cells (b7: p79 p83 p34, b6: p102 p76 p77) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
+| b9 | man | a1 | in-round | batch: the man tail's escapes, spans, cells and copy-mode tabs (b7: p79 p83 p34, b6: p102 p76 p77, p145) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | c16 | code | a2 | in-round | batch: a delta's part id comes from the event, and a thinking block is drawn in every box (c14, c9) | ext/code/code.mjs, ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
-| p145 | man | a1 | in-round | `\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words | js/man-parse.mjs, test/man-parse.mjs |
 
 ## Backlog
 
@@ -206,5 +205,6 @@ before.
 | p126 | man | a1 | done:f6b63ada | a no-output request that defines or removes still swallows a pending \c join (p54 covered only .ft) | js/man-parse.mjs, test/man-parse.mjs |
 | p127 | man | a1 | done:8f3eabee | verdict: mdoc body text after .Sh is already roman (mdocHeading does restore c.font); not reproducible at 8f3eabee |  |
 | l2 | tooling | a3 | done:ad68333e | check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit | bin/loop.mjs, bin/loop-queue.mjs, test/loop.mjs |
+| p145 | man | a1 | done:1cd86dea | `\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words | js/man-parse.mjs, test/man-parse.mjs |
 
 <!-- /loop:queue -->

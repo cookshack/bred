@@ -2022,7 +2022,7 @@
       "area": "man",
       "status": "in-round",
       "type": "fix",
-      "title": "batch: the man tail's escapes, spans and cells (b7: p79 p83 p34, b6: p102 p76 p77)",
+      "title": "batch: the man tail's escapes, spans, cells and copy-mode tabs (b7: p79 p83 p34, b6: p102 p76 p77, p145)",
       "lane": "a1",
       "files": [
         "js/man-parse.mjs",
@@ -2030,7 +2030,7 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Round 65's a1 lane carried two batches in sequence on one branch (b7 at 57a7e95b, then b6 at cab7cc0b), so the round takes them as one row owning the union and b6's proof. b7 absorbed p79 (a vertical table span puts its text on the bottom row: tbl(1)'s `l ld`/`r ^` example prints `|   r | foo    |`), p83 (21 groff_char(7) names: md, c*, r!, OK, Eu, sq, lf/rf/lc/rc, ul/uc/ur/ll/lr/cl/cr, 18/38/58/78) and p34 (`\\v(` has no paren form: groff warns and prints `x a2b y`). b6 absorbed p102 (an unknown escape prints its own letter; groff ignores exactly 27 printable characters and warns `escape character ignored before 'Q'`), p76 (`.SY`/`.OP` keep their space in mdoc mode; groff -mdoc has no SY/OP at all, so man(7)'s layout is the reference) and p77 (a literal tab is a tab stop, `\\t` is zero width in both fill and no-fill mode). Six red tests, all green at the merged tip, test/man-parse.mjs 386 passing.",
+      "notes": "Round 65's a1 lane carried two batches in sequence on one branch (b7 at 57a7e95b, then b6 at cab7cc0b), so the round takes them as one row owning the union and b6's proof. b7 absorbed p79 (a vertical table span puts its text on the bottom row: tbl(1)'s `l ld`/`r ^` example prints `|   r | foo    |`), p83 (21 groff_char(7) names: md, c*, r!, OK, Eu, sq, lf/rf/lc/rc, ul/uc/ur/ll/lr/cl/cr, 18/38/58/78) and p34 (`\\v(` has no paren form: groff warns and prints `x a2b y`). b6 absorbed p102 (an unknown escape prints its own letter; groff ignores exactly 27 printable characters and warns `escape character ignored before 'Q'`), p76 (`.SY`/`.OP` keep their space in mdoc mode; groff -mdoc has no SY/OP at all, so man(7)'s layout is the reference) and p77 (a literal tab is a tab stop, `\\t` is zero width in both fill and no-fill mode). Six red tests, all green at the merged tip, test/man-parse.mjs 386 passing. Then p145 (1cd86dea): b6's `\\t` rule was too broad, because copy mode reads `\\t` as a tab stop while a text line draws nothing; round 65's own measurement caught it as section 1 0p/0w -> 2p/78w (troff(1) 42, unzip(1) 36), and the fix in copyMode() takes both pages to lost 0 (1479/1479 and 7113/7113). Test `escapes :: copy mode reads \\t as a tab stop, unlike fill` pins all five halves.",
       "source": "lane"
     },
     {
@@ -2083,7 +2083,7 @@
     {
       "id": "p145",
       "area": "man",
-      "status": "in-round",
+      "status": "done",
       "type": "fix",
       "title": "`\\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words",
       "lane": "a1",
@@ -2092,8 +2092,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "bin/man-diff --page /usr/share/man/man1/troff.1.gz",
-      "notes": "Found by round 65's own measurement at 3c408273: section 1 went 0p/0w -> 2p/78w, and the worst pages are troff(1) 42 lost words and unzip(1) 36. Cause: b6 (cab7cc0b) made `\\t` draw nothing everywhere, which is right for a text line but wrong for copy mode. Proved with groff 1.22.4: `.TH T 1` + `textfill: a\\tb end.` prints `textfill: ab end.` (zero width), while the same text in a `.de` body prints `bodyfill: a    b end.` (a tab stop), and `.BR color \"\\t524288\"` prints `color     524288`. troff(1)'s source is `.BR color \"\\t524288\"` (warning-table rows) and unzip(1) lists versions the same way, so the corpus needs the copy-mode side. The fix belongs in copyMode(): it must leave `\\t` as a tab character, while expand() keeps drawing nothing for it in text. Red proof: `bin/man-diff --page /usr/share/man/man1/troff.1.gz` says `lost 42` at 3c408273 and `lost 0` after; unzip(1) 36 -> 0. A unit test must pin both halves (text line zero width, .de body and macro argument a tab) so a future pass cannot flip either one alone.",
-      "source": "measure"
+      "notes": "Found by round 65's own measurement at 3c408273: section 1 went 0p/0w -> 2p/78w, and the worst pages are troff(1) 42 lost words and unzip(1) 36. Cause: b6 (cab7cc0b) made `\\t` draw nothing everywhere, which is right for a text line but wrong for copy mode. Proved with groff 1.22.4: `.TH T 1` + `textfill: a\\tb end.` prints `textfill: ab end.` (zero width), while the same text in a `.de` body prints `bodyfill: a    b end.` (a tab stop), and `.BR color \"\\t524288\"` prints `color     524288`. troff(1)'s source is `.BR color \"\\t524288\"` (warning-table rows) and unzip(1) lists versions the same way, so the corpus needs the copy-mode side. The fix belongs in copyMode(): it must leave `\\t` as a tab character, while expand() keeps drawing nothing for it in text. Red proof: `bin/man-diff --page /usr/share/man/man1/troff.1.gz` says `lost 42` at 3c408273 and `lost 0` after; unzip(1) 36 -> 0. A unit test must pin both halves (text line zero width, .de body and macro argument a tab) so a future pass cannot flip either one alone. Fixed in round 65 at 1cd86dea and absorbed by b9.",
+      "source": "measure",
+      "doneHash": "1cd86dea"
     }
   ],
   "measures": {

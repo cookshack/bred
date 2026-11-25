@@ -1,12 +1,11 @@
 # Unattended agent loop
 
-Status: handover after round 63, 2026-11-25. Forty-two rounds used the tool's
-gate: red at base, green after the rebase, one suite at the integrated tip,
-the record on `loop/r<n>`, one fast-forward. Main is the round-63 tip, green
-(2095 of 2097 tests passing, 2 pending, check clean). The agreed plan,
-`doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
-and area-aware picks are parked by the plan's own criterion. Man is 1 word on
-1 page, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
+Status: handover after round 69, 2026-11-25. Main is the round-69 tip, green
+(2117+ tests passing, 2 pending, check clean, 0 queue problems). The agreed
+plan, `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane
+pool and area-aware picks are parked by the plan's own criterion. Man is 0 words
+on 0 pages in every section, code 19 of 20 translated. The next items are in
+`doc/loop/queue.json`
 (the view in `doc/Loop-queue.md` is generated); a bounded event-union hunt
 after round 47 filed three code triages (c10–c12), recorded in
 `doc/loop/hunt-2026-11-25.md`. The two designs the queue supersedes
@@ -19,14 +18,21 @@ The run is no longer the only thing moving `main`: other agents and the user
 commit to it while the loop works. The protocol now assumes that (see "Working
 on a moving main") instead of expecting a quiet tree.
 
-Run stopped, 2026-11-25: the run armed at 15:15Z for eight hours (stopNew
-22:30Z) was stopped on the human's instruction after round 63, at 15:48Z —
-6h42m before stopNew, with that round landed and `check` clean, not at a named
-failure. Nothing was left unlanded: both groom helpers' proposals are filed
-(c9 and p109 are `ready`, their red-test patches at `$LOOP/groom-c9-test.patch`
-and `$LOOP/groom-p109.patch`). A fresh session must re-arm the `run` block
-(`state: active` plus a fresh start/deadline/stopNew) before its first round,
-because the clock is now `stopped`.
+Run 2, 2026-11-25: armed at 15:54Z for eight hours (stopNew 23:09Z), rounds 64
+to 69. Six rounds used the tool's gate unchanged: red at base, green after the
+rebase, one suite at the integrated tip, the record on `loop/r<n>`, one
+fast-forward. Section 1 reached 0 lost words at round 64 and every section has
+measured 0 since. Rounds 65 and 68 each caught a lane whose proof was green but
+whose change was wrong in a way only the measurement or a second reading found
+(b9's `\t` cost 78 words; p141's brief hid a test that enshrined the bug).
+
+Run 1, 2026-11-25: the run armed at 15:15Z for eight hours (stopNew 22:30Z) was
+stopped on the human's instruction after round 63, at 15:48Z — 6h42m before
+stopNew, with that round landed and `check` clean, not at a named failure.
+Nothing was left unlanded: both groom helpers' proposals are filed. A fresh
+session must re-arm the `run` block (`state: active` plus a fresh
+start/deadline/stopNew) before its first round, because the clock is then
+`stopped`.
 
 `$LOOP` below is that directory:
 
@@ -336,6 +342,12 @@ lane, or to another area, if its files are free.
 | 49 | link tails | `fc63c08` | `.UE`/`.ME` keep every trailing argument (tload 1 → 0); man 2 words on 2 pages |
 | 50 | join through | `eac2c89` | a `\c` survives a request that draws nothing (dmsetup 1 → 0, section 8 clean); man 1 word on 1 page |
 | 51 | compaction | `ab98859` | the four compaction events become a log line per phase; re-gated after an outside doc commit moved main mid-round |
+| 64 | placeholder and byte | `40076ad8` | the startup lines are cleared when the prompt is accepted; `\$@` quotes its arguments; `man-diff` folds a mis-encoded byte, taking section 1 to 0 lost words |
+| 65 | the man tail | `e219849d` | six batches (a vertical span, 21 char names, `\v(`, an unknown escape, mdoc `.SY`/`.OP`, a literal tab) plus copy-mode `\t`, which the round's own measurement caught as 78 lost words and p145 fixed; `doc/Man.md`'s scoreboard re-measured |
+| 66 | a cell, a box, a mode | `df9df3d9` | an empty `.IP` in a `T{` cell and a `.`-only line; a delta drawn once per box, not once per view; `Mode.remove` deletes the stored key |
+| 67 | streaming input | `e219849d` | `session.tool.input.delta` becomes a `field: 'input'` delta behind a streaming guard; `seqMode` walks `buf.minors`; a `.`-led table-row comment owns no row |
+| 68 | a space key | `8fed11c0` | `Em.seq` joins between events so `' '` and `'C- '` round-trip (and `test/ed.mjs` stops enshrining the trim); `Cmd.get` agrees with `getAll`; `\h(`/`\l(` get their paren forms |
+| 69 | a span and a modifier | `c199a505` | a vertical span is one cell with a `rowspan` (proven against a first-column span); a ctrl/alt key with no submap reaches `otherwise` |
 | 63 | macro arguments | `aa5130e6` | a single-backslash `\$1` expands at definition time, a `\c` inside an interpolated argument cuts the body line, a bar does not end an mdoc argument list; a reconnect text delta no longer draws a thinking block; man unchanged |
 | 62 | joins and a finished part | `596bc1a7` | a `\c` survives one blank line and a define-only request; `toText` draws space blocks; a finished text part re-renders even without its step (re-gated after the helper commit moved main) |
 | 61 | references | `49156f7` | an `%A`-only `.Rs` ends with a comma, as groff does |
@@ -351,13 +363,19 @@ lane, or to another area, if its files are free.
 
 ## Current state
 
-Measured at `aa5130e6` (round 63's tip), corpus `4150` pages:
+Measured at `f3bdd882` (round 69's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 63: 1:1p/1w  3:0p/0w  5:0p/0w  7:0p/0w  8:0p/0w
-    code events after round 63: 20 (19 translated, 1 dropped, 0 malformed)
-    637 man tests, 2095 of 2097 passing, 2 pending, 0 failing; check clean
+    whole sections after round 69: 1:0p/0w  3:0p/0w  5:0p/0w  7:0p/0w  8:0p/0w
+    code events after round 69: 20 (19 translated, 1 dropped, 0 malformed)
+    2117 passing, 2 pending, 0 failing; check clean; 0 queue problems
+
+Section 1 reached 0 lost words at round 64, when p109 folded thumbpdf(1)'s
+mis-decoded byte in `man-diff`'s comparison key. Every section has measured 0
+since. `man-diff` counts *lost* words, so a page that prints a surplus still
+reads 0: ps(1) printed 6701 against man(1)'s 6692 before p131 and b8, and those
+two rows are what closed the gap.
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech
@@ -372,11 +390,11 @@ sorted order and prints it as `400 of 1189 (sample; --max 0 for all)`, section
 parser bugs the honest sweep exposed (`\c`, `\F`, `.Sm off`) plus the
 colon-path shadowing in the viewer; round 13 took the mdoc set (`.Lb`, `.In`,
 `.do`, `\n+`); round 14 took the reference set and the tag continuation, and
-two more `man-diff` rules. After round 16, sections 3 and 5 are clean, section
-1 is 147 words (ps(1) 103, ttf2tfm(1) 10, tbl/gtbl 7 each, ttf2pk 5, hg 2,
-man 2), section 7 is editline 5 + gittutorial-2 2, and section 8 is dmsetup 7
-+ dmstats 2. What is left is in `doc/Man.md` and, with ids, in
-`doc/Loop-queue.md`.
+two more `man-diff` rules. Round 16 left section 1 at 147 words (ps(1) 103,
+ttf2tfm(1) 10, tbl/gtbl 7 each, ttf2pk 5, hg 2, man 2), section 7 at editline 5
++ gittutorial-2 2 and section 8 at dmsetup 7 + dmstats 2. Rounds 17-69 worked
+that list to zero, one mechanism at a time; `doc/Man.md` carries the per-round
+history.
 
 ## Rules that earned their place
 
@@ -452,6 +470,28 @@ man 2), section 7 is editline 5 + gittutorial-2 2, and section 8 is dmsetup 7
   session, so it disappeared with that session. `doc/Loop-queue.md` and
   `doc/loop/round-<n>.md` are now the durable half; the session keeps only the
   briefs.
+- **A row is a claim to be proved, not an instruction to obey.** Round 66's
+  `c9` brief named a red that no longer reproduced (c8 and c13 had fixed it);
+  the lane said so and proved two *different* reachable defects instead. Round
+  66's `b8` row called a 9-word surplus 18. A lane that measures and disagrees
+  is more valuable than one that "fixes" the row's wording.
+- **A green lane proof is not a green change.** Rounds 65 and 68 both had every
+  lane's own proof pass and still needed the loop: b9's `\t` rule cost 78 words
+  on troff(1) and unzip(1) and only the measurement at the merged tip saw it;
+  p141's brief hid a test that enshrined the bug it fixed, which only a second
+  reading of the suite found. Measure what the round touched, and read the
+  tests a fix makes wrong.
+- **Marking a row `in-round` is not dispatching a lane.** Round 68 briefed two
+  lanes, marked their rows, and then ended the turn without calling `subagent`;
+  the queue looked busy and nothing was running for three hours of the window.
+  `status` shows a lane's tip, and a lane still sitting at the round base is the
+  tell — check it after every dispatch, not after the first report.
+- **A test that enshrines a bug is part of the fix.** `test/ed.mjs` asserted
+  `Em.seq('mark set') === 'C-'`, a string that does not parse back through
+  `lib/ev-parser.mjs`. The lane refused to widen its own file set, the row was
+  widened, and the flip got its own commit. A lane must not quietly rewrite a
+  test outside its row, and the scheduler must not leave a fix unable to land
+  because a stale assertion is nobody's file.
 
 ## Stopping
 

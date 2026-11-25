@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: handover after round 58, 2026-11-25. Thirty-nine rounds used the
-tool's gate: red at base, green after the rebase, one suite at the integrated
-tip, the record on `loop/r<n>`, one fast-forward. Main is the round-58 tip,
-green (2078 of 2080 tests passing, 2 pending, check clean). The agreed plan,
+Status: handover after round 59, 2026-11-25. Forty rounds used the tool's
+gate: red at base, green after the rebase, one suite at the integrated tip,
+the record on `loop/r<n>`, one fast-forward. Main is the round-59 tip, green
+(2080 of 2082 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
 and area-aware picks are parked by the plan's own criterion. Man is 1 word on
 1 page, code 19 of 20 translated. The next items are in `doc/loop/queue.json`
@@ -292,6 +292,7 @@ lane, or to another area, if its files are free.
 | 49 | link tails | `fc63c08` | `.UE`/`.ME` keep every trailing argument (tload 1 → 0); man 2 words on 2 pages |
 | 50 | join through | `eac2c89` | a `\c` survives a request that draws nothing (dmsetup 1 → 0, section 8 clean); man 1 word on 1 page |
 | 51 | compaction | `ab98859` | the four compaction events become a log line per phase; re-gated after an outside doc commit moved main mid-round |
+| 59 | done hashes | `6434838` | `check` requires a done hash to name the item, its absorbing item, or a batch; found by the round-57 mis-merge |
 | 58 | synthetic notes, retried | `57c1d58` | `session.synthetic` becomes a log line; the merge line was checked this time |
 | 57 | synthetic notes | (none) | bad record: a peer grooming commit moved c11 to a3 between dispatch and gate, so nothing merged; the claim was corrected in round 58 |
 | 56 | joins and Sm (batch) | `7846c1d` | a `\c` survives an empty macro body, and `.Sm off` suppresses the space before a text line; p98/p33 batched |
@@ -302,13 +303,13 @@ lane, or to another area, if its files are free.
 
 ## Current state
 
-Measured at `57c1d58f` (round 58's tip), corpus `4150` pages:
+Measured at `64348380` (round 59's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
     whole sections after round 50: 1:1p/1w  3:0p/0w  5:0p/0w  7:0p/0w  8:0p/0w
     code events after round 50: 20 (19 translated, 1 dropped, 0 malformed)
-    630 man tests, 2078 of 2080 passing, 2 pending, 0 failing; check clean
+    630 man tests, 2080 of 2082 passing, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

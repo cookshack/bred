@@ -73,7 +73,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "next",
+      "status": "ready",
       "source": "lane",
       "title": "batch: table spans, character names, and the \\v paren form (p79, p83, p34)",
       "files": [
@@ -82,7 +82,7 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Absorbs p79 (tbl `l ld` / `r ^`: the spanned cell's text belongs on the bottom row, so `r` prints before `foo`), p83 (21 named groff_char names are missing: md, c*, r!, OK, Eu, sq, box pieces lc..rt, 18/38/58/78; one batch test) and p34 (`\\v(` is not a delimiter in groff: it warns and prints `a2b`, bred reads a 2-char name and drops the tail). p83 touches js/man-char.mjs; the rest is man-parse. Each keeps its own red test.",
+      "notes": "Groomed 2026-11-25: three red tests and no code change. `escapes :: a v escape has no paren form and prints its text` — groff warns `cannot use character '(' as a starting delimiter` and prints `x a2b y` for `x a\\v(2b y` (and `x a12b y` for `\\v(12b`), while bred prints `x a y` / `x ab y`. `escapes :: common groff_char names outside the corpus are absent` — groff prints all 21 (md ⋅, c* ⊗, r! ¡, OK ✓, Eu €, sq □, lf/rf/lc/rc, ul/uc/ur/ll/lr/cl/cr, 18/38/58/78), while bred refuses the page (`ok` 0) for each; ul/uc/ur/ll/lr/cl/cr are drawn with vertical motion, so the test asserts only acceptance for those six. `tables :: a vertical span puts its text on the bottom row` — tbl(1)'s own `l ld` / `r ^` example prints `│   r │ foo    │` on the bottom row, while bred's toText puts foo on the row above r. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b7.patch. Also seen: \\S( goes through the same skipValue path, so `\\S(2` likely has the same 2-char-name bug; not tested here.",
       "batch": 1
     },
     {

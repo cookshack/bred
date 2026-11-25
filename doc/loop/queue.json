@@ -1,14 +1,75 @@
 {
   "schema": 1,
   "run": {
-    "start": "2026-11-25T12:40:00Z",
-    "deadline": "2026-11-25T17:25:00Z",
-    "stopNew": "2026-11-25T16:40:00Z",
+    "start": "2026-11-25T15:15:49Z",
+    "deadline": "2026-11-25T23:15:49Z",
+    "stopNew": "2026-11-25T22:30:49Z",
     "state": "active",
     "round": 61,
-    "main": "49156f7d"
+    "main": "8f3eabee"
   },
   "items": [
+    {
+      "id": "p129",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": ".sp N loses its count: one space block whatever N is, and man-render draws one gap",
+      "files": [
+        "js/man-parse.mjs",
+        "js/man-render.mjs",
+        "test/man-parse.mjs",
+        "test/man-render.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found in b4's lane report (2026-11-25): `.sp 2` is one block, so toText and man-render draw one gap where groff draws two. The block needs a count and both consumers need it. Measurement-neutral (man-diff collapses blanks) and no installed page depends on it yet, so it is next, not ready: the model change is shared with man-render."
+    },
+    {
+      "id": "p128",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "ready",
+      "title": "a `.`-only line with no pending `\\c` adds a space block; groff draws no gap",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found in b4's lane report (2026-11-25): `one` / `.` / `two` — groff -Tutf8 -man prints `one two` (the `.` flushes the current line, no gap); bred emits a space block so toText gives `one\\n\\ntwo\\n`. b4 fixed the pending-`\\c` case only. Red test `paragraphs :: a dot-only line draws no gap` (asText == 'one two\\n')."
+    },
+    {
+      "id": "c13",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "next",
+      "title": "handlePartDelta draws a text delta as a thinking block when the assistant message element is missing (a reconnect that dropped session.text.started)",
+      "files": [
+        "ext/code/code.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs --grep reconnect",
+      "notes": "Found in c6's lane report (2026-11-25): handlePartDelta (ext/code/code.mjs) takes the `field == 'text' && msgEl == null` branch and creates a plain .code-msg-thinking node, so a text part whose started event a reconnect dropped is drawn as thinking, and the later ended text appends a second assistant message. Needs a red test (same reconnect shape as c6's second test, but with a delta first) before it can be promoted to ready."
+    },
+    {
+      "id": "b4",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "done",
+      "source": "lane",
+      "title": "batch: joins and space blocks (p55, p73, p126)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Absorbs p55 (a `\\c` followed by one blank line joins the next text line; two blank lines still break), p73 (toText draws a blank line for a space block, so asText and man-render agree) and p126 (a no-output request that only defines or removes keeps a pending `\\c` join; .PP/.RS/.sp/.br still break). One commit on js/man-parse.mjs; each item keeps its own red test and is marked done with this row's hash.",
+      "batch": 1,
+      "doneHash": "f6b63ada"
+    },
     {
       "id": "p50",
       "lane": "a2",
@@ -41,17 +102,14 @@
     {
       "id": "p65",
       "lane": "a3",
-      "status": "next",
-      "title": "no fake emits a typed-array chunk split mid-UTF-8, so `js/shell.mjs`'s streaming decoder is proven only by real-pty timing; add the fake and the test",
-      "files": [
-        "js/shell.mjs",
-        "test/man-viewer.mjs",
-        "test/main-shell.mjs"
-      ],
+      "status": "done",
+      "title": "verdict: the streaming decoder is already correct and a typed-array fake would be coverage-only, which the red gate cannot merge",
+      "files": [],
       "proof": "npx mocha --exit test/main-shell.mjs",
       "notes": "coverage-only: the streaming decoder is already correct, so its test passes at base and the red gate parks it. Give it a measure proof or a gate that accepts coverage, then dispatch. Groomed 2026-11-25: coverage-only, not a fix. The decoder is already correct — js/shell.mjs uses one TextDecoder {stream:1} per run and flushes on close; a probe feeding `caf` + 0xc3 then 0xa9 + `\\n` returns `café\\n`. Close or re-label with a gate that accepts coverage. (The p50 brief once described this row; that was a mix-up.)",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "8f3eabee"
     },
     {
       "id": "p66",
@@ -142,7 +200,7 @@
     {
       "id": "p55",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "a `\\c` followed by a blank line: groff joins to the next text line, we make a paragraph break",
       "files": [
         "js/man-parse.mjs",
@@ -151,7 +209,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Re-opened 2026-11-25: groff -Tutf8 -man joins `.BR load | \\c`, one blank line, then `reload` as `load| reload`; bred breaks the paragraph (`load|\\nreload`). The earlier not-a-bug verdict probed `.B x\\c` + blank + `y`, which differs. Red test `macros :: a c join survives a blank line`, with a guard that two blank lines still break. control.blank must not drop a pending joinNext."
+      "notes": "Re-opened 2026-11-25: groff -Tutf8 -man joins `.BR load | \\c`, one blank line, then `reload` as `load| reload`; bred breaks the paragraph (`load|\\nreload`). The earlier not-a-bug verdict probed `.B x\\c` + blank + `y`, which differs. Red test `macros :: a c join survives a blank line`, with a guard that two blank lines still break. control.blank must not drop a pending joinNext. Absorbed by b4 in round 62; marked done with b4's hash.",
+      "doneHash": "f6b63ada"
     },
     {
       "id": "p56",
@@ -197,14 +256,16 @@
     {
       "id": "p34",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "`\\v(`-delimited arguments are read as a 2-char name (no corpus use found)",
       "files": [
-        "js/man-parse.mjs"
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "notes": "Groomed 2026-11-25: `\\v` has no paren delimiter in groff. `a\\v(2b` makes troff warn `cannot use character '(' as a starting delimiter` and print `a2b`; `a\\v(12b` prints `a12b`. bred reads `(` as a two-character name and drops the rest (`a`). Red test `escapes :: a v escape has no paren form and prints its text` (asText == 'a2b\\n'). The valid forms (`\\v'2'`, `\\v[2]`) are a separate, smaller difference (groff's terminal motion draws a break) and stay out of this row."
     },
     {
       "id": "p45",
@@ -648,7 +709,7 @@
     {
       "id": "p73",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "toText ignores space blocks, so .sp/blank lines are invisible to asText while man-render draws them; measurement-neutral (normal() collapses), pre-existing",
       "files": [
         "js/man-parse.mjs",
@@ -657,7 +718,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Groomed 2026-11-25: `one`, `.sp`, `two` — groff prints a blank line between; bred's parser emits a `space` block but toText has no branch for it (`one\\ntwo`). Red test `paragraphs :: toText draws a blank line for a space block` (asText == 'one\\n\\ntwo\\n'). `.sp 2` still yields one block."
+      "notes": "Groomed 2026-11-25: `one`, `.sp`, `two` — groff prints a blank line between; bred's parser emits a `space` block but toText has no branch for it (`one\\ntwo`). Red test `paragraphs :: toText draws a blank line for a space block` (asText == 'one\\n\\ntwo\\n'). `.sp 2` still yields one block. Absorbed by b4 in round 62; marked done with b4's hash.",
+      "doneHash": "f6b63ada"
     },
     {
       "id": "p74",
@@ -1382,7 +1444,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "ready",
+      "status": "done",
       "title": "a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs)",
       "files": [
         "ext/code/code.mjs",
@@ -1390,7 +1452,8 @@
         "test/code-prompt-e2e.mjs"
       ],
       "proof": "npx mocha --exit test/code-prompt-e2e.mjs --grep finished",
-      "notes": "Groomed 2026-11-25, two red tests (base red confirmed, one e2e file only): `finished :: a finished part rewrites a plain text element` (Ui.appendMsg returns early for a plain .code-msg-text with no partEds or markdown ed) and `finished :: a text part seen after its step ended still renders` (handlePart gates text on stepActiveSessions). Fix both halves: re-render the ended text part (route the full text through finalizeText when an ed exists) and stop gating a finished text part on the active step."
+      "notes": "Groomed 2026-11-25, two red tests (base red confirmed, one e2e file only): `finished :: a finished part rewrites a plain text element` (Ui.appendMsg returns early for a plain .code-msg-text with no partEds or markdown ed) and `finished :: a text part seen after its step ended still renders` (handlePart gates text on stepActiveSessions). Fix both halves: re-render the ended text part (route the full text through finalizeText when an ed exists) and stop gating a finished text part on the active step.",
+      "doneHash": "596bc1a7"
     },
     {
       "id": "p119",
@@ -1647,28 +1710,27 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "done",
       "title": "a no-output request that defines or removes still swallows a pending \\c join (p54 covered only .ft)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Groomed 2026-11-25, residual of p54: `.BR load | \\c` + `.ds X y` + `reload` — groff prints `load|reload`; bred prints `load| reload`. Also red for .nr and .rm (the same textOut==0 branch covers .rn/.rr/.als/.ev). Red test `macros :: a c join survives a request that only defines or removes`. Widen the restore of joinNext to any request that printed nothing and left the line unbroken; the .PP/.RS/.sp/.br cases must still break."
+      "notes": "Groomed 2026-11-25, residual of p54: `.BR load | \\c` + `.ds X y` + `reload` — groff prints `load|reload`; bred prints `load| reload`. Also red for .nr and .rm (the same textOut==0 branch covers .rn/.rr/.als/.ev). Red test `macros :: a c join survives a request that only defines or removes`. Widen the restore of joinNext to any request that printed nothing and left the line unbroken; the .PP/.RS/.sp/.br cases must still break. Absorbed by b4 in round 62; marked done with b4's hash.",
+      "doneHash": "f6b63ada"
     },
     {
       "id": "p127",
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "next",
-      "title": "mdoc body text after .Sh is bold here and roman in groff (mdocHeading leaves c.font bold)",
-      "files": [
-        "js/man-parse.mjs",
-        "test/man-parse.mjs"
-      ],
+      "status": "done",
+      "title": "verdict: mdoc body text after .Sh is already roman (mdocHeading does restore c.font); not reproducible at 8f3eabee",
+      "files": [],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Found while grooming p119 on 2026-11-25: `.Sh NAME` followed by a plain text line renders bold in mdoc mode; groff -Tutf8 -mdoc prints it roman. mdocHeading does not restore c.font. Needs a red test first: after parsing, the text span's style is roman."
+      "notes": "Found while grooming p119 on 2026-11-25: `.Sh NAME` followed by a plain text line renders bold in mdoc mode; groff -Tutf8 -mdoc prints it roman. mdocHeading does not restore c.font. Needs a red test first: after parsing, the text span's style is roman. RE-CHECKED 2026-11-25 at 8f3eabee: not reproducible. `.TH T 1` + `.Sh NAME` + `plain body text` parses to one roman span; groff -Tutf8 -mdoc prints the same text roman. Verdict queued for the next record commit, not a lane.",
+      "doneHash": "8f3eabee"
     },
     {
       "id": "l2",

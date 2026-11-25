@@ -859,7 +859,7 @@
     {
       "id": "p89",
       "lane": "a1",
-      "status": "next",
+      "status": "triage",
       "title": "\\[char0] is accepted by groff (a NUL byte) but refused here",
       "files": [
         "js/man-char.mjs",
@@ -867,7 +867,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "triage",
+      "notes": "Verdict 2026-11-25: not fixed. groff prints a NUL byte for \\[char0]; the text model has no NUL (the \\N 0 decision of rounds 33-35 refuses it, pinned by test/man-parse.mjs \"a bracketed N argument is decimal digits only\" and \"an N argument is not a JavaScript number\"). char0 stays refused for the same reason; char256 and above now print nothing like groff."
     },
     {
       "id": "p90",
@@ -1575,6 +1576,22 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Absorbs p45 (.nr x +N/-N is relative) and p120 (.nr X with no value leaves it undefined). One commit, each item keeps its own test, both are marked done with this row's hash. The read-creates half of p120 stays refused: an unknown register outside a condition is a typo the policy refuses.",
       "doneHash": "07e195dd"
+    },
+    {
+      "id": "b2",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "ready",
+      "source": "lane",
+      "title": "batch: the character forms (p94, p95)",
+      "files": [
+        "js/man-char.mjs",
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Absorbs p94 (\\N[ 65] skips leading spaces inside the bracket) and p95 (\\[charN] is a glyph lookup: 0..255 exists, above it prints nothing instead of a Unicode code point). p89 (\\[char0]) is a triage, not part of this: groff prints a NUL byte, and the model refuses NUL by the decision rounds 33-35 pinned for \\N 0."
     }
   ],
   "measures": {

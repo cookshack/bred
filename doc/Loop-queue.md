@@ -30,6 +30,12 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | area | lane | status | title | files |
+|----|------|------|--------|-------|-------|
+| b2 | man | a1 | ready | batch: the character forms (p94, p95) | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
+
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -47,7 +53,6 @@ before.
 | p77 | man | a1 | next | the parser maps the \t escape and a literal tab to the same character, erasing groff's zero-width vs tab-stop distinction; man-diff works around it | js/man-parse.mjs, test/man-parse.mjs |
 | p79 | man | a1 | next | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
 | p83 | man | a1 | next | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
-| p89 | man | a1 | next | \[char0] is accepted by groff (a NUL byte) but refused here | js/man-char.mjs, test/man-parse.mjs |
 | p90 | man | a1 | next | groff -Tutf8 -man renders \- as U+2212 MINUS SIGN while -mdoc prints ASCII; bred prints ASCII. p30's note was mdoc-only; needs evidence and a decision | js/man-char.mjs, test/man-parse.mjs |
 | p94 | man | a1 | next | groff accepts \N[ 65] with a leading space; bred refuses it under the decimal-only rule | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
 | p95 | man | a1 | next | groff's \[charN] is a glyph/table lookup, not a bare code point: char57344 warns and prints nothing, bred returns U+E000; char65/233/200 agree | js/man-char.mjs, test/man-parse.mjs |
@@ -68,6 +73,7 @@ before.
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
 | p59 | man | a1 | triage | a man page with no `.TH` loads no macro package in groff: man(1) drops the `.SH` headings and prints U+2010; we render headings (pcre2demo(3)) — refuse or mimic? | js/man-parse.mjs |
+| p89 | man | a1 | triage | \[char0] is accepted by groff (a NUL byte) but refused here | js/man-char.mjs, test/man-parse.mjs |
 | p109 | man | a1 | triage | thumbpdf(1) loses 1 word: Â© (a char/encoding mismatch) | js/man-char.mjs, test/man-parse.mjs |
 | p124 | man | a1 | triage | copy mode still reduces \. to "."; a body line starting with \. becomes an unknown request and refuses the page where groff prints nothing | js/man-parse.mjs, test/man-parse.mjs |
 | c11 | code | a3 | triage | session.synthetic is dropped; the reference client inserts a synthetic transcript item with text and description | ext/code/event.mjs, ext/code/code.mjs, test/code-events.mjs |

@@ -274,12 +274,19 @@ function unicodeCode
 // and refuses `char0x41`, `char+65`, `char065` and `char1e2`.
 function charDecimal
 (name) {
-  let digits
+  let digits, n
 
   digits = name.slice(4)
-  if (/^(0|[1-9][0-9]*)$/.test(digits))
-    return charByNumber(digits)
-  return 0
+  if (/^(0|[1-9][0-9]*)$/.test(digits) == 0)
+    return 0
+  n = Number(digits)
+  // `\[charN]` is a glyph lookup in the output encoding, not a bare code
+  // point: 0..255 exists, anything above prints nothing (groff warns) rather
+  // than a Unicode character. The empty string is "known, no glyph", which the
+  // callers distinguish from 0 ("unknown").
+  if (n > 255)
+    return ''
+  return charByNumber(n)
 }
 
 export
@@ -288,11 +295,11 @@ function charOfBracket
   let ch
 
   ch = charOf(name)
-  if (ch)
+  if (typeof ch == 'string')
     return ch
   if (name.startsWith('u'))
-    ch = unicodeCode(name)
-  else if (name.startsWith('char'))
-    ch = charDecimal(name)
-  return ch || 0
+    return unicodeCode(name)
+  if (name.startsWith('char'))
+    return charDecimal(name)
+  return 0
 }

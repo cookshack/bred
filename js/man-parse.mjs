@@ -540,9 +540,9 @@ function expand
         name = text.slice(at, end)
         at = end + 1
         value = Char.charOfBracket(name)
-        if (value == 0)
+        if (typeof value == 'number')
           fail(c, lineNo, 'character \\[' + name + ']', 'unknown')
-        else
+        else if (value.length > 0)
           pushSpan(spans, { text: trans(c, value), style: cur })
         continue
       }
@@ -633,11 +633,12 @@ function expand
         // `\N` takes a bracket, a quote or a bare delimiter: groff prints A for
         // `\N[65]`, `\N'65'` and `\N"65"` alike. `unquote` strips a repeated
         // delimiter, so the bracket pair is removed here first.
-        num = (arg[0] == '[') ? arg.slice(1, -1) : unquote(arg)
+        // groff skips leading spaces inside the bracket form: `\N[ 65]` is A.
+        num = (arg[0] == '[') ? arg.slice(1, -1).replace(/^[ \t]+/, '') : unquote(arg)
         value = Char.charNumber(num)
-        if (value == 0)
+        if (typeof value == 'number')
           fail(c, lineNo, 'character \\N' + num + "'", 'unknown')
-        else
+        else if (value.length > 0)
           pushSpan(spans, { text: value, style: cur })
         at = end
         continue

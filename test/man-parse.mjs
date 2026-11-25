@@ -433,6 +433,28 @@ test('conditions', 'if n is true and if t is false',
        equal(asText('.TH T 1\n.if n yes\n.if t no\n'), 'yes\n')
      })
 
+test('characters', 'N skips leading spaces in a bracket argument',
+     () => {
+       equal(flat(parsed('.TH T 1\nA\\N[ 65]B\n').doc.blocks[0].spans), 'AAB')
+       equal(flat(parsed('.TH T 1\nA\\N[  65]B\n').doc.blocks[0].spans), 'AAB')
+     })
+
+test('characters', 'charN is a glyph lookup, not a bare code point',
+     () => {
+       let r
+
+       equal(flat(parsed('.TH T 1\nC\\[char65]D\n').doc.blocks[0].spans), 'CAD')
+       equal(flat(parsed('.TH T 1\nC\\[char255]D\n').doc.blocks[0].spans), 'C\u00ffD')
+       // Above the Latin-1 glyph range groff warns and draws nothing; char0
+       // is NUL, which the model refuses (see the NUL tests below).
+       r = parsed('.TH T 1\nE\\[char256]F\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'EF')
+       r = parsed('.TH T 1\nE\\[char57344]F\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'EF')
+     })
+
 test('registers', 'nr adds and subtracts a leading sign',
      () => {
        equal(flat(parsed('.TH T 1\n.nr X 5\n.nr X +2\n\\nX\n').doc.blocks[0].spans), '7')

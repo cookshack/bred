@@ -1895,6 +1895,37 @@
       "proof": "sh -c '! grep -qE \"^(pages +16|words +147)\" doc/Man.md'",
       "notes": "Found 2026-11-25 by the scheduler at 7f993835 while reading doc/Man.md for a man round. The file is the man area's tracked scoreboard and its protocol half (Policy, Pipeline, Modules, Changing it) is current, but the numbers are not. Measured at 9c9e1b12: sections 1, 3, 5, 7 and 8 all print `0 pages`/`0 words` from bin/man-diff --max 0; doc/Man.md:317-319 still prints `pages 16 0 0 2 2` / `words 147 0 0 7 9`, and :336-339 still names ps(1) 103, ttf2tfm(1) 10, tbl/gtbl 7, ttf2pk 5, hg 2, man 2, editline 5, dmsetup 7, dmstats 2. The round history also stops at round 50 (round 47's own paragraph still says section 1 is thumbpdf + tload). Rounds 51-64 closed the tail: p109 folded thumbpdf's mis-encoded byte, so section 1 reached 0 at round 64, and the ps(1) surplus is p75 (9 words, b8) + p131 (9 words, a table-row comment). A reader who trusts the table would re-chase work that is done. Fix: re-measure all five sections at the current tip, replace the table and the page/word enumeration with the measured result, and add the rounds 51-65 paragraphs in the same voice as the existing ones (short, one per round, the number that moved). Do not rewrite Policy/Pipeline/Changing it, and do not change the refusal list without re-running bin/man-audit --parse.",
       "source": "lane"
+    },
+    {
+      "id": "p133",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "\\h( and \\l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \\v(, these two still drop their tail",
+      "lane": "a1",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Found by b7's lane 2026-11-25 at 57a7e95b, after \\v( was fixed (p34). groff -Tutf8 -man on `x a\\h(2b y` prints `x a2b y` and on `x a\\l(2b y` also `x a2b y` (with a warning that '(' cannot start a delimiter); bred prints `x a y` for the first and `x a(2b y` for the second — a different bug each: \\h drops the tail entirely, \\l keeps the paren. \\S( shares skipValue with \\v(, so it improved for free (\\S(2b now prints a2b) but has no test; add one so the fix cannot regress it. Needs a red test before dispatch: file as next, groom then promotes.",
+      "source": "lane"
+    },
+    {
+      "id": "p134",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "a vertical table span puts its text on the right row in the text model but js/man-render.mjs draws the cell above as a separate empty <td>, so the rendered borders differ from groff",
+      "lane": "a2",
+      "files": [
+        "js/man-render.mjs",
+        "css/manpage.css",
+        "test/man-render.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-render.mjs",
+      "notes": "Found by b7's lane 2026-11-25 at 57a7e95b. p79/b7 moved a bottom-anchored spanned cell's text to the last row (toText now matches groff, `tables :: a vertical span puts its text on the bottom row`). The renderer was outside that lane's file set, so it still emits a separate empty <td> on each row above the span instead of one cell spanning the rows: tbl(1)'s own example draws `1111`/`2222` in the left cell and the row rule only under both, while our HTML gives three rows with an empty right-hand cell each. Decide rowspan (a cell model change the renderer consumes) versus dropping an empty continuation cell; the text model already records which cell is a continuation. Needs a red renderer test before dispatch.",
+      "source": "lane"
     }
   ],
   "measures": {

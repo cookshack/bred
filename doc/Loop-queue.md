@@ -61,6 +61,8 @@ before.
 | p129 | man | a1 | next | .sp N loses its count: one space block whatever N is, and man-render draws one gap | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p50 | core | a2 | next | the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |
 | p131 | man | a1 | next | a comment line at table-row level inside .TS/.TE is turned into a data row; tbl ignores it (ps(1) 9 of its surplus tokens, terminfo(5) 5) | js/man-parse.mjs, test/man-parse.mjs |
+| p133 | man | a1 | next | \h( and \l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \v(, these two still drop their tail | js/man-parse.mjs, test/man-parse.mjs |
+| p134 | man | a2 | next | a vertical table span puts its text on the right row in the text model but js/man-render.mjs draws the cell above as a separate empty <td>, so the rendered borders differ from groff | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
 
 ## Triage
 

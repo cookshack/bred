@@ -30,7 +30,9 @@ function make
 
     function look1
     (w) {
-      let kb // eb?
+      let kb, descend // eb?
+
+      descend = 1
 
       if (to.ons) {
       }
@@ -63,33 +65,37 @@ function make
             if (w.e.code == 'Space')
               k = ' '
           }
-          else if (kb && kb.to) {
-            Mess.warn('Control bound to cmd')
-            return 0
+          else {
+            if (kb && kb.to)
+              Mess.warn('Control bound to cmd')
+            descend = 0
           }
-          else
-            return 0
         }
 
-        if (w.e.altKey) {
+        if (w.e.altKey && descend) {
           d('look1  altKey')
           kb = to.ons['Alt']
           if (kb && kb.to && kb.to.ons) {
             d('look1  Alt is a map')
             to = kb.to
           }
-          else if (kb && kb.to) {
-            Mess.warn('Alt bound to cmd')
-            return 0
+          else {
+            if (kb && kb.to)
+              Mess.warn('Alt bound to cmd')
+            descend = 0
           }
-          else
-            return 0
         }
 
-        kb = to.ons[k]
+        if (descend)
+          kb = to.ons[k]
       }
 
-      kb = kb || otherwise
+      // doc/Em.md step 4: a modified key with no Control/Alt submap is a miss,
+      // so it reaches otherwise like any other unbound key.
+      if (descend)
+        kb = kb || otherwise
+      else
+        kb = otherwise
 
       if (kb) {
         if (kb.to) {

@@ -378,6 +378,10 @@ function skipSize
   return i
 }
 
+// `\h` has no paren form: a `(xx` is a two-character name for `\(` only, so
+// `\h(2b` warns "cannot use character '(' as a starting delimiter", reads the
+// paren as the single-character motion and prints `2b` as text. The bracketed
+// and quoted forms are delimited and keep their motion.
 function skipMotion
 (text, i) {
   let open
@@ -385,8 +389,10 @@ function skipMotion
   if (i >= text.length)
     return i
   open = text[i]
-  if ((open == "'") || (open == '"') || (open == '[') || (open == '('))
+  if ((open == "'") || (open == '"') || (open == '['))
     return skipArg(text, i)
+  if (open == '(')
+    return i + 1
   if ((text[i] == '+') || (text[i] == '-'))
     i++
   while ((i < text.length) && /[0-9.]/.test(text[i]))
@@ -715,6 +721,19 @@ function expand
       }
       if ((ch == 'v') || (ch == 'S')) {
         at = skipValue(text, at)
+        continue
+      }
+      if (ch == 'l') {
+        // `\l` draws a line and there is no paren form: `\l(2b` warns "cannot
+        // use character '(' as a starting delimiter", takes the paren as the
+        // single-character length and prints `2b` as text. The quoted and
+        // bracketed forms do draw, and line drawing is not modelled, so they
+        // stay refused rather than becoming silently empty.
+        if (text[at] == '(') {
+          at++
+          continue
+        }
+        fail(c, lineNo, 'escape \\l')
         continue
       }
       if ((ch == 'F') || (ch == 'm') || (ch == 'M') || (ch == 'k')) {

@@ -767,6 +767,43 @@ test('escapes', 'a v escape has no paren form and prints its text',
        equal(asText('.TH T 1\nx a\\v(12b y\n'), 'x a12b y\n')
      })
 
+test('escapes', 'an h escape has no paren form and prints its text',
+     () => {
+       // groff warns "cannot use character '(' as a starting delimiter" and
+       // prints the text after it: `a\h(2b` is a2b, `a\h(12b` is a12b. As for
+       // `\v` (p34), a `(xx` is a two-character name for `\(` only; the paren
+       // is the single-character value, so no motion is drawn.
+       equal(asText('.TH T 1\nx a\\h(2b y\n'), 'x a2b y\n')
+       equal(asText('.TH T 1\nx a\\h(12b y\n'), 'x a12b y\n')
+       equal(asText('.TH T 1\nx a\\h( y\n'), 'x a y\n')
+       // The delimited and bracketed forms keep their motion: a positive
+       // length still separates words.
+       equal(asText(".TH T 1\nx a\\h'2'b y\n"), 'x a b y\n')
+       equal(asText('.TH T 1\nx a\\h[2m]b y\n'), 'x ab y\n')
+     })
+
+test('escapes', 'an l escape has no paren form and prints its text',
+     () => {
+       // `\l` is the line-drawing escape; `\l(2b` cannot use the paren as a
+       // delimiter, so groff warns, takes the paren as the single-character
+       // value and prints `2b` as text: `x a2b y`, and the page still renders.
+       // Drawing is not modelled, so the delimited form, which would draw
+       // `bb`, must stay a refusal rather than becoming silently empty.
+       equal(asText('.TH T 1\nx a\\l(2b y\n'), 'x a2b y\n')
+       equal(asText('.TH T 1\nx a\\l(12b y\n'), 'x a12b y\n')
+       equal(asText('.TH T 1\nx a\\l( y\n'), 'x a y\n')
+       equal(parsed('.TH T 1\nx a\\l(2b y\n').ok, 1)
+       equal(parsed(".TH T 1\nx a\\l'2b' y\n").ok, 0)
+     })
+
+test('escapes', 'a slant escape has no paren form and prints its text',
+     () => {
+       // `\S` shares the `\v` value path, so p34's fix covered it as well:
+       // `a\S(2b` is a2b now, and a later change must not undo that.
+       equal(asText('.TH T 1\nx a\\S(2b y\n'), 'x a2b y\n')
+       equal(asText('.TH T 1\nx a\\S( y\n'), 'x a y\n')
+     })
+
 test('escapes', 'a continued line glues to the macro after it',
      () => {
        equal(asText('.TH T 1\n.I file\\c\n.RB [ .dvi ]\n'), 'file[.dvi]\n')

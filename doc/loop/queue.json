@@ -1088,14 +1088,14 @@
     },
     {
       "id": "p106",
-      "lane": "a2",
+      "lane": "a3",
       "status": "ready",
-      "title": "rpcgen(1) loses 1 word: 0a",
+      "title": "rpcgen(1)'s 0a is a footer page-string, not content: man-diff's isFooter must drop a right-aligned multi-page token (/^\\s{10,}[0-9]+[a-z]$/)",
       "files": [
-        "js/man-parse.mjs",
-        "test/man-parse.mjs"
+        "bin/man-diff",
+        "test/man-diff.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs",
+      "proof": "npx mocha --exit test/man-diff.mjs",
       "area": "man",
       "type": "fix"
     },
@@ -1334,7 +1334,7 @@
       "area": "code",
       "lane": "a1",
       "type": "fix",
-      "status": "next",
+      "status": "done",
       "title": "session.reasoning.ended has the same authoritative text as text.ended and is still dropped; translate it the same way",
       "files": [
         "ext/code/event.mjs",
@@ -1342,7 +1342,8 @@
         "test/code-conformance.mjs",
         "test/fixtures/oc-events/*"
       ],
-      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs"
+      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs",
+      "doneHash": "f26a1d0"
     },
     {
       "id": "c6",
@@ -1365,6 +1366,46 @@
       "type": "fix",
       "status": "next",
       "title": "a bar ends the argument list of other multi-argument macros (Ar, Cm, Ic, Pa, …), so words after it lose the macro font; style only, each needs its own evidence",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "c7",
+      "area": "code",
+      "lane": "a2",
+      "type": "fix",
+      "status": "next",
+      "title": "the reasoning handler reads only event.properties.delta, so c5's translated part.text does not repair a truncated thinking block; reconcile it like text parts",
+      "files": [
+        "ext/code/code.mjs",
+        "ext/code/ui.mjs",
+        "test/code-prompt-e2e.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-prompt-e2e.mjs"
+    },
+    {
+      "id": "p120",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": "a valueless .nr X sets it to 0 here; groff leaves it undefined and reading \\nX creates it (two register divergences, no corpus effect)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "p121",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "next",
+      "title": ".if r X with a space is refused; groff accepts both spellings (zero occurrences, but an-old.tmac uses it)",
       "files": [
         "js/man-parse.mjs",
         "test/man-parse.mjs"

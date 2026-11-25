@@ -360,11 +360,41 @@ function breakTokens
   return out
 }
 
+// hg(1) writes `\fP\:)`: the break point sits immediately before a closing
+// paren. The token before it is not distinctive enough to join on (a line
+// ending "incoming" is common), so this set is only used when the *next*
+// rendered line starts with `)`, which is the shape the break leaves.
+function parenTokens
+(src) {
+  let out, re, m
+
+  out = new Set()
+  re = /\\:/g
+  src = src.split('\n').filter(line => /^\.\\"/.test(line) == 0).join('\n')
+  while ((m = re.exec(src)) != undefined) {
+    if (src[m.index + 2] == ')') {
+      let at, text
+
+      at = m.index
+      while ((at > 0) && (/\s/.test(src[at - 1]) == 0))
+        at--
+      text = src.slice(at, m.index).replace(/\\[:&%\/|]/g, '')
+                 .replace(/\\-/g, '-')
+                 .replace(/\\f(\[[^]]*\]|.)/g, '')
+                 .replace(/\\ /g, ' ')
+      text = text.trim().split(' ').pop()
+      if (text.length > 1)
+        out.add(text)
+    }
+  }
+  return out
+}
+
 // A `\:` at the end of a paragraph never breaks, so the following rendered
 // line is a new paragraph, not the rest of the word: a blank line between the
 // two is the tell (hg(1)'s "http://pygments.org/" is followed by "There").
 function joinBreaks
-(lines, breaks) {
+(lines, breaks, parens) {
   let out
 
   out = []
@@ -375,6 +405,11 @@ function joinBreaks
                 last = out[out.length - 1]
                 if ((last != undefined) && line.length &&
                     breakOf(last, breaks).length) {
+                  out[out.length - 1] = last + line
+                  return
+                }
+                if ((last != undefined) && line.startsWith(')') &&
+                    parens.has(last.split(' ').pop())) {
                   out[out.length - 1] = last + line
                   return
                 }
@@ -609,7 +644,7 @@ function referenceText
     lines.pop()
   spaced = spacedHyphens(src)
   spacedDashes(src).forEach(pair => spaced.add(pair))
-  joined = joinHyphens(joinBreaks(joinCells(lines), breakTokens(src)), spaced)
+  joined = joinHyphens(joinBreaks(joinCells(lines), breakTokens(src), parenTokens(src)), spaced)
   out = normal(joined.lines.join('\n'))
   return { text: out, glued: joined.glued }
 }

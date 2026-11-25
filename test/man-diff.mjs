@@ -242,6 +242,20 @@ test('man-diff', 'a spaced em dash at a line end stays its own token',
        equal(lost, 0)
      })
 
+// hg(1) writes `\fP\:)`: the source marks a break point immediately before a
+// closing paren, man(1) breaks the line there, and the rendered `)` must join
+// the word before it rather than count as a lost word of its own.
+test('man-diff', 'a break point before a closing paren joins the word',
+     function
+     () {
+       let lost
+
+       lost = lostOn('/usr/share/man/man1/hg.1.gz')
+       if (lost == undefined)
+         return this.skip()
+       equal(lost, 0)
+     })
+
 Object.entries(tests).forEach(group => globalThis.describe(group[0],
                                                            () => group[1].forEach(t => globalThis.it(t.name,
                                                                                                      t.cb))))

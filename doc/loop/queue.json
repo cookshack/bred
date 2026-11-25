@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 54,
-    "main": "07e195dd"
+    "round": 55,
+    "main": "091f8e5b"
   },
   "items": [
     {
@@ -929,7 +929,7 @@
     {
       "id": "p94",
       "lane": "a1",
-      "status": "next",
+      "status": "done",
       "title": "groff accepts \\N[ 65] with a leading space; bred refuses it under the decimal-only rule",
       "files": [
         "js/man-char.mjs",
@@ -938,12 +938,13 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "091f8e5b"
     },
     {
       "id": "p95",
       "lane": "a1",
-      "status": "next",
+      "status": "done",
       "title": "groff's \\[charN] is a glyph/table lookup, not a bare code point: char57344 warns and prints nothing, bred returns U+E000; char65/233/200 agree",
       "files": [
         "js/man-char.mjs",
@@ -951,7 +952,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "doneHash": "091f8e5b"
     },
     {
       "id": "p96",
@@ -1582,7 +1584,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "ready",
+      "status": "done",
       "source": "lane",
       "title": "batch: the character forms (p94, p95)",
       "files": [
@@ -1591,7 +1593,8 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Absorbs p94 (\\N[ 65] skips leading spaces inside the bracket) and p95 (\\[charN] is a glyph lookup: 0..255 exists, above it prints nothing instead of a Unicode code point). p89 (\\[char0]) is a triage, not part of this: groff prints a NUL byte, and the model refuses NUL by the decision rounds 33-35 pinned for \\N 0."
+      "notes": "Absorbs p94 (\\N[ 65] skips leading spaces inside the bracket) and p95 (\\[charN] is a glyph lookup: 0..255 exists, above it prints nothing instead of a Unicode code point). p89 (\\[char0]) is a triage, not part of this: groff prints a NUL byte, and the model refuses NUL by the decision rounds 33-35 pinned for \\N 0.",
+      "doneHash": "091f8e5b"
     }
   ],
   "measures": {

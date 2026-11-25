@@ -30,12 +30,6 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
-## Ready
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| b2 | man | a1 | ready | batch: the character forms (p94, p95) | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -54,8 +48,6 @@ before.
 | p79 | man | a1 | next | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
 | p83 | man | a1 | next | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |
 | p90 | man | a1 | next | groff -Tutf8 -man renders \- as U+2212 MINUS SIGN while -mdoc prints ASCII; bred prints ASCII. p30's note was mdoc-only; needs evidence and a decision | js/man-char.mjs, test/man-parse.mjs |
-| p94 | man | a1 | next | groff accepts \N[ 65] with a leading space; bred refuses it under the decimal-only rule | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
-| p95 | man | a1 | next | groff's \[charN] is a glyph/table lookup, not a bare code point: char57344 warns and prints nothing, bred returns U+E000; char65/233/200 agree | js/man-char.mjs, test/man-parse.mjs |
 | p98 | man | a1 | next | a \c before a macro whose body prints nothing (or before .ft/.ll) is still lost; the broad fix also glues across .PP/.RS/.sp, which needs a multi-macro sweep before changing | js/man-parse.mjs, test/man-parse.mjs |
 | p101 | man | a1 | next | a single-backslash body (\$1) is expanded at definition time in groff, not call time | js/man-parse.mjs, test/man-parse.mjs |
 | p102 | man | a1 | next | an unknown escape is printed by groff (\Z -> Z) and refused here; the new copy round can expose it, so watch refusal counts | js/man-parse.mjs, test/man-parse.mjs |
@@ -143,6 +135,8 @@ before.
 | p91 | man | a1 | done:1219a56 | the \N[65] bracket form is unsupported (groff prints A); unquote only strips a matching first/last delimiter, so \N[65] refuses | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
 | p92 | man | a1 | done:e7b1a52 | an unpaired surrogate code point (\N'55296') is accepted as a JS string; groff emits invalid UTF-8; refuse surrogates as out of range | js/man-char.mjs, test/man-parse.mjs |
 | p93 | man | a1 | done:50a83a6 | verdict: \N expression forms (65+1, 2*3, 1.5, leading space) stay refused by design; p88 measured groff's NUL-plus-tail output and the corpus has only plain decimals | js/man-parse.mjs, test/man-parse.mjs |
+| p94 | man | a1 | done:091f8e5b | groff accepts \N[ 65] with a leading space; bred refuses it under the decimal-only rule | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
+| p95 | man | a1 | done:091f8e5b | groff's \[charN] is a glyph/table lookup, not a bare code point: char57344 warns and prints nothing, bred returns U+E000; char65/233/200 agree | js/man-char.mjs, test/man-parse.mjs |
 | p96 | man | a1 | done:7183a0e | ttf2tfm(1) loses 10 words: a \c at the end of a text line whose next line is a .C macro call keeps the backtick glued to the macro text; groff joins them and we insert a space | js/man-parse.mjs, test/man-parse.mjs |
 | p97 | man | a1 | done:d21a9d5 | four backslashes in a macro argument need two reduction rounds (copy mode then interpretation); we apply one, so c:\\fonts\\truetype keeps doubles: ttf2tfm's last two words | js/man-parse.mjs, test/man-parse.mjs |
 | p99 | man | a1 | done:7032014 | built-in man requests (B, BR, SH, SS, SY, IP, OP) get one round here and two in groff, which implements them as tmac macros; .B a\\\\b is a\\b in groff and a\\b here | js/man-parse.mjs, test/man-parse.mjs |
@@ -171,5 +165,6 @@ before.
 | p125 | man | a1 | done:eac2c89c | dmsetup(8) splits load\|reload into two words around a .BR line ending in \c | js/man-parse.mjs, test/man-parse.mjs, test/man-diff.mjs |
 | l1 | tooling | a3 | done:9e2a821f | the loop has no clock it can enforce: put start/deadline/stopNew in the tracked queue, print the budget in status, and refuse a round after stopNew | bin/loop-clock.mjs, bin/loop.mjs, test/loop-clock.mjs, test/loop.mjs, doc/Loop.md, doc/Loop-prompt.md |
 | b1 | man | a1 | done:07e195dd | batch: the man tail's register claims (p45, p120) | js/man-parse.mjs, test/man-parse.mjs |
+| b2 | man | a1 | done:091f8e5b | batch: the character forms (p94, p95) | js/man-char.mjs, js/man-parse.mjs, test/man-parse.mjs |
 
 <!-- /loop:queue -->

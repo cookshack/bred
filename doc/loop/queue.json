@@ -1254,6 +1254,22 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs"
+    },
+    {
+      "id": "g1",
+      "area": "code",
+      "lane": "a1",
+      "type": "infra",
+      "status": "ready",
+      "title": "second area: a recorder of real v2 event streams and a conformance measure over translate() (translated / dropped / malformed), plus one committed fixture",
+      "files": [
+        "bin/oc-record.mjs",
+        "bin/oc-conformance.mjs",
+        "test/code-conformance.mjs",
+        "test/fixtures/oc-events/*",
+        "ext/code/event.mjs"
+      ],
+      "proof": "npx mocha --exit test/code-conformance.mjs"
     }
   ],
   "measures": {

@@ -30,6 +30,12 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | area | lane | status | title | files |
+|----|------|------|--------|-------|-------|
+| g1 | code | a1 | ready | second area: a recorder of real v2 event streams and a conformance measure over translate() (translated / dropped / malformed), plus one committed fixture | bin/oc-record.mjs, bin/oc-conformance.mjs, test/code-conformance.mjs, test/fixtures/oc-events/*, ext/code/event.mjs |
+
 ## Backlog
 
 | id | area | lane | status | title | files |

@@ -34,6 +34,7 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| b8 | man | a1 | ready | batch: a cell request and a dot-only line (p75, p128) | js/man-parse.mjs, test/man-parse.mjs |
 | p128 | man | a1 | ready | a `.`-only line with no pending `\c` adds a space block; groff draws no gap | js/man-parse.mjs, test/man-parse.mjs |
 | p75 | man | a1 | ready | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
 | p76 | man | a1 | ready | in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them | js/man-parse.mjs, test/man-parse.mjs |
@@ -55,7 +56,6 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
-| b8 | man | a1 | next | batch: a cell request, a dot-only line, and quoted arguments (p75, p128, p130) | js/man-parse.mjs, test/man-parse.mjs |
 | b6 | man | a1 | next | batch: escapes and synopsis spacing (p102, p76, p77) | js/man-parse.mjs, test/man-parse.mjs |
 | p129 | man | a1 | next | .sp N loses its count: one space block whatever N is, and man-render draws one gap | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p50 | core | a2 | next | the peer-push test was reverted from main (b0b0afd; its commit fbdef92 is in main history). Both tests fail in the full suite (v1 !== v1X) while standing alone and under bounded c8 they pass; the first deliverable is a proof that fails at base, not only in suite order — until then the red gate parks it. Patch: $LOOP/p50-crash/a2-wip.patch | test/wode-view-e2e.mjs, js/wode*.mjs, js/view.mjs |

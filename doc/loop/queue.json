@@ -2257,6 +2257,21 @@
       "proof": "npx mocha --exit test/em-seq-space.mjs test/em.mjs test/em-seq-minor.mjs",
       "notes": "Found by p141's lane 2026-11-25 at c209cac5, as a pre-existing isolation defect it did not cause. `test/em.mjs` registers bindings on the shared `Em.root` and assumes it starts pristine, so running it after test/em-seq-minor.mjs / test/em-seq-space.mjs in one process fails its Em.seq/Em.look/Em.replace cases: base `test/em-seq-space.mjs test/em.mjs test/em-seq-minor.mjs` is 11 failing, at p141's tip 9 (p141 removed the two space ones). Each file alone is green, and `test/em-seq-minor.mjs test/em.mjs` is 60 passing. The whole suite is green today only because of file order; a reordering or a new em test file can surface it. Fix by giving em.mjs its own map (`Em.make()`) or by restoring Em.root between files, whichever the module already supports — do not change Em itself. Red proof is the three-file command above, so the row is ready.",
       "source": "lane"
+    },
+    {
+      "id": "p154",
+      "area": "core",
+      "status": "next",
+      "type": "fix",
+      "title": "Cmd.getMo's parentsForEm walk is commented out, so runMo never inherits a parent mode's commands",
+      "lane": "a3",
+      "files": [
+        "js/cmd.mjs",
+        "test/cmd-minors.mjs"
+      ],
+      "proof": "npx mocha --exit test/cmd.mjs",
+      "notes": "Found by p142's lane 2026-11-25 at e8ffce9e. js/cmd.mjs:69-77 has the `parentsForEm` walk commented out in `getMo`, so a mode's commands are looked up only in its own map and never in its parent modes' maps; `runMo` therefore cannot reach a parent's command. Em's stack does walk parents (`parentEms`), so this is the same kind of split p142 fixed between get and getAll, one level up. Read doc/Em.md's `parentsForEm` contract and doc/Dependencies.md before deciding whether reinstating the walk is safe: the comment may record a reason (a cycle, or a duplicate-command shadowing problem) and that must be answered, not deleted. Needs a red test that binds a command only in a parent mode and looks it up through the child, so next.",
+      "source": "lane"
     }
   ],
   "measures": {

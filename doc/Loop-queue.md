@@ -63,6 +63,7 @@ before.
 | p151 | man | a2 | next | a `\^`-only table row is a continuation of the row above but the model marks both its cells `cont` with the bar folded on, so a renderer that honours cont would draw a spare empty row | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p152 | man | a2 | next | tableFit builds a cell even when a row has fewer data cells than ncols, so rows can be short and tableCellAt can return undefined; a renderer that assumes a full grid throws | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 | p153 | core | a3 | next | test/em.mjs assumes a pristine Em.root, so it fails after em-seq-*.mjs in one mocha process (base: 11 failing, each file alone green) | test/em.mjs |
+| p154 | core | a3 | next | Cmd.getMo's parentsForEm walk is commented out, so runMo never inherits a parent mode's commands | js/cmd.mjs, test/cmd-minors.mjs |
 
 ## Triage
 

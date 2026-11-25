@@ -1557,6 +1557,21 @@
       "source": "triage",
       "notes": "The 2026-11-25 11:51Z run stopped at 12:28 having set a 15:06 stopNew and never read the clock again: the stop condition lived in prose and in an untracked file nothing parsed. The clock moves to doc/loop/queue.json run (tracked, so a fresh session inherits it), bin/loop-clock.mjs holds the pure budget/canStart logic, status prints it, and round refuses after stopNew unless --force. lastRoundMs is recorded so the printed ETA uses a measured round, not a guess.",
       "doneHash": "9e2a821f"
+    },
+    {
+      "id": "b1",
+      "area": "man",
+      "lane": "a1",
+      "type": "fix",
+      "status": "ready",
+      "source": "lane",
+      "title": "batch: the man tail's register claims (p45, p120)",
+      "files": [
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs",
+      "notes": "Absorbs p45 (.nr x +N/-N is relative) and p120 (.nr X with no value leaves it undefined). One commit, each item keeps its own test, both are marked done with this row's hash. The read-creates half of p120 stays refused: an unknown register outside a condition is a typo the policy refuses."
     }
   ],
   "measures": {

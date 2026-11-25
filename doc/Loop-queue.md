@@ -30,6 +30,12 @@ last two hours (not counting the loop's own commits, listed as `own` in
 before.
 
 <!-- loop:queue -->
+## Ready
+
+| id | area | lane | status | title | files |
+|----|------|------|--------|-------|-------|
+| b1 | man | a1 | ready | batch: the man tail's register claims (p45, p120) | js/man-parse.mjs, test/man-parse.mjs |
+
 ## Backlog
 
 | id | area | lane | status | title | files |

@@ -1106,8 +1106,15 @@ test('subagent', 'the sidebar switches which transcript is shown',
          equal(Ui.subagentsList(created.views[0]).querySelectorAll('.assist-subagent:not(.assist-subagent-filter)').length,
                1,
                'the active filter hides a finished lane')
-         created.vars('code').subagentsActive = 0
+
+         // A lane whose status is stale but whose child went idle is finished.
          created.vars('code').subagents.get('ses-child').status = 'running'
+         created.vars('code').subagents.get('ses-child').idle = 1
+         equal(Ui.subagentsList(created.views[0]).querySelectorAll('.assist-subagent:not(.assist-subagent-filter)').length,
+               1,
+               'the active filter hides an idle lane')
+         created.vars('code').subagents.get('ses-child').idle = 0
+         created.vars('code').subagentsActive = 0
 
          row = rowFor('ses-child')
          Cmd.run('code subagent', created, 0, { e: { target: row } })

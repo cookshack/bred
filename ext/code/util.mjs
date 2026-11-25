@@ -244,8 +244,16 @@ function subagentResult
   return out.join('\n')
 }
 
-// The subagents the Assist sidebar lists: all of them, or only the ones still
-// running (a done or failed lane is no longer active).
+// A lane is active while it is running and has not gone idle. A background
+// lane's own session status is the end (its call only launched it), so an idle
+// flag is terminal even when the call's result never arrived.
+export
+function isSubagentActive
+(sub) {
+  return (sub?.status == 'running') && ((sub.idle || 0) == 0) ? 1 : 0
+}
+
+// The subagents the Assist sidebar lists: all of them, or only the active ones.
 export
 function subagentsShown
 (subs, active) {
@@ -254,7 +262,7 @@ function subagentsShown
   out = []
   if (subs)
     subs.forEach(sub => {
-                   if ((active == 0) || (sub.status == 'running'))
+                   if ((active == 0) || isSubagentActive(sub))
                      out.push(sub)
                  })
   return out

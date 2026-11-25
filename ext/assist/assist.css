@@ -149,7 +149,13 @@ div.assist-uri {
   color: var(--clr-emph);
 }
 
+.assist-mode-subagents-h {
+  display: flex;
+  align-items: baseline;
+}
+
 .assist-mode-subagents-filter {
+  margin-left: auto;
   cursor: pointer;
   opacity: 0.5;
 }

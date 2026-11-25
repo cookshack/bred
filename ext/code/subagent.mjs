@@ -136,7 +136,9 @@ function finish
 export
 function ended
 (sub) {
-  return (sub.background && sub.callDone && sub.idle) ? 1 : 0
+  // Idle is the end. Waiting for the call's result as well leaves a lane that
+  // finished before (or without) its launch result stuck as running for ever.
+  return (sub.background && sub.idle) ? 1 : 0
 }
 
 // The child session's own status: the only end a background lane has. Returns 1
@@ -151,8 +153,10 @@ function childStatus
     return 0
   if (type == 'busy')
     sub.busy = 1
-  else if (type == 'idle')
+  else if (type == 'idle') {
     sub.idle = 1
+    sub.busy = 0
+  }
   if (ended(sub) && ((sub.status == 'done') == 0)) {
     sub.status = 'done'
     sub.head = head(sub)

@@ -459,11 +459,14 @@ test('subagent', 'the active filter keeps only running lanes',
 
        subs = new Map([ [ 'a', { status: 'running' } ],
                         [ 'b', { status: 'done' } ],
-                        [ 'c', { status: 'error' } ] ])
-       equal(CodeUtil.subagentsShown(subs, 0).length, 3)
+                        [ 'c', { status: 'error' } ],
+                        [ 'd', { status: 'running', idle: 1 } ] ])
+       equal(CodeUtil.subagentsShown(subs, 0).length, 4)
        equal(CodeUtil.subagentsShown(subs, 1).length, 1)
        equal(CodeUtil.subagentsShown(subs, 1)[0].status, 'running')
        equal(CodeUtil.subagentsShown(undefined, 1).length, 0)
+       equal(CodeUtil.isSubagentActive({ status: 'running', busy: 1 }), 1)
+       equal(CodeUtil.isSubagentActive({ status: 'running', idle: 1 }), 0)
      })
 
 Object.entries(tests).forEach(group => globalThis.describe(group[0],

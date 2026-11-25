@@ -739,6 +739,131 @@ test('finished', 'a text part seen after its step ended still renders',
        }
      })
 
+// Drop the startup placeholder ('Creating session...') so the transcript holds
+// only the part under test; it is a startup line, not part of the turn.
+async function clearStartup
+(created) {
+  await waitFor(() => created.views[0].ele.querySelector('.code-out-main')?.textContent.includes('Creating session') ? 1 : 0)
+  Ui.clearMsgs(created)
+}
+
+// A reconnect can drop a text part's started event, so the first thing seen
+// for it is a delta. Its part id is then 0, which no element owns, and the
+// ended part carries the whole text. Drawing the lost delta as a thinking
+// block leaves a stray block and, once the ended part lands, a second message.
+test('reconnect', 'a text delta with no started part draws no thinking block',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-reconnect', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let msgs
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await clearStartup(created)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-reconnect' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-reconnect', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         // the started event for this part is what the reconnect dropped
+         fake.push(Fake.event('session.text.delta', { sessionID: 'ses-reconnect', assistantMessageID: 'm1', ordinal: 0, delta: 'the dropped start' }))
+         await wait(50)
+         equal(created.views[0].ele.querySelectorAll('.code-msg-thinking').length,
+               0,
+               'a text delta with no part to fill does not draw a thinking block')
+
+         fake.push(Fake.event('session.text.ended', { sessionID: 'ses-reconnect', assistantMessageID: 'm1', ordinal: 0, text: 'the whole answer' }))
+         await waitFor(() => [ ...created.views[0].ele.querySelectorAll('.code-msg-assistant') ].some(el => el.textContent.includes('the whole answer')) ? 1 : 0)
+
+         msgs = [ ...created.views[0].ele.querySelectorAll('.code-msg-assistant') ]
+         equal(msgs.length, 1, 'the ended part is the only assistant message')
+         equal(msgs[0].textContent.includes('the whole answer'),
+               true,
+               'the assistant message holds the whole answer')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
+// A re-render can take away the element a text part's started event drew, so
+// its next delta has no message to append to. The delta has to open the
+// assistant box itself, and the ended part has to finish that same message.
+test('reconnect', 'a text delta with no element opens the assistant box',
+     async () => {
+       let created, fake, orig, panes
+
+       ({ panes } = await setupStart())
+
+       fake = Fake.make({ responses: { 'session.create': { id: 'ses-reconnect-el', time: { created: 1 } },
+                                       'session.update': {},
+                                       'session.switchAgent': {},
+                                       'session.switchModel': {},
+                                       'session.prompt': {} } })
+
+       orig = panes.pB.setBuf.bind(panes.pB)
+       panes.pB.setBuf = (b, spec, cb) => {
+                           if (b?.mode?.key == 'code') {
+                             b.vars('code').client = fake
+                             created = b
+                           }
+                           return orig(b, spec, cb)
+                         }
+
+       try {
+         let msgs
+
+         Cmd.run('code', panes.pB.buf, 0, 0, 'hi')
+         await waitFor(() => created?.views[0]?.ele)
+         await clearStartup(created)
+         fake.push(Fake.event('session.execution.started', { sessionID: 'ses-reconnect-el' }))
+         fake.push(Fake.event('session.step.started', { sessionID: 'ses-reconnect-el', assistantMessageID: 'm1', agent: 'build', model: { id: 'test-model', providerID: 'goat' } }))
+         fake.push(Fake.event('session.text.started', { sessionID: 'ses-reconnect-el', assistantMessageID: 'm1', ordinal: 0 }))
+         await waitFor(() => created.views[0].ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"]'))
+         // the re-render drops the element but the stream keeps the part id
+         Ui.clearMsgs(created)
+         equal(created.views[0].ele.querySelector('.code-msg-assistant[data-partid="m1:text:0"]'),
+               null,
+               'the element is gone before the delta')
+
+         fake.push(Fake.event('session.text.delta', { sessionID: 'ses-reconnect-el', assistantMessageID: 'm1', ordinal: 0, delta: 'the first half' }))
+         await wait(50)
+         equal(created.views[0].ele.querySelectorAll('.code-msg-thinking').length,
+               0,
+               'the delta does not draw a thinking block')
+         equal(created.views[0].ele.querySelectorAll('.code-msg-assistant[data-partid="m1:text:0"]').length,
+               1,
+               'the delta opens the assistant box')
+
+         fake.push(Fake.event('session.text.ended', { sessionID: 'ses-reconnect-el', assistantMessageID: 'm1', ordinal: 0, text: 'the whole answer' }))
+         await waitFor(() => [ ...created.views[0].ele.querySelectorAll('.code-msg-assistant') ].some(el => el.textContent.includes('the whole answer')) ? 1 : 0)
+
+         msgs = [ ...created.views[0].ele.querySelectorAll('.code-msg-assistant') ]
+         equal(msgs.length, 1, 'the ended part finishes the box the delta opened')
+         equal(msgs[0].textContent.includes('the whole answer'),
+               true,
+               'the assistant message holds the whole answer')
+       }
+       finally {
+         panes.pB.setBuf = orig
+       }
+     })
+
 test('thinking', 'a delta does not duplicate a block in the tab that has one',
      () => {
        let buf, dom, one, two

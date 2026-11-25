@@ -1188,6 +1188,13 @@ function handlePartDelta
   if ((field == 'text') && delta && Util.isChildSession(buf, sessionID))
     Subagent.noteDelta(buf, sessionID, delta)
 
+  // A reconnect can drop the started event that names a text part, leaving the
+  // delta with part id 0. No element can own it, and the ended part carries the
+  // whole text, so leave the delta to that rather than drawing a thinking block
+  // (or a second assistant message) for it.
+  if (field == 'text' && (partID || 0) == 0)
+    return
+
   if (field == 'text' && delta) {
     let out, view
 
@@ -1211,17 +1218,18 @@ function handlePartDelta
                                    else if (field == 'text' && msgEl.querySelector('.code-markdown-ed'))
                                      Ui.chunkText(buf, partID, delta)
                                  }
+                                 else if (field == 'text')
+                                   // The element the part's started event would
+                                   // have drawn is gone (a re-render), so the
+                                   // delta opens the assistant text box itself;
+                                   // the ended part then finishes that message.
+                                   Ui.appendMsg(buf, 0, delta, partID, 0, { sessionID })
                                  thinkEl = PartCache.find(cache, box, partID, 'code-msg-thinking', 'think')
                                  if (thinkEl && field == 'text') {
                                    textEl = thinkEl.querySelector('.code-msg-text')
                                    if (textEl)
                                      Ui.withScroll(w, () => textEl.innerText = (textEl.innerText || '') + delta)
                                  }
-                                 else if (field == 'text' && msgEl == null)
-                                   Ui.appendOut({ w, box },
-                                                divCl('code-msg code-msg-thinking',
-                                                      [ divCl('code-msg-text', delta) ],
-                                                      { 'data-partid': partID || 0 }))
                                })
 }
 

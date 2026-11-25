@@ -1074,7 +1074,7 @@
     {
       "id": "p105",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "ssh-agent(1) loses 2 words: the synopsis -s] bracket",
       "files": [
         "js/man-parse.mjs",

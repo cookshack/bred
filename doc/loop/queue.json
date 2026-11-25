@@ -2208,6 +2208,40 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Found by p133's groom helper 2026-11-25; three escapes of the same paren class, so one row. groff -Tutf8 -man: `x a\\Z(2b y` prints `x a2b y` with no warning (the `(` is the ignored single-character argument, like `\\v(`/`\\S(`); `x a\\b(2b y` prints `x ab`; `x a\\D(2b y` prints just `x a` (the paren consumes the rest of the argument). bred refuses all three (`escape \\Z`/`\\b`/`\\D`). `\\D'...'` is a drawing command and must stay refused; the paren forms are not. Needs a red test per escape, so next.",
       "source": "lane"
+    },
+    {
+      "id": "p151",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "a `\\^`-only table row is a continuation of the row above but the model marks both its cells `cont` with the bar folded on, so a renderer that honours cont would draw a spare empty row",
+      "lane": "a2",
+      "files": [
+        "js/man-parse.mjs",
+        "js/man-render.mjs",
+        "test/man-parse.mjs",
+        "test/man-render.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs test/man-render.mjs",
+      "notes": "Found by p134's groom helper 2026-11-25 at e219849d. tbl(1)'s own example ends with a `\\^;\\^` row under `l rd.`: groff gives that row zero height (it is a continuation of the row above, and md(4) draws no rule for it), while the model marks BOTH cells `cont:1` and folds the `bar` onto the row, leaving row 3's right cell empty. p134's rowspan work will make the renderer honour `cont`, and then this row would be emitted as a spare empty row. It was deliberately not asserted in p134's test because it depends on that same rowspan work landing. Fix: a row whose every cell is a continuation owns no height — either drop it in the model (moving any `bar` to the row it continues) or make the renderer collapse it. Decide from what groff draws for a two-row span with and without the trailing `\\^` row. Needs a red test first, so next.",
+      "source": "lane"
+    },
+    {
+      "id": "p152",
+      "area": "man",
+      "status": "next",
+      "type": "fix",
+      "title": "tableFit builds a cell even when a row has fewer data cells than ncols, so rows can be short and tableCellAt can return undefined; a renderer that assumes a full grid throws",
+      "lane": "a2",
+      "files": [
+        "js/man-parse.mjs",
+        "js/man-render.mjs",
+        "test/man-parse.mjs",
+        "test/man-render.mjs"
+      ],
+      "proof": "npx mocha --exit test/man-parse.mjs test/man-render.mjs",
+      "notes": "Found by p134's groom helper 2026-11-25 at e219849d while simulating the rowspan plan. `tableFit()` (js/man-parse.mjs:2269) creates a cell with `{ spans, up }` even when a row supplies fewer data cells than `ncols`, so a row can be shorter than the column count and `tableCellAt()` can return `undefined`. p134's renderer tolerates it by matching on column offset and skipping unpaired continuations, but that is defensive coding around a ragged model, and the next consumer can reasonably assume a rectangle. Reproduce with `tab(;) allbox;` / `l l l.` / a single `a;` row and say what groff draws (it draws a table with empty trailing cells). Then either pad the row in the model or document the raggedness and make tableCellAt total. Needs a red test first, so next.",
+      "source": "lane"
     }
   ],
   "measures": {

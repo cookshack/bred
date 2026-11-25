@@ -60,6 +60,8 @@ before.
 | p148 | man | a1 | next | \L( reads a 2-char name like \l( did; the same paren class as p133, found while grooming it | js/man-parse.mjs, test/man-parse.mjs |
 | p149 | man | a1 | next | \o(2b is accepted and silently wrong: groff overstrikes `2` and `b`, bred prints `a( y` with ok 1 and no failure | js/man-parse.mjs, test/man-parse.mjs |
 | p150 | man | a1 | next | \Z(2b prints its text in groff and is refused here; \b(2b and \D(2b print or stop the line and are refused too | js/man-parse.mjs, test/man-parse.mjs |
+| p151 | man | a2 | next | a `\^`-only table row is a continuation of the row above but the model marks both its cells `cont` with the bar folded on, so a renderer that honours cont would draw a spare empty row | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
+| p152 | man | a2 | next | tableFit builds a cell even when a row has fewer data cells than ncols, so rows can be short and tableCellAt can return undefined; a renderer that assumes a full grid throws | js/man-parse.mjs, js/man-render.mjs, test/man-parse.mjs, test/man-render.mjs |
 
 ## Triage
 

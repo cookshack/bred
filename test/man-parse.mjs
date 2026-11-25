@@ -532,6 +532,19 @@ test('escapes', 'a nested bracket argument does not leak a bracket',
        equal(asText('.TH T 1\nx \\F[\\n[.fam]] y\n'), 'x  y\n')
      })
 
+test('escapes', 'a bare T escape is the letter, not the device name',
+     () => {
+       let r
+
+       // tex2aspc(1) writes `\TransformNotes` and groff prints
+       // `TransformNotes`: a bare \T is not an escape, so its own letter
+       // survives. The device name is the register, `\*[.T]` -> utf8.
+       r = parsed('.TH T 1\nx \\Ty\n')
+       equal(flat(r.doc.blocks[0].spans), 'x Ty')
+       r = parsed('.TH T 1\nx \\*[.T]y\n')
+       equal(flat(r.doc.blocks[0].spans), 'x utf8y')
+     })
+
 test('escapes', 'a font family takes one character or a name',
      () => {
        let r

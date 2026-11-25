@@ -76,7 +76,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "in-round",
+      "status": "done",
       "source": "lane",
       "title": "batch: table spans, character names, and the \\v paren form (p79, p83, p34)",
       "files": [
@@ -85,15 +85,16 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Groomed 2026-11-25: three red tests and no code change. `escapes :: a v escape has no paren form and prints its text` — groff warns `cannot use character '(' as a starting delimiter` and prints `x a2b y` for `x a\\v(2b y` (and `x a12b y` for `\\v(12b`), while bred prints `x a y` / `x ab y`. `escapes :: common groff_char names outside the corpus are absent` — groff prints all 21 (md ⋅, c* ⊗, r! ¡, OK ✓, Eu €, sq □, lf/rf/lc/rc, ul/uc/ur/ll/lr/cl/cr, 18/38/58/78), while bred refuses the page (`ok` 0) for each; ul/uc/ur/ll/lr/cl/cr are drawn with vertical motion, so the test asserts only acceptance for those six. `tables :: a vertical span puts its text on the bottom row` — tbl(1)'s own `l ld` / `r ^` example prints `│   r │ foo    │` on the bottom row, while bred's toText puts foo on the row above r. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b7.patch. Also seen: \\S( goes through the same skipValue path, so `\\S(2` likely has the same 2-char-name bug; not tested here.",
-      "batch": 1
+      "notes": "Groomed 2026-11-25: three red tests and no code change. `escapes :: a v escape has no paren form and prints its text` — groff warns `cannot use character '(' as a starting delimiter` and prints `x a2b y` for `x a\\v(2b y` (and `x a12b y` for `\\v(12b`), while bred prints `x a y` / `x ab y`. `escapes :: common groff_char names outside the corpus are absent` — groff prints all 21 (md ⋅, c* ⊗, r! ¡, OK ✓, Eu €, sq □, lf/rf/lc/rc, ul/uc/ur/ll/lr/cl/cr, 18/38/58/78), while bred refuses the page (`ok` 0) for each; ul/uc/ur/ll/lr/cl/cr are drawn with vertical motion, so the test asserts only acceptance for those six. `tables :: a vertical span puts its text on the bottom row` — tbl(1)'s own `l ld` / `r ^` example prints `│   r │ foo    │` on the bottom row, while bred's toText puts foo on the row above r. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b7.patch. Also seen: \\S( goes through the same skipValue path, so `\\S(2` likely has the same 2-char-name bug; not tested here. Absorbed by b9 in round 65 (d62483ed..d741e66f for b7, d741e66f..949bf23c for b6).",
+      "batch": 1,
+      "doneHash": "d62483ed"
     },
     {
       "id": "b6",
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "in-round",
+      "status": "done",
       "source": "lane",
       "title": "batch: escapes and synopsis spacing (p102, p76, p77)",
       "files": [
@@ -101,8 +102,9 @@
         "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
-      "notes": "Groomed 2026-11-25: three red tests and no code change at c5029a94 (380 passing, 3 failing). `escapes :: an unknown escape prints its own letter` — groff -Tutf8 -man on `a \\Q b` prints `a Q b` (with `-ww` it only warns \"escape character ignored before 'Q'\"), and `a \\y b` prints `a y b`; bred is red at `0 !== 1` (r.ok 0, fails `escape \\Q`). The fix must also FLIP the existing green test `escapes :: an unknown escape fails the page` (test/man-parse.mjs, asserts ok 0 / `escape \\q`): it enshrines the refusal and cannot stay green once an unknown escape prints its letter. `synopsis :: SY and OP keep their space in mdoc mode` — groff -Tutf8 -man on `.SY strace-log-merge` / `.OP \\-a all` prints `strace-log-merge [-a all]`, while bred in mdoc mode is red at `+ 'strace-log-merge[-a all]' / - 'strace-log-merge [-a all]'`; groff -Tutf8 -mdoc has no .SY/.OP at all (with `-ww`: \"macro 'SY' not defined\"), so the man(7) layout is the reference, and the bug is pre-existing and only reachable from an mdoc page that uses them. `escapes :: a literal tab is not the zero-width \\t escape` — groff -Tutf8 -man on `.nf` / `a<TAB>b` / `c\\td` / `.fi` prints `a    b` (literal tab to the tab stop) then `cd` (the `\\t` escape is zero width); in fill mode groff gives `a<TAB>b` as `a    b` and `c\\td` as `cd` (joined `a    b cd`), so the escape is zero width in both modes and a literal tab is never a space; bred is red at `+ 'a\\tb\\nc\\td\\n' / - 'a\\tb\\ncd\\n'`. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b6.patch. Found but not fixed: `escapes :: an unknown escape before a high-bit character keeps it` (test/man-parse.mjs:3023) already asserts the escape is dropped before a non-ASCII letter, so p102 extends the same rule to an ASCII letter rather than adding a special case; that existing test must keep passing through the same code path.",
-      "batch": 1
+      "notes": "Groomed 2026-11-25: three red tests and no code change at c5029a94 (380 passing, 3 failing). `escapes :: an unknown escape prints its own letter` — groff -Tutf8 -man on `a \\Q b` prints `a Q b` (with `-ww` it only warns \"escape character ignored before 'Q'\"), and `a \\y b` prints `a y b`; bred is red at `0 !== 1` (r.ok 0, fails `escape \\Q`). The fix must also FLIP the existing green test `escapes :: an unknown escape fails the page` (test/man-parse.mjs, asserts ok 0 / `escape \\q`): it enshrines the refusal and cannot stay green once an unknown escape prints its letter. `synopsis :: SY and OP keep their space in mdoc mode` — groff -Tutf8 -man on `.SY strace-log-merge` / `.OP \\-a all` prints `strace-log-merge [-a all]`, while bred in mdoc mode is red at `+ 'strace-log-merge[-a all]' / - 'strace-log-merge [-a all]'`; groff -Tutf8 -mdoc has no .SY/.OP at all (with `-ww`: \"macro 'SY' not defined\"), so the man(7) layout is the reference, and the bug is pre-existing and only reachable from an mdoc page that uses them. `escapes :: a literal tab is not the zero-width \\t escape` — groff -Tutf8 -man on `.nf` / `a<TAB>b` / `c\\td` / `.fi` prints `a    b` (literal tab to the tab stop) then `cd` (the `\\t` escape is zero width); in fill mode groff gives `a<TAB>b` as `a    b` and `c\\td` as `cd` (joined `a    b cd`), so the escape is zero width in both modes and a literal tab is never a space; bred is red at `+ 'a\\tb\\nc\\td\\n' / - 'a\\tb\\ncd\\n'`. Patch: /home/matt/worktrees/3813a9bf-ea93-4a92-8378-3ceab7116706/bred-loop/groom-b6.patch. Found but not fixed: `escapes :: an unknown escape before a high-bit character keeps it` (test/man-parse.mjs:3023) already asserts the escape is dropped before a non-ASCII letter, so p102 extends the same rule to an ASCII letter rather than adding a special case; that existing test must keep passing through the same code path. Absorbed by b9 in round 65 (d62483ed..d741e66f for b7, d741e66f..949bf23c for b6).",
+      "batch": 1,
+      "doneHash": "d62483ed"
     },
     {
       "id": "b5",

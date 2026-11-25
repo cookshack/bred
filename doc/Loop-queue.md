@@ -46,13 +46,6 @@ before.
 | p143 | core | a2 | ready | a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4 | js/em.mjs, test/em-otherwise.mjs |
 | p144 | core | a2 | ready | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
 
-## In round
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| b7 | man | a1 | in-round | batch: table spans, character names, and the \v paren form (p79, p83, p34) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
-| b6 | man | a1 | in-round | batch: escapes and synopsis spacing (p102, p76, p77) | js/man-parse.mjs, test/man-parse.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -84,6 +77,8 @@ before.
 | c15 | code | a2 | done:2f97b214 | the `Creating session...` placeholder is never removed, so it stays above the first turn and can receive an orphan delta | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | c14 | code | a2 | done:835b9b00 | text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0 | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | p130 | man | a1 | done:a0e05f0b | `\$@` interpolation does not quote its arguments: groff prints `["a" "b" "c"]`, bred `[a b c]` | js/man-parse.mjs, test/man-parse.mjs |
+| b7 | man | a1 | done:d62483ed | batch: table spans, character names, and the \v paren form (p79, p83, p34) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
+| b6 | man | a1 | done:d62483ed | batch: escapes and synopsis spacing (p102, p76, p77) | js/man-parse.mjs, test/man-parse.mjs |
 | b5 | man | a1 | done:30263abb | batch: macro arguments, a bar, and a cut body line (p101, p118, p119) | js/man-parse.mjs, test/man-parse.mjs |
 | c13 | code | a2 | done:aa5130e6 | handlePartDelta draws a text delta as a thinking block when the assistant message element is missing (a reconnect that dropped session.text.started) | ext/code/code.mjs, test/code-prompt-e2e.mjs |
 | b4 | man | a1 | done:f6b63ada | batch: joins and space blocks (p55, p73, p126) | js/man-parse.mjs, test/man-parse.mjs |

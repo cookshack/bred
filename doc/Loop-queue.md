@@ -48,6 +48,7 @@ before.
 | c6 | code | a2 | ready | a finished part is not re-rendered when it is plain .code-msg-text or seen only after its step ended (code.mjs/ui.mjs) | ext/code/code.mjs, ext/code/ui.mjs, test/code-prompt-e2e.mjs |
 | p119 | man | a1 | ready | a bar is a roman word inside a macro argument list; the words after it keep the macro font and role | js/man-parse.mjs, test/man-parse.mjs |
 | p126 | man | a1 | ready | a no-output request that defines or removes still swallows a pending \c join (p54 covered only .ft) | js/man-parse.mjs, test/man-parse.mjs |
+| l2 | tooling | a3 | ready | check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit | bin/loop.mjs, bin/loop-queue.mjs, test/loop.mjs |
 
 ## Backlog
 
@@ -57,7 +58,6 @@ before.
 | p65 | man | a3 | next | no fake emits a typed-array chunk split mid-UTF-8, so `js/shell.mjs`'s streaming decoder is proven only by real-pty timing; add the fake and the test | js/shell.mjs, test/man-viewer.mjs, test/main-shell.mjs |
 | p34 | man | a1 | next | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs |
 | p127 | man | a1 | next | mdoc body text after .Sh is bold here and roman in groff (mdocHeading leaves c.font bold) | js/man-parse.mjs, test/man-parse.mjs |
-| l2 | tooling | a3 | next | check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit | bin/loop.mjs, bin/loop-queue.mjs, test/loop.mjs |
 
 ## Triage
 

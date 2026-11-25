@@ -135,7 +135,8 @@
       "area": "man",
       "type": "fix",
       "doneHash": "eac2c89c",
-      "notes": "Absorbed by p125 (round 50): a no-output request between a \\c and the next line no longer swallows the join. Verified 2026-11-25: `.B x\\c` + `.ft R` + `y` prints `xy`, matching groff."
+      "notes": "Absorbed by p125 (round 50): a no-output request between a \\c and the next line no longer swallows the join. Verified 2026-11-25: `.B x\\c` + `.ft R` + `y` prints `xy`, matching groff.",
+      "absorbedBy": "p125"
     },
     {
       "id": "p55",
@@ -1602,7 +1603,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Absorbs p45 (.nr x +N/-N is relative) and p120 (.nr X with no value leaves it undefined). One commit, each item keeps its own test, both are marked done with this row's hash. The read-creates half of p120 stays refused: an unknown register outside a condition is a typo the policy refuses.",
-      "doneHash": "07e195dd"
+      "doneHash": "07e195dd",
+      "batch": 1
     },
     {
       "id": "b2",
@@ -1619,7 +1621,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Absorbs p94 (\\N[ 65] skips leading spaces inside the bracket) and p95 (\\[charN] is a glyph lookup: 0..255 exists, above it prints nothing instead of a Unicode code point). p89 (\\[char0]) is a triage, not part of this: groff prints a NUL byte, and the model refuses NUL by the decision rounds 33-35 pinned for \\N 0.",
-      "doneHash": "091f8e5b"
+      "doneHash": "091f8e5b",
+      "batch": 1
     },
     {
       "id": "b3",
@@ -1635,7 +1638,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "notes": "Absorbs p98 (a \\c before a macro with an empty body: the body now pushes a frame, so the carry works) and p33 (.Sm off also suppresses the space before a text line: groff prints -ab; our text branch forced spaceNext before appending). p98's .ft/.ll half was already fixed by p125, and the .PP/.RS/.sp warning is respected (a body line that breaks still drops the join).",
-      "doneHash": "7846c1d0"
+      "doneHash": "7846c1d0",
+      "batch": 1
     },
     {
       "id": "p126",
@@ -1670,7 +1674,7 @@
       "area": "tooling",
       "lane": "a3",
       "type": "infra",
-      "status": "next",
+      "status": "ready",
       "source": "triage",
       "title": "check accepts any ancestor hash as a done hash, so a done item can point at an unrelated commit",
       "files": [

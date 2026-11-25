@@ -230,6 +230,15 @@ function argOf
   return (f && f.args && (n > 0)) ? (f.args[n - 1] || '') : ''
 }
 
+// `\$@` quotes every argument: groff -Tutf8 -man on `.de M` with body
+// `[\\$@]` and `.M a b c` prints `["a" "b" "c"]`. The quoting is textual only,
+// so a quote inside an argument is neither escaped nor doubled (`.M "a""b" c`
+// prints `["a"b" "c"]`).
+function argsQuoted
+(args) {
+  return args.map(arg => '"' + arg + '"').join(' ')
+}
+
 function unquote
 (text) {
   let first, last
@@ -579,7 +588,11 @@ function expand
       if (ch == '$') {
         let val, sub
 
-        if ((text[at] == '@') || (text[at] == '*')) {
+        if (text[at] == '@') {
+          val = argsQuoted(frame(c)?.args || [])
+          at++
+        }
+        else if (text[at] == '*') {
           val = frame(c)?.args?.join(' ') || ''
           at++
         }
@@ -989,7 +1002,12 @@ function copyMode
         let at, name
 
         at = i + 2
-        if ((text[at] == '*') || (text[at] == '@')) {
+        if (text[at] == '@') {
+          out += argsQuoted(frame(c)?.args || [])
+          i = at + 1
+          continue
+        }
+        if (text[at] == '*') {
           out += frame(c)?.args?.join(' ') || ''
           i = at + 1
           continue

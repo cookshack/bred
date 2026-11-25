@@ -2967,14 +2967,28 @@ test('escapes', 'vertical, device and mark escapes are skipped',
        equal(flat(r.doc.blocks[0].spans), 'ab c d e f')
      })
 
-test('escapes', 'dollar at and star expand all macro arguments',
+test('escapes', 'dollar at quotes each argument',
+     () => {
+       let r
+
+       // groff -Tutf8 -man on `.de M` with body `[\\$@]` and `.M a b c` prints
+       // `["a" "b" "c"]`: `\$@` puts each argument in double quotes.
+       equal(asText('.TH T 1\n.de M\n[\\\\$@]\n..\n.M a b c\n'),
+             '["a" "b" "c"]\n')
+       // An argument that itself holds a quote is not escaped, so the quoting
+       // is textual only (groff prints `"a"b" "c"` for `.M "a""b" c`).
+       r = parsed('.TH T 1\n.de M\n[\\\\$@]\n..\n.M "a""b" c\n')
+       equal(flat(r.doc.blocks[0].spans), '["a"b" "c"]')
+     })
+
+test('escapes', 'dollar star joins all macro arguments',
      () => {
        let r
 
        // The doubled backslash is what survives a definition: a single `\$`
        // is expanded where the body is read, with no arguments (p101).
-       r = parsed('.TH T 1\n.de M\n[\\\\$@]\n[\\\\$*]\n..\n.M a b c\n')
-       equal(flat(r.doc.blocks[0].spans), '[a b c] [a b c]')
+       r = parsed('.TH T 1\n.de M\n[\\\\$*]\n..\n.M a b c\n')
+       equal(flat(r.doc.blocks[0].spans), '[a b c]')
      })
 
 test('escapes', 'a two-digit argument number expands that argument',

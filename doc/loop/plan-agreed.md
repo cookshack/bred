@@ -189,10 +189,17 @@ is a check, not a reminder.
 | P0 | schema: `area`, `type`, `source`, `proof`, `exclusive`, `repro`; `Queue.report` gains an area column; `check` validates the fields | 0.5 d | scheduler | the existing queue still passes `check` |
 | P1 | measure as an interface: a per-area `measures` block in `queue.json` (command, budget, population), `loop measure --area`, `area` on history records | 0.5–1 d | scheduler | the man numbers reproduce exactly through the new path |
 | P2 | `ext/code`: the recorder (`infra`), the translation measure, the first golden pins, the AGENTS.md known issues queued | 2–3 d | scheduler | deliberately breaking a translation moves the measure |
-| P3 | laws spike: runner, LCG, shrinker, buf/point/hist/find; one bounded hunt | 1 d | reviewer | three minimised failures survive triage, or the spike is killed |
+| P3 | laws spike: runner, LCG, shrinker; suites for `Loc.make` and `computeRefine`; one bounded hunt | 1 d | reviewer | three minimised failures survive triage, or the spike is killed |
 | P4 | editor core: laws if P3 survives, otherwise coverage + flake rate | 2 d | both | a planted core bug is found and pinned |
 | P5 | rendering: structural goldens first, pixels for a short list | 2 d | either | a block/class regression is caught without pixels |
 | P6 | scheduling: lane pool, area-aware picks, per-area cadence | parked | — | two areas producing items in one round |
+
+P3's result (`44b3726`): the first hunt found nothing, so the criterion killed
+laws **as the core's measure**; the core takes coverage and flake rate at P4.
+The harness itself stays on main (`bin/law.mjs`, `bin/law-hunt.mjs`) as a
+debugging tool with a planted-failure test, because a generator that can shrink
+a failure is worth 300 lines even when its first target is clean. No second hunt
+was run: a different target is a new experiment, not a re-roll.
 
 P2 and P3 are disjoint and run in the same three-lane round, which is also the
 cross-area acceptance test. P0/P1 must precede it: `ext/code` needs the `area`

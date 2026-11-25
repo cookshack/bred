@@ -13,7 +13,7 @@ import * as Roff from './man-roff.mjs'
 
 let fonts, predefinedStrings, predefinedRegisters, escapeChars, mdocAtNames, mdocLbNames, mdocInlineNames, mdocNoArg, mdocEncloseNames
 let tableRequests, tableKeyChars, tableRuleChars, tableSpecifiers, expandDepth
-let manFontStyles, tableCellMacros
+let manFontStyles, manFontCopies, tableCellMacros
 
 fonts = { B: 'bold',
           BI: 'bold',
@@ -945,6 +945,27 @@ function copyMode
   return text.replace(/\\\\/g, '\\').replace(/\\\./g, '.').replace(/\\ /g, ' ')
 }
 
+// The man macros groff implements in tmac read each argument in copy mode
+// before the body interprets the line, so every round halves a run of
+// backslashes. `.B a\\\\b` is `a\b` (two rounds) while the same text on its own
+// line, or a `.TP` tag, is interpreted once and stays `a\\b`. `.BR` and `.SY`
+// build the line through a string and copy twice (three rounds); `.OP` reaches
+// `.RB`/`.RI` and copies three times (four rounds).
+function copied
+(text, rounds) {
+  let out, i
+
+  out = text
+  for (i = 0; i < rounds; i++)
+    out = copyMode(out)
+  return out
+}
+
+function copiedArgs
+(args, rounds) {
+  return args.map(arg => copied(arg, rounds))
+}
+
 function valueAfter
 (rest, name) {
   let after
@@ -1368,10 +1389,12 @@ function setIncrement
 // roman, `.B a b` prints every argument bold. The caller decides where the
 // runs go, so a table cell can hold them without a paragraph.
 function fontSpans
-(c, styles, rest, lineNo) {
+(c, styles, rest, lineNo, copies) {
   let args, spans, saved, join, out, i
 
   args = splitArgs(rest)
+  if (copies)
+    args = copiedArgs(args, copies)
   if (args.length == 0) {
     c.nextStyle = styles[0]
     return undefined
@@ -1395,10 +1418,10 @@ function fontSpans
 }
 
 function handleFont
-(c, styles, rest, lineNo) {
+(c, styles, rest, lineNo, copies) {
   let out
 
-  out = fontSpans(c, styles, rest, lineNo)
+  out = fontSpans(c, styles, rest, lineNo, copies)
   if (out == undefined)
     return
   appendInline(c, out.spans)
@@ -1467,9 +1490,10 @@ function synopsisStart
   p = addBlock(c, { kind: 'para', synopsis: 1, spans: [] })
   c.syn = p
   c.para = p
-  // an-ext.tmac passes only the first argument to .B, so later ones are
-  // dropped and the name's escapes expand like any other macro argument.
-  pushSpans(p.spans, expand(c, args[0] || '', 'bold', c.lineNo).spans)
+  // an-ext.tmac's .SY hands only the first argument to .B, so later ones are
+  // dropped and the name is copied once by .SY and again by the .B call before
+  // the body interprets it.
+  pushSpans(p.spans, expand(c, copied(args[0] || '', 2), 'bold', c.lineNo).spans)
 }
 
 function define
@@ -1760,6 +1784,21 @@ manFontStyles = { B: [ 'bold' ],
                   RB: [ 'roman', 'bold' ],
                   RI: [ 'roman', 'italic' ] }
 
+// How many copy rounds each man font macro adds before its line is
+// interpreted. `.B` prints `\&\\$*` directly, while `.BR` assembles a string
+// and `.BI`/`.IB`/`.IR`/`.RI` interpolate their arguments into one; all are
+// tmac macros, so none of them is a plain interpretation of the argument.
+manFontCopies = { B: 1,
+                  I: 1,
+                  SM: 1,
+                  SB: 1,
+                  BI: 2,
+                  BR: 2,
+                  IB: 2,
+                  IR: 2,
+                  RB: 2,
+                  RI: 2 }
+
 // mdoc's inline text macros print only their arguments, so a cell can hold
 // their expansion. A macro that opens a block, a link or a list is not here:
 // it needs a line of its own, which a cell does not have.
@@ -1833,7 +1872,8 @@ function tableCellMacro
       c.font = manFontStyles[control.name][0]
       return []
     }
-    return fontSpans(c, manFontStyles[control.name], control.rest, lineNo).spans
+    return fontSpans(c, manFontStyles[control.name], control.rest, lineNo,
+                     manFontCopies[control.name]).spans
   }
   out = []
   saved = c.lineTarget
@@ -3340,7 +3380,8 @@ function handleLine
     if (args.length == 0)
       c.nextHeading = (name == 'SH') ? 1 : 2
     else
-      startHeading(c, (name == 'SH') ? 1 : 2, expand(c, args.join(' '), style, c.lineNo).spans)
+      startHeading(c, (name == 'SH') ? 1 : 2,
+                   expand(c, copiedArgs(args, 1).join(' '), style, c.lineNo).spans)
     break
   case 'PP':
   case 'LP':
@@ -3360,7 +3401,7 @@ function handleLine
     else {
       startTag(c, parseFloat(args[1]) || 1, 0)
       if (c.tag)
-        pushSpans(c.tag.tag, expand(c, args[0], style, c.lineNo).spans)
+        pushSpans(c.tag.tag, expand(c, copied(args[0], 1), style, c.lineNo).spans)
     }
     break
   }
@@ -3401,34 +3442,16 @@ function handleLine
     addBlock(c, { kind: 'space' })
     break
   case 'B':
-    handleFont(c, [ 'bold' ], rest, c.lineNo)
-    break
   case 'I':
-    handleFont(c, [ 'italic' ], rest, c.lineNo)
-    break
   case 'SM':
-    handleFont(c, [ 'small' ], rest, c.lineNo)
-    break
   case 'SB':
-    handleFont(c, [ 'bold' ], rest, c.lineNo)
-    break
   case 'BI':
-    handleFont(c, [ 'bold', 'italic' ], rest, c.lineNo)
-    break
   case 'BR':
-    handleFont(c, [ 'bold', 'roman' ], rest, c.lineNo)
-    break
   case 'IB':
-    handleFont(c, [ 'italic', 'bold' ], rest, c.lineNo)
-    break
   case 'IR':
-    handleFont(c, [ 'italic', 'roman' ], rest, c.lineNo)
-    break
   case 'RB':
-    handleFont(c, [ 'roman', 'bold' ], rest, c.lineNo)
-    break
   case 'RI':
-    handleFont(c, [ 'roman', 'italic' ], rest, c.lineNo)
+    handleFont(c, manFontStyles[name], rest, c.lineNo, manFontCopies[name])
     break
   case 'SY':
     synopsisStart(c, args)
@@ -3440,10 +3463,10 @@ function handleLine
     let spans
 
     spans = [ { text: '[', style: 'roman' } ]
-    pushSpans(spans, expand(c, args[0] || '', 'bold', c.lineNo).spans)
+    pushSpans(spans, expand(c, copied(args[0] || '', 3), 'bold', c.lineNo).spans)
     if ((args[1] || '').length) {
       pushSpan(spans, { text: ' ', style: 'roman' })
-      pushSpans(spans, expand(c, args[1], 'italic', c.lineNo).spans)
+      pushSpans(spans, expand(c, copied(args[1], 3), 'italic', c.lineNo).spans)
     }
     pushSpan(spans, { text: ']', style: 'roman' })
     appendInline(c, spans)

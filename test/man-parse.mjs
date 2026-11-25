@@ -281,6 +281,85 @@ test('macros', 'an argument is reduced in copy mode and then interpreted',
        equal(flat(text.doc.blocks[0].spans), 'body c:\\\\fonts\\\\truetype')
      })
 
+test('copy mode', 'a B argument is copied and then interpreted',
+     () => {
+       let r
+
+       // groff implements .B as a tmac macro, so the argument is read in copy
+       // mode (`\\\\` -> `\\`) and the body then interprets it (`\\` -> `\`):
+       // `.B a\\\\b` prints `a\b`. A text line is interpreted once, so the
+       // same four backslashes stay doubled there.
+       r = parsed('.TH T 1\n.B a\\\\\\\\b\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].spans), 'a\\b')
+       equal(flat(parsed('.TH T 1\na\\\\\\\\b\n').doc.blocks[0].spans), 'a\\\\b')
+     })
+
+test('copy mode', 'the I, SM and SB arguments take the same round as B',
+     () => {
+       equal(flat(parsed('.TH T 1\n.I a\\\\\\\\b\n').doc.blocks[0].spans), 'a\\b')
+       equal(flat(parsed('.TH T 1\n.SM a\\\\\\\\b\n').doc.blocks[0].spans), 'a\\b')
+       equal(flat(parsed('.TH T 1\n.SB a\\\\\\\\b\n').doc.blocks[0].spans), 'a\\b')
+     })
+
+test('copy mode', 'SH and SS arguments take the copy round',
+     () => {
+       equal(flat(parsed('.TH T 1\n.SH a\\\\\\\\b\n').doc.blocks[0].spans), 'a\\b')
+       equal(flat(parsed('.TH T 1\n.SS a\\\\\\\\b\n').doc.blocks[0].spans), 'a\\b')
+     })
+
+test('copy mode', 'an IP tag takes the copy round',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.IP a\\\\\\\\b\nbody\n')
+       equal(r.ok, 1)
+       equal(flat(r.doc.blocks[0].tag), 'a\\b')
+     })
+
+test('copy mode', 'a TP tag and the text under an SH are interpreted once',
+     () => {
+       let r
+
+       r = parsed('.TH T 1\n.TP\na\\\\\\\\b\nbody\n')
+       equal(flat(r.doc.blocks[0].tag), 'a\\\\b')
+       equal(flat(parsed('.TH T 1\na\\\\\\\\b\n').doc.blocks[0].spans), 'a\\\\b')
+       equal(flat(parsed('.TH T 1\n.SH NAME\na\\\\\\\\b\n').doc.blocks[1].spans),
+             'a\\\\b')
+     })
+
+test('copy mode', 'BR and SY build their line through a string',
+     () => {
+       // .BR assembles an-result and expands it, and .SY hands its argument to
+       // .B, so both copy twice before the line is interpreted: four
+       // backslashes become a hyphen with no backslash left.
+       equal(flat(parsed('.TH T 1\n.BR a\\\\\\\\- W\n').doc.blocks[0].spans), 'a-W')
+       equal(flat(parsed('.TH T 1\n.SY a\\\\\\\\-\n.YS\n').doc.blocks[0].spans), 'a-')
+     })
+
+test('copy mode', 'the BI, IB, IR, RB and RI arguments copy twice too',
+     () => {
+       equal(flat(parsed('.TH T 1\n.BI a\\\\\\\\- W\n').doc.blocks[0].spans), 'a-W')
+       equal(flat(parsed('.TH T 1\n.IB a\\\\\\\\- W\n').doc.blocks[0].spans), 'a-W')
+       equal(flat(parsed('.TH T 1\n.IR a\\\\\\\\- W\n').doc.blocks[0].spans), 'a-W')
+       equal(flat(parsed('.TH T 1\n.RB a\\\\\\\\- W\n').doc.blocks[0].spans), 'a-W')
+       equal(flat(parsed('.TH T 1\n.RI a\\\\\\\\- W\n').doc.blocks[0].spans), 'a-W')
+     })
+
+test('copy mode', 'OP reaches RB and RI, one round further',
+     () => {
+       let eight
+
+       // .OP calls .RB or .RI with the argument, so it copies three times:
+       // eight backslashes print a hyphen with none left. A two-copy
+       // implementation would leave `\-` and print a backslash.
+       eight = '\\\\'.repeat(4)
+       equal(flat(parsed('.TH T 1\n.SY cmd\n.OP a' + eight + '-\n.YS\n').doc.blocks[0].spans),
+             'cmd [a-]')
+       equal(flat(parsed('.TH T 1\n.SY cmd\n.OP a' + eight + '- value\n.YS\n').doc.blocks[0].spans),
+             'cmd [a- value]')
+     })
+
 test('macros', 'am appends to a macro',
      () => {
        let r

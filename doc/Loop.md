@@ -292,6 +292,7 @@ lane, or to another area, if its files are free.
 | 49 | link tails | `fc63c08` | `.UE`/`.ME` keep every trailing argument (tload 1 → 0); man 2 words on 2 pages |
 | 50 | join through | `eac2c89` | a `\c` survives a request that draws nothing (dmsetup 1 → 0, section 8 clean); man 1 word on 1 page |
 | 51 | compaction | `ab98859` | the four compaction events become a log line per phase; re-gated after an outside doc commit moved main mid-round |
+| 61 | references | `49156f7` | an `%A`-only `.Rs` ends with a comma, as groff does |
 | 60 | done hashes, again | `ad68333` | the rule is the commit's diff, not its trailer: a done hash must touch a file the row owns |
 | 59 | done hashes | `6434838` | `check` requires a done hash to name the item, its absorbing item, or a batch; found by the round-57 mis-merge |
 | 58 | synthetic notes, retried | `57c1d58` | `session.synthetic` becomes a log line; the merge line was checked this time |
@@ -304,13 +305,13 @@ lane, or to another area, if its files are free.
 
 ## Current state
 
-Measured at `ad68333e` (round 60's tip), corpus `4150` pages:
+Measured at `49156f7d` (round 61's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
     whole sections after round 50: 1:1p/1w  3:0p/0w  5:0p/0w  7:0p/0w  8:0p/0w
     code events after round 50: 20 (19 translated, 1 dropped, 0 malformed)
-    630 man tests, 2080 of 2082 passing, 2 pending, 0 failing; check clean
+    631 man tests, 2081 of 2083 passing, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech

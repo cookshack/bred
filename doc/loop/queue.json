@@ -5,8 +5,8 @@
     "deadline": "2026-11-25T17:25:00Z",
     "stopNew": "2026-11-25T16:40:00Z",
     "state": "active",
-    "round": 60,
-    "main": "ad68333e"
+    "round": 61,
+    "main": "49156f7d"
   },
   "items": [
     {
@@ -112,7 +112,7 @@
     {
       "id": "p53",
       "lane": "a1",
-      "status": "ready",
+      "status": "done",
       "title": "an `%A`-only `.Rs` ends with a period; groff ends with a comma (no corpus occurrence)",
       "files": [
         "js/man-parse.mjs",
@@ -121,7 +121,8 @@
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
       "type": "fix",
-      "notes": "Verified 2026-11-25: groff -Tutf8 -mdoc prints `A. Author,` for an .Rs with only .%A; ours printed `A. Author.`. The test file joins the row."
+      "notes": "Verified 2026-11-25: groff -Tutf8 -mdoc prints `A. Author,` for an .Rs with only .%A; ours printed `A. Author.`. The test file joins the row.",
+      "doneHash": "49156f7d"
     },
     {
       "id": "p54",

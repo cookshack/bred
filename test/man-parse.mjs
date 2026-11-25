@@ -1452,6 +1452,23 @@ test('mdoc', 'a bar separates macro calls',
        equal(flat(r.doc.blocks[1].spans), '[-a | -b]')
      })
 
+test('mdoc', 'a bar stays inside the flag list of Fl',
+     () => {
+       let r
+
+       // ssh-agent(1) writes `.Op Fl c | s`, and groff prints "[-c | -s]": the
+       // bar and a punctuation mark are arguments of Fl, so they do not end
+       // its list and the word after them is still a flag.
+       r = parsed('.Dd t\n.Dt T 1\n.Os\n.Op Fl c | s\n.Pp\n.Op Fl x | y | z\n' +
+                  '.Pp\n.Op Fl a , b\n.Pp\n.Op Fl a \\*(Ba b\n' +
+                  '.Pp\n.Op Fl p Ar file | Fl q\n')
+       equal(flat(r.doc.blocks[0].spans), '[-c | -s]')
+       equal(flat(r.doc.blocks[1].spans), '[-x | -y | -z]')
+       equal(flat(r.doc.blocks[2].spans), '[-a, -b]')
+       equal(flat(r.doc.blocks[3].spans), '[-a | -b]')
+       equal(flat(r.doc.blocks[4].spans), '[-p file | -q]')
+     })
+
 test('mdoc', 'Sm off does not join separate input lines',
      () => {
        let r

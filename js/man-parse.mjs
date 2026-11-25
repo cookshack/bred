@@ -2393,12 +2393,18 @@ function mdocWords
 // mdoc parses a macro's arguments itself: a callable macro name ends the
 // previous macro's arguments and starts a nested call. That is why
 // `.Op Fl e Ar file` is "[-e file]" and not "[-e -Ar file]".
+//
+// `Fl` is the exception to the bar and punctuation stops: both are words in
+// its own list. groff prints `.Op Fl c | s` as "[-c | -s]" and
+// `.Op Fl a , b` as "[-a, -b]", so the flag after them keeps its dash.
 function mdocArgEnd
 (c, args, at) {
-  let end
+  let end, flags
 
+  flags = (args[at] == 'Fl') ? 1 : 0
   end = at + 1
-  while ((end < args.length) && (mdocBar(c, args[end]) == 0) && (mdocPunct(args[end]) == 0))
+  while ((end < args.length) &&
+         (flags || ((mdocBar(c, args[end]) == 0) && (mdocPunct(args[end]) == 0))))
     if (mdocInlineNames[args[end]] == undefined)
       end++
     else if ((args[end] == args[at]) && (end == at + 1))
@@ -2860,7 +2866,14 @@ function mdocInlineMacro
     else if (split.words[0] == 'Fl')
       mdocText(c, '--' + split.words.slice(1).join('-'), 'bold', 'fl')
     else
-      split.words.forEach(arg => mdocText(c, '-' + arg, 'bold', 'fl'))
+      split.words.forEach(arg => {
+                            if (mdocPunct(arg))
+                              mdocAttachText(c, arg, 'roman')
+                            else if (mdocBar(c, arg))
+                              mdocText(c, arg, 'roman')
+                            else
+                              mdocText(c, '-' + arg, 'bold', 'fl')
+                          })
     if (split.punct.length)
       mdocAttachText(c, split.punct.join(''), 'roman')
     return 1

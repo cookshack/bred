@@ -141,7 +141,8 @@
       "status": "ready",
       "title": "`.Rv`/`.Ex` `-exit` and `-nop` (Man.md gap 2)",
       "files": [
-        "js/man-parse.mjs"
+        "js/man-parse.mjs",
+        "test/man-parse.mjs"
       ],
       "proof": "npx mocha --exit test/man-parse.mjs"
     },

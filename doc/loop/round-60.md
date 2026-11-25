@@ -1,6 +1,6 @@
 # Round 60 — the done-hash rule, corrected
 
-Base `e5a2e35`, merged tip `ad68333`, 2026-11-25 15:38Z. One lane.
+Base `e5a2e35`, merged tip `ad68333`, 2026-11-25 14:00Z. One lane.
 
 | lane | item | result |
 |------|------|--------|

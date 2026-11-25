@@ -1,9 +1,9 @@
 # Unattended agent loop
 
-Status: handover after round 59, 2026-11-25. Forty rounds used the tool's
+Status: handover after round 61, 2026-11-25. Forty-two rounds used the tool's
 gate: red at base, green after the rebase, one suite at the integrated tip,
-the record on `loop/r<n>`, one fast-forward. Main is the round-59 tip, green
-(2080 of 2082 tests passing, 2 pending, check clean). The agreed plan,
+the record on `loop/r<n>`, one fast-forward. Main is the round-61 tip, green
+(2081 of 2083 tests passing, 2 pending, check clean). The agreed plan,
 `doc/loop/plan-agreed.md`, is implemented through P6's cadence; P6's lane pool
 and area-aware picks are parked by the plan's own criterion. Man is 1 word on
 1 page, code 19 of 20 translated. The next items are in `doc/loop/queue.json`

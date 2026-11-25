@@ -106,6 +106,19 @@ test('translate', 'a scheduled retry with no error message has no message',
        equal(leg[0].properties.status.message, undefined)
      })
 
+test('translate', 'a synthetic note keeps its text and description',
+     () => {
+       let leg
+
+       leg = Ev.translate(makeBuf(), Fake.event('session.synthetic',
+                                                { sessionID: 's1', text: 'Hello.', description: 'why' }))
+       equal(leg.length, 1)
+       equal(leg[0].type, 'session.synthetic')
+       equal(leg[0].properties.sessionID, 's1')
+       equal(leg[0].properties.text, 'Hello.')
+       equal(leg[0].properties.description, 'why')
+     })
+
 test('translate', 'compaction is a log line with a phase',
      () => {
        let buf, leg

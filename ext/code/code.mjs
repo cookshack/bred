@@ -3057,6 +3057,19 @@ function init
                                      else if (Subagent.childStatus(buf, props.sessionID, props.status?.type))
                                        buf.vars('code').subagentIds?.delete(props.sessionID)
                                  } },
+             'session.synthetic': { onArrive
+                                    (buf, event) {
+                                      let p
+
+                                      p = event.properties
+                                      if (p.sessionID == buf.vars('code').sessionID) {
+                                        let text
+
+                                        text = String(p.text || p.description || '').replace(/\s+/g, ' ').slice(0, 200)
+                                        if (text.length > 0)
+                                          Ui.appendMsg(buf, 0, text, undefined, undefined, { log: 1 })
+                                      }
+                                    } },
              'session.compaction': { onArrive
                                      (buf, event) {
                                        let p, text

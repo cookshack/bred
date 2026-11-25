@@ -84,6 +84,14 @@ function translate
   case 'session.step.failed':
     out.push(legacy('session.error', { sessionID: data.sessionID, error: data.error }))
     break
+  case 'session.synthetic':
+    // A synthetic transcript item: the reference client inserts it as its own
+    // message. The text is what the turn would have said; the description says
+    // why it did not.
+    out.push(legacy('session.synthetic', { sessionID: data.sessionID,
+                                           text: data.text,
+                                           description: data.description }))
+    break
   case 'session.compaction.started':
   case 'session.compaction.ended':
   case 'session.compaction.failed':

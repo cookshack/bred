@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "run": {
-    "start": "2026-11-24T10:56Z",
-    "deadline": "2026-11-24T18:56Z",
-    "stopNew": "2026-11-24T18:11Z",
-    "state": "stopped",
-    "main": "a352b4e"
+    "start": "2026-11-25T11:51:55Z",
+    "deadline": "2026-11-25T15:06:55Z",
+    "stopNew": "2026-11-25T14:21:55Z",
+    "state": "active",
+    "main": "ff99f001"
   },
   "items": [
     {
@@ -1138,7 +1138,8 @@
       ],
       "proof": "npx mocha --exit test/man-parse.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "notes": "p122 was a duplicate of this row (same title and files); removed."
     },
     {
       "id": "p110",
@@ -1169,15 +1170,18 @@
     {
       "id": "p112",
       "lane": "a1",
-      "status": "next",
+      "status": "ready",
       "title": "editline(7) loses 5 words: a lone - in the text",
       "files": [
         "js/man-parse.mjs",
-        "test/man-parse.mjs"
+        "js/man-render.mjs",
+        "test/man-parse.mjs",
+        "test/man-render.mjs"
       ],
-      "proof": "npx mocha --exit test/man-parse.mjs",
+      "proof": "npx mocha --exit test/man-parse.mjs test/man-render.mjs",
       "area": "man",
-      "type": "fix"
+      "type": "fix",
+      "notes": "editline(7) has a .Bl -dash list; groff prints \"-\" before each item and toText emits nothing. Verified: groff -Tutf8 -mdoc on a 2-item -dash list prints \"-\"; -bullet prints U+2022, -hyphen prints \"-\", -enum prints \"1.\". The renderer draws a <ul> disc for both dash and bullet."
     },
     {
       "id": "p113",
@@ -1308,15 +1312,17 @@
     {
       "id": "c3",
       "area": "code",
-      "lane": "a2",
+      "lane": "a3",
       "type": "triage",
-      "status": "next",
+      "status": "ready",
       "title": "session.retry.scheduled is dropped; a retry is visible to the user, so decide what legacy event it should be",
       "files": [
         "ext/code/event.mjs",
-        "test/code-events.mjs"
+        "test/code-events.mjs",
+        "test/code-conformance.mjs"
       ],
-      "proof": "npx mocha --exit test/code-events.mjs"
+      "proof": "npx mocha --exit test/code-events.mjs test/code-conformance.mjs",
+      "notes": "code.mjs already consumes { type: \"retry\" } in updateStatus (line ~524) with an optional message, so the natural translation is session.status. The fixture pins retry.scheduled dropped=1 in test/code-conformance.mjs; that pin moves with the fix."
     },
     {
       "id": "c4",
@@ -1420,26 +1426,13 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "next",
+      "status": "ready",
       "title": "Ui.appendThinking decides create-vs-append from one view's out box and applies it to every box, so a delta can duplicate a thinking block in another tab (pre-existing)",
       "files": [
         "ext/code/ui.mjs",
         "test/code-prompt-e2e.mjs"
       ],
       "proof": "npx mocha --exit test/code-prompt-e2e.mjs"
-    },
-    {
-      "id": "p122",
-      "area": "man",
-      "lane": "a1",
-      "type": "fix",
-      "status": "next",
-      "title": "thumbpdf(1) loses one word: Â© (a char/encoding mismatch)",
-      "files": [
-        "js/man-char.mjs",
-        "test/man-parse.mjs"
-      ],
-      "proof": "npx mocha --exit test/man-parse.mjs"
     }
   ],
   "measures": {

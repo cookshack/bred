@@ -631,6 +631,44 @@ function missingRefuses
   equal(res.out.includes('no run clock'), true)
 }
 
+// l2: a done hash must be the commit that did the work. A peer's grooming
+// commit is on main and used to satisfy the check while the fix sat on a lane
+// branch that never merged (round 57).
+function doneQueue
+(dir, trailer) {
+  let q, row
+
+  Fs.writeFileSync(Path.join(dir, 'work.txt'), 'x\n')
+  git(dir, [ 'add', 'work.txt' ])
+  git(dir, [ 'commit', '-qm', trailer ])
+  writeRun(dir, pastRun())
+  row = { id: 'p1', area: 'man', lane: 'a1', type: 'fix', status: 'done', title: 'x', files: [ 'work.txt' ], proof: 'true', doneHash: git(dir, [ 'rev-parse', 'HEAD' ]) }
+  q = { schema: 1, run: pastRun(), items: [ row ] }
+  Fs.writeFileSync(Path.join(dir, 'doc', 'loop', 'queue.json'), JSON.stringify(q, null, 2) + '\n')
+}
+
+function doneNeedsTrailer
+(dir) {
+  let res
+
+  doneQueue(dir, 'plain')
+  res = loopRaw(dir, [ 'check' ])
+  equal(res.status, 1)
+  equal(res.out.includes('carries no Loop-item trailer'), true)
+}
+
+function doneAcceptsTrailer
+(dir) {
+  let res
+
+  doneQueue(dir, 'work\n\nLoop-item: p1')
+  res = loopRaw(dir, [ 'check' ])
+  equal(res.status, 0)
+}
+
+test('check', 'a done hash that carries no Loop-item trailer is a problem', withRepo(doneNeedsTrailer))
+test('check', 'a done hash that names its item is accepted', withRepo(doneAcceptsTrailer))
+
 test('clock', 'clock --can-start exits 1 after stopNew', withRepo(clockRefuses))
 test('clock', 'round refuses after stopNew instead of starting', withRepo(roundRefuses))
 test('clock', 'round refuses when the run has no clock', withRepo(missingRefuses))

@@ -34,7 +34,9 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
+| c14 | code | a2 | ready | text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0 | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | b8 | man | a1 | ready | batch: a cell request and a dot-only line (p75, p128) | js/man-parse.mjs, test/man-parse.mjs |
+| b7 | man | a1 | ready | batch: table spans, character names, and the \v paren form (p79, p83, p34) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | p128 | man | a1 | ready | a `.`-only line with no pending `\c` adds a space block; groff draws no gap | js/man-parse.mjs, test/man-parse.mjs |
 | p75 | man | a1 | ready | .IP "" 2 inside ps(1) cells (and nested .TS value lists) stays raw cell text; .IP draws no text, so it may join tableRequests or need a no-op path (the 18-word surplus, not lost) | js/man-parse.mjs, test/man-parse.mjs |
 | p76 | man | a1 | ready | in mdoc mode the man(7) .SY/.OP pair renders with no separator (strace-log-merge[-a]); pre-existing, only reachable if an mdoc page uses them | js/man-parse.mjs, test/man-parse.mjs |
@@ -46,8 +48,6 @@ before.
 
 | id | area | lane | status | title | files |
 |----|------|------|--------|-------|-------|
-| c14 | code | a2 | in-round | text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0 | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
-| b7 | man | a1 | in-round | batch: table spans, character names, and the \v paren form (p79, p83, p34) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | p34 | man | a1 | in-round | `\v(`-delimited arguments are read as a 2-char name (no corpus use found) | js/man-parse.mjs, test/man-parse.mjs |
 | p79 | man | a1 | in-round | on tbl(1) a l ld / r ^ table orders foo before r; man prints r then foo (word order around a vertical span) | js/man-parse.mjs, test/man-parse.mjs |
 | p83 | man | a1 | in-round | about 110 groff_char(7) names are absent (box pieces, md, c*, r!, OK, Eu, fractions); expected for the corpus claim, but the fallback hides it | js/man-char.mjs, test/man-parse.mjs |

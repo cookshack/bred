@@ -29,7 +29,7 @@
       "area": "code",
       "lane": "a2",
       "type": "fix",
-      "status": "in-round",
+      "status": "ready",
       "title": "text and reasoning deltas take their part id from state, so after a dropped started event they are attributed to part 0",
       "files": [
         "ext/code/event.mjs",
@@ -75,7 +75,7 @@
       "area": "man",
       "lane": "a1",
       "type": "fix",
-      "status": "in-round",
+      "status": "ready",
       "source": "lane",
       "title": "batch: table spans, character names, and the \\v paren form (p79, p83, p34)",
       "files": [

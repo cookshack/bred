@@ -37,13 +37,6 @@ before.
 | p144 | core | a3 | ready | Pane.holdingView returns the frame's current pane instead of the pane that shows the view | js/Pane.mjs, test/pane-holding.mjs |
 | l3 | tooling | a3 | ready | Claims.live returns on a future expires before it looks at the pid, so a dead lane's lease survives reap and blocks its item until someone releases it by hand | bin/loop-claims.mjs, test/loop.mjs |
 
-## In round
-
-| id | area | lane | status | title | files |
-|----|------|------|--------|-------|-------|
-| p134 | man | a2 | in-round | a vertical table span puts its text on the right row in the text model but js/man-render.mjs draws the cell above as a separate empty <td>, so the rendered borders differ from groff | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
-| p143 | core | a3 | in-round | a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4 | js/em.mjs, test/em-otherwise.mjs |
-
 ## Backlog
 
 | id | area | lane | status | title | files |
@@ -211,10 +204,12 @@ before.
 | p131 | man | a1 | done:dad8d3bf | a comment line at table-row level inside .TS/.TE is turned into a data row; tbl ignores it (ps(1) 9 of its surplus tokens, terminfo(5) 5) | js/man-parse.mjs, test/man-parse.mjs |
 | p132 | man | a3 | done:c0ac82ce | doc/Man.md's Current state table and round history stop at round 50: it claims 16 pages/147 words on section 1 where every section now measures 0 | doc/Man.md |
 | p133 | man | a1 | done:3fc48a88 | \h( and \l( read a 2-char name where groff takes the paren as a single ignored argument: b7 fixed \v(, these two still drop their tail | js/man-parse.mjs, test/man-parse.mjs |
+| p134 | man | a2 | done:888271d2 | a vertical table span puts its text on the right row in the text model but js/man-render.mjs draws the cell above as a separate empty <td>, so the rendered borders differ from groff | js/man-render.mjs, css/manpage.css, test/man-render.mjs |
 | p139 | core | a3 | done:9dbfaa9d | Mode.remove deletes with the raw key while the map is keyed lowercased, so a mixed-case mode survives its own removal | js/mode.mjs, test/mode-remove.mjs |
 | p140 | core | a3 | done:061e225c | Em.seq never looks at buf.minors, so a command bound only in a minor mode is reported unbound and the context menu shows no key | js/Em.mjs, test/em-seq-minor.mjs |
 | p141 | core | a3 | done:448a374b | Em.seq's answer for a space binding is '' and for 'C- ' is 'C-': it joins keys with a trailing space and then trims | js/Em.mjs, test/em-seq-space.mjs, test/ed.mjs |
 | p142 | core | a3 | done:e4834309 | Cmd.get picks the first minor mode but Cmd.getAll and the Em stack put the last added minor first, so the key shown and the command run disagree | js/cmd.mjs, test/cmd-minors.mjs |
+| p143 | core | a3 | done:f3bdd882 | a map's otherwise is skipped for any ctrl or alt key, contradicting doc/Em.md's lookup step 4 | js/em.mjs, test/em-otherwise.mjs |
 | b9 | man | a1 | done:d62483ed | batch: the man tail's escapes, spans, cells and copy-mode tabs (b7: p79 p83 p34, b6: p102 p76 p77, p145) | js/man-parse.mjs, js/man-char.mjs, test/man-parse.mjs |
 | c16 | code | a2 | done:835b9b00 | a delta takes its part id from the event, not from state (c14) | ext/code/event.mjs, test/code-events.mjs, test/code-prompt-e2e.mjs |
 | p145 | man | a1 | done:949bf23c | `\t` is zero width in a text line but a tab stop in copy mode (a macro argument or a .de body): b6 made both zero width and troff(1)/unzip(1) lost 78 words | js/man-parse.mjs, test/man-parse.mjs |

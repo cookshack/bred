@@ -607,11 +607,16 @@ The key is the word the source glued, not the token alone — keying on the word
 made 53 words worse before the rule was narrowed.
 
 Round 42 read a bar inside `.Op Fl` as another flag, not the end of the
-argument list, so ssh-agent(1)'s `[-c | -s]` keeps its dash (2 → 0) and section
-1 is 5 words on 5 pages. A bar still ends the argument list of other
-multi-argument macros; that is style only and queued per macro.
+argument list, so ssh-agent(1)'s `[-c | -s]` keeps its dash (2 → 0). A bar
+still ends the argument list of other multi-argument macros; that is style
+only and queued per macro.
 
-Tests: 611 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
+Round 44 made `Ns` survive a closing bracket (ssh-copy-id's
+`[user@]hostname`, 1 → 0) and taught `man-diff` that a right-aligned
+multi-page page-string is a footer, not content (rpcgen's `0a`, 1 → 0).
+Section 1 is now 3 words on 3 pages: tex2aspc, thumbpdf, tload.
+
+Tests: 615 (inventory, interpreter, renderer, viewer, real pty, diff; the zstd
 pty test is pending where `zstd` is not installed);
 `test-corpus` also parses and renders every page in the corpus. Line coverage
 (measured after round 16, over the whole suite) is 100% for `man-char.mjs` and

@@ -1,10 +1,10 @@
 # Unattended agent loop
 
-Status: live, round 43, 2026-11-25 (deadline 2026-11-25T19:00Z). Twenty-six
+Status: live, round 44, 2026-11-25 (deadline 2026-11-25T19:00Z). Twenty-seven
 rounds have used the tool's gate: red at base, green after the rebase, one
 suite at the integrated tip, the record on `loop/r<n>`, one fast-forward. Main
-is the round-43 record commit, green (2030 tests, check clean). Both areas have
-a measure: man is 13 words on 8 pages, code is 20 events with 2 dropped. The next items
+is the round-44 record commit, green (2040 tests, check clean). The plan is
+implemented through P4; man is 11 words on 6 pages, code 18 of 20 translated. The next items
 are in `doc/loop/queue.json` (the view in `doc/Loop-queue.md` is generated);
 the upgrade designs are `doc/Loop-upgrade.md` (the loop's) and
 `doc/loop/plan-2026-11-24.md` (a fresh agent's). This file is the protocol;
@@ -209,16 +209,17 @@ move to a different lane than its prefix suggests if its files are free.
 | 41 | second area | `f6ff0e7` | `ext/code` recorder + conformance measure (10-event fixture, 9-event live recording, 0 malformed); the reviewer's `)` join (hg 2 → 0); totals 15 words on 9 pages |
 | 42 | bars and parts | `c72362c` | a bar inside `.Op Fl` is another flag (ssh-agent 0); `session.text.ended` translates its authoritative text (code 17/2/0); man 13 words on 8 pages |
 | 43 | reasoning | `f26a1d0` | `session.reasoning.ended` translates its complete text (code 18/2/0); rpcgen's last word proved to be a footer, not content |
+| 44 | brackets and footers | `a3607bd` | `Ns` survives the closing bracket (ssh-copy-id 0); a right-aligned page-string is a footer (rpcgen 0); a thinking block is repaired from the ended text; man 11 words on 6 pages |
 
 ## Current state
 
-Measured at `f26a1d0b` (round 43's tip), corpus `4150` pages:
+Measured at `a3607bd2` (round 44's tip), corpus `4150` pages:
 
     4123 parsed, 27 refused of 4150 installed pages
     4621 parsed, 1 refused, 9 templates of 4631 downloaded pages (round 11)
-    whole sections after round 43: 1:5p/5w  3:0p/0w  5:0p/0w  7:1p/5w  8:2p/3w
-    code events after round 43: 20 (18 translated, 2 dropped, 0 malformed)
-    611 man tests, 2030 total, 2 pending, 0 failing; check clean
+    whole sections after round 44: 1:3p/3w  3:0p/0w  5:0p/0w  7:1p/5w  8:2p/3w
+    code events after round 44: 20 (18 translated, 2 dropped, 0 malformed)
+    615 man tests, 2040 total, 2 pending, 0 failing; check clean
 
 The 27 refusals are upstream page bugs or eqn, not dialect gaps. Round 15
 counted 29 because a package update added `.do hla`/`.do hpf` to the Czech
